@@ -4,8 +4,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to unit conversion respective to a particular
-monitor'''
+"""Functions and classes related to unit conversion respective to a particular
+monitor"""
 
 from psychopy import monitors
 import numpy as np
@@ -43,7 +43,8 @@ _unit2PixMappings['degFlatPos'] = _degFlatPos2pix
 
 
 def _degFlat2pix(vertices, pos, win):
-    return deg2pix(array(pos) + array(vertices), win.monitor, correctFlat=True)
+    return deg2pix(array(pos) + array(vertices), win.monitor,
+                   correctFlat=True)
 _unit2PixMappings['degFlat'] = _degFlat2pix
 
 
@@ -58,38 +59,42 @@ _unit2PixMappings['height'] = _height2pix
 
 
 def posToPix(stim):
-    """Returns the stim's position in pixels, based on its pos, units, and win.
+    """Returns the stim's position in pixels,
+    based on its pos, units, and win.
     """
     return convertToPix([0, 0], stim.pos, stim.win.units, stim.win)
 
 
 def convertToPix(vertices, pos, units, win):
-    """Takes vertices and position, combines and converts to pixels from any unit
+    """Takes vertices and position, combines and converts to pixels
+    from any unit
 
-    The reason that `pos` and `vertices` are provided separately is that it allows
-    the conversion from deg to apply flat-screen correction to each separately.
+    The reason that `pos` and `vertices` are provided separately is that
+    it allows the conversion from deg to apply flat-screen correction to
+    each separately.
 
-    The reason that these use function args rather than relying on self.pos
-    is that some stimuli use other terms (e.g. ElementArrayStim uses fieldPos).
+    The reason that these use function args rather than relying on
+    self.pos is that some stimuli use other terms (e.g. ElementArrayStim
+    uses fieldPos).
     """
     unit2pix_func = _unit2PixMappings.get(units)
     if unit2pix_func:
         return unit2pix_func(vertices, pos, win)
     else:
-        raise ValueError(
-            "The unit type [{0}] is not registered with PsychoPy".format(units))
+        msg = "The unit type [{0}] is not registered with PsychoPy"
+        raise ValueError(msg.format(units))
 
 
 def addUnitTypeConversion(unit_label, mapping_func):
-    """
-    Add support for converting units specified by unit_label to pixels to be
-    used by convertToPix (therefore a valid unit for your PsychoPy stimuli)
+    """Add support for converting units specified by unit_label to pixels
+    to be used by convertToPix (therefore a valid unit for your PsychoPy
+    stimuli)
 
     mapping_func must have the function prototype:
 
     def mapping_func(vertices, pos, win):
-        # Convert the input vertices, pos to pixel positions PsychoPy will use
-        # for OpenGL call.
+        # Convert the input vertices, pos to pixel positions PsychoPy
+        # will use for OpenGL call.
 
         # unit type -> pixel mapping logic here
         # .....
@@ -97,27 +102,28 @@ def addUnitTypeConversion(unit_label, mapping_func):
         return pix
     """
     if unit_label in _unit2PixMappings:
-        raise ValueError(
-            "The unit type label [{0}] is already registered with PsychoPy".format(unit_label))
+        msg = "The unit type label [{0}] is already registered with PsychoPy"
+        raise ValueError(msg.format(unit_label))
     _unit2PixMappings[unit_label] = mapping_func
 
-#
+
 # Built in conversion functions follow ...
-#
 
 
 def cm2deg(cm, monitor, correctFlat=False):
-    """Convert size in cm to size in degrees for a given Monitor object"""
+    """Convert size in cm to size in degrees for a given Monitor object
+    """
     # check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise ValueError(
-            "cm2deg requires a monitors.Monitor object as the second argument but received %s" % str(type(monitor)))
+        msg = ("cm2deg requires a monitors.Monitor object as the second "
+               "argument but received %s")
+        raise ValueError(msg % str(type(monitor)))
     # get monitor dimensions
     dist = monitor.getDistance()
     # check they all exist
     if dist is None:
-        raise ValueError(
-            "Monitor %s has no known distance (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     if correctFlat:
         return np.arctan(np.radians(cm / dist))
     else:
@@ -127,25 +133,27 @@ def cm2deg(cm, monitor, correctFlat=False):
 def deg2cm(degrees, monitor, correctFlat=False):
     """Convert size in degrees to size in pixels for a given Monitor object.
 
-    If `correctFlat==False` then the screen will be treated as if all points are
-    equal distance from the eye. This means that each "degree" will be the same
-    size irrespective of its position.
+    If `correctFlat == False` then the screen will be treated as if all
+    points are equal distance from the eye. This means that each "degree"
+    will be the same size irrespective of its position.
 
-    If `correctFlat==True` then the `degrees` argument must be an Nx2 matrix for X and Y values
-    (the two cannot be calculated separately in this case).
+    If `correctFlat == True` then the `degrees` argument must be an Nx2 matrix
+    for X and Y values (the two cannot be calculated separately in this case).
 
-    With correctFlat==True the positions may look strange because more eccentric vertices will be spaced further apart.
+    With `correctFlat == True` the positions may look strange because more
+    eccentric vertices will be spaced further apart.
     """
     # check we have a monitor
     if not hasattr(monitor, 'getDistance'):
-        raise ValueError(
-            "deg2cm requires a monitors.Monitor object as the second argument but received %s" % str(type(monitor)))
+        msg = ("deg2cm requires a monitors.Monitor object as the second "
+               "argument but received %s")
+        raise ValueError(msg % str(type(monitor)))
     # get monitor dimensions
     dist = monitor.getDistance()
     # check they all exist
     if dist is None:
-        raise ValueError(
-            "Monitor %s has no known distance (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     if correctFlat:
         rads = radians(degrees)
         cmXY = np.zeros(rads.shape, 'd')  # must be a double (not float)
@@ -157,15 +165,19 @@ def deg2cm(degrees, monitor, correctFlat=False):
             cmXY[:, 0] = hypot(dist, tan(rads[:, 1]) * dist) * tan(rads[:, 0])
             cmXY[:, 1] = hypot(dist, tan(rads[:, 0]) * dist) * tan(rads[:, 1])
         else:
-            raise ValueError(
-                "If using deg2cm with correctedFlat==True then degrees arg must have shape [N,2], not %s" % (repr(rads.shape)))
+            msg = ("If using deg2cm with correctedFlat==True then degrees "
+                   "arg must have shape [N,2], not %s")
+            raise ValueError(msg % (repr(rads.shape)))
         # derivation:
-        #    if hypotY is line from eyeball to [x,0] given by hypot(dist, tan(degX))
-        #    then cmY is distance from [x,0] to [x,y] given by hypotY*tan(degY)
+        #    if hypotY is line from eyeball to [x,0] given by
+        #       hypot(dist, tan(degX))
+        #    then cmY is distance from [x,0] to [x,y] given by
+        #       hypotY * tan(degY)
         #    similar for hypotX to get cmX
         # alternative:
-        #    we could do this by converting to polar coords, converting deg2cm and then
-        #    going back to cartesian, but this would be slower(?)
+        #    we could do this by converting to polar coords, converting
+        #    deg2cm and then going back to cartesian,
+        #    but this would be slower(?)
         return cmXY
     else:
         # the size of 1 deg at screen centre
@@ -173,68 +185,74 @@ def deg2cm(degrees, monitor, correctFlat=False):
 
 
 def cm2pix(cm, monitor):
-    """Convert size in degrees to size in pixels for a given Monitor object"""
+    """Convert size in degrees to size in pixels for a given Monitor object
+    """
     # check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise ValueError(
-            "cm2pix requires a monitors.Monitor object as the second argument but received %s" % str(type(monitor)))
+        msg = ("cm2pix requires a monitors.Monitor object as the"
+               " second argument but received %s")
+        raise ValueError(msg % str(type(monitor)))
     # get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix is None:
-        raise ValueError(
-            "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     if scrWidthCm is None:
-        raise ValueError(
-            "Monitor %s has no known width in cm (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
 
     return cm * scrSizePix[0] / float(scrWidthCm)
 
 
 def pix2cm(pixels, monitor):
-    """Convert size in pixels to size in cm for a given Monitor object"""
+    """Convert size in pixels to size in cm for a given Monitor object
+    """
     # check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
-        raise ValueError(
-            "cm2pix requires a monitors.Monitor object as the second argument but received %s" % str(type(monitor)))
+        msg = ("cm2pix requires a monitors.Monitor object as the second"
+               " argument but received %s")
+        raise ValueError(msg % str(type(monitor)))
     # get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix is None:
-        raise ValueError(
-            "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     if scrWidthCm is None:
-        raise ValueError(
-            "Monitor %s has no known width in cm (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     return pixels * float(scrWidthCm) / scrSizePix[0]
 
 
 def deg2pix(degrees, monitor, correctFlat=False):
-    """Convert size in degrees to size in pixels for a given Monitor object"""
+    """Convert size in degrees to size in pixels for a given Monitor object
+    """
     # get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix is None:
-        raise ValueError(
-            "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     if scrWidthCm is None:
-        raise ValueError(
-            "Monitor %s has no known width in cm (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
 
     cmSize = deg2cm(degrees, monitor, correctFlat)
     return cmSize * scrSizePix[0] / float(scrWidthCm)
 
 
 def pix2deg(pixels, monitor, correctFlat=False):
-    """Convert size in pixels to size in degrees for a given Monitor object"""
+    """Convert size in pixels to size in degrees for a given Monitor object
+    """
     # get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
     if scrSizePix is None:
-        raise ValueError(
-            "Monitor %s has no known size in pixels (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     if scrWidthCm is None:
-        raise ValueError(
-            "Monitor %s has no known width in cm (SEE MONITOR CENTER)" % monitor.name)
+        msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+        raise ValueError(msg % monitor.name)
     cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
     return cm2deg(cmSize, monitor, correctFlat)

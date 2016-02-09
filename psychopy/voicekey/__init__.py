@@ -126,8 +126,8 @@ class _BaseVoiceKey(object):
         self.config = {'msPerChunk': 2,
                        'signaler': None,
                        'autosave': True,
-                       'chnl_in': 0,  # pyo.pa_get_default_input(),
-                       #'chnl_out': 2,  #pyo.pa_get_default_output(),  # not working
+                       'chnl_in': 0,  # pyo.pa_get_default_input()
+                       #'chnl_out': 2,  #pyo.pa_get_default_output() no go
                        'start': 0,
                        'stop': -1,
                        'vol': 0.99,
@@ -136,8 +136,7 @@ class _BaseVoiceKey(object):
                        'threshold': 10,
                        'baseline': 0,
                        'more_processing': True,
-                       'zero_crossings': True,
-                       }
+                       'zero_crossings': True}
         self.config.update(config)
         self.baseline = self.config['baseline']
         self.bad_baseline = False
@@ -188,7 +187,7 @@ class _BaseVoiceKey(object):
                 self.sec = self.config['stop'] - self.config['start']
             elif self.config['start'] <= self.sec:
                 self.sec = self.sec - self.config['start']
-        self.chunks = int(self.sec * 1000. / self.msPerChunk)  # ideal, no slip
+        self.chunks = int(self.sec * 1000. / self.msPerChunk)  # ideal no slip
         # total chunk count and current-chunk index:
         self.count = 0
 
@@ -237,11 +236,12 @@ class _BaseVoiceKey(object):
             self._baselinetable = pyo.NewTable(length=T_BASELINE_OFF)
 
     def _set_baseline(self):
-        """Set self.baseline = rms(silent period) using data in _baselinetable.
+        """Set self.baseline = rms(silent period) using _baselinetable data.
 
-        Called automatically (via pyo trigger) when the baseline table is full.
-        This is better than using chunks (which have gaps between them) or the
-        whole table (which can be very large = slow to work with).
+        Called automatically (via pyo trigger) when the baseline table
+        is full. This is better than using chunks (which have gaps between
+        them) or the whole table (which can be very large = slow to work
+        with).
         """
         data = np.array(self._baselinetable.getTable())
         tstart = int(T_BASELINE_ON * self.rate)
@@ -254,8 +254,8 @@ class _BaseVoiceKey(object):
         # Dubiously quiet is bad too:
         if segment_power < TOO_QUIET:
             self.stop()
-            msg = 'Baseline period is TOO quiet\n' + \
-                  'wrong input channel selected? device-related initial delay?'
+            msg = ('Baseline period is TOO quiet\nwrong input '
+                   'channel selected? device-related initial delay?')
             raise ValueError(msg)
 
         self.baseline = max(segment_power, 1)
@@ -263,12 +263,12 @@ class _BaseVoiceKey(object):
     def _process(self, chunk):
         """Calculate and store basic stats about the current chunk.
 
-        This gets called every chunk -- keep it efficient, esp with 32-bit python
+        This gets called every chunk -- keep it efficient, esp 32-bit python
         """
         # band-pass filtering:
         if self.config['more_processing']:
-            bp_chunk = bandpass(chunk, self.config[
-                                'low'], self.config['high'], self.rate)
+            bp_chunk = bandpass(chunk, self.config['low'],
+                                self.config['high'], self.rate)
         else:
             bp_chunk = chunk
 
@@ -366,13 +366,13 @@ class _BaseVoiceKey(object):
 
         # triggers: fill tables, call _do_chunk & _set_baseline:
         self._chunktrig = pyo.Trig()
-        self._chunkrec = pyo.TrigTableRec(self._source,
-                                          self._chunktrig, self._chunktable)
-        self._chunklooper = pyo.TrigFunc(
-            self._chunkrec["trig"], self._do_chunk)
+        self._chunkrec = pyo.TrigTableRec(self._source, self._chunktrig,
+                                          self._chunktable)
+        self._chunklooper = pyo.TrigFunc(self._chunkrec["trig"],
+                                         self._do_chunk)
         self._wholetrig = pyo.Trig()
-        self._wholerec = pyo.TrigTableRec(self._source,
-                                          self._wholetrig, self._wholetable)
+        self._wholerec = pyo.TrigTableRec(self._source, self._wholetrig,
+                                          self._wholetable)
         self._wholestopper = pyo.TrigFunc(self._wholerec["trig"], self.stop)
 
         # skip if a baseline value was given in config:
@@ -388,8 +388,8 @@ class _BaseVoiceKey(object):
         if self.file_in and not silent:
             self._source.out()
 
-        # start calling self._do_chunk by flipping its trigger; _do_chunk then
-        # triggers itself via _chunktrigger until done:
+        # start calling self._do_chunk by flipping its trigger;
+        # _do_chunk then triggers itself via _chunktrigger until done:
         self._chunktrig.play()
         self._wholetrig.play()
         self._baselinetrig.play()
@@ -400,8 +400,8 @@ class _BaseVoiceKey(object):
     def slippage(self):
         """Diagnostic: Ratio of the actual (elapsed) time to the ideal time.
 
-        Ideal ratio = 1 = sample-perfect acquisition of msPerChunk, without any
-        gaps between or within chunks. 1. / slippage is the proportion of
+        Ideal ratio = 1 = sample-perfect acquisition of msPerChunk, without
+        any gaps between or within chunks. 1. / slippage is the proportion of
         samples contributing to chunk stats.
         """
         if len(self.t_enter) > 1:
@@ -418,7 +418,9 @@ class _BaseVoiceKey(object):
         return bool(hasattr(self, '_chunklooper'))  # .start() has been called
 
     def stop(self):
-        """Stop a voice-key in progress. Ends and saves the recording if using microphone input.
+        """Stop a voice-key in progress.
+
+        Ends and saves the recording if using microphone input.
         """
         # Will be stopped at self.count (= the chunk index), but that is less
         # reliable than self.elapsed due to any slippage.
@@ -496,7 +498,7 @@ class _BaseVoiceKey(object):
 
 
 class SimpleThresholdVoiceKey(_BaseVoiceKey):
-    """Class for a simple threshold voice key (loudness-based onset detection).
+    """Class for simple threshold voice key (loudness-based onset detection).
 
     The "hello world" of voice-keys.
     """
@@ -516,12 +518,12 @@ class OnsetVoiceKey(_BaseVoiceKey):
     """Class for speech onset detection.
 
     Uses bandpass-filtered signal (100-3000Hz). When the voice key trips,
-    the best voice-onset RT estimate is saved as `self.event_onset`, in seconds.
+    the best voice-onset RT estimate is saved as `self.event_onset`, in sec.
 
     """
 
     def detect(self):
-        """Trip if recent audio power is greater than the baseline for long enough.
+        """Trip if recent audio power is greater than the baseline.
         """
         if self.event_detected or not self.baseline:
             return
@@ -546,7 +548,8 @@ class OffsetVoiceKey(_BaseVoiceKey):
 
         :Parameters:
 
-            `sec`: duration of recording in the absence of speech or other sounds.
+            `sec`: duration of recording in the absence of speech or
+                other sounds.
 
             `delay`: extra time to record after speech offset, default 0.3s.
 
@@ -555,8 +558,7 @@ class OffsetVoiceKey(_BaseVoiceKey):
         config = {'sec': sec,
                   'file_out': file_out,
                   'file_in': file_in,
-                  'delay': delay,
-                  }
+                  'delay': delay}
         kwargs.update(config)
         super(OffsetVoiceKey, self).__init__(**kwargs)
 
@@ -576,9 +578,9 @@ class OffsetVoiceKey(_BaseVoiceKey):
         elif not self.event_offset:
             window = 25
             threshold = 10 * self.baseline
-            #segment = np.array(self.power_bp[-window:])
+            # segment = np.array(self.power_bp[-window:])
             conditions = all([x < threshold for x in self.power_bp[-window:]])
-            #conditions = np.all(segment < threshold)
+            # conditions = np.all(segment < threshold)
             if conditions:
                 self.event_lag = window * self.msPerChunk / 1000.
                 self.event_offset = self.elapsed - self.event_lag

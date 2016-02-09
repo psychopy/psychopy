@@ -4,7 +4,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to variable type conversion'''
+"""Functions and classes related to variable type conversion
+"""
 
 import numpy
 

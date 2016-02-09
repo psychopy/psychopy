@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# these are correct for win32, not sure about 64bit versions
+# These are correct for win32, not sure about 64bit versions
 # DEFINE NORMAL_PRIORITY_CLASS 32
 # DEFINE IDLE_PRIORITY_CLASS 64
 # DEFINE HIGH_PRIORITY_CLASS 128
@@ -24,8 +24,8 @@ try:
 except Exception:
     importWindllFailed = True
     from .. import logging
-    logging.debug(
-        "rush() not available because import windll failed in ext/win32.py")
+    logging.debug("rush() not available because import windll "
+                  "failed in psychopy/platform_specific/win32.py")
 
 FALSE = 0
 
@@ -46,7 +46,7 @@ ES_SYSTEM_REQUIRED = 0x00000001
 
 
 def rush(enable=True, realtime=False):
-    """Raise the priority of the current thread/process
+    """Raise the priority of the current thread/process.
 
     Set with rush(True) or rush(False)
 
@@ -77,19 +77,20 @@ def rush(enable=True, realtime=False):
 
 
 def waitForVBL():
-    """Not implemented on win32 yet
+    """Not implemented on win32 yet.
     """
     pass
 
 
 def sendStayAwake():
-    """Sends a signal to your system to indicate that the computer is in use and
-    should not sleep. This should be sent periodically, but PsychoPy will send
-    the signal by default on each screen refresh.
+    """Sends a signal to your system to indicate that the computer is
+    in use and should not sleep. This should be sent periodically, but
+    PsychoPy will send the signal by default on each screen refresh.
+
     Added: v1.79.00
 
-    Currently supported on: windows, OS X
+    Currently supported on: windows, OS X.
     """
-    success = windll.SetThreadExecutionState(
-        ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED)
-    return success  # indicates success
+    code = ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
+    success = windll.SetThreadExecutionState(code)
+    return success

@@ -4,14 +4,15 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to plotting'''
+"""Functions and classes related to plotting
+"""
 
 
 def plotFrameIntervals(intervals):
     """Plot a histogram of the frame intervals.
 
-    Where `intervals` is either a filename to a file, saved by Window.saveFrameIntervals
-    or simply a list (or array) of frame intervals
+    Where `intervals` is either a filename to a file, saved by
+    Window.saveFrameIntervals, or simply a list (or array) of frame intervals
 
     """
     from pylab import hist, show, plot

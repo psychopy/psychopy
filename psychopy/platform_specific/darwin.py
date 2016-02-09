@@ -11,8 +11,8 @@ try:
     importCtypesFailed = False
 except Exception:
     importCtypesFailed = True
-    logging.debug(
-        "rush() not available because import ctypes failed in contrib/darwin.py")
+    logging.debug("rush() not available because import ctypes "
+                  "failed in contrib/darwin.py")
 
 # constants
 KERN_SUCCESS = 0
@@ -48,20 +48,24 @@ thread_policy_t = integer_t * 16  # in mach_types.defs
 CTL_HW = ctypes.c_int(6)  # /* generic cpu/io */
 HW_BUS_FREQ = ctypes.c_int(14)
 
-cocoa = ctypes.cdll.LoadLibrary(
-    ctypes.util.find_library("Cocoa"))  # could use carbon instead?
-# mach = ctypes.cdll.LoadLibrary(ctypes.util.find_library("libm"))#not needed - all the functions seem to be in cocoa
-# ogl = ctypes.cdll.LoadLibrary(ctypes.util.find_library("OpenGL"))#not
-# needed - all the functions seem to be in cocoa
+# could use carbon instead?
+cocoa = ctypes.cdll.LoadLibrary(ctypes.util.find_library("Cocoa"))
+
+# not needed - all the functions seem to be in cocoa:
+# mach = ctypes.cdll.LoadLibrary(ctypes.util.find_library("libm"))
+# ogl = ctypes.cdll.LoadLibrary(ctypes.util.find_library("OpenGL"))
 
 
-def _create_cfstring(text):  # some string parameters need to be converted to SFStrings
+
+def _create_cfstring(text):
+    # some string parameters need to be converted to SFStrings
     if importCtypesFailed:
         return False
 
     return cocoa.CFStringCreateWithCString(ctypes.c_void_p(),
                                            text.encode('utf8'),
                                            kCFStringEncodingUTF8)
+
 if importCtypesFailed == False:
     class _timeConstraintThreadPolicy(ctypes.Structure):
         _fields_ = [('period', ctypes.c_uint),  # HZ/160
@@ -72,7 +76,8 @@ if importCtypesFailed == False:
 
 def syncSwapBuffers(n):
     """syncSwapBuffers(n)
-    if n==1 then buffers will sync, otherwise sync will bee turned off"""
+    if n==1 then buffers will sync, otherwise sync will bee turned off.
+    """
     try:
         # set v to 1 to enable vsync, 0 to disable vsync
         v = ctypes.c_int(n)
@@ -84,7 +89,8 @@ def syncSwapBuffers(n):
 
 
 def getBusFreq():
-    """Get the frequency of the system bus (HZ)"""
+    """Get the frequency of the system bus (HZ).
+    """
     if importCtypesFailed:
         return False
 
@@ -97,7 +103,8 @@ def getBusFreq():
 
 
 def rush(value=True, realtime=False):
-    """Raise the priority of the current thread/process
+    """Raise the priority of the current thread / process.
+
     Win32 and OS X only so far - on linux use os.nice(niceIncrement)
 
     Set with rush(True) or rush(False).
@@ -121,9 +128,10 @@ def rush(value=True, realtime=False):
         # max period that they should be carried out in
         extendedPolicy.constrain = bus / 640
         extendedPolicy.preemptible = 1
-        extendedPolicy = getThreadPolicy(
-            getDefault=True, flavour=THREAD_TIME_CONSTRAINT_POLICY)
-        err = cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY,
+        extendedPolicy = getThreadPolicy(getDefault=True,
+                                         flavour=THREAD_TIME_CONSTRAINT_POLICY)
+        err = cocoa.thread_policy_set(cocoa.mach_thread_self(),
+                                      THREAD_TIME_CONSTRAINT_POLICY,
                                       # send the address of the struct
                                       ctypes.byref(extendedPolicy),
                                       THREAD_TIME_CONSTRAINT_POLICY_COUNT)
@@ -134,9 +142,10 @@ def rush(value=True, realtime=False):
             logging.info('Successfully set darwin thread to realtime')
     else:
         # revert to default policy
-        extendedPolicy = getThreadPolicy(
-            getDefault=True, flavour=THREAD_STANDARD_POLICY)
-        err = cocoa.thread_policy_set(cocoa.mach_thread_self(), THREAD_STANDARD_POLICY,
+        extendedPolicy = getThreadPolicy(getDefault=True,
+                                         flavour=THREAD_STANDARD_POLICY)
+        err = cocoa.thread_policy_set(cocoa.mach_thread_self(),
+                                      THREAD_STANDARD_POLICY,
                                       # send the address of the struct
                                       ctypes.byref(extendedPolicy),
                                       THREAD_STANDARD_POLICY_COUNT)
@@ -146,8 +155,8 @@ def rush(value=True, realtime=False):
 def getThreadPolicy(getDefault, flavour):
     """Retrieve the current (or default) thread policy.
 
-    getDefault should be True or False
-    flavour should be 1 (standard) or 2 (realtime)
+    `getDefault` should be True or False.
+    `flavour` should be 1 (standard) or 2 (realtime). Not implemented.
 
     Returns a ctypes struct with fields:
            .period
@@ -155,14 +164,16 @@ def getThreadPolicy(getDefault, flavour):
            .constrain
            .preemptible
 
-    See http://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html"""
+    See http://docs.huihoo.com/darwin/kernel-programming-guide/scheduler/chapter_8_section_4.html
+    """
     if importCtypesFailed:
         return False
 
     extendedPolicy = _timeConstraintThreadPolicy()  # to store the infos
     # we want to retrive actual policy or the default
     getDefault = ctypes.c_int(getDefault)
-    err = cocoa.thread_policy_get(cocoa.mach_thread_self(), THREAD_TIME_CONSTRAINT_POLICY,
+    err = cocoa.thread_policy_get(cocoa.mach_thread_self(),
+                                  THREAD_TIME_CONSTRAINT_POLICY,
                                   # send the address of the policy struct
                                   ctypes.byref(extendedPolicy),
                                   ctypes.byref(
@@ -172,19 +183,21 @@ def getThreadPolicy(getDefault, flavour):
 
 
 def getRush():
-    """Determine whether or not we are in rush mode. Returns True/False"""
+    """Determine whether or not we are in rush mode. Returns True/False.
+    """
     if importCtypesFailed:
         return None
-    policy = getThreadPolicy(
-        getDefault=False, flavour=THREAD_TIME_CONSTRAINT_POLICY)
-    default = getThreadPolicy(
-        getDefault=True, flavour=THREAD_TIME_CONSTRAINT_POLICY)
+    policy = getThreadPolicy(getDefault=False,
+                             flavour=THREAD_TIME_CONSTRAINT_POLICY)
+    default = getThreadPolicy(getDefault=True,
+                              flavour=THREAD_TIME_CONSTRAINT_POLICY)
     # by default this is zero, so not zero means we've changed it
     return policy.period != default.period
 
 
 def getScreens():
-    """Get a list of display IDs from cocoa"""
+    """Get a list of display IDs from cocoa.
+    """
     if importCtypesFailed:
         return False
 
@@ -192,29 +205,36 @@ def getScreens():
     cocoa.CGGetActiveDisplayList(0, None, ctypes.byref(count))
     displays = (CGDirectDisplayID * count.value)()
     cocoa.CGGetActiveDisplayList(count.value, displays, ctypes.byref(count))
-    return [id for id in displays]
+
+    return [id for id in displays]  # python list
+
+
+def getScreen(screen):
+    """Select `screen` from getScreens(), or raise if bad value.
+    """
+    screens = getScreens()
+    if screen > len(screens) - 1:
+        msg = "Requested refresh rate of screen %i, but only have %i screens."
+        raise IndexError(msg % (screen, len(screens)))
+    return getScreens()[screen]
 
 
 def getRefreshRate(screen=0):
-    """Return the refresh rate of the given screen (typically screen is 0 or 1)
+    """Return the refresh rate of the given screen (typically screen = 0 or 1)
 
-    NB. If two screens are connected with different refresh rates then the rate at which we
-    draw may not reflect the refresh rate of the monitor, because
+    NB. If two screens are connected with different refresh rates then the
+    rate at which we draw may not reflect the refresh rate of the monitor.
     """
     if importCtypesFailed:
         return False
 
-    screens = getScreens()
-    if screen > (len(screens) - 1):
-        raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" % (
-            screen, len(screens))
-    else:
-        scrID = getScreens()[screen]
+    scrID = getScreen(screen)
     mode = cocoa.CGDisplayCurrentMode(scrID)
-    refreshCF = cocoa.CFDictionaryGetValue(
-        mode, _create_cfstring('RefreshRate'))
+    refreshCF = cocoa.CFDictionaryGetValue(mode,
+                                           _create_cfstring('RefreshRate'))
     refresh = ctypes.c_long()
-    cocoa.CFNumberGetValue(refreshCF, kCFNumberLongType, ctypes.byref(refresh))
+    cocoa.CFNumberGetValue(refreshCF, kCFNumberLongType,
+                           ctypes.byref(refresh))
     if refresh.value == 0:
         return 60  # probably an LCD
     else:
@@ -222,28 +242,22 @@ def getRefreshRate(screen=0):
 
 
 def getScreenSizePix(screen=0):
-    """Return the height and width (in pixels) of the given screen (typically screen is 0 or 1)
-    If no screen is given then screen 0 is used.
+    """Return the height and width (in pixels) of the given screen.
+    (typically screen is 0 or 1) If no screen is given then screen 0 is used.
 
     h,w = getScreenSizePix()
     """
-
     if importCtypesFailed:
         return False
-    screens = getScreens()
-    if screen > (len(screens) - 1):
-        raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" % (
-            screen, len(screens))
-    else:
-        scrID = getScreens()[screen]
+    scrID = getScreen(screen)
     h = cocoa.CGDisplayPixelsHigh(scrID)
     w = cocoa.CGDisplayPixelsWide(scrID)
     return [h, w]
 
 
 def waitForVBL(screen=0, nFrames=1):
-    """DEPRECATED: the code for doing this is now smaller and cross-platform so
-    is included in visual.Window.flip()
+    """DEPRECATED: the code for doing this is now smaller and cross-platform
+    so is included in visual.Window.flip()
 
     This version is based on detecting the display beam position. It may give
     unpredictable results for an LCD.
@@ -251,22 +265,20 @@ def waitForVBL(screen=0, nFrames=1):
     if importCtypesFailed:
         return False
 
-    screens = getScreens()
-    if screen > (len(screens) - 1):
-        raise IndexError, "Requested refresh rate of screen %i, but only %i screens were found" % (
-            screen, len(screens))
-    else:
-        scrID = getScreens()[screen]
+    scrID = getScreen(screen)
     framePeriod = 1.0 / getRefreshRate(screen)
     if screen > 0:  # got multiple screens, check if they have same rate
         mainFramePeriod = 1.0 / getRefreshRate(0)
         if mainFramePeriod != framePeriod:
             # CGDisplayBeamPosition is unpredictable in this case - usually
             # synced to the first monitor, but maybe better if 2 gfx cards?
-            logging.warning("You are trying to wait for blanking on a secondary monitor that has a different \
-refresh rate to your primary monitor. This is not recommended (likely to reduce your frame rate to the primary monitor).")
-    # when we're in a VBL the current beam position is greater than the screen
-    # height (for up to ~30 lines)
+            msg = ("You are trying to wait for blanking on a secondary "
+                   "monitor that has a different refresh rate to your "
+                   "primary monitor. This is not recommended (likely to "
+                   "reduce your frame rate to the primary monitor).")
+            logging.warning(msg)
+    # when we're in a VBL the current beam position is greater than
+    # the screen height (for up to ~30 lines)
     top = getScreenSizePix(screen)[0]
     if cocoa.CGDisplayBeamPosition(scrID) > top:
         nFrames += 1  # we're in a VBL already, wait for one more
@@ -281,9 +293,9 @@ refresh rate to your primary monitor. This is not recommended (likely to reduce 
         # now near top so poll continuously
         while beamPos < top:
             beamPos = cocoa.CGDisplayBeamPosition(scrID)  # get current pos
-        # if this was not the last frame, then wait until start of next frame before continuing
-        # so that we don't detect the VBL again. If this was the last frame
-        # then get back to script asap
+        # if this was not the last frame, then wait until start of next
+        # frame before continuing so that we don't detect the VBL again.
+        # If this was the last frame then get back to script asap
         if nFrames > 1:
             while beamPos >= top:
                 beamPos = cocoa.CGDisplayBeamPosition(scrID)
@@ -291,9 +303,10 @@ refresh rate to your primary monitor. This is not recommended (likely to reduce 
 
 
 def sendStayAwake():
-    """Sends a signal to your system to indicate that the computer is in use and
-    should not sleep. This should be sent periodically, but PsychoPy will send
-    the signal by default on each screen refresh.
+    """Sends a signal to your system to indicate that the computer is in
+    use and should not sleep. This should be sent periodically, but
+    PsychoPy will send the signal by default on each screen refresh.
+
     Added: v1.79.00
 
     Currently supported on: windows, OS X

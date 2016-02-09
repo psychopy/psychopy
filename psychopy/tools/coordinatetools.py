@@ -4,15 +4,15 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to coordinate system conversion'''
+"""Functions and classes related to coordinate system conversion
+"""
 
 import numpy
-
 from numpy import radians
 
 
 def cart2pol(x, y, units='deg'):
-    """Convert from cartesian to polar coordinates
+    """Convert from cartesian to polar coordinates.
 
     :usage:
 
@@ -22,20 +22,20 @@ def cart2pol(x, y, units='deg'):
     """
     radius = numpy.hypot(x, y)
     theta = numpy.arctan2(y, x)
-    if units in ['deg', 'degs']:
+    if units in ('deg', 'degs'):
         theta = theta * 180 / numpy.pi
     return theta, radius
 
 
 def pol2cart(theta, radius, units='deg'):
-    """Convert from polar to cartesian coordinates
+    """Convert from polar to cartesian coordinates.
 
     usage::
 
         x,y = pol2cart(theta, radius, units='deg')
 
     """
-    if units in ['deg', 'degs']:
+    if units in ('deg', 'degs'):
         theta = theta * numpy.pi / 180.0
     xx = radius * numpy.cos(theta)
     yy = radius * numpy.sin(theta)
@@ -52,7 +52,8 @@ def cart2sph(z, y, x):
         OR
         elevation, azimuth, radius = cart2sph(x,y,z)
 
-        If working in DKL space, z = Luminance, y = S and x = LM"""
+        If working in DKL space, z = Luminance, y = S and x = LM
+    """
     width = len(z)
 
     elevation = numpy.empty([width, width])
@@ -76,7 +77,7 @@ def cart2sph(z, y, x):
 
 def sph2cart(*args):
     """Convert from spherical coordinates (elevation, azimuth, radius)
-    to cartesian (x,y,z)
+    to cartesian (x,y,z).
 
     usage:
         array3xN[x,y,z] = sph2cart(array3xN[el,az,rad])

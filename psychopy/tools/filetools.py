@@ -4,7 +4,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to file and directory handling'''
+"""Functions and classes related to file and directory handling
+"""
 
 import os
 import shutil
@@ -16,7 +17,7 @@ from psychopy.tools.fileerrortools import handleFileCollision
 
 
 def toFile(filename, data):
-    """save data (of any sort) as a pickle file
+    """Save data (of any sort) as a pickle file.
 
     simple wrapper of the cPickle module in core python
     """
@@ -26,9 +27,9 @@ def toFile(filename, data):
 
 
 def fromFile(filename):
-    """load data (of any sort) from a pickle file
+    """Load data (of any sort) from a pickle file.
 
-    simple wrapper of the cPickle module in core python
+    Simple wrapper of the cPickle module in core python
     """
     f = open(filename)
     contents = cPickle.load(f)
@@ -43,9 +44,8 @@ def fromFile(filename):
 def mergeFolder(src, dst, pattern=None):
     """Merge a folder into another.
 
-    Existing files in `dst` folder with the same name will be overwritten. Non-existent
-    files/folders will be created.
-
+    Existing files in `dst` folder with the same name will be
+    overwritten. Non-existent files/folders will be created.
     """
     # dstdir must exist first
     srcnames = os.listdir(src)
@@ -58,15 +58,15 @@ def mergeFolder(src, dst, pattern=None):
             mergeFolder(srcfname, dstfname)
         else:
             try:
-                shutil.copyfile(srcfname, dstfname)  # copy without metadata
+                # copy without metadata:
+                shutil.copyfile(srcfname, dstfname)
             except IOError as why:
                 print(why)
 
 
 def openOutputFile(fileName, append=False, delim=None,
                    fileCollisionMethod='rename', encoding='utf-8'):
-    """
-    Open an output file (or standard output) for writing.
+    """Open an output file (or standard output) for writing.
 
     :Parameters:
 
@@ -101,7 +101,6 @@ def openOutputFile(fileName, append=False, delim=None,
     the extension ``.csv`` will be chosen automatically. If the extension
     is unknown and the delimiter is a tab, the extension will be
     ``.tsv``. ``.txt`` will be chosen otherwise.
-
     """
 
     if fileName == 'stdout':
@@ -148,8 +147,7 @@ def openOutputFile(fileName, append=False, delim=None,
 
 
 def genDelimiter(fileName):
-    """
-    Return a delimiter based on a filename.
+    """Return a delimiter based on a filename.
 
     :Parameters:
 
@@ -162,7 +160,6 @@ def genDelimiter(fileName):
         A delimiter picked based on the supplied filename. This will be
         ``,`` if the filename extension is ``.csv``, and a tabulator
         character otherwise.
-
     """
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','

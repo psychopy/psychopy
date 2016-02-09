@@ -4,7 +4,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to array handling'''
+"""Functions and classes related to array handling
+"""
 
 import numpy
 
@@ -37,15 +38,16 @@ def createXYs(x, y=None):
     """
     if y is None:
         y = x
-    xs = numpy.resize(x, len(x) * len(y))  # [1,2,3,1,2,3,1,2,3]
-    ys = numpy.repeat(y, len(x))  # [1,1,1,2,2,2,3,3,3]
+    xs = numpy.resize(x, len(x) * len(y))  # [1,2,3, 1,2,3, 1,2,3]
+    ys = numpy.repeat(y, len(x))  # [1,1,1 ,2,2,2, 3,3,3]
     return numpy.vstack([xs, ys]).transpose()
 
 
 def extendArr(inArray, newSize):
-    """Takes a numpy array and returns it padded with zeros to the necessary size
+    """Takes a numpy array and returns it padded with zeros
+    to the necessary size
 
-    >>> extendArr([1,2,3],5)
+    >>> extendArr([1, 2, 3], 5)
     array([1, 2, 3, 0, 0])
 
     """
@@ -60,9 +62,9 @@ def extendArr(inArray, newSize):
     indString = indString[0:-1]  # remove the final comma
 
     # e.g.
-    # newArr[0:4,0:3]=inArray
+    # newArr[0:4, 0:3] = inArray
 
-    exec("newArr[" + indString + "]=inArray")
+    exec("newArr[" + indString + "] = inArray")
     return newArr
 
 
@@ -82,7 +84,8 @@ def ratioRange(start, nSteps=None, stop=None,
     """Creates a  array where each step is a constant ratio
     rather than a constant addition.
 
-    Specify *start* and any 2 of, *nSteps*, *stop*, *stepRatio*, *stepdB*, *stepLogUnits*
+    Specify *start* and any 2 of, *nSteps*, *stop*, *stepRatio*,
+        *stepdB*, *stepLogUnits*
 
     >>> ratioRange(1,nSteps=4,stop=8)
     array([ 1.,  2.,  4.,  8.])
@@ -93,11 +96,12 @@ def ratioRange(start, nSteps=None, stop=None,
 
     """
 
+    badRange = "Can't calculate ratio ranges on negatives or zero"
     if start <= 0:
-        raise RuntimeError, "Can't calculate ratio ranges on negatives or zero"
-    if (stepdB != None):
+        raise RuntimeError(badRange)
+    if stepdB is not None:
         stepRatio = 10.0**(stepdB / 20.0)  # dB = 20*log10(ratio)
-    if (stepLogUnits != None):
+    if stepLogUnits is not None:
         stepRatio = 10.0**stepLogUnits  # logUnit = log10(ratio)
 
     if (stepRatio != None) and (nSteps != None):
@@ -106,7 +110,7 @@ def ratioRange(start, nSteps=None, stop=None,
 
     elif (nSteps != None) and (stop != None):
         if stop <= 0:
-            raise RuntimeError, "Can't calculate ratio ranges on negatives or zero"
+            raise RuntimeError(badRange)
         lgStart = numpy.log10(start)
         lgStop = numpy.log10(stop)
         lgStep = (lgStop - lgStart) / (nSteps - 1)
@@ -130,7 +134,7 @@ def ratioRange(start, nSteps=None, stop=None,
 def shuffleArray(inArray, shuffleAxis=-1, seed=None):
     """DEPRECATED: use `numpy.random.shuffle`
     """
-    #arrAsList = shuffle(list(inArray))
+    # arrAsList = shuffle(list(inArray))
     # return numpy.array(arrAsList)
     if seed is not None:
         numpy.random.seed(seed)
@@ -146,27 +150,32 @@ def shuffleArray(inArray, shuffleAxis=-1, seed=None):
 
 def val2array(value, withNone=True, withScalar=True, length=2):
     """Helper function: converts different input to a numpy array.
+
     Raises informative error messages if input is invalid.
 
     withNone: True/False. should 'None' be passed?
-    withScalar: True/False. is a scalar an accepted input? Will be converted to array of this scalar
-    elements: False/2/3. Number of elements input should have or be converted to. Might be False (do not accept arrays or convert to such)"""
+    withScalar: True/False. is a scalar an accepted input?
+        Will be converted to array of this scalar
+    length: False / 2 / 3. Number of elements input should have or be
+        converted to. Might be False (do not accept arrays or convert to such)
+    """
     if value is None:
         if withNone:
             return None
         else:
-            raise ValueError(
-                'Invalid parameter. None is not accepted as value.')
+            raise ValueError('Invalid parameter. None is not accepted as '
+                             'value.')
     value = numpy.array(value, float)
     if numpy.product(value.shape) == 1:
         if withScalar:
             # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
             return numpy.repeat(value, length)
         else:
-            raise ValueError(
-                'Invalid parameter. Single numbers are not accepted. Should be tuple/list/array of length ' + str(length))
+            msg = ('Invalid parameter. Single numbers are not accepted. '
+                   'Should be tuple/list/array of length %s')
+            raise ValueError(msg % str(length))
     elif value.shape[-1] == length:
         return numpy.array(value, float)
     else:
-        raise ValueError('Invalid parameter. Should be length ' +
-                         str(length) + ' but got length ' + str(len(value)))
+        msg = 'Invalid parameter. Should be length %s but got length %s.'
+        raise ValueError(msg % (str(length), str(len(value))))
