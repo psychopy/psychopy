@@ -132,8 +132,8 @@ class Aperture(MinimalStim, ContainerMixin):
         self._reset()
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
@@ -189,7 +189,7 @@ class Aperture(MinimalStim, ContainerMixin):
         Use setSize() if you want to control 0logging and resetting.
         """
         self.__dict__['size'] = size
-        self._shape.size = size  # a ShapeStim
+        self._shape.size = size  # _shape is a ShapeStim
         self._reset()
 
     def setSize(self, size, needReset=True, log=None):

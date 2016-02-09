@@ -103,8 +103,8 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         self._calcPosRendered()
 
         # set autoLog (now that params have been initialised)
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 

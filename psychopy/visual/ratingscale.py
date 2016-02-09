@@ -1251,7 +1251,7 @@ class RatingScale(MinimalStim):
                 self.targetWord = self.labels[int(self.markerPlacedAt)]
                 self.targetWord.setColor(self.markerColor, log=False)
                 # skip size change to reduce mem leakage from pyglet text
-                #self.targetWord.setHeight(1.05*self.textSizeSmall,log=False)
+                # self.targetWord.setHeight(1.05*self.textSizeSmall,log=False)
                 self.markerPlacedAtLast = self.markerPlacedAt
             elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)

@@ -74,7 +74,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        # Initialize inheritance and remove unwanted methods; autoLog is set later
+        # Initialize inheritance and remove unwanted methods; autoLog is set
+        # later
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
         self.__dict__['setColor'] = None
@@ -116,8 +117,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.autoDraw = autoDraw  # call attributeSetter
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
@@ -419,7 +420,7 @@ class ShapeStim(BaseShapeStim):
 
         # set autoLog now that params have been initialised
         wantLog = autoLog or autoLog is None and self.win.autoLog
-        self.__dict__['autoLog'] =  wantLog
+        self.__dict__['autoLog'] = wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 

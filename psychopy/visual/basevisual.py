@@ -78,15 +78,17 @@ class MinimalStim(object):
     """
 
     def __init__(self, name=None, autoLog=None):
-        self.__dict__['name'] = name if name not in (
-            None, '') else 'unnamed %s' % self.__class__.__name__
+        if name not in (None, ''):
+            self.__dict__['name'] = name
+        else:
+            self.__dict__['name'] = 'unnamed %s' % self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
         super(MinimalStim, self).__init__()
         if self.autoLog:
             msg = ("%s is calling MinimalStim.__init__() with autolog=True. "
                    "Set autoLog to True only at the end of __init__())")
-            logging.warning(msg % (self.__class__.__name__))
+            logging.warning(msg % self.__class__.__name__)
 
     def __str__(self, complete=False):
         """
@@ -146,8 +148,8 @@ class MinimalStim(object):
         elif value:
             # work out where to insert the object in the autodraw list
             depthArray = numpy.array(toDrawDepths)
-            iis = numpy.where(depthArray < self.depth)[
-                0]  # all indices where true
+            # all indices where true:
+            iis = numpy.where(depthArray < self.depth)[0]
             if len(iis):  # we featured somewhere before the end of the list
                 toDraw.insert(iis[0], self)
                 toDrawDepths.insert(iis[0], self.depth)
@@ -198,7 +200,7 @@ class LegacyVisualMixin(object):
         """DEPRECATED in 1.80.00. This functionality is now handled
         by _updateVertices() and verticesPix
         """
-        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in
+        # raise DeprecationWarning, "_calcSizeRendered() was deprecated in
         # 1.80.00. This functionality is now handled by _updateVertices()
         # and verticesPix"
         if self.units in ['norm', 'pix', 'height']:
@@ -685,7 +687,7 @@ class TextureMixin(object):
             wasLum = True
         elif tex == "saw":
             intensity = numpy.linspace(-1.0, 1.0, res, endpoint=True) * \
-                        numpy.ones([res, 1])
+                numpy.ones([res, 1])
             wasLum = True
         elif tex == "tri":
             # -1:3 means the middle is at +1
@@ -696,8 +698,8 @@ class TextureMixin(object):
             wasLum = True
         elif tex == "sinXsin":
             # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[
-                0:2 * pi:1j * res, 0:2 * pi:1j * res]
+            onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
+                                                 0:2 * pi:1j * res]
             intensity = sin(onePeriodX - pi / 2) * sin(onePeriodY - pi / 2)
             wasLum = True
         elif tex == "sqrXsqr":

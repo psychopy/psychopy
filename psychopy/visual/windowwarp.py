@@ -381,7 +381,7 @@ class Warper(object):
                 tcoords[vdex + 0, 1] = warpdata[index, 3]
                 # u_coords[y,x+1]:
                 tcoords[vdex + 1, 0] = warpdata[index + 1, 2]
-                 # v_coords[y,x+1]:
+                # v_coords[y,x+1]:
                 tcoords[vdex + 1, 1] = warpdata[index + 1, 3]
                 # u_coords[y+1,x+1]:
                 tcoords[vdex + 2, 0] = warpdata[index + cols + 1, 2]

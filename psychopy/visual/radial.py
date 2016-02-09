@@ -146,8 +146,8 @@ class RadialStim(GratingStim):
         self._updateEverything()
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
@@ -328,9 +328,11 @@ class RadialStim(GratingStim):
                                     dtype='float64')
         # which vertices are visible?
         # first edge of wedge:
-        self._visible = (self._angles >= (self.visibleWedge[0] * pi / 180))
+        visW = self.visibleWedge
+        self._visible = (self._angles >= visW[0] * pi / 180)
         # second edge of wedge:
-        self._visible[(self._angles + self._triangleWidth) * 180 / pi > (self.visibleWedge[1])] = False
+        edge2 = (self._angles + self._triangleWidth) * (180 / pi) > visW[1]
+        self._visible[edge2] = False
         self._nVisible = numpy.sum(self._visible) * 3
 
         self._updateTextureCoords()
@@ -382,8 +384,8 @@ class RadialStim(GratingStim):
             # setup color
             desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
                                              self.contrast)
-            GL.glColor4f(desiredRGB[0], desiredRGB[1],
-                         desiredRGB[2], self.opacity)
+            GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
+                         self.opacity)
 
             # assign vertex array
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
@@ -414,7 +416,8 @@ class RadialStim(GratingStim):
 
             # mask
             GL.glClientActiveTexture(GL.GL_TEXTURE1)
-            GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
+            GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0,
+                                 self._visibleMask.ctypes)
             GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
             # do the drawing
@@ -467,20 +470,27 @@ class RadialStim(GratingStim):
     def _updateTextureCoords(self):
         """calculate texture coordinates if angularCycles or Phase change
         """
+        pi2 = 2 * pi
         self._textureCoords = numpy.zeros([self.angularRes, 3, 2])
+        # x position of inner vertex
         self._textureCoords[:, 0, 0] = (self._angles + self._triangleWidth / 2) * \
-            self.angularCycles / \
-            (2 * pi) + self.angularPhase  # x position of inner vertex
-        self._textureCoords[:, 0, 1] = 0.25 + - \
-            self.radialPhase  # y position of inner vertex
-        self._textureCoords[:, 1, 0] = (self._angles) * self.angularCycles / (
-            2 * pi) + self.angularPhase  # x position of 1st outer vertex
-        self._textureCoords[:, 1, 1] = 0.25 + self.radialCycles - \
-            self.radialPhase  # y position of 1st outer vertex
-        self._textureCoords[:, 2, 0] = (self._angles + self._triangleWidth) * self.angularCycles / (
-            2 * pi) + self.angularPhase  # x position of 2nd outer vertex
+            self.angularCycles / pi2 + self.angularPhase
+        # y position of inner vertex
+        self._textureCoords[:, 0, 1] = 0.25 - self.radialPhase
+
+        # x position of 1st outer vertex
+        self._textureCoords[:, 1, 0] = self._angles * self.angularCycles / pi2 \
+            + self.angularPhase
+        # y position of 1st outer vertex
+        self._textureCoords[:, 1, 1] = 0.25 + \
+            self.radialCycles - self.radialPhase
+
+        # x position of 2nd outer vertex
+        self._textureCoords[:, 2, 0] = (self._angles + self._triangleWidth) * \
+            self.angularCycles / pi2 + self.angularPhase
+        # y position of 2nd outer vertex
         self._textureCoords[:, 2, 1] = 0.25 + self.radialCycles - \
-            self.radialPhase  # y position of 2nd outer vertex
+            self.radialPhase
         self._visibleTexture = self._textureCoords[
             self._visible, :, :].reshape(self._nVisible, 2)
 

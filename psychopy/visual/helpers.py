@@ -186,7 +186,6 @@ def setColor(obj, color, colorSpace=None, operation='',
             raise AttributeError(
                 "PsychoPy can't interpret the color string '%s'" % color)
 
-
     else:
         # If it wasn't a string, do check and conversion of scalars,
         # sequences and other stuff.

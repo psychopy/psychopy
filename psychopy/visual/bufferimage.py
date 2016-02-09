@@ -144,8 +144,8 @@ class BufferImageStim(ImageStim):
                 msg = ('BufferImageStim.__init__: defaulting to square '
                        'power-of-2 sized image (%s)')
                 logging.debug(msg % glversion)
-            region = win._getRegionOfFrame( buffer=buffer, rect=rect,
-                                            squarePower2=True)
+            region = win._getRegionOfFrame(buffer=buffer, rect=rect,
+                                           squarePower2=True)
         if stim:
             win.clearBuffer()
 
@@ -167,8 +167,8 @@ class BufferImageStim(ImageStim):
         self.flipVert = flipVert
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
             msg = 'BufferImageStim %s: took %.1fms to initialize'
@@ -221,8 +221,8 @@ class BufferImageStim(ImageStim):
                     self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glColor4f(self.desiredRGB[0], self.desiredRGB[
-                     1], self.desiredRGB[2], self.opacity)
+        GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1],
+                     self.desiredRGB[2], self.opacity)
 
         GL.glCallList(self._listID)  # make it happen
         GL.glPopMatrix()  # return the view to previous state

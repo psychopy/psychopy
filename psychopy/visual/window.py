@@ -1097,13 +1097,14 @@ class Window(object):
             if hasattr(self, '_shaders'):
                 self._progSignedTex = self._shaders['signedTex_adding']
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
-                self._progSignedTexMask1D = self._shaders[
-                    'signedTexMask1D_adding']
+                tmp = self._shaders['signedTexMask1D_adding']
+                self._progSignedTexMask1D = tmp
                 self._progImageStim = self._shaders['imageStim_adding']
 
     def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'blendMode', blendMode, log)
 
     @attributeSetter
@@ -1124,7 +1125,8 @@ class Window(object):
         stimuli.
 
         See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications."""
+        specify colors and their various implications.
+        """
         self.setColor(color)
 
     @attributeSetter
