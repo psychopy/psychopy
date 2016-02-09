@@ -1644,3 +1644,22 @@ class DlgExperimentProperties(_BaseParamsDlg):
         else:
             self.OK = False
         return wx.ID_OK
+
+
+def _relpath(path, start='.'):
+    """This code is based on os.path.relpath in the Python 2.6 distribution,
+    included here for compatibility with Python 2.5"""
+
+    if not path:
+        raise ValueError("no path specified")
+
+    start_list = os.path.abspath(start).split(os.path.sep)
+    path_list = os.path.abspath(path).split(os.path.sep)
+
+    # Work out how much of the filepath is shared by start and path.
+    i = len(os.path.commonprefix([start_list, path_list]))
+
+    rel_list = ['..'] * (len(start_list) - i) + path_list[i:]
+    if not rel_list:
+        return path
+    return os.path.join(*rel_list)
