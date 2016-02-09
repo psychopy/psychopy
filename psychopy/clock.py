@@ -19,11 +19,11 @@ import sys
 try:
     import pyglet
 except ImportError:
-    pass # pyglet is not installed
+    pass  # pyglet is not installed
 
 
-#set the default timing mechanism
-getTime=None
+# set the default timing mechanism
+getTime = None
 
 # Select the timer to use as the psychopy high resolution time base. Selection
 # is based on OS and Python version.
@@ -47,19 +47,20 @@ if sys.platform == 'win32':
     _fcounter = c_int64()
     _qpfreq = c_int64()
     windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
-    _qpfreq=float(_qpfreq.value)
-    _winQPC=windll.Kernel32.QueryPerformanceCounter
+    _qpfreq = float(_qpfreq.value)
+    _winQPC = windll.Kernel32.QueryPerformanceCounter
 
     def getTime():
         _winQPC(byref(_fcounter))
-        return  _fcounter.value/_qpfreq
+        return _fcounter.value / _qpfreq
 else:
     cur_pyver = sys.version_info
-    if cur_pyver[0]==2 and cur_pyver[1]<=6:
+    if cur_pyver[0] == 2 and cur_pyver[1] <= 6:
         getTime = time.time
     else:
         import timeit
         getTime = timeit.default_timer
+
 
 class MonotonicClock(object):
     """A convenient class to keep track of time in your experiments using a
@@ -75,17 +76,18 @@ class MonotonicClock(object):
 
     Version Notes: This class was added in PsychoPy 1.77.00
     """
-    def __init__(self,start_time=None):
+
+    def __init__(self, start_time=None):
         super(MonotonicClock, self).__init__()
         if start_time is None:
-            self._timeAtLastReset=getTime()#this is sub-millisec timer in python
+            self._timeAtLastReset = getTime()  # this is sub-millisec timer in python
         else:
-            self._timeAtLastReset=start_time
+            self._timeAtLastReset = start_time
 
     def getTime(self):
         """Returns the current time on this clock in secs (sub-ms precision)
         """
-        return getTime()-self._timeAtLastReset
+        return getTime() - self._timeAtLastReset
 
     def getLastResetTime(self):
         """
@@ -94,7 +96,8 @@ class MonotonicClock(object):
         """
         return self._timeAtLastReset
 
-monotonicClock=MonotonicClock()
+monotonicClock = MonotonicClock()
+
 
 class Clock(MonotonicClock):
     """A convenient class to keep track of time in your experiments.
@@ -105,6 +108,7 @@ class Clock(MonotonicClock):
     that it can also be reset to 0 or another value at any point.
 
     """
+
     def __init__(self):
         super(Clock, self).__init__()
 
@@ -113,9 +117,9 @@ class Clock(MonotonicClock):
         set to zero. If a float is received this will be the new
         time on the clock
         """
-        self._timeAtLastReset=getTime()+newT
+        self._timeAtLastReset = getTime() + newT
 
-    def add(self,t):
+    def add(self, t):
         """Add more time to the clock's 'start' time (t0).
 
         Note that, by adding time to t0, you make the current time appear less.
@@ -131,6 +135,7 @@ class Clock(MonotonicClock):
         """
         self._timeAtLastReset += t
 
+
 class CountdownTimer(Clock):
     """Similar to a :class:`~psychopy.core.Clock` except that time counts down
     from the time of last reset
@@ -141,16 +146,17 @@ class CountdownTimer(Clock):
         while timer.getTime() > 0:  # after 5s will become negative
             #do stuff
     """
+
     def __init__(self, start=0):
         super(CountdownTimer, self).__init__()
-        self._countdown_duration=start
+        self._countdown_duration = start
         if start:
             self.add(start)
 
     def getTime(self):
         """Returns the current time left on this timer in secs (sub-ms precision)
         """
-        return self._timeAtLastReset-getTime()
+        return self._timeAtLastReset - getTime()
 
     def reset(self, t=None):
         if t is None:
@@ -158,6 +164,7 @@ class CountdownTimer(Clock):
         else:
             self._countdown_duration = t
             Clock.reset(self, t)
+
 
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
@@ -180,21 +187,22 @@ def wait(secs, hogCPUperiod=0.2):
     """
     import core
 
-    #initial relaxed period, using sleep (better for system resources etc)
-    if secs>hogCPUperiod:
-        time.sleep(secs-hogCPUperiod)
-        secs=hogCPUperiod#only this much is now left
+    # initial relaxed period, using sleep (better for system resources etc)
+    if secs > hogCPUperiod:
+        time.sleep(secs - hogCPUperiod)
+        secs = hogCPUperiod  # only this much is now left
 
-    #hog the cpu, checking time
-    t0=getTime()
-    while (getTime()-t0)<secs:
+    # hog the cpu, checking time
+    t0 = getTime()
+    while (getTime() - t0) < secs:
         if not (core.havePyglet and core.checkPygletDuringWait):
             continue
-        #let's see if pyglet collected any event in meantime
+        # let's see if pyglet collected any event in meantime
         try:
             # this takes focus away from command line terminal window:
             if pyglet.version < '1.2':
-                pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
+                # events for sounds/video should run independently of wait()
+                pyglet.media.dispatch_events()
         except AttributeError:
             # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
             # Deprecated: Since pyglet 1.1, Player objects schedule themselves
@@ -203,9 +211,11 @@ def wait(secs, hogCPUperiod=0.2):
             pass
         try:
             wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()#pump events on pyglet windows
+            for win in wins:
+                win.dispatch_events()  # pump events on pyglet windows
         except Exception:
-            pass #presumably not pyglet
+            pass  # presumably not pyglet
+
 
 def getAbsTime():
     """Return unix time (i.e., whole seconds elapsed since Jan 1, 1970).
@@ -222,4 +232,3 @@ def getAbsTime():
     Version Notes: This method was added in PsychoPy 1.77.00
     """
     return int(time.mktime(time.localtime()))
-

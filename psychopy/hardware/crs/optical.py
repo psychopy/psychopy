@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-#coding=utf-8
+# coding=utf-8
 
 from __future__ import absolute_import
 
@@ -272,7 +272,7 @@ class OptiCAL(object):
                 (string of bytes) - each character in the range 0<i<255
         """
         return "".join([self._read_eeprom_single(i)
-            for i in range(start, stop + 1)])
+                        for i in range(start, stop + 1)])
 
     def _read_product_type(self):
         return _to_int(self._read_eeprom(0, 1))
@@ -360,11 +360,13 @@ class OptiCALException(Exception):
 
 class NACKException(OptiCALException):
     """ raised when the OptiCAL sends a NACK byte to signify an error"""
+
     def __str__(self):
         return "OptiCAL sent a NACK while trying to: %s" % self.message
 
 
 class TimeoutException(OptiCALException):
     """ raised when the OptiCAL does not respond within the timeout limit """
+
     def __str__(self):
         return "OptiCAL timeout while trying to: %s" % self.message

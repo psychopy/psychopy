@@ -34,7 +34,8 @@ pygame (must be version 1.8 or above):
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import division
-import numpy, sys
+import numpy
+import sys
 from os import path
 import threading
 from sys import platform, exit, stdout
@@ -44,62 +45,65 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
 from psychopy.tools import attributetools
 import weakref
 
-if platform=='win32':
-    mediaLocation="C:\\Windows\Media"
+if platform == 'win32':
+    mediaLocation = "C:\\Windows\Media"
 else:
-    mediaLocation=""
+    mediaLocation = ""
 
 global audioLib, audioDriver, Sound, init
 global pyoSndServer
-pyoSndServer=None
+pyoSndServer = None
 Sound = None
-audioLib=None
-audioDriver=None
+audioLib = None
+audioDriver = None
 
 for thisLibName in prefs.general['audioLib']:
     try:
-        if thisLibName=='pyo':
+        if thisLibName == 'pyo':
             import pyo
             havePyo = True
-        elif thisLibName=='pygame':
+        elif thisLibName == 'pygame':
             import pygame
             from pygame import mixer, sndarray
-        elif thisLibName=='pysoundcard':
+        elif thisLibName == 'pysoundcard':
             import pysoundcard as soundcard
             import soundfile as sndfile
         else:
-            raise ValueError("Audio lib options are currently only 'pyo' or 'pygame', not '%s'" %thisLibName)
+            raise ValueError(
+                "Audio lib options are currently only 'pyo' or 'pygame', not '%s'" % thisLibName)
     except Exception:
-        logging.warning('%s audio lib was requested but not loaded: %s' %(thisLibName, sys.exc_info()[1]))
-        continue #to try next audio lib
-    #if we got this far we were sucessful in loading the lib
-    audioLib=thisLibName
+        logging.warning('%s audio lib was requested but not loaded: %s' % (
+            thisLibName, sys.exc_info()[1]))
+        continue  # to try next audio lib
+    # if we got this far we were sucessful in loading the lib
+    audioLib = thisLibName
     logging.info('sound is using audioLib: %s' % audioLib)
     break
 
 stepsFromA = {
-    'C' : -9, 'Csh' : -8,
-    'Dfl' : -8, 'D' : -7, 'Dsh' : -6,
-    'Efl' : -6, 'E' : -5,
-    'F' : -4, 'Fsh' : -3,
-    'Gfl' : -3, 'G' : -2, 'Gsh' : -1,
-    'Afl': -1, 'A': 0, 'Ash':+1,
+    'C': -9, 'Csh': -8,
+    'Dfl': -8, 'D': -7, 'Dsh': -6,
+    'Efl': -6, 'E': -5,
+    'F': -4, 'Fsh': -3,
+    'Gfl': -3, 'G': -2, 'Gsh': -1,
+    'Afl': -1, 'A': 0, 'Ash': +1,
     'Bfl': +1, 'B': +2, 'Bsh': +2
-    }
+}
 knownNoteNames = sorted(stepsFromA.keys())
+
 
 class _SoundBase(object):
     """Base class for sound object, from one of many ways.
     """
     # Must be provided by class SoundPygame or SoundPyo:
-    #def __init__()
-    #def play(self, fromStart=True, **kwargs):
-    #def stop(self, log=True):
-    #def getDuration(self):
-    #def getVolume(self):
-    #def setVolume(self, newVol, log=True):
-    #def _setSndFromFile(self, fileName):
-    #def _setSndFromArray(self, thisArray):
+    # def __init__()
+    # def play(self, fromStart=True, **kwargs):
+    # def stop(self, log=True):
+    # def getDuration(self):
+    # def getVolume(self):
+    # def setVolume(self, newVol, log=True):
+    # def _setSndFromFile(self, fileName):
+    # def _setSndFromArray(self, thisArray):
 
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
@@ -124,10 +128,10 @@ class _SoundBase(object):
         """
         self._snd = None  # Re-init sound to ensure bad values will raise error during setting
 
-        try:#could be '440' meaning 440
+        try:  # could be '440' meaning 440
             value = float(value)
         except (ValueError, TypeError):
-            pass  #this is a string that can't be a number, eg, a file or note
+            pass  # this is a string that can't be a number, eg, a file or note
         else:
             # we've been asked for a particular Hz
             if value < 37 or value > 20000:
@@ -136,10 +140,11 @@ class _SoundBase(object):
 
         if isinstance(value, basestring):
             if value.capitalize() in knownNoteNames:
-                self._setSndFromNote(value.capitalize(), secs, octave, hamming=hamming)
+                self._setSndFromNote(value.capitalize(),
+                                     secs, octave, hamming=hamming)
             else:
-                #try finding a file
-                self.fileName=None
+                # try finding a file
+                self.fileName = None
                 for filePath in ['', mediaLocation]:
                     p = path.join(filePath, value)
                     if path.isfile(p):
@@ -152,36 +157,38 @@ class _SoundBase(object):
                     raise ValueError, "setSound: could not find a sound file named " + value
                 else:
                     self._setSndFromFile(value)
-        elif type(value) in [list,numpy.ndarray]:
-            #create a sound from the input array/list
+        elif type(value) in [list, numpy.ndarray]:
+            # create a sound from the input array/list
             self._setSndFromArray(numpy.array(value))
-        #did we succeed?
+        # did we succeed?
         if self._snd is None:
-            pass #raise ValueError, "Could not make a "+value+" sound"
+            pass  # raise ValueError, "Could not make a "+value+" sound"
         else:
             if log and self.autoLog:
-                logging.exp("Set %s sound=%s" %(self.name, value), obj=self)
-            self.status=NOT_STARTED
+                logging.exp("Set %s sound=%s" % (self.name, value), obj=self)
+            self.status = NOT_STARTED
 
     def _setSndFromNote(self, thisNote, secs, octave, hamming=True):
         # note name -> freq -> sound
         freqA = 440.0
-        thisOctave = octave-4
-        thisFreq = freqA * 2.0**(stepsFromA[thisNote]/12.0) * 2.0 ** thisOctave
+        thisOctave = octave - 4
+        thisFreq = freqA * \
+            2.0**(stepsFromA[thisNote] / 12.0) * 2.0 ** thisOctave
         self._setSndFromFreq(thisFreq, secs, hamming=hamming)
 
     def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         # note freq -> array -> sound
-        if secs<0: #if secs=-1 then they want infinite duration - create 1sec and loop it
-            secs=10.0
+        if secs < 0:  # if secs=-1 then they want infinite duration - create 1sec and loop it
+            secs = 10.0
             self.loops = -1
-        nSamples = int(secs*self.sampleRate)
-        outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
-        outArr *= 2*numpy.pi*thisFreq*secs
+        nSamples = int(secs * self.sampleRate)
+        outArr = numpy.arange(0.0, 1.0, 1.0 / nSamples)
+        outArr *= 2 * numpy.pi * thisFreq * secs
         outArr = numpy.sin(outArr)
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
+
 
 class _PySoundCallbackClass(object):
     """To use callbacks without creating circular references we need a callback class.
@@ -193,19 +200,21 @@ class _PySoundCallbackClass(object):
     original sound instance that created it (or we would create a circular ref again).
 
     """
+
     def __init__(self, sndInstance):
         self.status = NOT_STARTED
         self._sampleIndex = 0
         self.bufferSize = sndInstance.bufferSize
         self.sndInstance = weakref.ref(sndInstance)
+
     def fillBuffer(self, inData, outData, timeInfo, status):
         # inData to record from a buffer(?)
         # outData a buffer to write to (length of self.bufferSize)
         # timeInfo is a dict
         # status = 0 unless
 
-        #In tests on a macbook air this function takes around 7microsec to run
-        #so shouldn't impact on performance. Tested with this code:
+        # In tests on a macbook air this function takes around 7microsec to run
+        # so shouldn't impact on performance. Tested with this code:
         #    s1 = sound.SoundPySoundCard(secs=10, bufferSize=bSize)
         #    s1.play()
         #
@@ -221,15 +230,16 @@ class _PySoundCallbackClass(object):
         if snd.status == STOPPED:
             outData[:] = 0
             return soundcard.abort_flag
-        if (self._sampleIndex+self.bufferSize) > nSamples:
-            outData[:] = 0 # set buffer to zero
+        if (self._sampleIndex + self.bufferSize) > nSamples:
+            outData[:] = 0  # set buffer to zero
             # then insert the data
-            outData[0:nSamples-self._sampleIndex,:] = snd.sndArr[self._sampleIndex:, :]
+            outData[0:nSamples - self._sampleIndex,
+                    :] = snd.sndArr[self._sampleIndex:, :]
             self._sampleIndex = nSamples
             snd._onEOS()
             return soundcard.abort_flag
         else:
-            outData[:,:] = snd.sndArr[self._sampleIndex:(self._sampleIndex + self.bufferSize), :] \
+            outData[:, :] = snd.sndArr[self._sampleIndex:(self._sampleIndex + self.bufferSize), :] \
                 * snd.volume
             self._sampleIndex += self.bufferSize
             return soundcard.continue_flag
@@ -241,7 +251,9 @@ class _PySoundCallbackClass(object):
         """
         self.sndInstance()._onEOS()
 
+
 class SoundPySoundCard(_SoundBase):
+
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100, bits=None,
                  name='', autoLog=True, loops=0, bufferSize=128, volume=1):
         """Create a sound and get ready to play
@@ -284,18 +296,19 @@ class SoundPySoundCard(_SoundBase):
             volume: 0-1.0
 
         """
-        self.name=name#only needed for autoLogging
-        self.autoLog=autoLog
+        self.name = name  # only needed for autoLogging
+        self.autoLog = autoLog
 
         self.sampleRate = sampleRate
         self.bufferSize = bufferSize
         self.volume = volume
 
-        #try to create sound
-        self._snd=None
-        #distinguish the loops requested from loops actual because of infinite tones
+        # try to create sound
+        self._snd = None
+        # distinguish the loops requested from loops actual because of infinite tones
         # (which have many loops but none requested)
-        self.requestedLoops = self.loops = int(loops) #-1 for infinite or a number of loops
+        # -1 for infinite or a number of loops
+        self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave)
 
     def play(self, fromStart=True, log=True, loops=None):
@@ -326,24 +339,27 @@ class SoundPySoundCard(_SoundBase):
         self._stream.start()
         self.status = STARTED
         if log and self.autoLog:
-            logging.exp("Sound %s started" %(self.name), obj=self)
+            logging.exp("Sound %s started" % (self.name), obj=self)
         return self
+
     def stop(self, log=True):
         """Stops the sound immediately"""
-        self._stream.abort() # _stream.stop() finishes current buffer
-        self.status=STOPPED
+        self._stream.abort()  # _stream.stop() finishes current buffer
+        self.status = STOPPED
         if log and self.autoLog:
-            logging.exp("Sound %s stopped" %(self.name), obj=self)
-    def fadeOut(self,mSecs):
+            logging.exp("Sound %s stopped" % (self.name), obj=self)
+
+    def fadeOut(self, mSecs):
         """fades out the sound (when playing) over mSecs.
         Don't know why you would do this in psychophysics but it's easy
         and fun to include as a possibility :)
         """
-        pass #todo
-        self.status=STOPPED
+        pass  # todo
+        self.status = STOPPED
+
     def getDuration(self):
         """Get's the duration of the current sound in secs"""
-        pass #todo
+        pass  # todo
 
     @attributetools.attributeSetter
     def volume(self, volume):
@@ -353,16 +369,17 @@ class SoundPySoundCard(_SoundBase):
     def setVolume(self, value, operation="", log=None):
         """Sets the current volume of the sound (0.0:1.0)"""
         attributetools.setAttribute(self, 'volume', value, log, operation)
-        return value #this is returned for historical reasons
+        return value  # this is returned for historical reasons
 
     def _setSndFromFile(self, fileName):
-        #load the file
+        # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName
             logging.error(msg)
             raise ValueError(msg)
         self.fileName = fileName
-        self.loops = self.requestedLoops #in case a tone with inf loops had been used before
+        # in case a tone with inf loops had been used before
+        self.loops = self.requestedLoops
         try:
             self.sndFile = sndfile.SoundFile(fileName)
             self.sndArr = self.sndFile.read()
@@ -371,11 +388,13 @@ class SoundPySoundCard(_SoundBase):
             msg = "Sound file %s could not be opened using pygame for sound." % fileName
             logging.error(msg)
             raise ValueError(msg)
+
     @property
     def status(self):
-        #NB this is stored by the _callbacks class for fast access when data buffer
-        #needs filling (_callbacks class does not have a reference back here)
+        # NB this is stored by the _callbacks class for fast access when data buffer
+        # needs filling (_callbacks class does not have a reference back here)
         return self.__dict__['status']
+
     @status.setter
     def status(self, status):
         self.__dict__['status'] = status
@@ -391,23 +410,25 @@ class SoundPySoundCard(_SoundBase):
 
                                                     )
         chansIn, chansOut = self._stream.channels
-        if chansOut>1 and thisArray.ndim==1:
-            #make mono sound stereo
-            self.sndArr = numpy.resize(thisArray, [2,len(thisArray)]).T
+        if chansOut > 1 and thisArray.ndim == 1:
+            # make mono sound stereo
+            self.sndArr = numpy.resize(thisArray, [2, len(thisArray)]).T
         else:
             self.sndArr = numpy.asarray(thisArray)
         self._nSamples = thisArray.shape[0]
-        self.seek(0) # set to run from the start
+        self.seek(0)  # set to run from the start
 
     def seek(self, t):
-        self._sampleIndex = t*self.sampleRate
+        self._sampleIndex = t * self.sampleRate
 
     def _onEOS(self, log=True):
         if log and self.autoLog:
-            logging.exp("Sound %s finished" %(self.name), obj=self)
+            logging.exp("Sound %s finished" % (self.name), obj=self)
         self.status = FINISHED
+
     def __del__(self):
-       self._stream.close()
+        self._stream.close()
+
 
 class SoundPygame(_SoundBase):
     """Create a sound object, from one of many ways.
@@ -430,13 +451,14 @@ class SoundPygame(_SoundBase):
 
         bits(=16):  Pygame uses the same bit depth for all sounds once initialised
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16,
+
+    def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100, bits=16,
                  name='', autoLog=True, loops=0):
         """
         """
-        self.name=name#only needed for autoLogging
-        self.autoLog=autoLog
-        #check initialisation
+        self.name = name  # only needed for autoLogging
+        self.autoLog = autoLog
+        # check initialisation
         if not mixer.get_init():
             pygame.mixer.init(sampleRate, -16, 2, 3072)
 
@@ -446,11 +468,12 @@ class SoundPygame(_SoundBase):
             inits = mixer.get_init()
         self.sampleRate, self.format, self.isStereo = inits
 
-        #try to create sound
-        self._snd=None
-        #distinguish the loops requested from loops actual because of infinite tones
+        # try to create sound
+        self._snd = None
+        # distinguish the loops requested from loops actual because of infinite tones
         # (which have many loops but none requested)
-        self.requestedLoops = self.loops = int(loops) #-1 for infinite or a number of loops
+        # -1 for infinite or a number of loops
+        self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave)
 
     def play(self, fromStart=True, log=True, loops=None):
@@ -479,23 +502,26 @@ class SoundPygame(_SoundBase):
         if loops is None:
             loops = self.loops
         self._snd.play(loops=loops)
-        self.status=STARTED
+        self.status = STARTED
         if log and self.autoLog:
-            logging.exp("Sound %s started" %(self.name), obj=self)
+            logging.exp("Sound %s started" % (self.name), obj=self)
         return self
+
     def stop(self, log=True):
         """Stops the sound immediately"""
         self._snd.stop()
-        self.status=STOPPED
+        self.status = STOPPED
         if log and self.autoLog:
-            logging.exp("Sound %s stopped" %(self.name), obj=self)
-    def fadeOut(self,mSecs):
+            logging.exp("Sound %s stopped" % (self.name), obj=self)
+
+    def fadeOut(self, mSecs):
         """fades out the sound (when playing) over mSecs.
         Don't know why you would do this in psychophysics but it's easy
         and fun to include as a possibility :)
         """
         self._snd.fadeout(mSecs)
-        self.status=STOPPED
+        self.status = STOPPED
+
     def getDuration(self):
         """Get's the duration of the current sound in secs"""
         return self._snd.get_length()
@@ -504,21 +530,23 @@ class SoundPygame(_SoundBase):
         """Returns the current volume of the sound (0.0:1.0)"""
         return self._snd.get_volume()
 
-    def setVolume(self,newVol, log=True):
+    def setVolume(self, newVol, log=True):
         """Sets the current volume of the sound (0.0:1.0)"""
         self._snd.set_volume(newVol)
         if log and self.autoLog:
-            logging.exp("Set Sound %s volume=%.3f" %(self.name, newVol), obj=self)
+            logging.exp("Set Sound %s volume=%.3f" %
+                        (self.name, newVol), obj=self)
         return self.getVolume()
 
     def _setSndFromFile(self, fileName):
-        #load the file
+        # load the file
         if not path.isfile(fileName):
             msg = "Sound file %s could not be found." % fileName
             logging.error(msg)
             raise ValueError(msg)
         self.fileName = fileName
-        self.loops = self.requestedLoops #in case a tone with inf loops had been used before
+        # in case a tone with inf loops had been used before
+        self.loops = self.requestedLoops
         try:
             self._snd = mixer.Sound(self.fileName)
         except Exception:
@@ -527,30 +555,32 @@ class SoundPygame(_SoundBase):
             raise ValueError(msg)
 
     def _setSndFromArray(self, thisArray):
-        #get a mixer.Sound object from an array of floats (-1:1)
+        # get a mixer.Sound object from an array of floats (-1:1)
 
-        #make stereo if mono
-        if self.isStereo==2 and \
-            (len(thisArray.shape)==1 or thisArray.shape[1]<2):
-            tmp = numpy.ones((len(thisArray),2))
-            tmp[:,0] = thisArray
-            tmp[:,1] = thisArray
+        # make stereo if mono
+        if self.isStereo == 2 and \
+                (len(thisArray.shape) == 1 or thisArray.shape[1] < 2):
+            tmp = numpy.ones((len(thisArray), 2))
+            tmp[:, 0] = thisArray
+            tmp[:, 1] = thisArray
             thisArray = tmp
-        #get the format right
+        # get the format right
         if self.format == -16:
-            thisArray= (thisArray*2**15).astype(numpy.int16)
+            thisArray = (thisArray * 2**15).astype(numpy.int16)
         elif self.format == 16:
-            thisArray= ((thisArray+1)*2**15).astype(numpy.uint16)
+            thisArray = ((thisArray + 1) * 2**15).astype(numpy.uint16)
         elif self.format == -8:
-            thisArray= (thisArray*2**7).astype(numpy.Int8)
+            thisArray = (thisArray * 2**7).astype(numpy.Int8)
         elif self.format == 8:
-            thisArray= ((thisArray+1)*2**7).astype(numpy.uint8)
+            thisArray = ((thisArray + 1) * 2**7).astype(numpy.uint8)
 
         self._snd = sndarray.make_sound(thisArray)
+
 
 class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
+
     def __init__(self, value="C", secs=0.5, octave=4, stereo=True, volume=1.0,
                  loops=0, sampleRate=44100, bits=16, hamming=True, start=0, stop=-1,
                  name='', autoLog=True):
@@ -598,25 +628,27 @@ class SoundPyo(_SoundBase):
             Not applied to sounds from files.
         """
         global pyoSndServer
-        if pyoSndServer is None or pyoSndServer.getIsBooted()==0:
+        if pyoSndServer is None or pyoSndServer.getIsBooted() == 0:
             initPyo(rate=sampleRate)
 
-        self.sampleRate=pyoSndServer.getSamplingRate()
+        self.sampleRate = pyoSndServer.getSamplingRate()
         self.format = bits
         self.isStereo = stereo
         self.channels = 1 + int(stereo)
-        self.secs=secs
+        self.secs = secs
         self.startTime = start
         self.stopTime = stop
-        self.autoLog=autoLog
-        self.name=name
+        self.autoLog = autoLog
+        self.name = name
 
-        #try to create sound; set volume and loop before setSound (else needsUpdate=True)
-        self._snd=None
+        # try to create sound; set volume and loop before setSound (else
+        # needsUpdate=True)
+        self._snd = None
         self.volume = min(1.0, max(0.0, volume))
-        #distinguish the loops requested from loops actual because of infinite tones
+        # distinguish the loops requested from loops actual because of infinite tones
         # (which have many loops but none requested)
-        self.requestedLoops = self.loops = int(loops) #-1 for infinite or a number of loops
+        # -1 for infinite or a number of loops
+        self.requestedLoops = self.loops = int(loops)
 
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
@@ -641,10 +673,11 @@ class SoundPyo(_SoundBase):
         if self.needsUpdate:
             self._updateSnd()  # ~0.00015s, regardless of the size of self._sndTable
         self._snd.out()
-        self.status=STARTED
+        self.status = STARTED
         if autoStop or self.loops != 0:
             # pyo looping is boolean: loop forever or not at all
-            # so track requested loops using time; limitations: not sample-accurate
+            # so track requested loops using time; limitations: not
+            # sample-accurate
             if self.loops >= 0:
                 duration = self.getDuration() * (self.loops + 1)
             else:
@@ -652,7 +685,7 @@ class SoundPyo(_SoundBase):
             self.terminator = threading.Timer(duration, self._onEOS)
             self.terminator.start()
         if log and self.autoLog:
-            logging.exp("Sound %s started" %(self.name), obj=self)
+            logging.exp("Sound %s started" % (self.name), obj=self)
         return self
 
     def _onEOS(self):
@@ -670,16 +703,18 @@ class SoundPyo(_SoundBase):
             self.terminator.cancel()
         except Exception:  # pragma: no cover
             pass
-        self.status=STOPPED
+        self.status = STOPPED
         if log and self.autoLog:
-            logging.exp("Sound %s stopped" %(self.name), obj=self)
+            logging.exp("Sound %s stopped" % (self.name), obj=self)
 
     def getDuration(self):
         """Return the duration of the sound"""
         return self.duration
+
     def getVolume(self):
         """Returns the current volume of the sound (0.0 to 1.0, inclusive)"""
         return self.volume
+
     def getLoops(self):
         """Returns the current requested loops value for the sound (int)"""
         return self.loops
@@ -689,29 +724,33 @@ class SoundPyo(_SoundBase):
         self.volume = min(1.0, max(0.0, newVol))
         self.needsUpdate = True
         if log and self.autoLog:
-            logging.exp("Sound %s set volume %.3f" % (self.name, self.volume), obj=self)
+            logging.exp("Sound %s set volume %.3f" %
+                        (self.name, self.volume), obj=self)
 
     def setLoops(self, newLoops, log=True):
         """Sets the current requested extra loops (int)"""
         self.loops = int(newLoops)
         self.needsUpdate = True
         if log and self.autoLog:
-            logging.exp("Sound %s set loops %s" % (self.name, self.loops), obj=self)
+            logging.exp("Sound %s set loops %s" %
+                        (self.name, self.loops), obj=self)
 
     def _updateSnd(self):
         self.needsUpdate = False
         doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
         self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)
+
     def _setSndFromFile(self, fileName):
         # want mono sound file played to both speakers, not just left / 0
         self.fileName = fileName
         self._sndTable = pyo.SndTable(initchnls=self.channels)
-        self.loops = self.requestedLoops #in case a tone with inf loops had been used before
+        # in case a tone with inf loops had been used before
+        self.loops = self.requestedLoops
         # mono file loaded to all chnls:
         try:
             self._sndTable.setSound(self.fileName,
-                                start=self.startTime, stop=self.stopTime)
+                                    start=self.startTime, stop=self.stopTime)
         except Exception:
             msg = 'Could not open sound file `%s` using pyo; not found or format not supported.' % fileName
             logging.error(msg)
@@ -727,6 +766,7 @@ class SoundPyo(_SoundBase):
         # a DataTable has no .getDur() method, so just store the duration:
         self.duration = float(len(thisArray)) / self.sampleRate
 
+
 def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
     function. Run this *before creating your visual.Window*.
@@ -740,41 +780,48 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     """
     global Sound, audioDriver
     Sound = SoundPygame
-    audioDriver='n/a'
-    if stereo==True: stereoChans=2
-    else:   stereoChans=0
-    if bits==16: bits=-16 #for pygame bits are signed for 16bit, signified by the minus
-    mixer.init(rate, bits, stereoChans, buffer) #defaults: 22050Hz, 16bit, stereo,
+    audioDriver = 'n/a'
+    if stereo == True:
+        stereoChans = 2
+    else:
+        stereoChans = 0
+    if bits == 16:
+        bits = -16  # for pygame bits are signed for 16bit, signified by the minus
+    # defaults: 22050Hz, 16bit, stereo,
+    mixer.init(rate, bits, stereoChans, buffer)
     sndarray.use_arraytype("numpy")
     setRate, setBits, setStereo = mixer.get_init()
-    if setRate!=rate:
+    if setRate != rate:
         logging.warn('Requested sound sample rate was not poossible')
-    if setBits!=bits:
+    if setBits != bits:
         logging.warn('Requested sound depth (bits) was not possible')
-    if setStereo!=2 and stereo==True:
+    if setStereo != 2 and stereo == True:
         logging.warn('Requested stereo setting was not possible')
+
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
     preferredDrivers = prefs.general['audioDriver']
-    outputID=None
-    audioDriver=None
-    osEncoding=sys.getfilesystemencoding()
+    outputID = None
+    audioDriver = None
+    osEncoding = sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
         if prefDriver.lower() == 'directsound':
             prefDriver = u'Primary Sound'
-        #look for that driver in available devices
+        # look for that driver in available devices
         for devN, devString in enumerate(devNames):
             try:
                 if prefDriver.encode('utf-8').lower() in devString.decode(osEncoding).encode('utf-8').lower():
-                    audioDriver=devString.decode(osEncoding).encode('utf-8')
-                    outputID=devIDs[devN]
-                    return audioDriver, outputID #we found a driver don't look for others
+                    audioDriver = devString.decode(osEncoding).encode('utf-8')
+                    outputID = devIDs[devN]
+                    return audioDriver, outputID  # we found a driver don't look for others
             except (UnicodeDecodeError, UnicodeEncodeError):
-                logging.warn('find best sound driver - could not interpret unicode in driver name')
+                logging.warn(
+                    'find best sound driver - could not interpret unicode in driver name')
     else:
         return None, None
+
 
 def initPyo(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
@@ -786,92 +833,117 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         assert pyo
     except NameError:  # pragma: no cover
         import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
-    #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
-    # skip coverage since the class is never used if we have a recent version of pyo
+    # subclass the pyo.Server so that we can insert a __del__ function that shuts it down
+    # skip coverage since the class is never used if we have a recent version
+    # of pyo
+
     class _Server(pyo.Server):  # pragma: no cover
-        core=core #make libs class variables so they don't get deleted first
-        logging=logging
+        core = core  # make libs class variables so they don't get deleted first
+        logging = logging
+
         def __del__(self):
             self.stop()
-            self.core.wait(0.5)#make sure enough time passes for the server to shutdown
+            # make sure enough time passes for the server to shutdown
+            self.core.wait(0.5)
             self.shutdown()
-            self.core.wait(0.5)#make sure enough time passes for the server to shutdown
-            self.logging.debug('pyo sound server shutdown')#this may never get printed
+            # make sure enough time passes for the server to shutdown
+            self.core.wait(0.5)
+            # this may never get printed
+            self.logging.debug('pyo sound server shutdown')
     if '.'.join(map(str, pyo.getVersion())) < '0.6.4':
         Server = _Server
     else:
         Server = pyo.Server
 
     # if we already have a server, just re-initialize it
-    if 'pyoSndServer' in globals() and hasattr(pyoSndServer,'shutdown'):
+    if 'pyoSndServer' in globals() and hasattr(pyoSndServer, 'shutdown'):
         pyoSndServer.stop()
-        core.wait(0.5)#make sure enough time passes for the server to shutdown
+        # make sure enough time passes for the server to shutdown
+        core.wait(0.5)
         pyoSndServer.shutdown()
         core.wait(0.5)
-        pyoSndServer.reinit(sr=rate, nchnls=maxChnls, buffersize=buffer, audio=audioDriver)
+        pyoSndServer.reinit(sr=rate, nchnls=maxChnls,
+                            buffersize=buffer, audio=audioDriver)
         pyoSndServer.boot()
     else:
-        if platform=='win32':
-            #check for output device/driver
-            devNames, devIDs=pyo.pa_get_output_devices()
-            audioDriver,outputID=_bestDriver(devNames, devIDs)
+        if platform == 'win32':
+            # check for output device/driver
+            devNames, devIDs = pyo.pa_get_output_devices()
+            audioDriver, outputID = _bestDriver(devNames, devIDs)
             if outputID is None:
-                audioDriver = 'Windows Default Output' #using the default output because we didn't find the one(s) requested
+                # using the default output because we didn't find the one(s)
+                # requested
+                audioDriver = 'Windows Default Output'
                 outputID = pyo.pa_get_default_output()
             if outputID is not None:
-                logging.info('Using sound driver: %s (ID=%i)' %(audioDriver, outputID))
+                logging.info('Using sound driver: %s (ID=%i)' %
+                             (audioDriver, outputID))
                 maxOutputChnls = pyo.pa_get_output_max_channels(outputID)
             else:
-                logging.warning('No audio outputs found (no speakers connected?')
+                logging.warning(
+                    'No audio outputs found (no speakers connected?')
                 return -1
-            #check for valid input (mic)
-            devNames, devIDs = pyo.pa_get_input_devices() # If no input device is available, devNames and devIDs are empty lists.
+            # check for valid input (mic)
+            # If no input device is available, devNames and devIDs are empty
+            # lists.
+            devNames, devIDs = pyo.pa_get_input_devices()
             audioInputName, inputID = _bestDriver(devNames, devIDs)
-            if len(devIDs)>0 and inputID is None: # Input devices were found, but requested devices were not found
+            # Input devices were found, but requested devices were not found
+            if len(devIDs) > 0 and inputID is None:
                 defaultID = pyo.pa_get_default_input()
-                if defaultID is not None and defaultID != -1: # default input is found
-                    audioInputName = 'Windows Default Input' #using the default input because we didn't find the one(s) requested
+                if defaultID is not None and defaultID != -1:  # default input is found
+                    # using the default input because we didn't find the one(s)
+                    # requested
+                    audioInputName = 'Windows Default Input'
                     inputID = defaultID
                 else:
-                    inputID = None # default input is not available
+                    inputID = None  # default input is not available
             if inputID is not None:
-                logging.info('Using sound-input driver: %s (ID=%i)' %(audioInputName, inputID))
+                logging.info('Using sound-input driver: %s (ID=%i)' %
+                             (audioInputName, inputID))
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
             else:
                 maxInputChnls = 0
-                duplex=False
-        else:#for other platforms set duplex to True (if microphone is available)
+                duplex = False
+        # for other platforms set duplex to True (if microphone is available)
+        else:
             audioDriver = prefs.general['audioDriver'][0]
-            maxInputChnls = pyo.pa_get_input_max_channels(pyo.pa_get_default_input())
-            maxOutputChnls = pyo.pa_get_output_max_channels(pyo.pa_get_default_output())
+            maxInputChnls = pyo.pa_get_input_max_channels(
+                pyo.pa_get_default_input())
+            maxOutputChnls = pyo.pa_get_output_max_channels(
+                pyo.pa_get_default_output())
             duplex = bool(maxInputChnls > 0)
 
         maxChnls = min(maxInputChnls, maxOutputChnls)
         if maxInputChnls < 1:  # pragma: no cover
-            logging.warning('%s.initPyo could not find microphone hardware; recording not available' % __name__)
+            logging.warning(
+                '%s.initPyo could not find microphone hardware; recording not available' % __name__)
             maxChnls = maxOutputChnls
         if maxOutputChnls < 1:  # pragma: no cover
-            logging.error('%s.initPyo could not find speaker hardware; sound not available' % __name__)
+            logging.error(
+                '%s.initPyo could not find speaker hardware; sound not available' % __name__)
             return -1
 
         # create the instance of the server:
         if platform in ['darwin', 'linux2']:
-            #for mac/linux we set the backend using the server audio param
-            pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer, audio=audioDriver)
+            # for mac/linux we set the backend using the server audio param
+            pyoSndServer = Server(sr=rate, nchnls=maxChnls,
+                                  buffersize=buffer, audio=audioDriver)
         else:
-            #with others we just use portaudio and then set the OutputDevice below
+            # with others we just use portaudio and then set the OutputDevice
+            # below
             pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer)
 
         pyoSndServer.setVerbosity(1)
-        if platform=='win32':
+        if platform == 'win32':
             pyoSndServer.setOutputDevice(outputID)
             if inputID is not None:
                 pyoSndServer.setInputDevice(inputID)
-        #do other config here as needed (setDuplex? setOutputDevice?)
+        # do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)
         pyoSndServer.boot()
-    core.wait(0.5)#wait for server to boot before starting te sound stream
+    core.wait(0.5)  # wait for server to boot before starting te sound stream
     pyoSndServer.start()
     try:
         Sound()  # test creation, no play
@@ -884,9 +956,11 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     logging.debug('pyo sound server started')
     logging.flush()
 
+
 def setaudioLib(api):
     """DEPRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
     raise DeprecationWarning
+
 
 def apodize(soundArray, sampleRate):
     """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
@@ -898,16 +972,16 @@ def apodize(soundArray, sampleRate):
         soundArray[-hwSize:] *= hammingWindow[hwSize + 1:]
     return soundArray
 
-#initialise it and keep track
+# initialise it and keep track
 if audioLib is None:
     msg = 'No audio API found. Try installing pyo 0.6.8+, or pygame 1.8+'
     logging.error(msg)
     raise AttributeError(msg)
-elif audioLib=='pysoundcard':
-    Sound=SoundPySoundCard
-elif audioLib=='pyo':
-    init=initPyo
-    Sound=SoundPyo
-elif audioLib=='pygame':  # pragma: no cover
-    init=initPygame
-    Sound=SoundPygame
+elif audioLib == 'pysoundcard':
+    Sound = SoundPySoundCard
+elif audioLib == 'pyo':
+    init = initPyo
+    Sound = SoundPyo
+elif audioLib == 'pygame':  # pragma: no cover
+    init = initPygame
+    Sound = SoundPygame

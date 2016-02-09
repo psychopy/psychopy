@@ -40,7 +40,7 @@ else:
     logging.warning("psychopy.parallel has been imported on a Mac "
                     "(which doesn't have a parallel port?)")
 
-    #OS X doesn't have a parallel port but write the class for doc purps
+    # OS X doesn't have a parallel port but write the class for doc purps
     class ParallelPort(object):
         """
         This class provides read/write access to the parallel port on Windows & Linux
@@ -60,8 +60,8 @@ else:
             """
 
             logging.warning("psychopy.parallel has been imported but "
-                        "(1) no parallel port driver could be found or accessed on Windows or"
-                        "(2) PsychoPy is run on a Mac (without parallel-port support for now)")
+                            "(1) no parallel port driver could be found or accessed on Windows or"
+                            "(2) PsychoPy is run on a Mac (without parallel-port support for now)")
 
         def setData(self, data):
             """
@@ -121,7 +121,8 @@ def setPortAddress(address=0x0378):
     """
 
     global PORT
-    if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+    # convert u"0x0378" into 0x0378
+    if isinstance(address, basestring) and address.startswith('0x'):
         address = int(address, 16)
 
     # This is useful with the Linux-based driver where deleting

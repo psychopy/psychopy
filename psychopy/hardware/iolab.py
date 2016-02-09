@@ -6,7 +6,8 @@
     <http://github.com/ioLab/python-ioLabs>`_.
 """
 #  This file can't be named ioLabs.py, otherwise "import ioLabs" doesn't work.
-#  And iolabs.py (lowercase) did not solve it either, something is case insensitive somewhere
+# And iolabs.py (lowercase) did not solve it either, something is case
+# insensitive somewhere
 
 
 from __future__ import division
@@ -25,12 +26,14 @@ from psychopy.constants import PRESSED, RELEASED
 btn2str = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7',
            64: 'voice'}
 
+
 class ButtonBox(ioLabs.USBBox):
     """PsychoPy's interface to ioLabs.USBBox. Voice key completely untested.
 
     Original author: Jonathan Roberts
     PsychoPy rewrite: Jeremy Gray, 2013
     """
+
     def __init__(self):
         """Class to detect and report `ioLab button box <http://www.iolab.co.uk>`_.
 
@@ -53,7 +56,8 @@ class ButtonBox(ioLabs.USBBox):
         self._lastReset = 0.0  # time on baseclock at which the bbox clock was reset
         self._baseclock = core.Clock()  # for basetime, not RT time
         self.resetClock(log=True)  # internal clock on the bbox
-        logging.exp('button box resetClock(log=True) took %.4fs' % self._baseclock.getTime())
+        logging.exp('button box resetClock(log=True) took %.4fs' %
+                    self._baseclock.getTime())
 
         self.commands.add_callback(REPORT.KEYDN, self._onKeyDown)
         self.commands.add_callback(REPORT.KEYUP, self._onKeyUp)
@@ -65,12 +69,15 @@ class ButtonBox(ioLabs.USBBox):
         report.btn = report.key_code  # int
         report.key = btn2str[report.key_code]  # str
         self.events.append(report)
+
     def _onKeyDown(self, report):
         report.direction = PRESSED
         self._onKey(report)
+
     def _onKeyUp(self, report):
         report.direction = RELEASED
         self._onKey(report)
+
     def _onRtcRep(self, report):
         # read internal clock without needing a button-press; not working
         report.rt = self.commands.rtcget()['rtc'] / 1000.
@@ -98,7 +105,8 @@ class ButtonBox(ioLabs.USBBox):
         self.commands.resrtc()
         self._lastReset = self._baseclock.getTime()
         if log:
-            logging.exp('reset bbox internal clock at basetime = %.3f' % self._lastReset)
+            logging.exp('reset bbox internal clock at basetime = %.3f' %
+                        self._lastReset)
 
     def _getTime(self, log=False):
         """Return the time on the bbox internal clock, relative to last reset.
@@ -123,7 +131,7 @@ class ButtonBox(ioLabs.USBBox):
         """
         return self._baseclock.getTime()
 
-    def setEnabled(self, buttonList=(0,1,2,3,4,5,6,7), voice=False):
+    def setEnabled(self, buttonList=(0, 1, 2, 3, 4, 5, 6, 7), voice=False):
         '''Set a filter to suppress events from non-enabled buttons.
 
         The ioLabs bbox filters buttons in hardware; here we just tell it
@@ -144,7 +152,7 @@ class ButtonBox(ioLabs.USBBox):
         """
         return _bits2list(self.buttons.enabled)
 
-    def setLights(self, lightList=(0,1,2,3,4,5,6,7)):
+    def setLights(self, lightList=(0, 1, 2, 3, 4, 5, 6, 7)):
         '''Turn on the specified LEDs (None, 0..7, list of 0..7)
         '''
         self.leds.state = ~_list2bits(lightList)
@@ -176,7 +184,7 @@ class ButtonBox(ioLabs.USBBox):
                 evt = evt[0]
                 break
             if escape and event.getKeys(escape) or 0 < timeout < c.getTime():
-                    return
+                return
         return evt
 
     def getEvents(self, downOnly=True):
@@ -203,6 +211,7 @@ class ButtonBox(ioLabs.USBBox):
 
 pow2 = [2**i for i in range(8)]
 
+
 def _list2bits(arg):
     # return a numpy.ubyte with bits set based on integers 0..7 in arg
     if type(arg) == int and 0 <= arg < 8:
@@ -211,6 +220,7 @@ def _list2bits(arg):
         return ubyte(sum([pow2[btn] for btn in arg]))
     else:  # None
         return ubyte(0)
+
 
 def _bits2list(bits):
     # inverse of _list2bits: return 8 bits as converted to a buttonList

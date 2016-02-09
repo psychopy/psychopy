@@ -17,6 +17,7 @@ except ImportError:
 
 
 class U3(u3.U3):
+
     def setData(self, byte, endian='big', address=6701):
         """Write 1 byte of data to the U3 port
 

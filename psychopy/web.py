@@ -7,10 +7,13 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import os, sys
+import os
+import sys
 import base64
-import httplib, mimetypes  # deprecated; use requests package instead
-import socket, re
+import httplib
+import mimetypes  # deprecated; use requests package instead
+import socket
+import re
 from psychopy import logging
 from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import prefs
@@ -20,11 +23,15 @@ if sys.version_info >= (3, 0):
 else:
     py3 = False
 if py3:
-    import urllib.request, urllib.error, urllib.parse
+    import urllib.request
+    import urllib.error
+    import urllib.parse
     import io  # pylint: disable=W0611
 else:
     import urllib2
+
     class FakeURLlib(object):
+
         def __init__(self, lib):
             self.request = lib
             self.error = lib
@@ -32,11 +39,12 @@ else:
     urllib = FakeURLlib(urllib2)
     import cStringIO as io  # pylint: disable=W0611
 
-TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
+# default 20s from prefs, min 2s
+TIMEOUT = max(prefs.connections['timeout'], 2.0)
 socket.setdefaulttimeout(TIMEOUT)
 
 global proxies
-proxies = None #if this is populated then it has been set up already
+proxies = None  # if this is populated then it has been set up already
 
 
 class NoInternetAccessError(Exception):
@@ -44,6 +52,7 @@ class NoInternetAccessError(Exception):
     """
 global haveInternet
 haveInternet = None  # gets set True or False when you check
+
 
 def haveInternetAccess(forceCheck=False):
     """Detect active internet connection or fail quickly.
@@ -66,6 +75,7 @@ def haveInternetAccess(forceCheck=False):
             haveInternet = False
     return haveInternet
 
+
 def requireInternetAccess(forceCheck=False):
     """Checks for access to the internet, raise error if no access.
     """
@@ -74,6 +84,7 @@ def requireInternetAccess(forceCheck=False):
         logging.error(msg)
         raise NoInternetAccessError(msg)
     return True
+
 
 def tryProxy(handler, URL=None):
     """
@@ -89,48 +100,51 @@ def tryProxy(handler, URL=None):
 
     """
     if URL is None:
-        URL='http://www.google.com'#hopefully google isn't down!
+        URL = 'http://www.google.com'  # hopefully google isn't down!
     req = urllib.request.Request(URL)
     opener = urllib.request.build_opener(handler)
     try:
-        opener.open(req, timeout=2).read(5)#open and read a few characters
+        opener.open(req, timeout=2).read(5)  # open and read a few characters
         return True
     except urllib.error.URLError as err:
         return err
     except urllib.error.HTTPError as err:
         return err
 
+
 def getPacFiles():
     """Return a list of possible auto proxy .pac files being used,
     based on the system registry (win32) or system preferences (OSX).
     """
-    pacFiles=[]
-    if sys.platform=='win32':
+    pacFiles = []
+    if sys.platform == 'win32':
         try:
-            import _winreg as winreg#used from python 2.0-2.6
+            import _winreg as winreg  # used from python 2.0-2.6
         except ImportError:
-            import winreg#used from python 2.7 onwards
+            import winreg  # used from python 2.7 onwards
         net = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
             "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"
         )
         nSubs, nVals, lastMod = winreg.QueryInfoKey(net)
-        subkeys={}
+        subkeys = {}
         for i in range(nVals):
-            thisName, thisVal, thisType=winreg.EnumValue(net,i)
-            subkeys[thisName]=thisVal
-        if 'AutoConfigURL' in subkeys.keys() and len(subkeys['AutoConfigURL'])>0:
+            thisName, thisVal, thisType = winreg.EnumValue(net, i)
+            subkeys[thisName] = thisVal
+        if 'AutoConfigURL' in subkeys.keys() and len(subkeys['AutoConfigURL']) > 0:
             pacFiles.append(subkeys['AutoConfigURL'])
-    elif sys.platform=='darwin':
+    elif sys.platform == 'darwin':
         import plistlib
-        sysPrefs = plistlib.readPlist('/Library/Preferences/SystemConfiguration/preferences.plist')
-        networks=sysPrefs['NetworkServices']
-        #loop through each possible network (e.g. Ethernet, Airport...)
+        sysPrefs = plistlib.readPlist(
+            '/Library/Preferences/SystemConfiguration/preferences.plist')
+        networks = sysPrefs['NetworkServices']
+        # loop through each possible network (e.g. Ethernet, Airport...)
         for network in networks.items():
-            netKey, network=network#the first part is a long identifier
+            netKey, network = network  # the first part is a long identifier
             if 'ProxyAutoConfigURLString' in network['Proxies'].keys():
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
-    return list(set(pacFiles)) # remove redundant ones
+    return list(set(pacFiles))  # remove redundant ones
+
 
 def getWpadFiles():
     """
@@ -141,16 +155,18 @@ def getWpadFiles():
 
     See http://en.wikipedia.org/wiki/Web_Proxy_Autodiscovery_Protocol
     """
-    #pacURLs.append("http://webproxy."+domain+"/wpad.dat")
+    # pacURLs.append("http://webproxy."+domain+"/wpad.dat")
     # for me finds a file that starts: function FindProxyForURL(url,host) { ... }
-    # dynamcially chooses a proxy based on the requested url and host; how to parse?
+    # dynamcially chooses a proxy based on the requested url and host; how to
+    # parse?
 
     domainParts = socket.gethostname().split('.')
-    pacURLs=[]
+    pacURLs = []
     for ii in range(len(domainParts)):
         domain = '.'.join(domainParts[ii:])
-        pacURLs.append("http://wpad."+domain+"/wpad.dat")
-    return list(set(pacURLs)) # remove redundant ones
+        pacURLs.append("http://wpad." + domain + "/wpad.dat")
+    return list(set(pacURLs))  # remove redundant ones
+
 
 def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
     """Attempts to locate and setup a valid proxy server from pac file URLs
@@ -173,32 +189,37 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
         - False if no proxy was found in the files that allowed successful connection
     """
 
-    if pacURLs==None:#if given none try to find some
+    if pacURLs == None:  # if given none try to find some
         pacURLs = getPacFiles()
-    if pacURLs==[]:#if still empty search for wpad files
+    if pacURLs == []:  # if still empty search for wpad files
         pacURLs = getWpadFiles()
-        #for each file search for valid urls and test them as proxies
+        # for each file search for valid urls and test them as proxies
     for thisPacURL in pacURLs:
         if log:
-            logging.debug('proxyFromPacFiles is searching file:\n  %s' %thisPacURL)
+            logging.debug(
+                'proxyFromPacFiles is searching file:\n  %s' % thisPacURL)
         try:
             response = urllib.request.urlopen(thisPacURL, timeout=2)
         except urllib.error.URLError:
             if log:
-                logging.debug("Failed to find PAC URL '%s' " %thisPacURL)
+                logging.debug("Failed to find PAC URL '%s' " % thisPacURL)
             continue
         pacStr = response.read()
-        #find the candidate PROXY strings (valid URLS), numeric and non-numeric:
-        possProxies = re.findall(r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]", pacStr+'\n')
+        # find the candidate PROXY strings (valid URLS), numeric and
+        # non-numeric:
+        possProxies = re.findall(
+            r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]", pacStr + '\n')
         for thisPoss in possProxies:
             proxUrl = 'http://' + thisPoss
-            handler=urllib.request.ProxyHandler({'http':proxUrl})
-            if tryProxy(handler)==True:
+            handler = urllib.request.ProxyHandler({'http': proxUrl})
+            if tryProxy(handler) == True:
                 if log:
-                    logging.debug('successfully loaded: %s' %proxUrl)
-                urllib.request.install_opener(urllib.request.build_opener(handler))
+                    logging.debug('successfully loaded: %s' % proxUrl)
+                urllib.request.install_opener(
+                    urllib.request.build_opener(handler))
                 return handler
     return False
+
 
 def setupProxy(log=True):
     """Set up the urllib proxy if possible.
@@ -218,54 +239,64 @@ def setupProxy(log=True):
         True (success) or False (failure)
     """
     global proxies
-    #try doing nothing
-    proxies=urllib.request.ProxyHandler(urllib.request.getproxies())
+    # try doing nothing
+    proxies = urllib.request.ProxyHandler(urllib.request.getproxies())
     if tryProxy(proxies) is True:
         if log:
-            logging.debug("Using standard urllib (static proxy or no proxy required)")
-        urllib.request.install_opener(urllib.request.build_opener(proxies))#this will now be used globally for ALL urllib opening
+            logging.debug(
+                "Using standard urllib (static proxy or no proxy required)")
+        # this will now be used globally for ALL urllib opening
+        urllib.request.install_opener(urllib.request.build_opener(proxies))
         return 1
 
-    #try doing what we did last time
-    if len(prefs.connections['proxy'])>0:
-        proxies=urllib.request.ProxyHandler({'http': prefs.connections['proxy']})
+    # try doing what we did last time
+    if len(prefs.connections['proxy']) > 0:
+        proxies = urllib.request.ProxyHandler(
+            {'http': prefs.connections['proxy']})
         if tryProxy(proxies) is True:
             if log:
-                logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
-            urllib.request.install_opener(urllib.request.build_opener(proxies))#this will now be used globally for ALL urllib opening
+                logging.debug('Using %s (from prefs)' %
+                              (prefs.connections['proxy']))
+            # this will now be used globally for ALL urllib opening
+            urllib.request.install_opener(urllib.request.build_opener(proxies))
             return 1
         else:
             if log:
                 logging.debug("Found a previous proxy but it didn't work")
 
-    #try finding/using a proxy.pac file
-    pacURLs=getPacFiles()
+    # try finding/using a proxy.pac file
+    pacURLs = getPacFiles()
     if log:
-        logging.debug("Found proxy PAC files: %s" %pacURLs)
-    proxies=proxyFromPacFiles(pacURLs) # installs opener, if successful
-    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
-        #save that proxy for future
-        prefs.connections['proxy']=proxies.proxies['http']
+        logging.debug("Found proxy PAC files: %s" % pacURLs)
+    proxies = proxyFromPacFiles(pacURLs)  # installs opener, if successful
+    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http']) > 0:
+        # save that proxy for future
+        prefs.connections['proxy'] = proxies.proxies['http']
         prefs.saveUserPrefs()
         if log:
-            logging.debug('Using %s (from proxy PAC file)' %(prefs.connections['proxy']))
+            logging.debug('Using %s (from proxy PAC file)' %
+                          (prefs.connections['proxy']))
         return 1
 
-    #try finding/using 'auto-detect proxy'
-    pacURLs=getWpadFiles()
-    proxies=proxyFromPacFiles(pacURLs) # installs opener, if successful
-    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
-        #save that proxy for future
-        prefs.connections['proxy']=proxies.proxies['http']
+    # try finding/using 'auto-detect proxy'
+    pacURLs = getWpadFiles()
+    proxies = proxyFromPacFiles(pacURLs)  # installs opener, if successful
+    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http']) > 0:
+        # save that proxy for future
+        prefs.connections['proxy'] = proxies.proxies['http']
         prefs.saveUserPrefs()
         if log:
-            logging.debug('Using %s (from proxy auto-detect)' %(prefs.connections['proxy']))
+            logging.debug('Using %s (from proxy auto-detect)' %
+                          (prefs.connections['proxy']))
         return 1
 
-    proxies=0
+    proxies = 0
     return 0
 
-### post_multipart is from {{{ http://code.activestate.com/recipes/146306/ (r1) ###
+# post_multipart is from {{{ http://code.activestate.com/recipes/146306/
+# (r1) ###
+
+
 def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIMEOUT,
                     userAgent=PSYCHOPY_USERAGENT, basicAuth=None, https=False):
     """
@@ -298,8 +329,10 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
 
         for (key, filename, value) in files:
             L.append(u'--' + BOUNDARY)
-            L.append(u'Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
-            L.append(u'Content-Type: %s;charset=%s' % (_get_content_type(filename), encoding))
+            L.append(
+                u'Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+            L.append(u'Content-Type: %s;charset=%s' %
+                     (_get_content_type(filename), encoding))
             L.append(u'Content-Transfer-Encoding: base64')
             L.append(u'')
             L.append(base64.b64encode(value).decode())
@@ -333,7 +366,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
 
     try:
         conn.request(u'POST', selector, body, headers)
-    except Exception: # ? don't seem to get a proper exception
+    except Exception:  # ? don't seem to get a proper exception
         return -1, 'connection error (possible timeout after %ss)' % str(timeout), 'timeout or error'
 
     try:
@@ -342,7 +375,8 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
         return -1, 'connection error (can be "socket.error: [Errno 54] Connection reset by peer")'
     return result.status, result.reason, result.read()
 
-    ## end of http://code.activestate.com/recipes/146306/ }}}
+    # end of http://code.activestate.com/recipes/146306/ }}}
+
 
 def upload(selector, filename, basicAuth=None, host=None, https=False, log=True):
     """DEPRECATED: Upload a local file over the internet to a configured http server.
@@ -407,24 +441,29 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
     Author: Jeremy R. Gray, 2012
     """
 
-    logging.warning("Deprecated: psychopy.web.upload is superceded by requests (python package)")  # ~Nov 2015
+    logging.warning(
+        "Deprecated: psychopy.web.upload is superceded by requests (python package)")  # ~Nov 2015
 
     requireInternetAccess()  # needed to upload over http
 
     fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
     if not selector:
         logging.error('upload: need a selector, http://<host>/path/to/up.php')
-        raise ValueError('upload: need a selector, http://<host>/path/to/up.php')
+        raise ValueError(
+            'upload: need a selector, http://<host>/path/to/up.php')
     if not host:
         host = selector.split('/')[2]
         if log:
             logging.info('upload: host extracted from selector = %s' % host)
     if selector.startswith('https'):
         if https is not True:
-            logging.error('upload: https not explicitly requested. use https=True to proceed anyway (see API for security caveats).')
-            raise ValueError('upload: https not fully supported (see API for caveats and usage), exiting.')
+            logging.error(
+                'upload: https not explicitly requested. use https=True to proceed anyway (see API for security caveats).')
+            raise ValueError(
+                'upload: https not fully supported (see API for caveats and usage), exiting.')
         elif log:
-            logging.exp('upload: https requested; note that security is not fully assured (see API)')
+            logging.exp(
+                'upload: https requested; note that security is not fully assured (see API)')
     elif https:
         msg = 'upload: to use https, the selector URL must start with "https"'
         logging.error(msg)
@@ -432,12 +471,14 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
     if not os.path.isfile(filename):
         logging.error('upload: file not found (%s)' % filename)
         raise ValueError('upload: file not found (%s)' % filename)
-    contents = open(filename).read() # base64 encoded in _encode_multipart_formdata()
+    # base64 encoded in _encode_multipart_formdata()
+    contents = open(filename).read()
     file = [('file_1', filename, contents)]
 
     # initiate the POST:
     if log:
-        logging.exp('upload: uploading file %s to %s' % (os.path.abspath(filename), selector))
+        logging.exp('upload: uploading file %s to %s' %
+                    (os.path.abspath(filename), selector))
     try:
         status, reason, result = _post_multipart(host, selector, fields, file,
                                                  basicAuth=basicAuth, https=https)
@@ -452,11 +493,11 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
     # process the result:
     if status == 200:
         result_fields = result.split()
-        #result = 'status_msg digest' # if using up.php
+        # result = 'status_msg digest' # if using up.php
         if result_fields[0] == 'good_upload':
-            outcome = 'success'+' '+result
+            outcome = 'success' + ' ' + result
         else:
-            outcome = result # failure code
+            outcome = result  # failure code
     elif status == 404:
         outcome = '404 Not_Found: server config error'
     elif status == 403:

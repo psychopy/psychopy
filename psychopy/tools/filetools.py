@@ -21,7 +21,7 @@ def toFile(filename, data):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename, 'w')
-    cPickle.dump(data,f)
+    cPickle.dump(data, f)
     f.close()
 
 
@@ -33,7 +33,8 @@ def fromFile(filename):
     f = open(filename)
     contents = cPickle.load(f)
     f.close()
-    #if loading an experiment file make sure we don't save further copies using __del__
+    # if loading an experiment file make sure we don't save further copies
+    # using __del__
     if hasattr(contents, 'abort'):
         contents.abort()
     return contents
@@ -52,11 +53,12 @@ def mergeFolder(src, dst, pattern=None):
         srcfname = os.path.join(src, name)
         dstfname = os.path.join(dst, name)
         if os.path.isdir(srcfname):
-            if not os.path.isdir(dstfname): os.makedirs(dstfname)
+            if not os.path.isdir(dstfname):
+                os.makedirs(dstfname)
             mergeFolder(srcfname, dstfname)
         else:
             try:
-                shutil.copyfile(srcfname, dstfname)#copy without metadata
+                shutil.copyfile(srcfname, dstfname)  # copy without metadata
             except IOError as why:
                 print(why)
 

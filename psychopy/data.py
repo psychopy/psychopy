@@ -7,10 +7,15 @@
 from __future__ import absolute_import
 
 from pandas import DataFrame, read_csv
-import cPickle, string, sys, os, time, copy
+import cPickle
+import string
+import sys
+import os
+import time
+import copy
 import numpy
 from scipy import optimize, special
-import inspect #so that Handlers can find the script that called them
+import inspect  # so that Handlers can find the script that called them
 import codecs
 import weakref
 import re
@@ -21,20 +26,20 @@ try:
     #import openpyxl
     from openpyxl.cell import get_column_letter
     from openpyxl.reader.excel import load_workbook
-    haveOpenpyxl=True
+    haveOpenpyxl = True
 except ImportError:
-    haveOpenpyxl=False
+    haveOpenpyxl = False
 
 from psychopy import logging
 from psychopy.tools.arraytools import extendArr, shuffleArray
 from psychopy.tools.fileerrortools import handleFileCollision
 from psychopy.tools.filetools import openOutputFile, genDelimiter
 import psychopy
-from psychopy.contrib.quest import QuestObject    #used for QuestHandler
-from psychopy.contrib.psi import PsiObject   #used for PsiHandler
+from psychopy.contrib.quest import QuestObject  # used for QuestHandler
+from psychopy.contrib.psi import PsiObject  # used for PsiHandler
 
-_experiments=weakref.WeakValueDictionary()
-_nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
+_experiments = weakref.WeakValueDictionary()
+_nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 
 
 class ExperimentHandler(object):
@@ -48,16 +53,17 @@ class ExperimentHandler(object):
         exp = data.ExperimentHandler(name="Face Preference",version='0.1.0')
 
     """
+
     def __init__(self,
-                name='',
-                version='',
-                extraInfo=None,
-                runtimeInfo=None,
-                originPath=None,
-                savePickle=True,
-                saveWideText=True,
-                dataFileName='',
-                autoLog=True):
+                 name='',
+                 version='',
+                 extraInfo=None,
+                 runtimeInfo=None,
+                 originPath=None,
+                 savePickle=True,
+                 saveWideText=True,
+                 dataFileName='',
+                 autoLog=True):
         """
         :parameters:
 
@@ -92,44 +98,50 @@ class ExperimentHandler(object):
 
             autoLog : True (default) or False
         """
-        self.loops=[]
-        self.loopsUnfinished=[]
-        self.name=name
-        self.version=version
-        self.runtimeInfo=runtimeInfo
+        self.loops = []
+        self.loopsUnfinished = []
+        self.name = name
+        self.version = version
+        self.runtimeInfo = runtimeInfo
         if extraInfo is None:
             self.extraInfo = {}
         else:
-            self.extraInfo=extraInfo
-        self.originPath=originPath
-        self.savePickle=savePickle
-        self.saveWideText=saveWideText
-        self.dataFileName=dataFileName
+            self.extraInfo = extraInfo
+        self.originPath = originPath
+        self.savePickle = savePickle
+        self.saveWideText = saveWideText
+        self.dataFileName = dataFileName
         self.thisEntry = {}
-        self.entries=[]#chronological list of entries
-        self._paramNamesSoFar=[]
-        self.dataNames=[]#names of all the data (eg. resp.keys)
+        self.entries = []  # chronological list of entries
+        self._paramNamesSoFar = []
+        self.dataNames = []  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
         if dataFileName in ['', None]:
-            logging.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
+            logging.warning(
+                'ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
         else:
-            checkValidFilePath(dataFileName, makeValid=True) #fail now if we fail at all!
+            # fail now if we fail at all!
+            checkValidFilePath(dataFileName, makeValid=True)
+
     def __del__(self):
         if self.dataFileName not in ['', None]:
             if self.autoLog:
-                logging.debug('Saving data for %s ExperimentHandler' %self.name)
-            if self.savePickle==True:
+                logging.debug(
+                    'Saving data for %s ExperimentHandler' % self.name)
+            if self.savePickle == True:
                 self.saveAsPickle(self.dataFileName)
-            if self.saveWideText==True:
-                self.saveAsWideText(self.dataFileName+'.csv', delim=',')
+            if self.saveWideText == True:
+                self.saveAsWideText(self.dataFileName + '.csv', delim=',')
+
     def addLoop(self, loopHandler):
         """Add a loop such as a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
         """
         self.loops.append(loopHandler)
         self.loopsUnfinished.append(loopHandler)
-        #keep the loop updated that is now owned
+        # keep the loop updated that is now owned
         loopHandler.setExp(self)
+
     def loopEnded(self, loopHandler):
         """Informs the experiment handler that the loop is finished and not to
         include its values in further entries of the experiment.
@@ -139,71 +151,77 @@ class ExperimentHandler(object):
         """
         if loopHandler in self.loopsUnfinished:
             self.loopsUnfinished.remove(loopHandler)
+
     def _getAllParamNames(self):
         """Returns the attribute names of loop parameters (trialN etc)
         that the current set of loops contain, ready to build a wide-format
         data file.
         """
-        names=copy.deepcopy(self._paramNamesSoFar)
-        #get names (or identifiers) for all contained loops
+        names = copy.deepcopy(self._paramNamesSoFar)
+        # get names (or identifiers) for all contained loops
         for thisLoop in self.loops:
             theseNames, vals = self._getLoopInfo(thisLoop)
             for name in theseNames:
                 if name not in names:
                     names.append(name)
         return names
+
     def _getExtraInfo(self):
         """
         Get the names and vals from the extraInfo dict (if it exists)
         """
         if type(self.extraInfo) != dict:
-            names=[]
-            vals=[]
+            names = []
+            vals = []
         else:
-            names=self.extraInfo.keys()
-            vals= self.extraInfo.values()
+            names = self.extraInfo.keys()
+            vals = self.extraInfo.values()
         return names, vals
+
     def _getLoopInfo(self, loop):
         """Returns the attribute names and values for the current trial of a particular loop.
         Does not return data inputs from the subject, only info relating to the trial
         execution.
         """
-        names=[]
-        vals=[]
+        names = []
+        vals = []
         name = loop.name
-        #standard attributes
-        for attr in ['thisRepN', 'thisTrialN', 'thisN','thisIndex', 'stepSizeCurrent']:
+        # standard attributes
+        for attr in ['thisRepN', 'thisTrialN', 'thisN', 'thisIndex', 'stepSizeCurrent']:
             if hasattr(loop, attr):
-                if attr=='stepSizeCurrent':
-                    attrName=name+'.stepSize'
+                if attr == 'stepSizeCurrent':
+                    attrName = name + '.stepSize'
                 else:
-                    attrName = name+'.'+attr
-                #append the attribute name and the current value
+                    attrName = name + '.' + attr
+                # append the attribute name and the current value
                 names.append(attrName)
-                vals.append(getattr(loop,attr))
-        #method of constants
+                vals.append(getattr(loop, attr))
+        # method of constants
         if hasattr(loop, 'thisTrial'):
             trial = loop.thisTrial
-            if hasattr(trial,'items'):#is a TrialList object or a simple dict
-                for attr,val in trial.items():
+            if hasattr(trial, 'items'):  # is a TrialList object or a simple dict
+                for attr, val in trial.items():
                     if attr not in self._paramNamesSoFar:
                         self._paramNamesSoFar.append(attr)
                     names.append(attr)
                     vals.append(val)
-            elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
+            # we haven't had 1st trial yet? Not actually sure why this
+            # occasionally happens (JWP)
+            elif trial == []:
                 pass
             else:
-                names.append(name+'.thisTrial')
+                names.append(name + '.thisTrial')
                 vals.append(trial)
-        #single StairHandler
+        # single StairHandler
         elif hasattr(loop, 'intensities'):
-            names.append(name+'.intensity')
-            if len(loop.intensities)>0:
+            names.append(name + '.intensity')
+            if len(loop.intensities) > 0:
                 vals.append(loop.intensities[-1])
             else:
                 vals.append(None)
 
         return names, vals
+
     def addData(self, name, value):
         """Add the data with a given name to the current experiment.
 
@@ -232,30 +250,31 @@ class ExperimentHandler(object):
         except TypeError:
             # unhashable type (list, dict, ...) == mutable, so need a copy()
             value = copy.deepcopy(value)
-        self.thisEntry[name]=value
+        self.thisEntry[name] = value
 
     def nextEntry(self):
         """Calling nextEntry indicates to the ExperimentHandler that the
         current trial has ended and so further
         addData() calls correspond to the next trial.
         """
-        this=self.thisEntry
-        #fetch data from each (potentially-nested) loop
+        this = self.thisEntry
+        # fetch data from each (potentially-nested) loop
         for thisLoop in self.loopsUnfinished:
             names, vals = self._getLoopInfo(thisLoop)
             for n, name in enumerate(names):
-                this[name]=vals[n]
-        #add the extraInfo dict to the data
-        if type(self.extraInfo)==dict:
-            this.update(self.extraInfo)#NB update() really means mergeFrom()
+                this[name] = vals[n]
+        # add the extraInfo dict to the data
+        if type(self.extraInfo) == dict:
+            this.update(self.extraInfo)  # NB update() really means mergeFrom()
         self.entries.append(this)
-        #then create new empty entry for n
+        # then create new empty entry for n
         self.thisEntry = {}
+
     def saveAsWideText(self, fileName, delim=None,
-                   matrixOnly=False,
-                   appendFile=False,
-                   encoding='utf-8',
-                   fileCollisionMethod='rename'):
+                       matrixOnly=False,
+                       appendFile=False,
+                       encoding='utf-8',
+                       fileCollisionMethod='rename'):
         """Saves a long, wide-format text file, with one line representing the attributes and data
         for a single trial. Suitable for analysis in R and SPSS.
 
@@ -272,11 +291,11 @@ class ExperimentHandler(object):
             Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         """
-        #set default delimiter if none given
+        # set default delimiter if none given
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or send to stdout
+        # create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
@@ -284,30 +303,31 @@ class ExperimentHandler(object):
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)
-        names.extend(self._getExtraInfo()[0]) #names from the extraInfo dictionary
-        #write a header line
+        # names from the extraInfo dictionary
+        names.extend(self._getExtraInfo()[0])
+        # write a header line
         if not matrixOnly:
             for heading in names:
-                f.write(u'%s%s' %(heading,delim))
+                f.write(u'%s%s' % (heading, delim))
             f.write('\n')
-        #write the data for each entry
+        # write the data for each entry
 
         for entry in self.entries:
             for name in names:
                 entry.keys()
                 if name in entry.keys():
                     if ',' in unicode(entry[name]) or '\n' in unicode(entry[name]):
-                        f.write(u'"%s"%s' %(entry[name],delim))
+                        f.write(u'"%s"%s' % (entry[name], delim))
                     else:
-                        f.write(u'%s%s' %(entry[name],delim))
+                        f.write(u'%s%s' % (entry[name], delim))
                 else:
                     f.write(delim)
             f.write('\n')
         if f != sys.stdout:
             f.close()
-        logging.info('saved data to %r' %f.name)
+        logging.info('saved data to %r' % f.name)
 
-    def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
+    def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necessary and further analyses carried out.
@@ -333,9 +353,9 @@ class ExperimentHandler(object):
         self.savePickle = False
         self.saveWideText = False
 
-        #otherwise use default location
+        # otherwise use default location
         if not fileName.endswith('.psydat'):
-            fileName+='.psydat'
+            fileName += '.psydat'
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
@@ -352,22 +372,27 @@ class ExperimentHandler(object):
         So if you quit your script early you may want to tell the Handler not to save out the data files for this run.
         This is the method that allows you to do that.
         """
-        self.savePickle=False
-        self.saveWideText=False
+        self.savePickle = False
+        self.saveWideText = False
+
 
 class TrialType(dict):
     """This is just like a dict, except that you can access keys with obj.key
     """
+
     def __getattribute__(self, name):
-        try:#to get attr from dict in normal way (passing self)
+        try:  # to get attr from dict in normal way (passing self)
             return dict.__getattribute__(self, name)
         except AttributeError:
             try:
                 return self[name]
             except KeyError:
-                raise AttributeError('TrialType has no attribute (or key) \'%s\'' %(name))
+                raise AttributeError(
+                    'TrialType has no attribute (or key) \'%s\'' % (name))
+
 
 class _BaseTrialHandler(object):
+
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
@@ -377,12 +402,13 @@ class _BaseTrialHandler(object):
 
         because it needs to be performed using the `weakref` module.
         """
-        #need to use a weakref to avoid creating a circular reference that
-        #prevents effective object deletion
-        expId=id(exp)
+        # need to use a weakref to avoid creating a circular reference that
+        # prevents effective object deletion
+        expId = id(exp)
         _experiments[expId] = exp
         self._exp = expId
-        self.origin = None #this will have been stored by the exp so don't store again
+        self.origin = None  # this will have been stored by the exp so don't store again
+
     def getExp(self):
         """Return the ExperimentHandler that this handler is attached to, if any.
         Returns None if not attached
@@ -391,16 +417,18 @@ class _BaseTrialHandler(object):
             return None
         else:
             return _experiments[self._exp]
+
     def _terminate(self):
         """Remove references to ourself in experiments and terminate the loop
         """
-        #remove ourself from the list of unfinished loops in the experiment
-        exp=self.getExp()
-        if exp!=None:
+        # remove ourself from the list of unfinished loops in the experiment
+        exp = self.getExp()
+        if exp != None:
             exp.loopEnded(self)
-        #and halt the loop
+        # and halt the loop
         raise StopIteration
-    def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
+
+    def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of the handler (with data) to a pickle file.
 
         This can be reloaded if necessary and further analyses carried out.
@@ -409,13 +437,14 @@ class _BaseTrialHandler(object):
 
             fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+        if self.thisTrialN < 1 and self.thisRepN < 1:  # if both are <1 we haven't started
             if self.autoLog:
-                logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
+                logging.info(
+                    '.saveAsPickle() called but no trials completed. Nothing saved')
             return -1
-        #otherwise use default location
+        # otherwise use default location
         if not fileName.endswith('.psydat'):
-            fileName+='.psydat'
+            fileName += '.psydat'
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
@@ -423,9 +452,9 @@ class _BaseTrialHandler(object):
         f.close()
         logging.info('saved data to %s' % f.name)
 
-    def saveAsText(self,fileName,
+    def saveAsText(self, fileName,
                    stimOut=None,
-                   dataOut=('n','all_mean','all_std', 'all_raw'),
+                   dataOut=('n', 'all_mean', 'all_std', 'all_raw'),
                    delim=None,
                    matrixOnly=False,
                    appendFile=True,
@@ -473,53 +502,56 @@ class _BaseTrialHandler(object):
         if stimOut is None:
             stimOut = []
 
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+        if self.thisTrialN < 1 and self.thisRepN < 1:  # if both are <1 we haven't started
             if self.autoLog:
-                logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
+                logging.info(
+                    'TrialHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
         dataArray = self._createOutputArray(stimOut=stimOut,
-            dataOut=dataOut,
-            matrixOnly=matrixOnly)
+                                            dataOut=dataOut,
+                                            matrixOnly=matrixOnly)
 
-        #set default delimiter if none given
+        # set default delimiter if none given
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or send to stdout
+        # create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
         )
 
-        #loop through lines in the data matrix
+        # loop through lines in the data matrix
         for line in dataArray:
             for cellN, entry in enumerate(line):
-                if delim in unicode(entry):#surround in quotes to prevent effect of delimiter
-                    f.write(u'"%s"' %unicode(entry))
+                # surround in quotes to prevent effect of delimiter
+                if delim in unicode(entry):
+                    f.write(u'"%s"' % unicode(entry))
                 else:
                     f.write(unicode(entry))
-                if cellN<(len(line)-1):
+                if cellN < (len(line) - 1):
                     f.write(delim)
-            f.write("\n")#add an EOL at end of each line
+            f.write("\n")  # add an EOL at end of each line
         if f != sys.stdout:
             f.close()
             if self.autoLog:
-                logging.info('saved data to %s' %f.name)
+                logging.info('saved data to %s' % f.name)
+
     def printAsText(self, stimOut=None,
                     dataOut=('all_mean', 'all_std', 'all_raw'),
                     delim='\t',
                     matrixOnly=False,
-                  ):
+                    ):
         """Exactly like saveAsText() except that the output goes
         to the screen instead of a file"""
         if stimOut is None:
             stimOut = []
         self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
 
-    def saveAsExcel(self,fileName, sheetName='rawData',
+    def saveAsExcel(self, fileName, sheetName='rawData',
                     stimOut=None,
-                    dataOut=('n','all_mean','all_std', 'all_raw'),
+                    dataOut=('n', 'all_mean', 'all_std', 'all_raw'),
                     matrixOnly=False,
                     appendFile=True,
                     fileCollisionMethod='rename'
@@ -570,62 +602,68 @@ class _BaseTrialHandler(object):
         if stimOut is None:
             stimOut = []
 
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+        if self.thisTrialN < 1 and self.thisRepN < 1:  # if both are <1 we haven't started
             if self.autoLog:
-                logging.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
+                logging.info(
+                    'TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
 
-        #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
+        # NB this was based on the limited documentation (1 page wiki) for
+        # openpyxl v1.0
         if not haveOpenpyxl:
-            raise ImportError('openpyxl is required for saving files in Excel (xlsx) format, but was not found.')
-            #return -1
+            raise ImportError(
+                'openpyxl is required for saving files in Excel (xlsx) format, but was not found.')
+            # return -1
 
-        #create the data array to be sent to the Excel file
+        # create the data array to be sent to the Excel file
         dataArray = self._createOutputArray(stimOut=stimOut,
-            dataOut=dataOut,
-            matrixOnly=matrixOnly)
+                                            dataOut=dataOut,
+                                            matrixOnly=matrixOnly)
 
-        #import necessary subpackages - they are small so won't matter to do it here
+        # import necessary subpackages - they are small so won't matter to do
+        # it here
         from openpyxl.workbook import Workbook
         from openpyxl.writer.excel import ExcelWriter
         from openpyxl.reader.excel import load_workbook
 
         if not fileName.endswith('.xlsx'):
-            fileName+='.xlsx'
-        #create or load the file
+            fileName += '.xlsx'
+        # create or load the file
         if appendFile and os.path.isfile(fileName):
             wb = load_workbook(fileName)
-            newWorkbook=False
+            newWorkbook = False
         else:
-            if not appendFile: #the file exists but we're not appending, so will be overwritten
+            if not appendFile:  # the file exists but we're not appending, so will be overwritten
                 fileName = handleFileCollision(fileName,
                                                fileCollisionMethod)
-            wb = Workbook()#create new workbook
-            wb.properties.creator='PsychoPy'+psychopy.__version__
-            newWorkbook=True
+            wb = Workbook()  # create new workbook
+            wb.properties.creator = 'PsychoPy' + psychopy.__version__
+            newWorkbook = True
 
-        ew = ExcelWriter(workbook = wb)
+        ew = ExcelWriter(workbook=wb)
 
         if newWorkbook:
             ws = wb.worksheets[0]
-            ws.title=sheetName
+            ws.title = sheetName
         else:
-            ws=wb.create_sheet()
-            ws.title=sheetName
+            ws = wb.create_sheet()
+            ws.title = sheetName
 
-        #loop through lines in the data matrix
+        # loop through lines in the data matrix
         for lineN, line in enumerate(dataArray):
             if line is None:
                 continue
             for colN, entry in enumerate(line):
                 if entry in [None]:
-                    entry=''
+                    entry = ''
                 try:
-                    ws.cell(_getExcelCellName(col=colN,row=lineN)).value = float(entry)#if it can conver to a number (from numpy) then do it
+                    ws.cell(_getExcelCellName(col=colN, row=lineN)).value = float(
+                        entry)  # if it can conver to a number (from numpy) then do it
                 except Exception:
-                    ws.cell(_getExcelCellName(col=colN,row=lineN)).value = unicode(entry)#else treat as unicode
+                    ws.cell(_getExcelCellName(col=colN, row=lineN)).value = unicode(
+                        entry)  # else treat as unicode
 
-        ew.save(filename = fileName)
+        ew.save(filename=fileName)
 
     def nextTrial(self):
         """DEPRECATION WARNING: nextTrial() will be deprecated
@@ -637,8 +675,9 @@ class _BaseTrialHandler(object):
         please use next() instead.
         jwp: 19/6/06
         """)
-            self._warnUseOfNext=False
+            self._warnUseOfNext = False
         return self.next()
+
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this data file
         and returns both the path to that script and its contents.
@@ -647,23 +686,26 @@ class _BaseTrialHandler(object):
         If originPath is provided (e.g. from Builder) then this is used otherwise
         the calling script is the originPath (fine from a standard python script).
         """
-        #self.originPath and self.origin (the contents of the origin file)
+        # self.originPath and self.origin (the contents of the origin file)
         if originPath == -1:
-            return -1, None #the user wants to avoid storing this
+            return -1, None  # the user wants to avoid storing this
         elif originPath is None or not os.path.isfile(originPath):
             try:
-                originPath = inspect.getouterframes(inspect.currentframe())[2][1]
+                originPath = inspect.getouterframes(
+                    inspect.currentframe())[2][1]
                 if self.autoLog:
-                    logging.debug("Using %s as origin file" %originPath)
+                    logging.debug("Using %s as origin file" % originPath)
             except Exception:
                 if self.autoLog:
-                    logging.debug("Failed to find origin file using inspect.getouterframes")
-                return '',''
-        if os.path.isfile(originPath):#do we NOW have a path?
+                    logging.debug(
+                        "Failed to find origin file using inspect.getouterframes")
+                return '', ''
+        if os.path.isfile(originPath):  # do we NOW have a path?
             origin = codecs.open(originPath, "r", encoding="utf-8").read()
         else:
-            origin=None
+            origin = None
         return originPath, origin
+
 
 class TrialHandler(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
@@ -682,6 +724,7 @@ class TrialHandler(_BaseTrialHandler):
 
     Then you'll find that `dat` has the following attributes that
     """
+
     def __init__(self,
                  trialList,
                  nReps,
@@ -752,49 +795,55 @@ class TrialHandler(_BaseTrialHandler):
             .origin - the contents of the script or builder experiment that created the handler
 
         """
-        self.name=name
+        self.name = name
         self.autoLog = autoLog
 
-        if trialList in [None, []]:#user wants an empty trialList
-            self.trialList = [None]#which corresponds to a list with a single empty entry
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
-            self.trialList = importConditions(trialList) #import conditions from that file
+        if trialList in [None, []]:  # user wants an empty trialList
+            # which corresponds to a list with a single empty entry
+            self.trialList = [None]
+        # user has hopefully specified a filename
+        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+            # import conditions from that file
+            self.trialList = importConditions(trialList)
         else:
-            self.trialList =trialList
-        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+            self.trialList = trialList
+        # convert any entry in the TrialList into a TrialType object (with
+        # obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
-            if type(entry)==dict:
-                self.trialList[n]=TrialType(entry)
+            if type(entry) == dict:
+                self.trialList[n] = TrialType(entry)
         self.nReps = int(nReps)
-        self.nTotal = self.nReps*len(self.trialList)
-        self.nRemaining =self.nTotal #subtract 1 each trial
+        self.nTotal = self.nReps * len(self.trialList)
+        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
-        self.thisRepN = 0        #records which repetition or pass we are on
-        self.thisTrialN = -1    #records which trial number within this repetition
+        self.thisRepN = 0  # records which repetition or pass we are on
+        self.thisTrialN = -1  # records which trial number within this repetition
         self.thisN = -1
-        self.thisIndex = 0        #the index of the current trial in the conditions list
+        self.thisIndex = 0  # the index of the current trial in the conditions list
         self.thisTrial = []
-        self.finished=False
-        self.extraInfo=extraInfo
-        self._warnUseOfNext=True
-        self.seed=seed
-        #create dataHandler
+        self.finished = False
+        self.extraInfo = extraInfo
+        self._warnUseOfNext = True
+        self.seed = seed
+        # create dataHandler
         self.data = DataHandler(trials=self)
-        if dataTypes!=None:
+        if dataTypes != None:
             self.data.addDataType(dataTypes)
         self.data.addDataType('ran')
-        self.data['ran'].mask=False#this is a bool - all entries are valid
+        self.data['ran'].mask = False  # this is a bool - all entries are valid
         self.data.addDataType('order')
-        #generate stimulus sequence
-        if self.method in ['random','sequential', 'fullRandom']:
+        # generate stimulus sequence
+        if self.method in ['random', 'sequential', 'fullRandom']:
             self.sequenceIndices = self._createSequence()
-        else: self.sequenceIndices=[]
+        else:
+            self.sequenceIndices = []
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
-        self._exp = None#the experiment handler that owns me!
+        self._exp = None  # the experiment handler that owns me!
 
     def __iter__(self):
         return self
+
     def __repr__(self):
         """prints a more verbose version of self as string"""
         return self.__str__(verbose=True)
@@ -804,37 +853,37 @@ class TrialHandler(_BaseTrialHandler):
         strRepres = 'psychopy.data.TrialHandler(\n'
         attribs = dir(self)
 
-        #data first, then all others
+        # data first, then all others
         try:
             data = self.data
         except Exception:
             data = None
         if data:
             strRepres += str('\tdata=')
-            strRepres +=str(data)+'\n'
+            strRepres += str(data) + '\n'
 
         for thisAttrib in attribs:
-            #can handle each attribute differently
-            if 'instancemethod' in str(type(getattr(self,thisAttrib))):
-                #this is a method
+            # can handle each attribute differently
+            if 'instancemethod' in str(type(getattr(self, thisAttrib))):
+                # this is a method
                 continue
-            elif thisAttrib[0]=='_':
-                #the attrib is private
+            elif thisAttrib[0] == '_':
+                # the attrib is private
                 continue
-            elif thisAttrib=='data':
-                #we handled this first
+            elif thisAttrib == 'data':
+                # we handled this first
                 continue
-            elif len(str(getattr(self,thisAttrib)))>20 and \
-                 not verbose:
-                #just give type of LONG public attribute
-                strRepres += str('\t'+thisAttrib+'=')
-                strRepres += str(type(getattr(self,thisAttrib)))+'\n'
+            elif len(str(getattr(self, thisAttrib))) > 20 and \
+                    not verbose:
+                # just give type of LONG public attribute
+                strRepres += str('\t' + thisAttrib + '=')
+                strRepres += str(type(getattr(self, thisAttrib))) + '\n'
             else:
-                #give the complete contents of attribute
-                strRepres += str('\t'+thisAttrib+'=')
-                strRepres += str(getattr(self,thisAttrib))+'\n'
+                # give the complete contents of attribute
+                strRepres += str('\t' + thisAttrib + '=')
+                strRepres += str(getattr(self, thisAttrib)) + '\n'
 
-        strRepres+=')'
+        strRepres += ')'
         return strRepres
 
     def _createSequence(self):
@@ -866,51 +915,55 @@ class TrialHandler(_BaseTrialHandler):
 
         if self.method == 'random':
             sequenceIndices = []
-            seed=self.seed
+            seed = self.seed
             for thisRep in range(self.nReps):
                 thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
-                seed=None#so that we only seed the first pass through!
+                seed = None  # so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = numpy.transpose(sequenceIndices)
         elif self.method == 'sequential':
-            sequenceIndices = numpy.repeat(indices,self.nReps,1)
+            sequenceIndices = numpy.repeat(indices, self.nReps, 1)
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
-            sequential = numpy.repeat(indices, self.nReps,1) # = sequential
+            sequential = numpy.repeat(indices, self.nReps, 1)  # = sequential
             randomFlat = shuffleArray(sequential.flat, seed=self.seed)
-            sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+            sequenceIndices = numpy.reshape(
+                randomFlat, (len(indices), self.nReps))
         if self.autoLog:
             logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
-                (self.method, len(indices), self.nReps, str(self.seed) )  )
+                        (self.method, len(indices), self.nReps, str(self.seed)))
         return sequenceIndices
 
-    def _makeIndices(self,inputArray):
+    def _makeIndices(self, inputArray):
         """
         Creates an array of tuples the same shape as the input array
         where each tuple contains the indices to itself in the array.
 
         Useful for shuffling and then using as a reference.
         """
-        inputArray  = numpy.asarray(inputArray, 'O')#make sure its an array of objects (can be strings etc)
-        #get some simple variables for later
-        dims=inputArray.shape
-        dimsProd=numpy.product(dims)
+        inputArray = numpy.asarray(
+            inputArray, 'O')  # make sure its an array of objects (can be strings etc)
+        # get some simple variables for later
+        dims = inputArray.shape
+        dimsProd = numpy.product(dims)
         dimsN = len(dims)
         dimsList = range(dimsN)
         listOfLists = []
-        arrayOfTuples = numpy.ones(dimsProd, 'O')#this creates space for an array of any objects
+        # this creates space for an array of any objects
+        arrayOfTuples = numpy.ones(dimsProd, 'O')
 
-        #for each dimension create list of its indices (using modulo)
+        # for each dimension create list of its indices (using modulo)
         for thisDim in dimsList:
             prevDimsProd = numpy.product(dims[:thisDim])
-            thisDimVals = numpy.arange(dimsProd)/prevDimsProd % dims[thisDim] #NB this means modulus in python
+            # NB this means modulus in python
+            thisDimVals = numpy.arange(dimsProd) / prevDimsProd % dims[thisDim]
             listOfLists.append(thisDimVals)
 
-        #convert to array
+        # convert to array
         indexArr = numpy.asarray(listOfLists)
         for n in range(dimsProd):
-            arrayOfTuples[n] = tuple((indexArr[:,n]))
-        return (numpy.reshape(arrayOfTuples,dims)).tolist()
+            arrayOfTuples[n] = tuple((indexArr[:, n]))
+        return (numpy.reshape(arrayOfTuples, dims)).tolist()
 
     def next(self):
         """Advances to next trial and returns it.
@@ -932,41 +985,44 @@ class TrialHandler(_BaseTrialHandler):
                     break #break out of the forever loop
                 #do stuff here for the trial
         """
-        #update pointer for next trials
-        self.thisTrialN+=1#number of trial this pass
-        self.thisN+=1 #number of trial in total
-        self.nRemaining-=1
-        if self.thisTrialN==len(self.trialList):
-            #start a new repetition
-            self.thisTrialN=0
-            self.thisRepN+=1
-        if self.thisRepN>=self.nReps:
-            #all reps complete
-            self.thisTrial=[]
-            self.finished=True
+        # update pointer for next trials
+        self.thisTrialN += 1  # number of trial this pass
+        self.thisN += 1  # number of trial in total
+        self.nRemaining -= 1
+        if self.thisTrialN == len(self.trialList):
+            # start a new repetition
+            self.thisTrialN = 0
+            self.thisRepN += 1
+        if self.thisRepN >= self.nReps:
+            # all reps complete
+            self.thisTrial = []
+            self.finished = True
 
-        if self.finished==True:
+        if self.finished == True:
             self._terminate()
 
-        #fetch the trial info
-        if self.method in ['random','sequential','fullRandom']:
-            self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
+        # fetch the trial info
+        if self.method in ['random', 'sequential', 'fullRandom']:
+            self.thisIndex = self.sequenceIndices[
+                self.thisTrialN][self.thisRepN]
             self.thisTrial = self.trialList[self.thisIndex]
-            self.data.add('ran',1)
-            self.data.add('order',self.thisN)
+            self.data.add('ran', 1)
+            self.data.add('order', self.thisN)
         if self.autoLog:
-            logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
+            logging.exp('New trial (rep=%i, index=%i): %s' % (
+                self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without advancing
         the trials. Returns 'None' if attempting to go beyond the last trial.
         """
-        # check that we don't go out of bounds for either positive or negative offsets:
-        if n>self.nRemaining or self.thisN+n < 0:
+        # check that we don't go out of bounds for either positive or negative
+        # offsets:
+        if n > self.nRemaining or self.thisN + n < 0:
             return None
         seqs = numpy.array(self.sequenceIndices).transpose().flat
-        condIndex=seqs[self.thisN+n]
+        condIndex = seqs[self.thisN + n]
         return self.trialList[condIndex]
 
     def getEarlierTrial(self, n=-1):
@@ -979,172 +1035,182 @@ class TrialHandler(_BaseTrialHandler):
             n = n * -1
         return self.getFutureTrial(n)
 
-    def _createOutputArray(self,stimOut,dataOut,delim=None,
-                          matrixOnly=False):
+    def _createOutputArray(self, stimOut, dataOut, delim=None,
+                           matrixOnly=False):
         """
         Does the leg-work for saveAsText and saveAsExcel.
         Combines stimOut with ._parseDataOutput()
         """
-        if stimOut==[] and len(self.trialList) and hasattr(self.trialList[0],'keys'):
-            stimOut=self.trialList[0].keys()
-            #these get added somewhere (by DataHandler?)
+        if stimOut == [] and len(self.trialList) and hasattr(self.trialList[0], 'keys'):
+            stimOut = self.trialList[0].keys()
+            # these get added somewhere (by DataHandler?)
             if 'n' in stimOut:
                 stimOut.remove('n')
             if 'float' in stimOut:
                 stimOut.remove('float')
 
-        lines=[]
-        #parse the dataout section of the output
-        dataOut, dataAnal, dataHead = self._createOutputArrayData(dataOut=dataOut)
+        lines = []
+        # parse the dataout section of the output
+        dataOut, dataAnal, dataHead = self._createOutputArrayData(
+            dataOut=dataOut)
         if not matrixOnly:
-            thisLine=[]
+            thisLine = []
             lines.append(thisLine)
-            #write a header line
-            for heading in stimOut+dataHead:
-                if heading=='ran_sum':
-                    heading ='n'
-                elif heading=='order_raw':
-                    heading ='order'
+            # write a header line
+            for heading in stimOut + dataHead:
+                if heading == 'ran_sum':
+                    heading = 'n'
+                elif heading == 'order_raw':
+                    heading = 'order'
                 thisLine.append(heading)
 
-        #loop through stimuli, writing data
+        # loop through stimuli, writing data
         for stimN in range(len(self.trialList)):
-            thisLine=[]
+            thisLine = []
             lines.append(thisLine)
-            #first the params for this stim (from self.trialList)
+            # first the params for this stim (from self.trialList)
             for heading in stimOut:
                 thisLine.append(self.trialList[stimN][heading])
 
-            #then the data for this stim (from self.data)
+            # then the data for this stim (from self.data)
             for thisDataOut in dataOut:
-                #make a string version of the data and then format it
+                # make a string version of the data and then format it
                 tmpData = dataAnal[thisDataOut][stimN]
-                if hasattr(tmpData,'tolist'): #is a numpy array
+                if hasattr(tmpData, 'tolist'):  # is a numpy array
                     strVersion = unicode(tmpData.tolist())
-                    #for numeric data replace None with a blank cell
+                    # for numeric data replace None with a blank cell
                     if tmpData.dtype.kind not in ['SaUV']:
-                        strVersion=strVersion.replace('None','')
-                elif tmpData in [None,'None']:
-                    strVersion=''
+                        strVersion = strVersion.replace('None', '')
+                elif tmpData in [None, 'None']:
+                    strVersion = ''
                 else:
                     strVersion = unicode(tmpData)
 
-                if strVersion=='()':
-                    strVersion="--"# 'no data' in masked array should show as "--"
-                #handle list of values (e.g. rt_raw )
+                if strVersion == '()':
+                    strVersion = "--"  # 'no data' in masked array should show as "--"
+                # handle list of values (e.g. rt_raw )
                 if len(strVersion) and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
-                    strVersion=strVersion[1:-1]#skip first and last chars
-                #handle lists of lists (e.g. raw of multiple key presses)
+                    strVersion = strVersion[1:-1]  # skip first and last chars
+                # handle lists of lists (e.g. raw of multiple key presses)
                 if len(strVersion) and strVersion[0] in ["[", "("] and strVersion[-1] in ["]", ")"]:
-                    tup = eval(strVersion) #convert back to a tuple
+                    tup = eval(strVersion)  # convert back to a tuple
                     for entry in tup:
-                        #contents of each entry is a list or tuple so keep in quotes to avoid probs with delim
+                        # contents of each entry is a list or tuple so keep in
+                        # quotes to avoid probs with delim
                         thisLine.append(unicode(entry))
                 else:
                     thisLine.extend(strVersion.split(','))
 
-        #add self.extraInfo
+        # add self.extraInfo
         if (self.extraInfo != None) and not matrixOnly:
             lines.append([])
-            lines.append(['extraInfo'])#give a single line of space and then a heading
+            # give a single line of space and then a heading
+            lines.append(['extraInfo'])
             for key, value in self.extraInfo.items():
-                lines.append([key,value])
+                lines.append([key, value])
         return lines
 
     def _createOutputArrayData(self, dataOut):
         """This just creates the dataOut part of the output matrix.
         It is called by _createOutputArray() which creates the header line and adds the stimOut columns
         """
-        dataHead=[]#will store list of data headers
-        dataAnal=dict([])    #will store data that has been analyzed
-        if type(dataOut)==str:
-            dataOut=[dataOut]#don't do list convert or we get a list of letters
-        elif type(dataOut)!=list:
+        dataHead = []  # will store list of data headers
+        dataAnal = dict([])  # will store data that has been analyzed
+        if type(dataOut) == str:
+            # don't do list convert or we get a list of letters
+            dataOut = [dataOut]
+        elif type(dataOut) != list:
             dataOut = list(dataOut)
 
-        #expand any 'all' dataTypes to be the full list of available dataTypes
-        allDataTypes=self.data.keys()
-        #treat these separately later
+        # expand any 'all' dataTypes to be the full list of available dataTypes
+        allDataTypes = self.data.keys()
+        # treat these separately later
         allDataTypes.remove('ran')
-        #ready to go through standard data types
-        dataOutNew=[]
+        # ready to go through standard data types
+        dataOutNew = []
         for thisDataOut in dataOut:
             if thisDataOut == 'n':
-                #n is really just the sum of the ran trials
+                # n is really just the sum of the ran trials
                 dataOutNew.append('ran_sum')
-                continue#no need to do more with this one
-            #then break into dataType and analysis
+                continue  # no need to do more with this one
+            # then break into dataType and analysis
             dataType, analType = string.rsplit(thisDataOut, '_', 1)
             if dataType == 'all':
-                dataOutNew.extend([key+"_"+analType for key in allDataTypes])
+                dataOutNew.extend(
+                    [key + "_" + analType for key in allDataTypes])
                 if 'order_mean' in dataOutNew:
                     dataOutNew.remove('order_mean')
                 if 'order_std' in dataOutNew:
                     dataOutNew.remove('order_std')
             else:
                 dataOutNew.append(thisDataOut)
-        dataOut=dataOutNew
-        dataOut.sort()#so that all datatypes come together, rather than all analtypes
+        dataOut = dataOutNew
+        dataOut.sort()  # so that all datatypes come together, rather than all analtypes
 
-        #do the various analyses, keeping track of fails (e.g. mean of a string)
-        dataOutInvalid=[]
-        #add back special data types (n and order)
-        if 'ran_sum' in dataOut:#move n to the first column
+        # do the various analyses, keeping track of fails (e.g. mean of a
+        # string)
+        dataOutInvalid = []
+        # add back special data types (n and order)
+        if 'ran_sum' in dataOut:  # move n to the first column
             dataOut.remove('ran_sum')
-            dataOut.insert(0,'ran_sum')
-        if 'order_raw' in dataOut:#move order_raw to the second column
+            dataOut.insert(0, 'ran_sum')
+        if 'order_raw' in dataOut:  # move order_raw to the second column
             dataOut.remove('order_raw')
             dataOut.append('order_raw')
-        #do the necessary analysis on the data
-        for thisDataOutN,thisDataOut in enumerate(dataOut):
+        # do the necessary analysis on the data
+        for thisDataOutN, thisDataOut in enumerate(dataOut):
             dataType, analType = string.rsplit(thisDataOut, '_', 1)
             if not dataType in self.data:
-                dataOutInvalid.append(thisDataOut)#that analysis can't be done
+                # that analysis can't be done
+                dataOutInvalid.append(thisDataOut)
                 continue
             thisData = self.data[dataType]
 
-            #set the header
-            dataHead.append(dataType+'_'+analType)
-            #analyse thisData using numpy module
+            # set the header
+            dataHead.append(dataType + '_' + analType)
+            # analyse thisData using numpy module
             if analType in dir(numpy):
-                try:#this will fail if we try to take mean of a string for example
-                    if analType=='std':
-                        thisAnal = numpy.std(thisData,axis=1,ddof=0)
-                        #normalise by N-1 instead. This should work by setting ddof=1
-                        #but doesn't as of 08/2010 (because of using a masked array?)
-                        N=thisData.shape[1]
+                try:  # this will fail if we try to take mean of a string for example
+                    if analType == 'std':
+                        thisAnal = numpy.std(thisData, axis=1, ddof=0)
+                        # normalise by N-1 instead. This should work by setting ddof=1
+                        # but doesn't as of 08/2010 (because of using a masked
+                        # array?)
+                        N = thisData.shape[1]
                         if N == 1:
-                            thisAnal*=0 #prevent a divide-by-zero error
+                            thisAnal *= 0  # prevent a divide-by-zero error
                         else:
-                            thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                            thisAnal = thisAnal * \
+                                numpy.sqrt(N) / numpy.sqrt(N - 1)
                     else:
-                        thisAnal = eval("numpy.%s(thisData,1)" %analType)
+                        thisAnal = eval("numpy.%s(thisData,1)" % analType)
                 except Exception:
-                    dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
+                    # that analysis doesn't work
+                    dataHead.remove(dataType + '_' + analType)
                     dataOutInvalid.append(thisDataOut)
-                    continue#to next analysis
-            elif analType=='raw':
-                thisAnal=thisData
+                    continue  # to next analysis
+            elif analType == 'raw':
+                thisAnal = thisData
             else:
                 raise AttributeError('You can only use analyses from numpy')
-            #add extra cols to header if necess
-            if len(thisAnal.shape)>1:
-                for n in range(thisAnal.shape[1]-1):
+            # add extra cols to header if necess
+            if len(thisAnal.shape) > 1:
+                for n in range(thisAnal.shape[1] - 1):
                     dataHead.append("")
-            dataAnal[thisDataOut]=thisAnal
+            dataAnal[thisDataOut] = thisAnal
 
-        #remove invalid analyses (e.g. average of a string)
+        # remove invalid analyses (e.g. average of a string)
         for invalidAnal in dataOutInvalid:
             dataOut.remove(invalidAnal)
         return dataOut, dataAnal, dataHead
 
-    def saveAsWideText(self,fileName,
-                   delim=None,
-                   matrixOnly=False,
-                   appendFile=True,
-                   encoding='utf-8',
-                   fileCollisionMethod='rename'
-                  ):
+    def saveAsWideText(self, fileName,
+                       delim=None,
+                       matrixOnly=False,
+                       appendFile=True,
+                       encoding='utf-8',
+                       fileCollisionMethod='rename'
+                       ):
         """
         Write a text file with the session, stimulus, and data values from each trial in chronological order.
         Also, return a pandas DataFrame containing same information as the file.
@@ -1184,15 +1250,16 @@ class TrialHandler(_BaseTrialHandler):
                 The encoding to use when saving a the file. Defaults to `utf-8`.
 
         """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+        if self.thisTrialN < 1 and self.thisRepN < 1:  # if both are <1 we haven't started
+            logging.info(
+                'TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
 
-        #set default delimiter if none given
+        # set default delimiter if none given
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or send to stdout
+        # create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
@@ -1206,84 +1273,96 @@ class TrialHandler(_BaseTrialHandler):
         # and then add parameter names related to data (e.g. RT)
         header.extend(self.data.dataTypes)
         # get the extra 'wide' parameter names into the header line:
-        header.insert(0,"TrialNumber")
+        header.insert(0, "TrialNumber")
         # this is wide format, so we want fixed information
         # (e.g. subject ID, date, etc) repeated every line if it exists:
         if self.extraInfo is not None:
             for key in self.extraInfo:
                 header.insert(0, key)
-        df = DataFrame(columns = header)
+        df = DataFrame(columns=header)
 
         # loop through each trial, gathering the actual values:
         dataOut = []
         trialCount = 0
-        # total number of trials = number of trialtypes * number of repetitions:
+        # total number of trials = number of trialtypes * number of
+        # repetitions:
 
-        repsPerType={}
+        repsPerType = {}
         for rep in range(self.nReps):
             for trialN in range(len(self.trialList)):
-                #find out what trial type was on this trial
+                # find out what trial type was on this trial
                 trialTypeIndex = self.sequenceIndices[trialN, rep]
-                #determine which repeat it is for this trial
+                # determine which repeat it is for this trial
                 if trialTypeIndex not in repsPerType.keys():
-                    repsPerType[trialTypeIndex]=0
+                    repsPerType[trialTypeIndex] = 0
                 else:
-                    repsPerType[trialTypeIndex]+=1
-                repThisType=repsPerType[trialTypeIndex]#what repeat are we on for this trial type?
+                    repsPerType[trialTypeIndex] += 1
+                # what repeat are we on for this trial type?
+                repThisType = repsPerType[trialTypeIndex]
 
                 # create a dictionary representing each trial:
                 nextEntry = {}
 
-                # add a trial number so the original order of the data can always be recovered if sorted during analysis:
+                # add a trial number so the original order of the data can
+                # always be recovered if sorted during analysis:
                 trialCount += 1
 
-                # now collect the value from each trial of the variables named in the header:
+                # now collect the value from each trial of the variables named
+                # in the header:
                 for parameterName in header:
-                    # the header includes both trial and data variables, so need to check before accessing:
+                    # the header includes both trial and data variables, so
+                    # need to check before accessing:
                     if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
-                        nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
+                        nextEntry[parameterName] = self.trialList[
+                            trialTypeIndex][parameterName]
                     elif parameterName in self.data:
-                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
+                        nextEntry[parameterName] = self.data[
+                            parameterName][trialTypeIndex][repThisType]
                     elif self.extraInfo is not None and parameterName in self.extraInfo:
-                        nextEntry[parameterName] = self.extraInfo[parameterName]
-                    else: # allow a null value if this parameter wasn't explicitly stored on this trial:
+                        nextEntry[parameterName] = self.extraInfo[
+                            parameterName]
+                    else:  # allow a null value if this parameter wasn't explicitly stored on this trial:
                         if parameterName == "TrialNumber":
                             nextEntry[parameterName] = trialCount
                         else:
                             nextEntry[parameterName] = ''
 
-                #store this trial's data
+                # store this trial's data
                 dataOut.append(nextEntry)
                 df = df.append(nextEntry, ignore_index=True)
 
         if not matrixOnly:
-        # write the header row:
+            # write the header row:
             nextLine = ''
             for parameterName in header:
                 nextLine = nextLine + parameterName + delim
-            f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
+            # remove the final orphaned tab character
+            f.write(nextLine[:-1] + '\n')
 
         # write the data matrix:
         for trial in dataOut:
             nextLine = ''
             for parameterName in header:
                 nextLine = nextLine + unicode(trial[parameterName]) + delim
-            nextLine = nextLine[:-1] # remove the final orphaned tab character
+            nextLine = nextLine[:-1]  # remove the final orphaned tab character
             f.write(nextLine + '\n')
 
         if f != sys.stdout:
             f.close()
-            logging.info('saved wide-format data to %s' %f.name)
+            logging.info('saved wide-format data to %s' % f.name)
 
-        df= df.convert_objects() # Converts numbers to numeric, such as float64, boolean to bool. Otherwise they all are "object" type, i.e. strings
+        # Converts numbers to numeric, such as float64, boolean to bool.
+        # Otherwise they all are "object" type, i.e. strings
+        df = df.convert_objects()
         return df
 
     def addData(self, thisType, value, position=None):
         """Add data for the current trial
         """
         self.data.add(thisType, value, position=None)
-        if self.getExp()!=None:#update the experiment handler too
+        if self.getExp() != None:  # update the experiment handler too
             self.getExp().addData(thisType, value)
+
 
 class TrialHandler2(_BaseTrialHandler):
     """Class to handle trial sequencing and data storage.
@@ -1302,6 +1381,7 @@ class TrialHandler2(_BaseTrialHandler):
 
     Then you'll find that `dat` has the following attributes that
     """
+
     def __init__(self,
                  trialList,
                  nReps,
@@ -1372,81 +1452,87 @@ class TrialHandler2(_BaseTrialHandler):
             .origin - the contents of the script or builder experiment that created the handler
 
         """
-        self.name=name
+        self.name = name
         self.autoLog = autoLog
 
-        if trialList in [None, []]:#user wants an empty trialList
-            self.trialList = [None]#which corresponds to a list with a single empty entry
+        if trialList in [None, []]:  # user wants an empty trialList
+            # which corresponds to a list with a single empty entry
+            self.trialList = [None]
             self.columns = []
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
-            self.trialList, self.columns = importConditions(trialList, returnFieldNames=True) #import conditions from that file
+        # user has hopefully specified a filename
+        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+            self.trialList, self.columns = importConditions(
+                trialList, returnFieldNames=True)  # import conditions from that file
         else:
-            self.trialList =trialList
+            self.trialList = trialList
             self.columns = trialList[0].keys()
-        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+        # convert any entry in the TrialList into a TrialType object (with
+        # obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
-            if type(entry)==dict:
-                self.trialList[n]=TrialType(entry)
+            if type(entry) == dict:
+                self.trialList[n] = TrialType(entry)
         self.nReps = int(nReps)
-        self.nTotal = self.nReps*len(self.trialList)
-        self.nRemaining =self.nTotal #subtract 1 each trial
+        self.nTotal = self.nReps * len(self.trialList)
+        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.remainingIndices = []
         self.prevIndices = []
         self.method = method
-        self.thisRepN = 0        #records which repetition or pass we are on
-        self.thisTrialN = -1    #records which trial number within this repetition
+        self.thisRepN = 0  # records which repetition or pass we are on
+        self.thisTrialN = -1  # records which trial number within this repetition
         self.thisN = -1
-        self.thisIndex = None        #the index of the current trial in the conditions list
+        self.thisIndex = None  # the index of the current trial in the conditions list
         self.thisTrial = {}
-        self.finished=False
-        self.extraInfo=extraInfo
-        self._warnUseOfNext=True
-        self.seed=seed
+        self.finished = False
+        self.extraInfo = extraInfo
+        self._warnUseOfNext = True
+        self.seed = seed
         self._rng = numpy.random.RandomState(seed=seed)
 
-        self._data = []#store a list of dicts, conver to pandas.DataFrame on access
+        self._data = []  # store a list of dicts, conver to pandas.DataFrame on access
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
-        self._exp = None#the experiment handler that owns me!
+        self._exp = None  # the experiment handler that owns me!
 
     def __iter__(self):
         return self
+
     def __repr__(self):
         """prints a more verbose version of self as string"""
         return self.__str__(verbose=True)
+
     def __str__(self, verbose=False):
         """string representation of the object"""
         strRepres = 'psychopy.data.TrialHandler(\n'
         attribs = dir(self)
-        #data first, then all others
+        # data first, then all others
         try:
             data = self.data
         except Exception:
             data = None
         if data:
             strRepres += str('\tdata=')
-            strRepres +=str(data)+'\n'
+            strRepres += str(data) + '\n'
         for thisAttrib in attribs:
-            #can handle each attribute differently
-            if 'instancemethod' in str(type(getattr(self,thisAttrib))):
-                #this is a method
+            # can handle each attribute differently
+            if 'instancemethod' in str(type(getattr(self, thisAttrib))):
+                # this is a method
                 continue
-            elif thisAttrib[0]=='_':
-                #the attrib is private
+            elif thisAttrib[0] == '_':
+                # the attrib is private
                 continue
-            elif thisAttrib=='data':
-                #we handled this first
+            elif thisAttrib == 'data':
+                # we handled this first
                 continue
-            elif len(str(getattr(self,thisAttrib)))>20 and \
-                 not verbose:
-                #just give type of LONG public attribute
-                strRepres += str('\t'+thisAttrib+'=')
-                strRepres += str(type(getattr(self,thisAttrib)))+'\n'
+            elif len(str(getattr(self, thisAttrib))) > 20 and \
+                    not verbose:
+                # just give type of LONG public attribute
+                strRepres += str('\t' + thisAttrib + '=')
+                strRepres += str(type(getattr(self, thisAttrib))) + '\n'
             else:
-                #give the complete contents of attribute
-                strRepres += str('\t'+thisAttrib+'=')
-                strRepres += str(getattr(self,thisAttrib))+'\n'
-        strRepres+=')'
+                # give the complete contents of attribute
+                strRepres += str('\t' + thisAttrib + '=')
+                strRepres += str(getattr(self, thisAttrib)) + '\n'
+        strRepres += ')'
         return strRepres
 
     @property
@@ -1479,64 +1565,67 @@ class TrialHandler2(_BaseTrialHandler):
                     break #break out of the forever loop
                 #do stuff here for the trial
         """
-        #update pointer for next trials
-        self.thisTrialN+=1#number of trial this pass
-        self.thisN+=1 #number of trial in total
-        self.nRemaining-=1
+        # update pointer for next trials
+        self.thisTrialN += 1  # number of trial this pass
+        self.thisN += 1  # number of trial in total
+        self.nRemaining -= 1
         if self.thisIndex is not None:
             self.prevIndices.append(self.thisIndex)
 
-        #thisRepN has exceeded nReps
+        # thisRepN has exceeded nReps
         if self.remainingIndices == []:
-            #we've just started, or just starting a new repeat
+            # we've just started, or just starting a new repeat
             sequence = range(len(self.trialList))
-            if self.method == 'fullRandom' and self.thisN<(self.nReps*len(self.trialList)):
-                #we've only just started on a fullRandom sequence
+            if self.method == 'fullRandom' and self.thisN < (self.nReps * len(self.trialList)):
+                # we've only just started on a fullRandom sequence
                 sequence *= self.nReps
                 self._rng.shuffle(sequence)
                 self.remainingIndices = sequence
-            elif self.method in ['sequential','random'] and self.thisRepN < self.nReps:
-                #start a new repetition
-                self.thisTrialN=0
-                self.thisRepN+=1
+            elif self.method in ['sequential', 'random'] and self.thisRepN < self.nReps:
+                # start a new repetition
+                self.thisTrialN = 0
+                self.thisRepN += 1
                 if self.method == 'random':
-                    self._rng.shuffle(sequence)#shuffles in-place
+                    self._rng.shuffle(sequence)  # shuffles in-place
                 self.remainingIndices = sequence
             else:
-                #we've finished
-                self.finished=True
-                self._terminate() #raises Stop (code won't go beyond here)
+                # we've finished
+                self.finished = True
+                self._terminate()  # raises Stop (code won't go beyond here)
 
-        #fetch the trial info
-        if len(self.trialList)==0:
+        # fetch the trial info
+        if len(self.trialList) == 0:
             self.thisIndex = 0
             self.thisTrial = {}
         else:
             self.thisIndex = self.remainingIndices.pop()
-            thisTrial = self.trialList[self.thisIndex] or {} #if None then use empty dict
+            # if None then use empty dict
+            thisTrial = self.trialList[self.thisIndex] or {}
             self.thisTrial = copy.copy(thisTrial)
-        #for fullRandom check how many times this has come up before
+        # for fullRandom check how many times this has come up before
         if self.method == 'fullRandom':
             self.thisRepN = self.prevIndices.count(self.thisIndex)
 
-        #update data structure with new info
-        self._data.append(self.thisTrial)#update the data list of dicts
-        self.addData('thisN',self.thisN)
-        self.addData('thisTrialN',self.thisTrialN)
-        self.addData('thisRepN',self.thisRepN)
+        # update data structure with new info
+        self._data.append(self.thisTrial)  # update the data list of dicts
+        self.addData('thisN', self.thisN)
+        self.addData('thisTrialN', self.thisTrialN)
+        self.addData('thisRepN', self.thisRepN)
         if self.autoLog:
-            logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
+            logging.exp('New trial (rep=%i, index=%i): %s' % (
+                self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future, without advancing
         the trials. Returns 'None' if attempting to go beyond the last trial.
         """
-        # check that we don't go out of bounds for either positive or negative offsets:
-        if n>self.nRemaining or self.thisN+n < 0:
+        # check that we don't go out of bounds for either positive or negative
+        # offsets:
+        if n > self.nRemaining or self.thisN + n < 0:
             return None
         seqs = numpy.array(self.sequenceIndices).transpose().flat
-        condIndex=seqs[self.thisN+n]
+        condIndex = seqs[self.thisN + n]
         return self.trialList[condIndex]
 
     def getEarlierTrial(self, n=-1):
@@ -1549,13 +1638,13 @@ class TrialHandler2(_BaseTrialHandler):
             n = n * -1
         return self.getFutureTrial(n)
 
-    def saveAsWideText(self,fileName,
-                   delim=None,
-                   matrixOnly=False,
-                   appendFile=True,
-                   encoding='utf-8',
-                   fileCollisionMethod='rename'
-                  ):
+    def saveAsWideText(self, fileName,
+                       delim=None,
+                       matrixOnly=False,
+                       appendFile=True,
+                       encoding='utf-8',
+                       fileCollisionMethod='rename'
+                       ):
         """
         Write a text file with the session, stimulus, and data values from each trial in chronological order.
         Also, return a pandas DataFrame containing same information as the file.
@@ -1595,43 +1684,44 @@ class TrialHandler2(_BaseTrialHandler):
                 The encoding to use when saving a the file. Defaults to `utf-8`.
 
         """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+        if self.thisTrialN < 1 and self.thisRepN < 1:  # if both are <1 we haven't started
+            logging.info(
+                'TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
 
-        #set default delimiter if none given
+        # set default delimiter if none given
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or send to stdout
+        # create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
         )
 
-        #defer to pandas for actual data output. We're fetching a string repr and then writeing to file ourselves
-        #Includer header line if not matrixOnly
+        # defer to pandas for actual data output. We're fetching a string repr and then writeing to file ourselves
+        # Includer header line if not matrixOnly
         datStr = self.data.to_csv(sep=delim,
-                                  columns=self.columns, #sets the order
+                                  columns=self.columns,  # sets the order
                                   header=(not matrixOnly),
                                   index=False)
         f.write(datStr)
 
         if f != sys.stdout:
             f.close()
-            logging.info('saved wide-format data to %s' %f.name)
-
+            logging.info('saved wide-format data to %s' % f.name)
 
     def addData(self, thisType, value):
         """Add a piece of data to the current trial
         """
-        #store in the columns list to help ordering later
+        # store in the columns list to help ordering later
         if thisType not in self.columns:
             self.columns.append(thisType)
-        #save the actual value in a data dict
+        # save the actual value in a data dict
         self.thisTrial[thisType] = value
-        if self.getExp()!=None:#update the experiment handler too
+        if self.getExp() != None:  # update the experiment handler too
             self.getExp().addData(thisType, value)
+
 
 class TrialHandlerExt(TrialHandler):
     """ A class for handling trial sequences in a *non-counterbalanced design* (i.e. *oddball paradigms*). Its functions
@@ -1652,6 +1742,7 @@ class TrialHandlerExt(TrialHandler):
 
     *Authored by Suddha Sourav at BPN, Uni Hamburg - heavily borrowing from the TrialHandler class*
     """
+
     def __init__(self,
                  trialList,
                  nReps,
@@ -1734,51 +1825,60 @@ class TrialHandlerExt(TrialHandler):
             the weights of the trial types.
 
         """
-        self.name=name
+        self.name = name
         self.autoLog = autoLog
 
-        if trialList in [None, []]:#user wants an empty trialList
-            self.trialList = [None]#which corresponds to a list with a single empty entry
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
-            self.trialList = importConditions(trialList) #import conditions from that file
+        if trialList in [None, []]:  # user wants an empty trialList
+            # which corresponds to a list with a single empty entry
+            self.trialList = [None]
+        # user has hopefully specified a filename
+        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+            # import conditions from that file
+            self.trialList = importConditions(trialList)
         else:
-            self.trialList =trialList
-        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+            self.trialList = trialList
+        # convert any entry in the TrialList into a TrialType object (with
+        # obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
-            if type(entry)==dict:
-                self.trialList[n]=TrialType(entry)
+            if type(entry) == dict:
+                self.trialList[n] = TrialType(entry)
         self.nReps = nReps
-        #Add Su
-        self.trialWeights = None if not all('weight' in d for d in trialList) else [d['weight'] for d in trialList]
-        self.nTotal = self.nReps*len(self.trialList) if self.trialWeights is None else self.nReps*sum(self.trialWeights)
-        self.nRemaining =self.nTotal #subtract 1 each trial
+        # Add Su
+        self.trialWeights = None if not all('weight' in d for d in trialList) else [
+            d['weight'] for d in trialList]
+        self.nTotal = self.nReps * \
+            len(self.trialList) if self.trialWeights is None else self.nReps * \
+            sum(self.trialWeights)
+        self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
-        self.thisRepN = 0        #records which repetition or pass we are on
-        self.thisTrialN = -1    #records which trial number within this repetition
+        self.thisRepN = 0  # records which repetition or pass we are on
+        self.thisTrialN = -1  # records which trial number within this repetition
         self.thisN = -1
-        self.thisIndex = 0        #the index of the current trial in the conditions list
+        self.thisIndex = 0  # the index of the current trial in the conditions list
         self.thisTrial = []
-        self.finished=False
-        self.extraInfo=extraInfo
-        self._warnUseOfNext=True
-        self.seed=seed
-        #create dataHandler
+        self.finished = False
+        self.extraInfo = extraInfo
+        self._warnUseOfNext = True
+        self.seed = seed
+        # create dataHandler
         if self.trialWeights is None:
             self.data = DataHandler(trials=self)
         else:
-            self.data = DataHandler(trials=self,dataShape=[sum(self.trialWeights),nReps])
-        if dataTypes!=None:
+            self.data = DataHandler(trials=self, dataShape=[
+                                    sum(self.trialWeights), nReps])
+        if dataTypes != None:
             self.data.addDataType(dataTypes)
         self.data.addDataType('ran')
-        self.data['ran'].mask=False#this is a bool - all entries are valid
+        self.data['ran'].mask = False  # this is a bool - all entries are valid
         self.data.addDataType('order')
-        #generate stimulus sequence
-        if self.method in ['random','sequential', 'fullRandom']:
-             self.sequenceIndices = self._createSequence()
-        else: self.sequenceIndices=[]
+        # generate stimulus sequence
+        if self.method in ['random', 'sequential', 'fullRandom']:
+            self.sequenceIndices = self._createSequence()
+        else:
+            self.sequenceIndices = []
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
-        self._exp = None#the experiment handler that owns me!
+        self._exp = None  # the experiment handler that owns me!
 
     def _createSequence(self):
         """
@@ -1821,35 +1921,42 @@ class TrialHandlerExt(TrialHandler):
 
         if self.method == 'random':
             sequenceIndices = []
-            seed=self.seed
+            seed = self.seed
             for thisRep in range(self.nReps):
                 if self.trialWeights is None:
                     thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
                 else:
-                    thisRepSeq = shuffleArray(numpy.repeat(indices, self.trialWeights), seed=seed).tolist()
-                seed=None#so that we only seed the first pass through!
+                    thisRepSeq = shuffleArray(numpy.repeat(
+                        indices, self.trialWeights), seed=seed).tolist()
+                seed = None  # so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = numpy.transpose(sequenceIndices)
         elif self.method == 'sequential':
             if self.trialWeights is None:
-                sequenceIndices = numpy.repeat(indices,self.nReps,1)
+                sequenceIndices = numpy.repeat(indices, self.nReps, 1)
             else:
-                sequenceIndices = numpy.repeat(numpy.repeat(indices, self.trialWeights,0), self.nReps,1)
+                sequenceIndices = numpy.repeat(numpy.repeat(
+                    indices, self.trialWeights, 0), self.nReps, 1)
         elif self.method == 'fullRandom':
             if self.trialWeights is None:
-                # indices*nReps, flatten, shuffle, unflatten; only use seed once
-                sequential = numpy.repeat(indices, self.nReps,1) # = sequential
+                # indices*nReps, flatten, shuffle, unflatten; only use seed
+                # once
+                sequential = numpy.repeat(
+                    indices, self.nReps, 1)  # = sequential
                 randomFlat = shuffleArray(sequential.flat, seed=self.seed)
-                sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+                sequenceIndices = numpy.reshape(
+                    randomFlat, (len(indices), self.nReps))
             else:
-                sequential = numpy.repeat(numpy.repeat(indices, self.trialWeights,0), self.nReps,1)
-                randomFlat = shuffleArray(sequential.flat, seed = self.seed)
-                sequenceIndices = numpy.reshape(randomFlat, (sum(self.trialWeights), self.nReps))
+                sequential = numpy.repeat(numpy.repeat(
+                    indices, self.trialWeights, 0), self.nReps, 1)
+                randomFlat = shuffleArray(sequential.flat, seed=self.seed)
+                sequenceIndices = numpy.reshape(
+                    randomFlat, (sum(self.trialWeights), self.nReps))
 
         if self.autoLog:
-            #Change
+            # Change
             logging.exp('Created sequence: %s, trialTypes=%d, nReps=%d, seed=%s' %
-                (self.method, len(indices), self.nReps, str(self.seed) )  )
+                        (self.method, len(indices), self.nReps, str(self.seed)))
         return sequenceIndices
 
     def next(self):
@@ -1872,96 +1979,114 @@ class TrialHandlerExt(TrialHandler):
                     break #break out of the forever loop
                 #do stuff here for the trial
         """
-        #update pointer for next trials
-        self.thisTrialN+=1#number of trial this pass
-        self.thisN+=1 #number of trial in total
-        self.nRemaining-=1
+        # update pointer for next trials
+        self.thisTrialN += 1  # number of trial this pass
+        self.thisN += 1  # number of trial in total
+        self.nRemaining -= 1
 
         if self.trialWeights is None:
-            if self.thisTrialN==len(self.trialList):
-                #start a new repetition
-                self.thisTrialN=0
-                self.thisRepN+=1
+            if self.thisTrialN == len(self.trialList):
+                # start a new repetition
+                self.thisTrialN = 0
+                self.thisRepN += 1
         else:
-            if self.thisTrialN==sum(self.trialWeights):
-                #start a new repetition
-                self.thisTrialN=0
-                self.thisRepN+=1
+            if self.thisTrialN == sum(self.trialWeights):
+                # start a new repetition
+                self.thisTrialN = 0
+                self.thisRepN += 1
 
-        if self.thisRepN>=self.nReps:
-            #all reps complete
-            self.thisTrial=[]
-            self.finished=True
+        if self.thisRepN >= self.nReps:
+            # all reps complete
+            self.thisTrial = []
+            self.finished = True
 
-        if self.finished==True:
+        if self.finished == True:
             self._terminate()
 
-        #fetch the trial info
-        if self.method in ['random','sequential','fullRandom']:
+        # fetch the trial info
+        if self.method in ['random', 'sequential', 'fullRandom']:
             if self.trialWeights is None:
-                self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
+                self.thisIndex = self.sequenceIndices[
+                    self.thisTrialN][self.thisRepN]
                 self.thisTrial = self.trialList[self.thisIndex]
-                self.data.add('ran',1)
-                self.data.add('order',self.thisN)
+                self.data.add('ran', 1)
+                self.data.add('order', self.thisN)
             else:
-                self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
+                self.thisIndex = self.sequenceIndices[
+                    self.thisTrialN][self.thisRepN]
                 self.thisTrial = self.trialList[self.thisIndex]
 
-                self.data.add('ran',1,position=self.getNextTrialPosInDataHandler())
-                #The last call already adds a ran to this trial, so get the current pos now
-                self.data.add('order',self.thisN,position=self.getCurrentTrialPosInDataHandler())
+                self.data.add(
+                    'ran', 1, position=self.getNextTrialPosInDataHandler())
+                # The last call already adds a ran to this trial, so get the
+                # current pos now
+                self.data.add('order', self.thisN,
+                              position=self.getCurrentTrialPosInDataHandler())
 
         if self.autoLog:
-            logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
+            logging.exp('New trial (rep=%i, index=%i): %s' % (
+                self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
         return self.thisTrial
 
     def getCurrentTrialPosInDataHandler(self):
-        #if there's no trial weights, then the current position is simply [trialIndex, nRepetition]
+        # if there's no trial weights, then the current position is simply
+        # [trialIndex, nRepetition]
         if self.trialWeights is None:
-            repN = sum(self['ran'][self.trials.thisIndex])-1
-            position= [self.trials.thisIndex, repN]
+            repN = sum(self['ran'][self.trials.thisIndex]) - 1
+            position = [self.trials.thisIndex, repN]
         else:
-            #if there are trial weights, the situation is slightly more involved, because the same index can be repeated
-            #for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
-            #be from sum(trialWeights[begin:trialIndex]) to sum(trialWeights[begin:trialIndex+1]).
+            # if there are trial weights, the situation is slightly more involved, because the same index can be repeated
+            # for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
+            # be from sum(trialWeights[begin:trialIndex]) to
+            # sum(trialWeights[begin:trialIndex+1]).
 
-            #if we haven't begun the experiment yet, then the last row of the first column is used as the current
-            #position, emulating what TrialHandler does. The following two lines also prevents calculating garbage
-            #position values in case the first row has a null weight
+            # if we haven't begun the experiment yet, then the last row of the first column is used as the current
+            # position, emulating what TrialHandler does. The following two lines also prevents calculating garbage
+            # position values in case the first row has a null weight
             if self.thisN < 0:
                 return [0, -1]
 
-            firstRowIndex=sum(self.trialWeights[:self.thisIndex])
-            lastRowIndex= sum(self.trialWeights[:self.thisIndex+1])
+            firstRowIndex = sum(self.trialWeights[:self.thisIndex])
+            lastRowIndex = sum(self.trialWeights[:self.thisIndex + 1])
 
-            #get the number of the trial presented by summing in ran for the rows above and all columns
-            nThisTrialPresented = numpy.sum(self.data['ran'][firstRowIndex:lastRowIndex,:])
+            # get the number of the trial presented by summing in ran for the
+            # rows above and all columns
+            nThisTrialPresented = numpy.sum(
+                self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = firstRowIndex + (nThisTrialPresented-1)%self.trialWeights[self.thisIndex]
-            dataColThisTrial = int((nThisTrialPresented-1)/self.trialWeights[self.thisIndex])
+            dataRowThisTrial = firstRowIndex + \
+                (nThisTrialPresented - 1) % self.trialWeights[self.thisIndex]
+            dataColThisTrial = int(
+                (nThisTrialPresented - 1) / self.trialWeights[self.thisIndex])
 
             position = [dataRowThisTrial, dataColThisTrial]
 
         return position
 
     def getNextTrialPosInDataHandler(self):
-        #if there's no trial weights, then the current position is simply [trialIndex, nRepetition]
+        # if there's no trial weights, then the current position is simply
+        # [trialIndex, nRepetition]
         if self.trialWeights is None:
             repN = sum(self['ran'][self.trials.thisIndex])
-            position= [self.trials.thisIndex, repN]
+            position = [self.trials.thisIndex, repN]
         else:
-            #if there are trial weights, the situation is slightly more involved, because the same index can be repeated
-            #for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
-            #be from sum(trialWeights[begin:trialIndex]) to sum(trialWeights[begin:trialIndex+1]).
+            # if there are trial weights, the situation is slightly more involved, because the same index can be repeated
+            # for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
+            # be from sum(trialWeights[begin:trialIndex]) to
+            # sum(trialWeights[begin:trialIndex+1]).
 
-            firstRowIndex=sum(self.trialWeights[:self.thisIndex])
-            lastRowIndex= sum(self.trialWeights[:self.thisIndex+1])
+            firstRowIndex = sum(self.trialWeights[:self.thisIndex])
+            lastRowIndex = sum(self.trialWeights[:self.thisIndex + 1])
 
-            #get the number of the trial presented by summing in ran for the rows above and all columns
-            nThisTrialPresented = numpy.sum(self.data['ran'][firstRowIndex:lastRowIndex,:])
+            # get the number of the trial presented by summing in ran for the
+            # rows above and all columns
+            nThisTrialPresented = numpy.sum(
+                self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = firstRowIndex + nThisTrialPresented%self.trialWeights[self.thisIndex]
-            dataColThisTrial = int(nThisTrialPresented/self.trialWeights[self.thisIndex])
+            dataRowThisTrial = firstRowIndex + \
+                nThisTrialPresented % self.trialWeights[self.thisIndex]
+            dataColThisTrial = int(
+                nThisTrialPresented / self.trialWeights[self.thisIndex])
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1974,124 +2099,138 @@ class TrialHandlerExt(TrialHandler):
         if self.trialWeights is None:
             self.data.add(thisType, value, position=None)
         else:
-            self.data.add(thisType, value, position=self.getCurrentTrialPosInDataHandler())
+            self.data.add(thisType, value,
+                          position=self.getCurrentTrialPosInDataHandler())
 
-        #change this!
-        if self.getExp()!=None:#update the experiment handler too
+        # change this!
+        if self.getExp() != None:  # update the experiment handler too
             self.getExp().addData(thisType, value)
 
     def _createOutputArrayData(self, dataOut):
 
         if self.trialWeights is not None:
-            #remember to use other array instead of self.data
-            idx_data = numpy.repeat(numpy.arange(len(self.trialList)),self.trialWeights)
+            # remember to use other array instead of self.data
+            idx_data = numpy.repeat(numpy.arange(
+                len(self.trialList)), self.trialWeights)
 
         """This just creates the dataOut part of the output matrix.
         It is called by _createOutputArray() which creates the header line and adds the stimOut columns
         """
-        dataHead=[]#will store list of data headers
-        dataAnal=dict([])    #will store data that has been analyzed
-        if type(dataOut)==str:
-            dataOut=[dataOut]#don't do list convert or we get a list of letters
-        elif type(dataOut)!=list:
+        dataHead = []  # will store list of data headers
+        dataAnal = dict([])  # will store data that has been analyzed
+        if type(dataOut) == str:
+            # don't do list convert or we get a list of letters
+            dataOut = [dataOut]
+        elif type(dataOut) != list:
             dataOut = list(dataOut)
 
-        #expand any 'all' dataTypes to be the full list of available dataTypes
-        allDataTypes=self.data.keys()
-        #treat these separately later
+        # expand any 'all' dataTypes to be the full list of available dataTypes
+        allDataTypes = self.data.keys()
+        # treat these separately later
         allDataTypes.remove('ran')
-        #ready to go through standard data types
-        dataOutNew=[]
+        # ready to go through standard data types
+        dataOutNew = []
         for thisDataOut in dataOut:
             if thisDataOut == 'n':
-                #n is really just the sum of the ran trials
+                # n is really just the sum of the ran trials
                 dataOutNew.append('ran_sum')
-                continue#no need to do more with this one
-            #then break into dataType and analysis
+                continue  # no need to do more with this one
+            # then break into dataType and analysis
             dataType, analType = string.rsplit(thisDataOut, '_', 1)
             if dataType == 'all':
-                dataOutNew.extend([key+"_"+analType for key in allDataTypes])
+                dataOutNew.extend(
+                    [key + "_" + analType for key in allDataTypes])
                 if 'order_mean' in dataOutNew:
                     dataOutNew.remove('order_mean')
                 if 'order_std' in dataOutNew:
                     dataOutNew.remove('order_std')
             else:
                 dataOutNew.append(thisDataOut)
-        dataOut=dataOutNew
-        dataOut.sort()#so that all datatypes come together, rather than all analtypes
+        dataOut = dataOutNew
+        dataOut.sort()  # so that all datatypes come together, rather than all analtypes
 
-        #do the various analyses, keeping track of fails (e.g. mean of a string)
-        dataOutInvalid=[]
-        #add back special data types (n and order)
-        if 'ran_sum' in dataOut:#move n to the first column
+        # do the various analyses, keeping track of fails (e.g. mean of a
+        # string)
+        dataOutInvalid = []
+        # add back special data types (n and order)
+        if 'ran_sum' in dataOut:  # move n to the first column
             dataOut.remove('ran_sum')
-            dataOut.insert(0,'ran_sum')
-        if 'order_raw' in dataOut:#move order_raw to the second column
+            dataOut.insert(0, 'ran_sum')
+        if 'order_raw' in dataOut:  # move order_raw to the second column
             dataOut.remove('order_raw')
             dataOut.append('order_raw')
-        #do the necessary analysis on the data
-        for thisDataOutN,thisDataOut in enumerate(dataOut):
+        # do the necessary analysis on the data
+        for thisDataOutN, thisDataOut in enumerate(dataOut):
             dataType, analType = string.rsplit(thisDataOut, '_', 1)
             if not dataType in self.data:
-                dataOutInvalid.append(thisDataOut)#that analysis can't be done
+                # that analysis can't be done
+                dataOutInvalid.append(thisDataOut)
                 continue
 
             if self.trialWeights is None:
                 thisData = self.data[dataType]
             else:
-                resizedData = numpy.ma.masked_array(numpy.zeros((len(self.trialList),max(self.trialWeights)*self.nReps)),
-                                        numpy.ones((len(self.trialList),max(self.trialWeights)*self.nReps), dtype=bool))
+                resizedData = numpy.ma.masked_array(numpy.zeros((len(self.trialList), max(self.trialWeights) * self.nReps)),
+                                                    numpy.ones((len(self.trialList), max(self.trialWeights) * self.nReps), dtype=bool))
                 for curTrialIndex in range(len(self.trialList)):
-                    thisDataChunk = self.data[dataType][idx_data==curTrialIndex,:]
-                    padWidth = max(self.trialWeights)*self.nReps - numpy.prod(thisDataChunk.shape)
-                    thisDataChunkRowPadded = numpy.pad(thisDataChunk.transpose().flatten().data, (0, padWidth), mode='constant', constant_values=(0,0))
-                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.transpose().flatten().mask, (0, padWidth), mode='constant', constant_values=(0,True))
+                    thisDataChunk = self.data[dataType][
+                        idx_data == curTrialIndex, :]
+                    padWidth = max(self.trialWeights) * \
+                        self.nReps - numpy.prod(thisDataChunk.shape)
+                    thisDataChunkRowPadded = numpy.pad(thisDataChunk.transpose().flatten(
+                    ).data, (0, padWidth), mode='constant', constant_values=(0, 0))
+                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.transpose().flatten(
+                    ).mask, (0, padWidth), mode='constant', constant_values=(0, True))
 
-                    thisDataChunkRow = numpy.ma.masked_array(thisDataChunkRowPadded, mask=thisDataChunkRowPaddedMask)
-                    resizedData[curTrialIndex,:] = thisDataChunkRow
+                    thisDataChunkRow = numpy.ma.masked_array(
+                        thisDataChunkRowPadded, mask=thisDataChunkRowPaddedMask)
+                    resizedData[curTrialIndex, :] = thisDataChunkRow
 
                 thisData = resizedData
 
-            #set the header
-            dataHead.append(dataType+'_'+analType)
-            #analyse thisData using numpy module
+            # set the header
+            dataHead.append(dataType + '_' + analType)
+            # analyse thisData using numpy module
             if analType in dir(numpy):
-                try:#this will fail if we try to take mean of a string for example
-                    if analType=='std':
-                        thisAnal = numpy.std(thisData,axis=1,ddof=0)
-                        #normalise by N-1 instead. This should work by setting ddof=1
-                        #but doesn't as of 08/2010 (because of using a masked array?)
-                        N=thisData.shape[1]
+                try:  # this will fail if we try to take mean of a string for example
+                    if analType == 'std':
+                        thisAnal = numpy.std(thisData, axis=1, ddof=0)
+                        # normalise by N-1 instead. This should work by setting ddof=1
+                        # but doesn't as of 08/2010 (because of using a masked
+                        # array?)
+                        N = thisData.shape[1]
                         if N == 1:
-                            thisAnal*=0 #prevent a divide-by-zero error
+                            thisAnal *= 0  # prevent a divide-by-zero error
                         else:
-                            thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                            thisAnal = thisAnal * \
+                                numpy.sqrt(N) / numpy.sqrt(N - 1)
                     else:
-                        thisAnal = eval("numpy.%s(thisData,1)" %analType)
+                        thisAnal = eval("numpy.%s(thisData,1)" % analType)
                 except Exception:
-                    dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
+                    # that analysis doesn't work
+                    dataHead.remove(dataType + '_' + analType)
                     dataOutInvalid.append(thisDataOut)
-                    continue#to next analysis
-            elif analType=='raw':
-                thisAnal=thisData
+                    continue  # to next analysis
+            elif analType == 'raw':
+                thisAnal = thisData
             else:
                 raise AttributeError('You can only use analyses from numpy')
-            #add extra cols to header if necess
-            if len(thisAnal.shape)>1:
-                for n in range(thisAnal.shape[1]-1):
+            # add extra cols to header if necess
+            if len(thisAnal.shape) > 1:
+                for n in range(thisAnal.shape[1] - 1):
                     dataHead.append("")
-            dataAnal[thisDataOut]=thisAnal
+            dataAnal[thisDataOut] = thisAnal
 
-        #remove invalid analyses (e.g. average of a string)
+        # remove invalid analyses (e.g. average of a string)
         for invalidAnal in dataOutInvalid:
             dataOut.remove(invalidAnal)
         return dataOut, dataAnal, dataHead
 
-    def saveAsWideText(self,fileName,
-                   delim='\t',
-                   matrixOnly=False,
-                   appendFile=True,
-                  ):
+    def saveAsWideText(self, fileName,
+                       delim='\t',
+                       matrixOnly=False,
+                       appendFile=True,
+                       ):
         """
         Write a text file with the session, stimulus, and data values from each trial in chronological order.
 
@@ -2124,24 +2263,27 @@ class TrialHandlerExt(TrialHandler):
                 will add this output to the end of the specified file if it already exists.
 
         """
-        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+        if self.thisTrialN < 1 and self.thisRepN < 1:  # if both are <1 we haven't started
+            logging.info(
+                'TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
 
-        #create the file or send to stdout
+        # create the file or send to stdout
         if appendFile:
             writeFormat = 'a'
         else:
-            writeFormat = 'w' #will overwrite a file
+            writeFormat = 'w'  # will overwrite a file
         if fileName == 'stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
+        elif fileName[-4:] in ['.dlm', '.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
             f = codecs.open(fileName, writeFormat, encoding="utf-8")
         else:
-            if delim==',':
-                f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
+            if delim == ',':
+                f = codecs.open(fileName + '.csv',
+                                writeFormat, encoding="utf-8")
             else:
-                f = codecs.open(fileName+'.txt', writeFormat, encoding="utf-8")
+                f = codecs.open(fileName + '.txt',
+                                writeFormat, encoding="utf-8")
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
@@ -2154,9 +2296,10 @@ class TrialHandlerExt(TrialHandler):
         # loop through each trial, gathering the actual values:
         dataOut = []
         trialCount = 0
-        # total number of trials = number of trialtypes * number of repetitions:
+        # total number of trials = number of trialtypes * number of
+        # repetitions:
 
-        repsPerType={}
+        repsPerType = {}
         for rep in range(self.nReps):
             if self.trialWeights is None:
                 nRows = len(self.trialList)
@@ -2164,76 +2307,91 @@ class TrialHandlerExt(TrialHandler):
                 nRows = sum(self.trialWeights)
 
             for trialN in range(nRows):
-                #find out what trial type was on this trial
+                # find out what trial type was on this trial
                 trialTypeIndex = self.sequenceIndices[trialN, rep]
-                #determine which repeat it is for this trial
+                # determine which repeat it is for this trial
                 if trialTypeIndex not in repsPerType.keys():
-                    repsPerType[trialTypeIndex]=0
+                    repsPerType[trialTypeIndex] = 0
                 else:
-                    repsPerType[trialTypeIndex]+=1
-                repThisType=repsPerType[trialTypeIndex]#what repeat are we on for this trial type?
+                    repsPerType[trialTypeIndex] += 1
+                # what repeat are we on for this trial type?
+                repThisType = repsPerType[trialTypeIndex]
 
                 # create a dictionary representing each trial:
-                # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
+                # this is wide format, so we want fixed information (e.g.
+                # subject ID, date, etc) repeated every line if it exists:
                 if (self.extraInfo != None):
                     nextEntry = self.extraInfo.copy()
                 else:
                     nextEntry = {}
 
-                # add a trial number so the original order of the data can always be recovered if sorted during analysis:
+                # add a trial number so the original order of the data can
+                # always be recovered if sorted during analysis:
                 trialCount += 1
                 nextEntry["TrialNumber"] = trialCount
 
-                # now collect the value from each trial of the variables named in the header:
+                # now collect the value from each trial of the variables named
+                # in the header:
                 for parameterName in header:
-                    # the header includes both trial and data variables, so need to check before accessing:
+                    # the header includes both trial and data variables, so
+                    # need to check before accessing:
                     if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
-                        nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
+                        nextEntry[parameterName] = self.trialList[
+                            trialTypeIndex][parameterName]
                     elif parameterName in self.data:
                         if self.trialWeights is None:
-                            nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
+                            nextEntry[parameterName] = self.data[
+                                parameterName][trialTypeIndex][repThisType]
                         else:
-                            firstRowIndex=sum(self.trialWeights[:trialTypeIndex])
-                            dataRow = firstRowIndex + repThisType%self.trialWeights[trialTypeIndex]
-                            dataCol = int(repThisType/self.trialWeights[trialTypeIndex])
-                            nextEntry[parameterName] = self.data[parameterName][dataRow][dataCol]
-                    else: # allow a null value if this parameter wasn't explicitly stored on this trial:
+                            firstRowIndex = sum(
+                                self.trialWeights[:trialTypeIndex])
+                            dataRow = firstRowIndex + \
+                                repThisType % self.trialWeights[trialTypeIndex]
+                            dataCol = int(
+                                repThisType / self.trialWeights[trialTypeIndex])
+                            nextEntry[parameterName] = self.data[
+                                parameterName][dataRow][dataCol]
+                    else:  # allow a null value if this parameter wasn't explicitly stored on this trial:
                         nextEntry[parameterName] = ''
 
-                #store this trial's data
+                # store this trial's data
                 dataOut.append(nextEntry)
 
         # get the extra 'wide' parameter names into the header line:
-        header.insert(0,"TrialNumber")
+        header.insert(0, "TrialNumber")
         if (self.extraInfo != None):
             for key in self.extraInfo:
                 header.insert(0, key)
 
         if not matrixOnly:
-        # write the header row:
+            # write the header row:
             nextLine = ''
             for parameterName in header:
                 nextLine = nextLine + parameterName + delim
-            f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
+            # remove the final orphaned tab character
+            f.write(nextLine[:-1] + '\n')
 
         # write the data matrix:
         for trial in dataOut:
             nextLine = ''
             for parameterName in header:
                 nextLine = nextLine + unicode(trial[parameterName]) + delim
-            nextLine = nextLine[:-1] # remove the final orphaned tab character
+            nextLine = nextLine[:-1]  # remove the final orphaned tab character
             f.write(nextLine + '\n')
 
         if f != sys.stdout:
             f.close()
-            logging.info('saved wide-format data to %s' %f.name)
+            logging.info('saved wide-format data to %s' % f.name)
+
 
 def importTrialTypes(fileName, returnFieldNames=False):
     """importTrialTypes is DEPRECATED (as of v1.70.00)
     Please use `importConditions` for identical functionality.
     """
-    logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
+    logging.warning(
+        "importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
+
 
 def sliceFromString(sliceString):
     """Convert a text string into a valid slice object
@@ -2248,12 +2406,13 @@ def sliceFromString(sliceString):
     """
     sliceArgs = []
     for val in sliceString.split(':'):
-        if len(val)==0:
+        if len(val) == 0:
             sliceArgs.append(None)
         else:
             sliceArgs.append(int(round(float(val))))
-            #nb int(round(float(x))) is needed for x='4.3'
+            # nb int(round(float(x))) is needed for x='4.3'
     return apply(slice, sliceArgs)
+
 
 def indicesFromString(indsString):
     """Convert a text string into a valid list of indices
@@ -2276,6 +2435,7 @@ def indicesFromString(indsString):
         return inds
     except Exception:
         pass
+
 
 def importConditions(fileName, returnFieldNames=False, selection=""):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
@@ -2315,91 +2475,98 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         OK, return silently; else raise ImportError with msg
         """
         if not all(fieldNames):
-            raise ImportError('Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName)
+            raise ImportError(
+                'Conditions file %s: Missing parameter name(s); empty cell(s) in the first row?' % fileName)
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
-            if not OK: #tailor message to importConditions
+            if not OK:  # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ImportError('Conditions file %s: %s%s"%s"' %(fileName, msg, os.linesep*2, name))
+                raise ImportError('Conditions file %s: %s%s"%s"' %
+                                  (fileName, msg, os.linesep * 2, name))
 
-    if fileName in ['None','none',None]:
+    if fileName in ['None', 'none', None]:
         if returnFieldNames:
             return [], []
         return []
     if not os.path.isfile(fileName):
-        raise ImportError('Conditions file not found: %s' %os.path.abspath(fileName))
+        raise ImportError('Conditions file not found: %s' %
+                          os.path.abspath(fileName))
 
     if fileName.endswith('.csv'):
         with open(fileName, 'rU') as fileUniv:
-            trialsArr = read_csv(fileUniv, encoding='utf-8')  # use pandas reader, which can handle commas in fields, etc
-        trialsArr = trialsArr.to_records(index=False) # convert the resulting dataframe to a numpy recarry
+            # use pandas reader, which can handle commas in fields, etc
+            trialsArr = read_csv(fileUniv, encoding='utf-8')
+        # convert the resulting dataframe to a numpy recarry
+        trialsArr = trialsArr.to_records(index=False)
         if trialsArr.shape == ():  # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[numpy.newaxis]
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
-        #convert the record array into a list of dicts
+        # convert the record array into a list of dicts
         trialList = []
         for trialN, trialType in enumerate(trialsArr):
-            thisTrial ={}
+            thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
-                if type(val)==numpy.string_:
+                if type(val) == numpy.string_:
                     val = unicode(val.decode('utf-8'))
-                    #if it looks like a list, convert it:
+                    # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
                         #val=eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
     elif fileName.endswith('.pkl'):
-        f = open(fileName, 'rU') # is U needed?
+        f = open(fileName, 'rU')  # is U needed?
         try:
             trialsArr = cPickle.load(f)
         except Exception:
             raise ImportError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
-        fieldNames = trialsArr[0] # header line first
+        fieldNames = trialsArr[0]  # header line first
         _assertValidVarNames(fieldNames, fileName)
         for row in trialsArr[1:]:
             thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
-                thisTrial[fieldName] = row[fieldN] # type is correct, being .pkl
+                # type is correct, being .pkl
+                thisTrial[fieldName] = row[fieldN]
             trialList.append(thisTrial)
     else:
         if not haveOpenpyxl:
-            raise ImportError('openpyxl is required for loading excel format files, but it was not found.')
+            raise ImportError(
+                'openpyxl is required for loading excel format files, but it was not found.')
         try:
             wb = load_workbook(filename=fileName)
-        except Exception: # InvalidFileException(unicode(e)): # this fails
+        except Exception:  # InvalidFileException(unicode(e)): # this fails
             raise ImportError('Could not open %s as conditions' % fileName)
         ws = wb.worksheets[0]
         nCols = ws.get_highest_column()
         nRows = ws.get_highest_row()
 
-        #get parameter names from the first row header
+        # get parameter names from the first row header
         fieldNames = []
         for colN in range(nCols):
             fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
             fieldNames.append(fieldName)
         _assertValidVarNames(fieldNames, fileName)
 
-        #loop trialTypes
+        # loop trialTypes
         trialList = []
-        for rowN in range(1, nRows):#skip header first row
-            thisTrial={}
+        for rowN in range(1, nRows):  # skip header first row
+            thisTrial = {}
             for colN in range(nCols):
                 val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
-                #if it looks like a list, convert it
+                # if it looks like a list, convert it
                 if type(val) in [unicode, str] and (
                         val.startswith('[') and val.endswith(']') or
-                        val.startswith('(') and val.endswith(')') ):
+                        val.startswith('(') and val.endswith(')')):
                     val = eval(val)
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
-    #if we have a selection then try to parse it
-    if isinstance(selection, basestring) and len(selection)>0:
+    # if we have a selection then try to parse it
+    if isinstance(selection, basestring) and len(selection) > 0:
         selection = indicesFromString(selection)
         if not isinstance(selection, slice):
             for n in selection:
@@ -2407,21 +2574,22 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     assert n == int(n)
                 except Exception:
                     raise TypeError, "importConditions() was given some `indices` but could not parse them"
-    #the selection might now be a slice or a series of indices
-    if isinstance(selection,slice):
+    # the selection might now be a slice or a series of indices
+    if isinstance(selection, slice):
         trialList = trialList[selection]
-    elif len(selection)>0:
+    elif len(selection) > 0:
         allConds = trialList
-        trialList=[]
+        trialList = []
         for ii in selection:
             trialList.append(allConds[int(round(ii))])
 
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
-                 (fileName, len(trialList), len(fieldNames)))
+                (fileName, len(trialList), len(fieldNames)))
     if returnFieldNames:
-        return (trialList,fieldNames)
+        return (trialList, fieldNames)
     else:
         return trialList
+
 
 def createFactorialTrialList(factors):
     """Create a trialList by entering a list of factors with names (keys) and levels (values)
@@ -2443,27 +2611,33 @@ def createFactorialTrialList(factors):
             "letterColor": ["red", "green"], "size": [0,1]})
     """
 
-    # the first step is to place all the factorial combinations in a list of lists
-    tempListOfLists=[[]]
+    # the first step is to place all the factorial combinations in a list of
+    # lists
+    tempListOfLists = [[]]
     for key in factors:
-        alist = factors[key]   # this takes the levels of each factor as a set of values (a list) at a time
+        # this takes the levels of each factor as a set of values (a list) at a
+        # time
+        alist = factors[key]
         tempList = []
         for value in alist:     # now we loop over the values in a given list, and add each value of the other lists
             for iterList in tempListOfLists:
-                tempList.append(iterList + [key,value])
+                tempList.append(iterList + [key, value])
         tempListOfLists = tempList
 
     # this second step is so we can return a list in the format of trialList
     trialList = []
     for atrial in tempListOfLists:
-        keys = atrial[0::2]          #the even elements are keys
-        values = atrial[1::2]       #the odd elements are values
+        keys = atrial[0::2]  # the even elements are keys
+        values = atrial[1::2]  # the odd elements are values
         atrialDict = {}
         for i in range(len(keys)):
-            atrialDict[keys[i]] = values[i]     #this combines the key with the value
-        trialList.append(atrialDict)             #append one trial at a time to the final trialList
+            # this combines the key with the value
+            atrialDict[keys[i]] = values[i]
+        # append one trial at a time to the final trialList
+        trialList.append(atrialDict)
 
     return trialList
+
 
 class StairHandler(_BaseTrialHandler):
     """Class to handle smoothly the selection of the next trial
@@ -2481,15 +2655,16 @@ class StairHandler(_BaseTrialHandler):
     are then used.
 
     """
+
     def __init__(self,
                  startVal,
                  nReversals=None,
-                 stepSizes=4,  #dB stepsize
+                 stepSizes=4,  # dB stepsize
                  nTrials=0,
                  nUp=1,
-                 nDown=3, #correct responses before stim goes down
+                 nDown=3,  # correct responses before stim goes down
                  extraInfo=None,
-                 method = '2AFC',
+                 method='2AFC',
                  stepType='db',
                  minVal=None,
                  maxVal=None,
@@ -2560,13 +2735,13 @@ class StairHandler(_BaseTrialHandler):
         StairHandler.
 
         """
-        self.name=name
-        self.startVal=startVal
-        self.nUp=nUp
-        self.nDown=nDown
-        self.extraInfo=extraInfo
-        self.method=method
-        self.stepType=stepType
+        self.name = name
+        self.startVal = startVal
+        self.nUp = nUp
+        self.nDown = nDown
+        self.extraInfo = extraInfo
+        self.method = method
+        self.stepType = stepType
 
         try:
             self.stepSizes = list(stepSizes)
@@ -2578,35 +2753,40 @@ class StairHandler(_BaseTrialHandler):
 
         if nReversals is not None and len(self.stepSizes) > nReversals:
             logging.warn(
-                    "Increasing number of minimum required reversals to "
-                    "the number of step sizes (%i)." % len(self.stepSizes)
+                "Increasing number of minimum required reversals to "
+                "the number of step sizes (%i)." % len(self.stepSizes)
             )
             self.nReversals = len(self.stepSizes)
         else:
             self.nReversals = nReversals
 
-        self.nTrials = nTrials#to terminate the nTrials must be exceeded and either
-        self.finished=False
+        self.nTrials = nTrials  # to terminate the nTrials must be exceeded and either
+        self.finished = False
         self.thisTrialN = -1
-        self.otherData={} #a dict of lists where each should have the same length as the main data
+        # a dict of lists where each should have the same length as the main
+        # data
+        self.otherData = {}
         self.data = []
-        self.intensities=[]
+        self.intensities = []
         self.reversalPoints = []
-        self.reversalIntensities=[]
-        self.currentDirection='start' #initially it goes down but on every step
-        self.correctCounter=0  #correct since last stim change (minus are incorrect)
-        self._nextIntensity=self.startVal
-        self._warnUseOfNext=True
+        self.reversalIntensities = []
+        self.currentDirection = 'start'  # initially it goes down but on every step
+        # correct since last stim change (minus are incorrect)
+        self.correctCounter = 0
+        self._nextIntensity = self.startVal
+        self._warnUseOfNext = True
         self.minVal = minVal
         self.maxVal = maxVal
         self.autoLog = autoLog
-        self.initialRule = 0  #a flag for the 1-up 1-down initial rule
+        self.initialRule = 0  # a flag for the 1-up 1-down initial rule
 
-        #self.originPath and self.origin (the contents of the origin file)
+        # self.originPath and self.origin (the contents of the origin file)
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
-        self._exp = None#the experiment handler that owns me!
+        self._exp = None  # the experiment handler that owns me!
+
     def __iter__(self):
         return self
+
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
@@ -2618,46 +2798,48 @@ class StairHandler(_BaseTrialHandler):
         """
         self.data.append(result)
 
-        #if needed replace the existing intensity with this custom one
-        if intensity!=None:
+        # if needed replace the existing intensity with this custom one
+        if intensity != None:
             self.intensities.pop()
             self.intensities.append(intensity)
 
-        #increment the counter of correct scores
-        if result==1:
-            if len(self.data)>1 and self.data[-2]==result:
-                #increment if on a run
-                self.correctCounter+=1
+        # increment the counter of correct scores
+        if result == 1:
+            if len(self.data) > 1 and self.data[-2] == result:
+                # increment if on a run
+                self.correctCounter += 1
             else:
-                #or reset
+                # or reset
                 self.correctCounter = 1
         else:
-            if  len(self.data)>1 and self.data[-2]==result:
-                #increment if on a run
-                self.correctCounter-=1
+            if len(self.data) > 1 and self.data[-2] == result:
+                # increment if on a run
+                self.correctCounter -= 1
             else:
-                #or reset
+                # or reset
                 self.correctCounter = -1
 
-        #add the current data to experiment if poss
-        if self.getExp() != None:#update the experiment handler too
-            self.getExp().addData(self.name+".response", result)
+        # add the current data to experiment if poss
+        if self.getExp() != None:  # update the experiment handler too
+            self.getExp().addData(self.name + ".response", result)
         self.calculateNextIntensity()
 
     def addOtherData(self, dataName, value):
         """Add additional data to the handler, to be tracked alongside the result
         data but not affecting the value of the staircase
         """
-        if not dataName in self.otherData: #init the list
-            if self.thisTrialN>0:
-                self.otherData[dataName]=[None]*(self.thisTrialN-1) #might have run trals already
+        if not dataName in self.otherData:  # init the list
+            if self.thisTrialN > 0:
+                # might have run trals already
+                self.otherData[dataName] = [None] * (self.thisTrialN - 1)
             else:
-                self.otherData[dataName]=[]
-        #then add current value
+                self.otherData[dataName] = []
+        # then add current value
         self.otherData[dataName].append(value)
-        #add the current data to experiment if poss
-        if self.getExp() != None:#update the experiment handler too
+        # add the current data to experiment if poss
+        if self.getExp() != None:  # update the experiment handler too
             self.getExp().addData(dataName, value)
+
     def addData(self, result, intensity=None):
         """Deprecated since 1.79.00: This function name was ambiguous. Please use one of
         these instead:
@@ -2671,74 +2853,74 @@ class StairHandler(_BaseTrialHandler):
     def calculateNextIntensity(self):
         """based on current intensity, counter of correct responses and current direction"""
 
-        if len(self.reversalIntensities)<1:
-            #always using a 1-down, 1-up rule initially
-            if self.data[-1]==1:    #last answer correct
-                #got it right
-                if self.currentDirection=='up':
-                    reversal=True
-                else:#direction is 'down' or 'start'
-                    reversal=False
-                self.currentDirection='down'
+        if len(self.reversalIntensities) < 1:
+            # always using a 1-down, 1-up rule initially
+            if self.data[-1] == 1:  # last answer correct
+                # got it right
+                if self.currentDirection == 'up':
+                    reversal = True
+                else:  # direction is 'down' or 'start'
+                    reversal = False
+                self.currentDirection = 'down'
             else:
-                #got it wrong
-                if self.currentDirection=='down':
-                    reversal=True
-                else:#direction is 'up' or 'start'
-                    reversal=False
-                #now:
-                self.currentDirection='up'
+                # got it wrong
+                if self.currentDirection == 'down':
+                    reversal = True
+                else:  # direction is 'up' or 'start'
+                    reversal = False
+                # now:
+                self.currentDirection = 'up'
 
-        elif self.correctCounter >= self.nDown: #n right, time to go down!
-            if self.currentDirection!='down':
-                reversal=True
+        elif self.correctCounter >= self.nDown:  # n right, time to go down!
+            if self.currentDirection != 'down':
+                reversal = True
             else:
-                reversal=False
-            self.currentDirection='down'
+                reversal = False
+            self.currentDirection = 'down'
 
-        elif self.correctCounter <= -self.nUp: #n wrong, time to go up!
-            #note current direction
-            if self.currentDirection!='up':
-                reversal=True
+        elif self.correctCounter <= -self.nUp:  # n wrong, time to go up!
+            # note current direction
+            if self.currentDirection != 'up':
+                reversal = True
             else:
-                reversal=False
-            self.currentDirection='up'
+                reversal = False
+            self.currentDirection = 'up'
 
         else:
-            #same as previous trial
-            reversal=False
+            # same as previous trial
+            reversal = False
 
-
-        #add reversal info
+        # add reversal info
         if reversal:
             self.reversalPoints.append(self.thisTrialN)
-            if len(self.reversalIntensities)<1:
-                self.initialRule=1
+            if len(self.reversalIntensities) < 1:
+                self.initialRule = 1
             self.reversalIntensities.append(self.intensities[-1])
-        #test if we're done
-        if len(self.reversalIntensities)>=self.nReversals and \
-            len(self.intensities)>=self.nTrials:
-                self.finished=True
-        #new step size if necessary
+        # test if we're done
+        if len(self.reversalIntensities) >= self.nReversals and \
+                len(self.intensities) >= self.nTrials:
+            self.finished = True
+        # new step size if necessary
         if reversal and self._variableStep:
             if len(self.reversalIntensities) >= len(self.stepSizes):
-                #we've gone beyond the list of step sizes so just use the last one
+                # we've gone beyond the list of step sizes so just use the last
+                # one
                 self.stepSizeCurrent = self.stepSizes[-1]
             else:
-                self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
+                self.stepSizeCurrent = self.stepSizes[
+                    len(self.reversalIntensities)]
 
-        #apply new step size
-        if len(self.reversalIntensities)<1 or self.initialRule==1:
-            self.initialRule=0 #reset the flag
-            if self.data[-1]==1:
+        # apply new step size
+        if len(self.reversalIntensities) < 1 or self.initialRule == 1:
+            self.initialRule = 0  # reset the flag
+            if self.data[-1] == 1:
                 self._intensityDec()
             else:
                 self._intensityInc()
-        elif self.correctCounter >= self.nDown: #n right, so going down
+        elif self.correctCounter >= self.nDown:  # n right, so going down
             self._intensityDec()
-        elif self.correctCounter <= -self.nUp:  #n wrong, so going up
+        elif self.correctCounter <= -self.nUp:  # n wrong, so going up
             self._intensityInc()
-
 
     def next(self):
         """Advances to next trial and returns it.
@@ -2762,49 +2944,50 @@ class StairHandler(_BaseTrialHandler):
                 #do stuff here for the trial
 
         """
-        if self.finished==False:
-            #check that all 'otherData' is aligned with current trialN
+        if self.finished == False:
+            # check that all 'otherData' is aligned with current trialN
             for key in self.otherData.keys():
-                while len(self.otherData[key])<self.thisTrialN:
+                while len(self.otherData[key]) < self.thisTrialN:
                     self.otherData[key].append(None)
-            #update pointer for next trial
-            self.thisTrialN+=1
+            # update pointer for next trial
+            self.thisTrialN += 1
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
             self._terminate()
+
     def _intensityInc(self):
         """increment the current intensity and reset counter"""
-        if self.stepType=='db':
-            self._nextIntensity *= 10.0**(self.stepSizeCurrent/20.0)
-        elif self.stepType=='log':
+        if self.stepType == 'db':
+            self._nextIntensity *= 10.0**(self.stepSizeCurrent / 20.0)
+        elif self.stepType == 'log':
             self._nextIntensity *= 10.0**self.stepSizeCurrent
-        elif self.stepType=='lin':
+        elif self.stepType == 'lin':
             self._nextIntensity += self.stepSizeCurrent
-        #check we haven't gone out of the legal range
+        # check we haven't gone out of the legal range
         if (self._nextIntensity > self.maxVal) and self.maxVal is not None:
             self._nextIntensity = self.maxVal
-        self.correctCounter =0
+        self.correctCounter = 0
 
     def _intensityDec(self):
         """decrement the current intensity and reset counter"""
-        if self.stepType=='db':
-            self._nextIntensity /= 10.0**(self.stepSizeCurrent/20.0)
-        if self.stepType=='log':
+        if self.stepType == 'db':
+            self._nextIntensity /= 10.0**(self.stepSizeCurrent / 20.0)
+        if self.stepType == 'log':
             self._nextIntensity /= 10.0**self.stepSizeCurrent
-        elif self.stepType=='lin':
+        elif self.stepType == 'lin':
             self._nextIntensity -= self.stepSizeCurrent
-        self.correctCounter =0
-        #check we haven't gone out of the legal range
+        self.correctCounter = 0
+        # check we haven't gone out of the legal range
         if (self._nextIntensity < self.minVal) and self.minVal is not None:
             self._nextIntensity = self.minVal
 
-    def saveAsText(self,fileName,
+    def saveAsText(self, fileName,
                    delim=None,
                    matrixOnly=False,
                    fileCollisionMethod='rename',
                    encoding='utf-8'
-                  ):
+                   ):
         """
         Write a text file with the data
 
@@ -2828,68 +3011,72 @@ class StairHandler(_BaseTrialHandler):
 
         """
 
-        if self.thisTrialN<1:
+        if self.thisTrialN < 1:
             if self.autoLog:
-                logging.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+                logging.debug(
+                    'StairHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
-        #set default delimiter if none given
+        # set default delimiter if none given
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or send to stdout
+        # create the file or send to stdout
         f = openOutputFile(
             fileName, append=False, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
         )
 
-        #write the data
+        # write the data
         reversalStr = str(self.reversalIntensities)
-        reversalStr = string.replace( reversalStr, ',', delim)
-        reversalStr = string.replace( reversalStr, '[', '')
-        reversalStr = string.replace( reversalStr, ']', '')
-        f.write('\nreversalIntensities=\t%s\n' %reversalStr)
+        reversalStr = string.replace(reversalStr, ',', delim)
+        reversalStr = string.replace(reversalStr, '[', '')
+        reversalStr = string.replace(reversalStr, ']', '')
+        f.write('\nreversalIntensities=\t%s\n' % reversalStr)
 
         reversalPts = str(self.reversalPoints)
-        reversalPts = string.replace( reversalPts, ',', delim)
-        reversalPts = string.replace( reversalPts, '[', '')
-        reversalPts = string.replace( reversalPts, ']', '')
-        f.write('reversalIndices=\t%s\n' %reversalPts)
+        reversalPts = string.replace(reversalPts, ',', delim)
+        reversalPts = string.replace(reversalPts, '[', '')
+        reversalPts = string.replace(reversalPts, ']', '')
+        f.write('reversalIndices=\t%s\n' % reversalPts)
 
         rawIntens = str(self.intensities)
-        rawIntens = string.replace( rawIntens, ',', delim)
-        rawIntens = string.replace( rawIntens, '[', '')
-        rawIntens = string.replace( rawIntens, ']', '')
-        f.write('\nintensities=\t%s\n' %rawIntens)
+        rawIntens = string.replace(rawIntens, ',', delim)
+        rawIntens = string.replace(rawIntens, '[', '')
+        rawIntens = string.replace(rawIntens, ']', '')
+        f.write('\nintensities=\t%s\n' % rawIntens)
 
         responses = str(self.data)
-        responses = string.replace( responses, ',', delim)
-        responses = string.replace( responses, '[', '')
-        responses = string.replace( responses, ']', '')
-        f.write('responses=\t%s\n' %responses)
+        responses = string.replace(responses, ',', delim)
+        responses = string.replace(responses, '[', '')
+        responses = string.replace(responses, ']', '')
+        f.write('responses=\t%s\n' % responses)
 
-        #add self.extraInfo
+        # add self.extraInfo
         if (self.extraInfo != None) and not matrixOnly:
             strInfo = str(self.extraInfo)
-            #dict begins and ends with {} - remove
-            strInfo = strInfo[1:-1] #string.replace(strInfo, '{','');strInfo = string.replace(strInfo, '}','');
-            strInfo = string.replace(strInfo, ': ', ':\n')#separate value from keyname
-            strInfo = string.replace(strInfo, ',', '\n')#separate values from each other
+            # dict begins and ends with {} - remove
+            # string.replace(strInfo, '{','');strInfo = string.replace(strInfo, '}','');
+            strInfo = strInfo[1:-1]
+            # separate value from keyname
+            strInfo = string.replace(strInfo, ': ', ':\n')
+            # separate values from each other
+            strInfo = string.replace(strInfo, ',', '\n')
             strInfo = string.replace(strInfo, 'array([ ', '')
             strInfo = string.replace(strInfo, '])', '')
 
-            f.write('\n%s\n' %strInfo)
+            f.write('\n%s\n' % strInfo)
 
         f.write("\n")
         if f != sys.stdout:
             f.close()
             if self.autoLog:
-                logging.info('saved data to %s' %f.name)
+                logging.info('saved data to %s' % f.name)
 
-    def saveAsExcel(self,fileName, sheetName='data',
-                   matrixOnly=False, appendFile=True,
-                   fileCollisionMethod='rename'
-                  ):
+    def saveAsExcel(self, fileName, sheetName='data',
+                    matrixOnly=False, appendFile=True,
+                    fileCollisionMethod='rename'
+                    ):
         """
         Save a summary data file in Excel OpenXML format workbook (:term:`xlsx`) for processing
         in most spreadsheet packages. This format is compatible with
@@ -2927,73 +3114,83 @@ class StairHandler(_BaseTrialHandler):
 
         """
 
-        if self.thisTrialN<1:
+        if self.thisTrialN < 1:
             if self.autoLog:
-                logging.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+                logging.debug(
+                    'StairHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
-        #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
+        # NB this was based on the limited documentation (1 page wiki) for
+        # openpyxl v1.0
         if not haveOpenpyxl:
-            raise ImportError('openpyxl is required for saving files in Excel (xlsx) format, but was not found.')
-            #return -1
+            raise ImportError(
+                'openpyxl is required for saving files in Excel (xlsx) format, but was not found.')
+            # return -1
 
-        #import necessary subpackages - they are small so won't matter to do it here
+        # import necessary subpackages - they are small so won't matter to do
+        # it here
         from openpyxl.workbook import Workbook
         from openpyxl.writer.excel import ExcelWriter
         from openpyxl.reader.excel import load_workbook
 
         if not fileName.endswith('.xlsx'):
-            fileName+='.xlsx'
-        #create or load the file
+            fileName += '.xlsx'
+        # create or load the file
         if appendFile and os.path.isfile(fileName):
             wb = load_workbook(fileName)
-            newWorkbook=False
+            newWorkbook = False
         else:
-            if not appendFile: #the file exists but we're not appending, so will be overwritten
+            if not appendFile:  # the file exists but we're not appending, so will be overwritten
                 fileName = handleFileCollision(fileName,
                                                fileCollisionMethod)
-            wb = Workbook()#create new workbook
-            wb.properties.creator='PsychoPy'+psychopy.__version__
-            newWorkbook=True
+            wb = Workbook()  # create new workbook
+            wb.properties.creator = 'PsychoPy' + psychopy.__version__
+            newWorkbook = True
 
-        ew = ExcelWriter(workbook = wb)
+        ew = ExcelWriter(workbook=wb)
 
         if newWorkbook:
             ws = wb.worksheets[0]
-            ws.title=sheetName
+            ws.title = sheetName
         else:
-            ws=wb.create_sheet()
-            ws.title=sheetName
+            ws = wb.create_sheet()
+            ws.title = sheetName
 
-        #write the data
-        #reversals data
+        # write the data
+        # reversals data
         ws.cell('A1').value = 'Reversal Intensities'
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            ws.cell(_getExcelCellName(col=0,row=revN+1)).value = unicode(revIntens)
-            ws.cell(_getExcelCellName(col=1,row=revN+1)).value = unicode(self.reversalPoints[revN])
+            ws.cell(_getExcelCellName(col=0, row=revN + 1)
+                    ).value = unicode(revIntens)
+            ws.cell(_getExcelCellName(col=1, row=revN + 1)
+                    ).value = unicode(self.reversalPoints[revN])
 
-        #trials data
+        # trials data
         ws.cell('C1').value = 'All Intensities'
         ws.cell('D1').value = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
-            ws.cell(_getExcelCellName(col=2,row=intenN+1)).value = unicode(intensity)
-            ws.cell(_getExcelCellName(col=3,row=intenN+1)).value = unicode(self.data[intenN])
+            ws.cell(_getExcelCellName(col=2, row=intenN + 1)
+                    ).value = unicode(intensity)
+            ws.cell(_getExcelCellName(col=3, row=intenN + 1)
+                    ).value = unicode(self.data[intenN])
 
-        #add self.extraInfo
+        # add self.extraInfo
         rowN = 0
         if (self.extraInfo != None) and not matrixOnly:
-            ws.cell(_getExcelCellName(col=6,row=rowN)).value = 'extraInfo'
+            ws.cell(_getExcelCellName(col=6, row=rowN)).value = 'extraInfo'
             rowN += 1
-            for key,val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(col=6,row=rowN)).value = unicode(key)+u':'
-                ws.cell(_getExcelCellName(col=7,row=rowN)).value = unicode(val)
-                rowN+=1
+            for key, val in self.extraInfo.items():
+                ws.cell(_getExcelCellName(col=6, row=rowN)
+                        ).value = unicode(key) + u':'
+                ws.cell(_getExcelCellName(col=7, row=rowN)
+                        ).value = unicode(val)
+                rowN += 1
 
-        ew.save(filename = fileName)
+        ew.save(filename=fileName)
         if self.autoLog:
-            logging.info('saved data to %s' %fileName)
+            logging.info('saved data to %s' % fileName)
 
-    def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
+    def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
         This can be reloaded if necess and further analyses carried out.
@@ -3003,14 +3200,15 @@ class StairHandler(_BaseTrialHandler):
             fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         """
-        if self.thisTrialN<1:
+        if self.thisTrialN < 1:
             if self.autoLog:
-                logging.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+                logging.debug(
+                    'StairHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
 
-        #otherwise use default location
+        # otherwise use default location
         if not fileName.endswith('.psydat'):
-            fileName+='.psydat'
+            fileName += '.psydat'
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
@@ -3066,6 +3264,7 @@ class QuestHandler(StairHandler):
         staircase.quantile() #gets the median
 
     """
+
     def __init__(self,
                  startVal,
                  startValSd,
@@ -3169,9 +3368,9 @@ class QuestHandler(StairHandler):
 
         """
         StairHandler.__init__(
-                self, startVal, nTrials=nTrials, extraInfo=extraInfo,
-                method=method, stepType='lin', minVal=minVal,
-                maxVal=maxVal, name=name, autoLog=autoLog
+            self, startVal, nTrials=nTrials, extraInfo=extraInfo,
+            method=method, stepType='lin', minVal=minVal,
+            maxVal=maxVal, name=name, autoLog=autoLog
         )
 
         self.stopInterval = stopInterval
@@ -3182,15 +3381,15 @@ class QuestHandler(StairHandler):
 
         # Create Quest object
         self._quest = QuestObject(
-                startVal, startValSd, pThreshold, beta, delta, gamma,
-                grain=grain, range=range)
+            startVal, startValSd, pThreshold, beta, delta, gamma,
+            grain=grain, range=range)
 
         # Import any old staircase data
         if staircase is not None:
             self.importData(staircase.intensities, staircase.data)
-        #store the origin file and its path
+        # store the origin file and its path
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
-        self._exp=None
+        self._exp = None
         self.autoLog = autoLog
 
     def addResponse(self, result, intensity=None):
@@ -3210,15 +3409,15 @@ class QuestHandler(StairHandler):
             # During the first trial, self.intensities will be of length 0,
             # so pop() would not work.
             if len(self.intensities) != 0:
-                self.intensities.pop()  #remove the one that had been auto-generated
+                self.intensities.pop()  # remove the one that had been auto-generated
             self.intensities.append(intensity)
         # Update quest
         self._quest.update(intensity, result)
         # Update other things
         self.data.append(result)
-        #add the current data to experiment if poss
-        if self.getExp() != None:#update the experiment handler too
-            self.getExp().addData(self.name+".response", result)
+        # add the current data to experiment if poss
+        if self.getExp() != None:  # update the experiment handler too
+            self.getExp().addData(self.name + ".response", result)
 
         self._checkFinished()
         if not self.finished:
@@ -3228,14 +3427,16 @@ class QuestHandler(StairHandler):
         """import some data which wasn't previously given to the quest algorithm"""
         # NOT SURE ABOUT CLASS TO USE FOR RAISING ERROR
         if len(intensities) != len(results):
-            raise AttributeError("length of intensities and results input must be the same")
+            raise AttributeError(
+                "length of intensities and results input must be the same")
         self.incTrials(len(intensities))
-        for intensity, result in zip(intensities,results):
+        for intensity, result in zip(intensities, results):
             try:
                 self.next()
                 self.addResponse(result, intensity)
             except StopIteration:   # would get a stop iteration if stopInterval set
                 pass    # TODO: might want to check if nTrials is still good
+
     def calculateNextIntensity(self):
         """based on current intensity and counter of correct responses"""
         self._intensity()
@@ -3245,6 +3446,7 @@ class QuestHandler(StairHandler):
         elif (self._nextIntensity < self.minVal) and self.minVal is not None:
             self._nextIntensity = self.minVal
         self._questNextIntensity = self._nextIntensity
+
     def _intensity(self):
         """assigns the next intensity level"""
         if self.method == 'mean':
@@ -3320,9 +3522,9 @@ class QuestHandler(StairHandler):
                     break #break out of the forever loop
                 #do stuff here for the trial
         """
-        if self.finished==False:
-            #update pointer for next trial
-            self.thisTrialN+=1
+        if self.finished == False:
+            # update pointer for next trial
+            self.thisTrialN += 1
             self.intensities.append(self._nextIntensity)
             return self._nextIntensity
         else:
@@ -3450,16 +3652,15 @@ class PsiHandler(StairHandler):
         """
         if expectedMin not in [0, 0.5]:
             raise NotImplementedError(
-                    'Currently, only Yes/No and 2-AFC designs are '
-                    'supported. Please specify either `expectedMin=0` '
-                    '(Yes/No) or `expectedMin=0.5` (2-AFC).'
+                'Currently, only Yes/No and 2-AFC designs are '
+                'supported. Please specify either `expectedMin=0` '
+                '(Yes/No) or `expectedMin=0.5` (2-AFC).'
             )
 
-
         StairHandler.__init__(
-                self, startVal=None, nTrials=nTrials, extraInfo=extraInfo,
-                stepType=stepType, minVal=intensRange[0],
-                maxVal=intensRange[1], name=name
+            self, startVal=None, nTrials=nTrials, extraInfo=extraInfo,
+            stepType=stepType, minVal=intensRange[0],
+            maxVal=intensRange[1], name=name
         )
 
         # Create Psi object
@@ -3467,14 +3668,15 @@ class PsiHandler(StairHandler):
             try:
                 prior = numpy.load(prior)
             except IOError:
-                logging.warning("The specified pickle file could not be read. Using a uniform prior instead.")
+                logging.warning(
+                    "The specified pickle file could not be read. Using a uniform prior instead.")
                 prior = None
 
         twoAFC = True if expectedMin == 0.5 else False
         self._psi = PsiObject(
-                intensRange, alphaRange, betaRange, intensPrecision,
-                alphaPrecision, betaPrecision, delta=delta,
-                stepType=stepType, TwoAFC=twoAFC, prior=prior
+            intensRange, alphaRange, betaRange, intensPrecision,
+            alphaPrecision, betaPrecision, delta=delta,
+            stepType=stepType, TwoAFC=twoAFC, prior=prior
         )
 
         self._psi.update(None)
@@ -3487,21 +3689,21 @@ class PsiHandler(StairHandler):
         """
         self.data.append(result)
 
-        #if needed replace the existing intensity with this custom one
+        # if needed replace the existing intensity with this custom one
         if intensity is not None:
             self.intensities.pop()
             self.intensities.append(intensity)
-        #add the current data to experiment if possible
-        if self.getExp() is not None:#update the experiment handler too
-            self.getExp().addData(self.name+".response", result)
+        # add the current data to experiment if possible
+        if self.getExp() is not None:  # update the experiment handler too
+            self.getExp().addData(self.name + ".response", result)
         self._psi.update(result)
 
     def next(self):
         """Advances to next trial and returns it."""
         self._checkFinished()
-        if self.finished==False:
-            #update pointer for next trial
-            self.thisTrialN+=1
+        if self.finished == False:
+            # update pointer for next trial
+            self.thisTrialN += 1
             self.intensities.append(self._psi.nextIntensity)
             return self._psi.nextIntensity
         else:
@@ -3525,10 +3727,12 @@ class PsiHandler(StairHandler):
         if lamb is not None:
             try:
                 if len(lamb) != 2:
-                    warnings.warn("Invalid user-specified lambda pair. A new estimate of lambda will be computed.", SyntaxWarning)
+                    warnings.warn(
+                        "Invalid user-specified lambda pair. A new estimate of lambda will be computed.", SyntaxWarning)
                     lamb = None
             except TypeError:
-                warnings.warn("Invalid user-specified lambda pair. A new estimate of lambda will be computed.", SyntaxWarning)
+                warnings.warn(
+                    "Invalid user-specified lambda pair. A new estimate of lambda will be computed.", SyntaxWarning)
                 lamb = None
         return self._psi.estimateThreshold(thresh, lamb)
 
@@ -3550,12 +3754,14 @@ class PsiHandler(StairHandler):
                 )
             self._psi.savePosterior(fileName)
         except IOError:
-            warnings.warn("An error occurred while trying to save the posterior array. Continuing without saving...")
+            warnings.warn(
+                "An error occurred while trying to save the posterior array. Continuing without saving...")
 
 
 class MultiStairHandler(_BaseTrialHandler):
+
     def __init__(self, stairType='simple', method='random',
-            conditions=None, nTrials=50, originPath=None, name='', autoLog=True):
+                 conditions=None, nTrials=50, originPath=None, name='', autoLog=True):
         """A Handler to allow easy interleaved staircase procedures (simple or
         QUEST).
 
@@ -3614,66 +3820,67 @@ class MultiStairHandler(_BaseTrialHandler):
             stairs.saveAsPickle(fileName)#contains more info
 
         """
-        self.name=name
+        self.name = name
         self.autoLog = autoLog
-        self.type=stairType
-        self.method=method #'random' or 'sequential'
-        self.conditions=conditions
-        self.nTrials=nTrials
-        self.finished=False
-        self.totalTrials=0
+        self.type = stairType
+        self.method = method  # 'random' or 'sequential'
+        self.conditions = conditions
+        self.nTrials = nTrials
+        self.finished = False
+        self.totalTrials = 0
         self._checkArguments()
-        #create staircases
-        self.staircases=[]#all staircases
-        self.runningStaircases=[]#staircases that haven't finished yet
-        self.thisPassRemaining=[]#staircases to run this pass
+        # create staircases
+        self.staircases = []  # all staircases
+        self.runningStaircases = []  # staircases that haven't finished yet
+        self.thisPassRemaining = []  # staircases to run this pass
         self._createStairs()
 
-        #fetch first staircase/value (without altering/advancing it)
+        # fetch first staircase/value (without altering/advancing it)
         self._startNewPass()
         self.currentStaircase = self.thisPassRemaining[0]  # take the first
-        self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
-        #store the origin file and its path
+        # gets updated by self.addData()
+        self._nextIntensity = self.currentStaircase._nextIntensity
+        # store the origin file and its path
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
-        self._exp = None#the experiment handler that owns me!
+        self._exp = None  # the experiment handler that owns me!
 
     def _checkArguments(self):
         # Did we get a `conditions` parameter, correctly formatted?
         if not isinstance(self.conditions, collections.Iterable):
             raise TypeError(
-                    '`conditions` parameter passed to MultiStairHandler '
-                    'should be a list, not a %s.' %type(self.conditions)
+                '`conditions` parameter passed to MultiStairHandler '
+                'should be a list, not a %s.' % type(self.conditions)
             )
 
         c0 = self.conditions[0]
         if type(c0) != dict:
             raise TypeError(
-                    '`conditions` passed to MultiStairHandler should be a '
-                    'list of python dictionaries, not a list of %ss.' %
-                    type(c0)
+                '`conditions` passed to MultiStairHandler should be a '
+                'list of python dictionaries, not a list of %ss.' %
+                type(c0)
             )
 
         # Did `conditions` contain the things we need?
         params = c0.keys()
-        if self.type not in ['simple','quest','QUEST']:
+        if self.type not in ['simple', 'quest', 'QUEST']:
             raise ValueError(
-                    'MultiStairHandler `stairType` should be \'simple\', '
-                    '\'QUEST\' or \'quest\', not \'%s\'' % self.type
+                'MultiStairHandler `stairType` should be \'simple\', '
+                '\'QUEST\' or \'quest\', not \'%s\'' % self.type
             )
 
         if 'startVal' not in params:
             raise AttributeError(
-                    'MultiStairHandler needs a parameter called '
-                    '`startVal` in conditions')
+                'MultiStairHandler needs a parameter called '
+                '`startVal` in conditions')
         if 'label' not in params:
             raise AttributeError(
-                    'MultiStairHandler needs a parameter called `label` '
-                    'in conditions'
+                'MultiStairHandler needs a parameter called `label` '
+                'in conditions'
             )
-        if self.type in ['QUEST','quest'] and 'startValSd' not in params:
+        if self.type in ['QUEST', 'quest'] and 'startValSd' not in params:
             raise AttributeError(
-                    'MultiStairHandler needs a parameter called '
-                    '`startValSd` in conditions for QUEST staircases.'
+                'MultiStairHandler needs a parameter called '
+                '`startValSd` in conditions for QUEST staircases.'
             )
 
     def _createStairs(self):
@@ -3703,8 +3910,10 @@ class MultiStairHandler(_BaseTrialHandler):
             # And finally, add it to the list.
             self.staircases.append(thisStair)
             self.runningStaircases.append(thisStair)
+
     def __iter__(self):
         return self
+
     def next(self):
         """Advances to next trial and returns it.
 
@@ -3725,36 +3934,40 @@ class MultiStairHandler(_BaseTrialHandler):
                 #do stuff here for the trial
 
         """
-        #create a new set for this pass if needed
+        # create a new set for this pass if needed
         if (not hasattr(self, 'thisPassRemaining') or
                 not self.thisPassRemaining):
             if self.runningStaircases:
                 self._startNewPass()
             else:
-                self.finished=True
+                self.finished = True
                 raise StopIteration
 
-        #fetch next staircase/value
-        self.currentStaircase = self.thisPassRemaining.pop(0)#take the first and remove it
-        #if staircase.next() not called, staircaseHandler would not save the first intensity,
-        #Error: miss align intensities and responses
-        self._nextIntensity = self.currentStaircase.next()  # gets updated by self.addResponse()
+        # fetch next staircase/value
+        self.currentStaircase = self.thisPassRemaining.pop(
+            0)  # take the first and remove it
+        # if staircase.next() not called, staircaseHandler would not save the first intensity,
+        # Error: miss align intensities and responses
+        # gets updated by self.addResponse()
+        self._nextIntensity = self.currentStaircase.next()
 
-        #return value
+        # return value
         if not self.finished:
-            #inform experiment of the condition (but not intensity, that might be overridden by user)
+            # inform experiment of the condition (but not intensity, that might
+            # be overridden by user)
             if self.getExp() != None:
                 exp = self.getExp()
                 stair = self.currentStaircase
                 for key, value in stair.condition.items():
-                    exp.addData("%s.%s" %(self.name, key), value)
-                exp.addData(self.name+'.thisIndex', self.conditions.index(stair.condition))
-                exp.addData(self.name+'.thisRepN', stair.thisTrialN+1)
-                exp.addData(self.name+'.thisN', self.totalTrials)
-                exp.addData(self.name+'.direction', stair.currentDirection)
-                exp.addData(self.name+'.stepSize', stair.stepSizeCurrent)
-                exp.addData(self.name+'.stepType', stair.stepType)
-                exp.addData(self.name+'.intensity', self._nextIntensity)
+                    exp.addData("%s.%s" % (self.name, key), value)
+                exp.addData(self.name + '.thisIndex',
+                            self.conditions.index(stair.condition))
+                exp.addData(self.name + '.thisRepN', stair.thisTrialN + 1)
+                exp.addData(self.name + '.thisN', self.totalTrials)
+                exp.addData(self.name + '.direction', stair.currentDirection)
+                exp.addData(self.name + '.stepSize', stair.stepSizeCurrent)
+                exp.addData(self.name + '.stepType', stair.stepType)
+                exp.addData(self.name + '.intensity', self._nextIntensity)
             return self._nextIntensity, self.currentStaircase.condition
         else:
             raise StopIteration
@@ -3766,8 +3979,9 @@ class MultiStairHandler(_BaseTrialHandler):
         and every time that next() runs out of trials for this pass.
         """
         self.thisPassRemaining = copy.copy(self.runningStaircases)
-        if self.method=='random':
+        if self.method == 'random':
             numpy.random.shuffle(self.thisPassRemaining)
+
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
@@ -3776,15 +3990,17 @@ class MultiStairHandler(_BaseTrialHandler):
         self.currentStaircase.addResponse(result, intensity)
         if self.currentStaircase.finished:
             self.runningStaircases.remove(self.currentStaircase)
-        #add the current data to experiment if poss
-        if self.getExp() != None:#update the experiment handler too
-            self.getExp().addData(self.name+".response", result)
-        self.totalTrials+=1
+        # add the current data to experiment if poss
+        if self.getExp() != None:  # update the experiment handler too
+            self.getExp().addData(self.name + ".response", result)
+        self.totalTrials += 1
+
     def addOtherData(self, name, value):
         """Add some data about the current trial that will not be used to control the
         staircase(s) such as reaction time data
         """
         self.currentStaircase.addOtherData(name, value)
+
     def addData(self, result, intensity=None):
         """Deprecated 1.79.00: It was ambiguous whether you were adding the response
         (0 or 1) or some other data concerning the trial so there is now a pair
@@ -3796,7 +4012,8 @@ class MultiStairHandler(_BaseTrialHandler):
         """
         self.addResponse(result, intensity)
         if type(result) in [str, unicode]:
-            raise TypeError("MultiStairHandler.addData should only receive corr/incorr. Use .addOtherData('datName',val)")
+            raise TypeError(
+                "MultiStairHandler.addData should only receive corr/incorr. Use .addOtherData('datName',val)")
 
     def saveAsPickle(self, fileName, fileCollisionMethod='rename'):
         """Saves a copy of self (with data) to a pickle file.
@@ -3808,14 +4025,15 @@ class MultiStairHandler(_BaseTrialHandler):
             fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         """
-        if self.totalTrials<1:
+        if self.totalTrials < 1:
             if self.autoLog:
-                logging.debug('StairHandler.saveAsPickle called but no trials completed. Nothing saved')
+                logging.debug(
+                    'StairHandler.saveAsPickle called but no trials completed. Nothing saved')
             return -1
 
-        #otherwise use default location
+        # otherwise use default location
         if not fileName.endswith('.psydat'):
-            fileName+='.psydat'
+            fileName += '.psydat'
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
@@ -3858,14 +4076,15 @@ class MultiStairHandler(_BaseTrialHandler):
                 This is ignored if ``append`` is ``True``.
 
         """
-        if self.totalTrials<1:
+        if self.totalTrials < 1:
             if self.autoLog:
-                logging.debug('StairHandler.saveAsExcel called but no trials completed. Nothing saved')
+                logging.debug(
+                    'StairHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
 
-        append=appendFile
+        append = appendFile
         for thisStair in self.staircases:
-            #make a filename
+            # make a filename
             label = thisStair.condition['label']
             thisStair.saveAsExcel(
                 fileName, sheetName=label, matrixOnly=matrixOnly,
@@ -3873,7 +4092,7 @@ class MultiStairHandler(_BaseTrialHandler):
             )
             append = True
 
-    def saveAsText(self,fileName,
+    def saveAsText(self, fileName,
                    delim=None,
                    matrixOnly=False,
                    fileCollisionMethod='rename',
@@ -3905,22 +4124,23 @@ class MultiStairHandler(_BaseTrialHandler):
                 The encoding to use when saving a the file. Defaults to `utf-8`.
 
         """
-        if self.totalTrials<1:
+        if self.totalTrials < 1:
             if self.autoLog:
-                logging.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
+                logging.debug(
+                    'StairHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
         for thisStair in self.staircases:
-            #make a filename
+            # make a filename
             label = thisStair.condition['label']
-            thisFileName = fileName+"_"+label
+            thisFileName = fileName + "_" + label
             thisStair.saveAsText(
                 fileName=thisFileName, delim=delim, matrixOnly=matrixOnly,
                 fileCollisionMethod=fileCollisionMethod, encoding=encoding
             )
 
     def printAsText(self,
-                   delim='\t',
-                   matrixOnly=False):
+                    delim='\t',
+                    matrixOnly=False):
         """
         Write the data to the standard output stream
 
@@ -3935,14 +4155,15 @@ class MultiStairHandler(_BaseTrialHandler):
         nStairs = len(self.staircases)
         for stairN, thisStair in enumerate(self.staircases):
             if stairN < nStairs - 1:
-                thisMatrixOnly = True #no header info for first files
+                thisMatrixOnly = True  # no header info for first files
             else:
                 thisMatrixOnly = matrixOnly
-            #make a filename
+            # make a filename
             label = thisStair.condition['label']
             print("\n%s:" % label)
             thisStair.saveAsText(fileName='stdout', delim=delim,
-                matrixOnly=thisMatrixOnly)
+                                 matrixOnly=thisMatrixOnly)
+
 
 class DataHandler(dict):
     """For handling data (used by TrialHandler, principally, rather than
@@ -3960,18 +4181,19 @@ class DataHandler(dict):
         - dataTypes=list of keys as strings
 
     """
+
     def __init__(self, dataTypes=None, trials=None, dataShape=None):
-        self.trials=trials
-        self.dataTypes=[]#names will be added during addDataType
-        self.isNumeric={}
-        #if given dataShape use it - otherwise guess!
+        self.trials = trials
+        self.dataTypes = []  # names will be added during addDataType
+        self.isNumeric = {}
+        # if given dataShape use it - otherwise guess!
         if dataShape:
-            self.dataShape=dataShape
+            self.dataShape = dataShape
         elif self.trials:
-            self.dataShape=list(numpy.asarray(trials.trialList,'O').shape)
+            self.dataShape = list(numpy.asarray(trials.trialList, 'O').shape)
             self.dataShape.append(trials.nReps)
 
-        #initialise arrays now if poss
+        # initialise arrays now if poss
         if dataTypes and self.dataShape:
             for thisType in dataTypes:
                 self.addDataType(thisType)
@@ -3986,20 +4208,22 @@ class DataHandler(dict):
         """
         if not shape:
             shape = self.dataShape
-        if not isinstance(names,basestring):
-            #recursively call this function until we have a string
+        if not isinstance(names, basestring):
+            # recursively call this function until we have a string
             for thisName in names:
                 self.addDataType(thisName)
         else:
-            #create the appropriate array in the dict
-            #initially use numpy masked array of floats with mask=True for missing vals
-            #convert to a numpy array with dtype='O' if non-numeric data given
-            #NB don't use masked array with dytpe='O' together -they don't unpickle
-            self[names]=numpy.ma.zeros(shape,'f')#masked array of floats
-            self[names].mask=True
-            #add the name to the list
+            # create the appropriate array in the dict
+            # initially use numpy masked array of floats with mask=True for missing vals
+            # convert to a numpy array with dtype='O' if non-numeric data given
+            # NB don't use masked array with dytpe='O' together -they don't
+            # unpickle
+            self[names] = numpy.ma.zeros(shape, 'f')  # masked array of floats
+            self[names].mask = True
+            # add the name to the list
             self.dataTypes.append(names)
-            self.isNumeric[names]=True#until we need otherwise
+            self.isNumeric[names] = True  # until we need otherwise
+
     def add(self, thisType, value, position=None):
         """Add data to an existing data type
         (and add a new one if necess)
@@ -4008,41 +4232,50 @@ class DataHandler(dict):
             self.addDataType(thisType)
         if position is None:
             #'ran' is always the first thing to update
-            if thisType=='ran':
+            if thisType == 'ran':
                 repN = sum(self['ran'][self.trials.thisIndex])
             else:
-                repN = sum(self['ran'][self.trials.thisIndex])-1#because it has already been updated
-            #make a list where 1st digit is trial number
-            position= [self.trials.thisIndex]
+                # because it has already been updated
+                repN = sum(self['ran'][self.trials.thisIndex]) - 1
+            # make a list where 1st digit is trial number
+            position = [self.trials.thisIndex]
             position.append(repN)
 
-        #check whether data falls within bounds
+        # check whether data falls within bounds
         posArr = numpy.asarray(position)
         shapeArr = numpy.asarray(self.dataShape)
-        if not numpy.alltrue(posArr<shapeArr):
-            #array isn't big enough
-            logging.warning('need a bigger array for:'+thisType)
-            self[thisType]=extendArr(self[thisType],posArr)#not implemented yet!
-        #check for ndarrays with more than one value and for non-numeric data
+        if not numpy.alltrue(posArr < shapeArr):
+            # array isn't big enough
+            logging.warning('need a bigger array for:' + thisType)
+            self[thisType] = extendArr(
+                self[thisType], posArr)  # not implemented yet!
+        # check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
-            ((type(value)==numpy.ndarray and len(value)>1) or (type(value) not in [float, int])):
-                self._convertToObjectArray(thisType)
-        #insert the value
-        self[thisType][position[0],position[1]]=value
+                ((type(value) == numpy.ndarray and len(value) > 1) or (type(value) not in [float, int])):
+            self._convertToObjectArray(thisType)
+        # insert the value
+        self[thisType][position[0], position[1]] = value
+
     def _convertToObjectArray(self, thisType):
         """Convert this datatype from masked numeric array to unmasked object array
         """
         dat = self[thisType]
-        self[thisType] = numpy.array(dat.data, dtype='O')#create an array of Object type
-        #masked vals should be "--", others keep data
-        self[thisType] = numpy.where(dat.mask, '--',dat).astype('O')#we have to repeat forcing to 'O' or text gets truncated to 4chars
-        self.isNumeric[thisType]=False
+        # create an array of Object type
+        self[thisType] = numpy.array(dat.data, dtype='O')
+        # masked vals should be "--", others keep data
+        # we have to repeat forcing to 'O' or text gets truncated to 4chars
+        self[thisType] = numpy.where(dat.mask, '--', dat).astype('O')
+        self.isNumeric[thisType] = False
+
 
 class FitFunction(object):
     """Deprecated: - use the specific functions; FitWeibull, FitLogistic...
     """
+
     def __init__(self, *args, **kwargs):
-        raise DeprecationWarning("FitFunction is now fully DEPRECATED: use FitLogistic, FitWeibull etc instead")
+        raise DeprecationWarning(
+            "FitFunction is now fully DEPRECATED: use FitLogistic, FitWeibull etc instead")
+
 
 class _baseFunctionFit(object):
     """Not needed by most users except as a superclass for developping your own functions
@@ -4059,28 +4292,31 @@ class _baseFunctionFit(object):
         self.expectedMin = expectedMin
         self.guess = guess
         # for holding error calculations:
-        self.ssq=0
-        self.rms=0
-        self.chi=0
-        #do the calculations:
+        self.ssq = 0
+        self.rms = 0
+        self.chi = 0
+        # do the calculations:
         self._doFit()
 
     def _doFit(self):
         """The Fit class that derives this needs to specify its _evalFunction
         """
-        #get some useful variables to help choose starting fit vals
+        # get some useful variables to help choose starting fit vals
         #self.params = optimize.fmin_powell(self._getErr, self.params, (self.xx,self.yy,self.sems),disp=self.display)
         #self.params = optimize.fmin_bfgs(self._getErr, self.params, None, (self.xx,self.yy,self.sems),disp=self.display)
         global _chance
         _chance = self.expectedMin
-        self.params, self.covar = optimize.curve_fit(self._eval, self.xx, self.yy, p0=self.guess, sigma=self.sems)
+        self.params, self.covar = optimize.curve_fit(
+            self._eval, self.xx, self.yy, p0=self.guess, sigma=self.sems)
         self.ssq = self._getErr(self.params, self.xx, self.yy, 1.0)
         self.chi = self._getErr(self.params, self.xx, self.yy, self.sems)
-        self.rms = self.ssq/len(self.xx)
-    def _getErr(self, params, xx,yy,sems):
+        self.rms = self.ssq / len(self.xx)
+
+    def _getErr(self, params, xx, yy, sems):
         mod = self.eval(xx, params)
-        err = sum((yy-mod)**2/sems)
+        err = sum((yy - mod)**2 / sems)
         return err
+
     def eval(self, xx, params=None):
         """Evaluate xx for the current parameters of the model, or for arbitrary params
         if these are given.
@@ -4088,19 +4324,21 @@ class _baseFunctionFit(object):
         if params is None:
             params = self.params
         global _chance
-        _chance=self.expectedMin
+        _chance = self.expectedMin
         #_eval is a static method - must be done this way because the curve_fit
-        #function doesn't want to have any `self` object as first arg
+        # function doesn't want to have any `self` object as first arg
         yy = self._eval(xx, *params)
         return yy
+
     def inverse(self, yy, params=None):
         """Evaluate yy for the current parameters of the model, or for arbitrary params
         if these are given.
         """
         if params is None:
-            params=self.params #so the user can set params for this particular inv
+            params = self.params  # so the user can set params for this particular inv
         xx = self._inverse(yy, *params)
         return xx
+
 
 class FitWeibull(_baseFunctionFit):
     """Fit a Weibull function (either 2AFC or YN)
@@ -4116,18 +4354,21 @@ class FitWeibull(_baseFunctionFit):
     with ``fit.eval(x)``, retrieve the inverse of the function with
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[alpha, beta]``)"""
-    #static methods have no `self` and this is important for optimise.curve_fit
+    # static methods have no `self` and this is important for
+    # optimise.curve_fit
     @staticmethod
     def _eval(xx, alpha, beta):
         global _chance
         xx = numpy.asarray(xx)
-        yy =  _chance + (1.0-_chance)*(1-numpy.exp( -(xx/alpha)**(beta) ))
+        yy = _chance + (1.0 - _chance) * (1 - numpy.exp(-(xx / alpha)**(beta)))
         return yy
+
     @staticmethod
     def _inverse(yy, alpha, beta):
         global _chance
-        xx = alpha * (-numpy.log((1.0-yy)/(1-_chance))) **(1.0/beta)
+        xx = alpha * (-numpy.log((1.0 - yy) / (1 - _chance))) ** (1.0 / beta)
         return xx
+
 
 class FitNakaRushton(_baseFunctionFit):
     """Fit a Naka-Rushton function
@@ -4143,7 +4384,8 @@ class FitNakaRushton(_baseFunctionFit):
     Note that this differs from most of the other functions in
     not using a value for the expected minimum. Rather, it fits this
     as one of the parameters of the model."""
-    #static methods have no `self` and this is important for optimise.curve_fit
+    # static methods have no `self` and this is important for
+    # optimise.curve_fit
     @staticmethod
     def _eval(xx, c50, n, rMin, rMax):
         xx = numpy.asarray(xx)
@@ -4155,15 +4397,17 @@ class FitNakaRushton(_baseFunctionFit):
             n = 0.001
         if rMin <= 0:
             n = 0.001
-        yy = rMin + (rMax-rMin) * (xx**n / (xx**n + c50**n))
+        yy = rMin + (rMax - rMin) * (xx**n / (xx**n + c50**n))
         return yy
+
     @staticmethod
     def _inverse(yy, c50, n, rMin, rMax):
-        yScaled = (yy-rMin) / (rMax-rMin) #remove baseline and scale
-        #do we need to shift while fitting?
+        yScaled = (yy - rMin) / (rMax - rMin)  # remove baseline and scale
+        # do we need to shift while fitting?
         yScaled[yScaled < 0] = 0
-        xx = (yScaled * c50**n / (1-yScaled))**(1/n)
+        xx = (yScaled * c50**n / (1 - yScaled))**(1 / n)
         return xx
+
 
 class FitLogistic(_baseFunctionFit):
     """Fit a Logistic function (either 2AFC or YN)
@@ -4180,20 +4424,23 @@ class FitLogistic(_baseFunctionFit):
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[PSE, JND]``)
     """
-    #static methods have no `self` and this is important for optimise.curve_fit
+    # static methods have no `self` and this is important for
+    # optimise.curve_fit
     @staticmethod
     def _eval(xx, PSE, JND):
         global _chance
         chance = _chance
         xx = numpy.asarray(xx)
-        yy = chance + (1-chance)/(1+numpy.exp((PSE-xx)*JND))
+        yy = chance + (1 - chance) / (1 + numpy.exp((PSE - xx) * JND))
         return yy
+
     @staticmethod
     def _inverse(yy, PSE, JND):
         global _chance
         yy = numpy.asarray(yy)
-        xx = PSE - numpy.log((1-_chance)/(yy-_chance) - 1)/JND
+        xx = PSE - numpy.log((1 - _chance) / (yy - _chance) - 1) / JND
         return xx
+
 
 class FitCumNormal(_baseFunctionFit):
     """Fit a Cumulative Normal function (aka error function or erf)
@@ -4217,22 +4464,31 @@ class FitCumNormal(_baseFunctionFit):
     1.74.00 the parameters became the [centre,sd] of the normal distribution.
 
     """
-    #static methods have no `self` and this is important for optimise.curve_fit
+    # static methods have no `self` and this is important for
+    # optimise.curve_fit
     @staticmethod
     def _eval(xx, xShift, sd):
         global _chance
         xx = numpy.asarray(xx)
-        yy = _chance + (1-_chance)*((special.erf((xx-xShift)/(numpy.sqrt(2)*sd))+1)*0.5)#NB numpy.special.erf() goes from -1:1
+        # NB numpy.special.erf() goes from -1:1
+        yy = _chance + \
+            (1 - _chance) * \
+            ((special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1) * 0.5)
         return yy
+
     @staticmethod
     def _inverse(yy, xShift, sd):
         global _chance
         yy = numpy.asarray(yy)
-        #xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erfinv() goes from -1:1
-        xx = xShift+numpy.sqrt(2)*sd*special.erfinv(( (yy-_chance)/(1-_chance) - 0.5 )*2)
+        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB
+        # numpy.special.erfinv() goes from -1:1
+        xx = xShift + \
+            numpy.sqrt(2) * sd * \
+            special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2)
         return xx
 
 ########################## End psychopy.data classes ##########################
+
 
 def bootStraps(dat, n=1):
     """Create a list of n bootstrapped resamples of the data
@@ -4254,20 +4510,23 @@ def bootStraps(dat, n=1):
             - dim[2]=resamples
     """
     dat = numpy.asarray(dat)
-    if len(dat.shape)==1: #have presumably been given a series of data for one stimulus
-        dat=numpy.array([dat])#adds a dimension (arraynow has shape (1,Ntrials))
+    if len(dat.shape) == 1:  # have presumably been given a series of data for one stimulus
+        # adds a dimension (arraynow has shape (1,Ntrials))
+        dat = numpy.array([dat])
 
     nTrials = dat.shape[1]
-    #initialise a matrix to store output
-    resamples = numpy.zeros(dat.shape+(n,), dat.dtype)
+    # initialise a matrix to store output
+    resamples = numpy.zeros(dat.shape + (n,), dat.dtype)
     for stimulusN in range(dat.shape[0]):
-        thisStim = dat[stimulusN,:]#fetch data for this stimulus
+        thisStim = dat[stimulusN, :]  # fetch data for this stimulus
         for sampleN in range(n):
-            indices = numpy.floor(nTrials*numpy.random.rand(nTrials)).astype('i')
-            resamples[stimulusN,:,sampleN] = numpy.take(thisStim, indices)
+            indices = numpy.floor(
+                nTrials * numpy.random.rand(nTrials)).astype('i')
+            resamples[stimulusN, :, sampleN] = numpy.take(thisStim, indices)
     return resamples
 
-def functionFromStaircase(intensities, responses, bins = 10):
+
+def functionFromStaircase(intensities, responses, bins=10):
     """Create a psychometric function by binning data from a staircase procedure.
     Although the default is 10 bins Jon now always uses 'unique' bins
     (fewer bins looks pretty but leads to errors in slope estimation)
@@ -4295,15 +4554,15 @@ def functionFromStaircase(intensities, responses, bins = 10):
             n
                 a numpy array of number of responses contributing to each mean
     """
-    #convert to arrays
-    try:#concatenate if multidimensional
+    # convert to arrays
+    try:  # concatenate if multidimensional
         intensities = numpy.concatenate(intensities)
         responses = numpy.concatenate(responses)
     except Exception:
         intensities = numpy.array(intensities)
         responses = numpy.array(responses)
 
-    #sort the responses
+    # sort the responses
     sort_ii = numpy.argsort(intensities)
     sortedInten = numpy.take(intensities, sort_ii)
     sortedResp = numpy.take(responses, sort_ii)
@@ -4313,22 +4572,25 @@ def functionFromStaircase(intensities, responses, bins = 10):
     nPoints = []
     if bins == 'unique':
         intensities = numpy.round(intensities, decimals=8)
-        uniqueIntens=numpy.unique(intensities)
+        uniqueIntens = numpy.unique(intensities)
         for thisInten in uniqueIntens:
-            theseResps = responses[intensities==thisInten]
+            theseResps = responses[intensities == thisInten]
             binnedInten.append(thisInten)
             binnedResp.append(numpy.mean(theseResps))
             nPoints.append(len(theseResps))
     else:
-        pointsPerBin = len(intensities)/float(bins)
+        pointsPerBin = len(intensities) / float(bins)
         for binN in range(bins):
-            thisResp = sortedResp[int(round(binN*pointsPerBin)) : int(round((binN+1)*pointsPerBin))]
-            thisInten = sortedInten[int(round(binN*pointsPerBin)) : int(round((binN+1)*pointsPerBin))]
-            binnedResp.append( numpy.mean(thisResp))
-            binnedInten.append( numpy.mean(thisInten))
-            nPoints.append( len(thisInten) )
+            thisResp = sortedResp[
+                int(round(binN * pointsPerBin)): int(round((binN + 1) * pointsPerBin))]
+            thisInten = sortedInten[
+                int(round(binN * pointsPerBin)): int(round((binN + 1) * pointsPerBin))]
+            binnedResp.append(numpy.mean(thisResp))
+            binnedInten.append(numpy.mean(thisInten))
+            nPoints.append(len(thisInten))
 
     return binnedInten, binnedResp, nPoints
+
 
 def getDateStr(format="%Y_%b_%d_%H%M"):
     """Uses ``time.strftime()``_ to generate a string of the form
@@ -4343,9 +4605,11 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     try:
         now_dec = codecs.utf_8_decode(now)[0]
     except UnicodeDecodeError:
-        now_dec = time.strftime("%Y_%m_%d_%H%M", time.localtime())  # '2011_03_16_1307'
+        now_dec = time.strftime(
+            "%Y_%m_%d_%H%M", time.localtime())  # '2011_03_16_1307'
 
     return now_dec
+
 
 def checkValidFilePath(filepath, makeValid=True):
     """Checks whether file path location (e.g. is a valid folder)
@@ -4357,8 +4621,9 @@ def checkValidFilePath(filepath, makeValid=True):
     """
     folder = os.path.split(os.path.abspath(filepath))[0]
     if not os.path.isdir(folder):
-        os.makedirs(folder) #spit an error if we fail
+        os.makedirs(folder)  # spit an error if we fail
     return True
+
 
 def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
@@ -4387,18 +4652,21 @@ def isValidVariableName(name):
     if not type(name) in [str, unicode, numpy.string_, numpy.unicode_]:
         return False, "Variables must be string-like"
     try:
-        name=str(name)#convert from unicode if possible
+        name = str(name)  # convert from unicode if possible
     except Exception:
         if type(name) in [unicode, numpy.unicode_]:
-            raise AttributeError("name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)))
+            raise AttributeError(
+                "name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)))
         else:
-            raise AttributeError("name %s (type %s) could not be converted to a string" % (name, type(name)))
+            raise AttributeError(
+                "name %s (type %s) could not be converted to a string" % (name, type(name)))
 
     if name[0].isdigit():
         return False, "Variables cannot begin with numeric character"
     if _nonalphanumeric_re.search(name):
         return False, "Variables cannot contain punctuation or spaces"
     return True, ""
+
 
 def _getExcelCellName(col, row):
     """Returns the excel cell name for a row and column (zero-indexed)
@@ -4408,4 +4676,4 @@ def _getExcelCellName(col, row):
     >>> _getExcelCellName(2,1)
     'C2'
     """
-    return "%s%i" %(get_column_letter(col+1), row+1)#BEWARE - openpyxl uses indexing at 1, to fit with Excel
+    return "%s%i" % (get_column_letter(col + 1), row + 1)  # BEWARE - openpyxl uses indexing at 1, to fit with Excel

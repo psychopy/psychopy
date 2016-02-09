@@ -23,18 +23,23 @@ def handleFileCollision(fileName, fileCollisionMethod):
     if fileCollisionMethod == 'overwrite':
         logging.warning('Data file, %s, will be overwritten' % fileName)
     elif fileCollisionMethod == 'fail':
-        raise IOError("Data file %s already exists. Set argument fileCollisionMethod to overwrite." % fileName)
+        raise IOError(
+            "Data file %s already exists. Set argument fileCollisionMethod to overwrite." % fileName)
     elif fileCollisionMethod == 'rename':
         rootName, extension = os.path.splitext(fileName)
         matchingFiles = glob.glob("%s*%s" % (rootName, extension))
         count = len(matchingFiles)
 
-        fileName = "%s_%d%s" % (rootName, count, extension) # Build the renamed string.
+        # Build the renamed string.
+        fileName = "%s_%d%s" % (rootName, count, extension)
 
-        if os.path.exists(fileName): # Check to make sure the new fileName hasn't been taken too.
-            raise IOError("New fileName %s has already been taken. Something is wrong with the append counter." % fileName)
+        # Check to make sure the new fileName hasn't been taken too.
+        if os.path.exists(fileName):
+            raise IOError(
+                "New fileName %s has already been taken. Something is wrong with the append counter." % fileName)
 
     else:
-        raise ValueError("Argument fileCollisionMethod was invalid: %s" % str(fileCollisionMethod))
+        raise ValueError(
+            "Argument fileCollisionMethod was invalid: %s" % str(fileCollisionMethod))
 
     return fileName

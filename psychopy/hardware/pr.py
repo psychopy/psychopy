@@ -8,10 +8,16 @@ See http://www.photoresearch.com/
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import logging
-import struct, sys, time, numpy
+import struct
+import sys
+import time
+import numpy
 
-try: import serial
-except ImportError: serial=False
+try:
+    import serial
+except ImportError:
+    serial = False
+
 
 class PR650(object):
     """An interface to the PR650 via the serial port.
@@ -56,77 +62,87 @@ class PR650(object):
     def __init__(self, port, verbose=None):
         super(PR650, self).__init__()
         if type(port) in [int, float]:
-            self.portNumber = port #add one so that port 1=COM1
-            self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
+            self.portNumber = port  # add one so that port 1=COM1
+            self.portString = 'COM%i' % self.portNumber  # add one so that port 1=COM1
         else:
             self.portString = port
-            self.portNumber=None
-        self.isOpen=0
-        self.lastQual=0
-        self.type='PR650'
-        self.com=False
-        self.OK=True#until we fail
+            self.portNumber = None
+        self.isOpen = 0
+        self.lastQual = 0
+        self.type = 'PR650'
+        self.com = False
+        self.OK = True  # until we fail
 
-        self.codes={'OK':'000\r\n',#this is returned after measure
-            '18':'Light Low',#these is returned at beginning of data
-            '10':'Light Low',
-            '00':'OK'
-            }
+        self.codes = {'OK': '000\r\n',  # this is returned after measure
+                      '18': 'Light Low',  # these is returned at beginning of data
+                      '10': 'Light Low',
+                      '00': 'OK'
+                      }
 
-        #try to open the port
+        # try to open the port
         if sys.platform in ['darwin', 'win32'] or sys.platform.startswith('linux'):
             try:
                 self.com = serial.Serial(self.portString)
             except Exception:
-                self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
+                self._error(
+                    "Couldn't connect to port %s. Is it being used by another program?" % self.portString)
         else:
-            self._error("I don't know how to handle serial ports on %s" %sys.platform)
-        #setup the params for PR650 comms
+            self._error(
+                "I don't know how to handle serial ports on %s" % sys.platform)
+        # setup the params for PR650 comms
         if self.OK:
             self.com.setBaudrate(9600)
-            self.com.setParity('N')#none
+            self.com.setParity('N')  # none
             self.com.setStopbits(1)
             try:
                 # Pyserial >=2.6 throws an exception when trying to open a serial port that
                 # is already open. Catching that exception is not an option here because
-                # PySerial only defines a single exception type (SerialException)
-                if not self.com.isOpen(): self.com.open()
+                # PySerial only defines a single exception type
+                # (SerialException)
+                if not self.com.isOpen():
+                    self.com.open()
             except Exception:
-                self._error("Opened serial port %s, but couldn't connect to PR650" %self.portString)
+                self._error(
+                    "Opened serial port %s, but couldn't connect to PR650" % self.portString)
             else:
-                self.isOpen=1
+                self.isOpen = 1
         if self.OK:
-            logging.info("Successfully opened %s" %self.portString)
-            time.sleep(0.1) #wait while establish connection
-            reply = self.sendMessage('b1\n')        #turn on the backlight as feedback
+            logging.info("Successfully opened %s" % self.portString)
+            time.sleep(0.1)  # wait while establish connection
+            # turn on the backlight as feedback
+            reply = self.sendMessage('b1\n')
             if reply != self.codes['OK']:
                 self._error("PR650 isn't communicating")
 
         if self.OK:
-            reply = self.sendMessage('s01,,,,,,01,1')#set command to make sure using right units etc...
+            # set command to make sure using right units etc...
+            reply = self.sendMessage('s01,,,,,,01,1')
 
     def _error(self, msg):
-        self.OK=False
+        self.OK = False
         logging.error(msg)
+
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
         """Send a command to the photometer and wait an alloted
         timeout for a response (Timeout should be long for low
         light measurements)
         """
-        if message[-1]!='\n': message+='\n'     #append a newline if necess
+        if message[-1] != '\n':
+            message += '\n'  # append a newline if necess
 
-        #flush the read buffer first
-        self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
+        # flush the read buffer first
+        # read as many chars as are in the buffer
+        self.com.read(self.com.inWaiting())
 
-        #send the message
+        # send the message
         self.com.write(message)
         self.com.flush()
-        #time.sleep(0.1)  #PR650 gets upset if hurried!
+        # time.sleep(0.1)  #PR650 gets upset if hurried!
 
-        #get feedback (within timeout limit)
+        # get feedback (within timeout limit)
         self.com.setTimeout(timeout)
-        logging.debug(message)#send complete message
-        if message in ['d5', 'd5\n']: #we need a spectrum which will have multiple lines
+        logging.debug(message)  # send complete message
+        if message in ['d5', 'd5\n']:  # we need a spectrum which will have multiple lines
             return self.com.readlines()
         else:
             return self.com.readline()
@@ -137,17 +153,18 @@ class PR650(object):
         info about that measurement
         """
         t1 = time.clock()
-        reply = self.sendMessage('m0\n', timeOut) #measure and hold data
-        #using the hold data method the PR650 we can get interogate it
-        #several times for a single measurement
+        reply = self.sendMessage('m0\n', timeOut)  # measure and hold data
+        # using the hold data method the PR650 we can get interogate it
+        # several times for a single measurement
 
-        if reply==self.codes['OK']:
+        if reply == self.codes['OK']:
             raw = self.sendMessage('d2')
-            xyz = raw.split(',')#parse into words
+            xyz = raw.split(',')  # parse into words
             self.lastQual = str(xyz[0])
-            if self.codes[self.lastQual]=='OK':
+            if self.codes[self.lastQual] == 'OK':
                 self.lastLum = float(xyz[3])
-            else: self.lastLum = 0.0
+            else:
+                self.lastLum = 0.0
         else:
             logging.warning("Didn't collect any data (extend timeout?)")
 
@@ -156,6 +173,7 @@ class PR650(object):
         """
         self.measure()
         return self.getLastLum()
+
     def getSpectrum(self, parse=True):
         """Makes a measurement and returns the current power spectrum
 
@@ -169,10 +187,12 @@ class PR650(object):
         """
         self.measure()
         return self.getLastSpectrum(parse=parse)
+
     def getLastLum(self):
         """This retrieves the luminance (in cd/m**2) from the last call to ``.measure()``
         """
         return self.lastLum
+
     def getLastSpectrum(self, parse=True):
         """This retrieves the spectrum from the last call to ``.measure()``
 
@@ -184,11 +204,13 @@ class PR650(object):
         be passed to ``.parseSpectrumOutput()``. It's more
         efficient to parse R,G,B strings at once than each individually.
         """
-        raw = self.sendMessage('d5')#returns a list where each list
+        raw = self.sendMessage('d5')  # returns a list where each list
         if parse:
-            return self.parseSpectrumOutput(raw[2:])#skip the first 2 entries (info)
+            # skip the first 2 entries (info)
+            return self.parseSpectrumOutput(raw[2:])
         else:
             return raw
+
     def parseSpectrumOutput(self, rawStr):
         """Parses the strings from the PR650 as received after sending
         the command 'd5'.
@@ -197,46 +219,44 @@ class PR650(object):
         [rawR, rawG, rawB].
         """
 
-        if len(rawStr)==3:
-            RGB=True
-            rawR=rawStr[0][2:]
-            rawG=rawStr[1][2:]
-            rawB=rawStr[2][2:]
+        if len(rawStr) == 3:
+            RGB = True
+            rawR = rawStr[0][2:]
+            rawG = rawStr[1][2:]
+            rawB = rawStr[2][2:]
             nPoints = len(rawR)
         else:
-            RGB=False
-            nPoints=len(rawStr)
-            raw=rawStr[2:]
+            RGB = False
+            nPoints = len(rawStr)
+            raw = rawStr[2:]
 
         nm = []
         if RGB:
-            power=[[],[],[]]
+            power = [[], [], []]
             for n in range(nPoints):
-                #each entry in list is a string like this:
+                # each entry in list is a string like this:
                 thisNm, thisR = rawR[n].split(',')
-                thisR = thisR.replace('\r\n','')
+                thisR = thisR.replace('\r\n', '')
                 thisNm, thisG = rawG[n].split(',')
-                thisG = thisG.replace('\r\n','')
+                thisG = thisG.replace('\r\n', '')
                 thisNm, thisB = rawB[n].split(',')
-                thisB = thisB.replace('\r\n','')
-                exec('nm.append(%s)' %thisNm)
-                exec('power[0].append(%s)' %thisR)
-                exec('power[1].append(%s)' %thisG)
-                exec('power[2].append(%s)' %thisB)
+                thisB = thisB.replace('\r\n', '')
+                exec('nm.append(%s)' % thisNm)
+                exec('power[0].append(%s)' % thisR)
+                exec('power[1].append(%s)' % thisG)
+                exec('power[2].append(%s)' % thisB)
                 #if progDlg: progDlg.Update(n)
         else:
             power = []
             for n, point in enumerate(rawStr):
-                #each entry in list is a string like this:
+                # each entry in list is a string like this:
                 thisNm, thisPower = point.split(',')
                 nm.append(thisNm)
-                power.append(thisPower.replace('\r\n',''))
-            if progDlg: progDlg.Update(n)
+                power.append(thisPower.replace('\r\n', ''))
+            if progDlg:
+                progDlg.Update(n)
         #if progDlg: progDlg.Destroy()
         return numpy.asarray(nm), numpy.asarray(power)
-
-
-
 
 
 class PR655(PR650):
@@ -264,47 +284,53 @@ class PR655(PR650):
 
     '''
     longName = "PR655/PR670"
-    driverFor = ["pr655","pr670"]
+    driverFor = ["pr655", "pr670"]
+
     def __init__(self, port):
-        self.type = None#get this from the device later
-        self.com=False
-        self.OK=True#until we fail
+        self.type = None  # get this from the device later
+        self.com = False
+        self.OK = True  # until we fail
         if type(port) in [int, float]:
-            self.portNumber = port #add one so that port 1=COM1
-            self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1
+            self.portNumber = port  # add one so that port 1=COM1
+            self.portString = 'COM%i' % self.portNumber  # add one so that port 1=COM1
         else:
             self.portString = port
-            self.portNumber=None
+            self.portNumber = None
 
-        self.codes={'OK':'000\r\n',#this is returned after measure
-            '18':'Light Low',#these is returned at beginning of data
-            '10':'Light Low',
-            '00':'OK'
-            }
+        self.codes = {'OK': '000\r\n',  # this is returned after measure
+                      '18': 'Light Low',  # these is returned at beginning of data
+                      '10': 'Light Low',
+                      '00': 'OK'
+                      }
 
-        #try to open the port
+        # try to open the port
         try:
             self.com = serial.Serial(self.portString)
         except Exception:
-            self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
-        #setup the params for PR650 comms
+            self._error(
+                "Couldn't connect to port %s. Is it being used by another program?" % self.portString)
+        # setup the params for PR650 comms
         if self.OK:
             self.com.setBaudrate(9600)
-            self.com.setParity('N')#none
+            self.com.setParity('N')  # none
             self.com.setStopbits(1)
             try:
-                self.com.close()#attempt to close if it's currently open
+                self.com.close()  # attempt to close if it's currently open
                 self.com.open()
-                self.isOpen=1
+                self.isOpen = 1
             except Exception:
-                self._error("Found a device on serial port %s, but couldn't open that port" %self.portString)
-            self.com.setTimeout(0.1)#this should be large when making measurements
+                self._error(
+                    "Found a device on serial port %s, but couldn't open that port" % self.portString)
+            # this should be large when making measurements
+            self.com.setTimeout(0.1)
             self.startRemoteMode()
             self.type = self.getDeviceType()
             if self.type:
-                logging.info("Successfully opened %s on %s" %(self.type,self.portString))
+                logging.info("Successfully opened %s on %s" %
+                             (self.type, self.portString))
             else:
                 self._error("PR655/PR670 isn't communicating")
+
     def __del__(self):
         try:
             self.endRemoteMode()
@@ -313,51 +339,61 @@ class PR655(PR650):
             logging.debug('Closed PR655 port')
         except Exception:
             pass
-    def startRemoteMode( self ):
+
+    def startRemoteMode(self):
         '''
         Sets the Colorimeter into remote mode
         '''
         reply = self.sendMessage('PHOTO', timeout=10.0)
+
     def getDeviceType(self):
         """Return the device type (e.g. 'PR-655' or 'PR-670')
         """
-        reply = self.sendMessage('D111')#returns errCode,
-        return _stripLineEnds(reply.split(',')[-1])#last element
+        reply = self.sendMessage('D111')  # returns errCode,
+        return _stripLineEnds(reply.split(',')[-1])  # last element
+
     def getDeviceSN(self):
         """Return the device serial number
         """
-        reply = self.sendMessage('D110')#returns errCode,
-        return _stripLineEnds(reply.split(',')[-1])#last element
+        reply = self.sendMessage('D110')  # returns errCode,
+        return _stripLineEnds(reply.split(',')[-1])  # last element
+
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
         """Send a command to the photometer and wait an alloted
         timeout for a response (Timeout should be long for low
         light measurements)
         """
-        logging.debug("Sending command '%s' to %s" %(message, self.portString))#send complete message
-        if message[-1]!='\n': message+='\n'     #append a newline if necess
+        logging.debug("Sending command '%s' to %s" %
+                      (message, self.portString))  # send complete message
+        if message[-1] != '\n':
+            message += '\n'  # append a newline if necess
 
-        #flush the read buffer first
-        self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
+        # flush the read buffer first
+        # read as many chars as are in the buffer
+        self.com.read(self.com.inWaiting())
 
-        #send the message
+        # send the message
         for letter in message:
-            self.com.write(letter)#for PR655 have to send individual chars ! :-/
+            # for PR655 have to send individual chars ! :-/
+            self.com.write(letter)
             self.com.flush()
 
-        time.sleep(0.2)#PR655 can get cranky if rushed
+        time.sleep(0.2)  # PR655 can get cranky if rushed
 
-        #get feedback (within timeout)
+        # get feedback (within timeout)
         self.com.setTimeout(timeout)
-        if message in ['d5\n', 'D5\n']: #we need a spectrum which will have multiple lines
+        if message in ['d5\n', 'D5\n']:  # we need a spectrum which will have multiple lines
             return self.com.readlines()
         else:
             return self.com.readline()
-    def endRemoteMode( self ):
+
+    def endRemoteMode(self):
         '''
         Puts the colorimeter back into normal mode
         '''
-        self.com.write( 'Q' )
-    def getLastTristim( self ):
+        self.com.write('Q')
+
+    def getLastTristim(self):
         '''Fetches (from the device) the last CIE 1931 Tristimulus values
 
         :returns:
@@ -367,9 +403,10 @@ class PR655(PR650):
             :func:`~PR655.measure` automatically populates pr655.lastTristim with just the tristimulus
             coordinates
         '''
-        result = self.sendMessage( 'D2' )
+        result = self.sendMessage('D2')
         return result.split(',')
-    def getLastUV( self ):
+
+    def getLastUV(self):
         '''Fetches (from the device) the last CIE 1976 u,v coords
 
         :returns:
@@ -378,9 +415,10 @@ class PR655(PR650):
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastUV with [u,v]
         '''
-        result = self.sendMessage( 'D3' )
+        result = self.sendMessage('D3')
         return result.split(',')
-    def getLastXY( self ):
+
+    def getLastXY(self):
         '''Fetches (from the device) the last CIE 1931 x,y coords
 
 
@@ -390,8 +428,9 @@ class PR655(PR650):
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastXY with [x,y]
         '''
-        result = self.sendMessage( 'D1' )
+        result = self.sendMessage('D1')
         return result.split(',')
+
     def getLastSpectrum(self, parse=True):
         """This retrieves the spectrum from the last call to :func:`~PR655.measure`
 
@@ -405,12 +444,14 @@ class PR655(PR650):
             be passed to :func:`~PR655.parseSpectrumOutput`. It's more
             efficient to parse R,G,B strings at once than each individually.
         """
-        raw = self.sendMessage('D5')#returns a list where each list
+        raw = self.sendMessage('D5')  # returns a list where each list
         if parse:
-            return self.parseSpectrumOutput(raw[2:])#skip the first 2 entries (info)
+            # skip the first 2 entries (info)
+            return self.parseSpectrumOutput(raw[2:])
         else:
             return raw
-    def getLastColorTemp( self ):
+
+    def getLastColorTemp(self):
         '''Fetches (from the device) the color temperature (K) of the last measurement
 
         :returns:
@@ -419,9 +460,10 @@ class PR655(PR650):
         :see also:
             :func:`~PR655.measure` automatically populates pr655.lastColorTemp with the color temp in Kelvins
         '''
-        result = self.sendMessage( 'D4' )
+        result = self.sendMessage('D4')
         return result.split(',')
-    def measure( self, timeOut=30.0 ):
+
+    def measure(self, timeOut=30.0):
         """Make a measurement with the device.
 
         This automatically populates:
@@ -431,18 +473,20 @@ class PR655(PR650):
             - `.lastCIExy`
             - `.lastCIEuv`
         """
-        reply = self.sendMessage( 'M0', timeout=30)
+        reply = self.sendMessage('M0', timeout=30)
         self.measured = True
         CIEuv = self.getLastUV()
         CIExy = self.getLastXY()
         CIEtristim = self.getLastTristim()
         self.lastLum = float(CIEuv[2])
-        self.lastUV = [ float(CIEuv[3]), float(CIEuv[4]) ]
-        self.lastXY = [ float(CIExy[3]), float(CIExy[4]) ]
-        self.lastTristim = [ float(CIEtristim[2]), float(CIEtristim[3]), float(CIEtristim[4]) ]
+        self.lastUV = [float(CIEuv[3]), float(CIEuv[4])]
+        self.lastXY = [float(CIExy[3]), float(CIExy[4])]
+        self.lastTristim = [float(CIEtristim[2]), float(
+            CIEtristim[3]), float(CIEtristim[4])]
         self.lastSpectrum = self.getLastSpectrum(parse=True)
         self.lastColorTemp = int(self.getLastColorTemp()[3])
-    def parseSpectrumOutput( self, rawStr ):
+
+    def parseSpectrumOutput(self, rawStr):
         """Parses the strings from the PR650 as received after sending
         the command 'D5'.
         The input argument "rawStr" can be the output from a single
@@ -450,43 +494,44 @@ class PR655(PR650):
         [rawR, rawG, rawB].
         """
 
-        if len(rawStr)==3:
-            RGB=True
-            rawR=rawStr[0][2:]
-            rawG=rawStr[1][2:]
-            rawB=rawStr[2][2:]
+        if len(rawStr) == 3:
+            RGB = True
+            rawR = rawStr[0][2:]
+            rawG = rawStr[1][2:]
+            rawB = rawStr[2][2:]
             nPoints = len(rawR)
         else:
-            RGB=False
-            nPoints=len(rawStr)
-            raw=rawStr[2:]
+            RGB = False
+            nPoints = len(rawStr)
+            raw = rawStr[2:]
 
         nm = []
         if RGB:
-            power=[[],[],[]]
+            power = [[], [], []]
             for n in range(nPoints):
-                #each entry in list is a string like this:
+                # each entry in list is a string like this:
                 thisNm, thisR = rawR[n].split(',')
-                thisR = thisR.replace('\r\n','')
+                thisR = thisR.replace('\r\n', '')
                 thisNm, thisG = rawG[n].split(',')
-                thisG = thisG.replace('\r\n','')
+                thisG = thisG.replace('\r\n', '')
                 thisNm, thisB = rawB[n].split(',')
-                thisB = thisB.replace('\r\n','')
-                exec('nm.append(%s)' %thisNm)
-                exec('power[0].append(%s)' %thisR)
-                exec('power[1].append(%s)' %thisG)
-                exec('power[2].append(%s)' %thisB)
+                thisB = thisB.replace('\r\n', '')
+                exec('nm.append(%s)' % thisNm)
+                exec('power[0].append(%s)' % thisR)
+                exec('power[1].append(%s)' % thisG)
+                exec('power[2].append(%s)' % thisB)
                 #if progDlg: progDlg.Update(n)
         else:
             power = []
             for n, point in enumerate(rawStr):
-                #each entry in list is a string like this:
+                # each entry in list is a string like this:
                 thisNm, thisPower = point.split(',')
                 nm.append(float(thisNm))
-                power.append(float(thisPower.replace('\r\n','')))
+                power.append(float(thisPower.replace('\r\n', '')))
 #            if progDlg: progDlg.Update(n)
         #if progDlg: progDlg.Destroy()
         return numpy.asarray(nm), numpy.asarray(power)
 
+
 def _stripLineEnds(s):
-    return s.replace('\r','').replace('\n','')
+    return s.replace('\r', '').replace('\n', '')

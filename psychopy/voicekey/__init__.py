@@ -45,7 +45,8 @@ RATE = 44100  # default sampling rate
 MAX_RECORDING_SEC = 1800
 
 
-class VoiceKeyException(Exception): pass
+class VoiceKeyException(Exception):
+    pass
 
 
 class _BaseVoiceKey(object):
@@ -55,6 +56,7 @@ class _BaseVoiceKey(object):
     (if `file_in` is a valid file).
     Over-ride detect() and other methods as needed. See examples.
     """
+
     def __init__(self, sec=0, file_out='', file_in='', **config):
         """
         :Parameters:
@@ -124,7 +126,7 @@ class _BaseVoiceKey(object):
         self.config = {'msPerChunk': 2,
                        'signaler': None,
                        'autosave': True,
-                       'chnl_in': 0,  #pyo.pa_get_default_input(),
+                       'chnl_in': 0,  # pyo.pa_get_default_input(),
                        #'chnl_out': 2,  #pyo.pa_get_default_output(),  # not working
                        'start': 0,
                        'stop': -1,
@@ -135,7 +137,7 @@ class _BaseVoiceKey(object):
                        'baseline': 0,
                        'more_processing': True,
                        'zero_crossings': True,
-                      }
+                       }
         self.config.update(config)
         self.baseline = self.config['baseline']
         self.bad_baseline = False
@@ -265,7 +267,8 @@ class _BaseVoiceKey(object):
         """
         # band-pass filtering:
         if self.config['more_processing']:
-            bp_chunk = bandpass(chunk, self.config['low'], self.config['high'], self.rate)
+            bp_chunk = bandpass(chunk, self.config[
+                                'low'], self.config['high'], self.rate)
         else:
             bp_chunk = chunk
 
@@ -365,7 +368,8 @@ class _BaseVoiceKey(object):
         self._chunktrig = pyo.Trig()
         self._chunkrec = pyo.TrigTableRec(self._source,
                                           self._chunktrig, self._chunktable)
-        self._chunklooper = pyo.TrigFunc(self._chunkrec["trig"], self._do_chunk)
+        self._chunklooper = pyo.TrigFunc(
+            self._chunkrec["trig"], self._do_chunk)
         self._wholetrig = pyo.Trig()
         self._wholerec = pyo.TrigTableRec(self._source,
                                           self._wholetrig, self._wholetable)
@@ -496,6 +500,7 @@ class SimpleThresholdVoiceKey(_BaseVoiceKey):
 
     The "hello world" of voice-keys.
     """
+
     def detect(self):
         """Trip if the current chunk's audio power > 10 * baseline loudness.
         """
@@ -514,6 +519,7 @@ class OnsetVoiceKey(_BaseVoiceKey):
     the best voice-onset RT estimate is saved as `self.event_onset`, in seconds.
 
     """
+
     def detect(self):
         """Trip if recent audio power is greater than the baseline for long enough.
         """
@@ -532,6 +538,7 @@ class OnsetVoiceKey(_BaseVoiceKey):
 class OffsetVoiceKey(_BaseVoiceKey):
     """Class to detect the offset of a single-word utterance.
     """
+
     def __init__(self, sec=10, file_out='', file_in='', delay=0.3, **kwargs):
         """Record and ends the recording after speech offset.  When the voice
         key trips, the best voice-offset RT estimate is saved as
@@ -549,7 +556,7 @@ class OffsetVoiceKey(_BaseVoiceKey):
                   'file_out': file_out,
                   'file_in': file_in,
                   'delay': delay,
-                 }
+                  }
         kwargs.update(config)
         super(OffsetVoiceKey, self).__init__(**kwargs)
 
@@ -581,7 +588,7 @@ class OffsetVoiceKey(_BaseVoiceKey):
             self.stop()
 
 
-### ----- Convenience classes -------------------------------------------------
+# ----- Convenience classes -------------------------------------------------
 
 class Recorder(_BaseVoiceKey):
     """Convenience class: microphone input only (no real-time analysis).
@@ -591,19 +598,25 @@ class Recorder(_BaseVoiceKey):
     `.start().join()` will not do so). This might be especially useful when
     making long recordings.
     """
+
     def __init__(self, sec=2, filename='rec.wav'):
         super(Recorder, self).__init__(sec, file_out=filename)
-    #def _set_defaults(self):
+    # def _set_defaults(self):
     #    pass
+
     def __del__(self):
         if hasattr(self, 'filename') and not os.path.isfile(self.filename):
             self.save()
+
     def _set_baseline(self):
         pass
+
     def detect(self):
         pass
+
     def _process(self, *args, **kwargs):
         pass
+
     def record(self, sec=None):
         try:
             self.start().join(sec)
@@ -615,6 +628,7 @@ class Recorder(_BaseVoiceKey):
 class Player(_BaseVoiceKey):
     """Convenience class: sound output only (no real-time analysis).
     """
+
     def __init__(self, sec=None, source='rec.wav',
                  start=0, stop=-1, rate=44100):
         if type(source) in [np.ndarray]:
@@ -624,19 +638,23 @@ class Player(_BaseVoiceKey):
         config = {'start': start,
                   'stop': stop}
         super(Player, self).__init__(sec, file_in=source, **config)
-    #def _set_defaults(self):  # ideally override but need more refactoring
+    # def _set_defaults(self):  # ideally override but need more refactoring
     #    pass
+
     def _set_baseline(self):
         pass
+
     def detect(self):
         pass
+
     def _process(self, *args, **kwargs):
         pass
+
     def play(self, sec=None):
         self.start().join(sec)
 
 
-### ----- pyo initialization (essential) -------------------------------------
+# ----- pyo initialization (essential) -------------------------------------
 
 def pyo_init(rate=44100, nchnls=1, buffersize=32, duplex=1):
     """Start and boot a global pyo server, restarting if needed.
@@ -648,7 +666,7 @@ def pyo_init(rate=44100, nchnls=1, buffersize=32, duplex=1):
     # re-init
     if hasattr(pyo_server, 'shutdown'):
         pyo_server.stop()
-        sleep(0.25)  #make sure enough time passes for the server to shutdown
+        sleep(0.25)  # make sure enough time passes for the server to shutdown
         pyo_server.shutdown()
         sleep(0.25)
         pyo_server.reinit(sr=rate, nchnls=nchnls,

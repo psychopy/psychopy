@@ -16,9 +16,9 @@ def plotFrameIntervals(intervals):
     """
     from pylab import hist, show, plot
 
-    if type(intervals)==str:
+    if type(intervals) == str:
         f = open(intervals, 'r')
-        intervals = eval("[%s]" %(f.readline()))
+        intervals = eval("[%s]" % (f.readline()))
     #    hist(intervals, int(len(intervals)/10))
     plot(intervals)
     show()

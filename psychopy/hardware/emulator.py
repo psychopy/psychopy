@@ -11,9 +11,11 @@ __author__ = 'Jeremy Gray'
 import threading
 
 from psychopy import visual, event, core, logging
-from psychopy.sound import Sound # for SyncGenerator tone
+from psychopy.sound import Sound  # for SyncGenerator tone
+
 
 class ResponseEmulator(threading.Thread):
+
     def __init__(self, simResponses=None):
         """Class to allow simulation of a user's keyboard responses during a scan.
 
@@ -25,7 +27,7 @@ class ResponseEmulator(threading.Thread):
         if not simResponses:
             self.responses = []
         else:
-            self.responses = sorted(simResponses) # sort by onset times
+            self.responses = sorted(simResponses)  # sort by onset times
         self.clock = core.Clock()
         self.stopflag = False
         threading.Thread.__init__(self, None, 'ResponseEmulator', None)
@@ -44,16 +46,20 @@ class ResponseEmulator(threading.Thread):
             if type(key) == str:
                 event._onPygletKey(symbol=key, modifiers=None, emulated=True)
             else:
-                logging.error('ResponseEmulator: only keyboard events are supported')
+                logging.error(
+                    'ResponseEmulator: only keyboard events are supported')
             last_onset = onset
-            if self.stopflag: break
+            if self.stopflag:
+                break
         self.running = False
         return self
 
     def stop(self):
         self.stopflag = True
 
+
 class SyncGenerator(threading.Thread):
+
     def __init__(self, TR=1.0, TA=1.0, volumes=10, sync='5', skip=0, sound=False, **kwargs):
         """Class for a character-emitting metronome thread (emulate MR sync pulse).
 
@@ -92,6 +98,7 @@ class SyncGenerator(threading.Thread):
         self.stopflag = False
         threading.Thread.__init__(self, None, 'SyncGenerator', None)
         self.running = False
+
     def run(self):
         self.running = True
         if self.skip:
@@ -99,9 +106,10 @@ class SyncGenerator(threading.Thread):
                 if self.playSound:  # pragma: no cover
                     self.sound1.play()
                     self.sound2.play()
-                core.wait(self.TR, hogCPUperiod=0) # emulate T1 stabilization without data collection
+                # emulate T1 stabilization without data collection
+                core.wait(self.TR, hogCPUperiod=0)
         self.clock.reset()
-        for vol in range(1, self.volumes+1):
+        for vol in range(1, self.volumes + 1):
             if self.playSound:  # pragma: no cover
                 self.sound1.play()
                 self.sound2.play()
@@ -109,14 +117,17 @@ class SyncGenerator(threading.Thread):
                 break
             # "emit" a sync pulse by placing a key in the buffer:
             event._onPygletKey(symbol=self.sync, modifiers=None, emulated=True)
-            # wait for start of next volume, doing our own hogCPU for tighter sync:
+            # wait for start of next volume, doing our own hogCPU for tighter
+            # sync:
             core.wait(self.timesleep - self.hogCPU, hogCPUperiod=0)
             while self.clock.getTime() < vol * self.TR:
-                pass # hogs the CPU for tighter sync
+                pass  # hogs the CPU for tighter sync
         self.running = False
         return self
+
     def stop(self):
         self.stopflag = True
+
 
 def launchScan(win, settings, globalClock=None, simResponses=None,
                mode=None, esc_key='escape',
@@ -213,23 +224,27 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     try:
         wait_timeout = max(0.01, float(wait_timeout))
     except ValueError:
-        raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
+        raise ValueError(
+            "wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
     settings['sync'] = unicode(settings['sync'])
     settings['TR'] = float(settings['TR'])
     settings['volumes'] = int(settings['volumes'])
     settings['skip'] = int(settings['skip'])
-    runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
+    runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (
+        settings)
     if log:  # pragma: no cover
         logging.exp('launchScan: ' + runInfo)
-    instructions = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4, autoLog=False)
-    parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4, autoLog=False)
+    instructions = visual.TextStim(
+        win, text=instr, height=.05, pos=(0, 0), color=.4, autoLog=False)
+    parameters = visual.TextStim(
+        win, text=runInfo, height=.05, pos=(0, -0.5), color=.4, autoLog=False)
 
     # if a valid mode was specified, use it; otherwise query via RatingScale:
     mode = str(mode).capitalize()
     if mode not in ['Scan', 'Test']:
         run_type = visual.RatingScale(win, choices=['Scan', 'Test'], marker='circle',
-            markerColor='DarkBlue', size=.8, stretch=.3, pos=(0.8,-0.9),
-            markerStart='Test', lineColor='DarkGray', autoLog=False)
+                                      markerColor='DarkBlue', size=.8, stretch=.3, pos=(0.8, -0.9),
+                                      markerStart='Test', lineColor='DarkGray', autoLog=False)
         while run_type.noResponse:
             instructions.draw()
             parameters.draw()
@@ -247,30 +262,31 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     msg.draw()
     win.flip()
 
-    event.clearEvents() # do before starting the threads
+    event.clearEvents()  # do before starting the threads
     if doSimulation:
         syncPulse = SyncGenerator(**settings)
-        syncPulse.start() # start emitting sync pulses
+        syncPulse.start()  # start emitting sync pulses
         core.runningThreads.append(syncPulse)
         if simResponses:
             roboResponses = ResponseEmulator(simResponses)
-            roboResponses.start() # start emitting simulated user responses
+            roboResponses.start()  # start emitting simulated user responses
             core.runningThreads.append(roboResponses)
 
     # wait for first sync pulse:
-    timeoutClock = core.Clock() # zeroed now
+    timeoutClock = core.Clock()  # zeroed now
     allKeys = []
     while not settings['sync'] in allKeys:
         allKeys = event.getKeys()
         if esc_key and esc_key in allKeys:  # pragma: no cover
             core.quit()
         if timeoutClock.getTime() > wait_timeout:
-            raise RuntimeError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
+            raise RuntimeError(
+                'Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
     if log:  # pragma: no cover
         logging.exp('launchScan: start of scan')
-    win.flip() # blank the screen on first sync pulse received
-    elapsed = 1 # one sync pulse has been caught so far
+    win.flip()  # blank the screen on first sync pulse received
+    elapsed = 1  # one sync pulse has been caught so far
 
     return elapsed

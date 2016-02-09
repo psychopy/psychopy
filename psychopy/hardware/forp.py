@@ -17,8 +17,10 @@ from psychopy import logging, event
 import sys
 from collections import defaultdict
 
-try: import serial
-except ImportError: serial=False
+try:
+    import serial
+except ImportError:
+    serial = False
 
 BUTTON_BLUE = 1
 BUTTON_YELLOW = 2
@@ -46,6 +48,7 @@ class ButtonBox(object):
     Also note that the trigger event numpy the fORP is typically extremely short
     (occurs for a single 800Hz epoch).
     """
+
     def __init__(self, serialPort=1, baudrate=19200):
         """
         :Parameters:
@@ -57,15 +60,15 @@ class ButtonBox(object):
         """
         super(ButtonBox, self).__init__()
         if not serial:
-            raise ImportError('The module serial is needed to connect to fORP. ' +\
-                "On most systems this can be installed with\n\t easy_install pyserial")
+            raise ImportError('The module serial is needed to connect to fORP. ' +
+                              "On most systems this can be installed with\n\t easy_install pyserial")
 
-        self.port = serial.Serial(serialPort-1, baudrate=baudrate, bytesize=8,
+        self.port = serial.Serial(serialPort - 1, baudrate=baudrate, bytesize=8,
                                   parity='N', stopbits=1, timeout=0.001)
         if not self.port.isOpen():
             self.port.open()
 
-        self.buttonStatus = defaultdict(bool) # Defaults to False
+        self.buttonStatus = defaultdict(bool)  # Defaults to False
         self.rawEvts = []
         self.pressEvents = []
 
@@ -109,7 +112,8 @@ class ButtonBox(object):
         self.pressEvents = []
         if allowRepeats:
             self.clearStatus()
-        #for each character convert to an ordinal int value (numpy the ascii chr)
+        # for each character convert to an ordinal int value (numpy the ascii
+        # chr)
         for thisChr in evtStr:
             pressCode = ord(thisChr)
             self.rawEvts.append(pressCode)
@@ -120,7 +124,7 @@ class ButtonBox(object):
                     event._onPygletKey(symbol=code, modifiers=None)
                     # better as: emulated='fORP_bbox_asKey', but need to adjust event._onPygletKey
                     # and the symbol conversion pyglet.window.key.symbol_string(symbol).lower()
-        #return the abbreviated list if necessary
+        # return the abbreviated list if necessary
         if returnRaw:
             return self.rawEvts
         else:
@@ -156,8 +160,7 @@ class ButtonBox(object):
             be between 0 and 31."""
 
         return [(mapping[1], bool(mapping[0] & pressCode))
-            for mapping in BUTTON_MAP]
-
+                for mapping in BUTTON_MAP]
 
     def getUniqueEvents(self, fullEvts=False):
         """Returns a Python set of the unique (unordered) events of either
