@@ -59,11 +59,13 @@ pr650code = {'OK': '000\r\n',  # this is returned after measure
 
 
 def findPR650(ports=None):
-    """DEPRECATED (as of v.1.60.01). Use :func:`psychopy.hardware.findPhotometer()` instead, which
+    """DEPRECATED (as of v.1.60.01).
+    Use :func:`psychopy.hardware.findPhotometer()` instead, which
     finds a wider range of devices
     """
-    logging.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "
-                  + "finds a wider range of devices")
+    logging.error("DEPRECATED (as of v.1.60.01). Use "
+                  "psychopy.hardware.findPhotometer() instead, "
+                  "which finds a wider range of devices")
 
     if ports is None:
         if sys.platform == 'darwin':
@@ -76,11 +78,12 @@ def findPR650(ports=None):
             # some are Keyspan.1 or Keyserial.1
             ports.extend(glob.glob('/dev/tty.modem*'))
             if len(ports) == 0:
-                logging.error("couldn't find likely serial port in /dev/tty.* Check for \
-                serial port name manually, check drivers installed etc...")
+                logging.error("couldn't find likely serial port in "
+                              "/dev/tty.* Check for serial port name "
+                              "manually, check drivers installed etc...")
         elif sys.platform == 'win32':
             ports = range(20)
-    elif type(ports) in [int, float]:
+    elif type(ports) in (int, float):
         ports = [ports]  # so that we can iterate
     pr650 = None
     logging.info('scanning serial ports...\n\t')
@@ -101,8 +104,7 @@ def findPR650(ports=None):
 
 
 class Photometer(object):
-    """
-    Photometer class is deprecated (as of v.1.60.00):
+    """Photometer class is deprecated (as of v.1.60.00):
 
     Import explicit flavour of photometer as needed e.g.::
 
@@ -113,7 +115,6 @@ class Photometer(object):
 
         from psychopy import hardware
         photometer = hardware.findPhotometer()
-
     """
 
     def __init__(self, port, meterType="PR650", verbose=True):
@@ -136,8 +137,10 @@ class Monitor(object):
         - ``notes`` is a text field to store any useful info
         - ``useBits`` True, False, None
         - ``verbose`` True, False, None
-        - ``currentCalib`` is a dictionary object containing various fields for a calibration. Use with caution
-            since the dictionary may not contain all the necessary fields that a monitor object expects to find.
+        - ``currentCalib`` is a dictionary object containing various
+            fields for a calibration. Use with caution since the
+            dictionary may not contain all the necessary fields that
+            a monitor object expects to find.
 
     **eg**:
 
@@ -145,7 +148,8 @@ class Monitor(object):
     Fetches the info on the sony500 and overrides its usual distance
     to be 114cm for this experiment.
 
-    These can be saved to the monitor file using :func:`~psychopy.monitors.Monitor.saveMon`
+    These can be saved to the monitor file using
+    :func:`~psychopy.monitors.Monitor.saveMon`
     or not (in which case the changes will be lost)
     """
 
@@ -180,8 +184,8 @@ class Monitor(object):
                              self.calibNames)
         else:
             self.newCalib()
-            logging.warning(
-                "Monitor specification not found. Creating a temporary one...")
+            logging.warning( "Monitor specification not found. "
+                             "Creating a temporary one...")
 
         # overide current monitor settings with the vals given
         if width:
@@ -200,28 +204,30 @@ class Monitor(object):
         """
         thisGamma = self.getGamma()
         # run the test just on this
-        if thisGamma is None \
-                or numpy.alltrue(numpy.array(thisGamma) == numpy.array([1, 1, 1])):
-            return True
-        else:
-            return False
+        array = numpy.array
+        return (thisGamma is None or
+                numpy.alltrue(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
-        """Set the size of the screen in pixels x,y"""
+        """Set the size of the screen in pixels x,y
+        """
         self.currentCalib['sizePix'] = pixels
 
     def setWidth(self, width):
-        """Of the viewable screen (cm)"""
+        """Of the viewable screen (cm)
+        """
         self.currentCalib['width'] = width
 
     def setDistance(self, distance):
-        """To the screen (cm)"""
+        """To the screen (cm)
+        """
         self.currentCalib['distance'] = distance
 
     def setCalibDate(self, date=None):
         """Sets the current calibration to have a date/time or to the current
-        date/time if none given. (Also returns the date as set)"""
+        date/time if none given. (Also returns the date as set)
+        """
         if date is None:
             date = time.localtime()
         self.currentCalib['calibDate'] = date
@@ -231,82 +237,101 @@ class Monitor(object):
         """Sets the gamma value(s) for the monitor.
         This only uses a single gamma value for the three
         guns, which is fairly approximate. Better to use
-        setGammaGrid (which uses one gamma value for each gun)"""
+        setGammaGrid (which uses one gamma value for each gun)
+        """
         self.currentCalib['gamma'] = gamma
 
     def setGammaGrid(self, gammaGrid):
-        """Sets the min,max,gamma values for the each gun"""
+        """Sets the min,max,gamma values for the each gun
+        """
         self.currentCalib['gammaGrid'] = gammaGrid
 
     def setLineariseMethod(self, method):
         """Sets the method for linearising
         0 uses y=a+(bx)^gamma
         1 uses y=(a+bx)^gamma
-        2 uses linear interpolation over the curve"""
+        2 uses linear interpolation over the curve
+        """
         self.currentCalib['linearizeMethod'] = method
 
     def setMeanLum(self, meanLum):
-        """Records the mean luminance (for reference only)"""
+        """Records the mean luminance (for reference only)
+        """
         self.currentCalib['meanLum'] = meanLum
 
     def setLumsPre(self, lums):
-        """Sets the last set of luminance values measured during calibration"""
+        """Sets the last set of luminance values measured during calibration
+        """
         self.currentCalib['lumsPre'] = lums
 
     def setLumsPost(self, lums):
-        """Sets the last set of luminance values measured AFTER calibration"""
+        """Sets the last set of luminance values measured AFTER calibration
+        """
         self.currentCalib['lumsPost'] = lums
 
     def setLevelsPre(self, levels):
-        """Sets the last set of luminance values measured during calibration"""
+        """Sets the last set of luminance values measured during calibration
+        """
         self.currentCalib['levelsPre'] = levels
 
     def setLevelsPost(self, levels):
-        """Sets the last set of luminance values measured AFTER calibration"""
+        """Sets the last set of luminance values measured AFTER calibration
+        """
         self.currentCalib['levelsPost'] = levels
 
     def setDKL_RGB(self, dkl_rgb):
         """Sets the DKL->RGB conversion matrix for a chromatically
-        calibrated monitor (matrix is a 3x3 num array)."""
+        calibrated monitor (matrix is a 3x3 num array).
+        """
         self.currentCalib['dkl_rgb'] = dkl_rgb
 
     def setSpectra(self, nm, rgb):
-        """Sets the phosphor spectra measured by the spectrometer"""
+        """Sets the phosphor spectra measured by the spectrometer
+        """
         self.currentCalib['spectraNM'] = nm
         self.currentCalib['spectraRGB'] = rgb
 
     def setLMS_RGB(self, lms_rgb):
         """Sets the LMS->RGB conversion matrix for a chromatically
-        calibrated monitor (matrix is a 3x3 num array)."""
+        calibrated monitor (matrix is a 3x3 num array).
+        """
         self.currentCalib['lms_rgb'] = lms_rgb
         self.setPsychopyVersion(__version__)
 
     def setPsychopyVersion(self, version):
-        """To store the version of PsychoPy that this calibration used"""
+        """To store the version of PsychoPy that this calibration used
+        """
         self.currentCalib['psychopyVersion'] = version
 
     def setNotes(self, notes):
-        """For you to store notes about the calibration"""
+        """For you to store notes about the calibration
+        """
         self.currentCalib['notes'] = notes
 
     def setUseBits(self, usebits):
-        """DEPRECATED: Use the new hardware classes to control these devices"""
+        """DEPRECATED: Use the new hardware classes to control these devices
+        """
         self.currentCalib['usebits'] = usebits
 
     # equivalent get functions
     def getSizePix(self):
-        """Returns the size of the current calibration in pixels, or None if not defined"""
+        """Returns the size of the current calibration in pixels,
+        or None if not defined
+        """
         if 'sizePix' in self.currentCalib:
             return self.currentCalib['sizePix']
         else:
             return None
 
     def getWidth(self):
-        """Of the viewable screen in cm, or None if not known"""
+        """Of the viewable screen in cm, or None if not known
+        """
         return self.currentCalib['width']
 
     def getDistance(self):
-        """Returns distance from viewer to the screen in cm, or None if not known"""
+        """Returns distance from viewer to the screen in cm,
+        or None if not known
+        """
         return self.currentCalib['distance']
 
     def getCalibDate(self):
@@ -315,8 +340,11 @@ class Monitor(object):
         return self.currentCalib['calibDate']
 
     def getGamma(self):
-        """Returns just the gamma value (not the whole grid)"""
-        if 'gammaGrid' in self.currentCalib and not numpy.alltrue(self.getGammaGrid()[1:, 2] == 1):
+        """Returns just the gamma value (not the whole grid)
+        """
+        gridInCurrent = 'gammaGrid' in self.currentCalib
+        if (gridInCurrent and
+                not numpy.alltrue(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
@@ -324,7 +352,8 @@ class Monitor(object):
             return None
 
     def getGammaGrid(self):
-        """Gets the min,max,gamma values for the each gun"""
+        """Gets the min,max,gamma values for the each gun
+        """
         if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
             grid = numpy.asarray(self.currentCalib['gammaGrid'])
@@ -337,7 +366,8 @@ class Monitor(object):
             return None
 
     def getLinearizeMethod(self):
-        """Gets the method that this monitor is using to linearize the guns"""
+        """Gets the method that this monitor is using to linearize the guns
+        """
         if 'linearizeMethod' in self.currentCalib:
             return self.currentCalib['linearizeMethod']
         elif 'lineariseMethod' in self.currentCalib:
@@ -346,7 +376,8 @@ class Monitor(object):
             return None
 
     def getMeanLum(self):
-        """Returns the mean luminance of the screen if explicitly stored"""
+        """Returns the mean luminance of the screen if explicitly stored
+        """
         if 'meanLum' in self.currentCalib:
             return self.currentCalib['meanLum']
         else:
@@ -389,15 +420,15 @@ class Monitor(object):
 
             """
         if 'spectraNM' in self.currentCalib:
-            return self.currentCalib['spectraNM'], self.currentCalib['spectraRGB']
+            return (self.currentCalib['spectraNM'],
+                    self.currentCalib['spectraRGB'])
         else:
             return None, None
 
     def getDKL_RGB(self, RECOMPUTE=False):
-        """Returns the DKL->RGB conversion matrix.
-        If one has been saved this will be returned.
-        Otherwise, if power spectra are available for the
-        monitor a matrix will be calculated.
+        """Returns the DKL->RGB conversion matrix. If one has been saved
+        this will be returned. Otherwise, if power spectra are available
+        for the monitor a matrix will be calculated.
         """
         if not 'dkl_rgb' in self.currentCalib:
             RECOMPUTE = True
@@ -410,15 +441,15 @@ class Monitor(object):
         else:
             return self.currentCalib['dkl_rgb']
 
-    def getLMS_RGB(self, RECOMPUTE=False):
+    def getLMS_RGB(self, recompute=False):
         """Returns the LMS->RGB conversion matrix.
         If one has been saved this will be returned.
         Otherwise (if power spectra are available for the
         monitor) a matrix will be calculated.
         """
         if not 'lms_rgb' in self.currentCalib:
-            RECOMPUTE = True
-        if RECOMPUTE:
+            recompute = True
+        if recompute:
             nm, power = self.getSpectra()
             if nm is None:
                 return None
@@ -428,26 +459,28 @@ class Monitor(object):
             return self.currentCalib['lms_rgb']
 
     def getPsychopyVersion(self):
-        """Returns the version of PsychoPy that was used to create this calibration"""
+        """Returns the version of PsychoPy that was used to create
+        this calibration
+        """
         return self.currentCalib['psychopyVersion']
 
     def getNotes(self):
-        """Notes about the calibration"""
+        """Notes about the calibration
+        """
         return self.currentCalib['notes']
 
     def getUseBits(self):
-        """Was this calibration carried out witha a bits++ box"""
+        """Was this calibration carried out witha a bits++ box
+        """
         return self.currentCalib['usebits']
 
     # other (admin functions)
     def _loadAll(self):
         """Fetches the calibrations for this monitor from disk, storing them
-        as self.calibs"""
-
-        thisFileName = os.path.join(
-            monitorFolder,
-            self.name + ".calib")  # the name of the actual file
-
+        as self.calibs
+        """
+        # the name of the actual file:
+        thisFileName = os.path.join(monitorFolder, self.name + ".calib")
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
@@ -457,15 +490,12 @@ class Monitor(object):
             self.calibNames.sort()
             thisFile.close()
 
-    def newCalib(self, calibName=None,
-                 width=None,
-                 distance=None,
-                 gamma=None,
-                 notes=None,
-                 useBits=False,
+    def newCalib(self, calibName=None, width=None,
+                 distance=None, gamma=None, notes=None, useBits=False,
                  verbose=True):
         """create a new (empty) calibration for this monitor and
-        makes this the current calibration"""
+        makes this the current calibration
+        """
         if calibName is None:
             calibName = strFromDate(time.localtime())
         # add to the list of calibrations
@@ -487,8 +517,7 @@ class Monitor(object):
         self.setLineariseMethod(1)
 
     def setCurrent(self, calibration=-1):
-        """
-        Sets the current calibration for this monitor.
+        """Sets the current calibration for this monitor.
         Note that a single file can hold multiple calibrations each
         stored under a different key (the date it was taken)
 
@@ -496,21 +525,23 @@ class Monitor(object):
         **eg**:
 
             ``myMon.setCurrent('mainCalib')``
-            fetches the calibration named mainCalib. You can name calibrations what you want
-            but PsychoPy will give them names of date/time by default. In Monitor Center
-            you can 'copy...' a calibration and give it a new name to keep a second version.
+            fetches the calibration named mainCalib. You can name
+            calibrations what you want but PsychoPy will give them names
+            of date/time by default. In Monitor Center you can 'copy...'
+            a calibration and give it a new name to keep a second version.
 
             ``calibName = myMon.setCurrent(0)``
             fetches the first calibration (alphabetically) for this monitor
 
             ``calibName = myMon.setCurrent(-1)``
-            fetches the last **alphabetical** calibration for this monitor (this is default).
-            If default names are used for calibrations (ie date/time stamp) then
-            this will import the most recent.
+            fetches the last **alphabetical** calibration for this monitor
+            (this is default). If default names are used for calibrations
+            (ie date/time stamp) then this will import the most recent.
         """
         # find the appropriate file
         # get desired calibration name if necess
-        if type(calibration) in [str, unicode] and (calibration in self.calibNames):
+        if (isinstance(calibration, basestring) and
+                calibration in self.calibNames):
             self.currentCalibName = calibration
         elif type(calibration) == int and calibration <= len(self.calibNames):
             self.currentCalibName = self.calibNames[calibration]
@@ -518,12 +549,14 @@ class Monitor(object):
             print("No record of that calibration")
             return False
 
-        self.currentCalib = self.calibs[self.currentCalibName]  # do the import
+        # do the import
+        self.currentCalib = self.calibs[self.currentCalibName]
         return self.currentCalibName
 
     def delCalib(self, calibName):
         """Remove a specific calibration from the current monitor.
-        Won't be finalised unless monitor is saved"""
+        Won't be finalised unless monitor is saved
+        """
         # remove from our list
         self.calibNames.remove(calibName)
         self.calibs.pop(calibName)
@@ -532,15 +565,16 @@ class Monitor(object):
         return 1
 
     def saveMon(self):
-        """Saves the current dictionary of calibrations to disk"""
+        """Saves the current dictionary of calibrations to disk
+        """
         thisFileName = os.path.join(monitorFolder, self.name + ".calib")
         thisFile = open(thisFileName, 'wb')
         cPickle.dump(self.calibs, thisFile)
         thisFile.close()
 
     def copyCalib(self, calibName=None):
-        """
-        Stores the settings for the current calibration settings as new monitor.
+        """Stores the settings for the current calibration settings as
+        new monitor.
         """
         if calibName is None:
             calibName = strFromDate(time.localtime())
@@ -549,9 +583,11 @@ class Monitor(object):
         self.calibs[calibName] = deepcopy(self.currentCalib)
         self.setCurrent(calibName)
 
-    def lineariseLums(self, desiredLums, newInterpolators=False, overrideGamma=None):
+    def lineariseLums(self, desiredLums, newInterpolators=False,
+                      overrideGamma=None):
         """lums should be uncalibrated luminance values (e.g. a linear ramp)
-        ranging 0:1"""
+        ranging 0:1
+        """
         linMethod = self.getLinearizeMethod()
         desiredLums = numpy.asarray(desiredLums)
         output = desiredLums * 0.0  # needs same size as input
@@ -559,35 +595,36 @@ class Monitor(object):
         # gamma interpolation
         if linMethod == 3:
             lumsPre = copy(self.getLumsPre())
-            if self._gammaInterpolator != None and not newInterpolators:
+            if self._gammaInterpolator is not None and not newInterpolators:
                 pass  # we already have an interpolator
-            elif lumsPre != None:
+            elif lumsPre is not None:
                 if self.autoLog:
                     logging.info('Creating linear interpolation for gamma')
                 # we can make an interpolator
-                self._gammaInterpolator, self._gammaInterpolator2 = [], []
+                self._gammaInterpolator = []
+                self._gammaInterpolator2 = []
                 # each of these interpolators is a function!
                 levelsPre = self.getLevelsPre() / 255.0
                 for gun in range(4):
                     lumsPre[gun, :] = (lumsPre[gun, :] - lumsPre[gun, 0]) / \
                         (lumsPre[gun, -1] - lumsPre[gun, 0])  # scale to 0:1
-                    self._gammaInterpolator.append(
-                        interp1d(lumsPre[gun, :], levelsPre, kind='linear'))
+                    self._gammaInterpolator.append(interp1d(lumsPre[gun, :],
+                                                            levelsPre,
+                                                            kind='linear'))
                     #interpFunc = Interpolation.InterpolatingFunction((lumsPre[gun,:],), levelsPre)
                     #polyFunc = interpFunc.fitPolynomial(3)
                     #self._gammaInterpolator2.append( [polyFunc.coeff])
             else:
                 # no way to do this! Calibrate the monitor
-                logging.error(
-                    "Can't do a gamma interpolation on your monitor without calibrating!")
+                logging.error("Can't do a gamma interpolation on your "
+                              "monitor without calibrating!")
                 return desiredLums
 
             # then do the actual interpolations
             if len(desiredLums.shape) > 1:
                 for gun in range(3):
                     # gun+1 because we don't want luminance interpolator
-                    output[:, gun] = self._gammaInterpolator[
-                        gun + 1](desiredLums[:, gun])
+                    output[:, gun] = self._gammaInterpolator[gun + 1](desiredLums[:, gun])
 
             else:  # just luminance
                 output = self._gammaInterpolator[0](desiredLums)
@@ -621,14 +658,16 @@ class Monitor(object):
             if len(desiredLums.shape) > 1:
                 for gun in range(3):
                     output[:, gun] = gammaInvFun(desiredLums[:, gun],
-                                                 minLum, maxLum[gun], gamma[gun], eq=linMethod, b=b[gun])
+                                                 minLum, maxLum[gun],
+                                                 gamma[gun],
+                                                 eq=linMethod, b=b[gun])
             else:
-                output = gammaInvFun(desiredLums,
-                                     minLum, maxLumWhite, gammaWhite, eq=linMethod)
+                output = gammaInvFun(desiredLums, minLum, maxLumWhite,
+                                     gammaWhite, eq=linMethod)
 
         else:
-            logging.error(
-                "Don't know how to linearise with method %i" % linMethod)
+            msg = "Don't know how to linearise with method %i"
+            logging.error(msg % linMethod)
             output = desiredLums
 
         return output
@@ -675,7 +714,8 @@ class GammaCalculator(object):
             self.inputs = list(inputs)
 
         # set or get gammaVal
-        if len(lums) == 0 or gamma != None:  # user is specifying their own gamma value
+        # user is specifying their own gamma value
+        if len(lums) == 0 or gamma != None:
             self.gamma = gamma
         elif len(lums) > 0:
             self.min, self.max, self.gammaModel = self.fitGammaFun(
@@ -687,14 +727,15 @@ class GammaCalculator(object):
                 self.gamma = self.gammaModel[0]
                 self.a = self.b = self.k = None
         else:
-            raise AttributeError, "gammaTable needs EITHER a gamma value or some luminance measures"
+            raise AttributeError, ("gammaTable needs EITHER a gamma value"
+                                   " or some luminance measures")
 
     def fitGammaFun(self, x, y):
         """
         Fits a gamma function to the monitor calibration data.
 
         **Parameters:**
-            -xVals are the monitor look-up-table vals (either 0-255 or 0.0-1.0)
+            -xVals are the monitor look-up-table vals, either 0-255 or 0.0-1.0
             -yVals are the measured luminances from a photometer/spectrometer
 
         """
@@ -713,37 +754,39 @@ class GammaCalculator(object):
             guess = [gammaGuess]
             bounds = [[0.8, 5.0]]
         #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
-#        gamma = optim.fminbound(self.fitGammaErrFun,
-#            minGamma, maxGamma,
-#            args=(x,y, minLum, maxLum))
-        params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess), approx_grad=True,
-                                args=(x, y, minLum, maxLum), bounds=bounds, messages=0)
+        #gamma = optim.fminbound(self.fitGammaErrFun,
+        #    minGamma, maxGamma,
+        #    args=(x,y, minLum, maxLum))
+        params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess),
+                                approx_grad=True,
+                                args=(x, y, minLum, maxLum),
+                                bounds=bounds, messages=0)
         return minLum, maxLum, params[0]
 
     def fitGammaErrFun(self, params, x, y, minLum, maxLum):
-        """
-        Provides an error function for fitting gamma function
+        """Provides an error function for fitting gamma function
 
         (used by fitGammaFun)
         """
         if self.eq == 4:
             gamma, a, k = params
-            model = numpy.asarray(
-                gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k))
+            _m = gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k)
+            model = numpy.asarray(_m)
         else:
             gamma = params[0]
-            model = numpy.asarray(
-                gammaFun(x, minLum, maxLum, gamma, eq=self.eq))
+            _m = gammaFun(x, minLum, maxLum, gamma, eq=self.eq)
+            model = numpy.asarray(_m)
         SSQ = numpy.sum((model - y)**2)
         return SSQ
 
 
 def makeDKL2RGB(nm, powerRGB):
+    """Creates a 3x3 DKL->RGB conversion matrix from the spectral input powers
     """
-    creates a 3x3 DKL->RGB conversion matrix from the spectral input powers
-    """
-    interpolateCones = interpolate.interp1d(wavelength_5nm, cones_SmithPokorny)
-    interpolateJudd = interpolate.interp1d(wavelength_5nm, juddVosXYZ1976_5nm)
+    interpolateCones = interpolate.interp1d(wavelength_5nm,
+                                            cones_SmithPokorny)
+    interpolateJudd = interpolate.interp1d(wavelength_5nm,
+                                           juddVosXYZ1976_5nm)
     judd = interpolateJudd(nm)
     cones = interpolateCones(nm)
     judd = numpy.asarray(judd)
@@ -779,11 +822,11 @@ def makeDKL2RGB(nm, powerRGB):
 
 
 def makeLMS2RGB(nm, powerRGB):
-    """
-    Creates a 3x3 LMS->RGB conversion matrix from the spectral input powers
+    """Creates a 3x3 LMS->RGB conversion matrix from the spectral input powers
     """
 
-    interpolateCones = interpolate.interp1d(wavelength_5nm, cones_SmithPokorny)
+    interpolateCones = interpolate.interp1d(wavelength_5nm,
+                                            cones_SmithPokorny)
     coneSens = interpolateCones(nm)
     rgb_to_cones = numpy.dot(coneSens, numpy.transpose(powerRGB))
     cones_to_rgb = numpy.linalg.inv(rgb_to_cones)
@@ -801,18 +844,19 @@ def getLumSeries(lumLevels=8,
                  stimSize=0.3,
                  photometer=None,
                  screen=0):
-    """
-    Automatically measures a series of gun values and measures
+    """Automatically measures a series of gun values and measures
     the luminance with a photometer.
 
     :Parameters:
 
         photometer : a photometer object
             e.g. a :class:`~psychopy.hardware.pr.PR65` or
-            :class:`~psychopy.hardware.minolta.LS100` from hardware.findPhotometer()
+            :class:`~psychopy.hardware.minolta.LS100` from
+            hardware.findPhotometer()
 
         lumLevels : (default=8)
-            array of values to test or single value for n evenly spaced test values
+            array of values to test or single value for n evenly spaced
+            test values
 
         gamma : (default=1.0) the gamma value at which to test
 
@@ -825,8 +869,9 @@ def getLumSeries(lumLevels=8,
             moving on but will not attempt to make a measurement (use this
             to make a measurement with your own device).
 
-            Any other value will simply move on without pausing on each screen (use this to see
-            that the display is performing as expected).
+            Any other value will simply move on without pausing on each
+            screen (use this to see that the display is performing as
+            expected).
 
     """
     import psychopy.event
@@ -835,8 +880,9 @@ def getLumSeries(lumLevels=8,
     if photometer is None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
-        logging.error("photometer argument to monitors.getLumSeries should be a type of photometer " +
-                      "object, not a %s" % type(photometer))
+        msg = "photometer argument to monitors.getLumSeries should be a " \
+              "type of photometer object, not a %s"
+        logging.error(msg % type(photometer))
         return None
     else:
         havePhotom = True
@@ -854,14 +900,18 @@ def getLumSeries(lumLevels=8,
         initRGB = 0.8
     # setup screen and "stimuli"
     myWin = psychopy.visual.Window(fullscr=0, size=winSize,
-                                   gamma=gamma, units='norm', monitor=monitor, allowGUI=True, winType='pyglet',
+                                   gamma=gamma, units='norm', monitor=monitor,
+                                   allowGUI=True, winType='pyglet',
                                    bitsMode=bitsMode, screen=screen)
-    instructions = "Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
+    instructions = ("Point the photometer at the central bar. "
+                    "Hit a key when ready (or wait 30s)")
     message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
                                        pos=(0, -0.85), rgb=[1, -1, -1])
     noise = numpy.random.rand(512, 512).round() * 2 - 1
-    backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
-                                          sf=[winSize[0] / 512.0, winSize[1] / 512.0])
+    backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
+                                          units='norm',
+                                          sf=[winSize[0] / 512.0,
+                                              winSize[1] / 512.0])
     testPatch = psychopy.visual.PatchStim(myWin,
                                           tex='sqr',
                                           size=stimSize,
@@ -873,10 +923,11 @@ def getLumSeries(lumLevels=8,
     tRemain = 30
     while tRemain > 0:
         tRemain = 30 - waitClock.getTime()
-        instructions = "Point the photometer at the central white bar. Hit a key when ready (or wait %iss)" % tRemain
         backPatch.draw()
         testPatch.draw()
-        message.setText(instructions, log=False)
+        instructions = ("Point the photometer at the central white bar. "
+                        "Hit a key when ready (or wait %iss)")
+        message.setText(instructions % tRemain, log=False)
         message.draw()
         myWin.flip()
         if len(psychopy.event.getKeys()):
@@ -887,11 +938,12 @@ def getLumSeries(lumLevels=8,
     else:
         message.setText('Spacebar for next patch')
 
-    if havePhotom and photometer.type == 'LS100':  # LS100 likes to take at least one bright measurement
+    # LS100 likes to take at least one bright measurement
+    if havePhotom and photometer.type == 'LS100':
         junk = photometer.getLum()
 
     # what are the test values of luminance
-    if (type(lumLevels) is int) or (type(lumLevels) is float):
+    if type(lumLevels) in (int, float):
         toTest = DACrange(lumLevels)
     else:
         toTest = numpy.asarray(lumLevels)
@@ -909,7 +961,7 @@ def getLumSeries(lumLevels=8,
             # only do luminanc=-1 once
             if lum == -1 and gun > 0:
                 continue
-            # set hte patch color
+            # set the patch color
             if gun > 0:
                 rgb = [-1, -1, -1]
                 rgb[gun - 1] = lum
@@ -922,7 +974,8 @@ def getLumSeries(lumLevels=8,
             message.draw()
             myWin.flip()
 
-            time.sleep(0.2)  # allowing the screen to settle (no good reason!)
+            # allowing the screen to settle (no good reason!)
+            time.sleep(0.2)
 
             # take measurement
             if havePhotom and autoMode == 'auto':
@@ -937,7 +990,7 @@ def getLumSeries(lumLevels=8,
 
                 # check for quit request
                 for thisKey in psychopy.event.getKeys():
-                    if thisKey in ['q', 'Q', 'escape']:
+                    if thisKey in ('q', 'Q', 'escape'):
                         myWin.close()
                         return numpy.array([])
 
@@ -948,10 +1001,10 @@ def getLumSeries(lumLevels=8,
                 while not done:
                     # check for quit request
                     for thisKey in psychopy.event.getKeys():
-                        if thisKey in ['q', 'Q', 'escape']:
+                        if thisKey in ('q', 'Q', 'escape'):
                             myWin.close()
                             return numpy.array([])
-                        elif thisKey in [' ', 'space']:
+                        elif thisKey in (' ', 'space'):
                             done = True
 
     myWin.close()  # we're done with the visual stimuli
@@ -970,7 +1023,9 @@ def getLumSeriesPR650(lumLevels=8,
                       autoMode='auto',
                       stimSize=0.3,
                       photometer='COM1'):
-    """DEPRECATED (since v1.60.01): Use :class:`psychopy.monitors.getLumSeries()` instead"""
+    """DEPRECATED (since v1.60.01): Use
+    :class:`psychopy.monitors.getLumSeries()` instead
+    """
 
     logging.warning(
         "DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
@@ -988,8 +1043,8 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
 
     :params:
 
-        - 'photometer' could be a photometer object or a serial port name on which
-          a photometer might be found (not recommended)
+        - 'photometer' could be a photometer object or a serial port
+        name on which a photometer might be found (not recommended)
 
     """
     import psychopy.event
@@ -1009,7 +1064,8 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
     myWin = psychopy.visual.Window(fullscr=0, rgb=0.0, size=winSize,
                                    units='norm')
 
-    instructions = "Point the photometer at the central square. Hit a key when ready"
+    instructions = ("Point the photometer at the central square. "
+                    "Hit a key when ready")
     message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
                                        pos=(0.0, -0.8), rgb=-1.0)
     message.draw()
@@ -1034,8 +1090,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
 
 
 def DACrange(n):
-    """
-    returns an array of n DAC values spanning 0-255
+    """Returns an array of n DAC values spanning 0-255
     """
     # NB python ranges exclude final val
     return numpy.arange(0.0, 256.0, 255.0 / (n - 1)).astype(numpy.uint8)
@@ -1054,8 +1109,7 @@ def getAllMonitors():
 
 
 def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
-    """
-    Returns gamma-transformed luminance values.
+    """Returns gamma-transformed luminance values.
     y = gammaFun(x, minLum, maxLum, gamma)
 
     a and b are calculated directly from minLum, maxLum, gamma
@@ -1067,18 +1121,16 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         - **maxLum** = the maximum luminance of your monitor (for this gun)
         - **gamma** = the value of gamma (for this gun)
 
-
     """
-
     # scale x to be in range minLum:maxLum
     xx = numpy.array(xx, 'd')
     maxXX = max(xx)
     if maxXX > 2.0:
-        #xx = xx*maxLum/255.0 +minLum
+        # xx = xx*maxLum/255.0 +minLum
         xx = xx / 255.0
     else:  # assume data are in range 0:1
         pass
-        #xx = xx*maxLum + minLum
+        # xx = xx*maxLum + minLum
 
     # eq1: y = a + (b*xx)**gamma
     # eq2: y = (a+b*xx)**gamma
@@ -1091,13 +1143,15 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         a = minLum**(1 / gamma)
         b = maxLum**(1 / gamma) - a
         yy = (a + b * xx)**gamma
-    elif eq == 3:  # NB method 3 was an interpolation method that didn't work well
+    elif eq == 3:
+        # NB method 3 was an interpolation method that didn't work well
         pass
     elif eq == 4:
         nMissing = sum([a is None, b is None, k is None])
         # check params
         if nMissing > 1:
-            raise AttributeError, "For eq=4, gammaFun needs 2 of a,b,k to be specified"
+            msg = "For eq=4, gammaFun needs 2 of a,b,k to be specified"
+            raise AttributeError, msg
         elif nMissing == 1:
             if a is None:
                 a = minLum - b**(1.0 / gamma)  # when y=min, x=0
@@ -1155,7 +1209,8 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         maxLUT = (maxLum**(1 / gamma) - a) / b
         minLUT = (minLum**(1 / gamma) - a) / b
         xx = xx / (maxLUT - minLUT) - minLUT
-    elif eq == 3:  # NB method 3 was an interpolation method that didn't work well
+    elif eq == 3:
+        # NB method 3 was an interpolation method that didn't work well
         pass
     elif eq == 4:
         # this is not the same as Zhang and Pelli's inverse
@@ -1170,5 +1225,6 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
 
 
 def strFromDate(date):
-    """Simply returns a string with a std format from a date object"""
+    """Simply returns a string with a std format from a date object
+    """
     return time.strftime("%Y_%m_%d %H:%M", date)

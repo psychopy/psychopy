@@ -1,8 +1,9 @@
 #!/usr/bin/env python2
 
-"""This function can be run as a script or imported and run as a function. The advantage of running
-as a script is that this won't interact with your existing namespace (e.g. avbin can load because scipy
-won't already have been loaded).
+"""This function can be run as a script or imported and run as a function.
+The advantage of running as a script is that this won't interact with your
+existing namespace (e.g. avbin can load because scipy won't already have
+been loaded).
 """
 
 
@@ -15,18 +16,19 @@ def getLumSeries(lumLevels=8,
                  autoMode='auto',
                  stimSize=0.3,
                  photometer=None):
-    """
-    Automatically measures a series of gun values and measures
+    """Automatically measures a series of gun values and measures
     the luminance with a photometer.
 
     :Parameters:
 
         photometer : a photometer object
             e.g. a :class:`~psychopy.hardware.pr.PR65` or
-            :class:`~psychopy.hardware.minolta.LS100` from hardware.findPhotometer()
+            :class:`~psychopy.hardware.minolta.LS100` from
+                hardware.findPhotometer()
 
         lumLevels : (default=8)
-            array of values to test or single value for n evenly spaced test values
+            array of values to test or single value for n evenly
+            spaced test values
 
         gamma : (default=1.0) the gamma value at which to test
 
@@ -39,9 +41,9 @@ def getLumSeries(lumLevels=8,
             moving on but will not attempt to make a measurement (use this
             to make a measurement with your own device).
 
-            Any other value will simply move on without pausing on each screen (use this to see
-            that the display is performing as expected).
-
+            Any other value will simply move on without pausing on each
+            screen (use this to see that the display is performing as
+            expected).
     """
     import psychopy.event
     import psychopy.visual
@@ -49,8 +51,9 @@ def getLumSeries(lumLevels=8,
     if photometer is None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
-        logging.error("photometer argument to monitors.getLumSeries should be a type of photometer " +
-                      "object, not a %s" % type(photometer))
+        msg = ("photometer argument to monitors.getLumSeries should be a "
+               "type of photometer object, not a %s")
+        logging.error(msg % type(photometer))
         return None
     else:
         havePhotom = True
@@ -61,16 +64,20 @@ def getLumSeries(lumLevels=8,
         initRGB = 0.8
     # setup screen and "stimuli"
     myWin = psychopy.visual.Window(fullscr=0, size=winSize,
-                                   gamma=gamma, units='norm', monitor=monitor, allowGUI=True, winType='pyglet')
+                                   gamma=gamma, units='norm', monitor=monitor,
+                                   allowGUI=True, winType='pyglet')
     if useBits == 'Bits++':
         from psychopy.hardware import crs
         bits = crs.BitsPlusPlus(myWin, gamma=[1, 1, 1])
-    instructions = "Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
+    instructions = ("Point the photometer at the central bar. "
+                    "Hit a key when ready (or wait 30s)")
     message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
                                        pos=(0, -0.85), rgb=[1, -1, -1])
     noise = numpy.random.rand(512, 512).round() * 2 - 1
-    backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2, units='norm',
-                                          sf=[winSize[0] / 512.0, winSize[1] / 512.0])
+    backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
+                                          units='norm',
+                                          sf=[winSize[0] / 512.0,
+                                              winSize[1] / 512.0])
     testPatch = psychopy.visual.PatchStim(myWin,
                                           tex='sqr',
                                           size=stimSize,
@@ -80,9 +87,11 @@ def getLumSeries(lumLevels=8,
     # stay like this until key press (or 30secs has passed)
     waitClock = core.Clock()
     tRemain = 30
+    msg = ("Point the photometer at the central white bar. "
+           "Hit a key when ready (or wait %iss)")
     while tRemain > 0:
         tRemain = 30 - waitClock.getTime()
-        instructions = "Point the photometer at the central white bar. Hit a key when ready (or wait %iss)" % tRemain
+        instructions = msg % tRemain
         backPatch.draw()
         testPatch.draw()
         message.setText(instructions)
@@ -96,7 +105,8 @@ def getLumSeries(lumLevels=8,
     else:
         message.setText('Spacebar for next patch')
 
-    if havePhotom and photometer.type == 'LS100':  # LS100 likes to take at least one bright measurement
+    # LS100 likes to take at least one bright measurement
+    if havePhotom and photometer.type == 'LS100':
         junk = photometer.getLum()
 
     # what are the test values of luminance
@@ -146,7 +156,7 @@ def getLumSeries(lumLevels=8,
 
                 # check for quit request
                 for thisKey in psychopy.event.getKeys():
-                    if thisKey in ['q', 'Q', 'escape']:
+                    if thisKey in ('q', 'Q', 'escape'):
                         myWin.close()
                         return numpy.array([])
 
@@ -157,10 +167,10 @@ def getLumSeries(lumLevels=8,
                 while not done:
                     # check for quit request
                     for thisKey in psychopy.event.getKeys():
-                        if thisKey in ['q', 'Q', 'escape']:
+                        if thisKey in ('q', 'Q', 'escape'):
                             myWin.close()
                             return numpy.array([])
-                        elif thisKey in [' ', 'space']:
+                        elif thisKey in (' ', 'space'):
                             done = True
 
     myWin.close()  # we're done with the visual stimuli
