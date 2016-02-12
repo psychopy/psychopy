@@ -40,10 +40,10 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             checkAwake = False
         else:
             checkAwake = True
-        # run initialisation
+        # run initialisation; parity = enable parity checking
         super(BlackBoxToolkit, self).__init__(port,
                                               baudrate=460800, eol="\n",
-                                              parity='N',    # enable parity checking
+                                              parity='N',
                                               pauseDuration=0.5,
                                               checkAwake=checkAwake,
                                               )
@@ -96,8 +96,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         if reply == '':
             return []
         else:
-            reply = reply.replace(';\n', '')  # remove final ';'
-            reply = reply.split(',')
+            reply = reply.replace(';\n', '').split(',')
         return reply
 
     def setSmoothing(self, smoothStr):
@@ -105,9 +104,9 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         (for CRT screens and noisy mics this is good)
         and this results in a delay of 20ms per channel.
 
-        BBTK.setSmoothing('0'*8) #turns off smoothing on all
-        BBTK.setSmoothing('1'*8) #turns on smoothing on all
-        BBTK.setSmoothing('0110000') #turns on smoothing for mic2 and opto4
+        BBTK.setSmoothing('0'*8)  # turns off smoothing on all
+        BBTK.setSmoothing('1'*8)  # turns on smoothing on all
+        BBTK.setSmoothing('0110000')  # turns on smoothing for mic2 and opto4
 
         The channel orders are these (from BBTKv2 manual):
             [mic1 mic2 opto4 opto3 opto2 opto1 n/a n/a]
@@ -124,44 +123,48 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         reply = self.getResponse(timeout=10)
         # should return either FRMT or ESEC to indicate it started
         if reply.startswith('FRMT'):
-            logging.info(
-                "BBTK.clearMemory(): Starting full format of BBTK memory")
+            logging.info("BBTK.clearMemory(): "
+                         "Starting full format of BBTK memory")
         elif reply.startswith('ESEC'):
-            logging.info(
-                "BBTK.clearMemory(): Starting quick erase of BBTK memory")
+            logging.info("BBTK.clearMemory(): "
+                         "Starting quick erase of BBTK memory")
         else:
-            logging.error(
-                "BBTK.clearMemory(): didn't get a reply from %s" % (str(self.com)))
+            logging.error("BBTK.clearMemory(): "
+                          "didn't get a reply from %s" % str(self.com))
             return False
-        logging.flush()  # we aren't in a time-critical period so flush messages
+        # we aren't in a time-critical period so flush messages
+        logging.flush()
         # now wait until we get told 'DONE'
         self.com.setTimeout(20)
         retVal = self.com.readline()
         if retVal.startswith("DONE"):
             logging.info("BBTK.clearMemory(): completed")
-            logging.flush()  # we aren't in a time-critical period so flush messages
+            # we aren't in a time-critical period so flush messages
+            logging.flush()
             return True
         else:
-            logging.error(
-                "BBTK.clearMemory(): Stalled waiting for %s" % (str(self.com)))
-            logging.flush()  # we aren't in a time-critical period so flush messages
+            logging.error("BBTK.clearMemory(): "
+                          "Stalled waiting for %s" % str(self.com))
+            # we aren't in a time-critical period so flush messages
+            logging.flush()
             return False
 
     def recordStimulusData(self, duration):
         """Record data for a given duration (seconds) and return a list of
         events that occured in that period.
         """
+        # we aren't in a time-critical period so flush messages
         self.sendMessage("DSCM")
-        logging.flush()  # we aren't in a time-critical period so flush messages
+        logging.flush()
         time.sleep(5.0)
         self.sendMessage("TIML")
-        logging.flush()  # we aren't in a time-critical period so flush messages
+        logging.flush()
         self.pause()
         # BBTK expects this in microsecs
-        self.sendMessage("%i" % (int(duration * 1000000)), autoLog=False)
+        self.sendMessage("%i" % int(duration * 1000000), autoLog=False)
         self.pause()
         self.sendMessage("RUDS")
-        logging.flush()  # we aren't in a time-critical period so flush messages
+        logging.flush()
 
     def getEvents(self, timeout=10):
         """Look for a string that matches SDAT;\n.........EDAT;\n
@@ -169,28 +172,31 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """
         foundDataStart = False
         t0 = time.time()
-        while not foundDataStart and (time.time() - t0) < timeout:
+        while not foundDataStart and time.time() - t0 < timeout:
             if self.com.readline().startswith('SDAT'):
                 foundDataStart = True
                 logging.info("BBTK.getEvents() found data. Processing...")
-                logging.flush()  # we aren't in a time-critical period so flush messages
+                logging.flush()  # we aren't in a time-critical period
                 break
         # check if we're processing data
         if not foundDataStart:
-            logging.warning(
-                "BBTK.getEvents() found no data (SDAT was not found on serial port inputs")
+            logging.warning("BBTK.getEvents() found no data "
+                            "(SDAT was not found on serial port inputs")
             return []
 
         # helper function to parse time and event code
         def parseEventsLine(line, lastState=None):
-            """Returns a list of dictionaries, one for each change detected in the state
+            """Returns a list of dictionaries, one for each change
+            detected in the state
             """
             state = line[:12]
             timeSecs = int(line[-14:-2]) / 10.0**6
             evts = []
             evt = ''
             if lastState is None:
-                evts.append({'evt': '', 'state': state, 'time': timeSecs})
+                evts.append({'evt': '',
+                             'state': state,
+                             'time': timeSecs})
             else:
                 for n in evtChannels.keys():
                     if state[n] != lastState[n]:
@@ -198,8 +204,9 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
                             evt = evtChannels[n] + "_on"
                         else:
                             evt = evtChannels[n] + "_off"
-                        evts.append(
-                            {'evt': evt, 'state': state, 'time': timeSecs})
+                        evts.append({'evt': evt,
+                                     'state': state,
+                                     'time': timeSecs})
             return evts
 
         # we've been sent data so work through it
@@ -220,9 +227,9 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             lastState = events[-1]['state']
             eventLines.append(line)
         if nEvents != len(eventLines):
-            logging.warning("BBTK reported %i events but told us to expect %i events!!" % (
-                len(events), nEvents))
-        logging.flush()  # we aren't in a time-critical period so flush messages
+            msg = "BBTK reported %i events but told us to expect %i events!!"
+            logging.warning(msg % (len(events), nEvents))
+        logging.flush()  # we aren't in a time-critical period
         return events
 
 if __name__ == "__main__":
@@ -242,4 +249,4 @@ if __name__ == "__main__":
 
     BBTK.clearRAM()
     time.sleep(2)
-    print('leftovers: %s' % (BBTK.com.read(BBTK.com.inWaiting())))
+    print('leftovers: %s' % BBTK.com.read(BBTK.com.inWaiting()))

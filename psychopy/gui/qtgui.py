@@ -83,10 +83,12 @@ class Dlg(QtWidgets.QDialog):
         #QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         # add buttons for OK and Cancel
-        self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal, parent=self)
-        self.okbutton = QtWidgets.QPushButton(labelButtonOK, parent=self)
-        self.cancelbutton = QtWidgets.QPushButton(
-            labelButtonCancel, parent=self)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal,
+                                                    parent=self)
+        self.okbutton = QtWidgets.QPushButton(labelButtonOK,
+                                              parent=self)
+        self.cancelbutton = QtWidgets.QPushButton(labelButtonCancel,
+                                                  parent=self)
         self.buttonBox.addButton(self.okbutton,
                                  QtWidgets.QDialogButtonBox.ActionRole)
         self.buttonBox.addButton(self.cancelbutton,
@@ -95,8 +97,8 @@ class Dlg(QtWidgets.QDialog):
         self.cancelbutton.clicked.connect(self.reject)
 
         if style:
-            raise RuntimeWarning(
-                "Dlg does not currently support the stype kwarg.")
+            raise RuntimeWarning("Dlg does not currently support the "
+                                 "style kwarg.")
 
         self.pos = pos
         self.size = size
@@ -131,9 +133,8 @@ class Dlg(QtWidgets.QDialog):
 
     def addField(self, label='', initial='', color='', choices=None, tip='',
                  enabled=True):
-        """
-        Adds a (labelled) input field to the dialogue box, optional text color
-        and tooltip.
+        """Adds a (labelled) input field to the dialogue box,
+        optional text color and tooltip.
 
         If 'initial' is a bool, a checkbox will be created.
         If 'choices' is a list or tuple, a dropdown selector is created.
@@ -147,7 +148,7 @@ class Dlg(QtWidgets.QDialog):
         else:
             self.inputFieldTypes.append(type(initial))
         if type(initial) == np.ndarray:
-            initial = initial.tolist()  # convert numpy arrays to lists
+            initial = initial.tolist()
 
         # create label
         inputLabel = self.addText(label, color, isFieldLabel=True)
@@ -161,9 +162,8 @@ class Dlg(QtWidgets.QDialog):
             def handleCheckboxChange(new_state):
                 ix = self.inputFields.index(inputBox)
                 self.data[ix] = inputBox.isChecked()
-                logging.debug(
-                    "handleCheckboxChange: inputFieldName={0}, "
-                    "checked={1}".format(label, self.data[ix]))
+                msg = "handleCheckboxChange: inputFieldName={0}, checked={1}"
+                logging.debug(msg.format(label, self.data[ix]))
 
             inputBox.stateChanged.connect(handleCheckboxChange)
         elif not choices:
@@ -197,20 +197,19 @@ class Dlg(QtWidgets.QDialog):
                             json.loads("[" + unicode(new_text) + "]")[0])
                     else:
                         self.data[ix] = new_text
-                        logging.warning(
-                            "Unknown type in handleLineEditChange: "
-                            "inputFieldName={0}, type={1}, value={2}".format(
-                                label, thisType, self.data[ix]))
-                    logging.debug(
-                        "handleLineEditChange: inputFieldName={0}, type={1}, "
-                        "value={2}".format(
-                            label, thisType, self.data[ix]))
+                        msg = ("Unknown type in handleLineEditChange: "
+                               "inputFieldName={0}, type={1}, value={2}")
+                        logging.warning(msg.format(label, thisType,
+                                                   self.data[ix]))
+                    msg = ("handleLineEditChange: inputFieldName={0}, "
+                           "type={1}, value={2}")
+                    logging.debug(msg.format(label, thisType, self.data[ix]))
                 except Exception as e:
                     self.data[ix] = unicode(new_text)
-                    logging.error(
-                        'Error in handleLineEditChange: inputFieldName={0}, '
-                        'type={1}, value={2}, error={3}'.format(
-                            label, thisType, self.data[ix], e))
+                    msg = ('Error in handleLineEditChange: inputFieldName='
+                           '{0}, type={1}, value={2}, error={3}')
+                    logging.error(msg.format(label, thisType, self.data[ix],
+                                             e))
 
             inputBox.textEdited.connect(handleLineEditChange)
         else:
@@ -221,7 +220,8 @@ class Dlg(QtWidgets.QDialog):
                 #inputBox.addItems([unicode(option) for option in choices])
                 inputBox.setItemData(i, (option,))
 
-            if isinstance(initial, (int, long)) and len(choices) > initial >= 0:
+            if (isinstance(initial, (int, long)) and
+                    len(choices) > initial >= 0):
                 pass
             elif initial in choices:
                 initial = choices.index(initial)
@@ -234,10 +234,10 @@ class Dlg(QtWidgets.QDialog):
             def handleCurrentIndexChanged(new_index):
                 ix = self.inputFields.index(inputBox)
                 self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
-                logging.debug(
-                    "handleCurrentIndexChanged: inputFieldName={0}, "
-                    "selected={1}, type: {2}".format(
-                        label, self.data[ix], type(self.data[ix])))
+                msg = ("handleCurrentIndexChanged: inputFieldName={0}, "
+                       "selected={1}, type: {2}")
+                logging.debug(msg.format(label, self.data[ix],
+                                         type(self.data[ix])))
 
             inputBox.currentIndexChanged.connect(handleCurrentIndexChanged)
 
@@ -258,11 +258,11 @@ class Dlg(QtWidgets.QDialog):
         """Adds a field to the dialog box (like addField) but the field cannot
         be edited. e.g. Display experiment version.
         """
-        return self.addField(label, initial, color, choices, tip, enabled=False)
+        return self.addField(label, initial, color, choices, tip,
+                             enabled=False)
 
     def display(self):
-        """
-        Presents the dialog and waits for the user to press either OK or CANCEL.
+        """Presents the dialog and waits for the user to press OK or CANCEL.
 
         If user presses OK button, function returns a list containing the
         updated values coming from each of the input fields created.
@@ -273,7 +273,8 @@ class Dlg(QtWidgets.QDialog):
         return self.exec_()
 
     def show(self):
-        """
+        """Show.
+
         ** QDialog already has a show() method. So this method calls
            QDialog.show() and then exec_(). This seems to not cause issues,
            however we need to keep an eye out for any issues.
@@ -281,7 +282,7 @@ class Dlg(QtWidgets.QDialog):
         ** Deprecated: Use dlg.display() instead. This method will be removed
            in a future version of psychopy.
 
-        Presents the dialog and waits for the user to press either OK or CANCEL.
+        Presents the dialog and waits for the user to press OK or CANCEL.
 
         If user presses OK button, function returns a list containing the
         updated values coming from each of the input fields created.
@@ -292,8 +293,7 @@ class Dlg(QtWidgets.QDialog):
         return self.display()
 
     def exec_(self):
-        """
-        Presents the dialog and waits for the user to press either OK or CANCEL.
+        """Presents the dialog and waits for the user to press OK or CANCEL.
 
         If user presses OK button, function returns a list containing the
         updated values coming from each of the input fields created.
@@ -330,8 +330,10 @@ class DlgFromDict(Dlg):
 
     ::
 
-        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
-        dictDlg = gui.DlgFromDict(dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
+        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1,
+                'Group': ['Test', 'Control']}
+        dictDlg = gui.DlgFromDict(dictionary=info,
+                title='TestExperiment', fixed=['ExpVersion'])
         if dictDlg.OK:
             print(info)
         else:
@@ -348,7 +350,8 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=[], order=[], tip={}, screen=-1):
+    def __init__(self, dictionary, title='', fixed=[], order=[],
+                 tip={}, screen=-1):
         Dlg.__init__(self, title, screen=screen)
         self.dictionary = dictionary
         keys = self.dictionary.keys()
@@ -364,8 +367,8 @@ class DlgFromDict(Dlg):
             if field in fixed:
                 self.addFixedField(field, self.dictionary[field], tip=tooltip)
             elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(field, choices=self.dictionary[
-                              field], tip=tooltip)
+                self.addField(field, choices=self.dictionary[field],
+                              tip=tooltip)
             else:
                 self.addField(field, self.dictionary[field], tip=tooltip)
 
@@ -402,21 +405,17 @@ def fileSaveDlg(initFilePath="", initFileName="",
     If user cancels the None is returned.
     """
     if allowed is None:
-        allowed = "All files (*.*);;" \
-                  "txt (*.txt);;" \
-                  "pickled files (*.pickle *.pkl);;" \
-                  "shelved files (*.shelf)"
+        allowed = ("All files (*.*);;"
+                   "txt (*.txt);;"
+                   "pickled files (*.pickle *.pkl);;"
+                   "shelved files (*.shelf)")
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
 
-    r = QtWidgets.QFileDialog.getSaveFileName(parent=None,
-                                              caption=prompt,
-                                              directory=os.path.join(initFilePath,
-                                                                     initFileName),
-                                              filter=allowed)
-    if len(r) == 0:
-        return None
-    return unicode(r)
+    fdir = os.path.join(initFilePath, initFileName)
+    r = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
+                                              directory=fdir, filter=allowed)
+    return unicode(r) or None
 
 
 def fileOpenDlg(tryFilePath="",
@@ -448,68 +447,54 @@ def fileOpenDlg(tryFilePath="",
     qtapp = ensureQtApp()
 
     if allowed is None:
-        allowed = "All files (*.*);;" \
-                  "PsychoPy Data (*.psydat);;" \
-                  "txt (*.txt *.dlm *.csv);;" \
-                  "pickled files (*.pickle *.pkl);;" \
-                  "shelved files (*.shelf)"
+        allowed = ("All files (*.*);;"
+                   "PsychoPy Data (*.psydat);;"
+                   "txt (*.txt *.dlm *.csv);;"
+                   "pickled files (*.pickle *.pkl);;"
+                   "shelved files (*.shelf)")
+    fdir = os.path.join(tryFilePath, tryFileName)
     filesToOpen = QtWidgets.QFileDialog.getOpenFileNames(parent=None,
                                                          caption=prompt,
-                                                         directory=os.path.join(
-                                                             tryFilePath,
-                                                             tryFileName),
+                                                         directory=fdir,
                                                          filter=allowed)
 
-    filesToOpen = [unicode(fpath) for fpath in filesToOpen if
-                   os.path.exists(fpath)]
+    filesToOpen = [unicode(fpath) for fpath in filesToOpen
+                   if os.path.exists(fpath)]
     if len(filesToOpen) == 0:
         return None
     return filesToOpen
 
 
-def infoDlg(title=_translate("Information"),
-            prompt=_translate(
-                "No details provided. ('prompt' value not set).")):
+def infoDlg(title=_translate("Information"), prompt=None):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtWidgets.QMessageBox.information(None,
-                                      title,
-                                      prompt)
+    _pr = _translate("No details provided. ('prompt' value not set).")
+    QtWidgets.QMessageBox.information(None, title,prompt or _pr)
 
 
-def warnDlg(title=_translate("Warning"),
-            prompt=_translate(
-                "No details provided. ('prompt' value not set).")):
+def warnDlg(title=_translate("Warning"), prompt=None):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtWidgets.QMessageBox.warning(None,
-                                  title,
-                                  prompt)
+    _pr = _translate("No details provided. ('prompt' value not set).")
+    QtWidgets.QMessageBox.warning(None, title, prompt or _pr)
 
 
-def criticalDlg(title=_translate("Critical"),
-                prompt=_translate(
-                    "No details provided. ('prompt' value not set).")):
+def criticalDlg(title=_translate("Critical"), prompt=None):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtWidgets.QMessageBox.critical(None,
-                                   title,
-                                   prompt)
+    _pr = _translate("No details provided. ('prompt' value not set).")
+    QtWidgets.QMessageBox.critical(None, title, prompt or _pr)
 
 
-def aboutDlg(title=_translate("About Experiment"),
-             prompt=_translate(
-                 "No details provided. ('prompt' value not set).")):
+def aboutDlg(title=_translate("About Experiment"), prompt=None):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtWidgets.QMessageBox.about(None,
-                                title,
-                                prompt)
+    _pr = _translate("No details provided. ('prompt' value not set).")
+    QtWidgets.QMessageBox.about(None, title, prompt or _pr)
 
 
-#
 # Psychopy pyglet window show / hide util functions
-#
+
 
 def hideWindow(win):
     global wasMouseVisible
@@ -565,17 +550,16 @@ if __name__ == '__main__':
     dlg.addField("A dropdown", initial='B', choices=['A', 'B', 'C'],
                  tip="Here is your <b>dropdown</b> tip!")
 
-    dlg.addField("Mixed type dropdown", initial=2, choices=['A String', 1234567,
-                                                            [12.34, 56.78],
-                                                            ('tuple element 0',
-                                                             'tuple element 1'),
-                                                            {'key1': 'val1',
-                                                             'key2': 23}],
+    dlg.addField("Mixed type dropdown", initial=2,
+                 choices=['A String', 1234567, [12.34, 56.78],
+                          ('tuple element 0', 'tuple element 1'),
+                          {'key1': 'val1','key2': 23}],
                  color="Red")
 
     dlg.addField("Yet Another dropdown", choices=[1, 2, 3])
     dlg.addFixedField("ReadOnly dropdown", initial=2,
-                      choices=['R1', 'R2', 'R3'], tip="This field is readonly.")
+                      choices=['R1', 'R2', 'R3'],
+                      tip="This field is readonly.")
     ok_data = dlg.show()
     print("Dlg ok_data:", ok_data)
 
@@ -583,8 +567,8 @@ if __name__ == '__main__':
 
     info = {'Observer': 'jwp', 'GratingOri': 45,
             'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
-    dictDlg = DlgFromDict(
-        dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
+    dictDlg = DlgFromDict(dictionary=info, title='TestExperiment',
+                          fixed=['ExpVersion'])
     if dictDlg.OK:
         print(info)
     else:
@@ -602,12 +586,11 @@ if __name__ == '__main__':
 
     infoDlg(prompt="Some not important info for you.")
 
-    warnDlg(
-        prompt="Something non critical,\nbut still worth telling you about,\noccurred.")
+    warnDlg(prompt="Something non critical,\nbut worth mention,\noccurred.")
 
-    criticalDlg(title="RuntimeError", prompt="Oh boy, something really bad just happened:"
-                                             "<br>"
-                                             "<b>{0}</b>".format(RuntimeError("A made up runtime error")))
+    _pr = "Oh boy, something really bad just happened:<br><b>{0}</b>"
+    criticalDlg(title="RuntimeError",
+                prompt=_pr.format(RuntimeError("A made up runtime error")))
 
     aboutDlg(prompt=u"My Experiment v. 1.0"
              u"<br>"
