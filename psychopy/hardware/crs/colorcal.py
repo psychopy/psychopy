@@ -55,8 +55,9 @@ class ColorCAL(object):
         super(ColorCAL, self).__init__()
 
         if not serial:
-            raise ImportError('The module serial is needed to connect to photometers. ' +
-                              "On most systems this can be installed with\n\t easy_install pyserial")
+            raise ImportError('The module serial is needed to connect to '
+                              'photometers. On most systems this can be '
+                              'installed with\n\t easy_install pyserial')
 
         # try to deduce port
         if port is None:
@@ -66,9 +67,10 @@ class ColorCAL(object):
                 port = '/dev/ttyACM0'
             elif sys.platform.startswith('win'):
                 port = 3
-        if type(port) in [int, float]:
-            self.portNumber = port  # add one so that port 1=COM1
-            self.portString = 'COM%i' % self.portNumber  # add one so that port 1=COM1
+        if type(port) in (int, float):
+            # add one so that port 1=COM1
+            self.portNumber = port
+            self.portString = 'COM%i' % self.portNumber
         else:
             self.portString = port
             self.portNumber = None
@@ -86,8 +88,9 @@ class ColorCAL(object):
         try:
             self.com = serial.Serial(self.portString)
         except Exception:
-            self._error(
-                "Couldn't connect to port %s. Is it being used by another program?" % self.portString)
+            msg = ("Couldn't connect to port %s. Is it being used by "
+                   "another program?")
+            self._error(msg % self.portString)
 
         # setup the params for serial port
         if self.OK:
@@ -97,8 +100,8 @@ class ColorCAL(object):
                 if not self.com.isOpen():
                     self.com.open()
             except Exception:
-                self._error(
-                    "Opened serial port %s, but couldn't connect to ColorCAL" % self.portString)
+                msg = "Opened serial port %s, but couldn't connect to ColorCAL"
+                self._error(msg % self.portString)
             else:
                 self.isOpen = 1
 
@@ -114,20 +117,19 @@ class ColorCAL(object):
         # flush the read buffer first
         # read as many chars as are in the buffer
         prevOut = self.com.read(self.com.inWaiting())
-        if len(prevOut) and prevOut not in ['>' + eol, eol]:
+        if len(prevOut) and prevOut not in ('>' + eol, eol):
             # do not use log messages here
             print('Resp found to prev cmd (%s):%s' % (self.lastCmd, prevOut))
         self.lastCmd = message
 
-        if message[-2:] not in ['\n', '\n\r']:
+        if message[-2:] not in ('\n', '\n\r'):
             message += '\n'  # append a newline if necess
         # send the message
         self.com.write(message)
         self.com.flush()
         # get reply (within timeout limit)
         self.com.setTimeout(timeout)
-        logging.debug('Sent command:%s' %
-                      (message[:-1]))  # send complete message
+        logging.debug('Sent command:%s' % (message[:-1]))  # send complete msg
 
         # get output lines using self.readline, not self.com.readline
         # colorcal signals the end of a message by giving a command prompt
@@ -137,7 +139,7 @@ class ColorCAL(object):
         while (thisLine != '>') and (nEmpty <= self.maxAttempts):
             # self.com.readline can't handle custom eol
             thisLine = self.readline(eol=eol)
-            if thisLine in [eol, '>', '']:  # lines we don't care about
+            if thisLine in (eol, '>', ''):  # lines we don't care about
                 nEmpty += 1
                 continue
             else:
@@ -167,10 +169,9 @@ class ColorCAL(object):
         (notably the PR650/PR655)
 
         """
-        val = self.sendMessage(
-            'MES', timeout=5)  # use a long timeout for measurement
-
-        vals = val.split(',')  # separate into words
+        # use a long timeout for measurement:
+        val = self.sendMessage('MES', timeout=5)
+        vals = val.split(',')
         ok = (vals[0] == 'OK00')
         # transform raw x,y,z by calibration matrix
         xyzRaw = numpy.array([vals[1], vals[2], vals[3]], dtype=float)
@@ -191,7 +192,8 @@ class ColorCAL(object):
         """Queries the device for information
 
         usage::
-            ok, serialNumber, firmwareVersion, firmwareBuild = colorCal.getInfo()
+            (ok, serialNumber,
+                firmwareVersion, firmwareBuild) = colorCal.getInfo()
 
         `ok` will be True/False
         Other values will be a string or None.
@@ -230,9 +232,9 @@ class ColorCAL(object):
     def calibrateZero(self):
         """Perform a calibration to zero light.
 
-        For early versions of the ColorCAL this had to be called after connecting
-        to the device. For later versions the dark calibration was performed at
-        the factory and stored in non-volatile memory.
+        For early versions of the ColorCAL this had to be called after
+        connecting to the device. For later versions the dark calibration
+        was performed at the factory and stored in non-volatile memory.
 
         You can check if you need to run a calibration with::
 
@@ -253,8 +255,9 @@ class ColorCAL(object):
         # covered?)
         self.ok, x, y, z = self.measure()
         if y > 3:
-            logging.error(
-                'There seems to be some light getting to the detector. It should be well-covered for zero calibration')
+            logging.error('There seems to be some light getting to the '
+                          'detector. It should be well-covered for zero '
+                          'calibration')
             return False
         self._zeroCalibrated = True
         self.calibMatrix = self.getCalibMatrix()
@@ -264,8 +267,8 @@ class ColorCAL(object):
         """Get the calibration matrix from the device, needed for transforming
         measurements into real-world values.
 
-        This is normally retrieved during __init__ and stored as `ColorCal.calibMatrix`
-        so most users don't need to call this function
+        This is normally retrieved during __init__ and stored as
+        `ColorCal.calibMatrix` so most users don't need to call this function.
         """
         matrix = numpy.zeros((3, 3), dtype=float)
         # alternatively use 'r99' which gets all rows at once, but then more
@@ -280,8 +283,8 @@ class ColorCAL(object):
                 floats = _minolta2float(rawVals)
                 matrix[rowN, :] = floats
             else:
-                print('ColorCAL got this from command %s: %s' %
-                      (rowName, repr(val)))
+                msg = 'ColorCAL got this from command %s: %s'
+                print(msg % (rowName, repr(val)))
         return matrix
 
     def _error(self, msg):
@@ -290,7 +293,8 @@ class ColorCAL(object):
 
     def readline(self, size=None, eol='\n\r'):
         """This should be used in place of the standard serial.Serial.readline()
-        because that doesn't allow us to set the eol character"""
+        because that doesn't allow us to set the eol character
+        """
         # The code here is adapted from
         #    pyserial 2.5: serialutil.FileLike.readline
         # which is released under the python license.
@@ -327,7 +331,8 @@ def _minolta2float(inVal):
     array([ 1.0635, -0.0631])
 
     """
-    arr = numpy.asarray(inVal)  # convert  to array if needed
+    # convert  to array if needed
+    arr = numpy.asarray(inVal)
     # handle single vals
     if arr.shape == ():
         if inVal < 50000:

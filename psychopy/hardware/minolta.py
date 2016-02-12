@@ -22,14 +22,14 @@ class LS100(object):
     """A class to define a Minolta LS100 (or LS110?) photometer
 
     You need to connect a LS100 to the serial (RS232) port and
-    **when you turn it on press the F key** on the device. This will put it into
-    the correct mode to communicate with the serial port.
+    **when you turn it on press the F key** on the device. This will put
+    it into the correct mode to communicate with the serial port.
 
     usage::
 
         from psychopy.hardware import minolta
         phot = minolta.LS100(port)
-        if phot.OK:#then we successfully made a connection and can send/receive
+        if phot.OK:  # then we successfully made a connection
             print(phot.getLum())
 
     :parameters:
@@ -39,41 +39,43 @@ class LS100(object):
             the serial port that should be checked
 
         maxAttempts: int
-            If the device doesn't respond first time how many attempts should be made?
-            If you're certain that this is the correct port and the device is on
-            and correctly configured then this could be set high. If not then set
-            this low.
+            If the device doesn't respond first time how many attempts
+            should be made? If you're certain that this is the correct
+            port and the device is on and correctly configured then this
+            could be set high. If not then set this low.
 
     :troubleshooting:
 
-        Various messages are printed to the log regarding the function of this device,
-        but to see them you need to set the printing of the log to the correct level::
+        Various messages are printed to the log regarding the function
+        of this device, but to see them you need to set the printing of
+        the log to the correct level::
 
             from psychopy import logging
-            logging.console.setLevel(logging.ERROR)#error messages only
-            logging.console.setLevel(logging.INFO)#will give a little more info
-            logging.console.setLevel(logging.DEBUG)#will export a log of all communications
+            logging.console.setLevel(logging.ERROR)  # error messages only
+            logging.console.setLevel(logging.INFO)  # more info
+            logging.console.setLevel(logging.DEBUG)  # log all communications
 
-        If you're using a keyspan adapter (at least on OS X) be aware that it needs
-        a driver installed. Otherwise no ports wil be found.
+        If you're using a keyspan adapter (at least on OS X) be aware that
+        it needs a driver installed. Otherwise no ports wil be found.
 
         Error messages:
 
         ``ERROR: Couldn't connect to Minolta LS100/110 on ____``:
             This likely means that the device is not connected to that port
-            (although the port has been found and opened). Check that the device
-            has the `[` in the bottom right of the display; if not turn off
-            and on again holding the `F` key.
+            (although the port has been found and opened). Check that the
+            device has the `[` in the bottom right of the display;
+            if not turn off and on again holding the `F` key.
 
         ``ERROR: No reply from LS100``:
-            The port was found, the connection was made and an initial command worked,
-            but then the device stopped communating. If the first measurement taken with
-            the device after connecting does not yield a reasonble intensity the device can
-            sulk (not a technical term!). The "[" on the display will disappear and you can no
-            longer communicate with the device. Turn it off and on again (with F depressed)
-            and use a reasonably bright screen for your first measurement. Subsequent
-            measurements can be dark (or we really would be in trouble!!).
-
+            The port was found, the connection was made and an initial
+            command worked, but then the device stopped communating. If the
+            first measurement taken with the device after connecting does
+            not yield a reasonble intensity the device can sulk (not a
+            technical term!). The "[" on the display will disappear and you
+            can no longer communicate with the device. Turn it off and on
+            again (with F depressed) and use a reasonably bright screen for
+            your first measurement. Subsequent measurements can be dark
+            (or we really would be in trouble!!).
     """
 
     longName = "Minolta LS100/LS110"
@@ -83,12 +85,14 @@ class LS100(object):
         super(LS100, self).__init__()
 
         if not serial:
-            raise ImportError('The module serial is needed to connect to photometers. ' +
-                              "On most systems this can be installed with\n\t easy_install pyserial")
+            raise ImportError("The module serial is needed to connect to "
+                              "photometers. On most systems this can be "
+                              "installed with\n\t easy_install pyserial")
 
         if type(port) in [int, float]:
-            self.portNumber = port  # add one so that port 1=COM1
-            self.portString = 'COM%i' % self.portNumber  # add one so that port 1=COM1
+            # add one so that port 1=COM1
+            self.portNumber = port
+            self.portString = 'COM%i' % self.portNumber
         else:
             self.portString = port
             self.portNumber = None
@@ -114,11 +118,12 @@ class LS100(object):
             try:
                 self.com = serial.Serial(self.portString)
             except Exception:
-                self._error(
-                    "Couldn't connect to port %s. Is it being used by another program?" % self.portString)
+                msg = ("Couldn't connect to port %s. Is it being used by "
+                       "another program?")
+                self._error(msg % self.portString)
         else:
-            self._error(
-                "I don't know how to handle serial ports on %s" % sys.platform)
+            msg = "I don't know how to handle serial ports on %s"
+            self._error(msg % sys.platform)
         # setup the params for PR650 comms
         if self.OK:
             self.com.close()  # not sure why this helps but on win32 it does!!
@@ -131,8 +136,8 @@ class LS100(object):
                 if not self.com.isOpen():
                     self.com.open()
             except Exception:
-                self._error(
-                    "Opened serial port %s, but couldn't connect to LS100" % self.portString)
+                msg = "Opened serial port %s, but couldn't connect to LS100"
+                self._error(msg % self.portString)
             else:
                 self.isOpen = 1
 
@@ -166,7 +171,8 @@ class LS100(object):
         return self.checkOK(reply)
 
     def measure(self):
-        """Measure the current luminance and set .lastLum to this value"""
+        """Measure the current luminance and set .lastLum to this value
+        """
         reply = self.sendMessage('MES')
         if self.checkOK(reply):
             lum = float(reply.split()[-1])
@@ -235,9 +241,9 @@ class LS100(object):
         logging.error(msg)
 
     def setMaxAttempts(self, maxAttempts):
-        """Changes the number of attempts to send a message and read the output
-        Typically this should be low initially, if you aren't sure that the device
-        is setup correctly but then, after the first successful reading, set it
-        higher.
+        """Changes the number of attempts to send a message and read the
+        output. Typically this should be low initially, if you aren't sure
+        that the device is setup correctly but then, after the first
+        successful reading, set it higher.
         """
         self.maxAttempts = maxAttempts

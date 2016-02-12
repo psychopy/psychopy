@@ -8,9 +8,11 @@
 # Acknowledgements:
 #    This code was mostly written by Jon Peirce.
 #    CRS Ltd provided support as needed.
-#    Shader code for mono++ and color++ modes was based on code in Psythtoolbox
-#    (Kleiner) but does not actually use that code directly
-"""Cambridge Research Systems make devices to support particularly vision research.
+#    Shader code for mono++ and color++ modes was based on code in
+#    Psychtoolbox (Kleiner) but does not actually use that code directly
+
+"""Cambridge Research Systems makes devices to support particularly
+vision research.
 """
 
 from __future__ import absolute_import

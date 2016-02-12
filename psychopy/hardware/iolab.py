@@ -17,8 +17,9 @@ try:
     import ioLabs
     from ioLabs import REPORT, COMMAND
 except ImportError:
-    msg = """Failed to import the ioLabs library. If you're using your own copy of
-        python (not the Standalone distribution of PsychoPy) then try installing it with:
+    msg = """Failed to import the ioLabs library. If you're using your own
+        copy of python (not the Standalone distribution of PsychoPy) then
+        try installing it with:
            > pip install ioLabs""".replace('    ', '')
     logging.error(msg)
 
@@ -35,17 +36,20 @@ class ButtonBox(ioLabs.USBBox):
     """
 
     def __init__(self):
-        """Class to detect and report `ioLab button box <http://www.iolab.co.uk>`_.
+        """Class to detect and report
+        `ioLab button box <http://www.iolab.co.uk>`_.
 
-        The ioLabs library needs to be installed. It is included in the *Standalone*
-        distributions of PsychoPy as of version 1.62.01. Otherwise try "pip install ioLabs"
+        The ioLabs library needs to be installed. It is included in the
+        *Standalone* distributions of PsychoPy as of version 1.62.01.
+        Otherwise try "pip install ioLabs"
 
         Usage::
 
             from psychopy.hardware import iolab
             bbox = iolab.ButtonBox()
 
-        For examples see the demos menu of the PsychoPy Coder or go to the URL above.
+        For examples see the demos menu of the PsychoPy Coder or go to the
+        URL above.
 
         All times are reported in units of seconds.
         """
@@ -53,11 +57,11 @@ class ButtonBox(ioLabs.USBBox):
         logging.debug('init iolabs bbox')
         self.events = []
         self.status = None  # helps Builder
-        self._lastReset = 0.0  # time on baseclock at which the bbox clock was reset
+        self._lastReset = 0.0  # time on baseclock when bbox clock was reset
         self._baseclock = core.Clock()  # for basetime, not RT time
         self.resetClock(log=True)  # internal clock on the bbox
-        logging.exp('button box resetClock(log=True) took %.4fs' %
-                    self._baseclock.getTime())
+        msg = 'button box resetClock(log=True) took %.4fs'
+        logging.exp(msg % self._baseclock.getTime())
 
         self.commands.add_callback(REPORT.KEYDN, self._onKeyDown)
         self.commands.add_callback(REPORT.KEYUP, self._onKeyUp)
@@ -97,7 +101,8 @@ class ButtonBox(ioLabs.USBBox):
         return self
 
     def resetClock(self, log=True):
-        """Reset the clock on the bbox internal clock, e.g., at the start of a trial.
+        """Reset the clock on the bbox internal clock, e.g., at the start
+        of a trial.
 
         ~1ms for me; logging is much faster than the reset
         """
@@ -105,8 +110,8 @@ class ButtonBox(ioLabs.USBBox):
         self.commands.resrtc()
         self._lastReset = self._baseclock.getTime()
         if log:
-            logging.exp('reset bbox internal clock at basetime = %.3f' %
-                        self._lastReset)
+            msg = 'reset bbox internal clock at basetime = %.3f'
+            logging.exp(msg % self._lastReset)
 
     def _getTime(self, log=False):
         """Return the time on the bbox internal clock, relative to last reset.
@@ -132,7 +137,7 @@ class ButtonBox(ioLabs.USBBox):
         return self._baseclock.getTime()
 
     def setEnabled(self, buttonList=(0, 1, 2, 3, 4, 5, 6, 7), voice=False):
-        '''Set a filter to suppress events from non-enabled buttons.
+        """Set a filter to suppress events from non-enabled buttons.
 
         The ioLabs bbox filters buttons in hardware; here we just tell it
         what we want:
@@ -141,8 +146,9 @@ class ButtonBox(ioLabs.USBBox):
         a list of integers (0..7) - enable all buttons in the list
 
         Set voice=True to enable the voiceKey - gets reported as button 64
-        '''
-        if not (buttonList is None or all([b in range(8) for b in buttonList])):
+        """
+        allInRange = all([b in range(8) for b in buttonList])
+        if not (buttonList is None or allInRange):
             raise ValueError('buttonList needs to be a list of 0..7, or None')
         self.buttons.enabled = _list2bits(buttonList)
         self.int0.enabled = int(voice)
@@ -153,13 +159,13 @@ class ButtonBox(ioLabs.USBBox):
         return _bits2list(self.buttons.enabled)
 
     def setLights(self, lightList=(0, 1, 2, 3, 4, 5, 6, 7)):
-        '''Turn on the specified LEDs (None, 0..7, list of 0..7)
-        '''
+        """Turn on the specified LEDs (None, 0..7, list of 0..7)
+        """
         self.leds.state = ~_list2bits(lightList)
 
-    def waitEvents(self, downOnly=True,
-                   timeout=0, escape='escape', wait=0.002):
-        '''Wait for and return the first button press event.
+    def waitEvents(self, downOnly=True, timeout=0, escape='escape',
+                   wait=0.002):
+        """Wait for and return the first button press event.
 
         Always calls `clearEvents()` first (like PsychoPy keyboard waitKeys).
 
@@ -170,7 +176,7 @@ class ButtonBox(ioLabs.USBBox):
 
         `timeout` is the max time to wait in seconds before returning `None`.
         `timeout` of 0 means no time-out (= default).
-        '''
+        """
         self.clearEvents()  # e.g., removes UP from previous DOWN
         if timeout > 0:
             c = core.Clock()
@@ -188,10 +194,10 @@ class ButtonBox(ioLabs.USBBox):
         return evt
 
     def getEvents(self, downOnly=True):
-        '''Detect and return a list of all events (likely just one); no block.
+        """Detect and return a list of all events (likely just one); no block.
 
         Use `downOnly=False` to include button-release events.
-        '''
+        """
         if downOnly is False:
             raise NotImplementedError()
         self.process_received_reports()
@@ -202,8 +208,8 @@ class ButtonBox(ioLabs.USBBox):
         return evts
 
     def clearEvents(self):
-        '''Discard all button / voice key events.
-        '''
+        """Discard all button / voice key events.
+        """
         self.events[:] = []
         self.commands.clear_received_reports()
         logging.debug('bbox clear events')

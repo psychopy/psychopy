@@ -4,11 +4,11 @@ You do need a window (and you need to be flipping it) for the joystick to be
 updated.
 
 Known issues:
-    - currently under pyglet the joystick axes initialise to a value of zero and stay
-      like this until the first time that axis moves
+    - currently under pyglet the joystick axes initialise to a value of zero
+      and stay like this until the first time that axis moves
 
-    - currently pygame (1.9.1) spits out lots of debug messages about the joystick and
-      these can't be turned off :-/
+    - currently pygame (1.9.1) spits out lots of debug messages about the
+      joystick and these can't be turned off :-/
 
 Typical usage::
 
@@ -77,8 +77,9 @@ class Joystick(object):
         if backend == 'pyglet':
             joys = pyglet_input.get_joysticks()
             if id >= len(joys):
-                logging.error(
-                    "You don't have that many joysticks attached (remember that the first joystick has id=0 etc...)")
+                logging.error("You don't have that many joysticks attached "
+                              "(remember that the first joystick has id=0 "
+                              "etc...)")
             else:
                 self._device = joys[id]
                 self._device.open()
@@ -153,7 +154,8 @@ class Joystick(object):
 
     def getHat(self, hatId=0):
         """Get the position of a particular hat.
-        The position returned is an (x,y) tuple where x and y can be -1,0 or +1
+        The position returned is an (x,y) tuple where x and y
+        can be -1, 0 or +1
         """
         if backend == 'pyglet':
             if hatId == 0:
@@ -210,7 +212,8 @@ class Joystick(object):
             return self._device.get_numaxes()
 
     def getAxis(self, axisId):
-        """Get the value of an axis by an integer id (from 0 to number of axes-1)
+        """Get the value of an axis by an integer id
+        (from 0 to number of axes - 1)
         """
         if backend == 'pyglet':
             val = self.getAllAxes()[axisId]

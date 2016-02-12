@@ -23,15 +23,20 @@ except ImportError:
 
 
 class RB730(object):
-    """Class to control/read a Cedrus RB-series response box"""
+    """Class to control/read a Cedrus RB-series response box
+    """
     class KeyEvent(object):
-        """Info about a keypress from Cedrus keypad XID string"""
+        """Info about a keypress from Cedrus keypad XID string
+        """
 
         def __init__(self, XID):
-            """XID should contain a "k"<info><rt> where info is a byte and rt is 4 bytes (=int)"""
+            """XID should contain a "k"<info><rt> where info is a byte
+            and rt is 4 bytes (=int)
+            """
             super(KeyEvent, self).__init__()
             if len(XID) != 6:
-                #log.error("The XID string %s is %i bytes long and should be 6 bytes" %(str([XID]),len(XID)))
+                # log.error("The XID string %s is %i bytes long and should
+                #   be 6 bytes" %(str([XID]),len(XID)))
                 self.key = None
             else:
                 # a character and a ubyte of info
@@ -53,8 +58,9 @@ class RB730(object):
         super(RB730, self).__init__()
 
         if not serial:
-            raise ImportError('The module serial is needed to connect to the Cedrus response pad. ' +
-                              "On most systems this can be installed with\n\t easy_install pyserial")
+            raise ImportError("The module serial is needed to connect to the"
+                              " Cedrus response pad. On most systems this can"
+                              " be installed with\n\t easy_install pyserial")
 
         self.model = 'RB703'
         # set name of port
@@ -67,8 +73,9 @@ class RB730(object):
         self.mode = mode  # can be 'xid', 'rb', 'ascii'
         self.baudrate = baudrate
         # open the serial port
-        self.port = serial.Serial(
-            self.portString, baudrate=baudrate, bytesize=8, parity='N', stopbits=1, timeout=0.0001)
+        self.port = serial.Serial(self.portString, baudrate=baudrate,
+                                  bytesize=8, parity='N', stopbits=1,
+                                  timeout=0.0001)
         if not self.port.isOpen():
             self.port.open()
         # self.buffer = ''#our own buffer (in addition to the serial port
@@ -79,31 +86,38 @@ class RB730(object):
         self.port.writelines(message)
 
     def _clearBuffer(self):
-        """DEPRECATED as of 1.00.05"""
+        """DEPRECATED as of 1.00.05
+        """
         self.port.flushInput()
 
     def clearBuffer(self):
-        """Empty the input buffer of all characters. Call this to clear any keypresses that haven't yet been handled."""
+        """Empty the input buffer of all characters. Call this to clear
+        any keypresses that haven't yet been handled.
+        """
         self.port.flushInput()
 
     def getKeyEvents(self, allowedKeys=(1, 2, 3, 4, 5, 6, 7), downOnly=True):
         """Return a list of keyEvents
-            Each event has the following attributes:
+        Each event has the following attributes:
 
-                keyEvt.key is the button pressed (or released) (an int)
-                keyEvt.rt [=float] is the time (in secs) since the rt clock was last reset (a float)
-                keyEvt.direction is the direction the button was goin ('up' or 'down')
+            keyEvt.key is the button pressed (or released) (an int)
+            keyEvt.rt [=float] is the time (in secs) since the rt
+            clock was last reset (a float)
+            keyEvt.direction is the direction the button was going
+            ('up' or 'down')
 
-            allowedKeys will limit the set of keys that are returned (WARNING: info about other keys is discarded)
-            downOnly limits the function to report only the downward stroke of the key
-                """
+        allowedKeys will limit the set of keys that are returned
+        (WARNING: info about other keys is discarded)
+        downOnly limits the function to report only the downward
+        stroke of the key
+        """
         # get the raw string
         nToGet = self.port.inWaiting()
         # self.buffer += self.port.read(nToGet)#extend our own buffer (then
         # remove the bits we use)
         # extend our own buffer (then remove the bits we use)
         inputStr = self.port.read(nToGet)
-        keys = []  # initialise
+        keys = []
 
         # loop through messages for keys
         nKeys = inputStr.count('k')  # find the "k"s
@@ -129,7 +143,9 @@ class RB730(object):
         return keys
 
     def readMessage(self):
-        """Read and return an unformatted string from the device (and delete this from the buffer)"""
+        """Read and return an unformatted string from the device
+        (and delete this from the buffer)
+        """
         nToGet = self.port.inWaiting()
         return self.port.read(nToGet)
 
@@ -151,7 +167,8 @@ class RB730(object):
         return t
 
     def waitKeyEvents(self, allowedKeys=(1, 2, 3, 4, 5, 6, 7), downOnly=True):
-        """Like getKeyEvents, but waits until a key is pressed"""
+        """Like getKeyEvents, but waits until a key is pressed
+        """
         noKeyYet = True
         while noKeyYet:
             keys = self.getKeyEvents(
@@ -167,7 +184,8 @@ class RB730(object):
         self.sendMessage('e1')
 
     def getBaseTimer(self):
-        """Retrieve the current time on the base timer"""
+        """Retrieve the current time on the base timer
+        """
         self.sendMessage('e3')
         # core.wait(0.05)
         localTimer = core.Clock()
@@ -179,7 +197,8 @@ class RB730(object):
         return t
 
     def getInfo(self):
-        """Get the name of this device"""
+        """Get the name of this device
+        """
         self.sendMessage('_d1')
         core.wait(0.1)
         return self.readMessage()

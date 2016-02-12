@@ -29,10 +29,11 @@ class PR650(object):
         from psychopy.hardware.pr import PR650
         myPR650 = PR650(port)
         myPR650.getLum()#make a measurement
-        nm, power = myPR650.getLastSpectrum()#get a power spectrum for the last measurement
+        nm, power = myPR650.getLastSpectrum()#get a power spectrum for the
+                    last measurement
 
-    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported
-    device for you so you can also do::
+    NB :func:`psychopy.hardware.findPhotometer()` will locate and return
+    any supported device for you so you can also do::
 
         from psychopy import hardware
         phot = hardware.findPhotometer()
@@ -40,30 +41,30 @@ class PR650(object):
 
     :troubleshooting:
 
-        Various messages are printed to the log regarding the function of this device,
-        but to see them you need to set the printing of the log to the correct level::
+        Various messages are printed to the log regarding the function of
+        this device, but to see them you need to set the printing of the
+        log to the correct level::
 
             from psychopy import logging
-            logging.console.setLevel(logging.ERROR)#error messages only
-            logging.console.setLevel(logging.INFO)#will give a little more info
-            logging.console.setLevel(logging.DEBUG)#will export a log of all communications
+            logging.console.setLevel(logging.ERROR)  # error messages only
+            logging.console.setLevel(logging.INFO)  # will give more info
+            logging.console.setLevel(logging.DEBUG)  # log all communications
 
-        If you're using a keyspan adapter (at least on OS X) be aware that it needs
-        a driver installed. Otherwise no ports wil be found.
+        If you're using a keyspan adapter (at least on OS X) be aware that
+        it needs a driver installed. Otherwise no ports wil be found.
 
-        Also note that the attempt to connect to the PR650 must occur within the first
-        few seconds after turning it on.
-
-
+        Also note that the attempt to connect to the PR650 must occur within
+        the first few seconds after turning it on.
     """
     longName = "PR650"
     driverFor = ["pr650"]
 
     def __init__(self, port, verbose=None):
         super(PR650, self).__init__()
-        if type(port) in [int, float]:
-            self.portNumber = port  # add one so that port 1=COM1
-            self.portString = 'COM%i' % self.portNumber  # add one so that port 1=COM1
+        if type(port) in (int, float):
+            # add one so that port 1=COM1
+            self.portNumber = port
+            self.portString = 'COM%i' % self.portNumber
         else:
             self.portString = port
             self.portNumber = None
@@ -74,36 +75,38 @@ class PR650(object):
         self.OK = True  # until we fail
 
         self.codes = {'OK': '000\r\n',  # this is returned after measure
-                      '18': 'Light Low',  # these is returned at beginning of data
+                      '18': 'Light Low',  # returned at beginning of data
                       '10': 'Light Low',
                       '00': 'OK'
                       }
 
         # try to open the port
-        if sys.platform in ['darwin', 'win32'] or sys.platform.startswith('linux'):
+        _linux = sys.platform.startswith('linux')
+        if sys.platform in ('darwin', 'win32') or _linux:
             try:
                 self.com = serial.Serial(self.portString)
             except Exception:
-                self._error(
-                    "Couldn't connect to port %s. Is it being used by another program?" % self.portString)
+                msg = ("Couldn't connect to port %s. Is it being used by"
+                       " another program?")
+                self._error(msg% self.portString)
         else:
-            self._error(
-                "I don't know how to handle serial ports on %s" % sys.platform)
+            msg = "I don't know how to handle serial ports on %s"
+            self._error(msg % sys.platform)
         # setup the params for PR650 comms
         if self.OK:
             self.com.setBaudrate(9600)
             self.com.setParity('N')  # none
             self.com.setStopbits(1)
             try:
-                # Pyserial >=2.6 throws an exception when trying to open a serial port that
-                # is already open. Catching that exception is not an option here because
-                # PySerial only defines a single exception type
-                # (SerialException)
+                # Pyserial >=2.6 throws an exception when trying to open a
+                # serial port that is already open. Catching that exception
+                # is not an option here because PySerial only defines a
+                # single exception type (SerialException)
                 if not self.com.isOpen():
                     self.com.open()
             except Exception:
-                self._error(
-                    "Opened serial port %s, but couldn't connect to PR650" % self.portString)
+                msg = "Opened serial port %s, but couldn't connect to PR650"
+                self._error(msg % self.portString)
             else:
                 self.isOpen = 1
         if self.OK:
@@ -142,15 +145,16 @@ class PR650(object):
         # get feedback (within timeout limit)
         self.com.setTimeout(timeout)
         logging.debug(message)  # send complete message
-        if message in ['d5', 'd5\n']:  # we need a spectrum which will have multiple lines
+        if message in ('d5', 'd5\n'):
+            # we need a spectrum which will have multiple lines
             return self.com.readlines()
         else:
             return self.com.readline()
 
     def measure(self, timeOut=30.0):
-        """Make a measurement with the device. For a PR650 the device is instructed
-        to make a measurement and then subsequent commands are issued to retrieve
-        info about that measurement
+        """Make a measurement with the device. For a PR650 the device is
+        instructed to make a measurement and then subsequent commands are
+        issued to retrieve info about that measurement.
         """
         t1 = time.clock()
         reply = self.sendMessage('m0\n', timeOut)  # measure and hold data
@@ -189,7 +193,8 @@ class PR650(object):
         return self.getLastSpectrum(parse=parse)
 
     def getLastLum(self):
-        """This retrieves the luminance (in cd/m**2) from the last call to ``.measure()``
+        """This retrieves the luminance (in cd/m**2) from the last call to
+        ``.measure()``
         """
         return self.lastLum
 
@@ -201,8 +206,8 @@ class PR650(object):
 
         otherwise:
         The output will be the raw string from the PR650 and should then
-        be passed to ``.parseSpectrumOutput()``. It's more
-        efficient to parse R,G,B strings at once than each individually.
+        be passed to ``.parseSpectrumOutput()``. It's more efficient to
+        parse R,G,B strings at once than each individually.
         """
         raw = self.sendMessage('d5')  # returns a list where each list
         if parse:
@@ -245,7 +250,6 @@ class PR650(object):
                 exec('power[0].append(%s)' % thisR)
                 exec('power[1].append(%s)' % thisG)
                 exec('power[2].append(%s)' % thisB)
-                #if progDlg: progDlg.Update(n)
         else:
             power = []
             for n, point in enumerate(rawStr):
@@ -255,22 +259,22 @@ class PR650(object):
                 power.append(thisPower.replace('\r\n', ''))
             if progDlg:
                 progDlg.Update(n)
-        #if progDlg: progDlg.Destroy()
         return numpy.asarray(nm), numpy.asarray(power)
 
 
 class PR655(PR650):
-    '''An interface to the PR655/PR670 via the serial port.
+    """An interface to the PR655/PR670 via the serial port.
 
     example usage::
 
         from psychopy.hardware.pr import PR655
         myPR655 = PR655(port)
         myPR655.getLum()#make a measurement
-        nm, power = myPR655.getLastSpectrum()#get a power spectrum for the last measurement
+        nm, power = myPR655.getLastSpectrum()#get a power spectrum for the
+                    last measurement
 
-    NB :func:`psychopy.hardware.findPhotometer()` will locate and return any supported
-    device for you so you can also do::
+    NB :func:`psychopy.hardware.findPhotometer()` will locate and return
+    any supported device for you so you can also do::
 
         from psychopy import hardware
         phot = hardware.findPhotometer()
@@ -278,11 +282,11 @@ class PR655(PR650):
 
     :troubleshooting:
 
-        If the device isn't responding try turning it off and turning it on again,
-        and/or disconnecting/reconnecting the USB cable. It may be that the port
-        has become controlled by some other program.
+        If the device isn't responding try turning it off and turning it
+        on again, and/or disconnecting/reconnecting the USB cable. It may
+        be that the port has become controlled by some other program.
 
-    '''
+    """
     longName = "PR655/PR670"
     driverFor = ["pr655", "pr670"]
 
@@ -290,15 +294,16 @@ class PR655(PR650):
         self.type = None  # get this from the device later
         self.com = False
         self.OK = True  # until we fail
-        if type(port) in [int, float]:
-            self.portNumber = port  # add one so that port 1=COM1
-            self.portString = 'COM%i' % self.portNumber  # add one so that port 1=COM1
+        if type(port) in (int, float):
+            # add one so that port 1=COM1
+            self.portNumber = port
+            self.portString = 'COM%i' % self.portNumber
         else:
             self.portString = port
             self.portNumber = None
 
         self.codes = {'OK': '000\r\n',  # this is returned after measure
-                      '18': 'Light Low',  # these is returned at beginning of data
+                      '18': 'Light Low',  # returned at beginning of data
                       '10': 'Light Low',
                       '00': 'OK'
                       }
@@ -307,8 +312,9 @@ class PR655(PR650):
         try:
             self.com = serial.Serial(self.portString)
         except Exception:
-            self._error(
-                "Couldn't connect to port %s. Is it being used by another program?" % self.portString)
+            msg = ("Couldn't connect to port %s. Is it being used by "
+                   "another program?")
+            self._error(msg % self.portString)
         # setup the params for PR650 comms
         if self.OK:
             self.com.setBaudrate(9600)
@@ -319,15 +325,16 @@ class PR655(PR650):
                 self.com.open()
                 self.isOpen = 1
             except Exception:
-                self._error(
-                    "Found a device on serial port %s, but couldn't open that port" % self.portString)
+                msg = ("Found a device on serial port %s, but couldn't "
+                       "open that port")
+                self._error(msg % self.portString)
             # this should be large when making measurements
             self.com.setTimeout(0.1)
             self.startRemoteMode()
             self.type = self.getDeviceType()
             if self.type:
-                logging.info("Successfully opened %s on %s" %
-                             (self.type, self.portString))
+                msg = "Successfully opened %s on %s"
+                logging.info(msg % (self.type, self.portString))
             else:
                 self._error("PR655/PR670 isn't communicating")
 
@@ -341,9 +348,8 @@ class PR655(PR650):
             pass
 
     def startRemoteMode(self):
-        '''
-        Sets the Colorimeter into remote mode
-        '''
+        """Sets the Colorimeter into remote mode
+        """
         reply = self.sendMessage('PHOTO', timeout=10.0)
 
     def getDeviceType(self):
@@ -363,8 +369,9 @@ class PR655(PR650):
         timeout for a response (Timeout should be long for low
         light measurements)
         """
-        logging.debug("Sending command '%s' to %s" %
-                      (message, self.portString))  # send complete message
+        # send complete message
+        msg = "Sending command '%s' to %s"
+        logging.debug(msg % (message, self.portString))
         if message[-1] != '\n':
             message += '\n'  # append a newline if necess
 
@@ -382,57 +389,60 @@ class PR655(PR650):
 
         # get feedback (within timeout)
         self.com.setTimeout(timeout)
-        if message in ['d5\n', 'D5\n']:  # we need a spectrum which will have multiple lines
+        if message in ('d5\n', 'D5\n'):
+            # we need a spectrum which will have multiple lines
             return self.com.readlines()
         else:
             return self.com.readline()
 
     def endRemoteMode(self):
-        '''
-        Puts the colorimeter back into normal mode
-        '''
+        """Puts the colorimeter back into normal mode
+        """
         self.com.write('Q')
 
     def getLastTristim(self):
-        '''Fetches (from the device) the last CIE 1931 Tristimulus values
+        """Fetches (from the device) the last CIE 1931 Tristimulus values
 
         :returns:
             list: status, units, Tristimulus Values
 
         :see also:
-            :func:`~PR655.measure` automatically populates pr655.lastTristim with just the tristimulus
-            coordinates
-        '''
+            :func:`~PR655.measure` automatically populates pr655.lastTristim
+            with just the tristimulus coordinates
+        """
         result = self.sendMessage('D2')
         return result.split(',')
 
     def getLastUV(self):
-        '''Fetches (from the device) the last CIE 1976 u,v coords
+        """Fetches (from the device) the last CIE 1976 u,v coords
 
         :returns:
             list: status, units, Photometric brightness, u, v
 
         :see also:
-            :func:`~PR655.measure` automatically populates pr655.lastUV with [u,v]
-        '''
+            :func:`~PR655.measure` automatically populates pr655.lastUV
+            with [u,v]
+        """
         result = self.sendMessage('D3')
         return result.split(',')
 
     def getLastXY(self):
-        '''Fetches (from the device) the last CIE 1931 x,y coords
+        """Fetches (from the device) the last CIE 1931 x,y coords
 
 
         :returns:
             list: status, units, Photometric brightness, x,y
 
         :see also:
-            :func:`~PR655.measure` automatically populates pr655.lastXY with [x,y]
-        '''
+            :func:`~PR655.measure` automatically populates pr655.lastXY
+            with [x,y]
+        """
         result = self.sendMessage('D1')
         return result.split(',')
 
     def getLastSpectrum(self, parse=True):
-        """This retrieves the spectrum from the last call to :func:`~PR655.measure`
+        """This retrieves the spectrum from the last call to
+        :func:`~PR655.measure`
 
         If `parse=True` (default):
 
@@ -452,14 +462,17 @@ class PR655(PR650):
             return raw
 
     def getLastColorTemp(self):
-        '''Fetches (from the device) the color temperature (K) of the last measurement
+        """Fetches (from the device) the color temperature (K) of the
+        last measurement
 
         :returns:
-            list: status, units, exponent, correlated color temp (Kelvins), CIE 1960 deviation
+            list: status, units, exponent, correlated color temp (Kelvins),
+            CIE 1960 deviation
 
         :see also:
-            :func:`~PR655.measure` automatically populates pr655.lastColorTemp with the color temp in Kelvins
-        '''
+            :func:`~PR655.measure` automatically populates
+            pr655.lastColorTemp with the color temp in Kelvins
+        """
         result = self.sendMessage('D4')
         return result.split(',')
 
@@ -520,7 +533,6 @@ class PR655(PR650):
                 exec('power[0].append(%s)' % thisR)
                 exec('power[1].append(%s)' % thisG)
                 exec('power[2].append(%s)' % thisB)
-                #if progDlg: progDlg.Update(n)
         else:
             power = []
             for n, point in enumerate(rawStr):
@@ -528,8 +540,6 @@ class PR655(PR650):
                 thisNm, thisPower = point.split(',')
                 nm.append(float(thisNm))
                 power.append(float(thisPower.replace('\r\n', '')))
-#            if progDlg: progDlg.Update(n)
-        #if progDlg: progDlg.Destroy()
         return numpy.asarray(nm), numpy.asarray(power)
 
 
