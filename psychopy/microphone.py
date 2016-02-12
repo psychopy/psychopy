@@ -17,8 +17,8 @@ import numpy as np
 from scipy.io import wavfile
 from psychopy import core, logging, sound, web, prefs
 from psychopy.constants import NOT_STARTED, PLAYING, PSYCHOPY_USERAGENT
-# import pyo is done within switchOn to better encapsulate it, because it can be very slow
-# idea: don't want to delay up to 3 sec when importing microphone
+# import pyo is done within switchOn to better encapsulate it, can be very
+# slow and don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
 
 haveMic = False  # goes True in switchOn, if can import pyo
@@ -28,7 +28,7 @@ FLAC_PATH = None  # set on first call to _getFlacPath()
 
 
 class AudioCapture(object):
-    """Capture a sound sample from the default sound input, and save to a file.
+    """Capture sound sample from the default sound input, and save to a file.
 
         Untested whether you can have two recordings going on simultaneously.
 
@@ -72,21 +72,24 @@ class AudioCapture(object):
             self.stop()
         This class never handles blocking; AudioCapture has to do that.
 
-        Motivation: Doing pyo Record from within a function worked most of the time,
-        but failed catastrophically ~1% of time with a bus error. Seemed to be due to
-        a namespace scoping issue, which using globals seemed to fix; see pyo mailing
-        list, 7 April 2012. This draws heavily on Olivier Belanger's solution.
+        Motivation: Doing pyo Record from within a function worked most of
+        the time, but failed catastrophically ~1% of time with a bus error.
+        Seemed to be due to a namespace scoping issue, which using globals
+        seemed to fix; see pyo mailing list, 7 April 2012. This draws
+        heavily on Olivier Belanger's solution.
         """
 
         def __init__(self):
             self.running = False
 
-        def run(self, filename, sec, sampletype=0, buffering=16, chnl=0, chnls=2):
+        def run(self, filename, sec, sampletype=0, buffering=16,
+                chnl=0, chnls=2):
             self.running = True
             # chnl from pyo.pa_get_input_devices()
             inputter = pyo.Input(chnl=chnl, mul=1)
-            self.recorder = pyo.Record(inputter, filename, chnls=chnls, fileformat=0,
-                                       sampletype=sampletype, buffering=buffering)
+            self.recorder = pyo.Record(inputter, filename, chnls=chnls,
+                                       fileformat=0, sampletype=sampletype,
+                                       buffering=buffering)
             # handles recording offset
             pyo.Clean_objects(sec, self.recorder).start()
             threading.Timer(sec, self._stop).start()  # set running flag False
@@ -111,14 +114,16 @@ class AudioCapture(object):
                 If a saveDir is given, it will return 'saveDir/file'.
                 If no saveDir, then return abspath(file)
             sampletype : bit depth
-                pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
+                pyo recording option:
+                0=16 bits int, 1=24 bits int; 2=32 bits int
             buffering : pyo argument
             chnl : which audio input channel to record (default=0)
-            stereo : how many channels to record (default True, stereo; False = mono)
+            stereo : how many channels to record
+                (default True, stereo; False = mono)
         """
         if not haveMic:
-            raise MicrophoneError(
-                'Need to call microphone.switchOn() before AudioCapture or AdvancedCapture')
+            raise MicrophoneError('Need to call microphone.switchOn()'
+                                  ' before AudioCapture or AdvancedCapture')
         self.name = name
         self.saveDir = saveDir
         if filename:
@@ -154,28 +159,30 @@ class AudioCapture(object):
     def stop(self, log=True):
         """Interrupt a recording that is in progress; close & keep the file.
 
-        Ends the recording before the duration that was initially specified. The
-        same file name is retained, with the same onset time but a shorter duration.
+        Ends the recording before the duration that was initially specified.
+        The same file name is retained, with the same onset time but a
+        shorter duration.
 
         The same recording cannot be resumed after a stop (it is not a pause),
         but you can start a new one.
         """
         if not self.recorder.running:
             if log and self.autoLog:
-                logging.exp(
-                    '%s: Stop requested, but no record() in progress' % self.loggingId)
+                msg = '%s: Stop requested, but no record() in progress'
+                logging.exp(msg % self.loggingId)
             return
         self.duration = core.getTime() - self.onset  # new shorter duration
         self.recorder.stop()
         if log and self.autoLog:
-            logging.data('%s: Record stopped early, new duration %.3fs' %
-                         (self.loggingId, self.duration))
+            msg = '%s: Record stopped early, new duration %.3fs'
+            logging.data(msg % (self.loggingId, self.duration))
 
     def reset(self, log=True):
-        """Restores to fresh state, ready to record again"""
+        """Restores to fresh state, ready to record again
+        """
         if log and self.autoLog:
-            logging.exp('%s: resetting at %.3f' %
-                        (self.loggingId, core.getTime()))
+            msg = '%s: resetting at %.3f'
+            logging.exp(msg % (self.loggingId, core.getTime()))
         self.__init__(name=self.name, saveDir=self.saveDir)
 
     def record(self, sec, filename='', block=True):
@@ -190,12 +197,15 @@ class AudioCapture(object):
         while self.recorder.running:
             pass
         self.duration = float(sec)
-        self.onset = core.getTime()  # for duration estimation, high precision
-        self.fileOnset = core.getAbsTime()  # for log and filename, 1 sec precision
+        # for duration estimation, high precision:
+        self.onset = core.getTime()
+        # use time for unique log and filename, 1 sec precision
+        self.fileOnset = core.getAbsTime()
         ms = "%.3f" % (core.getTime() - int(core.getTime()))
         if log and self.autoLog:
-            logging.data('%s: Record: onset %d, capture %.3fs' %
-                         (self.loggingId, self.fileOnset, self.duration))
+            msg = '%s: Record: onset %d, capture %.3fs'
+            logging.data(msg % (self.loggingId, self.fileOnset,
+                                self.duration))
         if not filename:
             onsettime = '-%d' % self.fileOnset + ms[1:]
             self.savedFile = onsettime.join(
@@ -212,14 +222,15 @@ class AudioCapture(object):
         if block:
             core.wait(self.duration, 0)
             if log and self.autoLog:
-                logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
-                            (self.loggingId, core.getTime(), core.getTime() - t0))
+                msg = '%s: Record: stop. %.3f, capture %.3fs (est)'
+                logging.exp(msg % (self.loggingId, core.getTime(),
+                                   core.getTime() - t0))
             while self.recorder.running:
                 core.wait(.001, 0)
         else:
             if log and self.autoLog:
-                logging.exp('%s: Record: return immediately, no blocking' %
-                            (self.loggingId))
+                msg = '%s: Record: return immediately, no blocking'
+                logging.exp(msg % (self.loggingId))
 
         return self.savedFile
 
@@ -229,7 +240,8 @@ class AudioCapture(object):
 
         `loops` : number of extra repetitions; 0 = play once
 
-        `stop` : True = immediately stop ongoing playback (if there is one), and return
+        `stop` : True = immediately stop ongoing playback (if there is one),
+        and return
         """
         if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: Playback requested but no saved file' % self.loggingId
@@ -252,11 +264,14 @@ class AudioCapture(object):
 
         if log and self.autoLog:
             if loops:
-                logging.exp('%s: Playback: play %.3fs x %d (est) %s' % (
-                    self.loggingId, self.duration, loops + 1, self.savedFile))
+                msg = '%s: Playback: play %.3fs x %d (est) %s'
+                vals = (self.loggingId, self.duration, loops + 1,
+                        self.savedFile)
+                logging.exp(msg % vals)
             else:
-                logging.exp('%s: Playback: play %.3fs (est) %s' %
-                            (self.loggingId, self.duration, self.savedFile))
+                msg = '%s: Playback: play %.3fs (est) %s'
+                logging.exp(msg % (self.loggingId, self.duration,
+                                   self.savedFile))
 
     def resample(self, newRate=16000, keep=True, log=True):
         """Re-sample the saved file to a new rate, return the full path.
@@ -265,7 +280,8 @@ class AudioCapture(object):
 
         The default values for resample() are for Google-speech, keeping the
         original (presumably recorded at 48kHz) to archive.
-        A warning is generated if the new rate not an integer factor / multiple of the old rate.
+        A warning is generated if the new rate not an integer factor /
+        multiple of the old rate.
 
         To control anti-aliasing, use pyo.downsamp() or upsamp() directly.
         """
@@ -274,8 +290,8 @@ class AudioCapture(object):
             logging.error(msg)
             raise ValueError(msg)
         if newRate <= 0 or type(newRate) != int:
-            msg = '%s: Re-sample bad new rate = %s' % (
-                self.loggingId, repr(newRate))
+            msg = '%s: Re-sample bad new rate = %s' % (self.loggingId,
+                                                       repr(newRate))
             logging.error(msg)
             raise ValueError(msg)
 
@@ -287,29 +303,33 @@ class AudioCapture(object):
             ratio = float(newRate) / self.rate
             info = '-us%i' % ratio
         if ratio != int(ratio):
-            logging.warn(
-                '%s: old rate is not an integer factor of new rate' % self.loggingId)
+            msg = '%s: old rate is not an integer factor of new rate'
+            logging.warn(msg % self.loggingId)
         ratio = int(ratio)
         newFile = info.join(os.path.splitext(self.savedFile))
 
         # use pyo's downsamp or upsamp based on relative rates:
         if not ratio:
-            logging.warn('%s: Re-sample by %sx is undefined, skipping' %
-                         (self.loggingId, str(ratio)))
+            msg = '%s: Re-sample by %sx is undefined, skipping'
+            logging.warn(msg % (self.loggingId, str(ratio)))
         elif self.rate >= newRate:
             t0 = core.getTime()
             # default 128-sample anti-aliasing
             pyo.downsamp(self.savedFile, newFile, ratio)
             if log and self.autoLog:
-                logging.exp('%s: Down-sampled %sx in %.3fs to %s' %
-                            (self.loggingId, str(ratio), core.getTime() - t0, newFile))
+                msg = '%s: Down-sampled %sx in %.3fs to %s'
+                vals = (self.loggingId, str(ratio), core.getTime() - t0,
+                        newFile)
+                logging.exp(msg % vals)
         else:
             t0 = core.getTime()
             # default 128-sample anti-aliasing
             pyo.upsamp(self.savedFile, newFile, ratio)
             if log and self.autoLog:
-                logging.exp('%s: Up-sampled %sx in %.3fs to %s' %
-                            (self.loggingId, str(ratio), core.getTime() - t0, newFile))
+                msg = '%s: Up-sampled %sx in %.3fs to %s'
+                vals = (self.loggingId, str(ratio), core.getTime() - t0,
+                        newFile)
+                logging.exp(msg % vals)
 
         # clean-up:
         if not keep:
@@ -321,7 +341,7 @@ class AudioCapture(object):
 
 
 class AdvAudioCapture(AudioCapture):
-    """Class extends AudioCapture, plays a marker sound as a "start" indicator.
+    """Class extends AudioCapture, plays marker sound as a "start" indicator.
 
     Has method for retrieving the marker onset time from the file, to allow
     calculation of vocal RT (or other sound-based RT).
@@ -331,8 +351,9 @@ class AdvAudioCapture(AudioCapture):
 
     def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
                  buffering=16, chnl=0, stereo=True, autoLog=True):
-        AudioCapture.__init__(self, name=name, filename=filename, saveDir=saveDir,
-                              sampletype=sampletype, buffering=buffering, chnl=chnl, stereo=stereo)
+        AudioCapture.__init__(self, name=name, filename=filename,
+                              saveDir=saveDir, sampletype=sampletype,
+                              buffering=buffering, chnl=chnl, stereo=stereo)
         self.setMarker()
         self.autoLog = autoLog
 
@@ -342,26 +363,29 @@ class AdvAudioCapture(AudioCapture):
         recording indicates when this method returned, to enable you to sync
         a known recording onset with other events.
         """
-        self.playMarker()  # effectively the same timing if play after starting the record
+        # get effectively the same timing if play after starting the record
+        self.playMarker()
         self.filename = self._record(sec, filename=filename, block=block)
         return self.filename
 
     def setFile(self, filename):
-        """Sets the name of the file to work with, e.g., for getting onset time.
+        """Sets the name of the file to work with.
         """
         self.filename = filename
 
     def setMarker(self, tone=19000, secs=0.015, volume=0.03, log=True):
-        """Sets the onset marker, where `tone` is either in hz or a custom sound.
+        """Sets the onset marker, where `tone` is either in hz or a custom
+        sound.
 
-        The default tone (19000 Hz) is recommended for auto-detection, as being
-        easier to isolate from speech sounds (and so reliable to detect). The default duration
-        and volume are appropriate for a quiet setting such as a lab testing
-        room. A louder volume, longer duration, or both may give better results
-        when recording loud sounds or in noisy environments, and will be
-        auto-detected just fine (even more easily). If the hardware microphone
-        in use is not physically near the speaker hardware, a louder volume is
-        likely to be required.
+        The default tone (19000 Hz) is recommended for auto-detection,
+        as being easier to isolate from speech sounds (and so reliable
+        to detect). The default duration and volume are appropriate for
+        a quiet setting such as a lab testing room. A louder volume, longer
+        duration, or both may give better results when recording loud sounds
+        or in noisy environments, and will be auto-detected just fine
+        (even more easily). If the hardware microphone in use is not
+        physically near the speaker hardware, a louder volume is likely
+        to be required.
 
         Custom sounds cannot be auto-detected, but are supported anyway for
         presentation purposes. E.g., a recording of someone saying "go" or
@@ -371,20 +395,21 @@ class AdvAudioCapture(AudioCapture):
             self.marker_hz = 0
             self.marker = tone
             if log and self.autoLog:
-                logging.exp(
-                    'custom sound set as marker; getMarkerOnset() will not be able to auto-detect onset')
+                logging.exp('custom sound set as marker; getMarkerOnset()'
+                            ' will not be able to auto-detect onset')
         else:
             self.marker_hz = float(tone)
             sampleRate = sound.pyoSndServer.getSamplingRate()
             if sampleRate < 2 * self.marker_hz:
                 # NyquistError
-                logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." %
-                                (int(sampleRate), self.marker_hz))
+                msg = ("Recording rate (%i Hz) too slow for %i Hz-based"
+                       " marker detection.")
+                logging.warning(msg % (int(sampleRate), self.marker_hz))
             if log and self.autoLog:
-                logging.exp(
-                    'frequency of recording onset marker: %.1f' % self.marker_hz)
-            self.marker = sound.Sound(
-                self.marker_hz, secs, volume=volume, name=self.name + '.marker_tone')
+                msg = 'frequency of recording onset marker: %.1f'
+                logging.exp(msg % self.marker_hz)
+            self.marker = sound.Sound(self.marker_hz, secs, volume=volume,
+                                      name=self.name + '.marker_tone')
 
     def playMarker(self):
         """Plays the current marker sound. This is automatically called at the
@@ -396,17 +421,19 @@ class AdvAudioCapture(AudioCapture):
         """Returns (hz, duration, volume) of the marker sound.
         Custom markers always return 0 hz (regardless of the sound).
         """
-        return self.marker_hz, self.marker.getDuration(), self.marker.getVolume()
+        dur, vol = self.marker.getDuration(), self.marker.getVolume()
+        return self.marker_hz, dur, vol
 
     def getMarkerOnset(self, chunk=128, secs=0.5, filename=''):
-        """Return (onset, offset) time of the first marker within the first `secs` of the saved recording.
+        """Return (onset, offset) time of the first marker within the
+        first `secs` of the saved recording.
 
-        Has approx ~1.33ms resolution at 48000Hz, chunk=64. Larger chunks can
-        speed up processing times, at a sacrifice of some resolution, e.g., to
-        pre-process long recordings with multiple markers.
+        Has approx ~1.33ms resolution at 48000Hz, chunk=64. Larger chunks
+        can speed up processing times, at a sacrifice of some resolution,
+        e.g., to pre-process long recordings with multiple markers.
 
-        If given a filename, it will first set that file as the one to work with,
-        and then try to detect the onset marker.
+        If given a filename, it will first set that file as the one to
+        work with, and then try to detect the onset marker.
         """
         while self.recorder.running:
             core.wait(0.10, 0)
@@ -446,11 +473,13 @@ class AdvAudioCapture(AudioCapture):
     def uncompress(self, keep=False):
         """Uncompress from FLAC to .wav format.
         """
-        if os.path.isfile(self.savedFile) and self.savedFile.endswith('.flac'):
+        isFlac = self.savedFile.endswith('.flac')
+        if os.path.isfile(self.savedFile) and isFlac:
             self.savedFile = flac2wav(self.savedFile, keep=keep)
 
 
-def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000, marker_duration=0.015):
+def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000,
+                   marker_duration=0.015):
     """Returns marker sound (onset, offset) in sec, as read from filename.
     """
     def thresh2SD(data, mult=2, thr=None):
@@ -477,8 +506,8 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000, marker_durati
         raise ValueError("Custom marker sounds cannot be auto-detected.")
     if sampleRate < 2 * marker_hz:
         # NyquistError
-        raise ValueError(
-            "Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), marker_hz))
+        msg = "Recording rate (%i Hz) too slow for %i Hz-based marker detection."
+        raise ValueError(msg % (int(sampleRate), marker_hz))
 
     # extract onset:
     chunk = max(16, chunk)  # trades-off against size of bandpass filter
@@ -494,12 +523,13 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000, marker_durati
     onsetSecs = onsetChunks * chunk / sampleRate  # in secs
 
     # extract offset:
+    ratio = chunk / sampleRate
     start = onsetChunks - 4
-    stop = int(onsetChunks + marker_duration * sampleRate / chunk) + 4
+    stop = int(onsetChunks + marker_duration / ratio) + 4
     backwards = dftProfile[max(start, 0):min(stop, len(dftProfile))]
     offChunks, _junk = thresh2SD(backwards[::-1], thr=thr)
-    offSecs = (start + len(backwards) - offChunks) * \
-        chunk / sampleRate  # in secs
+    offSecs = (start + len(backwards) - offChunks) * ratio
+         # in secs
 
     return onsetSecs, offSecs
 
@@ -515,11 +545,11 @@ def readWavFile(filename):
         try:
             sampleRate, data = wavfile.read(filename)
         except Exception:
-            raise SoundFileError(
-                'Failed to open wav sound file "%s"' % filename)
+            msg = 'Failed to open wav sound file "%s"'
+            raise SoundFileError(msg % filename)
     if data.dtype != 'int16':
-        raise AttributeError(
-            'expected `int16` data in .wav file %s' % filename)
+        msg = 'expected `int16` data in .wav file %s'
+        raise AttributeError(msg % filename)
     if len(data.shape) == 2 and data.shape[1] == 2:
         data = data.transpose()
         data = data[0]  # left channel only? depends on how the file was made
@@ -557,10 +587,12 @@ def getDft(data, sampleRate=None, wantPhase=False):
     """Compute and return magnitudes of numpy.fft.fft() of the data.
 
     If given a sample rate (samples/sec), will return (magn, freq).
-    If wantPhase is True, phase in radians is also returned (magn, freq, phase).
-    data should have power-of-2 samples, or will be truncated.
+    If wantPhase is True, phase in radians is also returned
+    (magn, freq, phase). data should have power-of-2 samples,
+    or will be truncated.
     """
-    # www.vibrationdata.com/Shock_and_Vibration_Signal_Analysis.pdf and .../python/fft.py
+    # www.vibrationdata.com/Shock_and_Vibration_Signal_Analysis.pdf
+    # and .../python/fft.py
     # truncate to power-of-2 slice; zero-padding to round up is ok too
     samples = 2 ** int(np.log2(len(data)))
     samplesHalf = samples // 2
@@ -602,14 +634,16 @@ def getRMSBins(data, chunk=64):
 def getRMS(data):
     """Compute and return the audio power ("loudness").
 
-    Uses numpy.std() as RMS. std() is same as RMS if the mean is 0, and .wav data should have a mean of 0.
+    Uses numpy.std() as RMS. std() is same as RMS if the mean is 0,
+    and .wav data should have a mean of 0.
     Returns an array if given stereo data (RMS computed within-channel).
 
     `data` can be an array (1D, 2D) or filename; .wav format only.
     data from .wav files will be normalized to -1..+1 before RMS is computed.
     """
     def _rms(data):
-        """Audio loudness / power, as rms; ~2x faster than std()"""
+        """Audio loudness / power, as rms; ~2x faster than std()
+        """
         if len(data.shape) > 1:
             return np.std(data, axis=1)  # np.sqrt(np.mean(data ** 2, axis=1))
         return np.std(data)  # np.sqrt(np.mean(data ** 2))
@@ -987,7 +1021,8 @@ def _getFlacPath(path=None):
             if se:
                 raise MicrophoneError
         except Exception:
-            msg = "flac not installed (or wrong path in prefs); download from https://xiph.org/flac/download.html"
+            msg = ("flac not installed (or wrong path in prefs); "
+                   "download from https://xiph.org/flac/download.html")
             logging.error(msg)
             raise MicrophoneError(msg)
         logging.info('Using ' + version)
@@ -1034,7 +1069,8 @@ def wav2flac(path, keep=True, level=5):
 
     `keep` to retain the original .wav file(s), default `True`.
 
-    `level` is compression level: 0 is fastest but larger, 8 is slightly smaller but much slower.
+    `level` is compression level: 0 is fastest but larger,
+        8 is slightly smaller but much slower.
     """
     flac_path = _getFlacPath()
     wav_files = []
@@ -1068,8 +1104,9 @@ def wav2flac(path, keep=True, level=5):
 
 
 def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
-    """You need to switch on the microphone before use, which can take several seconds.
-    The only time you can specify the sample rate (in Hz) is during switchOn().
+    """You need to switch on the microphone before use, which can take
+    several seconds. The only time you can specify the sample rate (in Hz)
+    is during switchOn().
 
     Considerations on the default sample rate 48kHz::
 
@@ -1080,11 +1117,12 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
         Google speech API: 16,000 or 8,000 only
         Nyquist frequency: twice the highest rate, good to oversample a bit
 
-    pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s (uses integer steps sizes)
-    So recording at 48kHz will generate high-quality archival data, and permit easy downsampling.
+    pyo's downsamp() function can reduce 48,000 to 16,000 in about 0.02s
+    (uses integer steps sizes). So recording at 48kHz will generate
+    high-quality archival data, and permit easy downsampling.
 
-    outputDevice, bufferSize: set these parameters on the pyoSndServer before booting;
-        None means use pyo's default values
+    outputDevice, bufferSize: set these parameters on the pyoSndServer
+        before booting; None means use pyo's default values
     """
     # imports pyo, creates sound.pyoSndServer using sound.initPyo() if not yet
     # created
@@ -1095,14 +1133,15 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
         global haveMic
         haveMic = True
     except ImportError:  # pragma: no cover
-        msg = 'Microphone class not available, needs pyo; see http://code.google.com/p/pyo/'
+        msg = ('Microphone class not available, needs pyo; '
+               'see http://code.google.com/p/pyo/')
         logging.error(msg)
         raise ImportError(msg)
     if pyo.serverCreated():
         sound.pyoSndServer.setSamplingRate(sampleRate)
     else:
-        # sound.initPyo() will create pyoSndServer. We want there only ever to
-        # be one server
+        # sound.initPyo() will create pyoSndServer. We want there only
+        # ever to be one server
         # will automatically use duplex=1 and stereo if poss
         sound.initPyo(rate=sampleRate)
     if outputDevice:
@@ -1114,6 +1153,6 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
 
 
 def switchOff():
-    """(No longer needed as of v1.76.00; retained for backwards compatibility.)
+    """(Not needed as of v1.76.00; kept for backwards compatibility only.)
     """
     logging.info("deprecated:  microphone.switchOff() is no longer needed.")

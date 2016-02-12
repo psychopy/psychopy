@@ -9,8 +9,8 @@ importance: ERROR, WARNING, DATA, EXP, INFO and DEBUG.
 When setting the level for a particular log target (e.g. LogFile)
 the  user can set the minimum level that is required
 for messages to enter the log. For example, setting a level of INFO will
-result in INFO, EXP, DATA, WARNING and ERROR messages to be recorded but not DEBUG
-messages.
+result in INFO, EXP, DATA, WARNING and ERROR messages to be recorded but not
+DEBUG messages.
 
 By default, PsychoPy will record messages of WARNING level and above to
 the console. The user can silence that by setting it to receive only CRITICAL
@@ -25,8 +25,9 @@ messages, (which PsychoPy doesn't use) using the commands::
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Much of the code below is based conceptually, if not syntactically, on the
-# python logging module but it's simpler (no threading) and maintaining a stack
-# of log entries for later writing (don't want files written while drawing)
+# python logging module but it's simpler (no threading) and maintaining a
+# stack of log entries for later writing (don't want files written while
+# drawing)
 
 from __future__ import absolute_import
 
@@ -65,13 +66,11 @@ _levelNames = {
     'WARNING': WARNING,
     'INFO': INFO,
     'DEBUG': DEBUG,
-    'NOTSET': NOTSET,
-}
+    'NOTSET': NOTSET}
 
 
 def getLevel(level):
-    """
-    Return the textual representation of logging level 'level'.
+    """Return the textual representation of logging level 'level'.
 
     If the level is one of the predefined levels (CRITICAL, ERROR, WARNING,
     INFO, DEBUG) then you get the corresponding string. If you have
@@ -83,12 +82,11 @@ def getLevel(level):
 
     Otherwise, the string "Level %s" % level is returned.
     """
-    return _levelNames.get(level, ("Level %s" % level))
+    return _levelNames.get(level, "Level %s" % level)
 
 
 def addLevel(level, levelName):
-    """
-    Associate 'levelName' with 'level'.
+    """Associate 'levelName' with 'level'.
 
     This is used when converting levels to text during message formatting.
     """
@@ -101,10 +99,11 @@ defaultClock = clock.monotonicClock
 
 
 def setDefaultClock(clock):
-    """Set the default clock to be used to reference all logging times. Must be a
-        :class:`psychopy.core.Clock` object. Beware that if you reset the clock during
-        the experiment then the resets will be reflected here. That might be useful
-        if you want your logs to be reset on each trial, but probably not.
+    """Set the default clock to be used to reference all logging times.
+    Must be a :class:`psychopy.core.Clock` object. Beware that if you
+    reset the clock during the experiment then the resets will be
+    reflected here. That might be useful if you want your logs to be
+    reset on each trial, but probably not.
     """
     global defaultClock
     defaultClock = clock
@@ -126,7 +125,8 @@ class LogFile(object):
     """A text stream to receive inputs from the logging system
     """
 
-    def __init__(self, f=None, level=WARNING, filemode='a', logger=None, encoding='utf8'):
+    def __init__(self, f=None, level=WARNING, filemode='a', logger=None,
+                 encoding='utf8'):
         """Create a log file as a target for logged entries of a given level
 
         :parameters:
@@ -134,11 +134,12 @@ class LogFile(object):
             - f:
                 this could be a string to a path, that will be created if it
                 doesn't exist. Alternatively this could be a file object,
-                sys.stdout or any object that supports .write() and .flush() methods
+                sys.stdout or any object that supports .write() and .flush()
+                methods
 
             - level:
-                The minimum level of importance that a message must have to be
-                logged by this target.
+                The minimum level of importance that a message must have
+                to be logged by this target.
 
             - mode: 'a', 'w'
                 Append or overwrite existing log file
@@ -159,10 +160,12 @@ class LogFile(object):
         # instance would be gc'ed before _Logger.__del__
         # was complete (running .flush()).
         # This was causing following error when script closed:
-        #     Exception AttributeError: "'NoneType' object has no attribute 'stdout'" in
-        #     <bound method _Logger.__del__ of <psychopy.logging._Logger instance at 0x102e0d878>> ignored
-        # So instead free logger ref in __del__ of this class, so we know any log backlog can be flushed
-        # before it is gc'ed.
+        #     Exception AttributeError: "'NoneType' object has no
+        #       attribute 'stdout'" in
+        #     <bound method _Logger.__del__ of
+        #       <psychopy.logging._Logger instance at 0x102e0d878>> ignored
+        # So instead free logger ref in __del__ of this class,
+        # so we know any log backlog can be flushed before it is gc'ed.
         self.logger = logger
 
         self.logger.addTarget(self)
@@ -255,7 +258,7 @@ class _Logger(object):
         """
         # loop through targets then entries in toFlush
         # so that stream.flush can be called just once
-        formatted = {}  # keep a dict of formatted messages - so only do the formatting once
+        formatted = {}  # keep a dict - so only do the formatting once
         for target in self.targets:
             for thisEntry in self.toFlush:
                 if thisEntry.level >= target.level:
@@ -281,7 +284,8 @@ def flush(logger=root):
 
 def critical(msg, t=None, obj=None):
     """log.critical(message)
-    Send the message to any receiver of logging info (e.g. a LogFile) of level `log.CRITICAL` or higher
+    Send the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.CRITICAL` or higher
     """
     root.log(msg, level=CRITICAL, t=t, obj=obj)
 fatal = critical
@@ -290,7 +294,8 @@ fatal = critical
 def error(msg, t=None, obj=None):
     """log.error(message)
 
-    Send the message to any receiver of logging info (e.g. a LogFile) of level `log.ERROR` or higher
+    Send the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.ERROR` or higher
     """
     root.log(msg, level=ERROR, t=t, obj=obj)
 
@@ -298,7 +303,8 @@ def error(msg, t=None, obj=None):
 def warning(msg, t=None, obj=None):
     """log.warning(message)
 
-    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.WARNING` or higher
+    Sends the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.WARNING` or higher
     """
     root.log(msg, level=WARNING, t=t, obj=obj)
 warn = warning
@@ -310,18 +316,21 @@ def data(msg, t=None, obj=None):
     usage::
         log.data(message)
 
-    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.DATA` or higher
+    Sends the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.DATA` or higher
     """
     root.log(msg, level=DATA, t=t, obj=obj)
 
 
 def exp(msg, t=None, obj=None):
-    """Log a message about the experiment (e.g. a new trial, or end of a stimulus)
+    """Log a message about the experiment
+    (e.g. a new trial, or end of a stimulus)
 
     usage::
         log.exp(message)
 
-    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.EXP` or higher
+    Sends the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.EXP` or higher
     """
     root.log(msg, level=EXP, t=t, obj=obj)
 
@@ -332,18 +341,21 @@ def info(msg, t=None, obj=None):
     usage::
         log.info(message)
 
-    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.INFO` or higher
+    Sends the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.INFO` or higher
     """
     root.log(msg, level=INFO, t=t, obj=obj)
 
 
 def debug(msg, t=None, obj=None):
-    """Log a debugging message (not likely to be wanted once experiment is finalised)
+    """Log a debugging message (not likely to be wanted once
+    experiment is finalised)
 
     usage::
         log.debug(message)
 
-    Sends the message to any receiver of logging info (e.g. a LogFile) of level `log.DEBUG` or higher
+    Sends the message to any receiver of logging info (e.g. a LogFile)
+    of level `log.DEBUG` or higher
     """
     root.log(msg, level=DEBUG, t=t, obj=obj)
 

@@ -69,7 +69,8 @@ def haveInternetAccess(forceCheck=False):
                     urllib.request.urlopen(site, timeout=wait)
                     haveInternet = True  # cache
                     return True  # one success is good enough
-                except Exception:  # urllib.error.URLError:  # socket.timeout() was happening to some people some of the time
+                except Exception:  # urllib.error.URLError:
+                    #  socket.timeout() can also happen
                     pass
         else:
             haveInternet = False
@@ -90,7 +91,8 @@ def tryProxy(handler, URL=None):
     """
     Test whether we can connect to a URL with the current proxy settings.
 
-    `handler` can be typically `web.proxies`, if `web.setupProxy()` has been run.
+    `handler` can be typically `web.proxies`, if `web.setupProxy()` has been
+    run.
 
     :Returns:
 
@@ -124,19 +126,19 @@ def getPacFiles():
             import winreg  # used from python 2.7 onwards
         net = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings"
-        )
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings")
         nSubs, nVals, lastMod = winreg.QueryInfoKey(net)
         subkeys = {}
         for i in range(nVals):
             thisName, thisVal, thisType = winreg.EnumValue(net, i)
             subkeys[thisName] = thisVal
-        if 'AutoConfigURL' in subkeys.keys() and len(subkeys['AutoConfigURL']) > 0:
+        if ('AutoConfigURL' in subkeys.keys() and
+                len(subkeys['AutoConfigURL']) > 0):
             pacFiles.append(subkeys['AutoConfigURL'])
     elif sys.platform == 'darwin':
         import plistlib
-        sysPrefs = plistlib.readPlist(
-            '/Library/Preferences/SystemConfiguration/preferences.plist')
+        sysPrefs = plistlib.readPlist('/Library/Preferences/System'
+                                      'Configuration/preferences.plist')
         networks = sysPrefs['NetworkServices']
         # loop through each possible network (e.g. Ethernet, Airport...)
         for network in networks.items():
@@ -147,8 +149,8 @@ def getPacFiles():
 
 
 def getWpadFiles():
-    """
-    Return possible pac file locations from the standard set of .wpad locations
+    """Return possible pac file locations from the standard set of .wpad
+    locations
 
     NB this method only uses the DNS method to search, not DHCP queries, and
     so may not find all possible .pac locations.
@@ -156,7 +158,7 @@ def getWpadFiles():
     See http://en.wikipedia.org/wiki/Web_Proxy_Autodiscovery_Protocol
     """
     # pacURLs.append("http://webproxy."+domain+"/wpad.dat")
-    # for me finds a file that starts: function FindProxyForURL(url,host) { ... }
+    # for me finds a file that starts: function FindProxyForURL(url,host)
     # dynamcially chooses a proxy based on the requested url and host; how to
     # parse?
 
@@ -175,8 +177,9 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
 
         - pacURLs : list
 
-            List of locations (URLs) to look for a pac file. This might come from
-            :func:`~psychopy.web.getPacFiles` or :func:`~psychopy.web.getWpadFiles`.
+            List of locations (URLs) to look for a pac file. This might
+            come from :func:`~psychopy.web.getPacFiles` or
+            :func:`~psychopy.web.getWpadFiles`.
 
         - URL : string
 
@@ -184,9 +187,10 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
 
     :Returns:
 
-        - A urllib.request.ProxyHandler if successful (and this will have been added as
-        an opener to the urllib)
-        - False if no proxy was found in the files that allowed successful connection
+        - A urllib.request.ProxyHandler if successful (and this will have
+          been added as an opener to the urllib)
+        - False if no proxy was found in the files that allowed successful
+          connection
     """
 
     if pacURLs == None:  # if given none try to find some
@@ -196,8 +200,8 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
         # for each file search for valid urls and test them as proxies
     for thisPacURL in pacURLs:
         if log:
-            logging.debug(
-                'proxyFromPacFiles is searching file:\n  %s' % thisPacURL)
+            msg = 'proxyFromPacFiles is searching file:\n  %s'
+            logging.debug(msg % thisPacURL)
         try:
             response = urllib.request.urlopen(thisPacURL, timeout=2)
         except urllib.error.URLError:
@@ -207,16 +211,16 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
         pacStr = response.read()
         # find the candidate PROXY strings (valid URLS), numeric and
         # non-numeric:
-        possProxies = re.findall(
-            r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]", pacStr + '\n')
+        pattern = r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]"
+        possProxies = re.findall(pattern, pacStr + '\n')
         for thisPoss in possProxies:
             proxUrl = 'http://' + thisPoss
             handler = urllib.request.ProxyHandler({'http': proxUrl})
             if tryProxy(handler) == True:
                 if log:
                     logging.debug('successfully loaded: %s' % proxUrl)
-                urllib.request.install_opener(
-                    urllib.request.build_opener(handler))
+                opener = urllib.request.build_opener(handler)
+                urllib.request.install_opener(opener)
                 return handler
     return False
 
@@ -224,14 +228,17 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
 def setupProxy(log=True):
     """Set up the urllib proxy if possible.
 
-     The function will use the following methods in order to try and determine proxies:
-        #. standard urllib.request.urlopen (which will use any statically-defined http-proxy settings)
+     The function will use the following methods in order to try and
+     determine proxies:
+        #. standard urllib.request.urlopen (which will use any
+           statically-defined http-proxy settings)
         #. previous stored proxy address (in prefs)
         #. proxy.pac files if these have been added to system settings
         #. auto-detect proxy settings (WPAD technology)
 
      .. note:
-        This can take time, as each failed attempt to set up a proxy involves trying to load a URL and timing out. Best
+        This can take time, as each failed attempt to set up a proxy
+        involves trying to load a URL and timing out. Best
         to do in a separate thread.
 
     :Returns:
@@ -243,22 +250,23 @@ def setupProxy(log=True):
     proxies = urllib.request.ProxyHandler(urllib.request.getproxies())
     if tryProxy(proxies) is True:
         if log:
-            logging.debug(
-                "Using standard urllib (static proxy or no proxy required)")
+            logging.debug("Using standard urllib (static proxy or "
+                          "no proxy required)")
         # this will now be used globally for ALL urllib opening
         urllib.request.install_opener(urllib.request.build_opener(proxies))
         return 1
 
     # try doing what we did last time
     if len(prefs.connections['proxy']) > 0:
-        proxies = urllib.request.ProxyHandler(
-            {'http': prefs.connections['proxy']})
+        proxConnPref = {'http': prefs.connections['proxy']}
+        proxies = urllib.request.ProxyHandler(proxConnPref)
         if tryProxy(proxies) is True:
             if log:
-                logging.debug('Using %s (from prefs)' %
-                              (prefs.connections['proxy']))
+                msg = 'Using %s (from prefs)'
+                logging.debug(msg % prefs.connections['proxy'])
             # this will now be used globally for ALL urllib opening
-            urllib.request.install_opener(urllib.request.build_opener(proxies))
+            opener = urllib.request.build_opener(proxies)
+            urllib.request.install_opener(opener)
             return 1
         else:
             if log:
@@ -269,25 +277,29 @@ def setupProxy(log=True):
     if log:
         logging.debug("Found proxy PAC files: %s" % pacURLs)
     proxies = proxyFromPacFiles(pacURLs)  # installs opener, if successful
-    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http']) > 0:
+    if (proxies and
+            hasattr(proxies, 'proxies') and
+            len(proxies.proxies['http']) > 0):
         # save that proxy for future
         prefs.connections['proxy'] = proxies.proxies['http']
         prefs.saveUserPrefs()
         if log:
-            logging.debug('Using %s (from proxy PAC file)' %
-                          (prefs.connections['proxy']))
+            msg = 'Using %s (from proxy PAC file)'
+            logging.debug(msg % prefs.connections['proxy'])
         return 1
 
     # try finding/using 'auto-detect proxy'
     pacURLs = getWpadFiles()
     proxies = proxyFromPacFiles(pacURLs)  # installs opener, if successful
-    if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http']) > 0:
+    if (proxies and
+            hasattr(proxies, 'proxies') and
+            len(proxies.proxies['http']) > 0):
         # save that proxy for future
         prefs.connections['proxy'] = proxies.proxies['http']
         prefs.saveUserPrefs()
         if log:
-            logging.debug('Using %s (from proxy auto-detect)' %
-                          (prefs.connections['proxy']))
+            msg = 'Using %s (from proxy auto-detect)'
+            logging.debug(msg % prefs.connections['proxy'])
         return 1
 
     proxies = 0
@@ -297,22 +309,27 @@ def setupProxy(log=True):
 # (r1) ###
 
 
-def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIMEOUT,
-                    userAgent=PSYCHOPY_USERAGENT, basicAuth=None, https=False):
-    """
-    Post fields and files to an http host as multipart/form-data.
+def _post_multipart(host, selector, fields, files,
+                    encoding='utf-8', timeout=TIMEOUT,
+                    userAgent=PSYCHOPY_USERAGENT,
+                    basicAuth=None, https=False):
+    """Post fields and files to an http host as multipart/form-data.
     fields is a sequence of (name, value) elements for regular form fields.
-    file is a 1-item sequence of (name, filename, value) elements for data to be uploaded as files
+    file is a 1-item sequence of (name, filename, value) elements for data
+    to be uploaded as files
+
     Return the server's response page.
     """
     # as updated for HTTPConnection()
-    # as rewritten for any encoding http://www.nerdwho.com/blog/57/enviando-arquivos-e-dados-ao-mesmo-tempo-via-http-post-usando-utf-8/
+    # as rewritten for any encoding http://www.nerdwho.com/blog/57/
+    #     enviando-arquivos-e-dados-ao-mesmo-tempo-via-http-post-usando-utf-8/
     # JRG: added timeout, userAgent, basic auth, https
 
     def _encode_multipart_formdata(fields, files, encoding='utf-8'):
-        """
-        fields is a sequence of (name, value) elements for regular form fields.
-        files is a sequence of (name, filename, value) elements for data to be uploaded as files
+        """fields is a sequence of (name, value) elements for regular
+        form fields. files is a sequence of (name, filename, value)
+        elements for data to be uploaded as files
+
         Return (content_type, body) ready for httplib.HTTP instance
         """
         BOUNDARY = u'----------ThIs_Is_tHe_bouNdaRY_$'
@@ -329,10 +346,10 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
 
         for (key, filename, value) in files:
             L.append(u'--' + BOUNDARY)
-            L.append(
-                u'Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
-            L.append(u'Content-Type: %s;charset=%s' %
-                     (_get_content_type(filename), encoding))
+            msg = u'Content-Disposition: form-data; name="%s"; filename="%s"'
+            L.append(msg % (key, filename))
+            msg = u'Content-Type: %s;charset=%s'
+            L.append(msg % (_get_content_type(filename), encoding))
             L.append(u'Content-Transfer-Encoding: base64')
             L.append(u'')
             L.append(base64.b64encode(value).decode())
@@ -367,54 +384,61 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
     try:
         conn.request(u'POST', selector, body, headers)
     except Exception:  # ? don't seem to get a proper exception
-        return -1, 'connection error (possible timeout after %ss)' % str(timeout), 'timeout or error'
+        msg = 'connection error (possible timeout after %ss)'
+        return -1, msg % str(timeout), 'timeout or error'
 
     try:
         result = conn.getresponse()
     except Exception:
-        return -1, 'connection error (can be "socket.error: [Errno 54] Connection reset by peer")'
+        return -1, ('connection error (can be "socket.error: '
+                    '[Errno 54] Connection reset by peer")')
     return result.status, result.reason, result.read()
 
     # end of http://code.activestate.com/recipes/146306/ }}}
 
 
-def upload(selector, filename, basicAuth=None, host=None, https=False, log=True):
-    """DEPRECATED: Upload a local file over the internet to a configured http server.
+def upload(selector, filename, basicAuth=None, host=None,
+           https=False, log=True):
+    """DEPRECATED: Upload a local file over the internet to a
+    configured http server.
     Use the requests package instead. See http://www.python-requests.org/
 
-    This method handshakes with a php script on a remote server to transfer a local
-    file to another machine via http (using POST).
+    This method handshakes with a php script on a remote server to transfer
+    a local file to another machine via http (using POST).
 
-    Returns "success" plus a sha256 digest of the file on the server and a byte count.
-    If the upload was not successful, an error code is returned (eg, "too_large" if the
-    file size exceeds the limit specified server-side in up.php, or "no_file" if there
-    was no POST attachment).
+    Returns "success" plus a sha256 digest of the file on the server and
+    a byte count. If the upload was not successful, an error code is
+    returned (eg, "too_large" if the file size exceeds the limit specified
+    server-side in up.php, or "no_file" if there was no POST attachment).
 
     .. note::
-        The server that receives the files needs to be configured before uploading
-        will work. php files and notes for a sys-admin are included in `psychopy/contrib/http/`.
-        In particular, the php script `up.php` needs to be copied to the server's
-        web-space, with appropriate permissions and directories, including apache
-        basic auth and https (if desired). The maximum size for an upload can be configured within up.php
+        The server that receives the files needs to be configured before
+        uploading will work. php files and notes for a sys-admin are
+        included in `psychopy/contrib/http/`. In particular, the php script
+        `up.php` needs to be copied to the server's web-space, with
+        appropriate permissions and directories, including apache basic
+        auth and https (if desired). The maximum size for an upload can
+        be configured within up.php
 
     **Parameters:**
 
         `selector` : (required, string)
-            a standard URL of the form `http://host/path/to/up.php`, e.g., `http://upload.psychopy.org/test/up.php`
+            a standard URL of the form `http://host/path/to/up.php`,
+            e.g., `http://upload.psychopy.org/test/up.php`
 
             .. note::
                 Limited https support is provided (see below).
 
         `filename` : (required, string)
-            the path to the local file to be transferred. The file can be any format:
-            text, utf-8, binary. All files are hex encoded while in transit (increasing
-            the effective file size).
+            the path to the local file to be transferred. The file can be
+            any format: text, utf-8, binary. All files are hex encoded while
+            in transit (increasing the effective file size).
 
             .. note::
                 Encryption (*beta*) is available as a separate step. That is,
                 first :mod:`~psychopy.contrib.opensslwrap.encrypt()` the file,
-                then :mod:`~psychopy.web.upload()` the encrypted file in the same
-                way that you would any other file.
+                then :mod:`~psychopy.web.upload()` the encrypted file in the
+                same way that you would any other file.
 
         `basicAuth` : (optional)
             apache 'user:password' string for basic authentication. If a `basicAuth`

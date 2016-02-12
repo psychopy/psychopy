@@ -3,10 +3,12 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
-Not for users. To create a movie use win.getMovieFrame() and then win.saveMovieFrames(filename)
+Not for users. To create a movie use win.getMovieFrame() and
+then win.saveMovieFrames(filename)
 
-Many thanks to Ray Pascor (pascor at hotpop.com) for the public domain code on
-building an optimised gif palette (makeRGBhistogram, makePalette, rgb2palette are
+Many thanks to Ray Pascor (pascor at hotpop.com) for the public
+domain code on building an optimised gif palette
+(makeRGBhistogram, makePalette, rgb2palette are
 very heavily based on his code).
 """
 
@@ -40,12 +42,13 @@ from psychopy import logging
 
 def makeAnimatedGIF(filename, images):
     """Convert list of image frames to a GIF animation file
-    using simple delta coding"""
+    using simple delta coding
+    """
 
     frames = 0
     previous = None
     fp = open(filename, 'wb')
-    if images[0].mode in ['RGB', 'RGBA']:
+    if images[0].mode in ('RGB', 'RGBA'):
         # first make an optimised palette
         optimPalette = makePalette(images, verbose=True)
 
@@ -70,7 +73,7 @@ def makeAnimatedGIF(filename, images):
                     fp.write(s)
 
         previous = im.copy()
-        frames = frames + 1
+        frames += 1
     fp.write(";")
     fp.close()
     return frames
@@ -78,7 +81,8 @@ def makeAnimatedGIF(filename, images):
 
 def RgbHistogram(images, verbose=False):
     """build a histogram of the colors in the image(s)
-    with which we can build an optimized color palette"""
+    with which we can build an optimized color palette
+    """
     hist = None
 
     # make a list if given only one image
@@ -102,21 +106,23 @@ def RgbHistogram(images, verbose=False):
         color = datalist[i]
         key = repr(color)
 
-        if key in dicthist:  # color already exists
-            dicthist[key] += 1     # increment the count
-        else:                       # make a new key
-            dicthist[key] = 1      # instantiate a new entry and init the count
+        if key in dicthist:
+            # color already exists
+            dicthist[key] += 1  # increment the count
+        else:
+            # make a new key
+            dicthist[key] = 1  # instantiate a new entry and init the count
             numcolors += 1
 
             if numcolors > 256:
                 if verbose:
                     print('               ... too many colors')
-                return None         # Error flag:  use PIL default color palette/dithering
+                return None  # Error flag:  use PIL default color palette/dithering
     if verbose:
         print('               ... OK')
 
-    # reform the dictionary into a sorted histogram of the form: (count, (r,
-    # g, b))
+    # reform the dictionary into a sorted histogram of the form:
+    # (count, (r, g, b))
     hist = []
     for key in dicthist.iterkeys():
         count = dicthist[key]
@@ -125,7 +131,7 @@ def RgbHistogram(images, verbose=False):
     # end for
 
     hist.sort()
-    hist.reverse()           # make largest counts first
+    hist.reverse()  # make largest counts first
 
     return hist
 

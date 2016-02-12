@@ -1,13 +1,14 @@
 """Load and play sounds
 
 By default PsychoPy will try to use the following Libs, in this order, for
-sound reproduction but you can alter the order in preferences>general>audioLib:
+sound reproduction but you can alter the order in
+preferences > general > audioLib:
     ['pygame', 'pyo']
-If the lib is `pyo` then there is also a choice of the underlying sound driver.
-Under OSX this is currently set to use coreaudio (rather than portaudio) and on
-windows it will attempt to use an ASIO-based driver if found and fall back to
-DirectSound if not. These settings are not currently configurable but let the
-team know if you need that.
+If the lib is `pyo` then there is also a choice of the underlying sound
+driver. Under OSX this is currently set to use coreaudio (rather than
+portaudio) and on windows it will attempt to use an ASIO-based driver if
+found and fall back to DirectSound if not. These settings are not currently
+configurable but let the team know if you need that.
 
 The sound lib and driver (if lib==pyo) being used will be stored as::
     `psychopy.sound.audioLib`
@@ -21,11 +22,13 @@ creating your first Sound object::
     s1 = sound.Sound('ding.wav')
 
 pyo (a wrapper for portaudio and coreaudio):
-    pros: powerful, low latency where drivers support it; on Windows you may want to fetch ASIO4ALL
+    pros: powerful, low latency where drivers support it;
+          on Windows you may want to fetch ASIO4ALL
     cons: new in PsychoPy 1.76.00; slower to init and shut down
 
 pygame (must be version 1.8 or above):
-    pros: The most robust of the API options so far - it works consistently on all platforms
+    pros: The most robust of the API options so far;
+          it works consistently on all platforms
     cons: needs an additional download, poor latencies
 
 """
@@ -69,11 +72,12 @@ for thisLibName in prefs.general['audioLib']:
             import pysoundcard as soundcard
             import soundfile as sndfile
         else:
-            raise ValueError(
-                "Audio lib options are currently only 'pyo' or 'pygame', not '%s'" % thisLibName)
+            msg = ("Audio lib options are currently only 'pyo' or "
+                   "'pygame', not '%s'")
+            raise ValueError(msg % thisLibName)
     except Exception:
-        logging.warning('%s audio lib was requested but not loaded: %s' % (
-            thisLibName, sys.exc_info()[1]))
+        msg = '%s audio lib was requested but not loaded: %s'
+        logging.warning(msg % (thisLibName, sys.exc_info()[1]))
         continue  # to try next audio lib
     # if we got this far we were sucessful in loading the lib
     audioLib = thisLibName
@@ -87,8 +91,7 @@ stepsFromA = {
     'F': -4, 'Fsh': -3,
     'Gfl': -3, 'G': -2, 'Gsh': -1,
     'Afl': -1, 'A': 0, 'Ash': +1,
-    'Bfl': +1, 'B': +2, 'Bsh': +2
-}
+    'Bfl': +1, 'B': +2, 'Bsh': +2}
 knownNoteNames = sorted(stepsFromA.keys())
 
 
@@ -114,34 +117,43 @@ class _SoundBase(object):
         :parameters:
 
             value: can be a number, string or an array:
-                * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
-                * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
-                * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
-                * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
+                * If it's a number between 37 and 32767 then a tone will
+                  be generated at that frequency in Hz.
+                * It could be a string for a note ('A', 'Bfl', 'B', 'C',
+                  'Csh'. ...). Then you may want to specify which octave.
+                * Or a string could represent a filename in the current
+                  location, or mediaLocation, or a full path combo
+                * Or by giving an Nx2 numpy array of floats (-1:1) you can
+                  specify the sound yourself as a waveform
 
-            secs: duration (only relevant if the value is a note name or a frequency value)
+            secs: duration (only relevant if the value is a note name or
+                a frequency value)
 
             octave: is only relevant if the value is a note name.
                 Middle octave of a piano is 4. Most computers won't
                 output sounds in the bottom octave (1) and the top
                 octave (8) is generally painful
         """
-        self._snd = None  # Re-init sound to ensure bad values will raise error during setting
+        # Re-init sound to ensure bad values will raise error during setting:
+        self._snd = None
 
-        try:  # could be '440' meaning 440
+        try:
+            # could be '440' meaning 440
             value = float(value)
         except (ValueError, TypeError):
-            pass  # this is a string that can't be a number, eg, a file or note
+            # this is a string that can't be a number, eg, a file or note
+            pass
         else:
             # we've been asked for a particular Hz
             if value < 37 or value > 20000:
-                raise ValueError('Sound: bad requested frequency %.0f' % value)
+                msg = 'Sound: bad requested frequency %.0f'
+                raise ValueError(msg % value)
             self._setSndFromFreq(value, secs, hamming=hamming)
 
         if isinstance(value, basestring):
             if value.capitalize() in knownNoteNames:
-                self._setSndFromNote(value.capitalize(),
-                                     secs, octave, hamming=hamming)
+                self._setSndFromNote(value.capitalize(), secs, octave,
+                                     hamming=hamming)
             else:
                 # try finding a file
                 self.fileName = None
@@ -154,7 +166,8 @@ class _SoundBase(object):
                         self.fileName = p + '.wav'
                         break
                 if self.fileName is None:
-                    raise ValueError, "setSound: could not find a sound file named " + value
+                    msg = "setSound: could not find a sound file named "
+                    raise ValueError, msg + value
                 else:
                     self._setSndFromFile(value)
         elif type(value) in [list, numpy.ndarray]:
@@ -172,13 +185,14 @@ class _SoundBase(object):
         # note name -> freq -> sound
         freqA = 440.0
         thisOctave = octave - 4
-        thisFreq = freqA * \
-            2.0**(stepsFromA[thisNote] / 12.0) * 2.0 ** thisOctave
+        mult = 2.0**(stepsFromA[thisNote] / 12.)
+        thisFreq = freqA * mult * 2.0 ** thisOctave
         self._setSndFromFreq(thisFreq, secs, hamming=hamming)
 
     def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         # note freq -> array -> sound
-        if secs < 0:  # if secs=-1 then they want infinite duration - create 1sec and loop it
+        if secs < 0:
+            # want infinite duration - create 1 sec sound and loop it
             secs = 10.0
             self.loops = -1
         nSamples = int(secs * self.sampleRate)
@@ -191,13 +205,15 @@ class _SoundBase(object):
 
 
 class _PySoundCallbackClass(object):
-    """To use callbacks without creating circular references we need a callback class.
+    """To use callbacks without creating circular references we need a
+    callback class.
 
     Both the Stream and the sound object (SoundPySoundCard) point to this.
 
-    This receives data and current sample from SoundPySoundCard and is stored by the
-    c functions in the pysoundcard.Stream. We can't store a reference here to the
-    original sound instance that created it (or we would create a circular ref again).
+    This receives data and current sample from SoundPySoundCard and is
+    stored by the c functions in the pysoundcard.Stream. We can't store
+    a reference here to the original sound instance that created it (or
+    we would create a circular ref again).
 
     """
 
@@ -213,8 +229,8 @@ class _PySoundCallbackClass(object):
         # timeInfo is a dict
         # status = 0 unless
 
-        # In tests on a macbook air this function takes around 7microsec to run
-        # so shouldn't impact on performance. Tested with this code:
+        # In tests on a macbook air this function takes around 7microsec
+        # to run so shouldn't impact on performance. Tested with this code:
         #    s1 = sound.SoundPySoundCard(secs=10, bufferSize=bSize)
         #    s1.play()
         #
@@ -222,7 +238,8 @@ class _PySoundCallbackClass(object):
         #    outDat = numpy.zeros([bSize,2], dtype='f')
         #    t0 = time.time()
         #    for n in range(nRuns):
-        #        s1._callbacks.fillBuffer(inDat, outDat, time_info=None, status=0)
+        #        s1._callbacks.fillBuffer(inDat, outDat,
+        #               time_info=None, status=0)
         #    print("%fms per repeat" %((time.time()-t0)*1000/nRuns))
         snd = self.sndInstance()
         chansIn, chansOut = snd._stream.channels
@@ -230,43 +247,49 @@ class _PySoundCallbackClass(object):
         if snd.status == STOPPED:
             outData[:] = 0
             return soundcard.abort_flag
-        if (self._sampleIndex + self.bufferSize) > nSamples:
+        if self._sampleIndex + self.bufferSize > nSamples:
             outData[:] = 0  # set buffer to zero
             # then insert the data
-            outData[0:nSamples - self._sampleIndex,
-                    :] = snd.sndArr[self._sampleIndex:, :]
+            place = nSamples - self._sampleIndex
+            outData[0:place, :] = snd.sndArr[self._sampleIndex:, :]
             self._sampleIndex = nSamples
             snd._onEOS()
             return soundcard.abort_flag
         else:
-            outData[:, :] = snd.sndArr[self._sampleIndex:(self._sampleIndex + self.bufferSize), :] \
-                * snd.volume
+            place = self._sampleIndex + self.bufferSize
+            outData[:, :] = snd.sndArr[self._sampleIndex:place, :] * snd.volume
             self._sampleIndex += self.bufferSize
             return soundcard.continue_flag
 
     def eos(self, log=True):
-        """ This is potentially given directly to the paStream but we don't use
-        it. Instead we're calling our own Sound.eos() from within the fillBuffer
-        callback
+        """This is potentially given directly to the paStream but we don't use
+        it. Instead we're calling our own Sound.eos() from within the
+        fillBuffer callback
         """
         self.sndInstance()._onEOS()
 
 
 class SoundPySoundCard(_SoundBase):
 
-    def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100, bits=None,
-                 name='', autoLog=True, loops=0, bufferSize=128, volume=1):
+    def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
+                 bits=None, name='', autoLog=True, loops=0, bufferSize=128,
+                 volume=1):
         """Create a sound and get ready to play
 
         :parameters:
 
             value: can be a number, string or an array:
-                * If it's a number then a tone will be generated at that frequency in Hz.
-                * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
-                * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
-                * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
+                * If it's a number then a tone will be generated at that
+                  frequency in Hz.
+                * It could be a string for a note ('A', 'Bfl', 'B', 'C',
+                  'Csh', ...). Then you may want to specify which octave
+                * Or a string could represent a filename in the current
+                location, or mediaLocation, or a full path combo
+                * Or by giving an Nx2 numpy array of floats (-1:1) you can
+                specify the sound yourself as a waveform
 
-            secs: duration (only relevant if the value is a note name or a frequency value)
+            secs: duration (only relevant if the value is a note name
+                  or a frequency value)
 
             octave: is only relevant if the value is a note name.
                 Middle octave of a piano is 4. Most computers won't
@@ -274,24 +297,29 @@ class SoundPySoundCard(_SoundBase):
                 octave (8) is generally painful
 
             sampleRate: int (default = 44100)
-                Will be ignored if a file is used for the sound and the sampleRate can be determined from the file
+                Will be ignored if a file is used for the sound and the
+                sampleRate can be determined from the file
 
             name: string
                 Only used for logging purposes
 
             autoLog: bool (default = true)
-                Determines whether changes to the object should be logged by default
+                Determines whether changes to the object should be logged
+                by default
 
             loops: int (default = 0)
-                number of times to loop (0 means play once, -1 means loop forever)
+                number of times to loop (0 means play once, -1 means loop
+                forever)
 
             bufferSize: int (default = 128)
-                How many samples should be loaded at a time to the sound buffer.
-                A larger number will reduce speed to play a sound. If too small
-                then audio artifacts will be heard where the buffer ran empty
+                How many samples should be loaded at a time to the sound
+                buffer. A larger number will reduce speed to play a sound.
+                If too small then audio artifacts will be heard where the
+                buffer ran empty
 
             bits:
-                currently serves no purpose (exists for backwards compatibility)
+                currently serves no purpose (exists for backwards
+                compatibility)
 
             volume: 0-1.0
 
@@ -305,8 +333,8 @@ class SoundPySoundCard(_SoundBase):
 
         # try to create sound
         self._snd = None
-        # distinguish the loops requested from loops actual because of infinite tones
-        # (which have many loops but none requested)
+        # distinguish the loops requested from loops actual because of
+        # infinite tones (which have many loops but none requested)
         # -1 for infinite or a number of loops
         self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave)
@@ -322,16 +350,17 @@ class SoundPySoundCard(_SoundBase):
                 Whether or not to log the playback event.
             loops : int
                 How many times to repeat the sound after it plays once. If
-                `loops` == -1, the sound will repeat indefinitely until stopped.
+                `loops` == -1, the sound will repeat indefinitely until
+                stopped.
 
         :Notes:
 
-            If no sound channels are available, it will not play and return None.
-            This runs off a separate thread i.e. your code won't wait for the
-            sound to finish before continuing. You need to use a
-            psychopy.core.wait() command if you want things to pause.
-            If you call play() whiles something is already playing the sounds will
-            be played over each other.
+            If no sound channels are available, it will not play and return
+            None. This runs off a separate thread, i.e. your code won't
+            wait for the sound to finish before continuing. You need to
+            use a psychopy.core.wait() command if you want things to pause.
+            If you call play() whiles something is already playing the sounds
+            will be played over each other.
 
         """
         if loops is not None:
@@ -358,16 +387,19 @@ class SoundPySoundCard(_SoundBase):
         self.status = STOPPED
 
     def getDuration(self):
-        """Get's the duration of the current sound in secs"""
+        """Get's the duration of the current sound in secs
+        """
         pass  # todo
 
     @attributetools.attributeSetter
     def volume(self, volume):
-        """Returns the current volume of the sound (0.0:1.0)"""
+        """Returns the current volume of the sound (0.0:1.0)
+        """
         self.__dict__['volume'] = volume
 
     def setVolume(self, value, operation="", log=None):
-        """Sets the current volume of the sound (0.0:1.0)"""
+        """Sets the current volume of the sound (0.0:1.0)
+        """
         attributetools.setAttribute(self, 'volume', value, log, operation)
         return value  # this is returned for historical reasons
 
@@ -385,14 +417,15 @@ class SoundPySoundCard(_SoundBase):
             self.sndArr = self.sndFile.read()
             self.sndFile.close()
         except Exception:
-            msg = "Sound file %s could not be opened using pygame for sound." % fileName
-            logging.error(msg)
-            raise ValueError(msg)
+            msg = "Sound file %s could not be opened using pygame for sound."
+            logging.error(msg % fileName)
+            raise ValueError(msg % fileName)
 
     @property
     def status(self):
-        # NB this is stored by the _callbacks class for fast access when data buffer
-        # needs filling (_callbacks class does not have a reference back here)
+        # NB this is stored by the _callbacks class for fast access when
+        # data buffer needs filling (_callbacks class does not have a
+        # reference back here)
         return self.__dict__['status']
 
     @status.setter
@@ -404,11 +437,10 @@ class SoundPySoundCard(_SoundBase):
         other setSound methods are going to call this having created an arr
         """
         self._callbacks = _PySoundCallbackClass(sndInstance=self)
-        self._snd = self._stream = soundcard.Stream(samplerate=self.sampleRate,
-                                                    blocksize=self.bufferSize,
-                                                    callback=self._callbacks.fillBuffer,
-
-                                                    )
+        self._stream = soundcard.Stream(samplerate=self.sampleRate,
+                                        blocksize=self.bufferSize,
+                                        callback=self._callbacks.fillBuffer)
+        self._snd = self._stream
         chansIn, chansOut = self._stream.channels
         if chansOut > 1 and thisArray.ndim == 1:
             # make mono sound stereo
@@ -416,7 +448,8 @@ class SoundPySoundCard(_SoundBase):
         else:
             self.sndArr = numpy.asarray(thisArray)
         self._nSamples = thisArray.shape[0]
-        self.seek(0)  # set to run from the start
+        # set to run from the start:
+        self.seek(0)
 
     def seek(self, t):
         self._sampleIndex = t * self.sampleRate
@@ -435,12 +468,17 @@ class SoundPygame(_SoundBase):
 
     :parameters:
         value: can be a number, string or an array:
-            * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
-            * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
-            * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
-            * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
+            * If it's a number between 37 and 32767 then a tone will be
+              generated at that frequency in Hz.
+            * It could be a string for a note ('A', 'Bfl', 'B', 'C',
+              'Csh', ...). Then you may want to specify which octave as well
+            * Or a string could represent a filename in the current
+              location, or mediaLocation, or a full path combo
+            * Or by giving an Nx2 numpy array of floats (-1:1) you
+              can specify the sound yourself as a waveform
 
-        secs: duration (only relevant if the value is a note name or a frequency value)
+        secs: duration (only relevant if the value is a note name or a
+            frequency value)
 
         octave: is only relevant if the value is a note name.
             Middle octave of a piano is 4. Most computers won't
@@ -449,11 +487,12 @@ class SoundPygame(_SoundBase):
 
         sampleRate(=44100): If a sound has already been created or if the
 
-        bits(=16):  Pygame uses the same bit depth for all sounds once initialised
+        bits(=16):  Pygame uses the same bit depth for all sounds once
+            initialised
     """
 
-    def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100, bits=16,
-                 name='', autoLog=True, loops=0):
+    def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
+                 bits=16, name='', autoLog=True, loops=0):
         """
         """
         self.name = name  # only needed for autoLogging
@@ -470,8 +509,8 @@ class SoundPygame(_SoundBase):
 
         # try to create sound
         self._snd = None
-        # distinguish the loops requested from loops actual because of infinite tones
-        # (which have many loops but none requested)
+        # distinguish the loops requested from loops actual because of
+        # infinite tones (which have many loops but none requested)
         # -1 for infinite or a number of loops
         self.requestedLoops = self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave)
@@ -487,16 +526,17 @@ class SoundPygame(_SoundBase):
                 Whether or not to log the playback event.
             loops : int
                 How many times to repeat the sound after it plays once. If
-                `loops` == -1, the sound will repeat indefinitely until stopped.
+                `loops` == -1, the sound will repeat indefinitely until
+                stopped.
 
         :Notes:
 
-            If no sound channels are available, it will not play and return None.
-            This runs off a separate thread i.e. your code won't wait for the
-            sound to finish before continuing. You need to use a
+            If no sound channels are available, it will not play and return
+            None. This runs off a separate thread i.e. your code won't wait
+            for the sound to finish before continuing. You need to use a
             psychopy.core.wait() command if you want things to pause.
-            If you call play() whiles something is already playing the sounds will
-            be played over each other.
+            If you call play() whiles something is already playing the sounds
+            will be played over each other.
 
         """
         if loops is None:
@@ -508,7 +548,8 @@ class SoundPygame(_SoundBase):
         return self
 
     def stop(self, log=True):
-        """Stops the sound immediately"""
+        """Stops the sound immediately
+        """
         self._snd.stop()
         self.status = STOPPED
         if log and self.autoLog:
@@ -523,19 +564,22 @@ class SoundPygame(_SoundBase):
         self.status = STOPPED
 
     def getDuration(self):
-        """Get's the duration of the current sound in secs"""
+        """Get's the duration of the current sound in secs
+        """
         return self._snd.get_length()
 
     def getVolume(self):
-        """Returns the current volume of the sound (0.0:1.0)"""
+        """Returns the current volume of the sound (0.0:1.0)
+        """
         return self._snd.get_volume()
 
     def setVolume(self, newVol, log=True):
-        """Sets the current volume of the sound (0.0:1.0)"""
+        """Sets the current volume of the sound (0.0:1.0)
+        """
         self._snd.set_volume(newVol)
         if log and self.autoLog:
-            logging.exp("Set Sound %s volume=%.3f" %
-                        (self.name, newVol), obj=self)
+            msg = "Set Sound %s volume=%.3f"
+            logging.exp(msg % (self.name, newVol), obj=self)
         return self.getVolume()
 
     def _setSndFromFile(self, fileName):
@@ -550,16 +594,17 @@ class SoundPygame(_SoundBase):
         try:
             self._snd = mixer.Sound(self.fileName)
         except Exception:
-            msg = "Sound file %s could not be opened using pygame for sound." % fileName
-            logging.error(msg)
-            raise ValueError(msg)
+            msg = "Sound file %s could not be opened using pygame for sound."
+            logging.error(msg % fileName)
+            raise ValueError(msg % fileName)
 
     def _setSndFromArray(self, thisArray):
         # get a mixer.Sound object from an array of floats (-1:1)
 
         # make stereo if mono
-        if self.isStereo == 2 and \
-                (len(thisArray.shape) == 1 or thisArray.shape[1] < 2):
+        if (self.isStereo == 2 and
+                (len(thisArray.shape) == 1 or
+                 thisArray.shape[1] < 2)):
             tmp = numpy.ones((len(thisArray), 2))
             tmp[:, 0] = thisArray
             tmp[:, 1] = thisArray
@@ -581,15 +626,20 @@ class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
 
-    def __init__(self, value="C", secs=0.5, octave=4, stereo=True, volume=1.0,
-                 loops=0, sampleRate=44100, bits=16, hamming=True, start=0, stop=-1,
+    def __init__(self, value="C", secs=0.5, octave=4, stereo=True,
+                 volume=1.0, loops=0, sampleRate=44100, bits=16,
+                 hamming=True, start=0, stop=-1,
                  name='', autoLog=True):
         """
         value: can be a number, string or an array:
-            * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
-            * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
-            * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
-            * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
+            * If it's a number between 37 and 32767 then a tone will be
+              generated at that frequency in Hz.
+            * It could be a string for a note ('A', 'Bfl', 'B', 'C',
+              'Csh', ...). Then you may want to specify which octave as well
+            * Or a string could represent a filename in the current location,
+              or mediaLocation, or a full path combo
+            * Or by giving an Nx2 numpy array of floats (-1:1) you can
+              specify the sound yourself as a waveform
 
             By default, a Hamming window (5ms duration) will be applied to a
             generated tone, so that onset and offset are smoother (to avoid
@@ -599,7 +649,8 @@ class SoundPyo(_SoundBase):
             Duration of a tone. Not used for sounds from a file.
 
         start : float
-            Where to start playing a sound file; default = 0s (start of the file).
+            Where to start playing a sound file;
+            default = 0s (start of the file).
 
         stop : float
             Where to stop playing a sound file; default = end of file.
@@ -609,7 +660,8 @@ class SoundPyo(_SoundBase):
             output sounds in the bottom octave (1) and the top
             octave (8) is generally painful
 
-        stereo: True (= default, two channels left and right), False (one channel)
+        stereo: True (= default, two channels left and right),
+            False (one channel)
 
         volume: loudness to play the sound, from 0.0 (silent) to 1.0 (max).
             Adjustments are not possible during playback, only before.
@@ -618,9 +670,9 @@ class SoundPyo(_SoundBase):
             How many times to repeat the sound after it plays once. If
             `loops` == -1, the sound will repeat indefinitely until stopped.
 
-        sampleRate (= 44100): if the psychopy.sound.init() function has been called
-            or if another sound has already been created then this argument will be
-            ignored and the previous setting will be used
+        sampleRate (= 44100): if the psychopy.sound.init() function has been
+            called or if another sound has already been created then this
+            argument will be ignored and the previous setting will be used
 
         bits: has no effect for the pyo backend
 
@@ -645,8 +697,8 @@ class SoundPyo(_SoundBase):
         # needsUpdate=True)
         self._snd = None
         self.volume = min(1.0, max(0.0, volume))
-        # distinguish the loops requested from loops actual because of infinite tones
-        # (which have many loops but none requested)
+        # distinguish the loops requested from loops actual because of
+        # infinite tones (which have many loops but none requested)
         # -1 for infinite or a number of loops
         self.requestedLoops = self.loops = int(loops)
 
@@ -659,19 +711,20 @@ class SoundPyo(_SoundBase):
         loops : int
             (same as above)
 
-        For playing a sound file, you cannot specify the start and stop times when
-        playing the sound, only when creating the sound initially.
+        For playing a sound file, you cannot specify the start and stop
+        times when playing the sound, only when creating the sound initially.
 
-        Playing a sound runs in a separate thread i.e. your code won't wait for the
-        sound to finish before continuing. To pause while playing, you need to use a
-        `psychopy.core.wait(mySound.getDuration())`.
-        If you call `play()` while something is already playing the sounds will
-        be played over each other.
+        Playing a sound runs in a separate thread i.e. your code won't wait
+        for the sound to finish before continuing. To pause while playing,
+        you need to use a `psychopy.core.wait(mySound.getDuration())`.
+        If you call `play()` while something is already playing the sounds
+        will be played over each other.
         """
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         if self.needsUpdate:
-            self._updateSnd()  # ~0.00015s, regardless of the size of self._sndTable
+            # ~0.00015s, regardless of the size of self._sndTable
+            self._updateSnd()
         self._snd.out()
         self.status = STARTED
         if autoStop or self.loops != 0:
@@ -692,7 +745,8 @@ class SoundPyo(_SoundBase):
         # call _onEOS from a thread based on time, enables loop termination
         if self.loops != 0:  # then its looping forever as a pyo object
             self._snd.stop()
-        if self.status != NOT_STARTED:  # in case of multiple successive trials
+        if self.status != NOT_STARTED:
+            # in case of multiple successive trials
             self.status = FINISHED
         return True
 
@@ -712,15 +766,18 @@ class SoundPyo(_SoundBase):
         return self.duration
 
     def getVolume(self):
-        """Returns the current volume of the sound (0.0 to 1.0, inclusive)"""
+        """Returns the current volume of the sound (0.0 to 1.0, inclusive)
+        """
         return self.volume
 
     def getLoops(self):
-        """Returns the current requested loops value for the sound (int)"""
+        """Returns the current requested loops value for the sound (int)
+        """
         return self.loops
 
     def setVolume(self, newVol, log=True):
-        """Sets the current volume of the sound (0.0 to 1.0, inclusive)"""
+        """Sets the current volume of the sound (0.0 to 1.0, inclusive)
+        """
         self.volume = min(1.0, max(0.0, newVol))
         self.needsUpdate = True
         if log and self.autoLog:
@@ -738,7 +795,8 @@ class SoundPyo(_SoundBase):
     def _updateSnd(self):
         self.needsUpdate = False
         doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
-        self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
+        self._snd = pyo.TableRead(self._sndTable,
+                                  freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)
 
     def _setSndFromFile(self, fileName):
@@ -752,9 +810,10 @@ class SoundPyo(_SoundBase):
             self._sndTable.setSound(self.fileName,
                                     start=self.startTime, stop=self.stopTime)
         except Exception:
-            msg = 'Could not open sound file `%s` using pyo; not found or format not supported.' % fileName
-            logging.error(msg)
-            raise TypeError(msg)
+            msg = ('Could not open sound file `%s` using pyo; not found '
+                   'or format not supported.')
+            logging.error(msg % fileName)
+            raise TypeError(msg % fileName)
         self._updateSnd()
         self.duration = self._sndTable.getDur()
 
@@ -771,7 +830,8 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
     function. Run this *before creating your visual.Window*.
 
-    The format cannot be changed once initialised or once a Window has been created.
+    The format cannot be changed once initialised or once a Window has been
+    created.
 
     If a Sound object is created before this function is run it will be
     executed with default format (signed 16bit stereo at 22KHz).
@@ -786,7 +846,8 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     else:
         stereoChans = 0
     if bits == 16:
-        bits = -16  # for pygame bits are signed for 16bit, signified by the minus
+        # for pygame bits are signed for 16bit, signified by the minus
+        bits = -16
     # defaults: 22050Hz, 16bit, stereo,
     mixer.init(rate, bits, stereoChans, buffer)
     sndarray.use_arraytype("numpy")
@@ -812,13 +873,15 @@ def _bestDriver(devNames, devIDs):
         # look for that driver in available devices
         for devN, devString in enumerate(devNames):
             try:
-                if prefDriver.encode('utf-8').lower() in devString.decode(osEncoding).encode('utf-8').lower():
+                ds = devString.decode(osEncoding).encode('utf-8').lower()
+                if prefDriver.encode('utf-8').lower() in ds:
                     audioDriver = devString.decode(osEncoding).encode('utf-8')
                     outputID = devIDs[devN]
-                    return audioDriver, outputID  # we found a driver don't look for others
+                    # we found a driver don't look for others
+                    return audioDriver, outputID
             except (UnicodeDecodeError, UnicodeEncodeError):
-                logging.warn(
-                    'find best sound driver - could not interpret unicode in driver name')
+                logging.warn('find best sound driver - could not '
+                             'interpret unicode in driver name')
     else:
         return None, None
 
@@ -832,13 +895,17 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     try:
         assert pyo
     except NameError:  # pragma: no cover
-        import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
-    # subclass the pyo.Server so that we can insert a __del__ function that shuts it down
-    # skip coverage since the class is never used if we have a recent version
-    # of pyo
+        import pyo
+        # can be needed for microphone.switchOn(), which calls initPyo even
+        # if audioLib is something else
+
+    # subclass the pyo.Server so that we can insert a __del__ function that
+    # shuts it down skip coverage since the class is never used if we have
+    # a recent version of pyo
 
     class _Server(pyo.Server):  # pragma: no cover
-        core = core  # make libs class variables so they don't get deleted first
+        # make libs class variables so they don't get deleted first
+        core = core
         logging = logging
 
         def __del__(self):
@@ -891,16 +958,18 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             # Input devices were found, but requested devices were not found
             if len(devIDs) > 0 and inputID is None:
                 defaultID = pyo.pa_get_default_input()
-                if defaultID is not None and defaultID != -1:  # default input is found
-                    # using the default input because we didn't find the one(s)
+                if defaultID is not None and defaultID != -1:
+                    # default input is found
+                    # use the default input because we didn't find the one(s)
                     # requested
                     audioInputName = 'Windows Default Input'
                     inputID = defaultID
                 else:
-                    inputID = None  # default input is not available
+                    # default input is not available
+                    inputID = None
             if inputID is not None:
-                logging.info('Using sound-input driver: %s (ID=%i)' %
-                             (audioInputName, inputID))
+                msg = 'Using sound-input driver: %s (ID=%i)'
+                logging.info(msg % (audioInputName, inputID))
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
             else:
@@ -917,12 +986,14 @@ def initPyo(rate=44100, stereo=True, buffer=128):
 
         maxChnls = min(maxInputChnls, maxOutputChnls)
         if maxInputChnls < 1:  # pragma: no cover
-            logging.warning(
-                '%s.initPyo could not find microphone hardware; recording not available' % __name__)
+            msg = ('%s.initPyo could not find microphone hardware; '
+                   'recording not available')
+            logging.warning(msg % __name__)
             maxChnls = maxOutputChnls
         if maxOutputChnls < 1:  # pragma: no cover
-            logging.error(
-                '%s.initPyo could not find speaker hardware; sound not available' % __name__)
+            msg = ('%s.initPyo could not find speaker hardware; '
+                   'sound not available')
+            logging.error(msg % __name__)
             return -1
 
         # create the instance of the server:
@@ -958,7 +1029,9 @@ def initPyo(rate=44100, stereo=True, buffer=128):
 
 
 def setaudioLib(api):
-    """DEPRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
+    """DEPRECATED: please use preferences > general > audioLib to
+    determine which audio lib to use
+    """
     raise DeprecationWarning
 
 
