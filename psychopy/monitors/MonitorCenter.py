@@ -287,11 +287,9 @@ class MainFrame(wx.Frame):
 
         # add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
-        adminBoxMainSizer.AddMany([
-            (1, 10), (1, 10),  # a pair of empty boxes each 1x10pix
-            self.ctrlMonList, monButtonsBox,
-            self.ctrlCalibList, calibButtonsBox,
-        ])
+        adminBoxMainSizer.AddMany([(1, 10), (1, 10),  # 2 empty boxes 1x10pix
+                                   self.ctrlMonList, monButtonsBox,
+                                   self.ctrlCalibList, calibButtonsBox])
         adminBox.Add(adminBoxMainSizer)
         return adminBox
 
@@ -765,8 +763,8 @@ class MainFrame(wx.Frame):
         newVal = self.gammaGrid.GetCellValue(event.GetRow(), event.GetCol())
         newVal = unicodeToFloat(newVal)
         # insert in grid
-        self.currentMon.currentCalib['gammaGrid'][
-            event.GetRow(), event.GetCol()] = newVal
+        row, col = event.GetRow(), event.GetCol()
+        self.currentMon.currentCalib['gammaGrid'][row, col] = newVal
         self.unSavedMonitor = True
 
     def onChangeLMSgrid(self, event):
@@ -774,8 +772,8 @@ class MainFrame(wx.Frame):
         newVal = self.LMSgrid.GetCellValue(event.GetRow(), event.GetCol())
         newVal = unicodeToFloat(newVal)
         # insert in grid
-        self.currentMon.currentCalib['lms_rgb'][
-            event.GetRow(), event.GetCol()] = newVal
+        row, col = event.GetRow(), event.GetCol()
+        self.currentMon.currentCalib['lms_rgb'][row, col] = newVal
         self.unSavedMonitor = True
 
     def onChangeDKLgrid(self, event):
@@ -783,8 +781,8 @@ class MainFrame(wx.Frame):
         newVal = self.DKLgrid.GetCellValue(event.GetRow(), event.GetCol())
         newVal = unicodeToFloat(newVal)
         # insert in grid
-        self.currentMon.currentCalib['dkl_rgb'][
-            event.GetRow(), event.GetCol()] = newVal
+        row, col = event.GetRow(), event.GetCol()
+        self.currentMon.currentCalib['dkl_rgb'][row, col] = newVal
         self.unSavedMonitor = True
 
     def onCalibGammaBtn(self, event):
@@ -1047,8 +1045,8 @@ class MainFrame(wx.Frame):
                     #curve += coeff*xxSmooth**expon
                     #plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 # plot POINTS
-                plt.plot(levelsPre, lumsPre[gun, :], colors[
-                         gun] + 'o', linewidth=1.5)
+                plt.plot(levelsPre, lumsPre[gun, :], colors[gun] + 'o',
+                         linewidth=1.5)
 
             lumsPost = self.currentMon.getLumsPost()
             levelsPost = self.currentMon.getLevelsPost()
