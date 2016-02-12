@@ -56,7 +56,6 @@ cocoa = ctypes.cdll.LoadLibrary(ctypes.util.find_library("Cocoa"))
 # ogl = ctypes.cdll.LoadLibrary(ctypes.util.find_library("OpenGL"))
 
 
-
 def _create_cfstring(text):
     # some string parameters need to be converted to SFStrings
     if importCtypesFailed:

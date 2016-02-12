@@ -8,6 +8,7 @@
 import time
 import os
 import locale
+import numpy as np
 
 import wx
 from wx import grid
@@ -315,8 +316,8 @@ class MainFrame(wx.Frame):
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
 
         # scr pixels
-        labl_ScrPixels = wx.StaticText(parent, -1,
-                                       _translate("Size (pixels; Horiz,Vert):"),
+        _sz = "Size (pixels; Horiz,Vert):"
+        labl_ScrPixels = wx.StaticText(parent, -1, _translate(_sz),
                                        style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50, 20))
         wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(),
@@ -469,7 +470,7 @@ class MainFrame(wx.Frame):
         calibBoxMainSizer.AddMany([photometerBox,
                                    gammaBoxSizer,
                                    LMSboxSizer,
-                                   DKLboxSizer,])
+                                   DKLboxSizer, ])
         calibBoxMainSizer.Layout()
 
         if NOTEBOOKSTYLE:
@@ -573,11 +574,11 @@ class MainFrame(wx.Frame):
         # todo remove this code - only needed for monitor objects made pre
         # version 0.63
         if not 'gammaGrid' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['gammaGrid'] = monitors.numpy.ones((4, 3), 'd')
+            self.currentMon.currentCalib['gammaGrid'] = np.ones((4, 3), 'd')
         if not 'lms_rgb' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['lms_rgb'] = monitors.numpy.ones((3, 3), 'd')
+            self.currentMon.currentCalib['lms_rgb'] = np.ones((3, 3), 'd')
         if not 'dkl_rgb' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['dkl_rgb'] = monitors.numpy.ones((3, 3), 'd')
+            self.currentMon.currentCalib['dkl_rgb'] = np.ones((3, 3), 'd')
         if not 'sizePix' in self.currentMon.currentCalib:
             self.currentMon.currentCalib['sizePix'] = [1024, 768]
 
@@ -1109,7 +1110,7 @@ class GammaLumValsDlg(wx.Dialog):
 
         butBox.Add(btnOK, 1, wx.BOTTOM | wx.ALIGN_RIGHT, pad)
         butBox.Add(btnCANC, 1, wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, pad)
-        mainSizer.Add(butBox,flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
+        mainSizer.Add(butBox, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
                       border=10)
 
         # finalise panel layout

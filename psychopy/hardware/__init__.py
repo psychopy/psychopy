@@ -36,7 +36,7 @@ def getSerialPorts():
     elif sys.platform == "cygwin":
         # I don't think anyone has actually tried this
         # Cygwin maps the windows serial ports like this
-        ports = ["/dev/ttyS?",]
+        ports = ["/dev/ttyS?", ]
     elif sys.platform == "win32":
         # While PsychoPy does support using numeric values to specify
         # which serial port to use, it is better in this case to

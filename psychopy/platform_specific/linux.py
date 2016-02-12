@@ -38,6 +38,7 @@ recommended to change cap_sys_nice back to normal afterwards:
 warnNormal = """Failed to set thread priority to normal with sched_setscheduler.
 Try:  'sudo setcap cap_sys_nice= %s'"""
 
+
 def rush(value=True, realtime=False):
     """Raise the priority of the current thread/process using
         - sched_setscheduler

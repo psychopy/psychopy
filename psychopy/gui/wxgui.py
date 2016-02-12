@@ -128,7 +128,7 @@ class Dlg(wx.Dialog):
         else:
             inputBox = wx.Choice(self, -1,
                                  choices=[unicode(option)
-                                         for option in list(choices)])
+                                          for option in list(choices)])
             # Somewhat dirty hack that allows us to treat the choice just like
             # an input box when retrieving the data
             inputBox.GetValue = inputBox.GetStringSelection
@@ -341,10 +341,10 @@ def fileOpenDlg(tryFilePath="",
     """
     if allowed is None:
         allowed = ("PsychoPy Data (*.psydat)|*.psydat|"
-            "txt (*.txt,*.dlm,*.csv)|*.txt;*.dlm;*.csv|"
-            "pickled files (*.pickle, *.pkl)|*.pickle|"
-            "shelved files (*.shelf)|*.shelf|"
-            "All files (*.*)|*.*")
+                   "txt (*.txt,*.dlm,*.csv)|*.txt;*.dlm;*.csv|"
+                   "pickled files (*.pickle, *.pkl)|*.pickle|"
+                   "shelved files (*.shelf)|*.shelf|"
+                   "All files (*.*)|*.*")
     global app  # avoid recreating for every gui
     app = ensureWxApp()
     dlg = wx.FileDialog(None, prompt, tryFilePath, tryFileName, allowed,

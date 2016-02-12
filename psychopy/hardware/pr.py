@@ -88,7 +88,7 @@ class PR650(object):
             except Exception:
                 msg = ("Couldn't connect to port %s. Is it being used by"
                        " another program?")
-                self._error(msg% self.portString)
+                self._error(msg % self.portString)
         else:
             msg = "I don't know how to handle serial ports on %s"
             self._error(msg % sys.platform)

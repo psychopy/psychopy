@@ -184,8 +184,8 @@ class Monitor(object):
                              self.calibNames)
         else:
             self.newCalib()
-            logging.warning( "Monitor specification not found. "
-                             "Creating a temporary one...")
+            logging.warning("Monitor specification not found. "
+                            "Creating a temporary one...")
 
         # overide current monitor settings with the vals given
         if width:
@@ -611,9 +611,10 @@ class Monitor(object):
                     self._gammaInterpolator.append(interp1d(lumsPre[gun, :],
                                                             levelsPre,
                                                             kind='linear'))
-                    #interpFunc = Interpolation.InterpolatingFunction((lumsPre[gun,:],), levelsPre)
-                    #polyFunc = interpFunc.fitPolynomial(3)
-                    #self._gammaInterpolator2.append( [polyFunc.coeff])
+                    # interpFunc = Interpolation.InterpolatingFunction(
+                    #    (lumsPre[gun,:],), levelsPre)
+                    # polyFunc = interpFunc.fitPolynomial(3)
+                    # self._gammaInterpolator2.append( [polyFunc.coeff])
             else:
                 # no way to do this! Calibrate the monitor
                 logging.error("Can't do a gamma interpolation on your "
@@ -624,9 +625,11 @@ class Monitor(object):
             if len(desiredLums.shape) > 1:
                 for gun in range(3):
                     # gun+1 because we don't want luminance interpolator
-                    output[:, gun] = self._gammaInterpolator[gun + 1](desiredLums[:, gun])
+                    _gammaIntrpGun = self._gammaInterpolator[gun + 1]
+                    output[:, gun] = _gammaIntrpGun(desiredLums[:, gun])
 
-            else:  # just luminance
+            else:
+                # just luminance
                 output = self._gammaInterpolator[0](desiredLums)
 
         # use a fitted gamma equation (1 or 2)
@@ -754,7 +757,7 @@ class GammaCalculator(object):
             guess = [gammaGuess]
             bounds = [[0.8, 5.0]]
         #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
-        #gamma = optim.fminbound(self.fitGammaErrFun,
+        # gamma = optim.fminbound(self.fitGammaErrFun,
         #    minGamma, maxGamma,
         #    args=(x,y, minLum, maxLum))
         params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess),

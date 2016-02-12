@@ -569,15 +569,18 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         # get product ('Bits_Sharp'?)
         self.sendMessage('$ProductType\r')
         time.sleep(0.1)
-        info['ProductType'] = self.read().replace(pt, '').replace(';\n\r', '')
+        info['ProductType'] = self.read().replace(pt, '')
+        info['ProductType'] = info['ProductType'].replace(';\n\r', '')
         # get serial number
         self.sendMessage('$SerialNumber\r')
         time.sleep(0.1)
-        info['SerialNumber'] = self.read().replace('#SerialNumber;', '').replace('\x00\n\r', '')
+        info['SerialNumber'] = self.read().replace('#SerialNumber;', '')
+        info['SerialNumber'] = info['SerialNumber'].replace('\x00\n\r', '')
         # get firmware date
         self.sendMessage('$FirmwareDate\r')
         time.sleep(0.1)
-        info['FirmwareDate'] = self.read().replace('#FirmwareDate;', '').replace(';\n\r', '')
+        info['FirmwareDate'] = self.read().replace('#FirmwareDate;', '')
+        info['FirmwareDate'] = info['FirmwareDate'].replace(';\n\r', '')
         return info
 
     @property
@@ -820,7 +823,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                              "We'll try to find a working one.")
             else:
                 getRamp = self.win.winHandle.getGammaRamp
-                self.config.identityLUT = getRamp(self.win.winHandle).transpose()
+                _winh = self.win.winHandle
+                self.config.identityLUT = getRamp(_winh).transpose()
                 self.config.save()
                 self.mode = prevMode
                 logging.info("We found a LUT and it worked as identity")

@@ -37,7 +37,7 @@ linuxSpec = linuxSpec.replace("default='Helvetica'",
                               "default='Ubuntu Mono, DejaVu Sans Mono'")
 linuxSpec = linuxSpec.replace("allowModuleImports = boolean(default='True')",
                               '')
-linuxSpec = linuxSpec.replace("'0x0378', '0x03BC'", # parallel ports
+linuxSpec = linuxSpec.replace("'0x0378', '0x03BC'",  # parallel ports
                               "'/dev/parport0', '/dev/parport1'")
 f = open('Linux.spec', 'wb')
 f.write(linuxSpec)

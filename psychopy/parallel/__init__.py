@@ -66,6 +66,7 @@ else:
                    "(2) PsychoPy is run on a Mac (without parallel-port "
                    "support for now)")
             logging.warning(msg)
+
         def setData(self, data):
             """Set the data to be presented on the parallel port (one ubyte).
             Alternatively you can set the value of each pin (data pins are

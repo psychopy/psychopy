@@ -469,7 +469,7 @@ def infoDlg(title=_translate("Information"), prompt=None):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
-    QtWidgets.QMessageBox.information(None, title,prompt or _pr)
+    QtWidgets.QMessageBox.information(None, title, prompt or _pr)
 
 
 def warnDlg(title=_translate("Warning"), prompt=None):
@@ -553,7 +553,7 @@ if __name__ == '__main__':
     dlg.addField("Mixed type dropdown", initial=2,
                  choices=['A String', 1234567, [12.34, 56.78],
                           ('tuple element 0', 'tuple element 1'),
-                          {'key1': 'val1','key2': 23}],
+                          {'key1': 'val1', 'key2': 23}],
                  color="Red")
 
     dlg.addField("Yet Another dropdown", choices=[1, 2, 3])
