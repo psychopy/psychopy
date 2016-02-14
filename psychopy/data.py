@@ -685,12 +685,11 @@ class _BaseTrialHandler(object):
                 if entry is None:
                     entry = ''
                 try:
-                    # if it can convert to a number (from numpy) then do it
-                    val = float(entry)
+                    ws.cell(_getExcelCellName(col=colN, row=lineN)).value = float(
+                        entry)  # if it can conver to a number (from numpy) then do it
                 except Exception:
-                    val = unicode(entry)
-                _cell = _getExcelCellName(col=colN, row=lineN)
-                ws.cell(_cell).value = val
+                    ws.cell(_getExcelCellName(col=colN, row=lineN)).value = unicode(
+                        entry)  # else treat as unicode
 
         ew.save(filename=fileName)
 
@@ -720,8 +719,8 @@ class _BaseTrialHandler(object):
             return -1, None  # the user wants to avoid storing this
         elif originPath is None or not os.path.isfile(originPath):
             try:
-                current = inspect.currentframe()
-                originPath = inspect.getouterframes(current)[2][1]
+                originPath = inspect.getouterframes(
+                    inspect.currentframe())[2][1]
                 if self.autoLog:
                     logging.debug("Using %s as origin file" % originPath)
             except Exception:
@@ -1371,25 +1370,23 @@ class TrialHandler(_BaseTrialHandler):
 
                 # now collect the value from each trial of the variables named
                 # in the header:
-                for paramName in header:
+                for parameterName in header:
                     # the header includes both trial and data variables, so
                     # need to check before accessing:
-                    _trial = self.trialList[trialTypeIndex]
-                    if (_trial and paramName in _trial):
-                        nextEntry[paramName] = _trial[paramName]
-                    elif paramName in self.data:
-                        _data = self.data[paramName][trialTypeIndex]
-                        nextEntry[paramName] = _data[repThisType]
-                    elif (self.extraInfo is not None and 
-                            paramName in self.extraInfo):
-                        nextEntry[paramName] = self.extraInfo[paramName]
-                    else:
-                        # allow a null value if this parameter wasn't
-                        # explicitly stored on this trial:
-                        if paramName == "TrialNumber":
-                            nextEntry[paramName] = trialCount
+                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
+                        nextEntry[parameterName] = self.trialList[
+                            trialTypeIndex][parameterName]
+                    elif parameterName in self.data:
+                        nextEntry[parameterName] = self.data[
+                            parameterName][trialTypeIndex][repThisType]
+                    elif self.extraInfo is not None and parameterName in self.extraInfo:
+                        nextEntry[parameterName] = self.extraInfo[
+                            parameterName]
+                    else:  # allow a null value if this parameter wasn't explicitly stored on this trial:
+                        if parameterName == "TrialNumber":
+                            nextEntry[parameterName] = trialCount
                         else:
-                            nextEntry[paramName] = ''
+                            nextEntry[parameterName] = ''
 
                 # store this trial's data
                 dataOut.append(nextEntry)
@@ -1398,18 +1395,17 @@ class TrialHandler(_BaseTrialHandler):
         if not matrixOnly:
             # write the header row:
             nextLine = ''
-            for paramName in header:
-                nextLine = nextLine + paramName + delim
+            for parameterName in header:
+                nextLine = nextLine + parameterName + delim
             # remove the final orphaned tab character
             f.write(nextLine[:-1] + '\n')
 
         # write the data matrix:
         for trial in dataOut:
             nextLine = ''
-            for paramName in header:
-                nextLine = nextLine + unicode(trial[paramName]) + delim
-            # remove the final orphaned tab character
-            nextLine = nextLine[:-1]
+            for parameterName in header:
+                nextLine = nextLine + unicode(trial[parameterName]) + delim
+            nextLine = nextLine[:-1]  # remove the final orphaned tab character
             f.write(nextLine + '\n')
 
         if f != sys.stdout:
@@ -1964,14 +1960,11 @@ class TrialHandlerExt(TrialHandler):
                 self.trialList[n] = TrialType(entry)
         self.nReps = nReps
         # Add Su
-        if not all('weight' in d for d in trialList):
-            self.trialWeights = None
-        else:
-            self.trialWeights = [d['weight'] for d in trialList]
-        if self.trialWeights is None:
-            self.nTotal = self.nReps * len(self.trialList)
-        else:
-            self.nTotal = self.nReps * sum(self.trialWeights)
+        self.trialWeights = None if not all('weight' in d for d in trialList) else [
+            d['weight'] for d in trialList]
+        self.nTotal = self.nReps * \
+            len(self.trialList) if self.trialWeights is None else self.nReps * \
+            sum(self.trialWeights)
         self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
         self.thisRepN = 0  # records which repetition or pass we are on
@@ -2049,10 +2042,10 @@ class TrialHandlerExt(TrialHandler):
             seed = self.seed
             for thisRep in range(self.nReps):
                 if self.trialWeights is None:
-                    idx = indices.flat
+                    thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
                 else:
-                    idx = numpy.repeat(indices, self.trialWeights)
-                thisRepSeq = shuffleArray(idx, seed=seed).tolist()
+                    thisRepSeq = shuffleArray(numpy.repeat(
+                        indices, self.trialWeights), seed=seed).tolist()
                 seed = None  # so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = numpy.transpose(sequenceIndices)
@@ -2060,18 +2053,22 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 sequenceIndices = numpy.repeat(indices, self.nReps, 1)
             else:
-                sequenceIndices = numpy.repeat(numpy.repeat(indices, self.trialWeights, 0), self.nReps, 1)
+                sequenceIndices = numpy.repeat(numpy.repeat(
+                    indices, self.trialWeights, 0), self.nReps, 1)
         elif self.method == 'fullRandom':
             if self.trialWeights is None:
                 # indices * nReps, flatten, shuffle, unflatten;
                 # only use seed once
                 sequential = numpy.repeat(indices, self.nReps, 1)
                 randomFlat = shuffleArray(sequential.flat, seed=self.seed)
-                sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+                sequenceIndices = numpy.reshape(
+                    randomFlat, (len(indices), self.nReps))
             else:
-                sequential = numpy.repeat(numpy.repeat(indices, self.trialWeights, 0), self.nReps, 1)
+                sequential = numpy.repeat(numpy.repeat(
+                    indices, self.trialWeights, 0), self.nReps, 1)
                 randomFlat = shuffleArray(sequential.flat, seed=self.seed)
-                sequenceIndices = numpy.reshape(randomFlat, (sum(self.trialWeights), self.nReps))
+                sequenceIndices = numpy.reshape(
+                    randomFlat, (sum(self.trialWeights), self.nReps))
 
         if self.autoLog:
             # Change
@@ -2127,14 +2124,14 @@ class TrialHandlerExt(TrialHandler):
         # fetch the trial info
         if self.method in ('random', 'sequential', 'fullRandom'):
             if self.trialWeights is None:
-                idx = self.sequenceIndices[self.thisTrialN]
-                self.thisIndex = idx[self.thisRepN]
+                self.thisIndex = self.sequenceIndices[
+                    self.thisTrialN][self.thisRepN]
                 self.thisTrial = self.trialList[self.thisIndex]
                 self.data.add('ran', 1)
                 self.data.add('order', self.thisN)
             else:
-                idx = self.sequenceIndices[self.thisTrialN]
-                self.thisIndex = idx[self.thisRepN]
+                self.thisIndex = self.sequenceIndices[
+                    self.thisTrialN][self.thisRepN]
                 self.thisTrial = self.trialList[self.thisIndex]
 
                 self.data.add('ran', 1,
@@ -2172,16 +2169,18 @@ class TrialHandlerExt(TrialHandler):
             if self.thisN < 0:
                 return [0, -1]
 
-            firstRow = sum(self.trialWeights[:self.thisIndex])
-            lastRow = sum(self.trialWeights[:self.thisIndex + 1])
+            firstRowIndex = sum(self.trialWeights[:self.thisIndex])
+            lastRowIndex = sum(self.trialWeights[:self.thisIndex + 1])
 
-            # get the number of the trial presented by summing in ran
-            # for the rows above and all columns
-            nThisTrialPres = numpy.sum(self.data['ran'][firstRow:lastRow, :])
+            # get the number of the trial presented by summing in ran for the
+            # rows above and all columns
+            nThisTrialPresented = numpy.sum(
+                self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            _tw = self.trialWeights[self.thisIndex]
-            dataRowThisTrial = firstRow + (nThisTrialPres - 1) % _tw
-            dataColThisTrial = int((nThisTrialPres - 1) / _tw)
+            dataRowThisTrial = firstRowIndex + \
+                (nThisTrialPresented - 1) % self.trialWeights[self.thisIndex]
+            dataColThisTrial = int(
+                (nThisTrialPresented - 1) / self.trialWeights[self.thisIndex])
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -2201,16 +2200,18 @@ class TrialHandlerExt(TrialHandler):
             # be from sum(trialWeights[begin:trialIndex]) to
             # sum(trialWeights[begin:trialIndex+1]).
 
-            firstRow = sum(self.trialWeights[:self.thisIndex])
-            lastRow = sum(self.trialWeights[:self.thisIndex + 1])
+            firstRowIndex = sum(self.trialWeights[:self.thisIndex])
+            lastRowIndex = sum(self.trialWeights[:self.thisIndex + 1])
 
-            # get the number of the trial presented by summing in ran
-            # for the rows above and all columns
-            nThisTrialPres = numpy.sum(self.data['ran'][firstRow:lastRow, :])
+            # get the number of the trial presented by summing in ran for the
+            # rows above and all columns
+            nThisTrialPresented = numpy.sum(
+                self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            _tw = self.trialWeights[self.thisIndex]
-            dataRowThisTrial = firstRow + nThisTrialPres % _tw
-            dataColThisTrial = int(nThisTrialPres / _tw)
+            dataRowThisTrial = firstRowIndex + \
+                nThisTrialPresented % self.trialWeights[self.thisIndex]
+            dataColThisTrial = int(
+                nThisTrialPresented / self.trialWeights[self.thisIndex])
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -2221,30 +2222,28 @@ class TrialHandlerExt(TrialHandler):
         """
 
         if self.trialWeights is None:
-            pos = None
+            self.data.add(thisType, value, position=None)
         else:
-            pos = self.getCurrentTrialPosInDataHandler()
-        self.data.add(thisType, value, position=pos)
+            self.data.add(thisType, value,
+                          position=self.getCurrentTrialPosInDataHandler())
+
         # change this!
         if self.getExp() is not None:
             # update the experiment handler too:
             self.getExp().addData(thisType, value)
 
     def _createOutputArrayData(self, dataOut):
-        """This just creates the dataOut part of the output matrix.
-        It is called by _createOutputArray() which creates the header
-        line and adds the stimOut columns
-        """
 
         if self.trialWeights is not None:
             # remember to use other array instead of self.data
-            _vals = numpy.arange(len(self.trialList))
-            idx_data = numpy.repeat(_vals, self.trialWeights)
+            idx_data = numpy.repeat(numpy.arange(
+                len(self.trialList)), self.trialWeights)
 
-        # list of data headers
-        dataHead = []
-        # will store data that has been analyzed
-        dataAnal = dict([])
+        """This just creates the dataOut part of the output matrix.
+        It is called by _createOutputArray() which creates the header line and adds the stimOut columns
+        """
+        dataHead = []  # will store list of data headers
+        dataAnal = dict([])  # will store data that has been analyzed
         if type(dataOut) == str:
             # don't do list convert or we get a list of letters
             dataOut = [dataOut]
@@ -2265,8 +2264,8 @@ class TrialHandlerExt(TrialHandler):
             # then break into dataType and analysis
             dataType, analType = string.rsplit(thisDataOut, '_', 1)
             if dataType == 'all':
-                keyType = [key + "_" + analType for key in allDataTypes]
-                dataOutNew.extend(keyType)
+                dataOutNew.extend(
+                    [key + "_" + analType for key in allDataTypes])
                 if 'order_mean' in dataOutNew:
                     dataOutNew.remove('order_mean')
                 if 'order_std' in dataOutNew:
@@ -2300,26 +2299,20 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 thisData = self.data[dataType]
             else:
-                _twReps = max(self.trialWeights) * self.nReps
-                _trList = len(self.trialList)
-                _zeros = numpy.zeros((_trList, _twReps))
-                _ones = numpy.ones((_trList, _twReps), dtype=bool)
-                resizedData = numpy.ma.masked_array(_zeros, _ones)
-
+                resizedData = numpy.ma.masked_array(numpy.zeros((len(self.trialList), max(self.trialWeights) * self.nReps)),
+                                                    numpy.ones((len(self.trialList), max(self.trialWeights) * self.nReps), dtype=bool))
                 for curTrialIndex in range(len(self.trialList)):
-                    thisDataChunk = self.data[dataType][idx_data == curTrialIndex, :]
-                    padWidth = _twReps - numpy.prod(thisDataChunk.shape)
-                    thisDataChunkRowPadded = numpy.pad(
-                        thisDataChunk.transpose().flatten().data,
-                        (0, padWidth),
-                        mode='constant', constant_values=(0, 0))
-                    thisDataChunkRowPaddedMask = numpy.pad(
-                        thisDataChunk.transpose().flatten().mask,
-                        (0, padWidth),
-                        mode='constant', constant_values=(0, True))
+                    thisDataChunk = self.data[dataType][
+                        idx_data == curTrialIndex, :]
+                    padWidth = max(self.trialWeights) * \
+                        self.nReps - numpy.prod(thisDataChunk.shape)
+                    thisDataChunkRowPadded = numpy.pad(thisDataChunk.transpose().flatten(
+                    ).data, (0, padWidth), mode='constant', constant_values=(0, 0))
+                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.transpose().flatten(
+                    ).mask, (0, padWidth), mode='constant', constant_values=(0, True))
+
                     thisDataChunkRow = numpy.ma.masked_array(
-                        thisDataChunkRowPadded,
-                        mask=thisDataChunkRowPaddedMask)
+                        thisDataChunkRowPadded, mask=thisDataChunkRowPaddedMask)
                     resizedData[curTrialIndex, :] = thisDataChunkRow
 
                 thisData = resizedData
@@ -2462,7 +2455,7 @@ class TrialHandlerExt(TrialHandler):
                 else:
                     repsPerType[trialTypeIndex] += 1
                 # what repeat are we on for this trial type?
-                rep = repsPerType[trialTypeIndex]
+                repThisType = repsPerType[trialTypeIndex]
 
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g.
@@ -2477,27 +2470,29 @@ class TrialHandlerExt(TrialHandler):
                 trialCount += 1
                 nextEntry["TrialNumber"] = trialCount
 
-                # now collect the value from each trial of the variables
-                # named in the header:
-                for prmName in header:
-                    # the header includes both trial and data variables,
-                    # so need to check before accessing:
-                    _ttIdx = trialTypeIndex
-                    if (self.trialList[_ttIdx] and
-                            prmName in self.trialList[_ttIdx]):
-                        nextEntry[prmName] = self.trialList[_ttIdx][prmName]
-                    elif prmName in self.data:
+                # now collect the value from each trial of the variables named
+                # in the header:
+                for parameterName in header:
+                    # the header includes both trial and data variables, so
+                    # need to check before accessing:
+                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
+                        nextEntry[parameterName] = self.trialList[
+                            trialTypeIndex][parameterName]
+                    elif parameterName in self.data:
                         if self.trialWeights is None:
-                            drow, dcol = _ttIdx, rep
+                            nextEntry[parameterName] = self.data[
+                                parameterName][trialTypeIndex][repThisType]
                         else:
-                            first = sum(self.trialWeights[:_ttIdx])
-                            drow = first + rep % self.trialWeights[_ttIdx]
-                            dcol = int(rep / self.trialWeights[_ttIdx])
-                        nextEntry[prmName] = self.data[prmName][drow][dcol]
-                    else:
-                        # allow a null value if this parameter wasn't
-                        # explicitly stored on this trial:
-                        nextEntry[prmName] = ''
+                            firstRowIndex = sum(
+                                self.trialWeights[:trialTypeIndex])
+                            dataRow = firstRowIndex + \
+                                repThisType % self.trialWeights[trialTypeIndex]
+                            dataCol = int(
+                                repThisType / self.trialWeights[trialTypeIndex])
+                            nextEntry[parameterName] = self.data[
+                                parameterName][dataRow][dataCol]
+                    else:  # allow a null value if this parameter wasn't explicitly stored on this trial:
+                        nextEntry[parameterName] = ''
 
                 # store this trial's data
                 dataOut.append(nextEntry)
@@ -3076,22 +3071,22 @@ class StairHandler(_BaseTrialHandler):
             if len(self.reversalIntensities) < 1:
                 self.initialRule = 1
             self.reversalIntensities.append(self.intensities[-1])
-        lenRevIntn = len(self.reversalIntensities)
         # test if we're done
-        if (lenRevIntn >= self.nReversals and
-                len(self.intensities) >= self.nTrials):
+        if len(self.reversalIntensities) >= self.nReversals and \
+                len(self.intensities) >= self.nTrials:
             self.finished = True
         # new step size if necessary
         if reversal and self._variableStep:
-            if lenRevIntn >= len(self.stepSizes):
-                # we've gone beyond the list of step sizes so just
-                # use the last one
+            if len(self.reversalIntensities) >= len(self.stepSizes):
+                # we've gone beyond the list of step sizes so just use the last
+                # one
                 self.stepSizeCurrent = self.stepSizes[-1]
             else:
-                self.stepSizeCurrent = self.stepSizes[lenRevIntn]
+                self.stepSizeCurrent = self.stepSizes[
+                    len(self.reversalIntensities)]
 
         # apply new step size
-        if lenRevIntn < 1 or self.initialRule == 1:
+        if len(self.reversalIntensities) < 1 or self.initialRule == 1:
             self.initialRule = 0  # reset the flag
             if self.data[-1] == 1:
                 self._intensityDec()
@@ -3356,10 +3351,10 @@ class StairHandler(_BaseTrialHandler):
         ws.cell('A1').value = 'Reversal Intensities'
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            _cell = _getExcelCellName(col=0, row=revN + 1)  # col 0
-            ws.cell(_cell).value = unicode(revIntens)
-            _cell = _getExcelCellName(col=1, row=revN + 1)  # col 1
-            ws.cell(_cell).value = unicode(self.reversalPoints[revN])
+            ws.cell(_getExcelCellName(col=0, row=revN + 1)
+                    ).value = unicode(revIntens)
+            ws.cell(_getExcelCellName(col=1, row=revN + 1)
+                    ).value = unicode(self.reversalPoints[revN])
 
         # trials data
         ws.cell('C1').value = 'All Intensities'
@@ -3376,10 +3371,10 @@ class StairHandler(_BaseTrialHandler):
             ws.cell(_getExcelCellName(col=6, row=rowN)).value = 'extraInfo'
             rowN += 1
             for key, val in self.extraInfo.items():
-                _cell = _getExcelCellName(col=6, row=rowN)
-                ws.cell(_cell).value = unicode(key) + u':'
-                _cell = _getExcelCellName(col=7, row=rowN)
-                ws.cell(_cell).value = unicode(val)
+                ws.cell(_getExcelCellName(col=6, row=rowN)
+                        ).value = unicode(key) + u':'
+                ws.cell(_getExcelCellName(col=7, row=rowN)
+                        ).value = unicode(val)
                 rowN += 1
 
         ew.save(filename=fileName)
@@ -4499,11 +4494,12 @@ class DataHandler(dict):
         if not thisType in self:
             self.addDataType(thisType)
         if position is None:
-            # 'ran' is always the first thing to update
-            repN = sum(self['ran'][self.trials.thisIndex])
-            if thisType != 'ran':
+            #'ran' is always the first thing to update
+            if thisType == 'ran':
+                repN = sum(self['ran'][self.trials.thisIndex])
+            else:
                 # because it has already been updated
-                repN -= 1
+                repN = sum(self['ran'][self.trials.thisIndex]) - 1
             # make a list where 1st digit is trial number
             position = [self.trials.thisIndex]
             position.append(repN)
@@ -4513,13 +4509,12 @@ class DataHandler(dict):
         shapeArr = numpy.asarray(self.dataShape)
         if not numpy.alltrue(posArr < shapeArr):
             # array isn't big enough
-            logging.warning('need a bigger array for: ' + thisType)
-            # not implemented yet!
-            self[thisType] = extendArr(self[thisType], posArr)
+            logging.warning('need a bigger array for:' + thisType)
+            self[thisType] = extendArr(
+                self[thisType], posArr)  # not implemented yet!
         # check for ndarrays with more than one value and for non-numeric data
-        if (self.isNumeric[thisType] and
-                (type(value) == numpy.ndarray and len(value) > 1) or
-                 type(value) not in (float, int)):
+        if self.isNumeric[thisType] and \
+                ((type(value) == numpy.ndarray and len(value) > 1) or (type(value) not in [float, int])):
             self._convertToObjectArray(thisType)
         # insert the value
         self[thisType][position[0], position[1]] = value
@@ -4721,7 +4716,7 @@ class FitCumNormal(_baseFunctionFit):
     """Fit a Cumulative Normal function (aka error function or erf)
     of the form::
 
-        y = chance+(1-chance)*((special.erf((xx-xShift)/(sqrt(2)*sd))+1)*0.5)
+        y = chance + (1-chance)*((special.erf((xx-xShift)/(sqrt(2)*sd))+1)*0.5)
 
     and with inverse::
 
@@ -4747,19 +4742,20 @@ class FitCumNormal(_baseFunctionFit):
         global _chance
         xx = numpy.asarray(xx)
         # NB numpy.special.erf() goes from -1:1
-        spErf = special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1
-        yy = _chance + (1 - _chance) * spErf * 0.5
+        yy = _chance + \
+            (1 - _chance) * \
+            ((special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1) * 0.5)
         return yy
 
     @staticmethod
     def _inverse(yy, xShift, sd):
         global _chance
         yy = numpy.asarray(yy)
-        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
-        # NB numpy.special.erfinv() goes from -1:1
-        spErfInv = special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2)
-        xx = xShift + numpy.sqrt(2) * sd * spErfInv
-
+        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB
+        # numpy.special.erfinv() goes from -1:1
+        xx = xShift + \
+            numpy.sqrt(2) * sd * \
+            special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2)
         return xx
 
 ######################### End psychopy.data classes #########################
@@ -4864,10 +4860,10 @@ def functionFromStaircase(intensities, responses, bins=10):
     else:
         pointsPerBin = len(intensities) / float(bins)
         for binN in range(bins):
-            start = int(round(binN * pointsPerBin))
-            stop = int(round((binN + 1) * pointsPerBin))
-            thisResp = sortedResp[start:stop]
-            thisInten = sortedInten[start:stop]
+            thisResp = sortedResp[
+                int(round(binN * pointsPerBin)): int(round((binN + 1) * pointsPerBin))]
+            thisInten = sortedInten[
+                int(round(binN * pointsPerBin)): int(round((binN + 1) * pointsPerBin))]
             binnedResp.append(numpy.mean(thisResp))
             binnedInten.append(numpy.mean(thisInten))
             nPoints.append(len(thisInten))
