@@ -352,7 +352,8 @@ class ExperimentHandler(object):
         # After saving, the initial state of self.savePickle and
         # self.saveWideText is restored.
         #
-        # See https://groups.google.com/d/msg/psychopy-dev/Z4m_UX88q8U/UGuh1eeyjMEJ
+        # See
+        # https://groups.google.com/d/msg/psychopy-dev/Z4m_UX88q8U/UGuh1eeyjMEJ
         savePickle = self.savePickle
         saveWideText = self.saveWideText
 
@@ -1057,11 +1058,10 @@ class TrialHandler(_BaseTrialHandler):
 
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future,
-        without advancing the trials. Returns 'None' if attempting to
-        go beyond the last trial.
+        without advancing the trials. A negative n returns a previous (past)
+        trial. Returns 'None' if attempting to go beyond the last trial.
         """
         # check that we don't go out of bounds for either positive or negative
-        # offsets:
         if n > self.nRemaining or self.thisN + n < 0:
             return None
         seqs = numpy.array(self.sequenceIndices).transpose().flat
@@ -1074,9 +1074,7 @@ class TrialHandler(_BaseTrialHandler):
         to access a trial prior to the first.
         """
         # treat positive offset values as equivalent to negative ones:
-        if n > 0:
-            n = n * -1
-        return self.getFutureTrial(n)
+        return self.getFutureTrial(-abs(n))
 
     def _createOutputArray(self, stimOut, dataOut, delim=None,
                            matrixOnly=False):
@@ -1095,7 +1093,7 @@ class TrialHandler(_BaseTrialHandler):
 
         lines = []
         # parse the dataout section of the output
-        dataOut, dataAnal, dataHead = self._createOutputArrayData(dataOut=dataOut)
+        dataOut, dataAnal, dataHead = self._createOutputArrayData(dataOut)
         if not matrixOnly:
             thisLine = []
             lines.append(thisLine)
@@ -2078,7 +2076,7 @@ class TrialHandlerExt(TrialHandler):
             # Change
             msg = 'Created sequence: %s, trialTypes=%d, nReps=%d, seed=%s'
             vals = (self.method, len(indices), self.nReps, str(self.seed))
-            logging.exp(msg %vals)
+            logging.exp(msg % vals)
         return seqIndices
 
     def next(self):
@@ -2469,8 +2467,6 @@ class TrialHandlerExt(TrialHandler):
                     repsPerType[trialTypeIndex] = 0
                 else:
                     repsPerType[trialTypeIndex] += 1
-                # what repeat are we on for this trial type?
-                repThisType = repsPerType[trialTypeIndex]
 
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g.
@@ -2485,8 +2481,9 @@ class TrialHandlerExt(TrialHandler):
                 trialCount += 1
                 nextEntry["TrialNumber"] = trialCount
 
-                # now collect the value from each trial of the variables named
-                # in the header:
+                # what repeat are we on for this trial type?
+                rep = repsPerType[trialTypeIndex]
+                # collect the value from each trial of the vars in the header:
                 tti = trialTypeIndex
                 for prmName in header:
                     # the header includes both trial and data variables, so
@@ -2496,13 +2493,13 @@ class TrialHandlerExt(TrialHandler):
                         nextEntry[prmName] = self.trialList[tti][prmName]
                     elif prmName in self.data:
                         if self.trialWeights is None:
-                            nextEntry[prmName] = self.data[prmName][tti][repThisType]
+                            nextEntry[prmName] = self.data[prmName][tti][rep]
                         else:
                             firstRowIndex = sum(self.trialWeights[:tti])
-                            dataRow = (firstRowIndex +
-                                repThisType % self.trialWeights[tti])
-                            dataCol = int(repThisType / self.trialWeights[tti])
-                            nextEntry[prmName] = self.data[prmName][dataRow][dataCol]
+                            _tw = self.trialWeights[tti]
+                            row = firstRowIndex + rep % _tw
+                            col = int(rep / _tw)
+                            nextEntry[prmName] = self.data[prmName][row][col]
                     else:
                         # allow a null value if this parameter wasn't
                         # explicitly stored on this trial:
@@ -3097,7 +3094,8 @@ class StairHandler(_BaseTrialHandler):
                 # so just use the last one
                 self.stepSizeCurrent = self.stepSizes[-1]
             else:
-                self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
+                _sz = len(self.reversalIntensities)
+                self.stepSizeCurrent = self.stepSizes[_sz]
 
         # apply new step size
         if len(self.reversalIntensities) < 1 or self.initialRule == 1:
@@ -4972,4 +4970,3 @@ def _getExcelCellName(col, row):
     """
     # BEWARE - openpyxl uses indexing at 1, to fit with Excel
     return "%s%i" % (get_column_letter(col + 1), row + 1)
-

@@ -529,7 +529,7 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000,
     backwards = dftProfile[max(start, 0):min(stop, len(dftProfile))]
     offChunks, _junk = thresh2SD(backwards[::-1], thr=thr)
     offSecs = (start + len(backwards) - offChunks) * ratio
-         # in secs
+    # in secs
 
     return onsetSecs, offSecs
 
