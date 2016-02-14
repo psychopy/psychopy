@@ -40,12 +40,12 @@ def _convertToNewStyle(newClass, oldInstance):
        by initializing a new-style class and copying the old compatibility
        instance's attributes.
     """
-    # if the oldInstance was an ExperimentHandler it wouldn't throw an error related
-    # to itself, but to the underlying loops within it. So check if we have that and then
-    # do imports on each loop
+    # if the oldInstance was an ExperimentHandler it wouldn't throw an error
+    # related to itself, but to the underlying loops within it. So check if we
+    # have that and then do imports on each loop
     if oldInstance.__class__.__name__ == 'ExperimentHandler':
         newHandler = psychopy.data.ExperimentHandler()
-        # newClass() #Init a new new-style object
+        # newClass()  # Init a new new-style object
     else:
         newHandler = newClass([], 0)  # Init a new new-style object
     for thisAttrib in dir(oldInstance):
@@ -88,8 +88,8 @@ def fromFile(filename):
                 psychopy.data.TrialHandler = _oldStyleTrialHandler
                 old_contents = cPickle.load(f)
                 psychopy.data.TrialHandler = currentHandler
-                contents = _convertToNewStyle(
-                    psychopy.data.TrialHandler, old_contents)
+                contents = _convertToNewStyle(psychopy.data.TrialHandler,
+                                              old_contents)
             elif name == 'StairHandler':
                 currentHandler = psychopy.data.StairHandler
                 # Temporarily replace new-style class
@@ -136,12 +136,14 @@ def checkCompatibility(old, new, prefs=None, fix=True):
     msg = "From %s to %s:" % (old, new)
     warning = False
     if old[0:4] < '1.74':
-        msg += "\n\nThere were many changes in version 1.74.00 that will break" + \
-            "\ncompatibility with older versions. Make sure you read the changelog carefully" + \
-            "\nbefore using this version. Do not upgrade to this version halfway through an experiment.\n"
+        msg += ("\n\nThere were many changes in version 1.74.00 that will "
+                "break\ncompatibility with older versions. Make sure you read "
+                "the changelog carefully\nbefore using this version. Do not "
+                "upgrade to this version halfway through an experiment.\n")
         if fix and 'PatchComponent' not in prefs.builder['hiddenComponents']:
             prefs.builder['hiddenComponents'].append('PatchComponent')
         warning = True
     if not warning:
         msg += "\nNo known compatibility issues"
+
     return (not warning), msg

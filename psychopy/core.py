@@ -144,8 +144,10 @@ class StaticPeriod(object):
         if self.win:
             self.win.recordFrameIntervals = self._winWasRecordingIntervals
         if timeRemaining < 0:
-            logging.warn('We overshot the intended duration of %s by %.4fs. The intervening code took too long to execute.' % (
-                self.name, abs(timeRemaining)))
+            msg = ('We overshot the intended duration of %s by %.4fs. The '
+                   'intervening code took too long to execute.')
+            vals = self.name, abs(timeRemaining)
+            logging.warn(msg % vals)
             return 0
         else:
             wait(timeRemaining)

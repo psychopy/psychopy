@@ -50,7 +50,7 @@ while not event.getKeys():
     # Handle the wheel(s):
     # dY is the normal mouse wheel, but some have a dX as well
     wheel_dX, wheel_dY = myMouse.getWheelRel()
-    grating.setOri(wheel_dY * 5, ' + ')
+    grating.setOri(wheel_dY * 5, '+')
 
     # get rid of other, unprocessed events
     event.clearEvents()

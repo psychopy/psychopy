@@ -788,7 +788,7 @@ class TrialHandler(object):
             list(conditions), valType='str',
             updates=None, allowedUpdates=None,
             label=_localized['conditions'],
-            hint=_translate("A list of dictionaries describing the"
+            hint=_translate("A list of dictionaries describing the "
                             "parameters in each condition"))
         self.params['conditionsFile'] = Param(
             conditionsFile, valType='str', updates=None, allowedUpdates=None,
@@ -1125,13 +1125,13 @@ class MultiStairHandler(object):
             list(conditions), valType='str', updates=None,
             allowedUpdates=None,
             label=_localized['conditions'],
-            hint=_translate("A list of dictionaries describing the ' "
-                            "'differences between each staircase"))
+            hint=_translate("A list of dictionaries describing the "
+                            "differences between each staircase"))
         self.params['conditionsFile'] = Param(
             conditionsFile, valType='str', updates=None, allowedUpdates=None,
             label=_localized['conditions'],
-            hint=_translate("An xlsx or csv file specifying the parameters' "
-                            "' for each condition"))
+            hint=_translate("An xlsx or csv file specifying the parameters "
+                            "for each condition"))
         self.params['isTrials'] = Param(
             isTrials, valType='bool', updates=None, allowedUpdates=None,
             label=_localized["Is trials"],

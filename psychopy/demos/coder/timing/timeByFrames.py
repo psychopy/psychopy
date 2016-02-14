@@ -32,7 +32,7 @@ win.recordFrameIntervals = True
 for frameN in range(nIntervals + 1):
     progBar.setSize([2.0 * frameN/nIntervals, 0.05])
     progBar.draw()
-    myStim.setPhase(0.1, ' + ')
+    myStim.setPhase(0.1, '+')
     myStim.draw()
     if event.getKeys():
         print 'stopped early'

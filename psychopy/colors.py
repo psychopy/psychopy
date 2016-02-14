@@ -12,7 +12,12 @@ def hex2rgb255(hexColor):
         hexColor = hexColor[2:]
     if len(hexColor) == 3:
         hexColor = hexColor[0] + '0' + hexColor[1] + '0' + hexColor[2] + '0'
-    return int(hexColor[0:2], 16), int(hexColor[2:4], 16), int(hexColor[4:6], 16)
+
+    rgb = (int(hexColor[0:2], 16),
+           int(hexColor[2:4], 16),
+           int(hexColor[4:6], 16))
+
+    return rgb
 
 
 def isValidColor(color):
