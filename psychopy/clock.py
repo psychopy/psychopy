@@ -2,8 +2,8 @@
 """
 Created on Tue Apr 23 11:28:32 2013
 
-Provides the high resolution timebase used by psychopy, and defines some
-time related utility Classes.
+Provides the high resolution timebase used by psychopy, and defines some time
+related utility Classes.
 
 Moved functionality from core.py so a common code
 base could be used in core.py and logging.py; vs. duplicating the getTime and
@@ -32,12 +32,15 @@ getTime = None
 #     A) The Python interpreter does not apply an offset to the times returned
 #        based on when the timer module being used was loaded or when the timer
 #        function first called was first called.
-#     B) The timer implementation used must be monotonic and report elapsed time
-#        between calls, 'not' system or CPU usage time.
-#     C) The timer implementation must provide a resolution of 50 usec or better.
+#     B) The timer implementation used must be monotonic and report elapsed
+#        time between calls, 'not' system or CPU usage time.
+#     C) The timer implementation must provide a resolution of 50 usec or
+#        better.
 #
-# Given the above requirements, psychopy selects a timer implementation as follows:
-#     1) On Windows, the Windows Query Performance Counter API is used using ctypes access.
+# Given the above requirements, psychopy selects a timer implementation as
+# follows:
+#     1) On Windows, the Windows Query Performance Counter API is used using
+#        ctypes access.
 #     2) On other OS's, if the Python version being used is 2.6 or lower,
 #        time.time is used. For Python 2.7 and above, the timeit.default_timer
 #        function is used.
@@ -80,7 +83,8 @@ class MonotonicClock(object):
     def __init__(self, start_time=None):
         super(MonotonicClock, self).__init__()
         if start_time is None:
-            self._timeAtLastReset = getTime()  # this is sub-millisec timer in python
+            # this is sub-millisec timer in python
+            self._timeAtLastReset = getTime()
         else:
             self._timeAtLastReset = start_time
 
@@ -106,7 +110,6 @@ class Clock(MonotonicClock):
 
     This clock is identical to the :class:`~psychopy.core.MonotonicClock` except
     that it can also be reset to 0 or another value at any point.
-
     """
 
     def __init__(self):
