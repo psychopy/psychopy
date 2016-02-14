@@ -6,7 +6,7 @@
 import sys
 import platform
 
-# dummy methods Should be overridden by imports below if they exist
+# dummy methods should be overridden by imports below if they exist
 
 
 def rush(value=False, realtime=False):
@@ -23,10 +23,11 @@ def waitForVBL():
 
 
 def sendStayAwake():
-    """Sends a signal to your system to indicate that the computer is in use and
-    should not sleep. This should be sent periodically, but PsychoPy will send
-    the signal by default on each screen refresh.
-    Added: v1.79.00
+    """Sends a signal to your system to indicate that the computer is
+    in use and should not sleep. This should be sent periodically,
+    but PsychoPy will send the signal by default on each screen refresh.
+
+    Added: v1.79.00.
 
     Currently supported on: windows, OS X
     """

@@ -30,24 +30,23 @@ else:
 try:
     import matplotlib
     matplotlib.use('WXAgg')
-    from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+    from matplotlib.backends.backend_wxagg import (FigureCanvasWxAgg
+                                                       as FigureCanvas)
     from matplotlib.figure import Figure
 except Exception:
     pass
 import numpy
+
 # wx IDs for menu items
-[idMenuSave] = map(lambda _makeID: wx.NewId(),
-                   range(1))
+def newIds(n):
+    return [wx.NewId() for i in range(n)]
+
+[idMenuSave] = newIds(1)
 # wx IDs for controllers (admin panel)
-[idCtrlMonList, idCtrlCalibList,
-    idBtnCopyCalib, idBtnSaveMon,
-    idBtnNewMon, idBtnDeleteMon,
-    idBtnNewCalib, idBtnDeleteCalib] = map(lambda _makeID: wx.NewId(),
-                                           range(8))
+[idCtrlMonList, idCtrlCalibList, idBtnCopyCalib, idBtnSaveMon] = newIds(4)
+[idBtnNewMon, idBtnDeleteMon, idBtnNewCalib, idBtnDeleteCalib] = newIds(4)
 # wx IDs for controllers (info panel)
-[idCtrlScrDist, idCtrlScrWidth,
-    idCtrlCalibDate, idCtrlCalibNotes] = map(lambda _makeID: wx.NewId(),
-                                             range(4))
+[idCtrlScrDist, idCtrlScrWidth, idCtrlCalibDate, idCtrlCalibNotes] = newIds(4)
 
 
 def unicodeToFloat(val):
@@ -392,24 +391,26 @@ class MainFrame(wx.Frame):
                       self.onBtnFindPhotometer)
 
         # gamma controls
-        self.btnCalibrateGamma = wx.Button(parent, -1,
-                                           _translate("Gamma Calibration..."))
+        self.btnCalibrateGamma = wx.Button(
+            parent, -1, _translate("Gamma Calibration..."))
         wx.EVT_BUTTON(self, self.btnCalibrateGamma.GetId(),
                       self.onCalibGammaBtn)
-        self.btnTestGamma = wx.Button(parent, -1,
-                                      _translate("Gamma Test..."))
+        self.btnTestGamma = wx.Button(
+            parent, -1, _translate("Gamma Test..."))
         self.btnTestGamma.Enable(False)
 
         # color controls
         wx.EVT_BUTTON(self, self.btnTestGamma.GetId(), self.onCalibTestBtn)
-        self.btnCalibrateColor = wx.Button(parent, -1,
-                                           _translate("Chromatic Calibration..."))
+        self.btnCalibrateColor = wx.Button(
+            parent, -1, _translate("Chromatic Calibration..."))
         self.btnCalibrateColor.Enable(False)
         wx.EVT_BUTTON(self, self.btnCalibrateColor.GetId(),
                       self.onCalibColorBtn)
-        self.btnPlotGamma = wx.Button(parent, -1, _translate("Plot gamma"))
+        self.btnPlotGamma = wx.Button(
+            parent, -1, _translate("Plot gamma"))
         wx.EVT_BUTTON(self, self.btnPlotGamma.GetId(), self.plotGamma)
-        self.btnPlotSpectra = wx.Button(parent, -1, _translate("Plot spectra"))
+        self.btnPlotSpectra = wx.Button(
+            parent, -1, _translate("Plot spectra"))
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
 
         photometerBox.AddMany([self.ctrlPhotomType, self.btnFindPhotometer,
@@ -438,7 +439,8 @@ class MainFrame(wx.Frame):
         gammaBoxSizer.Add(self.choiceLinearMethod, 1, wx.ALL, 2)
 
         self.gammaGrid = SimpleGrid(parent, id=-1,
-                                    cols=['Min', 'Max', 'Gamma', 'a', 'b', 'k'],
+                                    cols=['Min', 'Max', 'Gamma',
+                                          'a', 'b', 'k'],
                                     rows=['lum', 'R', 'G', 'B'])
         gammaBoxSizer.Add(self.gammaGrid)
         grid.EVT_GRID_CELL_CHANGE(self.gammaGrid, self.onChangeGammaGrid)
@@ -468,7 +470,7 @@ class MainFrame(wx.Frame):
         calibBoxMainSizer.AddMany([photometerBox,
                                    gammaBoxSizer,
                                    LMSboxSizer,
-                                   DKLboxSizer, ])
+                                   DKLboxSizer])
         calibBoxMainSizer.Layout()
 
         if NOTEBOOKSTYLE:

@@ -35,8 +35,9 @@ If you are using the system's python (eg /usr/bin/python2.x), its highly
 recommended to change cap_sys_nice back to normal afterwards:
   'sudo setcap cap_sys_nice= %s'"""
 
-warnNormal = """Failed to set thread priority to normal with sched_setscheduler.
-Try:  'sudo setcap cap_sys_nice= %s'"""
+warnNormal = ("Failed to set thread priority to normal with "
+              "sched_setscheduler.\n"
+              "Try:  'sudo setcap cap_sys_nice= %s'")
 
 
 def rush(value=True, realtime=False):

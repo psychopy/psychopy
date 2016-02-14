@@ -1367,25 +1367,24 @@ class TrialHandler(_BaseTrialHandler):
                 # always be recovered if sorted during analysis:
                 trialCount += 1
 
-                # now collect the value from each trial of the variables named
-                # in the header:
-                for parameterName in header:
+                # now collect the value from each trial of vars in header:
+                for prmName in header:
                     # the header includes both trial and data variables, so
                     # need to check before accessing:
-                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
-                        nextEntry[parameterName] = self.trialList[
-                            trialTypeIndex][parameterName]
-                    elif parameterName in self.data:
-                        nextEntry[parameterName] = self.data[
-                            parameterName][trialTypeIndex][repThisType]
-                    elif self.extraInfo is not None and parameterName in self.extraInfo:
-                        nextEntry[parameterName] = self.extraInfo[
-                            parameterName]
-                    else:  # allow a null value if this parameter wasn't explicitly stored on this trial:
-                        if parameterName == "TrialNumber":
-                            nextEntry[parameterName] = trialCount
+                    tti = trialTypeIndex
+                    if self.trialList[tti] and prmName in self.trialList[tti]:
+                        nextEntry[prmName] = self.trialList[tti][prmName]
+                    elif prmName in self.data:
+                        nextEntry[prmName] = self.data[prmName][tti][repThisType]
+                    elif self.extraInfo != None and prmName in self.extraInfo:
+                        nextEntry[prmName] = self.extraInfo[prmName]
+                    else:
+                        # allow a null value if this parameter wasn't
+                        # explicitly stored on this trial:
+                        if prmName == "TrialNumber":
+                            nextEntry[prmName] = trialCount
                         else:
-                            nextEntry[parameterName] = ''
+                            nextEntry[prmName] = ''
 
                 # store this trial's data
                 dataOut.append(nextEntry)
@@ -1394,16 +1393,16 @@ class TrialHandler(_BaseTrialHandler):
         if not matrixOnly:
             # write the header row:
             nextLine = ''
-            for parameterName in header:
-                nextLine = nextLine + parameterName + delim
+            for prmName in header:
+                nextLine = nextLine + prmName + delim
             # remove the final orphaned tab character
             f.write(nextLine[:-1] + '\n')
 
         # write the data matrix:
         for trial in dataOut:
             nextLine = ''
-            for parameterName in header:
-                nextLine = nextLine + unicode(trial[parameterName]) + delim
+            for prmName in header:
+                nextLine = nextLine + unicode(trial[prmName]) + delim
             nextLine = nextLine[:-1]  # remove the final orphaned tab character
             f.write(nextLine + '\n')
 
@@ -2488,8 +2487,7 @@ class TrialHandlerExt(TrialHandler):
                 for prmName in header:
                     # the header includes both trial and data variables, so
                     # need to check before accessing:
-                    if (self.trialList[tti] and
-                            prmName in self.trialList[tti]):
+                    if self.trialList[tti] and prmName in self.trialList[tti]:
                         nextEntry[prmName] = self.trialList[tti][prmName]
                     elif prmName in self.data:
                         if self.trialWeights is None:
