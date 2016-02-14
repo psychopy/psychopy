@@ -1403,7 +1403,8 @@ class TrialHandler(_BaseTrialHandler):
             nextLine = ''
             for prmName in header:
                 nextLine = nextLine + unicode(trial[prmName]) + delim
-            nextLine = nextLine[:-1]  # remove the final orphaned tab character
+            # remove the final orphaned tab character
+            nextLine = nextLine[:-1]
             f.write(nextLine + '\n')
 
         if f != sys.stdout:
@@ -1531,8 +1532,7 @@ class TrialHandler2(_BaseTrialHandler):
         # user has hopefully specified a filename
         elif isinstance(trialList, basestring) and os.path.isfile(trialList):
             # import conditions from that file
-            self.trialList, self.columns = importConditions(trialList,
-                                                            returnFieldNames=True)
+            self.trialList, self.columns = importConditions(trialList, True)
         else:
             self.trialList = trialList
             self.columns = trialList[0].keys()
@@ -4522,8 +4522,9 @@ class DataHandler(dict):
             # not implemented yet!
             self[thisType] = extendArr(self[thisType], posArr)
         # check for ndarrays with more than one value and for non-numeric data
-        if self.isNumeric[thisType] and \
-                ((type(value) == numpy.ndarray and len(value) > 1) or (type(value) not in [float, int])):
+        if (self.isNumeric[thisType] and
+                ((type(value) == numpy.ndarray and len(value) > 1) or
+                 (type(value) not in [float, int]))):
             self._convertToObjectArray(thisType)
         # insert the value
         self[thisType][position[0], position[1]] = value
