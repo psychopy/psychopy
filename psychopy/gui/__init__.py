@@ -29,4 +29,5 @@ else:
     try:
         from .wxgui import *
     except ImportError:
-        print("Neither wxPython nor PyQt could be imported so gui is not available")
+        print("Neither wxPython nor PyQt could be imported "
+              "so gui is not available")

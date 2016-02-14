@@ -5,6 +5,7 @@
 
 from psychopy import logging
 
-logging.warning('Deprecated v1.84.00: instead of `from psychopy import filters`, now do `from psychopy.visual import filters`')
+logging.warning('Deprecated v1.84.00: instead of `from psychopy import '
+                'filters`, now do `from psychopy.visual import filters`')
 
 from psychopy.visual.filters import *  # pylint: disable=0401,W0614

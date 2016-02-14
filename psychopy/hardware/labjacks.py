@@ -2,8 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""This provides a basic ButtonBox class, and imports the `ioLab python library
-    <http://github.com/ioLab/python-ioLabs>`_.
+"""This provides a basic ButtonBox class, and imports the
+   `ioLab python library <http://github.com/ioLab/python-ioLabs>`_.
 """
 
 from __future__ import division
@@ -17,13 +17,14 @@ except ImportError:
 
 
 class U3(u3.U3):
+
     def setData(self, byte, endian='big', address=6701):
         """Write 1 byte of data to the U3 port
 
         parameters:
 
             - byte: the value to write (must be an integer 0:255)
-            - endian: ['big' or 'small'] ignored from 1.84 onwards (automatic?)
+            - endian: ['big' or 'small'] ignored from 1.84 onwards; automatic?
             - address: the memory address to send the byte to
                 - 6700 = FIO
                 - 6701 (default) = EIO (the DB15 connector)

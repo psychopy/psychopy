@@ -23,7 +23,7 @@ def array2image(a):
     # fredrik@pythonware.com
     # http://www.pythonware.com
     #
-    if a.dtype.kind in ['u','I', 'B']:
+    if a.dtype.kind in ['u', 'I', 'B']:
         mode = "L"
     elif a.dtype.kind == numpy.float32:
         mode = "F"
