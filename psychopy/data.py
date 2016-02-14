@@ -685,11 +685,12 @@ class _BaseTrialHandler(object):
                 if entry is None:
                     entry = ''
                 try:
-                    ws.cell(_getExcelCellName(col=colN, row=lineN)).value = float(
-                        entry)  # if it can conver to a number (from numpy) then do it
+                    # if it can convert to a number (from numpy) then do it
+                    val = float(entry)
                 except Exception:
-                    ws.cell(_getExcelCellName(col=colN, row=lineN)).value = unicode(
-                        entry)  # else treat as unicode
+                    val = unicode(entry)
+                _cell = _getExcelCellName(col=colN, row=lineN)
+                ws.cell(_cell).value = val
 
         ew.save(filename=fileName)
 
@@ -1960,11 +1961,12 @@ class TrialHandlerExt(TrialHandler):
                 self.trialList[n] = TrialType(entry)
         self.nReps = nReps
         # Add Su
-        self.trialWeights = None if not all('weight' in d for d in trialList) else [
-            d['weight'] for d in trialList]
-        self.nTotal = self.nReps * \
-            len(self.trialList) if self.trialWeights is None else self.nReps * \
-            sum(self.trialWeights)
+        if not all('weight' in d for d in trialList):
+            self.trialWeights = None
+            self.nTotal = self.nReps * len(self.trialList)
+        else:
+            self.trialWeights = [d['weight'] for d in trialList]
+            self.nTotal = self.nReps * sum(self.trialWeights)
         self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
         self.thisRepN = 0  # records which repetition or pass we are on
@@ -2037,45 +2039,47 @@ class TrialHandlerExt(TrialHandler):
         # create indices for a single rep
         indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
 
+        repeat = numpy.repeat
+        reshape = numpy.reshape
         if self.method == 'random':
-            sequenceIndices = []
+            seqIndices = []
             seed = self.seed
             for thisRep in range(self.nReps):
                 if self.trialWeights is None:
-                    thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
+                    idx = indices.flat
                 else:
-                    thisRepSeq = shuffleArray(numpy.repeat(
-                        indices, self.trialWeights), seed=seed).tolist()
+                    idx = repeat(indices, self.trialWeights)
+                thisRepSeq = shuffleArray(idx, seed=seed).tolist()
                 seed = None  # so that we only seed the first pass through!
-                sequenceIndices.append(thisRepSeq)
-            sequenceIndices = numpy.transpose(sequenceIndices)
+                seqIndices.append(thisRepSeq)
+            seqIndices = numpy.transpose(seqIndices)
         elif self.method == 'sequential':
             if self.trialWeights is None:
-                sequenceIndices = numpy.repeat(indices, self.nReps, 1)
+                seqIndices = repeat(indices, self.nReps, 1)
             else:
-                sequenceIndices = numpy.repeat(numpy.repeat(
-                    indices, self.trialWeights, 0), self.nReps, 1)
+                _base = repeat(indices, self.trialWeights, 0)
+                seqIndices = repeat(_base, self.nReps, 1)
         elif self.method == 'fullRandom':
             if self.trialWeights is None:
                 # indices * nReps, flatten, shuffle, unflatten;
                 # only use seed once
-                sequential = numpy.repeat(indices, self.nReps, 1)
+                sequential = repeat(indices, self.nReps, 1)
                 randomFlat = shuffleArray(sequential.flat, seed=self.seed)
-                sequenceIndices = numpy.reshape(
-                    randomFlat, (len(indices), self.nReps))
+                seqIndices = reshape(randomFlat,
+                                     (len(indices), self.nReps))
             else:
-                sequential = numpy.repeat(numpy.repeat(
-                    indices, self.trialWeights, 0), self.nReps, 1)
+                _base = repeat(indices, self.trialWeights, 0)
+                sequential = repeat(_base, self.nReps, 1)
                 randomFlat = shuffleArray(sequential.flat, seed=self.seed)
-                sequenceIndices = numpy.reshape(
-                    randomFlat, (sum(self.trialWeights), self.nReps))
+                seqIndices = reshape(randomFlat,
+                                     (sum(self.trialWeights), self.nReps))
 
         if self.autoLog:
             # Change
             msg = 'Created sequence: %s, trialTypes=%d, nReps=%d, seed=%s'
             vals = (self.method, len(indices), self.nReps, str(self.seed))
             logging.exp(msg %vals)
-        return sequenceIndices
+        return seqIndices
 
     def next(self):
         """Advances to next trial and returns it.
@@ -2124,14 +2128,14 @@ class TrialHandlerExt(TrialHandler):
         # fetch the trial info
         if self.method in ('random', 'sequential', 'fullRandom'):
             if self.trialWeights is None:
-                self.thisIndex = self.sequenceIndices[
-                    self.thisTrialN][self.thisRepN]
+                idx = self.sequenceIndices[self.thisTrialN]
+                self.thisIndex = idx[self.thisRepN]
                 self.thisTrial = self.trialList[self.thisIndex]
                 self.data.add('ran', 1)
                 self.data.add('order', self.thisN)
             else:
-                self.thisIndex = self.sequenceIndices[
-                    self.thisTrialN][self.thisRepN]
+                idx = self.sequenceIndices[self.thisTrialN]
+                self.thisIndex = idx[self.thisRepN]
                 self.thisTrial = self.trialList[self.thisIndex]
 
                 self.data.add('ran', 1,
@@ -2222,28 +2226,30 @@ class TrialHandlerExt(TrialHandler):
         """
 
         if self.trialWeights is None:
-            self.data.add(thisType, value, position=None)
+            pos = None
         else:
-            self.data.add(thisType, value,
-                          position=self.getCurrentTrialPosInDataHandler())
-
+            pos = self.getCurrentTrialPosInDataHandler()
+        self.data.add(thisType, value, position=pos)
         # change this!
         if self.getExp() is not None:
             # update the experiment handler too:
             self.getExp().addData(thisType, value)
 
     def _createOutputArrayData(self, dataOut):
+        """This just creates the dataOut part of the output matrix.
+        It is called by _createOutputArray() which creates the header
+        line and adds the stimOut columns
+        """
 
         if self.trialWeights is not None:
             # remember to use other array instead of self.data
-            idx_data = numpy.repeat(numpy.arange(
-                len(self.trialList)), self.trialWeights)
+            _vals = numpy.arange(len(self.trialList))
+            idx_data = numpy.repeat(_vals, self.trialWeights)
 
-        """This just creates the dataOut part of the output matrix.
-        It is called by _createOutputArray() which creates the header line and adds the stimOut columns
-        """
-        dataHead = []  # will store list of data headers
-        dataAnal = dict([])  # will store data that has been analyzed
+        # list of data headers
+        dataHead = []
+        # will store data that has been analyzed
+        dataAnal = dict([])
         if type(dataOut) == str:
             # don't do list convert or we get a list of letters
             dataOut = [dataOut]
@@ -2264,8 +2270,8 @@ class TrialHandlerExt(TrialHandler):
             # then break into dataType and analysis
             dataType, analType = string.rsplit(thisDataOut, '_', 1)
             if dataType == 'all':
-                dataOutNew.extend(
-                    [key + "_" + analType for key in allDataTypes])
+                keyType = [key + "_" + analType for key in allDataTypes]
+                dataOutNew.extend(keyType)
                 if 'order_mean' in dataOutNew:
                     dataOutNew.remove('order_mean')
                 if 'order_std' in dataOutNew:
@@ -3351,10 +3357,10 @@ class StairHandler(_BaseTrialHandler):
         ws.cell('A1').value = 'Reversal Intensities'
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            ws.cell(_getExcelCellName(col=0, row=revN + 1)
-                    ).value = unicode(revIntens)
-            ws.cell(_getExcelCellName(col=1, row=revN + 1)
-                    ).value = unicode(self.reversalPoints[revN])
+            _cell = _getExcelCellName(col=0, row=revN + 1)  # col 0
+            ws.cell(_cell).value = unicode(revIntens)
+            _cell = _getExcelCellName(col=1, row=revN + 1)  # col 1
+            ws.cell(_cell).value = unicode(self.reversalPoints[revN])
 
         # trials data
         ws.cell('C1').value = 'All Intensities'
@@ -3371,10 +3377,10 @@ class StairHandler(_BaseTrialHandler):
             ws.cell(_getExcelCellName(col=6, row=rowN)).value = 'extraInfo'
             rowN += 1
             for key, val in self.extraInfo.items():
-                ws.cell(_getExcelCellName(col=6, row=rowN)
-                        ).value = unicode(key) + u':'
-                ws.cell(_getExcelCellName(col=7, row=rowN)
-                        ).value = unicode(val)
+                _cell = _getExcelCellName(col=6, row=rowN)
+                ws.cell(_cell).value = unicode(key) + u':'
+                _cell = _getExcelCellName(col=7, row=rowN)
+                ws.cell(_cell).value = unicode(val)
                 rowN += 1
 
         ew.save(filename=fileName)
@@ -4494,12 +4500,11 @@ class DataHandler(dict):
         if not thisType in self:
             self.addDataType(thisType)
         if position is None:
-            #'ran' is always the first thing to update
-            if thisType == 'ran':
-                repN = sum(self['ran'][self.trials.thisIndex])
-            else:
+            # 'ran' is always the first thing to update
+            repN = sum(self['ran'][self.trials.thisIndex])
+            if thisType != 'ran':
                 # because it has already been updated
-                repN = sum(self['ran'][self.trials.thisIndex]) - 1
+                repN -= 1
             # make a list where 1st digit is trial number
             position = [self.trials.thisIndex]
             position.append(repN)
@@ -4509,9 +4514,9 @@ class DataHandler(dict):
         shapeArr = numpy.asarray(self.dataShape)
         if not numpy.alltrue(posArr < shapeArr):
             # array isn't big enough
-            logging.warning('need a bigger array for:' + thisType)
-            self[thisType] = extendArr(
-                self[thisType], posArr)  # not implemented yet!
+            logging.warning('need a bigger array for: ' + thisType)
+            # not implemented yet!
+            self[thisType] = extendArr(self[thisType], posArr)
         # check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
                 ((type(value) == numpy.ndarray and len(value) > 1) or (type(value) not in [float, int])):
@@ -4860,10 +4865,10 @@ def functionFromStaircase(intensities, responses, bins=10):
     else:
         pointsPerBin = len(intensities) / float(bins)
         for binN in range(bins):
-            thisResp = sortedResp[
-                int(round(binN * pointsPerBin)): int(round((binN + 1) * pointsPerBin))]
-            thisInten = sortedInten[
-                int(round(binN * pointsPerBin)): int(round((binN + 1) * pointsPerBin))]
+            start = int(round(binN * pointsPerBin))
+            stop = int(round((binN + 1) * pointsPerBin))
+            thisResp = sortedResp[start:stop]
+            thisInten = sortedInten[start:stop]
             binnedResp.append(numpy.mean(thisResp))
             binnedInten.append(numpy.mean(thisInten))
             nPoints.append(len(thisInten))
