@@ -2305,20 +2305,29 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 thisData = self.data[dataType]
             else:
-                resizedData = numpy.ma.masked_array(numpy.zeros((len(self.trialList), max(self.trialWeights) * self.nReps)),
-                                                    numpy.ones((len(self.trialList), max(self.trialWeights) * self.nReps), dtype=bool))
+                resizedData = numpy.ma.masked_array(
+                    numpy.zeros((len(self.trialList),
+                                 max(self.trialWeights) * self.nReps)),
+                    numpy.ones((len(self.trialList),
+                                max(self.trialWeights) * self.nReps),
+                               dtype=bool))
                 for curTrialIndex in range(len(self.trialList)):
                     thisDataChunk = self.data[dataType][
                         idx_data == curTrialIndex, :]
-                    padWidth = max(self.trialWeights) * \
-                        self.nReps - numpy.prod(thisDataChunk.shape)
-                    thisDataChunkRowPadded = numpy.pad(thisDataChunk.transpose().flatten(
-                    ).data, (0, padWidth), mode='constant', constant_values=(0, 0))
-                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.transpose().flatten(
-                    ).mask, (0, padWidth), mode='constant', constant_values=(0, True))
+                    padWidth = (max(self.trialWeights) * self.nReps -
+                                numpy.prod(thisDataChunk.shape))
+                    thisDataChunkRowPadded = numpy.pad(
+                        thisDataChunk.transpose().flatten().data,
+                        (0, padWidth), mode='constant',
+                        constant_values=(0, 0))
+                    thisDataChunkRowPaddedMask = numpy.pad(
+                        thisDataChunk.transpose().flatten().mask,
+                        (0, padWidth), mode='constant',
+                        constant_values=(0, True))
 
                     thisDataChunkRow = numpy.ma.masked_array(
-                        thisDataChunkRowPadded, mask=thisDataChunkRowPaddedMask)
+                        thisDataChunkRowPadded,
+                        mask=thisDataChunkRowPaddedMask)
                     resizedData[curTrialIndex, :] = thisDataChunkRow
 
                 thisData = resizedData
@@ -2466,7 +2475,7 @@ class TrialHandlerExt(TrialHandler):
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g.
                 # subject ID, date, etc) repeated every line if it exists:
-                if (self.extraInfo != None):
+                if self.extraInfo != None:
                     nextEntry = self.extraInfo.copy()
                 else:
                     nextEntry = {}
@@ -2478,27 +2487,26 @@ class TrialHandlerExt(TrialHandler):
 
                 # now collect the value from each trial of the variables named
                 # in the header:
-                for parameterName in header:
+                tti = trialTypeIndex
+                for prmName in header:
                     # the header includes both trial and data variables, so
                     # need to check before accessing:
-                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
-                        nextEntry[parameterName] = self.trialList[
-                            trialTypeIndex][parameterName]
-                    elif parameterName in self.data:
+                    if (self.trialList[tti] and
+                            prmName in self.trialList[tti]):
+                        nextEntry[prmName] = self.trialList[tti][prmName]
+                    elif prmName in self.data:
                         if self.trialWeights is None:
-                            nextEntry[parameterName] = self.data[
-                                parameterName][trialTypeIndex][repThisType]
+                            nextEntry[prmName] = self.data[prmName][tti][repThisType]
                         else:
-                            firstRowIndex = sum(
-                                self.trialWeights[:trialTypeIndex])
-                            dataRow = firstRowIndex + \
-                                repThisType % self.trialWeights[trialTypeIndex]
-                            dataCol = int(
-                                repThisType / self.trialWeights[trialTypeIndex])
-                            nextEntry[parameterName] = self.data[
-                                parameterName][dataRow][dataCol]
-                    else:  # allow a null value if this parameter wasn't explicitly stored on this trial:
-                        nextEntry[parameterName] = ''
+                            firstRowIndex = sum(self.trialWeights[:tti])
+                            dataRow = (firstRowIndex +
+                                repThisType % self.trialWeights[tti])
+                            dataCol = int(repThisType / self.trialWeights[tti])
+                            nextEntry[prmName] = self.data[prmName][dataRow][dataCol]
+                    else:
+                        # allow a null value if this parameter wasn't
+                        # explicitly stored on this trial:
+                        nextEntry[prmName] = ''
 
                 # store this trial's data
                 dataOut.append(nextEntry)
@@ -2512,8 +2520,8 @@ class TrialHandlerExt(TrialHandler):
         if not matrixOnly:
             # write the header row:
             nextLine = ''
-            for parameterName in header:
-                nextLine = nextLine + parameterName + delim
+            for prmName in header:
+                nextLine = nextLine + prmName + delim
             # todo: rewrite as: nextLine = delim.join([prm for prm in header])
             # remove the final orphaned tab character
             f.write(nextLine[:-1] + '\n')
@@ -2522,8 +2530,8 @@ class TrialHandlerExt(TrialHandler):
         for trial in dataOut:
             # todo: rewrite as delim.join(...)
             nextLine = ''
-            for parameterName in header:
-                nextLine = nextLine + unicode(trial[parameterName]) + delim
+            for prmName in header:
+                nextLine = nextLine + unicode(trial[prmName]) + delim
             nextLine = nextLine[:-1]  # remove the final tab character
             f.write(nextLine + '\n')
 
@@ -3029,8 +3037,8 @@ class StairHandler(_BaseTrialHandler):
         self.addResponse(result, intensity)
 
     def calculateNextIntensity(self):
-        """based on current intensity, counter of correct responses and
-        current direction
+        """Based on current intensity, counter of correct responses, and
+        current direction.
         """
 
         if len(self.reversalIntensities) < 1:
@@ -3077,19 +3085,19 @@ class StairHandler(_BaseTrialHandler):
             if len(self.reversalIntensities) < 1:
                 self.initialRule = 1
             self.reversalIntensities.append(self.intensities[-1])
+
         # test if we're done
-        if len(self.reversalIntensities) >= self.nReversals and \
-                len(self.intensities) >= self.nTrials:
+        if (len(self.reversalIntensities) >= self.nReversals and
+                len(self.intensities) >= self.nTrials):
             self.finished = True
         # new step size if necessary
         if reversal and self._variableStep:
             if len(self.reversalIntensities) >= len(self.stepSizes):
-                # we've gone beyond the list of step sizes so just use the last
-                # one
+                # we've gone beyond the list of step sizes
+                # so just use the last one
                 self.stepSizeCurrent = self.stepSizes[-1]
             else:
-                self.stepSizeCurrent = self.stepSizes[
-                    len(self.reversalIntensities)]
+                self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
 
         # apply new step size
         if len(self.reversalIntensities) < 1 or self.initialRule == 1:
