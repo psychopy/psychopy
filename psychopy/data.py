@@ -1958,7 +1958,7 @@ class TrialHandlerExt(TrialHandler):
                 self.trialList[n] = TrialType(entry)
         self.nReps = nReps
         # Add Su
-        if not all('weight' in d for d in trialList):
+        if not trialList or not all('weight' in d for d in trialList):
             self.trialWeights = None
             self.nTotal = self.nReps * len(self.trialList)
         else:
@@ -2481,7 +2481,7 @@ class TrialHandlerExt(TrialHandler):
                 nextEntry["TrialNumber"] = trialCount
 
                 # what repeat are we on for this trial type?
-                rep = repsPerType[trialTypeIndex]
+                trep = repsPerType[trialTypeIndex]
                 # collect the value from each trial of the vars in the header:
                 tti = trialTypeIndex
                 for prmName in header:
@@ -2491,7 +2491,7 @@ class TrialHandlerExt(TrialHandler):
                         nextEntry[prmName] = self.trialList[tti][prmName]
                     elif prmName in self.data:
                         if self.trialWeights is None:
-                            nextEntry[prmName] = self.data[prmName][tti][rep]
+                            nextEntry[prmName] = self.data[prmName][tti][trep]
                         else:
                             firstRowIndex = sum(self.trialWeights[:tti])
                             _tw = self.trialWeights[tti]
