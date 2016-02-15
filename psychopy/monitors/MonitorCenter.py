@@ -31,13 +31,15 @@ try:
     import matplotlib
     matplotlib.use('WXAgg')
     from matplotlib.backends.backend_wxagg import (FigureCanvasWxAgg
-                                                       as FigureCanvas)
+                                                   as FigureCanvas)
     from matplotlib.figure import Figure
 except Exception:
     pass
 import numpy
 
 # wx IDs for menu items
+
+
 def newIds(n):
     return [wx.NewId() for i in range(n)]
 

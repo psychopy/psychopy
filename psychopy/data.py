@@ -1358,7 +1358,7 @@ class TrialHandler(_BaseTrialHandler):
                 else:
                     repsPerType[trialTypeIndex] += 1
                 # what repeat are we on for this trial type?
-                repThisType = repsPerType[trialTypeIndex]
+                trep = repsPerType[trialTypeIndex]
 
                 # create a dictionary representing each trial:
                 nextEntry = {}
@@ -1375,7 +1375,7 @@ class TrialHandler(_BaseTrialHandler):
                     if self.trialList[tti] and prmName in self.trialList[tti]:
                         nextEntry[prmName] = self.trialList[tti][prmName]
                     elif prmName in self.data:
-                        nextEntry[prmName] = self.data[prmName][tti][repThisType]
+                        nextEntry[prmName] = self.data[prmName][tti][trep]
                     elif self.extraInfo != None and prmName in self.extraInfo:
                         nextEntry[prmName] = self.extraInfo[prmName]
                     else:
