@@ -30,8 +30,8 @@ getTime = None
 #
 # Three requirements exist for the psychopy time base implementation:
 #     A) The Python interpreter does not apply an offset to the times returned
-#        based on when the timer module being used was loaded or when the timer
-#        function first called was first called.
+#        based on when the timer module being used was loaded or when the
+#        timer function first called was first called.
 #     B) The timer implementation used must be monotonic and report elapsed
 #        time between calls, 'not' system or CPU usage time.
 #     C) The timer implementation must provide a resolution of 50 usec or
@@ -69,13 +69,14 @@ class MonotonicClock(object):
     """A convenient class to keep track of time in your experiments using a
     sub-millisecond timer.
 
-    Unlike the :class:`~psychopy.core.Clock` this cannot be reset to arbitrary
-    times. For this clock t=0 always represents the time that the clock was
-    created.
+    Unlike the :class:`~psychopy.core.Clock` this cannot be reset to
+    arbitrary times. For this clock t=0 always represents the time that
+    the clock was created.
 
-    Don't confuse this `class` with `core.monotonicClock` which is an `instance` of
-    it that got created when PsychoPy.core was imported. That clock instance is
-    deliberately designed always to return the time since the start of the study.
+    Don't confuse this `class` with `core.monotonicClock` which is an
+    `instance` of it that got created when PsychoPy.core was imported.
+    That clock instance is deliberately designed always to return the
+    time since the start of the study.
 
     Version Notes: This class was added in PsychoPy 1.77.00
     """
@@ -108,8 +109,8 @@ class Clock(MonotonicClock):
     You can have as many independent clocks as you like (e.g. one
     to time responses, one to keep track of stimuli...)
 
-    This clock is identical to the :class:`~psychopy.core.MonotonicClock` except
-    that it can also be reset to 0 or another value at any point.
+    This clock is identical to the :class:`~psychopy.core.MonotonicClock`
+    except that it can also be reset to 0 or another value at any point.
     """
 
     def __init__(self):
@@ -125,9 +126,9 @@ class Clock(MonotonicClock):
     def add(self, t):
         """Add more time to the clock's 'start' time (t0).
 
-        Note that, by adding time to t0, you make the current time appear less.
-        Can have the effect that getTime() returns a negative number that will
-        gradually count back up to zero.
+        Note that, by adding time to t0, you make the current time
+        appear less. Can have the effect that getTime() returns a negative
+        number that will gradually count back up to zero.
 
         e.g.::
 
@@ -157,7 +158,8 @@ class CountdownTimer(Clock):
             self.add(start)
 
     def getTime(self):
-        """Returns the current time left on this timer in secs (sub-ms precision)
+        """Returns the current time left on this timer in secs
+        (sub-ms precision)
         """
         return self._timeAtLastReset - getTime()
 
@@ -172,15 +174,18 @@ class CountdownTimer(Clock):
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
 
-    If secs=10 and hogCPU=0.2 then for 9.8s python's time.sleep function will be used,
-    which is not especially precise, but allows the cpu to perform housekeeping. In
-    the final hogCPUperiod the more precise method of constantly polling the clock
-    is used for greater precision.
+    If secs=10 and hogCPU=0.2 then for 9.8s python's time.sleep function
+    will be used, which is not especially precise, but allows the cpu to
+    perform housekeeping. In the final hogCPUperiod the more precise
+    method of constantly polling the clock is used for greater precision.
 
-    If you want to obtain key-presses during the wait, be sure to use pyglet and
-    to hogCPU for the entire time, and then call :func:`psychopy.event.getKeys()` after calling :func:`~.psychopy.core.wait()`
+    If you want to obtain key-presses during the wait, be sure to use
+    pyglet and to hogCPU for the entire time, and then call
+    :func:`psychopy.event.getKeys()` after calling
+    :func:`~.psychopy.core.wait()`
 
-    If you want to suppress checking for pyglet events during the wait, do this once::
+    If you want to suppress checking for pyglet events during the wait,
+    do this once::
         core.checkPygletDuringWait = False
 
     and from then on you can do::
@@ -223,14 +228,16 @@ def wait(secs, hogCPUperiod=0.2):
 def getAbsTime():
     """Return unix time (i.e., whole seconds elapsed since Jan 1, 1970).
 
-    This uses the same clock-base as the other timing features, like `getTime()`.
-    The time (in seconds) ignores the time-zone (like `time.time()` on linux).
-    To take the timezone into account, use `int(time.mktime(time.gmtime()))`.
+    This uses the same clock-base as the other timing features,
+    like `getTime()`. The time (in seconds) ignores the time-zone
+    (like `time.time()` on linux). To take the timezone into account,
+    use `int(time.mktime(time.gmtime()))`.
 
-    Absolute times in seconds are especially useful to add to generated file
-    names for being unique, informative (= a meaningful time stamp), and because
-    the resulting files will always sort as expected when sorted in chronological,
-    alphabetical, or numerical order, regardless of locale and so on.
+    Absolute times in seconds are especially useful to add to generated
+    file names for being unique, informative (= a meaningful time stamp),
+    and because the resulting files will always sort as expected when
+    sorted in chronological, alphabetical, or numerical order, regardless
+    of locale and so on.
 
     Version Notes: This method was added in PsychoPy 1.77.00
     """

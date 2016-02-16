@@ -33,8 +33,8 @@ def isValidColor(color):
         return type(color) in [tuple, list, numpy.ndarray] or not color
 
 
-"""140 colors defined by most modern browsers (originally the standard colors of X11).
-Google for 140 web colors for further info"""
+"""140 colors defined by most modern browsers (originally the standard colors
+of X11). Google for 140 web colors for further info"""
 colors = {
     "aliceblue": (0.882352941176471, 0.945098039215686, 1),
     "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922),

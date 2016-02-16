@@ -22,22 +22,25 @@ from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 
 runningThreads = []  # just for backwards compatibility?
 
-# Set getTime in core to == the monotonicClock instance created in the clockModule.
+# Set getTime in core to == the monotonicClock instance created in the
+# clockModule.
 # The logging module sets the defaultClock to == clock.monotonicClock,
 # so by default the core.getTime() and logging.defaultClock.getTime()
 # functions return the 'same' timebase.
 #
-# This way 'all' OSs have a core.getTime() timebase that starts at 0.0 when the experiment
-# is launched, instead of it being this way on Windows only (which was also a
-# descripancy between OS's when win32 was using time.clock).
+# This way 'all' OSs have a core.getTime() timebase that starts at 0.0 when
+# the experiment is launched, instead of it being this way on Windows only
+# (which was also a descripancy between OS's when win32 was using time.clock).
 
 
 def getTime():
     """Get the current time since psychopy.core was loaded.
 
-    Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of getTime()
-    was platform dependent (on OSX and linux it was equivalent to :func:`psychopy.core.getAbsTime`
-    whereas on windows it returned time since loading of the module, as now)"""
+    Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of
+    getTime() was platform dependent (on OSX and linux it was equivalent to
+    :func:`psychopy.core.getAbsTime`
+    whereas on windows it returned time since loading of the module, as now)
+    """
     return monotonicClock.getTime()
 
 try:
@@ -68,8 +71,8 @@ def quit():
 def shellCall(shellCmd, stdin='', stderr=False):
     """Call a single system command with arguments, return its stdout.
     Returns stdout,stderr if stderr is True.
-    Handles simple pipes, passing stdin to shellCmd (pipes are untested on windows)
-    can accept string or list as the first argument
+    Handles simple pipes, passing stdin to shellCmd (pipes are untested
+    on windows) can accept string or list as the first argument
     """
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
@@ -102,18 +105,22 @@ class StaticPeriod(object):
 
         stim.draw()
         win.flip() #the period takes into account the next frame flip
-        #time should now be at exactly 0.5s later than when ISI.start() was called
+        # time should now be at exactly 0.5s later than when ISI.start()
+        # was called
 
     """
 
-    # NB - this might seem to be more sensible in the clock.py module, but that creates a circular reference
-    # with the logging module.
+    # NB - this might seem to be more sensible in the clock.py module,
+    # but that creates a circular reference with the logging module.
 
     def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
         """
-        :param screenHz: the frame rate of the monitor (leave as None if you don't want this accounted for)
-        :param win: if a visual.Window is given then StaticPeriod will also pause/restart frame interval recording
-        :param name: give this StaticPeriod a name for more informative logging messages
+        :param screenHz: the frame rate of the monitor (leave as None if you
+            don't want this accounted for)
+        :param win: if a visual.Window is given then StaticPeriod will
+            also pause/restart frame interval recording
+        :param name: give this StaticPeriod a name for more informative
+            logging messages
         """
         self.status = NOT_STARTED
         self.countdown = CountdownTimer()
@@ -125,7 +132,8 @@ class StaticPeriod(object):
             self.frameTime = 1.0 / screenHz
 
     def start(self, duration):
-        """Start the period. If this is called a second time, the timer will be reset and starts again
+        """Start the period. If this is called a second time, the timer will
+        be reset and starts again
         """
         self.status = STARTED
         self.countdown.reset(duration)
@@ -135,7 +143,8 @@ class StaticPeriod(object):
             self._winWasRecordingIntervals = self.win.recordFrameIntervals
 
     def complete(self):
-        """Completes the period, using up whatever time is remaining with a call to wait()
+        """Completes the period, using up whatever time is remaining with a
+        call to wait()
 
         :return: 1 for success, 0 for fail (the period overran)
         """
