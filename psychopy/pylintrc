@@ -40,6 +40,7 @@ max-statements=150
 [FORMAT]
 indent-string='    '
 single-line-if-stmt=no
+max-line-length=79
 
 [MESSAGES CONTROL]
 # Disable the following PyLint messages:

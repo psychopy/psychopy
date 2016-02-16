@@ -11,34 +11,34 @@
 #
 # In this package you will find almost any sort of port IO function one may
 # imagine. Values of port registers are srored in temporary variables. This is
-# for the bit set/reset functions to work right Some register bits are inverted.
-# on the port pins, but you need not worry about them. The functions in this
-# module take this into account. For eaxample when you call
+# for the bit set/reset functions to work right Some register bits are
+# inverted. on the port pins, but you need not worry about them. The functions
+# in this module take this into account. For eaxample when you call
 # winioport.pportDataStrobe(1) the data strobe pin of the printer port will go
 # HIGH.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files , to deal in the Software
-# without restriction, including without limitation the rights to use, copy,
-# modify, merge, publish,and distribute copies of the Software, and to permit
-# persons to whom the Software is furnished to do so, subject to the following
-# conditions:
+# of this software and associated documentation files , to deal in the
+# Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish,and distribute copies of the Software,
+# and to permit persons to whom the Software is furnished to do so, subject
+# to the following conditions:
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+#  IN THE SOFTWARE.
 #
 
 class PParallelDLPortIO(object):
-    """
-    This class provides read/write access to the parallel port on a PC.
+    """This class provides read/write access to the parallel port on a PC.
 
-    This is a wrapper around Dincer Aydin's `winioport`_ for reading and writing to
-    the parallel port, but adds the following additional functions for convenience.
+    This is a wrapper around Dincer Aydin's `winioport`_ for reading and
+    writing to the parallel port, but adds the following additional
+    functions for convenience.
 
     On windows `winioport`_ requires the `PortIO driver`_ to be installed.
 
@@ -65,10 +65,12 @@ class PParallelDLPortIO(object):
             # Load dlportio.dll functions
             self.port = windll.dlportio
         except Exception, e:
-            print("Could not import DLportIO driver, parallel Ports not available")
+            print("Could not import DLportIO driver, "
+                  "parallel Ports not available")
             raise e
 
-        if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+        if isinstance(address, basestring) and address.startswith('0x'):
+            # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:
             self.base = address
@@ -104,13 +106,17 @@ class PParallelDLPortIO(object):
         """
         # I can't see how to do this without reading and writing the data
         # or caching the registers which seems like a very bad idea...
+        _uch = self.port.DlPortReadPortUchar(self.base)
         if state:
-            self.port.DlPortWritePortUchar( self.base, self.port.DlPortReadPortUchar( self.base ) | (2**(pinNumber-2)) )
+            self.port.DlPortWritePortUchar(self.base,
+                                           _uch | (2**(pinNumber-2)))
         else:
-            self.port.DlPortWritePortUchar( self.base, self.port.DlPortReadPortUchar( self.base ) & (255 ^ 2**(pinNumber-2)) )
+            self.port.DlPortWritePortUchar(self.base,
+                                           _uch & (255 ^ 2**(pinNumber-2)))
 
     def readData(self):
-        """Return the value currently set on the data pins (2-9)"""
+        """Return the value currently set on the data pins (2-9)
+        """
         return (self.port.DlPortReadPortUchar( self.base ))
 
     def readPin(self, pinNumber):
@@ -119,17 +125,25 @@ class PParallelDLPortIO(object):
         Pins 2-13 and 15 are currently read here
         """
         if pinNumber==10:
-            return (self.port.DlPortReadPortUchar( self.base + 1 ) >> 6) & 1 # 10 = ACK
+            # 10 = ACK
+            return (self.port.DlPortReadPortUchar(self.base + 1) >> 6) & 1
         elif pinNumber==11:
-            return (self.port.DlPortReadPortUchar( self.base + 1 ) >> 7) & 1 # 11 = BUSY
+            # 11 = BUSY
+            return (self.port.DlPortReadPortUchar(self.base + 1) >> 7) & 1
         elif pinNumber==12:
-            return (self.port.DlPortReadPortUchar( self.base + 1 ) >> 5) & 1 # 12 = PAPER-OUT
+            # 12 = PAPER-OUT
+            return (self.port.DlPortReadPortUchar(self.base + 1) >> 5) & 1
         elif pinNumber==13:
-            return (self.port.DlPortReadPortUchar( self.base + 1 ) >> 4) & 1 # 13 = SELECT
+            # 13 = SELECT
+            return (self.port.DlPortReadPortUchar(self.base + 1) >> 4) & 1
         elif pinNumber==15:
-            return (self.port.DlPortReadPortUchar( self.base + 1 ) >> 3) & 1 # 15 = ERROR
+            # 15 = ERROR
+            return (self.port.DlPortReadPortUchar(self.base + 1) >> 3) & 1
         elif pinNumber >= 2 and pinNumber <= 9:
-            return (self.port.DlPortReadPortUchar( self.base ) >> (pinNumber - 2)) & 1
+            return (self.port.DlPortReadPortUchar(self.base) >>
+                    (pinNumber - 2)) & 1
         else:
-            print('Pin %i cannot be read (by the PParallelDLPortIO.readPin() yet)' % (pinNumber))
+            msg = ('Pin %i cannot be read (by the PParallelDLPortIO'
+                   '.readPin() yet)')
+            print(msg  % (pinNumber))
 
