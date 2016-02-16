@@ -48,74 +48,77 @@ class PolygonComponent(BaseVisualComponent):
         self.order = ['nVertices']
 
         # params
-        msg = ("How many vertices? 2=line, 3=triangle... (90 approximates a "
-               "circle)")
+        msg = _translate("How many vertices? 2=line, 3=triangle... (90 approximates a "
+                         "circle)")
         self.params['nVertices'] = Param(
             nVertices, valType='int',
             updates='constant',
             allowedUpdates=['constant'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['nVertices'])
 
-        msg = "Choice of color space for the fill color (rgb, dkl, lms, hsv)"
+        msg = _translate("Choice of color space for the fill color "
+                         "(rgb, dkl, lms, hsv)")
         self.params['fillColorSpace'] = Param(
             fillColorSpace,
             valType='str', allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['fillColorSpace'], categ='Advanced')
 
-        msg = ("Fill color of this shape; Right-click to bring up a "
+        msg = _translate("Fill color of this shape; Right-click to bring up a "
                "color-picker (rgb only)")
         self.params['fillColor'] = Param(
             fillColor, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['fillColor'], categ='Advanced')
 
-        msg = "Choice of color space for the fill color (rgb, dkl, lms, hsv)"
+        msg = _translate("Choice of color space for the fill color "
+                         "(rgb, dkl, lms, hsv)")
         self.params['lineColorSpace'] = Param(
             lineColorSpace, valType='str',
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['lineColorSpace'], categ='Advanced')
 
-        msg = ("Line color of this shape; Right-click to bring up a "
-               "color-picker (rgb only)")
+        msg = _translate("Line color of this shape; Right-click to bring"
+                         " up a color-picker (rgb only)")
         self.params['lineColor'] = Param(
             lineColor, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['lineColor'], categ='Advanced')
 
-        msg = ("Width of the shape's line (always in pixels - this does NOT "
+        msg = _translate("Width of the shape's line (always in pixels - this does NOT "
                "use 'units')")
         self.params['lineWidth'] = Param(
             lineWidth, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['lineWidth'])
 
-        msg = "How should the image be interpolated if/when rescaled"
+        msg = _translate("How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['interpolate'], categ='Advanced')
 
-        msg = ("Size of this stimulus [w,h]. Note that for a line only the "
-               "first value is used, for triangle and rect the [w,h] is as "
-               "expected,\n but for higher-order polygons it represents the "
-               "[w,h] of the ellipse that the polygon sits on!! ")
+        msg = _translate(
+            "Size of this stimulus [w,h]. Note that for a line only the "
+            "first value is used, for triangle and rect the [w,h] is as "
+            "expected,\n but for higher-order polygons it represents the "
+            "[w,h] of the ellipse that the polygon sits on!! ")
         self.params['size'] = Param(
             size, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['size'])
 
         del self.params['color']

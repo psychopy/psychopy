@@ -52,37 +52,39 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
         self.exp.requirePsychopyLibs(['hardware'])
 
-        msg = ("What is the 'correct' response? NB, buttons are labelled 0 to "
-               "6 on a 7-button box. Enter 'None' (no quotes) if withholding "
-               "a response is correct. Might be helpful to add a correctAns "
-               "column and use $correctAns to compare to the key press.")
-        self.params['correctAns'].hint = _translate(msg)
+        self.params['correctAns'].hint = _translate(
+            "What is the 'correct' response? NB, buttons are labelled 0 to "
+            "6 on a 7-button box. Enter 'None' (no quotes) if withholding "
+            "a response is correct. Might be helpful to add a correctAns "
+            "column and use $correctAns to compare to the key press.")
 
         self.params['correctAns'].valType = 'code'
 
-        msg = ('Keys to be read (blank for any) or key numbers separated by '
-               'commas')
-        self.params['allowedKeys'].hint = _translate(msg)
+        self.params['allowedKeys'].hint = _translate(
+            'Keys to be read (blank for any) or key numbers separated by '
+            'commas')
 
-        msg = ('Device number, if you have multiple devices which one do you '
-               'want (0, 1, 2...)')
+        msg = _translate('Device number, if you have multiple devices which'
+                         ' one do you want (0, 1, 2...)')
         self.params['deviceNumber'] = Param(
             deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['deviceNumber'], categ='Advanced')
 
-        # self.params['getReleaseTime'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
+        # self.params['getReleaseTime'] = Param(getReleaseTime,
+        #    valType='bool', allowedVals=[True, False],
         #    updates='constant', allowedUpdates=[],
-        #    hint="Wait for the key to be released and store the time that it was held down",
+        #    hint="Wait for the key to be released and store the time
+        #       that it was held down",
         #    label="Get release time")
 
-        msg = ('According to Cedrus the response box timer has a drift - use '
-               'with caution!')
+        msg = _translate('According to Cedrus the response box timer has '
+                         'a drift - use with caution!')
         self.params['useBoxTimer'] = Param(
             getReleaseTime, valType='bool', allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['useBoxTimer'], categ='Advanced')
 
     def writeStartCode(self, buff):

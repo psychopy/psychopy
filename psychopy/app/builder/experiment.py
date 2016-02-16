@@ -45,13 +45,27 @@ _numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
 _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle']
 
 # _localized separates internal (functional) from displayed strings:
-_loKeys = ('Name', 'nReps', 'conditions', 'endPoints', 'Selected rows',
-           'loopType', 'random seed', 'Is trials',  # for loops
-           'min value', 'N reversals', 'start value', 'N up', 'max value',
-           'N down', 'step type', 'step sizes',  # staircases
-           'stairType', 'switchMethod')  # interleaved staircases
-_localized = {k: _translate(k) for k in _loKeys}
-_localized['conditions'] = _translate('Conditions')   # todo: rewrite
+# expose to poedit autodiscovery:
+_localized = {
+    'Name': _translate('Name'),
+    'nReps': _translate('nReps'),
+    'conditions': _translate('Conditions'),  # not the same
+    'endPoints': _translate('endPoints'),
+    'Selected rows': _translate('Selected rows'),
+    'loopType': _translate('loopType'),
+    'random seed': _translate('random seed'),
+    'Is trials': _translate('Is trials'),
+    'min value': _translate('min value'),
+    'N reversals': _translate('N reversals'),
+    'start value': _translate('start value'),
+    'N up': _translate('N up'),
+    'max value': _translate('max value'),
+    'N down': _translate('N down'),
+    'step type': _translate('step type'),
+    'step sizes': _translate('step sizes'),
+    'stairType': _translate('stairType'),
+    'switchMethod': _translate('switchMethod')}
+#_localized = {k: _translate(k) for k in _loKeys}  # hides string from poedit
 
 
 class CodeGenerationException(Exception):
@@ -420,12 +434,13 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = ("Parameter %r is not known to this version of "
-                           "PsychoPy but has come from your experiment file "
-                           "(saved by a future version of PsychoPy?). This "
-                           "experiment may not run correctly in the current "
-                           "version." % name)
-                    logging.warn(_translate(msg))
+                    msg = _translate(
+                        "Parameter %r is not known to this version of "
+                        "PsychoPy but has come from your experiment file "
+                        "(saved by a future version of PsychoPy?). This "
+                        "experiment may not run correctly in the current "
+                        "version.")
+                    logging.warn(msg % name)
                     logging.flush()
         # get the value type and update rate
         if 'valType' in paramNode.keys():

@@ -256,15 +256,15 @@ class MainFrame(wx.Frame):
         self.btnSaveMon = wx.Button(parent, idBtnSaveMon, _translate('Save'))
         wx.EVT_BUTTON(self, idBtnSaveMon, self.onSaveMon)
         monButtonsBox.Add(self.btnSaveMon)
-        msg = "Save all calibrations for this monitor"
-        self.btnSaveMon.SetToolTipString(_translate(msg))
+        msg = _translate("Save all calibrations for this monitor")
+        self.btnSaveMon.SetToolTipString(msg)
 
         self.btnDeleteMon = wx.Button(parent, idBtnDeleteMon,
                                       _translate('Delete'))
         wx.EVT_BUTTON(self, idBtnDeleteMon, self.onDeleteMon)
         monButtonsBox.Add(self.btnDeleteMon)
-        msg = "Delete this monitor entirely"
-        self.btnDeleteMon.SetToolTipString(_translate(msg))
+        msg = _translate("Delete this monitor entirely")
+        self.btnDeleteMon.SetToolTipString(msg)
 
         self.ctrlCalibList = wx.ListBox(parent, idCtrlCalibList,
                                         choices=[''],
@@ -276,15 +276,16 @@ class MainFrame(wx.Frame):
                                       _translate('Copy...'))
         wx.EVT_BUTTON(self, idBtnCopyCalib, self.onCopyCalib)
         calibButtonsBox.Add(self.btnCopyCalib)
-        msg = "Creates a new calibration entry for this monitor"
-        self.btnCopyCalib.SetToolTipString(_translate(msg))
+        msg = _translate("Creates a new calibration entry for this monitor")
+        self.btnCopyCalib.SetToolTipString(msg)
 
         self.btnDeleteCalib = wx.Button(
             parent, idBtnDeleteCalib, _translate('Delete'))
         wx.EVT_BUTTON(self, idBtnDeleteCalib, self.onDeleteCalib)
         calibButtonsBox.Add(self.btnDeleteCalib)
-        msg = "Remove this calibration entry (finalized when monitor is saved)"
-        self.btnDeleteCalib.SetToolTipString(_translate(msg))
+        msg = _translate("Remove this calibration entry (finalized when "
+                         "monitor is saved)")
+        self.btnDeleteCalib.SetToolTipString(msg)
 
         # add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
@@ -525,9 +526,8 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             # warn user that data will be lost
-            msg = 'Save changes to monitor settings before quitting?'
-            dlg = dialogs.MessageDialog(self, message=_translate(msg),
-                                        type='Warning')
+            msg = _translate('Save changes to monitor settings before quitting?')
+            dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
                 return 1  # return before quitting
@@ -547,9 +547,8 @@ class MainFrame(wx.Frame):
                 # it didnt' really change
                 return 1
             # warn user that data will be lost
-            msg = 'Save changes to monitor?'
-            dlg = dialogs.MessageDialog(self, _translate(msg),
-                                        type='Warning')
+            msg = _translate('Save changes to monitor?')
+            dlg = dialogs.MessageDialog(self, msg, type='Warning')
             resp = dlg.ShowModal()
             dlg.Destroy()
             if resp == wx.ID_CANCEL:
@@ -655,8 +654,8 @@ class MainFrame(wx.Frame):
         calibTimeStr = monitors.strFromDate(calibTime)
 
         # then use dialogue so user can override
-        msg = 'Name of this calibration (for monitor "%(name)s") will be:)'
-        infoStr = _translate(msg) % {'name': self.currentMon.name}
+        msg = _translate('Name of this calibration (for monitor "%(name)s") will be:)')
+        infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
                                  defaultValue=calibTimeStr,
                                  caption=_translate('Input text'))
@@ -688,10 +687,9 @@ class MainFrame(wx.Frame):
 
     def onDeleteMon(self, event):
         monToDel = self.currentMonName
-        msg = ('Are you sure you want to delete all details for %s? '
-               '(cannot be undone)')
-        dlg = dialogs.MessageDialog(parent=self,
-                                    message=_translate(msg) % monToDel,
+        msg = _translate('Are you sure you want to delete all details for %s? '
+                         '(cannot be undone)')
+        dlg = dialogs.MessageDialog(parent=self, message=msg % monToDel,
                                     type='Warning')
         response = dlg.ShowModal()
         dlg.Destroy()
@@ -711,10 +709,10 @@ class MainFrame(wx.Frame):
     def onDeleteCalib(self, event):
         calToDel = self.ctrlCalibList.GetStringSelection()
         # warn user that data will be lost
-        msg = ('Are you sure you want to delete this calibration? '
-               '(cannot be undone)')
+        msg = _translate('Are you sure you want to delete this calibration? '
+                         '(cannot be undone)')
         dlg = dialogs.MessageDialog(parent=self,
-                                    message=_translate(msg),
+                                    message=msg,
                                     type='Warning')
         if dlg.ShowModal() == wx.ID_YES:
             # delete it
@@ -970,8 +968,8 @@ class MainFrame(wx.Frame):
             self.btnTestGamma.Enable(True)
             if hasattr(self.photom, 'getLastSpectrum'):
                 self.btnCalibrateColor.Enable(True)
-            msg = '%(photomType)s found on %(photomPort)s'
-            self.comPortLabel.SetLabel(_translate(msg) %
+            msg = _translate('%(photomType)s found on %(photomPort)s')
+            self.comPortLabel.SetLabel(msg %
                                        {'photomType': self.photom.type,
                                         'photomPort': self.photom.portString})
         else:
@@ -1006,9 +1004,9 @@ class MainFrame(wx.Frame):
                                      'press OK')
 
     def plotGamma(self, event=None):
-        msg = '%(monName)s %(calibName)s Gamma Functions'
-        figTitle = _translate(msg) % {'monName': self.currentMonName,
-                                      'calibName': self.currentCalibName}
+        msg = _translate('%(monName)s %(calibName)s Gamma Functions')
+        figTitle = msg % {'monName': self.currentMonName,
+                          'calibName': self.currentCalibName}
         plotWindow = PlotFrame(self, 1003, figTitle)
 
         figure = Figure(figsize=(5, 5), dpi=80)
@@ -1071,9 +1069,9 @@ class MainFrame(wx.Frame):
         plotWindow.addCanvas(figureCanvas)
 
     def plotSpectra(self, event=None):
-        msg = '%(monName)s %(calibName)s Spectra'
-        figTitle = _translate(msg) % {'monName': self.currentMonName,
-                                      'calibName': self.currentCalibName}
+        msg = _translate('%(monName)s %(calibName)s Spectra')
+        figTitle = msg % {'monName': self.currentMonName,
+                          'calibName': self.currentCalibName}
         plotWindow = PlotFrame(self, 1003, figTitle)
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
@@ -1189,16 +1187,16 @@ class GammaDlg(wx.Dialog):
         self.ctrlUseBits = wx.CheckBox(self, -1, _translate('Use Bits++'))
         self.ctrlUseBits.SetValue(self.useBits)
 
-        msg = 'Number of calibration points:'
-        self.labelNPoints = wx.StaticText(self, -1, _translate(msg))
+        msg = _translate('Number of calibration points:')
+        self.labelNPoints = wx.StaticText(self, -1, msg)
         self.ctrlNPoints = intctrl.IntCtrl(self, -1, value=8)
 
-        msg = 'Screen number (primary is 1)'
-        self.labelScrN = wx.StaticText(self, -1, _translate(msg))
+        msg = _translate('Screen number (primary is 1)')
+        self.labelScrN = wx.StaticText(self, -1, msg)
         self.ctrlScrN = intctrl.IntCtrl(self, -1, value=1)
 
-        msg = 'Patch size (fraction of screen):'
-        self.labelStimSize = wx.StaticText(self, -1, _translate(msg))
+        msg = _translate('Patch size (fraction of screen):')
+        self.labelStimSize = wx.StaticText(self, -1, msg)
         self.ctrlStimSize = wx.TextCtrl(self, -1, '0.3')
 
         pad = 5

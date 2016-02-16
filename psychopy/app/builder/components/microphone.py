@@ -35,16 +35,16 @@ class MicrophoneComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['microphone'])
 
         # params
-        msg = "Record two channels (stereo) or one (mono, smaller file)"
+        msg = _translate("Record two channels (stereo) or one (mono, smaller file)")
         self.params['stereo'] = Param(
             stereo, valType='bool',
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['stereo'])
 
         self.params['stopType'].allowedVals = ['duration (s)']
 
-        msg = 'The duration of the recording in seconds; blank = 0 sec'
-        self.params['stopType'].hint = _translate(msg)
+        msg = _translate('The duration of the recording in seconds; blank = 0 sec')
+        self.params['stopType'].hint = msg
 
     def writeStartCode(self, buff):
         # filename should have date_time, so filename_wav should be unique

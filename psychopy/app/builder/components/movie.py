@@ -41,36 +41,38 @@ class MovieComponent(BaseVisualComponent):
         self.order = ['forceEndRoutine']
 
         # params
-        msg = ("When does the component end? (blank to use the duration of "
-               "the media)")
-        self.params['stopVal'].hint = _translate(msg)
+        msg = _translate(
+            "When does the component end? (blank to use the duration of "
+            "the media)")
+        self.params['stopVal'].hint = msg
 
-        msg = "A filename for the movie (including path)"
+        msg = _translate("A filename for the movie (including path)")
         self.params['movie'] = Param(
             movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant', 'set every repeat'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['movie'])
 
-        msg = "What underlying lib to use for loading movies"
+        msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
-            backend, valType='str', allowedVals=['moviepy', 'avbin', 'opencv'],
-            hint=_translate(msg),
+            backend, valType='str',
+            allowedVals=['moviepy', 'avbin', 'opencv'],
+            hint=msg,
             label=_localized['backend'])
 
-        msg = ("Prevent the audio stream from being loaded/processed (moviepy "
-               "and opencv only)")
+        msg = _translate("Prevent the audio stream from being loaded/process"
+                         "ed (moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool',
             hint=msg,
             label='No audio')
 
-        msg = ("Should the end of the movie cause the end of the routine "
-               "(e.g. trial)?")
+        msg = _translate("Should the end of the movie cause the end of "
+                         "the routine (e.g. trial)?")
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['forceEndRoutine'])
 
         # these are normally added but we don't want them for a movie

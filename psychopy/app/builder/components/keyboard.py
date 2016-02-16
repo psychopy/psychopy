@@ -51,66 +51,73 @@ class KeyboardComponent(BaseComponent):
         self.order = ['forceEndRoutine', 'allowedKeys', 'store',
                       'storeCorrect', 'correctAns']
 
-        msg = ("A comma-separated list of keys (with quotes), such as "
-               "'q','right','space','left' ")
+        msg = _translate(
+            "A comma-separated list of keys (with quotes), such as "
+            "'q','right','space','left' ")
         self.params['allowedKeys'] = Param(
             allowedKeys, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=['constant', 'set every repeat'],
-            hint=_translate(msg),
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat'],
+            hint=(msg),
             label=_localized['allowedKeys'])
 
-        # hints say 'responses' not 'key presses' because the same hint is also
-        # used with button boxes
-        msg = ("Do you want to discard all responses occuring before the "
-               "onset of this component?")
+        # hints say 'responses' not 'key presses' because the same hint is
+        # also used with button boxes
+        msg = _translate("Do you want to discard all responses occuring "
+                         "before the onset of this component?")
         self.params['discard previous'] = Param(
             discardPrev, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['discard previous'])
 
-        msg = "Choose which (if any) responses to store at the end of a trial"
+        msg = _translate("Choose which (if any) responses to store at the "
+                         "end of a trial")
         self.params['store'] = Param(
             store, valType='str', allowedTypes=[],
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['store'])
 
-        msg = ("Should a response force the end of the Routine (e.g end the "
-               "trial)?")
+        msg = _translate("Should a response force the end of the Routine "
+                         "(e.g end the trial)?")
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['forceEndRoutine'])
 
-        msg = "Do you want to save the response as correct/incorrect?"
+        msg = _translate("Do you want to save the response as "
+                         "correct/incorrect?")
         self.params['storeCorrect'] = Param(
             storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['storeCorrect'])
 
-        msg = ("What is the 'correct' key? Might be helpful to add a "
-               "correctAns column and use $correctAns to compare to the key "
-               "press.")
+        msg = _translate(
+            "What is the 'correct' key? Might be helpful to add a "
+            "correctAns column and use $correctAns to compare to the key "
+            "press.")
         self.params['correctAns'] = Param(
             correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['correctAns'])
 
-        msg = ("A reaction time to a visual stimulus should be based on when "
-               "the screen flipped")
+        msg = _translate(
+            "A reaction time to a visual stimulus should be based on when "
+            "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
             syncScreenRefresh, valType='bool',
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['syncScreenRefresh'])
 
     def writeRoutineStartCode(self, buff):
-        code = ("%(name)s = event.BuilderKeyResponse()  # create an object of type KeyResponse\n"
+        code = ("%(name)s = event.BuilderKeyResponse()  # create an "
+                "object of type KeyResponse\n"
                 "%(name)s.status = NOT_STARTED\n")
         buff.writeIndentedLines(code % self.params)
 

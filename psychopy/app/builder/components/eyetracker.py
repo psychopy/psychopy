@@ -31,10 +31,10 @@ class EyetrackerComponent(BaseComponent):
         self.order = ['Config file']  # first param after the name
 
         # standard params (can ignore)
-        msg = "Name of this component (alpha-numeric or _, no spaces)"
+        msg = _translate("Name of this component (alpha-numeric or _, no spaces)")
         self.params['name'] = Param(
             name, valType='code', allowedTypes=[],
-            hint=_translate(msg),
+            hint=msg,
             label="Name")
 
         self.params['startType'] = Param(
@@ -57,30 +57,30 @@ class EyetrackerComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=_translate("When does the component end? (blank is endless)"))
 
-        msg = ("(Optional) expected start (s), purely for representing in the "
-               "timeline")
+        msg = _translate("(Optional) expected start (s), purely for "
+                         "representing in the timeline")
         self.params['startEstim'] = Param(
             startEstim, valType='code', allowedTypes=[],
-            hint=_translate(msg))
+            hint=msg)
 
-        msg = ("(Optional) expected duration (s), purely for representing in "
-               "the timeline")
+        msg = _translate("(Optional) expected duration (s), purely for "
+               "representing in the timeline")
         self.params['durationEstim'] = Param(
             durationEstim, valType='code', allowedTypes=[],
-            hint=_translate(msg))
+            hint=msg)
 
         # useful params for the eyetracker - keep to a minimum if possible! ;-)
         self.params['Config file'] = Param(
             configFile, valType='str',
             hint=_translate("How do you want to define your start point?"))
 
-        msg = ("How often should the eyetracker state (x,y,pupilsize...) be "
-               "stored? On every video frame, every click or just at the end "
-               "of the Routine?")
+        msg = _translate("How often should the eyetracker state (x,y,"
+               "pupilsize...) be stored? On every video frame, every click "
+               "or just at the end of the Routine?")
         self.params['saveState'] = Param(
             save, valType='str',
             allowedVals=['final', 'every frame', 'never'],
-            hint=_translate(msg),
+            hint=msg,
             label="Save eyetracker state")
 
     def writePreWindowCode(self, buff):

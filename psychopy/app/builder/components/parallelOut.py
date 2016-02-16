@@ -47,11 +47,11 @@ class ParallelOutComponent(BaseComponent):
         if not address:
             address = addressOptions[0]
 
-        msg = ("Parallel port to be used (you can change these options in "
-               "preferences>general)")
+        msg = _translate("Parallel port to be used (you can change these "
+                         "options in preferences>general)")
         self.params['address'] = Param(
             address, valType='str', allowedVals=addressOptions,
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['address'])
 
         self.params['startData'] = Param(
@@ -64,13 +64,13 @@ class ParallelOutComponent(BaseComponent):
             hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
 
-        msg = ("If the parallel port data relates to visual stimuli then "
-               "sync its pulse to the screen refresh")
+        msg = _translate("If the parallel port data relates to visual "
+                         "stimuli then sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
             syncScreen, valType='bool',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['syncScreen'])
 
     def writeInitCode(self, buff):

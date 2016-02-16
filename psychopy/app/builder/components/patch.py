@@ -45,54 +45,56 @@ class PatchComponent(BaseVisualComponent):
         self.params['color'].categ = "Advanced"
         self.params['colorSpace'].categ = "Advanced"
 
-        msg = ("The image to be displayed - 'sin','sqr'... or a filename "
-               "(including path)")
+        msg = _translate("The image to be displayed - 'sin','sqr'... or a "
+                         "filename (including path)")
         self.params['image'] = Param(
             image, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['image'])
 
-        msg = ("An image to define the alpha mask (ie shape)- gauss, "
-               "circle... or a filename (including path)")
+        msg = _translate("An image to define the alpha mask (ie shape)- "
+                         "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
             mask, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['mask'])
 
-        msg = "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
+        msg = _translate("Spatial frequency of image repeats across the "
+                         "patch, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
             sf, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['sf'], categ="Advanced")
 
-        msg = "Spatial positioning of the image on the patch (in range 0-1.0)"
+        msg = _translate("Spatial positioning of the image on the patch (in range 0-1.0)")
         self.params['phase'] = Param(
             phase, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['phase'], categ="Advanced")
 
-        msg = ("Resolution of the texture for standard ones such as sin, sqr "
-               "etc. For most cases a value of 256 pixels will suffice")
+        msg = _translate(
+            "Resolution of the texture for standard ones such as sin, sqr "
+            "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes, valType='code',
             allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['texture resolution'], categ="Advanced")
 
-        msg = "How should the image be interpolated if/when rescaled"
+        msg = _translate("How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['interpolate'], categ="Advanced")
 
     def writeInitCode(self, buff):

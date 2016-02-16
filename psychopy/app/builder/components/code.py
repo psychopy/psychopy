@@ -33,44 +33,53 @@ class CodeComponent(BaseComponent):
         self.order = ['name', 'Begin Experiment', 'Begin Routine',
                       'Each Frame', 'End Routine', 'End Experiment']
 
-        msg = "Code at the start of the experiment (initialization); right-click checks syntax"
+        msg = _translate("Code at the start of the experiment (initialization"
+                         "); right-click checks syntax")
         self.params['Begin Experiment'] = Param(
             beginExp, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['Begin Experiment'])
 
-        msg = "Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax"
+        msg = _translate("Code to be run at the start of each repeat of the "
+                         "Routine (e.g. each trial); "
+                         "right-click checks syntax")
         self.params['Begin Routine'] = Param(
             beginRoutine, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['Begin Routine'])
 
-        msg = "Code to be run on every video frame during for the duration of this Routine; right-click checks syntax"
+        msg = _translate("Code to be run on every video frame during for the"
+                         " duration of this Routine; "
+                         "right-click checks syntax")
         self.params['Each Frame'] = Param(
             eachFrame, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['Each Frame'])
 
-        msg = "Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax"
+        msg = _translate("Code at the end of this repeat of the Routine (e.g."
+                         " getting/storing responses); "
+                         "right-click checks syntax")
         self.params['End Routine'] = Param(
             endRoutine, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['End Routine'])
 
-        msg = "Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax"
+        msg = _translate("Code at the end of the entire experiment (e.g. "
+                         "saving files, resetting computer); "
+                         "right-click checks syntax")
         self.params['End Experiment'] = Param(
             endRoutine, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['End Experiment'])
 
         # these inherited params are harmless but might as well trim:
-        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType',
-                  'durationEstim']:
+        for p in ('startType', 'startVal', 'startEstim', 'stopVal',
+                  'stopType', 'durationEstim'):
             del self.params[p]
 
     def writeInitCode(self, buff):

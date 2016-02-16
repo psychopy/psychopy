@@ -52,14 +52,14 @@ class NameValidator(wx.PyValidator):
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == parent.params['name'].val)
             if used and not same_as_old_name:
-                msg = "That name is in use (it's a %s). Try another name."
-                return _translate(msg) % used, False
+                msg = _translate("That name is in use (it's a %s). Try another name.")
+                return msg % used, False
             elif not namespace.isValid(newName):  # valid as a var name
-                msg = "Name must be alpha-numeric or _, no spaces"
-                return _translate(msg), False
+                msg = _translate("Name must be alpha-numeric or _, no spaces")
+                return msg, False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
-                msg = namespace.isPossiblyDerivable(newName)
-                return _translate(msg), True
+                msg = _translate(namespace.isPossiblyDerivable(newName))
+                return msg, True
             else:
                 return "", True

@@ -1407,14 +1407,14 @@ class CoderFrame(wx.Frame):
                         parent=self, background_color='WHITE',)
                     useDefaultShell = False
                 except Exception:
-                    msg = ('IPython failed as shell, using pyshell (IPython '
-                           'v0.12 can fail on wx)')
-                    logging.warn(_translate(msg))
+                    msg = _translate('IPython failed as shell, using pyshell'
+                           ' (IPython v0.12 can fail on wx)')
+                    logging.warn(msg)
             if useDefaultShell:
                 from wx import py
-                msg = 'PyShell in PsychoPy - type some commands!'
+                msg = _translate('PyShell in PsychoPy - type some commands!')
                 self.shell = py.shell.Shell(
-                    self.shelf, -1, introText=_translate(msg) + '\n\n')
+                    self.shelf, -1, introText=msg + '\n\n')
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # add help window
@@ -1490,9 +1490,9 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
         wx.EVT_MENU(self, self.IDs.filePrint,  self.filePrint)
-        msg = "&Preferences\t%s"
+        msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
-                           text=_translate(msg) % keyCodes['preferences'])
+                           text=msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         # -------------quit
         menu.AppendSeparator()

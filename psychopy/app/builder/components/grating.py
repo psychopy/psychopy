@@ -44,56 +44,58 @@ class GratingComponent(BaseVisualComponent):
         self.order = ['tex', 'mask']
 
         # params
-        msg = ("The (2D) texture of the grating - can be sin, sqr, sinXsin... "
-               "or a filename (including path)")
+        msg = _translate("The (2D) texture of the grating - can be sin, sqr,"
+                         " sinXsin... or a filename (including path)")
         self.params['tex'] = Param(
             image, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['tex'], categ="Grating")
 
-        msg = ("An image to define the alpha mask (ie shape)- gauss, "
-               "circle... or a filename (including path)")
+        msg = _translate("An image to define the alpha mask (ie shape)- "
+                         "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
             mask, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['mask'], categ="Grating")
 
-        msg = ("Spatial frequency of image repeats across the grating in 1 or "
-               "2 dimensions, e.g. 4 or [2,3]")
+        msg = _translate("Spatial frequency of image repeats across the "
+                         "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
             sf, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['sf'], categ="Grating")
 
-        msg = ("Spatial positioning of the image on the grating (wraps in "
-               "range 0-1.0)")
+        msg = _translate("Spatial positioning of the image on the grating "
+                         "(wraps in range 0-1.0)")
         self.params['phase'] = Param(
             phase, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['phase'], categ="Grating")
 
-        msg = ("Resolution of the texture for standard ones such as sin, sqr "
-               "etc. For most cases a value of 256 pixels will suffice")
+        msg = _translate(
+            "Resolution of the texture for standard ones such as sin, sqr "
+            "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
             valType='code', allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['texture resolution'], categ="Grating")
 
-        msg = "How should the image be interpolated if/when rescaled"
+        msg = _translate("How should the image be interpolated if/when "
+                         "rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['interpolate'], categ="Grating")
 
     def writeInitCode(self, buff):

@@ -1003,11 +1003,11 @@ class _BaseParamsDlg(wx.Dialog):
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
-                msg = "That name is in use (it's a %s). Try another name."
-                return _translate(msg) % namespace._localized[used], False
+                msg = _translate("That name is in use (it's a %s). Try another name.")
+                return msg % namespace._localized[used], False
             elif not namespace.isValid(newName):  # valid as a var name
-                msg = "Name must be alpha-numeric or _, no spaces"
-                return _translate(msg), False
+                msg = _translate("Name must be alpha-numeric or _, no spaces")
+                return msg, False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
                 msg = namespace.isPossiblyDerivable(newName)
@@ -1290,15 +1290,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text = self.getTrialsSummary(
                         handler.params['conditions'].val)
                 else:
-                    msg = "No parameters set (select a file above)"
-                    text = _translate(msg)
+                    text = _translate("No parameters set (select a file above)")
                 # we'll create our own widgets
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=text, noCtrls=True)
                 size = wx.Size(350, 50)
-                ctrls.valueCtrl = wx.StaticText(
-                    panel, label=text, size=size, style=wx.ALIGN_CENTER)
+                ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size,
+                                                style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0),
                                span=(1, 3), flag=wx.ALIGN_CENTER)
                 row += 1
@@ -1358,17 +1357,16 @@ class DlgLoopProperties(_BaseParamsDlg):
                 paramStr += (unicode(param) + ', ')
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info
-            msg = ('%(nCondition)i conditions, with %(nParam)i '
-                   'parameters\n%(paramStr)s')
+            msg = _translate('%(nCondition)i conditions, with %(nParam)i '
+                             'parameters\n%(paramStr)s')
             vals = {'nCondition': len(conditions),
                     'nParam': len(conditions[0]),
                     'paramStr': paramStr}
-            return _translate(msg) % vals
+            return msg % vals
         else:
             if (self.conditionsFile and
                     not os.path.isfile(self.conditionsFile)):
-                msg = "No parameters set (conditionsFile not found)"
-                return _translate(msg)
+                return _translate("No parameters set (conditionsFile not found)")
             return _translate("No parameters set")
 
     def viewConditions(self, event):
@@ -1477,8 +1475,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                     dlgErr = dialogs.MessageDialog(
                         parent=self.frame, message=m2.replace(': ', sep2),
                         type='Info', title=_translate(_title)).ShowModal()
-                    msg = 'Bad condition name(s) in file:\n'
-                    val = _translate(msg) + newFullPath.split(os.path.sep)[-1]
+                    msg = _translate('Bad condition name(s) in file:\n')
+                    val = msg + newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(val)
                     msg = 'Rejected bad condition name(s) in file: %s'
                     logging.error(msg % newFullPath)
