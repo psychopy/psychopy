@@ -554,8 +554,8 @@ class RoutinesNotebook(aui.AuiNotebook):
                 routineName, prefix='routine')
             exp.namespace.add(routineName)  # add to the namespace
             exp.addRoutine(routineName)  # add to the experiment
-            self.addRoutinePage(routineName, exp.routines[
-                                routineName])  # then to the notebook
+            # then to the notebook:
+            self.addRoutinePage(routineName, exp.routines[routineName])
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
         dlg.Destroy()
         if returnName:

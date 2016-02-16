@@ -35,7 +35,7 @@ class ProjectorFramePacker(object):
 
     Example usage to use ProjectorFramePacker::
 
-        from psychopy.visual.windowframepack import ProjectorFramePacker 
+        from psychopy.visual.windowframepack import ProjectorFramePacker
         win = Window(monitor='testMonitor', screen=1,
                      fullscr=True, useFBO = True)
         framePacker = ProjectorFramePacker (win)

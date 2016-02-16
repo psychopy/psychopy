@@ -185,9 +185,9 @@ class Warper(object):
         # warpfile might have changed the size...
         self.initDefaultWarpSize()
 
-        if (self.warp is None):
+        if self.warp is None:
             self.projectionNone()
-        elif (self.warp == 'spherical'):
+        elif self.warp == 'spherical':
             self.projectionSphericalOrCylindrical(False)
         elif self.warp == 'cylindrical':
             self.projectionSphericalOrCylindrical(True)

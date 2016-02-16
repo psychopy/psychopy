@@ -56,8 +56,9 @@ class ImageComponent(BaseVisualComponent):
             hint=msg,
             label=_localized["image"])
 
-        msg = _translate("An image to define the alpha mask through which the image is "
-               "seen - gauss, circle, None or a filename (including path)")
+        msg = _translate(
+            "An image to define the alpha mask through which the image is "
+            "seen - gauss, circle, None or a filename (including path)")
         self.params['mask'] = Param(
             mask, valType='str', allowedTypes=[],
             updates='constant',

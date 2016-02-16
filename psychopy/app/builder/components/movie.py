@@ -167,7 +167,7 @@ class MovieComponent(BaseVisualComponent):
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
         # do force end of trial code
-        if self.params['forceEndRoutine'].val == True:
+        if self.params['forceEndRoutine'].val is True:
             code = ("if %s.status == FINISHED:  # force-end the routine\n"
                     "    continueRoutine = False\n" %
                     self.params['name'])

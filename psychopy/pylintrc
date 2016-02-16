@@ -22,7 +22,7 @@
 # Try to avoid introducing issues in new code, but don't fix such issues in existing code.
 
 [MASTER]
-ignore=.git,freetype_bf,daq,pyglet_input,labjack,contrib
+ignore=.git,freetype_bf,daq,pyglet_input,labjack,contrib,iohub,demos,tests
 
 [BASIC]
 good-names=i,j,k,x,y,__,so,se

@@ -48,7 +48,7 @@ class MouseComponent(BaseComponent):
             label=_localized['saveMouseState'])
 
         msg = _translate("Should a button press force the end of the routine"
-               " (e.g end the trial)?")
+                         " (e.g end the trial)?")
         self.params['forceEndRoutineOnPress'] = Param(
             forceEndRoutineOnPress, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
@@ -160,7 +160,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndentedLines(code)
 
         # does the response end the trial?
-        if forceEnd == True:
+        if forceEnd is True:
             code = ("# abort routine on response\n"
                     "continueRoutine = False\n")
             buff.writeIndentedLines(code % self.params)

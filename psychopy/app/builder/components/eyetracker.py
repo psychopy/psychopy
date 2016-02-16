@@ -64,7 +64,7 @@ class EyetrackerComponent(BaseComponent):
             hint=msg)
 
         msg = _translate("(Optional) expected duration (s), purely for "
-               "representing in the timeline")
+                         "representing in the timeline")
         self.params['durationEstim'] = Param(
             durationEstim, valType='code', allowedTypes=[],
             hint=msg)
@@ -74,9 +74,10 @@ class EyetrackerComponent(BaseComponent):
             configFile, valType='str',
             hint=_translate("How do you want to define your start point?"))
 
-        msg = _translate("How often should the eyetracker state (x,y,"
-               "pupilsize...) be stored? On every video frame, every click "
-               "or just at the end of the Routine?")
+        msg = _translate(
+            "How often should the eyetracker state (x,y,"
+            "pupilsize...) be stored? On every video frame, every click "
+            "or just at the end of the Routine?")
         self.params['saveState'] = Param(
             save, valType='str',
             allowedVals=['final', 'every frame', 'never'],
@@ -88,7 +89,8 @@ class EyetrackerComponent(BaseComponent):
 
         # these might move to a more general place later, when we're always
         # planning on having iohub running
-        code = ("io_config = iohub.load(file(%('Config file')s,'r'), Loader=iohub.Loader)\n"
+        code = ("io_config = iohub.load(file(%('Config file')s,'r'), "
+                "Loader=iohub.Loader)\n"
                 "io = iohub.ioHubConnection(io_config)\n"
                 "eyetracker = io.getDevice('tracker')\n"
                 "eyetracker.runSetupProcedure()\n")

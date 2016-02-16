@@ -2371,8 +2371,7 @@ class TrialHandlerExt(TrialHandler):
     def saveAsWideText(self, fileName,
                        delim='\t',
                        matrixOnly=False,
-                       appendFile=True,
-                       ):
+                       appendFile=True):
         """Write a text file with the session, stimulus, and data values
         from each trial in chronological order.
 
@@ -3175,8 +3174,7 @@ class StairHandler(_BaseTrialHandler):
                    delim=None,
                    matrixOnly=False,
                    fileCollisionMethod='rename',
-                   encoding='utf-8'
-                   ):
+                   encoding='utf-8'):
         """Write a text file with the data
 
         :Parameters:
@@ -3267,8 +3265,7 @@ class StairHandler(_BaseTrialHandler):
 
     def saveAsExcel(self, fileName, sheetName='data',
                     matrixOnly=False, appendFile=True,
-                    fileCollisionMethod='rename'
-                    ):
+                    fileCollisionMethod='rename'):
         """Save a summary data file in Excel OpenXML format workbook
         (:term:`xlsx`) for processing in most spreadsheet packages.
         This format is compatible with versions of Excel (2007 or greater)

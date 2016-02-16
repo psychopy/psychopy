@@ -218,8 +218,7 @@ def getInitVals(params):
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
-                      'dir', 'speed',  # dots
-                      ]:
+                      'dir', 'speed']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
         elif name in ['image', 'mask']:

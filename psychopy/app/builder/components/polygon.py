@@ -66,8 +66,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['fillColorSpace'], categ='Advanced')
 
-        msg = _translate("Fill color of this shape; Right-click to bring up a "
-               "color-picker (rgb only)")
+        msg = _translate("Fill color of this shape; Right-click to bring up a"
+                         " color-picker (rgb only)")
         self.params['fillColor'] = Param(
             fillColor, valType='str', allowedTypes=[],
             updates='constant',
@@ -93,8 +93,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['lineColor'], categ='Advanced')
 
-        msg = _translate("Width of the shape's line (always in pixels - this does NOT "
-               "use 'units')")
+        msg = _translate("Width of the shape's line (always in pixels - this"
+                         " does NOT use 'units')")
         self.params['lineWidth'] = Param(
             lineWidth, valType='code', allowedTypes=[],
             updates='constant',
