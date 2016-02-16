@@ -243,14 +243,16 @@ def setColor(obj, color, colorSpace=None, operation='',
     if colorSpace in ['rgb', 'rgb255']:
         setattr(obj, rgbAttrib, newColor)
     elif colorSpace == 'dkl':
-        if numpy.all(win.dkl_rgb == numpy.ones([3, 3])):
+        if (win.dkl_rgb is None or
+                numpy.all(win.dkl_rgb == numpy.ones([3, 3]))):
             dkl_rgb = None
         else:
             dkl_rgb = win.dkl_rgb
         setattr(obj, rgbAttrib, colors.dkl2rgb(
             numpy.asarray(newColor).transpose(), dkl_rgb))
     elif colorSpace == 'lms':
-        if numpy.all(win.lms_rgb == numpy.ones([3, 3])):
+        if (win.lms_rgb is None or
+                numpy.all(win.lms_rgb == numpy.ones([3, 3]))):
             lms_rgb = None
         elif win.monitor.getPsychopyVersion() < '1.76.00':
             logging.error("The LMS calibration for this monitor was carried"
