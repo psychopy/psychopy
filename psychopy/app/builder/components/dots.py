@@ -50,62 +50,69 @@ class DotsComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/dots.html"
 
         # params
-        msg = "Number of dots in the field (for circular fields this will be average number of dots)"
+        msg = _translate("Number of dots in the field (for circular fields"
+                         " this will be average number of dots)")
         self.params['nDots'] = Param(
             nDots, valType='code',
             updates='constant',
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['nDots'], categ='Dots')
 
-        msg = "Direction of motion for the signal dots (degrees)"
+        msg = _translate("Direction of motion for the signal dots (degrees)")
         self.params['dir'] = Param(
             direction, valType='code',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['dir'], categ='Dots')
 
-        msg = "Speed of the dots (displacement per frame in the specified units)"
+        msg = _translate("Speed of the dots (displacement per frame in the"
+                         " specified units)")
         self.params['speed'] = Param(
             speed, valType='code',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['speed'], categ='Dots')
 
-        msg = "Coherence of the dots (fraction moving in the signal direction on any one frame)"
+        msg = _translate("Coherence of the dots (fraction moving in the "
+                         "signal direction on any one frame)")
         self.params['coherence'] = Param(
             coherence, valType='code',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['coherence'], categ='Dots')
 
-        msg = "Size of the dots IN PIXELS regardless of the set units"
+        msg = _translate("Size of the dots IN PIXELS regardless of "
+                         "the set units")
         self.params['dotSize'] = Param(
             dotSize, valType='code',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['dotSize'], categ='Dots')
 
-        msg = "Number of frames before each dot is killed and randomly assigned a new position"
+        msg = _translate("Number of frames before each dot is killed and "
+                         "randomly assigned a new position")
         self.params['dotLife'] = Param(
             dotLife, valType='code',
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['dotLife'], categ='Dots')
 
-        msg = "On each frame are the signals dots remaining the same or changing? See Scase et al."
+        msg = _translate("On each frame are the signals dots remaining "
+                         "the same or changing? See Scase et al.")
         self.params['signalDots'] = Param(
             signalDots, valType='str', allowedVals=['same', 'different'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['signalDots'], categ='Dots')
 
-        msg = "What governs the behaviour of the noise dots? See Scase et al."
+        msg = _translate("What governs the behaviour of the noise dots? "
+                         "See Scase et al.")
         self.params['noiseDots'] = Param(
             noiseDots, valType='str',
             allowedVals=['direction', 'position', 'walk'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['noiseDots'], categ='Dots')
 
         self.params['fieldShape'] = Param(
@@ -115,20 +122,21 @@ class DotsComponent(BaseVisualComponent):
             hint=_translate("What is the shape of the field?"),
             label=_localized['fieldShape'])
 
-        msg = "What is the size of the field (in the specified units)?"
+        msg = _translate("What is the size of the field "
+                         "(in the specified units)?")
         self.params['fieldSize'] = Param(
             fieldSize, valType='code',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['fieldSize'])
 
-        msg = "Where is the field centred (in the specified units)?"
+        msg = _translate("Where is the field centred (in the specified units)?")
         self.params['fieldPos'] = Param(
             fieldPos, valType='code',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['fieldPos'])
 
         del self.params['size']  # should be fieldSize

@@ -15,6 +15,7 @@ class _BaseVoiceKeySignal(threading.Thread):
 
     Subclass and override `signal`.
     """
+
     def __init__(self, sec=0.010, delay=0, on=1, off=0):
         super(_BaseVoiceKeySignal, self).__init__(None, 'EventSignal', None)
         self.sec = sec

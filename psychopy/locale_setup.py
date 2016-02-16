@@ -2,7 +2,8 @@
 
 """locale handling for PsychoPy experiment scripts, currently Mac 10.10.3+
 
-Purpose: Avoid a unicode-related python crash on Mac 10.10.3 (maybe only conda?)
+Purpose: Avoid a unicode-related python crash on Mac 10.10.3 (maybe only
+in conda environment?)
 
 Usage: Just import this module at the top of experiment scripts. Should be fast
 enough and safe to do for all Builder scripts.
@@ -28,4 +29,4 @@ if mac_ver:
         from psychopy import prefs
         if not prefs.app['locale']:
             prefs.app['locale'] = u'en_US'
-        locale.setlocale(locale.LC_ALL, str(prefs.app['locale'])+'.UTF-8')
+        locale.setlocale(locale.LC_ALL, str(prefs.app['locale']) + '.UTF-8')

@@ -29,7 +29,6 @@ except ImportError:  # if it's not there locally, try the wxPython lib.
 # needed by splash screen for the path to resources/psychopySplash.png
 from psychopy import preferences, logging, __version__
 from . import connections
-import sys
 import os
 import threading
 
@@ -220,8 +219,8 @@ class PsychoPyApp(wx.App):
         else:
             args = []
 
-        self.dpi = int(wx.GetDisplaySize()[
-                       0] / float(wx.GetDisplaySizeMM()[0]) * 25.4)
+        self.dpi = int(wx.GetDisplaySize()[0] /
+                       float(wx.GetDisplaySizeMM()[0]) * 25.4)
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
 
@@ -599,19 +598,19 @@ class PsychoPyApp(wx.App):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        license = open(os.path.join(self.prefs.paths[
-                       'psychopy'], 'LICENSE.txt'), 'rU').read()
-        msg = """For stimulus generation and experimental control in python.
-
-            PsychoPy depends on your feedback. If something doesn't work
-            then let us know at psychopy-users@googlegroups.com"""
+        license = open(os.path.join(self.prefs.paths['psychopy'],
+                                    'LICENSE.txt'), 'rU').read()
+        msg = _translate(
+            "For stimulus generation and experimental control in python.\n"
+            "PsychoPy depends on your feedback. If something doesn't work\n"
+            "then let us know at psychopy-users@googlegroups.com")
         info = wx.AboutDialogInfo()
         if wx.version() >= '3.':
             icon = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
             info.SetIcon(wx.Icon(icon, wx.BITMAP_TYPE_PNG, 128, 128))
         info.SetName('PsychoPy')
         info.SetVersion('v' + psychopy.__version__)
-        info.SetDescription(_translate(msg).replace('    ', ''))
+        info.SetDescription(msg)
 
         info.SetCopyright('(C) 2002-2015 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')

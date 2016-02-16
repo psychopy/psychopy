@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 
+#pylint: skip-file
+
 # Python ctypes bindings for VLC
 #
 # Copyright (C) 2009-2012 the VideoLAN team

@@ -48,50 +48,51 @@ class ImageComponent(BaseVisualComponent):
         self.params['colorSpace'].categ = "Advanced"
         self.order += ['image', 'pos', 'size', 'ori', 'opacity']
 
-        msg = "The image to be displayed - a filename, including path"
+        msg = _translate("The image to be displayed - a filename, including path")
         self.params['image'] = Param(
             image, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized["image"])
 
-        msg = ("An image to define the alpha mask through which the image is "
-               "seen - gauss, circle, None or a filename (including path)")
+        msg = _translate(
+            "An image to define the alpha mask through which the image is "
+            "seen - gauss, circle, None or a filename (including path)")
         self.params['mask'] = Param(
             mask, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized["mask"], categ="Advanced")
 
-        msg = "Resolution of the mask if one is used."
+        msg = _translate("Resolution of the mask if one is used.")
         self.params['texture resolution'] = Param(
             texRes, valType='code',
             allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized["texture resolution"], categ="Advanced")
 
-        msg = "How should the image be interpolated if/when rescaled"
+        msg = _translate("How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized["interpolate"], categ="Advanced")
 
-        msg = "Should the image be flipped vertically (top to bottom)?"
+        msg = _translate("Should the image be flipped vertically (top to bottom)?")
         self.params['flipVert'] = Param(
             flipVert, valType='bool',
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized["flipVert"], categ="Advanced")
 
-        msg = "Should the image be flipped horizontally (left to right)?"
+        msg = _translate("Should the image be flipped horizontally (left to right)?")
         self.params['flipHoriz'] = Param(
             flipVert, valType='bool',
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized["flipHoriz"], categ="Advanced")
 
     def writeInitCode(self, buff):

@@ -37,29 +37,31 @@ class MouseComponent(BaseComponent):
         self.categories = ['Inputs']
 
         # params
-        msg = ("How often should the mouse state (x,y,buttons) be stored? "
-               "On every video frame, every click or just at the end of the "
-               "Routine?")
+        msg = _translate(
+            "How often should the mouse state (x,y,buttons) be stored? "
+            "On every video frame, every click or just at the end of the "
+            "Routine?")
         self.params['saveMouseState'] = Param(
             save, valType='str',
             allowedVals=['final', 'on click', 'every frame', 'never'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['saveMouseState'])
 
-        msg = ("Should a button press force the end of the routine (e.g end "
-               "the trial)?")
+        msg = _translate("Should a button press force the end of the routine"
+                         " (e.g end the trial)?")
         self.params['forceEndRoutineOnPress'] = Param(
             forceEndRoutineOnPress, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['forceEndRoutineOnPress'])
 
-        msg = "What should the values of mouse.time should be relative to?"
+        msg = _translate("What should the values of mouse.time should be "
+                         "relative to?")
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str',
             allowedVals=['experiment', 'routine'],
             updates='constant', allowedUpdates=[],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['timeRelativeTo'])
 
     def writeInitCode(self, buff):
@@ -70,8 +72,8 @@ class MouseComponent(BaseComponent):
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine
         """
-        # create some lists to store recorded values positions and events if we
-        # need more than one
+        # create some lists to store recorded values positions and events if
+        # we need more than one
         code = ("# setup some python lists for storing info about the "
                 "%(name)s\n")
 
@@ -119,9 +121,10 @@ class MouseComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
 
         # if STARTED and not STOPPED!
-        code = "if %(name)s.status == STARTED:  # only update if started and not stopped!\n" % self.params
+        code = ("if %(name)s.status == STARTED:  "
+                "# only update if started and not stopped!\n") % self.params
         buff.writeIndented(code)
-        buff.setIndentLevel(1, relative=True)  # to get out of the if statement
+        buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
 
         # get a clock for timing
@@ -157,7 +160,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndentedLines(code)
 
         # does the response end the trial?
-        if forceEnd == True:
+        if forceEnd is True:
             code = ("# abort routine on response\n"
                     "continueRoutine = False\n")
             buff.writeIndentedLines(code % self.params)

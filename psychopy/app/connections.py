@@ -282,8 +282,8 @@ class InstallUpdateDialog(wx.Dialog):
             self, -1, "msg", style=wx.ALIGN_CENTER)
         mainSizer.Add(self.statusMessage, flag=wx.EXPAND | wx.ALL, border=5)
         # ctrls for auto-update from web
-        msg = " Auto-update (will fetch latest version)"
-        self.useLatestBtn = wx.RadioButton(self, -1, _translate(msg),
+        msg = _translate(" Auto-update (will fetch latest version)")
+        self.useLatestBtn = wx.RadioButton(self, -1, msg,
                                            style=wx.RB_GROUP)
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useLatestBtn)
         self.progressBar = wx.Gauge(self, -1, 100, size=(250, 25))
@@ -291,8 +291,9 @@ class InstallUpdateDialog(wx.Dialog):
                       flag=wx.ALIGN_LEFT | wx.ALL, border=5)
         mainSizer.Add(self.progressBar, flag=wx.EXPAND | wx.ALL, border=5)
         # ctrls for updating from specific zip file
-        msg = " Use zip file below (download a PsychoPy release file ending .zip)"
-        self.useZipBtn = wx.RadioButton(self, -1, _translate(msg))
+        msg = _translate(" Use zip file below (download a PsychoPy release "
+                         "file ending .zip)")
+        self.useZipBtn = wx.RadioButton(self, -1, msg)
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useZipBtn)
         self.fileBrowseCtrl = wx.lib.filebrowsebutton.FileBrowseButton(
             self, -1, size=(450, -1), changeCallback=self.onFileBrowse,
@@ -466,10 +467,13 @@ class InstallUpdateDialog(wx.Dialog):
                 undoStr += 'os.rename("%s-%s" %(currPath, currVer),currPath)\n'
             except Exception:
                 if onWin32:
-                    msg = "To upgrade you need to restart the app as admin (Right-click the app and 'Run as admin')"
+                    msg = _translate("To upgrade you need to restart the app"
+                                     " as admin (Right-click the app and "
+                                     "'Run as admin')")
                 else:
-                    msg = "Could not move existing PsychoPy installation (permissions error?)"
-                return _translate(msg)
+                    msg = _translate("Could not move existing PsychoPy "
+                                     "installation (permissions error?)")
+                return msg
         else:  # setuptools-style installation
             # generate new target path
             unzipTarget = currPath
@@ -495,10 +499,11 @@ class InstallUpdateDialog(wx.Dialog):
         except Exception:  # revert path rename and inform user
             exec(undoStr)  # undo previous changes
             if onWin32:
-                msg = "Right-click the app and 'Run as admin'):\n%s"
+                msg = _translate("Right-click the app and 'Run as admin'):\n%s")
             else:
-                msg = "Failed to create directory for new version (permissions error?):\n%s"
-            return _translate(msg) % unzipTarget
+                msg = _translate("Failed to create directory for new version"
+                                 " (permissions error?):\n%s")
+            return msg % unzipTarget
 
         # do the actual extraction
         for name in zfile.namelist():  # for each file within the zip

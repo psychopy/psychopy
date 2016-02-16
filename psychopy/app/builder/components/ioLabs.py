@@ -58,25 +58,26 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         self.order = ['forceEndRoutine', 'active', 'lights', 'store',
                       'storeCorrect', 'correctAns']
 
-        msg = ("What is the 'correct' response? NB, buttons are labelled 0 to "
-               "7 on a 8-button box. Enter 'None' (no quotes) if withholding "
-               "a response is correct. Might be helpful to add a correctAns "
-               "column and use $correctAns to compare to the key press.")
-        self.params['correctAns'].hint = _translate(msg)
+        msg = _translate(
+            "What is the 'correct' response? NB, buttons are labelled 0 to "
+            "7 on a 8-button box. Enter 'None' (no quotes) if withholding "
+            "a response is correct. Might be helpful to add a correctAns "
+            "column and use $correctAns to compare to the key press.")
+        self.params['correctAns'].hint = msg
 
         self.params['store'].allowedVals = ['last button', 'first button',
                                             'all buttons', 'nothing']
 
-        msg = 'Choose which (if any) responses to store at end of a trial'
-        self.params['store'].hint = _translate(msg)
+        msg = _translate('Choose which (if any) responses to store at end of a trial')
+        self.params['store'].hint = msg
 
-        msg = ("Active buttons, such as '1,6', '(1,2,5,6)' or '0' "
-               "(without quotes)")
+        msg = _translate("Active buttons, such as '1,6', '(1,2,5,6)' or '0' "
+                         "(without quotes)")
         self.params['active'] = Param(
             active, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
-            hint=_translate(msg),
+            hint=msg,
             label=_localized['active'])
 
         self.params['lights'] = Param(

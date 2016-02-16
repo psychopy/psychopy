@@ -15,9 +15,11 @@ try:
 except Exception:  # ImportError:
     have_parallel = False
 
+
 class ParallelVoiceKeySignal(_BaseVoiceKeySignal):
     """Class for using PsychoPy parallel as a signal channel.
     """
+
     def __init__(self, sec=0.010, delay=0, on=1, off=0, address=0x378, pin=2):
         if not have_parallel:
             raise ImportError("could not import parallel (for signaler)")

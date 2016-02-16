@@ -640,11 +640,11 @@ class FlowPanel(wx.ScrolledWindow):
         currX = self.linePos[0]
         for ii, entry in enumerate(expFlow):
             if entry.getType() == 'Routine':
-                currX = self.drawFlowRoutine(pdc, entry, id=ii, pos=[
-                                             currX, self.linePos[1] - 10])
+                currX = self.drawFlowRoutine(pdc, entry, id=ii,
+                                             pos=[currX, self.linePos[1] - 10])
             pdc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
-            pdc.DrawLine(x1=currX, y1=self.linePos[
-                         1], x2=currX + gap, y2=self.linePos[1])
+            pdc.DrawLine(x1=currX, y1=self.linePos[1],
+                         x2=currX + gap, y2=self.linePos[1])
             currX += gap
 
         self.SetVirtualSize(size=(currX + 100, maxHeight + 50))
@@ -791,8 +791,8 @@ class FlowPanel(wx.ScrolledWindow):
         endX = pos[0] + w + pad
         # the edge should match the text
         if draw:
-            dc.SetPen(wx.Pen(wx.Colour(rgbEdge[0], rgbEdge[
-                      1], rgbEdge[2], wx.ALPHA_OPAQUE)))
+            dc.SetPen(wx.Pen(wx.Colour(rgbEdge[0], rgbEdge[1],
+                                       rgbEdge[2], wx.ALPHA_OPAQUE)))
             dc.SetBrush(wx.Brush(rgbFill))
             dc.DrawRoundedRectangleRect(
                 rect, (4, 6, 8)[self.appData['flowSize']])
@@ -812,7 +812,7 @@ class FlowPanel(wx.ScrolledWindow):
         return endX
 
     def drawLoop(self, dc, loop, id, startX, endX,
-                 base, height, rgb=[0, 0, 0], downwards=True):
+                 base, height, rgb=(0, 0, 0), downwards=True):
         if downwards:
             up = -1
         else:
@@ -857,8 +857,7 @@ class FlowPanel(wx.ScrolledWindow):
                        'sequential': 'sequential',
                        'fullRandom': 'fullRandom',
                        'staircase': 'staircase',
-                       'interleaved staircases': "interl'vd stairs"}
-                      ]
+                       'interleaved staircases': "interl'vd stairs"}]
             name += ' ' + abbrev[flowsize][loop.params['loopType'].val] + ')'
         if flowsize == 0:
             if len(name) > 9:

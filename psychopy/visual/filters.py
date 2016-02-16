@@ -57,14 +57,13 @@ def makeGrating(res,
         res = 2
         intensity = numpy.ones((res, res), float)
     elif gratType is "sin":
-        intensity = contr * \
-            (sin(xrange * sin(ori) + yrange * cos(ori) + phase))
+        intensity = contr * sin(xrange * sin(ori) + yrange * cos(ori) + phase)
     elif gratType is "ramp":
         intensity = contr * (xrange * cos(ori) +
                              yrange * sin(ori)) / (2 * numpy.pi)
     elif gratType is "sqr":  # square wave (symmetric duty cycle)
-        intensity = numpy.where(
-            sin(xrange * sin(ori) + yrange * cos(ori) + phase + tiny) >= 0, 1, -1)
+        intensity = numpy.where(sin(xrange * sin(ori) + yrange * cos(ori) +
+                                    phase + tiny) >= 0, 1, -1)
     elif gratType is "sinXsin":
         intensity = sin(xrange) * sin(yrange)
     else:

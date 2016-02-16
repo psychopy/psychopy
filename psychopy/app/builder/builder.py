@@ -56,11 +56,18 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 # regular expression to check for unescaped '$' to indicate code:
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
-# _localized separates internal (functional) from displayed strings:
-_loKeys = ('Field', 'Default', 'Favorites', 'Stimuli', 'Responses',
-           'Custom', 'I/O',
-           'Add to favorites', 'Remove from favorites')
-_localized = {k: _translate(k) for k in _loKeys}
+# _localized separates internal (functional) from displayed strings
+# long form here allows poedit string discovery
+_localized = {
+    'Field': _translate('Field'),
+    'Default': _translate('Default'),
+    'Favorites': _translate('Favorites'),
+    'Stimuli': _translate('Stimuli'),
+    'Responses': _translate('Responses'),
+    'Custom': _translate('Custom'),
+    'I/O': _translate('I/O'),
+    'Add to favorites': _translate('Add to favorites'),
+    'Remove from favorites': _translate('Remove from favorites')}
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -533,9 +540,9 @@ class RoutinesNotebook(aui.AuiNotebook):
             self.DeletePage(currId)
 
     def createNewRoutine(self, returnName=False):
-        msg = ("What is the name for the new Routine? "
-               "(e.g. instr, trial, feedback)")
-        dlg = wx.TextEntryDialog(self, message=_translate(msg),
+        msg = _translate("What is the name for the new Routine? "
+                         "(e.g. instr, trial, feedback)")
+        dlg = wx.TextEntryDialog(self, message=msg,
                                  caption=_translate('New Routine'))
         exp = self.frame.exp
         routineName = None
@@ -547,8 +554,8 @@ class RoutinesNotebook(aui.AuiNotebook):
                 routineName, prefix='routine')
             exp.namespace.add(routineName)  # add to the namespace
             exp.addRoutine(routineName)  # add to the experiment
-            self.addRoutinePage(routineName, exp.routines[
-                                routineName])  # then to the notebook
+            # then to the notebook:
+            self.addRoutinePage(routineName, exp.routines[routineName])
             self.frame.addToUndoStack("NEW Routine `%s`" % routineName)
         dlg.Destroy()
         if returnName:
@@ -1496,10 +1503,9 @@ class BuilderFrame(wx.Frame):
             # overwritten (default = yes)
             okToSave = True
             if os.path.exists(newPath):
-                msg = "File '%s' already exists.\n    OK to overwrite?"
-                dg2 = dialogs.MessageDialog(self,
-                                            message=_translate(msg) % newPath,
-                                            type='Warning')
+                msg = _translate("File '%s' already exists.\n"
+                                 "    OK to overwrite?") % newPath
+                dg2 = dialogs.MessageDialog(self, message=msg, type='Warning')
                 ok = dg2.ShowModal()
                 if ok != wx.ID_YES:
                     okToSave = False
@@ -1584,9 +1590,9 @@ class BuilderFrame(wx.Frame):
             self.Show(True)
             self.Raise()
             self.app.SetTopWindow(self)
-            msg = 'Experiment %s has changed. Save before quitting?'
-            message = _translate(msg) % self.filename
-            dlg = dialogs.MessageDialog(self, message, type='Warning')
+            msg = _translate('Experiment %s has changed. Save before '
+                             'quitting?') % self.filename
+            dlg = dialogs.MessageDialog(self, msg, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
                 return False  # return, don't quit
@@ -1939,9 +1945,9 @@ class BuilderFrame(wx.Frame):
             return -1
         origName = self.app.copiedRoutine.name
         defaultName = self.exp.namespace.makeValid(origName)
-        msg = 'New name for copy of "%(copied)s"?  [%(default)s]'
+        msg = _translate('New name for copy of "%(copied)s"?  [%(default)s]')
         vals = {'copied': origName, 'default': defaultName}
-        message = _translate(msg) % vals
+        message = msg % vals
         dlg = wx.TextEntryDialog(self, message=message,
                                  caption=_translate('Paste Routine'))
         if dlg.ShowModal() == wx.ID_OK:
