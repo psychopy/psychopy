@@ -38,7 +38,7 @@ except Exception:
     havePygame = False
 
 try:
-    from psychopy.contrib import pyglet_input
+    from pyglet import input as pyglet_input  # pyglet 1.2+
     havePyglet = True
 except Exception:
     havePyglet = False
