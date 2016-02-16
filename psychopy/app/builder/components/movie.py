@@ -41,10 +41,9 @@ class MovieComponent(BaseVisualComponent):
         self.order = ['forceEndRoutine']
 
         # params
-        msg = _translate(
+        self.params['stopVal'].hint = _translate(
             "When does the component end? (blank to use the duration of "
             "the media)")
-        self.params['stopVal'].hint = msg
 
         msg = _translate("A filename for the movie (including path)")
         self.params['movie'] = Param(
@@ -60,8 +59,9 @@ class MovieComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['backend'])
 
-        msg = _translate("Prevent the audio stream from being loaded/process"
-                         "ed (moviepy and opencv only)")
+        #msg = _translate(
+        msg =  ("Prevent the audio stream from being loaded/processed "
+                "(moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool',
             hint=msg,
