@@ -442,8 +442,8 @@ class RatingScale(MinimalStim):
             elif labels and len(labels) == 3 and diff > 1 and (1 + diff) % 2:
                 # label endpoints and middle tick
                 placeHolder = [''] * ((diff - 2) // 2)
-                self.labelTexts = [labels[0]] + placeHolder + \
-                    [labels[1]] + placeHolder + [labels[2]]
+                self.labelTexts = ([labels[0]] + placeHolder +
+                    [labels[1]] + placeHolder + [labels[2]])
             elif labels in [None, False]:
                 self.labelTexts = []
             else:
@@ -709,8 +709,8 @@ class RatingScale(MinimalStim):
         # not needed if self.noMouse, but not a problem either
         pad = 0.06 * self.size
         if marker == 'hover':
-            padText = (1. / (3 * (self.high - self.low))) * \
-                (self.lineRightEnd - self.lineLeftEnd)
+            padText = ((1. / (3 * (self.high - self.low))) *
+                (self.lineRightEnd - self.lineLeftEnd))
         else:
             padText = 0
         self.nearLine = [
@@ -1302,8 +1302,8 @@ class RatingScale(MinimalStim):
         # and valid, or None (not boolean)
         if self.markerStart != None:
             self.markerPlaced = True
-            self.markerPlacedAt = self.markerStart - \
-                self.low  # __init__ assures this is valid
+            # __init__ assures this is valid:
+            self.markerPlacedAt = self.markerStart - self.low
         self.markerPlacedAtLast = -1  # unplaced
         self.wasNearLine = False
         self.firstDraw = True  # -> self.clock.reset() at start of draw()

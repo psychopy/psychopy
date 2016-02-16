@@ -2122,8 +2122,8 @@ class CoderFrame(wx.Frame):
         else:  # create new page and load document
             # if there is only a placeholder document then close it
             if len(self.getOpenFilenames()) == 1:
-                if len(self.currentDoc.GetText()) == 0 and \
-                        self.currentDoc.filename.startswith('untitled'):
+                if (len(self.currentDoc.GetText()) == 0 and
+                        self.currentDoc.filename.startswith('untitled')):
                     self.fileClose(self.currentDoc.filename)
 
             # create an editor window to put the text in

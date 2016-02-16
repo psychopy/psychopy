@@ -721,7 +721,7 @@ class _BaseParamsDlg(wx.Dialog):
         # if wx.TheClipboard.Open():
         #    dataObject = wx.TextDataObject()
         #    if wx.TheClipboard.GetData(dataObject):
-        #        self.paramCtrls['Monitor'].valueCtrl. \
+        #        self.paramCtrls['Monitor'].valueCtrl.
         #            WriteText(dataObject.GetText())
         #    wx.TheClipboard.Close()
 

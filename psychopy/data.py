@@ -2178,8 +2178,8 @@ class TrialHandlerExt(TrialHandler):
             nThisTrialPresented = numpy.sum(
                 self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = firstRowIndex + \
-                (nThisTrialPresented - 1) % self.trialWeights[self.thisIndex]
+            dataRowThisTrial = (firstRowIndex +
+                                (nThisTrialPresented - 1) % self.trialWeights[self.thisIndex])
             dataColThisTrial = int(
                 (nThisTrialPresented - 1) / self.trialWeights[self.thisIndex])
 
@@ -2209,8 +2209,8 @@ class TrialHandlerExt(TrialHandler):
             nThisTrialPresented = numpy.sum(
                 self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = firstRowIndex + \
-                nThisTrialPresented % self.trialWeights[self.thisIndex]
+            dataRowThisTrial = (firstRowIndex +
+                                nThisTrialPresented % self.trialWeights[self.thisIndex])
             dataColThisTrial = int(
                 nThisTrialPresented / self.trialWeights[self.thisIndex])
 
@@ -4749,9 +4749,8 @@ class FitCumNormal(_baseFunctionFit):
         global _chance
         xx = numpy.asarray(xx)
         # NB numpy.special.erf() goes from -1:1
-        yy = _chance + \
-            (1 - _chance) * \
-            ((special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1) * 0.5)
+        yy = (_chance + (1 - _chance) *
+              ((special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1) * 0.5))
         return yy
 
     @staticmethod
@@ -4760,9 +4759,8 @@ class FitCumNormal(_baseFunctionFit):
         yy = numpy.asarray(yy)
         # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB
         # numpy.special.erfinv() goes from -1:1
-        xx = xShift + \
-            numpy.sqrt(2) * sd * \
-            special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2)
+        xx = (xShift + numpy.sqrt(2) * sd *
+              special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2))
         return xx
 
 ######################### End psychopy.data classes #########################

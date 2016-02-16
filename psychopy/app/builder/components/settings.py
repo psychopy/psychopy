@@ -242,9 +242,9 @@ class SettingsComponent(object):
             for field in ('participant', 'Participant', 'Subject', 'Observer'):
                 if field in expInfoDict:
                     participantField = field
-                    self.params['Data filename'].val = repr(saveToDir) + \
-                        " + os.sep + '%s_%s' % (expInfo['" + \
-                        field + "'], expInfo['date'])"
+                    self.params['Data filename'].val = (
+                        repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +
+                        field + "'], expInfo['date'])")
                     break
             if not participantField:
                 # no participant-type field, so skip that part of filename
@@ -255,8 +255,9 @@ class SettingsComponent(object):
 
         # now write that data file name to the script
         if not self.params['Data filename'].val:  # i.e., the user deleted it
-            self.params['Data filename'].val = repr(saveToDir) +\
-                " + os.sep + u'psychopy_data_' + data.getDateStr()"
+            self.params['Data filename'].val = (
+                repr(saveToDir) +
+                " + os.sep + u'psychopy_data_' + data.getDateStr()")
         # detect if user wanted an absolute path -- else make absolute:
         filename = self.params['Data filename'].val.lstrip('"\'')
         # (filename.startswith('/') or filename[1] == ':'):

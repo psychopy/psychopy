@@ -629,11 +629,11 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._RGBAs = numpy.zeros([N, 4], 'd')
         if self.colorSpace in ('rgb', 'dkl', 'lms', 'hsv'):
             # these spaces are 0-centred
-            self._RGBAs[:, 0:3] = self.rgbs[:, :] * \
-                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 2 + 0.5
+            self._RGBAs[:, 0:3] = (self.rgbs[:, :] *
+                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 2 + 0.5)
         else:
-            self._RGBAs[:, 0:3] = self.rgbs * \
-                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0
+            self._RGBAs[:, 0:3] = (self.rgbs *
+                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0)
         self._RGBAs[:, -1] = self.opacities.reshape([N, ])
         # repeat for the 4 vertices in the grid
         self._RGBAs = self._RGBAs.reshape([N, 1, 4]).repeat(4, 1)
@@ -655,20 +655,21 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             R = +self.sfs[:, 0] / 2 - self.phases[:, 0] + 0.5
             T = +self.sfs[:, 1] / 2 - self.phases[:, 1] + 0.5
             B = -self.sfs[:, 1] / 2 - self.phases[:, 1] + 0.5
-        else:  # we should scale to become independent of size
-            L = -self.sfs[:, 0] * self.sizes[:, 0] / \
-                2 - self.phases[:, 0] + 0.5
-            R = +self.sfs[:, 0] * self.sizes[:, 0] / \
-                2 - self.phases[:, 0] + 0.5
-            T = +self.sfs[:, 1] * self.sizes[:, 1] / \
-                2 - self.phases[:, 1] + 0.5
-            B = -self.sfs[:, 1] * self.sizes[:, 1] / \
-                2 - self.phases[:, 1] + 0.5
+        else:
+            # we should scale to become independent of size
+            L = (-self.sfs[:, 0] * self.sizes[:, 0] / 2
+                 - self.phases[:, 0] + 0.5)
+            R = (+self.sfs[:, 0] * self.sizes[:, 0] / 2
+                 - self.phases[:, 0] + 0.5)
+            T = (+self.sfs[:, 1] * self.sizes[:, 1] / 2
+                 - self.phases[:, 1] + 0.5)
+            B = (-self.sfs[:, 1] * self.sizes[:, 1] / 2
+                 - self.phases[:, 1] + 0.5)
 
         # self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],
         #           'd').reshape([1,4,2])
-        self._texCoords = numpy.concatenate([[R, B], [L, B], [L, T], [R, T]]) \
-            .transpose().reshape([N, 4, 2]).astype('d')
+        self._texCoords = (numpy.concatenate([[R, B], [L, B], [L, T], [R, T]])
+            .transpose().reshape([N, 4, 2]).astype('d'))
         self._texCoords = numpy.ascontiguousarray(self._texCoords)
         self._needTexCoordUpdate = False
 

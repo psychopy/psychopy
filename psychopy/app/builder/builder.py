@@ -105,8 +105,9 @@ class RoutineCanvas(wx.ScrolledWindow):
         # the step in Y between each component
         self.componentStep = (25, 32, 50)[self.drawSize]
         self.timeXposStart = (150, 150, 200)[self.drawSize]
-        self.iconXpos = self.timeXposStart - self.iconSize * \
-            (1.3, 1.5, 1.5)[self.drawSize]  # the left hand edge of the icons
+        # the left hand edge of the icons:
+        _scale = (1.3, 1.5, 1.5)[self.drawSize]
+        self.iconXpos = self.timeXposStart - self.iconSize * _scale
         self.timeXposEnd = self.timeXposStart + 400  # onResize() overrides
 
         # create a PseudoDC to record our drawing
@@ -425,8 +426,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
         # draw text
-        x = self.iconXpos - self.dpi / 10 - w + \
-            (self.iconSize, self.iconSize, 10)[self.drawSize]
+        _base = (self.iconSize, self.iconSize, 10)[self.drawSize]
+        x = self.iconXpos - self.dpi / 10 - w + _base
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() / 2 - h / 2 + _adjust
         dc.DrawText(name, x - 20, y)

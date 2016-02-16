@@ -227,7 +227,7 @@ def rgb2lms(rgb_Nx3, conversionMatrix=None):
     rgb_3xN = numpy.transpose(rgb_Nx3)
 
     if conversionMatrix is None:
-        cones_to_rgb = numpy.asarray([ \
+        cones_to_rgb = numpy.asarray([
             # L        M        S
             [4.97068857, -4.14354132, 0.17285275],  # R
             [-0.90913894, 2.15671326, -0.24757432],  # G

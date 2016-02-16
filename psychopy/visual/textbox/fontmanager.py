@@ -368,8 +368,8 @@ class MonospaceFontAtlas(object):
         x_ppem = face.size.x_ppem
         y_ppem = face.size.x_ppem
         units_ppem = self.font_info.units_per_em
-        est_max_width = (face.bbox.xMax - face.bbox.xMin) / \
-            float(units_ppem) * x_ppem
+        est_max_width = ((face.bbox.xMax - face.bbox.xMin) /
+            float(units_ppem) * x_ppem)
         est_max_height = face.size.ascender / float(units_ppem) * y_ppem
         target_atlas_area = int(
             est_max_width * est_max_height) * face.num_glyphs

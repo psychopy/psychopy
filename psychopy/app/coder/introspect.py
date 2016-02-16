@@ -236,8 +236,9 @@ def getRoot(command, terminator=None):
         del tokens[-1]
     if not tokens:
         return ''
-    if terminator == '.' and \
-            (tokens[-1][1] <> '.' or tokens[-1][0] is not tokenize.OP):
+    if (terminator == '.' and
+            (tokens[-1][1] != '.' or
+             tokens[-1][0] is not tokenize.OP)):
         # Trap decimals in numbers, versus the dot operator.
         return ''
     else:
@@ -259,15 +260,15 @@ def getRoot(command, terminator=None):
         line = token[4]
         if tokentype is tokenize.ENDMARKER:
             continue
-        if tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) \
-                and laststring != '.':
+        if (tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) and
+                laststring != '.'):
             # We've reached something that's not part of the root.
             if prefix and line[token[3][1]] != ' ':
                 # If it doesn't have a space after it, remove the prefix.
                 prefix = ''
             break
-        if tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) \
-                or (tokentype is tokenize.OP and tokenstring == '.'):
+        if (tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) or
+                (tokentype is tokenize.OP and tokenstring == '.')):
             if prefix:
                 # The prefix isn't valid because it comes after a dot.
                 prefix = ''

@@ -606,8 +606,9 @@ class Monitor(object):
                 # each of these interpolators is a function!
                 levelsPre = self.getLevelsPre() / 255.0
                 for gun in range(4):
-                    lumsPre[gun, :] = (lumsPre[gun, :] - lumsPre[gun, 0]) / \
-                        (lumsPre[gun, -1] - lumsPre[gun, 0])  # scale to 0:1
+                    # scale to 0:1
+                    lumsPre[gun, :] = ((lumsPre[gun, :] - lumsPre[gun, 0]) /
+                                       (lumsPre[gun, -1] - lumsPre[gun, 0]))
                     self._gammaInterpolator.append(interp1d(lumsPre[gun, :],
                                                             levelsPre,
                                                             kind='linear'))
@@ -883,8 +884,8 @@ def getLumSeries(lumLevels=8,
     if photometer is None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
-        msg = "photometer argument to monitors.getLumSeries should be a " \
-              "type of photometer object, not a %s"
+        msg = ("photometer argument to monitors.getLumSeries should be a "
+               "type of photometer object, not a %s")
         logging.error(msg % type(photometer))
         return None
     else:
