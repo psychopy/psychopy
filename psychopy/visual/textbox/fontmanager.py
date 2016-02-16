@@ -459,10 +459,10 @@ class MonospaceFontAtlas(object):
                 y1 = (self.max_ascender - glyph['offset'][1])
                 y2 = y1 + glyph['size'][1]
 
-                glTexCoord2f(gx1, gy2),    glVertex2f(x1, -y2)
-                glTexCoord2f(gx1, gy1),    glVertex2f(x1, -y1)
-                glTexCoord2f(gx2, gy1),    glVertex2f(x2, -y1)
-                glTexCoord2f(gx2, gy2),    glVertex2f(x2, -y2)
+                glTexCoord2f(gx1, gy2), glVertex2f(x1, -y2)
+                glTexCoord2f(gx1, gy1), glVertex2f(x1, -y1)
+                glTexCoord2f(gx2, gy1), glVertex2f(x2, -y1)
+                glTexCoord2f(gx2, gy2), glVertex2f(x2, -y2)
                 glEnd()
                 glTranslatef(max_tile_width, 0, 0)
             glEndList()

@@ -292,21 +292,21 @@ class UnitTestFrame(wx.Frame):
         _run = self.app.keys['runScript']
         self.menuTests.Append(wx.ID_APPLY,
                               _translate("&Run tests\t%s") % _run)
-        wx.EVT_MENU(self, wx.ID_APPLY,  self.onRunTests)
+        wx.EVT_MENU(self, wx.ID_APPLY, self.onRunTests)
         _stop = self.app.keys['stopScript']
         self.menuTests.Append(self.IDs.stopFile,
                               _translate("&Cancel running test\t%s") % _stop,
                               _translate("Quit a test in progress"))
-        wx.EVT_MENU(self, self.IDs.stopFile,  self.onCancelTests)
+        wx.EVT_MENU(self, self.IDs.stopFile, self.onCancelTests)
         self.menuTests.AppendSeparator()
-        self.menuTests.Append(wx.ID_CLOSE,   _translate(
+        self.menuTests.Append(wx.ID_CLOSE, _translate(
             "&Close tests panel\t%s") % self.app.keys['close'])
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
+        wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseTests)
         _switch = self.app.keys['switchToCoder']
         self.menuTests.Append(self.IDs.openCoderView,
                               _translate("Go to &Coder view\t%s") % _switch,
                               _translate("Go to the Coder view"))
-        wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
+        wx.EVT_MENU(self, self.IDs.openCoderView, self.app.showCoder)
         # -------------quit
         self.menuTests.AppendSeparator()
         _quit = self.app.keys['quit']
@@ -1408,7 +1408,7 @@ class CoderFrame(wx.Frame):
                     useDefaultShell = False
                 except Exception:
                     msg = _translate('IPython failed as shell, using pyshell'
-                           ' (IPython v0.12 can fail on wx)')
+                                     ' (IPython v0.12 can fail on wx)')
                     logging.warn(msg)
             if useDefaultShell:
                 from wx import py
@@ -1438,8 +1438,8 @@ class CoderFrame(wx.Frame):
         self.unitTestFrame = None
 
         # self.SetSizer(self.mainSizer)#not necessary for aui type controls
-        if self.appData['auiPerspective'] and \
-                'Shelf' in self.appData['auiPerspective']:
+        if (self.appData['auiPerspective'] and
+                'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
             self.paneManager.GetPane('Shelf').Caption(_translate("Shelf"))
             self.paneManager.GetPane('SourceAsst').Caption(
@@ -1484,12 +1484,12 @@ class CoderFrame(wx.Frame):
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close file\t%s") % keyCodes['close'],
                     _translate("Close current python file"))
-        wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
-        wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
-        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
-        wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
-        wx.EVT_MENU(self, self.IDs.filePrint,  self.filePrint)
+        wx.EVT_MENU(self, wx.ID_NEW, self.fileNew)
+        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
+        wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
+        wx.EVT_MENU(self, wx.ID_SAVEAS, self.fileSaveAs)
+        wx.EVT_MENU(self, wx.ID_CLOSE, self.fileClose)
+        wx.EVT_MENU(self, self.IDs.filePrint, self.filePrint)
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
                            text=msg % keyCodes['preferences'])
@@ -1506,16 +1506,16 @@ class CoderFrame(wx.Frame):
         menu = self.editMenu
         menuBar.Append(self.editMenu, _translate('&Edit'))
         menu.Append(wx.ID_CUT, _translate("Cu&t\t%s") % keyCodes['cut'])
-        wx.EVT_MENU(self, wx.ID_CUT,  self.cut)
+        wx.EVT_MENU(self, wx.ID_CUT, self.cut)
         menu.Append(wx.ID_COPY, _translate("&Copy\t%s") % keyCodes['copy'])
-        wx.EVT_MENU(self, wx.ID_COPY,  self.copy)
+        wx.EVT_MENU(self, wx.ID_COPY, self.copy)
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keyCodes['paste'])
-        wx.EVT_MENU(self, wx.ID_PASTE,  self.paste)
+        wx.EVT_MENU(self, wx.ID_PASTE, self.paste)
         hnt = "Duplicate the current line (or current selection)"
         menu.Append(wx.ID_DUPLICATE,
                     _translate("&Duplicate\t%s") % keyCodes['duplicate'],
                     _translate(hnt))
-        wx.EVT_MENU(self, wx.ID_DUPLICATE,  self.duplicateLine)
+        wx.EVT_MENU(self, wx.ID_DUPLICATE, self.duplicateLine)
 
         menu.AppendSeparator()
         menu.Append(self.IDs.showFind,
@@ -1530,47 +1530,47 @@ class CoderFrame(wx.Frame):
                     _translate("Comment\t%s") % keyCodes['comment'],
                     _translate("Comment selected lines"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.comment,  self.commentSelected)
+        wx.EVT_MENU(self, self.IDs.comment, self.commentSelected)
         menu.Append(self.IDs.unComment,
                     _translate("Uncomment\t%s") % keyCodes['uncomment'],
                     _translate("Un-comment selected lines"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.unComment,  self.uncommentSelected)
+        wx.EVT_MENU(self, self.IDs.unComment, self.uncommentSelected)
         menu.Append(self.IDs.foldAll,
                     _translate("Toggle fold\t%s") % keyCodes['fold'],
                     _translate("Toggle folding of top level"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.foldAll,  self.foldAll)
+        wx.EVT_MENU(self, self.IDs.foldAll, self.foldAll)
 
         menu.AppendSeparator()
         menu.Append(self.IDs.indent,
                     _translate("Indent selection\t%s") % keyCodes['indent'],
                     _translate("Increase indentation of current line"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.indent,  self.indent)
+        wx.EVT_MENU(self, self.IDs.indent, self.indent)
         menu.Append(self.IDs.dedent,
                     _translate("Dedent selection\t%s") % keyCodes['dedent'],
                     _translate("Decrease indentation of current line"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.dedent,  self.dedent)
+        wx.EVT_MENU(self, self.IDs.dedent, self.dedent)
         hnt = "Try to indent to the correct position w.r.t  last line"
         menu.Append(self.IDs.smartIndent,
                     _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
                     _translate(hnt),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.smartIndent,  self.smartIndent)
+        wx.EVT_MENU(self, self.IDs.smartIndent, self.smartIndent)
 
         menu.AppendSeparator()
         menu.Append(wx.ID_UNDO,
                     _translate("Undo\t%s") % self.app.keys['undo'],
                     _translate("Undo last action"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
+        wx.EVT_MENU(self, wx.ID_UNDO, self.undo)
         menu.Append(wx.ID_REDO,
                     _translate("Redo\t%s") % self.app.keys['redo'],
                     _translate("Redo last action"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
+        wx.EVT_MENU(self, wx.ID_REDO, self.redo)
 
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
@@ -1582,7 +1582,7 @@ class CoderFrame(wx.Frame):
         menu.Append(self.IDs.monitorCenter,
                     _translate("Monitor Center"),
                     _translate("To set information about your monitor"))
-        wx.EVT_MENU(self, self.IDs.monitorCenter,  self.app.openMonitorCenter)
+        wx.EVT_MENU(self, self.IDs.monitorCenter, self.app.openMonitorCenter)
         # self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto,
         #   "Analyse on file save/open",
         #   "Automatically analyse source (for autocomplete etc...).
@@ -1597,17 +1597,17 @@ class CoderFrame(wx.Frame):
         menu.Append(self.IDs.runFile,
                     _translate("Run\t%s") % keyCodes['runScript'],
                     _translate("Run the current script"))
-        wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)
+        wx.EVT_MENU(self, self.IDs.runFile, self.runFile)
         menu.Append(self.IDs.stopFile,
                     _translate("Stop\t%s") % keyCodes['stopScript'],
                     _translate("Stop the current script"))
-        wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
+        wx.EVT_MENU(self, self.IDs.stopFile, self.stopFile)
 
         menu.AppendSeparator()
         menu.Append(self.IDs.openUpdater,
                     _translate("PsychoPy updates..."),
                     _translate("Update PsychoPy to the latest, or a specific, version"))
-        wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
+        wx.EVT_MENU(self, self.IDs.openUpdater, self.app.openUpdater)
         menu.Append(self.IDs.benchmarkWizard,
                     _translate("Benchmark wizard"),
                     _translate("Check software & hardware, generate report"))
@@ -1615,7 +1615,7 @@ class CoderFrame(wx.Frame):
         menu.Append(self.IDs.csvFromPsydat,
                     _translate("csv from psydat"),
                     _translate("Create a .csv file from an existing .psydat file"))
-        wx.EVT_MENU(self, self.IDs.csvFromPsydat,  self.app.csvFromPsydat)
+        wx.EVT_MENU(self, self.IDs.csvFromPsydat, self.app.csvFromPsydat)
 
         if self.appPrefs['debugMode']:
             menu.Append(self.IDs.unitTests,
@@ -1666,7 +1666,7 @@ class CoderFrame(wx.Frame):
                                    _translate(hint))
         self.outputChk = chk
         self.outputChk.Check(self.prefs['showOutput'])
-        wx.EVT_MENU(self, self.IDs.toggleOutput,  self.setOutputWindow)
+        wx.EVT_MENU(self, self.IDs.toggleOutput, self.setOutputWindow)
         # source assistant
         hint = "Provides help functions and attributes of classes in your script"
         chk = menu.AppendCheckItem(self.IDs.toggleSourceAsst,
@@ -1674,13 +1674,13 @@ class CoderFrame(wx.Frame):
                                    _translate(hint))
         self.sourceAsstChk = chk
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
-        wx.EVT_MENU(self, self.IDs.toggleSourceAsst,  self.setSourceAsst)
+        wx.EVT_MENU(self, self.IDs.toggleSourceAsst, self.setSourceAsst)
         menu.AppendSeparator()
         key = self.app.keys['switchToBuilder']
         menu.Append(self.IDs.openBuilderView,
                     _translate("Go to &Builder view\t%s") % key,
                     _translate("Go to the Builder view"))
-        wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
+        wx.EVT_MENU(self, self.IDs.openBuilderView, self.app.showBuilder)
         # self.viewMenu.Append(self.IDs.openShell,
         #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
         #   "Go to a shell window for interactive commands")

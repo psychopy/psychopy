@@ -184,9 +184,9 @@ def rgb2dklCart(picture, conversionMatrix=None):
     if conversionMatrix is None:
         conversionMatrix = numpy.asarray([
             # LUMIN->    %L-M->        L+M-S
-            [0.25145542,  0.64933633,  0.09920825],
+            [0.25145542, 0.64933633, 0.09920825],
             [0.78737943, -0.55586618, -0.23151325],
-            [0.26562825,  0.63933074, -0.90495899]])
+            [0.26562825, 0.63933074, -0.90495899]])
         logging.warning('This monitor has not been color-calibrated. '
                         'Using default DKL conversion matrix.')
     else:

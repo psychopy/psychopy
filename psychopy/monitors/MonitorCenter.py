@@ -526,7 +526,8 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             # warn user that data will be lost
-            msg = _translate('Save changes to monitor settings before quitting?')
+            msg = _translate(
+                'Save changes to monitor settings before quitting?')
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
@@ -654,7 +655,8 @@ class MainFrame(wx.Frame):
         calibTimeStr = monitors.strFromDate(calibTime)
 
         # then use dialogue so user can override
-        msg = _translate('Name of this calibration (for monitor "%(name)s") will be:)')
+        msg = _translate(
+            'Name of this calibration (for monitor "%(name)s") will be:)')
         infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
                                  defaultValue=calibTimeStr,

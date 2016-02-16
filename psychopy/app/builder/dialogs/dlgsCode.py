@@ -141,8 +141,8 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         name_sizer = wx.BoxSizer(wx.HORIZONTAL)
         name_sizer.Add(self.name_label, 0, wx.ALL, 10)
-        name_sizer.Add(self.component_name, 0,  wx.BOTTOM | wx.TOP, 10)
-        name_sizer.Add(self.nameOKlabel, 0,  wx.ALL, 10)
+        name_sizer.Add(self.component_name, 0, wx.BOTTOM | wx.TOP, 10)
+        name_sizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
 
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)

@@ -320,14 +320,14 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         vertsPix = self.verticesPix
         t = frameTexture.tex_coords
         array = (GL.GLfloat * 32)(
-            t[0],  t[1],
-            vertsPix[0, 0], vertsPix[0, 1],    0.,  # vertex
-            t[3],  t[4],
-            vertsPix[1, 0], vertsPix[1, 1],    0.,
-            t[6],  t[7],
-            vertsPix[2, 0], vertsPix[2, 1],    0.,
-            t[9],  t[10],
-            vertsPix[3, 0], vertsPix[3, 1],    0.,
+            t[0], t[1],
+            vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
+            t[3], t[4],
+            vertsPix[1, 0], vertsPix[1, 1], 0.,
+            t[6], t[7],
+            vertsPix[2, 0], vertsPix[2, 1], 0.,
+            t[9], t[10],
+            vertsPix[3, 0], vertsPix[3, 1], 0.,
         )
 
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
