@@ -2178,10 +2178,9 @@ class TrialHandlerExt(TrialHandler):
             nThisTrialPresented = numpy.sum(
                 self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = (firstRowIndex +
-                                (nThisTrialPresented - 1) % self.trialWeights[self.thisIndex])
-            dataColThisTrial = int(
-                (nThisTrialPresented - 1) / self.trialWeights[self.thisIndex])
+            _tw = self.trialWeights[self.thisIndex]
+            dataRowThisTrial = firstRowIndex + (nThisTrialPresented - 1) % _tw
+            dataColThisTrial = int((nThisTrialPresented - 1) / _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -2209,10 +2208,9 @@ class TrialHandlerExt(TrialHandler):
             nThisTrialPresented = numpy.sum(
                 self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = (firstRowIndex +
-                                nThisTrialPresented % self.trialWeights[self.thisIndex])
-            dataColThisTrial = int(
-                nThisTrialPresented / self.trialWeights[self.thisIndex])
+            _tw = self.trialWeights[self.thisIndex]
+            dataRowThisTrial = firstRowIndex + nThisTrialPresented % _tw
+            dataColThisTrial = int(nThisTrialPresented / _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
