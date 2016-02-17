@@ -216,7 +216,8 @@ class MainFrame(wx.Frame):
                         _translate('Save\tCtrl+S'),
                         _translate('Save the current monitor'))
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
-        _hint = _translate('Close Monitor Center (but not other PsychoPy windows)')
+        _hint = _translate(
+            'Close Monitor Center (but not other PsychoPy windows)')
         fileMenu.Append(wx.ID_CLOSE,
                         _translate('Close Monitor Center\tCtrl+W'),
                         _hint)

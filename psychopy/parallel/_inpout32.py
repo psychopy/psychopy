@@ -3,10 +3,12 @@
 # which don't have it and then worry about dealing with
 # using the right one later
 
+
 class PParallelInpOut32(object):
     """This class provides read/write access to the parallel port on a PC
     using inpout32 (for instance for Windows 7 64-bit)
     """
+
     def __init__(self, address=0x0378):
         """Set the memory address of your parallel port,
         to be used in subsequent calls to this object
@@ -22,7 +24,7 @@ class PParallelInpOut32(object):
         from ctypes import windll
 
         if isinstance(address, basestring) and address.startswith('0x'):
-            #convert u"0x0378" into 0x0378
+            # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:
             self.base = address
@@ -72,9 +74,9 @@ class PParallelInpOut32(object):
         # I can't see how to do this without reading and writing the data
         _inp = self.port.Inp32(self.base)
         if state:
-            val = _inp | 2**(pinNumber-2)
+            val = _inp | 2**(pinNumber - 2)
         else:
-            val = _inp & (255 ^ 2**(pinNumber-2))
+            val = _inp & (255 ^ 2**(pinNumber - 2))
         self.port.Out32(self.base, val)
 
     def readData(self):
@@ -100,7 +102,7 @@ class PParallelInpOut32(object):
         elif pinNumber == 13:
             # 13 = SELECT
             return (_base >> 4) & 1
-        elif pinNumber==15:
+        elif pinNumber == 15:
             # 15 = ERROR
             return (_base >> 3) & 1
         elif 2 <= pinNumber <= 9:
@@ -108,4 +110,3 @@ class PParallelInpOut32(object):
         else:
             msg = 'Pin %i cannot be read (by PParallelInpOut32.readPin())'
             print(msg % pinNumber)
-

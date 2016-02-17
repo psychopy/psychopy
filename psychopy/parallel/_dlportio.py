@@ -145,4 +145,3 @@ class PParallelDLPortIO(object):
         else:
             msg = 'Pin %i cannot be read (by PParallelDLPortIO.readPin())'
             print(msg % pinNumber)
-

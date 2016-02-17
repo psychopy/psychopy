@@ -8,6 +8,8 @@
 from __future__ import absolute_import
 
 # We duck-type the parallel port objects
+
+
 class PParallelLinux(object):
     """This class provides read/write access to the parallel port for linux
     using pyparallel.
@@ -17,6 +19,7 @@ class PParallelLinux(object):
         sudo rmmod lp
         sudo modprobe ppdev
     """
+
     def __init__(self, address='/dev/parport0'):
         """Set the device node of your parallel port
 
@@ -69,9 +72,9 @@ class PParallelLinux(object):
         """
         # I can't see how to do this without reading and writing the data
         if state:
-            self.port.setData(self.port.PPRDATA() | (2**(pinNumber-2)))
+            self.port.setData(self.port.PPRDATA() | (2**(pinNumber - 2)))
         else:
-            self.port.setData(self.port.PPRDATA() & (255 ^ 2**(pinNumber-2)))
+            self.port.setData(self.port.PPRDATA() & (255 ^ 2**(pinNumber - 2)))
 
     def readData(self):
         """Return the value currently set on the data pins (2-9)
