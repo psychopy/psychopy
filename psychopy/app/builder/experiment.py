@@ -1803,13 +1803,18 @@ class NameSpace(object):
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
         # strings used as codes, separate function from display value:
-        _oneOf = "one of your Components, Routines, or condition parameters"
-        _avoid = (" Avoid `this`, `these`, `continue`, `Clock`, or "
-                  "`component` in name")
-        self._localized = {None: ''}
-        for k in (_oneOf, _avoid, "Builder variable", "Psychopy module",
-                  "numpy function", "python keyword"):
-            self._localized[k] = _translate(k)
+        # need the string itself to be inside _translate for poedit discovery
+        self._localized = {
+            None: '',
+            ("one of your Components, Routines, or condition parameters"):
+                _translate("one of your Components, Routines, or condition parameters"),
+            (" Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"):
+                _translate(" Avoid `this`, `these`, `continue`, `Clock`, or "
+                            "`component` in name"),
+            "Builder variable": _translate("Builder variable"),
+            "Psychopy module": _translate("Psychopy module"),
+            "numpy function": _translate("numpy function"),
+            "python keyword": _translate("python keyword")}
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy

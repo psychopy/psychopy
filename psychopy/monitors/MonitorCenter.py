@@ -216,18 +216,18 @@ class MainFrame(wx.Frame):
                         _translate('Save\tCtrl+S'),
                         _translate('Save the current monitor'))
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
-        _hint = 'Close Monitor Center (but not other PsychoPy windows)'
+        _hint = _translate('Close Monitor Center (but not other PsychoPy windows)')
         fileMenu.Append(wx.ID_CLOSE,
                         _translate('Close Monitor Center\tCtrl+W'),
-                        _translate(_hint))
+                        _hint)
         wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
         menuBar.Append(fileMenu, _translate('&File'))
 
         # Edit
         editMenu = wx.Menu()
         id = wx.NewId()
-        _hint = "Copy the current monitor's name to clipboard"
-        editMenu.Append(id, _translate('Copy\tCtrl+C'), _translate(_hint))
+        _hint = _translate("Copy the current monitor's name to clipboard")
+        editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         wx.EVT_MENU(self, id, self.onCopyMon)
         menuBar.Append(editMenu, _translate('&Edit'))
 
@@ -316,8 +316,8 @@ class MainFrame(wx.Frame):
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
 
         # scr pixels
-        _sz = "Size (pixels; Horiz,Vert):"
-        labl_ScrPixels = wx.StaticText(parent, -1, _translate(_sz),
+        _size = _translate("Size (pixels; Horiz,Vert):")
+        labl_ScrPixels = wx.StaticText(parent, -1, _size,
                                        style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50, 20))
         wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(),
@@ -989,9 +989,9 @@ class MainFrame(wx.Frame):
                                  ' Please block all light from getting into '
                                  'the lens and press OK.')
                 while self.photom.getNeedsCalibrateZero():
-                    txt = 'Dark calibration of ColorCAL'
+                    txt = _translate('Dark calibration of ColorCAL')
                     dlg = dialogs.MessageDialog(self, message=msg,
-                                                title=_translate(txt),
+                                                title=txt,
                                                 type='Info')
                     # info dlg has only an OK button
                     resp = dlg.ShowModal()

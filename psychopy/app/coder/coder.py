@@ -334,8 +334,8 @@ class UnitTestFrame(wx.Frame):
         self.knownTestList = [self.runAllText] + knownTestList
         self.testSelect = wx.Choice(parent=self, id=-1, pos=(border, border),
                                     choices=self.knownTestList)
-        tip = "Select the test(s) to run, from:\npsychopy/tests/test*"
-        self.testSelect.SetToolTip(wx.ToolTip(_translate(tip)))
+        tip = _translate("Select the test(s) to run, from:\npsychopy/tests/test*")
+        self.testSelect.SetToolTip(wx.ToolTip(tip))
         prefTestSubset = self.prefs.appData['testSubset']
         # preselect the testGroup in the drop-down menu for display:
         if prefTestSubset in self.knownTestList:
@@ -350,13 +350,13 @@ class UnitTestFrame(wx.Frame):
 
         self.chkCoverage = wx.CheckBox(
             parent=self, label=_translate("Coverage Report"))
-        _tip = "Include coverage report (requires coverage module)"
-        self.chkCoverage.SetToolTip(wx.ToolTip(_translate(_tip)))
+        _tip = _translate("Include coverage report (requires coverage module)")
+        self.chkCoverage.SetToolTip(wx.ToolTip(_tip))
         self.chkCoverage.Disable()
         self.chkAllStdOut = wx.CheckBox(
             parent=self, label=_translate("ALL stdout"))
-        _tip = "Report all printed output & show any new rms-test images"
-        self.chkAllStdOut.SetToolTip(wx.ToolTip(_translate(_tip)))
+        _tip = _translate("Report all printed output & show any new rms-test images")
+        self.chkAllStdOut.SetToolTip(wx.ToolTip(_tip))
         self.chkAllStdOut.Disable()
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
@@ -1511,10 +1511,10 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_COPY, self.copy)
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keyCodes['paste'])
         wx.EVT_MENU(self, wx.ID_PASTE, self.paste)
-        hnt = "Duplicate the current line (or current selection)"
+        hnt = _translate("Duplicate the current line (or current selection)")
         menu.Append(wx.ID_DUPLICATE,
                     _translate("&Duplicate\t%s") % keyCodes['duplicate'],
-                    _translate(hnt))
+                    hnt)
         wx.EVT_MENU(self, wx.ID_DUPLICATE, self.duplicateLine)
 
         menu.AppendSeparator()
@@ -1553,10 +1553,11 @@ class CoderFrame(wx.Frame):
                     _translate("Decrease indentation of current line"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.dedent, self.dedent)
-        hnt = "Try to indent to the correct position w.r.t  last line"
+        hnt = _translate("Try to indent to the correct position w.r.t. "
+                         "last line")
         menu.Append(self.IDs.smartIndent,
                     _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
-                    _translate(hnt),
+                    hnt,
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.smartIndent, self.smartIndent)
 
@@ -1630,29 +1631,30 @@ class CoderFrame(wx.Frame):
 
         # indent guides
         key = keyCodes['toggleIndentGuides']
-        hint = "Shows guides in the editor for your indentation level"
+        hint = _translate("Shows guides in the editor for your "
+                          "indentation level")
         chk = menu.AppendCheckItem(self.IDs.toggleIndentGuides,
                                    _translate("&Indentation guides\t%s") % key,
-                                   _translate(hint))
+                                   hint)
         self.indentGuideChk = chk
         self.indentGuideChk.Check(self.appData['showIndentGuides'])
         wx.EVT_MENU(self, self.IDs.toggleIndentGuides,
                     self.setShowIndentGuides)
         # whitespace
         key = keyCodes['toggleWhitespace']
-        hint = "Show whitespace characters in the code"
+        hint = _translate("Show whitespace characters in the code")
         chk = menu.AppendCheckItem(self.IDs.toggleWhitespace,
                                    _translate("&Whitespace\t%s") % key,
-                                   _translate(hint))
+                                   hint)
         self.showWhitespaceChk = chk
         self.showWhitespaceChk.Check(self.appData['showWhitespace'])
         wx.EVT_MENU(self, self.IDs.toggleWhitespace, self.setShowWhitespace)
         # EOL markers
         key = keyCodes['toggleEOLs']
-        hint = "Show End Of Line markers in the code"
+        hint = _translate("Show End Of Line markers in the code")
         chk = menu.AppendCheckItem(self.IDs.toggleEOLs,
                                    _translate("Show &EOLs\t%s") % key,
-                                   _translate(hint))
+                                   hint)
         self.showEOLsChk = chk
         self.showEOLsChk.Check(self.appData['showEOLs'])
         wx.EVT_MENU(self, self.IDs.toggleEOLs, self.setShowEOLs)
@@ -1660,18 +1662,20 @@ class CoderFrame(wx.Frame):
         menu.AppendSeparator()
         # output window
         key = keyCodes['toggleOutputPanel']
-        hint = "Shows the output and shell panes (and starts capturing stdout)"
+        hint = _translate("Shows the output and shell panes (and starts "
+                          "capturing stdout)")
         chk = menu.AppendCheckItem(self.IDs.toggleOutput,
                                    _translate("Show &Output/Shell\t%s") % key,
-                                   _translate(hint))
+                                   hint)
         self.outputChk = chk
         self.outputChk.Check(self.prefs['showOutput'])
         wx.EVT_MENU(self, self.IDs.toggleOutput, self.setOutputWindow)
         # source assistant
-        hint = "Provides help functions and attributes of classes in your script"
+        hint = _translate("Provides help functions and attributes of classes"
+                          " in your script")
         chk = menu.AppendCheckItem(self.IDs.toggleSourceAsst,
                                    _translate("&Source Assistant"),
-                                   _translate(hint))
+                                   hint)
         self.sourceAsstChk = chk
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         wx.EVT_MENU(self, self.IDs.toggleSourceAsst, self.setSourceAsst)
@@ -1888,9 +1892,9 @@ class CoderFrame(wx.Frame):
         if time.time() - last > interval and not self.showingReloadDialog:
             if not self.expectedModTime(self.currentDoc):
                 self.showingReloadDialog = True
-                txt = "'%s' was modified outside of PsychoPy:\n\nReload (without saving)?"
                 filename = os.path.basename(self.currentDoc.filename)
-                msg = _translate(txt) % filename
+                msg = _translate("'%s' was modified outside of PsychoPy:\n\n"
+                                 "Reload (without saving)?") % filename
                 dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
                     self.SetStatusText(_translate('Reloading file'))
@@ -1913,9 +1917,9 @@ class CoderFrame(wx.Frame):
         self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
         # todo: reduce redundancy w.r.t OnIdle()
         if not self.expectedModTime(self.currentDoc):
-            txt = "'%s' was modified outside of PsychoPy:\n\nReload (without saving)?"
             filename = os.path.basename(self.currentDoc.filename)
-            msg = _translate(txt) % filename
+            msg = _translate("'%s' was modified outside of PsychoPy:\n\n"
+                             "Reload (without saving)?") % filename
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             if dlg.ShowModal() == wx.ID_YES:
                 self.SetStatusText(_translate('Reloading file'))
@@ -2004,9 +2008,9 @@ class CoderFrame(wx.Frame):
                 self.Raise()
                 self.app.SetTopWindow(self)
                 # then bring up dialog
-                txt = 'Save changes to %s before quitting?'
-                msg = _translate(txt) % filename
-                dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
+                msg = _translate('Save changes to %s before quitting?')
+                dlg = dialogs.MessageDialog(self, message=msg % filename,
+                                            type='Warning')
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
@@ -2237,8 +2241,8 @@ class CoderFrame(wx.Frame):
             # 'Save-as' rather than 'Save'
             failToSave = False
             if not self.expectedModTime(doc) and os.path.exists(filename):
-                txt = "File appears to have been modified outside of PsychoPy:\n   %s\nOK to overwrite?"
-                msg = _translate(txt)
+                msg = _translate("File appears to have been modified outside "
+                                 "of PsychoPy:\n   %s\nOK to overwrite?")
                 basefile = os.path.basename(doc.filename)
                 dlg = dialogs.MessageDialog(self, message=msg % basefile,
                                             type='Warning')
@@ -2250,8 +2254,8 @@ class CoderFrame(wx.Frame):
                 except Exception:
                     pass
             if os.path.exists(filename) and not os.access(filename, os.W_OK):
-                txt = "File '%s' lacks write-permission:\nWill try save-as instead."
-                msg = _translate(txt)
+                msg = _translate("File '%s' lacks write-permission:\n"
+                                 "Will try save-as instead.")
                 basefile = os.path.basename(doc.filename)
                 dlg = dialogs.MessageDialog(self, message=msg % basefile,
                                             type='Info')
@@ -2323,11 +2327,13 @@ class CoderFrame(wx.Frame):
             filename = doc.filename
         # if we have an absolute path then split it
         initPath, filename = os.path.split(filename)
-        # set wildcards
-        txt = "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
+        # set wildcards; need strings to appear inside _translate
         if sys.platform != 'darwin':
-            txt += ".*"
-        wildcard = _translate(txt)
+            wildcard = _translate("Python scripts (*.py)|*.py|Text file "
+                                  "(*.txt)|*.txt|Any file (*.*)|*.*")
+        else:
+            wildcard = _translate("Python scripts (*.py)|*.py|Text file "
+                                  "(*.txt)|*.txt|Any file (*.*)|*")
         # open dlg
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
@@ -2336,9 +2342,9 @@ class CoderFrame(wx.Frame):
             newPath = dlg.GetPath()
             # if the file already exists, query whether it should be
             # overwritten (default = yes)
-            txt = "File '%s' already exists.\n    OK to overwrite?"
-            msg = _translate(txt) % newPath
-            dlg2 = dialogs.MessageDialog(self, message=msg, type='Warning')
+            msg = _translate("File '%s' already exists.\n    OK to overwrite?")
+            dlg2 = dialogs.MessageDialog(self, message=msg % newPath,
+                                         type='Warning')
             if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
                 doc.filename = newPath
                 self.fileSave(event=None, filename=newPath, doc=doc)

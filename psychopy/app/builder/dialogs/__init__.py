@@ -255,8 +255,7 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
-                    txt = "set during: %(routineName)s.%(staticName)s"
-                    msg = _translate(txt)
+                    msg = _translate("set during: %(routineName)s.%(staticName)s")
                     vals = {'routineName': routineName,
                             'staticName': static.params['name']}
                     updateLabels.append(msg % vals)
@@ -1471,10 +1470,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                 else:
                     m2 = msg.replace('Conditions file ', '')
                     sep2 = os.linesep * 2
-                    _title = 'Configuration error in conditions file'
+                    _title = _translate('Configuration error in conditions file')
                     dlgErr = dialogs.MessageDialog(
                         parent=self.frame, message=m2.replace(': ', sep2),
-                        type='Info', title=_translate(_title)).ShowModal()
+                        type='Info', title=_title).ShowModal()
                     msg = _translate('Bad condition name(s) in file:\n')
                     val = msg + newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(val)
@@ -1559,11 +1558,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                     self.currentCtrls['conditions'].setValue(
                         self.getTrialsSummary(self.conditions))
                 except ImportError as msg:
-                    msg1 = 'Badly formed condition name(s) in file:\n'
-                    msg2 = ('.\nNeed to be legal as var name; '
-                            'edit file, try again.')
-                    val = (_translate(msg1) + str(msg).replace(':', '\n') +
-                           _translate(msg2))
+                    msg1 =  _translate('Badly formed condition name(s) in file:\n')
+                    msg2 =  _translate('.\nNeed to be legal as var name; '
+                                       'edit file, try again.')
+                    val = msg1 + str(msg).replace(':', '\n') + msg2
                     self.currentCtrls['conditions'].setValue(val)
                     self.conditions = ''
                     msg3 = 'Reject bad condition name in conditions file: %s'

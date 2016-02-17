@@ -486,12 +486,12 @@ class FlowPanel(wx.ScrolledWindow):
             if prevIsLoop and nextIsLoop:
                 # because flow[compID+1] is a terminator
                 loop = flow[compID + 1].loop
-                txt = 'The "%s" Loop is about to be deleted as well (by collapsing). OK to proceed?'
-                msg = _translate(txt) % loop.params['name']
+                msg = _translate('The "%s" Loop is about to be deleted as '
+                                 'well (by collapsing). OK to proceed?')
                 title = _translate('Impending Loop collapse')
-                warnDlg = dialogs.MessageDialog(parent=self.frame,
-                                                message=msg, type='Warning',
-                                                title=title)
+                warnDlg = dialogs.MessageDialog(
+                    parent=self.frame, message=msg % loop.params['name'],
+                    type='Warning', title=title)
                 resp = warnDlg.ShowModal()
                 if resp in [wx.ID_CANCEL, wx.ID_NO]:
                     return  # abort
@@ -513,7 +513,8 @@ class FlowPanel(wx.ScrolledWindow):
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
                 except Exception:
-                    msg = "Conditions file %s couldn't be found so names not removed from namespace"
+                    msg = ("Conditions file %s couldn't be found so names not"
+                           " removed from namespace")
                     logging.debug(msg % conditionsFile)
             self.frame.exp.namespace.remove(component.params['name'].val)
         # perform the actual removal
