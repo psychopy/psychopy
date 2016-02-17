@@ -54,8 +54,7 @@ if not os.path.isdir(monitorFolder):
 pr650code = {'OK': '000\r\n',  # this is returned after measure
              '18': 'Light Low',  # these is returned at beginning of data
              '10': 'Light Low',
-             '00': 'OK'
-             }
+             '00': 'OK'}
 
 
 def findPR650(ports=None):

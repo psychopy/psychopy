@@ -350,8 +350,10 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=[], order=[],
-                 tip={}, screen=-1):
+    def __init__(self, dictionary, title='', fixed=(), order=(),
+                 tip=None, screen=-1):
+        if not tip:
+            tip = {}
         Dlg.__init__(self, title, screen=screen)
         self.dictionary = dictionary
         keys = self.dictionary.keys()
