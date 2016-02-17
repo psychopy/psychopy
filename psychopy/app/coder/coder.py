@@ -334,7 +334,8 @@ class UnitTestFrame(wx.Frame):
         self.knownTestList = [self.runAllText] + knownTestList
         self.testSelect = wx.Choice(parent=self, id=-1, pos=(border, border),
                                     choices=self.knownTestList)
-        tip = _translate("Select the test(s) to run, from:\npsychopy/tests/test*")
+        tip = _translate(
+            "Select the test(s) to run, from:\npsychopy/tests/test*")
         self.testSelect.SetToolTip(wx.ToolTip(tip))
         prefTestSubset = self.prefs.appData['testSubset']
         # preselect the testGroup in the drop-down menu for display:
@@ -355,7 +356,8 @@ class UnitTestFrame(wx.Frame):
         self.chkCoverage.Disable()
         self.chkAllStdOut = wx.CheckBox(
             parent=self, label=_translate("ALL stdout"))
-        _tip = _translate("Report all printed output & show any new rms-test images")
+        _tip = _translate(
+            "Report all printed output & show any new rms-test images")
         self.chkAllStdOut.SetToolTip(wx.ToolTip(_tip))
         self.chkAllStdOut.Disable()
         wx.EVT_IDLE(self, self.onIdle)

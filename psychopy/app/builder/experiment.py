@@ -1807,9 +1807,11 @@ class NameSpace(object):
         self._localized = {
             None: '',
             "one of your Components, Routines, or condition parameters":
-                _translate("one of your Components, Routines, or condition parameters"),
+                _translate(
+                    "one of your Components, Routines, or condition parameters"),
             " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name":
-                _translate(" Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
+                _translate(
+                    " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
             "Builder variable": _translate("Builder variable"),
             "Psychopy module": _translate("Psychopy module"),
             "numpy function": _translate("numpy function"),

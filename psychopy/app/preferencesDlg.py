@@ -320,7 +320,8 @@ class PreferencesDlg(wx.Dialog):
                         except Exception:
                             pLabel = prefName
                             sLabel = sectionName
-                        txt = _translate('Invalid value in "%(pref)s" ("%(section)s" Tab)')
+                        txt = _translate(
+                            'Invalid value in "%(pref)s" ("%(section)s" Tab)')
                         msg = txt % {'pref': pLabel, 'section': sLabel}
                         title = _translate('Error')
                         warnDlg = dialogs.MessageDialog(parent=self,

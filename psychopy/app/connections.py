@@ -163,7 +163,8 @@ class Updater(object):
         elif not confirmationDlg:  # do nothing
             return 0
         else:
-            txt = _translate("You are running the latest version of PsychoPy (%s). ")
+            txt = _translate(
+                "You are running the latest version of PsychoPy (%s). ")
             msg = txt % self.runningVersion
             confirmDlg = dialogs.MessageDialog(
                 parent=None, message=msg, type='Info',
@@ -326,16 +327,19 @@ class InstallUpdateDialog(wx.Dialog):
         """Check the current version and most recent version and update ctrls
         """
         if self.latest == -1:
-            msg = _translate("You are running PsychoPy v%s.\n ") % self.runningVersion
+            msg = _translate(
+                "You are running PsychoPy v%s.\n ") % self.runningVersion
             msg += _translate("PsychoPy could not connect to the \n internet"
                               " to check for more recent versions.\n")
             msg += _translate("Check proxy settings in preferences.")
         elif self.latest == self.runningVersion:
-            msg = _translate("You are running the latest version of PsychoPy (%s)\n ") % self.runningVersion
+            msg = _translate(
+                "You are running the latest version of PsychoPy (%s)\n ") % self.runningVersion
             msg += _translate("You can revert to a previous version by "
                               "selecting a specific .zip source installation file")
         else:
-            txt = _translate("PsychoPy v%(latest)s is available\nYou are running v%(running)s")
+            txt = _translate(
+                "PsychoPy v%(latest)s is available\nYou are running v%(running)s")
             msg = txt % {'latest': self.latest['version'],
                          'running': self.runningVersion}
             if self.latest['lastUpdatable'] <= self.runningVersion:
@@ -412,7 +416,8 @@ class InstallUpdateDialog(wx.Dialog):
             buffer.write(ch)
             read += chunk
             self.progressBar.SetValue(read)
-            txt = _translate("Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip")
+            txt = _translate(
+                "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip")
             msg = txt % {'done': read / 1000,
                          'total': fileSize / 1000, 'version': v}
             self.statusMessage.SetLabel(msg)
@@ -499,7 +504,8 @@ class InstallUpdateDialog(wx.Dialog):
         except Exception:  # revert path rename and inform user
             exec(undoStr)  # undo previous changes
             if onWin32:
-                msg = _translate("Right-click the app and 'Run as admin'):\n%s")
+                msg = _translate(
+                    "Right-click the app and 'Run as admin'):\n%s")
             else:
                 msg = _translate("Failed to create directory for new version"
                                  " (permissions error?):\n%s")

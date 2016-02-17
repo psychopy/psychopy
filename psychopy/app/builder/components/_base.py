@@ -46,7 +46,8 @@ class BaseComponent(object):
 
         self.params = {}
 
-        msg = _translate("Name of this component (alpha-numeric or _, no spaces)")
+        msg = _translate(
+            "Name of this component (alpha-numeric or _, no spaces)")
         self.params['name'] = Param(
             name, valType='code',
             hint=msg,
@@ -384,7 +385,8 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['opacity'])
 
-        msg = _translate("Choice of color space for the color (rgb, dkl, lms, hsv)")
+        msg = _translate(
+            "Choice of color space for the color (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(
             colorSpace, valType='str',
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],

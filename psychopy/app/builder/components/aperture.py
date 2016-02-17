@@ -39,7 +39,8 @@ class ApertureComponent(BaseVisualComponent):
         # NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos']  # make sure this is at top
 
-        msg = _translate("How big is the aperture? (a single number for diameter)")
+        msg = _translate(
+            "How big is the aperture? (a single number for diameter)")
         self.params['size'].hint = msg
         # only localize hints and labels
         self.params['size'].label = _translate("Size")

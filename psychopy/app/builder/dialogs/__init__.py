@@ -255,7 +255,8 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
-                    msg = _translate("set during: %(routineName)s.%(staticName)s")
+                    msg = _translate(
+                        "set during: %(routineName)s.%(staticName)s")
                     vals = {'routineName': routineName,
                             'staticName': static.params['name']}
                     updateLabels.append(msg % vals)
@@ -1002,7 +1003,8 @@ class _BaseParamsDlg(wx.Dialog):
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
-                msg = _translate("That name is in use (it's a %s). Try another name.")
+                msg = _translate(
+                    "That name is in use (it's a %s). Try another name.")
                 return msg % namespace._localized[used], False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
@@ -1289,7 +1291,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text = self.getTrialsSummary(
                         handler.params['conditions'].val)
                 else:
-                    text = _translate("No parameters set (select a file above)")
+                    text = _translate(
+                        "No parameters set (select a file above)")
                 # we'll create our own widgets
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
@@ -1470,7 +1473,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 else:
                     m2 = msg.replace('Conditions file ', '')
                     sep2 = os.linesep * 2
-                    _title = _translate('Configuration error in conditions file')
+                    _title = _translate(
+                        'Configuration error in conditions file')
                     dlgErr = dialogs.MessageDialog(
                         parent=self.frame, message=m2.replace(': ', sep2),
                         type='Info', title=_title).ShowModal()
@@ -1559,7 +1563,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                     self.currentCtrls['conditions'].setValue(
                         self.getTrialsSummary(self.conditions))
                 except ImportError as e:
-                    msg1 = _translate('Badly formed condition name(s) in file:\n')
+                    msg1 = _translate(
+                        'Badly formed condition name(s) in file:\n')
                     msg2 = _translate('.\nNeed to be legal as var name; '
                                       'edit file, try again.')
                     val = msg1 + str(e).replace(':', '\n') + msg2

@@ -32,7 +32,8 @@ class StaticComponent(BaseComponent):
         self.updatesList = []  # a list of dicts {compParams, fieldName}
         self.type = 'Static'
         self.url = "http://www.psychopy.org/builder/components/static.html"
-        hnt = _translate("Custom code to be run during the static period (after updates)")
+        hnt = _translate(
+            "Custom code to be run during the static period (after updates)")
         self.params['code'] = Param("", valType='code',
                                     hint=hnt,
                                     label=_localized['Custom code'])
