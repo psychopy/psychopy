@@ -59,9 +59,9 @@ class MovieComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['backend'])
 
-        #msg = _translate(
+        # todo: msg = _translate(...)
         msg = ("Prevent the audio stream from being loaded/processed "
-                "(moviepy and opencv only)")
+               "(moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool',
             hint=msg,
