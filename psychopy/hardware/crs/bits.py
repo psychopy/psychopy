@@ -29,7 +29,7 @@ from .. import serialdevice
 __docformat__ = "restructuredtext en"
 
 DEBUG = True
-global GL, visual
+global GL, visual  # will be imported
 
 plotResults = False
 if plotResults:
@@ -56,7 +56,7 @@ try:
 except Exception:
     import ConfigParser as configparser
 
-#Bits++ modes
+# Bits++ modes
 bits8BITPALETTEMODE = 0x00000001  # /* normal vsg mode */
 NOGAMMACORRECT = 0x00004000  # /* Gamma correction mode */
 GAMMACORRECT = 0x00008000  # /* Gamma correction mode */
@@ -89,16 +89,16 @@ class BitsPlusPlus(object):
         """
         :Parameters:
 
-            contrast=1.0,
-                The contrast to be applied to the LUT. S
-                ee :func:`BitsPlusPlus.setLUT` and
+            contrast :
+                The contrast to be applied to the LUT.
+                See :func:`BitsPlusPlus.setLUT` and
                 :func:`BitsPlusPlus.setContrast` for flexibility on setting
                 just a section of the LUT to a different value
 
-            gamma=None,
+            gamma :
                 The value used to correct the gamma in the LUT
 
-            nEntries: 256
+            nEntries : 256
                 [DEPRECATED feature]
 
             mode : 'bits++' (or 'mono++' or 'color++')
@@ -992,8 +992,7 @@ class Config(object):
     def findIdentityLUT(self, maxIterations=1000, errCorrFactor=1.0 / 5000,
                         nVerifications=50,
                         demoMode=True,
-                        logFile='',
-                        ):
+                        logFile=''):
         """Search for the identity LUT for this card/operating system.
         This requires that the window being tested is fullscreen on the Bits#
         monitor (or at least occupies the first 256 pixels in the top left
@@ -1099,7 +1098,7 @@ class Config(object):
                 break
 
         # did we get here by failure?!
-        if n == (maxIterations - 1):
+        if n == maxIterations - 1:
             print("failed to converge on a successful identity LUT. "
                   "This is BAD!")
 

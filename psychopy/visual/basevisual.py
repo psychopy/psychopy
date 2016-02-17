@@ -687,7 +687,7 @@ class TextureMixin(object):
             wasLum = True
         elif tex == "saw":
             intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
-                numpy.ones([res, 1]))
+                         numpy.ones([res, 1]))
             wasLum = True
         elif tex == "tri":
             # -1:3 means the middle is at +1

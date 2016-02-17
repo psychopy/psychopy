@@ -458,7 +458,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """:ref:`x,y-pair <attrib-xy>`.
         Set the centre of the array of elements.
 
-        :ref:`Operations <attrib-operations>` are supported."""
+        :ref:`Operations <attrib-operations>` are supported.
+        """
         self.__dict__['fieldPos'] = val2array(value, False, False)
         self._needVertexUpdate = True
 
@@ -469,7 +470,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         setAttribute(self, 'fieldPos', value, log, operation)
 
     def setPos(self, newPos=None, operation='', units=None, log=None):
-        """Obselete - users should use setFieldPos or instead of setPos.
+        """Obsolete - users should use setFieldPos or instead of setPos.
         """
         logging.error("User called ElementArrayStim.setPos(pos). "
                       "Use ElementArrayStim.setFieldPos(pos) instead.")
@@ -493,8 +494,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         setAttribute(self, 'fieldSize', value, log, operation)
 
     def draw(self, win=None):
-        """
-        Draw the stimulus in its relevant window. You must call
+        """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
@@ -641,7 +641,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._needColorUpdate = False
 
     def updateTextureCoords(self):
-        """Create a new array of self._maskCoords"""
+        """Create a new array of self._maskCoords
+        """
 
         N = self.nElements
         self._maskCoords = numpy.array([[1, 0], [0, 0], [0, 1], [1, 1]],

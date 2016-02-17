@@ -76,8 +76,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  vframe_callback=None,
                  fps=None,
-                 interpolate=True,
-                 ):
+                 interpolate=True):
         """
         :Parameters:
 

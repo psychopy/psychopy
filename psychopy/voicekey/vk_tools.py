@@ -72,8 +72,7 @@ def _butter(order, band, rate=44100):
 
 def bandpass_pre_cache(lows=(80, 100, 120),
                        highs=(1200, 3000, 8000),
-                       bands=((2000, 8000),  # content-filtered speech
-                              ),
+                       bands=((2000, 8000),),  # content-filtered speech
                        rate=44100):
     """Call _butter now to cache some useful (b, a) values.
     """

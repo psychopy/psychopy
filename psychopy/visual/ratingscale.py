@@ -137,8 +137,7 @@ class RatingScale(MinimalStim):
                  depth=0,
                  name=None,
                  autoLog=True,
-                 **kwargs  # catch obsolete args
-                 ):
+                 **kwargs):  # catch obsolete args
         """
     :Parameters:
 
@@ -443,7 +442,8 @@ class RatingScale(MinimalStim):
                 # label endpoints and middle tick
                 placeHolder = [''] * ((diff - 2) // 2)
                 self.labelTexts = ([labels[0]] + placeHolder +
-                    [labels[1]] + placeHolder + [labels[2]])
+                                   [labels[1]] + placeHolder +
+                                   [labels[2]])
             elif labels in [None, False]:
                 self.labelTexts = []
             else:
@@ -451,7 +451,7 @@ class RatingScale(MinimalStim):
                 self.labelTexts = [first] + [''] * (diff - 1) + [last]
 
         self.scale = scale
-        if tickMarks and not(labels is False):
+        if tickMarks and not labels is False:
             if labels is None:
                 self.labelTexts = tickMarks
             else:
@@ -710,7 +710,7 @@ class RatingScale(MinimalStim):
         pad = 0.06 * self.size
         if marker == 'hover':
             padText = ((1. / (3 * (self.high - self.low))) *
-                (self.lineRightEnd - self.lineLeftEnd))
+                       (self.lineRightEnd - self.lineLeftEnd))
         else:
             padText = 0
         self.nearLine = [

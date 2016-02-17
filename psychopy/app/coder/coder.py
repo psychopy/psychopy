@@ -222,8 +222,8 @@ class UnitTestFrame(wx.Frame):
                     # show the new image, double size for easier viewing:
                     if thisLine.strip().endswith('.png'):
                         newImg = thisLine.split()[-1]
-                        img = os.path.join(self.parent.paths[
-                                           'tests'], 'data', newImg)
+                        img = os.path.join(self.parent.paths['tests'],
+                                           'data', newImg)
                         self.png.append(wx.Image(img, wx.BITMAP_TYPE_ANY))
                         self.MoveEnd()
                         self.WriteImage(self.png[-1])
@@ -234,8 +234,8 @@ class UnitTestFrame(wx.Frame):
                     self.WriteText(thisLine)
                 if thisLine.find('Saved copy of actual frame') > -1:
                     # show the new images, double size for easier viewing:
-                    newImg = [f for f in thisLine.split(
-                    ) if f.find('_local.png') > -1]
+                    newImg = [f for f in thisLine.split()
+                              if f.find('_local.png') > -1]
                     newFile = newImg[0]
                     origFile = newFile.replace('_local.png', '.png')
                     img = os.path.join(self.parent.paths['tests'], origFile)
@@ -1291,7 +1291,7 @@ class CoderFrame(wx.Frame):
                           (self.appData['winX'], self.appData['winY']),
                           size=(self.appData['winW'], self.appData['winH']))
 
-        #self.panel = wx.Panel(self)
+        # self.panel = wx.Panel(self)
         self.Hide()  # ugly to see it all initialise
         # create icon
         if sys.platform == 'darwin':

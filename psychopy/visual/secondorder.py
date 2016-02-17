@@ -322,9 +322,9 @@ class EnvelopeGrating(GratingStim):
         # adjust envolope phases so that any envelope drift points
         # in the same direction as the envelope.
         rph1 = (numpy.cos(envrad) *
-            self.envphase[0] + numpy.sin(envrad) * self.envphase[1])
+                self.envphase[0] + numpy.sin(envrad) * self.envphase[1])
         rph2 = (-numpy.cos(envrad) *
-            self.envphase[1] + numpy.sin(envrad) * self.envphase[0])
+                self.envphase[1] + numpy.sin(envrad) * self.envphase[0])
 
         if 'avg' in self.win.blendMode:
             addvalue = 1.0

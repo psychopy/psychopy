@@ -1561,7 +1561,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 except ImportError as e:
                     msg1 = _translate('Badly formed condition name(s) in file:\n')
                     msg2 = _translate('.\nNeed to be legal as var name; '
-                                       'edit file, try again.')
+                                      'edit file, try again.')
                     val = msg1 + str(e).replace(':', '\n') + msg2
                     self.currentCtrls['conditions'].setValue(val)
                     self.conditions = ''

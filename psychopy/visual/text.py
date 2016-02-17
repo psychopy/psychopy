@@ -45,8 +45,7 @@ defaultLetterHeight = {'cm': 1.0,
                        'norm': 0.1,
                        'height': 0.2,
                        'pix': 20,
-                       'pixels': 20,
-                       }
+                       'pixels': 20}
 defaultWrapWidth = {'cm': 15.0,
                     'deg': 15.0,
                     'degs': 15.0,
@@ -55,8 +54,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'norm': 1,
                     'height': 1,
                     'pix': 500,
-                    'pixels': 500,
-                    }
+                    'pixels': 500}
 
 
 class TextStim(BaseVisualStim, ColorMixin):
@@ -709,8 +707,8 @@ class TextStim(BaseVisualStim, ColorMixin):
             #       self.win._progSignedTexFont, "rgb"), 1,
             #       desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
             #  #set the texture to be texture unit 0
-            GL.glUniform3f(GL.glGetUniformLocation(
-                self.win._progSignedTexFont, "rgb"),
+            GL.glUniform3f(
+                GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"),
                 desiredRGB[0], desiredRGB[1], desiredRGB[2])
 
         else:  # color is set in texture, so set glColor to white

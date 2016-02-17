@@ -77,8 +77,7 @@ class PR650(object):
         self.codes = {'OK': '000\r\n',  # this is returned after measure
                       '18': 'Light Low',  # returned at beginning of data
                       '10': 'Light Low',
-                      '00': 'OK'
-                      }
+                      '00': 'OK'}
 
         # try to open the port
         _linux = sys.platform.startswith('linux')
@@ -305,8 +304,7 @@ class PR655(PR650):
         self.codes = {'OK': '000\r\n',  # this is returned after measure
                       '18': 'Light Low',  # returned at beginning of data
                       '10': 'Light Low',
-                      '00': 'OK'
-                      }
+                      '00': 'OK'}
 
         # try to open the port
         try:
