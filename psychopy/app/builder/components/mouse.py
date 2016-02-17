@@ -17,14 +17,17 @@ _localized = {'saveMouseState': _translate('Save mouse state'),
 
 
 class MouseComponent(BaseComponent):
-    """An event class for checking the mouse location and buttons at given timepoints"""
+    """An event class for checking the mouse location and buttons
+    at given timepoints
+    """
     categories = ['Responses']
 
     def __init__(self, exp, parentName, name='mouse',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 save='final', forceEndRoutineOnPress=True, timeRelativeTo='routine'):
+                 save='final', forceEndRoutineOnPress=True,
+                 timeRelativeTo='routine'):
         super(MouseComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
@@ -201,11 +204,13 @@ class MouseComponent(BaseComponent):
                     self.params)
 
             if currLoop.type != 'StairHandler':
-                code += ("%s.addData('%s.x', x)\n" % (currLoop.params['name'], name) +
-                         "%s.addData('%s.y', y)\n" % (currLoop.params['name'], name) +
-                         "%s.addData('%s.leftButton', buttons[0])\n" % (currLoop.params['name'], name) +
-                         "%s.addData('%s.midButton', buttons[1])\n" % (currLoop.params['name'], name) +
-                         "%s.addData('%s.rightButton', buttons[2])\n" % (currLoop.params['name'], name))
+                vals = (currLoop.params['name'], name)
+                code += (
+                    "%s.addData('%s.x', x)\n" % vals +
+                    "%s.addData('%s.y', y)\n" % vals +
+                    "%s.addData('%s.leftButton', buttons[0])\n" % vals +
+                    "%s.addData('%s.midButton', buttons[1])\n" % vals +
+                    "%s.addData('%s.rightButton', buttons[2])\n" % vals)
 
             buff.writeIndented(code)
         elif store != 'never':

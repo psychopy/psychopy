@@ -1533,7 +1533,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             else:  # most other fields
                 # the various dlg ctrls for this param
                 ctrls = self.currentCtrls[fieldName]
-                param.val = ctrls.getValue()  # from _baseParamsDlg (handles diff control types)
+                param.val = ctrls.getValue()
+                # from _baseParamsDlg (handles diff control types)
                 if ctrls.typeCtrl:
                     param.valType = ctrls.getType()
                 if ctrls.updateCtrl:
@@ -1557,15 +1558,15 @@ class DlgLoopProperties(_BaseParamsDlg):
                         self.conditionsFile)
                     self.currentCtrls['conditions'].setValue(
                         self.getTrialsSummary(self.conditions))
-                except ImportError as msg:
-                    msg1 =  _translate('Badly formed condition name(s) in file:\n')
-                    msg2 =  _translate('.\nNeed to be legal as var name; '
+                except ImportError as e:
+                    msg1 = _translate('Badly formed condition name(s) in file:\n')
+                    msg2 = _translate('.\nNeed to be legal as var name; '
                                        'edit file, try again.')
-                    val = msg1 + str(msg).replace(':', '\n') + msg2
+                    val = msg1 + str(e).replace(':', '\n') + msg2
                     self.currentCtrls['conditions'].setValue(val)
                     self.conditions = ''
                     msg3 = 'Reject bad condition name in conditions file: %s'
-                    logging.error(msg3 % str(msg).split(':')[0])
+                    logging.error(msg3 % str(e).split(':')[0])
             else:
                 self.conditions = None
                 self.currentCtrls['conditions'].setValue(_translate(

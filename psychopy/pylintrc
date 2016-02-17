@@ -28,6 +28,10 @@ ignore=.git,freetype_bf,daq,pyglet_input,labjack,contrib,demos,tests,iohub
 good-names=i,j,k,x,y,__,so,se
 additional-builtins=_translate
 
+[TYPECHECK]
+ignored-modules=numpy
+ignored-classes=numpy
+
 [DESIGN]
 max-args=20
 max-locals=50
