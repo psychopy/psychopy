@@ -634,6 +634,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         else:
             self._RGBAs[:, 0:3] = (self.rgbs *
                 self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0)
+
         self._RGBAs[:, -1] = self.opacities.reshape([N, ])
         # repeat for the 4 vertices in the grid
         self._RGBAs = self._RGBAs.reshape([N, 1, 4]).repeat(4, 1)

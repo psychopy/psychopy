@@ -58,7 +58,7 @@ else:
         """
 
         def __init__(self, address):
-            """This is just a dummy constructor to avoid errors 
+            """This is just a dummy constructor to avoid errors
             when the parallel port cannot be initiated
             """
             msg = ("psychopy.parallel has been imported but (1) no parallel "
