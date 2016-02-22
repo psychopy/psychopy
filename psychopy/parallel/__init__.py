@@ -39,7 +39,7 @@ elif sys.platform == 'win32':
     else:
         logging.warning("psychopy.parallel has been imported but no "
                         "parallel port driver found. Install either "
-                        "input32 or dlportio")
+                        "inpout32 or dlportio")
 else:
     logging.warning("psychopy.parallel has been imported on a Mac "
                     "(which doesn't have a parallel port?)")
