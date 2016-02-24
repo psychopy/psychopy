@@ -133,37 +133,32 @@ class BaseComponent(object):
 
     def writeTimeTestCode(self, buff):
         """Original code for testing whether to draw.
-        Most objects should migrate to using writeStartTestCode and
+        All objects have now migrated to using writeStartTestCode and
         writeEndTestCode
         """
         if self.params['duration'].val == '':
-            code = "if (%(startTime)s <= t):\n" % self.params
+            code = "if %(startTime)s <= t:\n"
         else:
-            code = ("if (%(startTime)s <= t < (%(startTime)s + %(duration)s)):\n" %
-                    self.params)
-        buff.writeIndentedLines(code)
+            code = "if %(startTime)s <= t < %(startTime)s + %(duration)s:\n"
+        buff.writeIndentedLines(code % self.params)
 
     def writeStartTestCode(self, buff):
         """Test whether we need to start
         """
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and not
-                    self.params['startVal'].val.strip()):
+            if (isinstance(self.params['startVal'].val, basestring) and
+                    not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
-
-            code = ("if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %
-                    self.params)
+            code = "if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n"
         elif self.params['startType'].val == 'frame N':
-            code = ("if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %
-                    self.params)
+            code = "if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n"
         elif self.params['startType'].val == 'condition':
-            code = ("if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n" %
-                    self.params)
+            code = "if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n"
         else:
             raise "Not a known startType (%(startType)s) for %(name)s" % self.params
 
-        buff.writeIndented(code)
+        buff.writeIndented(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
         code = ("# keep track of start time/frame for later\n"
@@ -175,34 +170,31 @@ class BaseComponent(object):
         """Test whether we need to stop
         """
         if self.params['stopType'].val == 'time (s)':
-            code = ("frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n"
-                    "if %(name)s.status == STARTED and t >= frameRemains:\n" %
-                    self.params)
-        #duration in time (s)
-        elif self.params['stopType'].val == 'duration (s)' and self.params['startType'].val == 'time (s)':
-            code = ("frameRemains = %(startVal)s + %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n"
-                    "if %(name)s.status == STARTED and t >= frameRemains:\n" %
-                    self.params)
+            code = ("frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75"
+                    "  # most of one frame period left\n"
+                    "if %(name)s.status == STARTED and t >= frameRemains:\n")
+        # duration in time (s)
+        elif (self.params['stopType'].val == 'duration (s)' and
+                self.params['startType'].val == 'time (s)'):
+            code = ("frameRemains = %(startVal)s + %(stopVal)s - win.monitorFramePeriod * 0.75"
+                    "  # most of one frame period left\n"
+                    "if %(name)s.status == STARTED and t >= frameRemains:\n")
         # start at frame and end with duratio (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
-            code = ("if %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %
-                    self.params)
-        #duration in frames
+            code = ("if %(name)s.status == STARTED and t >= (%(name)s.tStart "
+                    "+ %(stopVal)s):\n")
         elif self.params['stopType'].val == 'duration (frames)':
-            code = ("if %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" %
-                    self.params)
-        # stop frame number
+            code = ("if %(name)s.status == STARTED and frameN >= "
+                    "(%(name)s.frameNStart + %(stopVal)s):\n")
         elif self.params['stopType'].val == 'frame N':
-            code = ("if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" %
-                    self.params)
-        # end according to a condition
+            code = "if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n"
         elif self.params['stopType'].val == 'condition':
-            code = ("if %(name)s.status == STARTED and bool(%(stopVal)s):\n" %
-                    self.params)
+            code = "if %(name)s.status == STARTED and bool(%(stopVal)s):\n"
         else:
-            raise "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s" % self.params
+            raise ("Didn't write any stop line for startType=%(startType)s, "
+                   "stopType=%(stopType)s") % self.params
 
-        buff.writeIndentedLines(code)
+        buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)
 
     def writeParamUpdates(self, buff, updateType, paramNames=None):
@@ -266,8 +258,8 @@ class BaseComponent(object):
                                (compName, paramCaps, val, loggingStr))
 
     def checkNeedToUpdate(self, updateType):
-        """Determine whether this component has any parameters set to repeat at
-        this level
+        """Determine whether this component has any parameters set to repeat
+        at this level
 
         usage::
             True/False = checkNeedToUpdate(self, updateType)
@@ -293,7 +285,8 @@ class BaseComponent(object):
         value and can be used in non-slip global clock timing (e.g for fMRI)
         """
         if not 'startType' in self.params:
-            return None, None, True  # this component does not have any start/stop
+            # this component does not have any start/stop
+            return None, None, True
 
         startType = self.params['startType'].val
         stopType = self.params['stopType'].val
@@ -422,27 +415,26 @@ class BaseVisualComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         buff.writeIndented("\n")
-        buff.writeIndented("# *%s* updates\n" % (self.params['name']))
+        buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.setAutoDraw(True)\n" % (self.params))
+        buff.writeIndented("%(name)s.setAutoDraw(True)\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
-        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.setAutoDraw(False)\n" % (self.params))
+            buff.writeIndented("%(name)s.setAutoDraw(False)\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            code = ("if %(name)s.status == STARTED:  # only update if being drawn\n" %
-                    self.params)
-            buff.writeIndented(code)
+            code = "if %(name)s.status == STARTED:  # only update if being drawn\n"
+            buff.writeIndented(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
