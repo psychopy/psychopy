@@ -15,7 +15,7 @@ import msgpack
 try:
     import msgpack_numpy as m
     m.patch()
-except:
+except Exception:
     pass
 import struct
 from weakref import proxy

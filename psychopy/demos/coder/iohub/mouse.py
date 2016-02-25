@@ -117,9 +117,6 @@ while not kb_events:
         print("Ending Demo Due to 15 Seconds of Inactivity.")
         break
 
-    # Clear out events that were not accessed this frame.
-    io.clearEvents()
-
 # End of Example
 
 win.close()

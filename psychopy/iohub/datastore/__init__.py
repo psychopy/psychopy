@@ -145,25 +145,25 @@ class ioHubpyTablesFile():
 
         try:
             self.TABLES['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard.KeyboardKeyEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard.KeyboardCharEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse.MouseInputEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['TOUCH']=self.emrtFile.root.data_collection.events.touch.TouchEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
@@ -185,109 +185,109 @@ class ioHubpyTablesFile():
 
         try:
             self.TABLES['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad.GamepadStateChangeEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['MESSAGE']=self.emrtFile.root.data_collection.events.experiment.MessageEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['LOG']=self.emrtFile.root.data_collection.events.experiment.LogEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['MULTI_CHANNEL_ANALOG_INPUT']=self.emrtFile.root.data_collection.events.analog_input.MultiChannelAnalogInputEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu.AnalogInputEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['THRESHOLD']=self.emrtFile.root.data_collection.events.mcu.ThresholdEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu.DigitalInputEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['SERIAL_INPUT'] = self.emrtFile.root.data_collection.events.serial.SerialInputEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['SERIAL_BYTE_CHANGE'] = self.emrtFile.root.data_collection.events.serial.SerialByteChangeEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['PSTBOX_BUTTON'] = self.emrtFile.root.data_collection.events.serial.PstBoxButtonEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.MonocularEyeSampleEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['BINOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.BinocularEyeSampleEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['FIXATION_START']=self.emrtFile.root.data_collection.events.eyetracker.FixationStartEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['FIXATION_END']=self.emrtFile.root.data_collection.events.eyetracker.FixationEndEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['SACCADE_START']=self.emrtFile.root.data_collection.events.eyetracker.SaccadeStartEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['SACCADE_END']=self.emrtFile.root.data_collection.events.eyetracker.SaccadeEndEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['BLINK_START']=self.emrtFile.root.data_collection.events.eyetracker.BlinkStartEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
         try:
             self.TABLES['BLINK_END']=self.emrtFile.root.data_collection.events.eyetracker.BlinkEndEvent
-        except:
+        except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
         
@@ -428,7 +428,7 @@ class ioHubpyTablesFile():
                 experimentConditionVariableTable=self.emrtFile.createTable(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
                 self.TABLES['EXP_CV']=experimentConditionVariableTable
                 self.emrtFile.flush()
-            except:
+            except Exception:
                 printExceptionDetailsToStdErr()
                 return False
         except Exception:
@@ -457,7 +457,7 @@ class ioHubpyTablesFile():
                 self.bufferedFlush()
                 return True
 
-            except:
+            except Exception:
                 printExceptionDetailsToStdErr()
         return False
 
@@ -507,7 +507,7 @@ class ioHubpyTablesFile():
 
             self.bufferedFlush()
 
-        except:
+        except Exception:
             print2err("Error saving event: ",event)
             printExceptionDetailsToStdErr()
 
@@ -542,7 +542,7 @@ class ioHubpyTablesFile():
 
         except ioHubError, e:
             print2err(e)
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
 
     def bufferedFlush(self,eventCount=1):
@@ -566,7 +566,7 @@ class ioHubpyTablesFile():
                 self.emrtFile.flush()
         except ClosedFileError:
             pass
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
 
     def close(self):
@@ -577,7 +577,7 @@ class ioHubpyTablesFile():
     def __del__(self):
         try:
             self.close()
-        except:
+        except Exception:
             pass    
 
 ## -------------------- Utility Functions ------------------------ ##
@@ -602,7 +602,7 @@ try:
     global registered_close_open_data_files
     if registered_close_open_data_files is True:
         pass
-except:
+except Exception:
     registered_close_open_data_files = True
     atexit.register(close_open_data_files, False)
 

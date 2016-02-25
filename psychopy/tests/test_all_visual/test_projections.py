@@ -82,7 +82,7 @@ class ProjectionsLinesAndCircles(object):
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))
-        except:
+        except Exception:
             pass
 
     def check_keys(self):
@@ -155,7 +155,7 @@ class ProjectionsLinesAndCircles(object):
 
 
 @pytest.mark.windowwarp
-class Test_class_WindowWarp:
+class Test_class_WindowWarp(object):
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
         self.warper = Warper (self.win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)

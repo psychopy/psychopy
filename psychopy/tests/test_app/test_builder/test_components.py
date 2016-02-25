@@ -1,5 +1,5 @@
 
-import sys, os
+import os
 import pytest
 
 from psychopy.app import builder
@@ -16,13 +16,17 @@ profile = 'componsTemplate.txt'
 # should it be ok or an error if the param[field] order differs from the profile?
 ignoreOrder = True
 
+# ignore attributes that are there because inherit from object
+ignoreObjectAttribs = True
+ignoreList = ['<built-in method __', "<method-wrapper '__", '__slotnames__:']
+
+
 # profile is not platform specific, which can trigger false positives.
 # allowedVals can differ across platforms or with prefs:
 ignoreParallelOutAddresses = True
 
 @pytest.mark.components
-class TestComponents():
-
+class TestComponents(object):
     @classmethod
     def setup_class(cls):
         cls.exp = builder.experiment.Experiment() # create once, not every test
@@ -32,14 +36,14 @@ class TestComponents():
         # should not need a wx.App with fetchIcons=False
         try:
             cls.allComp = getAllComponents(fetchIcons=False)
-        except:
+        except Exception:
             import wx
             if wx.version() < '2.9':
                 tmpApp = wx.PySimpleApp()
             else:
                 tmpApp = wx.App(False)
             try: from psychopy.app import localization
-            except: pass  # not needed if can't import it
+            except Exception: pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
 
     def setup(self):
@@ -111,6 +115,18 @@ class TestComponents():
                             mismatch = line + ' <== ' + targetTag[tag]
                         except KeyError: # missing
                             mismatch = line + ' <==> NEW (no matching param in the reference profile)'
-                        print(mismatch.encode('utf8'))
-                        err.append(mismatch)
+
+                        # ignore attributes that inherit from object:
+
+                        if ignoreObjectAttribs:
+                            for item in ignoreList:
+                                if item in mismatch:
+                                    break
+                            else:
+                                err.append(mismatch)
+                                print(mismatch.encode('utf8'))
+                        else:
+                            err.append(mismatch)
+                            print(mismatch.encode('utf8'))
+
         assert not err

@@ -33,7 +33,7 @@ from ....eye_events import *
 
 try:
     pylink.enableUTF8EyeLinkMessages()
-except:
+except Exception:
     pass
 
 class EyeTracker(EyeTrackerDevice):
@@ -161,7 +161,7 @@ class EyeTracker(EyeTrackerDevice):
             # Creates a fileTransferDialog class that will be used when a connection is closed and
             # a native EDF file needs to be transfered from Host to Experiment PC.
             EyeTracker._eyelink.progressUpdate=self._fileTransferProgressUpdate
-        except:
+        except Exception:
             print2err(" ---- Error during EyeLink EyeTracker Initialization ---- ")
             printExceptionDetailsToStdErr()
             print2err(" ---- Error during EyeLink EyeTracker Initialization ---- ")

@@ -4,4 +4,5 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Container for all miscellaneous functions and classes'''
+"""Container for all miscellaneous functions and classes
+"""

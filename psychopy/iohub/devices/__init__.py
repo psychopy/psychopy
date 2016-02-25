@@ -1105,7 +1105,7 @@ class Device(ioObject):
             else:
                 print2err("Could not add filter . File not found.")
             return -1
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             print2err("ERROR During Add Filter")
 
@@ -1332,7 +1332,7 @@ class Device(ioObject):
         try:
             self.__class__._iohub_server=None
             self.__class__._display_device=None
-        except:
+        except Exception:
             pass
 
     def __del__(self):
@@ -1572,7 +1572,7 @@ try:
         display_class,device_class_name,event_classes=import_device('psychopy.iohub.devices.display','Display')
         setattr(sys.modules[__name__],'Display', display_class)
 
-except:
+except Exception:
     print2err("Warning: display device module could not be imported.")
     printExceptionDetailsToStdErr()
 

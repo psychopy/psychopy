@@ -46,7 +46,7 @@ def getinf(x):
     return num.nonzero( num.isinf( num.atleast_1d(x) ) )
     
 
-class QuestObject:
+class QuestObject(object):
     
     """Measure threshold using a Weibull psychometric function.
     
@@ -109,6 +109,7 @@ class QuestObject:
 
         This was converted from the Psychtoolbox's QuestCreate function.
         """
+        super(QuestObject, self).__init__()
         grain = float(grain) # make sure grain is a float
         if range is None:
             dim = 500
@@ -420,7 +421,7 @@ def demo():
         input = raw_input()
         try:
             tActual = float(input)
-        except:
+        except Exception:
             pass
     
     tGuess = None
@@ -429,7 +430,7 @@ def demo():
         input = raw_input()
         try:
             tGuess = float(input)
-        except:
+        except Exception:
             pass
     
     tGuessSd = 2.0 # sd of Gaussian before clipping to specified range

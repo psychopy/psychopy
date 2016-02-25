@@ -6,16 +6,17 @@
 
 from __future__ import absolute_import
 
-import os, glob, copy, shutil
+import os
+import glob
+import copy
+import shutil
 import wx
 from PIL import Image
 from os.path import join, dirname, abspath
-from importlib import import_module  #  helps python 2.7 -> 3.x migration
+from importlib import import_module  # helps python 2.7 -> 3.x migration
 
-excludeComponents = [
-    'BaseComponent', 'BaseVisualComponent', #these are templates, not for use
-    'EyetrackerComponent', #this one isn't ready yet
-    ]
+excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # these are templates, not for use
+                     'EyetrackerComponent']  # this one isn't ready yet
 
 
 def pilToBitmap(pil, scaleFactor=1.0):
@@ -28,8 +29,9 @@ def pilToBitmap(pil, scaleFactor=1.0):
         image.SetData(pil.convert("RGB").tobytes())
         image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
 
-    image.Rescale(image.Width*scaleFactor, image.Height*scaleFactor)
-    return image.ConvertToBitmap()#wx.Image and wx.Bitmap are different
+    image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
+    return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
+
 
 def getIcons(filename=None):
     """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image.
@@ -37,20 +39,21 @@ def getIcons(filename=None):
 
     png files work best, but anything that wx.Image can import should be fine
     """
-    icons={}
+    icons = {}
     if filename is None:
-        filename=join(dirname(abspath(__file__)),'base.png')
+        filename = join(dirname(abspath(__file__)), 'base.png')
     im = Image.open(filename)
     icons['48'] = pilToBitmap(im)
     icons['24'] = pilToBitmap(im, scaleFactor=0.5)
-    #add the plus sign
-    add = Image.open(join(dirname(abspath(__file__)),'add.png'))
-    im.paste(add, [0,0,add.size[0], add.size[1]], mask=add)
+    # add the plus sign
+    add = Image.open(join(dirname(abspath(__file__)), 'add.png'))
+    im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
     #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
     icons['48add'] = pilToBitmap(im)
     icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
 
     return icons
+
 
 def getComponents(folder=None, fetchIcons=True):
     """Get a dictionary of available components for the Builder experiments.
@@ -114,76 +117,78 @@ def getComponents(folder=None, fetchIcons=True):
         os.sys.path.insert(0, pth)
 
     components = {}
-    #setup a default icon
+    # setup a default icon
     if fetchIcons and 'default' not in icons.keys():
-        icons['default']=getIcons(filename=None)
+        icons['default'] = getIcons(filename=None)
 
     # go through components in directory
     filexp = os.path.join(folder, '*.py')
     for cmpfile in glob.glob(filexp):
         cmpfile = os.path.split(cmpfile)[1]
-        if cmpfile[0] in '_0123456789': # __init__.py, _base.py, leading digit
+        if cmpfile[0] in '_0123456789':  # __init__.py, _base.py, leading digit
             continue
         # can't use imp - breaks py2app:
         #module = imp.load_source(file[:-3], fullPath)
-        #v1.83.00 used exec(implicit-relative), no go for python3:
+        # v1.83.00 used exec(implicit-relative), no go for python3:
         #exec('import %s as module' %(file[:-3]))
 
         # importlib.import_module eases 2.7 -> 3.x migration
         explicit_rel_path = '.' + cmpfile[:-3]
         module = import_module(explicit_rel_path, package=pkg)
 
-        if not hasattr(module,'categories'):
-            module.categories=['Custom']
+        if not hasattr(module, 'categories'):
+            module.categories = ['Custom']
         for attrib in dir(module):
-            name=None
+            name = None
             # fetch the attribs that end with 'Component'
             if (attrib.endswith('omponent') and
                     attrib not in excludeComponents):
-                name=attrib
-                components[attrib]=getattr(module, attrib)
+                name = attrib
+                components[attrib] = getattr(module, attrib)
 
-                #skip if this class was imported, not defined here
-                if module.__name__!=components[attrib].__module__:
-                    continue #class was defined in different module
+                # skip if this class was imported, not defined here
+                if module.__name__ != components[attrib].__module__:
+                    continue  # class was defined in different module
 
-                #also try to get an iconfile
+                # also try to get an iconfile
                 if fetchIcons:
-                    if hasattr(module,'iconFile'):
-                        icons[name]=getIcons(module.iconFile)
+                    if hasattr(module, 'iconFile'):
+                        icons[name] = getIcons(module.iconFile)
                     else:
-                        icons[name]=icons['default']
+                        icons[name] = icons['default']
                 if hasattr(module, 'tooltip'):
                     tooltips[name] = module.tooltip
-                #assign the module categories to the Component
+                # assign the module categories to the Component
                 if not hasattr(components[attrib], 'categories'):
-                    components[attrib].categories=['Custom']
+                    components[attrib].categories = ['Custom']
     return components
 
-def getAllComponents(folderList=[], fetchIcons=True):
+
+def getAllComponents(folderList=(), fetchIcons=True):
     """Get a dictionary of all available components, from the builtins as well
     as all folders in the folderlist.
 
     User-defined components will override built-ins with the same name.
     """
-    if type(folderList)!=list:
-        raise TypeError, 'folderList should be a list, not a string'
-    components=getComponents(fetchIcons=fetchIcons)#get the built-ins
+    if isinstance(folderList, basestring):
+        raise TypeError, 'folderList should be iterable, not a string'
+    components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
-        userComps=getComponents(folder)
+        userComps = getComponents(folder)
         for thisKey in userComps.keys():
-            components[thisKey]=userComps[thisKey]
+            components[thisKey] = userComps[thisKey]
     return components
 
 
-def getAllCategories(folderList=[]):
+def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
-    allCats = ['Stimuli','Responses','Custom']
+    allCats = ['Stimuli', 'Responses', 'Custom']
     for name, thisComp in allComps.items():
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
                 allCats.append(thisCat)
     return allCats
+
 
 def getInitVals(params):
     """Works out a suitable initial value for a parameter (e.g. to go into the
@@ -192,56 +197,58 @@ def getInitVals(params):
     inits = copy.deepcopy(params)
     for name in params.keys():
 
-        if not hasattr(inits[name], 'updates'):#might be settings parameter instead
+        if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
             continue
 
-        #value should be None (as code)
-        elif inits[name].val in [None,'None','none','']:
-            inits[name].val='None'
-            inits[name].valType='code'
+        # value should be None (as code)
+        elif inits[name].val in [None, 'None', 'none', '']:
+            inits[name].val = 'None'
+            inits[name].valType = 'code'
 
-        #is constant so don't touch the parameter value
-        elif inits[name].updates in ['constant',None,'None']:
-            continue #things that are constant don't need handling
+        # is constant so don't touch the parameter value
+        elif inits[name].updates in ['constant', None, 'None']:
+            continue  # things that are constant don't need handling
 
-        #is changing so work out a reasonable default
+        # is changing so work out a reasonable default
         elif name in ['pos', 'fieldPos']:
-            inits[name].val='[0,0]'
-            inits[name].valType='code'
-        elif name in ['ori','sf','size','height','letterHeight',
-                    'color','lineColor','fillColor',
-                    'phase','opacity',
-                    'volume', #sounds
-                    'coherence','nDots', 'fieldSize','dotSize', 'dotLife', 'dir', 'speed',#dots
-                    ]:
-            inits[name].val="1.0"
-            inits[name].valType='code'
-        elif name in ['image','mask']:
-            inits[name].val="sin"
-            inits[name].valType='str'
-        elif name=='texture resolution':
-            inits[name].val="128"
-            inits[name].valType='code'
+            inits[name].val = '[0,0]'
+            inits[name].valType = 'code'
+        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
+                      'color', 'lineColor', 'fillColor',
+                      'phase', 'opacity',
+                      'volume',  # sounds
+                      'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
+                      'dir', 'speed']:
+            inits[name].val = "1.0"
+            inits[name].valType = 'code'
+        elif name in ['image', 'mask']:
+            inits[name].val = "sin"
+            inits[name].valType = 'str'
+        elif name == 'texture resolution':
+            inits[name].val = "128"
+            inits[name].valType = 'code'
         elif name == 'colorSpace':
-            inits[name].val="rgb"
-            inits[name].valType='str'
+            inits[name].val = "rgb"
+            inits[name].valType = 'str'
         elif name == 'font':
-            inits[name].val="Arial"
-            inits[name].valType='str'
+            inits[name].val = "Arial"
+            inits[name].valType = 'str'
         elif name == 'units':
-            inits[name].val="norm"
-            inits[name].valType='str'
+            inits[name].val = "norm"
+            inits[name].valType = 'str'
         elif name == 'text':
-            inits[name].val="default text"
-            inits[name].valType='str'
+            inits[name].val = "default text"
+            inits[name].valType = 'str'
         elif name == 'flip':
-            inits[name].val=""
-            inits[name].valType='str'
+            inits[name].val = ""
+            inits[name].valType = 'str'
         elif name == 'sound':
-            inits[name].val="A"
-            inits[name].valType='str'
+            inits[name].val = "A"
+            inits[name].valType = 'str'
         else:
-            print("I don't know the appropriate default value for a '%s' parameter. Please email the mailing list about this error" %name)
+            print("I don't know the appropriate default value for a '%s' "
+                  "parameter. Please email the mailing list about this error" %
+                  name)
     return inits
 
 tooltips = {}

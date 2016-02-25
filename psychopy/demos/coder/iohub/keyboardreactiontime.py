@@ -88,8 +88,7 @@ win.flip()
 
 io.clearEvents('all')
 while not keyboard.getPresses():
-    io.wait(0.05)
-    io.clearEvents()
+    core.wait(0.005)
 
 win.close()
 core.quit()

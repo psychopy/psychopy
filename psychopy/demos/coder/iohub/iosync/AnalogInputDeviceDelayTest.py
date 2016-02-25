@@ -192,7 +192,7 @@ try:
                                                                                     coorrected_timing_errors.mean()*1000.0)
     print
     print '--------------------'
-except:
+except Exception:
     import traceback
     traceback.print_exc()    
 finally:

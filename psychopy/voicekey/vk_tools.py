@@ -5,20 +5,22 @@
 """
 
 from __future__ import division
-import os, sys
+import os
+import sys
 import time
 import numpy as np
 from scipy.signal import butter, lfilter
 try:
     import pyo64 as pyo
-except:
+except Exception:
     import pyo
 
 
-class PyoFormatException(Exception): pass
+class PyoFormatException(Exception):
+    pass
 
 
-##### --- time-related helper functions --------------------------
+# --- time-related helper functions --------------------------
 
 # Ensure we have a high-resolution clock; code from PsychoPy (Sol Simpson)
 if sys.platform == 'win32':
@@ -40,15 +42,17 @@ else:
 
 MIN_SLEEP = 0.001  # used in sleep() function
 
+
 def sleep(sec=0):
     """Use time.sleep with a minimum duration sleep threshold.
     """
     time.sleep(max(MIN_SLEEP, sec))
 
 
-##### --- digital signal processing helper functions --------------------------
+# --- digital signal processing helper functions --------------------------
 
 _butter_cache = {}
+
 
 def _butter(order, band, rate=44100):
     """Cache-ing version of scipy.signal's butter().
@@ -65,6 +69,7 @@ def _butter(order, band, rate=44100):
         _butter_cache[_h] = butter(order, (lowf, highf), btype='band')
     return _butter_cache[_h]
 
+
 def bandpass_pre_cache(lows=(80, 100, 120),
                        highs=(1200, 3000, 8000),
                        bands=((2000, 8000),  # content-filtered speech
@@ -78,11 +83,13 @@ def bandpass_pre_cache(lows=(80, 100, 120),
     for band in bands:
         _butter(6, band, rate=rate)
 
+
 def bandpass(data, low=80, high=1200, rate=44100, order=6):
     """Return bandpass filtered `data`.
     """
     b, a = _butter(order, (low, high), rate)
     return lfilter(b, a, data)
+
 
 def rms(data):
     """Basic audio-power measure: root-mean-square of data.
@@ -95,10 +102,12 @@ def rms(data):
         md2 = data ** 2
     return np.sqrt(np.mean(md2))
 
+
 def std(data):
     """Like rms, but also subtracts the mean (= slower).
     """
     return np.std(data)
+
 
 def smooth(data, win=16, tile=True):
     """Running smoothed average, via convolution over `win` window-size.
@@ -116,6 +125,7 @@ def smooth(data, win=16, tile=True):
     data_pre_c_post = np.concatenate((data_pre_c, post))
     return data_pre_c_post[:len(data)]
 
+
 def zero_crossings(data):
     """Return a vector of length n-1 of zero-crossings within vector `data`.
 
@@ -126,13 +136,15 @@ def zero_crossings(data):
     zx[np.where(data[:-1] * data[1:] < 0)] = 1
     return zx
 
+
 def tone(freq=440, sec=2, rate=44100, vol=.99):
     """Return a np.array suitable for use as a tone (pure sine wave).
     """
     samples = sec * rate
-    time_steps = np.arange(0., 1., 1./samples)
+    time_steps = np.arange(0., 1., 1. / samples)
     scaling = 2 * np.pi * freq * sec
     return np.sin(time_steps * scaling) * vol
+
 
 def apodize(data, ms=5, rate=44100):
     """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset.
@@ -144,13 +156,14 @@ def apodize(data, ms=5, rate=44100):
     return data
 
 
-##### --- pyo helper functions ------------------------------------------------
+# --- pyo helper functions ------------------------------------------------
 
 # format codes for _get_pyo_codes():
 pyo_formats = {'wav': 0, 'aif': 1, 'aiff': 1, 'au': 2, 'raw': 3,
                'sd2': 4, 'flac': 5, 'caf': 6, 'ogg': 7}
 pyo_dtype = {'int16': 0, 'int24': 1, 'int32': 2, 'float32': 3,
              'float64': 4, 'U-Law': 5, 'A-Law': 6}
+
 
 def _get_pyo_codes(fmt='', dtype='int16', file_out=''):
     """Convert file and data formats to int codes, e.g., wav int16 -> (0, 0).
@@ -173,9 +186,11 @@ def _get_pyo_codes(fmt='', dtype='int16', file_out=''):
     if dtype in ok_dfmt.keys():
         data_fmt = pyo_dtype[dtype]
     else:
-        msg = 'data format `{0}` not supported for `{1}`'.format(dtype, file_out)
+        msg = 'data format `{0}` not supported for `{1}`'.format(
+            dtype, file_out)
         raise PyoFormatException(msg)
     return file_fmt, data_fmt
+
 
 def samples_from_table(table, start=0, stop=-1, rate=44100):
     """Return samples as a np.array read from a pyo table.
@@ -189,6 +204,7 @@ def samples_from_table(table, start=0, stop=-1, rate=44100):
         elif start:
             samples = samples[start * rate:]
     return samples
+
 
 def table_from_samples(samples, start=0, stop=-1, rate=44100):
     """Return a pyo DataTable constructed from samples.
@@ -207,6 +223,7 @@ def table_from_samples(samples, start=0, stop=-1, rate=44100):
     table = pyo.DataTable(size=len(samples), init=samples)
     return table
 
+
 def table_from_file(file_in, start=0, stop=-1):
     """Read data from files, any pyo format, returns (rate, pyo SndTable)
     """
@@ -219,6 +236,7 @@ def table_from_file(file_in, start=0, stop=-1):
     rate = pyo.sndinfo(file_in)[2]
     return rate, table
 
+
 def samples_from_file(file_in, start=0, stop=-1):
     """Read data from files, returns tuple (rate, np.array(.float64))
     """
@@ -226,6 +244,7 @@ def samples_from_file(file_in, start=0, stop=-1):
         raise IOError('no such file `{0}`'.format(file_in))
     rate, table = table_from_file(file_in, start=start, stop=stop)
     return rate, np.array(table.getTable())
+
 
 def samples_to_file(samples, rate, file_out, fmt='', dtype='int16'):
     """Write data to file, using requested format or infer from file .ext.
@@ -243,9 +262,10 @@ def samples_to_file(samples, rate, file_out, fmt='', dtype='int16'):
     try:
         pyo.savefile(samples, path=file_out, sr=int(rate), channels=1,
                      fileformat=file_fmt, sampletype=data_fmt)
-    except:
+    except Exception:
         msg = 'could not save `{0}`; permissions or other issue?'
         raise IOError(msg.format(file_out))
+
 
 def table_to_file(table, file_out, fmt='', dtype='int16'):
     """Write data to file, using requested format or infer from file .ext.
@@ -254,6 +274,6 @@ def table_to_file(table, file_out, fmt='', dtype='int16'):
     try:
         pyo.savefileFromTable(table=table, path=file_out,
                               fileformat=file_fmt, sampletype=data_fmt)
-    except:
+    except Exception:
         msg = 'could not save `{0}`; permissions or other issue?'
         raise IOError(msg.format(file_out))

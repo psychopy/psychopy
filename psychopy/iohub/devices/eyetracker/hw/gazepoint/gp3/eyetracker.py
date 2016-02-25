@@ -172,7 +172,7 @@ class EyeTracker(EyeTrackerDevice):
                             tkey, tval = t.split("=")
                             try:
                                 msg[tkey]=to_numeric(tval.strip('"'))
-                            except:
+                            except Exception:
                                 msg[tkey] = tval
                         msgs.append(msg)
                 else:
@@ -234,7 +234,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._gp3.close()
                 self._gp3 = None
                 self._rx_buffer=''
-            except:
+            except Exception:
                 print2err('Problem disconnecting from device - GP3')
                 self._rx_buffer=''
         return self.isConnected()
@@ -266,7 +266,7 @@ class EyeTracker(EyeTrackerDevice):
             if self._gp3 and self.isRecordingEnabled() is True:
                 strMessage='<SET ID="USER_DATA" VALUE="{0}"/>\r\n'.format(message_contents)
                 self._gp3.sendall(strMessage)
-        except:
+        except Exception:
             print2err('Problems sending message: {0}'.FORMAT(message_contents))
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_OK

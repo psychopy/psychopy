@@ -1,24 +1,28 @@
 """
-This module provides read/write access to the parallel port for Linux or Windows.
+This module provides read / write access to the parallel port for
+Linux or Windows.
 
-The :class:`~psychopy.parallel.Parallel` class described below will attempt to
-load whichever parallel port driver is first found on your system and should
-suffice in most instances. If you need to use a specific driver then, instead of
-using :class:`~psychopy.parallel.ParallelPort` shown below you can use one of the following as
-drop-in replacements, forcing the use of a specific driver:
+The :class:`~psychopy.parallel.Parallel` class described below will
+attempt to load whichever parallel port driver is first found on your
+system and should suffice in most instances. If you need to use a specific
+driver then, instead of using :class:`~psychopy.parallel.ParallelPort`
+shown below you can use one of the following as drop-in replacements,
+forcing the use of a specific driver:
 
     - `psychopy.parallel.PParallelInpOut32`
     - `psychopy.parallel.PParallelDLPortIO`
     - `psychopy.parallel.PParallelLinux`
 
-Either way, each instance of the class can provide access to a different parallel
-port.
+Either way, each instance of the class can provide access to a different
+parallel port.
 
-There is also a legacy API which consists of the routines which are directly in this
-module.  That API assumes you only ever want to use a single parallel port at once.
+There is also a legacy API which consists of the routines which are directly
+in this module.  That API assumes you only ever want to use a single
+parallel port at once.
 """
-from psychopy import logging
+
 import sys
+from psychopy import logging
 
 # To make life easier, only try drivers which have a hope in heck of working
 if sys.platform.startswith('linux'):
@@ -35,15 +39,14 @@ elif sys.platform == 'win32':
     else:
         logging.warning("psychopy.parallel has been imported but no "
                         "parallel port driver found. Install either "
-                        "input32 or dlportio")
+                        "inpout32 or dlportio")
 else:
     logging.warning("psychopy.parallel has been imported on a Mac "
                     "(which doesn't have a parallel port?)")
 
-    #OS X doesn't have a parallel port but write the class for doc purps
+    # OS X doesn't have a parallel port but write the class for doc purps
     class ParallelPort(object):
-        """
-        This class provides read/write access to the parallel port on Windows & Linux
+        """Class for read/write access to the parallel port on Windows & Linux
 
         Usage::
 
@@ -58,22 +61,23 @@ else:
             """This is just a dummy constructor to avoid errors 
             when the parallel port cannot be initiated
             """
-
-            logging.warning("psychopy.parallel has been imported but "
-                        "(1) no parallel port driver could be found or accessed on Windows or"
-                        "(2) PsychoPy is run on a Mac (without parallel-port support for now)")
+            msg = ("psychopy.parallel has been imported but (1) no parallel "
+                   "port driver could be found or accessed on Windows or "
+                   "(2) PsychoPy is run on a Mac (without parallel-port "
+                   "support for now)")
+            logging.warning(msg)
 
         def setData(self, data):
-            """
-            Set the data to be presented on the parallel port (one ubyte).
-            Alternatively you can set the value of each pin (data pins are pins
-            2-9 inclusive) using :func:`~psychopy.parallel.setPin`
+            """Set the data to be presented on the parallel port (one ubyte).
+            Alternatively you can set the value of each pin (data pins are
+            pins 2-9 inclusive) using :func:`~psychopy.parallel.setPin`
 
             examples::
 
                 parallel.setData(0)  # sets all pins low
                 parallel.setData(255)  # sets all pins high
-                parallel.setData(2)  # sets just pin 3 high (remember that pin2=bit0)
+                parallel.setData(2)  # sets just pin 3 high
+                                     # (remember that pin2=bit0)
                 parallel.setData(3)  # sets just pins 2 and 3 high
 
             you can also convert base 2 to int v easily in python::
@@ -85,7 +89,8 @@ else:
             raise NotImplementedError("Parallel ports don't work on a Mac")
 
         def readData(self):
-            """Return the value currently set on the data pins (2-9)"""
+            """Return the value currently set on the data pins (2-9)
+            """
             raise NotImplementedError("Parallel ports don't work on a Mac")
 
         def readPin(self, pinNumber):
@@ -103,8 +108,7 @@ PORT = None  # don't create a port until necessary
 
 
 def setPortAddress(address=0x0378):
-    """
-    Set the memory address or device node for your parallel port
+    """Set the memory address or device node for your parallel port
     of your parallel port, to be used in subsequent commands
 
     common port addresses::
@@ -121,7 +125,8 @@ def setPortAddress(address=0x0378):
     """
 
     global PORT
-    if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+    # convert u"0x0378" into 0x0378
+    if isinstance(address, basestring) and address.startswith('0x'):
         address = int(address, 16)
 
     # This is useful with the Linux-based driver where deleting
@@ -139,8 +144,7 @@ def setPortAddress(address=0x0378):
 
 
 def setData(data):
-    """
-    Set the data to be presented on the parallel port (one ubyte).
+    """Set the data to be presented on the parallel port (one ubyte).
     Alternatively you can set the value of each pin (data pins are pins
     2-9 inclusive) using :func:`~psychopy.parallel.setPin`
 
@@ -176,8 +180,7 @@ def setPin(pinNumber, state):
 
 
 def readPin(pinNumber):
-    """
-    Determine whether a desired (input) pin is high(1) or low(0).
+    """Determine whether a desired (input) pin is high(1) or low(0).
 
     Pins 2-13 and 15 are currently read here
     """

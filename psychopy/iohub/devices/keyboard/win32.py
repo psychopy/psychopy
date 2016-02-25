@@ -27,7 +27,7 @@ try:
     import ujson
 
     jdumps = ujson.dumps
-except:
+except Exception:
     import json
 
     jdumps = json.dumps
@@ -299,5 +299,5 @@ class Keyboard(ioHubKeyboardDevice):
             ioHubKeyboardDevice._updateKeyboardEventState(self, kb_event,
                                                           is_press)
             return kb_event
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()

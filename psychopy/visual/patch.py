@@ -12,6 +12,7 @@ from psychopy.visual.grating import GratingStim
 
 
 class PatchStim(GratingStim):
+
     def __init__(self, *args, **kwargs):
         """
         Deprecated (as of version 1.74.00):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-'''
+"""
 A stimulus class for playing movies (mp4, divx, avi etc...) in PsychoPy.
 Demo using the experimental movie3 stim to play a video file. Path of video
 needs to updated to point to a video you have. movie2 does /not/ require
@@ -9,7 +9,8 @@ Movie2 does require:
 ~~~~~~~~~~~~~~~~~~~~~
 
 moviepy (which requires imageio, Decorator). These can be installed
-(including dependencies) on a standard Python install using `pip install moviepy`
+(including dependencies) on a standard Python install using
+`pip install moviepy`
 imageio will download further compiled libs (ffmpeg) as needed
 
 Current known issues:
@@ -19,7 +20,7 @@ volume control not implemented
 movie is long then audio will be huge and currently the whole thing gets
     loaded in one go. We should provide streaming audio from disk.
 
-'''
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -44,6 +45,7 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 import pyglet.gl as GL
 
+
 class MovieStim3(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
@@ -54,15 +56,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
 
         See Movie2Stim.py for demo.
     """
+
     def __init__(self, win,
                  filename="",
                  units='pix',
                  size=None,
-                 pos=(0.0,0.0),
+                 pos=(0.0, 0.0),
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
-                 color=(1.0,1.0,1.0),
+                 color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  opacity=1.0,
                  volume=1.0,
@@ -73,8 +76,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  vframe_callback=None,
                  fps=None,
-                 interpolate = True,
-        ):
+                 interpolate=True,
+                 ):
         """
         :Parameters:
 
@@ -102,9 +105,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if retraceRate is None:
             retraceRate = win.getActualFrameRate()
         if retraceRate is None:
-            logging.warning("FrameRate could not be supplied by psychopy; defaulting to 60.0")
+            logging.warning("FrameRate could not be supplied by psychopy; "
+                            "defaulting to 60.0")
             retraceRate = 60.0
-        self._retraceInterval = 1.0/retraceRate
+        self._retraceInterval = 1.0 / retraceRate
         self.filename = filename
         self.loop = loop
         self.flipVert = flipVert
@@ -122,18 +126,18 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         self.setVolume(volume)
         self.nDroppedFrames = 0
 
-        #size
+        # size
         if size is None:
             self.size = numpy.array([self._mov.w, self._mov.h],
-                                   float)
+                                    float)
         else:
             self.size = val2array(size)
         self.ori = ori
         self._updateVertices()
-        #set autoLog (now that params have been initialised)
+        # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, str(self)))
+            logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def reset(self):
         self._numpyFrame = None
@@ -143,7 +147,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
 
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
-        This form is provided for syntactic consistency with other visual stimuli.
+
+        This form is provided for syntactic consistency with other visual
+        stimuli.
         """
         self.loadMovie(filename, log=log)
 
@@ -155,27 +161,27 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             filename: string
                 The name of the file, including path if necessary
 
-
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
-        self.reset() #set status and timestamps etc
+        self.reset()  # set status and timestamps etc
 
         # Create Video Stream stuff
         if os.path.isfile(filename):
-            self._mov = VideoFileClip(filename, audio= (1-self.noAudio))
+            self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
             if (not self.noAudio) and (self._mov.audio is not None):
-                self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
-                                            sampleRate = self._mov.audio.fps)
-            else: #make sure we set to None (in case prev clip did have auido)
+                self._audioStream = sound.Sound(
+                    self._mov.audio.to_soundarray(),
+                    sampleRate=self._mov.audio.fps)
+            else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
         else:
-            raise IOError("Movie file '%s' was not found" %filename)
-        #mov has attributes:
+            raise IOError("Movie file '%s' was not found" % filename)
+        # mov has attributes:
             # size, duration, fps
-        #mov.audio has attributes
-            #duration, fps (aka sampleRate), to_soundarray()
-        self._frameInterval = 1.0/self._mov.fps
+        # mov.audio has attributes
+            # duration, fps (aka sampleRate), to_soundarray()
+        self._frameInterval = 1.0 / self._mov.fps
         self.duration = self._mov.duration
         self.filename = filename
         self._updateFrameTexture()
@@ -195,8 +201,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                 self._audioSeek(self.getCurrentFrameTime())
 
             if log and self.autoLog:
-                    self.win.logOnFlip("Set %s playing" %(self.name),
-                                       level=logging.EXP, obj=self)
+                self.win.logOnFlip("Set %s playing" % (self.name),
+                                   level=logging.EXP, obj=self)
             self._updateFrameTexture()
 
     def pause(self, log=True):
@@ -209,39 +215,43 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             if self._audioStream:
                 self._audioStream.stop()
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s paused" %(self.name), level=logging.EXP, obj=self)
+                self.win.logOnFlip("Set %s paused" %
+                                   (self.name), level=logging.EXP, obj=self)
             return True
         if log and self.autoLog:
-            self.win.logOnFlip("Failed Set %s paused" %(self.name), level=logging.EXP, obj=self)
+            self.win.logOnFlip("Failed Set %s paused" %
+                               (self.name), level=logging.EXP, obj=self)
         return False
 
     def stop(self, log=True):
-        """
-        Stop the current point in the movie (sound will stop, current frame
-        will not advance). Once stopped the movie cannot be restarted - it must
-        be loaded again. Use pause() if you may need to restart the movie.
+        """Stop the current point in the movie (sound will stop, current frame
+        will not advance). Once stopped the movie cannot be restarted -
+        it must be loaded again. Use pause() if you may need to restart
+        the movie.
         """
         if self.status != STOPPED:
             self.status = STOPPED
             self._unload()
             self._reset()
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s stopped" %(self.name),
-                    level=logging.EXP,obj=self)
+                self.win.logOnFlip("Set %s stopped" % (self.name),
+                                   level=logging.EXP, obj=self)
 
     def setVolume(self, volume):
-        pass #to do
+        pass  # to do
 
     def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped horizontally (left-to-right).
-        Note that this is relative to the original, not relative to the current state.
+        """If set to True then the movie will be flipped horizontally
+        (left-to-right). Note that this is relative to the original,
+        not relative to the current state.
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
 
     def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original, not relative to the current state.
+        """If set to True then the movie will be flipped vertically
+        (top-to-bottom). Note that this is relative to the original,
+        not relative to the current state.
         """
         self.flipVert = not newVal
         logAttrib(self, log, 'flipVert')
@@ -253,9 +263,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         return self._mov.fps
 
     def getCurrentFrameTime(self):
-        """
-        Get the time that the movie file specified the current video frame as
-        having.
+        """Get the time that the movie file specified the current
+        video frame as having.
         """
         return self._nextFrameT - self._frameInterval
 
@@ -268,128 +277,150 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self._videoClock.reset()
             self._nextFrameT = 0
 
-        #only advance if next frame (half of next retrace rate)
+        # only advance if next frame (half of next retrace rate)
         if self._nextFrameT > self.duration:
             self._onEos()
-        elif (self._numpyFrame is not None) and \
-            (self._nextFrameT > (self._videoClock.getTime()-self._retraceInterval/2.0)):
-            return None
+        elif self._numpyFrame is not None:
+            if self._nextFrameT > (self._videoClock.getTime() -
+                                   self._retraceInterval / 2.0):
+                return None
         self._numpyFrame = self._mov.get_frame(self._nextFrameT)
-        useSubTex=self.useTexSubImage2D
+        useSubTex = self.useTexSubImage2D
         if self._texID is None:
             self._texID = GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self._texID))
-            useSubTex=False
+            useSubTex = False
 
-        #bind the texture in openGL
+        # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)  # data from PIL/numpy is packed, but default for GL is 4 bytes
-        #important if using bits++ because GL_LINEAR
-        #sometimes extrapolates to pixel vals outside range
+        # bind that name to the target
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        # makes the texture map wrap (this is actually default anyway)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        # data from PIL/numpy is packed, but default for GL is 4 bytes
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        # important if using bits++ because GL_LINEAR
+        # sometimes extrapolates to pixel vals outside range
         if self.interpolate:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             if useSubTex is False:
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                    self._numpyFrame.shape[1],self._numpyFrame.shape[0], 0,
-                    GL.GL_RGB, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+                                self._numpyFrame.shape[1],
+                                self._numpyFrame.shape[0], 0,
+                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                                self._numpyFrame.ctypes)
             else:
                 GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                    self._numpyFrame.shape[1], self._numpyFrame.shape[0],
-                    GL.GL_RGB, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
-
+                                   self._numpyFrame.shape[1],
+                                   self._numpyFrame.shape[0],
+                                   GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                                   self._numpyFrame.ctypes)
         else:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
             if useSubTex is False:
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                                self._numpyFrame.shape[1],self._numpyFrame.shape[0], 0,
-                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+                                self._numpyFrame.shape[1],
+                                self._numpyFrame.shape[0], 0,
+                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
+                                self._numpyFrame.ctypes)
             else:
                 GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                    self._numpyFrame.shape[1], self._numpyFrame.shape[0],
-                    GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+                                   self._numpyFrame.shape[1],
+                                   self._numpyFrame.shape[0],
+                                   GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
+                                   self._numpyFrame.ctypes)
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+                     GL.GL_MODULATE)  # ?? do we need this - think not!
 
-        if not self.status==PAUSED:
+        if not self.status == PAUSED:
             self._nextFrameT += self._frameInterval
 
     def draw(self, win=None):
+        """Draw the current frame to a particular visual.Window (or to the
+        default win for this object if not specified). The current
+        position in the movie will be determined automatically.
+
+        This method should be called on every frame that the movie is
+        meant to appear.
         """
-        Draw the current frame to a particular visual.Window (or to the
-        default win for this object if not specified). The current position in
-        the movie will be determined automatically.
 
-        This method should be called on every frame that the movie is meant to
-        appear"""
-
-        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
+        if (self.status == NOT_STARTED or
+                (self.status == FINISHED and self.loop)):
             self.play()
         elif self.status == FINISHED and not self.loop:
             return
         if win is None:
             win = self.win
         self._selectWindow(win)
-        self._updateFrameTexture() #will check if it's needed yet in the function
+        self._updateFrameTexture()  # will check if it's needed
 
-        #scale the drawing frame and get to centre of field
-        GL.glPushMatrix()#push before drawing, pop after
-        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)#push the data for client attributes
+        # scale the drawing frame and get to centre of field
+        GL.glPushMatrix()  # push before drawing, pop after
+        # push the data for client attributes
+        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
 
         self.win.setScale('pix')
-        #move to centre of stimulus and rotate
+        # move to centre of stimulus and rotate
         vertsPix = self.verticesPix
 
-        #bind textures
-        GL.glActiveTexture (GL.GL_TEXTURE1)
-        GL.glBindTexture (GL.GL_TEXTURE_2D,0)
+        # bind textures
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glActiveTexture (GL.GL_TEXTURE0)
-        GL.glBindTexture (GL.GL_TEXTURE_2D, self._texID)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
+        # sets opacity (1,1,1 = RGB placeholder)
+        GL.glColor4f(1, 1, 1, self.opacity)
 
         array = (GL.GLfloat * 32)(
-             1,  1, #texture coords
-             vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
-             0,  1,
-             vertsPix[1,0], vertsPix[1,1],    0.,
-             0, 0,
-             vertsPix[2,0], vertsPix[2,1],    0.,
-             1, 0,
-             vertsPix[3,0], vertsPix[3,1],    0.,
-             )
+            1,  1,  # texture coords
+            vertsPix[0, 0], vertsPix[0, 1],    0.,  # vertex
+            0,  1,
+            vertsPix[1, 0], vertsPix[1, 1],    0.,
+            0, 0,
+            vertsPix[2, 0], vertsPix[2, 1],    0.,
+            1, 0,
+            vertsPix[3, 0], vertsPix[3, 1],    0.,
+        )
 
-        #2D texture array, 3D vertex array
+        # 2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
-        GL.glPopClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
-        GL.glPopAttrib(GL.GL_ENABLE_BIT)
+        GL.glPopClientAttrib()
+        GL.glPopAttrib()
         GL.glPopMatrix()
-        #unbind the textures
+        # unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
 
     def seek(self, t):
         """Go to a specific point in time for both the audio and video streams
         """
-        #video is easy: set both times to zero and update the frame texture
+        # video is easy: set both times to zero and update the frame texture
         self._nextFrameT = t
         self._videoClock.reset(t)
         self._audioSeek(t)
 
     def _audioSeek(self, t):
-        #for sound we need to extract the array again and just begin at new loc
+        # for sound we need to extract the array again and just begin at new
+        # loc
         if self._audioStream is None:
-            return #do nothing
+            return  # do nothing
         self._audioStream.stop()
         sndArray = self._mov.audio.to_soundarray()
-        startIndex = int(t*self._mov.audio.fps)
-        self._audioStream = sound.Sound(sndArray[startIndex:,:], sampleRate = self._mov.audio.fps)
+        startIndex = int(t * self._mov.audio.fps)
+        self._audioStream = sound.Sound(
+            sndArray[startIndex:, :], sampleRate=self._mov.audio.fps)
         self._audioStream.play()
 
     def _getAudioStreamTime(self):
@@ -397,8 +428,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
 
     def _unload(self):
         try:
-            self.clearTextures()#remove textures from graphics card to prevent crash
-        except:
+            # remove textures from graphics card to prevent crash
+            self.clearTextures()
+        except Exception:
             pass
         self._mov = None
         self._numpyFrame = None
@@ -413,8 +445,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self.stop()
 
         if self.autoLog:
-            self.win.logOnFlip("Set %s finished" %(self.name),
-                level=logging.EXP,obj=self)
+            self.win.logOnFlip("Set %s finished" % self.name,
+                               level=logging.EXP, obj=self)
 
     def __del__(self):
         self._unload()
@@ -431,5 +463,5 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self.play(log=False)  # set to play in case stopped
         else:
             self.pause(log=False)
-        #add to drawing list and update status
+        # add to drawing list and update status
         setAttribute(self, 'autoDraw', val, log)

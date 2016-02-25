@@ -173,7 +173,7 @@ def main():
         cachedNames = []
         try:
             os.unlink(cache)
-        except:
+        except Exception:
             pass
     else:
         cached_files = readCache()
@@ -187,7 +187,7 @@ def main():
         cachedNames = []
         try:
             os.unlink(cache)
-        except:
+        except Exception:
             pass
     files = [[file[-17:], file] for file in dirglob]
     hasNew = False  # new == based on same name, not time-stamp etc

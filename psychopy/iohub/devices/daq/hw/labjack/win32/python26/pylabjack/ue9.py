@@ -814,7 +814,7 @@ class UE9(Device):
                             continue
                     #stream data cleared
                     break
-        except:
+        except Exception:
             #probably a timeout, but expected
             pass
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 
+#pylint: skip-file
+
 # Python ctypes bindings for VLC
 #
 # Copyright (C) 2009-2012 the VideoLAN team
@@ -144,7 +146,7 @@ def find_lib():
                     coredll = ctypes.CDLL(drive+'\\VLCPortable\\App\\vlc\\libvlccore.dll')
                     # loading libvlc.dll
                     dll = ctypes.CDLL(drive+'\\VLCPortable\\App\\vlc\\libvlc.dll')
-                except: # may fail
+                except Exception: # may fail
                     dll = ctypes.CDLL('libvlc.dll')
         else:
             plugin_path = os.path.dirname(p)
@@ -6023,7 +6025,7 @@ if __name__ == '__main__':
             print('LibVLC compiler: %s' % bytes_to_str(libvlc_get_compiler()))
             if plugin_path:
                 print('Plugin path: %s' % plugin_path)
-        except:
+        except Exception:
             print('Error: %s' % sys.exc_info()[1])
 
     if sys.argv[1:] and sys.argv[1] not in ('-h', '--help'):

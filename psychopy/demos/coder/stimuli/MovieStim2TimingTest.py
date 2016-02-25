@@ -207,7 +207,7 @@ def removeExistingResultsFile():
     if os.path.exists(rfpath): 
         try: 
             os.remove(rfpath)
-        except: 
+        except Exception: 
             pass
 
 def initProcessStats(): 
@@ -216,13 +216,13 @@ def initProcessStats():
 
         for proc in psutil.process_iter(): 
             proc.cpu_percent()
-    except: 
+    except Exception: 
         pass
 
 def getSysInfo(win): 
     try: 
         from collections import OrderedDict
-    except: 
+    except Exception: 
         from psychopy.iohub import OrderedDict
     # based on sysInfo.py
     from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
@@ -256,7 +256,7 @@ def getSysInfo(win):
         sys_info['Computer Hardware']['CPUs (cores / logical)'] = (core_count, logical_psu_count)
         sys_info['Computer Hardware']['System Memory'] = memory_info
 
-    except: 
+    except Exception: 
         sys_info['Computer Hardware']['Failed'] = 'psutil 2.x + is required.'
 
     sys_info['Python'] = OrderedDict()

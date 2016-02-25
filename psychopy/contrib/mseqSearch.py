@@ -165,7 +165,7 @@ if __name__=='__main__':
     else:
         try:
             args = map(int, sys.argv[1:])
-        except:
+        except Exception:
             raise ValueError, "expected 2-4 integer arguments: base power " +\
                 "[shift [max time to search in sec]]"
         if not args[0] in [2,3,5,7,11,13,17,19,23,29]:

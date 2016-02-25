@@ -73,7 +73,7 @@ try:
 
     core.wait(0.25, 0)
     responses = mcu.getRequestResponse()            
-except:
+except Exception:
     import traceback
     traceback.print_exc()    
 finally:

@@ -21,7 +21,7 @@ def test_genDelimiter():
         assert delimiter == correctDelimiter
 
 
-class TestOpenOutputFile():
+class TestOpenOutputFile(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'

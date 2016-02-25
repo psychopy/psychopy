@@ -20,7 +20,7 @@ __downloadUrl__='https://github.com/psychopy/psychopy/releases/'
 __git_sha__='n/a'
 __build_platform__='n/a'
 
-__all__ = ["gui", "misc", "visual", "core", "event", "data", "sound", "microphone"]
+__all__ = ["gui", "misc", "visual", "core", "event", "data", "filters", "sound"]
 
 #for developers the following allows access to the current git sha from their repository
 if __git_sha__=='n/a':

@@ -65,7 +65,7 @@ class Keyboard(ioHubKeyboardDevice):
                 self._updateKeyboardEventState(event_array, is_pressed)
 
                 self._addNativeEventToBuffer(event_array)
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
         return 1
 

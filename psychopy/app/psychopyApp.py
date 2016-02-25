@@ -9,11 +9,11 @@ from __future__ import absolute_import, print_function
 import sys
 from psychopy.app._psychopyApp import PsychoPyApp, __version__
 
-#NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
-#to allow for better upgrading possibilities from the mac app bundle. this file
-#now used solely as a launcher for the app, not as the app itself.
+# NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
+# to allow for better upgrading possibilities from the mac app bundle. this
+# file now used solely as a launcher for the app, not as the app itself.
 
-if __name__=='__main__':
+if __name__ == '__main__':
     if '-x' in sys.argv:
         # run a .py script from the command line using StandAlone python
         targetScript = sys.argv[sys.argv.index('-x') + 1]
@@ -41,7 +41,7 @@ depends on the type of the [file]:
 Options:
     -c, --coder, coder       opens coder view only
     -b, --builder, builder   opens builder view only
-    -x script.py             directly execute script.py using StandAlone python
+    -x script.py             execute script.py using StandAlone python
 
     -v, --version    prints version and exits
     -h, --help       prints this help and exit

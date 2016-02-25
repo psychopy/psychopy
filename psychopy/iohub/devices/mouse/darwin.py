@@ -245,7 +245,7 @@ class Mouse(MouseDevice):
                     self._addNativeEventToBuffer(copy(ioe))
                     
                 self._last_callback_time=logged_time
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             Qz.CGEventTapEnable(self._tap, False)
         
@@ -264,7 +264,7 @@ class Mouse(MouseDevice):
         
         try:
             Qz.CGEventTapEnable(self._tap, False)
-        except:
+        except Exception:
             pass
         
         try:

@@ -15,7 +15,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-class Test_Window:
+class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     def setup_class(self):
@@ -46,7 +46,7 @@ class Test_Window:
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
 
-class _baseVisualTest:
+class _baseVisualTest(object):
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod

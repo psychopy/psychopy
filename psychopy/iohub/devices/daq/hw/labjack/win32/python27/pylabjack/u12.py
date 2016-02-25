@@ -45,7 +45,7 @@ class U12Exception(Exception):
         if not self.errorString:
             #try:
             self.errorString = getErrorString(ec)
-            #except:
+            #except Exception:
             #    self.errorString = str(self.errorCode)
     
     def __str__(self):
@@ -381,7 +381,7 @@ if os.name == 'posix':
 else:
     try:
         staticLib = ctypes.windll.LoadLibrary("ljackuw")
-    except:
+    except Exception:
         raise Exception, "Could not load LabJack UW driver."
     
 class U12(object):
@@ -483,7 +483,7 @@ class U12(object):
                     try:
                         self.write(command)
                         self.read()
-                    except:
+                    except Exception:
                         pass
 
                     self.id = self.rawReadLocalId()
@@ -2939,7 +2939,7 @@ def isIterable(var):
     try:
         iter(var)
         return True
-    except:
+    except Exception:
         return False
     
 def listToCArray(list, dataType):

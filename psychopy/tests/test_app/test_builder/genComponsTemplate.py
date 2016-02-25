@@ -14,10 +14,13 @@ from psychopy.app.builder.components import getAllComponents
 
 # use --out to re-generate componsTemplate.txt
 
+# ignore attributes that are there because inherit from object
+ignoreObjectAttribs = True
+
 # should not need a wx.App with fetchIcons=False
 try:
     allComp = getAllComponents(fetchIcons=False)
-except:
+except Exception:
     import wx
     if wx.version() < '2.9':
         tmpApp = wx.PySimpleApp()
@@ -25,7 +28,7 @@ except:
         tmpApp = wx.App(False)
     try:
         from psychopy.app import localization
-    except:
+    except Exception:
         pass  # not needed if can't import it
     allComp = getAllComponents(fetchIcons=False)
 
@@ -87,7 +90,12 @@ for compName in sorted(allComp):
 
         for line in [default] + lineFields:
             if '--out' in sys.argv:
-                outfile.write(line.encode('utf8')+'\n')
+                if not ignoreObjectAttribs:
+                    outfile.write(line.encode('utf8')+'\n')
+                else:
+                    if (not ":<built-in method __" in line and
+                            not ":<method-wrapper '__"  in line):
+                        outfile.write(line.encode('utf8')+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
                 # match checks tag + multi-line, because line is multi-line and target is whole file

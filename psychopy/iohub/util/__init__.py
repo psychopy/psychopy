@@ -391,7 +391,7 @@ try:
                           'for interoperability.' % (version, rversion))
         return NormalizedVersion(rversion)
 
-except:
+except Exception:
     # just use the version provided if verlib is not installed.
     validate_version=lambda version: version
 

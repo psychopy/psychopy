@@ -15,7 +15,7 @@ myStim = visual.GratingStim(win, pos=[-0.5, -0.5],
 
 n = 10
 for frameN in range(n):
-    myStim.setPhase(0.1, ' + ')
+    myStim.setPhase(0.1, '+')
     myStim.draw()
     # you can either read from the back buffer BEFORE win.flip() or
     # from the front buffer just AFTER the flip. The former has the

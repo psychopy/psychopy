@@ -120,7 +120,7 @@ class Serial(Device):
                 mod_name, func_name = custom_parser_func_str.rsplit('.', 1)
                 mod = importlib.import_module(mod_name)
                 self._custom_parser = getattr(mod, func_name)
-            except:
+            except Exception:
                 print2err(
                     "ioHub Serial Device Error: could not load "
                     "custom_parser function: ", custom_parser_func_str)
@@ -309,11 +309,11 @@ class Serial(Device):
     def close(self):
         try:
             self.flushInput()
-        except:
+        except Exception:
             pass
         try:
             self.closeSerial()
-        except:
+        except Exception:
             pass
         self._serial_port = None
 
@@ -394,7 +394,7 @@ class Serial(Device):
                                 else:
                                     print2err("ioHub Serial Device Error: Events returned from custom parser must be dict's. Skipping: ",str(evt))
 
-                        except:
+                        except Exception:
                             print2err("ioHub Serial Device Error: Exception during parsing function call.")
                             import traceback, sys
                             traceback.print_exc(file=sys.stderr)
@@ -694,7 +694,7 @@ class Pstbox(Serial):
             else:  # Button was released
                 button = N.where(self._button_bytes == prev_byte)[0][0]
                 button_event = 'release'
-        except:
+        except Exception:
             # Handles when data rx does not match either N.where within the try
             return
         events = [
