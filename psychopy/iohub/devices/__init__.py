@@ -478,7 +478,7 @@ class Computer(object):
             (list,list) Tuple of two lists: PsychoPy Process affinity ID list and ioHub Process affinity ID list.
 
         """
-        Computer.current_process.cpu_affinity(),Computer.iohub_process.cpu_affinity()
+        return Computer.current_process.cpu_affinity(),Computer.iohub_process.cpu_affinity()
 
     @staticmethod
     def setProcessAffinities(experimentProcessorList, ioHubProcessorList):
@@ -1400,7 +1400,7 @@ class DeviceEvent(ioObject):
 
                 ('device_time',N.float32),   # If the device that generates the given device event type also time stamps
                                             # events, this field is the time of the event as given by the device,
-                                            # converted to sec.msec-usec for consistancy with all other ioHub device times.
+                                            # converted to sec.msec-usec for consistency with all other ioHub device times.
                                             # If the device that generates the given event type does not time stamp
                                             # events, then the device_time is set to the logged_time for the event.
 
