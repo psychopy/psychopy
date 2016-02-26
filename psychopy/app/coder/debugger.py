@@ -1,6 +1,9 @@
 # much of this is heavilly adapted from idlelib.debugger
 # it doesn't work - it was too hard and will need too many hours to get right!
 
+
+#pylint: skip-file
+
 import os
 import bdb
 import types
