@@ -1910,6 +1910,6 @@ def _onResize(width, height):
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)
-    #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
+    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
     GL.glMatrixMode(GL.GL_MODELVIEW)
     GL.glLoadIdentity()

@@ -80,7 +80,7 @@ class Dlg(QtWidgets.QDialog):
         self.data = []
         self.irow = 0
 
-        #QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
+        # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         # add buttons for OK and Cancel
         self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal,

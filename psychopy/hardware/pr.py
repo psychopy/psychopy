@@ -139,7 +139,7 @@ class PR650(object):
         # send the message
         self.com.write(message)
         self.com.flush()
-        # time.sleep(0.1)  #PR650 gets upset if hurried!
+        # time.sleep(0.1)  # PR650 gets upset if hurried!
 
         # get feedback (within timeout limit)
         self.com.setTimeout(timeout)

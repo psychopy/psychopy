@@ -4755,8 +4755,8 @@ class FitCumNormal(_baseFunctionFit):
     def _inverse(yy, xShift, sd):
         global _chance
         yy = numpy.asarray(yy)
-        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB
-        # numpy.special.erfinv() goes from -1:1
+        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
+        # NB: numpy.special.erfinv() goes from -1:1
         xx = (xShift + numpy.sqrt(2) * sd *
               special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2))
         return xx

@@ -1129,15 +1129,15 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     xx = numpy.array(xx, 'd')
     maxXX = max(xx)
     if maxXX > 2.0:
-        # xx = xx*maxLum/255.0 +minLum
+        # xx = xx * maxLum / 255.0 + minLum
         xx = xx / 255.0
     else:  # assume data are in range 0:1
         pass
-        # xx = xx*maxLum + minLum
+        # xx = xx * maxLum + minLum
 
     # eq1: y = a + (b*xx)**gamma
-    # eq2: y = (a+b*xx)**gamma
-    # eq4: y = a+(b+k*xx)**gamma #Pelli & Zhang 1991
+    # eq2: y = (a + b * xx)**gamma
+    # eq4: y = a + (b + k*xx)**gamma  # Pelli & Zhang 1991
     if eq == 1:
         a = minLum
         b = (maxLum - a)**(1 / gamma)
@@ -1153,7 +1153,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         nMissing = sum([a is None, b is None, k is None])
         # check params
         if nMissing > 1:
-            msg = "For eq=4, gammaFun needs 2 of a,b,k to be specified"
+            msg = "For eq=4, gammaFun needs 2 of a, b, k to be specified"
             raise AttributeError, msg
         elif nMissing == 1:
             if a is None:

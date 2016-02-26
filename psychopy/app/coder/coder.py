@@ -833,7 +833,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
     def indentSelection(self, howFar=4):
         # Indent or outdent current selection by 'howFar' spaces
-        #(which could be positive or negative int).
+        # (which could be positive or negative int).
         startLineNum = self.LineFromPosition(self.GetSelectionStart())
         endLineNum = self.LineFromPosition(self.GetSelectionEnd())
         # go through line-by-line
@@ -1163,7 +1163,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             for thisSymbol in symbols:
                 # create an actual obj from the name
                 thisObj = eval('%s' % thisSymbol)
-                #(try to) get the attributes of the object
+                # (try to) get the attributes of the object
                 try:
                     newAttrs = dir(thisObj)
                 except Exception:

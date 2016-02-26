@@ -383,7 +383,7 @@ class ColorMixin(object):
         if hasattr(self, 'useShaders'):
             if not self.useShaders:
                 # we'll need to update the textures for the stimulus
-                #(sometime before drawing but not now)
+                # (sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
                     self.text = self.text  # call attributeSetter
                 # GratingStim, RadialStim, ImageStim etc
