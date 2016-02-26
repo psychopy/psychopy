@@ -205,3 +205,8 @@
     smallerRoutine = string(default='Ctrl+Shift+-')
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')
+
+    # Projects: Log in
+    projectsLogIn = string(default='Ctrl+I')
+    projectsSync = string(default='Ctrl+Y')
+    projectFind = string(default='Ctrl+Shift+F')

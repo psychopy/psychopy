@@ -66,6 +66,13 @@ builderDemos = wx.NewId()
 # help pages (from help buttons)
 docsPrefsDlg = wx.NewId()
 
+# projects menu
+projsAbout = wx.NewId()
+projsSearch = wx.NewId()
+projsSync = wx.NewId()
+projsLogin = wx.NewId()
+projsNewUser = wx.NewId()
+
 # toolbar IDs
 tbFileNew = 10
 tbFileOpen = 20

@@ -31,7 +31,7 @@ import py_compile
 
 from . import psychoParser, introspect
 from .. import stdOutRich, dialogs
-from psychopy import logging
+from .. import projects
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -1739,6 +1739,10 @@ class CoderFrame(wx.Frame):
             self.demosMenu.Append(thisID, shortname)
             self.demos[thisID] = filename
             wx.EVT_MENU(self, thisID, self.loadDemo)
+
+        # ---_projects---#000000#FFFFFF---------------------------------------
+        self.projectsMenu = projects.ProjectsMenu(parent=self)
+        menuBar.Append(self.projectsMenu, "P&rojects")
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

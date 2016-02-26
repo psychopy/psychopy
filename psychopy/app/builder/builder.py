@@ -28,9 +28,11 @@ try:
     _translate  # is the app-global text translation function defined?
 except NameError:
     from .. import localization
+    _translate = _translate
 
 from . import experiment, components
 from .. import stdOutRich, dialogs
+from .. import projects
 from psychopy import logging
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
@@ -1340,6 +1342,10 @@ class BuilderFrame(wx.Frame):
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
         menuBar.Append(self.demosMenu, _translate('&Demos'))
+
+        # ---_projects---#000000#FFFFFF-------------------------------------------
+        self.projectsMenu = projects.ProjectsMenu(parent=self)
+        menuBar.Append(self.projectsMenu, "P&rojects")
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

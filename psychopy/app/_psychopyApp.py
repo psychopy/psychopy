@@ -126,6 +126,7 @@ class PsychoPyApp(wx.App):
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
         self.testMode = testMode
+        self.osf_session = None
 
         if showSplash:
             # show splash screen
