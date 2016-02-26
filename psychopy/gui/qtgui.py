@@ -103,8 +103,8 @@ class Dlg(QtWidgets.QDialog):
         self.pos = pos
         self.size = size
         self.screen = screen
-        #self.labelButtonOK = labelButtonOK
-        #self.labelButtonCancel = labelButtonCancel
+        # self.labelButtonOK = labelButtonOK
+        # self.labelButtonCancel = labelButtonCancel
 
         self.layout = QtWidgets.QGridLayout()
         self.layout.setColumnStretch(1, 1)
@@ -217,7 +217,7 @@ class Dlg(QtWidgets.QDialog):
             choices = list(choices)
             for i, option in enumerate(choices):
                 inputBox.addItem(unicode(option))
-                #inputBox.addItems([unicode(option) for option in choices])
+                # inputBox.addItems([unicode(option) for option in choices])
                 inputBox.setItemData(i, (option,))
 
             if (isinstance(initial, (int, long)) and
@@ -603,5 +603,5 @@ if __name__ == '__main__':
     # Restore full screen psychopy window
     # showWindow(win)
     # win.flip()
-    #from psychopy import event
+    # from psychopy import event
     # event.waitKeys()

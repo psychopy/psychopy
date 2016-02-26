@@ -102,13 +102,15 @@ class ParamCtrls(object):
         e.g.::
 
             param = experiment.Param(val='boo', valType='str')
-            ctrls=ParamCtrls(dlg=self, label=fieldName,param=param)
-            self.paramCtrls[fieldName] = ctrls #keep track of them in the dlg
+            ctrls = ParamCtrls(dlg=self, label=fieldName,param=param)
+            self.paramCtrls[fieldName] = ctrls  # keep track in the dlg
             sizer.Add(ctrls.nameCtrl, (currRow,0), (1,1),wx.ALIGN_RIGHT )
             sizer.Add(ctrls.valueCtrl, (currRow,1) )
-            #these are optional (the parameter might be None)
-            if ctrls.typeCtrl: sizer.Add(ctrls.typeCtrl, (currRow,2) )
-            if ctrls.updateCtrl: sizer.Add(ctrls.updateCtrl, (currRow,3))
+            # these are optional (the parameter might be None)
+            if ctrls.typeCtrl:
+                sizer.Add(ctrls.typeCtrl, (currRow,2) )
+            if ctrls.updateCtrl:
+                sizer.Add(ctrls.updateCtrl, (currRow,3))
 
         If browse is True then a browseCtrl will be added (you need to
         bind events yourself). If noCtrls is True then no actual wx widgets

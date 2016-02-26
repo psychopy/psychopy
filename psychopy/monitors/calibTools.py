@@ -756,7 +756,7 @@ class GammaCalculator(object):
         else:
             guess = [gammaGuess]
             bounds = [[0.8, 5.0]]
-        #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
+        # gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
         # gamma = optim.fminbound(self.fitGammaErrFun,
         #    minGamma, maxGamma,
         #    args=(x,y, minLum, maxLum))
@@ -1183,7 +1183,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         - **maxLum** = the maximum luminance of your monitor (for this gun)
         - **gamma** = the value of gamma (for this gun)
         - **eq** determines the gamma equation used;
-            eq==1[default]: yy = a + (b*xx)**gamma
+            eq==1[default]: yy = a + (b * xx)**gamma
             eq==2: yy = (a + b*xx)**gamma
 
     """
@@ -1191,9 +1191,9 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     # x should be 0:1
     # y should be 0:1, then converted to minLum:maxLum
 
-    # eq1: y = a + (b*xx)**gamma
-    # eq2: y = (a+b*xx)**gamma
-    # eq4: y = a+(b+kxx)**gamma
+    # eq1: y = a + (b * xx)**gamma
+    # eq2: y = (a + b * xx)**gamma
+    # eq4: y = a + (b + kxx)**gamma
     if max(yy) == 255:
         yy = numpy.asarray(yy, 'd') / 255.0
     elif min(yy) < 0 or max(yy) > 1:
@@ -1223,7 +1223,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         xx = (((1 - yy) * b**gamma + yy * (b + k)**gamma)**(1 / gamma) - b) / k
 
     # then return to range (0:1)
-    #xx = xx/(maxLUT-minLUT) - minLUT
+    # xx = xx / (maxLUT - minLUT) - minLUT
     return xx
 
 

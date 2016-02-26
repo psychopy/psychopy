@@ -106,7 +106,7 @@ languageID, lang = getID()
 # if sys.platform.startswith('win'):
 #        v = winmap[val]
 # else: v=val
-#locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
+# locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
 
 # set locale before splash screen:
 if locale.IsAvailable(languageID):
@@ -132,8 +132,8 @@ __builtins__['_translate'] = _
 del(__builtins__['_'])  # idea: force psychopy code to use _translate
 
 
-#__builtins__['_'] = wx.GetTranslation
+# __builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:
 # path = os.path.join(os.path.dirname(__file__), '..', 'locale',
-#        lang, 'LC_MESSAGE') + os.sep
+#                     lang, 'LC_MESSAGE') + os.sep
 # wxlocale.AddCatalogLookupPathPrefix(path)

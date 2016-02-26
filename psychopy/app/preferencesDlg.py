@@ -144,7 +144,7 @@ class PreferencesDlg(wx.Dialog):
 
         self.nb = fnb.FlatNotebook(
             self, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NO_NAV_BUTTONS)
-        # self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
+        # self.nb = wx.Notebook(self)  # notebook not nice with lots of pages
 
         self.ctrls = {}
         sectionOrdering = ['app', 'builder', 'coder', 'general',

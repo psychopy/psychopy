@@ -838,7 +838,7 @@ class TextureMixin(object):
                     dataType = GL.GL_FLOAT
             elif pixFormat == GL.GL_RGB:
                 # we want RGB and might need to convert from CMYK or Lm
-                #texture = im.tostring("raw", "RGB", 0, -1)
+                # texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
                 wasLum = False
             if dataType == GL.GL_FLOAT:

@@ -388,7 +388,7 @@ class MainFrame(wx.Frame):
                                           size=_size)
 
         # wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(),
-        # self.onChangePhotomType)#not needed?
+        #               self.onChangePhotomType)  # not needed?
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(),
@@ -1044,11 +1044,11 @@ class MainFrame(wx.Frame):
                              linewidth=1.5)
                 else:
                     pass
-                    #polyFit = self.currentMon._gammaInterpolator[gun]
-                    #curve = xxSmooth*0.0
+                    # polyFit = self.currentMon._gammaInterpolator[gun]
+                    # curve = xxSmooth*0.0
                     # for expon, coeff in enumerate(polyFit):
-                    #curve += coeff*xxSmooth**expon
-                    #plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
+                    #    curve += coeff*xxSmooth**expon
+                    # plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 # plot POINTS
                 plt.plot(levelsPre, lumsPre[gun, :], colors[gun] + 'o',
                          linewidth=1.5)

@@ -34,9 +34,9 @@ class attributeSetter(object):
         '''
         import traceback
         origin = traceback.extract_stack()[-2]
-        #print('%s.%s = %s (line %i)' %(obj.__class__.__name__,
+        # print('%s.%s = %s (line %i)' %(obj.__class__.__name__,
         #        self.func.__name__, value.__repr__(), origin[1]))  # short
-        #print('%s.%s = %s (%s in %s, line %i' %(obj.__class__.__name__,
+        # print('%s.%s = %s (%s in %s, line %i' %(obj.__class__.__name__,
         #        self.func.__name__, value.__repr__(),
         #        origin[1], origin[0].split('/')[-1],
         #        origin[1], origin[3].__repr__())))  # long

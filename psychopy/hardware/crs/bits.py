@@ -1167,13 +1167,13 @@ def init():
 def setVideoMode(videoMode):
     """Set the video mode of the Bits++ (win32 only)
 
-    bits8BITPALETTEMODE         =  0x00000001  #normal vsg mode
+    bits8BITPALETTEMODE = 0x00000001  # normal vsg mode
 
-    NOGAMMACORRECT      =  0x00004000  #No gamma correction mode
+    NOGAMMACORRECT = 0x00004000  # No gamma correction mode
 
-    GAMMACORRECT            =  0x00008000  #Gamma correction mode
+    GAMMACORRECT = 0x00008000  # Gamma correction mode
 
-    VIDEOENCODEDCOMMS =  0x00080000
+    VIDEOENCODEDCOMMS = 0x00080000
 
     (Recommended that you use the BitsLUT class rather than
     calling this directly)

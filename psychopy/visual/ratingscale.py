@@ -1255,7 +1255,7 @@ class RatingScale(MinimalStim):
                 self.markerPlacedAtLast = self.markerPlacedAt
             elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
-                #self.targetWord.setHeight(self.textSizeSmall, log=False)
+                # self.targetWord.setHeight(self.textSizeSmall, log=False)
             self.wasNearLine = mouseNearLine
 
         # decision time = sec from first .draw() to when first 'accept' value:

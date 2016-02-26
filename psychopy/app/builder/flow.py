@@ -59,8 +59,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.maxHeight = 2 * self.dpi
         self.mousePos = None
         # if we're adding a loop or routine then add spots to timeline
-        #self.drawNearestRoutinePoint = True
-        #self.drawNearestLoopPoint = False
+        # self.drawNearestRoutinePoint = True
+        # self.drawNearestLoopPoint = False
         # lists the x-vals of points to draw, eg loop locations:
         self.pointsToDraw = []
         # for flowSize, showLoopInfoInFlow:
@@ -709,7 +709,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        #tmpId = wx.NewId()
+        # tmpId = wx.NewId()
         # dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
@@ -721,13 +721,15 @@ class FlowPanel(wx.ScrolledWindow):
         # idea: might want an ID for grabbing and relocating the loop endpoint
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        #dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
-        #dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+        # dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
+        # dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         size = (3, 4, 5)[self.appData['flowSize']]
-        # if downwards: dc.DrawPolygon([[size,0],[0,size],[-size,0]],
-        #                               pos[0],pos[1]+2*size)#points down
-        # else: dc.DrawPolygon([[size,size],[0,0],[-size,size]],
-        # pos[0],pos[1]-3*size)#points up
+        # if downwards:
+        #   dc.DrawPolygon([[size, 0], [0, size], [-size, 0]],
+        #                  pos[0], pos[1] + 2 * size)  # points down
+        # else:
+        #   dc.DrawPolygon([[size, size], [0, 0], [-size, size]],
+        #   pos[0], pos[1]-3*size)  # points up
         dc.SetIdBounds(tmpId, wx.Rect(
             pos[0] - size, pos[1] - size, 2 * size, 2 * size))
         return

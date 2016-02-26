@@ -261,7 +261,7 @@ class CodeBox(wx.stc.StyledTextCtrl):
         # self.DragAcceptFiles(True)
         # self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         # self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        # #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        # # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         # self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         # self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         # self.SetDropTarget(FileDropTarget(coder = self.coder))

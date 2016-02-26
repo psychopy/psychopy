@@ -508,7 +508,7 @@ class Experiment(object):
                 modified_names.append(routineNode.get('name'))
             self.namespace.user.append(routine_good_name)
             routine = Routine(name=routine_good_name, exp=self)
-            #self._getXMLparam(params=routine.params, paramNode=routineNode)
+            # self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')] = routine
             for componentNode in routineNode:
 
@@ -535,7 +535,7 @@ class Experiment(object):
                             componentNode.get('highAnchorText')):
                         pass
                     # if not componentNode.get('choiceLabelsAboveLine'):
-                    # #this rating scale was created using older version
+                    #    # this rating scale was created using older version
                     #    component.params['choiceLabelsAboveLine'].val=True
                 # populate the component with its various params
                 for paramNode in componentNode:
@@ -1313,7 +1313,7 @@ class Flow(list):
         elif component.getType() == 'Routine':
             if id is None:
                 # a Routine may come up multiple times - remove them all
-                # self.remove(component)#cant do this - two empty routines
+                # self.remove(component)  # cant do this - two empty routines
                 # (with diff names) look the same to list comparison
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):

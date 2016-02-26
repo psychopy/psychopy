@@ -512,7 +512,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.fileModTime = None  # was file modified outside of CodeEditor
         self.AUTOCOMPLETE = True
         self.autoCompleteDict = {}
-        # self.analyseScript()  #no - analyse after loading so that window
+        # self.analyseScript()  # no - analyse after loading so that window
         # doesn't pause strangely
         self.locals = None  # will contain the local environment of the script
         self.prevWord = None
@@ -602,9 +602,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             faces['size'] = int(self.coder.prefs['codeFontSize'])
         faces['small'] = faces['size'] - 2
         # Global default styles for all languages
-        # ,'Arial']#use arial as backup
+        # ,'Arial']  # use arial as backup
         faces['code'] = self.coder.prefs['codeFont']
-        # ,'Arial']#use arial as backup
+        # ,'Arial']  # use arial as backup
         faces['comment'] = self.coder.prefs['commentFont']
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
                           "face:%(code)s,size:%(size)d" % faces)
@@ -1358,7 +1358,7 @@ class CoderFrame(wx.Frame):
 
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
+        # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.SetDropTarget(FileDropTarget(coder=self))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
@@ -1439,7 +1439,7 @@ class CoderFrame(wx.Frame):
             self.paneManager.GetPane('SourceAsst').Hide()
         self.unitTestFrame = None
 
-        # self.SetSizer(self.mainSizer)#not necessary for aui type controls
+        # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if (self.appData['auiPerspective'] and
                 'Shelf' in self.appData['auiPerspective']):
             self.paneManager.LoadPerspective(self.appData['auiPerspective'])
@@ -2201,7 +2201,7 @@ class CoderFrame(wx.Frame):
                     self.setFileModified(False)
 
         self.SetStatusText('')
-        # self.fileHistory.AddFileToHistory(newPath)#thisis done by
+        # self.fileHistory.AddFileToHistory(newPath)  # this is done by
         # setCurrentDoc
 
     def expectedModTime(self, doc):
@@ -2577,7 +2577,7 @@ class CoderFrame(wx.Frame):
         foc = self.FindFocus()
         foc.Copy()
         # if isinstance(foc, CodeEditor):
-        #    self.currentDoc.Copy()#let the text ctrl handle this
+        #    self.currentDoc.Copy()  # let the text ctrl handle this
         # elif isinstance(foc, StdOutRich):
 
     def duplicateLine(self, event):
@@ -2606,7 +2606,7 @@ class CoderFrame(wx.Frame):
     def foldAll(self, event):
         self.currentDoc.FoldAll()
     # def unfoldAll(self, event):
-        #self.currentDoc.ToggleFoldAll(expand = False)
+        # self.currentDoc.ToggleFoldAll(expand = False)
 
     def setOutputWindow(self, event=None, value=None):
         # show/hide the output window (from the view menu control)

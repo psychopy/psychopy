@@ -774,7 +774,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self._rightClicked = btn
         index = self.getIndexInSizer(btn, self.panels['Favorites'])
         if index is None:
-            #not currently in favs
+            # not currently in favs
             msg = "Add to favorites"
             function = self.onAddToFavorites
         else:
@@ -988,7 +988,7 @@ class BuilderFrame(wx.Frame):
         self.flowPanel = FlowPanel(frame=self)
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
-        #menus and toolbars
+        # menus and toolbars
         self.makeToolbar()
         self.makeMenus()
         self.CreateStatusBar()
@@ -1039,7 +1039,7 @@ class BuilderFrame(wx.Frame):
             self._mgr.GetPane('Routines').CenterPane()
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
-        # self.SetSizer(self.mainSizer)#not necessary for aui type controls
+        # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if self.frameData['auiPerspective']:
             self._mgr.LoadPerspective(self.frameData['auiPerspective'])
         self.SetMinSize(wx.Size(600, 400))  # min size for the whole window

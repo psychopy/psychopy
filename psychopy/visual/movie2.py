@@ -261,7 +261,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         if self._texID is not None:
             GL.glDeleteTextures(1, self._texID)
             self._texID = None
-        #self._video_stream = None
+        # self._video_stream = None
         self._total_frame_count = None
         self._video_width = None
         self._video_height = None

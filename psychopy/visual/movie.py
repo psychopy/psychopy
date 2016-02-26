@@ -74,7 +74,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         # give the original size of the movie in pixels:
         print(mov.format.width, mov.format.height)
 
-        mov.draw() #draw the current frame (automagically determined)
+        mov.draw()  # draw the current frame (automagically determined)
 
     See MovieStim.py for demo.
     """

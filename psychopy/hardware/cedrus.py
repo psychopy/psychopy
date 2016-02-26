@@ -78,7 +78,7 @@ class RB730(object):
                                   timeout=0.0001)
         if not self.port.isOpen():
             self.port.open()
-        # self.buffer = ''#our own buffer (in addition to the serial port
+        # self.buffer = ''  # our own buffer (in addition to the serial port
         # buffer)
         self.clearBuffer()
 
@@ -113,7 +113,7 @@ class RB730(object):
         """
         # get the raw string
         nToGet = self.port.inWaiting()
-        # self.buffer += self.port.read(nToGet)#extend our own buffer (then
+        # self.buffer += self.port.read(nToGet)  # extend our own buffer (then
         # remove the bits we use)
         # extend our own buffer (then remove the bits we use)
         inputStr = self.port.read(nToGet)

@@ -68,7 +68,7 @@ class Dlg(wx.Dialog):
         self.data = []
         # prepare a frame in which to hold objects
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # self.addText('')#insert some space at top of dialogue
+        # self.addText('')  # insert some space at top of dialogue
         self.pos = pos
         self.labelButtonOK = labelButtonOK
         self.labelButtonCancel = labelButtonCancel

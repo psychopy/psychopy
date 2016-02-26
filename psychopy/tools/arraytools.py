@@ -14,7 +14,7 @@ def createXYs(x, y=None):
     """Create an Nx2 array of XY values including all combinations of the
     x and y values provided.
 
-    >>> createXYs(x=[1,2,3],y=[4,5,6])
+    >>> createXYs(x=[1, 2, 3], y=[4, 5, 6])
     array([[1, 4],
        [2, 4],
        [3, 4],
@@ -24,7 +24,7 @@ def createXYs(x, y=None):
        [1, 6],
        [2, 6],
        [3, 6]])
-    >>> createXYs(x=[1,2,3])  #assumes y=x
+    >>> createXYs(x=[1, 2, 3])  # assumes y == x
     array([[1, 1],
        [2, 1],
        [3, 1],

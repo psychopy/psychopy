@@ -529,8 +529,8 @@ class EnvelopeGrating(GratingStim):
         """
         """
         if self.units in ('norm', 'height'):
-            # self._cycles = self.sf  #this is the only form of sf that is not
-            # size dependent
+            # self._cycles = self.sf  # this is the only form of sf that is
+            # not size dependent
             self._envcycles = self.envsf
         else:
             # self._cycles = self.sf * self.size
