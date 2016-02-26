@@ -223,9 +223,9 @@ def getRoot(command, terminator=None):
     '.'. The terminator and anything after the terminator will be
     dropped."""
     command = command.split('\n')[-1]
-    # if command.startswith(sys.ps2): #remove epsilon (... )
+    # if command.startswith(sys.ps2):  # remove epsilon (... )
     #  removed by jwp - only works for interactive window
-    #command = command[len(sys.ps2):]
+    # command = command[len(sys.ps2):]
     command = command.lstrip()
     command = rtrimTerminus(command, terminator)
     tokens = getTokens(command)
@@ -318,7 +318,7 @@ def getTokens(command):
     # because of need to append as much as possible before TokenError.
     try:
         # This code wasn't backward compatible with Python 2.1.3.
-        ##
+        #
         # for token in tokenize.generate_tokens(f.readline):
         # tokens.append(token)
 

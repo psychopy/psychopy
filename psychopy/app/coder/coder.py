@@ -708,7 +708,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             if isAlphaNum:  # any alphanum
                 # is character key
                 key = chr(keyCode)
-                # if keyCode == 32 and event.ControlDown(): #Ctrl-space
+                # if keyCode == 32 and event.ControlDown():  # Ctrl-space
                 pos = self.GetCurrentPos()
                 prevStartPos = startPos = self.WordStartPosition(pos, True)
                 currWord = self.GetTextRange(startPos, pos) + key

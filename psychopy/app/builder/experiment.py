@@ -1043,7 +1043,7 @@ class StairHandler(object):
         if self.params['N reversals'].val in ("", None, 'None'):
             self.params['N reversals'].val = '0'
         # write the code
-        code = ('\n#--------Prepare to start Staircase "%(name)s" --------\n'
+        code = ('\n# --------Prepare to start Staircase "%(name)s" --------\n'
                 "# set up handler to look after next chosen value etc\n"
                 "%(name)s = data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n"
                 "    stepSizes=%(step sizes)s, stepType=%(step type)s,\n"
@@ -1530,7 +1530,7 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        code = ('\n#------Prepare to start Routine "%s"-------\n'
+        code = ('\n# ------Prepare to start Routine "%s"-------\n'
                 't = 0\n'
                 '%s.reset()  # clock\n'
                 'frameN = -1\n')
@@ -1556,7 +1556,7 @@ class Routine(list):
         code = ("for thisComponent in %sComponents:\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
-                '\n#-------Start Routine "%s"-------\n'
+                '\n# -------Start Routine "%s"-------\n'
                 'continueRoutine = True\n')
         buff.writeIndentedLines(code % (self.name, self.name))
         if useNonSlip:
@@ -1616,7 +1616,7 @@ class Routine(list):
         buff.setIndentLevel(-1, True)
 
         # write the code for each component for the end of the routine
-        code = ('\n#-------Ending Routine "%s"-------\n'
+        code = ('\n# -------Ending Routine "%s"-------\n'
                 'for thisComponent in %sComponents:\n'
                 '    if hasattr(thisComponent, "setAutoDraw"):\n'
                 '        thisComponent.setAutoDraw(False)\n')
