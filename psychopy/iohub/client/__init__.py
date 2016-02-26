@@ -1414,25 +1414,55 @@ def launchHubServer(**kwargs):
         print "Key press detected, exiting experiment."
 
     launchHubServer() accepts several kwarg inputs, which can be used when
-    more complex device types are being used in the experiment. Examples
-    are eye tracker and analog input devices.
+    more complex device types are being used in the experiment. Supported kwargs
+    are:
+
+    - experiment_code: str with max length of 24 chars.
+    - session_code: str with max length of 24 chars.
+    - experiment_info: dict with following keys:
+        - code = str with max length of 24 chars.
+        - title = str with max length of 48 chars.
+        - description  = str with max length of 256 chars.
+        - version = str with max length of 6 chars.
+    - session_info: dict with following keys:
+        - code = str with max length of 24 chars.
+        - name = str with max length of 48 chars.
+        - comments  = str with max length of 256 chars.
+        - user_variables = dict(internally converted to json str, 2048 char max)
 
     Please see the psychopy/demos/coder/iohub/launchHub.py demo for examples
     of different ways to use the launchHubServer function.
     """
-    experiment_code=kwargs.get('experiment_code',-1)
-    if experiment_code != -1:
+    exp_code=kwargs.get('experiment_code',None)
+    if exp_code:
         del kwargs['experiment_code']
-    else:
-        experiment_code = None
+    experiment_info = dict(code=exp_code)
+    exp_info = kwargs.get('experiment_info',None)
+    if exp_info:
+        del kwargs['experiment_info']
 
-    session_code=kwargs.get('session_code',None)
-    if session_code:
+        for k,v in exp_info.items():
+            if k in ['code','title','description','version']:
+                experiment_info[k]=u"{}".format(v)
+
+    sess_code=kwargs.get('session_code',None)
+    if sess_code:
         del kwargs['session_code']
-    elif experiment_code:
+    elif experiment_info.get('code'):
         # this means we should auto_generate a session code
         import psychopy.data
-        session_code="S_{0}".format(psychopy.data.getDateStr())
+        sess_code=u"S_{0}".format(psychopy.data.getDateStr())
+
+    session_info = dict(code=sess_code)
+    sess_info = kwargs.get('session_info',None)
+    if sess_info:
+        del kwargs['session_info']
+
+        for k,v in sess_info.items():
+            if k in ['code','name','comments']:
+                session_info[k]=u"{}".format(v)
+            elif k == 'user_variables':
+                session_info[k] = v
 
     psychopy_monitor_name=kwargs.get('psychopy_monitor_name',None)
     if psychopy_monitor_name:
@@ -1517,18 +1547,23 @@ def launchHubServer(**kwargs):
     else:
         ioConfig=dict(monitor_devices=monitor_devices_config)
 
-    if _DATA_STORE_AVAILABLE is True and experiment_code and session_code:
+    if _DATA_STORE_AVAILABLE is True and experiment_info.get('code') and session_info.get('code'):
         # Enable saving of all device events to the 'ioDataStore'
         # datastore name is equal to experiment code given unless the
-        # datastore_name kwarg is provided, inwhich case it is used.
+        # datastore_name kwarg is provided, inw hich case it is used.
         # ** This avoids different experiments running in the same directory
         # using the same datastore file name.
         if datastore_name is None:
-            datastore_name=experiment_code
-        ioConfig['data_store']=dict(enable=True,filename=datastore_name,experiment_info=dict(code=experiment_code),
-                                            session_info=dict(code=session_code))
+            datastore_name=experiment_info.get('code')
+        ioConfig['data_store']=dict(enable=True,
+                                    filename=datastore_name,
+                                    experiment_info=experiment_info,
+                                    session_info=session_info)
 
-    #print "IOHUB CONFIG: ",ioConfig
+    #print "IOHUB CONFIG:"
+    #import pprint
+    #pprint.pprint(ioConfig)
+
     # Start the ioHub Server
     return ioHubConnection(ioConfig)
 
