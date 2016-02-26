@@ -246,6 +246,10 @@ class SearchDlg(wx.Dialog):
         rightSizer.Add(wx.StaticText(self, -1, "Project Info"),
                        flag=wx.EXPAND | wx.ALL,
                        border=5)
+        self.syncButton = wx.Button(self, -1, "Sync...")
+        self.syncButton.Enable(False)
+        rightSizer.Add(self.syncButton)
+        self.Bind(wx.EVT_BUTTON, self.onSyncButton)
         rightSizer.Add(self.detailsPanel,
                        proportion=1,
                        flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
@@ -259,6 +263,11 @@ class SearchDlg(wx.Dialog):
         aTable = wx.AcceleratorTable([(0,  wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
+
+    def onSyncButton(self, event):
+        index = self.myProjectsPanel.projView.GetFirstSelected()
+        projID = self.myProjectsPanel.projView.GetItemText(index)
+        print projID
 
     def updateUserProjs(self):
         if self.app.osf_session.user_id is None:
@@ -298,8 +307,7 @@ class ProjectsPanel(scrolledpanel.ScrolledPanel):
         else:
             # a list of projects
             self.projView = wx.ListCtrl(parent=self,
-                         style=wx.LC_REPORT
-                         |wx.BORDER_SUNKEN)
+                         style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
 
             # Give it some columns.
             # The ID col we'll customize a bit:
@@ -323,6 +331,7 @@ class ProjectsPanel(scrolledpanel.ScrolledPanel):
         projId = event.GetText()
         proj = self.knownProjects[projId]
         self.parent.detailsPanel.setProject(proj)
+        self.parent.syncButton.Enable(True)
 
 
 class DetailsPanel(richtext.RichTextCtrl):
