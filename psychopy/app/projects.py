@@ -7,7 +7,6 @@ from __future__ import absolute_import
 import time
 import wx
 from wx.lib import scrolledpanel
-from wx import dataview
 from wx import richtext
 
 try:
@@ -107,8 +106,10 @@ class LogInDlg(wx.Dialog):
 
     def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
-        wx.Dialog.__init__(self, None, title="Log in to Open Science Framework")
+        wx.Dialog.__init__(self, None,
+                           title="Log in to Open Science Framework")
         self.session = app.osf_session
+        self.app = app
 
         self.fieldsSizer = wx.GridBagSizer(vgap=5, hgap=5)
 
@@ -183,14 +184,15 @@ class LogInDlg(wx.Dialog):
             time.sleep(0.5)
             self.Destroy()
         except pyosf.AuthError:
-            self.updateStatus("Failed to Authenticate. Check username/password", color=(255, 0, 0))
+            self.updateStatus("Failed to Authenticate. "
+                              "Check username/password", color=(255, 0, 0))
 
     def onCancel(self, event):
         self.Destroy()
 
-    def updateStatus(self, status, color=(0,0,0)):
-        self.status.SetLabelText("Failed to Authenticate. Check username/password")
-        self.status.SetForegroundColour(color) # set text color
+    def updateStatus(self, status, color=(0, 0, 0)):
+        self.status.SetLabel(status)
+        self.status.SetForegroundColour(color)  # set text color
         self.main_sizer.Fit(self)
 
 
@@ -227,10 +229,12 @@ class SearchDlg(wx.Dialog):
         searchSizer = wx.BoxSizer(wx.HORIZONTAL)
         searchSizer.Add(wx.StaticText(self, -1, "Search Public:"))
         self.searchTextCtrl = wx.TextCtrl(self, -1, "")
+        searchSizer.Add(self.searchTextCtrl, flag=wx.EXPAND)
         leftSizer.Add(searchSizer)
         tagsSizer = wx.BoxSizer(wx.HORIZONTAL)
         tagsSizer.Add(wx.StaticText(self, -1, "Tags:"))
-        self.tagsTextCtrl = wx.TextCtrl(self, -1, "psychopy")
+        self.tagsTextCtrl = wx.TextCtrl(self, -1, "psychopy,")
+        tagsSizer.Add(self.tagsTextCtrl, flag=wx.EXPAND)
         leftSizer.Add(tagsSizer)
         leftSizer.Add(self.publicProjectsPanel,
                       proportion=1,
@@ -283,7 +287,6 @@ class ProjectsPanel(scrolledpanel.ScrolledPanel):
         self.SetupScrolling()
 
     def setContents(self, projects):
-        self.project = projects
         self.DestroyChildren()  # start with a clean slate
 
         if type(projects) in [str, unicode]:
@@ -294,41 +297,48 @@ class ProjectsPanel(scrolledpanel.ScrolledPanel):
                 )
         else:
             # a list of projects
-            self.projView = dataview.DataViewListCtrl(self)
+            self.projView = wx.ListCtrl(parent=self,
+                         style=wx.LC_REPORT
+                         |wx.BORDER_SUNKEN)
 
             # Give it some columns.
             # The ID col we'll customize a bit:
-            self.projView.AppendTextColumn('id', width=100)
-            self.projView.AppendTextColumn('title', width=450)
-            for thisProj in projects:
+            self.projView.InsertColumn(0, 'id')
+            self.projView.InsertColumn(1, 'title')
+            for index, thisProj in enumerate(projects):
                 self.knownProjects[thisProj.id] = thisProj
-                self.projView.AppendItem([thisProj.id, thisProj.title])
-            self.mainSizer.Add(self.projView, flag=wx.EXPAND | wx.ALL, border=5,)
-            self.Bind(dataview.EVT_DATAVIEW_SELECTION_CHANGED,
+                self.projView.Append([thisProj.id, thisProj.title])
+            # set the column sizes *after* adding the items
+            self.projView.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            self.projView.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+            self.mainSizer.Add(self.projView,
+                               flag=wx.EXPAND | wx.ALL,
+                               proportion=1, border=5,)
+            self.Bind(wx.EVT_LIST_ITEM_SELECTED,
                       self.onChangeSelection)
 
         self.FitInside()
 
     def onChangeSelection(self, event):
-        # update the SearchDlg.detailsPanel with new project
-        row = self.projView.GetSelectedRow()
-        projID = self.projView.GetTextValue(row=row, col=0)
-        proj = self.knownProjects[projID]
+        projId = event.GetText()
+        proj = self.knownProjects[projId]
         self.parent.detailsPanel.setProject(proj)
 
+
 class DetailsPanel(richtext.RichTextCtrl):
-    def __init__(self, parent, style=wx.VSCROLL|wx.NO_BORDER):
+
+    def __init__(self, parent, style=wx.VSCROLL | wx.NO_BORDER):
         richtext.RichTextCtrl.__init__(self, parent, -1, style=style)
         self.parent = parent
 
-        self.urlStyle = rt.TextAttrEx()
+        self.urlStyle = richtext.TextAttrEx()
         self.urlStyle.SetTextColour(wx.BLUE)
         self.urlStyle.SetFontUnderlined(True)
-        self.rtc.Bind(wx.EVT_TEXT_URL, self.OnURL)
+        self.Bind(wx.EVT_TEXT_URL, self.OnURL)
 
-        self.h1 = rt.TextAttrEx()
+        self.h1 = richtext.TextAttrEx()
         self.h1.SetFontSize(18)
-        self.h1.SetFontBold(True)
+        self.h1.SetFontWeight(2)
 
     def setProject(self, project):
         self.Clear()
