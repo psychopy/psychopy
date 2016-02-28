@@ -127,7 +127,7 @@ class _BaseVoiceKey(object):
                        'signaler': None,
                        'autosave': True,
                        'chnl_in': 0,  # pyo.pa_get_default_input()
-                       #'chnl_out': 2,  #pyo.pa_get_default_output() no go
+                       # 'chnl_out': 2,  # pyo.pa_get_default_output() no go
                        'start': 0,
                        'stop': -1,
                        'vol': 0.99,

@@ -53,12 +53,12 @@ class MenuFrame(wx.Frame):
         self.viewMenu.Append(self.app.IDs.openBuilderView,
                              mtxt % self.app.keys['switchToBuilder'],
                              _translate("Open a new Builder view"))
-        wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
+        wx.EVT_MENU(self, self.app.IDs.openBuilderView, self.app.showBuilder)
         mtxt = _translate("&Open Coder view\t%s")
         self.viewMenu.Append(self.app.IDs.openCoderView,
                              mtxt % self.app.keys['switchToCoder'],
                              _translate("Open a new Coder view"))
-        wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
+        wx.EVT_MENU(self, self.app.IDs.openCoderView, self.app.showCoder)
         mtxt = _translate("&Quit\t%s")
         item = self.viewMenu.Append(wx.ID_EXIT, mtxt % self.app.keys['quit'],
                                     _translate("Terminate the program"))

@@ -128,9 +128,9 @@ def getComponents(folder=None, fetchIcons=True):
         if cmpfile[0] in '_0123456789':  # __init__.py, _base.py, leading digit
             continue
         # can't use imp - breaks py2app:
-        #module = imp.load_source(file[:-3], fullPath)
+        # module = imp.load_source(file[:-3], fullPath)
         # v1.83.00 used exec(implicit-relative), no go for python3:
-        #exec('import %s as module' %(file[:-3]))
+        # exec('import %s as module' % file[:-3])
 
         # importlib.import_module eases 2.7 -> 3.x migration
         explicit_rel_path = '.' + cmpfile[:-3]

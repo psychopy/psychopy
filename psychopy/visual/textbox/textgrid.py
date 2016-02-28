@@ -9,9 +9,10 @@ import numpy as np
 from weakref import proxy
 from psychopy import core
 from pyglet.gl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
-                       glTranslatef, glColor4f, glLineWidth, glBegin, GL_LINES, glEndList,
-                       glDeleteLists, GL_COMPILE, glEnd, GL_TEXTURE0, GL_TEXTURE_2D,
-                       GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE, GL_UNSIGNED_INT,
+                       glTranslatef, glColor4f, glLineWidth, glBegin,
+                       GL_LINES, glEndList, glDeleteLists, GL_COMPILE, glEnd,
+                       GL_TEXTURE0, GL_TEXTURE_2D, GL_TEXTURE_ENV,
+                       GL_TEXTURE_ENV_MODE, GL_MODULATE, GL_UNSIGNED_INT,
                        glPopMatrix, glBindTexture, glActiveTexture, glTexEnvf,
                        glPushMatrix, glCallLists, glVertex2i)
 import parsedtext
@@ -37,8 +38,8 @@ class TextGrid(object):
 
         cfont = self._text_box._current_glfont
         max_size = cfont.max_tile_width, cfont.max_tile_height
-        self._cell_size = max_size[0], max_size[
-            1] + self._text_box._getPixelTextLineSpacing()
+        self._cell_size = (max_size[0],
+                           max_size[1] + self._text_box._getPixelTextLineSpacing())
         if self._cell_size[0] == 0:
             print('ERROR WITH CELL SIZE!!!! ', self._text_box.getLabel())
 
@@ -47,9 +48,7 @@ class TextGrid(object):
 
         self._text_document = None
 
-        #
         # Text Grid line_spacing
-        #
         te_size = [0, 0]
         if self._text_box._size:
             te_size = list(self._text_box._getPixelSize())
@@ -57,11 +56,11 @@ class TextGrid(object):
         if shape:
             self._shape = shape
         else:
-            self._shape = te_size[
-                0] // self._cell_size[0], te_size[1] // self._cell_size[1]
+            self._shape = (te_size[0] // self._cell_size[0],
+                           te_size[1] // self._cell_size[1])
 
-        self._size = self._cell_size[
-            0] * self._shape[0], self._cell_size[1] * self._shape[1]
+        self._size = (self._cell_size[0] * self._shape[0],
+                      self._cell_size[1] * self._shape[1])
         resized = False
         if shape and self._size[0] > te_size[0]:
             te_size[0] = self._size[0]
@@ -72,15 +71,13 @@ class TextGrid(object):
         if resized:
             self._text_box._setSize(te_size)
         # For now, The text grid is centered in the TextBox area.
-        #
         dx = (te_size[0] - self._size[0]) // 2
         dy = (te_size[1] - self._size[1]) // 2
 
         # TextGrid Position is position within the TextBox component.
-        #
         self._position = dx, dy
+
         # TextGrid cell boundaries
-        #
         self._col_lines = [int(np.floor(x)) for x in xrange(
             0, self._size[0] + 1, self._cell_size[0])]
         self._row_lines = [int(np.floor(y)) for y in xrange(

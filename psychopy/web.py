@@ -374,8 +374,7 @@ def _post_multipart(host, selector, fields, files,
         conn = httplib.HTTPConnection(host, timeout=timeout)
     headers = {u'User-Agent': userAgent,
                u'Charset': encoding,
-               u'Content-Type': content_type,
-               }
+               u'Content-Type': content_type}
     # apache basic auth (sent in clear text, https can help):
     if basicAuth and type(basicAuth) == str:
         user_cred = base64.encodestring(basicAuth).replace('\n', '')

@@ -320,14 +320,14 @@ def _minolta2float(inVal):
     float.
 
     minolta stores;
-        +ve values as val*10000
-        -ve values as -val*10000+50000
+        +ve values as val * 10000
+        -ve values as -val * 10000 + 50000
 
-    >>> _minolta2Float(50347)#NB returns a single float
+    >>> _minolta2Float(50347)  # NB returns a single float
     -0.034700000000000002
     >>> _minolta2Float(10630)
     1.0630999999999999
-    >>> _minolta2Float([10635, 50631])#NB returns a numpy array
+    >>> _minolta2Float([10635, 50631])  # NB returns a numpy array
     array([ 1.0635, -0.0631])
 
     """

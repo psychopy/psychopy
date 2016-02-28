@@ -102,7 +102,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['lineWidth'])
 
-        msg = _translate("How should the image be interpolated if/when rescaled")
+        msg = _translate(
+            "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],

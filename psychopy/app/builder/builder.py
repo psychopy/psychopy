@@ -107,8 +107,9 @@ class RoutineCanvas(wx.ScrolledWindow):
         # the step in Y between each component
         self.componentStep = (25, 32, 50)[self.drawSize]
         self.timeXposStart = (150, 150, 200)[self.drawSize]
-        self.iconXpos = self.timeXposStart - self.iconSize * \
-            (1.3, 1.5, 1.5)[self.drawSize]  # the left hand edge of the icons
+        # the left hand edge of the icons:
+        _scale = (1.3, 1.5, 1.5)[self.drawSize]
+        self.iconXpos = self.timeXposStart - self.iconSize * _scale
         self.timeXposEnd = self.timeXposStart + 400  # onResize() overrides
 
         # create a PseudoDC to record our drawing
@@ -427,8 +428,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
         # draw text
-        x = self.iconXpos - self.dpi / 10 - w + \
-            (self.iconSize, self.iconSize, 10)[self.drawSize]
+        _base = (self.iconSize, self.iconSize, 10)[self.drawSize]
+        x = self.iconXpos - self.dpi / 10 - w + _base
         _adjust = (5, 5, -2)[self.drawSize]
         y = yPos + thisIcon.GetHeight() / 2 - h / 2 + _adjust
         dc.DrawText(name, x - 20, y)
@@ -775,7 +776,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self._rightClicked = btn
         index = self.getIndexInSizer(btn, self.panels['Favorites'])
         if index is None:
-            #not currently in favs
+            # not currently in favs
             msg = "Add to favorites"
             function = self.onAddToFavorites
         else:
@@ -950,8 +951,8 @@ class BuilderFrame(wx.Frame):
         else:  # work out a new frame size/location
             dispW, dispH = self.app.getPrimaryDisplaySize()
             default = self.appData['defaultFrame']
-            default['winW'], default['winH'],  = int(
-                dispW * 0.75), int(dispH * 0.75)
+            default['winW'] = int(dispW * 0.75)
+            default['winH'] = int(dispH * 0.75)
             if default['winX'] + default['winW'] > dispW:
                 default['winX'] = 5
             if default['winY'] + default['winH'] > dispH:
@@ -989,7 +990,7 @@ class BuilderFrame(wx.Frame):
         self.flowPanel = FlowPanel(frame=self)
         self.routinePanel = RoutinesNotebook(self)
         self.componentButtons = ComponentsPanel(self)
-        #menus and toolbars
+        # menus and toolbars
         self.makeToolbar()
         self.makeMenus()
         self.CreateStatusBar()
@@ -1040,7 +1041,7 @@ class BuilderFrame(wx.Frame):
             self._mgr.GetPane('Routines').CenterPane()
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
-        # self.SetSizer(self.mainSizer)#not necessary for aui type controls
+        # self.SetSizer(self.mainSizer)  # not necessary for aui type controls
         if self.frameData['auiPerspective']:
             self._mgr.LoadPerspective(self.frameData['auiPerspective'])
         self.SetMinSize(wx.Size(600, 400))  # min size for the whole window
@@ -1188,12 +1189,12 @@ class BuilderFrame(wx.Frame):
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close file\t%s") % keys['close'],
                     _translate("Close current experiment"))
-        wx.EVT_MENU(self, wx.ID_NEW,  self.app.newBuilderFrame)
-        wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
-        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
+        wx.EVT_MENU(self, wx.ID_NEW, self.app.newBuilderFrame)
+        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
+        wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
         menu.Enable(wx.ID_SAVE, False)
-        wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.commandCloseFrame)
+        wx.EVT_MENU(self, wx.ID_SAVEAS, self.fileSaveAs)
+        wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
         item = menu.Append(wx.ID_PREFERENCES,
                            text=_translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
@@ -1212,12 +1213,12 @@ class BuilderFrame(wx.Frame):
                                       _translate("Undo\t%s") % keys['undo'],
                                       _translate("Undo last action"),
                                       wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
+        wx.EVT_MENU(self, wx.ID_UNDO, self.undo)
         self._redoLabel = menu.Append(wx.ID_REDO,
                                       _translate("Redo\t%s") % keys['redo'],
                                       _translate("Redo last action"),
                                       wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
+        wx.EVT_MENU(self, wx.ID_REDO, self.redo)
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -1226,27 +1227,27 @@ class BuilderFrame(wx.Frame):
         menu.Append(self.IDs.monitorCenter,
                     _translate("Monitor Center"),
                     _translate("To set information about your monitor"))
-        wx.EVT_MENU(self, self.IDs.monitorCenter,  self.app.openMonitorCenter)
+        wx.EVT_MENU(self, self.IDs.monitorCenter, self.app.openMonitorCenter)
 
         menu.Append(self.IDs.compileScript,
                     _translate("Compile\t%s") % keys['compileScript'],
                     _translate("Compile the exp to a script"))
-        wx.EVT_MENU(self, self.IDs.compileScript,  self.compileScript)
+        wx.EVT_MENU(self, self.IDs.compileScript, self.compileScript)
         menu.Append(self.IDs.runFile,
                     _translate("Run\t%s") % keys['runScript'],
                     _translate("Run the current script"))
-        wx.EVT_MENU(self, self.IDs.runFile,  self.runFile)
+        wx.EVT_MENU(self, self.IDs.runFile, self.runFile)
         menu.Append(self.IDs.stopFile,
                     _translate("Stop\t%s") % keys['stopScript'],
                     _translate("Abort the current script"))
-        wx.EVT_MENU(self, self.IDs.stopFile,  self.stopFile)
+        wx.EVT_MENU(self, self.IDs.stopFile, self.stopFile)
 
         menu.AppendSeparator()
         menu.Append(self.IDs.openUpdater,
                     _translate("PsychoPy updates..."),
                     _translate("Update PsychoPy to the latest, or a "
                                "specific, version"))
-        wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
+        wx.EVT_MENU(self, self.IDs.openUpdater, self.app.openUpdater)
         if hasattr(self.app, 'benchmarkWizard'):
             menu.Append(self.IDs.benchmarkWizard,
                         _translate("Benchmark wizard"),
@@ -1262,12 +1263,12 @@ class BuilderFrame(wx.Frame):
         menu.Append(self.IDs.openCoderView,
                     _translate("&Open Coder view\t%s") % keys['switchToCoder'],
                     _translate("Open a new Coder view"))
-        wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
+        wx.EVT_MENU(self, self.IDs.openCoderView, self.app.showCoder)
         menu.Append(self.IDs.toggleReadme,
                     _translate(
                         "&Toggle readme\t%s") % self.app.keys['toggleReadme'],
                     _translate("Toggle Readme"))
-        wx.EVT_MENU(self, self.IDs.toggleReadme,  self.toggleReadme)
+        wx.EVT_MENU(self, self.IDs.toggleReadme, self.toggleReadme)
         menu.Append(self.IDs.tbIncrFlowSize,
                     _translate(
                         "&Flow Larger\t%s") % self.app.keys['largerFlow'],
@@ -1300,19 +1301,19 @@ class BuilderFrame(wx.Frame):
                     _translate("&New Routine\t%s") % keys['newRoutine'],
                     _translate("Create a new routine (e.g. the trial "
                                "definition)"))
-        wx.EVT_MENU(self, self.IDs.newRoutine,  self.addRoutine)
+        wx.EVT_MENU(self, self.IDs.newRoutine, self.addRoutine)
         menu.Append(self.IDs.copyRoutine,
                     _translate("&Copy Routine\t%s") % keys['copyRoutine'],
                     _translate("Copy the current routine so it can be used"
                                " in another exp"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.copyRoutine,  self.onCopyRoutine)
+        wx.EVT_MENU(self, self.IDs.copyRoutine, self.onCopyRoutine)
         menu.Append(self.IDs.pasteRoutine,
                     _translate("&Paste Routine\t%s") % keys['pasteRoutine'],
                     _translate("Paste the Routine into the current "
                                "experiment"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, self.IDs.pasteRoutine,  self.onPasteRoutine)
+        wx.EVT_MENU(self, self.IDs.pasteRoutine, self.onPasteRoutine)
         menu.AppendSeparator()
 
         menu.Append(self.IDs.addRoutineToFlow,
@@ -1324,7 +1325,7 @@ class BuilderFrame(wx.Frame):
         menu.Append(self.IDs.addLoopToFlow,
                     _translate("Insert Loop in Flow"),
                     _translate("Create a new loop in your flow window"))
-        wx.EVT_MENU(self, self.IDs.addLoopToFlow,  self.flowPanel.insertLoop)
+        wx.EVT_MENU(self, self.IDs.addLoopToFlow, self.flowPanel.insertLoop)
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         # for demos we need a dict where the event ID will correspond to a
@@ -2070,9 +2071,9 @@ class ReadmeFrame(wx.Frame):
         menu.Append(self.parent.IDs.toggleReadme,
                     _translate("&Toggle readme\t%s") % keys['toggleReadme'],
                     _translate("Toggle Readme"))
-        wx.EVT_MENU(self, self.parent.IDs.toggleReadme,  self.toggleVisible)
-        wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.toggleVisible)
+        wx.EVT_MENU(self, self.parent.IDs.toggleReadme, self.toggleVisible)
+        wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
+        wx.EVT_MENU(self, wx.ID_CLOSE, self.toggleVisible)
         self.SetMenuBar(menuBar)
 
     def setFile(self, filename):
@@ -2137,4 +2138,3 @@ def appDataToFrames(prefs):
 
 def framesToAppData(prefs):
     pass
-

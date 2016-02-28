@@ -56,7 +56,7 @@ except ImportError:
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
-    # pygame.quit() #safe even if pygame was never initialised
+    # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
     for thisThread in threading.enumerate():
         if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
@@ -70,7 +70,7 @@ def quit():
 
 def shellCall(shellCmd, stdin='', stderr=False):
     """Call a single system command with arguments, return its stdout.
-    Returns stdout,stderr if stderr is True.
+    Returns stdout, stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested
     on windows) can accept string or list as the first argument
     """
@@ -99,12 +99,12 @@ class StaticPeriod(object):
         fixation.draw()
         win.flip()
         ISI = StaticPeriod(screenHz=60)
-        ISI.start(0.5) #start a period of 0.5s
-        stim.image = 'largeFile.bmp' #could take some time
-        ISI.complete() #finish the 0.5s, taking into account one 60Hz frame
+        ISI.start(0.5)  # start a period of 0.5s
+        stim.image = 'largeFile.bmp'  # could take some time
+        ISI.complete()  # finish the 0.5s, taking into account one 60Hz frame
 
         stim.draw()
-        win.flip() #the period takes into account the next frame flip
+        win.flip()  # the period takes into account the next frame flip
         # time should now be at exactly 0.5s later than when ISI.start()
         # was called
 

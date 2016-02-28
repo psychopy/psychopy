@@ -48,7 +48,8 @@ class ImageComponent(BaseVisualComponent):
         self.params['colorSpace'].categ = "Advanced"
         self.order += ['image', 'pos', 'size', 'ori', 'opacity']
 
-        msg = _translate("The image to be displayed - a filename, including path")
+        msg = _translate(
+            "The image to be displayed - a filename, including path")
         self.params['image'] = Param(
             image, valType='str', allowedTypes=[],
             updates='constant',
@@ -74,21 +75,24 @@ class ImageComponent(BaseVisualComponent):
             hint=msg,
             label=_localized["texture resolution"], categ="Advanced")
 
-        msg = _translate("How should the image be interpolated if/when rescaled")
+        msg = _translate(
+            "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized["interpolate"], categ="Advanced")
 
-        msg = _translate("Should the image be flipped vertically (top to bottom)?")
+        msg = _translate(
+            "Should the image be flipped vertically (top to bottom)?")
         self.params['flipVert'] = Param(
             flipVert, valType='bool',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized["flipVert"], categ="Advanced")
 
-        msg = _translate("Should the image be flipped horizontally (left to right)?")
+        msg = _translate(
+            "Should the image be flipped horizontally (left to right)?")
         self.params['flipHoriz'] = Param(
             flipVert, valType='bool',
             updates='constant', allowedUpdates=[],

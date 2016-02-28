@@ -184,9 +184,9 @@ def rgb2dklCart(picture, conversionMatrix=None):
     if conversionMatrix is None:
         conversionMatrix = numpy.asarray([
             # LUMIN->    %L-M->        L+M-S
-            [0.25145542,  0.64933633,  0.09920825],
+            [0.25145542, 0.64933633, 0.09920825],
             [0.78737943, -0.55586618, -0.23151325],
-            [0.26562825,  0.63933074, -0.90495899]])
+            [0.26562825, 0.63933074, -0.90495899]])
         logging.warning('This monitor has not been color-calibrated. '
                         'Using default DKL conversion matrix.')
     else:
@@ -227,7 +227,7 @@ def rgb2lms(rgb_Nx3, conversionMatrix=None):
     rgb_3xN = numpy.transpose(rgb_Nx3)
 
     if conversionMatrix is None:
-        cones_to_rgb = numpy.asarray([ \
+        cones_to_rgb = numpy.asarray([
             # L        M        S
             [4.97068857, -4.14354132, 0.17285275],  # R
             [-0.90913894, 2.15671326, -0.24757432],  # G

@@ -508,7 +508,7 @@ class Experiment(object):
                 modified_names.append(routineNode.get('name'))
             self.namespace.user.append(routine_good_name)
             routine = Routine(name=routine_good_name, exp=self)
-            #self._getXMLparam(params=routine.params, paramNode=routineNode)
+            # self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')] = routine
             for componentNode in routineNode:
 
@@ -535,7 +535,7 @@ class Experiment(object):
                             componentNode.get('highAnchorText')):
                         pass
                     # if not componentNode.get('choiceLabelsAboveLine'):
-                    # #this rating scale was created using older version
+                    #    # this rating scale was created using older version
                     #    component.params['choiceLabelsAboveLine'].val=True
                 # populate the component with its various params
                 for paramNode in componentNode:
@@ -1043,7 +1043,7 @@ class StairHandler(object):
         if self.params['N reversals'].val in ("", None, 'None'):
             self.params['N reversals'].val = '0'
         # write the code
-        code = ('\n#--------Prepare to start Staircase "%(name)s" --------\n'
+        code = ('\n# --------Prepare to start Staircase "%(name)s" --------\n'
                 "# set up handler to look after next chosen value etc\n"
                 "%(name)s = data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n"
                 "    stepSizes=%(step sizes)s, stepType=%(step type)s,\n"
@@ -1313,7 +1313,7 @@ class Flow(list):
         elif component.getType() == 'Routine':
             if id is None:
                 # a Routine may come up multiple times - remove them all
-                # self.remove(component)#cant do this - two empty routines
+                # self.remove(component)  # cant do this - two empty routines
                 # (with diff names) look the same to list comparison
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):
@@ -1530,7 +1530,7 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        code = ('\n#------Prepare to start Routine "%s"-------\n'
+        code = ('\n# ------Prepare to start Routine "%s"-------\n'
                 't = 0\n'
                 '%s.reset()  # clock\n'
                 'frameN = -1\n')
@@ -1556,7 +1556,7 @@ class Routine(list):
         code = ("for thisComponent in %sComponents:\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
-                '\n#-------Start Routine "%s"-------\n'
+                '\n# -------Start Routine "%s"-------\n'
                 'continueRoutine = True\n')
         buff.writeIndentedLines(code % (self.name, self.name))
         if useNonSlip:
@@ -1616,7 +1616,7 @@ class Routine(list):
         buff.setIndentLevel(-1, True)
 
         # write the code for each component for the end of the routine
-        code = ('\n#-------Ending Routine "%s"-------\n'
+        code = ('\n# -------Ending Routine "%s"-------\n'
                 'for thisComponent in %sComponents:\n'
                 '    if hasattr(thisComponent, "setAutoDraw"):\n'
                 '        thisComponent.setAutoDraw(False)\n')
@@ -1803,13 +1803,19 @@ class NameSpace(object):
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
         # strings used as codes, separate function from display value:
-        _oneOf = "one of your Components, Routines, or condition parameters"
-        _avoid = (" Avoid `this`, `these`, `continue`, `Clock`, or "
-                  "`component` in name")
-        self._localized = {None: ''}
-        for k in (_oneOf, _avoid, "Builder variable", "Psychopy module",
-                  "numpy function", "python keyword"):
-            self._localized[k] = _translate(k)
+        # need the actual strings to be inside _translate for poedit discovery
+        self._localized = {
+            None: '',
+            "one of your Components, Routines, or condition parameters":
+                _translate(
+                    "one of your Components, Routines, or condition parameters"),
+            " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name":
+                _translate(
+                    " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
+            "Builder variable": _translate("Builder variable"),
+            "Psychopy module": _translate("Psychopy module"),
+            "numpy function": _translate("numpy function"),
+            "python keyword": _translate("python keyword")}
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy

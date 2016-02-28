@@ -21,7 +21,7 @@ from psychopy.tools.attributetools import setAttribute
 import numpy
 
 reportNImageResizes = 5  # stop raising warning after this
-#global _nImageResizes
+# global _nImageResizes
 _nImageResizes = 0
 
 try:

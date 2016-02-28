@@ -59,9 +59,9 @@ class MovieComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['backend'])
 
-        #msg = _translate(
-        msg =  ("Prevent the audio stream from being loaded/processed "
-                "(moviepy and opencv only)")
+        # todo: msg = _translate(...)
+        msg = ("Prevent the audio stream from being loaded/processed "
+               "(moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool',
             hint=msg,
@@ -146,8 +146,9 @@ class MovieComponent(BaseVisualComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        # buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n"
-        # %(self.params['name']))
+        # buff.writeIndented(
+        #     "%s.seek(0.00001)  # make sure we're at the start\n"
+        #     % (self.params['name']))
         buff.writeIndented("%s.setAutoDraw(True)\n" % self.params['name'])
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)

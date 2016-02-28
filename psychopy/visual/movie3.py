@@ -76,8 +76,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  vframe_callback=None,
                  fps=None,
-                 interpolate=True,
-                 ):
+                 interpolate=True):
         """
         :Parameters:
 
@@ -382,14 +381,14 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         GL.glColor4f(1, 1, 1, self.opacity)
 
         array = (GL.GLfloat * 32)(
-            1,  1,  # texture coords
-            vertsPix[0, 0], vertsPix[0, 1],    0.,  # vertex
-            0,  1,
-            vertsPix[1, 0], vertsPix[1, 1],    0.,
+            1, 1,  # texture coords
+            vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
+            0, 1,
+            vertsPix[1, 0], vertsPix[1, 1], 0.,
             0, 0,
-            vertsPix[2, 0], vertsPix[2, 1],    0.,
+            vertsPix[2, 0], vertsPix[2, 1], 0.,
             1, 0,
-            vertsPix[3, 0], vertsPix[3, 1],    0.,
+            vertsPix[3, 0], vertsPix[3, 1], 0.,
         )
 
         # 2D texture array, 3D vertex array
