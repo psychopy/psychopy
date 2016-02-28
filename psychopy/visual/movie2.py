@@ -178,8 +178,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  vframe_callback=None,
                  fps=None,
-                 interpolate=True,
-                 ):
+                 interpolate=True):
         """
         :Parameters:
 
@@ -262,7 +261,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         if self._texID is not None:
             GL.glDeleteTextures(1, self._texID)
             self._texID = None
-        #self._video_stream = None
+        # self._video_stream = None
         self._total_frame_count = None
         self._video_width = None
         self._video_height = None
@@ -721,14 +720,14 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         vertsPix = self.verticesPix
 
         array = (GL.GLfloat * 32)(
-            1,  1,  # texture coords
-            vertsPix[0, 0], vertsPix[0, 1],    0.,  # vertex
-            0,  1,
-            vertsPix[1, 0], vertsPix[1, 1],    0.,
+            1, 1,  # texture coords
+            vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
+            0, 1,
+            vertsPix[1, 0], vertsPix[1, 1], 0.,
             0, 0,
-            vertsPix[2, 0], vertsPix[2, 1],    0.,
+            vertsPix[2, 0], vertsPix[2, 1], 0.,
             1, 0,
-            vertsPix[3, 0], vertsPix[3, 1],    0.,
+            vertsPix[3, 0], vertsPix[3, 1], 0.,
         )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
         GL.glEnable(GL.GL_TEXTURE_2D)

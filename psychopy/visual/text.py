@@ -45,8 +45,7 @@ defaultLetterHeight = {'cm': 1.0,
                        'norm': 0.1,
                        'height': 0.2,
                        'pix': 20,
-                       'pixels': 20,
-                       }
+                       'pixels': 20}
 defaultWrapWidth = {'cm': 15.0,
                     'deg': 15.0,
                     'degs': 15.0,
@@ -55,8 +54,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'norm': 1,
                     'height': 1,
                     'pix': 500,
-                    'pixels': 500,
-                    }
+                    'pixels': 500}
 
 
 class TextStim(BaseVisualStim, ColorMixin):
@@ -300,11 +298,11 @@ class TextStim(BaseVisualStim, ColorMixin):
             #      anchor_x=self.alignHoriz,
             #      anchor_y=self.alignVert,  # the point we rotate around
             #      halign=self.alignHoriz,
-            #      color = (int(127.5*self.rgb[0]+127.5),
-            #               int(127.5*self.rgb[1]+127.5),
-            #               int(127.5*self.rgb[2]+127.5),
-            #                int(255*self.opacity)),
-            # multiline=True, width=self._wrapWidthPix)#width of the frame
+            #      color = (int(127.5 * self.rgb[0] + 127.5),
+            #               int(127.5 * self.rgb[1] + 127.5),
+            #               int(127.5 * self.rgb[2] + 127.5),
+            #               int(255 * self.opacity)),
+            # multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
             self._fontHeightPix = self._pygletTextObj.height
         else:
@@ -348,7 +346,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         # shaders aren't enabled
         GL.glUseProgram(0)  # self.win._progSignedTex)
         # GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTex,
-        # "texture"), 0) #set the texture to be texture unit 0
+        #                "texture"), 0) # set the texture to be texture unit 0
 
         # coords:
         if self.alignHoriz in ['center', 'centre']:
@@ -708,9 +706,9 @@ class TextStim(BaseVisualStim, ColorMixin):
             # GL.glUniform3iv(GL.glGetUniformLocation(
             #       self.win._progSignedTexFont, "rgb"), 1,
             #       desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
-            #  #set the texture to be texture unit 0
-            GL.glUniform3f(GL.glGetUniformLocation(
-                self.win._progSignedTexFont, "rgb"),
+            #  # set the texture to be texture unit 0
+            GL.glUniform3f(
+                GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"),
                 desiredRGB[0], desiredRGB[1], desiredRGB[2])
 
         else:  # color is set in texture, so set glColor to white

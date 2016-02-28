@@ -473,24 +473,26 @@ class RadialStim(GratingStim):
         pi2 = 2 * pi
         self._textureCoords = numpy.zeros([self.angularRes, 3, 2])
         # x position of inner vertex
-        self._textureCoords[:, 0, 0] = (self._angles + self._triangleWidth / 2) * \
-            self.angularCycles / pi2 + self.angularPhase
+        self._textureCoords[:, 0, 0] = (
+            (self._angles + self._triangleWidth / 2) *
+            self.angularCycles / pi2 + self.angularPhase)
         # y position of inner vertex
         self._textureCoords[:, 0, 1] = 0.25 - self.radialPhase
 
         # x position of 1st outer vertex
-        self._textureCoords[:, 1, 0] = self._angles * self.angularCycles / pi2 \
-            + self.angularPhase
+        self._textureCoords[:, 1, 0] = (
+            self._angles * self.angularCycles / pi2 + self.angularPhase)
         # y position of 1st outer vertex
-        self._textureCoords[:, 1, 1] = 0.25 + \
-            self.radialCycles - self.radialPhase
+        self._textureCoords[:, 1, 1] = (
+            0.25 + self.radialCycles - self.radialPhase)
 
         # x position of 2nd outer vertex
-        self._textureCoords[:, 2, 0] = (self._angles + self._triangleWidth) * \
-            self.angularCycles / pi2 + self.angularPhase
+        self._textureCoords[:, 2, 0] = (
+            (self._angles + self._triangleWidth) *
+            self.angularCycles / pi2 + self.angularPhase)
         # y position of 2nd outer vertex
-        self._textureCoords[:, 2, 1] = 0.25 + self.radialCycles - \
-            self.radialPhase
+        self._textureCoords[:, 2, 1] = (
+            0.25 + self.radialCycles - self.radialPhase)
         self._visibleTexture = self._textureCoords[
             self._visible, :, :].reshape(self._nVisible, 2)
 

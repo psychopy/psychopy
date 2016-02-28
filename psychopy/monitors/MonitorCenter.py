@@ -216,18 +216,19 @@ class MainFrame(wx.Frame):
                         _translate('Save\tCtrl+S'),
                         _translate('Save the current monitor'))
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
-        _hint = 'Close Monitor Center (but not other PsychoPy windows)'
+        _hint = _translate(
+            'Close Monitor Center (but not other PsychoPy windows)')
         fileMenu.Append(wx.ID_CLOSE,
                         _translate('Close Monitor Center\tCtrl+W'),
-                        _translate(_hint))
+                        _hint)
         wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
         menuBar.Append(fileMenu, _translate('&File'))
 
         # Edit
         editMenu = wx.Menu()
         id = wx.NewId()
-        _hint = "Copy the current monitor's name to clipboard"
-        editMenu.Append(id, _translate('Copy\tCtrl+C'), _translate(_hint))
+        _hint = _translate("Copy the current monitor's name to clipboard")
+        editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         wx.EVT_MENU(self, id, self.onCopyMon)
         menuBar.Append(editMenu, _translate('&Edit'))
 
@@ -316,8 +317,8 @@ class MainFrame(wx.Frame):
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
 
         # scr pixels
-        _sz = "Size (pixels; Horiz,Vert):"
-        labl_ScrPixels = wx.StaticText(parent, -1, _translate(_sz),
+        _size = _translate("Size (pixels; Horiz,Vert):")
+        labl_ScrPixels = wx.StaticText(parent, -1, _size,
                                        style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50, 20))
         wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(),
@@ -387,7 +388,7 @@ class MainFrame(wx.Frame):
                                           size=_size)
 
         # wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(),
-        # self.onChangePhotomType)#not needed?
+        #               self.onChangePhotomType)  # not needed?
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(),
@@ -526,7 +527,8 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             # warn user that data will be lost
-            msg = _translate('Save changes to monitor settings before quitting?')
+            msg = _translate(
+                'Save changes to monitor settings before quitting?')
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
@@ -654,7 +656,8 @@ class MainFrame(wx.Frame):
         calibTimeStr = monitors.strFromDate(calibTime)
 
         # then use dialogue so user can override
-        msg = _translate('Name of this calibration (for monitor "%(name)s") will be:)')
+        msg = _translate(
+            'Name of this calibration (for monitor "%(name)s") will be:)')
         infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
                                  defaultValue=calibTimeStr,
@@ -987,9 +990,9 @@ class MainFrame(wx.Frame):
                                  ' Please block all light from getting into '
                                  'the lens and press OK.')
                 while self.photom.getNeedsCalibrateZero():
-                    txt = 'Dark calibration of ColorCAL'
+                    txt = _translate('Dark calibration of ColorCAL')
                     dlg = dialogs.MessageDialog(self, message=msg,
-                                                title=_translate(txt),
+                                                title=txt,
                                                 type='Info')
                     # info dlg has only an OK button
                     resp = dlg.ShowModal()
@@ -1041,11 +1044,11 @@ class MainFrame(wx.Frame):
                              linewidth=1.5)
                 else:
                     pass
-                    #polyFit = self.currentMon._gammaInterpolator[gun]
-                    #curve = xxSmooth*0.0
+                    # polyFit = self.currentMon._gammaInterpolator[gun]
+                    # curve = xxSmooth*0.0
                     # for expon, coeff in enumerate(polyFit):
-                    #curve += coeff*xxSmooth**expon
-                    #plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
+                    #    curve += coeff*xxSmooth**expon
+                    # plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 # plot POINTS
                 plt.plot(levelsPre, lumsPre[gun, :], colors[gun] + 'o',
                          linewidth=1.5)

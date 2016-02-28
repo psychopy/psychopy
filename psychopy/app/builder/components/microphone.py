@@ -35,7 +35,8 @@ class MicrophoneComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['microphone'])
 
         # params
-        msg = _translate("Record two channels (stereo) or one (mono, smaller file)")
+        msg = _translate(
+            "Record two channels (stereo) or one (mono, smaller file)")
         self.params['stereo'] = Param(
             stereo, valType='bool',
             hint=msg,
@@ -43,7 +44,8 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['stopType'].allowedVals = ['duration (s)']
 
-        msg = _translate('The duration of the recording in seconds; blank = 0 sec')
+        msg = _translate(
+            'The duration of the recording in seconds; blank = 0 sec')
         self.params['stopType'].hint = msg
 
     def writeStartCode(self, buff):

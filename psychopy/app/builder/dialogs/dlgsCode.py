@@ -141,8 +141,8 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         name_sizer = wx.BoxSizer(wx.HORIZONTAL)
         name_sizer.Add(self.name_label, 0, wx.ALL, 10)
-        name_sizer.Add(self.component_name, 0,  wx.BOTTOM | wx.TOP, 10)
-        name_sizer.Add(self.nameOKlabel, 0,  wx.ALL, 10)
+        name_sizer.Add(self.component_name, 0, wx.BOTTOM | wx.TOP, 10)
+        name_sizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
 
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -261,7 +261,7 @@ class CodeBox(wx.stc.StyledTextCtrl):
         # self.DragAcceptFiles(True)
         # self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         # self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        # #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        # # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         # self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         # self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         # self.SetDropTarget(FileDropTarget(coder = self.coder))

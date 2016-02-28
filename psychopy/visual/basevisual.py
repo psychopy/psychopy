@@ -233,10 +233,10 @@ class LegacyVisualMixin(object):
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
         cosOri = numpy.cos(-oriRadians)
-        x = self._verticesRendered[:, 0] * cosOri - \
-            self._verticesRendered[:, 1] * sinOri
-        y = self._verticesRendered[:, 0] * sinOri + \
-            self._verticesRendered[:, 1] * cosOri
+        x = (self._verticesRendered[:, 0] * cosOri -
+             self._verticesRendered[:, 1] * sinOri)
+        y = (self._verticesRendered[:, 0] * sinOri +
+             self._verticesRendered[:, 1] * cosOri)
         return numpy.column_stack((x, y)) + self._posRendered
 
     def setDKL(self, newDKL, operation=''):
@@ -383,7 +383,7 @@ class ColorMixin(object):
         if hasattr(self, 'useShaders'):
             if not self.useShaders:
                 # we'll need to update the textures for the stimulus
-                #(sometime before drawing but not now)
+                # (sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
                     self.text = self.text  # call attributeSetter
                 # GratingStim, RadialStim, ImageStim etc
@@ -686,8 +686,8 @@ class TextureMixin(object):
             intensity = numpy.where(sinusoid > 0, 1, -1)
             wasLum = True
         elif tex == "saw":
-            intensity = numpy.linspace(-1.0, 1.0, res, endpoint=True) * \
-                numpy.ones([res, 1])
+            intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
+                         numpy.ones([res, 1]))
             wasLum = True
         elif tex == "tri":
             # -1:3 means the middle is at +1
@@ -838,7 +838,7 @@ class TextureMixin(object):
                     dataType = GL.GL_FLOAT
             elif pixFormat == GL.GL_RGB:
                 # we want RGB and might need to convert from CMYK or Lm
-                #texture = im.tostring("raw", "RGB", 0, -1)
+                # texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
                 wasLum = False
             if dataType == GL.GL_FLOAT:

@@ -9,9 +9,9 @@
 import pyclbr
 import tokenize
 
-#~ xx = pyclbr.readmodule_ex('psychopy.visual')
-#~ #xx = pyclbr.tokenize('psychopy')
-#~ print(xx['makeRadialMatrix'].__doc__)
+# xx = pyclbr.readmodule_ex('psychopy.visual')
+# #xx = pyclbr.tokenize('psychopy')
+# print(xx['makeRadialMatrix'].__doc__)
 
 
 class tokenBuffer(object):
@@ -25,8 +25,8 @@ class tokenBuffer(object):
 
 
 def getTokensAndImports(buffer):
-    #~ f = open(filename, 'r')
-    #~ gen=tokenize.generate_tokens(f.readline)
+    # f = open(filename, 'r')
+    # gen=tokenize.generate_tokens(f.readline)
     gen = tokenize.generate_tokens(buffer.readline)
     importLines = []
     equalLines = {}

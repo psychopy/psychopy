@@ -34,16 +34,16 @@ class SoundComponent(BaseComponent):
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
                                                   ' sound in seconds')
-        hnt = ("When does the component end? (blank to use the duration "
-               "of the media)")
-        self.params['stopVal'].hint = _translate(hnt)
+        hnt = _translate("When does the component end? (blank to use the "
+                         "duration of the media)")
+        self.params['stopVal'].hint = hnt
 
-        hnt = ("A sound can be a note name (e.g. A or Bf), a number to "
-               "specify Hz (e.g. 440) or a filename")
+        hnt = _translate("A sound can be a note name (e.g. A or Bf), a number"
+                         " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
             sound, valType='str', allowedTypes=[], updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
-            hint=_translate(hnt),
+            hint=hnt,
             label=_localized['sound'])
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(

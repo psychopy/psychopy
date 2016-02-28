@@ -72,7 +72,8 @@ class PatchComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['sf'], categ="Advanced")
 
-        msg = _translate("Spatial positioning of the image on the patch (in range 0-1.0)")
+        msg = _translate(
+            "Spatial positioning of the image on the patch (in range 0-1.0)")
         self.params['phase'] = Param(
             phase, valType='code', allowedTypes=[],
             updates='constant',
@@ -90,7 +91,8 @@ class PatchComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['texture resolution'], categ="Advanced")
 
-        msg = _translate("How should the image be interpolated if/when rescaled")
+        msg = _translate(
+            "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],

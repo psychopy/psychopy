@@ -23,7 +23,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         self.parent = parent
         self.Bind(wx.EVT_TEXT_URL, parent.onURL)
         # define style for filename links (URLS) needs wx as late as 2.8.4.0
-        #self.urlStyle = wx.richtext.RichTextAttr()
+        # self.urlStyle = wx.richtext.RichTextAttr()
         # self.urlStyle.SetTextColour(wx.BLUE)
         # self.urlStyle.SetFontWeight(wx.BOLD)
         # self.urlStyle.SetFontUnderlined(False)
@@ -39,7 +39,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         for thisLine in inStr.splitlines(True):
             if len(re.findall('".*", line.*', thisLine)) > 0:
                 # this line contains a file/line location so write as URL
-                # self.BeginStyle(self.urlStyle) #this should be done with
+                # self.BeginStyle(self.urlStyle)  # this should be done with
                 # styles, but they don't exist in wx as late as 2.8.4.0
                 self.BeginBold()
                 self.BeginTextColour(wx.BLUE)

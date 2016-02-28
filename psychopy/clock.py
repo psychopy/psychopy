@@ -135,7 +135,7 @@ class Clock(MonotonicClock):
             timer = core.Clock()
             timer.add(5)
             while timer.getTime()<0:
-                #do something
+                # do something
         """
         self._timeAtLastReset += t
 
@@ -148,7 +148,7 @@ class CountdownTimer(Clock):
 
         timer = core.CountdownTimer(5)
         while timer.getTime() > 0:  # after 5s will become negative
-            #do stuff
+            # do stuff
     """
 
     def __init__(self, start=0):

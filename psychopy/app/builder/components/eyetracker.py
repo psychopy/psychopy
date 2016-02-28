@@ -31,7 +31,8 @@ class EyetrackerComponent(BaseComponent):
         self.order = ['Config file']  # first param after the name
 
         # standard params (can ignore)
-        msg = _translate("Name of this component (alpha-numeric or _, no spaces)")
+        msg = _translate(
+            "Name of this component (alpha-numeric or _, no spaces)")
         self.params['name'] = Param(
             name, valType='code', allowedTypes=[],
             hint=msg,

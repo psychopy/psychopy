@@ -44,8 +44,8 @@ class Rect(BaseShapeStim):
         super(Rect, self).__init__(win, **kwargs)
 
     def _calcVertices(self):
-        self.vertices = numpy.array([(-self.width * .5,  self.height * .5),
-                                     (self.width * .5,  self.height * .5),
+        self.vertices = numpy.array([(-self.width * .5, self.height * .5),
+                                     (self.width * .5, self.height * .5),
                                      (self.width * .5, -self.height * .5),
                                      (-self.width * .5, -self.height * .5)])
 

@@ -131,7 +131,8 @@ class DotsComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['fieldSize'])
 
-        msg = _translate("Where is the field centred (in the specified units)?")
+        msg = _translate(
+            "Where is the field centred (in the specified units)?")
         self.params['fieldPos'] = Param(
             fieldPos, valType='code',
             updates='constant',

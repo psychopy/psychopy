@@ -17,11 +17,11 @@ try:
     import ioLabs
     from ioLabs import REPORT, COMMAND
 except ImportError:
-    msg = """Failed to import the ioLabs library. If you're using your own
+    err = """Failed to import the ioLabs library. If you're using your own
         copy of python (not the Standalone distribution of PsychoPy) then
         try installing it with:
            > pip install ioLabs""".replace('    ', '')
-    logging.error(msg)
+    logging.error(err)
 
 from psychopy.constants import PRESSED, RELEASED
 btn2str = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7',

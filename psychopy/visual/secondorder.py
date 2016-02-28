@@ -321,10 +321,10 @@ class EnvelopeGrating(GratingStim):
         envrad = (self.ori - self.envori) * numpy.pi / 180.0
         # adjust envolope phases so that any envelope drift points
         # in the same direction as the envelope.
-        rph1 = numpy.cos(envrad) * \
-            self.envphase[0] + numpy.sin(envrad) * self.envphase[1]
-        rph2 = -numpy.cos(envrad) * \
-            self.envphase[1] + numpy.sin(envrad) * self.envphase[0]
+        rph1 = (numpy.cos(envrad) *
+                self.envphase[0] + numpy.sin(envrad) * self.envphase[1])
+        rph2 = (-numpy.cos(envrad) *
+                self.envphase[1] + numpy.sin(envrad) * self.envphase[0])
 
         if 'avg' in self.win.blendMode:
             addvalue = 1.0
@@ -529,8 +529,8 @@ class EnvelopeGrating(GratingStim):
         """
         """
         if self.units in ('norm', 'height'):
-            # self._cycles = self.sf  #this is the only form of sf that is not
-            # size dependent
+            # self._cycles = self.sf  # this is the only form of sf that is
+            # not size dependent
             self._envcycles = self.envsf
         else:
             # self._cycles = self.sf * self.size

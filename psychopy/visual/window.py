@@ -558,9 +558,9 @@ class Window(object):
         frame. (This replaces the win.update() method, better reflecting what
         is happening underneath).
 
-        win.flip(clearBuffer=True)#results in a clear screen after flipping
-        win.flip(clearBuffer=False)#the screen is not cleared (so represent
-        the previous screen)
+        win.flip(clearBuffer=True)  # results in a clear screen after flipping
+        win.flip(clearBuffer=False)  # the screen is not cleared (so represent
+                                     # the previous screen)
         """
         for thisStim in self._toDraw:
             thisStim.draw()
@@ -805,11 +805,11 @@ class Window(object):
 
             win = visual.Window(...., stereo=True)
             while True:
-                #clear may not actually be needed
+                # clear may not actually be needed
                 win.setBuffer('left', clear=True)
-                #do drawing for left eye
+                # do drawing for left eye
                 win.setBuffer('right', clear=True)
-                #do drawing for right eye
+                # do drawing for right eye
                 win.flip()
 
         """
@@ -919,7 +919,7 @@ class Window(object):
 
         Examples::
 
-            #writes a series of static frames as frame001.tif,
+            # writes a series of static frames as frame001.tif,
             # frame002.tif etc...
             myWin.saveMovieFrames('frame.tif')
 
@@ -1288,8 +1288,8 @@ class Window(object):
             thisScale = ((numpy.array([2.0, 2.0]) / self.size) /
                          (float(self.scrWidthCM) / float(self.scrWidthPIX)))
         elif units in ["deg", "degs"]:
-            #windowPerDeg = winPerCM*CMperDEG
-            #               = winPerCM              * tan(pi/180) * distance
+            # windowPerDeg = winPerCM * CMperDEG
+            #              = winPerCM * tan(pi/180) * distance
             if ((self.scrWidthCM in [0, None]) or
                     (self.scrWidthPIX in [0, None])):
                 logging.error('you didnt give the width of the screen (pixels'
@@ -1449,7 +1449,7 @@ class Window(object):
         import pyglet.gl as GL
 
         self.winType = "pygame"
-        # pygame.mixer.pre_init(22050,16,2)#set the values to initialise
+        # pygame.mixer.pre_init(22050,16,2)  # set the values to initialise
         # sound system if it gets used
         pygame.init()
         if self.allowStencil:
@@ -1888,7 +1888,7 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     :Author:
         - 2010 written by Jeremy Gray
     """
-    return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg='',
+    return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg=msg,
                                msDelay=0.)
 
 
@@ -1910,6 +1910,6 @@ def _onResize(width, height):
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)
-    #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
+    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
     GL.glMatrixMode(GL.GL_MODELVIEW)
     GL.glLoadIdentity()

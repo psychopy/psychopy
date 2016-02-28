@@ -28,8 +28,8 @@ class PR650(object):
 
         from psychopy.hardware.pr import PR650
         myPR650 = PR650(port)
-        myPR650.getLum()#make a measurement
-        nm, power = myPR650.getLastSpectrum()#get a power spectrum for the
+        myPR650.getLum()  # make a measurement
+        nm, power = myPR650.getLastSpectrum()  # get a power spectrum for the
                     last measurement
 
     NB :func:`psychopy.hardware.findPhotometer()` will locate and return
@@ -77,8 +77,7 @@ class PR650(object):
         self.codes = {'OK': '000\r\n',  # this is returned after measure
                       '18': 'Light Low',  # returned at beginning of data
                       '10': 'Light Low',
-                      '00': 'OK'
-                      }
+                      '00': 'OK'}
 
         # try to open the port
         _linux = sys.platform.startswith('linux')
@@ -140,7 +139,7 @@ class PR650(object):
         # send the message
         self.com.write(message)
         self.com.flush()
-        # time.sleep(0.1)  #PR650 gets upset if hurried!
+        # time.sleep(0.1)  # PR650 gets upset if hurried!
 
         # get feedback (within timeout limit)
         self.com.setTimeout(timeout)
@@ -269,8 +268,8 @@ class PR655(PR650):
 
         from psychopy.hardware.pr import PR655
         myPR655 = PR655(port)
-        myPR655.getLum()#make a measurement
-        nm, power = myPR655.getLastSpectrum()#get a power spectrum for the
+        myPR655.getLum()  # make a measurement
+        nm, power = myPR655.getLastSpectrum()  # get a power spectrum for the
                     last measurement
 
     NB :func:`psychopy.hardware.findPhotometer()` will locate and return
@@ -305,8 +304,7 @@ class PR655(PR650):
         self.codes = {'OK': '000\r\n',  # this is returned after measure
                       '18': 'Light Low',  # returned at beginning of data
                       '10': 'Light Low',
-                      '00': 'OK'
-                      }
+                      '00': 'OK'}
 
         # try to open the port
         try:

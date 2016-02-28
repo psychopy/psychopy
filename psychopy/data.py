@@ -238,7 +238,7 @@ class ExperimentHandler(object):
 
         e.g.::
 
-            #add some data for this trial
+            # add some data for this trial
             exp.addData('resp.rt', 0.8)
             exp.addData('resp.key', 'k')
             # end of trial - move to next line in data output
@@ -1014,18 +1014,18 @@ class TrialHandler(_BaseTrialHandler):
         This can be handled with code such as::
 
             trials = data.TrialHandler(.......)
-            for eachTrial in trials:#automatically stops when done
-                #do stuff
+            for eachTrial in trials:  # automatically stops when done
+                # do stuff
 
         or::
 
             trials = data.TrialHandler(.......)
-            while True: #ie forever
+            while True:  # ie forever
                 try:
                     thisTrial = trials.next()
-                except StopIteration:#we got a StopIteration error
+                except StopIteration:  # we got a StopIteration error
                     break #break out of the forever loop
-                #do stuff here for the trial
+                # do stuff here for the trial
         """
         # update pointer for next trials
         self.thisTrialN += 1  # number of trial this pass
@@ -1625,18 +1625,18 @@ class TrialHandler2(_BaseTrialHandler):
         This can be handled with code such as::
 
             trials = data.TrialHandler(.......)
-            for eachTrial in trials:#automatically stops when done
-                #do stuff
+            for eachTrial in trials:  # automatically stops when done
+                # do stuff
 
         or::
 
             trials = data.TrialHandler(.......)
-            while True: #ie forever
+            while True:  # ie forever
                 try:
                     thisTrial = trials.next()
-                except StopIteration:#we got a StopIteration error
-                    break #break out of the forever loop
-                #do stuff here for the trial
+                except StopIteration:  # we got a StopIteration error
+                    break  # break out of the forever loop
+                # do stuff here for the trial
         """
         # update pointer for next trials
         self.thisTrialN += 1  # number of trial this pass
@@ -2085,18 +2085,18 @@ class TrialHandlerExt(TrialHandler):
         This can be handled with code such as::
 
             trials = data.TrialHandler(.......)
-            for eachTrial in trials:#automatically stops when done
-                #do stuff
+            for eachTrial in trials:  # automatically stops when done
+                # do stuff
 
         or::
 
             trials = data.TrialHandler(.......)
-            while True: #ie forever
+            while True:  # ie forever
                 try:
                     thisTrial = trials.next()
-                except StopIteration:#we got a StopIteration error
-                    break #break out of the forever loop
-                #do stuff here for the trial
+                except StopIteration:  # we got a StopIteration error
+                    break  # break out of the forever loop
+                # do stuff here for the trial
         """
         # update pointer for next trials
         self.thisTrialN += 1  # number of trial this pass
@@ -2178,10 +2178,9 @@ class TrialHandlerExt(TrialHandler):
             nThisTrialPresented = numpy.sum(
                 self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = firstRowIndex + \
-                (nThisTrialPresented - 1) % self.trialWeights[self.thisIndex]
-            dataColThisTrial = int(
-                (nThisTrialPresented - 1) / self.trialWeights[self.thisIndex])
+            _tw = self.trialWeights[self.thisIndex]
+            dataRowThisTrial = firstRowIndex + (nThisTrialPresented - 1) % _tw
+            dataColThisTrial = int((nThisTrialPresented - 1) / _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -2209,10 +2208,9 @@ class TrialHandlerExt(TrialHandler):
             nThisTrialPresented = numpy.sum(
                 self.data['ran'][firstRowIndex:lastRowIndex, :])
 
-            dataRowThisTrial = firstRowIndex + \
-                nThisTrialPresented % self.trialWeights[self.thisIndex]
-            dataColThisTrial = int(
-                nThisTrialPresented / self.trialWeights[self.thisIndex])
+            _tw = self.trialWeights[self.thisIndex]
+            dataRowThisTrial = firstRowIndex + nThisTrialPresented % _tw
+            dataColThisTrial = int(nThisTrialPresented / _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -2618,10 +2616,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     e.g.:
 
         - "1,2,4" or [1,2,4] or (1,2,4) are the same
-        - "2:5"       # 2,3,4 (doesn't include last whole value)
-        - "-10:2:"    #tenth from last to the last in steps of 2
-        - slice(-10,2,None) #the same as above
-        - random(5)*8 #5 random vals 0-8
+        - "2:5"       # 2, 3, 4 (doesn't include last whole value)
+        - "-10:2:"    # tenth from last to the last in steps of 2
+        - slice(-10, 2, None)  # the same as above
+        - random(5) * 8  # five random vals 0-8
 
     """
     def _assertValidVarNames(fieldNames, fileName):
@@ -3116,18 +3114,18 @@ class StairHandler(_BaseTrialHandler):
         StopIteration error. This can be handled with code such as::
 
             staircase = data.StairHandler(.......)
-            for eachTrial in staircase:#automatically stops when done
-                #do stuff
+            for eachTrial in staircase:  # automatically stops when done
+                # do stuff
 
         or::
 
             staircase = data.StairHandler(.......)
-            while True: #ie forever
+            while True:  # ie forever
                 try:
                     thisTrial = staircase.next()
-                except StopIteration:#we got a StopIteration error
-                    break #break out of the forever loop
-                #do stuff here for the trial
+                except StopIteration:  # we got a StopIteration error
+                    break  # break out of the forever loop
+                # do stuff here for the trial
 
         """
         if self.finished == False:
@@ -4073,13 +4071,13 @@ class MultiStairHandler(_BaseTrialHandler):
             for thisIntensity, thisCondition in stairs:
                 thisOri = thisCondition['ori']
 
-                #do something with thisIntensity and thisOri
+                # do something with thisIntensity and thisOri
 
-                stairs.addResponse(correctIncorrect)#this is ESSENTIAL
+                stairs.addResponse(correctIncorrect)  # this is ESSENTIAL
 
-            #save data as multiple formats
-            stairs.saveDataAsExcel(fileName)#easy to browse
-            stairs.saveAsPickle(fileName)#contains more info
+            # save data as multiple formats
+            stairs.saveDataAsExcel(fileName)  # easy to browse
+            stairs.saveAsPickle(fileName)  # contains more info
 
         """
         self.name = name
@@ -4175,18 +4173,18 @@ class MultiStairHandler(_BaseTrialHandler):
         This can be handled with code such as::
 
             staircase = data.MultiStairHandler(.......)
-            for eachTrial in staircase:#automatically stops when done
-                #do stuff here for the trial
+            for eachTrial in staircase:  # automatically stops when done
+                # do stuff here for the trial
 
         or::
 
             staircase = data.MultiStairHandler(.......)
-            while True: #ie forever
+            while True:  # ie forever
                 try:
                     thisTrial = staircase.next()
-                except StopIteration:#we got a StopIteration error
-                    break #break out of the forever loop
-                #do stuff here for the trial
+                except StopIteration:  # we got a StopIteration error
+                    break  # break out of the forever loop
+                # do stuff here for the trial
 
         """
         # create a new set for this pass if needed
@@ -4749,20 +4747,18 @@ class FitCumNormal(_baseFunctionFit):
         global _chance
         xx = numpy.asarray(xx)
         # NB numpy.special.erf() goes from -1:1
-        yy = _chance + \
-            (1 - _chance) * \
-            ((special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1) * 0.5)
+        yy = (_chance + (1 - _chance) *
+              ((special.erf((xx - xShift) / (numpy.sqrt(2) * sd)) + 1) * 0.5))
         return yy
 
     @staticmethod
     def _inverse(yy, xShift, sd):
         global _chance
         yy = numpy.asarray(yy)
-        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB
-        # numpy.special.erfinv() goes from -1:1
-        xx = xShift + \
-            numpy.sqrt(2) * sd * \
-            special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2)
+        # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
+        # NB: numpy.special.erfinv() goes from -1:1
+        xx = (xShift + numpy.sqrt(2) * sd *
+              special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2))
         return xx
 
 ######################### End psychopy.data classes #########################
