@@ -23,6 +23,7 @@ class ProjectsMenu(wx.Menu):
     _user = None
     app = None
     searchDlg = None
+    appData = None
 
     @classmethod
     def setUser(self, user):
@@ -36,8 +37,11 @@ class ProjectsMenu(wx.Menu):
             OSF username (email address) of the user
 
         """
+        if user == self._user:
+            return  # nothing to do here. Move along please.
         self._user = user
         self.app.osf_session = pyosf.Session(user)
+        self.appData['user'] = user
         if self.searchDlg is not None:
             self.searchDlg.updateUserProjs()
 
@@ -46,6 +50,7 @@ class ProjectsMenu(wx.Menu):
         self.parent = parent
         ProjectsMenu.app = parent.app
         keys = self.app.keys
+        ProjectsMenu.appData = self.app.prefs.appData['projects']
 
         if self.app.osf_session is None:
             # create a default (anonymous) session with osf
@@ -58,6 +63,9 @@ class ProjectsMenu(wx.Menu):
         else:
             self.knownUsers = pyosf.TokenStorage()  # a dict of name:token
         self.userMenu = wx.Menu()  # a sub-menu for usernames and login
+        # if a user was previously logged in then set them as current
+        if self.appData['user'] and self.appData['user'] in self.knownUsers:
+            ProjectsMenu.setUser(self.appData['user'])
         for name in self.knownUsers:
             self.addUserToSubMenu(name)
         self.userMenu.AppendSeparator()
@@ -184,7 +192,7 @@ class LogInDlg(wx.Dialog):
             session = pyosf.Session(username=username,
                                     password=pword, remember_me=rememberMe)
             self.app.osf_session = session
-            self.updateStatus("Successful authentication", color=(0, 255, 0))
+            self.updateStatus("Successful authentication", color=(0, 170, 0))
             time.sleep(0.5)
             self.Destroy()
         except pyosf.AuthError:
@@ -198,6 +206,7 @@ class LogInDlg(wx.Dialog):
         self.status.SetLabel(status)
         self.status.SetForegroundColour(color)  # set text color
         self.main_sizer.Fit(self)
+        self.Update()
 
 
 class SearchDlg(wx.Dialog):
@@ -209,13 +218,13 @@ class SearchDlg(wx.Dialog):
         title = "Search OSF (Open Science Framework)"
         wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.app = app
+        self.currentProject = None
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
 
         # create list of my projects (no search?)
         self.myProjectsPanel = ProjectListPanel(self, self.detailsPanel)
-        self.updateUserProjs()  # update the info in myProjectsPanel
 
         # create list of searchable public projects
         self.publicProjectsPanel = ProjectListPanel(self, self.detailsPanel)
@@ -231,12 +240,16 @@ class SearchDlg(wx.Dialog):
                       border=10)
         searchSizer = wx.BoxSizer(wx.HORIZONTAL)
         searchSizer.Add(wx.StaticText(self, -1, "Search Public:"))
-        self.searchTextCtrl = wx.TextCtrl(self, -1, "")
+        self.searchTextCtrl = wx.TextCtrl(self, -1, "",
+                                          style=wx.TE_PROCESS_ENTER)
+        self.searchTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
         searchSizer.Add(self.searchTextCtrl, flag=wx.EXPAND)
         leftSizer.Add(searchSizer)
         tagsSizer = wx.BoxSizer(wx.HORIZONTAL)
         tagsSizer.Add(wx.StaticText(self, -1, "Tags:"))
-        self.tagsTextCtrl = wx.TextCtrl(self, -1, "psychopy,")
+        self.tagsTextCtrl = wx.TextCtrl(self, -1, "psychopy,",
+                                        style=wx.TE_PROCESS_ENTER)
+        self.tagsTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
         tagsSizer.Add(self.tagsTextCtrl, flag=wx.EXPAND)
         leftSizer.Add(tagsSizer)
         leftSizer.Add(self.publicProjectsPanel,
@@ -247,15 +260,16 @@ class SearchDlg(wx.Dialog):
         # sizers: on the right we have detail
         rightSizer = wx.BoxSizer(wx.VERTICAL)
         rightSizer.Add(wx.StaticText(self, -1, "Project Info"),
-                       flag=wx.EXPAND | wx.ALL,
+                       flag=wx.ALL,
                        border=5)
         self.syncButton = wx.Button(self, -1, "Sync...")
         self.syncButton.Enable(False)
-        rightSizer.Add(self.syncButton)
-        self.Bind(wx.EVT_BUTTON, self.onSyncButton)
+        rightSizer.Add(self.syncButton,
+                       flag=wx.ALL, border=5)
+        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
         rightSizer.Add(self.detailsPanel,
                        proportion=1,
-                       flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
+                       flag=wx.EXPAND | wx.ALL,
                        border=10)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -266,11 +280,21 @@ class SearchDlg(wx.Dialog):
         aTable = wx.AcceleratorTable([(0,  wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
+        self.Show()
+        self.updateUserProjs()  # update the info in myProjectsPanel
 
     def onSyncButton(self, event):
-        index = self.myProjectsPanel.projView.GetFirstSelected()
-        projID = self.myProjectsPanel.projView.GetItemText(index)
-        print projID
+        if self.currentProject is None:
+            raise AttributeError("User pressed the sync button with no "
+                                 "searchDlg.currentProject existing. "
+                                 "Ask them how they managed that!")
+        proj = self.currentProject
+        if len(proj.title) > 20:
+            title = proj.title[:17]+"..."
+        else:
+            title = proj.title
+        syncFrame = ProjectSyncFrame(parent=self.app, id=-1,
+                         title=title)
 
     def updateUserProjs(self):
         if self.app.osf_session.user_id is None:
@@ -278,8 +302,23 @@ class SearchDlg(wx.Dialog):
                 "No user logged in. \n\n"
                 "Go to menu item Projects>Users>")
         else:
+            self.myProjectsPanel.setContents(
+                "Searching projects for user {} ..."
+                .format(self.app.osf_session.username))
+            self.Update()
+            wx.Yield()
             myProjs = self.app.osf_session.find_user_projects()
             self.myProjectsPanel.setContents(myProjs)
+
+    def onSearch(self, evt):
+        searchStr = self.searchTextCtrl.GetValue()
+        tagsStr = self.tagsTextCtrl.GetValue()
+        session = self.app.osf_session
+        self.publicProjectsPanel.setContents("searching...")
+        self.publicProjectsPanel.Update()
+        wx.Yield()
+        projs = session.find_projects(search_str=searchStr, tags=tagsStr)
+        self.publicProjectsPanel.setContents(projs)
 
 
 class ProjectListPanel(scrlpanel.ScrolledPanel):
@@ -334,7 +373,12 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
         projId = event.GetText()
         proj = self.knownProjects[projId]
         self.parent.detailsPanel.setProject(proj)
-        self.parent.syncButton.Enable(True)
+        if 'write' in proj.attributes['current_user_permissions']:
+            self.parent.syncButton.Enable(True)
+            self.parent.currentProject = proj
+        else:
+            self.parent.syncButton.Enable(False)
+            self.parent.currentProject = None
 
 
 class DetailsPanel(richtext.RichTextCtrl):
@@ -343,6 +387,7 @@ class DetailsPanel(richtext.RichTextCtrl):
         richtext.RichTextCtrl.__init__(self, parent, -1, style=style)
         self.parent = parent
         self.app = self.parent.app
+        self.currentProjID = None
 
         try:
             Style = richtext.TextAttrEx
@@ -355,7 +400,7 @@ class DetailsPanel(richtext.RichTextCtrl):
         self.urlStyle.SetFontUnderlined(True)
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
 
-        #style for headings
+        # style for headings
         self.h1 = Style()
         self.h1.SetFontSize(18)
         self.h1.SetFontWeight(2)
@@ -371,6 +416,9 @@ class DetailsPanel(richtext.RichTextCtrl):
         self.EndStyle()
 
         self.Newline()
+        self.BeginBold()
+        self.WriteText("URL: ")
+        self.EndBold()
         self.BeginStyle(self.urlStyle)
         self.BeginURL(url="https://osf.io/{}".format(project.id))
         self.WriteText("https://osf.io/{}".format(project.id))
@@ -378,9 +426,67 @@ class DetailsPanel(richtext.RichTextCtrl):
         self.EndStyle()
 
         self.Newline()
+        self.BeginBold()
+        self.WriteText("Tags: ")
+        self.EndBold()
+        self.WriteText(", ".join(project.attributes['tags']))
+
+        self.Newline()
+        self.BeginBold()
+        self.WriteText("Visibility: ")
+        self.EndBold()
+        if project.attributes['public'] is True:
+            visib = "Public"
+        else:
+            visib = "Private"
+        self.WriteText(visib)
+
+        # todo: could add various info here. Is this a fork? What are dates?
+        # more info in project.attributes
+        # Could also add authors, but that a session.request.get()
+
+        self.Newline()
         self.Newline()
 
-        self.WriteText(project.attributes['description'])
+        if project.attributes['description']:
+            self.WriteText(project.attributes['description'])
+
+        # store this ID to keep track of the current project
+        self.currentProj = project
 
     def OnURL(self, evt):
         self.app.followLink(url=evt.GetString())
+
+
+class ProjectSyncFrame(wx.Frame):
+
+    def __init__(self, parent, id, *args, **kwargs):
+        wx.Frame.__init__(self, parent=None, id=id, *args, **kwargs)
+        self.app = parent
+        self.Show()
+
+        remoteSizer = wx.BoxSizer(wx.HORIZONTAL)
+        remoteLabel = wx.StaticText(self, -1, "Remote:")
+        self.remoteURL = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
+        remoteSizer.Add(remoteLabel, border=5)
+        remoteSizer.Add(self.remoteURL, flag=wx.EXPAND, proportion=1, border=5)
+        localSizer = wx.BoxSizer(wx.HORIZONTAL)
+        localLabel = wx.StaticText(self, -1, "Local:")
+        self.localPath = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
+        localBrowseBtn = wx.Button(self, -1, "Browse...")
+        localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        localSizer.Add(localLabel, border=5)
+        localSizer.Add(self.localPath, flag=wx.EXPAND, proportion=1, border=5)
+        localSizer.Add(localBrowseBtn, border=5)
+
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(remoteSizer, flag=wx.EXPAND, border=10)
+        self.mainSizer.Add(localSizer, flag=wx.EXPAND, border=10)
+        self.SetSizerAndFit(self.mainSizer)
+        self.SetAutoLayout(True)
+
+    def setProject(self, proj):
+        pass
+
+    def onBrowseLocal(self, evt):
+        print("pressed local browse button")
