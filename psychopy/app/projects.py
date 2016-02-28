@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 import time
 import wx
-from wx.lib import scrolledpanel
+import wx.lib.scrolledpanel as scrlpanel
 from wx import richtext
 
 try:
@@ -17,7 +17,7 @@ except:
 from . import wxIDs
 from psychopy import logging, web
 from psychopy.app import dialogs
-from HTMLParser import HTMLParser
+
 
 class ProjectsMenu(wx.Menu):
     _user = None
@@ -27,8 +27,8 @@ class ProjectsMenu(wx.Menu):
     @classmethod
     def setUser(self, user):
         """
-        a classmethod allowing all instances of this class to update their username
-        lists in the submenu
+        a classmethod allowing all instances of this class to update their
+        username lists in the submenu
 
         Parameters
         ----------
@@ -61,12 +61,14 @@ class ProjectsMenu(wx.Menu):
         for name in self.knownUsers:
             self.addUserToSubMenu(name)
         self.userMenu.AppendSeparator()
-        self.userMenu.Append(wxIDs.projsNewUser, "Log in...\t{}".format(keys['projectsLogIn']))
+        self.userMenu.Append(wxIDs.projsNewUser,
+                             "Log in...\t{}".format(keys['projectsLogIn']))
         wx.EVT_MENU(parent, wxIDs.projsNewUser,  self.onLogIn)
 
         wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
         self.AppendSubMenu(self.userMenu, "User")
-        self.Append(wxIDs.projsSearch, "Search OSF\t{}".format(keys['projectFind']))
+        self.Append(wxIDs.projsSearch,
+                    "Search OSF\t{}".format(keys['projectFind']))
         wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
         self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
         wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
@@ -169,8 +171,10 @@ class LogInDlg(wx.Dialog):
         Check credentials and login
         """
         if not havePyosf:
-            dialogs.MessageDialog(parent=self.parent, type='Warning', title="pyosf not found",
-                                  message='You need pyosf to log in to Open Science Framework',
+            dialogs.MessageDialog(parent=self.parent, type='Warning',
+                                  title="pyosf not found",
+                                  message="You need pyosf to log in to "
+                                          "Open Science Framework",
                                   )
             return None
         username = self.username.GetValue()
@@ -210,13 +214,12 @@ class SearchDlg(wx.Dialog):
         self.detailsPanel = DetailsPanel(parent=self)
 
         # create list of my projects (no search?)
-        self.myProjectsPanel = ProjectsPanel(self, self.detailsPanel)
+        self.myProjectsPanel = ProjectListPanel(self, self.detailsPanel)
         self.updateUserProjs()  # update the info in myProjectsPanel
 
         # create list of searchable public projects
-        self.publicProjectsPanel = ProjectsPanel(self, self.detailsPanel)
+        self.publicProjectsPanel = ProjectListPanel(self, self.detailsPanel)
         self.publicProjectsPanel.setContents('')
-
 
         # sizers: on the left we have search boxes
         leftSizer = wx.BoxSizer(wx.VERTICAL)
@@ -279,13 +282,13 @@ class SearchDlg(wx.Dialog):
             self.myProjectsPanel.setContents(myProjs)
 
 
-class ProjectsPanel(scrolledpanel.ScrolledPanel):
+class ProjectListPanel(scrlpanel.ScrolledPanel):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
     def __init__(self, parent, detailsPanel):
-        scrolledpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
-                                        style=wx.SUNKEN_BORDER, name="Mine")
+        scrlpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
+                                         style=wx.SUNKEN_BORDER)
         self.parent = parent
         self.knownProjects = {}
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -307,7 +310,7 @@ class ProjectsPanel(scrolledpanel.ScrolledPanel):
         else:
             # a list of projects
             self.projView = wx.ListCtrl(parent=self,
-                         style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                                        style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
 
             # Give it some columns.
             # The ID col we'll customize a bit:
@@ -339,13 +342,21 @@ class DetailsPanel(richtext.RichTextCtrl):
     def __init__(self, parent, style=wx.VSCROLL | wx.NO_BORDER):
         richtext.RichTextCtrl.__init__(self, parent, -1, style=style)
         self.parent = parent
+        self.app = self.parent.app
 
-        self.urlStyle = richtext.TextAttrEx()
+        try:
+            Style = richtext.TextAttrEx
+        except AttributeError:
+            Style = richtext.RichTextAttr
+
+        # style for urls in the text (and bind to method)
+        self.urlStyle = Style()
         self.urlStyle.SetTextColour(wx.BLUE)
         self.urlStyle.SetFontUnderlined(True)
         self.Bind(wx.EVT_TEXT_URL, self.OnURL)
 
-        self.h1 = richtext.TextAttrEx()
+        #style for headings
+        self.h1 = Style()
         self.h1.SetFontSize(18)
         self.h1.SetFontWeight(2)
 
@@ -372,4 +383,4 @@ class DetailsPanel(richtext.RichTextCtrl):
         self.WriteText(project.attributes['description'])
 
     def OnURL(self, evt):
-        wx.MessageBox(evt.GetString(), "URL Clicked")
+        self.app.followLink(url=evt.GetString())
