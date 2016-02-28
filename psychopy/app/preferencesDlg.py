@@ -10,6 +10,7 @@ import copy
 
 from . import localization, dialogs
 from psychopy import logging
+from .localization import _translate
 
 # this will be overridden by the size of the scrolled panel making the prefs
 dlgSize = (520, 600)

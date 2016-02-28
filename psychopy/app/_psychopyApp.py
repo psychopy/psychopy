@@ -22,6 +22,7 @@ try:
     from agw import advancedsplash as AS
 except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
+from psychopy.app.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
 # e.g. coder and builder are imported during app.__init__ because they
 # take a while

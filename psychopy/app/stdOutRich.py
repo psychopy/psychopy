@@ -2,6 +2,7 @@ import wx
 import sys
 import re
 import wx.richtext
+from .localization import _translate
 
 
 class StdOutRich(wx.richtext.RichTextCtrl):

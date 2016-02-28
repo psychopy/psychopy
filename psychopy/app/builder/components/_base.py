@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from ..experiment import Param
 from ..components import getInitVals
 from psychopy.constants import FOREVER
+from ...localization import _translate
 
 # only use _localized values for label values, nothing functional
 _localized = {

@@ -32,6 +32,7 @@ import py_compile
 from . import psychoParser, introspect
 from .. import stdOutRich, dialogs
 from psychopy import logging
+from ..localization import _translate
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""

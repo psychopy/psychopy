@@ -2,6 +2,7 @@
 Module containing validators for various parameters.
 '''
 import wx
+from ..localization import _translate
 
 
 class NameValidator(wx.PyValidator):

@@ -4,6 +4,7 @@
 import pytest
 import locale
 from psychopy.app import localization
+from psychopy.app.localization import _translate
 
 welcome = u'Welcome to PsychoPy2!'
 trans = {'en': welcome,

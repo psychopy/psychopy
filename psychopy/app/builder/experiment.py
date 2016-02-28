@@ -28,10 +28,7 @@ import psychopy
 from psychopy import data, __version__, logging, constants
 from psychopy.constants import FOREVER
 
-try:
-    _translate  # is the app-global text translation function defined?
-except NameError:
-    from .. import localization
+from ..localization import _translate
 import locale
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()

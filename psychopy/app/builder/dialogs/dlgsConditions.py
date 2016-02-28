@@ -18,6 +18,7 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 
 from psychopy import gui
 from .. experiment import _valid_var_re, _nonalphanumeric_re
+from ...localization import _translate
 
 darkblue = wx.Colour(30, 30, 150, 255)
 darkgrey = wx.Colour(65, 65, 65, 255)

@@ -24,10 +24,7 @@ import codecs
 import re
 import numpy
 
-try:
-    _translate  # is the app-global text translation function defined?
-except NameError:
-    from .. import localization
+from ..localization import _translate
 
 from . import experiment, components
 from .. import stdOutRich, dialogs
