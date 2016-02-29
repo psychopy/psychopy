@@ -13,6 +13,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 from .. import DeviceEvent
 from ...constants import EventConstants
 from . import EyeTrackerDevice
+import numpy as np
 
 ##################### Eye Tracker Sample Stream Types ################################
 #
@@ -255,6 +256,68 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
 
         #: An available status byte for the eye tracker sample.
         #: Meaning is completely tracker dependent.        
+        self.status=None
+
+        DeviceEvent.__init__(self, *args, **kwargs)
+
+class EyeSampleEvent(EyeTrackerEvent):
+    """
+    A EyeSampleEvent reports minimal data regarding an eye sample, containing
+    a subset of the full MonocularEyeSampleEvent fields. Support for this event
+    type is optional. If requested but not supported, no events of this type
+    will be returned.
+
+    Both EyeSampleEvents and MonocularEyeSampleEvent /
+    BinocularEyeSampleEvents can be requested from the eye tracker,
+    although doing so is redundant and therefore not suggested. ;)
+
+    If binocular eye data is available from the device sample, left and right
+    eye data will be combined to provide a single x,y position and pupil size.
+    How the binocular eye data is combined into a EyeSampleEvent is
+    determined by each eye tracker interface.
+
+    Please refer to the implementation specific documentation for the
+    eye tracker of interest for more details.
+
+    Event Type ID: EventConstants.EYE_SAMPLE
+
+    Event Type String: 'EYE_SAMPLE'
+    """
+    _newDataTypes = [
+        ('x',np.float32), # The horizontal eye position. Unit type used is
+                          # implementation specific.
+
+        ('y',np.float32), # The vertical eye position. Unit type used is
+                          # implementation specific.
+
+        ('pupil',np.float32), # Pupil size or diameter.
+                              # Unit type used is implementation specific.
+
+        ('frame',np.uint64), # Device frame number for the sample.
+
+        ('status', np.uint32) # Status of the eye tracker sample.
+        ]
+
+    EVENT_TYPE_ID=EventConstants.EYE_SAMPLE
+    EVENT_TYPE_STRING="EYE_SAMPLE"
+    IOHUB_DATA_TABLE=EVENT_TYPE_STRING
+
+    __slots__=[e[0] for e in _newDataTypes]
+    def __init__(self, *args, **kwargs):
+        #: The horizontal eye position.
+        self.x=None
+
+        #: The vertical eye position.
+        self.y=None
+
+        #: Pupil size or diameter.
+        self.pupil=None
+
+        #: Device frame number for the sample.
+        self.frame=None
+
+        #: An available status byte for the eye tracker sample.
+        #: Meaning is completely tracker dependent.
         self.status=None
 
         DeviceEvent.__init__(self, *args, **kwargs)

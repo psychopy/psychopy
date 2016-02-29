@@ -127,7 +127,8 @@ try:
         SACCADE_END=56
         BLINK_START=57
         BLINK_END=58
-    
+        EYE_SAMPLE=59
+
         GAMEPAD_STATE_CHANGE=81
         GAMEPAD_DISCONNECT=82
 
@@ -215,7 +216,10 @@ try:
 
             #: Constant for an Eye Tracker Blink End Event.
             BLINK_END=58
-        
+
+            #: Constant for a Basic Eye Tracker Sample Event.
+            EYE_SAMPLE=59
+
             #: Constant for a Gamepad Event.
             GAMEPAD_STATE_CHANGE=81
 

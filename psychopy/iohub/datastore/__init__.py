@@ -39,9 +39,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '1.0.0.1'
+FILE_VERSION = '1.0.2'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'October 18th, 2015'
+SCHEMA_MODIFIED_DATE = 'February 26th, 2016'
 
         
 class ioHubpyTablesFile():
@@ -250,6 +250,12 @@ class ioHubpyTablesFile():
             pass
 
         try:
+            self.TABLES['EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.EyeSampleEvent
+        except Exception:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
             self.TABLES['BINOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.BinocularEyeSampleEvent
         except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
@@ -298,9 +304,6 @@ class ioHubpyTablesFile():
         self.emrtFile.SCHEMA_MODIFIED=SCHEMA_MODIFIED_DATE
         
         #CREATE GROUPS
-
-        #self.emrtFile.createGroup(self.emrtFile.root, 'analysis', title='Data Analysis Files, notebooks, scripts and saved results tables.')
-
         self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.createTable(self.emrtFile.root,'class_table_mapping', ClassTableMappings, title='Mapping of ioHub DeviceEvent Classes to ioHub DataStore Tables.')
 
         self.emrtFile.createGroup(self.emrtFile.root, 'data_collection', title='Data Collected using the ioHub Event Framework.')
@@ -350,6 +353,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['PSTBOX_BUTTON']=self.emrtFile.root.data_collection.events.serial
         self._eventGroupMappings['MESSAGE']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['LOG']=self.emrtFile.root.data_collection.events.experiment
+        self._eventGroupMappings['EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker
         self._eventGroupMappings['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker
         self._eventGroupMappings['BINOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker
         self._eventGroupMappings['FIXATION_START']=self.emrtFile.root.data_collection.events.eyetracker

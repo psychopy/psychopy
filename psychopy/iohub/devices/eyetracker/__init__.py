@@ -433,7 +433,7 @@ class EyeTrackerDevice(Device):
         """
         self.__class__._INSTANCE=None
         
-from eye_events import (MonocularEyeSampleEvent, BinocularEyeSampleEvent,
+from eye_events import (EyeSampleEvent, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
                         FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
                         SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)
         
