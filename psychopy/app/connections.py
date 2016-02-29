@@ -20,6 +20,7 @@ except ImportError:  # if it's not there locally, try the wxPython lib
 
 import psychopy
 from . import dialogs
+from .localization import _translate
 from psychopy import logging
 from psychopy import web
 py3 = web.py3

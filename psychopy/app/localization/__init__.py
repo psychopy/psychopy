@@ -128,8 +128,12 @@ trans.install(unicode=True)
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:
-__builtins__['_translate'] = _
-del(__builtins__['_'])  # idea: force psychopy code to use _translate
+# __builtins__['_translate'] = _
+# del(__builtins__['_'])  # idea: force psychopy code to use _translate
+
+# Feb 2016: require modules to explicitly import _translate from localization:
+_translate = _  # _ is created by gettext, in builtins namespace
+del(__builtins__['_'])
 
 
 # __builtins__['_'] = wx.GetTranslation

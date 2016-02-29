@@ -4,7 +4,7 @@
 
 from os import path
 
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 from ..experiment import CodeGenerationException, _valid_var_re
 
 # the absolute path to the folder containing this path

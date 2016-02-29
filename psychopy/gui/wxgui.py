@@ -10,7 +10,7 @@ from psychopy import logging
 import wx
 import numpy
 import os
-from psychopy.app import localization  # pylint: disable=W0611
+from psychopy.app.localization import _translate
 
 OK = wx.ID_OK
 

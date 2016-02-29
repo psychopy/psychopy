@@ -14,10 +14,11 @@ Sources:
 
 Intended usage:
   - early in loading the app, e.g., in _psychopyApp.PsychoPyApp.OnInit(), do:
-      from psychopy.app import localization
+      from psychopy.app.localization import _translate
     This should be done after importing wx
   - this will: 1) detect the system default or preferred (pref) locale;
-    2) initialize the locale setting globally; and 3) install _() function globally
+    2) initialize the locale setting globally; and 3) make _translate available
+    in the module. (Feb 2016: move away from using __builtins__._translate)
   - currently both the standard gettext and wxPython version are used
 
 Known limitations (July 2014):

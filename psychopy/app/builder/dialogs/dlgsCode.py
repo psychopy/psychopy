@@ -16,6 +16,7 @@ import wx
 from wx.lib import flatnotebook
 
 from .. import validators
+from ...localization import _translate
 
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
