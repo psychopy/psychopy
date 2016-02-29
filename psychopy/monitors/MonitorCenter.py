@@ -14,7 +14,7 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
-from psychopy.app import localization  # pylint: disable=W0611
+from psychopy.app.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 

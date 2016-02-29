@@ -5,7 +5,7 @@
 # Author: Jeremy R. Gray, 2012
 
 from os import path
-from _base import BaseComponent, Param, getInitVals
+from _base import BaseComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))

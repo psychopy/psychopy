@@ -4,7 +4,7 @@
 
 from os import path
 
-from .keyboard import KeyboardComponent, Param
+from .keyboard import KeyboardComponent, Param, _translate
 from ..experiment import _valid_var_re
 
 __author__ = 'Jeremy Gray'

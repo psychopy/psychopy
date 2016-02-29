@@ -22,6 +22,7 @@ from .. import validators, experiment
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from psychopy import data, logging
+from ...localization import _translate
 
 
 white = wx.Colour(255, 255, 255, 255)

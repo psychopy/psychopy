@@ -7,12 +7,9 @@ from __future__ import absolute_import
 import wx
 from wx.lib import platebtn, scrolledpanel
 try:
-    from wx.lib import flatnotebook
     from wx import aui
 except Exception:
-    from wx.lib.agw import flatnotebook
     import wx.lib.agw.aui as aui  # some versions of phoenix
-from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.stc
 
 import sys
@@ -24,11 +21,7 @@ import codecs
 import re
 import numpy
 
-try:
-    _translate  # is the app-global text translation function defined?
-except NameError:
-    from .. import localization
-    _translate = _translate
+from ..localization import _translate
 
 from . import experiment, components
 from .. import stdOutRich, dialogs
@@ -438,7 +431,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
         # draw entries on timeline (if they have some time definition)
-        if startTime != None and duration != None:
+        if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
             dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0),
@@ -834,7 +827,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             currRoutinePage.redrawRoutine()
             self.frame.addToUndoStack(
                 "ADD `%s` to `%s`" % (compName, currRoutine.name))
-            wasNotInFavs = (not newClassStr in self.favorites.getFavorites())
+            wasNotInFavs = (newClassStr not in self.favorites.getFavorites())
             self.favorites.promoteComponent(newClassStr, 1)
             # was that promotion enough to be a favorite?
             if wasNotInFavs and newClassStr in self.favorites.getFavorites():
@@ -1647,7 +1640,7 @@ class BuilderFrame(wx.Frame):
         tmp = []
         fhMax = self.fileHistoryMaxFiles
         for f in self.appData['fileHistory'][-3 * fhMax:]:
-            if not f in tmp:
+            if f not in tmp:
                 tmp.append(f)
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
@@ -1929,9 +1922,6 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
 
-        # provide a finished... message
-        msg = "\n" + " Finished ".center(80, "#")  # 80 chars padded with #
-
         # then return stdout to its org location
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
@@ -2126,15 +2116,3 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
-
-
-def appDataToFrames(prefs):
-    """Takes the standard PsychoPy prefs and returns a list of appData
-    dictionaries, for the Builder frames.
-    (Needed because prefs stores a dict of lists, but we need a list of dicts)
-    """
-    dat = prefs.appData['builder']
-
-
-def framesToAppData(prefs):
-    pass

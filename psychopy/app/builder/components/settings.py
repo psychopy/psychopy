@@ -1,7 +1,7 @@
 import os
 import wx
 import copy
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 from psychopy import logging
 
 # this is not a standard component - it will appear on toolbar not in

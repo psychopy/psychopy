@@ -280,7 +280,7 @@ class SearchDlg(wx.Dialog):
         aTable = wx.AcceleratorTable([(0,  wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
-        self.Show()
+        self.Show()  # show the window before doing search/updates
         self.updateUserProjs()  # update the info in myProjectsPanel
 
     def onSyncButton(self, event):
@@ -490,3 +490,4 @@ class ProjectSyncFrame(wx.Frame):
 
     def onBrowseLocal(self, evt):
         print("pressed local browse button")
+
