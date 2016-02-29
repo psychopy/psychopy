@@ -42,7 +42,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.title = title
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
-        self.code_gui_elements = {}
+        self.codeGuiElements = {}
         if not editing and 'name' in self.params.keys():
             # then we're adding a new component so ensure a valid name:
             makeValid = self.frame.exp.namespace.makeValid
@@ -55,54 +55,54 @@ class DlgCodeComponentProperties(wx.Dialog):
         if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
-                                                       style=agwStyle)
+        self.codeSections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
+                                                      style=agwStyle)
 
         openToPage = 0
         for idx, pkey in enumerate(self.order):
             param = self.params.get(pkey)
             if pkey == 'name':
-                self.name_label = wx.StaticText(self, wx.ID_ANY, param.label)
+                self.nameLabel = wx.StaticText(self, wx.ID_ANY, param.label)
                 _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
-                self.component_name = wx.TextCtrl(self, wx.ID_ANY,
-                                                  unicode(param.val),
-                                                  style=_style)
-                self.component_name.SetToolTipString(param.hint)
-                self.component_name.SetValidator(validators.NameValidator())
+                self.componentName = wx.TextCtrl(self, wx.ID_ANY,
+                                                 unicode(param.val),
+                                                 style=_style)
+                self.componentName.SetToolTipString(param.hint)
+                self.componentName.SetValidator(validators.NameValidator())
                 self.nameOKlabel = wx.StaticText(self, -1, '',
                                                  style=wx.ALIGN_RIGHT)
                 self.nameOKlabel.SetForegroundColour(wx.RED)
             else:
                 guikey = pkey.replace(' ', '_')
-                _param = self.code_gui_elements.setdefault(guikey, dict())
+                _param = self.codeGuiElements.setdefault(guikey, dict())
 
-                _section = wx.Panel(self.code_sections, wx.ID_ANY)
+                _section = wx.Panel(self.codeSections, wx.ID_ANY)
                 _panel = _param.setdefault(guikey + '_panel', _section)
-                code_box = _param.setdefault(guikey + '_codebox',
+                _codeBox = _param.setdefault(guikey + '_codebox',
                                              CodeBox(_panel, wx.ID_ANY,
                                                      pos=wx.DefaultPosition,
                                                      style=0,
                                                      prefs=self.app.prefs))
                 if len(param.val):
-                    code_box.AddText(unicode(param.val))
+                    _codeBox.AddText(unicode(param.val))
                 if len(param.val.strip()) and not openToPage:
                     # index of first non-blank page
                     openToPage = idx
 
         if self.helpUrl is not None:
-            self.help_button = wx.Button(self, wx.ID_HELP,
-                                         _translate(" Help "))
+            self.helpButton = wx.Button(self, wx.ID_HELP,
+                                        _translate(" Help "))
             tip = _translate("Go to online help about this component")
-            self.help_button.SetToolTip(wx.ToolTip(tip))
-        self.ok_button = wx.Button(self, wx.ID_OK, _translate(" OK "))
-        self.ok_button.SetDefault()
-        self.cancel_button = wx.Button(self, wx.ID_CANCEL,
-                                       _translate(" Cancel "))
+            self.helpButton.SetToolTip(wx.ToolTip(tip))
+        self.okButton = wx.Button(self, wx.ID_OK, _translate(" OK "))
+        self.okButton.SetDefault()
+        self.cancelButton = wx.Button(self, wx.ID_CANCEL,
+                                      _translate(" Cancel "))
         self.__set_properties()
         self.__do_layout()
-        self.code_sections.SetSelection(max(0, openToPage - 1))
+        self.codeSections.SetSelection(max(0, openToPage - 1))
 
-        self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.help_button)
+        self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
 
         # do show and process return
         ret = self.ShowModal()
@@ -128,37 +128,37 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.SetSize((640, 480))
 
     def __do_layout(self):
-        for param_name in self.order:
-            if param_name.lower() != 'name':
-                guikey = param_name.replace(' ', '_')
-                param_gui_dict = self.code_gui_elements.get(guikey)
-                asizer = param_gui_dict.setdefault(
+        for paramName in self.order:
+            if paramName.lower() != 'name':
+                guikey = paramName.replace(' ', '_')
+                paramGuiDict = self.codeGuiElements.get(guikey)
+                asizer = paramGuiDict.setdefault(
                     guikey + '_sizer', wx.BoxSizer(wx.VERTICAL))
-                asizer.Add(param_gui_dict.get(
+                asizer.Add(paramGuiDict.get(
                     guikey + '_codebox'), 1, wx.EXPAND, 0)
-                param_gui_dict.get(guikey + '_panel').SetSizer(asizer)
-                self.code_sections.AddPage(param_gui_dict.get(
-                    guikey + '_panel'), _translate(param_name))
+                paramGuiDict.get(guikey + '_panel').SetSizer(asizer)
+                self.codeSections.AddPage(paramGuiDict.get(
+                    guikey + '_panel'), _translate(paramName))
 
-        name_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        name_sizer.Add(self.name_label, 0, wx.ALL, 10)
-        name_sizer.Add(self.component_name, 0, wx.BOTTOM | wx.TOP, 10)
-        name_sizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
+        nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        nameSizer.Add(self.nameLabel, 0, wx.ALL, 10)
+        nameSizer.Add(self.componentName, 0, wx.BOTTOM | wx.TOP, 10)
+        nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
 
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(name_sizer)
-        sizer_1.Add(self.code_sections, 1, wx.EXPAND | wx.ALL, 10)
-        sizer_2.Add(self.help_button, 0, wx.RIGHT, 10)
-        sizer_2.Add(self.ok_button, 0, wx.LEFT, 10)
-        sizer_2.Add(self.cancel_button, 0, 0, 0)
-        sizer_1.Add(sizer_2, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
-        self.SetSizer(sizer_1)
+        sizer1 = wx.BoxSizer(wx.VERTICAL)
+        sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer1.Add(nameSizer)
+        sizer1.Add(self.codeSections, 1, wx.EXPAND | wx.ALL, 10)
+        sizer2.Add(self.helpButton, 0, wx.RIGHT, 10)
+        sizer2.Add(self.okButton, 0, wx.LEFT, 10)
+        sizer2.Add(self.cancelButton, 0, 0, 0)
+        sizer1.Add(sizer2, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+        self.SetSizer(sizer1)
         self.Layout()
         self.Center()
 
     def getParams(self):
-        """retrieves data from any fields in self.code_gui_elements
+        """retrieves data from any fields in self.codeGuiElements
         (populated during the __init__ function)
 
         The new data from the dlg get inserted back into the original params
@@ -168,13 +168,13 @@ class DlgCodeComponentProperties(wx.Dialog):
         for fieldName in self.params.keys():
             param = self.params[fieldName]
             if fieldName == 'name':
-                param.val = self.component_name.GetValue()
+                param.val = self.componentName.GetValue()
             else:
                 guikey = fieldName.replace(' ', '_')
-                cb_gui_el = guikey + '_codebox'
-                if guikey in self.code_gui_elements:
-                    gkey = self.code_gui_elements.get(guikey)
-                    param.val = gkey.get(cb_gui_el).GetText()
+                codeBox = guikey + '_codebox'
+                if guikey in self.codeGuiElements:
+                    gkey = self.codeGuiElements.get(guikey)
+                    param.val = gkey.get(codeBox).GetText()
         return self.params
 
     def helpButtonHandler(self, event):
