@@ -1376,14 +1376,14 @@ class DeviceEvent(ioObject):
 
     _baseDataTypes=ioObject._baseDataTypes
     _newDataTypes=[
-                ('experiment_id',N.uint32), # The ioDataStore experiment ID assigned to the experiment code
+                ('experiment_id',N.uint8), # The ioDataStore experiment ID assigned to the experiment code
                                             # specified in the experiment configuration file for the experiment.
 
-                ('session_id',N.uint32),    # The ioDataStore session ID assigned to the currently running
+                ('session_id',N.uint8),    # The ioDataStore session ID assigned to the currently running
                                             # experiment session. Each time the experiment script is run,
                                             # a new session id is generated for use within the hdf5 file.
 
-                ('device_id',N.uint16),     # The unique id assigned to the device that generated the event.
+                ('device_id',N.uint8),     # The unique id assigned to the device that generated the event.
                                             # CUrrrently not used, but will be in the future for device types that
                                             # support > one instance of that device type to be enabled
                                             # during an experiment. Currenly only one device of a given type
@@ -1398,19 +1398,19 @@ class DeviceEvent(ioObject):
                                             # or dictionary representations of an event based on the data from an
                                             # event value list.
 
-                ('device_time',N.float32),   # If the device that generates the given device event type also time stamps
+                ('device_time',N.float64),   # If the device that generates the given device event type also time stamps
                                             # events, this field is the time of the event as given by the device,
                                             # converted to sec.msec-usec for consistency with all other ioHub device times.
                                             # If the device that generates the given event type does not time stamp
                                             # events, then the device_time is set to the logged_time for the event.
 
-                ('logged_time', N.float32),  # The sec time that the event was 'received' by the ioHub Server Process.
+                ('logged_time', N.float64),  # The sec time that the event was 'received' by the ioHub Server Process.
                                             # For devices that poll for events, this is the sec time that the poll
                                             # method was called for the device and the event was retrieved. For
                                             # devices that use the event callback, this is the sec time the callback
                                             # executed and accept the event. Time is in sec.msec-usec
 
-                ('time',N.float32),         # Time is in the normalized time base that all events share,
+                ('time',N.float64),         # Time is in the normalized time base that all events share,
                                             # regardless of device type. Time is calculated differently depending
                                             # on the device and perhaps event type.
                                             # Time is what should be used when comparing times of events across
