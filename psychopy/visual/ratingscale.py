@@ -515,9 +515,9 @@ class RatingScale(MinimalStim):
             win=self.win, visible=bool(not self.noMouse))
         # Mouse-click-able 'accept' button pulsates (cycles its brightness
         # over frames):
-        frames_per_cycle = 100
+        framesPerCycle = 100
         self.pulseColor = [0.6 + 0.22 * float(numpy.cos(i / 15.65))
-                           for i in range(frames_per_cycle)]
+                           for i in range(framesPerCycle)]
 
     def _initPosScale(self, pos, size, stretch, log=True):
         """position (x,y) and size (magnification) of the rating scale

@@ -27,7 +27,7 @@ _nImageResizes = 0
 try:
     import matplotlib
     if matplotlib.__version__ > '1.2':
-        from matplotlib.path import Path as mpl_Path
+        from matplotlib.path import Path as mplPath
     else:
         from matplotlib import nxutils
     haveMatplotlib = True
@@ -57,7 +57,7 @@ def pointInPolygon(x, y, poly):
     # faster if have matplotlib tools:
     if haveMatplotlib:
         if matplotlib.__version__ > '1.2':
-            return mpl_Path(poly).contains_point([x, y])
+            return mplPath(poly).contains_point([x, y])
         else:
             try:
                 return bool(nxutils.pnpoly(x, y, poly))
@@ -101,9 +101,9 @@ def polygonsOverlap(poly1, poly2):
     # faster if have matplotlib tools:
     if haveMatplotlib:
         if matplotlib.__version__ > '1.2':
-            if any(mpl_Path(poly1).contains_points(poly2)):
+            if any(mplPath(poly1).contains_points(poly2)):
                 return True
-            return any(mpl_Path(poly2).contains_points(poly1))
+            return any(mplPath(poly2).contains_points(poly1))
         else:
             try:  # deprecated in matplotlib 1.2
                 if any(nxutils.points_inside_poly(poly1, poly2)):

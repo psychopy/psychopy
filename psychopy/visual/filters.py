@@ -130,33 +130,33 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
     elif shape == 'gauss':
         outArray = makeGauss(rad, mean=0.0, sd=0.33333)
     elif shape == 'raisedCosine':
-        hamming_len = 1000  # This affects the 'granularity' of the raised cos
-        fringe_proportion = fringeWidth  # This one affects the proportion of
+        hammingLen = 1000  # This affects the 'granularity' of the raised cos
+        fringeProportion = fringeWidth  # This one affects the proportion of
         # the stimulus diameter that is devoted to the raised cosine.
 
         rad = makeRadialMatrix(matrixSize, center, radius)
         outArray = numpy.zeros_like(rad)
         outArray[numpy.where(rad < 1)] = 1
-        raised_cos_idx = numpy.where(
-            [numpy.logical_and(rad <= 1, rad >= 1 - fringe_proportion)])[1:]
+        raisedCosIdx = numpy.where(
+            [numpy.logical_and(rad <= 1, rad >= 1 - fringeProportion)])[1:]
 
         # Make a raised_cos (half a hamming window):
-        raised_cos = numpy.hamming(hamming_len)[:hamming_len / 2]
-        raised_cos -= numpy.min(raised_cos)
-        raised_cos /= numpy.max(raised_cos)
+        raisedCos = numpy.hamming(hammingLen)[:hammingLen / 2]
+        raisedCos -= numpy.min(raisedCos)
+        raisedCos /= numpy.max(raisedCos)
 
         # Measure the distance from the edge - this is your index into the
         # hamming window:
-        d_from_edge = numpy.abs((1 - fringe_proportion) - rad[raised_cos_idx])
-        d_from_edge /= numpy.max(d_from_edge)
-        d_from_edge *= numpy.round(hamming_len / 2)
+        dFromEdge = numpy.abs((1 - fringeProportion) - rad[raisedCosIdx])
+        dFromEdge /= numpy.max(dFromEdge)
+        dFromEdge *= numpy.round(hammingLen / 2)
 
         # This is the indices into the hamming (larger for small distances
         # from the edge!):
-        portion_idx = (-1 * d_from_edge).astype(int)
+        portion_idx = (-1 * dFromEdge).astype(int)
 
         # Apply the raised cos to this portion:
-        outArray[raised_cos_idx] = raised_cos[portion_idx]
+        outArray[raisedCosIdx] = raisedCos[portion_idx]
 
         # Sometimes there are some remaining artifacts from this process, get
         # rid of them:
