@@ -303,14 +303,14 @@ class MainFrame(wx.Frame):
         infoBoxSizer = wx.StaticBoxSizer(infoBox, wx.VERTICAL)
 
         # scr distance
-        labl_scrDist = wx.StaticText(parent, -1,
+        labelScrDist = wx.StaticText(parent, -1,
                                      _translate("Screen Distance (cm):"),
                                      style=wx.ALIGN_RIGHT)
         self.ctrlScrDist = wx.TextCtrl(parent, idCtrlScrDist, "")
         wx.EVT_TEXT(self, idCtrlScrDist, self.onChangeScrDist)
 
         # scr width
-        labl_scrWidth = wx.StaticText(parent, -1,
+        labelScrWidth = wx.StaticText(parent, -1,
                                       _translate("Screen Width (cm):"),
                                       style=wx.ALIGN_RIGHT)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
@@ -318,7 +318,7 @@ class MainFrame(wx.Frame):
 
         # scr pixels
         _size = _translate("Size (pixels; Horiz,Vert):")
-        labl_ScrPixels = wx.StaticText(parent, -1, _size,
+        labelScrPixels = wx.StaticText(parent, -1, _size,
                                        style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50, 20))
         wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(),
@@ -330,14 +330,14 @@ class MainFrame(wx.Frame):
         ScrPixelsSizer.AddMany([self.ctrlScrPixHoriz, self.ctrlScrPixVert])
 
         # date
-        labl_calibDate = wx.StaticText(parent, -1,
+        labelCalibDate = wx.StaticText(parent, -1,
                                        _translate("Calibration Date:"),
                                        style=wx.ALIGN_RIGHT)
         self.ctrlCalibDate = wx.TextCtrl(parent, idCtrlCalibDate, "",
                                          size=(150, 20))
         self.ctrlCalibDate.Disable()
         # notes
-        labl_calibNotes = wx.StaticText(parent, -1,
+        labelCalibNotes = wx.StaticText(parent, -1,
                                         _translate("Notes:"),
                                         style=wx.ALIGN_RIGHT)
         self.ctrlCalibNotes = wx.TextCtrl(parent, idCtrlCalibNotes, "",
@@ -353,15 +353,15 @@ class MainFrame(wx.Frame):
         infoBoxGrid.AddMany([
             (1, 10), (1, 10),  # a pair of empty boxes each 1x10pix
             (1, 10), self.ctrlUseBits,
-            labl_scrDist, self.ctrlScrDist,
-            labl_ScrPixels, ScrPixelsSizer,
-            labl_scrWidth, self.ctrlScrWidth,
-            labl_calibDate, self.ctrlCalibDate
+            labelScrDist, self.ctrlScrDist,
+            labelScrPixels, ScrPixelsSizer,
+            labelScrWidth, self.ctrlScrWidth,
+            labelCalibDate, self.ctrlCalibDate
         ])
         infoBoxGrid.Layout()
         infoBoxSizer.Add(infoBoxGrid)
         # put the notes box below the main grid sizer
-        infoBoxSizer.Add(labl_calibNotes)
+        infoBoxSizer.Add(labelCalibNotes)
         infoBoxSizer.Add(self.ctrlCalibNotes, 1, wx.EXPAND)
         return infoBoxSizer
 

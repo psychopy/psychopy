@@ -1066,19 +1066,19 @@ class BuilderFrame(wx.Frame):
         join = os.path.join
         PNG = wx.BITMAP_TYPE_PNG
         tbSize = toolbarSize
-        new_bmp = wx.Bitmap(join(rc, 'filenew%i.png' % tbSize), PNG)
-        open_bmp = wx.Bitmap(join(rc, 'fileopen%i.png' % tbSize), PNG)
-        save_bmp = wx.Bitmap(join(rc, 'filesave%i.png' % tbSize), PNG)
-        saveAs_bmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % tbSize), PNG)
-        undo_bmp = wx.Bitmap(join(rc, 'undo%i.png' % tbSize), PNG)
-        redo_bmp = wx.Bitmap(join(rc, 'redo%i.png' % tbSize), PNG)
-        stop_bmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
-        run_bmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
-        compile_bmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
-        settings_bmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
-        preferences_bmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
+        newBmp = wx.Bitmap(join(rc, 'filenew%i.png' % tbSize), PNG)
+        openBmp = wx.Bitmap(join(rc, 'fileopen%i.png' % tbSize), PNG)
+        saveBmp = wx.Bitmap(join(rc, 'filesave%i.png' % tbSize), PNG)
+        saveAsBmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % tbSize), PNG)
+        undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % tbSize), PNG)
+        redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % tbSize), PNG)
+        stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % tbSize), PNG)
+        runBmp = wx.Bitmap(join(rc, 'run%i.png' % tbSize), PNG)
+        compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
+        settingsBmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
+        preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
                                     PNG)
-        monitors_bmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
+        monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
 
         ctrlKey = 'Ctrl+'  # OS-dependent tool-tips
         if sys.platform == 'darwin':
@@ -1088,60 +1088,60 @@ class BuilderFrame(wx.Frame):
         keys = {k: self.app.keys[k].replace('Ctrl+', ctrlKey)
                 for k in self.app.keys}
 
-        tb.AddSimpleTool(self.IDs.tbFileNew, new_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileNew, newBmp,
                          _translate("New [%s]") % keys['new'],
                          _translate("Create new experiment file"))
         tb.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, id=self.IDs.tbFileNew)
-        tb.AddSimpleTool(self.IDs.tbFileOpen, open_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileOpen, openBmp,
                          _translate("Open [%s]") % keys['open'],
                          _translate("Open an existing experiment file"))
         tb.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
-        tb.AddSimpleTool(self.IDs.tbFileSave, save_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileSave, saveBmp,
                          _translate("Save [%s]") % keys['save'],
                          _translate("Save current experiment file"))
         tb.EnableTool(self.IDs.tbFileSave, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
-        tb.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileSaveAs, saveAsBmp,
                          _translate("Save As... [%s]") % keys['saveAs'],
                          _translate("Save current experiment file as..."))
         tb.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
-        tb.AddSimpleTool(self.IDs.tbUndo, undo_bmp,
+        tb.AddSimpleTool(self.IDs.tbUndo, undoBmp,
                          _translate("Undo [%s]") % keys['undo'],
                          _translate("Undo last action"))
         tb.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
-        tb.AddSimpleTool(self.IDs.tbRedo, redo_bmp,
+        tb.AddSimpleTool(self.IDs.tbRedo, redoBmp,
                          _translate("Redo [%s]") % keys['redo'],
                          _translate("Redo last action"))
         tb.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         tb.AddSeparator()
         tb.AddSeparator()
-        tb.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp,
+        tb.AddSimpleTool(self.IDs.tbPreferences, preferencesBmp,
                          _translate("Preferences"),
                          _translate("Application preferences"))
         tb.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
-        tb.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp,
+        tb.AddSimpleTool(self.IDs.tbMonitorCenter, monitorsBmp,
                          _translate("Monitor Center"),
                          _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter,
                 id=self.IDs.tbMonitorCenter)
         tb.AddSeparator()
         tb.AddSeparator()
-        tb.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp,
+        tb.AddSimpleTool(self.IDs.tbExpSettings, settingsBmp,
                          _translate("Experiment Settings"),
                          _translate("Settings for this exp"))
         tb.Bind(wx.EVT_TOOL, self.setExperimentSettings,
                 id=self.IDs.tbExpSettings)
-        tb.AddSimpleTool(self.IDs.tbCompile, compile_bmp,
+        tb.AddSimpleTool(self.IDs.tbCompile, compileBmp,
                          _translate("Compile Script [%s]") %
                          keys['compileScript'],
                          _translate("Compile to script"))
         tb.Bind(wx.EVT_TOOL, self.compileScript,
                 id=self.IDs.tbCompile)
-        tb.AddSimpleTool(self.IDs.tbRun, run_bmp,
+        tb.AddSimpleTool(self.IDs.tbRun, runBmp,
                          _translate("Run [%s]") % keys['runScript'],
                          _translate("Run experiment"))
         tb.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
-        tb.AddSimpleTool(self.IDs.tbStop, stop_bmp,
+        tb.AddSimpleTool(self.IDs.tbStop, stopBmp,
                          _translate("Stop [%s]") % keys['stopScript'],
                          _translate("Stop experiment"))
         tb.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)

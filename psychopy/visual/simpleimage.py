@@ -27,7 +27,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.attributetools import setAttribute, attributeSetter
 from psychopy.visual.basevisual import MinimalStim, WindowMixin
-from . import glob_vars
+from . import globalVars
 
 try:
     from PIL import Image

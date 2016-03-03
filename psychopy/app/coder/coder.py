@@ -1790,17 +1790,17 @@ class CoderFrame(wx.Frame):
         join = os.path.join
         PNG = wx.BITMAP_TYPE_PNG
         size = toolbarSize
-        new_bmp = wx.Bitmap(join(rc, 'filenew%i.png' % size), PNG)
-        open_bmp = wx.Bitmap(join(rc, 'fileopen%i.png' % size), PNG)
-        save_bmp = wx.Bitmap(join(rc, 'filesave%i.png' % size), PNG)
-        saveAs_bmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % size), PNG)
-        undo_bmp = wx.Bitmap(join(rc, 'undo%i.png' % size), PNG)
-        redo_bmp = wx.Bitmap(join(rc, 'redo%i.png' % size), PNG)
-        stop_bmp = wx.Bitmap(join(rc, 'stop%i.png' % size), PNG)
-        run_bmp = wx.Bitmap(join(rc, 'run%i.png' % size), PNG)
-        preferences_bmp = wx.Bitmap(join(rc, 'preferences%i.png' % size), PNG)
-        monitors_bmp = wx.Bitmap(join(rc, 'monitors%i.png' % size), PNG)
-        colorpicker_bmp = wx.Bitmap(join(rc, 'color%i.png' % size), PNG)
+        newBmp = wx.Bitmap(join(rc, 'filenew%i.png' % size), PNG)
+        openBmp = wx.Bitmap(join(rc, 'fileopen%i.png' % size), PNG)
+        saveBmp = wx.Bitmap(join(rc, 'filesave%i.png' % size), PNG)
+        saveAsBmp = wx.Bitmap(join(rc, 'filesaveas%i.png' % size), PNG)
+        undoBmp = wx.Bitmap(join(rc, 'undo%i.png' % size), PNG)
+        redoBmp = wx.Bitmap(join(rc, 'redo%i.png' % size), PNG)
+        stopBmp = wx.Bitmap(join(rc, 'stop%i.png' % size), PNG)
+        runBmp = wx.Bitmap(join(rc, 'run%i.png' % size), PNG)
+        preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % size), PNG)
+        monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % size), PNG)
+        colorpickerBmp = wx.Bitmap(join(rc, 'color%i.png' % size), PNG)
 
         # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin':
@@ -1809,50 +1809,50 @@ class CoderFrame(wx.Frame):
             ctrlKey = 'Ctrl+'
         tb = self.toolbar
         key = _translate("New [%s]") % self.app.keys['new']
-        tb.AddSimpleTool(self.IDs.tbFileNew, new_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileNew, newBmp,
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Create new python file"))
         tb.Bind(wx.EVT_TOOL, self.fileNew, id=self.IDs.tbFileNew)
         key = _translate("Open [%s]") % self.app.keys['open']
-        tb.AddSimpleTool(self.IDs.tbFileOpen, open_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileOpen, openBmp,
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Open an existing file"))
         tb.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
         key = _translate("Save [%s]") % self.app.keys['save']
-        tb.AddSimpleTool(self.IDs.tbFileSave, save_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileSave, saveBmp,
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Save current file"))
         tb.EnableTool(self.IDs.tbFileSave, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
         key = _translate("Save As... [%s]") % self.app.keys['saveAs']
-        tb.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp,
+        tb.AddSimpleTool(self.IDs.tbFileSaveAs, saveAsBmp,
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Save current python file as..."))
         tb.Bind(wx.EVT_TOOL, self.fileSaveAs,
                 id=self.IDs.tbFileSaveAs)
         key = _translate("Undo [%s]") % self.app.keys['undo']
-        tb.AddSimpleTool(self.IDs.tbUndo, undo_bmp,
+        tb.AddSimpleTool(self.IDs.tbUndo, undoBmp,
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Undo last action"))
         tb.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
         key = _translate("Redo [%s]") % self.app.keys['redo']
-        tb.AddSimpleTool(self.IDs.tbRedo, redo_bmp,
+        tb.AddSimpleTool(self.IDs.tbRedo, redoBmp,
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Redo last action"))
         tb.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         tb.AddSeparator()
         tb.AddSeparator()
-        tb.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp,
+        tb.AddSimpleTool(self.IDs.tbPreferences, preferencesBmp,
                          _translate("Preferences"),
                          _translate("Application preferences"))
         tb.Bind(wx.EVT_TOOL, self.app.showPrefs,
                 id=self.IDs.tbPreferences)
-        tb.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp,
+        tb.AddSimpleTool(self.IDs.tbMonitorCenter, monitorsBmp,
                          _translate("Monitor Center"),
                          _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter,
                 id=self.IDs.tbMonitorCenter)
-        tb.AddSimpleTool(self.IDs.tbColorPicker, colorpicker_bmp,
+        tb.AddSimpleTool(self.IDs.tbColorPicker, colorpickerBmp,
                          _translate("Color Picker -> clipboard"),
                          _translate("Color Picker -> clipboard"))
         tb.Bind(wx.EVT_TOOL, self.app.colorPicker,
@@ -1860,12 +1860,12 @@ class CoderFrame(wx.Frame):
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
         key = _translate("Run [%s]") % self.app.keys['runScript']
-        self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp,
+        self.toolbar.AddSimpleTool(self.IDs.tbRun, runBmp,
                                    key.replace('Ctrl+', ctrlKey),
                                    _translate("Run current script"))
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
         key = _translate("Stop [%s]") % self.app.keys['stopScript']
-        self.toolbar.AddSimpleTool(self.IDs.tbStop, stop_bmp,
+        self.toolbar.AddSimpleTool(self.IDs.tbStop, stopBmp,
                                    key.replace('Ctrl+', ctrlKey),
                                    _translate("Stop current script"))
         tb.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.tbStop)

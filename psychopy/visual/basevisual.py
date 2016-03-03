@@ -37,7 +37,7 @@ from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix
-from . import glob_vars
+from . import globalVars
 
 import numpy
 from numpy import pi
@@ -817,13 +817,13 @@ class TextureMixin(object):
                 if im.size[0] != powerOf2 or im.size[1] != powerOf2:
                     if not forcePOW2:
                         notSqr = True
-                    elif glob_vars.nImageResizes < reportNImageResizes:
+                    elif globalVars.nImageResizes < reportNImageResizes:
                         msg = ("Image '%s' was not a square power-of-two ' "
                                "'image. Linearly interpolating to be %ix%i")
                         logging.warning(msg % (tex, powerOf2, powerOf2))
-                        glob_vars.nImageResizes += 1
+                        globalVars.nImageResizes += 1
                         im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
-                    elif glob_vars.nImageResizes == reportNImageResizes:
+                    elif globalVars.nImageResizes == reportNImageResizes:
                         logging.warning("Multiple images have needed resizing"
                                         " - I'll stop bothering you!")
                         im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
@@ -1146,9 +1146,9 @@ class WindowMixin(object):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != glob_vars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType == 'pyglet':
             win.winHandle.switch_to()
-            glob_vars.currWindow = win
+            globalVars.currWindow = win
 
     def _updateList(self):
         """The user shouldn't need this method since it gets called

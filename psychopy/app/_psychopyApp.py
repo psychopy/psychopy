@@ -490,13 +490,13 @@ class PsychoPyApp(wx.App):
                         wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
                         wx.TheClipboard.Close()
                 dlg.Destroy()
-                parent.new_rgb = rgb
+                parent.newRBG = rgb
         frame = wx.Frame(None, wx.ID_ANY, "Color picker",
                          size=(0, 0))  # not shown
         ColorPicker(frame)
-        new_rgb = frame.new_rgb
+        newRBG = frame.newRBG
         frame.Destroy()
-        return new_rgb  # string
+        return newRBG  # string
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
@@ -529,10 +529,10 @@ class PsychoPyApp(wx.App):
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(1.0)
-            iohub_address = '127.0.0.1', 9034
+            iohubAddress = '127.0.0.1', 9034
             import msgpack
-            tx_data = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
-            return sock.sendto(tx_data, iohub_address)
+            txData = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
+            return sock.sendto(txData, iohubAddress)
         except socket.error as e:
             msg = 'PsychoPyApp: terminateHubProcess socket.error: %s'
             logging.debug(msg % str(e))

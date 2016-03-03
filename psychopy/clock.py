@@ -57,8 +57,8 @@ if sys.platform == 'win32':
         _winQPC(byref(_fcounter))
         return _fcounter.value / _qpfreq
 else:
-    cur_pyver = sys.version_info
-    if cur_pyver[0] == 2 and cur_pyver[1] <= 6:
+    curPyver = sys.version_info
+    if curPyver[0] == 2 and curPyver[1] <= 6:
         getTime = time.time
     else:
         import timeit

@@ -28,7 +28,7 @@ from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribu
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin
-from . import glob_vars
+from . import globalVars
 
 import numpy
 
@@ -160,9 +160,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != glob_vars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType == 'pyglet':
             win.winHandle.switch_to()
-            glob_vars.currWindow = win
+            globalVars.currWindow = win
 
     def _makeNx2(self, value, acceptedInput=('scalar', 'Nx1', 'Nx2')):
         """Helper function to change input to Nx2 arrays

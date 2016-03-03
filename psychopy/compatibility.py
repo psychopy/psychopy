@@ -86,18 +86,18 @@ def fromFile(filename):
                 currentHandler = psychopy.data.TrialHandler
                 # Temporarily replace new-style class
                 psychopy.data.TrialHandler = _oldStyleTrialHandler
-                old_contents = cPickle.load(f)
+                oldContents = cPickle.load(f)
                 psychopy.data.TrialHandler = currentHandler
                 contents = _convertToNewStyle(psychopy.data.TrialHandler,
-                                              old_contents)
+                                              oldContents)
             elif name == 'StairHandler':
                 currentHandler = psychopy.data.StairHandler
                 # Temporarily replace new-style class
                 psychopy.data.StairHandler = _oldStyleStairHandler
-                old_contents = cPickle.load(f)
+                oldContents = cPickle.load(f)
                 psychopy.data.StairHandler = currentHandler
                 contents = _convertToNewStyle(
-                    psychopy.data.StairHandler, old_contents)
+                    psychopy.data.StairHandler, oldContents)
             elif name == 'MultiStairHandler':
                 newStair = psychopy.data.StairHandler
                 newMulti = psychopy.data.MultiStairHandler
@@ -105,12 +105,12 @@ def fromFile(filename):
                 psychopy.data.StairHandler = _oldStyleStairHandler
                 # Temporarily replace new-style class
                 psychopy.data.MultiStairHandler = _oldStyleMultiStairHandler
-                old_contents = cPickle.load(f)
+                oldContents = cPickle.load(f)
                 psychopy.data.MultiStairHandler = newMulti
                 # Temporarily replace new-style class:
                 psychopy.data.StairHandler = newStair
                 contents = _convertToNewStyle(
-                    psychopy.data.MultiStairHandler, old_contents)
+                    psychopy.data.MultiStairHandler, oldContents)
             else:
                 raise TypeError, ("Didn't recognize %s" % name)
     return contents
