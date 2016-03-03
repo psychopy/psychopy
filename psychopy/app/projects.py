@@ -17,13 +17,15 @@ except:
 from . import wxIDs
 from psychopy import logging, web
 from psychopy.app import dialogs
+from .localization import _translate
 
 
 class ProjectsMenu(wx.Menu):
-    _user = None
     app = None
-    searchDlg = None
     appData = None
+    _user = None
+    knownUsers = None
+    searchDlg = None
 
     @classmethod
     def setUser(self, user):
@@ -59,9 +61,9 @@ class ProjectsMenu(wx.Menu):
         self.Append(wxIDs.projsAbout, "Tell me more...")
         if not havePyosf:
             self.Append(wx.NewId(), "Requires pyosf (not installed)")
-            self.knownUsers = {}
+            ProjectsMenu.knownUsers = {}
         else:
-            self.knownUsers = pyosf.TokenStorage()  # a dict of name:token
+            ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
         self.userMenu = wx.Menu()  # a sub-menu for usernames and login
         # if a user was previously logged in then set them as current
         if self.appData['user'] and self.appData['user'] in self.knownUsers:
@@ -106,8 +108,16 @@ class ProjectsMenu(wx.Menu):
         ProjectsMenu.searchDlg.Show()
 
     def onLogIn(self, event):
+        # check knownusers list
+        users = ProjectsMenu.knownUsers.keys()
         dlg = LogInDlg(app=self.app)
         dlg.Show()
+        if self.app.osf_session.authenticated:
+            username = self.app.osf_session.username
+            # check whether we need to add this to users menu
+            if (username not in usersd) and (username in ProjectsMenu.knownUsers):
+                # it wasn't there, but is now. Add to menu
+                self.addUserToSubMenu(username)
 
 
 class LogInDlg(wx.Dialog):
@@ -294,7 +304,8 @@ class SearchDlg(wx.Dialog):
         else:
             title = proj.title
         syncFrame = ProjectSyncFrame(parent=self.app, id=-1,
-                         title=title)
+                                     title=title)
+        syncFrame.setProject(proj)
 
     def updateUserProjs(self):
         if self.app.osf_session.user_id is None:
@@ -460,34 +471,112 @@ class DetailsPanel(richtext.RichTextCtrl):
 
 class ProjectSyncFrame(wx.Frame):
 
-    def __init__(self, parent, id, *args, **kwargs):
-        wx.Frame.__init__(self, parent=None, id=id, *args, **kwargs)
+    def __init__(self, parent, id, size=(600, 300), *args, **kwargs):
+        wx.Frame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
         self.app = parent
-        self.Show()
+        self.project = None
 
+        # title
+        self.title = wx.StaticText(self, -1, "No project opened",
+                                   style=wx.BOLD | wx.ALIGN_CENTER)
+        font = wx.Font(18, family=wx.NORMAL, style=wx.NORMAL, weight=wx.BOLD)
+        self.title.SetFont(font)
+        self.title.SetMinSize((400, -1))
+        self.title.Wrap(400)
+
+        # project definition
+        projFileSizer = wx.BoxSizer(wx.HORIZONTAL)
+        projFileLabel = wx.StaticText(self, -1, "Project file:")
+        self.projFilePath = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
+        projFileBrowseBtn = wx.Button(self, -1, "Browse...")
+        projFileBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseProjFile)
+        projFileSizer.Add(projFileLabel, flag=wx.ALL, border=5)
+        projFileSizer.Add(self.projFilePath,
+                          flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
+        projFileSizer.Add(projFileBrowseBtn, flag=wx.ALL, border=5)
+
+        # remote files
         remoteSizer = wx.BoxSizer(wx.HORIZONTAL)
-        remoteLabel = wx.StaticText(self, -1, "Remote:")
+        remoteLabel = wx.StaticText(self, -1, "Remote project:")
         self.remoteURL = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
-        remoteSizer.Add(remoteLabel, border=5)
-        remoteSizer.Add(self.remoteURL, flag=wx.EXPAND, proportion=1, border=5)
+        remoteSizer.Add(remoteLabel, flag=wx.ALL, border=5)
+        remoteSizer.Add(self.remoteURL,
+                        flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
+        # local files
         localSizer = wx.BoxSizer(wx.HORIZONTAL)
-        localLabel = wx.StaticText(self, -1, "Local:")
+        localLabel = wx.StaticText(self, -1, "Local files:")
         self.localPath = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
         localBrowseBtn = wx.Button(self, -1, "Browse...")
         localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
-        localSizer.Add(localLabel, border=5)
-        localSizer.Add(self.localPath, flag=wx.EXPAND, proportion=1, border=5)
-        localSizer.Add(localBrowseBtn, border=5)
+        localSizer.Add(localLabel, flag=wx.ALL, border=5)
+        localSizer.Add(self.localPath,
+                       flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
+        localSizer.Add(localBrowseBtn, flag=wx.ALL, border=5)
+
+        # sync controls
+        self.syncButton = wx.Button(self, -1, "Sync Now")
+        self.syncButton.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        self.status = wx.StaticText(self, -1, "")
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(remoteSizer, flag=wx.EXPAND, border=10)
-        self.mainSizer.Add(localSizer, flag=wx.EXPAND, border=10)
+        self.mainSizer.Add(self.title,
+                           flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainSizer.Add(projFileSizer,
+                           flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainSizer.Add(remoteSizer,
+                           flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainSizer.Add(localSizer,
+                           flag=wx.EXPAND | wx.ALL, border=5)
+        # sync controls
+
+        self.mainSizer.Add(wx.StaticLine(self, -1),
+                           flag=wx.EXPAND | wx.ALL, border=20)
+        self.mainSizer.Add(self.syncButton,
+                           flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainSizer.Add(self.status,
+                           flag=wx.EXPAND | wx.ALL, border=5)
         self.SetSizerAndFit(self.mainSizer)
         self.SetAutoLayout(True)
+        self.update()
+        self.Show()
 
-    def setProject(self, proj):
-        pass
+    def setProject(self, project):
+        self.project = project
+        self.title.SetLabel(project.title)
+        self.remoteURL.SetValue("https://osf.io/{}".format(project.id))
+        self.update()
 
     def onBrowseLocal(self, evt):
-        print("pressed local browse button")
+        dlg = wx.DirDialog(self, message=("Root folder of your local files"))
+        if dlg.ShowModal() == wx.ID_OK:
+            self.localPath.SetValue(dlg.GetPath())
+        self.update()
 
+    def onBrowseProjFile(self, evt):
+        dlg = wx.FileDialog(self, message=("File to store project info"),
+                            style=wx.FD_SAVE,
+                            wildcard="Project files (*.psyproj)|*.psyproj")
+        if dlg.ShowModal() == wx.ID_OK:
+            self.projFilePath.SetValue(dlg.GetPath())
+        self.update()
+
+    def update(self, status=None):
+        """Update to a particular status if given or deduce status msg if not
+        """
+        if status is None:
+            if not self.project:
+                status = "No remote project set"
+                self.syncButton.Enable(False)
+            elif not self.localPath or not self.localPath.GetValue():
+                status = "No local folder to sync with"
+                self.syncButton.Enable(False)
+            else:
+                status = "Ready"
+                self.syncButton.Enable(True)
+        self.status.SetLabel("Status: " + status)
+        self.Layout()
+        self.Update()
+
+class SyncStatusPanel(wx.Panel):
+    def __init__(self, parent, id=-1, *args, **kwargs):
+        pass
