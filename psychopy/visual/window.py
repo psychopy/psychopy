@@ -65,7 +65,7 @@ from psychopy import makeMovies
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
-from . import glob_vars
+from . import globalVars
 
 try:
     from PIL import Image
@@ -598,9 +598,9 @@ class Window(object):
 
         if self.winType == "pyglet":
             # make sure this is current context
-            if glob_vars.currWindow != self:
+            if globalVars.currWindow != self:
                 self.winHandle.switch_to()
-                glob_vars.currWindow = self
+                globalVars.currWindow = self
 
             GL.glTranslatef(0.0, 0.0, -5.0)
 
@@ -643,15 +643,15 @@ class Window(object):
         GL.glLoadIdentity()
         if self.viewScale is not None:
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
-            abs_scale_x = abs(self.viewScale[0])
-            abs_scale_y = abs(self.viewScale[1])
+            absScaleX = abs(self.viewScale[0])
+            absScaleY = abs(self.viewScale[1])
         else:
-            abs_scale_x, abs_scale_y = 1, 1
+            absScaleX, absScaleY = 1, 1
 
         if self.viewPos is not None:
-            norm_rf_pos_x = self.viewPos[0] / abs_scale_x
-            norm_rf_pos_y = self.viewPos[1] / abs_scale_y
-            GL.glTranslatef(norm_rf_pos_x, norm_rf_pos_y, 0.0)
+            normRfPosX = self.viewPos[0] / absScaleX
+            normRfPosY = self.viewPos[1] / absScaleY
+            GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
         if self.viewOri:  # float
             # the logic below for flip is partially correct, but does not
@@ -1179,9 +1179,9 @@ class Window(object):
         """
         global GL
         self.rgb = val2array(newRGB, False, length=3)
-        if self.winType == 'pyglet' and glob_vars.currWindow != self:
+        if self.winType == 'pyglet' and globalVars.currWindow != self:
             self.winHandle.switch_to()
-            glob_vars.currWindow = self
+            globalVars.currWindow = self
         GL.glClearColor((self.rgb[0] + 1.0) / 2.0,
                         (self.rgb[1] + 1.0) / 2.0,
                         (self.rgb[2] + 1.0) / 2.0,

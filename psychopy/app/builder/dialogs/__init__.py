@@ -1004,8 +1004,8 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             namespace = self.frame.exp.namespace
             used = namespace.exists(newName)
-            same_as_old_name = bool(newName == self.params['name'].val)
-            if used and not same_as_old_name:
+            sameOldName = bool(newName == self.params['name'].val)
+            if used and not sameOldName:
                 msg = _translate(
                     "That name is in use (it's a %s). Try another name.")
                 return msg % namespace._localized[used], False
@@ -1064,19 +1064,19 @@ class DlgLoopProperties(_BaseParamsDlg):
         if loop:
             oldLoopName = loop.params['name'].val
         namespace = frame.exp.namespace
-        new_name = namespace.makeValid(oldLoopName)
+        newName = namespace.makeValid(oldLoopName)
 
         # create default instances of the diff loop types
         # for 'random','sequential', 'fullRandom'
         self.trialHandler = experiment.TrialHandler(
-            exp=self.exp, name=new_name, loopType='random',
+            exp=self.exp, name=newName, loopType='random',
             nReps=5, conditions=[])
         # for staircases:
         self.stairHandler = experiment.StairHandler(
-            exp=self.exp, name=new_name, nReps=50, nReversals='',
+            exp=self.exp, name=newName, nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5)
         self.multiStairHandler = experiment.MultiStairHandler(
-            exp=self.exp, name=new_name, nReps=50, stairType='simple',
+            exp=self.exp, name=newName, nReps=50, stairType='simple',
             switchStairs='random', conditions=[], conditionsFile='')
 
         # replace defaults with the loop we were given
@@ -1669,18 +1669,18 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             # get screen size for requested display
-            num_displays = wx.Display.GetCount()
+            numDisplays = wx.Display.GetCount()
             try:
-                screen_value = int(
+                screenValue = int(
                     self.paramCtrls['Screen'].valueCtrl.GetValue())
             except ValueError:
                 # param control currently contains no integer value
-                screen_value = 1
-            if screen_value < 1 or screen_value > num_displays:
+                screenValue = 1
+            if screenValue < 1 or screenValue > numDisplays:
                 logging.error("User requested non-existent screen")
                 screenN = 0
             else:
-                screenN = screen_value - 1
+                screenN = screenValue - 1
             size = list(wx.Display(screenN).GetGeometry()[2:])
             # set vals and disable changes
             field = 'Window size (pixels)'
@@ -1742,13 +1742,13 @@ def _relpath(path, start='.'):
     if not path:
         raise ValueError("no path specified")
 
-    start_list = os.path.abspath(start).split(os.path.sep)
-    path_list = os.path.abspath(path).split(os.path.sep)
+    startList = os.path.abspath(start).split(os.path.sep)
+    pathList = os.path.abspath(path).split(os.path.sep)
 
     # Work out how much of the filepath is shared by start and path.
-    i = len(os.path.commonprefix([start_list, path_list]))
+    i = len(os.path.commonprefix([startList, pathList]))
 
-    rel_list = ['..'] * (len(start_list) - i) + path_list[i:]
-    if not rel_list:
+    relList = ['..'] * (len(startList) - i) + pathList[i:]
+    if not relList:
         return path
-    return os.path.join(*rel_list)
+    return os.path.join(*relList)

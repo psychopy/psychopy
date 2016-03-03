@@ -77,15 +77,15 @@ def convertToPix(vertices, pos, units, win):
     self.pos is that some stimuli use other terms (e.g. ElementArrayStim
     uses fieldPos).
     """
-    unit2pix_func = _unit2PixMappings.get(units)
-    if unit2pix_func:
-        return unit2pix_func(vertices, pos, win)
+    unit2pixFunc = _unit2PixMappings.get(units)
+    if unit2pixFunc:
+        return unit2pixFunc(vertices, pos, win)
     else:
         msg = "The unit type [{0}] is not registered with PsychoPy"
         raise ValueError(msg.format(units))
 
 
-def addUnitTypeConversion(unit_label, mapping_func):
+def addUnitTypeConversion(unitLabel, mappingFunc):
     """Add support for converting units specified by unit_label to pixels
     to be used by convertToPix (therefore a valid unit for your PsychoPy
     stimuli)
@@ -101,10 +101,10 @@ def addUnitTypeConversion(unit_label, mapping_func):
 
         return pix
     """
-    if unit_label in _unit2PixMappings:
+    if unitLabel in _unit2PixMappings:
         msg = "The unit type label [{0}] is already registered with PsychoPy"
-        raise ValueError(msg.format(unit_label))
-    _unit2PixMappings[unit_label] = mapping_func
+        raise ValueError(msg.format(unitLabel))
+    _unit2PixMappings[unitLabel] = mappingFunc
 
 
 # Built in conversion functions follow ...

@@ -463,18 +463,17 @@ class Experiment(object):
 
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
-        filename_base = os.path.basename(filename)
+        filenameBase = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
-                          (filename_base, root.tag))
+                          (filenameBase, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
-        version_f = float(self.psychopyVersion.rsplit(
-            '.', 1)[0])  # drop bugfix
-        if version_f < 1.63:
+        versionf = float(self.psychopyVersion.rsplit('.', 1)[0])
+        if versionf < 1.63:
             msg = 'note: v%s was used to create %s ("%s")'
-            vals = (self.psychopyVersion, filename_base, root.tag)
+            vals = (self.psychopyVersion, filenameBase, root.tag)
             logging.warning(msg % vals)
 
         # Parse document nodes
@@ -482,8 +481,8 @@ class Experiment(object):
         self.flow = Flow(exp=self)  # every exp has exactly one flow
         self.routines = {}
         self.namespace = NameSpace(self)  # start fresh
-        modified_names = []
-        duplicate_names = []
+        modifiedNames = []
+        duplicateNames = []
 
         # fetch exp settings
         settingsNode = root.find('Settings')
@@ -491,7 +490,7 @@ class Experiment(object):
             self._getXMLparam(params=self.settings.params, paramNode=child)
         # name should be saved as a settings parameter (only from 1.74.00)
         if self.settings.params['expName'].val in ['', None, 'None']:
-            shortName = os.path.splitext(filename_base)[0]
+            shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
@@ -499,12 +498,12 @@ class Experiment(object):
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
-            routine_good_name = self.namespace.makeValid(
+            routineGoodName = self.namespace.makeValid(
                 routineNode.get('name'))
-            if routine_good_name != routineNode.get('name'):
-                modified_names.append(routineNode.get('name'))
-            self.namespace.user.append(routine_good_name)
-            routine = Routine(name=routine_good_name, exp=self)
+            if routineGoodName != routineNode.get('name'):
+                modifiedNames.append(routineNode.get('name'))
+            self.namespace.user.append(routineGoodName)
+            routine = Routine(name=routineGoodName, exp=self)
             # self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')] = routine
             for componentNode in routineNode:
@@ -538,12 +537,12 @@ class Experiment(object):
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params,
                                       paramNode=paramNode)
-                comp_good_name = self.namespace.makeValid(
+                compGoodName = self.namespace.makeValid(
                     componentNode.get('name'))
-                if comp_good_name != componentNode.get('name'):
-                    modified_names.append(componentNode.get('name'))
-                self.namespace.add(comp_good_name)
-                component.params['name'].val = comp_good_name
+                if compGoodName != componentNode.get('name'):
+                    modifiedNames.append(componentNode.get('name'))
+                self.namespace.add(compGoodName)
+                component.params['name'].val = compGoodName
                 routine.append(component)
         # for each component that uses a Static for updates, we need to set
         # that
@@ -573,7 +572,7 @@ class Experiment(object):
                 loopType = elementNode.get('loopType')
                 loopName = self.namespace.makeValid(elementNode.get('name'))
                 if loopName != elementNode.get('name'):
-                    modified_names.append(elementNode.get('name'))
+                    modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
                 loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
                 loops[loopName] = loop
@@ -598,7 +597,7 @@ class Experiment(object):
                             conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
-                                duplicate_names.append(fname)
+                                duplicateNames.append(fname)
                             else:
                                 self.namespace.add(fname)
                     except Exception:
@@ -610,12 +609,12 @@ class Experiment(object):
             elif elementNode.tag == "Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
 
-        if modified_names:
+        if modifiedNames:
             msg = 'duplicate variable name(s) changed in loadFromXML: %s\n'
-            logging.warning(msg % ', '.join(list(set(modified_names))))
-        if duplicate_names:
+            logging.warning(msg % ', '.join(list(set(modifiedNames))))
+        if duplicateNames:
             msg = 'duplicate variable names: %s'
-            logging.warning(msg % ', '.join(list(set(duplicate_names))))
+            logging.warning(msg % ', '.join(list(set(duplicateNames))))
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name

@@ -51,8 +51,8 @@ class NameValidator(wx.PyValidator):
         else:
             namespace = parent.frame.exp.namespace
             used = namespace.exists(newName)
-            same_as_old_name = bool(newName == parent.params['name'].val)
-            if used and not same_as_old_name:
+            sameAsOldName = bool(newName == parent.params['name'].val)
+            if used and not sameAsOldName:
                 msg = _translate(
                     "That name is in use (it's a %s). Try another name.")
                 return msg % used, False
