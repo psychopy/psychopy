@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+import os
 import time
 import wx
 import wx.lib.scrolledpanel as scrlpanel
@@ -11,6 +12,8 @@ from wx import richtext
 
 try:
     import pyosf
+    from pyosf import constants
+    constants.PROJECT_NAME = "PsychoPy"
     havePyosf = True
 except:
     havePyosf = False
@@ -93,10 +96,6 @@ class ProjectsMenu(wx.Menu):
         pass  # TODO: go to web page
 
     def onSetUser(self, event):
-        """NB. this is used by the wx menu event. It then calls self.setUser(username)
-        which is a classmethod allowing all instances of this class to update
-        their username lists in the submenu
-        """
         self.setUser(self.userMenu.GetLabelText(event.GetId()))
 
     def onSync(self, event):
@@ -115,7 +114,8 @@ class ProjectsMenu(wx.Menu):
         if self.app.osf_session.authenticated:
             username = self.app.osf_session.username
             # check whether we need to add this to users menu
-            if (username not in usersd) and (username in ProjectsMenu.knownUsers):
+            if (username not in users) and \
+                    (username in ProjectsMenu.knownUsers):
                 # it wasn't there, but is now. Add to menu
                 self.addUserToSubMenu(username)
 
@@ -298,14 +298,10 @@ class SearchDlg(wx.Dialog):
             raise AttributeError("User pressed the sync button with no "
                                  "searchDlg.currentProject existing. "
                                  "Ask them how they managed that!")
-        proj = self.currentProject
-        if len(proj.title) > 20:
-            title = proj.title[:17]+"..."
-        else:
-            title = proj.title
         syncFrame = ProjectSyncFrame(parent=self.app, id=-1,
-                                     title=title)
-        syncFrame.setProject(proj)
+                                     title=self.currentProject.title)
+        syncFrame.setOSFproject(self.currentProject)
+        self.Close()  # we're going over to the sync window
 
     def updateUserProjs(self):
         if self.app.osf_session.user_id is None:
@@ -474,7 +470,7 @@ class ProjectSyncFrame(wx.Frame):
     def __init__(self, parent, id, size=(600, 300), *args, **kwargs):
         wx.Frame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
         self.app = parent
-        self.project = None
+        self.OSFproject = None
 
         # title
         self.title = wx.StaticText(self, -1, "No project opened",
@@ -515,7 +511,7 @@ class ProjectSyncFrame(wx.Frame):
 
         # sync controls
         self.syncButton = wx.Button(self, -1, "Sync Now")
-        self.syncButton.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncBtn)
         self.status = wx.StaticText(self, -1, "")
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -540,10 +536,10 @@ class ProjectSyncFrame(wx.Frame):
         self.update()
         self.Show()
 
-    def setProject(self, project):
-        self.project = project
-        self.title.SetLabel(project.title)
-        self.remoteURL.SetValue("https://osf.io/{}".format(project.id))
+    def setOSFproject(self, OSFproject):
+        self.OSFproject = OSFproject
+        self.title.SetLabel(OSFproject.title)
+        self.remoteURL.SetValue("https://osf.io/{}".format(OSFproject.id))
         self.update()
 
     def onBrowseLocal(self, evt):
@@ -557,14 +553,34 @@ class ProjectSyncFrame(wx.Frame):
                             style=wx.FD_SAVE,
                             wildcard="Project files (*.psyproj)|*.psyproj")
         if dlg.ShowModal() == wx.ID_OK:
-            self.projFilePath.SetValue(dlg.GetPath())
+            newPath = dlg.getPath()
+            if not newPath.endswith(".psyproj"):
+                newPath += ".psyproj"
+            self.projFilePath.SetValue(newPath)
+        # does this project file already exist?
+
+        if os.path.isfile(newPath):
+            project = pyosf.Project(project_file=newPath)
+            # check this is the same project!
+            if self.OSFproject and project.osf.id != self.OSFproject.id:
+                raise IOError("The project file relates to a different"
+                              "OSF project and cannot be used for this one")
+            self.localPath.SetValue(self.project.root_path)
+            if not project.osf:
+                self.setOSFproject(project.osf)
         self.update()
+
+    def onSyncBtn(self, evt):
+        self.project = pyosf.Project(project_file=self.projFilePath.GetValue(),
+                                     root_path=self.projFilePath.GetValue(),
+                                     osf=self.project)
+        self.syncStatusPanel = SyncStatusPanel(self, -1, )
 
     def update(self, status=None):
         """Update to a particular status if given or deduce status msg if not
         """
         if status is None:
-            if not self.project:
+            if not self.OSFproject:
                 status = "No remote project set"
                 self.syncButton.Enable(False)
             elif not self.localPath or not self.localPath.GetValue():
@@ -577,6 +593,10 @@ class ProjectSyncFrame(wx.Frame):
         self.Layout()
         self.Update()
 
+
 class SyncStatusPanel(wx.Panel):
-    def __init__(self, parent, id=-1, *args, **kwargs):
-        pass
+    def __init__(self, parent, id, project, *args, **kwargs):
+        wx.Panel.__init__(self, parent, id, *args, **kwargs)
+        self.project = project
+        self.sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=2, hgap=2)
+        self.sizer.AddGrowableColumn(2)
