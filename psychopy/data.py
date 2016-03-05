@@ -851,7 +851,6 @@ class TrialHandler(_BaseTrialHandler):
         self.thisTrial = []
         self.finished = False
         self.extraInfo = extraInfo
-        self._warnUseOfNext = True
         self.seed = seed
         # create dataHandler
         self.data = DataHandler(trials=self)
@@ -1542,7 +1541,6 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial = {}
         self.finished = False
         self.extraInfo = extraInfo
-        self._warnUseOfNext = True
         self.seed = seed
         self._rng = numpy.random.RandomState(seed=seed)
 
@@ -1961,7 +1959,6 @@ class TrialHandlerExt(TrialHandler):
         self.thisTrial = []
         self.finished = False
         self.extraInfo = extraInfo
-        self._warnUseOfNext = True
         self.seed = seed
         # create dataHandler
         if self.trialWeights is None:
@@ -2938,7 +2935,6 @@ class StairHandler(_BaseTrialHandler):
         # correct since last stim change (minus are incorrect):
         self.correctCounter = 0
         self._nextIntensity = self.startVal
-        self._warnUseOfNext = True
         self.minVal = minVal
         self.maxVal = maxVal
         self.autoLog = autoLog
