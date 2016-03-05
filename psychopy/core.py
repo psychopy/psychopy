@@ -80,7 +80,7 @@ def shellCall(shellCmd, stdin='', stderr=False):
     elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
-        raise ValueError('shellCmd requires a list or string')
+        return None, 'shellCmd requires a list or string'
     proc = subprocess.Popen(shellCmdList, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdoutData, stderrData = proc.communicate(stdin)
