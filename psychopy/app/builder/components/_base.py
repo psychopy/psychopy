@@ -137,6 +137,9 @@ class BaseComponent(object):
         All objects have now migrated to using writeStartTestCode and
         writeEndTestCode
         """
+        # unused internally; deprecated March 2016 v1.83.x, will remove 1.85
+        print('Deprecation warning: writeTimeTestCode() is not supported;\n'
+              'will be removed in v1.85.00, use writeStartTestCode() instead')
         if self.params['duration'].val == '':
             code = "if %(startTime)s <= t:\n"
         else:
