@@ -38,7 +38,7 @@ def useVersion(requestedVersion):
 
     Usage (at the top of an experiment script):
 
-        from psychopy.tools.versionchooser import useVersion
+        from psychopy import useVersion
         useVersion('1.80.04')
         from psychopy import visual, event, ...
     """

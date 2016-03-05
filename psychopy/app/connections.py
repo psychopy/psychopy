@@ -584,7 +584,7 @@ class InstallUpdateDialog(wx.Dialog):
                     nUpdates += 1
                     logging.info('Updated PsychoPy path in %s' % filename)
                 except Exception:
-                    info += 'Failed to update PsychoPy path in ', filename
+                    info += 'Failed to update PsychoPy path in %s' % filename
                     return -1, info
         return nUpdates, info
 

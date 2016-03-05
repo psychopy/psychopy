@@ -695,18 +695,6 @@ class _BaseTrialHandler(object):
 
         ew.save(filename=fileName)
 
-    def nextTrial(self):
-        """DEPRECATION WARNING: nextTrial() will be deprecated
-        please use next() instead.
-        jwp: 19/6/06
-        """
-        if self._warnUseOfNext:
-            logging.warning("""DEPRECATION WARNING: nextTrial() will be
-        deprecated. please use next() instead. jwp: 19/6/06
-        """)
-            self._warnUseOfNext = False
-        return self.next()
-
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this
         data file and returns both the path to that script and its contents.
@@ -892,7 +880,7 @@ class TrialHandler(_BaseTrialHandler):
     def __str__(self, verbose=False):
         """string representation of the object
         """
-        strRepres = 'psychopy.data.TrialHandler(\n'
+        strRepres = 'psychopy.data.{}(\n'.format(self.__class__.__name__)
         attribs = dir(self)
 
         # data first, then all others
@@ -1575,14 +1563,14 @@ class TrialHandler2(_BaseTrialHandler):
     def __str__(self, verbose=False):
         """string representation of the object
         """
-        strRepres = 'psychopy.data.TrialHandler(\n'
+        strRepres = 'psychopy.data.{}(\n'.format(self.__class__.__name__)
         attribs = dir(self)
         # data first, then all others
         try:
             data = self.data
         except Exception:
-            data = None
-        if data:
+            strRepres += '\t(no data)\n'
+        else:
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
         for thisAttrib in attribs:
@@ -2804,7 +2792,7 @@ def createFactorialTrialList(factors):
 class StairHandler(_BaseTrialHandler):
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
-    Calls to nextTrial() will fetch the next object given to this
+    Calls to next() will fetch the next object given to this
     handler, according to the method specified.
 
     See ``Demos >> ExperimentalControl >> JND_staircase_exp.py``

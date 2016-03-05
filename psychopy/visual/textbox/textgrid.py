@@ -145,7 +145,7 @@ class TextGrid(object):
             if self._apply_padding:
                 cline._trans_left = int(
                     (num_cols - line_length + 1) * self._pad_left_proportion)
-                cline._trans_top == int(
+                cline._trans_top = int(
                     (num_rows - line_count) * self._pad_top_proportion)
             else:
                 cline._trans_left = 0

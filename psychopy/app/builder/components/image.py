@@ -94,7 +94,7 @@ class ImageComponent(BaseVisualComponent):
         msg = _translate(
             "Should the image be flipped horizontally (left to right)?")
         self.params['flipHoriz'] = Param(
-            flipVert, valType='bool',
+            flipHoriz, valType='bool',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized["flipHoriz"], categ="Advanced")

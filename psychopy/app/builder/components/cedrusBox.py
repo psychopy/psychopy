@@ -273,8 +273,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if forceEnd is True:
             code = ("# a response ends the routine\n"
                     "continueRoutine = False\n")
-            buff.writeIndentedLines(code % self.params)
-
+            buff.writeIndentedLines(code)
         buff.setIndentLevel(-(dedentAtEnd), relative=True)
 
     # this was commented-out (removed Feb 2016, available in history):

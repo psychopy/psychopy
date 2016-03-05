@@ -43,14 +43,14 @@ else:
 TIMEOUT = max(prefs.connections['timeout'], 2.0)
 socket.setdefaulttimeout(TIMEOUT)
 
-global proxies
+# global proxies
 proxies = None  # if this is populated then it has been set up already
 
 
 class NoInternetAccessError(Exception):
     """An internet connection is required but not available
     """
-global haveInternet
+# global haveInternet
 haveInternet = None  # gets set True or False when you check
 
 

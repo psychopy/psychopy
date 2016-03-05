@@ -77,10 +77,10 @@ def shellCall(shellCmd, stdin='', stderr=False):
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
-    elif type(shellCmd) == list:  # handles whitespace in filenames
+    elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
-        return None, 'shellCmd requires a list or string'
+        raise ValueError('shellCmd requires a list or string')
     proc = subprocess.Popen(shellCmdList, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdoutData, stderrData = proc.communicate(stdin)

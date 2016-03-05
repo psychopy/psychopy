@@ -60,8 +60,7 @@ class SettingsComponent(object):
         if filename.startswith("u'xxxx"):
             folder = self.exp.prefsBuilder['savedDataFolder'].strip()
             filename = filename.replace("xxxx", folder)
-        else:
-            print(filename[0:6])
+
         # params
         self.params = {}
         self.order = ['expName', 'Show info dlg', 'Experiment info',

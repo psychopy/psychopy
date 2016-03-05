@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-from ..experiment import Param
+from ..experiment import Param, CodeGenerationException
 from ..components import getInitVals
 from psychopy.constants import FOREVER
 from ...localization import _translate
@@ -157,7 +157,8 @@ class BaseComponent(object):
         elif self.params['startType'].val == 'condition':
             code = "if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n"
         else:
-            raise "Not a known startType (%(startType)s) for %(name)s" % self.params
+            msg = "Not a known startType (%(startType)s) for %(name)s"
+            raise CodeGenerationException(msg % self.params)
 
         buff.writeIndented(code % self.params)
 
@@ -192,8 +193,9 @@ class BaseComponent(object):
         elif self.params['stopType'].val == 'condition':
             code = "if %(name)s.status == STARTED and bool(%(stopVal)s):\n"
         else:
-            raise ("Didn't write any stop line for startType=%(startType)s, "
-                   "stopType=%(stopType)s") % self.params
+            msg = ("Didn't write any stop line for startType=%(startType)s, "
+                   "stopType=%(stopType)s")
+            raise CodeGenerationException(msg % self.params)
 
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)

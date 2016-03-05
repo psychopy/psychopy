@@ -2000,16 +2000,6 @@ class NameSpace(object):
         return newName
 
 
-def _XMLremoveWhitespaceNodes(parent):
-    """Remove all text nodes from an xml document (likely to be whitespace)
-    """
-    for child in list(parent.childNodes):
-        if child.nodeType == node.TEXT_NODE and node.data.strip() == '':
-            parent.removeChild(child)
-        else:
-            removeWhitespaceNodes(child)
-
-
 def getCodeFromParamStr(val):
     """Convert a Param.val string to its intended python code
     (as triggered by special char $)

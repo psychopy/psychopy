@@ -2527,11 +2527,13 @@ class CoderFrame(wx.Frame):
                 self.thread = ScriptThread(target=self._runFileInDbg, gui=self)
                 self.thread.start()
             elif runScripts == 'import':
+                raise NotImplementedError()
                 # simplest possible way, but fragile
                 # USING import of scripts (clunky)
-                if importName in sys.modules:  # delete the sys reference to it
-                    sys.modules.pop(importName)
-                exec('import %s' % (importName))  # or run first time
+                # if importName in sys.modules:  # delete the sys reference to it
+                #     sys.modules.pop(importName)
+                # exec('import %s' % (importName))  # or run first time
+
                 # NB execfile() would be better doesn't run the import
                 # statements properly! functions defined in the script have
                 # a separate namespace to the main body of the script(!?)
