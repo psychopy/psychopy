@@ -24,7 +24,7 @@ import warnings
 import collections
 
 try:
-    #import openpyxl
+    # import openpyxl
     from openpyxl.cell import get_column_letter
     from openpyxl.reader.excel import load_workbook
     haveOpenpyxl = True
@@ -1751,7 +1751,7 @@ class TrialHandler2(_BaseTrialHandler):
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
-             encoding:
+            encoding:
                 The encoding to use when saving a the file.
                 Defaults to `utf-8`.
 
@@ -2494,23 +2494,13 @@ class TrialHandlerExt(TrialHandler):
             for key in self.extraInfo:
                 header.insert(0, key)
 
+        # write a header row:
         if not matrixOnly:
-            # write the header row:
-            nextLine = ''
-            for prmName in header:
-                nextLine = nextLine + prmName + delim
-            # todo: rewrite as: nextLine = delim.join([prm for prm in header])
-            # remove the final orphaned tab character
-            f.write(nextLine[:-1] + '\n')
-
+            f.write(delim.join(header) + '\n')
         # write the data matrix:
         for trial in dataOut:
-            # todo: rewrite as delim.join(...)
-            nextLine = ''
-            for prmName in header:
-                nextLine = nextLine + unicode(trial[prmName]) + delim
-            nextLine = nextLine[:-1]  # remove the final tab character
-            f.write(nextLine + '\n')
+            line = delim.join([unicode(trial[prm]) for prm in header])
+            f.write(line + '\n')
 
         if f != sys.stdout:
             f.close()

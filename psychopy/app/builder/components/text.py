@@ -32,7 +32,6 @@ class TextComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='', startEstim='', durationEstim='', wrapWidth=''):
-        # initialise main parameters from base stimulus
         super(TextComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
                                             color=color,

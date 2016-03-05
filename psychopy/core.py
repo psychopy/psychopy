@@ -20,6 +20,16 @@ from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 
+try:
+    import pyglet
+    havePyglet = True
+    # may not want to check, to preserve terminal window focus
+    checkPygletDuringWait = True
+except ImportError:
+    havePyglet = False
+    checkPygletDuringWait = False
+
+
 runningThreads = []  # just for backwards compatibility?
 
 # Set getTime in core to == the monotonicClock instance created in the
@@ -42,15 +52,6 @@ def getTime():
     whereas on windows it returned time since loading of the module, as now)
     """
     return monotonicClock.getTime()
-
-try:
-    import pyglet
-    havePyglet = True
-    # may not want to check, to preserve terminal window focus
-    checkPygletDuringWait = True
-except ImportError:
-    havePyglet = False
-    checkPygletDuringWait = False
 
 
 def quit():
