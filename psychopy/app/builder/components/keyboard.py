@@ -116,9 +116,7 @@ class KeyboardComponent(BaseComponent):
             label=_localized['syncScreenRefresh'])
 
     def writeRoutineStartCode(self, buff):
-        code = ("%(name)s = event.BuilderKeyResponse()  # create an "
-                "object of type KeyResponse\n"
-                "%(name)s.status = NOT_STARTED\n")
+        code = "%(name)s = event.BuilderKeyResponse()\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and

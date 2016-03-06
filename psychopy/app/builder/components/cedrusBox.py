@@ -108,7 +108,6 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 "if not %(name)s:\n"
                 "    logging.error('could not find a Cedrus device.')\n"
                 "    core.quit()\n"
-                "%(name)s.status = NOT_STARTED\n"
                 "%(name)s.clock = core.Clock()\n")
         buff.writeIndentedLines(code % self.params)
 

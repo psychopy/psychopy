@@ -1542,14 +1542,11 @@ class Routine(list):
         for event in self:
             event.writeRoutineStartCode(buff)
 
-        code = ('# keep track of which components have finished\n'
-                '%sComponents = []\n')
-        buff.writeIndentedLines(code % self.name)
-        # todo: rewrite to avoid append append ... append one by one
-        for thisCompon in self:
-            if 'startType' in thisCompon.params:
-                buff.writeIndented('%sComponents.append(%s)\n' %
-                                   (self.name, thisCompon.params['name']))
+        code = '# keep track of which components have finished\n'
+        buff.writeIndentedLines(code)
+        compStr = ', '.join([c.params['name'].val for c in self
+                             if 'startType' in c.params])
+        buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
