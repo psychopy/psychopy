@@ -220,10 +220,11 @@ class Experiment(object):
             "RELEASED, FOREVER)\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
-            "from numpy import %s\n" % ', '.join(_numpyImports) +
+            "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
+            "                   %s)\n" % ', '.join(_numpyImports[7:]) +
             "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
             "import os  # handy system and path functions\n" +
-            "import sys # to get file system encoding\n"
+            "import sys  # to get file system encoding\n"
             "\n")
         self.settings.writeStartCode(script)  # present info dlg, make logfile
         # writes any components with a writeStartCode()

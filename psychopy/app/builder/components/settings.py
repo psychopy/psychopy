@@ -327,25 +327,22 @@ class SettingsComponent(object):
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size = self.params['Window size (pixels)']
-        code = ("win = visual.Window(size=%s, fullscr=%s, screen=%s, "
-                "allowGUI=%s, allowStencil=%s,\n")
+        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s,"
+                "\n    allowGUI=%s, allowStencil=%s,\n")
         vals = (size, fullScr, screenNumber, allowGUI, allowStencil)
         buff.writeIndented(code % vals)
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
                 "colorSpace=%(colorSpace)s,\n")
-        buff.writeIndented(code % self.params)
         if self.params['blendMode'].val:
-            buff.writeIndented(
-                "    blendMode=%(blendMode)s, useFBO=True,\n" % self.params)
+            code += "    blendMode=%(blendMode)s, useFBO=True,\n"
 
-        if self.params['Units'].val == 'use prefs':
-            # todo: fix PEP8 style in generated text
-            buff.write("    )\n")
-        else:
-            buff.write("    units=%s)\n" % self.params['Units'])
+        if self.params['Units'].val != 'use prefs':
+            code += "    units=%(Units)s"
+        code = code.rstrip(', \n') + ')\n'
+        buff.writeIndentedLines(code % self.params)
 
         if 'microphone' in self.exp.psychopyLibs:  # need a pyo Server
-            buff.writeIndentedLines("\n# Enable sound input/output:\n" +
+            buff.writeIndentedLines("\n# Enable sound input/output:\n"
                                     "microphone.switchOn()\n")
 
         code = ("# store frame rate of monitor if we can measure it\n"
