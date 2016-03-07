@@ -108,7 +108,6 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 "if not %(name)s:\n"
                 "    logging.error('could not find a Cedrus device.')\n"
                 "    core.quit()\n"
-                "%(name)s.status = NOT_STARTED\n"
                 "%(name)s.clock = core.Clock()\n")
         buff.writeIndentedLines(code % self.params)
 
@@ -273,8 +272,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if forceEnd is True:
             code = ("# a response ends the routine\n"
                     "continueRoutine = False\n")
-            buff.writeIndentedLines(code % self.params)
-
+            buff.writeIndentedLines(code)
         buff.setIndentLevel(-(dedentAtEnd), relative=True)
 
     # this was commented-out (removed Feb 2016, available in history):

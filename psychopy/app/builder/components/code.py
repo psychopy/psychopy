@@ -72,7 +72,7 @@ class CodeComponent(BaseComponent):
                          "saving files, resetting computer); "
                          "right-click checks syntax")
         self.params['End Experiment'] = Param(
-            endRoutine, valType='extendedCode', allowedTypes=[],
+            endExperiment, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End Experiment'])

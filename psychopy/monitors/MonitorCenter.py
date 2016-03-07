@@ -573,18 +573,6 @@ class MainFrame(wx.Frame):
         # do the load and check new name
         self.currentCalibName = self.currentMon.setCurrent(newCalib)
 
-        # keys that may not exist
-        # todo remove this code - only needed for monitor objects made pre
-        # version 0.63
-        if not 'gammaGrid' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['gammaGrid'] = np.ones((4, 3), 'd')
-        if not 'lms_rgb' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['lms_rgb'] = np.ones((3, 3), 'd')
-        if not 'dkl_rgb' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['dkl_rgb'] = np.ones((3, 3), 'd')
-        if not 'sizePix' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['sizePix'] = [1024, 768]
-
         # insert values from new calib into GUI
         _date = monitors.strFromDate(self.currentMon.getCalibDate())
         self.ctrlCalibDate.SetValue(_date)

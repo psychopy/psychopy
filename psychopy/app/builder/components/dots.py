@@ -38,7 +38,6 @@ class DotsComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        # initialise main parameters from base stimulus
         super(DotsComponent, self).__init__(
             exp, parentName, name=name, units=units,
             color=color, colorSpace=colorSpace,

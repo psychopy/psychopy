@@ -220,10 +220,11 @@ class Experiment(object):
             "RELEASED, FOREVER)\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
-            "from numpy import %s\n" % ', '.join(_numpyImports) +
+            "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
+            "                   %s)\n" % ', '.join(_numpyImports[7:]) +
             "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
             "import os  # handy system and path functions\n" +
-            "import sys # to get file system encoding\n"
+            "import sys  # to get file system encoding\n"
             "\n")
         self.settings.writeStartCode(script)  # present info dlg, make logfile
         # writes any components with a writeStartCode()
@@ -1541,14 +1542,11 @@ class Routine(list):
         for event in self:
             event.writeRoutineStartCode(buff)
 
-        code = ('# keep track of which components have finished\n'
-                '%sComponents = []\n')
-        buff.writeIndentedLines(code % self.name)
-        # todo: rewrite to avoid append append ... append one by one
-        for thisCompon in self:
-            if 'startType' in thisCompon.params:
-                buff.writeIndented('%sComponents.append(%s)\n' %
-                                   (self.name, thisCompon.params['name']))
+        code = '# keep track of which components have finished\n'
+        buff.writeIndentedLines(code)
+        compStr = ', '.join([c.params['name'].val for c in self
+                             if 'startType' in c.params])
+        buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
@@ -1998,16 +1996,6 @@ class NameSpace(object):
         newName = prefix + newName[0].capitalize() + newName[1:]
         newName = self.makeValid(newName)
         return newName
-
-
-def _XMLremoveWhitespaceNodes(parent):
-    """Remove all text nodes from an xml document (likely to be whitespace)
-    """
-    for child in list(parent.childNodes):
-        if child.nodeType == node.TEXT_NODE and node.data.strip() == '':
-            parent.removeChild(child)
-        else:
-            removeWhitespaceNodes(child)
 
 
 def getCodeFromParamStr(val):

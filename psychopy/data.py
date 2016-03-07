@@ -24,7 +24,7 @@ import warnings
 import collections
 
 try:
-    #import openpyxl
+    # import openpyxl
     from openpyxl.cell import get_column_letter
     from openpyxl.reader.excel import load_workbook
     haveOpenpyxl = True
@@ -695,18 +695,6 @@ class _BaseTrialHandler(object):
 
         ew.save(filename=fileName)
 
-    def nextTrial(self):
-        """DEPRECATION WARNING: nextTrial() will be deprecated
-        please use next() instead.
-        jwp: 19/6/06
-        """
-        if self._warnUseOfNext:
-            logging.warning("""DEPRECATION WARNING: nextTrial() will be
-        deprecated. please use next() instead. jwp: 19/6/06
-        """)
-            self._warnUseOfNext = False
-        return self.next()
-
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this
         data file and returns both the path to that script and its contents.
@@ -863,7 +851,6 @@ class TrialHandler(_BaseTrialHandler):
         self.thisTrial = []
         self.finished = False
         self.extraInfo = extraInfo
-        self._warnUseOfNext = True
         self.seed = seed
         # create dataHandler
         self.data = DataHandler(trials=self)
@@ -892,7 +879,7 @@ class TrialHandler(_BaseTrialHandler):
     def __str__(self, verbose=False):
         """string representation of the object
         """
-        strRepres = 'psychopy.data.TrialHandler(\n'
+        strRepres = 'psychopy.data.{}(\n'.format(self.__class__.__name__)
         attribs = dir(self)
 
         # data first, then all others
@@ -1554,7 +1541,6 @@ class TrialHandler2(_BaseTrialHandler):
         self.thisTrial = {}
         self.finished = False
         self.extraInfo = extraInfo
-        self._warnUseOfNext = True
         self.seed = seed
         self._rng = numpy.random.RandomState(seed=seed)
 
@@ -1575,14 +1561,14 @@ class TrialHandler2(_BaseTrialHandler):
     def __str__(self, verbose=False):
         """string representation of the object
         """
-        strRepres = 'psychopy.data.TrialHandler(\n'
+        strRepres = 'psychopy.data.{}(\n'.format(self.__class__.__name__)
         attribs = dir(self)
         # data first, then all others
         try:
             data = self.data
         except Exception:
-            data = None
-        if data:
+            strRepres += '\t(no data)\n'
+        else:
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
         for thisAttrib in attribs:
@@ -1765,7 +1751,7 @@ class TrialHandler2(_BaseTrialHandler):
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
-             encoding:
+            encoding:
                 The encoding to use when saving a the file.
                 Defaults to `utf-8`.
 
@@ -1973,7 +1959,6 @@ class TrialHandlerExt(TrialHandler):
         self.thisTrial = []
         self.finished = False
         self.extraInfo = extraInfo
-        self._warnUseOfNext = True
         self.seed = seed
         # create dataHandler
         if self.trialWeights is None:
@@ -2509,23 +2494,13 @@ class TrialHandlerExt(TrialHandler):
             for key in self.extraInfo:
                 header.insert(0, key)
 
+        # write a header row:
         if not matrixOnly:
-            # write the header row:
-            nextLine = ''
-            for prmName in header:
-                nextLine = nextLine + prmName + delim
-            # todo: rewrite as: nextLine = delim.join([prm for prm in header])
-            # remove the final orphaned tab character
-            f.write(nextLine[:-1] + '\n')
-
+            f.write(delim.join(header) + '\n')
         # write the data matrix:
         for trial in dataOut:
-            # todo: rewrite as delim.join(...)
-            nextLine = ''
-            for prmName in header:
-                nextLine = nextLine + unicode(trial[prmName]) + delim
-            nextLine = nextLine[:-1]  # remove the final tab character
-            f.write(nextLine + '\n')
+            line = delim.join([unicode(trial[prm]) for prm in header])
+            f.write(line + '\n')
 
         if f != sys.stdout:
             f.close()
@@ -2804,7 +2779,7 @@ def createFactorialTrialList(factors):
 class StairHandler(_BaseTrialHandler):
     """Class to handle smoothly the selection of the next trial
     and report current values etc.
-    Calls to nextTrial() will fetch the next object given to this
+    Calls to next() will fetch the next object given to this
     handler, according to the method specified.
 
     See ``Demos >> ExperimentalControl >> JND_staircase_exp.py``
@@ -2950,7 +2925,6 @@ class StairHandler(_BaseTrialHandler):
         # correct since last stim change (minus are incorrect):
         self.correctCounter = 0
         self._nextIntensity = self.startVal
-        self._warnUseOfNext = True
         self.minVal = minVal
         self.maxVal = maxVal
         self.autoLog = autoLog

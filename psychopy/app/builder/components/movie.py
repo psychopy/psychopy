@@ -27,7 +27,6 @@ class MovieComponent(BaseVisualComponent):
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='moviepy',
                  noAudio=False):
-        # initialise main parameters from base stimulus
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
             pos=pos, size=size, ori=ori,

@@ -30,7 +30,6 @@ class ImageComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        # initialise main parameters from base stimulus
         super(ImageComponent, self).__init__(
             exp, parentName, name=name, units=units,
             color=color, colorSpace=colorSpace,
@@ -94,7 +93,7 @@ class ImageComponent(BaseVisualComponent):
         msg = _translate(
             "Should the image be flipped horizontally (left to right)?")
         self.params['flipHoriz'] = Param(
-            flipVert, valType='bool',
+            flipHoriz, valType='bool',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized["flipHoriz"], categ="Advanced")

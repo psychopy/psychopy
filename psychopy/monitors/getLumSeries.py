@@ -6,6 +6,11 @@ existing namespace (e.g. avbin can load because scipy won't already have
 been loaded).
 """
 
+from psychopy import logging
+from calibTools import DACrange
+import numpy
+import time
+
 
 def getLumSeries(lumLevels=8,
                  winSize=(800, 600),
