@@ -309,7 +309,7 @@ class RatingScale(MinimalStim):
         # internally work in norm units, restore to orig units at the end of
         # __init__:
         self.savedWinUnits = self.win.units
-        self.win.units = 'norm'
+        self.win.setUnits(u'norm', log=False)
         self.depth = depth
 
         # 'hover' style = like hyperlink with hover over choices:
@@ -361,7 +361,7 @@ class RatingScale(MinimalStim):
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
         self.reset()  # sets .status, among other things
-        self.win.units = self.savedWinUnits
+        self.win.setUnits(self.savedWinUnits, log=False)
 
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
@@ -1098,7 +1098,7 @@ class RatingScale(MinimalStim):
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
-            self.win.units = self.savedWinUnits
+            self.win.setUnits(self.savedWinUnits, log=False)
             return
 
         # draw everything except the marker:
@@ -1123,7 +1123,7 @@ class RatingScale(MinimalStim):
             self.marker.draw()
             if self.showAccept:
                 self.acceptBox.draw()  # hides the text
-            self.win.units = self.savedWinUnits
+            self.win.setUnits(self.savedWinUnits, log=False)
             return  # makes the marker unresponsive
 
         if self.noMouse:
