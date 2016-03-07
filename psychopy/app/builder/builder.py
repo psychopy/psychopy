@@ -1469,8 +1469,8 @@ class BuilderFrame(wx.Frame):
             if not self.fileSaveAs(filename):
                 return False  # the user cancelled during saveAs
         else:
+            filename = self.exp.saveToXML(filename)
             self.fileHistory.AddFileToHistory(filename)
-            self.exp.saveToXML(filename)
         self.setIsModified(False)
         return True
 

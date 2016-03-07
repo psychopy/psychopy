@@ -288,9 +288,12 @@ class Experiment(object):
         simpleString = xml.tostring(self.xmlRoot, 'utf-8')
         pretty = minidom.parseString(simpleString).toprettyxml(indent="  ")
         # then write to file
+        if not filename.endswith(".psyexp"):
+            filename += ".psyexp"
         f = codecs.open(filename, 'wb', 'utf-8')
         f.write(pretty)
         f.close()
+        return filename  # this may have been updated to include an extension
 
     def _getShortName(self, longName):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
