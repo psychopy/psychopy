@@ -14,7 +14,7 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
-from psychopy.app import localization  # pylint: disable=W0611
+from psychopy.app.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 
@@ -216,18 +216,19 @@ class MainFrame(wx.Frame):
                         _translate('Save\tCtrl+S'),
                         _translate('Save the current monitor'))
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
-        _hint = 'Close Monitor Center (but not other PsychoPy windows)'
+        _hint = _translate(
+            'Close Monitor Center (but not other PsychoPy windows)')
         fileMenu.Append(wx.ID_CLOSE,
                         _translate('Close Monitor Center\tCtrl+W'),
-                        _translate(_hint))
+                        _hint)
         wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
         menuBar.Append(fileMenu, _translate('&File'))
 
         # Edit
         editMenu = wx.Menu()
         id = wx.NewId()
-        _hint = "Copy the current monitor's name to clipboard"
-        editMenu.Append(id, _translate('Copy\tCtrl+C'), _translate(_hint))
+        _hint = _translate("Copy the current monitor's name to clipboard")
+        editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
         wx.EVT_MENU(self, id, self.onCopyMon)
         menuBar.Append(editMenu, _translate('&Edit'))
 
@@ -302,22 +303,22 @@ class MainFrame(wx.Frame):
         infoBoxSizer = wx.StaticBoxSizer(infoBox, wx.VERTICAL)
 
         # scr distance
-        labl_scrDist = wx.StaticText(parent, -1,
+        labelScrDist = wx.StaticText(parent, -1,
                                      _translate("Screen Distance (cm):"),
                                      style=wx.ALIGN_RIGHT)
         self.ctrlScrDist = wx.TextCtrl(parent, idCtrlScrDist, "")
         wx.EVT_TEXT(self, idCtrlScrDist, self.onChangeScrDist)
 
         # scr width
-        labl_scrWidth = wx.StaticText(parent, -1,
+        labelScrWidth = wx.StaticText(parent, -1,
                                       _translate("Screen Width (cm):"),
                                       style=wx.ALIGN_RIGHT)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
 
         # scr pixels
-        _sz = "Size (pixels; Horiz,Vert):"
-        labl_ScrPixels = wx.StaticText(parent, -1, _translate(_sz),
+        _size = _translate("Size (pixels; Horiz,Vert):")
+        labelScrPixels = wx.StaticText(parent, -1, _size,
                                        style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50, 20))
         wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(),
@@ -329,14 +330,14 @@ class MainFrame(wx.Frame):
         ScrPixelsSizer.AddMany([self.ctrlScrPixHoriz, self.ctrlScrPixVert])
 
         # date
-        labl_calibDate = wx.StaticText(parent, -1,
+        labelCalibDate = wx.StaticText(parent, -1,
                                        _translate("Calibration Date:"),
                                        style=wx.ALIGN_RIGHT)
         self.ctrlCalibDate = wx.TextCtrl(parent, idCtrlCalibDate, "",
                                          size=(150, 20))
         self.ctrlCalibDate.Disable()
         # notes
-        labl_calibNotes = wx.StaticText(parent, -1,
+        labelCalibNotes = wx.StaticText(parent, -1,
                                         _translate("Notes:"),
                                         style=wx.ALIGN_RIGHT)
         self.ctrlCalibNotes = wx.TextCtrl(parent, idCtrlCalibNotes, "",
@@ -352,15 +353,15 @@ class MainFrame(wx.Frame):
         infoBoxGrid.AddMany([
             (1, 10), (1, 10),  # a pair of empty boxes each 1x10pix
             (1, 10), self.ctrlUseBits,
-            labl_scrDist, self.ctrlScrDist,
-            labl_ScrPixels, ScrPixelsSizer,
-            labl_scrWidth, self.ctrlScrWidth,
-            labl_calibDate, self.ctrlCalibDate
+            labelScrDist, self.ctrlScrDist,
+            labelScrPixels, ScrPixelsSizer,
+            labelScrWidth, self.ctrlScrWidth,
+            labelCalibDate, self.ctrlCalibDate
         ])
         infoBoxGrid.Layout()
         infoBoxSizer.Add(infoBoxGrid)
         # put the notes box below the main grid sizer
-        infoBoxSizer.Add(labl_calibNotes)
+        infoBoxSizer.Add(labelCalibNotes)
         infoBoxSizer.Add(self.ctrlCalibNotes, 1, wx.EXPAND)
         return infoBoxSizer
 
@@ -387,7 +388,7 @@ class MainFrame(wx.Frame):
                                           size=_size)
 
         # wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(),
-        # self.onChangePhotomType)#not needed?
+        #               self.onChangePhotomType)  # not needed?
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(),
@@ -526,7 +527,8 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             # warn user that data will be lost
-            msg = _translate('Save changes to monitor settings before quitting?')
+            msg = _translate(
+                'Save changes to monitor settings before quitting?')
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
@@ -570,18 +572,6 @@ class MainFrame(wx.Frame):
             newCalib = self.ctrlCalibList.GetStringSelection()
         # do the load and check new name
         self.currentCalibName = self.currentMon.setCurrent(newCalib)
-
-        # keys that may not exist
-        # todo remove this code - only needed for monitor objects made pre
-        # version 0.63
-        if not 'gammaGrid' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['gammaGrid'] = np.ones((4, 3), 'd')
-        if not 'lms_rgb' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['lms_rgb'] = np.ones((3, 3), 'd')
-        if not 'dkl_rgb' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['dkl_rgb'] = np.ones((3, 3), 'd')
-        if not 'sizePix' in self.currentMon.currentCalib:
-            self.currentMon.currentCalib['sizePix'] = [1024, 768]
 
         # insert values from new calib into GUI
         _date = monitors.strFromDate(self.currentMon.getCalibDate())
@@ -654,7 +644,8 @@ class MainFrame(wx.Frame):
         calibTimeStr = monitors.strFromDate(calibTime)
 
         # then use dialogue so user can override
-        msg = _translate('Name of this calibration (for monitor "%(name)s") will be:)')
+        msg = _translate(
+            'Name of this calibration (for monitor "%(name)s") will be:)')
         infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
                                  defaultValue=calibTimeStr,
@@ -987,9 +978,9 @@ class MainFrame(wx.Frame):
                                  ' Please block all light from getting into '
                                  'the lens and press OK.')
                 while self.photom.getNeedsCalibrateZero():
-                    txt = 'Dark calibration of ColorCAL'
+                    txt = _translate('Dark calibration of ColorCAL')
                     dlg = dialogs.MessageDialog(self, message=msg,
-                                                title=_translate(txt),
+                                                title=txt,
                                                 type='Info')
                     # info dlg has only an OK button
                     resp = dlg.ShowModal()
@@ -1041,11 +1032,11 @@ class MainFrame(wx.Frame):
                              linewidth=1.5)
                 else:
                     pass
-                    #polyFit = self.currentMon._gammaInterpolator[gun]
-                    #curve = xxSmooth*0.0
+                    # polyFit = self.currentMon._gammaInterpolator[gun]
+                    # curve = xxSmooth*0.0
                     # for expon, coeff in enumerate(polyFit):
-                    #curve += coeff*xxSmooth**expon
-                    #plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
+                    #    curve += coeff*xxSmooth**expon
+                    # plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
                 # plot POINTS
                 plt.plot(levelsPre, lumsPre[gun, :], colors[gun] + 'o',
                          linewidth=1.5)

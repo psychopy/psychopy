@@ -59,8 +59,8 @@ if havePyglet:
     # clock for tracking time of mouse movement, reset when mouse is moved,
     # reset on mouse motion:
     mouseMove = psychopy.core.Clock()
-    #global eventThread
-    #eventThread = _EventDispatchThread()
+    # global eventThread
+    # eventThread = _EventDispatchThread()
     # eventThread.start()
 
 useText = False  # By default _onPygletText is not used
@@ -582,7 +582,7 @@ class Mouse(object):
         """Sets the visibility of the mouse to 1 or 0
 
         NB when the mouse is not visible its absolute position is held
-        at (0,0) to prevent it from going off the screen and getting lost!
+        at (0, 0) to prevent it from going off the screen and getting lost!
         You can still use getRel() in that case.
         """
         if usePygame:
@@ -591,8 +591,8 @@ class Mouse(object):
             if self.win:  # use default window if we don't have one
                 w = self.win.winHandle
             else:
-                w = pyglet.window.get_platform(
-                ).get_default_display().get_windows()[0]
+                plat = pyglet.window.get_platform()
+                w = plat.get_default_display().get_windows()[0]
             w.set_mouse_visible(visible)
 
     def clickReset(self, buttons=(0, 1, 2)):
@@ -630,7 +630,8 @@ class Mouse(object):
         global mouseButtons, mouseTimes
         if usePygame:
             return mouse.get_pressed()
-        else:  # False: #havePyglet: # like in getKeys - pump the events
+        else:
+            # False:  # havePyglet: # like in getKeys - pump the events
             # for each (pyglet) window, dispatch its events before checking
             # event buffer
             defDisplay = pyglet.window.get_platform().get_default_display()

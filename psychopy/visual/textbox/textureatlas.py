@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+#pylint: skip-file
+
 # -----------------------------------------------------------------------------
 #
 #  FreeType high-level python API - Copyright 2011 Nicolas P. Rougier

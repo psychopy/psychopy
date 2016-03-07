@@ -20,6 +20,16 @@ from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 
+try:
+    import pyglet
+    havePyglet = True
+    # may not want to check, to preserve terminal window focus
+    checkPygletDuringWait = True
+except ImportError:
+    havePyglet = False
+    checkPygletDuringWait = False
+
+
 runningThreads = []  # just for backwards compatibility?
 
 # Set getTime in core to == the monotonicClock instance created in the
@@ -43,20 +53,11 @@ def getTime():
     """
     return monotonicClock.getTime()
 
-try:
-    import pyglet
-    havePyglet = True
-    # may not want to check, to preserve terminal window focus
-    checkPygletDuringWait = True
-except ImportError:
-    havePyglet = False
-    checkPygletDuringWait = False
-
 
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
-    # pygame.quit() #safe even if pygame was never initialised
+    # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
     for thisThread in threading.enumerate():
         if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
@@ -70,14 +71,14 @@ def quit():
 
 def shellCall(shellCmd, stdin='', stderr=False):
     """Call a single system command with arguments, return its stdout.
-    Returns stdout,stderr if stderr is True.
+    Returns stdout, stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested
     on windows) can accept string or list as the first argument
     """
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
-    elif type(shellCmd) == list:  # handles whitespace in filenames
+    elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
         return None, 'shellCmd requires a list or string'
@@ -99,12 +100,12 @@ class StaticPeriod(object):
         fixation.draw()
         win.flip()
         ISI = StaticPeriod(screenHz=60)
-        ISI.start(0.5) #start a period of 0.5s
-        stim.image = 'largeFile.bmp' #could take some time
-        ISI.complete() #finish the 0.5s, taking into account one 60Hz frame
+        ISI.start(0.5)  # start a period of 0.5s
+        stim.image = 'largeFile.bmp'  # could take some time
+        ISI.complete()  # finish the 0.5s, taking into account one 60Hz frame
 
         stim.draw()
-        win.flip() #the period takes into account the next frame flip
+        win.flip()  # the period takes into account the next frame flip
         # time should now be at exactly 0.5s later than when ISI.start()
         # was called
 

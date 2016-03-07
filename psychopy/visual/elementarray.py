@@ -28,7 +28,7 @@ from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribu
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin
-from . import glob_vars
+from . import globalVars
 
 import numpy
 
@@ -160,9 +160,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != glob_vars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType == 'pyglet':
             win.winHandle.switch_to()
-            glob_vars.currWindow = win
+            globalVars.currWindow = win
 
     def _makeNx2(self, value, acceptedInput=('scalar', 'Nx1', 'Nx2')):
         """Helper function to change input to Nx2 arrays
@@ -458,7 +458,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """:ref:`x,y-pair <attrib-xy>`.
         Set the centre of the array of elements.
 
-        :ref:`Operations <attrib-operations>` are supported."""
+        :ref:`Operations <attrib-operations>` are supported.
+        """
         self.__dict__['fieldPos'] = val2array(value, False, False)
         self._needVertexUpdate = True
 
@@ -469,7 +470,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         setAttribute(self, 'fieldPos', value, log, operation)
 
     def setPos(self, newPos=None, operation='', units=None, log=None):
-        """Obselete - users should use setFieldPos or instead of setPos.
+        """Obsolete - users should use setFieldPos or instead of setPos.
         """
         logging.error("User called ElementArrayStim.setPos(pos). "
                       "Use ElementArrayStim.setFieldPos(pos) instead.")
@@ -493,8 +494,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         setAttribute(self, 'fieldSize', value, log, operation)
 
     def draw(self, win=None):
-        """
-        Draw the stimulus in its relevant window. You must call
+        """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.update() if you want the
         stimulus to appear on that frame and then update the screen
         again.
@@ -629,11 +629,12 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._RGBAs = numpy.zeros([N, 4], 'd')
         if self.colorSpace in ('rgb', 'dkl', 'lms', 'hsv'):
             # these spaces are 0-centred
-            self._RGBAs[:, 0:3] = self.rgbs[:, :] * \
-                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 2 + 0.5
+            self._RGBAs[:, 0:3] = (self.rgbs[:, :] *
+                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 2 + 0.5)
         else:
-            self._RGBAs[:, 0:3] = self.rgbs * \
-                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0
+            self._RGBAs[:, 0:3] = (self.rgbs *
+                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0)
+
         self._RGBAs[:, -1] = self.opacities.reshape([N, ])
         # repeat for the 4 vertices in the grid
         self._RGBAs = self._RGBAs.reshape([N, 1, 4]).repeat(4, 1)
@@ -641,7 +642,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._needColorUpdate = False
 
     def updateTextureCoords(self):
-        """Create a new array of self._maskCoords"""
+        """Create a new array of self._maskCoords
+        """
 
         N = self.nElements
         self._maskCoords = numpy.array([[1, 0], [0, 0], [0, 1], [1, 1]],
@@ -655,20 +657,21 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             R = +self.sfs[:, 0] / 2 - self.phases[:, 0] + 0.5
             T = +self.sfs[:, 1] / 2 - self.phases[:, 1] + 0.5
             B = -self.sfs[:, 1] / 2 - self.phases[:, 1] + 0.5
-        else:  # we should scale to become independent of size
-            L = -self.sfs[:, 0] * self.sizes[:, 0] / \
-                2 - self.phases[:, 0] + 0.5
-            R = +self.sfs[:, 0] * self.sizes[:, 0] / \
-                2 - self.phases[:, 0] + 0.5
-            T = +self.sfs[:, 1] * self.sizes[:, 1] / \
-                2 - self.phases[:, 1] + 0.5
-            B = -self.sfs[:, 1] * self.sizes[:, 1] / \
-                2 - self.phases[:, 1] + 0.5
+        else:
+            # we should scale to become independent of size
+            L = (-self.sfs[:, 0] * self.sizes[:, 0] / 2
+                 - self.phases[:, 0] + 0.5)
+            R = (+self.sfs[:, 0] * self.sizes[:, 0] / 2
+                 - self.phases[:, 0] + 0.5)
+            T = (+self.sfs[:, 1] * self.sizes[:, 1] / 2
+                 - self.phases[:, 1] + 0.5)
+            B = (-self.sfs[:, 1] * self.sizes[:, 1] / 2
+                 - self.phases[:, 1] + 0.5)
 
         # self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],
         #           'd').reshape([1,4,2])
-        self._texCoords = numpy.concatenate([[R, B], [L, B], [L, T], [R, T]]) \
-            .transpose().reshape([N, 4, 2]).astype('d')
+        self._texCoords = (numpy.concatenate([[R, B], [L, B], [L, T], [R, T]])
+            .transpose().reshape([N, 4, 2]).astype('d'))
         self._texCoords = numpy.ascontiguousarray(self._texCoords)
         self._needTexCoordUpdate = False
 

@@ -22,6 +22,7 @@ try:
     from agw import advancedsplash as AS
 except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
+from .localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
 # e.g. coder and builder are imported during app.__init__ because they
 # take a while
@@ -53,12 +54,12 @@ class MenuFrame(wx.Frame):
         self.viewMenu.Append(self.app.IDs.openBuilderView,
                              mtxt % self.app.keys['switchToBuilder'],
                              _translate("Open a new Builder view"))
-        wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
+        wx.EVT_MENU(self, self.app.IDs.openBuilderView, self.app.showBuilder)
         mtxt = _translate("&Open Coder view\t%s")
         self.viewMenu.Append(self.app.IDs.openCoderView,
                              mtxt % self.app.keys['switchToCoder'],
                              _translate("Open a new Coder view"))
-        wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
+        wx.EVT_MENU(self, self.app.IDs.openCoderView, self.app.showCoder)
         mtxt = _translate("&Quit\t%s")
         item = self.viewMenu.Append(wx.ID_EXIT, mtxt % self.app.keys['quit'],
                                     _translate("Terminate the program"))
@@ -489,13 +490,13 @@ class PsychoPyApp(wx.App):
                         wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
                         wx.TheClipboard.Close()
                 dlg.Destroy()
-                parent.new_rgb = rgb
+                parent.newRBG = rgb
         frame = wx.Frame(None, wx.ID_ANY, "Color picker",
                          size=(0, 0))  # not shown
         ColorPicker(frame)
-        new_rgb = frame.new_rgb
+        newRBG = frame.newRBG
         frame.Destroy()
-        return new_rgb  # string
+        return newRBG  # string
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
@@ -528,10 +529,10 @@ class PsychoPyApp(wx.App):
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(1.0)
-            iohub_address = '127.0.0.1', 9034
+            iohubAddress = '127.0.0.1', 9034
             import msgpack
-            tx_data = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
-            return sock.sendto(tx_data, iohub_address)
+            txData = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
+            return sock.sendto(txData, iohubAddress)
         except socket.error as e:
             msg = 'PsychoPyApp: terminateHubProcess socket.error: %s'
             logging.debug(msg % str(e))

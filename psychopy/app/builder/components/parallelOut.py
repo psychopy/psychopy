@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 from psychopy import prefs
 
 # the absolute path to the folder containing this path

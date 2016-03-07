@@ -10,7 +10,7 @@ from psychopy import logging
 import wx
 import numpy
 import os
-from psychopy.app import localization  # pylint: disable=W0611
+from psychopy.app.localization import _translate
 
 OK = wx.ID_OK
 
@@ -68,7 +68,7 @@ class Dlg(wx.Dialog):
         self.data = []
         # prepare a frame in which to hold objects
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # self.addText('')#insert some space at top of dialogue
+        # self.addText('')  # insert some space at top of dialogue
         self.pos = pos
         self.labelButtonOK = labelButtonOK
         self.labelButtonCancel = labelButtonCancel

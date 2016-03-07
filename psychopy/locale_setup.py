@@ -17,12 +17,12 @@ create multiple versions of an experiment.
 from __future__ import absolute_import
 
 import platform
-mac_ver = platform.mac_ver()[0]  # e.g., '10.9.5' or '' for non-Mac
+macVer = platform.mac_ver()[0]  # e.g., '10.9.5' or '' for non-Mac
 
-if mac_ver:
+if macVer:
     def _versionTuple(v):
         return tuple(map(int, v.split('.')))
-    ver = _versionTuple(mac_ver)
+    ver = _versionTuple(macVer)
     if ver > _versionTuple('10.10.2'):
         # set locale and prefs experiment-wide, without saving prefs to disk
         import locale

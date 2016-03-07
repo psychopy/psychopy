@@ -2,6 +2,7 @@
 Module containing validators for various parameters.
 '''
 import wx
+from ..localization import _translate
 
 
 class NameValidator(wx.PyValidator):
@@ -50,9 +51,10 @@ class NameValidator(wx.PyValidator):
         else:
             namespace = parent.frame.exp.namespace
             used = namespace.exists(newName)
-            same_as_old_name = bool(newName == parent.params['name'].val)
-            if used and not same_as_old_name:
-                msg = _translate("That name is in use (it's a %s). Try another name.")
+            sameAsOldName = bool(newName == parent.params['name'].val)
+            if used and not sameAsOldName:
+                msg = _translate(
+                    "That name is in use (it's a %s). Try another name.")
                 return msg % used, False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")

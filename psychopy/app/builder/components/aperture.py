@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseVisualComponent, getInitVals
+from ._base import BaseVisualComponent, getInitVals, _translate
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
@@ -39,7 +39,8 @@ class ApertureComponent(BaseVisualComponent):
         # NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos']  # make sure this is at top
 
-        msg = _translate("How big is the aperture? (a single number for diameter)")
+        msg = _translate(
+            "How big is the aperture? (a single number for diameter)")
         self.params['size'].hint = msg
         # only localize hints and labels
         self.params['size'].label = _translate("Size")
@@ -78,11 +79,12 @@ class ApertureComponent(BaseVisualComponent):
         buff.writeIndented("%(name)s.enabled = True\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        # writes an if statement to determine whether to draw etc
-        self.writeStopTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = False\n" % self.params)
-        # to get out of the if statement
-        buff.setIndentLevel(-1, relative=True)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # writes an if statement to determine whether to draw etc
+            self.writeStopTestCode(buff)
+            buff.writeIndented("%(name)s.enabled = False\n" % self.params)
+            # to get out of the if statement
+            buff.setIndentLevel(-1, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):

@@ -4,7 +4,7 @@
 
 from os import path
 
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 from ..experiment import CodeGenerationException, _valid_var_re
 
 # the absolute path to the folder containing this path
@@ -24,7 +24,7 @@ _localized = {'allowedKeys': _translate('Allowed keys'),
 
 class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
-    # an attribute of the class, determines the section in the components panel
+    # an attribute of the class, determines the section in components panel
     categories = ['Responses']
 
     def __init__(self, exp, parentName, name='key_resp',
@@ -116,9 +116,7 @@ class KeyboardComponent(BaseComponent):
             label=_localized['syncScreenRefresh'])
 
     def writeRoutineStartCode(self, buff):
-        code = ("%(name)s = event.BuilderKeyResponse()  # create an "
-                "object of type KeyResponse\n"
-                "%(name)s.status = NOT_STARTED\n")
+        code = "%(name)s = event.BuilderKeyResponse()\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -153,21 +151,25 @@ class KeyboardComponent(BaseComponent):
                     "    core.quit()\n"
                     "if not type(%s) in [list, tuple, np.ndarray]:\n"
                     "    if not isinstance(%s, basestring):\n"
-                    "        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n"
+                    "        logging.error('AllowedKeys variable `%s` is "
+                    "not string- or list-like.')\n"
                     "        core.quit()\n" %
                     allowedKeys)
 
-            code += ("    elif not ',' in %s: %s = (%s,)\n" % (allowedKeys, allowedKeys, allowedKeys) +
-                     "    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
+            vals = (allowedKeys, allowedKeys, allowedKeys)
+            code += (
+                "    elif not ',' in %s: %s = (%s,)\n" % vals +
+                "    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
             buff.writeIndentedLines(code)
 
-            keyListStr = "keyList=list(%s)" % allowedKeys  # eval() at run time
+            keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
 
         buff.writeIndented("# keyboard checking is just starting\n")
 
         if store != 'nothing':
             if self.params['syncScreenRefresh'].val:
-                code = "win.callOnFlip(%(name)s.clock.reset)  # t=0 on next screen flip\n" % self.params
+                code = ("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next"
+                        " screen flip\n") % self.params
             else:
                 code = "%(name)s.clock.reset()  # now t=0\n" % self.params
 
@@ -187,7 +189,7 @@ class KeyboardComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
-        buff.setIndentLevel(1, relative=True)  # to get out of the if statement
+        buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
         # do we need a list of keys? (variable case is already handled)
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
@@ -203,10 +205,10 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "keyList=%s" % (repr(keyList))
+            keyListStr = "keyList=%s" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("theseKeys = event.getKeys(%s)\n" % (keyListStr))
+        buff.writeIndented("theseKeys = event.getKeys(%s)\n" % keyListStr)
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n# check for quit:\n'
@@ -223,7 +225,8 @@ class KeyboardComponent(BaseComponent):
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            code = "if %(name)s.keys == []:  # then this was the first keypress\n" % self.params
+            code = ("if %(name)s.keys == []:  # then this was the first "
+                    "keypress\n") % self.params
             buff.writeIndented(code)
 
             buff.setIndentLevel(1, True)

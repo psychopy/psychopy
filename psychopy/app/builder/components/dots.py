@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseVisualComponent, Param, getInitVals
+from ._base import BaseVisualComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -38,7 +38,6 @@ class DotsComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        # initialise main parameters from base stimulus
         super(DotsComponent, self).__init__(
             exp, parentName, name=name, units=units,
             color=color, colorSpace=colorSpace,
@@ -131,7 +130,8 @@ class DotsComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['fieldSize'])
 
-        msg = _translate("Where is the field centred (in the specified units)?")
+        msg = _translate(
+            "Where is the field centred (in the specified units)?")
         self.params['fieldPos'] = Param(
             fieldPos, valType='code',
             updates='constant',

@@ -1,7 +1,7 @@
 import os
 import wx
 import copy
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 from psychopy import logging
 
 # this is not a standard component - it will appear on toolbar not in
@@ -60,8 +60,7 @@ class SettingsComponent(object):
         if filename.startswith("u'xxxx"):
             folder = self.exp.prefsBuilder['savedDataFolder'].strip()
             filename = filename.replace("xxxx", folder)
-        else:
-            print(filename[0:6])
+
         # params
         self.params = {}
         self.order = ['expName', 'Show info dlg', 'Experiment info',
@@ -242,9 +241,9 @@ class SettingsComponent(object):
             for field in ('participant', 'Participant', 'Subject', 'Observer'):
                 if field in expInfoDict:
                     participantField = field
-                    self.params['Data filename'].val = repr(saveToDir) + \
-                        " + os.sep + '%s_%s' % (expInfo['" + \
-                        field + "'], expInfo['date'])"
+                    self.params['Data filename'].val = (
+                        repr(saveToDir) + " + os.sep + '%s_%s' % (expInfo['" +
+                        field + "'], expInfo['date'])")
                     break
             if not participantField:
                 # no participant-type field, so skip that part of filename
@@ -255,8 +254,9 @@ class SettingsComponent(object):
 
         # now write that data file name to the script
         if not self.params['Data filename'].val:  # i.e., the user deleted it
-            self.params['Data filename'].val = repr(saveToDir) +\
-                " + os.sep + u'psychopy_data_' + data.getDateStr()"
+            self.params['Data filename'].val = (
+                repr(saveToDir) +
+                " + os.sep + u'psychopy_data_' + data.getDateStr()")
         # detect if user wanted an absolute path -- else make absolute:
         filename = self.params['Data filename'].val.lstrip('"\'')
         # (filename.startswith('/') or filename[1] == ':'):
@@ -327,25 +327,22 @@ class SettingsComponent(object):
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
             size = self.params['Window size (pixels)']
-        code = ("win = visual.Window(size=%s, fullscr=%s, screen=%s, "
-                "allowGUI=%s, allowStencil=%s,\n")
+        code = ("win = visual.Window(\n    size=%s, fullscr=%s, screen=%s,"
+                "\n    allowGUI=%s, allowStencil=%s,\n")
         vals = (size, fullScr, screenNumber, allowGUI, allowStencil)
         buff.writeIndented(code % vals)
         code = ("    monitor=%(Monitor)s, color=%(color)s, "
                 "colorSpace=%(colorSpace)s,\n")
-        buff.writeIndented(code % self.params)
         if self.params['blendMode'].val:
-            buff.writeIndented(
-                "    blendMode=%(blendMode)s, useFBO=True,\n" % self.params)
+            code += "    blendMode=%(blendMode)s, useFBO=True,\n"
 
-        if self.params['Units'].val == 'use prefs':
-            # todo: fix PEP8 style in generated text
-            buff.write("    )\n")
-        else:
-            buff.write("    units=%s)\n" % self.params['Units'])
+        if self.params['Units'].val != 'use prefs':
+            code += "    units=%(Units)s"
+        code = code.rstrip(', \n') + ')\n'
+        buff.writeIndentedLines(code % self.params)
 
         if 'microphone' in self.exp.psychopyLibs:  # need a pyo Server
-            buff.writeIndentedLines("\n# Enable sound input/output:\n" +
+            buff.writeIndentedLines("\n# Enable sound input/output:\n"
                                     "microphone.switchOn()\n")
 
         code = ("# store frame rate of monitor if we can measure it\n"

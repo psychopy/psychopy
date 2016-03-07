@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseVisualComponent, Param, getInitVals
+from ._base import BaseVisualComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -30,7 +30,6 @@ class PatchComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
-        # initialise main parameters from base stimulus
         super(PatchComponent, self).__init__(
             exp, parentName, name=name, units=units,
             color=color, colorSpace=colorSpace,
@@ -72,7 +71,8 @@ class PatchComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['sf'], categ="Advanced")
 
-        msg = _translate("Spatial positioning of the image on the patch (in range 0-1.0)")
+        msg = _translate(
+            "Spatial positioning of the image on the patch (in range 0-1.0)")
         self.params['phase'] = Param(
             phase, valType='code', allowedTypes=[],
             updates='constant',
@@ -90,7 +90,8 @@ class PatchComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['texture resolution'], categ="Advanced")
 
-        msg = _translate("How should the image be interpolated if/when rescaled")
+        msg = _translate(
+            "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],

@@ -57,8 +57,8 @@ if sys.platform == 'win32':
         _winQPC(byref(_fcounter))
         return _fcounter.value / _qpfreq
 else:
-    cur_pyver = sys.version_info
-    if cur_pyver[0] == 2 and cur_pyver[1] <= 6:
+    curPyver = sys.version_info
+    if curPyver[0] == 2 and curPyver[1] <= 6:
         getTime = time.time
     else:
         import timeit
@@ -135,7 +135,7 @@ class Clock(MonotonicClock):
             timer = core.Clock()
             timer.add(5)
             while timer.getTime()<0:
-                #do something
+                # do something
         """
         self._timeAtLastReset += t
 
@@ -148,7 +148,7 @@ class CountdownTimer(Clock):
 
         timer = core.CountdownTimer(5)
         while timer.getTime() > 0:  # after 5s will become negative
-            #do stuff
+            # do stuff
     """
 
     def __init__(self, start=0):

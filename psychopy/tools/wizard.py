@@ -22,7 +22,7 @@ if wx.version() < '2.9':
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
-from psychopy.app import localization  # needed for _translate
+from psychopy.app.localization import _translate
 from psychopy import (info, data, visual, gui, core, __version__,
                       prefs, event)
 
@@ -501,7 +501,7 @@ class ConfigWizard(object):
         ofInterest = ('python version', 'available memory', 'openGL version',
                       'visual sync (refresh)', 'refresh stability (SD)',
                       'no dropped frames', 'internet access')
-        #ofInterest.append('background processes')
+        # ofInterest.append('background processes')
         for item in ofInterest:
             if not item in config.keys():
                 continue  # eg, microphone latency
@@ -515,7 +515,7 @@ class ConfigWizard(object):
         """Return an html report given a list of (key, val, msg, warn) items.
 
         format triggers: 'Critical issue' in fatal gets highlighted
-                         warn==True -> highlight key and val
+                         warn == True -> highlight key and val
                          val == msg == '' -> use key as section heading
         """
 

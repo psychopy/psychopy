@@ -211,8 +211,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='lineRGB',  # the name for this rgb value
-                 colorAttrib='lineColor',  # the name for this color
-                 )
+                 colorAttrib='lineColor')  # the name for this color
         logAttrib(self, log, 'lineColor', value='%s (%s)' %
                   (self.lineColor, self.lineColorSpace))
 
@@ -227,8 +226,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # run the original setColor, which creates color and
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='fillRGB',  # the name for this rgb value
-                 colorAttrib='fillColor',  # the name for this color
-                 )
+                 colorAttrib='fillColor')  # the name for this color
         logAttrib(self, log, 'fillColor', value='%s (%s)' %
                   (self.fillColor, self.fillColorSpace))
 

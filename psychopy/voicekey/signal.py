@@ -23,7 +23,7 @@ class _BaseVoiceKeySignal(threading.Thread):
         self.on = on
         self.off = off
         self.running = False
-        #self.daemon = True
+        # self.daemon = True
         self.id = None
 
     def __repr__(self):

@@ -4,13 +4,13 @@
 
 It needs to be imported by anything that uses those variables as:
 
-    from psychopy.visual import glob_vars
-    print(glob_vars.currWindow) #read it
-    glob_vars.currentWindow = newWin #change it
+    from psychopy.visual import globalVars
+    print(globalVars.currWindow)  # read it
+    globalVars.currentWindow = newWin  # change it
 
 Note that if you import using::
 
-    from psychopy.visual.glob_vars import currWindow
+    from psychopy.visual.globalVars import currWindow
 
 then if the variable changes your copy won't!
 """

@@ -43,14 +43,14 @@ else:
 TIMEOUT = max(prefs.connections['timeout'], 2.0)
 socket.setdefaulttimeout(TIMEOUT)
 
-global proxies
+# global proxies
 proxies = None  # if this is populated then it has been set up already
 
 
 class NoInternetAccessError(Exception):
     """An internet connection is required but not available
     """
-global haveInternet
+# global haveInternet
 haveInternet = None  # gets set True or False when you check
 
 
@@ -374,8 +374,7 @@ def _post_multipart(host, selector, fields, files,
         conn = httplib.HTTPConnection(host, timeout=timeout)
     headers = {u'User-Agent': userAgent,
                u'Charset': encoding,
-               u'Content-Type': content_type,
-               }
+               u'Content-Type': content_type}
     # apache basic auth (sent in clear text, https can help):
     if basicAuth and type(basicAuth) == str:
         user_cred = base64.encodestring(basicAuth).replace('\n', '')

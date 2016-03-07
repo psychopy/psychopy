@@ -1,6 +1,6 @@
 
 from os import path
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -26,9 +26,10 @@ class UnknownComponent(BaseComponent):
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
-        _hint = "Name of this component (alpha-numeric or _, no spaces)"
+        _hint = _translate("Name of this component (alpha-numeric or _, "
+                           "no spaces)")
         self.params['name'] = Param(name, valType='code',
-                                    hint=_translate(_hint),
+                                    hint=_hint,
                                     label=_localized['name'])
         self.order = ['name']  # name first, then timing, then others
     # make sure nothing gets written into experiment for an unknown object

@@ -16,6 +16,7 @@ import wx
 from wx.lib.newevent import NewEvent
 
 from psychopy import logging
+from .localization import _translate
 
 
 class MessageDialog(wx.Dialog):
