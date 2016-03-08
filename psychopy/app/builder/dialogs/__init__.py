@@ -235,9 +235,12 @@ class ParamCtrls(object):
         if len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
-        # add a NameValidator to name valueCtrl
+        # add a Validator to the valueCtrl
         if fieldName == "name":
             self.valueCtrl.SetValidator(validators.NameValidator())
+        elif fieldName in ('text', 'color', 'image', 'flip', 'opacity'):
+            # ... and anything that is valType code, or can be with $ ...
+            self.valueCtrl.SetValidator(validators.CodeValidator())
 
         # create the type control
         if len(param.allowedTypes):
@@ -682,8 +685,11 @@ class _BaseParamsDlg(wx.Dialog):
                            advanced=advanced, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName == 'name':
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
+            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
             ctrls.valueCtrl.SetFocus()
+        elif fieldName in ('text', 'color', 'image', 'flip', 'opacity'):
+            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
+
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
         _flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
@@ -775,7 +781,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
 
-        self.checkName()  # disables OKbtn if bad name
+        self.doValidate()  # disables OKbtn if bad name
         buttons.Add(self.OKbtn, 0, wx.ALL, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
         buttons.Add(CANCEL, 0, wx.ALL, border=3)
@@ -1019,8 +1025,8 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 return "", True
 
-    def checkName(self, event=None):
-        """Issue a form validation on name change.
+    def doValidate(self, event=None):
+        """Issue a form validation on event, e.g., name or text change.
         """
         self.Validate()
 
@@ -1168,7 +1174,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                            flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
             row += 1
 
-        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
+        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
         self.Bind(wx.EVT_CHOICE, self.onTypeChanged,
                   self.globalCtrls['loopType'].valueCtrl)
         return panel

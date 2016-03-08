@@ -3,11 +3,12 @@ Module containing validators for various parameters.
 '''
 import wx
 from ..localization import _translate
+from . import experiment
 
 
-class NameValidator(wx.PyValidator):
+class BaseValidator(wx.PyValidator):
     """
-    Component name validator for _BaseParamsDlg class. It depends on accesss
+    Component name validator for _BaseParamsDlg class. It depends on access
     to an experiment namespace. Validation checks if it is a valid Python
     identifier and if it does not clash with existing names.
 
@@ -15,11 +16,11 @@ class NameValidator(wx.PyValidator):
     """
 
     def __init__(self):
-        super(NameValidator, self).__init__()
+        super(BaseValidator, self).__init__()
         self.message = ""
 
     def Clone(self):
-        return NameValidator()
+        return self.__class__()
 
     def Validate(self, parent):
         """
@@ -31,7 +32,7 @@ class NameValidator(wx.PyValidator):
                 parent = parent.GetParent()
             except Exception:
                 print("Couldn't find the root dialog for this event")
-        message, valid = self.checkName(parent)
+        message, valid = self.check(parent)
         parent.nameOKlabel.SetLabel(message)
         return valid
 
@@ -41,7 +42,15 @@ class NameValidator(wx.PyValidator):
     def TransferToWindow(self):
         return True
 
-    def checkName(self, parent):
+    def check(self, parent):
+        raise NotImplementedError
+
+
+class NameValidator(BaseValidator):
+    def __init__(self):
+        super(NameValidator, self).__init__()
+
+    def check(self, parent):
         """checks namespace, return error-msg (str), enable (bool)
         """
         control = self.GetWindow()
@@ -65,3 +74,42 @@ class NameValidator(wx.PyValidator):
                 return msg, True
             else:
                 return "", True
+
+
+class CodeValidator(BaseValidator):
+    """
+    Component code validator for _BaseParamsDlg class. It depends on access
+    to an experiment namespace. Validation checks if it is a valid Python
+    code, and if so, whether it contains identifiers that clash with
+    existing names (in the to-be-generated python script).
+
+    @see: _BaseParamsDlg
+    """
+
+    def __init__(self):
+        super(CodeValidator, self).__init__()
+
+    def check(self, parent):
+        """checks intersection of names in code and namespace
+        """
+        control = self.GetWindow()
+        if not hasattr(control, 'GetValue'):
+            return '', True
+        val = control.GetValue()  # same as parent.params[self.fieldName].val
+        codeWanted = experiment._unescapedDollarSign_re.search(val)
+        if codeWanted:  # ... or valType == 'code' -- require fieldName?
+            # get var names from val, check against namespace:
+            code = experiment.getCodeFromParamStr(val)
+            try:
+                names = compile(code, '', 'eval').co_names
+            except SyntaxError:
+                pass
+            else:
+                namespace = parent.frame.exp.namespace
+                for name in names:
+                    # params['name'] not in namespace yet if its a new param
+                    if (name == parent.params['name'].val or
+                            namespace.exists(name)):
+                        msg = _translate('Name `{}` is already used')
+                        return msg.format(name), False
+        return '', True
