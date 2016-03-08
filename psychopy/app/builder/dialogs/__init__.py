@@ -686,10 +686,10 @@ class _BaseParamsDlg(wx.Dialog):
                            advanced=advanced, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName == 'name':
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
             ctrls.valueCtrl.SetFocus()
         elif isinstance(ctrls.valueCtrl, (wx.TextCtrl, CodeBox)):
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
         _flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT
@@ -704,7 +704,7 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
             # self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize,
             #    ctrls.valueCtrl)
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
         elif fieldName in ('color', 'fillColor', 'lineColor'):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif valType == 'extendedCode':
