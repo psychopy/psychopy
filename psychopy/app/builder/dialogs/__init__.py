@@ -783,7 +783,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
 
-        self.doValidate()  # disables OKbtn if bad name
+        self.doValidate()  # disables OKbtn if bad name, syntax error, etc
         buttons.Add(self.OKbtn, 0, wx.ALL, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
         buttons.Add(CANCEL, 0, wx.ALL, border=3)
