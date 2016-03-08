@@ -239,7 +239,7 @@ class ParamCtrls(object):
         # add a Validator to the valueCtrl
         if fieldName == "name":
             self.valueCtrl.SetValidator(NameValidator())
-        else:
+        elif isinstance(self.valueCtrl, (wx.TextCtrl, CodeBox)):
             # only want anything that is valType code, or can be with $
             self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
 
@@ -688,8 +688,7 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName == 'name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
             ctrls.valueCtrl.SetFocus()
-        else:
-            # only want anything that is valType code, or can be with $
+        elif isinstance(ctrls.valueCtrl, (wx.TextCtrl, CodeBox)):
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
 
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
@@ -705,6 +704,7 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
             # self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize,
             #    ctrls.valueCtrl)
+            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
         elif fieldName in ('color', 'fillColor', 'lineColor'):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif valType == 'extendedCode':
