@@ -1,23 +1,35 @@
-'''
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
+"""
 Module containing validators for various parameters.
-'''
+"""
+
 import wx
 from ..localization import _translate
 from . import experiment
+from .components._base import _localized as _localizedComp
+# from .dialogs import _localized as _localizedDialogs  # circular
 
 
 class BaseValidator(wx.PyValidator):
     """
     Component name validator for _BaseParamsDlg class. It depends on access
-    to an experiment namespace. Validation checks if it is a valid Python
-    identifier and if it does not clash with existing names.
+    to an experiment namespace.
+
+    Validate calls check, which needs to be implemented per class.
+
+    Messages are passed to user as text in nameOklabel.
 
     @see: _BaseParamsDlg
     """
 
     def __init__(self):
         super(BaseValidator, self).__init__()
-        self.message = ""
 
     def Clone(self):
         return self.__class__()
@@ -33,7 +45,7 @@ class BaseValidator(wx.PyValidator):
             except Exception:
                 print("Couldn't find the root dialog for this event")
         message, valid = self.check(parent)
-        parent.nameOKlabel.SetLabel(message)
+        self.setMessage(parent, message)
         return valid
 
     def TransferFromWindow(self):
@@ -45,8 +57,15 @@ class BaseValidator(wx.PyValidator):
     def check(self, parent):
         raise NotImplementedError
 
+    def setMessage(self, parent, message):
+        raise NotImplementedError
+
 
 class NameValidator(BaseValidator):
+    """Validation checks if the value in Name field is a valid Python
+    identifier and if it does not clash with existing names.
+    """
+
     def __init__(self):
         super(NameValidator, self).__init__()
 
@@ -75,41 +94,88 @@ class NameValidator(BaseValidator):
             else:
                 return "", True
 
+    def setMessage(self, parent, message):
+        parent.nameOKlabel.SetLabel(message)
 
-class CodeValidator(BaseValidator):
-    """
-    Component code validator for _BaseParamsDlg class. It depends on access
-    to an experiment namespace. Validation checks if it is a valid Python
-    code, and if so, whether it contains identifiers that clash with
-    existing names (in the to-be-generated python script).
+
+class CodeSnippetValidator(BaseValidator):
+    """Validation checks if field value is valid Python code, and if so,
+    whether it contains bad identifiers (currently only self-reference).
 
     @see: _BaseParamsDlg
     """
+    # class attribute: dict of {fieldName: message} to handle all messages
+    clsWarnings = {}
 
-    def __init__(self):
-        super(CodeValidator, self).__init__()
+    def __init__(self, fieldName):
+        super(CodeSnippetValidator, self).__init__()
+        self.fieldName = fieldName
+        try:
+            self.displayName = _localizedComp[fieldName]
+        except KeyError:
+            # todo: want _localized[fieldName] from dialogs
+            self.displayName = _translate(fieldName)
+
+    def Clone(self):
+        return self.__class__(self.fieldName)
 
     def check(self, parent):
-        """checks intersection of names in code and namespace
+        """Checks intersection of names in code and namespace
+
+        Note: code snippets simply use existing names in the namespace,
+        like from condition-file headers. They do not add to the
+        namespace (unlike Name fields).
+
+        Code snippets in param fields will often be user-defined
+        vars, like condition names. Can also be expressions like
+        random(1,100). Hard to know what will be problematic.
+        But its always the case that self-reference is wrong.
         """
         control = self.GetWindow()
         if not hasattr(control, 'GetValue'):
             return '', True
         val = control.GetValue()  # same as parent.params[self.fieldName].val
+        if not isinstance(val, basestring):
+            return '', True
         codeWanted = experiment._unescapedDollarSign_re.search(val)
-        if codeWanted:  # ... or valType == 'code' -- require fieldName?
+        isCodeField = bool(parent.params[self.fieldName].valType == 'code')
+        if codeWanted or isCodeField:
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
             try:
                 names = compile(code, '', 'eval').co_names
             except SyntaxError:
-                pass
+                # empty '' compiles to a syntax error, ignore
+                if not code.strip() == '':
+                    msg = _translate('Python syntax error in field `{}`:  {}')
+                    return msg.format(self.displayName, code), False
             else:
-                namespace = parent.frame.exp.namespace
+                # namespace = parent.frame.exp.namespace
+                # parent.params['name'].val is not in namespace for new params
+                # handle dynamic changes to Name field:
+                parentName = parent.paramCtrls['name'].getValue()
                 for name in names:
-                    # params['name'] not in namespace yet if its a new param
-                    if (name == parent.params['name'].val or
-                            namespace.exists(name)):
-                        msg = _translate('Name `{}` is already used')
-                        return msg.format(name), False
+                    # `name` is a var name within a compiled code snippet
+                    if name == parentName:
+                        msg = _translate('Python variable `{}` in field `{}` is the same as Name')
+                        return msg.format(name, self.displayName), False
         return '', True
+
+    def setMessage(self, parent, message):
+        """Set nameOklabel to the first warning (if any).
+
+        Complexity: using a single nameOklabel for warnings for all fields
+        is going to experience potential conflict among multiple messages.
+        And we want to reset a given warning to 'all clear' when fixed by
+        user, but not reset all warnings
+        Solution: use a class attribute to collect warnings for all params.
+        should only be one param dialog open at a time, making this possible
+        """
+        if message or self.fieldName in self.clsWarnings.keys():
+            self.clsWarnings[self.fieldName] = message
+        if self.clsWarnings:
+            warnings = [w for w in self.clsWarnings.values() if w != '']
+            if not warnings:
+                warnings = ['']
+            parent.nameOKlabel.SetLabel(warnings[0])
+

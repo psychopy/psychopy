@@ -18,7 +18,8 @@ import wx
 from wx.lib import flatnotebook
 
 from ... import dialogs
-from .. import validators, experiment
+from .. import experiment
+from .. validators import NameValidator, CodeSnippetValidator
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from psychopy import data, logging
@@ -237,10 +238,10 @@ class ParamCtrls(object):
 
         # add a Validator to the valueCtrl
         if fieldName == "name":
-            self.valueCtrl.SetValidator(validators.NameValidator())
-        elif fieldName in ('text', 'color', 'image', 'flip', 'opacity'):
-            # ... and anything that is valType code, or can be with $ ...
-            self.valueCtrl.SetValidator(validators.CodeValidator())
+            self.valueCtrl.SetValidator(NameValidator())
+        else:
+            # only want anything that is valType code, or can be with $
+            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
 
         # create the type control
         if len(param.allowedTypes):
@@ -687,7 +688,8 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName == 'name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
             ctrls.valueCtrl.SetFocus()
-        elif fieldName in ('text', 'color', 'image', 'flip', 'opacity'):
+        else:
+            # only want anything that is valType code, or can be with $
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
 
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
