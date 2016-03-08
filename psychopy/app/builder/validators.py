@@ -177,6 +177,5 @@ class CodeSnippetValidator(BaseValidator):
             warnings = [w for w in self.clsWarnings.values() if w != '']
             if not warnings:
                 warnings = ['']
-                self.clsWarnings = {}
             parent.nameOKlabel.SetLabel(warnings[0])
 

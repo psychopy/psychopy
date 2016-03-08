@@ -667,8 +667,12 @@ class _BaseParamsDlg(wx.Dialog):
         # use monospace font to signal code:
         self.checkCodeWanted(self.startValCtrl)
         self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.startValCtrl.SetValidator(CodeSnippetValidator('startVal'))
+        self.startValCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
         self.checkCodeWanted(self.stopValCtrl)
         self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.stopValCtrl.SetValidator(CodeSnippetValidator('stopVal'))
+        self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         return remaining, currRow
 
