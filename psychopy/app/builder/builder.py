@@ -531,7 +531,13 @@ class RoutinesNotebook(aui.AuiNotebook):
         #        routinePage = RoutinePage(parent=self, routine=routine)
         routinePage = RoutineCanvas(notebook=self, routine=routine)
         self.AddPage(routinePage, routineName)
-
+        
+#oli added
+    def renameRoutinePage(self, index, newName,):
+               
+        self.SetPageText(index, newName)
+    
+    
     def removePages(self):
         for ii in range(self.GetPageCount()):
             currId = self.GetSelection()
@@ -558,6 +564,7 @@ class RoutinesNotebook(aui.AuiNotebook):
         dlg.Destroy()
         if returnName:
             return routineName
+
 
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp
@@ -601,6 +608,7 @@ class RoutinesNotebook(aui.AuiNotebook):
                 routineName, self.frame.exp.routines[routineName])
         if currPage > -1:
             self.SetSelection(currPage)
+           
 
 
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
@@ -1309,8 +1317,13 @@ class BuilderFrame(wx.Frame):
                                "experiment"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.pasteRoutine, self.onPasteRoutine)
+        #OLI CHANGES
+        menu.Append(self.IDs.renameRoutine,
+                    _translate("&Rename Routine\t%s") % keys['newRoutine'],
+                    _translate("Change the name of this routine"))
+        wx.EVT_MENU(self, self.IDs.renameRoutine, self.renameRoutine)
         menu.AppendSeparator()
-
+        
         menu.Append(self.IDs.addRoutineToFlow,
                     _translate("Insert Routine in Flow"),
                     _translate("Select one of your routines to be inserted"
@@ -2003,7 +2016,41 @@ class BuilderFrame(wx.Frame):
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
 
+#OLI ADDED
+    def renameRoutine(self, name, event=None, returnName=True):
+        currentRoutine = self.routinePanel.getCurrentPage()
+        currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
+#        name = self.routinePanel.GetPageText(currentRoutineIndex)
+        routine = self.routinePanel.GetPage(self.routinePanel.GetSelection()).routine        
+        oldName = routine.name        
+        msg = _translate("What is the new name for the Routine?")
+        dlg = wx.TextEntryDialog(self, message=msg,
+                                 caption=_translate('Rename'))
+        exp = self.exp
+        if dlg.ShowModal() == wx.ID_OK:
+            name = dlg.GetValue()
+            # silently auto-adjust the name to be valid, and register in the
+            # namespace:
+            name = exp.namespace.makeValid(
+                name, prefix='routine')
+            if oldName in self.exp.routines.keys():
+                self.exp.namespace.rename(oldName, name)                
+                self.exp.routines[oldName].name = name
+                self.exp.routines[name] = self.exp.routines[oldName]
+                del self.exp.routines[oldName]
+                print(self.exp.routines[name]) #debug info
+                self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
+                dlg.Destroy()
+                self.addToUndoStack("RENAME Routine `%s`" % (oldName))
+                print (self.exp.routines.keys())
+                print (self.exp.routines.keys())
+                self.flowPanel.draw()
+                
+                                                       
+                 
+              
     def generateScript(self, experimentPath):
+        self.app.prefs.app['debugMode'] = "debugMode"
         if self.app.prefs.app['debugMode']:
             return self.exp.writeScript(expPath=experimentPath)
             # getting the track-back is very helpful when debugging the app
