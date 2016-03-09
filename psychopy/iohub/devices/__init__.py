@@ -655,6 +655,19 @@ class Computer(object):
                     pass
 
     @staticmethod
+    def getProcessFromName(pnames, id_only=False):
+        procs = []
+        if isinstance(pnames, basestring):
+            pnames = [pnames,]
+        for p in psutil.process_iter():
+            if p.name() in pnames:
+                if id_only:
+                    procs.append(p.pid)
+                else:
+                    procs.append(p)
+        return procs
+
+    @staticmethod
     def currentTime():
         """
         Alias for Computer.currentSec()
