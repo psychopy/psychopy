@@ -2018,6 +2018,7 @@ class BuilderFrame(wx.Frame):
 
 #OLI ADDED
     def renameRoutine(self, name, event=None, returnName=True):
+        #get notebook details
         currentRoutine = self.routinePanel.getCurrentPage()
         currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
 #        name = self.routinePanel.GetPageText(currentRoutineIndex)
@@ -2034,16 +2035,22 @@ class BuilderFrame(wx.Frame):
             name = exp.namespace.makeValid(
                 name, prefix='routine')
             if oldName in self.exp.routines.keys():
+                #Swap old with new names
                 self.exp.namespace.rename(oldName, name)                
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines[oldName]
+                #delete references to the old name
                 del self.exp.routines[oldName]
                 print(self.exp.routines[name]) #debug info
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
-                dlg.Destroy()
+                print (self.exp.routines.keys())
+                comps = self.exp.routines[name]
+                comps.params.__setitem__('name', name)
                 self.addToUndoStack("RENAME Routine `%s`" % (oldName))
-                print (self.exp.routines.keys())
-                print (self.exp.routines.keys())
+                dlg.Destroy()                
+                print (comps.params)
+                comps2 = self.exp.routines[name]
+                print(comps2.params)
                 self.flowPanel.draw()
                 
                                                        
