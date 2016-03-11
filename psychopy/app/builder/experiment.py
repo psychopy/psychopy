@@ -181,18 +181,7 @@ class Experiment(object):
         else:
             self.routines[routineName] = routine
 
-#   #OLI ADDED 
-#    def renameRoutine(self, origName, newName):
-#        """Add a Routine to the current list of them.
-#
-#        Can take a Routine object directly or will create
-#        an empty one if none is given.
-#        """
-#        for n, i in enumerate(self.routines.name):
-#                if i == origName:
-#                    self.routines.name[n] = newName
-#                    print(self.routines)
-
+#  
     def writeScript(self, expPath=None):
         """Write a PsychoPy script for the experiment
         """
@@ -1940,9 +1929,8 @@ class NameSpace(object):
         for n in list(name):
             if n in sublist:
                 del sublist[sublist.index(n)]
-# #OLI ADDED               
+             
     def rename(self, name, newName, sublist = 'default'):
-        print("Hello world")
         if name is None:
             return
         if sublist == 'default':

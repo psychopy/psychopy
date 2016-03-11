@@ -86,8 +86,8 @@ class FlowPanel(wx.ScrolledWindow):
         # for the context menu use the ID of the drawn icon to retrieve
         # the component (loop or routine)
         self.componentFromID = {}
-        self.contextMenuLabels = {'remove': _translate('remove'), 'rename': _translate('rename')}
-        self.contextMenuItems = ['remove', 'rename']
+        self.contextMenuLabels = {'remove': _translate('remove')}
+        self.contextMenuItems = ['remove']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -465,15 +465,8 @@ class FlowPanel(wx.ScrolledWindow):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack(
                 "REMOVE `%s` from Flow" % component.params['name'])
-    #OLI ADDED
-        if op == 'rename':
-            self.renameComponent(component, compID)
-        #print('rename is not implemented yet')
-            # if component is a loop: DlgLoopProperties
-            # elif component is a routine: DlgRoutineProperties
-        self.draw()
-        self._menuComponentID = None
-
+   
+   
     def removeComponent(self, component, compID):
         """Remove either a Routine or a Loop from the Flow
         """
@@ -523,15 +516,7 @@ class FlowPanel(wx.ScrolledWindow):
         # perform the actual removal
         flow.removeComponent(component, id=compID)
 
-#OLI ADDED
-    def renameComponent (self, component, compID):
-        newName = ""
-        """rename a rountine throughout study"""
-        print ("Hello World")
-        newName = self.frame.routinePanel.renameRoutine(returnName=True)
-        print(newName)
-        print
-    
+   
     
     
 

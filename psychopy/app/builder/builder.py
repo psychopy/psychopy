@@ -1319,7 +1319,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.pasteRoutine, self.onPasteRoutine)
         #OLI CHANGES
         menu.Append(self.IDs.renameRoutine,
-                    _translate("&Rename Routine\t%s") % keys['newRoutine'],
+                    _translate("&Rename Routine\t%s") % keys['renameRoutine'],
                     _translate("Change the name of this routine"))
         wx.EVT_MENU(self, self.IDs.renameRoutine, self.renameRoutine)
         menu.AppendSeparator()
@@ -2021,7 +2021,6 @@ class BuilderFrame(wx.Frame):
         #get notebook details
         currentRoutine = self.routinePanel.getCurrentPage()
         currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
-#        name = self.routinePanel.GetPageText(currentRoutineIndex)
         routine = self.routinePanel.GetPage(self.routinePanel.GetSelection()).routine        
         oldName = routine.name        
         msg = _translate("What is the new name for the Routine?")
@@ -2036,21 +2035,13 @@ class BuilderFrame(wx.Frame):
                 name, prefix='routine')
             if oldName in self.exp.routines.keys():
                 #Swap old with new names
-                self.exp.namespace.rename(oldName, name)                
                 self.exp.routines[oldName].name = name
-                self.exp.routines[name] = self.exp.routines[oldName]
-                #delete references to the old name
-                del self.exp.routines[oldName]
-                print(self.exp.routines[name]) #debug info
+                self.exp.routines[name] = self.exp.routines.pop(oldName)
+                for comp in self.exp.routines[name]:
+                    comp.parentName = name
+                self.exp.namespace.rename(oldName, name)                
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
-                print (self.exp.routines.keys())
-                comps = self.exp.routines[name]
-                comps.params.__setitem__('name', name)
-                self.addToUndoStack("RENAME Routine `%s`" % (oldName))
-                dlg.Destroy()                
-                print (comps.params)
-                comps2 = self.exp.routines[name]
-                print(comps2.params)
+                dlg.Destroy()
                 self.flowPanel.draw()
                 
                                                        
