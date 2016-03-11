@@ -532,7 +532,6 @@ class RoutinesNotebook(aui.AuiNotebook):
         routinePage = RoutineCanvas(notebook=self, routine=routine)
         self.AddPage(routinePage, routineName)
         
-#oli added
     def renameRoutinePage(self, index, newName,):
                
         self.SetPageText(index, newName)
@@ -1317,7 +1316,6 @@ class BuilderFrame(wx.Frame):
                                "experiment"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.pasteRoutine, self.onPasteRoutine)
-        #OLI CHANGES
         menu.Append(self.IDs.renameRoutine,
                     _translate("&Rename Routine\t%s") % keys['renameRoutine'],
                     _translate("Change the name of this routine"))
