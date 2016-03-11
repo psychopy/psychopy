@@ -2,7 +2,8 @@
 # This file specifies defaults for psychopy prefs for Linux.
 
 # !! This file is auto-generated and will be overwritten!!
-# Edit baseNoArch.spec (all platforms) or generateSpec.py (platform-specific) instead.
+# Edit baseNoArch.spec (all platforms) or generateSpec.py
+# (platform-specific) instead.
 
 # Notes on usage for developers (not needed or intended for use when making or running experiments):
 # - baseNoArch.spec is copied & edited to be platform specific when you run generateSpec.py
@@ -194,6 +195,8 @@
     pasteRoutine = string(default='Ctrl+Shift+V')
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
+    #Builder: rename an existing routine
+    renameRoutine = string(default='Ctrl+Shift+R')
     # switch to Builder window from Coder
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder

@@ -2014,7 +2014,6 @@ class BuilderFrame(wx.Frame):
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
 
-#OLI ADDED
     def renameRoutine(self, name, event=None, returnName=True):
         #get notebook details
         currentRoutine = self.routinePanel.getCurrentPage()
@@ -2039,6 +2038,7 @@ class BuilderFrame(wx.Frame):
                     comp.parentName = name
                 self.exp.namespace.rename(oldName, name)                
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
+                self.addToUndoStack("`RENAME Routine `%s`" % oldName )               
                 dlg.Destroy()
                 self.flowPanel.draw()
                 
