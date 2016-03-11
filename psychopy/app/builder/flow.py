@@ -465,8 +465,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack(
                 "REMOVE `%s` from Flow" % component.params['name'])
-   
-   
+
     def removeComponent(self, component, compID):
         """Remove either a Routine or a Loop from the Flow
         """
@@ -515,10 +514,6 @@ class FlowPanel(wx.ScrolledWindow):
             self.frame.exp.namespace.remove(component.params['name'].val)
         # perform the actual removal
         flow.removeComponent(component, id=compID)
-
-   
-    
-    
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real

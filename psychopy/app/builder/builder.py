@@ -433,7 +433,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
         # draw entries on timeline (if they have some time definition)
-        if startTime != None and duration != None:
+        if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
             dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0),
@@ -531,12 +531,11 @@ class RoutinesNotebook(aui.AuiNotebook):
         #        routinePage = RoutinePage(parent=self, routine=routine)
         routinePage = RoutineCanvas(notebook=self, routine=routine)
         self.AddPage(routinePage, routineName)
-        
+
     def renameRoutinePage(self, index, newName,):
-               
+
         self.SetPageText(index, newName)
-    
-    
+
     def removePages(self):
         for ii in range(self.GetPageCount()):
             currId = self.GetSelection()
@@ -563,7 +562,6 @@ class RoutinesNotebook(aui.AuiNotebook):
         dlg.Destroy()
         if returnName:
             return routineName
-
 
     def onClosePane(self, event=None):
         """Close the pane and remove the routine from the exp
@@ -607,7 +605,6 @@ class RoutinesNotebook(aui.AuiNotebook):
                 routineName, self.frame.exp.routines[routineName])
         if currPage > -1:
             self.SetSelection(currPage)
-           
 
 
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
@@ -1009,7 +1006,7 @@ class BuilderFrame(wx.Frame):
             parent=self, app=self.app, size=(700, 300))
 
         # setup a default exp
-        if fileName != None and os.path.isfile(fileName):
+        if fileName is not None and os.path.isfile(fileName):
             self.fileOpen(filename=fileName, closeCurrent=False)
         else:
             self.lastSavedCopy = None
@@ -1084,7 +1081,7 @@ class BuilderFrame(wx.Frame):
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
         settingsBmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
-                                    PNG)
+                                   PNG)
         monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
 
         ctrlKey = 'Ctrl+'  # OS-dependent tool-tips
@@ -1321,7 +1318,7 @@ class BuilderFrame(wx.Frame):
                     _translate("Change the name of this routine"))
         wx.EVT_MENU(self, self.IDs.renameRoutine, self.renameRoutine)
         menu.AppendSeparator()
-        
+
         menu.Append(self.IDs.addRoutineToFlow,
                     _translate("Insert Routine in Flow"),
                     _translate("Select one of your routines to be inserted"
@@ -2015,11 +2012,12 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.createNewRoutine()
 
     def renameRoutine(self, name, event=None, returnName=True):
-        #get notebook details
+        # get notebook details
         currentRoutine = self.routinePanel.getCurrentPage()
         currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
-        routine = self.routinePanel.GetPage(self.routinePanel.GetSelection()).routine        
-        oldName = routine.name        
+        routine = self.routinePanel.GetPage(
+            self.routinePanel.GetSelection()).routine
+        oldName = routine.name
         msg = _translate("What is the new name for the Routine?")
         dlg = wx.TextEntryDialog(self, message=msg,
                                  caption=_translate('Rename'))
@@ -2031,20 +2029,17 @@ class BuilderFrame(wx.Frame):
             name = exp.namespace.makeValid(
                 name, prefix='routine')
             if oldName in self.exp.routines.keys():
-                #Swap old with new names
+                # Swap old with new names
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines.pop(oldName)
                 for comp in self.exp.routines[name]:
                     comp.parentName = name
-                self.exp.namespace.rename(oldName, name)                
+                self.exp.namespace.rename(oldName, name)
                 self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
-                self.addToUndoStack("`RENAME Routine `%s`" % oldName )               
+                self.addToUndoStack("`RENAME Routine `%s`" % oldName)
                 dlg.Destroy()
                 self.flowPanel.draw()
-                
-                                                       
-                 
-              
+
     def generateScript(self, experimentPath):
         self.app.prefs.app['debugMode'] = "debugMode"
         if self.app.prefs.app['debugMode']:
