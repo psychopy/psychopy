@@ -107,7 +107,8 @@ class TestComponents(object):
                 for line in [default] + lineFields:
                     if line.startswith('ParallelOutComponent.address') and ignoreParallelOutAddresses:
                         continue
-                    if 'SettingsComponent.Use version' in line:
+                    if ('SettingsComponent.Use version.allowedVals' in line or
+                        'SettingsComponent.Use version.__dict__' in line):
                         # versions available on travis-ci are only local
                         continue
                     if not line+'\n' in target:
