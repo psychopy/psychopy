@@ -53,7 +53,7 @@ class KeyboardComponent(BaseComponent):
 
         msg = _translate(
             "A comma-separated list of keys (with quotes), such as "
-            "'q','right','space','left' ")
+            "'q','right','space','left'")
         self.params['allowedKeys'] = Param(
             allowedKeys, valType='code', allowedTypes=[],
             updates='constant',

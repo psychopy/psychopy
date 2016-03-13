@@ -107,6 +107,9 @@ class TestComponents(object):
                 for line in [default] + lineFields:
                     if line.startswith('ParallelOutComponent.address') and ignoreParallelOutAddresses:
                         continue
+                    if 'SettingsComponent.Use version' in line:
+                        # versions available on travis-ci are only local
+                        continue
                     if not line+'\n' in target:
                         # mismatch, so report on the tag from orig file
                         # match checks tag + multi-line, because line is multi-line and target is whole file

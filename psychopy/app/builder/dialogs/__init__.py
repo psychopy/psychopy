@@ -24,6 +24,7 @@ from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from psychopy import data, logging
 from ...localization import _translate
+from psychopy.tools import versionchooser as vc
 
 
 white = wx.Colour(255, 255, 255, 255)
@@ -97,6 +98,14 @@ class ParamCtrls(object):
         self.nameCtrl = wx.StaticText(parent, -1, label, size=None,
                                       style=wx.ALIGN_RIGHT)
 
+        if fieldName == 'Use version':
+            # _localVersionsCache is the default (faster) when creating
+            # settings. If remote info has become available in the meantime,
+            # now populate with that as well
+            if vc._remoteVersionsCache:
+                options = vc.versionOptions(local=False)
+                versions = vc.availableVersions(local=False)
+                param.allowedVals=(options + [''] + versions)
         if fieldName in ['text', 'customize_everything']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':

@@ -3,6 +3,8 @@ import wx
 import copy
 from ._base import BaseComponent, Param, _translate
 from psychopy import logging
+from psychopy.tools.versionchooser import versionOptions, availableVersions
+
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
@@ -28,7 +30,8 @@ _localized = {'expName': _translate("Experiment name"),
               'Save csv file': _translate("Save csv file (summaries)"),
               'Save excel file':  _translate("Save excel file"),
               'Save psydat file':  _translate("Save psydat file"),
-              'logging level': _translate("Logging level")}
+              'logging level': _translate("Logging level"),
+              'Use version': _translate("Use PsychoPy version")}
 
 
 class SettingsComponent(object):
@@ -45,6 +48,7 @@ class SettingsComponent(object):
                  saveXLSXFile=False, saveCSVFile=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
+                 useVersion='latest',
                  filename=None):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -92,6 +96,13 @@ class SettingsComponent(object):
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
             label=_localized["Experiment info"], categ='Basic')
+        self.params['Use version'] = Param(
+            useVersion, valType='str',
+            # search for options locally only by default, otherwise sluggish
+            allowedVals=versionOptions() + [''] + availableVersions(),
+            hint=_translate("The version of PsychoPy to use when running "
+                            "the experiment."),
+            label=_localized["Use version"], categ='Basic')
 
         # screen params
         self.params['Full-screen window'] = Param(
@@ -195,6 +206,13 @@ class SettingsComponent(object):
         else:
             saveToDir = os.path.dirname(self.params['Data filename'].val)
         return saveToDir or u'data'
+
+    def writeUseVersion(self, buff):
+        if self.params['Use version'].val:
+            code = ('\nimport psychopy\n'
+                    'psychopy.useVersion({})\n\n')
+            val = repr(self.params['Use version'].val)
+            buff.writeIndentedLines(code.format(val))
 
     def writeStartCode(self, buff):
         code = ("# Ensure that relative paths start from the same directory "
