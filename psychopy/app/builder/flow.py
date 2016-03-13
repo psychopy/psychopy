@@ -86,8 +86,10 @@ class FlowPanel(wx.ScrolledWindow):
         # for the context menu use the ID of the drawn icon to retrieve
         # the component (loop or routine)
         self.componentFromID = {}
-        self.contextMenuLabels = {'remove': _translate('remove')}
-        self.contextMenuItems = ['remove']
+        self.contextMenuLabels = {
+            'remove': _translate('remove'),
+            'rename': _translate('rename')}
+        self.contextMenuItems = ['remove', 'rename']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -441,13 +443,31 @@ class FlowPanel(wx.ScrolledWindow):
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
-        for item in self.contextMenuItems:
-            id = self.contextIDFromItem[item]
-            menu.Append(id, self.contextMenuLabels[item])
-            wx.EVT_MENU(menu, id, self.onContextSelect)
-        self.frame.PopupMenu(menu, xy)
-        # destroy to avoid mem leak:
-        menu.Destroy()
+        # get ID
+        # the ID is also the index to the element in the flow list
+        compID = self._menuComponentID
+        flow = self.frame.exp.flow
+        component = flow[compID]
+        compType = component.getType()
+        print (compType)
+        if compType == 'Routine':
+            for item in (self.contextMenuItems):
+                id = self.contextIDFromItem[item]
+                menu.Append(id, self.contextMenuLabels[item])
+                wx.EVT_MENU(menu, id, self.onContextSelect)
+            self.frame.PopupMenu(menu, xy)
+            # destroy to avoid mem leak:
+            menu.Destroy()
+        else:
+            for item in (self.contextMenuItems):
+                if item == 'rename':
+                    continue
+                id = self.contextIDFromItem[item]
+                menu.Append(id, self.contextMenuLabels[item])
+                wx.EVT_MENU(menu, id, self.onContextSelect)
+            self.frame.PopupMenu(menu, xy)
+            # destroy to avoid mem leak:
+            menu.Destroy()
 
     def onContextSelect(self, event):
         """Perform a given action on the component chosen
@@ -465,6 +485,8 @@ class FlowPanel(wx.ScrolledWindow):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack(
                 "REMOVE `%s` from Flow" % component.params['name'])
+        if op == 'rename':
+            self.frame.renameRoutine(component)
 
     def removeComponent(self, component, compID):
         """Remove either a Routine or a Loop from the Flow
