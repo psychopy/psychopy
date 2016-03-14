@@ -260,6 +260,12 @@ class PsychoPyApp(wx.App):
             connectThread = threading.Thread(
                 target=connections.makeConnections, args=(self,))
             connectThread.start()
+        # query github in the background to populate a local cache about
+        # what versions are available for download:
+        from psychopy.tools import versionchooser as vc
+        versionsThread = threading.Thread(target=vc._remoteVersions,
+                                          args=(True,))
+        versionsThread.start()
 
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed

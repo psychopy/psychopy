@@ -211,6 +211,9 @@ class Experiment(object):
             '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
             'neuro.11.010.2008\n"""\n'
             "\nfrom __future__ import absolute_import, division\n")
+
+        self.settings.writeUseVersion(script)
+
         script.write(
             "from psychopy import locale_setup, "
             "%s\n" % ', '.join(self.psychopyLibs) +

@@ -1,182 +1,308 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Psychopy Version Chooser to specify version within experiment scripts.
+"""PsychoPy Version Chooser to specify version within experiment scripts.
 """
+
+from __future__ import absolute_import, print_function
 
 import os
 import sys
-import re
-import subprocess   # for git commandline management
+import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
-import psychopy     # for currently loaded version
-from psychopy import prefs as _p
-from psychopy import logging, tools
+import psychopy  # for currently loaded version
+from psychopy import prefs
+from psychopy import logging, tools, web
 
-USERDIR = _p.paths['userPrefsDir']
-VERSIONSDIR = os.path.join(USERDIR, 'versions')
+
+USERDIR = prefs.paths['userPrefsDir']
+VER_SUBDIR = 'versions'
+VERSIONSDIR = os.path.join(USERDIR, VER_SUBDIR)
+
+# cache because checking github for remote version tags can be slow
+_localVersionsCache = []
+_remoteVersionsCache = []
+
+
+# ideally want localization for error messages
+# but don't want to have the lib/ depend on app/, drat
+# from psychopy.app.localization import _translate  # ideal
+def _translate(string):
+    """placeholder (non)function
+    """
+    return string
 
 
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions
-    of psychopy.
+    of PsychoPy.
 
-    Inputs:
-        * requestedVersion : A string with the requested version of PsychoPy
-          to use. (NB Must be an exact version to checkout; ">=1.80.04" is
-          NOT allowable yet.)
+    requestedVersion :
+        A string with the requested version of PsychoPy to be used.
 
-    Outputs:
-        * Returns True if requested version was successfully loaded.
-          Raises a RuntimeError if git is needed and not present, or if
-          other psychopy modules have already been loaded. Raises a
-          subprocess CalledProcessError if an invalid git tag/version was
-          checked out.
+        Can be major.minor.patch, e.g., '1.83.01', or a partial version,
+        such as '1.81', or even '1'; uses the most
+        recent version within that series.
+
+        'latest' means the most recent release having a tag on github.
+
+    returns:
+        Returns the current (new) version if it was successfully loaded.
+        Raises a RuntimeError if git is needed and not present, or if
+        other PsychoPy modules have already been loaded. Raises a
+        subprocess CalledProcessError if an invalid git tag/version was
+        checked out.
 
     Usage (at the top of an experiment script):
 
         from psychopy import useVersion
-        useVersion('1.80.04')
+        useVersion('1.80')
         from psychopy import visual, event, ...
+
+    See also:
+        ensureMinimal()
     """
     # Sanity Checks
     imported = _psychopyComponentsImported()
-    if len(imported):
-        msg = "Please request a version before importing any psychopy modules"
-        raise RuntimeError(msg + ". Found: %s" % imported)
-    if _versionOk(psychopy.__version__, requestedVersion):
-        # No switching needed
-        return
+    if imported:
+        msg = _translate("Please request a version before importing any "
+                         "PsychoPy modules. (Found: {})")
+        raise RuntimeError(msg.format(imported))
 
-    # Switching required, so make sure `git` is available.
-    if not _gitPresent():
-        msg = "Please install git; needed by useVersion()"
-        raise RuntimeError(msg)
+    # Get a proper full-version tag from a partial tag:
+    reqdMajorMinorPatch = fullVersion(requestedVersion)
+    logging.exp('Requested: useVersion({}) = {}'.format(requestedVersion,
+                                                        reqdMajorMinorPatch))
+    if not reqdMajorMinorPatch:
+        msg = _translate('Unknown version `{}`')
+        raise ValueError(msg.format(requestedVersion))
 
-    # Setup Requested Version
-    requestedPath = _setupRequested(requestedVersion)
-    _switchVersionTo(requestedPath)
+    if psychopy.__version__ != reqdMajorMinorPatch:
+        # Switching required, so make sure `git` is available.
+        if not _gitPresent():
+            msg = _translate("Please install git; needed by useVersion()")
+            raise RuntimeError(msg)
 
-    # Reload!
-    reload(psychopy)
-    reload(logging)
-    if requestedVersion >= "1.80":
-        reload(tools)  # because this file is within tools
-    print("Now using PsychoPy library version: ", psychopy.__version__)
-    # TODO Best way to check for other submodules that have already been
-    # imported?
+        # Setup Requested Version
+        _switchToVersion(reqdMajorMinorPatch)
 
-    return True  # Success!
+        # Reload!
+        reload(psychopy)
+        reload(logging)
+        reload(web)
+        if _versionTuple(reqdMajorMinorPatch) >= (1, 80):
+            reload(tools)  # because this file is within tools
+
+        # TODO check for other submodules that have already been imported
+
+    logging.exp('Version now set to: {}'.format(psychopy.__version__))
+    return psychopy.__version__
 
 
-def _versionOk(loaded, requested):
-    """Check if loaded version is a valid fit for the requested version.
+def ensureMinimal(requiredVersion):
+    """Raise a RuntimeError if the current version < `requiredVersion`.
+
+    See also: useVersion()
     """
-    return loaded == requested
-    # requestComparator,requestVers = _getComparator(requested)
-    # return eval("'%s' %s '%s'" % (loaded, requestComparator, requestVers))
-    #     # e.g. returns True if loaded > requested '1.80.05' > '1.80.04'
+    if _versionTuple(psychopy.__version__) < _versionTuple(requiredVersion):
+        msg = _translate('Required minimal version `{}` not met ({}).')
+        raise RuntimeError(msg.format(requiredVersion, psychopy.__version__))
+    return psychopy.__version__
 
 
-def _setupRequested(requestedVersion):
-    """Checkout or Clone requested version.
+def _versionTuple(versionStr):
+    """Returns a tuple of int's (1, 81, 3) from a string version '1.81.03'
+
+    Tuples allow safe version comparisons (unlike strings).
     """
-    if not os.path.exists(_p.paths['userPrefsDir']):
-        os.mkdir(_p.paths['userPrefsDir'])
+    try:
+        v = (versionStr.strip('.') + '.0.0.0').split('.')[:3]
+    except (AttributeError, ValueError):
+        raise ValueError('Bad version string: `{}`'.format(versionStr))
+    return int(v[0]), int(v[1]), int(v[2])
+
+
+def _switchToVersion(requestedVersion):
+    """Checkout (or clone then checkout) the requested version, set sys.path
+    so that the new version will be found when import is called. Upon exit,
+    the checked out version remains checked out, but the sys.path reverts.
+
+    NB When installed with pip/easy_install PsychoPy will live in
+    a site-packages directory, which should *not* be removed as it may
+    contain other relevant and needed packages.
+    """
+    if not os.path.exists(prefs.paths['userPrefsDir']):
+        os.mkdir(prefs.paths['userPrefsDir'])
     try:
         if os.path.exists(VERSIONSDIR):
-            _checkoutRequested(requestedVersion)
+            _checkout(requestedVersion)
         else:
-            _cloneRequested(requestedVersion)
+            _clone(requestedVersion)
     except CalledProcessError as e:
         if 'did not match any file(s) known to git' in e.output:
-            msg = "'%s' is not a valid Psychopy version."
-            logging.error(msg % requestedVersion)
+            msg = _translate("'{}' is not a valid PsychoPy version.")
+            logging.error(msg.format(requestedVersion))
+            raise RuntimeError(msg)
+        else:
             raise
-    return VERSIONSDIR
+
+    # make sure the checked-out version comes first on the python path:
+    sys.path = [VERSIONSDIR] + sys.path
+    logging.exp('Prepended `{}` to sys.path'.format(VERSIONSDIR))
 
 
-def getCurrentTag():
+def versionOptions(local=True):
+    """Available major.minor versions suitable for a drop-down list.
+
+    local=True is fast to search (local only);
+        False is slower and variable duration (queries github)
+
+    Returns major.minor versions e.g. 1.83, major e.g., 1., and 'latest'.
+    To get patch level versions, use availableVersions().
+    """
+    majorMinor = sorted(list({'.'.join(v.split('.')[:2])
+                              for v in availableVersions(local=local)}),
+                        reverse=True)
+    major = sorted(list({v.split('.')[0] for v in majorMinor}),
+                   reverse=True)
+    special = ['latest']
+    return special + major + majorMinor
+
+
+def _localVersions(forceCheck=False):
+    global _localVersionsCache
+    if forceCheck or not _localVersionsCache:
+        if not os.path.isdir(VERSIONSDIR):
+            return [psychopy.__version__]
+        else:
+            cmd = 'git tag'
+            tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR)
+            allTags = tagInfo.splitlines()
+            _localVersionsCache = sorted(allTags, reverse=True)
+    return _localVersionsCache
+
+
+def _remoteVersions(forceCheck=False):
+    global _remoteVersionsCache
+    if forceCheck or not _remoteVersionsCache:
+        try:
+            cmd = 'git ls-remote --tags https://github.com/psychopy/versions'
+            tagInfo = subprocess.check_output(cmd.split(),
+                                              stderr=subprocess.PIPE)
+        except CalledProcessError:
+            pass
+        else:
+            allTags = [line.split('refs/tags/')[1]
+                       for line in tagInfo.splitlines()
+                       if '^{}' not in line]
+            # ensure most recent (i.e., highest) first
+            _remoteVersionsCache = sorted(allTags, reverse=True)
+    return _remoteVersionsCache
+
+
+def availableVersions(local=True, forceCheck=False):
+    """Return all available (valid) selections for the version to be chosen.
+    Use local=False to obtain those only available via download
+    (i.e., not yet local but could be).
+
+    Everything returned has the form Major.minor.patchLevel, as strings.
+    """
+    if local:
+        return _localVersions(forceCheck)
+    else:
+        return sorted(list(set(_localVersions(forceCheck) +
+                               _remoteVersions(forceCheck))),
+                      reverse=True)
+
+
+def fullVersion(partial):
+    """Expands a special name or a partial tag to the highest patch level
+    in that series, e.g., '1.81' -> '1.81.03'; '1.' -> '1.83.01'
+    'latest' -> '1.83.01' (whatever is most recent). Returns '' if no match.
+
+    Idea: 'dev' could mean 'upstream master'.
+    """
+    # expects availableVersions() return a reverse-sorted list
+    if partial in ('', 'latest', None):
+        return latestVersion()
+
+    for tag in availableVersions(local=False):
+        if tag.startswith(partial):
+            return tag
+    return ''
+
+
+def latestVersion():
+    """Returns the most recent version available on github
+    (or locally if can't access github)
+    """
+    return availableVersions()[0]
+
+
+def currentTag():
     """Returns the current tag name from the version repository
     """
     cmd = 'git describe --always --tag'.split()
-    verTag = subprocess.check_output(cmd, cwd=VERSIONSDIR).split('-')[0]
-    return verTag
+    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR).split('-')[0]
+    return tag
 
 
-def _checkoutRequested(requestedVersion):
-    """Look for a tag matching the request, return it if found
-    or return None for the search.
+def _checkout(requestedVersion):
+    """Look for a Maj.min.patch requested version, download (fetch) if needed.
     """
     # Check tag of repo
-    if getCurrentTag() == requestedVersion:  # nothing to do!
-        return 1
+    if currentTag() == requestedVersion:
+        return requestedVersion
 
-    # See if the tag already exists in repos (no need for internet)
-    cmd = 'git tag'.split()
-    versions = subprocess.check_output(cmd, cwd=VERSIONSDIR)
-    if requestedVersion not in versions:
+    # See if the tag already exists in repos
+    if requestedVersion not in _localVersions(forceCheck=True):
         # Grab new tags
-        msg = "Couldn't find version %r locally. Trying github..."
-        logging.info(msg % requestedVersion)
-        cmd = 'git fetch github'.split()
-        out = subprocess.check_output(cmd)
-        # after fetching from github check if it's there now!
-        versions = subprocess.check_output(['git', 'tag'], cwd=VERSIONSDIR)
-        if requestedVersion not in versions:
-            msg = "%r is not a valid version. Please choose one of:  %r"
-            logging.error(msg % (requestedVersion, versions.split()))
-            return 0
+        msg = _translate("Couldn't find version {} locally. Trying github...")
+        logging.info(msg.format(requestedVersion))
+        subprocess.check_output('git fetch github'.split())
+        # is requested here now? forceCheck to refresh cache
+        if requestedVersion not in _localVersions(forceCheck=True):
+            msg = _translate("{} is not currently available.")
+            logging.error(msg.format(requestedVersion))
+            return ''
 
     # Checkout the requested tag
-    cmd = 'git checkout %s' % requestedVersion
-    out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT,
-                                  cwd=VERSIONSDIR)
-    logging.debug(out)
-    return 1
-
-
-def _cloneRequested(requestedVersion):
-    """Check out a new copy of the requested version
-    """
-
-    print('Cloning Psychopy Library from Github - this may take a while')
-    cmd = 'git clone -o github https://github.com/psychopy/versions versions'
-    print(cmd)
-    out = subprocess.check_output(cmd.split(), cwd=USERDIR)
-
     cmd = ['git', 'checkout', requestedVersion]
     out = subprocess.check_output(cmd, stderr=subprocess.STDOUT,
                                   cwd=VERSIONSDIR)
     logging.debug(out)
+    logging.exp('Success:  ' + ' '.join(cmd))
+    return requestedVersion
+
+
+def _clone(requestedVersion):
+    """Download (clone) all versions, then checkout the requested version.
+    """
+    assert not os.path.exists(VERSIONSDIR), 'use `git fetch` not `git clone`'
+    print(_translate('Downloading the PsychoPy Library from Github '
+                     '(may take a while)'))
+    cmd = ('git clone -o github https://github.com/psychopy/versions ' +
+           VER_SUBDIR)
+    print(cmd)
+    subprocess.check_output(cmd.split(), cwd=USERDIR)
+
+    return _checkout(requestedVersion)
 
 
 def _gitPresent():
-    """Check for git on command-line.
+    """Check for git on command-line, return bool.
     """
     try:
-        gitvers = subprocess.check_output(['git', '--version'],
+        gitvers = subprocess.check_output('git --version'.split(),
                                           stderr=subprocess.PIPE)
-        if gitvers.startswith('git version'):
-            return True
     except OSError:
-        pass
-    return False
+        gitvers = ''
+    return bool(gitvers.startswith('git version'))
 
 
 def _psychopyComponentsImported():
     return [name for name in globals() if name in psychopy.__all__]
-
-
-def _switchVersionTo(requestedPath):
-    """Alter sys.path in place to preprend new version.
-    """
-    # NB When installed with pip/easy_install psychopy will live in
-    # a site-packages directory, which should *not* be removed as it may
-    # contain other relevant and needed packages.
-    #
-    # Instead just prepend the current path to make sure it is loaded first.
-    sys.path = [requestedPath] + sys.path

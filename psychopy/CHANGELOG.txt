@@ -12,6 +12,7 @@ Changelog
 forthcoming
 ------------------------------
 
+* ADDED: new Builder experiment setting to specify the version of PsychoPy to be used when running the experiment
 * ADDED: menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
 * IMPROVED: ShapeStim can properly fill arbitrary shapes (using tesselation); see new shapes.py Coder demo for examples.
 * CHANGED: setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
