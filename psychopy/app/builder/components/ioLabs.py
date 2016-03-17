@@ -4,7 +4,7 @@
 
 from os import path
 
-from .keyboard import KeyboardComponent, Param
+from .keyboard import KeyboardComponent, Param, _translate
 from ..experiment import _valid_var_re
 
 __author__ = 'Jeremy Gray'
@@ -18,8 +18,7 @@ tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
 # only use _localized values for label values, nothing functional:
 _localized = {'active': _translate('Active buttons'),
               'lights': _translate('Lights'),
-              'lights off': _translate('Lights off')
-              }
+              'lights off': _translate('Lights off')}
 
 
 class ioLabsButtonBoxComponent(KeyboardComponent):
@@ -68,7 +67,8 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         self.params['store'].allowedVals = ['last button', 'first button',
                                             'all buttons', 'nothing']
 
-        msg = _translate('Choose which (if any) responses to store at end of a trial')
+        msg = _translate(
+            'Choose which (if any) responses to store at end of a trial')
         self.params['store'].hint = msg
 
         msg = _translate("Active buttons, such as '1,6', '(1,2,5,6)' or '0' "

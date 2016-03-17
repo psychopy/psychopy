@@ -106,7 +106,7 @@ languageID, lang = getID()
 # if sys.platform.startswith('win'):
 #        v = winmap[val]
 # else: v=val
-#locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
+# locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
 
 # set locale before splash screen:
 if locale.IsAvailable(languageID):
@@ -128,12 +128,16 @@ trans.install(unicode=True)
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:
-__builtins__['_translate'] = _
-del(__builtins__['_'])  # idea: force psychopy code to use _translate
+# __builtins__['_translate'] = _
+# del(__builtins__['_'])  # idea: force psychopy code to use _translate
+
+# Feb 2016: require modules to explicitly import _translate from localization:
+_translate = _  # _ is created by gettext, in builtins namespace
+del(__builtins__['_'])
 
 
-#__builtins__['_'] = wx.GetTranslation
+# __builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:
 # path = os.path.join(os.path.dirname(__file__), '..', 'locale',
-#        lang, 'LC_MESSAGE') + os.sep
+#                     lang, 'LC_MESSAGE') + os.sep
 # wxlocale.AddCatalogLookupPathPrefix(path)

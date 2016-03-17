@@ -45,8 +45,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
                                               baudrate=460800, eol="\n",
                                               parity='N',
                                               pauseDuration=0.5,
-                                              checkAwake=checkAwake,
-                                              )
+                                              checkAwake=checkAwake)
         if sendBreak:
             self.sendBreak()
             time.sleep(3.0)  # give time to reset

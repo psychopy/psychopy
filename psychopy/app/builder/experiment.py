@@ -28,10 +28,7 @@ import psychopy
 from psychopy import data, __version__, logging, constants
 from psychopy.constants import FOREVER
 
-try:
-    _translate  # is the app-global text translation function defined?
-except NameError:
-    from .. import localization
+from ..localization import _translate
 import locale
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
@@ -214,6 +211,9 @@ class Experiment(object):
             '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
             'neuro.11.010.2008\n"""\n'
             "\nfrom __future__ import absolute_import, division\n")
+
+        self.settings.writeUseVersion(script)
+
         script.write(
             "from psychopy import locale_setup, "
             "%s\n" % ', '.join(self.psychopyLibs) +
@@ -223,10 +223,11 @@ class Experiment(object):
             "RELEASED, FOREVER)\n"
             "import numpy as np  # whole numpy lib is available, "
             "prepend 'np.'\n"
-            "from numpy import %s\n" % ', '.join(_numpyImports) +
+            "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
+            "                   %s)\n" % ', '.join(_numpyImports[7:]) +
             "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
             "import os  # handy system and path functions\n" +
-            "import sys # to get file system encoding\n"
+            "import sys  # to get file system encoding\n"
             "\n")
         self.settings.writeStartCode(script)  # present info dlg, make logfile
         # writes any components with a writeStartCode()
@@ -288,9 +289,12 @@ class Experiment(object):
         simpleString = xml.tostring(self.xmlRoot, 'utf-8')
         pretty = minidom.parseString(simpleString).toprettyxml(indent="  ")
         # then write to file
+        if not filename.endswith(".psyexp"):
+            filename += ".psyexp"
         f = codecs.open(filename, 'wb', 'utf-8')
         f.write(pretty)
         f.close()
+        return filename  # this may have been updated to include an extension
 
     def _getShortName(self, longName):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
@@ -466,18 +470,17 @@ class Experiment(object):
 
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
-        filename_base = os.path.basename(filename)
+        filenameBase = os.path.basename(filename)
         if root.tag != "PsychoPy2experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
-                          (filename_base, root.tag))
+                          (filenameBase, root.tag))
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
-        version_f = float(self.psychopyVersion.rsplit(
-            '.', 1)[0])  # drop bugfix
-        if version_f < 1.63:
+        versionf = float(self.psychopyVersion.rsplit('.', 1)[0])
+        if versionf < 1.63:
             msg = 'note: v%s was used to create %s ("%s")'
-            vals = (self.psychopyVersion, filename_base, root.tag)
+            vals = (self.psychopyVersion, filenameBase, root.tag)
             logging.warning(msg % vals)
 
         # Parse document nodes
@@ -485,8 +488,8 @@ class Experiment(object):
         self.flow = Flow(exp=self)  # every exp has exactly one flow
         self.routines = {}
         self.namespace = NameSpace(self)  # start fresh
-        modified_names = []
-        duplicate_names = []
+        modifiedNames = []
+        duplicateNames = []
 
         # fetch exp settings
         settingsNode = root.find('Settings')
@@ -494,7 +497,7 @@ class Experiment(object):
             self._getXMLparam(params=self.settings.params, paramNode=child)
         # name should be saved as a settings parameter (only from 1.74.00)
         if self.settings.params['expName'].val in ['', None, 'None']:
-            shortName = os.path.splitext(filename_base)[0]
+            shortName = os.path.splitext(filenameBase)[0]
             self.setExpName(shortName)
         # fetch routines
         routinesNode = root.find('Routines')
@@ -502,13 +505,13 @@ class Experiment(object):
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
-            routine_good_name = self.namespace.makeValid(
+            routineGoodName = self.namespace.makeValid(
                 routineNode.get('name'))
-            if routine_good_name != routineNode.get('name'):
-                modified_names.append(routineNode.get('name'))
-            self.namespace.user.append(routine_good_name)
-            routine = Routine(name=routine_good_name, exp=self)
-            #self._getXMLparam(params=routine.params, paramNode=routineNode)
+            if routineGoodName != routineNode.get('name'):
+                modifiedNames.append(routineNode.get('name'))
+            self.namespace.user.append(routineGoodName)
+            routine = Routine(name=routineGoodName, exp=self)
+            # self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')] = routine
             for componentNode in routineNode:
 
@@ -535,18 +538,18 @@ class Experiment(object):
                             componentNode.get('highAnchorText')):
                         pass
                     # if not componentNode.get('choiceLabelsAboveLine'):
-                    # #this rating scale was created using older version
+                    #    # this rating scale was created using older version
                     #    component.params['choiceLabelsAboveLine'].val=True
                 # populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params,
                                       paramNode=paramNode)
-                comp_good_name = self.namespace.makeValid(
+                compGoodName = self.namespace.makeValid(
                     componentNode.get('name'))
-                if comp_good_name != componentNode.get('name'):
-                    modified_names.append(componentNode.get('name'))
-                self.namespace.add(comp_good_name)
-                component.params['name'].val = comp_good_name
+                if compGoodName != componentNode.get('name'):
+                    modifiedNames.append(componentNode.get('name'))
+                self.namespace.add(compGoodName)
+                component.params['name'].val = compGoodName
                 routine.append(component)
         # for each component that uses a Static for updates, we need to set
         # that
@@ -576,7 +579,7 @@ class Experiment(object):
                 loopType = elementNode.get('loopType')
                 loopName = self.namespace.makeValid(elementNode.get('name'))
                 if loopName != elementNode.get('name'):
-                    modified_names.append(elementNode.get('name'))
+                    modifiedNames.append(elementNode.get('name'))
                 self.namespace.add(loopName)
                 loop = eval('%s(exp=self,name="%s")' % (loopType, loopName))
                 loops[loopName] = loop
@@ -601,7 +604,7 @@ class Experiment(object):
                             conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
-                                duplicate_names.append(fname)
+                                duplicateNames.append(fname)
                             else:
                                 self.namespace.add(fname)
                     except Exception:
@@ -613,12 +616,12 @@ class Experiment(object):
             elif elementNode.tag == "Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
 
-        if modified_names:
+        if modifiedNames:
             msg = 'duplicate variable name(s) changed in loadFromXML: %s\n'
-            logging.warning(msg % ', '.join(list(set(modified_names))))
-        if duplicate_names:
+            logging.warning(msg % ', '.join(list(set(modifiedNames))))
+        if duplicateNames:
             msg = 'duplicate variable names: %s'
-            logging.warning(msg % ', '.join(list(set(duplicate_names))))
+            logging.warning(msg % ', '.join(list(set(duplicateNames))))
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name
@@ -1043,7 +1046,7 @@ class StairHandler(object):
         if self.params['N reversals'].val in ("", None, 'None'):
             self.params['N reversals'].val = '0'
         # write the code
-        code = ('\n#--------Prepare to start Staircase "%(name)s" --------\n'
+        code = ('\n# --------Prepare to start Staircase "%(name)s" --------\n'
                 "# set up handler to look after next chosen value etc\n"
                 "%(name)s = data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n"
                 "    stepSizes=%(step sizes)s, stepType=%(step type)s,\n"
@@ -1313,7 +1316,7 @@ class Flow(list):
         elif component.getType() == 'Routine':
             if id is None:
                 # a Routine may come up multiple times - remove them all
-                # self.remove(component)#cant do this - two empty routines
+                # self.remove(component)  # cant do this - two empty routines
                 # (with diff names) look the same to list comparison
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):
@@ -1530,7 +1533,7 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        code = ('\n#------Prepare to start Routine "%s"-------\n'
+        code = ('\n# ------Prepare to start Routine "%s"-------\n'
                 't = 0\n'
                 '%s.reset()  # clock\n'
                 'frameN = -1\n')
@@ -1545,18 +1548,15 @@ class Routine(list):
         for event in self:
             event.writeRoutineStartCode(buff)
 
-        code = ('# keep track of which components have finished\n'
-                '%sComponents = []\n')
-        buff.writeIndentedLines(code % self.name)
-        # todo: rewrite to avoid append append ... append one by one
-        for thisCompon in self:
-            if 'startType' in thisCompon.params:
-                buff.writeIndented('%sComponents.append(%s)\n' %
-                                   (self.name, thisCompon.params['name']))
+        code = '# keep track of which components have finished\n'
+        buff.writeIndentedLines(code)
+        compStr = ', '.join([c.params['name'].val for c in self
+                             if 'startType' in c.params])
+        buff.writeIndented('%sComponents = [%s]\n' % (self.name, compStr))
         code = ("for thisComponent in %sComponents:\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
-                '\n#-------Start Routine "%s"-------\n'
+                '\n# -------Start Routine "%s"-------\n'
                 'continueRoutine = True\n')
         buff.writeIndentedLines(code % (self.name, self.name))
         if useNonSlip:
@@ -1616,7 +1616,7 @@ class Routine(list):
         buff.setIndentLevel(-1, True)
 
         # write the code for each component for the end of the routine
-        code = ('\n#-------Ending Routine "%s"-------\n'
+        code = ('\n# -------Ending Routine "%s"-------\n'
                 'for thisComponent in %sComponents:\n'
                 '    if hasattr(thisComponent, "setAutoDraw"):\n'
                 '        thisComponent.setAutoDraw(False)\n')
@@ -1803,13 +1803,19 @@ class NameSpace(object):
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
         # strings used as codes, separate function from display value:
-        _oneOf = "one of your Components, Routines, or condition parameters"
-        _avoid = (" Avoid `this`, `these`, `continue`, `Clock`, or "
-                  "`component` in name")
-        self._localized = {None: ''}
-        for k in (_oneOf, _avoid, "Builder variable", "Psychopy module",
-                  "numpy function", "python keyword"):
-            self._localized[k] = _translate(k)
+        # need the actual strings to be inside _translate for poedit discovery
+        self._localized = {
+            None: '',
+            "one of your Components, Routines, or condition parameters":
+                _translate(
+                    "one of your Components, Routines, or condition parameters"),
+            " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name":
+                _translate(
+                    " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
+            "Builder variable": _translate("Builder variable"),
+            "Psychopy module": _translate("Psychopy module"),
+            "numpy function": _translate("numpy function"),
+            "python keyword": _translate("python keyword")}
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
@@ -1996,16 +2002,6 @@ class NameSpace(object):
         newName = prefix + newName[0].capitalize() + newName[1:]
         newName = self.makeValid(newName)
         return newName
-
-
-def _XMLremoveWhitespaceNodes(parent):
-    """Remove all text nodes from an xml document (likely to be whitespace)
-    """
-    for child in list(parent.childNodes):
-        if child.nodeType == node.TEXT_NODE and node.data.strip() == '':
-            parent.removeChild(child)
-        else:
-            removeWhitespaceNodes(child)
 
 
 def getCodeFromParamStr(val):

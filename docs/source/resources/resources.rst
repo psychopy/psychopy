@@ -39,6 +39,8 @@ Materials for Coder
 
 - Radboud University, Nijmegen also has a `PsychoPy programming course <https://www.socsci.ru.nl/~wilberth/nocms/psychopy/print.php>`_
 
+- `Programming for Psychology in Python - Vision Science <http://www.djmannion.net/programming_vision>`_ has lessons and screencasts on PsychoPy (Damien Mannion, UNSW Australia).
+
 ---------------------------------
 
 Previous events

@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseVisualComponent, Param, getInitVals
+from ._base import BaseVisualComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -32,7 +32,6 @@ class TextComponent(BaseVisualComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  flip='', startEstim='', durationEstim='', wrapWidth=''):
-        # initialise main parameters from base stimulus
         super(TextComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
                                             color=color,

@@ -382,7 +382,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
-        #depth = self.depth
+        # depth = self.depth
         Ltex = -self._cycles[0] / 2 - self.phase[0] + 0.5
         Rtex = +self._cycles[0] / 2 - self.phase[0] + 0.5
         Ttex = +self._cycles[1] / 2 - self.phase[1] + 0.5

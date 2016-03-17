@@ -27,7 +27,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.attributetools import setAttribute, attributeSetter
 from psychopy.visual.basevisual import MinimalStim, WindowMixin
-from . import glob_vars
+from . import globalVars
 
 try:
     from PIL import Image
@@ -238,7 +238,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
     def setDepth(self, newDepth, operation='', log=None):
         """DEPRECATED. Depth is now controlled simply by drawing order.
         """
-        setAttribute(self, 'depth', log, operation)
+        setAttribute(self, 'depth', newDepth, log, operation)
 
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in pixels"""
@@ -262,7 +262,6 @@ class SimpleImageStim(MinimalStim, WindowMixin):
             else:
                 logging.error("couldn't find image...%s" % filename)
                 core.quit()
-                raise  # so thatensure we quit
         else:
             # not a string - have we been passed an image?
             try:
@@ -270,7 +269,6 @@ class SimpleImageStim(MinimalStim, WindowMixin):
             except AttributeError:  # apparently not an image
                 logging.error("couldn't find image...%s" % filename)
                 core.quit()
-                raise Exception  # ensure we quit
             self.filename = repr(filename)  # '<Image.Image image ...>'
 
         self.size = im.size

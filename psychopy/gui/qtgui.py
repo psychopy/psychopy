@@ -21,7 +21,7 @@ import string
 import os
 import sys
 import json
-from psychopy.app import localization
+from psychopy.app.localization import _translate
 
 OK = QtWidgets.QDialogButtonBox.Ok
 
@@ -80,7 +80,7 @@ class Dlg(QtWidgets.QDialog):
         self.data = []
         self.irow = 0
 
-        #QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
+        # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         # add buttons for OK and Cancel
         self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal,
@@ -103,8 +103,8 @@ class Dlg(QtWidgets.QDialog):
         self.pos = pos
         self.size = size
         self.screen = screen
-        #self.labelButtonOK = labelButtonOK
-        #self.labelButtonCancel = labelButtonCancel
+        # self.labelButtonOK = labelButtonOK
+        # self.labelButtonCancel = labelButtonCancel
 
         self.layout = QtWidgets.QGridLayout()
         self.layout.setColumnStretch(1, 1)
@@ -217,7 +217,7 @@ class Dlg(QtWidgets.QDialog):
             choices = list(choices)
             for i, option in enumerate(choices):
                 inputBox.addItem(unicode(option))
-                #inputBox.addItems([unicode(option) for option in choices])
+                # inputBox.addItems([unicode(option) for option in choices])
                 inputBox.setItemData(i, (option,))
 
             if (isinstance(initial, (int, long)) and
@@ -353,8 +353,10 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=[], order=[],
-                 tip={}, screen=-1):
+    def __init__(self, dictionary, title='', fixed=(), order=(),
+                 tip=None, screen=-1):
+        if not tip:
+            tip = {}
         Dlg.__init__(self, title, screen=screen)
         self.dictionary = dictionary
         keys = self.dictionary.keys()
@@ -604,5 +606,5 @@ if __name__ == '__main__':
     # Restore full screen psychopy window
     # showWindow(win)
     # win.flip()
-    #from psychopy import event
+    # from psychopy import event
     # event.waitKeys()

@@ -42,8 +42,8 @@ class WindowFrozen(object):
     Usage::
 
         with WindowFrozen(wxControl):
-          update multiple things
-        #will automatically thaw here
+            update multiple things
+        # will automatically thaw here
 
     """
 

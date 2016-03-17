@@ -220,13 +220,13 @@ class Preferences(object):
         if result == True:
             return
         vtor = validate.Validator()
-        for section_list, key, _ in configobj.flatten_errors(cfg, result):
+        for sectionList, key, _ in configobj.flatten_errors(cfg, result):
             if key is not None:
-                _secList = ', '.join(section_list)
+                _secList = ', '.join(sectionList)
                 val = cfg.configspec[_secList][key]
                 cfg[_secList][key] = vtor.get_default_value(val)
             else:
                 msg = "Section [%s] was missing in file '%s'"
-                print(msg % (', '.join(section_list), cfg.filename))
+                print(msg % (', '.join(sectionList), cfg.filename))
 
 prefs = Preferences()

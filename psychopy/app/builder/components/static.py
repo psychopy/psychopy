@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 
 __author__ = 'Jon Peirce'
 
@@ -32,40 +32,41 @@ class StaticComponent(BaseComponent):
         self.updatesList = []  # a list of dicts {compParams, fieldName}
         self.type = 'Static'
         self.url = "http://www.psychopy.org/builder/components/static.html"
-        hnt = "Custom code to be run during the static period (after updates)"
+        hnt = _translate(
+            "Custom code to be run during the static period (after updates)")
         self.params['code'] = Param("", valType='code',
-                                    hint=_translate(hnt),
+                                    hint=hnt,
                                     label=_localized['Custom code'])
         self.order = ['name']  # make name come first (others don't matter)
 
-        hnt = "How do you want to define your start point?"
+        hnt = _translate("How do you want to define your start point?")
         self.params['startType'] = Param(startType, valType='str',
                                          allowedVals=['time (s)', 'frame N'],
-                                         hint=_translate(hnt))
-        hnt = "How do you want to define your end point?"
+                                         hint=hnt)
+        hnt = _translate("How do you want to define your end point?")
         _allow = ['duration (s)', 'duration (frames)', 'time (s)', 'frame N']
         self.params['stopType'] = Param(stopType, valType='str',
                                         allowedVals=_allow,  # copy not needed
-                                        hint=_translate(hnt))
-        hnt = "When does the component start?"
+                                        hint=hnt)
+        hnt = _translate("When does the component start?")
         self.params['startVal'] = Param(startVal, valType='code',
                                         allowedTypes=[],
-                                        hint=_translate(hnt))
-        hnt = "When does the component end? (blank is endless)"
+                                        hint=hnt)
+        hnt = _translate("When does the component end? (blank is endless)")
         self.params['stopVal'] = Param(stopVal, valType='code',
                                        allowedTypes=[],
                                        updates='constant', allowedUpdates=[],
-                                       hint=_translate(hnt))
-        hnt = ("(Optional) expected start (s), purely for representing in "
-               "the timeline")
+                                       hint=hnt)
+        hnt = _translate("(Optional) expected start (s), purely for "
+                         "representing in the timeline")
         self.params['startEstim'] = Param(startEstim, valType='code',
                                           allowedTypes=[],
-                                          hint=_translate(hnt))
-        hnt = ("(Optional) expected duration (s), purely for representing"
-               " in the timeline")
+                                          hint=hnt)
+        hnt = _translate("(Optional) expected duration (s), purely for "
+                         "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim, valType='code',
                                              allowedTypes=[],
-                                             hint=_translate(hnt))
+                                             hint=hnt)
 
     def addComponentUpdate(self, routine, compName, fieldName):
         self.updatesList.append({'compName': compName,

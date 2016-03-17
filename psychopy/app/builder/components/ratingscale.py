@@ -4,7 +4,7 @@
 
 from os import path
 import re
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 
 __author__ = 'Jeremy Gray'
 

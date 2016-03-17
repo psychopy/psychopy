@@ -10,6 +10,7 @@ import copy
 
 from . import localization, dialogs
 from psychopy import logging
+from .localization import _translate
 
 # this will be overridden by the size of the scrolled panel making the prefs
 dlgSize = (520, 600)
@@ -144,7 +145,7 @@ class PreferencesDlg(wx.Dialog):
 
         self.nb = fnb.FlatNotebook(
             self, style=fnb.FNB_NO_X_BUTTON | fnb.FNB_NO_NAV_BUTTONS)
-        # self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
+        # self.nb = wx.Notebook(self)  # notebook not nice with lots of pages
 
         self.ctrls = {}
         sectionOrdering = ['app', 'builder', 'coder', 'general',
@@ -171,8 +172,8 @@ class PreferencesDlg(wx.Dialog):
         btnsizer = wx.StdDialogButtonSizer()
         # ok
         btn = wx.Button(self, wx.ID_OK, _translate('OK'))
-        txt = "Save prefs (in all sections) and close window"
-        btn.SetHelpText(_translate(txt))
+        btn.SetHelpText(_translate("Save prefs (in all sections) and close "
+                                   "window"))
         btn.Bind(wx.EVT_BUTTON, self.onOK)
         btn.SetDefault()
         btnsizer.AddButton(btn)
@@ -183,8 +184,8 @@ class PreferencesDlg(wx.Dialog):
         btnsizer.AddButton(btn)
         # apply
         btn = wx.Button(self, wx.ID_APPLY, _translate('Apply'))
-        txt = "Apply these prefs (in all sections) and continue"
-        btn.SetHelpText(_translate(txt))
+        btn.SetHelpText(_translate("Apply these prefs (in all sections) and "
+                                   "continue"))
         btn.Bind(wx.EVT_BUTTON, self.onApply)
         btnsizer.AddButton(btn)
         # help
@@ -320,9 +321,9 @@ class PreferencesDlg(wx.Dialog):
                         except Exception:
                             pLabel = prefName
                             sLabel = sectionName
-                        txt = 'Invalid value in "%(pref)s" ("%(section)s" Tab)'
-                        msg = _translate(txt) % {'pref': pLabel,
-                                                 'section': sLabel}
+                        txt = _translate(
+                            'Invalid value in "%(pref)s" ("%(section)s" Tab)')
+                        msg = txt % {'pref': pLabel, 'section': sLabel}
                         title = _translate('Error')
                         warnDlg = dialogs.MessageDialog(parent=self,
                                                         message=msg,

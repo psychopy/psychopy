@@ -23,6 +23,7 @@ from .. import dialogs
 from psychopy import logging, data
 from .utils import FileDropTarget
 from .dialogs import DlgLoopProperties
+from ..localization import _translate
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -59,8 +60,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.maxHeight = 2 * self.dpi
         self.mousePos = None
         # if we're adding a loop or routine then add spots to timeline
-        #self.drawNearestRoutinePoint = True
-        #self.drawNearestLoopPoint = False
+        # self.drawNearestRoutinePoint = True
+        # self.drawNearestLoopPoint = False
         # lists the x-vals of points to draw, eg loop locations:
         self.pointsToDraw = []
         # for flowSize, showLoopInfoInFlow:
@@ -486,12 +487,12 @@ class FlowPanel(wx.ScrolledWindow):
             if prevIsLoop and nextIsLoop:
                 # because flow[compID+1] is a terminator
                 loop = flow[compID + 1].loop
-                txt = 'The "%s" Loop is about to be deleted as well (by collapsing). OK to proceed?'
-                msg = _translate(txt) % loop.params['name']
+                msg = _translate('The "%s" Loop is about to be deleted as '
+                                 'well (by collapsing). OK to proceed?')
                 title = _translate('Impending Loop collapse')
-                warnDlg = dialogs.MessageDialog(parent=self.frame,
-                                                message=msg, type='Warning',
-                                                title=title)
+                warnDlg = dialogs.MessageDialog(
+                    parent=self.frame, message=msg % loop.params['name'],
+                    type='Warning', title=title)
                 resp = warnDlg.ShowModal()
                 if resp in [wx.ID_CANCEL, wx.ID_NO]:
                     return  # abort
@@ -513,7 +514,8 @@ class FlowPanel(wx.ScrolledWindow):
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
                 except Exception:
-                    msg = "Conditions file %s couldn't be found so names not removed from namespace"
+                    msg = ("Conditions file %s couldn't be found so names not"
+                           " removed from namespace")
                     logging.debug(msg % conditionsFile)
             self.frame.exp.namespace.remove(component.params['name'].val)
         # perform the actual removal
@@ -626,8 +628,8 @@ class FlowPanel(wx.ScrolledWindow):
             thisTerm = self.loops[thisLoop]['term']
             thisNest = maxNestLevel - self.loops[thisLoop]['nest'] - 1
             thisId = self.loops[thisLoop]['id']
-            height = self.linePos[1] + \
-                dLoopToBaseLine + thisNest * dBetweenLoops
+            height = (self.linePos[1] + dLoopToBaseLine +
+                      thisNest * dBetweenLoops)
             self.drawLoop(pdc, thisLoop, id=thisId,
                           startX=thisInit, endX=thisTerm,
                           base=self.linePos[1], height=height)
@@ -708,7 +710,7 @@ class FlowPanel(wx.ScrolledWindow):
 
     def drawLineEnd(self, dc, pos):
         # draws arrow at end of timeline
-        #tmpId = wx.NewId()
+        # tmpId = wx.NewId()
         # dc.SetId(tmpId)
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 255)))
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 255)))
@@ -720,13 +722,15 @@ class FlowPanel(wx.ScrolledWindow):
         # idea: might want an ID for grabbing and relocating the loop endpoint
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        #dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
-        #dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+        # dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
+        # dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         size = (3, 4, 5)[self.appData['flowSize']]
-        # if downwards: dc.DrawPolygon([[size,0],[0,size],[-size,0]],
-        #                               pos[0],pos[1]+2*size)#points down
-        # else: dc.DrawPolygon([[size,size],[0,0],[-size,size]],
-        # pos[0],pos[1]-3*size)#points up
+        # if downwards:
+        #   dc.DrawPolygon([[size, 0], [0, size], [-size, 0]],
+        #                  pos[0], pos[1] + 2 * size)  # points down
+        # else:
+        #   dc.DrawPolygon([[size, size], [0, 0], [-size, size]],
+        #   pos[0], pos[1]-3*size)  # points up
         dc.SetIdBounds(tmpId, wx.Rect(
             pos[0] - size, pos[1] - size, 2 * size, 2 * size))
         return

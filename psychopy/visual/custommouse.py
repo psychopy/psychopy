@@ -101,7 +101,7 @@ class CustomMouse(MinimalStim):
         if pointer:
             self.setPointer(pointer)
         else:
-            #self.pointer = TextStim(win, text='+')
+            # self.pointer = TextStim(win, text='+')
             img = os.path.join(os.path.split(__file__)[0], 'pointer.png')
             self.pointer = ImageStim(win, image=img, autoLog=False)
         self.mouse.setVisible(False)  # hide the actual (system) mouse

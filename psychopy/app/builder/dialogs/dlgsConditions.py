@@ -18,6 +18,7 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 
 from psychopy import gui
 from .. experiment import _valid_var_re, _nonalphanumeric_re
+from ...localization import _translate
 
 darkblue = wx.Colour(30, 30, 150, 255)
 darkgrey = wx.Colour(65, 65, 65, 255)
@@ -270,8 +271,8 @@ class DlgConditions(wx.Dialog):
             # probably spurious:
             if (self.fixed or not self.clean) and item != item.strip():
                 field.SetForegroundColour('Red')
-                self.warning = _translate(
-                    'extra white-space')  # also used in show()
+                # also used in show():
+                self.warning = _translate('extra white-space')
                 field.SetToolTip(wx.ToolTip(self.warning))
             if self.fixed:
                 field.Disable()
@@ -473,20 +474,23 @@ class DlgConditions(wx.Dialog):
                             wx.ALIGN_CENTER, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL)
             ADDROW = wx.Button(self, -1, _translate("+cond."))
-            tip = 'Add a condition (row); to delete a condition, delete all of its values.'
-            ADDROW.SetToolTip(wx.ToolTip(_translate(tip)))
+            tip = _translate('Add a condition (row); to delete a condition,'
+                             ' delete all of its values.')
+            ADDROW.SetToolTip(wx.ToolTip(tip))
             ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
             buttons.Add(ADDROW)
             buttons.AddSpacer(4)
             ADDCOL = wx.Button(self, -1, _translate("+param"))
-            tip = 'Add a parameter (column); to delete a param, set its type to None, or delete all of its values.'
-            ADDCOL.SetToolTip(wx.ToolTip(_translate(tip)))
+            tip = _translate('Add a parameter (column); to delete a param, '
+                             'set its type to None, or delete all of its values.')
+            ADDCOL.SetToolTip(wx.ToolTip(tip))
             ADDCOL.Bind(wx.EVT_BUTTON, self.userAddCol)
             buttons.Add(ADDCOL)
             buttons.AddSpacer(4)
             PREVIEW = wx.Button(self, -1, _translate("Preview"))
-            tip = "Show all values as they would appear after saving to a file, without actually saving anything."
-            PREVIEW.SetToolTip(wx.ToolTip(_translate(tip)))
+            tip = _translate("Show all values as they would appear after "
+                             "saving to a file, without actually saving anything.")
+            PREVIEW.SetToolTip(wx.ToolTip(tip))
             PREVIEW.Bind(wx.EVT_BUTTON, self.preview)
             buttons.Add(PREVIEW)
             buttons.AddSpacer(4)

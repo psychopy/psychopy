@@ -94,7 +94,7 @@ def addLevel(level, levelName):
     _levelNames[levelName] = level
 
 
-global defaultClock
+# global defaultClock
 defaultClock = clock.monotonicClock
 
 

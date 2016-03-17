@@ -55,12 +55,13 @@ def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
 
 
 def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
-    """Sets the hardware look-up table, using platform-specific ctypes functions.
+    """Sets the hardware look-up table, using platform-specific functions.
     For use with pyglet windows only (pygame has its own routines for this).
     Ramp should be provided as 3x256 or 3x1024 array in range 0:1.0
 
-    On windows the first attempt to set the ramp doesn't always work. The parameter nAttemps
-    allows the user to determine how many attempts should be made before failing
+    On windows the first attempt to set the ramp doesn't always work. The
+    parameter nAttemps allows the user to determine how many attempts should
+    be made before failing
     """
     if newRamp.shape[0] != 3 and newRamp.shape[1] == 3:
         newRamp = numpy.ascontiguousarray(newRamp.transpose())
@@ -79,22 +80,28 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
         newRamp = (newRamp).astype(numpy.float32)
         LUTlength = newRamp.shape[1]
         try:
-            _screen_ID = pygletWindow._screen.id  # pyglet1.2alpha1
+            _screenID = pygletWindow._screen.id  # pyglet1.2alpha1
         except AttributeError:
-            _screen_ID = pygletWindow._screen._cg_display_id  # pyglet1.2
-        error = carbon.CGSetDisplayTransferByTable(_screen_ID, LUTlength,
-                                                   newRamp[0, :].ctypes, newRamp[1, :].ctypes, newRamp[2, :].ctypes)
+            _screenID = pygletWindow._screen._cg_display_id  # pyglet1.2
+        error = carbon.CGSetDisplayTransferByTable(
+            _screenID, LUTlength,
+            newRamp[0, :].ctypes,
+            newRamp[1, :].ctypes,
+            newRamp[2, :].ctypes)
         assert not error, 'CGSetDisplayTransferByTable failed'
 
     if sys.platform.startswith('linux') and not _TravisTesting:
         newRamp = (65535 * newRamp).astype(numpy.uint16)
-        success = xf86vm.XF86VidModeSetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
-                                                 newRamp[0, :].ctypes, newRamp[1, :].ctypes, newRamp[2, :].ctypes)
+        success = xf86vm.XF86VidModeSetGammaRamp(
+            pygletWindow._x_display, pygletWindow._x_screen_id, 256,
+            newRamp[0, :].ctypes,
+            newRamp[1, :].ctypes,
+            newRamp[2, :].ctypes)
         assert success, 'XF86VidModeSetGammaRamp failed'
 
     elif _TravisTesting:
-        logging.warn(
-            "It looks like we're running in the Travis-CI testing environment. Hardware gamma table cannot be set")
+        logging.warn("It looks like we're running in the Travis-CI testing "
+                     "environment. Hardware gamma table cannot be set")
 
 
 def getGammaRamp(pygletWindow):
@@ -114,18 +121,24 @@ def getGammaRamp(pygletWindow):
         origramps = numpy.empty((3, 256), dtype=numpy.float32)
         n = numpy.empty([1], dtype=numpy.int)
         try:
-            _screen_ID = pygletWindow._screen.id  # pyglet1.2alpha1
+            _screenID = pygletWindow._screen.id  # pyglet1.2alpha1
         except AttributeError:
-            _screen_ID = pygletWindow._screen._cg_display_id  # pyglet1.2
-        error = carbon.CGGetDisplayTransferByTable(_screen_ID, 256,
-                                                   origramps[0, :].ctypes, origramps[1, :].ctypes, origramps[2, :].ctypes, n.ctypes)
+            _screenID = pygletWindow._screen._cg_display_id  # pyglet1.2
+        error = carbon.CGGetDisplayTransferByTable(
+            _screenID, 256,
+            origramps[0, :].ctypes,
+            origramps[1, :].ctypes,
+            origramps[2, :].ctypes, n.ctypes)
         if error:
             raise AssertionError, 'CGSetDisplayTransferByTable failed'
 
     if sys.platform.startswith('linux'):
         origramps = numpy.empty((3, 256), dtype=numpy.uint16)
-        success = xf86vm.XF86VidModeGetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
-                                                 origramps[0, :].ctypes, origramps[1, :].ctypes, origramps[2, :].ctypes)
+        success = xf86vm.XF86VidModeGetGammaRamp(
+            pygletWindow._x_display, pygletWindow._x_screen_id, 256,
+            origramps[0, :].ctypes,
+            origramps[1, :].ctypes,
+            origramps[2, :].ctypes)
         if not success:
             raise AssertionError, 'XF86VidModeGetGammaRamp failed'
         origramps = origramps / 65535.0  # rescale to 0:1
@@ -138,7 +151,7 @@ def createLinearRamp(win, rampType=None):
     This uses heuristics about known graphics cards to guess the 'rampType' if
     none is explicitly given.
 
-    Much of this work is ported from LoadIdentityClut.m, written by Mario Kleiner
+    Much of this work is ported from LoadIdentityClut.m, by Mario Kleiner
     for the psychtoolbox
 
     rampType 0 : an 8-bit CLUT ranging 0:1
@@ -147,8 +160,8 @@ def createLinearRamp(win, rampType=None):
             OSX 10.4.9 PPC with GeForceFX-5200
 
     rampType 1 : an 8-bit CLUT ranging (1/256.0):1
-        For some reason a number of macs then had a CLUT that (erroneously?) started with 1/256 rather than 0
-        Known to be used by:
+        For some reason a number of macs then had a CLUT that (erroneously?)
+        started with 1/256 rather than 0. Known to be used by:
             OSX 10.4.9 with ATI Mobility Radeon X1600
             OSX 10.5.8 with ATI Radeon HD-2600
             maybe all ATI cards?
@@ -160,7 +173,8 @@ def createLinearRamp(win, rampType=None):
             OSX 10.5.8 with Geforce-8800
 
     rampType 3 : a nasty, bug-fixing 10bit CLUT for crumby OS X drivers
-        Craziest of them all for Snow leopard. Like rampType 2, except that the upper half of the table has 1/256.0 removed?!!
+        Craziest of them all for Snow leopard. Like rampType 2, except that
+        the upper half of the table has 1/256.0 removed?!!
         Known to be used by:
             OSX 10.6.0 with NVidia Geforce-9200M
     """

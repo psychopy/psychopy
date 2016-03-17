@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -31,7 +31,8 @@ class EyetrackerComponent(BaseComponent):
         self.order = ['Config file']  # first param after the name
 
         # standard params (can ignore)
-        msg = _translate("Name of this component (alpha-numeric or _, no spaces)")
+        msg = _translate(
+            "Name of this component (alpha-numeric or _, no spaces)")
         self.params['name'] = Param(
             name, valType='code', allowedTypes=[],
             hint=msg,

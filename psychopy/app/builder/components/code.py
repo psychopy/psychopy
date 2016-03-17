@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseComponent, Param
+from ._base import BaseComponent, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -72,7 +72,7 @@ class CodeComponent(BaseComponent):
                          "saving files, resetting computer); "
                          "right-click checks syntax")
         self.params['End Experiment'] = Param(
-            endRoutine, valType='extendedCode', allowedTypes=[],
+            endExperiment, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End Experiment'])

@@ -18,77 +18,20 @@ import wx
 from wx.lib import flatnotebook
 
 from ... import dialogs
-from .. import validators, experiment
+from .. import experiment
+from .. validators import NameValidator, CodeSnippetValidator
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from psychopy import data, logging
+from ...localization import _translate
+from psychopy.tools import versionchooser as vc
 
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
-_localized = {
-    # strings for all allowedVals (from all components) go here:
-    # interpolation
-    'linear': _translate('linear'),
-    'nearest': _translate('nearest'),
-    # color spaces not translated:
-    'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms', 'hsv': 'hsv',
-    'last key': _translate('last key'),
-    'first key': _translate('first key'),
-    'all keys': _translate('all keys'),
-    'nothing': _translate('nothing'),
-    'last button': _translate('last button'),
-    'first button': _translate('first button'),
-    'all buttons': _translate('all buttons'),
-    'final': _translate('final'),
-    'on click': _translate('on click'),
-    'every frame': _translate('every frame'),
-    'never': _translate('never'),
-    'from exp settings': _translate('from exp settings'),
-    'from prefs': _translate('from preferences'),
-    'circle': _translate('circle'),
-    'square': _translate('square'),  # dots
-    # dots
-    'direction': _translate('direction'),
-    'position': _translate('position'),
-    'walk': _translate('walk'),
-    # dots
-    'same': _translate('same'),
-    'different': _translate('different'),
-    'experiment': _translate('Experiment'),
-    # startType & stopType:
-    'time (s)': _translate('time (s)'),
-    'frame N': _translate('frame N'),
-    'condition': _translate('condition'),
-    'duration (s)': _translate('duration (s)'),
-    'duration (frames)': _translate('duration (frames)'),
-    # units not translated:
-    'pix': 'pix', 'deg': 'deg', 'cm': 'cm',
-    'norm': 'norm', 'height': 'height',
-    # tex resolution:
-    '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',
-    'routine': 'Routine',
-    # strings for allowedUpdates:
-    'constant': _translate('constant'),
-    'set every repeat': _translate('set every repeat'),
-    'set every frame': _translate('set every frame'),
-    # strings for allowedVals in settings:
-    'add': _translate('add'),
-    'avg': _translate('average'),  # blend mode
-    'use prefs': _translate('use preferences'),
-    # logging level:
-    'debug': _translate('debug'),
-    'info': _translate('info'),
-    'exp': _translate('exp'),
-    'data': _translate('data'),
-    'warning': _translate('warning'),
-    'error': _translate('error'),
-    # Experiment info dialog:
-    'Field': _translate('Field'),
-    'Default': _translate('Default'),
-}
+from ..localizedStrings import _localizedDialogs as _localized
 
 
 class ParamCtrls(object):
@@ -102,13 +45,15 @@ class ParamCtrls(object):
         e.g.::
 
             param = experiment.Param(val='boo', valType='str')
-            ctrls=ParamCtrls(dlg=self, label=fieldName,param=param)
-            self.paramCtrls[fieldName] = ctrls #keep track of them in the dlg
+            ctrls = ParamCtrls(dlg=self, label=fieldName,param=param)
+            self.paramCtrls[fieldName] = ctrls  # keep track in the dlg
             sizer.Add(ctrls.nameCtrl, (currRow,0), (1,1),wx.ALIGN_RIGHT )
             sizer.Add(ctrls.valueCtrl, (currRow,1) )
-            #these are optional (the parameter might be None)
-            if ctrls.typeCtrl: sizer.Add(ctrls.typeCtrl, (currRow,2) )
-            if ctrls.updateCtrl: sizer.Add(ctrls.updateCtrl, (currRow,3))
+            # these are optional (the parameter might be None)
+            if ctrls.typeCtrl:
+                sizer.Add(ctrls.typeCtrl, (currRow,2) )
+            if ctrls.updateCtrl:
+                sizer.Add(ctrls.updateCtrl, (currRow,3))
 
         If browse is True then a browseCtrl will be added (you need to
         bind events yourself). If noCtrls is True then no actual wx widgets
@@ -153,6 +98,14 @@ class ParamCtrls(object):
         self.nameCtrl = wx.StaticText(parent, -1, label, size=None,
                                       style=wx.ALIGN_RIGHT)
 
+        if fieldName == 'Use version':
+            # _localVersionsCache is the default (faster) when creating
+            # settings. If remote info has become available in the meantime,
+            # now populate with that as well
+            if vc._remoteVersionsCache:
+                options = vc.versionOptions(local=False)
+                versions = vc.availableVersions(local=False)
+                param.allowedVals=(options + [''] + versions)
         if fieldName in ['text', 'customize_everything']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
@@ -232,9 +185,12 @@ class ParamCtrls(object):
         if len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
-        # add a NameValidator to name valueCtrl
+        # add a Validator to the valueCtrl
         if fieldName == "name":
-            self.valueCtrl.SetValidator(validators.NameValidator())
+            self.valueCtrl.SetValidator(NameValidator())
+        elif isinstance(self.valueCtrl, (wx.TextCtrl, CodeBox)):
+            # only want anything that is valType code, or can be with $
+            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
 
         # create the type control
         if len(param.allowedTypes):
@@ -255,8 +211,8 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
-                    txt = "set during: %(routineName)s.%(staticName)s"
-                    msg = _translate(txt)
+                    msg = _translate(
+                        "set during: %(routineName)s.%(staticName)s")
                     vals = {'routineName': routineName,
                             'staticName': static.params['name']}
                     updateLabels.append(msg % vals)
@@ -419,6 +375,7 @@ class _BaseParamsDlg(wx.Dialog):
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(params['name'].val)
         self.paramCtrls = {}
+        CodeSnippetValidator.clsWarnings = {}
         self.suppressTitles = suppressTitles
         self.showAdvanced = showAdvanced
         self.order = order
@@ -660,8 +617,12 @@ class _BaseParamsDlg(wx.Dialog):
         # use monospace font to signal code:
         self.checkCodeWanted(self.startValCtrl)
         self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.startValCtrl.SetValidator(CodeSnippetValidator('startVal'))
+        self.startValCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
         self.checkCodeWanted(self.stopValCtrl)
         self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.stopValCtrl.SetValidator(CodeSnippetValidator('stopVal'))
+        self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         return remaining, currRow
 
@@ -679,8 +640,11 @@ class _BaseParamsDlg(wx.Dialog):
                            advanced=advanced, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName == 'name':
-            ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
             ctrls.valueCtrl.SetFocus()
+        elif isinstance(ctrls.valueCtrl, (wx.TextCtrl, CodeBox)):
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
+
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
         _flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
@@ -694,6 +658,7 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
             # self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize,
             #    ctrls.valueCtrl)
+            ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
         elif fieldName in ('color', 'fillColor', 'lineColor'):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif valType == 'extendedCode':
@@ -721,7 +686,7 @@ class _BaseParamsDlg(wx.Dialog):
         # if wx.TheClipboard.Open():
         #    dataObject = wx.TextDataObject()
         #    if wx.TheClipboard.GetData(dataObject):
-        #        self.paramCtrls['Monitor'].valueCtrl. \
+        #        self.paramCtrls['Monitor'].valueCtrl.
         #            WriteText(dataObject.GetText())
         #    wx.TheClipboard.Close()
 
@@ -772,7 +737,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
 
-        self.checkName()  # disables OKbtn if bad name
+        self.doValidate()  # disables OKbtn if bad name, syntax error, etc
         buttons.Add(self.OKbtn, 0, wx.ALL, border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
         buttons.Add(CANCEL, 0, wx.ALL, border=3)
@@ -1001,9 +966,10 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             namespace = self.frame.exp.namespace
             used = namespace.exists(newName)
-            same_as_old_name = bool(newName == self.params['name'].val)
-            if used and not same_as_old_name:
-                msg = _translate("That name is in use (it's a %s). Try another name.")
+            sameOldName = bool(newName == self.params['name'].val)
+            if used and not sameOldName:
+                msg = _translate(
+                    "That name is in use (it's a %s). Try another name.")
                 return msg % namespace._localized[used], False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
@@ -1015,8 +981,8 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 return "", True
 
-    def checkName(self, event=None):
-        """Issue a form validation on name change.
+    def doValidate(self, event=None):
+        """Issue a form validation on event, e.g., name or text change.
         """
         self.Validate()
 
@@ -1060,19 +1026,19 @@ class DlgLoopProperties(_BaseParamsDlg):
         if loop:
             oldLoopName = loop.params['name'].val
         namespace = frame.exp.namespace
-        new_name = namespace.makeValid(oldLoopName)
+        newName = namespace.makeValid(oldLoopName)
 
         # create default instances of the diff loop types
         # for 'random','sequential', 'fullRandom'
         self.trialHandler = experiment.TrialHandler(
-            exp=self.exp, name=new_name, loopType='random',
+            exp=self.exp, name=newName, loopType='random',
             nReps=5, conditions=[])
         # for staircases:
         self.stairHandler = experiment.StairHandler(
-            exp=self.exp, name=new_name, nReps=50, nReversals='',
+            exp=self.exp, name=newName, nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5)
         self.multiStairHandler = experiment.MultiStairHandler(
-            exp=self.exp, name=new_name, nReps=50, stairType='simple',
+            exp=self.exp, name=newName, nReps=50, stairType='simple',
             switchStairs='random', conditions=[], conditionsFile='')
 
         # replace defaults with the loop we were given
@@ -1164,7 +1130,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                            flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
             row += 1
 
-        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
+        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
         self.Bind(wx.EVT_CHOICE, self.onTypeChanged,
                   self.globalCtrls['loopType'].valueCtrl)
         return panel
@@ -1290,7 +1256,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text = self.getTrialsSummary(
                         handler.params['conditions'].val)
                 else:
-                    text = _translate("No parameters set (select a file above)")
+                    text = _translate(
+                        "No parameters set (select a file above)")
                 # we'll create our own widgets
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
@@ -1471,10 +1438,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                 else:
                     m2 = msg.replace('Conditions file ', '')
                     sep2 = os.linesep * 2
-                    _title = 'Configuration error in conditions file'
+                    _title = _translate(
+                        'Configuration error in conditions file')
                     dlgErr = dialogs.MessageDialog(
                         parent=self.frame, message=m2.replace(': ', sep2),
-                        type='Info', title=_translate(_title)).ShowModal()
+                        type='Info', title=_title).ShowModal()
                     msg = _translate('Bad condition name(s) in file:\n')
                     val = msg + newFullPath.split(os.path.sep)[-1]
                     self.currentCtrls['conditions'].setValue(val)
@@ -1534,7 +1502,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             else:  # most other fields
                 # the various dlg ctrls for this param
                 ctrls = self.currentCtrls[fieldName]
-                param.val = ctrls.getValue()  # from _baseParamsDlg (handles diff control types)
+                param.val = ctrls.getValue()
+                # from _baseParamsDlg (handles diff control types)
                 if ctrls.typeCtrl:
                     param.valType = ctrls.getType()
                 if ctrls.updateCtrl:
@@ -1558,16 +1527,16 @@ class DlgLoopProperties(_BaseParamsDlg):
                         self.conditionsFile)
                     self.currentCtrls['conditions'].setValue(
                         self.getTrialsSummary(self.conditions))
-                except ImportError as msg:
-                    msg1 = 'Badly formed condition name(s) in file:\n'
-                    msg2 = ('.\nNeed to be legal as var name; '
-                            'edit file, try again.')
-                    val = (_translate(msg1) + str(msg).replace(':', '\n') +
-                           _translate(msg2))
+                except ImportError as e:
+                    msg1 = _translate(
+                        'Badly formed condition name(s) in file:\n')
+                    msg2 = _translate('.\nNeed to be legal as var name; '
+                                      'edit file, try again.')
+                    val = msg1 + str(e).replace(':', '\n') + msg2
                     self.currentCtrls['conditions'].setValue(val)
                     self.conditions = ''
                     msg3 = 'Reject bad condition name in conditions file: %s'
-                    logging.error(msg3 % str(msg).split(':')[0])
+                    logging.error(msg3 % str(e).split(':')[0])
             else:
                 self.conditions = None
                 self.currentCtrls['conditions'].setValue(_translate(
@@ -1662,18 +1631,18 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             # get screen size for requested display
-            num_displays = wx.Display.GetCount()
+            numDisplays = wx.Display.GetCount()
             try:
-                screen_value = int(
+                screenValue = int(
                     self.paramCtrls['Screen'].valueCtrl.GetValue())
             except ValueError:
                 # param control currently contains no integer value
-                screen_value = 1
-            if screen_value < 1 or screen_value > num_displays:
+                screenValue = 1
+            if screenValue < 1 or screenValue > numDisplays:
                 logging.error("User requested non-existent screen")
                 screenN = 0
             else:
-                screenN = screen_value - 1
+                screenN = screenValue - 1
             size = list(wx.Display(screenN).GetGeometry()[2:])
             # set vals and disable changes
             field = 'Window size (pixels)'
@@ -1735,13 +1704,13 @@ def _relpath(path, start='.'):
     if not path:
         raise ValueError("no path specified")
 
-    start_list = os.path.abspath(start).split(os.path.sep)
-    path_list = os.path.abspath(path).split(os.path.sep)
+    startList = os.path.abspath(start).split(os.path.sep)
+    pathList = os.path.abspath(path).split(os.path.sep)
 
     # Work out how much of the filepath is shared by start and path.
-    i = len(os.path.commonprefix([start_list, path_list]))
+    i = len(os.path.commonprefix([startList, pathList]))
 
-    rel_list = ['..'] * (len(start_list) - i) + path_list[i:]
-    if not rel_list:
+    relList = ['..'] * (len(startList) - i) + pathList[i:]
+    if not relList:
         return path
-    return os.path.join(*rel_list)
+    return os.path.join(*relList)

@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseVisualComponent, Param, getInitVals
+from ._base import BaseVisualComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -27,7 +27,6 @@ class MovieComponent(BaseVisualComponent):
                  startEstim='', durationEstim='',
                  forceEndRoutine=False, backend='moviepy',
                  noAudio=False):
-        # initialise main parameters from base stimulus
         super(MovieComponent, self).__init__(
             exp, parentName, name=name, units=units,
             pos=pos, size=size, ori=ori,
@@ -59,9 +58,9 @@ class MovieComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['backend'])
 
-        #msg = _translate(
-        msg =  ("Prevent the audio stream from being loaded/processed "
-                "(moviepy and opencv only)")
+        # todo: msg = _translate(...)
+        msg = ("Prevent the audio stream from being loaded/processed "
+               "(moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool',
             hint=msg,
@@ -146,8 +145,9 @@ class MovieComponent(BaseVisualComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        # buff.writeIndented("%s.seek(0.00001)#make sure we're at the start\n"
-        # %(self.params['name']))
+        # buff.writeIndented(
+        #     "%s.seek(0.00001)  # make sure we're at the start\n"
+        #     % (self.params['name']))
         buff.writeIndented("%s.setAutoDraw(True)\n" % self.params['name'])
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)

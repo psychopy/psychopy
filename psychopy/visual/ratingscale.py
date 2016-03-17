@@ -137,8 +137,7 @@ class RatingScale(MinimalStim):
                  depth=0,
                  name=None,
                  autoLog=True,
-                 **kwargs  # catch obsolete args
-                 ):
+                 **kwargs):  # catch obsolete args
         """
     :Parameters:
 
@@ -310,7 +309,7 @@ class RatingScale(MinimalStim):
         # internally work in norm units, restore to orig units at the end of
         # __init__:
         self.savedWinUnits = self.win.units
-        self.win.units = 'norm'
+        self.win.setUnits(u'norm', log=False)
         self.depth = depth
 
         # 'hover' style = like hyperlink with hover over choices:
@@ -362,7 +361,7 @@ class RatingScale(MinimalStim):
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
         self.reset()  # sets .status, among other things
-        self.win.units = self.savedWinUnits
+        self.win.setUnits(self.savedWinUnits, log=False)
 
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
@@ -442,8 +441,9 @@ class RatingScale(MinimalStim):
             elif labels and len(labels) == 3 and diff > 1 and (1 + diff) % 2:
                 # label endpoints and middle tick
                 placeHolder = [''] * ((diff - 2) // 2)
-                self.labelTexts = [labels[0]] + placeHolder + \
-                    [labels[1]] + placeHolder + [labels[2]]
+                self.labelTexts = ([labels[0]] + placeHolder +
+                                   [labels[1]] + placeHolder +
+                                   [labels[2]])
             elif labels in [None, False]:
                 self.labelTexts = []
             else:
@@ -451,7 +451,7 @@ class RatingScale(MinimalStim):
                 self.labelTexts = [first] + [''] * (diff - 1) + [last]
 
         self.scale = scale
-        if tickMarks and not(labels is False):
+        if tickMarks and not labels is False:
             if labels is None:
                 self.labelTexts = tickMarks
             else:
@@ -515,9 +515,9 @@ class RatingScale(MinimalStim):
             win=self.win, visible=bool(not self.noMouse))
         # Mouse-click-able 'accept' button pulsates (cycles its brightness
         # over frames):
-        frames_per_cycle = 100
+        framesPerCycle = 100
         self.pulseColor = [0.6 + 0.22 * float(numpy.cos(i / 15.65))
-                           for i in range(frames_per_cycle)]
+                           for i in range(framesPerCycle)]
 
     def _initPosScale(self, pos, size, stretch, log=True):
         """position (x,y) and size (magnification) of the rating scale
@@ -709,8 +709,8 @@ class RatingScale(MinimalStim):
         # not needed if self.noMouse, but not a problem either
         pad = 0.06 * self.size
         if marker == 'hover':
-            padText = (1. / (3 * (self.high - self.low))) * \
-                (self.lineRightEnd - self.lineLeftEnd)
+            padText = ((1. / (3 * (self.high - self.low))) *
+                       (self.lineRightEnd - self.lineLeftEnd))
         else:
             padText = 0
         self.nearLine = [
@@ -1098,7 +1098,7 @@ class RatingScale(MinimalStim):
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
-            self.win.units = self.savedWinUnits
+            self.win.setUnits(self.savedWinUnits, log=False)
             return
 
         # draw everything except the marker:
@@ -1123,7 +1123,7 @@ class RatingScale(MinimalStim):
             self.marker.draw()
             if self.showAccept:
                 self.acceptBox.draw()  # hides the text
-            self.win.units = self.savedWinUnits
+            self.win.setUnits(self.savedWinUnits, log=False)
             return  # makes the marker unresponsive
 
         if self.noMouse:
@@ -1255,7 +1255,7 @@ class RatingScale(MinimalStim):
                 self.markerPlacedAtLast = self.markerPlacedAt
             elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
-                #self.targetWord.setHeight(self.textSizeSmall, log=False)
+                # self.targetWord.setHeight(self.textSizeSmall, log=False)
             self.wasNearLine = mouseNearLine
 
         # decision time = sec from first .draw() to when first 'accept' value:
@@ -1302,8 +1302,8 @@ class RatingScale(MinimalStim):
         # and valid, or None (not boolean)
         if self.markerStart != None:
             self.markerPlaced = True
-            self.markerPlacedAt = self.markerStart - \
-                self.low  # __init__ assures this is valid
+            # __init__ assures this is valid:
+            self.markerPlacedAt = self.markerStart - self.low
         self.markerPlacedAtLast = -1  # unplaced
         self.wasNearLine = False
         self.firstDraw = True  # -> self.clock.reset() at start of draw()

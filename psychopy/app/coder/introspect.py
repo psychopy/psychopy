@@ -223,9 +223,9 @@ def getRoot(command, terminator=None):
     '.'. The terminator and anything after the terminator will be
     dropped."""
     command = command.split('\n')[-1]
-    # if command.startswith(sys.ps2): #remove epsilon (... )
+    # if command.startswith(sys.ps2):  # remove epsilon (... )
     #  removed by jwp - only works for interactive window
-    #command = command[len(sys.ps2):]
+    # command = command[len(sys.ps2):]
     command = command.lstrip()
     command = rtrimTerminus(command, terminator)
     tokens = getTokens(command)
@@ -236,8 +236,9 @@ def getRoot(command, terminator=None):
         del tokens[-1]
     if not tokens:
         return ''
-    if terminator == '.' and \
-            (tokens[-1][1] <> '.' or tokens[-1][0] is not tokenize.OP):
+    if (terminator == '.' and
+            (tokens[-1][1] != '.' or
+             tokens[-1][0] is not tokenize.OP)):
         # Trap decimals in numbers, versus the dot operator.
         return ''
     else:
@@ -259,15 +260,15 @@ def getRoot(command, terminator=None):
         line = token[4]
         if tokentype is tokenize.ENDMARKER:
             continue
-        if tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) \
-                and laststring != '.':
+        if (tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) and
+                laststring != '.'):
             # We've reached something that's not part of the root.
             if prefix and line[token[3][1]] != ' ':
                 # If it doesn't have a space after it, remove the prefix.
                 prefix = ''
             break
-        if tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) \
-                or (tokentype is tokenize.OP and tokenstring == '.'):
+        if (tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) or
+                (tokentype is tokenize.OP and tokenstring == '.')):
             if prefix:
                 # The prefix isn't valid because it comes after a dot.
                 prefix = ''
@@ -317,7 +318,7 @@ def getTokens(command):
     # because of need to append as much as possible before TokenError.
     try:
         # This code wasn't backward compatible with Python 2.1.3.
-        ##
+        #
         # for token in tokenize.generate_tokens(f.readline):
         # tokens.append(token)
 

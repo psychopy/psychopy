@@ -37,7 +37,7 @@ from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix
-from . import glob_vars
+from . import globalVars
 
 import numpy
 from numpy import pi
@@ -233,10 +233,10 @@ class LegacyVisualMixin(object):
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
         cosOri = numpy.cos(-oriRadians)
-        x = self._verticesRendered[:, 0] * cosOri - \
-            self._verticesRendered[:, 1] * sinOri
-        y = self._verticesRendered[:, 0] * sinOri + \
-            self._verticesRendered[:, 1] * cosOri
+        x = (self._verticesRendered[:, 0] * cosOri -
+             self._verticesRendered[:, 1] * sinOri)
+        y = (self._verticesRendered[:, 0] * sinOri +
+             self._verticesRendered[:, 1] * cosOri)
         return numpy.column_stack((x, y)) + self._posRendered
 
     def setDKL(self, newDKL, operation=''):
@@ -383,7 +383,7 @@ class ColorMixin(object):
         if hasattr(self, 'useShaders'):
             if not self.useShaders:
                 # we'll need to update the textures for the stimulus
-                #(sometime before drawing but not now)
+                # (sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
                     self.text = self.text  # call attributeSetter
                 # GratingStim, RadialStim, ImageStim etc
@@ -686,8 +686,8 @@ class TextureMixin(object):
             intensity = numpy.where(sinusoid > 0, 1, -1)
             wasLum = True
         elif tex == "saw":
-            intensity = numpy.linspace(-1.0, 1.0, res, endpoint=True) * \
-                numpy.ones([res, 1])
+            intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
+                         numpy.ones([res, 1]))
             wasLum = True
         elif tex == "tri":
             # -1:3 means the middle is at +1
@@ -721,13 +721,13 @@ class TextureMixin(object):
             wasLum = True
         elif tex == "cross":
             X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
-            tf_neg_cross = (((X < -0.2) & (Y < -0.2)) |
-                            ((X < -0.2) & (Y > 0.2)) |
-                            ((X > 0.2) & (Y < -0.2)) |
-                            ((X > 0.2) & (Y > 0.2)))
-            # tf_neg_cross == True at places where the cross is transparent,
+            tfNegCross = (((X < -0.2) & (Y < -0.2)) |
+                          ((X < -0.2) & (Y > 0.2)) |
+                          ((X > 0.2) & (Y < -0.2)) |
+                          ((X > 0.2) & (Y > 0.2)))
+            # tfNegCross == True at places where the cross is transparent,
             # i.e. the four corners
-            intensity = numpy.where(tf_neg_cross, -1, 1)
+            intensity = numpy.where(tfNegCross, -1, 1)
             wasLum = True
         elif tex == "radRamp":  # a radial ramp
             rad = makeRadialMatrix(res)
@@ -737,33 +737,33 @@ class TextureMixin(object):
             wasLum = True
         elif tex == "raisedCos":  # A raised cosine
             wasLum = True
-            hamming_len = 1000  # affects the 'granularity' of the raised cos
+            hammingLen = 1000  # affects the 'granularity' of the raised cos
 
             rad = makeRadialMatrix(res)
             intensity = numpy.zeros_like(rad)
             intensity[numpy.where(rad < 1)] = 1
             frng = allMaskParams['fringeWidth']
-            raised_cos_idx = numpy.where(
+            raisedCosIdx = numpy.where(
                 [numpy.logical_and(rad <= 1, rad >= 1 - frng)])[1:]
 
             # Make a raised_cos (half a hamming window):
-            raised_cos = numpy.hamming(hamming_len)[:hamming_len / 2]
-            raised_cos -= numpy.min(raised_cos)
-            raised_cos /= numpy.max(raised_cos)
+            raisedCos = numpy.hamming(hammingLen)[:hammingLen / 2]
+            raisedCos -= numpy.min(raisedCos)
+            raisedCos /= numpy.max(raisedCos)
 
             # Measure the distance from the edge - this is your index into the
             # hamming window:
-            d_from_edge = numpy.abs(
-                (1 - allMaskParams['fringeWidth']) - rad[raised_cos_idx])
-            d_from_edge /= numpy.max(d_from_edge)
-            d_from_edge *= numpy.round(hamming_len / 2)
+            dFromEdge = numpy.abs(
+                (1 - allMaskParams['fringeWidth']) - rad[raisedCosIdx])
+            dFromEdge /= numpy.max(dFromEdge)
+            dFromEdge *= numpy.round(hammingLen / 2)
 
             # This is the indices into the hamming (larger for small distances
             # from the edge!):
-            portion_idx = (-1 * d_from_edge).astype(int)
+            portionIdx = (-1 * dFromEdge).astype(int)
 
             # Apply the raised cos to this portion:
-            intensity[raised_cos_idx] = raised_cos[portion_idx]
+            intensity[raisedCosIdx] = raisedCos[portionIdx]
 
             # Scale it into the interval -1:1:
             intensity = intensity - 0.5
@@ -771,12 +771,12 @@ class TextureMixin(object):
 
             # Sometimes there are some remaining artifacts from this process,
             # get rid of them:
-            artifact_idx = numpy.where(numpy.logical_and(intensity == -1,
-                                                         rad < 0.99))
-            intensity[artifact_idx] = 1
-            artifact_idx = numpy.where(numpy.logical_and(intensity == 1,
-                                                         rad > 0.99))
-            intensity[artifact_idx] = 0
+            artifactIdx = numpy.where(numpy.logical_and(intensity == -1,
+                                                        rad < 0.99))
+            intensity[artifactIdx] = 1
+            artifactIdx = numpy.where(numpy.logical_and(intensity == 1,
+                                                        rad > 0.99))
+            intensity[artifactIdx] = 0
 
         else:
             if type(tex) in [str, unicode, numpy.string_]:
@@ -817,13 +817,13 @@ class TextureMixin(object):
                 if im.size[0] != powerOf2 or im.size[1] != powerOf2:
                     if not forcePOW2:
                         notSqr = True
-                    elif glob_vars.nImageResizes < reportNImageResizes:
+                    elif globalVars.nImageResizes < reportNImageResizes:
                         msg = ("Image '%s' was not a square power-of-two ' "
                                "'image. Linearly interpolating to be %ix%i")
                         logging.warning(msg % (tex, powerOf2, powerOf2))
-                        glob_vars.nImageResizes += 1
+                        globalVars.nImageResizes += 1
                         im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
-                    elif glob_vars.nImageResizes == reportNImageResizes:
+                    elif globalVars.nImageResizes == reportNImageResizes:
                         logging.warning("Multiple images have needed resizing"
                                         " - I'll stop bothering you!")
                         im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
@@ -838,7 +838,7 @@ class TextureMixin(object):
                     dataType = GL.GL_FLOAT
             elif pixFormat == GL.GL_RGB:
                 # we want RGB and might need to convert from CMYK or Lm
-                #texture = im.tostring("raw", "RGB", 0, -1)
+                # texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
                 wasLum = False
             if dataType == GL.GL_FLOAT:
@@ -1146,9 +1146,9 @@ class WindowMixin(object):
 
     def _selectWindow(self, win):
         # don't call switch if it's already the curr window
-        if win != glob_vars.currWindow and win.winType == 'pyglet':
+        if win != globalVars.currWindow and win.winType == 'pyglet':
             win.winHandle.switch_to()
-            glob_vars.currWindow = win
+            globalVars.currWindow = win
 
     def _updateList(self):
         """The user shouldn't need this method since it gets called

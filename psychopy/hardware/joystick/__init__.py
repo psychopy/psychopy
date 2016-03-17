@@ -15,18 +15,18 @@ Typical usage::
     from psychopy.hardware import joystick
     from psychopy import visual
 
-    joystick.backend='pyglet'#must match the Window
+    joystick.backend='pyglet'  # must match the Window
     win = visual.Window([400,400], winType='pyglet')
 
-    nJoys = joystick.getNumJoysticks()#to check if we have any
-    id=0
-    joy = joystick.Joystick(id)#id must be <= nJoys-1
+    nJoys = joystick.getNumJoysticks()  # to check if we have any
+    id = 0
+    joy = joystick.Joystick(id)  # id must be <= nJoys - 1
 
-    nAxes = joy.getNumAxes()#for interest
-    while True:#while presenting stimuli
+    nAxes = joy.getNumAxes()  # for interest
+    while True:  # while presenting stimuli
         currentjoy.getX()
-        #...
-        win.flip()#flipping implicitly updates the joystick info
+        # ...
+        win.flip()  # flipping implicitly updates the joystick info
 """
 
 from __future__ import absolute_import
@@ -132,7 +132,7 @@ class Joystick(object):
 
     def getAllHats(self):
         """Get the current values of all available hats as a list of tuples.
-        Each value is a tuple (x,y) where x and y can be -1,0,+1
+        Each value is a tuple (x, y) where x and y can be -1, 0, +1
         """
         hats = []
         if backend == 'pyglet':
@@ -154,7 +154,7 @@ class Joystick(object):
 
     def getHat(self, hatId=0):
         """Get the position of a particular hat.
-        The position returned is an (x,y) tuple where x and y
+        The position returned is an (x, y) tuple where x and y
         can be -1, 0 or +1
         """
         if backend == 'pyglet':

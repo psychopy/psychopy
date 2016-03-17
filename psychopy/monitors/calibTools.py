@@ -54,8 +54,7 @@ if not os.path.isdir(monitorFolder):
 pr650code = {'OK': '000\r\n',  # this is returned after measure
              '18': 'Light Low',  # these is returned at beginning of data
              '10': 'Light Low',
-             '00': 'OK'
-             }
+             '00': 'OK'}
 
 
 def findPR650(ports=None):
@@ -606,8 +605,9 @@ class Monitor(object):
                 # each of these interpolators is a function!
                 levelsPre = self.getLevelsPre() / 255.0
                 for gun in range(4):
-                    lumsPre[gun, :] = (lumsPre[gun, :] - lumsPre[gun, 0]) / \
-                        (lumsPre[gun, -1] - lumsPre[gun, 0])  # scale to 0:1
+                    # scale to 0:1
+                    lumsPre[gun, :] = ((lumsPre[gun, :] - lumsPre[gun, 0]) /
+                                       (lumsPre[gun, -1] - lumsPre[gun, 0]))
                     self._gammaInterpolator.append(interp1d(lumsPre[gun, :],
                                                             levelsPre,
                                                             kind='linear'))
@@ -756,7 +756,7 @@ class GammaCalculator(object):
         else:
             guess = [gammaGuess]
             bounds = [[0.8, 5.0]]
-        #gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
+        # gamma = optim.fmin(self.fitGammaErrFun, guess, (x, y, minLum, maxLum))
         # gamma = optim.fminbound(self.fitGammaErrFun,
         #    minGamma, maxGamma,
         #    args=(x,y, minLum, maxLum))
@@ -883,8 +883,8 @@ def getLumSeries(lumLevels=8,
     if photometer is None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
-        msg = "photometer argument to monitors.getLumSeries should be a " \
-              "type of photometer object, not a %s"
+        msg = ("photometer argument to monitors.getLumSeries should be a "
+               "type of photometer object, not a %s")
         logging.error(msg % type(photometer))
         return None
     else:
@@ -1129,15 +1129,15 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     xx = numpy.array(xx, 'd')
     maxXX = max(xx)
     if maxXX > 2.0:
-        # xx = xx*maxLum/255.0 +minLum
+        # xx = xx * maxLum / 255.0 + minLum
         xx = xx / 255.0
     else:  # assume data are in range 0:1
         pass
-        # xx = xx*maxLum + minLum
+        # xx = xx * maxLum + minLum
 
     # eq1: y = a + (b*xx)**gamma
-    # eq2: y = (a+b*xx)**gamma
-    # eq4: y = a+(b+k*xx)**gamma #Pelli & Zhang 1991
+    # eq2: y = (a + b * xx)**gamma
+    # eq4: y = a + (b + k*xx)**gamma  # Pelli & Zhang 1991
     if eq == 1:
         a = minLum
         b = (maxLum - a)**(1 / gamma)
@@ -1153,7 +1153,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         nMissing = sum([a is None, b is None, k is None])
         # check params
         if nMissing > 1:
-            msg = "For eq=4, gammaFun needs 2 of a,b,k to be specified"
+            msg = "For eq=4, gammaFun needs 2 of a, b, k to be specified"
             raise AttributeError, msg
         elif nMissing == 1:
             if a is None:
@@ -1183,7 +1183,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         - **maxLum** = the maximum luminance of your monitor (for this gun)
         - **gamma** = the value of gamma (for this gun)
         - **eq** determines the gamma equation used;
-            eq==1[default]: yy = a + (b*xx)**gamma
+            eq==1[default]: yy = a + (b * xx)**gamma
             eq==2: yy = (a + b*xx)**gamma
 
     """
@@ -1191,9 +1191,9 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     # x should be 0:1
     # y should be 0:1, then converted to minLum:maxLum
 
-    # eq1: y = a + (b*xx)**gamma
-    # eq2: y = (a+b*xx)**gamma
-    # eq4: y = a+(b+kxx)**gamma
+    # eq1: y = a + (b * xx)**gamma
+    # eq2: y = (a + b * xx)**gamma
+    # eq4: y = a + (b + kxx)**gamma
     if max(yy) == 255:
         yy = numpy.asarray(yy, 'd') / 255.0
     elif min(yy) < 0 or max(yy) > 1:
@@ -1223,7 +1223,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         xx = (((1 - yy) * b**gamma + yy * (b + k)**gamma)**(1 / gamma) - b) / k
 
     # then return to range (0:1)
-    #xx = xx/(maxLUT-minLUT) - minLUT
+    # xx = xx / (maxLUT - minLUT) - minLUT
     return xx
 
 
