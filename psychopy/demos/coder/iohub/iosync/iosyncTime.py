@@ -12,7 +12,7 @@ repetitions = 1000
 import numpy as np
 import time
 from psychopy import core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 getTime = core.getTime
 
 results = np.zeros((repetitions,3),dtype=np.float64)

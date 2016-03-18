@@ -11,7 +11,7 @@ serial device receives back as rx data. **
 from __future__ import print_function
 import time
 from psychopy import core, visual
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 # Settings for serial port communication.
 SERIAL_PORT = 'COM16'

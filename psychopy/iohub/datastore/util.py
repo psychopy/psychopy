@@ -264,8 +264,8 @@ class ExperimentDataAccessUtility(object):
     def getEventsByType(self, condition_str = None):
         """
         Returns a dict of all event tables within the DataStore file that have
-        atleast one event instance saved. Keys are Event Type constants,
-        as specified by Psychopy.iohub.EventConstants.
+        at least one event instance saved. Keys are Event Type constants,
+        as specified by iohub.EventConstants.
         Each value is a row iterator for events of that type.
         """
         eventTableMappings=self.getEventMappingInformation()

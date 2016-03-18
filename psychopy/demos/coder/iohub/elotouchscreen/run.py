@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
+
+# TODO: Retest because of changes
+
 """
 Created on Thu Oct 03 12:50:46 2013
 
 @author: Sol
 """
 from psychopy import visual
-from psychopy.iohub import ioHubExperimentRuntime,EventConstants,module_directory
+from psychopy.iohub.client import ioHubExperimentRuntime
+from psychopy.iohub.constants import EventConstants
 import math
 import numpy as np
 import time
@@ -164,7 +168,7 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
                 self.touch_contingent_stim.draw()
                 window.flip()
 
-            kb_events=kb.getEvents(event_type=EventConstants.KEYBOARD_PRESS)
+            kb_events=kb.getPresses()
             if kb_events:
                 run_demo=False
 
@@ -186,11 +190,6 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
             for te in touch_events:
                 if te.type==EventConstants.TOUCH_RELEASE:
                     return te.x_position,te.y_position
-
-            #not self.devices.kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-            #self.touch_point_stim.draw()
-            #self.cal_instruct_stim.draw()
-            #self.window.flip()
             time.sleep(0.05)
         self.hub.clearEvents('all')
 
@@ -244,7 +243,7 @@ Touch each Point when it is Presented.")
         self.window.flip()
         self.hub.clearEvents('all')
         kb=self.devices.kb
-        while not kb.getEvents(EventConstants.KEYBOARD_PRESS):
+        while not kb.getPresses():
            time.sleep(0.05)
         self.hub.clearEvents('all')
 
@@ -298,24 +297,25 @@ Touch each Point when it is Presented.")
         self.window.flip()
         self.hub.clearEvents('all')
         kb=self.devices.kb
-        while not kb.getEvents(EventConstants.KEYBOARD_PRESS):
+        while not kb.getPresses():
            time.sleep(.05)
 
         return val_passed
 
 ###############################################################################
 
-import sys
+if __name__ == '__main__':
+    import sys
+    from psychopy.iohub import module_directory
+    def main(configurationDirectory):
+        """
+        Creates an instance of the EloTouchScreenDemo class,
+        and launches the experiment logic in run().
+        """
+        runtime=EloTouchScreenDemo(configurationDirectory, "experiment_config.yaml")
+        runtime.start(sys.argv)
 
-def main(configurationDirectory):
-    """
-    Creates an instance of the EloTouchScreenDemo class,
-    and launches the experiment logic in run().
-    """
-    runtime=EloTouchScreenDemo(configurationDirectory, "experiment_config.yaml")
-    runtime.start(sys.argv)
-
-# run the main function, which starts the experiment runtime
-main(module_directory(main))
+    # run the main function, which starts the experiment runtime
+    main(module_directory(main))
 
 ##########################

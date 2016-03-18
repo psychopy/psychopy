@@ -19,8 +19,9 @@ from tables import parameters
 
 import numpy as N
 
-from psychopy.iohub import printExceptionDetailsToStdErr, print2err, ioHubError, DeviceEvent, EventConstants
-
+from ..constants import EventConstants
+from ..util import printExceptionDetailsToStdErr, print2err, ioHubError
+from ..devices import DeviceEvent
 
 parameters.MAX_NUMEXPR_THREADS=None
 """The maximum number of threads that PyTables should use internally in

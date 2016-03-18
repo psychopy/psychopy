@@ -3,7 +3,7 @@ from __future__ import print_function
 import time
 import numpy as np
 from psychopy import core, visual
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 from psychopy.iohub.devices import Computer
 
 #####################################################################

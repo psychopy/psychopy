@@ -20,7 +20,6 @@ from collections import Iterable
 
 from exception_tools import ioHubError
 from exception_tools import printExceptionDetailsToStdErr, print2err
-from psychopy.clock import MonotonicClock, monotonicClock
 
 # Path Update / Location functions
 

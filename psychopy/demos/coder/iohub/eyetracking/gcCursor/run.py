@@ -14,8 +14,8 @@ Updated: July 30th, Sol
 """
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import (ioHubExperimentRuntime, module_directory,
-                            getCurrentDateTimeString)
+from psychopy.iohub.client import ioHubExperimentRuntime
+from psychopy.iohub.util import module_directory, getCurrentDateTimeString
 import os
 
 class ExperimentRuntime(ioHubExperimentRuntime):

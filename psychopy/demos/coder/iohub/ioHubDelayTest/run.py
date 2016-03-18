@@ -10,13 +10,14 @@ Changes:
 
 """
 
+# TODO: Retest because of changes
 
 from numpy import zeros
-
+from collections import OrderedDict
 from psychopy import core, visual
-from psychopy.iohub import Computer, ioHubExperimentRuntime,EventConstants,OrderedDict
-
-
+from psychopy.iohub.devices import Computer
+from psychopy.iohub.client import ioHubExperimentRuntime
+from psychopy.iohub.constants import EventConstants
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     def run(self,*args,**kwargs):

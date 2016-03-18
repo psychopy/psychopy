@@ -17,10 +17,14 @@ at:
 http://www.adafruit.com/products/1384
 """
 
+# TODO: Retest because of changes
+
 import time
-from psychopy import visual, core,event
-from psychopy.iohub import launchHubServer, EventConstants
 import numpy as np
+from psychopy import visual, core, event
+from psychopy.iohub.constants import EventConstants
+from psychopy.iohub.client import launchHubServer
+
 
 getTime=core.getTime
 

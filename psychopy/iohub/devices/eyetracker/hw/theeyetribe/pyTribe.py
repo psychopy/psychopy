@@ -12,7 +12,9 @@ try:
     import ujson as json
 except Exception:
     import json
-from ..... import print2err,printExceptionDetailsToStdErr,Computer,OrderedDict
+from collections import OrderedDict
+from .....util import print2err,printExceptionDetailsToStdErr
+from .... import Computer
 
 getTime=Computer.getTime
 

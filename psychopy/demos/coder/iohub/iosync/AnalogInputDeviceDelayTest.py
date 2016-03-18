@@ -78,7 +78,7 @@ repetitions=5
 import numpy as np
 from psychopy import core
 import time
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 getTime=core.getTime
 
 try:

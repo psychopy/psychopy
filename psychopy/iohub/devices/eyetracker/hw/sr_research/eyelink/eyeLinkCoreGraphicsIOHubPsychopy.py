@@ -20,14 +20,13 @@ download from  www.sr-support.com once you are registered and includes the neces
 
 import numpy as np
 import scipy
-import psychopy
 from psychopy import visual
 import sys
 import tempfile
 import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants, KeyboardConstants
-from ...... import convertCamelToSnake, print2err, printExceptionDetailsToStdErr
+from ......util import convertCamelToSnake, print2err, printExceptionDetailsToStdErr
 import pylink
 
 class FixationTarget(object):

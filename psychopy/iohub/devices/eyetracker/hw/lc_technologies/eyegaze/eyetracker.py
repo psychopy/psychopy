@@ -13,7 +13,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 
 
-from ...... import printExceptionDetailsToStdErr, print2err
+from ......util import printExceptionDetailsToStdErr, print2err
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
 from .... import EyeTrackerDevice

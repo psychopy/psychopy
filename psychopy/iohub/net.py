@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-from psychopy.iohub import Computer
+from .devices import Computer
 import msgpack
 try:
     import msgpack_numpy as m
@@ -19,8 +19,8 @@ except Exception:
     pass
 import struct
 from weakref import proxy
-from psychopy.iohub.util import NumPyRingBuffer as RingBuffer
-from psychopy.iohub import print2err, printExceptionDetailsToStdErr
+from .util import NumPyRingBuffer as RingBuffer
+from .util import print2err, printExceptionDetailsToStdErr
 getTime=Computer.getTime
 
 MAX_PACKET_SIZE=64*1024

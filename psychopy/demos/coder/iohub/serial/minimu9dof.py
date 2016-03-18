@@ -41,7 +41,7 @@ By: Sol Simpson
 """
 import time
 from psychopy import core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 psychopy_mon_name = 'testMonitor'
 exp_code = '9dof'

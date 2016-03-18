@@ -35,7 +35,7 @@ or you may damage the Teensy 3. The Teensy 3.1 supports digital inputs up to
 """
 import time
 from psychopy import core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 getTime=core.getTime
 
 try:

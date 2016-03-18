@@ -223,7 +223,7 @@ class EyeTrackerDevice(Device):
                                   
                               time_offset = sendMessage_call_time - event_time_message_represent
                               
-                              Both times should be based on the ioHub.Computer.getTime() time base.
+                              Both times should be based on the iohub.devices.Computer.getTime() time base.
                               
                               If time_offset is not supported by the eye tracker implementation being used, a warning message will be printed to stdout.
         

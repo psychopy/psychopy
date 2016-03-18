@@ -19,19 +19,7 @@ except ImportError:
 
 import numpy as np
 import pandas as pd
-#import matplotlib as mpl
-#import matplotlib.pyplot as plt
-
-#from interestarea import Polygon
-
-#from interestperiod import InterestPeriodDefinition
-
-# TODO Replace with EventConstants.getConstants()
-# when code change is added to iohub source.
-def getEventConstants():
-    from psychopy.iohub import EventConstants
-    return EventConstants._names
-
+from ...constants import EventConstants
 
 class ioHubPandasDataView(object):
     def __init__(self,datastore_file):
@@ -65,7 +53,7 @@ class ioHubPandasDataView(object):
         Read-only.
         """
         if self._event_constants is None:
-            self._event_constants=getEventConstants()
+            self._event_constants=EventConstants._names
         return self._event_constants
 
     @property

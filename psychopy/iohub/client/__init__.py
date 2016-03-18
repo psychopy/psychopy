@@ -1131,10 +1131,13 @@ class ioHubConnection(object):
             if name_start>0:
                 name=name[name_start+1:]
 
-            import psychopy.iohub.client
+
+            from .. import client as iohubclientmod
             local_class = None
-            local_module = getattr(psychopy.iohub.client, device_class_name.lower(), False)
+            local_module = getattr(iohubclientmod, device_class_name.lower(), False)
             if local_module:
+                # need to touch local_module since it was lazy loaded
+                exec("import {pkgroot}.client.{local_module}".format(pkgroot=_pkgroot,local_module=device_class_name.lower()))
                 local_class = getattr(local_module, device_class_name, False)
             d=None
 
@@ -2160,5 +2163,15 @@ class ioEvent(object):
                                                self.type,
                                                self.id)
 
-import keyboard
-import wintabtablet
+from .. import _pkgroot
+_lazyImports="""
+from {pkgroot}.client import keyboard
+from {pkgroot}.client import wintabtablet
+""".format(pkgroot=_pkgroot)
+
+try:
+    from ..lazy_import import lazy_import
+    lazy_import(globals(), _lazyImports)
+except Exception, e:
+    print "lazy_import Exception:", e
+    exec(_lazyImports)

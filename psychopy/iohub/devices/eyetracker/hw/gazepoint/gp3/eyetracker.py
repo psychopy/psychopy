@@ -9,8 +9,8 @@
 #
 #
 
-from ...... import print2err, printExceptionDetailsToStdErr, to_numeric
-from ......constants import EyeTrackerConstants
+from ......util import print2err, printExceptionDetailsToStdErr, to_numeric
+from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
 from .... import EyeTrackerDevice
 from ....eye_events import *

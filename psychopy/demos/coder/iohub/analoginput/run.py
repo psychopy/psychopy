@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+# TODO: Retest because of changes
+
 """
 Displays values from 8 channels ( 0 - 7 ) from the AnalogInput Device as 
 configured in the iohub.config.yaml file in this directory.
@@ -7,8 +10,9 @@ configured in the iohub.config.yaml file in this directory.
 """
 
 from __future__ import print_function #for compatibility with python3
+from collections import OrderedDict
 from psychopy import visual
-from psychopy.iohub import OrderedDict,ioHubExperimentRuntime,EventConstants,module_directory
+from psychopy.iohub.client import ioHubExperimentRuntime
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
@@ -132,7 +136,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         
                 # Get any new key values from keyboard *Char* Events.
                 #
-                key_values=[k.key for k in kb.getEvents(EventConstants.KEYBOARD_RELEASE)]
+                key_values=[k.key for k in kb.getReleases()]
                 
                 if u' ' in key_values:
                     break
@@ -161,6 +165,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
 if __name__ == "__main__":
     import sys
+    from psychopy.iohub import module_directory
 
     def main(configurationDirectory):
         """

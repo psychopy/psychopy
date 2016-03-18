@@ -10,7 +10,7 @@ Displays information from ioHub Keyboard Events vs. psychopy.event.geKeys().
 from __future__ import division
 
 from psychopy import core, visual, event
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 WINDOW_SIZE = 1024, 768
 

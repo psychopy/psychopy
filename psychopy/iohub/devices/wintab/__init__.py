@@ -21,10 +21,10 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 _is_epydoc=False
 
 # Pen digitizers /tablets that support Wintab API
-from psychopy.iohub import Computer, Device,print2err,printExceptionDetailsToStdErr
+from .. import Computer, Device
+from ...util import print2err, printExceptionDetailsToStdErr, NumPyRingBuffer
 from ...constants import EventConstants, DeviceConstants
 import numpy as N
-from ...util import NumPyRingBuffer
 import copy
 
 class WintabTablet(Device):

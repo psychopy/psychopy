@@ -34,7 +34,7 @@ repetitions = 10000
 import numpy as np
 import time
 from psychopy import core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 getTime = core.getTime
 
 # Array for storing all timing results

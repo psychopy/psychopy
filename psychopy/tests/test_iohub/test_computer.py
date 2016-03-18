@@ -2,7 +2,7 @@
 """
 from psychopy.tests.utils import skip_under_travis
 from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess, skip_not_completed
-from psychopy.iohub import Computer
+from psychopy.iohub.devices import Computer
 from psychopy.core import getTime
 
 @skip_under_travis

@@ -11,12 +11,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-from psychopy.iohub.util import addDirectoryToPythonPath
+from ......util import addDirectoryToPythonPath
 
-from psychopy.iohub import Computer
+from ..... import Computer
 if Computer.system == 'win32' and Computer.sysbits == 32:
     addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
-
-from eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
-                        FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
-                        SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)

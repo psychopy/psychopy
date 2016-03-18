@@ -18,7 +18,7 @@ import copy
 
 from ...... import print2err, convertCamelToSnake,printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
-from ..... import Computer
+from ..... import Computer, DeviceEvent
 from .... import EyeTrackerDevice   
 from ....eye_events import *
 

@@ -128,11 +128,11 @@ Data is filtered once, similar to what a 'normal' filter level would be in the
   eyelink<tm> system. Level = 2 would be similar to the 'extra' filter level
   setting of eyelink<tm>.
 """
-
-import psychopy.iohub.devices.eventfilters as eventfilters
-from psychopy.iohub import EventConstants, DeviceEvent, print2err
+from ....constants import EventConstants
+from ... import DeviceEvent, eventfilters
+from ....util import print2err
 from collections import OrderedDict
-from psychopy.iohub.util.visualangle import VisualAngleCalc
+from ....util.visualangle import VisualAngleCalc
 
 MONOCULAR_EYE_SAMPLE = EventConstants.MONOCULAR_EYE_SAMPLE
 BINOCULAR_EYE_SAMPLE = EventConstants.BINOCULAR_EYE_SAMPLE

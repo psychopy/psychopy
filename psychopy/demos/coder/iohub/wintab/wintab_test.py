@@ -1,10 +1,12 @@
-from __future__ import division
 #!/usr/bin/env python2
+from __future__ import division
+
+# TODO: Retest because of changes
+
 import psychopy
 from psychopy import core, visual
 from psychopy.gui import fileSaveDlg
-from psychopy.iohub import launchHubServer, EventConstants
-import math
+from psychopy.iohub.client import launchHubServer
 
 draw_pen_traces = True
 

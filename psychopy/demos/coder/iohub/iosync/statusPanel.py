@@ -7,12 +7,16 @@ This demo displays the ioSync digital and analog input values in real time.
 The GUI can also be used to toggle the state of any of the digital output lines.
 """
 
+# TODO: Retest because of changes
+
 LUX_AIN = 0
 
 import sys
 from psychopy import core, visual, event
 from _statusPanelStim import AnalogMeter, DigitalLineStateButton
-from psychopy.iohub import EventConstants, launchHubServer, MouseConstants
+from psychopy.iohub.constants import EventConstants, MouseConstants
+from psychopy.iohub.client import launchHubServer
+
 getTime = core.getTime
 
 def main():

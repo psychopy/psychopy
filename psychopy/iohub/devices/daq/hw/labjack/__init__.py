@@ -2,8 +2,10 @@ import sys
 import numpy as N
 
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
-from .... import Computer,ioDeviceError
-from psychopy.iohub.util import addDirectoryToPythonPath,printExceptionDetailsToStdErr,print2err
+from .... import Computer, ioDeviceError
+
+from .....util import addDirectoryToPythonPath,printExceptionDetailsToStdErr, print2err
+# Adds the included python 2.7 or 2.6 win32 pylabjack package to path
 addDirectoryToPythonPath('devices/daq/hw/labjack')
 import pylabjack
 

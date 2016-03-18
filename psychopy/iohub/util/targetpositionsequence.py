@@ -31,7 +31,7 @@ To use this module, the following high level steps are generally preformed:
 from ... import visual, core
 from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger, OrderedDict
 from ..constants import EventConstants
-from .. import ioHubConnection
+from ..client import ioHubConnection
 from weakref import proxy
 import numpy as np
 from time import sleep

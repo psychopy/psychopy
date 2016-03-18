@@ -3,7 +3,8 @@ import pytest
 __author__ = 'Sol'
 
 import psutil, sys
-from psychopy.iohub import launchHubServer, Computer
+from psychopy.iohub.client import launchHubServer
+from psychopy.iohub.devices import Computer
 
 getTime = Computer.getTime
 

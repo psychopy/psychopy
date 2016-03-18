@@ -1,0 +1,36 @@
+1. Within the iohub package itself:
+    1. Change all 'import psychopy.iohub.xxxxx' and
+       'from psychopy.iohub.xxxxx import yyyyy'' type statements
+       to relative imports. This way these imports do not care if iohub
+       is within psychopy or not.
+
+    2. DONE Add _ispkg variable to iohub/__init__.py. True if iohub is top level package,
+       False if iohub is within another package (i.e. psychopy.iohub).
+
+    3. Add exception handling for any areas of code that rely on
+       psychopy for graphics if psychopy package is not installed.
+       For example, device calibration code, iohub.util.stimUtil, etc.
+       These sections will just become no-ops when psychopy is not available.
+
+    4. Remove as many iohub submodule imports from the top level iohub
+       package (in iohub/__init__.py) as possible. This will mean user scripts
+       will need to be updated to change how they import iohub functions / classes.
+
+    5. Support using user defined timebase for iohub server time,
+       so iohub process and experiment process can still have
+       a common monotonic clock.
+
+    6. Make functions used to register/unregister experiment window handles
+       with iohub public.
+
+2. Add to the iohub 'public' API:
+    1. Ability to set the timebase iohub process should use (for 1.5)
+
+    2. Public functions for 1.6
+
+    3. Update iohub demo's to use new iohub import structure caused by 1.4.
+
+    4. Create iohub demo running standalone; probably just take existing
+       keyboard.py demo and modify imports.
+
+    5. (optional) Add lazy loading of iohub.xxxxx submodules

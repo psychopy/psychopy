@@ -74,9 +74,9 @@ class MonotonicClock(object):
     the clock was created.
 
     Don't confuse this `class` with `core.monotonicClock` which is an
-    `instance` of it that got created when PsychoPy.core was imported.
-    That clock instance is deliberately designed always to return the
-    time since the start of the study.
+    `instance` of this `class`. `core.monotonicClock` returns the time since
+    the start of the experiment (more specifically, the time since
+    `psychopy.core` is first imported by the current python interpreter).
 
     Version Notes: This class was added in PsychoPy 1.77.00
     """

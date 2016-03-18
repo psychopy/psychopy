@@ -14,7 +14,7 @@ Inital Version: May 6th, 2013, Sol Simpson
 from __future__ import division
 
 from __future__ import print_function  # for compatibility with python3
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 def testWithNoKwargs():
     """

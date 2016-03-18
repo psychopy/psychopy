@@ -13,11 +13,10 @@ from collections import deque, OrderedDict
 import math
 import numpy as np
 
-from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
-from psychopy.iohub.devices import Computer
-from psychopy.iohub.devices.wintab import WintabTabletSampleEvent, WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent
-from psychopy.iohub.constants import EventConstants
-from psychopy import visual, core
+from . import ioHubDeviceView, ioEvent, DeviceRPC
+from ..devices import Computer
+from ..devices.wintab import WintabTabletSampleEvent, WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent
+from ..constants import EventConstants
 
 if Computer.system == 'win32':
     from win32api import LOWORD, HIWORD
@@ -398,6 +397,7 @@ class WintabTablet(ioHubDeviceView):
 ## iohub wintab util objects / functions for stylus,
 ## position traces, and validation process psychopy graphics.
 #
+from psychopy import visual, core
 from psychopy.visual.basevisual import MinimalStim 
 class PenPositionStim(MinimalStim):
     """

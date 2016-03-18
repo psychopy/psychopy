@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+# TODO: Retest because of changes
+
 """
 eye_tracker/run.py
 
@@ -12,10 +15,9 @@ Eye Tracker hardware used.
 Inital Version: May 6th, 2013, Sol Simpson
 """
 from psychopy import visual
-from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import (EventConstants, EyeTrackerConstants, 
-                            getCurrentDateTimeString, ioHubExperimentRuntime)
-import os
+from psychopy.data import TrialHandler, importConditions
+from psychopy.iohub.client import ioHubExperimentRuntime
+from psychopy.iohub.util import getCurrentDateTimeString
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
@@ -217,7 +219,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 if __name__ == "__main__":
     import os
     from psychopy import gui
-    from psychopy.iohub import module_directory
+    from psychopy.iohub.util import module_directory
         
     def main(configurationDirectory):
         """

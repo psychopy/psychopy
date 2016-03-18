@@ -15,14 +15,13 @@ from gevent.server import DatagramServer
 from gevent import Greenlet
 import os,sys
 from operator import itemgetter
-from collections import deque
-import psychopy.iohub
-from psychopy.iohub import OrderedDict, convertCamelToSnake, IO_HUB_DIRECTORY,EXP_SCRIPT_DIRECTORY
-from psychopy.iohub import load, dump, Loader, Dumper
-from psychopy.iohub import print2err, printExceptionDetailsToStdErr, ioHubError
-from psychopy.iohub import DeviceConstants, EventConstants
-from psychopy.iohub import Computer, DeviceEvent, import_device
-from psychopy.iohub.devices.deviceConfigValidation import validateDeviceConfiguration
+from collections import deque, OrderedDict
+from . import load, dump, Loader, Dumper, IO_HUB_DIRECTORY,EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
+from .util import convertCamelToSnake
+from .util import print2err, printExceptionDetailsToStdErr, ioHubError
+from .constants import DeviceConstants, EventConstants
+from .devices import Computer, DeviceEvent, import_device
+from .devices.deviceConfigValidation import validateDeviceConfiguration
 currentSec= Computer.currentSec
 
 try:
@@ -535,7 +534,7 @@ class ioServer(object):
 
         try:
             # initial dataStore setup
-            if 'data_store' in config and psychopy.iohub._DATA_STORE_AVAILABLE:
+            if 'data_store' in config and _DATA_STORE_AVAILABLE:
                 experiment_datastore_config=config.get('data_store')
                 default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'datastore','default_datastore.yaml')
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
@@ -650,7 +649,7 @@ class ioServer(object):
 
 
         # Update DataStore Structure if required.
-        if psychopy.iohub._DATA_STORE_AVAILABLE:        
+        if _DATA_STORE_AVAILABLE:
             try:            
                 if self.emrt_file is not None:
                     self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
@@ -662,7 +661,7 @@ class ioServer(object):
         self.log("Adding ioServer and DataStore event listeners......")
 
         # add event listeners for saving events
-        if psychopy.iohub._DATA_STORE_AVAILABLE and self.emrt_file is not None:
+        if _DATA_STORE_AVAILABLE and self.emrt_file is not None:
             if device_config['save_events']:
                 device_instance._addEventListener(self.emrt_file,device_event_ids)
                 self.log("DataStore listener for device added: device: %s eventIDs: %s"%(device_instance.__class__.__name__,device_event_ids))
@@ -877,7 +876,7 @@ class ioServer(object):
             printExceptionDetailsToStdErr()
             
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
-        if psychopy.iohub._DATA_STORE_AVAILABLE:
+        if _DATA_STORE_AVAILABLE:
             from datastore import ioHubpyTablesFile
             self.closeDataStoreFile()                
             self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                

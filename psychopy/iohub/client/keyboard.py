@@ -11,10 +11,10 @@
 from collections import deque
 import time
 
-from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
-from psychopy.iohub.devices import DeviceEvent
-from psychopy.iohub.devices.keyboard import KeyboardInputEvent
-from psychopy.iohub.constants import EventConstants, KeyboardConstants
+from ..client import ioHubDeviceView, ioEvent, DeviceRPC
+from ..devices import DeviceEvent
+from ..devices.keyboard import KeyboardInputEvent
+from ..constants import EventConstants, KeyboardConstants
 from psychopy.core import getTime
 from psychopy.visual.window import Window
 

@@ -9,13 +9,13 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-from psychopy.iohub import OrderedDict, print2err, printExceptionDetailsToStdErr, Computer, EXP_SCRIPT_DIRECTORY
 import serial
-from .. import Device, DeviceEvent
-from ...constants import DeviceConstants, EventConstants
 import numpy as N
+from ... import EXP_SCRIPT_DIRECTORY
+from .. import Computer, Device, DeviceEvent
+from ...util import print2err, printExceptionDetailsToStdErr
+from ...constants import DeviceConstants, EventConstants
 getTime = Computer.getTime
-
 
 class Serial(Device):
     """

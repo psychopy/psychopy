@@ -73,8 +73,8 @@ MCU Access
 import pysync
 from pysync import T3MC,T3Request,T3Event
 
-from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
-from ... import Device, DeviceEvent
+from ... import Computer, Device, DeviceEvent
+from ....util import print2err, printExceptionDetailsToStdErr
 from ....constants import DeviceConstants, EventConstants
 import numpy as N
 import gevent

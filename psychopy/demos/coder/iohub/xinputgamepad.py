@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+# TODO: Retest because of changes
+
 """
 Demo of using XInput gamepad support from ioHub in PsychoPy.
 
@@ -15,8 +17,8 @@ Important: An XInput compatible gamepad must be connected to the Windows PC
 from __future__ import division
 
 from psychopy import visual, core
-from psychopy.iohub import launchHubServer, EventConstants
-
+from psychopy.iohub.constants import EventConstants
+from psychopy.iohub.client import launchHubServer
 def normalizedValue2Coord(normed_position, normed_magnitude, display_coord_area):
     x = normed_position[0] * normed_magnitude
     y = normed_position[1] * normed_magnitude

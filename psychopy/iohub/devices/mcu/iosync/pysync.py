@@ -111,16 +111,10 @@ PWM Outputs:
 
 import serial
 import numpy as np
-try:
-    from psychopy.iohub import OrderedDict, print2err,Computer
-    getTime=Computer.getTime
-except Exception:
-    from timeit import default_timer as getTime
-    from collections import OrderedDict
-    
-    def print2err(*args):
-        print args
-
+from collections import OrderedDict
+from ... import Computer
+from ....util import print2err
+getTime=Computer.getTime
 
 class T3Event(object):
     DIGITAL_INPUT_EVENT = 1

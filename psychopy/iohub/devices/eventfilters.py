@@ -1,9 +1,9 @@
 __author__ = 'Sol'
 import numpy as np
 from collections import deque
-from psychopy.iohub.util import NumPyRingBuffer
-from psychopy.iohub import EventConstants, DeviceEvent, print2err, Computer
-
+from ..util import NumPyRingBuffer, print2err
+from . import DeviceEvent, Computer
+from ..constants import EventConstants
 
 # Event Filter / Translator / Parser Class Prototype
 

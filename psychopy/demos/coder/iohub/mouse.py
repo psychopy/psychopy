@@ -15,7 +15,7 @@ from __future__ import division
 import sys
 
 from psychopy import visual, core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 # create the process that will run in the background polling devices
 io = launchHubServer()

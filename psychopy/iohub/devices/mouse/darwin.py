@@ -10,9 +10,9 @@ import Quartz as Qz
 from AppKit import NSEvent
 
 from . import MouseDevice
-from ... import print2err,printExceptionDetailsToStdErr
-from ...devices import Computer, Keyboard
-from ...constants import EventConstants,MouseConstants
+from ...util import print2err, printExceptionDetailsToStdErr
+from .. import Computer, Keyboard
+from ...constants import EventConstants, MouseConstants
 
 currentSec=Computer.getTime
 

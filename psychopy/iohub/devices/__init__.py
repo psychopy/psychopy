@@ -19,6 +19,8 @@ from operator import itemgetter
 import numpy as N
 import psutil
 from ..util import convertCamelToSnake, print2err,printExceptionDetailsToStdErr
+from ..constants import EventConstants
+
 from psychopy.clock import monotonicClock
 
 class ioDeviceError(Exception):
@@ -185,7 +187,7 @@ class Computer(object):
     #: False otherwise.
     in_high_priority_mode=False
 
-    #: A iohub.MonotonicClock class instance used as the common time base for all devices
+    #: global_clock is used as the common time base for all devices
     #: and between the ioHub Server and Experiment Runtime Process. Do not
     #: access this class directly, instead use the Computer.getTime()
     #: and associated method name alias's to actually get the current ioHub time.
@@ -1086,8 +1088,6 @@ class Device(ioObject):
         """
         try:
             import importlib
-            from psychopy.iohub import EventConstants, convertCamelToSnake
-
             filter_file_path = os.path.normpath(os.path.abspath(filter_file_path))
             fdir, ffile = os.path.split(filter_file_path)
             if not ffile.endswith(".py"):
@@ -1584,7 +1584,6 @@ try:
     if getattr(sys.modules[__name__],'Display',None) is None:
         display_class,device_class_name,event_classes=import_device('psychopy.iohub.devices.display','Display')
         setattr(sys.modules[__name__],'Display', display_class)
-
 except Exception:
     print2err("Warning: display device module could not be imported.")
     printExceptionDetailsToStdErr()

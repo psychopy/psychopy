@@ -360,7 +360,8 @@ import ctypes
 
 import pyglet
 from pyglet.event import EventDispatcher
-from psychopy.iohub import print2err, Computer
+from .. import Computer
+from ...util import print2err
 from ...constants import EventConstants
 
 def wtinfo(category, index, buffer):

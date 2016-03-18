@@ -30,7 +30,7 @@ pin.
 
 import time
 from psychopy import core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 getTime=core.getTime
 
 io=None

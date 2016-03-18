@@ -6,8 +6,9 @@ Created on Thu Oct 17 22:46:06 2013
 """
 from psychopy import visual,core
 from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import launchHubServer,Computer,EventConstants
-
+from psychopy.iohub.client import launchHubServer
+from psychopy.iohub.devices import Computer
+from psychopy.iohub.constants import EventConstants
 getTime=Computer.getTime
     
 psychopy_mon_name='testMonitor'

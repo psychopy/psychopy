@@ -1,9 +1,12 @@
-from psychopy import core, visual
-from psychopy.iohub import launchHubServer, ioHubConnection, EventConstants
-from psychopy.iohub import TimeTrigger, DeviceEventTrigger
+# TODO: Retest because of changes
+
+from psychopy import visual
+from psychopy.iohub.client import launchHubServer
+from psychopy.iohub.constants import EventConstants
+from psychopy.iohub.util import TimeTrigger, DeviceEventTrigger
 from psychopy.iohub import TargetStim, PositionGrid, ValidationProcedure
 import time
-import numpy as np
+
 exp_code = 'targetdisplay'
 sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
 

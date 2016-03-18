@@ -8,15 +8,17 @@ import gevent
 import json
 import os,sys
 
-import psychopy.iohub
-from psychopy.iohub import Computer
+from psychopy.iohub.devices import Computer
 Computer.is_iohub_process = True
 from psychopy.iohub.server import ioServer
 
-from psychopy.iohub import updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock, load, Loader
+from psychopy.iohub.util import printExceptionDetailsToStdErr, print2err
+from psychopy.iohub import updateDict, load, Loader, IO_HUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
+from psychopy.clock import MonotonicClock
 
 def run(rootScriptPathDir,configFilePath):
-    psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
+    global EXP_SCRIPT_DIRECTORY
+    EXP_SCRIPT_DIRECTORY = rootScriptPathDir
 
     import tempfile
     tdir=tempfile.gettempdir()
@@ -29,7 +31,7 @@ def run(rootScriptPathDir,configFilePath):
     else:
         ioHubConfig=load(file(configFilePath,'r'), Loader=Loader)
 
-    hub_defaults_config=load(file(os.path.join(psychopy.iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+    hub_defaults_config=load(file(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
     updateDict(ioHubConfig,hub_defaults_config)
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)
@@ -119,7 +121,7 @@ if __name__ == '__main__':
         psychopy_pid=None
         configFileName=None
         rootScriptPathDir=None
-        initial_offset=psychopy.iohub.getTime()
+        initial_offset = Computer.getTime()
 
     try:
         import psutil

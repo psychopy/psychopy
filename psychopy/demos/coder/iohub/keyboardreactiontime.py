@@ -12,7 +12,7 @@ Inital Version: May 6th, 2013, Sol Simpson
 from __future__ import division
 
 from psychopy import  core,  visual
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 from math import fabs
 
 io = launchHubServer(psychopy_monitor_name='default')
