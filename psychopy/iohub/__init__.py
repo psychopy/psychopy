@@ -8,8 +8,9 @@
 # Distributed under the terms of the GNU General Public License
 # (GPL version 3 or any later version).
 from __future__ import absolute_import
-
 import sys
+from .errors import print2err, printExceptionDetailsToStdErr
+from .util import module_directory
 if sys.platform == 'darwin':
     import objc
 
@@ -36,17 +37,8 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
 global EXP_SCRIPT_DIRECTORY
 EXP_SCRIPT_DIRECTORY = ''
 
-from .util import print2err, printExceptionDetailsToStdErr, ioHubError
-from .util import fix_encoding, module_directory, updateDict
-from .util import isIterable, getCurrentDateTimeString, convertCamelToSnake
-from .util import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
-from .util import win32MessagePump
-
-fix_encoding.fix_encoding()
-
 def _localFunc():
     return None
-
 global IO_HUB_DIRECTORY
 IO_HUB_DIRECTORY=module_directory(_localFunc)
 
@@ -65,7 +57,11 @@ except Exception, e:
     print2err("WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
     printExceptionDetailsToStdErr()
 
-from .util import Trigger, TimeTrigger, DeviceEventTrigger
-from .util import ScreenState, ClearScreen, InstructionScreen, ImageScreen
-from .util import ExperimentVariableProvider, SinusoidalMotion, to_numeric
+from .util.fix_encoding import fix_encoding
+fix_encoding()
+
+from .util.dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+from .util.visualUtil import Trigger, TimeTrigger, DeviceEventTrigger, SinusoidalMotion
+from .util.visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
+from .util.variableProvider import ExperimentVariableProvider
 from .util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure

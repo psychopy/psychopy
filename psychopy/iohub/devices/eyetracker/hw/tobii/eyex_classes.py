@@ -21,7 +21,7 @@ import platform
 from ctypes import *
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
-from ..... import print2err
+from psychopy.iohub import print2err
 
 DEBUG = False
 

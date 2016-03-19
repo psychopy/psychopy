@@ -16,11 +16,12 @@ import sys
 import copy
 
 
-from ...... import print2err, convertCamelToSnake,printExceptionDetailsToStdErr
+from ......util import convertCamelToSnake
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer, DeviceEvent
 from .... import EyeTrackerDevice   
 from ....eye_events import *
+from ......errors import print2err, printExceptionDetailsToStdErr
 
 import pyViewX
 from ctypes import byref, c_longlong ,c_int, c_void_p,POINTER

@@ -16,6 +16,8 @@ import gevent
 import zmq.green as zmq
 import copy
 import msgpack
+from ...errors import print2err, printExceptionDetailsToStdErr
+
 try:
     import msgpack_numpy as m
     m.patch()
@@ -24,7 +26,7 @@ except Exception:
 
 from .. import Computer, Device, DeviceEvent
 from ...constants import DeviceConstants,EventConstants
-from ... import print2err,printExceptionDetailsToStdErr
+
 
 class EventPublisher(Device):
     """

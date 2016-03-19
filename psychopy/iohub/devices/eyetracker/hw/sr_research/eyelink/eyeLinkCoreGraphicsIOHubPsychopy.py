@@ -26,7 +26,8 @@ import tempfile
 import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants, KeyboardConstants
-from ......util import convertCamelToSnake, print2err, printExceptionDetailsToStdErr
+from ......errors import print2err, printExceptionDetailsToStdErr
+from ......util import convertCamelToSnake
 import pylink
 
 class FixationTarget(object):

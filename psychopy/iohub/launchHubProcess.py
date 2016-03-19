@@ -8,12 +8,12 @@ import gevent
 import json
 import os,sys
 
+from psychopy.iohub import load, Loader, IO_HUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
 from psychopy.iohub.devices import Computer
 Computer.is_iohub_process = True
+from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 from psychopy.iohub.server import ioServer
-
-from psychopy.iohub.util import printExceptionDetailsToStdErr, print2err
-from psychopy.iohub import updateDict, load, Loader, IO_HUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
+from psychopy.iohub.util import updateDict
 from psychopy.clock import MonotonicClock
 
 def run(rootScriptPathDir,configFilePath):

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from ..errors import print2err, printExceptionDetailsToStdErr, ioHubError
+
 """
 ioHub
 .. file: ioHub/datastore/__init__.py
@@ -20,7 +22,6 @@ from tables import parameters
 import numpy as N
 
 from ..constants import EventConstants
-from ..util import printExceptionDetailsToStdErr, print2err, ioHubError
 from ..devices import DeviceEvent
 
 parameters.MAX_NUMEXPR_THREADS=None

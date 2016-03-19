@@ -9,16 +9,15 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-from .... import Computer
-from .....util import printExceptionDetailsToStdErr, print2err
-from .....constants import EventConstants, DeviceConstants
-from ... import TouchDevice, TouchEvent,TouchMoveEvent,TouchPressEvent,TouchReleaseEvent
-import serial
-from serial.tools import list_ports
 import math
 from collections import deque
-from .elo_serial import *
+import serial
 import gevent
+from .....errors import printExceptionDetailsToStdErr
+from .....constants import EventConstants, DeviceConstants
+from ... import TouchDevice
+from .elo_serial import *
+
 
 currentSec=Computer.currentSec
 getTime=Computer.currentSec

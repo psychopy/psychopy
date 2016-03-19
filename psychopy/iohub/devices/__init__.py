@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from ..errors import print2err, printExceptionDetailsToStdErr
 
 """
 ioHub
@@ -18,8 +19,7 @@ from collections import deque
 from operator import itemgetter
 import numpy as N
 import psutil
-from ..util import convertCamelToSnake, print2err,printExceptionDetailsToStdErr
-from ..constants import EventConstants
+from ..util import convertCamelToSnake
 
 from psychopy.clock import monotonicClock
 

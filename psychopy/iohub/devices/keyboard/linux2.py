@@ -11,9 +11,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 
 from . import ioHubKeyboardDevice
-from ... import printExceptionDetailsToStdErr
 from .. import Computer
 from ...constants import EventConstants
+from ...errors import printExceptionDetailsToStdErr
 
 getTime = Computer.getTime
 

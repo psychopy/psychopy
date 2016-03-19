@@ -12,6 +12,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 from .devices import Computer
 import msgpack
+from .errors import print2err, printExceptionDetailsToStdErr
+
 try:
     import msgpack_numpy as m
     m.patch()
@@ -20,7 +22,7 @@ except Exception:
 import struct
 from weakref import proxy
 from .util import NumPyRingBuffer as RingBuffer
-from .util import print2err, printExceptionDetailsToStdErr
+
 getTime=Computer.getTime
 
 MAX_PACKET_SIZE=64*1024

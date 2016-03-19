@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from ..errors import print2err
+
 """
 ioHub
 .. file: iohub/util/__init__.py
@@ -17,9 +19,6 @@ import scipy, numpy
 import sys,os,inspect
 import psychopy
 from collections import Iterable
-
-from exception_tools import ioHubError
-from exception_tools import printExceptionDetailsToStdErr, print2err
 
 # Path Update / Location functions
 
@@ -47,7 +46,7 @@ def addDirectoryToPythonPath(path_from_iohub_root,leaf_folder=''):
         print2err("Could not add path: ",dir_path)
         dir_path=None
     return dir_path
-    
+
 def module_path(local_function):
     """ returns the module path without the use of __file__.  Requires a function defined
    locally in the module. from http://stackoverflow.com/questions/729583/getting-file-path-of-imported-module"""
@@ -390,42 +389,3 @@ try:
 except Exception:
     # just use the version provided if verlib is not installed.
     validate_version=lambda version: version
-
-def to_numeric(lit):
-    """
-    Return value of a numeric literal string. If the string can not be converted
-    then the original string is returned.
-    :param lit:
-    :return:
-    """
-    # Handle '0'
-    if lit == '0': return 0
-    # Hex/Binary
-    litneg = lit[1:] if lit[0] == '-' else lit
-    if litneg[0] == '0':
-        if litneg[1] in 'xX':
-            return int(lit, 16)
-        elif litneg[1] in 'bB':
-            return int(lit, 2)
-        else:
-            try:
-                return int(lit, 8)
-            except ValueError:
-                pass
-
-    # Int/Float/Complex
-    try:
-        return int(lit)
-    except ValueError:
-        pass
-    try:
-        return float(lit)
-    except ValueError:
-        pass
-    try:
-        return complex(lit)
-    except ValueError:
-        pass
-
-    # return original str
-    return lit

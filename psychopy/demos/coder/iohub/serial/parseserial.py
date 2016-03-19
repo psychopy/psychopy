@@ -7,7 +7,8 @@
 # to the experiment process stderr by using the iohub 'print2err' function.
 # Do not use the standard 'print' call, as it will do nothing except maybe make
 # the iohub server not start.
-from psychopy.iohub import print2err
+from psychopy.iohub.errors import print2err
+
 
 def checkForSerialEvents(read_time, rx_data, parser_state, **kwargs):
     """

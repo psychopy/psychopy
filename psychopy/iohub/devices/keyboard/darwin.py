@@ -15,7 +15,6 @@ from copy import copy
 import Quartz as Qz
 from AppKit import NSEvent #NSKeyUp, NSSystemDefined, NSEvent
 from . import ioHubKeyboardDevice
-from ... import print2err,printExceptionDetailsToStdErr
 from ...constants import KeyboardConstants, DeviceConstants, EventConstants
 from .. import Computer
 
@@ -25,6 +24,7 @@ import ctypes
 import ctypes.util
 import CoreFoundation
 import objc
+from ...errors import print2err, printExceptionDetailsToStdErr
 
 try:
     unichr

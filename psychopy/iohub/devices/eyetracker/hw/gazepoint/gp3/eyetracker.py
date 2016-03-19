@@ -8,8 +8,7 @@
 # (GPL version 3 or any later version).
 #
 #
-
-from ......util import print2err, printExceptionDetailsToStdErr, to_numeric
+from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
 from .... import EyeTrackerDevice
@@ -19,6 +18,45 @@ import errno
 
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
+
+def to_numeric(lit):
+    """
+    Return value of a numeric literal string. If the string can not be converted
+    then the original string is returned.
+    :param lit:
+    :return:
+    """
+    # Handle '0'
+    if lit == '0': return 0
+    # Hex/Binary
+    litneg = lit[1:] if lit[0] == '-' else lit
+    if litneg[0] == '0':
+        if litneg[1] in 'xX':
+            return int(lit, 16)
+        elif litneg[1] in 'bB':
+            return int(lit, 2)
+        else:
+            try:
+                return int(lit, 8)
+            except ValueError:
+                pass
+
+    # Int/Float/Complex
+    try:
+        return int(lit)
+    except ValueError:
+        pass
+    try:
+        return float(lit)
+    except ValueError:
+        pass
+    try:
+        return complex(lit)
+    except ValueError:
+        pass
+
+    # return original str
+    return lit
 
 class EyeTracker(EyeTrackerDevice):
     """

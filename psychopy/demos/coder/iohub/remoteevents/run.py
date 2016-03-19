@@ -17,7 +17,7 @@ Inital Version: July 17th, 2013, Sol Simpson
 
 from psychopy.iohub.client import ioHubExperimentRuntime
 from psychopy.iohub.devices import Computer
-from psychopy.iohub import MessageDialog, module_directory
+from psychopy.iohub.util import MessageDialog, module_directory
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """

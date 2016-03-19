@@ -74,8 +74,8 @@ import pysync
 from pysync import T3MC,T3Request,T3Event
 
 from ... import Computer, Device, DeviceEvent
-from ....util import print2err, printExceptionDetailsToStdErr
 from ....constants import DeviceConstants, EventConstants
+from ....errors import print2err, printExceptionDetailsToStdErr
 import numpy as N
 import gevent
 getTime= Computer.getTime

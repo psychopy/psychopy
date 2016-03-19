@@ -24,8 +24,8 @@ import os
 import numpy as np
 import pylink
 
-from ...... import print2err,printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
+from ......errors import print2err, printExceptionDetailsToStdErr
 from ......util import ProgressBarDialog
 from ..... import Computer
 from .... import EyeTrackerDevice

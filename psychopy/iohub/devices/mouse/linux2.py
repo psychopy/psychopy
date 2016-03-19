@@ -7,9 +7,10 @@ Created on Thu Apr 11 18:52:59 2013
 
 from ctypes import cdll
 from . import MouseDevice
-from ... import print2err,MouseConstants,printExceptionDetailsToStdErr
+from ...constants import MouseConstants
 from .. import Computer,Keyboard
 from .. import xlib
+from ...errors import print2err, printExceptionDetailsToStdErr
 
 currentSec=Computer.getTime
 

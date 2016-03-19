@@ -7,9 +7,9 @@ Created on Thu Apr 11 18:48:58 2013
 
 import ctypes
 from . import MouseDevice
-from ...constants import EventConstants,MouseConstants
-from ... import print2err
+from ...constants import EventConstants, MouseConstants
 from .. import Computer,Keyboard
+from ...errors import print2err
 
 currentSec=Computer.getTime
 

@@ -10,12 +10,12 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-import numpy as np 
-from ..... import print2err,printExceptionDetailsToStdErr
+import numpy as np
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
 from ... import EyeTrackerDevice
 from ...eye_events import *
+from .....errors import print2err, printExceptionDetailsToStdErr
 
 
 try:

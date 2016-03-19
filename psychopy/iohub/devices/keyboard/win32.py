@@ -14,9 +14,9 @@ import pyHook
 import ctypes
 from unicodedata import category as ucategory
 from . import ioHubKeyboardDevice
-from ... import print2err, printExceptionDetailsToStdErr
 from ...constants import KeyboardConstants, EventConstants
 from .. import Computer
+from ...errors import print2err, printExceptionDetailsToStdErr
 
 win32_vk = KeyboardConstants._virtualKeyCodes
 

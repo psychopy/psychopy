@@ -29,7 +29,8 @@ To use this module, the following high level steps are generally preformed:
   each position.
 """
 from ... import visual, core
-from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger
+from . import win32MessagePump, getCurrentDateTimeString, normjoin
+from .visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
 from ..constants import EventConstants
 from ..client import ioHubConnection
 from weakref import proxy
@@ -1312,7 +1313,6 @@ class ValidationProcedure(object):
         return self.validation_results
         
     def _generateImageName(self):
-        from psychopy.iohub.util import getCurrentDateTimeString, normjoin
         file_name='validation_'+getCurrentDateTimeString().replace(' ',
                                                             '_').replace(':',
                                                             '_').replace('-',

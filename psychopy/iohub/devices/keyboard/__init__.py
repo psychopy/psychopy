@@ -9,18 +9,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-
-#
-# Some possibly useful python modules / functions for unicode support:
-#
-# http://docs.python.org/2/library/unicodedata.html
-
 global Keyboard
 Keyboard=None
 
 import numpy as N
-
-from ... import print2err,printExceptionDetailsToStdErr
+from ...errors import print2err, printExceptionDetailsToStdErr
 from ...constants import KeyboardConstants, DeviceConstants, EventConstants, ModifierKeyCodes
 from .. import Device, Computer
 

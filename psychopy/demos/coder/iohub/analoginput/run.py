@@ -165,7 +165,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
 if __name__ == "__main__":
     import sys
-    from psychopy.iohub import module_directory
+    from psychopy.iohub.util import module_directory
 
     def main(configurationDirectory):
         """

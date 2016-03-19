@@ -44,7 +44,7 @@ def writeDataRow(output_file,session_info,session_uservar_names,event_data):
 
 if __name__ == '__main__':
     # Select the hdf5 file to process.
-    data_file_path= displayDataFileSelectionDialog(psychopy.iohub.module_directory(writeOutputFileHeader))
+    data_file_path= displayDataFileSelectionDialog(psychopy.iohub.util.module_directory(writeOutputFileHeader))
     if data_file_path is None:
         print("File Selection Cancelled, exiting...")
         sys.exit(0)

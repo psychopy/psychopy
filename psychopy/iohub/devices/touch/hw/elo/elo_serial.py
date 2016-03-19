@@ -11,7 +11,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 
 from .... import Computer
-from ..... import print2err
+from .....errors import print2err
+
 getTime=Computer.getTime
 
 

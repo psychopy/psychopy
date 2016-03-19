@@ -22,8 +22,8 @@ _is_epydoc=False
 
 # Pen digitizers /tablets that support Wintab API
 from .. import Computer, Device
-from ...util import print2err, printExceptionDetailsToStdErr, NumPyRingBuffer
 from ...constants import EventConstants, DeviceConstants
+from ...errors import print2err, printExceptionDetailsToStdErr
 import numpy as N
 import copy
 

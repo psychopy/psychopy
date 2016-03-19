@@ -129,8 +129,8 @@ Data is filtered once, similar to what a 'normal' filter level would be in the
   setting of eyelink<tm>.
 """
 from ....constants import EventConstants
+from ....errors import print2err
 from ... import DeviceEvent, eventfilters
-from ....util import print2err
 from collections import OrderedDict
 from ....util.visualangle import VisualAngleCalc
 

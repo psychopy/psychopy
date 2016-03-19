@@ -49,10 +49,11 @@ import ctypes as ct
 from Xlib import X, display
 from Xlib.ext import record
 from Xlib.protocol import rq
-from .. import print2err
+import xlib as _xlib
+
 from ..devices import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
-import xlib as _xlib
+from ..errors import print2err
 
 jdumps = lambda x: str(x)
 try:

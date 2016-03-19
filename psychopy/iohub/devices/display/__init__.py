@@ -19,7 +19,8 @@ from psychopy import misc
 
 from .. import Device,Computer
 from ...constants import DeviceConstants
-from ...util import ioHubDialog, print2err,printExceptionDetailsToStdErr
+from ...errors import print2err, printExceptionDetailsToStdErr
+from ...util import ioHubDialog
 
 currentSec=Computer.currentSec
             

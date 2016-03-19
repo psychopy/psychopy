@@ -8,15 +8,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-
-
 from tables import *
 import os
 from collections import namedtuple
 import json
-
-from psychopy import gui, iohub
-from psychopy.iohub import FileDialog
+from ..errors import print2err
 
 global _hubFiles
 
@@ -38,7 +34,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
     """
     Shows a FileDialog and lets you select a .hdf5 file to open for processing.
     """
-
+    from psychopy.iohub.util.dialogs import FileDialog
     fdlg=FileDialog(message="Select a ioHub DataStore File",
                     defaultDir=starting_dir,fileTypes=FileDialog.IODATA_FILES,display_index=0)
 
@@ -51,6 +47,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
     return filePathList[0]
 
 def displayEventTableSelectionDialog(title, list_label, list_values, default=u'Select'):
+    from psychopy import gui
     if default not in list_values:
         list_values.insert(0,default)
     else:
@@ -235,12 +232,12 @@ class ExperimentDataAccessUtility(object):
                 event_column='class_id'
                 event_value=event_type
             else:
-                iohub.print2err("getEventTable error: event_type arguement must be a string or and int")
+                print2err("getEventTable error: event_type arguement must be a string or and int")
                 return None
 
             result=[row.fetch_all_fields() for row in klassTables.where('({0} == {1}) & (class_type_id == 1)'.format(event_column,event_value))]
             if len(result)!= 1:
-                iohub.print2err("event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS: ",len(result))
+                print2err("event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS: ",len(result))
                 return None
 
             tablePathString=result[0][3]

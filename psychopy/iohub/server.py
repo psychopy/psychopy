@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
+
 """
 ioHub
 .. file: ioHub/server.py
@@ -18,7 +20,6 @@ from operator import itemgetter
 from collections import deque, OrderedDict
 from . import load, dump, Loader, Dumper, IO_HUB_DIRECTORY,EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .util import convertCamelToSnake
-from .util import print2err, printExceptionDetailsToStdErr, ioHubError
 from .constants import DeviceConstants, EventConstants
 from .devices import Computer, DeviceEvent, import_device
 from .devices.deviceConfigValidation import validateDeviceConfiguration

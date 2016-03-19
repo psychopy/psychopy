@@ -12,13 +12,13 @@ Distributed under the terms of the GNU General Public License
 .. fileauthor:: ???
 """
 
-import numpy as np 
-from ..... import print2err,printExceptionDetailsToStdErr
+import numpy as np
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
 from ... import EyeTrackerDevice
 from ...eye_events import *
 from gevent import socket
+from .....errors import print2err, printExceptionDetailsToStdErr
 from pyTribe import TheEyeTribe
 
 getTime=Computer.getTime

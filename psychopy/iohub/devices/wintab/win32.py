@@ -4,8 +4,7 @@
 #Initial file based on pyglet.libs.win32
 
 import ctypes
-from psychopy.iohub import print2err
-
+from ...errors import print2err
 lib = ctypes.windll.wintab32
 
 
@@ -361,7 +360,6 @@ import ctypes
 import pyglet
 from pyglet.event import EventDispatcher
 from .. import Computer
-from ...util import print2err
 from ...constants import EventConstants
 
 def wtinfo(category, index, buffer):

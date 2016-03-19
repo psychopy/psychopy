@@ -265,6 +265,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
         show()
 
-from psychopy.iohub import module_directory
+from psychopy.iohub.util import module_directory
 runtime=ExperimentRuntime(module_directory(ExperimentRuntime.run), "experiment_config.yaml")
 runtime.start()

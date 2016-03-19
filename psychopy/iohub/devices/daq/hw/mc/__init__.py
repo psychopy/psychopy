@@ -11,12 +11,12 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 
 import sys
-from ..... import print2err
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
 from .... import Computer,  ioDeviceError
 
 from ctypes import *
 from constants import *
+from .....errors import print2err
 
 currentSec=Computer.currentSec
 

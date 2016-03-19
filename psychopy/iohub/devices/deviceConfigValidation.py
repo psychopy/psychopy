@@ -12,7 +12,9 @@ Created on Thu Mar 14 16:32:33 2013
 import socket
 import os
 
-from psychopy.iohub import module_directory, load, dump, Loader, Dumper, print2err
+from psychopy.iohub import load, dump, Loader, Dumper
+from ..util import module_directory
+from ..errors import print2err
 
 
 class ValidationError(Exception):
@@ -372,23 +374,23 @@ def buildConfigParamValidatorMapping(device_setting_validation_dict,param_valida
 
         if keyword_validator_function:
             param_validation_func_mapping[parent_name]=keyword_validator_function,param_config
-#            ioHub.print2err('ADDED MAPPING')
+#            print2err('ADDED MAPPING')
         elif isinstance(param_config,basestring):
             keyword_validator_function=CONFIG_VALIDATION_KEY_WORD_MAPPINGS.get(param_config,None)
             if keyword_validator_function:
                 param_validation_func_mapping[current_param_path]=keyword_validator_function,{}
-#                ioHub.print2err('ADDED MAPPING')
+#                print2err('ADDED MAPPING')
             else:
                 param_validation_func_mapping[current_param_path]=isValueValid,[param_config,]
-#                ioHub.print2err('ADDED MAPPING')
+#                print2err('ADDED MAPPING')
         elif isinstance(param_config,dict):
             buildConfigParamValidatorMapping(param_config,param_validation_func_mapping,current_param_path)
         elif isinstance(param_config,(list,tuple)):
             param_validation_func_mapping[current_param_path]=isValueValid,param_config
-#            ioHub.print2err('ADDED MAPPING')
+#            print2err('ADDED MAPPING')
         else:
             param_validation_func_mapping[current_param_path]=isValueValid,[param_config,]
-#            ioHub.print2err('ADDED MAPPING')
+#            print2err('ADDED MAPPING')
 
 def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,parent_param_path):
     validation_results=dict(errors=[],not_found=[])
@@ -404,10 +406,10 @@ def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device
             try:
                 param_value=param_validation_func(current_param_path,config_value,constraints)
                 current_device_config[config_param]=param_value
-#                ioHub.print2err("PARAM {0}, VALUE {1} is VALID.".format(current_param_path,param_value))
+#                print2err("PARAM {0}, VALUE {1} is VALID.".format(current_param_path,param_value))
             except ValidationError:
                 validation_results['errors'].append((config_param,config_value))
-                #ioHub.print2err("Device Config Validation Error: param: {0}, value: {1}\nError: {2}".format(config_param,config_value,e))
+                #print2err("Device Config Validation Error: param: {0}, value: {1}\nError: {2}".format(config_param,config_value,e))
 
         elif isinstance(config_value,dict):
             validateConfigDictToFuncMapping(param_validation_func_mapping,config_value,current_param_path)
@@ -427,18 +429,18 @@ def validateDeviceConfiguration(relative_module_path,device_class_name,current_d
     parent_config_param_path=None
     buildConfigParamValidatorMapping(device_settings_validation_dict,param_validation_func_mapping,parent_config_param_path)
 
-#    ioHub.print2err("#### buildConfigParamValidatorMapping results:\n\ncurrent_device_config: {0}\n\n validation_rules config: {1}\n\n Config Constants Mapping: {2}\n".format(current_device_config,device_settings_validation_dict,param_validation_func_mapping))
+#    print2err("#### buildConfigParamValidatorMapping results:\n\ncurrent_device_config: {0}\n\n validation_rules config: {1}\n\n Config Constants Mapping: {2}\n".format(current_device_config,device_settings_validation_dict,param_validation_func_mapping))
 
     validation_results=validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,None)
 
-#    ioHub.print2err('=================================================')
+#    print2err('=================================================')
 #    print2err('{0} VALIDATION RESULTS: '.format(device_class_name))
-#    ioHub.print2err('\tPARAMS NOT FOUND: {0} '.format(len(validation_results['not_found'])))
+#    print2err('\tPARAMS NOT FOUND: {0} '.format(len(validation_results['not_found'])))
 #    for p,v in validation_results['not_found']:
-#        ioHub.print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    ioHub.print2err('\tPARAMS WITH ERROR: {0} '.format(len(validation_results['errors'])))
+#        print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
+#    print2err('\tPARAMS WITH ERROR: {0} '.format(len(validation_results['errors'])))
 #    for p,v in validation_results['errors']:
-#        ioHub.print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    ioHub.print2err('=================================================')
+#        print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
+#    print2err('=================================================')
 
     return validation_results

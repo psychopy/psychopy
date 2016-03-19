@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-
+from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 import os,sys
 import time
 import subprocess
@@ -23,13 +23,11 @@ import psychopy.logging as psycho_logging
 
 import psutil
 
-from .. import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
-from .. import MessageDialog, win32MessagePump
-from .. import print2err,printExceptionDetailsToStdErr,ioHubError
+from .. import IO_HUB_DIRECTORY, _DATA_STORE_AVAILABLE, load, dump, Loader, Dumper, MessageDialog
+from ..util import isIterable, updateDict, win32MessagePump
 from ..devices import Computer, DeviceEvent, import_device
 from ..devices.experiment import MessageEvent, LogEvent
 from ..constants import DeviceConstants, EventConstants
-from .. import _DATA_STORE_AVAILABLE
 
 currentSec= Computer.currentSec
 

@@ -10,10 +10,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 import hw
-from ... import printExceptionDetailsToStdErr,print2err
 from ...constants import EventConstants, DeviceConstants
 from .. import Device
 import numpy as N
+from ...errors import print2err, printExceptionDetailsToStdErr
+
 
 class TouchDevice(Device):
     """

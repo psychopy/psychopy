@@ -11,7 +11,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 import numpy as N
 from .. import Device,Computer,DeviceEvent
 from ...constants import DeviceConstants, EventConstants
-from ... import print2err
 
 currentSec=Computer.currentSec
 

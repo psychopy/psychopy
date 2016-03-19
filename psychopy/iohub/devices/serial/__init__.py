@@ -13,7 +13,7 @@ import serial
 import numpy as N
 from ... import EXP_SCRIPT_DIRECTORY
 from .. import Computer, Device, DeviceEvent
-from ...util import print2err, printExceptionDetailsToStdErr
+from ...errors import print2err, printExceptionDetailsToStdErr
 from ...constants import DeviceConstants, EventConstants
 getTime = Computer.getTime
 

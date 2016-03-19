@@ -8,12 +8,13 @@ from weakref import proxy
 import gevent
 from gevent import sleep, socket, queue
 from gevent.server import StreamServer
+from .....errors import print2err, printExceptionDetailsToStdErr
+
 try:
     import ujson as json
 except Exception:
     import json
 from collections import OrderedDict
-from .....util import print2err,printExceptionDetailsToStdErr
 from .... import Computer
 
 getTime=Computer.getTime

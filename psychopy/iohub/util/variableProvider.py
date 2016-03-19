@@ -1,11 +1,12 @@
 __author__ = 'Sol'
 
 import numpy as np
-import sys
 import json
-from psychopy.core import getTime
-from . import printExceptionDetailsToStdErr, print2err
+from ..devices import Computer
 from collections import OrderedDict
+from ..errors import print2err, printExceptionDetailsToStdErr
+
+getTime = Computer.getTime
 #### Experiment Variable (IV and DV) Condition Management
 #
 class ConditionSetProvider(object):

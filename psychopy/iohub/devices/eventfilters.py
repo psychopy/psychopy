@@ -1,7 +1,7 @@
 __author__ = 'Sol'
 import numpy as np
 from collections import deque
-from ..util import NumPyRingBuffer, print2err
+from ..util import NumPyRingBuffer
 from . import DeviceEvent, Computer
 from ..constants import EventConstants
 

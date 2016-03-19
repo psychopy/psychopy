@@ -5,6 +5,7 @@ Created on Thu Nov 08 15:13:55 2012
 @author: Sol
 
 """
+from .errors import print2err
 
 try:
     
@@ -278,7 +279,6 @@ try:
                         break
                 
                 if event_id not in cls._classes.keys():
-                        from psychopy.iohub import print2err
                         print2err("\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ",event_constant_string, " = ",event_id)
     
     EventConstants.initialize()

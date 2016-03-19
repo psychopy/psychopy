@@ -306,7 +306,7 @@ Touch each Point when it is Presented.")
 
 if __name__ == '__main__':
     import sys
-    from psychopy.iohub import module_directory
+    from psychopy.iohub.util import module_directory
     def main(configurationDirectory):
         """
         Creates an instance of the EloTouchScreenDemo class,

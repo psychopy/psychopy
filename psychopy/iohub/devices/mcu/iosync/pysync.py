@@ -113,7 +113,8 @@ import serial
 import numpy as np
 from collections import OrderedDict
 from ... import Computer
-from ....util import print2err
+from ....errors import print2err
+
 getTime=Computer.getTime
 
 class T3Event(object):

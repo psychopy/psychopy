@@ -11,9 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-
-
-from ......util import printExceptionDetailsToStdErr, print2err
+from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
 from .... import EyeTrackerDevice
@@ -220,10 +218,6 @@ class EyeTracker(EyeTrackerDevice):
                 self.setConnectionState(False)
                 
                 import subprocess,gevent,os
-                #p = subprocess.Popen(('calibrate.exe', ''), env={"PATH": "/usr/bin"})
-                #from psychopy.iohub import module_directory
-                #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
-                #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
                 org_cwd = os.getcwdu()
                 print2err("==========")
                 print2err("CWD Prior to calibrate.exe launch: ",org_cwd)
@@ -234,22 +228,8 @@ class EyeTracker(EyeTrackerDevice):
                 new_cwd=os.getcwdu()
                 print2err("CWD after calibrate.exe: ",new_cwd)
                 print2err("==========")
-
-
-          
-#            circle_attributes=calibration_properties.get('circle_attributes')
-#            targetForegroundColor=circle_attributes.get('outer_color') # [r,g,b] of outer circle of targets
-#            targetBackgroundColor=circle_attributes.get('inner_color') # [r,g,b] of inner circle of targets
-#            screenColor=calibration_properties.get('screen_background_color')                     # [r,g,b] of screen
-#            targetOuterDiameter=circle_attributes.get('outer_diameter')     # diameter of outer target circle (in px)
-#            targetInnerDiameter=circle_attributes.get('inner_diameter')     # diameter of inner target circle (in px)
-            
         except Exception,e:
-            return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
-                    #error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    #method="EyeTracker.runSetupProcedure", 
-                    #starting_state=starting_state,
-                    #error=e)            
+            return printExceptionDetailsToStdErr()
 
     def isRecordingEnabled(self):
         """
@@ -265,9 +245,7 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._eyegaze_control is not None and self._eyegaze_control.bTrackingActive in [1,True]
         except Exception, e:
-            return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
-                    #error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    #method="EyeTracker.isRecordingEnabled", error=e)
+            return printExceptionDetailsToStdErr()
 
     def enableEventReporting(self,enabled=True):
         """
@@ -279,10 +257,7 @@ class EyeTracker(EyeTrackerDevice):
                 enabled=self.setRecordingState(self,enabled)
             return self.setRecordingState(enabled)
         except Exception, e:
-            return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
-                    #error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    #method="EyeTracker.enableEventReporting", error=e)            
-
+            return printExceptionDetailsToStdErr()
     def setRecordingState(self,recording):
         """
         The setRecordingState method is used to start or stop the recording 
@@ -296,9 +271,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             if not isinstance(recording,bool):
-                return printExceptionDetailsToStdErr()#("INVALID_METHOD_ARGUMENT_VALUE",
-                    #error_message="The recording arguement value provided is not a boolean.",
-                    #method="EyeTracker.setRecordingState",arguement='recording', value=recording)
+                return printExceptionDetailsToStdErr()
              
             if self._eyegaze_control and recording is True and not self.isRecordingEnabled():                
                 self._last_poll_time=0.0                
@@ -311,9 +284,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._latest_gaze_position=None
             return self.isRecordingEnabled()
         except Exception, e:
-            return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
-                    #error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    #method="EyeTracker.setRecordingState", error=e)            
+            return printExceptionDetailsToStdErr()
 
     def getLastSample(self):
         """
@@ -334,9 +305,7 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._latest_sample
         except Exception, e:
-            return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
-                    #error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    #method="EyeTracker.getLastSample", error=e)            
+            return printExceptionDetailsToStdErr()
 
     def getLastGazePosition(self):
         """
@@ -362,9 +331,7 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._latest_gaze_position
         except Exception, e:
-            return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
-                    #error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    #method="EyeTracker.getLastGazePosition", error=e)             
+            return printExceptionDetailsToStdErr()
     
     def _poll(self):
         try:
@@ -552,133 +519,8 @@ class EyeTracker(EyeTrackerDevice):
                     self._addNativeEventToBuffer(binocSample)
 
                 else: # WTF   
-                    print2err("ERROR: EyeGaze reported camers count is invalid: ",self._camera_count)
+                    print2err("ERROR: EyeGaze reported camera count is invalid: ",self._camera_count)
 
-            # Code below can be reused if fixation event detection is added.
-            #
-            #                elif isinstance(ne,pylink.EndFixationEvent):
-            #                    etype=EventConstants.FIXATION_END
-            #
-            #                    estatus = ne.getStatus()
-            #
-            #                    which_eye=ne.getEye()
-            #                    if which_eye:
-            #                        which_eye=EyeTrackerConstants.RIGHT_EYE
-            #                    else:
-            #                        which_eye=EyeTrackerConstants.LEFT_EYE
-            #
-            #                    start_event_time= ne.getStartTime()*DEVICE_TIMEBASE_TO_SEC
-            #                    end_event_time = ne.event_timestamp
-            #                    event_duration = end_event_time-start_event_time
-            #
-            #                    fee=[0,
-            #                         0,
-            #                         Computer._getNextEventID(),
-            #                         etype,
-            #                         ne.event_timestamp,
-            #                         ne.logged_time,
-            #                         ne.timestamp,
-            #                         confidenceInterval,
-            #                         ne.event_delay,
-            #                         0,
-            #                        which_eye,
-            #                        event_duration,
-            #                        s_gaze[0],
-            #                        s_gaze[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        s_href[0],
-            #                        s_href[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        s_pupilsize,
-            #                        EyeTrackerConstants.PUPIL_AREA,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        s_ppd[0],
-            #                        s_ppd[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        s_vel,
-            #                        e_gaze[0],
-            #                        e_gaze[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        e_href[0],
-            #                        e_href[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        e_pupilsize,
-            #                        EyeTrackerConstants.PUPIL_AREA,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        e_ppd[0],
-            #                        e_ppd[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        e_vel,
-            #                        a_gaze[0],
-            #                        a_gaze[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        a_href[0],
-            #                        a_href[1],
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        a_pupilsize,
-            #                        EyeTrackerConstants.PUPIL_AREA,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        a_vel,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        EyeTrackerConstants.UNDEFINED,
-            #                        peak_vel,
-            #                        estatus
-            #                        ]
-            #                    #EyeTracker._eventArrayLengths['FIXATION_END']=len(fee)
-            #                    self._addNativeEventToBuffer(fee)
-            #                elif isinstance(ne,pylink.StartFixationEvent):
-            #                    etype=EventConstants.FIXATION_START
-            #
-            #                    which_eye=ne.getEye()
-            #                    if which_eye:
-            #                        which_eye=EyeTrackerConstants.RIGHT_EYE
-            #                    else:
-            #                        which_eye=EyeTrackerConstants.LEFT_EYE
-            #
-            #
-            #                    se=[
-            #                        0,                                      # exp ID
-            #                        0,                                      # sess ID
-            #                        Computer._getNextEventID(),              # event ID
-            #                        etype,                                  # event type
-            #                        ne.event_timestamp,
-            #                        ne.logged_time,
-            #                        ne.timestamp,
-            #                        confidenceInterval,
-            #                        ne.event_delay,
-            #                        0,
-            #                        which_eye,                              # eye
-            #                        gaze[0],                                # gaze x
-            #                        gaze[1],                                # gaze y
-            #                        EyeTrackerConstants.UNDEFINED,                                     # gaze z
-            #                        href[0],                                # angle x
-            #                        href[1],                                # angle y
-            #                        EyeTrackerConstants.UNDEFINED,                                   # raw x
-            #                        EyeTrackerConstants.UNDEFINED,                                   # raw y
-            #                        pupil_size,                             # pupil area
-            #                        EyeTrackerConstants.PUPIL_AREA,                    # pupil measure type 1
-            #                        EyeTrackerConstants.UNDEFINED,                                   # pupil measure 2
-            #                        EyeTrackerConstants.UNDEFINED,     # pupil measure 2 type
-            #                        ppd[0],                                 # ppd x
-            #                        ppd[1],                                 # ppd y
-            #                        EyeTrackerConstants.UNDEFINED,                                    # velocity x
-            #                        EyeTrackerConstants.UNDEFINED,                                    # velocity y
-            #                       velocity,                                # velocity xy
-            #                       estatus                                  # status
-            #                        ]
-            #                    self._addNativeEventToBuffer(se)
         except Exception:
             print2err("ERROR occurred during poll:")
             printExceptionDetailsToStdErr()
