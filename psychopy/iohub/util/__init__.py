@@ -112,10 +112,7 @@ def convertCamelToSnake(name,lower_snake=True):
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
     
-if sys.version_info[0] != 2 or sys.version_info[1] < 7:
-    from ..ordereddict import OrderedDict
-else:
-    from collections import OrderedDict
+from collections import OrderedDict
 
 from variableProvider import ExperimentVariableProvider
 

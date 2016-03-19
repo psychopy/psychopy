@@ -37,7 +37,7 @@ global EXP_SCRIPT_DIRECTORY
 EXP_SCRIPT_DIRECTORY = ''
 
 from .util import print2err, printExceptionDetailsToStdErr, ioHubError
-from .util import fix_encoding, OrderedDict, module_directory, updateDict
+from .util import fix_encoding, module_directory, updateDict
 from .util import isIterable, getCurrentDateTimeString, convertCamelToSnake
 from .util import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
 from .util import win32MessagePump

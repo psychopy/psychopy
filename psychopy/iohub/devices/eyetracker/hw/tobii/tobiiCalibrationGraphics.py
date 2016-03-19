@@ -17,7 +17,7 @@ import gevent
 import time, Queue
 import copy
 import numpy as np
-
+from collections import OrderedDict
 from ..... import print2err,printExceptionDetailsToStdErr,convertCamelToSnake
 from .... import Computer,DeviceEvent
 from .....constants import EventConstants
@@ -223,7 +223,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         
         bar_vertices=[-hbox_bar_length/2,-hbox_bar_height/2],[hbox_bar_length/2,-hbox_bar_height/2],[hbox_bar_length/2,hbox_bar_height/2],[-hbox_bar_length/2,hbox_bar_height/2]
         
-        self.feedback_resources=psychopy.iohub.OrderedDict()
+        self.feedback_resources=OrderedDict()
                 
         self.feedback_resources['hbox_bar_x'] = visual.ShapeStim(win=self.window, 
                                       lineColor='White', 

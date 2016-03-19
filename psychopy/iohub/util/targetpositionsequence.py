@@ -29,7 +29,7 @@ To use this module, the following high level steps are generally preformed:
   each position.
 """
 from ... import visual, core
-from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger, OrderedDict
+from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger
 from ..constants import EventConstants
 from ..client import ioHubConnection
 from weakref import proxy
@@ -37,6 +37,8 @@ import numpy as np
 from time import sleep
 import os, sys
 from PIL import Image
+from collections import OrderedDict
+
 getTime = core.getTime
 
 class TargetStim(object):
