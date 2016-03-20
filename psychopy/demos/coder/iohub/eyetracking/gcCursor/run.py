@@ -66,7 +66,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             tracker=self.hub.devices.tracker
         except Exception:
             # No eye tracker config found in iohub_config.yaml
-            from psychopy.iohub.util import MessageDialog
+            from psychopy.iohub.util.dialogs import MessageDialog
             md = MessageDialog(title="No Eye Tracker Configuration Found",
                                msg="Update the iohub_config.yaml file by "
                                "uncommenting\nthe appropriate eye tracker "

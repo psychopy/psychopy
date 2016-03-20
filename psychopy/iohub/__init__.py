@@ -59,9 +59,3 @@ except Exception, e:
 
 from .util.fix_encoding import fix_encoding
 fix_encoding()
-
-from .util.dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
-from .util.visualUtil import Trigger, TimeTrigger, DeviceEventTrigger, SinusoidalMotion
-from .util.visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
-from .util.variableProvider import ExperimentVariableProvider
-from .util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure

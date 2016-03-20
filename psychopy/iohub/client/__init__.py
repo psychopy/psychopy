@@ -23,7 +23,8 @@ import psychopy.logging as psycho_logging
 
 import psutil
 
-from .. import IO_HUB_DIRECTORY, _DATA_STORE_AVAILABLE, load, dump, Loader, Dumper, MessageDialog
+from .. import IO_HUB_DIRECTORY, _DATA_STORE_AVAILABLE, load, dump, Loader, Dumper
+from ..util.dialogs import MessageDialog
 from ..util import isIterable, updateDict, win32MessagePump
 from ..devices import Computer, DeviceEvent, import_device
 from ..devices.experiment import MessageEvent, LogEvent
@@ -2171,5 +2172,5 @@ try:
     from ..lazy_import import lazy_import
     lazy_import(globals(), _lazyImports)
 except Exception, e:
-    print "lazy_import Exception:", e
+    print2err("lazy_import Exception:", e)
     exec(_lazyImports)

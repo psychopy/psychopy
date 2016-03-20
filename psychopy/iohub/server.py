@@ -941,7 +941,7 @@ class ioServer(object):
                 try:
                     if Computer.psychopy_process.is_running() is False:
                         Computer.psychopy_process = None
-                        psychopy.iohub.MessageDialog("PsychoPy Process dead. Should shut down.")
+                        print2err("PsychoPy Process Not Found. Shutting Down iohub Server...")
                         self.shutdown()
                         sys.exit(1)
                 except Exception:

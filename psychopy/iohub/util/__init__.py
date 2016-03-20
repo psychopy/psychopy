@@ -13,12 +13,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 
 """
+import sys, os, inspect
 import datetime
 import warnings
-import scipy, numpy
-import sys,os,inspect
-import psychopy
-from collections import Iterable
+import numpy
+import collections
 
 # Path Update / Location functions
 
@@ -39,7 +38,8 @@ def normjoin(*path_parts):
     return os.path.normpath(os.path.normcase(os.path.join(*path_parts)))
     
 def addDirectoryToPythonPath(path_from_iohub_root,leaf_folder=''):
-    dir_path=os.path.join(psychopy.iohub.IO_HUB_DIRECTORY,path_from_iohub_root,sys.platform,"python{0}{1}".format(*sys.version_info[0:2]),leaf_folder)
+    from .. import IO_HUB_DIRECTORY
+    dir_path=os.path.join(IO_HUB_DIRECTORY,path_from_iohub_root,sys.platform,"python{0}{1}".format(*sys.version_info[0:2]),leaf_folder)
     if os.path.isdir(dir_path) and dir_path not in sys.path:
         sys.path.append(dir_path)  
     else:
@@ -59,14 +59,10 @@ def module_directory(local_function):
     
 
 def isIterable(o):
-    return isinstance(o, Iterable)
-    
-from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+    return isinstance(o, collections.Iterable)
 
- 
 if sys.platform == 'win32':
     import pythoncom
-    
     def win32MessagePump():
         """
         Pumps the Experiment Process Windows Message Queue so the PsychoPy Window
@@ -86,7 +82,6 @@ else:
 #
 # Resursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the target dict.
-    
 import copy
 def updateDict(add_to,add_from):
     for key,value in add_from.iteritems():
@@ -101,7 +96,6 @@ def updateDict(add_to,add_from):
 # Convert Camel to Snake variable name format
 
 import re
-
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
@@ -110,14 +104,6 @@ def convertCamelToSnake(name,lower_snake=True):
     if lower_snake:
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
-    
-from collections import OrderedDict
-
-from variableProvider import ExperimentVariableProvider
-
-from visualUtil import SinusoidalMotion
-from visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
-from visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 
 ###############################################################################
 #
@@ -127,32 +113,6 @@ from visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 getCurrentDateTime = datetime.datetime.now
 getCurrentDateTimeString = lambda : getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
-###############################################################################
-#
-## Some commonly used math functions pulled from scipy as (I am told) they run
-## faster than the std python equiv's.
-#
-
-pi     = scipy.pi
-dot    = scipy.dot
-sin    = scipy.sin
-cos    = scipy.cos
-ar     = scipy.array
-rand   = scipy.rand
-arange = scipy.arange
-rad    = scipy.deg2rad
-
-###############################################################################
-#
-## A RingBuffer ( circular buffer) implemented using a numpy array as the backend. You can use
-## the summary stats methods etc. that are built into the numpy array class
-## with this class as well. i.e ::
-##      a = NumPyRingBuffer(max_size=100)
-##      for i in xrange(0,150):
-##          a.append(i)
-##      print a.mean()
-##      print a.std()
-#
 
 class NumPyRingBuffer(object):
     """
@@ -351,22 +311,12 @@ def generatedPointGrid(pixel_width,pixel_height,width_scalar=1.0,
 #
 # FROM: http://gis.stackexchange.com/questions/23587/how-do-i-rotate-the-polygon-about-an-anchor-point-using-python-script
 
-def rotate2D(pts,origin,ang=pi/4):
+def rotate2D(pts,origin,ang=None):
     '''pts = {} Rotates points(nx2) about center cnt(2) by angle ang(1) in radian'''
-    return dot(pts-origin,ar([[cos(ang),sin(ang)],[-sin(ang),cos(ang)]]))+origin
-
-
-###############################################################################
-#
-## Import utils sub modules
-#    
-
-from variableProvider import ExperimentVariableProvider
-
-from visualUtil import SinusoidalMotion
-from visualUtil import TimeTrigger,DeviceEventTrigger
-from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
-from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+    if ang is None:
+        ang = numpy.pi/4
+    return numpy.dot(pts-origin,numpy.array([[numpy.cos(ang),numpy.sin(ang)],
+                                    [-numpy.sin(ang),numpy.cos(ang)]]))+origin
 
 ###############################################################################
 #

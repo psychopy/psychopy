@@ -71,6 +71,9 @@ class TrialSetProvider(ConditionSetProvider):
         ConditionSetProvider.__init__(self, trialSetArray, randomize)
 
 class ExperimentVariableProvider(object):
+    """
+    Deprecated: Use psychopy TrialHandler class instead.
+    """
     _randomGeneratorSeed=None
     def __init__(self,fileNameWithPath,blockingVariableLabel,practiceBlockValues=None,randomizeBlocks=False,randomizeTrials=True,randSeed=None):
         self.fileNameWithPath=fileNameWithPath

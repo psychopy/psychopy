@@ -26,7 +26,7 @@ import pylink
 
 from ......constants import EventConstants, EyeTrackerConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......util import ProgressBarDialog
+from ......util.dialogs import ProgressBarDialog
 from ..... import Computer
 from .... import EyeTrackerDevice
 from ....eye_events import *

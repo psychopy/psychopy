@@ -14,7 +14,8 @@ from __future__ import division
 
 import time
 import weakref
-from ... import visual, core
+import numpy
+from psychopy import visual, core
 from . import win32MessagePump
 
 getTime = core.getTime
@@ -522,18 +523,6 @@ class DeviceEventTrigger(Trigger):
 #    retrace start
 #   -this tries to ensure a more consistent motion, regardless of when the
 #    position update is applied to the stimulus during the retrace interval
-
-import scipy
-pi = scipy.pi
-dot = scipy.dot
-sin = scipy.sin
-cos = scipy.cos
-ar = scipy.array
-rand = scipy.rand
-arange = scipy.arange
-rad = scipy.deg2rad
-
-
 class SinusoidalMotion(object):
     def __init__(self,
                  amplitude_xy=(15.0, 0.0),       # max horz,vert excursion
@@ -544,26 +533,25 @@ class SinusoidalMotion(object):
                  ):
         self.amplX , self.amplY = amplitude_xy
         self.peakVelX, self.peakVelY = peak_velocity_xy
-        self.phaseX, self.phaseY = rad(phase_xy[0]), rad(phase_xy[1])
+        self.phaseX, self.phaseY = numpy.deg2rad(phase_xy[0]), numpy.deg2rad(phase_xy[1])
         self.startTime = start_time
         self.lastPositionTime = None
         self.nextFlipTimeEstimate = None
 
         self.reportedRetraceInterval = display.getRetraceInterval()
-        print "Display retrace interval: ", self.reportedRetraceInterval
 
         # calculate the omega constants needed for the simple
         # harmonic motion equations:
 
         self.wX = 0.0
         if self.amplX != 0.0:
-            self.freqX = self.peakVelX/(-2.0*self.amplX*pi)
-            self.wX = 2.0*pi*self.freqX
+            self.freqX = self.peakVelX/(-2.0*self.amplX*numpy.pi)
+            self.wX = 2.0*numpy.pi*self.freqX
 
         self.wY = 0.0
         if self.amplY != 0:
-            self.freqY = self.peakVelY/(-2.0*self.amplY*pi)
-            self.wY = 2.0*pi*self.freqY
+            self.freqY = self.peakVelY/(-2.0*self.amplY*numpy.pi)
+            self.wY = 2.0*numpy.pi*self.freqY
 
     def getPos(self):
         t = 0.0
@@ -574,8 +562,8 @@ class SinusoidalMotion(object):
             self.nextFlipTimeEstimate = nextFlipTimeEstimate
             t = nextFlipTimeEstimate-self.startTime
 
-        self.pos = (self.amplX*cos(self.wX*t + self.phaseX),
-                  self.amplY*sin(self.wY*t + self.phaseY))
+        self.pos = (self.amplX*numpy.cos(self.wX*t + self.phaseX),
+                  self.amplY*numpy.sin(self.wY*t + self.phaseY))
 
         return self.pos
 

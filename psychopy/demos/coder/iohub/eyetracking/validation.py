@@ -3,8 +3,10 @@
 from psychopy import visual
 from psychopy.iohub.client import launchHubServer
 from psychopy.iohub.constants import EventConstants
-from psychopy.iohub.util import TimeTrigger, DeviceEventTrigger
-from psychopy.iohub import TargetStim, PositionGrid, ValidationProcedure
+from psychopy.iohub.util.visualUtil import TimeTrigger, DeviceEventTrigger
+from psychopy.iohub.util.targetpositionsequence import TargetStim
+from psychopy.iohub.util.targetpositionsequence import PositionGrid
+from psychopy.iohub.util.targetpositionsequence import ValidationProcedure
 import time
 
 exp_code = 'targetdisplay'

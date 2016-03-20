@@ -17,7 +17,7 @@ Inital Version: July 17th, 2013, Sol Simpson
 
 from psychopy.iohub.client import ioHubExperimentRuntime
 from psychopy.iohub.devices import Computer
-from psychopy.iohub.util import MessageDialog, module_directory
+from psychopy.iohub.util.dialogs import MessageDialog
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
@@ -67,6 +67,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 ####### Main Script Launching Code Below #######
 
 if __name__ == "__main__":
+    from psychopy.iohub.util import module_directory
     def main(configurationDirectory):
         """
         Creates an instance of the ExperimentRuntime class, launches the experiment logic.
