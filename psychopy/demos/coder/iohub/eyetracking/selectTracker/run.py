@@ -17,7 +17,6 @@ Inital Version: May 6th, 2013, Sol Simpson
 from psychopy import visual
 from psychopy.data import TrialHandler, importConditions
 from psychopy.iohub.client import ioHubExperimentRuntime
-from psychopy.iohub.util import getCurrentDateTimeString
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
@@ -96,7 +95,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # including the eye tracker being used for this session.
         #
         self.hub.sendMessageEvent(text="IO_HUB EXPERIMENT_INFO START")
-        self.hub.sendMessageEvent(text="ioHub Experiment started {0}".format(getCurrentDateTimeString()))
         self.hub.sendMessageEvent(text="Experiment ID: {0}, Session ID: {1}".format(self.hub.experimentID,self.hub.experimentSessionID))
         self.hub.sendMessageEvent(text="Stimulus Screen ID: {0}, Size (pixels): {1}, CoordType: {2}".format(display.getIndex(),display.getPixelResolution(),display.getCoordinateType()))
         self.hub.sendMessageEvent(text="Calculated Pixels Per Degree: {0} x, {1} y".format(*display.getPixelsPerDegree()))        

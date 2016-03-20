@@ -7,13 +7,24 @@ Created on Wed May 01 06:30:07 2013
 import gevent
 import json
 import os,sys
+try:
+    import iohub
+    from iohub import load, Loader, IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
+    from iohub.devices import Computer
+    Computer.is_iohub_process = True
+    from iohub.errors import print2err, printExceptionDetailsToStdErr
+    from iohub.server import ioServer
+    from iohub.util import updateDict
+except ImportError:
+    import psychopy.iohub
+    from psychopy.iohub import load, Loader, IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
+    from psychopy.iohub.devices import Computer
+    Computer.is_iohub_process = True
+    from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
+    from psychopy.iohub.server import ioServer
+    from psychopy.iohub.util import updateDict
 
-from psychopy.iohub import load, Loader, IO_HUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
-from psychopy.iohub.devices import Computer
-Computer.is_iohub_process = True
-from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
-from psychopy.iohub.server import ioServer
-from psychopy.iohub.util import updateDict
+#TODO: Handle MonotonicClock when not running in psychopy
 from psychopy.clock import MonotonicClock
 
 def run(rootScriptPathDir,configFilePath):
@@ -31,7 +42,7 @@ def run(rootScriptPathDir,configFilePath):
     else:
         ioHubConfig=load(file(configFilePath,'r'), Loader=Loader)
 
-    hub_defaults_config=load(file(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+    hub_defaults_config=load(file(os.path.join(IOHUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
     updateDict(ioHubConfig,hub_defaults_config)
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)

@@ -18,7 +18,9 @@ from gevent import Greenlet
 import os,sys
 from operator import itemgetter
 from collections import deque, OrderedDict
-from . import load, dump, Loader, Dumper, IO_HUB_DIRECTORY,EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
+from . import _pkgroot, load, dump, Loader, Dumper
+from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
+from .net import MAX_PACKET_SIZE
 from .util import convertCamelToSnake
 from .constants import DeviceConstants, EventConstants
 from .devices import Computer, DeviceEvent, import_device
@@ -37,15 +39,10 @@ try:
 except Exception:
     pass
 
-import psutil
-
 MAX_PACKET_SIZE = 64*1024
 
 class udpServer(DatagramServer):
     def __init__(self,ioHubServer,address,coder='msgpack'):
-        global MAX_PACKET_SIZE
-        import psychopy.iohub.net
-        MAX_PACKET_SIZE = psychopy.iohub.net.MAX_PACKET_SIZE
         self.iohub=ioHubServer
         self.feed=None
         self._running=True
@@ -537,7 +534,7 @@ class ioServer(object):
             # initial dataStore setup
             if 'data_store' in config and _DATA_STORE_AVAILABLE:
                 experiment_datastore_config=config.get('data_store')
-                default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'datastore','default_datastore.yaml')
+                default_datastore_config_path=os.path.join(IOHUB_DIRECTORY,'datastore','default_datastore.yaml')
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
                 _dslabel,default_datastore_config=load(file(default_datastore_config_path,'r'), Loader=Loader).popitem()
 
@@ -776,7 +773,7 @@ class ioServer(object):
 
         DeviceClass=None
         class_name_start=device_class_name.rfind('.')
-        iohub_sub_mod='psychopy.iohub.'
+        iohub_sub_mod='%s.'%_pkgroot
         iohub_submod_path_length=len(iohub_sub_mod)
         device_module_path=iohub_sub_mod+'devices.'
         if class_name_start>0:
@@ -787,7 +784,7 @@ class ioServer(object):
 
         #print2err("Processing device, device_class_name: {0}, device_module_path: {1}".format(device_class_name, device_module_path))
          
-        dconfigPath=os.path.join(IO_HUB_DIRECTORY,device_module_path[iohub_submod_path_length:].replace('.',os.path.sep),"default_%s.yaml"%(device_class_name.lower()))
+        dconfigPath=os.path.join(IOHUB_DIRECTORY,device_module_path[iohub_submod_path_length:].replace('.',os.path.sep),"default_%s.yaml"%(device_class_name.lower()))
 
         #print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
         #print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))

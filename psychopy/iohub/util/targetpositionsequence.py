@@ -29,7 +29,7 @@ To use this module, the following high level steps are generally preformed:
   each position.
 """
 from ... import visual, core
-from . import win32MessagePump, getCurrentDateTimeString, normjoin
+from . import win32MessagePump, normjoin
 from .visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
 from ..constants import EventConstants
 from ..client import ioHubConnection
@@ -1313,10 +1313,8 @@ class ValidationProcedure(object):
         return self.validation_results
         
     def _generateImageName(self):
-        file_name='validation_'+getCurrentDateTimeString().replace(' ',
-                                                            '_').replace(':',
-                                                            '_').replace('-',
-                                                            '_')+'.png'
+        import datetime
+        file_name='validation_'+datetime.datetime.now().strftime("%d_%m_%Y_%H_%M")+'.png'
         if self.save_figure_path:
             return normjoin(self.save_figure_path,file_name)    
         rootScriptPath = os.path.dirname(sys.argv[0])

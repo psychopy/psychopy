@@ -15,7 +15,7 @@ Updated: July 30th, Sol
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
 from psychopy.iohub.client import ioHubExperimentRuntime
-from psychopy.iohub.util import module_directory, getCurrentDateTimeString
+from psychopy.iohub.util import module_directory
 import os
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -151,7 +151,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # degree, display resolution, etc.
         #
         self.hub.sendMessageEvent(text="IO_HUB EXPERIMENT_INFO START")
-        self.hub.sendMessageEvent(text="ioHub Experiment started {0}".format(getCurrentDateTimeString()))
         self.hub.sendMessageEvent(text="Experiment ID: {0}, Session ID: {1}".format(self.hub.experimentID,self.hub.experimentSessionID))
         self.hub.sendMessageEvent(text="Stimulus Screen ID: {0}, Size (pixels): {1}, CoordType: {2}".format(display.getIndex(),display.getPixelResolution(),display.getCoordinateType()))
         self.hub.sendMessageEvent(text="Calculated Pixels Per Degree: {0} x, {1} y".format(*display.getPixelsPerDegree()))

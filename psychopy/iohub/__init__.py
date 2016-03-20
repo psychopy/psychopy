@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ioHub Python Module
-# .. file: psychopy/iohub/__init__.py
+# .. file: iohub/__init__.py
 #
 # fileauthor: Sol Simpson <sol@isolver-software.com>
 #
@@ -11,6 +11,7 @@ from __future__ import absolute_import
 import sys
 from .errors import print2err, printExceptionDetailsToStdErr
 from .util import module_directory
+
 if sys.platform == 'darwin':
     import objc
 
@@ -34,21 +35,18 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
         return self.construct_scalar(node)
     Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_unistr)
 
-global EXP_SCRIPT_DIRECTORY
 EXP_SCRIPT_DIRECTORY = ''
 
 def _localFunc():
     return None
-global IO_HUB_DIRECTORY
-IO_HUB_DIRECTORY=module_directory(_localFunc)
+IOHUB_DIRECTORY=module_directory(_localFunc)
 
 _ispkg=True
 _pkgroot = 'iohub'
-if IO_HUB_DIRECTORY.find('psychopy') >=0:
+if IOHUB_DIRECTORY.find('psychopy') >=0:
     _ispkg=False
     _pkgroot = 'psychopy.iohub'
 
-global _DATA_STORE_AVAILABLE
 _DATA_STORE_AVAILABLE=False
 try:
     from .datastore import pandas as _dspandas

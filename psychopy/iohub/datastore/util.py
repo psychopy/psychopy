@@ -34,7 +34,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
     """
     Shows a FileDialog and lets you select a .hdf5 file to open for processing.
     """
-    from psychopy.iohub.util.dialogs import FileDialog
+    from ..util.dialogs import FileDialog
     fdlg=FileDialog(message="Select a ioHub DataStore File",
                     defaultDir=starting_dir,fileTypes=FileDialog.IODATA_FILES,display_index=0)
 

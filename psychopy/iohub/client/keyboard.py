@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ioHub Python Module
-# .. file: psychopy/iohub/client/keyboard.py
+# .. file: iohub/client/keyboard.py
 #
 # fileauthor: Sol Simpson <sol@isolver-software.com>
 #
@@ -12,11 +12,11 @@ from collections import deque
 import time
 
 from ..client import ioHubDeviceView, ioEvent, DeviceRPC
-from ..devices import DeviceEvent
+from ..devices import DeviceEvent, Computer
+from ..util import win32MessagePump
 from ..devices.keyboard import KeyboardInputEvent
 from ..constants import EventConstants, KeyboardConstants
-from psychopy.core import getTime
-from psychopy.visual.window import Window
+getTime = Computer.getTime
 
 """
 Keyboard Device and Events Types
@@ -415,7 +415,7 @@ class Keyboard(ioHubDeviceView):
             key = self.getKeys(keys, chars, mods, duration, etype, clear)
             if key:
                 return key
-            Window.dispatchAllWindowEvents()
+            win32MessagePump()
             return key
 
         while getTime() < timeout - checkInterval*2:

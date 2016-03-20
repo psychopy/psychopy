@@ -20,8 +20,15 @@ from operator import itemgetter
 import numpy as N
 import psutil
 from ..util import convertCamelToSnake
+from .. import _pkgroot
 
-from psychopy.clock import monotonicClock
+monotonicClock = None
+try:
+    from psychopy.clock import monotonicClock
+except ImportError:
+    #TODO: Handle monotonicClock when not running in psychopy
+    monotonicClock = None
+
 
 class ioDeviceError(Exception):
     def __init__(self, device, msg):
@@ -1582,7 +1589,7 @@ def import_device(module_path, device_class_name):
 
 try:
     if getattr(sys.modules[__name__],'Display',None) is None:
-        display_class,device_class_name,event_classes=import_device('psychopy.iohub.devices.display','Display')
+        display_class,device_class_name,event_classes=import_device('%s.devices.display'%(_pkgroot),'Display')
         setattr(sys.modules[__name__],'Display', display_class)
 except Exception:
     print2err("Warning: display device module could not be imported.")

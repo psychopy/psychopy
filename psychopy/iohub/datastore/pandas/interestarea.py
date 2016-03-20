@@ -12,11 +12,15 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> and
                   Pierce Edmiston <pierce.edmiston@gmail.com>
 """
+try:
+    import shapely
+    import shapely.geometry
+    import shapely.affinity
+    import shapely as spy
+except ImportError:
+    from ...errors import print2err
+    print2err("iohub.datastore.pandas.interestarea requires 'shapely' package.")
 
-import shapely
-import shapely.geometry
-import shapely.affinity
-import shapely as spy
 from weakref import proxy
 
 class Polygon(shapely.geometry.Polygon):
@@ -70,29 +74,4 @@ class Rectangle(Polygon):
         if not ccw:
             coords = coords[::-1]
         Polygon.__init__(self,name,coords)
-
-if __name__ == '__main__':
-    circle = Circle('Circle IA',[0,0],400)
-    rect=Rectangle('Rect IA',-200,200,200,-200)
-    ellipse=Ellipse('Ellipse IA',[300,300],100,200,45)
-    spot=Circle('Spot IA',[300,300],10)
-
-    from psychopy import visual,core
-    import numpy as np
-    win = visual.Window((1600,1200))
-
-    circle_stim=visual.ShapeStim(win,units='pix',vertices=np.array(circle.exterior.coords),lineColor='FireBrick')
-    rect_stim=visual.ShapeStim(win,units='pix',vertices=np.array(rect.exterior.coords),lineColor='Black')
-    ellipse_stim=visual.ShapeStim(win,units='pix',vertices=np.array(ellipse.exterior.coords),lineColor='Orange')
-    spot=visual.ShapeStim(win,units='pix',vertices=np.array(spot.exterior.coords),lineColor='Black')
- 
-    circle_stim.draw()
-    rect_stim.draw()
-    ellipse_stim.draw()
-    spot.draw()
-    stime=win.flip()
-    core.wait(5)
-#    print circle
-#    print rect
-#    print ellipse
     

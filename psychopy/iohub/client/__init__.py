@@ -10,7 +10,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 import os,sys
 import time
 import subprocess
@@ -19,11 +18,16 @@ import json
 import signal
 from weakref import proxy
 
-import psychopy.logging as psycho_logging
+psycho_logging = None
+try:
+    import psychopy.logging as psycho_logging
+except ImportError:
+    pass
 
 import psutil
 
-from .. import IO_HUB_DIRECTORY, _DATA_STORE_AVAILABLE, load, dump, Loader, Dumper
+from .. import _pkgroot, IOHUB_DIRECTORY, _DATA_STORE_AVAILABLE, load, dump, Loader, Dumper
+from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 from ..util.dialogs import MessageDialog
 from ..util import isIterable, updateDict, win32MessagePump
 from ..devices import Computer, DeviceEvent, import_device
@@ -85,10 +89,11 @@ class DeviceRPC(object):
                     toBeLogged=[el for el in r if el[DeviceEvent.EVENT_TYPE_ID_INDEX]==LogEvent.EVENT_TYPE_ID]
                     for l in toBeLogged:
                         r.remove(l)
-                        ltime=l[self._log_time_index]
-                        ltext=l[self._log_text_index]
-                        llevel=l[self._log_level_index]
-                        psycho_logging.log(ltext,llevel,ltime)
+                        if psycho_logging:
+                            ltime=l[self._log_time_index]
+                            ltext=l[self._log_text_index]
+                            llevel=l[self._log_level_index]
+                            psycho_logging.log(ltext,llevel,ltime)
 
                     return [conversionMethod(el) for el in r]
 
@@ -874,7 +879,7 @@ class ioHubConnection(object):
 
         rootScriptPath = os.path.dirname(sys.argv[0])
 
-        hub_defaults_config=load(file(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+        hub_defaults_config=load(file(os.path.join(IOHUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
 
 
         if ioHubConfigAbsPath is None and ioHubConfig is None:
@@ -915,11 +920,11 @@ class ioHubConnection(object):
 
         self._iohub_server_config=ioHubConfig
 
-        from psychopy.iohub.net import UDPClientConnection
+        from ..net import UDPClientConnection
 
         self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
-        run_script=os.path.join(IO_HUB_DIRECTORY,'launchHubProcess.py')
+        run_script=os.path.join(IOHUB_DIRECTORY,'launchHubProcess.py')
         subprocessArgList=[sys.executable,
                            run_script,
                            "%.6f"%Computer.global_clock.getLastResetTime(),
@@ -1004,14 +1009,18 @@ class ioHubConnection(object):
         # save ioHub ProcessID to file so next time it is started,
         # it can be checked and killed if necessary
 
-        from psychopy.visual import window
-        window.IOHUB_ACTIVE=True
-        if window.openWindows:
-            whs=[]
-            for w in window.openWindows:
-                whs.append(w()._hw_handle)
-            #print 'ioclient registering existing windows:',whs
-            self.registerPygletWindowHandles(*whs)
+        #TODO: How to give iohub server window hnd's when not running in psychopy
+        try:
+            from psychopy.visual import window
+            window.IOHUB_ACTIVE=True
+            if window.openWindows:
+                whs=[]
+                for w in window.openWindows:
+                    whs.append(w()._hw_handle)
+                #print 'ioclient registering existing windows:',whs
+                self.registerPygletWindowHandles(*whs)
+        except ImportError:
+            pass
 
         iopFile= open(iopFileName,'w')
         iopFile.write("ioHub PID: "+str(Computer.iohub_process_id))
@@ -1109,7 +1118,7 @@ class ioHubConnection(object):
             name = device_config.get('name',device_class_name.lower())
             device_class_name=str(device_class_name)
             class_name_start=device_class_name.rfind('.')
-            device_module_path='psychopy.iohub.devices.'
+            device_module_path='%s.devices.'%_pkgroot
             if class_name_start>0:
                 device_module_path="{0}{1}".format(device_module_path,device_class_name[:class_name_start].lower())
                 device_class_name=device_class_name[class_name_start+1:]
@@ -1331,8 +1340,12 @@ class ioHubConnection(object):
 
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
-            import psychopy
-            psychopy.visual.window.IOHUB_ACTIVE=False
+            try:
+                import psychopy
+                psychopy.visual.window.IOHUB_ACTIVE=False
+            except ImportError:
+                pass
+
             self._shutdown_attempted=True
             TimeoutError = psutil.TimeoutExpired
             try:
@@ -1452,8 +1465,8 @@ def launchHubServer(**kwargs):
         del kwargs['session_code']
     elif experiment_info.get('code'):
         # this means we should auto_generate a session code
-        import psychopy.data
-        sess_code=u"S_{0}".format(psychopy.data.getDateStr())
+        import datetime
+        sess_code=u"S_{0}".format(datetime.datetime.now().strftime("%d_%m_%Y_%H_%M"))
 
     session_info = dict(code=sess_code)
     sess_info = kwargs.get('session_info',None)
@@ -2046,14 +2059,16 @@ class ioHubExperimentRuntime(object):
         """
         #print 'self.experimentConfig:', self.experimentConfig
         #print 'self._experimentConfigKeys:',self._experimentConfigKeys
-        from psychopy import  gui
-        experimentDlg=gui.DlgFromDict(self.experimentConfig, 'Experiment Launcher', self._experimentConfigKeys, self._experimentConfigKeys, {})
-        if experimentDlg.OK:
-            result= False
-        else:
-            result= True
-
-
+        result= True
+        try:
+            from psychopy import  gui
+            experimentDlg=gui.DlgFromDict(self.experimentConfig, 'Experiment Launcher', self._experimentConfigKeys, self._experimentConfigKeys, {})
+            if experimentDlg.OK:
+                result= False
+            else:
+                result= True
+        except ImportError:
+            result = False
         return result
 
     def _displayExperimentSessionSettingsDialog(self,allSessionDialogVariables,sessionVariableOrder):
@@ -2063,11 +2078,14 @@ class ioHubExperimentRuntime(object):
         attributes that have been defined in the experiment configuration file. If OK is selected in the dialog,
         the experiment logic continues, otherwise the experiment session is terminated.
         """
-        from psychopy import gui
-        sessionDlg=gui.DlgFromDict(allSessionDialogVariables, 'Experiment Session Settings', [], sessionVariableOrder)
-        result=None
-        if sessionDlg.OK:
-            result=allSessionDialogVariables
+        result = None
+        try:
+            from psychopy import gui
+            sessionDlg=gui.DlgFromDict(allSessionDialogVariables, 'Experiment Session Settings', [], sessionVariableOrder)
+            if sessionDlg.OK:
+                result=allSessionDialogVariables
+        except ImportError:
+            result = None
         return result
 
     def _close(self):

@@ -14,7 +14,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 """
 import sys, os, inspect
-import datetime
 import warnings
 import numpy
 import collections
@@ -38,8 +37,8 @@ def normjoin(*path_parts):
     return os.path.normpath(os.path.normcase(os.path.join(*path_parts)))
     
 def addDirectoryToPythonPath(path_from_iohub_root,leaf_folder=''):
-    from .. import IO_HUB_DIRECTORY
-    dir_path=os.path.join(IO_HUB_DIRECTORY,path_from_iohub_root,sys.platform,"python{0}{1}".format(*sys.version_info[0:2]),leaf_folder)
+    from .. import IOHUB_DIRECTORY
+    dir_path=os.path.join(IOHUB_DIRECTORY,path_from_iohub_root,sys.platform,"python{0}{1}".format(*sys.version_info[0:2]),leaf_folder)
     if os.path.isdir(dir_path) and dir_path not in sys.path:
         sys.path.append(dir_path)  
     else:
@@ -104,15 +103,6 @@ def convertCamelToSnake(name,lower_snake=True):
     if lower_snake:
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
-
-###############################################################################
-#
-## A couple date / time related utility functions
-#
-
-getCurrentDateTime = datetime.datetime.now
-getCurrentDateTimeString = lambda : getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
-
 
 class NumPyRingBuffer(object):
     """
