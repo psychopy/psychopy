@@ -188,12 +188,8 @@ class RemoteEventSubscriber(Device):
     
                 self._time_sync_manager=None
                 if device_config.get('remote_iohub_address'):
-                    from psychopy.iohub.net import TimeSyncState
-
+                    from ...net import TimeSyncState, ioHubTimeGreenSyncManager
                     self._time_sync_state=TimeSyncState()
-
-                    from psychopy.iohub.net import ioHubTimeGreenSyncManager
-
                     self._time_sync_manager=ioHubTimeGreenSyncManager(device_config.get('remote_iohub_address'),self._time_sync_state)
                     self._time_sync_manager.start()   
                 
@@ -210,8 +206,8 @@ class RemoteEventSubscriber(Device):
             #print2err('SUB RX callback: ',e[0:8])
             Device._handleEvent(self,e)
 
-    def _addEventListener(self,l,eventTypeIDs):
-        from psychopy.iohub.server import ioServer
+    def _addEventListener(self, l, eventTypeIDs):
+        from ...server import ioServer
         if not isinstance(l,ioServer):
             Device._addEventListener(self,l,eventTypeIDs)        
 

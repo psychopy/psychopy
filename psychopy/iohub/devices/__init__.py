@@ -19,16 +19,8 @@ from collections import deque
 from operator import itemgetter
 import numpy as N
 import psutil
-from ..util import convertCamelToSnake
+from ..util import convertCamelToSnake, clock
 from .. import _pkgroot
-
-monotonicClock = None
-try:
-    from psychopy.clock import monotonicClock
-except ImportError:
-    #TODO: Handle monotonicClock when not running in psychopy
-    monotonicClock = None
-
 
 class ioDeviceError(Exception):
     def __init__(self, device, msg):
@@ -198,7 +190,7 @@ class Computer(object):
     #: and between the ioHub Server and Experiment Runtime Process. Do not
     #: access this class directly, instead use the Computer.getTime()
     #: and associated method name alias's to actually get the current ioHub time.
-    global_clock=monotonicClock
+    global_clock=clock.monotonicClock
 
     #: The name of the current operating system Python is running on.
     system=sys.platform

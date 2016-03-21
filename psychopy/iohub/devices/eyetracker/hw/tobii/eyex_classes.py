@@ -21,7 +21,7 @@ import platform
 from ctypes import *
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
-from psychopy.iohub import print2err
+from .....errors import print2err
 
 DEBUG = False
 
@@ -324,7 +324,7 @@ class TobiiEyeXTracker():
 
     def ClearCalibration(self):
         for p in self._calibrationPoints:
-            RemoveCalibrationPoint(p, None)
+            self.RemoveCalibrationPoint(p, None)
 
     def AddCalibrationPoint(self, p, callback):
         # This has to take a calibration point from the other Tobii API and put it into this one

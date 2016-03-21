@@ -14,6 +14,7 @@ try:
     Computer.is_iohub_process = True
     from iohub.errors import print2err, printExceptionDetailsToStdErr
     from iohub.server import ioServer
+    from iohub import util
     from iohub.util import updateDict
 except ImportError:
     import psychopy.iohub
@@ -22,10 +23,8 @@ except ImportError:
     Computer.is_iohub_process = True
     from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
     from psychopy.iohub.server import ioServer
+    from psychopy.iohub import util
     from psychopy.iohub.util import updateDict
-
-#TODO: Handle MonotonicClock when not running in psychopy
-from psychopy.clock import MonotonicClock
 
 def run(rootScriptPathDir,configFilePath):
     global EXP_SCRIPT_DIRECTORY
@@ -99,7 +98,7 @@ def run(rootScriptPathDir,configFilePath):
 
             gevent.joinall(glets)
             
-
+        print2err("Server END Time Offset: {0}".format(Computer.global_clock.getLastResetTime()))
         s.log("Server END Time Offset: {0}".format(Computer.global_clock.getLastResetTime()),'DEBUG')
 
     except Exception as e:
@@ -127,7 +126,7 @@ if __name__ == '__main__':
         configFileName=sys.argv[3]        
     if len(sys.argv)>=5:
         psychopy_pid = int(sys.argv[4])
-        #ioHub.print2err("ioServer initial_offset: ",initial_offset)
+        print2err("ioServer initial_offset: ",initial_offset)
     if len(sys.argv)<2:
         psychopy_pid=None
         configFileName=None
@@ -141,6 +140,6 @@ if __name__ == '__main__':
     except Exception:
         pass
 
-    Computer.global_clock=MonotonicClock(initial_offset)
+    Computer.global_clock=util.clock.MonotonicClock(initial_offset)
 
     run(rootScriptPathDir=rootScriptPathDir, configFilePath=configFileName)

@@ -22,7 +22,7 @@ function provides methods for controlling the iohub process and
 accessing iohub devices and events.
 
 .. autoclass:: ioHubConnection
-    :exclude-members: addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerPygletWindowHandles, unregisterPygletWindowHandles, wait
+    :exclude-members: addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerWindowHandles, unregisterWindowHandles, wait
     :members:
     :member-order: bysource
 

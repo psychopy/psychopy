@@ -17,14 +17,6 @@ from ... import EyeTrackerDevice
 from ...eye_events import *
 from .....errors import print2err, printExceptionDetailsToStdErr
 
-
-try:
-    from tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
-except Exception:
-    print2err("Error importing TobiiPsychopyCalibrationGraphics")
-    printExceptionDetailsToStdErr()
-
-
 class EyeTracker(EyeTrackerDevice):
     """
     The Tobii implementation of the Common Eye Tracker Interface can be used
@@ -201,6 +193,8 @@ class EyeTracker(EyeTrackerDevice):
             bool: True if setup / calibration procedue passed, False otherwise. If false, should likely exit experiment.
         """
         try:
+            from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
+
             calibration_properties=self.getConfiguration().get('calibration')
             screenColor=calibration_properties.get('screen_background_color')                     # [r,g,b] of screen
 

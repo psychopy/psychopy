@@ -157,12 +157,12 @@ class ScreenState(object):
                     if trigger.triggered() is True:
 
                         event = trigger.getTriggeringEvent()
-                        functionToCall, kwargs = trigger.getTriggeredStateCallback()
+                        funcToCall, kwargs = trigger.getTriggeredStateCallback()
 
                         trigger.resetLastTriggeredInfo()
 
-                        if functionToCall:
-                            exitState = functionToCall(self._start_time,
+                        if funcToCall:
+                            exitState = funcToCall(self._start_time,
                                                     getTime()-self._start_time,
                                                     event, **kwargs)
                             if exitState is True:

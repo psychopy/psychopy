@@ -680,20 +680,20 @@ class ioHubConnection(object):
         r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentID,self.experimentSessionID,data)))
         return r[2]
 
-    def registerPygletWindowHandles(self,*winHandles):
+    def registerWindowHandles(self,*winHandles):
         """
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        r=self._sendToHubServer(('RPC','registerPygletWindowHandles',winHandles))
+        r=self._sendToHubServer(('RPC','registerWindowHandles',winHandles))
         return r[2]
 
-    def unregisterPygletWindowHandles(self,*winHandles):
+    def unregisterWindowHandles(self,*winHandles):
         """
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        r=self._sendToHubServer(('RPC','unregisterPygletWindowHandles',winHandles))
+        r=self._sendToHubServer(('RPC','unregisterWindowHandles',winHandles))
         return r[2]
 
     def getTime(self):
@@ -992,7 +992,7 @@ class ioHubConnection(object):
                     hubonline=True
                     break
                 elif r and r.rstrip().strip() == 'IOHUB_FAILED':
-                    return "ioHub startup failed, reveived IOHUB_FAILED"
+                    return "ioHub startup failed, received IOHUB_FAILED"
                 else:
                     stdout_read_data+="startup_read: {0}\n".format(r)
         # If ioHub server did not repond correctly, terminate process and exit the program.
@@ -1004,12 +1004,7 @@ class ioHubConnection(object):
             finally:
                 return "ioHub startup timed out. iohub Server startup Failed. "+stdout_read_data
 
-        #print '* IOHUB SERVER ONLINE *'
         ioHubConnection.ACTIVE_CONNECTION=proxy(self)
-        # save ioHub ProcessID to file so next time it is started,
-        # it can be checked and killed if necessary
-
-        #TODO: How to give iohub server window hnd's when not running in psychopy
         try:
             from psychopy.visual import window
             window.IOHUB_ACTIVE=True
@@ -1017,11 +1012,12 @@ class ioHubConnection(object):
                 whs=[]
                 for w in window.openWindows:
                     whs.append(w()._hw_handle)
-                #print 'ioclient registering existing windows:',whs
-                self.registerPygletWindowHandles(*whs)
+                self.registerWindowHandles(*whs)
         except ImportError:
             pass
 
+        # save ioHub ProcessID to file so next time it is started,
+        # it can be checked and killed if necessary
         iopFile= open(iopFileName,'w')
         iopFile.write("ioHub PID: "+str(Computer.iohub_process_id))
         iopFile.flush()

@@ -312,6 +312,7 @@ class EyeTracker(EyeTrackerDevice):
             return EyeTrackerConstants.EYETRACKER_ERROR
         except Exception, e:
             printExceptionDetailsToStdErr()
+
     def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """
         runSetupProcedure initiates the EyeLink Camera Setup and Calibration procedure. 
@@ -361,6 +362,7 @@ class EyeTracker(EyeTrackerDevice):
 
         except Exception,e:
             printExceptionDetailsToStdErr()
+            return EyeTrackerConstants.EYETRACKER_ERROR
 
     def isRecordingEnabled(self):
         """

@@ -21,7 +21,7 @@ from collections import deque, OrderedDict
 from . import _pkgroot, load, dump, Loader, Dumper
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .net import MAX_PACKET_SIZE
-from .util import convertCamelToSnake
+from .util import convertCamelToSnake, win32MessagePump
 from .constants import DeviceConstants, EventConstants
 from .devices import Computer, DeviceEvent, import_device
 from .devices.deviceConfigValidation import validateDeviceConfiguration
@@ -376,19 +376,19 @@ class udpServer(DatagramServer):
         except Exception:
             printExceptionDetailsToStdErr()
 
-    def registerPygletWindowHandles(self,*win_hwhds):
+    def registerWindowHandles(self,*win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
                 if wh not in self.iohub._pyglet_window_hnds:
                     self.iohub._pyglet_window_hnds.append(wh)            
-            #print2err(">>IOHUB.registerPygletWindowHandles:",win_hwhds)
+            #print2err(">>IOHUB.registerWindowHandles:",win_hwhds)
         
-    def unregisterPygletWindowHandles(self,*win_hwhds):
+    def unregisterWindowHandles(self,*win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
                 if wh in self.iohub._pyglet_window_hnds:
                     self.iohub._pyglet_window_hnds.remove(wh)
-            #print2err("<<IOHUB.unregisterPygletWindowHandles:",win_hwhds)
+            #print2err("<<IOHUB.unregisterWindowHandles:",win_hwhds)
             
     def createExperimentSessionEntry(self,sessionInfoDict):
         self.iohub.sessionInfoDict=sessionInfoDict
@@ -613,10 +613,12 @@ class ioServer(object):
                     self._all_device_config_errors[device_module_path]=device_errors
 
     def pumpMsgTasklet(self, sleep_interval):
-        import pythoncom
         while self._running:
             stime=Computer.getTime()
-            if pythoncom.PumpWaitingMessages() == 1:
+            try:
+                win32MessagePump()
+            except KeyboardInterrupt:
+                self._running=False
                 break
             dur = sleep_interval - (Computer.getTime()-stime)
             gevent.sleep(max(0.0, dur))
