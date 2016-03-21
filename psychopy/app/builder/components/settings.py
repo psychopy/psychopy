@@ -3,7 +3,7 @@ from _base import *
 import os
 from psychopy import logging
 
-#this is not a standard component - it will appear on toolbar not in components panel
+# this is not a standard component - it will appear on toolbar not in components panel
 
 DEFAULT_PARAM_VALUES = {
   'sendTags': False,
@@ -11,6 +11,7 @@ DEFAULT_PARAM_VALUES = {
   'doSignal': False,
   'serialTriggerDevice': '/dev/ttyUSB0',
   'saveSignal': False,
+  'saveEtr': False,
   'applianceType':'', 
   'applianceDevicePath':'/dev/ttyUSB0', 
   'applianceIntensity':'250'
@@ -132,6 +133,10 @@ class SettingsComponent:
             paramValues['saveSignal'], valType="bool",
             hint="Should amp signal be saved?",
             label="Save signal and tags in OBCI", categ='OpenBCI')
+        self.params["saveEtr"] = Param(
+            paramValues['saveEtr'], valType="bool",
+            hint="Should eyetracker signal be saved?",
+            label="Save eyetracker signal in OBCI", categ='OpenBCI')
         self.params["obciDataDirectory"] = Param(
             "~", valType="str",
             hint="Remote directory in which OBCI will save experiment data",
