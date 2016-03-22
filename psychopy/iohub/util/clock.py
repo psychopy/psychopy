@@ -15,7 +15,6 @@ if _ispkg is False:
     _getTime = monotonicClock.getTime
 else:
     if sys.platform == 'win32':
-        #global _fcounter, _qpfreq, _winQPC, _getTime
         from ctypes import byref, c_int64, windll
         _fcounter = c_int64()
         _qpfreq = c_int64()
@@ -27,14 +26,12 @@ else:
             _winQPC(byref(_fcounter))
             return _fcounter.value / _qpfreq
     elif sys.platform == 'linux2':
-        from ctypes import byref, c_long, CDLL, Structure,sizeof
+        from ctypes import byref, c_long, CDLL, Structure
         libc = CDLL("libc.so.6")
         CLOCK_MONOTONIC = 1
-
         class Timespec(Structure):
             _fields_ = [("tv_sec", c_long),
                         ("tv_nsec", c_long)]
-
         _ctime = Timespec()
 
         def _getTime():
