@@ -127,11 +127,9 @@ key_mappings = {'num_lock': 'numlock',
 
 
 class HookManager(threading.Thread):
-    """
-    Creates a seperate thread that starts the Xlib Record functionality,
-    capturing keyboard and mouse events and transmitting them
-    to the associated callback functions set.
-    """
+    """Creates a seperate thread that starts the Xlib Record functionality,
+    capturing keyboard and mouse events and transmitting them to the associated
+    callback functions set."""
     DEVICE_TIME_TO_SECONDS = 0.001
     evt_types = [
         X.KeyRelease,
@@ -199,9 +197,9 @@ class HookManager(threading.Thread):
 
     def run(self):
         # Check if the extension is present
-        if not self.record_dpy.has_extension("RECORD"):
+        if not self.record_dpy.has_extension('RECORD'):
             print2err(
-                "RECORD extension not found. ioHub can not use python Xlib. Exiting....")
+                'RECORD extension not found. ioHub can not use python Xlib. Exiting....')
             return False
 
         # Create a recording context; we only want key and mouse events
@@ -224,8 +222,8 @@ class HookManager(threading.Thread):
         if self.log_events:
             import datetime
 
-            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
-            with open("x11_events_{0}.log".format(cdate), "w") as self.log_events_file:
+            cdate = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
+            with open('x11_events_{0}.log'.format(cdate), 'w') as self.log_events_file:
                 # Enable the context; this only returns after a call to record_disable_context,
                 # while calling the callback function in the meantime
                 self.record_dpy.record_enable_context(
@@ -262,10 +260,11 @@ class HookManager(threading.Thread):
         return self.key_states
 
     def isKeyPressed(self, key_str_id):
-        """
-        Returns 0 if key is not pressed, otherwise a
+        """Returns 0 if key is not pressed, otherwise a.
+
         possitive int, representing the auto repeat count ( return val - 1)
         of key press events that have occurred for the key.
+
         """
         return self.key_states.get(key_str_id, 0)
 
@@ -287,7 +286,7 @@ class HookManager(threading.Thread):
             return
         if reply.client_swapped:
             print2err(
-                "pyXlib: * received swapped protocol data, cowardly ignored")
+                'pyXlib: * received swapped protocol data, cowardly ignored')
             return
         if not len(reply.data) or ord(reply.data[0]) < 2:
             # not an event
@@ -410,10 +409,8 @@ class HookManager(threading.Thread):
         return keycode, keysym, key, char
 
     def makekeyhookevent(self, event):
-        """
-        Creates a ioHub keyboard event in list format, completing as much
-        as possible from within pyXHook.
-        """
+        """Creates a ioHub keyboard event in list format, completing as much as
+        possible from within pyXHook."""
         key_code, keysym, key, char = self.getKeyChar(event)
 
         event_type_id = EventConstants.KEYBOARD_PRESS
@@ -472,10 +469,9 @@ class HookManager(threading.Thread):
                  ], ]
 
     def makemousehookevent(self, event):
-        """
-        Creates an incomplete ioHub keyboard event in list format. It is incomplete
-        as some of the elements of the array are filled in by the ioHub server when
-        it receives the events.
+        """Creates an incomplete ioHub keyboard event in list format. It is
+        incomplete as some of the elements of the array are filled in by the
+        ioHub server when it receives the events.
 
         For event attributes see: http://python-xlib.sourceforge.net/doc/html/python-xlib_13.html
 
@@ -509,6 +505,7 @@ class HookManager(threading.Thread):
         For KeyPress and KeyRelease, this is the keycode of the event key.
         For ButtonPress and ButtonRelease, this is the button of the event.
         For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
+
         """
         px, py = event.root_x, event.root_y
         event_type_id = 0

@@ -1,5 +1,5 @@
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/mcu/iosync/pysync.py
 
 Copyright (C) 2013-2014 iSolver Software Solutions
@@ -107,6 +107,7 @@ PWM Outputs:
     PMW_1: 21   // digital pin 21 on T3
     PMW_2: 22   // digital pin 22 on T3
     PMW_3: 23   // digital pin 23 on T3
+
 """
 
 import serial
@@ -143,7 +144,7 @@ class T3Event(object):
                     local_time=self.local_time)
 
     def _parseRemainingBytes(self, remaining_bytes):
-        raise AttributeError("T3Event._parseRemainingBytes must be extended")
+        raise AttributeError('T3Event._parseRemainingBytes must be extended')
 
 
 class DigitalInputEvent(T3Event):
@@ -269,7 +270,7 @@ class T3Request(object):
         self._rx_byte_count = len(d)
         if self._rx_byte_count < 8:
             raise AttributeError(
-                "Request Rx Byte Size to short: {0}".format(
+                'Request Rx Byte Size to short: {0}'.format(
                     self._rx_data))
         self.usec_device_time = (
             d[6] << 40) + (d[7] << 32) + (d[2] << 24) + (d[3] << 16) + (d[4] << 8) + d[5]
@@ -428,9 +429,10 @@ class T3MC(object):
 
     @classmethod
     def findSyncs(cls):
-        """
-        Finds serial ports with an ioSync connected.
+        """Finds serial ports with an ioSync connected.
+
         Code from StimSync python source and modified.
+
         """
         import os
         available = []
@@ -498,7 +500,7 @@ class T3MC(object):
             self._port_num, self._baud, timeout=self._timeout)
         if self._serial_port is None:
             raise ValueError(
-                "Error: Serial Port Connection Failed: %d" %
+                'Error: Serial Port Connection Failed: %d' %
                 (self._port_num))
         self._serial_port.flushInput()
         inBytes = self._serial_port.inWaiting()
@@ -516,8 +518,8 @@ class T3MC(object):
             self._active_requests[request.getID()] = request
             return tx_count
         except Exception as e:
-            print2err("ERROR During sendT3Request: ", e,
-                      ". Has ioSync been disconnected?")
+            print2err('ERROR During sendT3Request: ', e,
+                      '. Has ioSync been disconnected?')
             self.close()
 
     def getSerialRx(self):
@@ -545,10 +547,10 @@ class T3MC(object):
                         else:
                             self._request_replies.append(reply)
                     else:
-                        print2err("INVALID REQUEST ID in reply:", request_id)
+                        print2err('INVALID REQUEST ID in reply:', request_id)
         except Exception as e:
-            print2err("ERROR During getSerialRx: ", e,
-                      ". Has ioSync been disconnected?")
+            print2err('ERROR During getSerialRx: ', e,
+                      '. Has ioSync been disconnected?')
             self.close()
 
     def closeSerial(self):
@@ -633,12 +635,11 @@ class T3MC(object):
 # RingBuffer
 
 class RingBuffer(object):
-    """
-    NumPyRingBuffer is a circular buffer implemented using a one dimensional
+    """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
-    behavour does not require any array copies to occur while the ring buffer is
-    maintained, while at the same time allowing sequential element access into the
-    numpy array using a subset of standard slice notation.
+    behavour does not require any array copies to occur while the ring buffer
+    is maintained, while at the same time allowing sequential element access
+    into the numpy array using a subset of standard slice notation.
 
     When the circular buffer is created, a maximum size , or maximum
     number of elements,  that the buffer can hold *must* be specified. When
@@ -683,8 +684,6 @@ class RingBuffer(object):
             print '\tFirst 3 Elements: ',ring_buffer[:3]
             print '\tLast 3 Elements: ',ring_buffer[-3:]
 
-
-
     """
 
     def __init__(self, max_size, dtype=np.float32):
@@ -694,16 +693,16 @@ class RingBuffer(object):
         self._index = 0
 
     def append(self, element):
-        """
-        Add element e to the end of the RingBuffer. The element must match the
-        numpy data type specified when the NumPyRingBuffer was created. By default,
-        the RingBuffer uses float32 values.
+        """Add element e to the end of the RingBuffer. The element must match
+        the numpy data type specified when the NumPyRingBuffer was created. By
+        default, the RingBuffer uses float32 values.
 
         If the Ring Buffer is full, adding the element to the end of the array
         removes the currently oldest element from the start of the array.
 
         :param numpy.dtype element: An element to add to the RingBuffer.
         :returns None:
+
         """
         i = self._index
         self._npa[i % self.max_size] = element
@@ -711,14 +710,14 @@ class RingBuffer(object):
         self._index += 1
 
     def getElements(self):
-        """
-        Return the numpy array being used by the RingBuffer, the length of
-        which will be equal to the number of elements added to the list, or
-        the last max_size elements added to the list. Elements are in order
-        of addition to the ring buffer.
+        """Return the numpy array being used by the RingBuffer, the length of
+        which will be equal to the number of elements added to the list, or the
+        last max_size elements added to the list. Elements are in order of
+        addition to the ring buffer.
 
         :param None:
         :returns numpy.array: The array of data elements that make up the Ring Buffer.
+
         """
         return self._npa[
             self._index %
@@ -727,20 +726,21 @@ class RingBuffer(object):
                 self.max_size) + self.max_size]
 
     def isFull(self):
-        """
-        Indicates if the RingBuffer is at it's max_size yet.
+        """Indicates if the RingBuffer is at it's max_size yet.
 
         :param None:
         :returns bool: True if max_size or more elements have been added to the RingBuffer; False otherwise.
+
         """
         return self._index >= self.max_size
 
     def clear(self):
-        """
-        Clears the RingBuffer. The next time an element is added to the buffer, it will have a size of one.
+        """Clears the RingBuffer. The next time an element is added to the
+        buffer, it will have a size of one.
 
         :param None:
         :returns None:
+
         """
         self._index = 0
 
@@ -836,11 +836,9 @@ class RingBuffer(object):
 
 
 class TimeSyncState(object):
-    """
-    Container class used to hold the data necessary to
-    calculate the current time base offset and drift between a ioSync T3
-    controller and the computer running iohub.
-    """
+    """Container class used to hold the data necessary to calculate the current
+    time base offset and drift between a ioSync T3 controller and the computer
+    running iohub."""
 
     def __init__(self, buffer_length=7):
         self.RTTs = RingBuffer(buffer_length)
@@ -850,9 +848,7 @@ class TimeSyncState(object):
         self.offsets = RingBuffer(buffer_length)
 
     def getDrift(self):
-        """
-        Current drift between two time bases.
-        """
+        """Current drift between two time bases."""
         if len(self.R_times) <= 1:
             return None
         return float((self.R_times[-1] - self.R_times[-2]) /
@@ -867,9 +863,7 @@ class TimeSyncState(object):
 #        return float(r)
 
     def getOffset(self):
-        """
-        Current offset between two time bases.
-        """
+        """Current offset between two time bases."""
         if len(self.R_times) < 1:
             return None
         return float(self.R_times[-1] - self.L_times[-1])
@@ -882,10 +876,11 @@ class TimeSyncState(object):
 #        return float(r)
 
     def getAccuracy(self):
-        """
-        Current accuracy of the time syncronization, as calculated as the
+        """Current accuracy of the time syncronization, as calculated as the.
+
         average of the last 10 round trip time sync request - response delays
         divided by two.
+
         """
         if len(self.R_times) < 1:
             return None
@@ -899,10 +894,8 @@ class TimeSyncState(object):
 #        return float(r)
 
     def local2RemoteTime(self, local_time=None):
-        """
-        Converts a local time (sec.msec format) to the corresponding remote
-        computer time, using the current offset and drift measures.
-        """
+        """Converts a local time (sec.msec format) to the corresponding remote
+        computer time, using the current offset and drift measures."""
         # drift=self.getDrift()
         offset = self.getOffset()
         if offset is None:
@@ -913,10 +906,9 @@ class TimeSyncState(object):
         return (local_time + offset)  # +local_dt#drift*local_time+offset
 
     def remote2LocalTime(self, remote_time):
-        """
-        Converts a remote computer time (sec.msec format) to the corresponding local
-        time, using the current offset and drift measures.
-        """
+        """Converts a remote computer time (sec.msec format) to the
+        corresponding local time, using the current offset and drift
+        measures."""
         # drift=self.getDrift()
         offset = self.getOffset()
         if offset is None:

@@ -50,7 +50,7 @@ class udpServer(DatagramServer):
         self.feed = None
         self._running = True
         if coder == 'msgpack':
-            self.iohub.log("ioHub Server configuring msgpack...")
+            self.iohub.log('ioHub Server configuring msgpack...')
             self.coder = msgpack
             self.packer = msgpack.Packer()
             self.pack = self.packer.pack
@@ -74,7 +74,7 @@ class udpServer(DatagramServer):
             msg_id = request.pop(0)
             payload = request.pop(0)
             ctime = currentSec()
-            self.sendResponse(["PING_BACK", ctime, msg_id,
+            self.sendResponse(['PING_BACK', ctime, msg_id,
                                payload, replyTo], replyTo)
             return True
         elif request_type == 'GET_EVENTS':
@@ -96,7 +96,7 @@ class udpServer(DatagramServer):
             try:
                 result = getattr(self, callable_name)
             except Exception:
-                print2err("RPC_ATTRIBUTE_ERROR")
+                print2err('RPC_ATTRIBUTE_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_ATTRIBUTE_ERROR', replyTo)
                 return False
@@ -116,12 +116,12 @@ class udpServer(DatagramServer):
                     self.sendResponse(edata, replyTo)
                     return True
                 except Exception as e:
-                    print2err("RPC_RUNTIME_ERROR")
+                    print2err('RPC_RUNTIME_ERROR')
                     printExceptionDetailsToStdErr()
                     self.sendResponse('RPC_RUNTIME_ERROR', replyTo)
                     return False
             else:
-                print2err("RPC_NOT_CALLABLE_ERROR")
+                print2err('RPC_NOT_CALLABLE_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
                 return False
@@ -131,7 +131,7 @@ class udpServer(DatagramServer):
             except:
                 printExceptionDetailsToStdErr()
         else:
-            print2err("RPC_NOT_CALLABLE_ERROR")
+            print2err('RPC_NOT_CALLABLE_ERROR')
             printExceptionDetailsToStdErr()
             self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
             return False
@@ -140,12 +140,12 @@ class udpServer(DatagramServer):
         custom_tasks = self.iohub.custom_tasks
         subtype = request.pop(0)
         tasklet_label = request.pop(0)
-        print2err("REQUEST: {}".format(request))
-        if subtype == "START":
+        print2err('REQUEST: {}'.format(request))
+        if subtype == 'START':
             import importlib
             import sys
             try:
-                print2err("EXP_SCRIPT_DIRECTORY: ", EXP_SCRIPT_DIRECTORY)
+                print2err('EXP_SCRIPT_DIRECTORY: ', EXP_SCRIPT_DIRECTORY)
                 task_class_path = request.pop(0)
                 if EXP_SCRIPT_DIRECTORY not in sys.path:
                     sys.path.append(EXP_SCRIPT_DIRECTORY)
@@ -163,19 +163,19 @@ class udpServer(DatagramServer):
                 custom_tasks[tasklet_label].start()
             except:
                 print2err(
-                    "ioHub Serial Device Error: could not load "
-                    "custom_parser function: ", task_class_path)
+                    'ioHub Serial Device Error: could not load '
+                    'custom_parser function: ', task_class_path)
                 printExceptionDetailsToStdErr()
-            print2err("Received CUSTOM TASK START: {}".format(request))
-        elif subtype == "STOP":
+            print2err('Received CUSTOM TASK START: {}'.format(request))
+        elif subtype == 'STOP':
             tcls = custom_tasks.get(tasklet_label)
             if tcls:
                 tcls.stop()
                 del custom_tasks[tasklet_label]
-            print2err("Received CUSTOM TASK STOP: {}".format(request))
+            print2err('Received CUSTOM TASK STOP: {}'.format(request))
         else:
             print2err(
-                "Received UNKNOWN CUSTOM TASK SUBTYPE: {}".format(subtype))
+                'Received UNKNOWN CUSTOM TASK SUBTYPE: {}'.format(subtype))
 
         edata = ('CUSTOM_TASK_REPLY', request)
         self.sendResponse(edata, replyTo)
@@ -196,7 +196,7 @@ class udpServer(DatagramServer):
                 self.sendResponse(('GET_EVENTS_RESULT', None), replyTo)
             return True
         except Exception as e:
-            print2err("IOHUB_GET_EVENTS_ERROR")
+            print2err('IOHUB_GET_EVENTS_ERROR')
             printExceptionDetailsToStdErr()
             self.sendResponse('IOHUB_GET_EVENTS_ERROR', replyTo)
             return False
@@ -233,7 +233,7 @@ class udpServer(DatagramServer):
                 dev = ioServer.deviceDict.get(dclass, None)
 
             if dev is None:
-                print2err("IOHUB_DEVICE_ERROR")
+                print2err('IOHUB_DEVICE_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('IOHUB_DEVICE_ERROR', replyTo)
                 return False
@@ -241,7 +241,7 @@ class udpServer(DatagramServer):
             try:
                 method = getattr(dev, dmethod)
             except Exception:
-                print2err("IOHUB_DEVICE_METHOD_ERROR")
+                print2err('IOHUB_DEVICE_METHOD_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('IOHUB_DEVICE_METHOD_ERROR', replyTo)
                 return False
@@ -259,7 +259,7 @@ class udpServer(DatagramServer):
                 self.sendResponse(('DEV_RPC_RESULT', result), replyTo)
                 return True
             except Exception as e:
-                print2err("RPC_DEVICE_RUNTIME_ERROR")
+                print2err('RPC_DEVICE_RUNTIME_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
                 return False
@@ -273,7 +273,7 @@ class udpServer(DatagramServer):
                     ('GET_DEV_LIST_RESULT', len(dev_list), dev_list), replyTo)
                 return True
             except Exception as e:
-                print2err("RPC_DEVICE_RUNTIME_ERROR")
+                print2err('RPC_DEVICE_RUNTIME_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
                 return False
@@ -295,7 +295,7 @@ class udpServer(DatagramServer):
                 self.sendResponse(('GET_DEV_INTERFACE', data), replyTo)
                 return True
             else:
-                print2err("GET_DEV_INTERFACE_ERROR")
+                print2err('GET_DEV_INTERFACE_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('GET_DEV_INTERFACE_ERROR', replyTo)
                 return False
@@ -314,12 +314,12 @@ class udpServer(DatagramServer):
                 return True
             else:
 
-                print2err("ADD_DEVICE_ERROR")
+                print2err('ADD_DEVICE_ERROR')
                 printExceptionDetailsToStdErr()
                 self.sendResponse('ADD_DEVICE_ERROR', replyTo)
                 return False
         else:
-            print2err("DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR")
+            print2err('DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR')
             printExceptionDetailsToStdErr()
             self.sendResponse('DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR', replyTo)
             return False
@@ -358,11 +358,11 @@ class udpServer(DatagramServer):
             print2err('data length: ', packet_data_length)
             print2err('num_packets: ', num_packets)
 
-            print2err("=============================")
+            print2err('=============================')
             printExceptionDetailsToStdErr()
-            print2err("=============================")
+            print2err('=============================')
 
-            first_data_element = "NO_DATA_AVAILABLE"
+            first_data_element = 'NO_DATA_AVAILABLE'
             if data:
                 print2err('Data was [{0}]'.format(data))
                 try:
@@ -375,7 +375,7 @@ class udpServer(DatagramServer):
                 packet_data_length = len(packet_data)
                 print2err('packet Data length: ', len(packet_data))
 
-            print2err("IOHUB_SERVER_RESPONSE_ERROR")
+            print2err('IOHUB_SERVER_RESPONSE_ERROR')
             printExceptionDetailsToStdErr()
             packet_data = self.pack('IOHUB_SERVER_RESPONSE_ERROR')
             self.socket.sendto(packet_data, address)
@@ -387,7 +387,7 @@ class udpServer(DatagramServer):
                 experimentInfoList)
             self.iohub._experiment_id = exp_id
             self.iohub.log(
-                "Current Experiment ID: %d" %
+                'Current Experiment ID: %d' %
                 (self.iohub._experiment_id))
             return exp_id
         return False
@@ -421,7 +421,7 @@ class udpServer(DatagramServer):
             sess_id = self.iohub.emrt_file.createExperimentSessionEntry(
                 sessionInfoDict)
             self.iohub._session_id = sess_id
-            self.iohub.log("Current Session ID: %d" % (self.iohub._session_id))
+            self.iohub.log('Current Session ID: %d' % (self.iohub._session_id))
             return sess_id
         return False
 
@@ -463,24 +463,18 @@ class udpServer(DatagramServer):
                     pass
 
     def getTime(self):
-        """
-        See Computer.getTime documentation, where current process will be
-        the ioHub Server process.
-        """
+        """See Computer.getTime documentation, where current process will be
+        the ioHub Server process."""
         return Computer.getTime()
 
     def setPriority(self, level='normal', disable_gc=False):
-        """
-        See Computer.setPriority documentation, where current process will be
-        the ioHub Server process.
-        """
+        """See Computer.setPriority documentation, where current process will
+        be the ioHub Server process."""
         return Computer.setPriority(level, disable_gc)
 
     def getPriority(self):
-        """
-        See Computer.getPriority documentation, where current process will be
-        the ioHub Server process.
-        """
+        """See Computer.getPriority documentation, where current process will
+        be the ioHub Server process."""
         return Computer.getPriority()
 
     def getProcessAffinity(self):
@@ -502,7 +496,7 @@ class udpServer(DatagramServer):
             self._running = False
             self.stop()
         except Exception:
-            print2err("Error in ioSever.shutdown():")
+            print2err('Error in ioSever.shutdown():')
             printExceptionDetailsToStdErr()
             sys.exit(1)
 
@@ -541,7 +535,7 @@ class ioServer(object):
         self._session_id = None
         self._experiment_id = None
 
-        self.log("Server Time Offset: {0}".format(
+        self.log('Server Time Offset: {0}'.format(
             Computer.global_clock.getLastResetTime()))
 
         self._hookManager = None
@@ -594,7 +588,7 @@ class ioServer(object):
 
                     #print2err("Created ioDataStore.")
         except Exception:
-            print2err("Error during ioDataStore creation....")
+            print2err('Error during ioDataStore creation....')
             printExceptionDetailsToStdErr()
 
         # built device list and config from initial yaml config settings
@@ -606,14 +600,14 @@ class ioServer(object):
                     self.createNewMonitoredDevice(
                         device_class_name, deviceConfig)
         except Exception:
-            print2err("Error during device creation ....")
+            print2err('Error during device creation ....')
             printExceptionDetailsToStdErr()
-            raise ioHubError("Error during device creation ....")
+            raise ioHubError('Error during device creation ....')
 
         # Add PubSub device listeners to other event types
         try:
             for d in self.devices:
-                if d.__class__.__name__ == "EventPublisher":
+                if d.__class__.__name__ == 'EventPublisher':
                     monitored_event_ids = d._event_listeners.keys()
                     for eid in monitored_event_ids:
                         event_device_class = EventConstants.getClass(
@@ -624,7 +618,7 @@ class ioServer(object):
                                 break
 
         except Exception as e:
-            print2err("Error PubSub Device listener association ....")
+            print2err('Error PubSub Device listener association ....')
             printExceptionDetailsToStdErr()
             raise e
 
@@ -697,12 +691,12 @@ class ioServer(object):
                 print2err(
                     '## Device was not started by the ioHub Server: ',
                     device_class_name)
-                raise ioHubError("Device config validation failed")
+                raise ioHubError('Device config validation failed')
 
         except Exception:
-            print2err("Error during device creation ....")
+            print2err('Error during device creation ....')
             printExceptionDetailsToStdErr()
-            raise ioHubError("Error during device creation ....")
+            raise ioHubError('Error during device creation ....')
 
         # Update DataStore Structure if required.
         if _DATA_STORE_AVAILABLE:
@@ -712,12 +706,12 @@ class ioServer(object):
                         device_instance, event_classes)
             except Exception:
                 print2err(
-                    "Error while updating datastore for device addition:",
+                    'Error while updating datastore for device addition:',
                     device_instance,
                     device_event_ids)
                 printExceptionDetailsToStdErr()
 
-        self.log("Adding ioServer and DataStore event listeners......")
+        self.log('Adding ioServer and DataStore event listeners......')
 
         # add event listeners for saving events
         if _DATA_STORE_AVAILABLE and self.emrt_file is not None:
@@ -725,17 +719,17 @@ class ioServer(object):
                 device_instance._addEventListener(
                     self.emrt_file, device_event_ids)
                 self.log(
-                    "DataStore listener for device added: device: %s eventIDs: %s" %
+                    'DataStore listener for device added: device: %s eventIDs: %s' %
                     (device_instance.__class__.__name__, device_event_ids))
                 #print2err("DataStore listener for device added: device: %s eventIDs: %s"%(device_instance.__class__.__name__,device_event_ids))
             else:
                 #print2err("DataStore saving disabled for device: %s"%(device_instance.__class__.__name__,))
                 self.log(
-                    "DataStore saving disabled for device: %s" %
+                    'DataStore saving disabled for device: %s' %
                     (device_instance.__class__.__name__,))
         else:
             #print2err("DataStore Not Evabled. No events will be saved.")
-            self.log("DataStore Not Enabled. No events will be saved.")
+            self.log('DataStore Not Enabled. No events will be saved.')
 
         # Add Device Monitor for Keyboard or Mouse device type
         deviceDict = ioServer.deviceDict
@@ -744,7 +738,7 @@ class ioServer(object):
             if Computer.system == 'win32':
                 import pyHook
                 if self._hookManager is None:
-                    iohub.log("Creating pyHook HookManager....")
+                    iohub.log('Creating pyHook HookManager....')
                     #print2err("Creating pyHook HookManager....")
                     self._hookManager = pyHook.HookManager()
                     self._hookManager.keyboard_hook = False
@@ -849,7 +843,7 @@ class ioServer(object):
     def addDeviceToMonitor(self, device_class_name, device_config):
         device_class_name = str(device_class_name)
 
-        self.log("Handling Device: %s" % (device_class_name,))
+        self.log('Handling Device: %s' % (device_class_name,))
         #print2err("addDeviceToMonitor:\n\tdevice_class: {0}\n\texperiment_device_config:{1}\n".format(device_class_name,device_config))
 
         DeviceClass = None
@@ -858,12 +852,12 @@ class ioServer(object):
         iohub_submod_path_length = len(iohub_sub_mod)
         device_module_path = iohub_sub_mod + 'devices.'
         if class_name_start > 0:
-            device_module_path = "{0}{1}".format(
+            device_module_path = '{0}{1}'.format(
                 device_module_path, device_class_name[
                     :class_name_start].lower())
             device_class_name = device_class_name[class_name_start + 1:]
         else:
-            device_module_path = "{0}{1}".format(
+            device_module_path = '{0}{1}'.format(
                 device_module_path, device_class_name.lower())
 
         #print2err("Processing device, device_class_name: {0}, device_module_path: {1}".format(device_class_name, device_module_path))
@@ -871,12 +865,12 @@ class ioServer(object):
         dconfigPath = os.path.join(
             IOHUB_DIRECTORY, device_module_path[
                 iohub_submod_path_length:].replace(
-                '.', os.path.sep), "default_%s.yaml" %
+                '.', os.path.sep), 'default_%s.yaml' %
             (device_class_name.lower()))
 
         #print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
         #print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
-        self.log("Loading Device Defaults file: %s" % (device_class_name,))
+        self.log('Loading Device Defaults file: %s' % (device_class_name,))
 
         _dclass, default_device_config = load(
             file(dconfigPath, 'r'), Loader=Loader).popitem()
@@ -892,15 +886,15 @@ class ioServer(object):
         if device_module_path in self._all_device_config_errors:
             # Complete device config verification.
             print2err(
-                "**** ERROR: DEVICE CONFIG ERRORS FOUND ! NOT LOADING DEVICE: ",
+                '**** ERROR: DEVICE CONFIG ERRORS FOUND ! NOT LOADING DEVICE: ',
                 device_module_path)
             device_config_errors = self._all_device_config_errors[
                 device_module_path]
             for error_type, errors in device_config_errors.iteritems():
-                print2err("%s count %d:" % (error_type, len(errors)))
+                print2err('%s count %d:' % (error_type, len(errors)))
                 for error in errors:
-                    print2err("\t{0}".format(error))
-                print2err("\n")
+                    print2err('\t{0}'.format(error))
+                print2err('\n')
             return None
 
         DeviceClass, device_class_name, event_classes = import_device(
@@ -908,8 +902,8 @@ class ioServer(object):
         #print2err("Updated Experiment Device Config:\n\tdevice_class: {0}\n\tdevice_config:{1}\n".format(device_class_name,default_device_config))
 
         if device_config.get('enable', True):
-            self.log("Searching Device Path: %s" % (device_class_name,))
-            self.log("Creating Device: %s" % (device_class_name,))
+            self.log('Searching Device Path: %s' % (device_class_name,))
+            self.log('Creating Device: %s' % (device_class_name,))
             #print2err("Creating Device: %s"%(device_class_name,))
 
             if DeviceClass._iohub_server is None:
@@ -920,7 +914,7 @@ class ioServer(object):
 
             deviceInstance = DeviceClass(dconfig=device_config)
 
-            self.log("Device Instance Created: %s" % (device_class_name,))
+            self.log('Device Instance Created: %s' % (device_class_name,))
             #print2err("Device Instance Created: %s"%(device_class_name,))
 
             self.devices.append(deviceInstance)
@@ -929,7 +923,7 @@ class ioServer(object):
             if 'device_timer' in device_config:
                 interval = device_config['device_timer']['interval']
                 self.log(
-                    "%s has requested a timer with period %.5f" %
+                    '%s has requested a timer with period %.5f' %
                     (device_class_name, interval))
                 dPoller = DeviceMonitor(deviceInstance, interval)
                 self.deviceMonitors.append(dPoller)
@@ -944,7 +938,7 @@ class ioServer(object):
                                 :-5], False))
                     monitoringEventIDs.append(event_id)
             self.log(
-                "{0} Instance Event IDs To Monitor: {1}".format(
+                '{0} Instance Event IDs To Monitor: {1}'.format(
                     device_class_name,
                     monitoringEventIDs))
             #ioHub.print2err("{0} Instance Event IDs To Monitor: {1}".format(device_class_name,eventIDs))
@@ -952,20 +946,20 @@ class ioServer(object):
             # add event listeners for streaming events
             if device_config.get('stream_events') is True:
                 self.log(
-                    "Online event access is being enabled for: %s" %
+                    'Online event access is being enabled for: %s' %
                     device_class_name)
                 # add listener for global event queue
                 deviceInstance._addEventListener(self, monitoringEventIDs)
                 #ioHub.print2err("ioServer event stream listener added: device=%s eventIDs=%s"%(device_class_name,eventIDs))
                 self.log(
-                    "Standard event stream listener added for ioServer for event ids %s" %
+                    'Standard event stream listener added for ioServer for event ids %s' %
                     (str(monitoringEventIDs),))
                 # add listener for device event queue
                 deviceInstance._addEventListener(
                     deviceInstance, monitoringEventIDs)
                 #  ioHub.print2err("%s event stream listener added: eventIDs=%s"%(device_class_name,eventIDs))
                 self.log(
-                    "Standard event stream listener added for class %s for event ids %s" %
+                    'Standard event stream listener added for class %s for event ids %s' %
                     (device_class_name, str(monitoringEventIDs)))
 
             return deviceInstance, device_config, monitoringEventIDs, event_classes
@@ -1030,13 +1024,13 @@ class ioServer(object):
 
             except Exception:
                 printExceptionDetailsToStdErr()
-                print2err("Error in processDeviceEvents: ",
-                          device, " : ", len(events), " : ", e)
-                print2err("Event type ID: ",
+                print2err('Error in processDeviceEvents: ',
+                          device, ' : ', len(events), ' : ', e)
+                print2err('Event type ID: ',
                           e[DeviceEvent.EVENT_TYPE_ID_INDEX],
-                          " : ",
+                          ' : ',
                           EventConstants.getName(e[DeviceEvent.EVENT_TYPE_ID_INDEX]))
-                print2err("--------------------------------------")
+                print2err('--------------------------------------')
 
     def _handleEvent(self, event):
         self.eventBuffer.append(event)
@@ -1094,7 +1088,7 @@ class ioServer(object):
                 except Exception:
                     pass
         except Exception:
-            print2err("Error in ioSever.shutdown():")
+            print2err('Error in ioSever.shutdown():')
             printExceptionDetailsToStdErr()
 
     def __del__(self):

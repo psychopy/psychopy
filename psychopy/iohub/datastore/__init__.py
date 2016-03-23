@@ -41,7 +41,7 @@ cores in your machine or, when your machine has many of them (e.g. > 4),
 perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
-DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
+DATA_FILE_TITLE = 'ioHub DataStore - Experiment Data File.'
 FILE_VERSION = '1.0.2'
 SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'February 26th, 2016'
@@ -98,7 +98,7 @@ class ioHubpyTablesFile():
                             self._eventGroupMappings[event_table_label],
                             eventTableLabel2ClassName(event_table_label),
                             event_cls.NUMPY_DTYPE,
-                            title="%s Data" %
+                            title='%s Data' %
                             (device_instance.__class__.__name__,
                              ),
                             filters=dfilter.copy())
@@ -125,23 +125,23 @@ class ioHubpyTablesFile():
                         # print2err("----------------------------------------------")
 
                     except Exception as e:
-                        print2err("---------------ERROR------------------")
+                        print2err('---------------ERROR------------------')
                         print2err(
-                            "Exception %s in iohub.datastore.updateDataStoreStructure:" %
+                            'Exception %s in iohub.datastore.updateDataStoreStructure:' %
                             (e.__class__.__name__))
-                        print2err("\tevent_cls: {0}".format(event_cls))
+                        print2err('\tevent_cls: {0}'.format(event_cls))
                         print2err(
-                            "\tevent_cls_name: {0}".format(event_cls_name))
+                            '\tevent_cls_name: {0}'.format(event_cls_name))
                         print2err(
-                            "\tevent_table_label: {0}".format(event_table_label))
+                            '\tevent_table_label: {0}'.format(event_table_label))
                         print2err(
-                            "\teventTableLabel2ClassName: {0}".format(
+                            '\teventTableLabel2ClassName: {0}'.format(
                                 eventTableLabel2ClassName(event_table_label)))
                         print2err(
-                            "\t_eventGroupMappings[event_table_label]: {0}".format(
+                            '\t_eventGroupMappings[event_table_label]: {0}'.format(
                                 self._eventGroupMappings[event_table_label]))
-                        print2err("\tException: {0}".format(e))
-                        print2err("--------------------------------------")
+                        print2err('\tException: {0}'.format(e))
+                        print2err('--------------------------------------')
 
                 if event_table_label in self.TABLES:
                         #print2err("---------------ADDING CLASS MAPPING------------------")
@@ -155,15 +155,15 @@ class ioHubpyTablesFile():
                         event_cls, self.TABLES[event_table_label])
                 else:
                     print2err(
-                        "---- IOHUB.DATASTORE CANNOT ADD CLASS MAPPING ----")
+                        '---- IOHUB.DATASTORE CANNOT ADD CLASS MAPPING ----')
                     print2err(
-                        "\t** TABLES missing key: {0}".format(event_table_label))
-                    print2err("\tevent_cls: {0}".format(event_cls))
-                    print2err("\tevent_cls_name: {0}".format(event_cls_name))
+                        '\t** TABLES missing key: {0}'.format(event_table_label))
+                    print2err('\tevent_cls: {0}'.format(event_cls))
+                    print2err('\tevent_cls_name: {0}'.format(event_cls_name))
                     print2err(
-                        "\teventTableLabel2ClassName: {0}".format(
+                        '\teventTableLabel2ClassName: {0}'.format(
                             eventTableLabel2ClassName(event_table_label)))
-                    print2err("----------------------------------------------")
+                    print2err('----------------------------------------------')
 
     def loadTableMappings(self):
         # create meta-data tables
@@ -528,7 +528,7 @@ class ioHubpyTablesFile():
     def addClassMapping(self, ioClass, ctable):
         names = [
             x['class_id'] for x in self.TABLES['CLASS_TABLE_MAPPINGS'].where(
-                "(class_id == %d)" %
+                '(class_id == %d)' %
                 (ioClass.EVENT_TYPE_ID))]
         if len(names) == 0:
             trow = self.TABLES['CLASS_TABLE_MAPPINGS'].row
@@ -596,7 +596,7 @@ class ioHubpyTablesFile():
         #print2err('np_dtype: ',np_dtype,' ',type(np_dtype))
         self._EXP_COND_DTYPE = N.dtype(np_dtype)
         try:
-            expCondTableName = "EXP_CV_%d" % (experiment_id)
+            expCondTableName = 'EXP_CV_%d' % (experiment_id)
             experimentConditionVariableTable = self.emrtFile.root.data_collection.condition_variables._f_getChild(
                 expCondTableName)
             self.TABLES['EXP_CV'] = experimentConditionVariableTable
@@ -665,7 +665,7 @@ class ioHubpyTablesFile():
     def checkIfSessionCodeExists(self, sessionCode):
         if self.emrtFile:
             sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where(
-                "experiment_id == %d" % (self.active_experiment_id,))
+                'experiment_id == %d' % (self.active_experiment_id,))
             sessionCodeMatch = [
                 sess for sess in sessionsForExperiment if sess['code'] == sessionCode]
             if len(sessionCodeMatch) > 0:
@@ -694,7 +694,7 @@ class ioHubpyTablesFile():
             self.bufferedFlush()
 
         except Exception:
-            print2err("Error saving event: ", event)
+            print2err('Error saving event: ', event)
             printExceptionDetailsToStdErr()
 
     def _handleEvents(self, events):
@@ -777,13 +777,13 @@ def close_open_data_files(verbose):
     else:
         are_open_files = len(open_files) > 0
         if verbose and are_open_files:
-            print2err("Closing remaining open data files:")
+            print2err('Closing remaining open data files:')
         for fileh in open_files.keys():
             if verbose:
-                print2err("%s..." % (open_files[fileh].filename,))
+                print2err('%s...' % (open_files[fileh].filename,))
             open_files[fileh].close()
             if verbose:
-                print2err("done")
+                print2err('done')
 
 try:
     global registered_close_open_data_files

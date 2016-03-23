@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: iohub/util/visualUtil.py
 
 Copyright (C) 2012-2014 iSolver Software Solutions
@@ -84,8 +84,8 @@ class ScreenState(object):
         if isinstance(trigger, Trigger):
             self.event_triggers.append(trigger)
         else:
-            raise ValueError("Triggers added to a screen state object"
-                             "must be of type DeviceEventTrigger.")
+            raise ValueError('Triggers added to a screen state object'
+                             'must be of type DeviceEventTrigger.')
 
     def getStateStartTime(self):
         return self._start_time
@@ -106,9 +106,8 @@ class ScreenState(object):
     # Returns: [flip_time, time_since_flip, event]
     # all elements but flip_time may be None. All times are in sec.msec
     def switchTo(self, clearEvents=True, msg=None):
-        """
-        Switches to the screen state defined by the class instance. The screen
-        stim are built and a flip occurs.
+        """Switches to the screen state defined by the class instance. The
+        screen stim are built and a flip occurs.
 
         Three conditions can cause the switchTo method to then return,
         based on whether a timeout and / or DeviceEventTriggers
@@ -143,7 +142,8 @@ class ScreenState(object):
                 * **exitTriggeringEvent** is the Device event (in dict form) that caused the ScreenState to exit.
 
         If the callback returns False, the ScreenState is not exited, and the the timeout period and DeviceEventTriggers cintinue to be checked.
-         """
+
+        """
         ER = self.experimentRuntime()
         localClearEvents = ER.hub.clearEvents
         if clearEvents is False:
@@ -228,7 +228,7 @@ class ScreenState(object):
         try:
             tracker = self.experimentRuntime().getDevice('tracker')
             if tracker is not None and tracker.isConnected() is True:
-                mtext = "%s : tracker_time [%.6f]" % (
+                mtext = '%s : tracker_time [%.6f]' % (
                     mtext, tracker.trackerSec())
                 tracker.sendMessage(mtext)
             else:
@@ -255,7 +255,7 @@ class ClearScreen(ScreenState):
 
     def flip(self, text=None):
         if text is None:
-            text = "CLR_SCREEN SYNC: [%s] " % (text)
+            text = 'CLR_SCREEN SYNC: [%s] ' % (text)
         return ScreenState.flip(self, text)
 
 
@@ -301,7 +301,7 @@ class InstructionScreen(ScreenState):
 
     def flip(self, text=''):
         if text is None:
-            text = "INSTRUCT_SCREEN SYNC: [%s] [%s] " % (
+            text = 'INSTRUCT_SCREEN SYNC: [%s] [%s] ' % (
                 self.stim['TEXTLINE'].text[0:30], text)
         return ScreenState.flip(self, text)
 
@@ -349,7 +349,7 @@ class ImageScreen(ScreenState):
 
     def flip(self, text=''):
         if text is None:
-            text = "IMAGE_SCREEN SYNC: [%s] [%s] " % (
+            text = 'IMAGE_SCREEN SYNC: [%s] [%s] ' % (
                 self.stim['IMAGE'].imageName, text)
         return ScreenState.flip(self, text)
 
@@ -404,11 +404,13 @@ class Trigger(object):
 
 
 class TimeTrigger(Trigger):
-    """
-    TimeTrigger's are used by ScreenState objects. A TimeTrigger
-    associates a delay from the provided start_time parameter to when
-    the classes triggered() method returns True. start_time and delay can be
-    sec.msec float, or a callable object (that takes no parameters).
+    """TimeTrigger's are used by ScreenState objects.
+
+    A TimeTrigger associates a delay from the provided start_time
+    parameter to when the classes triggered() method returns True.
+    start_time and delay can be sec.msec float, or a callable object
+    (that takes no parameters).
+
     """
     __slots__ = ['startTime', 'delay', '_start_time']
 
@@ -464,10 +466,12 @@ class TimeTrigger(Trigger):
 # Device EventTrigger Class ---------------------------------------------------
 
 class DeviceEventTrigger(Trigger):
-    """
-    DeviceEventTrigger are used by SCreenState objects. A DeviceEventTrigger
-    associates a set of conditions for a DeviceEvent that must be met before
-    the classes triggered() method returns True.
+    """DeviceEventTrigger are used by SCreenState objects.
+
+    A DeviceEventTrigger associates a set of conditions for a
+    DeviceEvent that must be met before the classes triggered() method
+    returns True.
+
     """
     _lastEventsByDevice = dict()
     __slots__ = ['device', 'event_type', 'event_attribute_conditions']

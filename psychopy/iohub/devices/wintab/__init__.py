@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/wintab/__init__.py
 
 Copyright (C) 2012-2015 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 #
@@ -29,10 +30,7 @@ import copy
 
 
 class WintabTablet(Device):
-    """
-    The Wintab class docstr TBC
-
-    """
+    """The Wintab class docstr TBC."""
     EVENT_CLASS_NAMES = ['WintabTabletSampleEvent',
                          'WintabTabletEnterRegionEvent',
                          'WintabTabletLeaveRegionEvent']
@@ -74,8 +72,8 @@ class WintabTablet(Device):
 
         else:
             def get_tablets(display=None):
-                print2err("Error: iohub.devices.wintab only supports "
-                          "Windows OS at this time.")
+                print2err('Error: iohub.devices.wintab only supports '
+                          'Windows OS at this time.')
                 return []
 
             self._setHardwareInterfaceStatus(False,
@@ -144,9 +142,9 @@ class WintabTablet(Device):
 
     def getHardwareConfig(self, index=0):
         hw_model_info = self._wtablets[index].hw_model_info
-        return {"Context": self._wtab_canvases[index].getContextInfo(),
-                "Axis": self._wtablets[index].hw_axis_info,
-                "ModelInfo": hw_model_info
+        return {'Context': self._wtab_canvases[index].getContextInfo(),
+                'Axis': self._wtablets[index].hw_axis_info,
+                'ModelInfo': hw_model_info
                 }
 
     def enableEventReporting(self, enabled=True):
@@ -229,7 +227,7 @@ class WintabTablet(Device):
             self._last_poll_time = logged_time
             return True
         except Exception as e:
-            print2err("ERROR in WintabTabletDevice._poll: ", e)
+            print2err('ERROR in WintabTabletDevice._poll: ', e)
             printExceptionDetailsToStdErr()
 
     def _getIOHubEventObject(self, native_event_data):
@@ -275,9 +273,7 @@ from .. import DeviceEvent
 
 
 class WintabTabletInputEvent(DeviceEvent):
-    """
-    The WintabTabletInputEvent is an abstract class that .......
-    """
+    """The WintabTabletInputEvent is an abstract class that ......."""
     PARENT_DEVICE = WintabTablet
     _newDataTypes = []
 
@@ -288,9 +284,7 @@ class WintabTabletInputEvent(DeviceEvent):
 
 
 class WintabTabletSampleEvent(WintabTabletInputEvent):
-    """
-    WintabTabletSampleEvent's occur when.....
-    """
+    """WintabTabletSampleEvent's occur when....."""
     EVENT_TYPE_STRING = 'WINTAB_TABLET_SAMPLE'
     EVENT_TYPE_ID = EventConstants.WINTAB_TABLET_SAMPLE
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING

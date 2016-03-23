@@ -1,6 +1,5 @@
-"""
-ioHub
-Common Eye Tracker Interface
+"""ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyetracker/hw/tobii/TobiiCalibrationGraphics.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -82,14 +81,22 @@ class TobiiPsychopyCalibrationGraphics(object):
                     (0.5, 0.1), (0.1, 0.9), (0.9, 0.9), (0.5, 0.1)]
             elif num_points == 9:
                 TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
-                                                                           (0.1, 0.5),
-                                                                           (0.9, 0.5),
-                                                                           (0.1, 0.1),
-                                                                           (0.5, 0.1),
-                                                                           (0.9, 0.1),
-                                                                           (0.9, 0.9),
-                                                                           (0.5, 0.9),
-                                                                           (0.1, 0.9),
+                                                                           (0.1,
+                                                                            0.5),
+                                                                           (0.9,
+                                                                            0.5),
+                                                                           (0.1,
+                                                                            0.1),
+                                                                           (0.5,
+                                                                            0.1),
+                                                                           (0.9,
+                                                                            0.1),
+                                                                           (0.9,
+                                                                            0.9),
+                                                                           (0.5,
+                                                                            0.9),
+                                                                           (0.1,
+                                                                            0.9),
                                                                            (0.5, 0.5)]
         display = self._eyetrackerinterface._display_device
         self.window = visual.Window(
@@ -137,7 +144,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self._ioKeyboard._addEventListener(self, eventIDs)
         else:
             print2err(
-                "Warning: Tobii Cal GFX could not connect to Keyboard device for events.")
+                'Warning: Tobii Cal GFX could not connect to Keyboard device for events.')
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
@@ -148,10 +155,10 @@ class TobiiPsychopyCalibrationGraphics(object):
         event_type_index = DeviceEvent.EVENT_TYPE_ID_INDEX
         if event[event_type_index] == EventConstants.KEYBOARD_RELEASE:
             if event[self._keyboard_key_index] == u' ':
-                self._msg_queue.put("SPACE_KEY_ACTION")
+                self._msg_queue.put('SPACE_KEY_ACTION')
                 self.clearAllEventBuffers()
             elif event[self._keyboard_key_index] == u'escape':
-                self._msg_queue.put("QUIT")
+                self._msg_queue.put('QUIT')
                 self.clearAllEventBuffers()
 
     def MsgPump(self):
@@ -222,7 +229,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             edges=64,
             units=coord_type)
 
-        instuction_text = "Press SPACE to Start Calibration; ESCAPE to Exit."
+        instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         self.textLineStim = visual.TextStim(self.window,
                                             text=instuction_text,
                                             pos=self.TEXT_POS,
@@ -243,8 +250,8 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.marker_heights = (-sh / 2.0 * .7, -sh / 2.0 * .75, -sh /
                                2.0 * .8, -sh / 2.0 * .7, -sh / 2.0 * .75, -sh / 2.0 * .8)
 
-        bar_vertices = [-hbox_bar_length / 2, -hbox_bar_height / 2], [hbox_bar_length / 2, -hbox_bar_height / \
-            2], [hbox_bar_length / 2, hbox_bar_height / 2], [-hbox_bar_length / 2, hbox_bar_height / 2]
+        bar_vertices = [-hbox_bar_length / 2, -hbox_bar_height / 2], [hbox_bar_length / 2, -hbox_bar_height /
+                                                                      2], [hbox_bar_length / 2, hbox_bar_height / 2], [-hbox_bar_length / 2, hbox_bar_height / 2]
 
         self.feedback_resources = OrderedDict()
 
@@ -325,14 +332,14 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.marker_heights[2]))
 
     def runCalibration(self):
-        """
-        Performs a simple calibration routine.
+        """Performs a simple calibration routine.
 
         Args:
             None
 
         Result:
             bool: True if calibration was successful. False if not, in which case exit the application.
+
         """
 
         self._lastCalibrationOK = False
@@ -341,7 +348,7 @@ class TobiiPsychopyCalibrationGraphics(object):
 
         calibration_sequence_completed = False
 
-        instuction_text = "Press SPACE to Start Calibration; ESCAPE to Exit."
+        instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         continue_calibration = self.showSystemSetupMessageScreen(
             instuction_text, True)
         if not continue_calibration:
@@ -416,20 +423,20 @@ class TobiiPsychopyCalibrationGraphics(object):
 
             msg = 1
             while msg not in [
-                    "CALIBRATION_COMPUTATION_COMPLETE",
-                    "CALIBRATION_COMPUTATION_FAILED"]:
+                    'CALIBRATION_COMPUTATION_COMPLETE',
+                    'CALIBRATION_COMPUTATION_FAILED']:
                 msg = self.getNextMsg()
 
         self._tobii.StopCalibration(self.on_stop_calibration)
         msg = 1
-        while msg is not "CALIBRATION_FINISHED":
+        while msg is not 'CALIBRATION_FINISHED':
             msg = self.getNextMsg()
 
         if self._lastCalibrationOK is True:
             self._tobii.GetCalibration(self.on_calibration_result)
 
             msg = 1
-            while msg is not "CALIBRATION_RESULT_RECEIVED":
+            while msg is not 'CALIBRATION_RESULT_RECEIVED':
                 msg = self.getNextMsg()
 
             cal_data_dict = {}
@@ -544,7 +551,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             else:
                 # EyeX doesn't return calibration stats
                 if not self._eyetrackerinterface._isEyeX:
-                    print2err("WARNING: Calibration results are NULL.")
+                    print2err('WARNING: Calibration results are NULL.')
 
             instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
             continue_method = self.showSystemSetupMessageScreen(
@@ -553,7 +560,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                 return False
 
         if self._lastCalibrationOK is False:
-            instuction_text = "Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Setup"
+            instuction_text = 'Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Setup'
             continue_method = self.showSystemSetupMessageScreen(
                 instuction_text, True, msg_types=['SPACE_KEY_ACTION', 'QUIT'])
             if continue_method is False:
@@ -566,7 +573,7 @@ class TobiiPsychopyCalibrationGraphics(object):
 
     def showSystemSetupMessageScreen(
         self,
-        text_msg="Press SPACE to Start Calibration; ESCAPE to Exit.",
+        text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.',
         enable_recording=False,
         msg_types=[
             'SPACE_KEY_ACTION',
@@ -838,21 +845,21 @@ class TobiiPsychopyCalibrationGraphics(object):
 
     def on_stop_calibration(self, *args, **kwargs):
         #ioHub.print2err('on_stop_calibration: ',args,kwargs)
-        self._msg_queue.put("CALIBRATION_FINISHED")
+        self._msg_queue.put('CALIBRATION_FINISHED')
 
     def on_compute_calibration(self, *args, **kwargs):
         self._lastCalibrationReturnCode = args[0]
         if self._lastCalibrationReturnCode != 0:
             print2err(
-                "ERROR: Tobii Calibration Calculation Failed. Error code: {0}".format(
+                'ERROR: Tobii Calibration Calculation Failed. Error code: {0}'.format(
                     self._lastCalibrationReturnCode))
             self._lastCalibrationOK = False
-            self._msg_queue.put("CALIBRATION_COMPUTATION_FAILED")
+            self._msg_queue.put('CALIBRATION_COMPUTATION_FAILED')
 
         else:
-            self._msg_queue.put("CALIBRATION_COMPUTATION_COMPLETE")
+            self._msg_queue.put('CALIBRATION_COMPUTATION_COMPLETE')
             self._lastCalibrationOK = True
 
     def on_calibration_result(self, *args, **kwargs):
         self._lastCalibration = args[1]
-        self._msg_queue.put("CALIBRATION_RESULT_RECEIVED")
+        self._msg_queue.put('CALIBRATION_RESULT_RECEIVED')

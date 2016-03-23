@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Demonstrates how to use two Condition Variables to specify a temporal filter
-based on a start and end time. With the ConditionVariableBasedIP two columns of the
-condition variables are used for each start time and each end time; forming the
-instances of the IP.
+"""Demonstrates how to use two Condition Variables to specify a temporal filter
+based on a start and end time. With the ConditionVariableBasedIP two columns of
+the condition variables are used for each start time and each end time; forming
+the instances of the IP.
 
 @author: Sol
+
 """
 
 from psychopy.iohub.datastore.pandas import ioHubPandasDataView

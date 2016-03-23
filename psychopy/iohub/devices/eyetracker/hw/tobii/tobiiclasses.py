@@ -1,6 +1,5 @@
-"""
-ioHub
-Common Eye Tracker Interface
+"""ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyetracker/hw/tobii/tobiiclasses.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +7,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 import Queue
@@ -199,7 +199,7 @@ class TobiiTrackerBrowser(object):
 
         raise ioDeviceError(
             device=cls,
-            msg="TobiiTrackerBrowser.on_eyetracker_browser_event received unhandled event type {0} for Tobii device with info: {1}".format(
+            msg='TobiiTrackerBrowser.on_eyetracker_browser_event received unhandled event type {0} for Tobii device with info: {1}'.format(
                 event_type,
                 eyetracker_info))
 
@@ -313,7 +313,7 @@ class TobiiTracker(object):
 
         if self._eyetracker_info is None:
             raise exceptions.BaseException(
-                "Could not find a Tobii Eye Tracker matching requirements.")
+                'Could not find a Tobii Eye Tracker matching requirements.')
 
         if self._mainloop is None:
             if TobiiTrackerBrowser.isActive():
@@ -354,7 +354,7 @@ class TobiiTracker(object):
 
         if self._eyetracker is None:
             raise exceptions.BaseException(
-                "Could not connect to Tobii. Timeout.")
+                'Could not connect to Tobii. Timeout.')
 
         if create_sync_manager:
             self._eyetracker.events.OnError += self.on_eyetracker_error
@@ -375,12 +375,12 @@ class TobiiTracker(object):
             et = args[1]
         else:
             raise exceptions.BaseException(
-                "WARNING: on_eyetracker_created: Unhandled args count", len(args), args)
+                'WARNING: on_eyetracker_created: Unhandled args count', len(args), args)
 
         error = kwargs.get('error', None)
         if error:
             raise exceptions.BaseException(
-                "Connection to Tobii failed because of an exception: %s" %
+                'Connection to Tobii failed because of an exception: %s' %
                 (str(error),))
 
         self._queue.put(TobiiTrackerCreatedEvent(et))
@@ -388,11 +388,11 @@ class TobiiTracker(object):
         return False
 
     def on_eyetracker_error(self, *args, **kwargs):
-        print2err("TobiiTracker.on_eyetracker_error: ", args, kwargs)
+        print2err('TobiiTracker.on_eyetracker_error: ', args, kwargs)
         return False
 
     def on_sync_error(self, *args, **kwargs):
-        print2err("TobiiTracker.on_sync_error: ", args, kwargs)
+        print2err('TobiiTracker.on_sync_error: ', args, kwargs)
         return False
 
     def on_sync_status(self, *args, **kwargs):
@@ -419,13 +419,13 @@ class TobiiTracker(object):
         # ",lastEyeData.RightGazePoint2D.__dict__
         if eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity >= 2:
             # no eye signal
-            eyes[LEFT]['status'] = "Missing"
-            eyes[RIGHT]['status'] = "Missing"
+            eyes[LEFT]['status'] = 'Missing'
+            eyes[RIGHT]['status'] = 'Missing'
 
         elif eye_data_event.LeftValidity < 2 and eye_data_event.RightValidity >= 2:
             # left eye only available
-            eyes[LEFT]['status'] = "Available"
-            eyes[RIGHT]['status'] = "Missing"
+            eyes[LEFT]['status'] = 'Available'
+            eyes[RIGHT]['status'] = 'Missing'
 
             eyes[LEFT]['pupil_diameter_mm'] = eye_data_event.LeftPupil
             eyes[LEFT]['gaze_norm'][0] = eye_data_event.LeftGazePoint2D.x
@@ -448,8 +448,8 @@ class TobiiTracker(object):
 
         elif eye_data_event.LeftValidity >= 2 and eye_data_event.RightValidity < 2:
             # right eye only available
-            eyes[RIGHT]['status'] = "Available"
-            eyes[LEFT]['status'] = "Missing"
+            eyes[RIGHT]['status'] = 'Available'
+            eyes[LEFT]['status'] = 'Missing'
 
             eyes[RIGHT]['pupil_diameter_mm'] = eye_data_event.RightPupil
             eyes[RIGHT]['gaze_norm'][0] = eye_data_event.RightGazePoint2D.x
@@ -471,8 +471,8 @@ class TobiiTracker(object):
                 2] = eye_data_event.RightEyePosition3D.z
         else:
             # binocular available
-            eyes[RIGHT]['status'] = "Available"
-            eyes[LEFT]['status'] = "Available"
+            eyes[RIGHT]['status'] = 'Available'
+            eyes[LEFT]['status'] = 'Available'
 
             eyes[LEFT]['pupil_diameter_mm'] = eye_data_event.LeftPupil
             eyes[LEFT]['gaze_norm'][0] = eye_data_event.LeftGazePoint2D.x
@@ -521,15 +521,15 @@ class TobiiTracker(object):
         return False
 
     def on_external_framerate_change(self, *args, **kwargs):
-        print2err("NOTE: Tobii System Sampling Rate Changed.")
+        print2err('NOTE: Tobii System Sampling Rate Changed.')
         return False
 
     def on_head_box_change(self, *args, **kwargs):
-        print2err("NOTE: Tobii Head Movement Box Changed.")
+        print2err('NOTE: Tobii Head Movement Box Changed.')
         return False
 
     def on_x_series_physical_config_change(self, *args, **kwargs):
-        print2err("NOTE: Tobii X Series Physical Settings Changed.")
+        print2err('NOTE: Tobii X Series Physical Settings Changed.')
         return False
 
     def getTimeSyncManager(self):

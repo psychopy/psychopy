@@ -18,8 +18,7 @@ import pandas as pd
 
 
 class InterestPeriodDefinition(object):
-    """
-    InterestPeriodDefinition Class
+    """InterestPeriodDefinition Class.
 
     Parent class of InterestPeriodDefinition implementations.
 
@@ -149,8 +148,7 @@ class InterestPeriodDefinition(object):
 
 
 class EventBasedIP(InterestPeriodDefinition):
-    """
-    EventBasedIP Class
+    """EventBasedIP Class.
 
     trial_ip=BoundingEventsIP(name='trial_ip',
                               start_source_df=exp_data.MESSAGE,
@@ -180,8 +178,7 @@ class EventBasedIP(InterestPeriodDefinition):
 
     @property
     def ip_df(self):
-        """
-        Return a Pandas DF where each row represents a start and end time
+        """Return a Pandas DF where each row represents a start and end time
         instance that matches the InterestPeriodDefinition criteria.
 
         ip_df is indexed on:
@@ -196,6 +193,7 @@ class EventBasedIP(InterestPeriodDefinition):
             ip_name
             ip_id
             ip_id_num
+
         """
         if self._ip_df is None:
             # Match start_source_df[start_criteria.key]==start_criteria.value
@@ -284,8 +282,7 @@ class MessageBasedIP(EventBasedIP):
 
 
 class ConditionVariableBasedIP(InterestPeriodDefinition):
-    """
-    ConditionVariableBasedIP Class
+    """ConditionVariableBasedIP Class.
 
     cv_ip=ConditionVariableBasedIP(name='cv_ip',
                         source_df=[some df],
@@ -313,8 +310,7 @@ class ConditionVariableBasedIP(InterestPeriodDefinition):
 
     @property
     def ip_df(self):
-        """
-        Return a Pandas DF where each row represents a start and end time
+        """Return a Pandas DF where each row represents a start and end time
         instance that matches the InterestPeriodDefinition criteria.
 
         ip_df is indexed on:
@@ -327,6 +323,7 @@ class ConditionVariableBasedIP(InterestPeriodDefinition):
             ip_name
             ip_id
             ip_id_num
+
         """
         if self._ip_df is None:
             self._ip_df = self._source_df[

@@ -27,12 +27,12 @@ else:
             return _fcounter.value / _qpfreq
     elif sys.platform == 'linux2':
         from ctypes import byref, c_long, CDLL, Structure
-        libc = CDLL("libc.so.6")
+        libc = CDLL('libc.so.6')
         CLOCK_MONOTONIC = 1
 
         class Timespec(Structure):
-            _fields_ = [("tv_sec", c_long),
-                        ("tv_nsec", c_long)]
+            _fields_ = [('tv_sec', c_long),
+                        ('tv_nsec', c_long)]
         _ctime = Timespec()
 
         def _getTime():
@@ -66,10 +66,8 @@ else:
             return _getTime() - self._timeAtLastReset
 
         def getLastResetTime(self):
-            """
-            Returns the current offset being applied to the high resolution
-            timebase used by Clock.
-            """
+            """Returns the current offset being applied to the high resolution
+            timebase used by Clock."""
             return self._timeAtLastReset
 
     monotonicClock = MonotonicClock()

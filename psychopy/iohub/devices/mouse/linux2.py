@@ -16,10 +16,12 @@ currentSec = Computer.getTime
 
 
 class Mouse(MouseDevice):
-    """
-    The Mouse class and related events represent a standard computer mouse device
-    and the events a standard mouse can produce. Mouse position data is mapped to
-    the coordinate space defined in the ioHub configuration file for the Display.
+    """The Mouse class and related events represent a standard computer mouse
+    device and the events a standard mouse can produce.
+
+    Mouse position data is mapped to the coordinate space defined in the
+    ioHub configuration file for the Display.
+
     """
 
     _xdll = None
@@ -80,7 +82,7 @@ class Mouse(MouseDevice):
     def _nativeSetSystemCursorVisibility(self, v):
         if Mouse._xfixsdll is None:
             print2err(
-                "Xfixes DLL could not be loaded. Cursor visiblity support is unavailable.")
+                'Xfixes DLL could not be loaded. Cursor visiblity support is unavailable.')
             return True
 
         if v is True and self._nativeGetSystemCursorVisibility() is False:

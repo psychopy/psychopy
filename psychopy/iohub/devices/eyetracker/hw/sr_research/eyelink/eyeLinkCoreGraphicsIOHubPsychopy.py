@@ -1,6 +1,5 @@
-"""
-ioHub
-Common Eye Tracker Interface
+"""ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyeTracker/hw/sr_research/eyelink/eyeLinkCoreGraphicsIOHubPsychopy.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -16,6 +15,7 @@ download from  www.sr-support.com once you are registered and includes the neces
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 import numpy as np
@@ -99,7 +99,7 @@ class TextLine(object):
 
         self.textLine = visual.TextStim(
             self.win,
-            text="***********************",
+            text='***********************',
             pos=(
                 0,
                 0),
@@ -145,7 +145,7 @@ class IntroScreen(object):
         self.introlines.append(
             visual.TextStim(
                 self.window,
-                text=">>>> Eyelink System Setup:  Keyboard Actions <<<<",
+                text='>>>> Eyelink System Setup:  Keyboard Actions <<<<',
                 pos=(
                     0,
                     topline_y),
@@ -168,7 +168,7 @@ class IntroScreen(object):
                 wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* ENTER: Begin Camera Setup Mode",
+                                               text='* ENTER: Begin Camera Setup Mode',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -188,7 +188,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* C: Start Calibration Procedure",
+                                               text='* C: Start Calibration Procedure',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -208,7 +208,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* V: Start Validation Procedure",
+                                               text='* V: Start Validation Procedure',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -228,7 +228,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* ESCAPE or Q: Exit EyeLink System Setup",
+                                               text='* ESCAPE or Q: Exit EyeLink System Setup',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -248,7 +248,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="-- Camera Setup Mode Specific Actions --",
+                                               text='-- Camera Setup Mode Specific Actions --',
                                                pos=(0,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -268,7 +268,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* Left / Right Arrow: Switch Between Camera Views",
+                                               text='* Left / Right Arrow: Switch Between Camera Views',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -288,7 +288,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* A: Auto-Threshold Image",
+                                               text='* A: Auto-Threshold Image',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -308,7 +308,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* Up / Down Arrow: Manually Adjust Pupil Threshold",
+                                               text='* Up / Down Arrow: Manually Adjust Pupil Threshold',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -328,7 +328,7 @@ class IntroScreen(object):
                                                wrapWidth=self.display_size[0] * .8))
 
         self.introlines.append(visual.TextStim(self.window,
-                                               text="* + or -: Manually Adjust CR Threshold.",
+                                               text='* + or -: Manually Adjust CR Threshold.',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines) + 2)),
                                                height=font_height,
@@ -404,11 +404,11 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.tracker.setOfflineMode()
         self.tracker_version = self.tracker.getTrackerVersion()
         if self.tracker_version >= 3:
-            self.tracker.sendCommand("enable_search_limits=YES")
-            self.tracker.sendCommand("track_search_limits=YES")
-            self.tracker.sendCommand("autothreshold_click=YES")
-            self.tracker.sendCommand("autothreshold_repeat=YES")
-            self.tracker.sendCommand("enable_camera_position_detect=YES")
+            self.tracker.sendCommand('enable_search_limits=YES')
+            self.tracker.sendCommand('track_search_limits=YES')
+            self.tracker.sendCommand('autothreshold_click=YES')
+            self.tracker.sendCommand('autothreshold_repeat=YES')
+            self.tracker.sendCommand('enable_camera_position_detect=YES')
 
         display = self._eyetrackerinterface._display_device
         self.window = visual.Window(display.getPixelResolution(),
@@ -469,7 +469,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             self._ioKeyboard._addEventListener(self, eventIDs)
         else:
             print2err(
-                "Warning: elCG could not connect to Keyboard device for events.")
+                'Warning: elCG could not connect to Keyboard device for events.')
 
         if mouseDevice:
             eventIDs = []
@@ -486,7 +486,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             self._ioMouse._addEventListener(self, eventIDs)
         else:
             print2err(
-                "Warning: elCG could not connect to Mouse device for events.")
+                'Warning: elCG could not connect to Mouse device for events.')
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
@@ -507,37 +507,37 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 return
 
             pylink_key = None
-            if char == "escape":
+            if char == 'escape':
                 pylink_key = pylink.ESC_KEY
                 self.state = None
-            elif char == "return":
+            elif char == 'return':
                 pylink_key = pylink.ENTER_KEY
                 self.state = None
-            elif char == " ":
+            elif char == ' ':
                 pylink_key = ord(char)
-            elif char == "c":
+            elif char == 'c':
                 pylink_key = ord(char)
-                self.state = "calibration"
-            elif char == "v":
+                self.state = 'calibration'
+            elif char == 'v':
                 pylink_key = ord(char)
-                self.state = "validation"
-            elif char == "a":
+                self.state = 'validation'
+            elif char == 'a':
                 pylink_key = ord(char)
-            elif char == "pageup":
+            elif char == 'pageup':
                 pylink_key = pylink.PAGE_UP
-            elif char == "pagedown":
+            elif char == 'pagedown':
                 pylink_key = pylink.PAGE_DOWN
-            elif char == "-":
+            elif char == '-':
                 pylink_key = ord(char)
-            elif char == "=":
+            elif char == '=':
                 pylink_key = ord(char)
-            elif char == "up":
+            elif char == 'up':
                 pylink_key = pylink.CURS_UP
-            elif char == "down":
+            elif char == 'down':
                 pylink_key = pylink.CURS_DOWN
-            elif char == "left":
+            elif char == 'left':
                 pylink_key = pylink.CURS_LEFT
-            elif char == "right":
+            elif char == 'right':
                 pylink_key = pylink.CURS_RIGHT
             else:
                 return
@@ -567,10 +567,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             return None
 
     def setup_cal_display(self):
-        """
-        Sets up the initial calibration display, which contains a menu with
-        instructions.
-        """
+        """Sets up the initial calibration display, which contains a menu with
+        instructions."""
         self.blankdisplay.draw()
         self.introscreen.draw()
         self.window.flip()
@@ -580,7 +578,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.clear_cal_display()
 
     def clear_cal_display(self):
-        """Clears the calibration display"""
+        """Clears the calibration display."""
         self.blankdisplay.draw()
         self.window.flip()
 
@@ -589,9 +587,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.clear_cal_display()
 
     def draw_cal_target(self, x, y):
-        """
-        Draws calibration target.
-        """
+        """Draws calibration target."""
         # convert to psychopy pix coords
         x = x - self.window.size[0] / 2
         y = -(y - self.window.size[1] / 2)
@@ -600,9 +596,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.window.flip()
 
     def setup_image_display(self, width, height):
-        """
-        Initialize the index array that will contain camera image data.
-        """
+        """Initialize the index array that will contain camera image data."""
 
         self.size = (width, height)
         self.clear_cal_display()
@@ -615,10 +609,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.clear_cal_display()
 
     def image_title(self, text):
-        """
-        Display the current camera, Pupil, and CR thresholds above
-        the camera image when in Camera Setup Mode.
-        """
+        """Display the current camera, Pupil, and CR thresholds above the
+        camera image when in Camera Setup Mode."""
         if self.imagetitlestim is None:
             self.imagetitlestim = visual.TextStim(
                 self.window,
@@ -647,17 +639,15 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         # self.imagetitlestim.draw()
 
     def draw_image_line(self, width, line, totlines, buff):
-        """
-        Collects all lines for an eye image, saves the image,
-        then creates a psychopy imagestim from it.
-        """
+        """Collects all lines for an eye image, saves the image, then creates a
+        psychopy imagestim from it."""
         for i in range(width):
             try:
                 self.rgb_index_array[line - 1, i] = buff[i]
             except Exception as e:
                 printExceptionDetailsToStdErr()
                 print2err(
-                    "FAILED TO DRAW PIXEL TO IMAGE LINE: %d %d" %
+                    'FAILED TO DRAW PIXEL TO IMAGE LINE: %d %d' %
                     (line - 1, i))
 
         # Once all lines have been collected, go through the hoops needed
@@ -695,16 +685,17 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
             except Exception as err:
                 import traceback
-                print2err("Error during eye image display: ", err)
+                print2err('Error during eye image display: ', err)
                 printExceptionDetailsToStdErr()
 
     def set_image_palette(self, r, g, b):
-        """
-        Set color palette ued by host pc when sending images.
-        Saves the different r,g,b values provided by the eyelink host palette.
-        When building up each eye image frame, eyelink sends the palette
-        index for each pixel; so an eyelink eye image frame can be a 2D lookup
-        array into this palette.
+        """Set color palette ued by host pc when sending images.
+
+        Saves the different r,g,b values provided by the eyelink host
+        palette. When building up each eye image frame, eyelink sends
+        the palette index for each pixel; so an eyelink eye image frame
+        can be a 2D lookup array into this palette.
+
         """
         self.clear_cal_display()
         sz = len(r)
@@ -715,10 +706,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             i += 1
 
     def alert_printf(self, msg):
-        """
-        Prints alert message to psychopy stderr.
-        """
-        print2err("eyelink_graphics.alert_printf(): %s" % msg)
+        """Prints alert message to psychopy stderr."""
+        print2err('eyelink_graphics.alert_printf(): %s' % msg)
 
 ###
 
@@ -729,32 +718,32 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if pylink_sound_index == pylink.CAL_TARG_BEEP:
             pass
         elif pylink_sound_index == pylink.CAL_ERR_BEEP or pylink_sound_index == pylink.DC_ERR_BEEP:
-            self.textmsg.draw("Calibration Failed or Incomplete.")
+            self.textmsg.draw('Calibration Failed or Incomplete.')
             self.window.flip()
         elif pylink_sound_index == pylink.CAL_GOOD_BEEP:
-            if self.state == "calibration":
-                self.textmsg.draw("Calibration Passed.")
+            if self.state == 'calibration':
+                self.textmsg.draw('Calibration Passed.')
                 self.window.flip()
-            elif self.state == "validation":
-                self.textmsg.draw("Validation Passed.")
+            elif self.state == 'validation':
+                self.textmsg.draw('Validation Passed.')
                 self.window.flip()
         else:
             pass
 
     def draw_line(self, x1, y1, x2, y2, color_index):
-        """ TODO """
+        """TODO."""
         pass
 
     def draw_lozenge(self, x, y, width, height, color_index):
-        """ TODO """
+        """TODO."""
         pass
 
     def record_abort_hide(self):
-        """ TODO """
+        """TODO."""
         pass
 
     def get_mouse_state(self):
-        """ TODO """
+        """TODO."""
         pass
 ############# From Pyglet Custom Graphics #####################################
 #

@@ -21,11 +21,12 @@ getTime = Computer.getTime
 
 
 def to_numeric(lit):
-    """
-    Return value of a numeric literal string. If the string can not be converted
-    then the original string is returned.
+    """Return value of a numeric literal string. If the string can not be
+    converted then the original string is returned.
+
     :param lit:
     :return:
+
     """
     # Handle '0'
     if lit == '0':
@@ -218,22 +219,21 @@ class EyeTracker(EyeTrackerDevice):
                     if msgtoks:
                         msg = dict(type=msgtoks[0])
                         for t in msgtoks[1:]:
-                            tkey, tval = t.split("=")
+                            tkey, tval = t.split('=')
                             try:
                                 msg[tkey] = to_numeric(tval.strip('"'))
                             except Exception:
                                 msg[tkey] = tval
                         msgs.append(msg)
                 else:
-                    print2err("Incomplete Message Found: [", msgtxt, ']')
+                    print2err('Incomplete Message Found: [', msgtxt, ']')
                 self._rx_buffer = self._rx_buffer[msg_end_ix + 2:]
             else:
                 break
         return msgs
 
     def setConnectionState(self, enable):
-        """
-        Connects or disconnects from the GP3 eye tracking hardware.
+        """Connects or disconnects from the GP3 eye tracking hardware.
 
         By default, when ioHub is started, a connection is automatically made,
         and when the experiment completes and ioHub is closed, so is the GP3
@@ -243,6 +243,7 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:
             bool: indicates the current connection state to the eye tracking hardware.
+
         """
         if enable is True and self._gp3 is None:
             try:
@@ -290,11 +291,10 @@ class EyeTracker(EyeTrackerDevice):
         return self.isConnected()
 
     def isConnected(self):
-        """
-        isConnected returns whether the GP3 is connected to the experiment PC
-        and if the tracker state is valid. Returns True if the tracker can be
-        put into Record mode, etc and False if there is an error with the tracker
-        or tracker connection with the experiment PC.
+        """isConnected returns whether the GP3 is connected to the experiment
+        PC and if the tracker state is valid. Returns True if the tracker can
+        be put into Record mode, etc and False if there is an error with the
+        tracker or tracker connection with the experiment PC.
 
         Args:
             None
@@ -312,7 +312,7 @@ class EyeTracker(EyeTrackerDevice):
         try:
             if time_offset is not None:
                 print2err(
-                    "Warning: GP3 EyeTracker.sendMessage time_offset arguement is ignored by this eye tracker interface.")
+                    'Warning: GP3 EyeTracker.sendMessage time_offset arguement is ignored by this eye tracker interface.')
             if self._gp3 and self.isRecordingEnabled() is True:
                 strMessage = '<SET ID="USER_DATA" VALUE="{0}"/>\r\n'.format(
                     message_contents)
@@ -323,23 +323,20 @@ class EyeTracker(EyeTrackerDevice):
         return EyeTrackerConstants.EYETRACKER_OK
 
     def enableEventReporting(self, enabled=True):
-        """
-        enableEventReporting is functionally identical to the eye tracker
-        device specific setRecordingState method.
-        """
+        """enableEventReporting is functionally identical to the eye tracker
+        device specific setRecordingState method."""
 
         try:
             self.setRecordingState(enabled)
             enabled = EyeTrackerDevice.enableEventReporting(self, enabled)
             return enabled
         except Exception as e:
-            print2err("Exception in EyeTracker.enableEventReporting: ", str(e))
+            print2err('Exception in EyeTracker.enableEventReporting: ', str(e))
             printExceptionDetailsToStdErr()
 
     def setRecordingState(self, recording):
-        """
-        setRecordingState is used to start or stop the recording of data from
-        the eye tracking device.
+        """setRecordingState is used to start or stop the recording of data
+        from the eye tracking device.
 
         args:
            recording (bool): if True, the eye tracker will start recordng available
@@ -357,6 +354,7 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:trackerTime
             bool: the current recording state of the eye tracking device
+
         """
         current_state = self.isRecordingEnabled()
         if self._gp3 and recording is True and current_state is False:
@@ -379,8 +377,7 @@ class EyeTracker(EyeTrackerDevice):
         return EyeTrackerDevice.enableEventReporting(self, recording)
 
     def isRecordingEnabled(self):
-        """
-        isRecordingEnabled returns the recording state from the eye tracking
+        """isRecordingEnabled returns the recording state from the eye tracking
         device.
 
         Args:
@@ -388,15 +385,18 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
+
         """
         if self._gp3:
             return self._recording
         return False
 
     def _poll(self):
-        """
-        This method is called by gp3 every n msec based on the polling interval
-        set in the eye tracker config. Default is 5 msec
+        """This method is called by gp3 every n msec based on the polling
+        interval set in the eye tracker config.
+
+        Default is 5 msec
+
         """
         try:
             if not self.isRecordingEnabled():
@@ -535,23 +535,21 @@ class EyeTracker(EyeTrackerDevice):
                         (binocSample, (combined_gaze_x, combined_gaze_y)))
 
                 elif m.get('type') == 'ACK':
-                    print2err("ACK Received: ", m)
+                    print2err('ACK Received: ', m)
                 else:
                     # Message type is not being handled.
-                    print2err("UNHANDLED GP3 MESSAGE: ", m)
+                    print2err('UNHANDLED GP3 MESSAGE: ', m)
 
         except Exception:
-            print2err("ERROR occurred during GP3 Sample Callback.")
+            print2err('ERROR occurred during GP3 Sample Callback.')
             printExceptionDetailsToStdErr()
         finally:
             return 0
 
     def _getIOHubEventObject(self, native_event_data):
-        """
-        The _getIOHubEventObject method is called by the ioHub Process to convert
-        new native device event objects that have been received to the appropriate
-        ioHub Event type representation.
-        """
+        """The _getIOHubEventObject method is called by the ioHub Process to
+        convert new native device event objects that have been received to the
+        appropriate ioHub Event type representation."""
         self._latest_sample, cgp = native_event_data
 
         if cgp[0] is not None and cgp[1] is not None:
@@ -562,9 +560,10 @@ class EyeTracker(EyeTrackerDevice):
         return self._latest_sample
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
-        """
-        Converts GP3 gaze positions to the Display device coordinate space.
+        """Converts GP3 gaze positions to the Display device coordinate space.
+
         TODO: Check if thgis works for 0.0,0.0 being left,top to 1.0,1.0
+
         """
 
         gaze_x, gaze_y = eyetracker_point
@@ -576,9 +575,11 @@ class EyeTracker(EyeTrackerDevice):
         return x, y
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):
-        """
-        Converts a Display device point to GP3 gaze position coordinate space.
+        """Converts a Display device point to GP3 gaze position coordinate
+        space.
+
         TODO: Check if thgis works for 0.0,0.0 being left,top to 1.0,1.0
+
         """
         left, top, right, bottom = self._display_device.getCoordBounds()
         w, h = right - left, top - bottom

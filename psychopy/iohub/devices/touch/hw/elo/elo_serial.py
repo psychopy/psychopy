@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/touch/hw/elo/elo_serial.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 from .... import Computer
@@ -72,7 +73,7 @@ class ResponsePacket(SmartSetPacket):
                     self._packet_bytes)))
         if self.validPacket() is False:
             self.valid_respons = False
-            print2err("ERROR: checksum %s %d (%d != %d)\n" % (str([b for b in self._packet_bytes]), len(
+            print2err('ERROR: checksum %s %d (%d != %d)\n' % (str([b for b in self._packet_bytes]), len(
                 self._packet_bytes), self.calculateCheckSum(), self._packet_bytes[-1]))
 
     def validPacket(self):
@@ -246,8 +247,7 @@ RESPONSE_PACKET_TYPES[ResponseReport.PACKET_TYPE_CHAR] = ResponseReport
 
 
 class QueryCalibration(QueryPacket):
-    """
-    QueryCalibration Bytes
+    """QueryCalibration Bytes.
 
     0       c
     1       axis (x,y, or z)
@@ -255,6 +255,7 @@ class QueryCalibration(QueryPacket):
 
     axis specifies the coordinate axis by using lower-case ASCII characters
     'x','y', or 'z'.
+
     """
     PACKET_TYPE_CHAR = 'c'
 
@@ -397,7 +398,7 @@ class CommandCalibration(CommandPacket):
                     denominator_chr2)
             else:
                 print2err(
-                    "Warning: Calibration must be set using low_point and high_point, OR offset, numerator, and denominator.")
+                    'Warning: Calibration must be set using low_point and high_point, OR offset, numerator, and denominator.')
         else:
             CommandPacket.__init__(self, 'S', enable_swap)
 COMMAND_PACKET_TYPES[CommandCalibration.PACKET_TYPE_CHAR] = CommandCalibration
@@ -406,10 +407,9 @@ COMMAND_PACKET_TYPES[CommandCalibration.PACKET_TYPE_CHAR] = CommandCalibration
 # ------------------------
 # Response Packet
 class ResponseCalibration(ResponsePacket):
-    """
-    Calibration parameters are returned in the controller's internal Offset,
-    Numerator, and Denominator format. These values can be saved and later restored
-    directly in this format.
+    """Calibration parameters are returned in the controller's internal Offset,
+    Numerator, and Denominator format. These values can be saved and later
+    restored directly in this format.
 
     Note there is no way to directly query the LowPoint and HighPoint values. These
     values can be calculated by the following formulas:
@@ -425,6 +425,7 @@ class ResponseCalibration(ResponsePacket):
     2-3     Offset
     4-5     Numerator
     6-7     Denominator
+
     """
     PACKET_TYPE_CHAR = 'C'
 
@@ -451,10 +452,12 @@ RESPONSE_PACKET_TYPES[
 
 
 class QueryDiagnostics(QueryPacket):
-    """
-    The results of the previous diagnostics can be queried at any time. Since the
+    """The results of the previous diagnostics can be queried at any time.
+
+    Since the
     controller executes its on-board diagnostics at power-on, the results can be
     queried without running them again.
+
     """
     PACKET_TYPE_CHAR = 'd'
 
@@ -611,10 +614,8 @@ RESPONSE_PACKET_TYPES[
 
 
 class QueryFilter(QueryPacket):
-    """
-    Used to request information about various aspects of the firmware
-    filtering algorithms used in the controller.
-    """
+    """Used to request information about various aspects of the firmware
+    filtering algorithms used in the controller."""
     PACKET_TYPE_CHAR = 'f'
 
     def __init__(self):
@@ -625,8 +626,7 @@ QUERY_PACKET_TYPES[QueryFilter.PACKET_TYPE_CHAR] = QueryFilter
 
 
 class CommandFilter(CommandPacket):
-    """
-    Used to control various aspects of the firmware filtering algorithms
+    """Used to control various aspects of the firmware filtering algorithms
     used in the controller.
 
     ## AccuTouch Filtering
@@ -676,6 +676,7 @@ class CommandFilter(CommandPacket):
     7   0
 
     See ResponseFilter class for description of each bytes value.
+
     """
     PACKET_TYPE_CHAR = 'F'
 
@@ -702,8 +703,7 @@ COMMAND_PACKET_TYPES[CommandFilter.PACKET_TYPE_CHAR] = CommandFilter
 
 
 class ResponseFilter(ResponsePacket):
-    """
-    Used to provide information about various aspects of the firmware
+    """Used to provide information about various aspects of the firmware
     filtering algorithms used in the controller.
 
     ## Filter Response Packet Bytes:
@@ -775,10 +775,8 @@ RESPONSE_PACKET_TYPES[ResponseFilter.PACKET_TYPE_CHAR] = ResponseFilter
 
 
 class QueryConfiguration(QueryPacket):
-    """
-    Requests a complete dump of the controller's configuration for
-    saving and restoring controller settings when switching between
-    applications.
+    """Requests a complete dump of the controller's configuration for saving
+    and restoring controller settings when switching between applications.
 
     The order and number of packets returned may change in future revisions of the
     controllers. Storage requirements may be queried with the ID command, (see page
@@ -786,6 +784,7 @@ class QueryConfiguration(QueryPacket):
 
     The packets may be sent back to the controller as individual commands to restore
     (set) all controller parameters.
+
     """
     PACKET_TYPE_CHAR = 'g'
 
@@ -809,9 +808,7 @@ QUERY_PACKET_TYPES[QueryConfiguration.PACKET_TYPE_CHAR] = QueryConfiguration
 
 
 class QueryTimer(QueryPacket):
-    """
-    Queries the User Timer functions of the controller.
-    """
+    """Queries the User Timer functions of the controller."""
     PACKET_TYPE_CHAR = 'h'
 
     def __init__(self):
@@ -822,8 +819,7 @@ QUERY_PACKET_TYPES[QueryTimer.PACKET_TYPE_CHAR] = QueryTimer
 
 
 class CommandTimer(CommandPacket):
-    """
-    Controls the User Timer functions of the controller.
+    """Controls the User Timer functions of the controller.
 
     Timer packet bytes (inferred from below text, actual byte table not in manual)
     TODO: Test that byte order assumed is correct.
@@ -859,6 +855,7 @@ class CommandTimer(CommandPacket):
         Specifying an Interval of 0 (or 1 on slow computers) will flood the
         host with Timer packets so that communication with the controller may
         become impossible.
+
     """
     PACKET_TYPE_CHAR = 'H'
 
@@ -879,8 +876,7 @@ COMMAND_PACKET_TYPES[CommandTimer.PACKET_TYPE_CHAR] = CommandTimer
 
 
 class ResponseTimer(ResponsePacket):
-    """
-    Provides information for the User Timer of the controller. Automatically
+    """Provides information for the User Timer of the controller. Automatically
     returned by controller when the Timer expires.
 
     Timer packet bytes (inferred actual byte table not in manual)
@@ -897,6 +893,7 @@ class ResponseTimer(ResponsePacket):
                         0 when Timer has expired.
 
     See ControlTimer class description for details on bytes returned in packet.
+
     """
     PACKET_TYPE_CHAR = 'H'
 
@@ -921,11 +918,11 @@ RESPONSE_PACKET_TYPES[ResponseTimer.PACKET_TYPE_CHAR] = ResponseTimer
 
 
 class QueryID(QueryPacket):
-    """
-    Queries various information about the controller and touchscreen.
+    """Queries various information about the controller and touchscreen.
 
-    See ResponseID class description for details on bytes returned by ResponseID
-    packet.
+    See ResponseID class description for details on bytes returned by
+    ResponseID packet.
+
     """
     PACKET_TYPE_CHAR = 'i'
 
@@ -940,8 +937,7 @@ QUERY_PACKET_TYPES[QueryID.PACKET_TYPE_CHAR] = QueryID
 
 
 class ResponseID(ResponsePacket):
-    """
-    Returns various information about the controller and touchscreen.
+    """Returns various information about the controller and touchscreen.
 
     ID packet bytes (inferred, actual byte table not in manual)
     TODO: Test that byte order assumed is correct.
@@ -1013,6 +1009,7 @@ class ResponseID(ResponsePacket):
         1. Low Power Mode is not supported. See Low Power command.
         2. 38,400 Baud is not supported. See Parameter command.
         3. Filtering parameters are slightly different. See Filter command.
+
     """
     PACKET_TYPE_CHAR = 'I'
     typeChar2ModelType = {
@@ -1072,11 +1069,11 @@ RESPONSE_PACKET_TYPES[ResponseID.PACKET_TYPE_CHAR] = ResponseID
 
 
 class QueryJumpers(QueryPacket):
-    """
-    Requests the jumper settings on the controller.
+    """Requests the jumper settings on the controller.
 
-    See ResponseJumpers class description for details on bytes returned by
-    ResponseJumpers packet.
+    See ResponseJumpers class description for details on bytes returned
+    by ResponseJumpers packet.
+
     """
     PACKET_TYPE_CHAR = 'j'
 
@@ -1091,8 +1088,7 @@ QUERY_PACKET_TYPES[QueryJumpers.PACKET_TYPE_CHAR] = QueryJumpers
 
 
 class ResponseJumpers(ResponsePacket):
-    """
-    Returns the jumper settings on the controller.
+    """Returns the jumper settings on the controller.
 
     The **Type** byte indicates the touchscreen type selected by the jumpers on the
     controller as follows: an ASCII '0' for AccuTouch, '1' for DuraTouch, and '2' for
@@ -1136,6 +1132,7 @@ class ResponseJumpers(ResponsePacket):
     The **S3** byte is an ASCII '0' if the SmartSet ASCII Mode is selected on power-on
     by the J2 jumper. A '1' indicates the SmartSet Binary Mode. Serial controllers are
     shipped jumpered for Binary Mode (J2 not installed).
+
     """
     PACKET_TYPE_CHAR = 'J'
     ELO_TYPES = {
@@ -1193,9 +1190,11 @@ RESPONSE_PACKET_TYPES[ResponseJumpers.PACKET_TYPE_CHAR] = ResponseJumpers
 
 
 class QueryKey(QueryPacket):
-    """
-    Query the Key Byte value. The Key Byte may be used for multiplexing
-    multiple controllers on a common serial line.
+    """Query the Key Byte value.
+
+    The Key Byte may be used for multiplexing multiple controllers on a
+    common serial line.
+
     """
     PACKET_TYPE_CHAR = 'k'
 
@@ -1207,9 +1206,8 @@ QUERY_PACKET_TYPES[QueryKey.PACKET_TYPE_CHAR] = QueryKey
 
 
 class CommandKey(CommandPacket):
-    """
-    Used to set the Key Byte value. The Key Byte may be
-    used for multiplexing multiple controllers on a common serial line.
+    """Used to set the Key Byte value. The Key Byte may be used for
+    multiplexing multiple controllers on a common serial line.
 
     The KeyValue byte may be from 1 255. A 0 value disables this function.
 
@@ -1219,6 +1217,7 @@ class CommandKey(CommandPacket):
     Keyed packets are disabled by factory default.
 
     Keyed packets are discussed on page 52.
+
     """
     PACKET_TYPE_CHAR = 'K'
 
@@ -1231,12 +1230,12 @@ COMMAND_PACKET_TYPES[CommandKey.PACKET_TYPE_CHAR] = CommandKey
 
 
 class ResponseKey(ResponsePacket):
-    """
-    Return the Key Byte value. The Key Byte may be used for multiplexing
+    """Return the Key Byte value. The Key Byte may be used for multiplexing
     multiple controllers on a common serial line.
 
     The KeyValue byte may be from 1 255. A 0 value means the Key function is
     disabled.
+
     """
     PACKET_TYPE_CHAR = 'K'
 
@@ -1255,9 +1254,7 @@ RESPONSE_PACKET_TYPES[ResponseKey.PACKET_TYPE_CHAR] = ResponseKey
 
 
 class QueryLowPower(QueryPacket):
-    """
-    Requests whether Low Power Mode is enabled or not.
-    """
+    """Requests whether Low Power Mode is enabled or not."""
     PACKET_TYPE_CHAR = 'l'
 
     def __init__(self):
@@ -1268,8 +1265,7 @@ QUERY_PACKET_TYPES[QueryLowPower.PACKET_TYPE_CHAR] = QueryLowPower
 
 
 class CommandLowPower(CommandPacket):
-    """
-    Controls the Low Power Mode of the controller.
+    """Controls the Low Power Mode of the controller.
 
     During times when processing in the controller is minimal (no touch and no
     communications in progress), the controller can enter a Lower Power Mode.
@@ -1284,6 +1280,7 @@ class CommandLowPower(CommandPacket):
     Low Power Mode is disabled by factory default.
 
     Low Power Mode is not supported by the E271-2210 controller.
+
     """
     PACKET_TYPE_CHAR = 'L'
 
@@ -1296,11 +1293,11 @@ COMMAND_PACKET_TYPES[CommandLowPower.PACKET_TYPE_CHAR] = CommandLowPower
 
 
 class ResponseLowPower(ResponsePacket):
-    """
-    Returns whether Low Power Mode is enabled or not.
+    """Returns whether Low Power Mode is enabled or not.
 
     The least significant bit of the Enable byte is 1 for Low Power Mode
     or 0 for normal mode.
+
     """
     PACKET_TYPE_CHAR = 'L'
 
@@ -1319,9 +1316,7 @@ RESPONSE_PACKET_TYPES[ResponseLowPower.PACKET_TYPE_CHAR] = ResponseLowPower
 
 
 class QueryMode(QueryPacket):
-    """
-    Requests the various operating modes of the controller.
-    """
+    """Requests the various operating modes of the controller."""
     PACKET_TYPE_CHAR = 'm'
 
     def __init__(self):
@@ -1332,8 +1327,7 @@ QUERY_PACKET_TYPES[QueryMode.PACKET_TYPE_CHAR] = QueryMode
 
 
 class CommandMode(CommandPacket):
-    """
-    Sets the various operating modes of the controller.
+    """Sets the various operating modes of the controller.
 
     The Mode command offers two methods of setting the various operating modes;
     Binary and ASCII. Modes are discussed in the tutorial in Chapter 4.
@@ -1467,6 +1461,7 @@ class CommandMode(CommandPacket):
     The factory default mode has Initial Touches, Stream Touches, and Untouches
     enabled. The Single-Point Mode jumper (J4) disables Stream Touches and
     Untouches when installed.
+
     """
     PACKET_TYPE_CHAR = 'M'
 
@@ -1480,9 +1475,10 @@ COMMAND_PACKET_TYPES[CommandMode.PACKET_TYPE_CHAR] = CommandMode
 
 
 class ResponseMode(ResponsePacket):
-    """
-    Returns the various operating modes of the controller.
+    """Returns the various operating modes of the controller.
+
     See CommandMode Class for details on the returned data bytes.
+
     """
     PACKET_TYPE_CHAR = 'M'
 
@@ -1575,9 +1571,7 @@ RESPONSE_PACKET_TYPES[ResponseNVRAM.PACKET_TYPE_CHAR] = ResponseNVRAM
 
 
 class QueryOwner(QueryPacket):
-    """
-    Reserved for identifying custom firmware.
-    """
+    """Reserved for identifying custom firmware."""
     PACKET_TYPE_CHAR = 'o'
 
     def __init__(self):
@@ -1591,9 +1585,7 @@ QUERY_PACKET_TYPES[QueryOwner.PACKET_TYPE_CHAR] = QueryOwner
 
 
 class ResponseOwner(ResponsePacket):
-    """
-    Reserved for identifying custom firmware.
-    """
+    """Reserved for identifying custom firmware."""
     PACKET_TYPE_CHAR = 'O'
 
     def __init__(self, time, packet_bytes):
@@ -1612,11 +1604,11 @@ RESPONSE_PACKET_TYPES[ResponseOwner.PACKET_TYPE_CHAR] = ResponseOwner
 
 
 class QueryParameter(QueryPacket):
-    """
-    Requests controller communication parameters.
+    """Requests controller communication parameters.
 
-    See CommandParameter class for details on bytes returned in the ResponseParameter
-    packet.
+    See CommandParameter class for details on bytes returned in the
+    ResponseParameter packet.
+
     """
     PACKET_TYPE_CHAR = 'p'
 
@@ -1628,8 +1620,7 @@ QUERY_PACKET_TYPES[QueryParameter.PACKET_TYPE_CHAR] = QueryParameter
 
 
 class CommandParameter(CommandPacket):
-    """
-    Changes controller communication parameters.
+    """Changes controller communication parameters.
 
         Byte    Description
 
@@ -1758,6 +1749,7 @@ class CommandParameter(CommandPacket):
 
     The Baud Rate and Hardware Handshaking options may be overridden if the
     controller boots from jumper settings.
+
     """
     PACKET_TYPE_CHAR = 'P'
     baud_mapping = {300: 0,
@@ -1792,7 +1784,8 @@ class CommandParameter(CommandPacket):
         self.serial_settings1 = self.baud_mapping.get(baud_rate, 0) + (8 * data_7bit) + (
             16 * stop_bits_2) + (32 * parity_enabled) + self.parity_mapping.get(parity_type, 0)
         self.serial_settings2 = checksum_enabled + \
-            (2 * sw_hshk) + (4 * hw_hshk) + (8 * invert_hw_hshk) + (128 + full_duplex)
+            (2 * sw_hshk) + (4 * hw_hshk) + \
+            (8 * invert_hw_hshk) + (128 + full_duplex)
         CommandPacket.__init__(
             self,
             self.io_type,
@@ -1803,10 +1796,10 @@ COMMAND_PACKET_TYPES[CommandParameter.PACKET_TYPE_CHAR] = CommandParameter
 
 # Response Packet
 class ResponseParameter(ResponsePacket):
-    """
-    Returns the current controller communication parameters.
+    """Returns the current controller communication parameters.
 
     See CommandParameter class for details on bytes returned.
+
     """
     PACKET_TYPE_CHAR = 'P'
 
@@ -1853,8 +1846,7 @@ QUERY_PACKET_TYPES[QueryScaling.PACKET_TYPE_CHAR] = QueryScaling
 
 
 class CommandScaling(CommandPacket):
-    """
-    Setting the Scaling Points from the Host
+    """Setting the Scaling Points from the Host.
 
     Scaling is accomplished by the host transmitting a range of coordinates,
     typically equivalent to the display resolution. These coordinates are then
@@ -1902,6 +1894,7 @@ class CommandScaling(CommandPacket):
         2   Invert Z Axis
 
     Scaling and Axis Inversion are disabled by factory default.
+
     """
     PACKET_TYPE_CHAR = 'S'
 
@@ -1948,16 +1941,16 @@ class CommandScaling(CommandPacket):
                     denominator_chr2)
             else:
                 print2err(
-                    "Warning: Calibration must be set using low_point and high_point, OR offset, numerator, and denominator.")
+                    'Warning: Calibration must be set using low_point and high_point, OR offset, numerator, and denominator.')
 COMMAND_PACKET_TYPES[CommandScaling.PACKET_TYPE_CHAR] = CommandScaling
 
 
 # Response Packet
 class ResponseScaling (ResponsePacket):
-    """
-    Returns the current controller scaling settings.
+    """Returns the current controller scaling settings.
 
     See CommandScaling  class for details on bytes returned.
+
     """
     PACKET_TYPE_CHAR = 'S'
 
@@ -1978,8 +1971,7 @@ RESPONSE_PACKET_TYPES[ResponseScaling.PACKET_TYPE_CHAR] = ResponseScaling
 
 # Query Packet
 class QueryTouch(QueryPacket):
-    """
-    """
+    """"""
     PACKET_TYPE_CHAR = 't'
 
     def __init__(self):
@@ -2086,7 +2078,7 @@ class ResponseTouch(ResponsePacket):
         self.z = (z[1] << 8) + z[0]
 
     def __str__(self):
-        return "Elo Touch Event:\n\ttype:\t%d\n\ttime:\t%.3f\n\tx:\t%d\n\ty:\t%d\n\tz:\t%d\n\tPacket Bytes:\t" % (
+        return 'Elo Touch Event:\n\ttype:\t%d\n\ttime:\t%.3f\n\tx:\t%d\n\ty:\t%d\n\tz:\t%d\n\tPacket Bytes:\t' % (
             self.touch_type, self.time * 1000.0, self.x, self.y, self.z) + str(self._packet_bytes)
 RESPONSE_PACKET_TYPES[ResponseTouch.PACKET_TYPE_CHAR] = ResponseTouch
 

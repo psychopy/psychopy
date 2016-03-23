@@ -54,7 +54,7 @@ try:
     _DATA_STORE_AVAILABLE = True
 except Exception as e:
     print2err(
-        "WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
+        'WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ')
     printExceptionDetailsToStdErr()
 
 from .util.fix_encoding import fix_encoding

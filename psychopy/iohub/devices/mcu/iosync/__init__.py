@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/mcu/iosync/__init__.py
 
 Copyright (C) 2012-2014 iSolver Software Solutions
@@ -68,7 +68,6 @@ MCU Access
 - Get the current Digital Input state as an 8 bit byte value. ( getDigitalInputs() method )
 - Get the current Analog Input values. ( getAnalogInputs() method )
 
-
 """
 import pysync
 from pysync import T3MC, T3Request, T3Event
@@ -82,8 +81,7 @@ getTime = Computer.getTime
 
 
 class MCU(Device):
-    """
-    """
+    """"""
     DEVICE_TIMEBASE_TO_SEC = 1.0
     _newDataTypes = [('serial_port', N.str, 32),
                      ('time_sync_interval', N.float32)]
@@ -92,7 +90,7 @@ class MCU(Device):
         'DigitalInputEvent',
         'ThresholdEvent']
     DEVICE_TYPE_ID = DeviceConstants.MCU
-    DEVICE_TYPE_STRING = "MCU"
+    DEVICE_TYPE_STRING = 'MCU'
     _mcu_slots = ['serial_port',
                   'time_sync_interval',
                   '_mcu',
@@ -121,7 +119,7 @@ class MCU(Device):
                 self.serial_port = syncPorts[0]
             else:
                 print2err(
-                    "ioSync ERROR: No ioSync Devices found. Check cabling and serial device driver. ")
+                    'ioSync ERROR: No ioSync Devices found. Check cabling and serial device driver. ')
 
         self.setConnectionState(True)
 
@@ -146,9 +144,10 @@ class MCU(Device):
         return T3Request.sync_state.local2RemoteTime(getTime())
 
     def getSecTime(self):
-        """
-        Returns current device time in sec.msec format.
+        """Returns current device time in sec.msec format.
+
         Relies on a functioning getDeviceTime() method.
+
         """
         return self.getDeviceTime()  # *self.DEVICE_TIMEBASE_TO_SEC
 
@@ -181,13 +180,14 @@ class MCU(Device):
         return Device.enableEventReporting(self, enabled)
 
     def isReportingEvents(self):
-        """
-        Returns whether a Device is currently reporting events to the ioHub Process.
+        """Returns whether a Device is currently reporting events to the ioHub
+        Process.
 
         Args: None
 
         Returns:
             (bool): Current reporting state.
+
         """
         return Device.isReportingEvents(self)
 
@@ -242,15 +242,15 @@ class MCU(Device):
         return request.asdict()
 
     def sendMorseCode(self, text='SOS', pin=0):
-        """
-        Spawns a separate greenlet to have iohub issue a series of led outputs
-        to flash the text as morse code.
+        """Spawns a separate greenlet to have iohub issue a series of led
+        outputs to flash the text as morse code.
 
         TOTALLY UNTESTED; MAY CRASH IOHUB!
 
         :param text:
         :param pin:
         :return:
+
         """
         CODE = {' ': ' ',
                 "'": '.----.',
@@ -416,10 +416,10 @@ class MCU(Device):
             self._last_callback_time = logged_time
             return True
         except Exception as e:
-            print2err("--------------------------------")
-            print2err("ERROR in MCU._poll: ", e)
+            print2err('--------------------------------')
+            print2err('ERROR in MCU._poll: ', e)
             printExceptionDetailsToStdErr()
-            print2err("---------------------")
+            print2err('---------------------')
 
     def _close(self):
         if self._mcu:

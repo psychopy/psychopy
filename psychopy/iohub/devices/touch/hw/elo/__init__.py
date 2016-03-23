@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/touch/hw/elo/__init__.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 import math
 from collections import deque
@@ -26,9 +27,10 @@ getTime = Computer.currentSec
 
 
 class Touch(TouchDevice):
-    """
-    The Touch class represents a touch screen input device. The Elo implementation
-    of the Touch Dveice uses a Serial interface for communication between
+    """The Touch class represents a touch screen input device. The Elo
+    implementation of the Touch Dveice uses a Serial interface for
+    communication between.
+
     the Host Computer running ioHub and the Elo Touch Controller. A Serial - USB
     converter is generally also used so that any computer with a free USB 2.0
     port, running an operating system supported by the Serial - USB
@@ -109,9 +111,8 @@ class Touch(TouchDevice):
         return self._elo_hw_config
 
     def queryDevice(self, query_type, *args, **kwargs):
-        """
-        Send the underlying touch screen device a query request and return the response.
-        """
+        """Send the underlying touch screen device a query request and return
+        the response."""
         self._query(query_type, *args, **kwargs)
         if query_type in RESPONSE_PACKET_TYPES.keys():
             stime = getTime()
@@ -126,9 +127,8 @@ class Touch(TouchDevice):
         return None
 
     def commandDevice(self, cmd_type, *args, **kwargs):
-        """
-        Send the underlying touch screen device a command and return the response.
-        """
+        """Send the underlying touch screen device a command and return the
+        response."""
         self._command(cmd_type, *args, **kwargs)
         if cmd_type in RESPONSE_PACKET_TYPES.keys():
             stime = getTime()
@@ -151,7 +151,7 @@ class Touch(TouchDevice):
             self.serial_port_num, 9600, timeout=0)
         if self._serial_port_hw is None:
             raise ValueError(
-                "Error: Serial Port Connection Failed: %s" %
+                'Error: Serial Port Connection Failed: %s' %
                 (str(
                     self.serial_port_num)))
         self._flushSerialInput()
@@ -232,7 +232,7 @@ class Touch(TouchDevice):
             pkt = self._query('m')
             reply_packets = self._poll()
         except Exception as e:
-            print2err("Exception During Touch.initCalibration: ", str(e))
+            print2err('Exception During Touch.initCalibration: ', str(e))
 
     def applyCalibrationData(
             self,
@@ -309,7 +309,7 @@ class Touch(TouchDevice):
             self._raw_positions = False
 
         except Exception as e:
-            print2err("Exception During Touch.applyCalibrationData: ", str(e))
+            print2err('Exception During Touch.applyCalibrationData: ', str(e))
 
     def clearEvents(self):
         try:
@@ -317,12 +317,10 @@ class Touch(TouchDevice):
             self._flushSerialInput()
             TouchDevice.clearEvents(self)
         except Exception as e:
-            print2err("Exception During Touch.clearEvents: ", str(e))
+            print2err('Exception During Touch.clearEvents: ', str(e))
 
     def _poll(self):
-        """
-        Checks for any new Touch Response Packets...
-        """
+        """Checks for any new Touch Response Packets..."""
         try:
             poll_time = currentSec()
             self._rx()
@@ -398,7 +396,7 @@ class Touch(TouchDevice):
                             if rc._valid_response is True:
                                 self._non_touch_events.append(rc)
                             else:
-                                print2err("Invalid Response:", rc.asdict())
+                                print2err('Invalid Response:', rc.asdict())
                         else:
                             print2err('Warning: UNHANDLED RX PACKET TYPE: %d %s' % (
                                 poll_time, str([c for c in self._rx_data[:10]])))
@@ -410,13 +408,12 @@ class Touch(TouchDevice):
             self._last_poll_time = poll_time
             return self._non_touch_events
         except Exception:
-            print2err("Exception During Touch._poll: ")
+            print2err('Exception During Touch._poll: ')
             printExceptionDetailsToStdErr()
 
     def _pixelToDisplayCoords(self, px, py):
-        """
-        Converts 0,0,pix_width,pix_height coord space to display device coord space.
-        """
+        """Converts 0,0,pix_width,pix_height coord space to display device
+        coord space."""
         try:
             dw, dh = self._display_device.getPixelResolution()
             rx = px / float(dw)
@@ -426,13 +423,12 @@ class Touch(TouchDevice):
             x, y = left + w * rx, bottom + h * (1.0 - ry)
             return x, y
         except Exception:
-            print2err("Error During EloDevice._pixelToDisplayCoords:")
+            print2err('Error During EloDevice._pixelToDisplayCoords:')
             printExceptionDetailsToStdErr()
             return px, py
 
     def _closeSerial(self):
-        """
-        """
+        """"""
         if self._serial_port_hw:
             self._serial_port_hw.close()
             self._serial_port_hw = None
@@ -440,8 +436,7 @@ class Touch(TouchDevice):
         return False
 
     def _close(self):
-        """
-        """
+        """"""
         try:
             self._closeSerial()
             Device._close(self)

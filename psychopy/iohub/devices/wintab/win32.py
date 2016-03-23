@@ -21,10 +21,10 @@ LCNAMELEN = 40
 
 
 def print_struct(s, pretxt=''):
-    print2err("{}{}:".format(pretxt, s))
+    print2err('{}{}:'.format(pretxt, s))
     for field_name, field_type in s._fields_:
-        print2err("\t{}:\t{}".format(field_name, getattr(s, field_name)))
-    print2err("<<<<<<<<")
+        print2err('\t{}:\t{}'.format(field_name, getattr(s, field_name)))
+    print2err('<<<<<<<<')
 
 
 def struct2dict(s):
@@ -487,21 +487,22 @@ class Win32WintabTablet(object):
                 self._cursor_map[i + first_cursor] = cursor
 
     def open(self, window, iohub_wt_device):
-        '''Open a tablet device for a window.
+        """Open a tablet device for a window.
 
         :Parameters:
             `window` : `Window`
                 The window on which the tablet will be used.
 
         :rtype: `Win32WintabTabletCanvas`
-        '''
+
+        """
         Win32WintabTabletCanvas.iohub_wt_device = iohub_wt_device
         pc = Win32WintabTabletCanvas(self, window)
         return pc
 
 
 class Win32WintabTabletCanvas(EventDispatcher):
-    '''Event dispatcher for tablets.
+    """Event dispatcher for tablets.
 
     Use `Tablet.open` to obtain this object for a particular tablet device and
     window.  Events may be generated even if the tablet stylus is outside of
@@ -514,7 +515,8 @@ class Win32WintabTabletCanvas(EventDispatcher):
     :Ivariables:
         `window` : Window
             The window on which this tablet was opened.
-    '''
+
+    """
     iohub_wt_device = None
 
     def __init__(self, device, window, msg_base=WT_DEFBASE):
@@ -564,7 +566,7 @@ class Win32WintabTabletCanvas(EventDispatcher):
         self._context = lib.WTOpenW(window._hwnd,
                                     ctypes.byref(context_info),
                                     self.iohub_wt_device.getConfiguration().
-                                    get("auto_report_events", False))
+                                    get('auto_report_events', False))
         if not self._context:
             print2err("Couldn't open tablet context.")
 

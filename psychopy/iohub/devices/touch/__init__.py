@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/touch/hw/__init__.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 import hw
 from ...constants import EventConstants, DeviceConstants
@@ -17,8 +18,7 @@ from ...errors import print2err, printExceptionDetailsToStdErr
 
 
 class TouchDevice(Device):
-    """
-    The Touch class represents a touch screen input device.
+    """The Touch class represents a touch screen input device.
 
     Touch position data is mapped to the coordinate space defined in the ioHub
     configuration file for the Display index specified. If the touch device is
@@ -28,6 +28,7 @@ class TouchDevice(Device):
 
     Touch Events are generated independantly of other device events, including
     a mouse device. Therefore touch data can be used in parallel to mouse data.
+
     """
     EVENT_CLASS_NAMES = [
         'TouchEvent',
@@ -45,35 +46,27 @@ class TouchDevice(Device):
         self._display_index = None
 
     def queryDevice(self, query_type, *args):
-        """
-        Send the underlying touch screen device a query request and return the response.
-        """
+        """Send the underlying touch screen device a query request and return
+        the response."""
         pass
 
     def commandDevice(self, cmd_type, *args):
-        """
-        Send the underlying touch screen device a command and return the response.
-        """
+        """Send the underlying touch screen device a command and return the
+        response."""
         pass
 
     def saveConfiguration(self):
-        """
-        Save current touch device settings and calibration data to the touch device
-        hardware.
-        """
+        """Save current touch device settings and calibration data to the touch
+        device hardware."""
         pass
 
     def restoreConfiguration(self):
-        """
-        Load touch device settings and calibration data from the touch device
-        hardware.
-        """
+        """Load touch device settings and calibration data from the touch
+        device hardware."""
         pass
 
     def initCalibration(self):
-        """
-        Initialize the calibration mode on the touch device.
-        """
+        """Initialize the calibration mode on the touch device."""
         pass
 
     def applyCalibrationData(
@@ -92,16 +85,13 @@ class TouchDevice(Device):
             uppery,
             rightx,
             lowery):
-        """
-        Apply The data mapping collected for raw touch coordinates to
-        pixel coordinate space.
-        """
+        """Apply The data mapping collected for raw touch coordinates to pixel
+        coordinate space."""
         pass
 
     def _pixelToDisplayCoords(self, px, py):
-        """
-        Converts 0,0,pix_width,pix_height coord space to display device coord space.
-        """
+        """Converts 0,0,pix_width,pix_height coord space to display device
+        coord space."""
         try:
             dw, dh = self._display_device.getPixelResolution()
             rx = px / float(dw)
@@ -111,36 +101,36 @@ class TouchDevice(Device):
             x, y = left + w * rx, bottom + h * (1.0 - ry)
             return x, y
         except Exception:
-            print2err("Error During EloDevice._pixelToDisplayCoords:")
+            print2err('Error During EloDevice._pixelToDisplayCoords:')
             printExceptionDetailsToStdErr()
             return px, py
 
     def getPosition(self):
-        """
-        Returns the current position of the ioHub Touch Device.
-        Touch Position is in display coordinate units, with 0,0 being the center
-        of the screen.
+        """Returns the current position of the ioHub Touch Device. Touch
+        Position is in display coordinate units, with 0,0 being the center of
+        the screen.
 
         Args:
             None
 
         Returns:
             tuple: If return_display_index is false (default), return (x,y) position of the touch event.
+
         """
         return tuple(self._position)
 
     def getPositionAndDelta(self):
-        """
-        Returns a tuple of tuples, being the current position of the
-        ioHub Touch Device as an (x,y) tuple, and the amount the touch position
-        changed the last time it was updated (dx,dy).
-        Touch Position and Delta are in display coordinate units.
+        """Returns a tuple of tuples, being the current position of the ioHub
+        Touch Device as an (x,y) tuple, and the amount the touch position
+        changed the last time it was updated (dx,dy). Touch Position and Delta
+        are in display coordinate units.
 
         Args:
             None
 
         Returns:
             tuple: ( (x,y), (dx,dy) ) position of the touch event, change in touch position, both in Display coordinate space.
+
         """
         try:
             cpos = self._position
@@ -150,7 +140,7 @@ class TouchDevice(Device):
             return cpos, (change_x, change_y)
 
         except Exception as e:
-            print2err(">>ERROR getPositionAndDelta: " + str(e))
+            print2err('>>ERROR getPositionAndDelta: ' + str(e))
             printExceptionDetailsToStdErr()
             return (0.0, 0.0), (0.0, 0.0)
 
@@ -161,10 +151,12 @@ from .. import DeviceEvent
 
 
 class TouchEvent(DeviceEvent):
-    """
-    The TouchEvent is an abstract class that is the parent of all Touch Event types
-    supported by the ioHub. Touch position is mapped to the coordinate space
-    defined in the ioHub configuration file for the Display.
+    """The TouchEvent is an abstract class that is the parent of all Touch
+    Event types supported by the ioHub.
+
+    Touch position is mapped to the coordinate space defined in the
+    ioHub configuration file for the Display.
+
     """
     PARENT_DEVICE = TouchDevice
     EVENT_TYPE_STRING = 'TOUCH'
@@ -212,15 +204,16 @@ class TouchEvent(DeviceEvent):
 
 
 class TouchMoveEvent(TouchEvent):
-    """
-    TouchMoveEvent's occur when the touch position changes and the finger was
-    already applying pressure to the Touch Device in atleast 1 previous event.
-    Touch position is mapped to the coordinate space defined in the ioHub
-    configuration file for the Display the Touch Device is associated with.
+    """TouchMoveEvent's occur when the touch position changes and the finger
+    was already applying pressure to the Touch Device in atleast 1 previous
+    event. Touch position is mapped to the coordinate space defined in the
+    ioHub configuration file for the Display the Touch Device is associated
+    with.
 
     Event Type ID: EventConstants.TOUCH_MOVE
 
     Event Type String: 'TOUCH_MOVE'
+
     """
     EVENT_TYPE_STRING = 'TOUCH_MOVE'
     EVENT_TYPE_ID = EventConstants.TOUCH_MOVE
@@ -232,12 +225,13 @@ class TouchMoveEvent(TouchEvent):
 
 
 class TouchPressEvent(TouchEvent):
-    """
-    TouchPressEvent's are created when the touch device is initially pressed.
+    """TouchPressEvent's are created when the touch device is initially
+    pressed.
 
     Event Type ID: EventConstants.TOUCH_PRESS
 
     Event Type String: 'TOUCH_PRESS'
+
     """
     EVENT_TYPE_STRING = 'TOUCH_PRESS'
     EVENT_TYPE_ID = EventConstants.TOUCH_PRESS
@@ -249,13 +243,13 @@ class TouchPressEvent(TouchEvent):
 
 
 class TouchReleaseEvent(TouchEvent):
-    """
-    TouchReleaseEvent's are created when the finger pressing the Touch Device is
-    removed (lifted) from the touch device.
+    """TouchReleaseEvent's are created when the finger pressing the Touch
+    Device is removed (lifted) from the touch device.
 
     Event Type ID: EventConstants.TOUCH_RELEASE
 
     Event Type String: 'TOUCH_RELEASE'
+
     """
     EVENT_TYPE_STRING = 'TOUCH_RELEASE'
     EVENT_TYPE_ID = EventConstants.TOUCH_RELEASE

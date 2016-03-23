@@ -10,10 +10,10 @@ if __name__ == '__main__':
 
     TobiiTrackerBrowser.start()
 
-    print ">> Return first device detected and print details dict: "
+    print '>> Return first device detected and print details dict: '
     tracker_info = TobiiTrackerBrowser.findDevice()
     if tracker_info:
-        print "Success: ", tracker_info
+        print 'Success: ', tracker_info
         print '\tDetails:'
         for k, v in TobiiTrackerBrowser.getTrackerDetails(
                 tracker_info.product_id).iteritems():
@@ -22,27 +22,27 @@ if __name__ == '__main__':
         print 'ERROR: No Tracker Found.'
     print ''
 
-    print ">> Return first Tobii T120 detected: "
+    print '>> Return first Tobii T120 detected: '
     tracker_info = TobiiTrackerBrowser.findDevice(model='Tobii T120')
     if tracker_info:
-        print "\tSuccess: ", tracker_info
+        print '\tSuccess: ', tracker_info
     else:
         print '\tERROR: No Tracker Found.'
     print ''
 
-    print ">> Return first Tobii T120 with id TT120-206-95100697 detected: "
+    print '>> Return first Tobii T120 with id TT120-206-95100697 detected: '
     tracker_info = TobiiTrackerBrowser.findDevice(
         model='Tobii T120', product_id='TT120-206-95100697')
     if tracker_info:
-        print "\tSuccess: ", tracker_info
+        print '\tSuccess: ', tracker_info
     else:
         print '\tERROR: No Tracker Found.'
     print ''
 
-    print ">> Return Tobii with product id 12345678 detected (should always fail): "
+    print '>> Return Tobii with product id 12345678 detected (should always fail): '
     tracker_info = TobiiTrackerBrowser.findDevice(product_id='1234567')
     if tracker_info:
-        print "\tSuccess: ", tracker_info
+        print '\tSuccess: ', tracker_info
     else:
         print 'ERROR: No Tracker Found.'
 
@@ -51,13 +51,13 @@ if __name__ == '__main__':
     print '###################################'
     print ''
 
-    print "Test Creating a connected TobiiTracker class, using first available Tobii:"
+    print 'Test Creating a connected TobiiTracker class, using first available Tobii:'
 
     tobii_tracker = TobiiTracker()
-    print "\tCreated a Connected Tobii Tracker OK."
-    print "\tDetails:"
+    print '\tCreated a Connected Tobii Tracker OK.'
+    print '\tDetails:'
     for k, v in tobii_tracker.getTrackerDetails().iteritems():
-        print "\t\t{0}  {1}".format(k, v)
+        print '\t\t{0}  {1}'.format(k, v)
 
     print ''
     print 'Tracker Name: ', tobii_tracker.getName()
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         tobii_tracker.setIlluminationMode(cimode)
         print 'Current Illumination Mode Now: ', tobii_tracker.getIlluminationMode()
     else:
-        print "NOTE: Illumination Mode API features are not supported."
+        print 'NOTE: Illumination Mode API features are not supported.'
 
     print ''
     print 'Tracker Head Movement Box: ', tobii_tracker.getHeadBox()
@@ -150,5 +150,5 @@ if __name__ == '__main__':
 
     tobii_tracker.disconnect()
 
-    print ""
-    print "TESTS COMPLETE."
+    print ''
+    print 'TESTS COMPLETE.'

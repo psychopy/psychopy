@@ -193,9 +193,9 @@ class ExperimentVariableProvider(object):
                         color_column_indexes.append(i)
                     except Exception:
                         print2err(
-                            "*** ERROR HANDLING COLOR COLUMN: ",
+                            '*** ERROR HANDLING COLOR COLUMN: ',
                             cname,
-                            ". Setting to 64 char string.")
+                            '. Setting to 64 char string.')
                         printExceptionDetailsToStdErr()
                         np_dtype.append((cname, 'S', 1))
                         string_column_indexes.append(i)
@@ -210,11 +210,11 @@ class ExperimentVariableProvider(object):
                     np_dtype.append((cname, 'f4'))
             else:
                 print2err(
-                    "*** ERROR HANDLING COLUMN: ",
+                    '*** ERROR HANDLING COLUMN: ',
                     cname,
-                    " bad type: ",
+                    ' bad type: ',
                     rtype,
-                    ". Setting to 8 bit unsigned int")
+                    '. Setting to 8 bit unsigned int')
                 np_dtype.append((cname, 'u1'))
 
         temp_rows = []

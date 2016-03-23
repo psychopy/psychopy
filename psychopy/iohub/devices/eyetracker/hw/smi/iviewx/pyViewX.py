@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-'''Wrapper for iViewXAPI.h
+"""Wrapper for iViewXAPI.h.
 
 Generated with:
 ctypesgen.py -a --insert-file=prepend_contents.py --cpp=cl -E -l iViewXAPI -o iViewXAPI.py iViewXAPI.h
 
 Do not modify this file.
-'''
+
+"""
 
 __docformat__ = 'restructuredtext'
 
@@ -286,8 +287,8 @@ def String(python_base_str):
 
 
 def UNCHECKED(type):
-    if (hasattr(type, "_type_") and isinstance(type._type_, str)
-            and type._type_ != "P"):
+    if (hasattr(type, '_type_') and isinstance(type._type_, str)
+            and type._type_ != 'P'):
         return type
     else:
         return c_void_p
@@ -367,7 +368,7 @@ import ctypes.util
 
 def _environ_path(name):
     if name in os.environ:
-        return os.environ[name].split(":")
+        return os.environ[name].split(':')
     else:
         return []
 
@@ -385,7 +386,7 @@ class LibraryLoader(object):
             if os.path.exists(path):
                 return self.load(path)
 
-        raise ImportError("%s not found." % libname)
+        raise ImportError('%s not found.' % libname)
 
     def load(self, path):
         """Given a path to a library, load it."""
@@ -421,8 +422,8 @@ class LibraryLoader(object):
 
 
 class DarwinLibraryLoader(LibraryLoader):
-    name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
-                    "%s.so", "%s.bundle", "%s"]
+    name_formats = ['lib%s.dylib', 'lib%s.so', 'lib%s.bundle', '%s.dylib',
+                    '%s.so', '%s.bundle', '%s']
 
     def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
@@ -446,7 +447,7 @@ class DarwinLibraryLoader(LibraryLoader):
         '''
 
         dyld_fallback_library_path = _environ_path(
-            "DYLD_FALLBACK_LIBRARY_PATH")
+            'DYLD_FALLBACK_LIBRARY_PATH')
         if not dyld_fallback_library_path:
             dyld_fallback_library_path = [os.path.expanduser('~/lib'),
                                           '/usr/local/lib', '/usr/lib']
@@ -454,13 +455,13 @@ class DarwinLibraryLoader(LibraryLoader):
         dirs = []
 
         if '/' in libname:
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
         else:
-            dirs.extend(_environ_path("LD_LIBRARY_PATH"))
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('LD_LIBRARY_PATH'))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
 
         dirs.extend(self.other_dirs)
-        dirs.append(".")
+        dirs.append('.')
         dirs.append(os.path.dirname(__file__))
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
@@ -488,15 +489,15 @@ class PosixLibraryLoader(LibraryLoader):
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
         directories = []
-        for name in ("LD_LIBRARY_PATH",
-                     "SHLIB_PATH",  # HPUX
-                     "LIBPATH",  # OS/2, AIX
-                     "LIBRARY_PATH",  # BE/OS
+        for name in ('LD_LIBRARY_PATH',
+                     'SHLIB_PATH',  # HPUX
+                     'LIBPATH',  # OS/2, AIX
+                     'LIBRARY_PATH',  # BE/OS
                      ):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
-        directories.append(".")
+        directories.append('.')
         directories.append(os.path.dirname(__file__))
 
         try:
@@ -512,7 +513,7 @@ class PosixLibraryLoader(LibraryLoader):
         ext_re = re.compile(r'\.s[ol]$')
         for dir in directories:
             try:
-                for path in glob.glob("%s/*.s[ol]*" % dir):
+                for path in glob.glob('%s/*.s[ol]*' % dir):
                     file = os.path.basename(path)
 
                     # Index by filename
@@ -540,7 +541,7 @@ class PosixLibraryLoader(LibraryLoader):
 
         path = ctypes.util.find_library(libname)
         if path:
-            yield os.path.join("/lib", path)
+            yield os.path.join('/lib', path)
 
 # Windows
 
@@ -558,7 +559,7 @@ class _WindowsLibrary(object):
 
 
 class WindowsLibraryLoader(LibraryLoader):
-    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
+    name_formats = ['%s.dll', 'lib%s.dll', '%slib.dll']
 
     def load_library(self, libname):
         try:
@@ -579,7 +580,7 @@ class WindowsLibraryLoader(LibraryLoader):
                 except WindowsError:
                     result = None
             if result is None:
-                raise ImportError("%s not found." % libname)
+                raise ImportError('%s not found.' % libname)
         return result
 
     def load(self, path):
@@ -601,9 +602,9 @@ class WindowsLibraryLoader(LibraryLoader):
 # the Ctypesgen maintainers.
 
 loaderclass = {
-    "darwin": DarwinLibraryLoader,
-    "cygwin": WindowsLibraryLoader,
-    "win32": WindowsLibraryLoader
+    'darwin': DarwinLibraryLoader,
+    'cygwin': WindowsLibraryLoader,
+    'win32': WindowsLibraryLoader
 }
 
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
@@ -622,7 +623,7 @@ add_library_search_dirs([])
 
 # Begin libraries
 
-_libs["iViewXAPI"] = load_library("iViewXAPI")
+_libs['iViewXAPI'] = load_library('iViewXAPI')
 
 # 1 libraries
 # End libraries

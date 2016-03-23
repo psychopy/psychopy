@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/keyboard/__init__.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 global Keyboard
 Keyboard = None
@@ -21,12 +22,14 @@ getTime = Computer.getTime
 
 
 class ioHubKeyboardDevice(Device):
-    """
-    The Keyboard device is used to receive events from a standard USB or PS2 keyboard
-    connected to the experiment computer. Only one keyboard device is supported in an
-    experiment at this time, if multiple keyboards are connected to the computer,
-    any keyboard events will be combined from all keyboard devices, appearing
-    to originate from a single keyboard device in the experiment.
+    """The Keyboard device is used to receive events from a standard USB or PS2
+    keyboard connected to the experiment computer.
+
+    Only one keyboard device is supported in an experiment at this time,
+    if multiple keyboards are connected to the computer, any keyboard
+    events will be combined from all keyboard devices, appearing to
+    originate from a single keyboard device in the experiment.
+
     """
 
     EVENT_CLASS_NAMES = [
@@ -65,7 +68,7 @@ class ioHubKeyboardDevice(Device):
 
     def _addEventToTestLog(self, event_data):
         print2err(
-            "Keyboard._addEventToTestLog must be implemented by platform specific Keyboard type.")
+            'Keyboard._addEventToTestLog must be implemented by platform specific Keyboard type.')
 
     def _updateKeyboardEventState(self, kb_event, is_press):
         key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
@@ -119,10 +122,8 @@ from .. import DeviceEvent
 
 
 class KeyboardInputEvent(DeviceEvent):
-    """
-    The KeyboardInputEvent class is an abstract class that is the parent of all
-    Keyboard related event types.
-    """
+    """The KeyboardInputEvent class is an abstract class that is the parent of
+    all Keyboard related event types."""
 
     PARENT_DEVICE = Keyboard
 
@@ -266,12 +267,11 @@ class KeyboardKeyEvent(KeyboardInputEvent):
 
 
 class KeyboardPressEvent(KeyboardKeyEvent):
-    """
-    A KeyboardPressEvent is generated when a key is pressed down.
-    The event is created prior to the keyboard key being released.
-    If a key is held down for an extended period of time, multiple
-    KeyboardPressEvent events may be generated depending
-    on your OS and the OS's settings for key repeat event creation.
+    """A KeyboardPressEvent is generated when a key is pressed down. The event
+    is created prior to the keyboard key being released. If a key is held down
+    for an extended period of time, multiple KeyboardPressEvent events may be
+    generated depending on your OS and the OS's settings for key repeat event
+    creation.
 
     If auto repeat key events are not desired at all, then the keyboard configuration
     setting 'report_auto_repeat_press_events' can be used to disable these
@@ -281,6 +281,7 @@ class KeyboardPressEvent(KeyboardKeyEvent):
     Event Type ID: EventConstants.KEYBOARD_PRESS
 
     Event Type String: 'KEYBOARD_PRESS'
+
     """
     EVENT_TYPE_ID = EventConstants.KEYBOARD_PRESS
     EVENT_TYPE_STRING = 'KEYBOARD_PRESS'
@@ -292,12 +293,12 @@ class KeyboardPressEvent(KeyboardKeyEvent):
 
 
 class KeyboardReleaseEvent(KeyboardKeyEvent):
-    """
-    A KeyboardReleaseEvent is generated when a key the keyboard is released.
+    """A KeyboardReleaseEvent is generated when a key the keyboard is released.
 
     Event Type ID: EventConstants.KEYBOARD_RELEASE
 
     Event Type String: 'KEYBOARD_RELEASE'
+
     """
     EVENT_TYPE_ID = EventConstants.KEYBOARD_RELEASE
     EVENT_TYPE_STRING = 'KEYBOARD_RELEASE'

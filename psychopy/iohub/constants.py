@@ -19,41 +19,42 @@ try:
 
         @classmethod
         def getName(cls, id):
-            """
-            Return the constant's name given a valid constant id.
+            """Return the constant's name given a valid constant id.
 
             Args:
                 id (int): The constant's id value to look-up the string name for.
 
             Returns:
                 str: The name for the given constant id.
+
             """
             return cls._names.get(id, cls._names[cls.UNDEFINED])
 
         @classmethod
         def getID(cls, name):
-            """
-            Return the constant's id given a valid constant name string.
+            """Return the constant's id given a valid constant name string.
 
             Args:
                 name (str): The constant's name value to look-up the int id for.
 
             Returns:
                 int: The id for the given constant name.
+
             """
             return cls._names.get(name, None)
 
         @classmethod
         def getClass(cls, id):
-            """
-            Return the constant's ioHub CLass Name given constant id.
-            If no class is associated with the specified constant value, None is returned.
+            """Return the constant's ioHub CLass Name given constant id. If no
+            class is associated with the specified constant value, None is
+            returned.
 
             Args:
                 id (int): The constant's id value to look-up the string name for.
 
             Returns:
                 class: The ioHub class associated with the constant id provided.
+
             """
             return cls._classes.get(id, None)
 
@@ -300,9 +301,9 @@ try:
 
                 if event_id not in cls._classes.keys():
                     print2err(
-                        "\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ",
+                        '\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ',
                         event_constant_string,
-                        " = ",
+                        ' = ',
                         event_id)
 
     EventConstants.initialize()
@@ -418,9 +419,8 @@ try:
     DeviceConstants.initialize()
 
     class MouseConstants(Constants):
-        """
-        MouseConstants provides access to ioHub Mouse Device specific constants.
-        """
+        """MouseConstants provides access to ioHub Mouse Device specific
+        constants."""
         MOUSE_BUTTON_NONE = 0
         MOUSE_BUTTON_LEFT = 1
         MOUSE_BUTTON_RIGHT = 2
@@ -1044,10 +1044,9 @@ try:
     ModifierKeyCodes._keys.remove(ModifierKeyCodes.getID('UNDEFINED'))
 
     class KeyboardConstants(Constants):
-        '''
-        Stores internal windows hook constants including hook types, mappings from virtual
-        keycode name to value and value to name, and event type value to name.
-        '''
+        """Stores internal windows hook constants including hook types,
+        mappings from virtual keycode name to value and value to name, and
+        event type value to name."""
 
         _virtualKeyCodes = VirtualKeyCodes()
 

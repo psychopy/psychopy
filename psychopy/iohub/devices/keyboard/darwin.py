@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/keyboard/darwin.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 
@@ -121,8 +122,8 @@ class Keyboard(ioHubKeyboardDevice):
                       (0x00020, 'lalt'), (0x00040, 'ralt'),
                       (0x000008, 'lcmd'), (0x000010, 'rcmd'),
                       (Qz.kCGEventFlagMaskAlphaShift, 'capslock'),
-                      (Qz.kCGEventFlagMaskSecondaryFn, "function"),
-                      (Qz.kCGEventFlagMaskHelp, "modhelp")])        # 0x400000
+                      (Qz.kCGEventFlagMaskSecondaryFn, 'function'),
+                      (Qz.kCGEventFlagMaskHelp, 'modhelp')])        # 0x400000
 
     DEVICE_TIME_TO_SECONDS = 0.000000001
 
@@ -244,7 +245,7 @@ class Keyboard(ioHubKeyboardDevice):
 
                 if etype == Qz.kCGEventTapDisabledByTimeout:
                     print2err(
-                        "** WARNING: Keyboard Tap Disabled due to timeout. Re-enabling....: ", etype)
+                        '** WARNING: Keyboard Tap Disabled due to timeout. Re-enabling....: ', etype)
                     Qz.CGEventTapEnable(self._tap, True)
                     return event
 
@@ -367,8 +368,8 @@ class Keyboard(ioHubKeyboardDevice):
 
                     self._addNativeEventToBuffer(ioe)
                 else:
-                    print2err("\nWARNING: KEYBOARD RECEIVED A [ {0} ] KB EVENT, BUT COULD NOT GENERATE AN IOHUB EVENT FROM IT !!".format(
-                        etype), " [", key_name, "] ucode: ", ucode, ' key_code: ', key_code)
+                    print2err('\nWARNING: KEYBOARD RECEIVED A [ {0} ] KB EVENT, BUT COULD NOT GENERATE AN IOHUB EVENT FROM IT !!'.format(
+                        etype), ' [', key_name, '] ucode: ', ucode, ' key_code: ', key_code)
 
                 self._last_callback_time = logged_time
             return event
@@ -387,7 +388,7 @@ class Keyboard(ioHubKeyboardDevice):
                 mod_value += KeyboardConstants._modifierCodes.getID(v)
                 mod_strs.append(
                     modifier_name_mappings.get(
-                        v, "MISSING_MOD_NAME"))
+                        v, 'MISSING_MOD_NAME'))
         return mod_value, mod_strs
 
     def _getIOHubEventObject(self, native_event_data):

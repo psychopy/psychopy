@@ -1,5 +1,5 @@
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/util/dialogs.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: ioHub Team
 
 ------------------------------------------------------------------------------------------------------------------------
+
 """
 
 import os
@@ -31,9 +32,7 @@ class ioHubDialog(object):
                     ioHubDialog.wxapp = wx.App(False)
 
     def set_frame_display(self):
-        """
-        Centers a wx window on the given Display index.
-        """
+        """Centers a wx window on the given Display index."""
         num_displays = wx.Display.GetCount()
         if self.display_index < 0:
             self.display_index = 0
@@ -56,14 +55,12 @@ class ioHubDialog(object):
 
 
 class ProgressBarDialog(ioHubDialog):
-    """
-    wx based progress bar interface.
-    """
+    """wx based progress bar interface."""
 
     def __init__(
             self,
-            dialogTitle="Progress Dialog",
-            dialogText="Percent Complete",
+            dialogTitle='Progress Dialog',
+            dialogText='Percent Complete',
             maxValue=100.0,
             display_index=0):
         ioHubDialog.__init__(self, display_index)
@@ -121,7 +118,7 @@ class MessageDialog(ioHubDialog):
                 MessageDialog.YES_NO_BUTTONS,
                 MessageDialog.OK_BUTTON]:
             raise AttributeError(
-                "MessageDialog showButtons arg must be either MessageDialog.YES_NO_BUTTONS or MessageDialog.OK_BUTTON")
+                'MessageDialog showButtons arg must be either MessageDialog.YES_NO_BUTTONS or MessageDialog.OK_BUTTON')
         if showButtons == MessageDialog.YES_NO_BUTTONS:
             showButtons |= wx.YES_DEFAULT
         if allowCancel:
@@ -133,19 +130,19 @@ class MessageDialog(ioHubDialog):
                               MessageDialog.ERROR_DIALOG,
                               MessageDialog.QUESTION_DIALOG]:
             raise AttributeError(
-                "MessageDialog dialogType arg must one of MessageDialog.INFORMATION_DIALOG, MessageDialog.WARNING_DIALOG, MessageDialog.IMPORTANT_DIALOG, MessageDialog.ERROR_DIALOG, MessageDialog.QUESTION_DIALOG.")
+                'MessageDialog dialogType arg must one of MessageDialog.INFORMATION_DIALOG, MessageDialog.WARNING_DIALOG, MessageDialog.IMPORTANT_DIALOG, MessageDialog.ERROR_DIALOG, MessageDialog.QUESTION_DIALOG.')
 
         if title is None:
             if dialogType == MessageDialog.INFORMATION_DIALOG:
-                title = "For Your Information"
+                title = 'For Your Information'
             elif dialogType == MessageDialog.WARNING_DIALOG:
-                title = "Warning"
+                title = 'Warning'
             elif dialogType == MessageDialog.IMPORTANT_DIALOG:
-                title = "Important Note"
+                title = 'Important Note'
             elif dialogType == MessageDialog.ERROR_DIALOG:
-                title = "Error"
+                title = 'Error'
             elif dialogType == MessageDialog.QUESTION_DIALOG:
-                title = "Input Required"
+                title = 'Input Required'
 
         d = wx.Display(0)
         x, y, w, h = d.GetGeometry()
@@ -170,24 +167,24 @@ class MessageDialog(ioHubDialog):
 
 
 class FileDialog(ioHubDialog):
-    PYTHON_SCRIPT_FILES = "Python source (*.py)|*.py"
-    EXCEL_FILES = "Spreadsheets (*.xls)|*.xls"
-    IODATA_FILES = "ioDataStore Files (*.hdf5)|*.hdf5"
-    CONFIG_FILES = "Configuration Files (*.yaml)|*.yaml"
-    TEXT_FILES = "Text Files (*.txt)|*.txt"
-    ALL_FILES = "All Files (*.*)|*.*"
+    PYTHON_SCRIPT_FILES = 'Python source (*.py)|*.py'
+    EXCEL_FILES = 'Spreadsheets (*.xls)|*.xls'
+    IODATA_FILES = 'ioDataStore Files (*.hdf5)|*.hdf5'
+    CONFIG_FILES = 'Configuration Files (*.yaml)|*.yaml'
+    TEXT_FILES = 'Text Files (*.txt)|*.txt'
+    ALL_FILES = 'All Files (*.*)|*.*'
     OK_RESULT = wx.ID_OK
     CANCEL_RESULT = wx.ID_CANCEL
 
     def __init__(
             self,
-            message="Select a File",
+            message='Select a File',
             defaultDir=os.getcwd(),
-            defaultFile="",
+            defaultFile='',
             openFile=True,
             allowMultipleSelections=False,
             allowChangingDirectories=True,
-            fileTypes="All files (*.*)|*.*",
+            fileTypes='All files (*.*)|*.*',
             display_index=0):
         ioHubDialog.__init__(self, display_index)
         dstyle = 0
@@ -199,7 +196,7 @@ class FileDialog(ioHubDialog):
         if allowChangingDirectories is True:
             dstyle = dstyle | wx.CHANGE_DIR
 
-        fileTypesCombined = ""
+        fileTypesCombined = ''
         if isinstance(fileTypes, (list, tuple)):
             for ft in fileTypes:
                 fileTypesCombined += ft

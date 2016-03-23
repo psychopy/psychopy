@@ -1,5 +1,5 @@
-﻿"""
-ioHub
+﻿"""ioHub.
+
 .. file: ioHub/devices/experiment/__init__.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -7,6 +7,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 import numpy as N
 from .. import Device, Computer, DeviceEvent
@@ -102,12 +103,11 @@ class Experiment(Device):
 
 
 class MessageEvent(DeviceEvent):
-    """
-    A MessageEvent can be created and sent to the ioHub to record important
+    """A MessageEvent can be created and sent to the ioHub to record important
     marker times during the experiment; for example, when key display changes
-    occur, or when events related to devices not supported by the ioHub have happened,
-    or simply information about the experiment you want
-    to store in the ioDataStore along with all the other event data.
+    occur, or when events related to devices not supported by the ioHub have
+    happened, or simply information about the experiment you want to store in
+    the ioDataStore along with all the other event data.
 
     Since the PsychoPy Process can access the same time base that is used by
     the ioHub Process, when you create a Message Event you can time stamp it
@@ -118,6 +118,7 @@ class MessageEvent(DeviceEvent):
 
     Event Type ID: EventConstants.MESSAGE
     Event Type String: 'MESSAGE'
+
     """
     PARENT_DEVICE = Experiment
     EVENT_TYPE_ID = EventConstants.MESSAGE
@@ -181,10 +182,9 @@ class MessageEvent(DeviceEvent):
 
 
 class LogEvent(DeviceEvent):
-    """
-    A LogEvent creates an entry in the ioHub dataStore logging table. If psychopy
-    is available, it also sends the LogEvent to the Experiment Process and it
-    is entered into the psychopy.logging module.
+    """A LogEvent creates an entry in the ioHub dataStore logging table. If
+    psychopy is available, it also sends the LogEvent to the Experiment Process
+    and it is entered into the psychopy.logging module.
 
     The LogEvent is unique in that instances can be created by the ioHub Server
     or the Experiment Process psychopy script. In either case, the log entry is
@@ -198,6 +198,7 @@ class LogEvent(DeviceEvent):
 
     Event Type ID: EventConstants.LOG
     Event Type String: 'LOG'
+
     """
     _psychopyAvailable = False
     _levelNames = dict()

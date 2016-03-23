@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
-Common Eye Tracker Interface for the TheEyeTribe system.
+"""ioHub Common Eye Tracker Interface for the TheEyeTribe system.
+
 .. file: ioHub/devices/eyetracker/hw/theeyetribe/eyetracker.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -10,6 +9,7 @@ Distributed under the terms of the GNU General Public License
 
 .. moduleauthor:: ????
 .. fileauthor:: ???
+
 """
 
 import numpy as np
@@ -78,15 +78,15 @@ class EyeTracker(EyeTrackerDevice):
         r = self.setConnectionState(True)
 
     def trackerTime(self):
-        """
-        Current eye tracker time in the eye tracker's native time base.
-        The TET system uses a usec timebase.
+        """Current eye tracker time in the eye tracker's native time base. The
+        TET system uses a usec timebase.
 
         Args:
             None
 
         Returns:
             float: current native eye tracker time. (in usec for the TET)
+
         """
         if self._eyetribe:
              # TODO Replace with TET code to get crrent device's time.
@@ -94,14 +94,14 @@ class EyeTracker(EyeTrackerDevice):
         return EyeTrackerConstants.EYETRACKER_ERROR
 
     def trackerSec(self):
-        """
-        Current eye tracker time, normalized to sec.msec format.
+        """Current eye tracker time, normalized to sec.msec format.
 
         Args:
             None
 
         Returns:
             float: current native eye tracker time in sec.msec-usec format.
+
         """
         if self._eyetribe:
             return self.trackerTime() * self.DEVICE_TIMEBASE_TO_SEC
@@ -132,7 +132,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._eyetribe.processSample = self._handleNativeEvent
                 return True
             except Exception:
-                print2err("Error connecting to TheEyeTribe Device.")
+                print2err('Error connecting to TheEyeTribe Device.')
                 printExceptionDetailsToStdErr()
         elif enable is False and self._eyetribe is not None:
             try:
@@ -141,16 +141,15 @@ class EyeTracker(EyeTrackerDevice):
                 EyeTracker._eyetribe = None
                 return False
             except Exception:
-                print2err("Error disconnecting from TheEyeTribe Device.")
+                print2err('Error disconnecting from TheEyeTribe Device.')
                 printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_ERROR
 
     def isConnected(self):
-        """
-        isConnected returns whether the TheEyeTribe is connected to the experiment PC
-        and if the tracker state is valid. Returns True if the tracker can be
-        put into Record mode, etc and False if there is an error with the tracker
-        or tracker connection with the experiment PC.
+        """isConnected returns whether the TheEyeTribe is connected to the
+        experiment PC and if the tracker state is valid. Returns True if the
+        tracker can be put into Record mode, etc and False if there is an error
+        with the tracker or tracker connection with the experiment PC.
 
         Args:
             None
@@ -164,19 +163,16 @@ class EyeTracker(EyeTrackerDevice):
         return False
 
     def sendMessage(self, message_contents, time_offset=None):
-        """
-        The sendMessage method is not supported by the TheEyeTribe implementation
-        of the Common Eye Tracker Interface, as the TheEyeTribe SDK does not support
-        saving eye data to a native data file during recording.
-        """
+        """The sendMessage method is not supported by the TheEyeTribe
+        implementation of the Common Eye Tracker Interface, as the TheEyeTribe
+        SDK does not support saving eye data to a native data file during
+        recording."""
         # TODO TET Implementation
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
     def sendCommand(self, key, value=None):
-        """
-        The sendCommand method is not supported by the TheEyeTribe Common Eye Tracker
-        Interface.
-        """
+        """The sendCommand method is not supported by the TheEyeTribe Common
+        Eye Tracker Interface."""
         # TODO TET Implementation
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
@@ -210,22 +206,19 @@ class EyeTracker(EyeTrackerDevice):
 #        return EyeTrackerConstants.EYETRACKER_ERROR
 
     def enableEventReporting(self, enabled=True):
-        """
-        enableEventReporting is functionally identical to the eye tracker
-        device specific setRecordingState method.
-        """
+        """enableEventReporting is functionally identical to the eye tracker
+        device specific setRecordingState method."""
 
         try:
             enabled = EyeTrackerDevice.enableEventReporting(self, enabled)
             self.setRecordingState(enabled)
             return enabled
         except Exception as e:
-            print2err("EyeTracker.enableEventReporting", str(e))
+            print2err('EyeTracker.enableEventReporting', str(e))
 
     def setRecordingState(self, recording):
-        """
-        setRecordingState is used to start or stop the recording of data from
-        the eye tracking device.
+        """setRecordingState is used to start or stop the recording of data
+        from the eye tracking device.
 
         args:
            recording (bool): if True, the eye tracker will start recordng available
@@ -243,6 +236,7 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:trackerTime
             bool: the current recording state of the eye tracking device
+
         """
         if self._eyetribe and recording is True and not self.isRecordingEnabled():
             self._eyetribe.sendSetMessage(push=True, version=1)
@@ -257,8 +251,7 @@ class EyeTracker(EyeTrackerDevice):
         return self.isRecordingEnabled()
 
     def isRecordingEnabled(self):
-        """
-        isRecordingEnabled returns the recording state from the eye tracking
+        """isRecordingEnabled returns the recording state from the eye tracking
         device.
 
         Args:
@@ -266,15 +259,15 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
+
         """
         if self._eyetribe:
             return self._recording  # TODO TET Implementation
         return False
 
     def getLastSample(self):
-        """
-        Returns the latest sample retrieved from the TheEyeTribe device. The TheEyeTribe
-        system always using the BinocularSample Event type.
+        """Returns the latest sample retrieved from the TheEyeTribe device. The
+        TheEyeTribe system always using the BinocularSample Event type.
 
         Args:
             None
@@ -285,14 +278,14 @@ class EyeTracker(EyeTrackerDevice):
             EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this event type is returned.
 
             BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event of this event type is returned.
+
         """
         return self._latest_sample
 
     def getLastGazePosition(self):
-        """
-        Returns the latest 2D eye gaze position retrieved from the TheEyeTribe device.
-        This represents where the eye tracker is reporting each eye gaze vector
-        is intersecting the calibrated surface.
+        """Returns the latest 2D eye gaze position retrieved from the
+        TheEyeTribe device. This represents where the eye tracker is reporting
+        each eye gaze vector is intersecting the calibrated surface.
 
         In general, the y or vertical component of each eyes gaze position should
         be the same value, since in typical user populations the two eyes are
@@ -326,14 +319,13 @@ class EyeTracker(EyeTrackerDevice):
             None: If the eye tracker is not currently recording data or no eye samples have been received.
 
             tuple: Latest (gaze_x,gaze_y) position of the eye(s)
+
         """
         return self._latest_gaze_position
 
     def _handleNativeEvent(self, *args, **kwargs):
-        """
-        This method is called by pyTribe.TheEyeTribe class each time an eye
-        sample is received from the eye tracker.
-        """
+        """This method is called by pyTribe.TheEyeTribe class each time an eye
+        sample is received from the eye tracker."""
         try:
             logged_time = Computer.getTime()
             tracker_time = self.trackerSec()
@@ -343,17 +335,17 @@ class EyeTracker(EyeTrackerDevice):
 
             if statuscode != 200:
                 print2err(
-                    "** TODO: How to handle eye sample with statuscode of: ",
+                    '** TODO: How to handle eye sample with statuscode of: ',
                     statuscode)
 
             sample_values = sample_dict.get('values')
             sample = sample_values.get('frame')
 
             if len(sample_values) > 1:
-                print2err("** Warning: Received Sample with extra values:")
+                print2err('** Warning: Received Sample with extra values:')
                 for k, v in sample_values.iteritems():
                     if k != 'frame':
-                        print2err(k, " : ", v)
+                        print2err(k, ' : ', v)
 
             event_type = EventConstants.BINOCULAR_EYE_SAMPLE
 
@@ -484,17 +476,15 @@ class EyeTracker(EyeTrackerDevice):
 
             self._addNativeEventToBuffer((binocSample, (cgp, cagp)))
         except Exception:
-            print2err("ERROR occurred during TheEyeTribe Sample Callback.")
+            print2err('ERROR occurred during TheEyeTribe Sample Callback.')
             printExceptionDetailsToStdErr()
         finally:
             return 0
 
     def _getIOHubEventObject(self, native_event_data):
-        """
-        The _getIOHubEventObject method is called by the ioHub Process to convert
-        new native device event objects that have been received to the appropriate
-        ioHub Event type representation.
-        """
+        """The _getIOHubEventObject method is called by the ioHub Process to
+        convert new native device event objects that have been received to the
+        appropriate ioHub Event type representation."""
         self._latest_sample, (cyclo_gz_pos,
                               cyclo_avg_gz_pos) = native_event_data
 
@@ -506,10 +496,8 @@ class EyeTracker(EyeTrackerDevice):
         return self._latest_sample
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
-        """
-        Converts TheEyeTribe gaze positions to the
-        Display device coordinate space.
-        """
+        """Converts TheEyeTribe gaze positions to the Display device coordinate
+        space."""
         try:
             gaze_x, gaze_y = eyetracker_point
             dw, dh = self._display_device.getPixelResolution()
@@ -523,10 +511,8 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):
-        """
-        Converts a Display device point to TheEyeTribe gaze position
-        coordinate space.
-        """
+        """Converts a Display device point to TheEyeTribe gaze position
+        coordinate space."""
         try:
             cl, ct, cr, cb = self._display_device.getCoordBounds()
             cw, ch = cr - cl, ct - cb

@@ -9,10 +9,9 @@ from ..constants import EventConstants
 
 
 class DeviceEventFilter(object):
-    """
-    Base class for creating a filtered / processed event stream from
-    a device's iohub events. Any device event filter class MUST use this
-    class as the base class type.
+    """Base class for creating a filtered / processed event stream from a
+    device's iohub events. Any device event filter class MUST use this class as
+    the base class type.
 
     The following properties must be implemented by a DeviceEventFilter subclass:
         * filter_id
@@ -63,12 +62,12 @@ class DeviceEventFilter(object):
 
     @property
     def filter_id(self):
-        raise RuntimeError("filter_id property must be set by subclass.")
+        raise RuntimeError('filter_id property must be set by subclass.')
 
     @property
     def input_event_types(self):
         raise RuntimeError(
-            "input_event_types property must be set by subclass.")
+            'input_event_types property must be set by subclass.')
 
         # Example:
         #
@@ -100,7 +99,7 @@ class DeviceEventFilter(object):
         # Each event passed to addOutputEvent() will have it's event_id and
         # filter_id updated appropriately; this is done for you.
         """
-        raise RuntimeError("process method must be implemented by subclass.")
+        raise RuntimeError('process method must be implemented by subclass.')
 
     def addOutputEvent(self, e):
         e[self.event_id_index] = Computer._getNextEventID()
@@ -108,16 +107,12 @@ class DeviceEventFilter(object):
         self._output_events.append(e)
 
     def _addInputEvent(self, evt):
-        """
-        Takes event from parent device for processing.
-        """
+        """Takes event from parent device for processing."""
         self._input_events.append(evt)
         self.process()
 
     def _removeOutputEvents(self):
-        """
-        Called by the the iohub Server when processing device events.
-        """
+        """Called by the the iohub Server when processing device events."""
         oevts = self._output_events
         self._output_events = []
         return oevts
@@ -126,10 +121,10 @@ class DeviceEventFilter(object):
 
 
 class MovingWindowFilter(object):
-    """
-    Maintains a moving window of size 'length', for a specific event
-    field value, given by 'event_field_name'. knot_pos defines where in the
-    window the next filtered value should always be returned from.
+    """Maintains a moving window of size 'length', for a specific event field
+    value, given by 'event_field_name'. knot_pos defines where in the window
+    the next filtered value should always be returned from.
+
     knot_pos can be an index between 0 - length-1, or a string constant:
         'center': use the middle value in the window. Window length must be odd.
         'latest': the value just added to the window is filtered and returned
@@ -142,6 +137,7 @@ class MovingWindowFilter(object):
     The base class implements a moving window averaging filter, no weights.
     To change the filter used, extend this class and replace the filteredValue
     method.
+
     """
 
     def __init__(self, **kwargs):
@@ -153,7 +149,7 @@ class MovingWindowFilter(object):
         if isinstance(knot_pos, basestring):
             if knot_pos == 'center' and length % 2 == 0:
                 raise ValueError(
-                    "MovingWindow length must be odd for a centered knot_pos.")
+                    'MovingWindow length must be odd for a centered knot_pos.')
             if knot_pos == 'center':
                 self._active_index = length // 2
             elif knot_pos == 'latest':
@@ -166,7 +162,7 @@ class MovingWindowFilter(object):
         else:
             if knot_pos < 0 or knot_pos >= length:
                 raise ValueError(
-                    "MovingWindow knot_pos must be between 0 and length-1.")
+                    'MovingWindow knot_pos must be between 0 and length-1.')
             self._active_index = knot_pos
 
         self._event_field_index = None
@@ -179,22 +175,25 @@ class MovingWindowFilter(object):
         self._filtering_buffer = NumPyRingBuffer(length)
 
     def filteredValue(self):
-        """
-        Returns a filtered value based on the data in the window. The base
-        implementation returns the average value of the window values.
-        Sub classes of MovingWindowFilter can implement their own filteredValue
-        method so that different moving window filter types can be created.
+        """Returns a filtered value based on the data in the window.
+
+        The base implementation returns the average value of the window
+        values. Sub classes of MovingWindowFilter can implement their
+        own filteredValue method so that different moving window filter
+        types can be created.
+
         """
         return self._filtering_buffer.mean()
 
     def add(self, event):
-        """
-        Add the given iohub event ( in list form ) to the moving window.
-        The value of the specified event attribute when the filter was
-        created is what is used to calculate return values for the filter.
+        """Add the given iohub event ( in list form ) to the moving window. The
+        value of the specified event attribute when the filter was created is
+        what is used to calculate return values for the filter.
 
-        If the window is full, this method returns an iohub event that has
-        been filtered, and the filtered value of the field being filtered.
+        If the window is full, this method returns an iohub event that
+        has been filtered, and the filtered value of the field being
+        filtered.
+
         """
         if isinstance(event, (list, tuple)):
             self._filtering_buffer.append(event[self._event_field_index])
@@ -221,8 +220,10 @@ class MovingWindowFilter(object):
 
 
 class PassThroughFilter(MovingWindowFilter):
-    """
-    Returns the median value of the moving window. Length must be odd.
+    """Returns the median value of the moving window.
+
+    Length must be odd.
+
     """
 
     def __init__(self, **kwargs):
@@ -237,8 +238,10 @@ class PassThroughFilter(MovingWindowFilter):
 
 
 class MedianFilter(MovingWindowFilter):
-    """
-    Returns the median value of the moving window. Length must be odd.
+    """Returns the median value of the moving window.
+
+    Length must be odd.
+
     """
 
     def __init__(self, **kwargs):
@@ -3550,7 +3553,7 @@ if __name__ == '__main__':
         knot_pos='center',
         inplace=True)
 
-    print "FIRST SOURCE EVENT ID:", events[0]['event_id']
+    print 'FIRST SOURCE EVENT ID:', events[0]['event_id']
     for e in events:
         r = mx_filter.add(e['x_position'])
         filtered_x = None
@@ -3562,4 +3565,4 @@ if __name__ == '__main__':
         if r:
             _junk, filtered_y = r
 
-        print "filtered values: ", filtered_x, filtered_y
+        print 'filtered values: ', filtered_x, filtered_y

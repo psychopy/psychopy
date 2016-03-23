@@ -37,22 +37,22 @@ class ioHubPandasDataView(object):
 
     @property
     def hdf_store(self):
-        """
-        A pandas.HDFStore object openned using the datastore_file file path
+        """A pandas.HDFStore object openned using the datastore_file file path
         provided on __init__. The HDFStore file is open until the
         ioHubPandasDataView is gc'ed or until self.close() is called.
 
         Read-Only.
+
         """
         return self._hdf_store
 
     @property
     def event_constants(self):
-        """
-        A dict containing all ioHub event type id to name mappings and
-        visa versa.
+        """A dict containing all ioHub event type id to name mappings and visa
+        versa.
 
         Read-only.
+
         """
         if self._event_constants is None:
             self._event_constants = EventConstants._names
@@ -60,13 +60,13 @@ class ioHubPandasDataView(object):
 
     @property
     def event_table_info(self):
-        """
-        A DataFrame object containing the mapping between ioHub device event
-        types and associated ioDataStore table paths. Only event types for
-        the iohub devices being monitored and saved to the ioHub DataStore
-        are listed.
+        """A DataFrame object containing the mapping between ioHub device event
+        types and associated ioDataStore table paths. Only event types for the
+        iohub devices being monitored and saved to the ioHub DataStore are
+        listed.
 
         Read-only.
+
         """
         if self._event_table_info is None:
             self._event_table_info = self._hdf_store.select(
@@ -79,11 +79,11 @@ class ioHubPandasDataView(object):
 
     @property
     def experiment_meta_data(self):
-        """
-        A DataFrame containing the experiment meta data stored in the ioDataStore
-        file that was openned.
+        """A DataFrame containing the experiment meta data stored in the
+        ioDataStore file that was openned.
 
         Read-only.
+
         """
         if self._experiment_meta_data is None:
             self._experiment_meta_data = self._hdf_store.select(
@@ -95,12 +95,11 @@ class ioHubPandasDataView(object):
 
     @property
     def session_meta_data(self):
-        """
-        A DataFrame containing the session meta data for each experiment
-        session / run that is stored in the ioDataStore
-        file that was openned.
+        """A DataFrame containing the session meta data for each experiment
+        session / run that is stored in the ioDataStore file that was openned.
 
         Read-only.
+
         """
         if self._session_meta_data is None:
             self._session_meta_data = self._hdf_store.select(
@@ -190,7 +189,7 @@ class ioHubPandasDataView(object):
                         cv_df.set_index(
                             [experiment_index_name, session_index_name], inplace=True)
                     except Exception as e:
-                        print "Could not set index for CV table."
+                        print 'Could not set index for CV table.'
                         print e
 
                     if self._condition_variables is None:
@@ -228,7 +227,7 @@ class ioHubPandasDataView(object):
             except Exception as e:
                 raise AttributeError(
                     self.__class__.__name__ +
-                    " does not have a data frame for " +
+                    ' does not have a data frame for ' +
                     n)
                 raise e
         return self._event_data_by_type[n]
@@ -254,9 +253,9 @@ class ioHubPandasDataView(object):
                 event_data = getattr(self, index, None)
                 if event_data is None:
                     raise AttributeError(
-                        "_createGlobalEventData:" +
+                        '_createGlobalEventData:' +
                         index +
-                        " event type does not exist.")
+                        ' event type does not exist.')
 
                 if self._all_events is None:
                     self._all_events = event_data[global_event_fields]

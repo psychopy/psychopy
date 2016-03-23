@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Demonstrates using Interest Areas to filter events by spatial locations.
+"""Demonstrates using Interest Areas to filter events by spatial locations.
 
 NOTE: The use of Interest Areas within the datastore.panda module requires
 that the python module called 'shapely' is installed on your python env.
 s
 @author: Sol
+
 """
 from psychopy.iohub.datastore.pandas import ioHubPandasDataView
 from psychopy.iohub.datastore.pandas.interestarea import Circle, Ellipse, Rectangle

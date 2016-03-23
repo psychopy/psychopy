@@ -34,10 +34,12 @@ dragID = [
 
 
 class Mouse(MouseDevice):
-    """
-    The Mouse class and related events represent a standard computer mouse device
-    and the events a standard mouse can produce. Mouse position data is mapped to
-    the coordinate space defined in the ioHub configuration file for the Display.
+    """The Mouse class and related events represent a standard computer mouse
+    device and the events a standard mouse can produce.
+
+    Mouse position data is mapped to the coordinate space defined in the
+    ioHub configuration file for the Display.
+
     """
     __slots__ = ['_loop_source', '_tap', '_device_loop', '_CGEventTapEnable',
                  '_loop_mode', '_scrollPositionX']
@@ -161,7 +163,7 @@ class Mouse(MouseDevice):
 
                 if etype == Qz.kCGEventTapDisabledByTimeout:
                     print2err(
-                        "** WARNING: Mouse Tap Disabled due to timeout. Re-enabling....: ", etype)
+                        '** WARNING: Mouse Tap Disabled due to timeout. Re-enabling....: ', etype)
                     Qz.CGEventTapEnable(self._tap, True)
                     return event
                 else:

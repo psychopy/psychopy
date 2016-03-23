@@ -37,9 +37,7 @@ TabletPen Device and Events Types
 
 
 class PenSampleEvent(ioEvent):
-    """
-    Represents a tablet pen position / pressure event.
-    """
+    """Represents a tablet pen position / pressure event."""
     STATES = dict()
     # A sample that is the first sample following a time gap in the sample
     # stream
@@ -94,7 +92,8 @@ class PenSampleEvent(ioEvent):
     def getPixPos(self, win):
         sw, sh = win.winHandle.width, win.winHandle.height
         nx, ny = self._x / \
-            self.device.axis['x']['range'], self._y / self.device.axis['y']['range']
+            self.device.axis['x']['range'], self._y / \
+            self.device.axis['y']['range']
         return int(nx * sw - sw / 2), int(ny * sh - sh / 2)
 
     def getNormPos(self):
@@ -127,8 +126,7 @@ class PenSampleEvent(ioEvent):
 
     @property
     def tilt(self):
-        '''
-        Get the pen horizontal & vertical tilt for the sample.
+        """Get the pen horizontal & vertical tilt for the sample.
 
         horizontal tilt (azimuth) is in radians,
         vertical tilt (altitude) is in ????.
@@ -138,7 +136,8 @@ class PenSampleEvent(ioEvent):
         WACOM uses negative altitude values to show that the pen is inverted;
         therefore we cast .orAltitude as an (int) and then use the absolute
         value.
-        '''
+
+        """
         axis = self.device.axis
         if axis['orient_altitude']['supported'] and axis[
                 'orient_azimuth']['supported']:
@@ -156,65 +155,63 @@ class PenSampleEvent(ioEvent):
 
     @property
     def velocity(self):
-        '''
-        Returns the calculated x, y, and xy velocity for the current sample.
+        """Returns the calculated x, y, and xy velocity for the current sample.
+
         :return: (float, float, float)
-        '''
+
+        """
         return self._velocity
 
     @property
     def accelleration(self):
-        '''
-        Returns the calculated x, y, and xy accelleration
-        for the current sample.
+        """Returns the calculated x, y, and xy accelleration for the current
+        sample.
+
         :return: (float, float, float)
-        '''
+
+        """
         return self._accelleration
 
     @velocity.setter
     def velocity(self, v):
-        '''
-        Returns the calculated x, y, and xy velocity for the current sample.
+        """Returns the calculated x, y, and xy velocity for the current sample.
+
         :return: (float, float, float)
-        '''
+
+        """
         self._velocity = v
 
     @accelleration.setter
     def accelleration(self, a):
-        '''
-        Returns the calculated x, y, and xy accelleration
-        for the current sample.
+        """Returns the calculated x, y, and xy accelleration for the current
+        sample.
+
         :return: (float, float, float)
-        '''
+
+        """
         self._accelleration = a
 
     def __str__(self):
-        return "{}, x,y,z: {}, {}, {} pressure: {}, tilt: {}".format(
+        return '{}, x,y,z: {}, {}, {} pressure: {}, tilt: {}'.format(
             ioEvent.__str__(self), self.x, self.y, self.z, self.tilt)
 
 
 class PenEnterRegionEvent(ioEvent):
-    """
-    Occurs when Stylus enters the tablet region.
-    """
+    """Occurs when Stylus enters the tablet region."""
 
     def __init__(self, ioe_array, device):
         super(PenEnterRegionEvent, self).__init__(ioe_array, device)
 
 
 class PenLeaveRegionEvent(ioEvent):
-    """
-    Occurs when Stylus leaves the tablet region.
-    """
+    """Occurs when Stylus leaves the tablet region."""
 
     def __init__(self, ioe_array, device):
         super(PenLeaveRegionEvent, self).__init__(ioe_array, device)
 
 
 class WintabTablet(ioHubDeviceView):
-    """
-    The WintabTablet device provides access to PenSampleEvent events.
-    """
+    """The WintabTablet device provides access to PenSampleEvent events."""
     SAMPLE = EventConstants.WINTAB_TABLET_SAMPLE
     ENTER = EventConstants.WINTAB_TABLET_ENTER_REGION
     LEAVE = EventConstants.WINTAB_TABLET_LEAVE_REGION
@@ -241,7 +238,7 @@ class WintabTablet(ioHubDeviceView):
         self._axis = {'Axis': {'status': 'Device not Initialized'}}
         self._hw_model = {'ModelInfo': {'status': 'Device not Initialized'}}
 
-        if self.getInterfaceStatus() == "HW_OK":
+        if self.getInterfaceStatus() == 'HW_OK':
             wthw = self.getHardwareConfig()
             self._context = wthw['Context']
             self._axis = wthw['Axis']
@@ -281,7 +278,7 @@ class WintabTablet(ioHubDeviceView):
                 dt = (curr_samp.time - prev_samp.time)
                 if dt <= 0:
                     print(
-                        "Warning: dt == 0: {}, {}, {}".format(
+                        'Warning: dt == 0: {}, {}, {}'.format(
                             dt, curr_samp.time, prev_samp.time))
                     curr_samp.velocity = (0, 0, 0)
                     curr_samp.accelleration = (0, 0, 0)
@@ -297,13 +294,13 @@ class WintabTablet(ioHubDeviceView):
                         curr_samp.accelleration = (0, 0, 0)
             except ZeroDivisionError as e:
                 print(
-                    "ERROR: wintab._calculateVelAccel ZeroDivisionError occurred. prevId: %d, currentId: %d" %
+                    'ERROR: wintab._calculateVelAccel ZeroDivisionError occurred. prevId: %d, currentId: %d' %
                     (curr_samp.id, prev_samp.id))
                 curr_samp.velocity = (0, 0, 0)
                 curr_samp.accelleration = (0, 0, 0)
             except Exception as e:
                 print(
-                    "ERROR: wintab._calculateVelAccel error [%s] occurred. prevId: %d, currentId: %d" %
+                    'ERROR: wintab._calculateVelAccel error [%s] occurred. prevId: %d, currentId: %d' %
                     (str(e), curr_samp.id, prev_samp.id))
                 curr_samp.velocity = (0, 0, 0)
                 curr_samp.accelleration = (0, 0, 0)
@@ -314,11 +311,11 @@ class WintabTablet(ioHubDeviceView):
         return curr_samp
 
     def _syncDeviceState(self):
-        """
-        An optimized iohub server request that receives all device state and
+        """An optimized iohub server request that receives all device state and
         event information in one response.
 
         :return: None
+
         """
         kb_state = self.getCurrentDeviceState()
         self._reporting = kb_state.get('reporting_events')
@@ -336,8 +333,9 @@ class WintabTablet(ioHubDeviceView):
 
     @property
     def reporting(self):
-        """
-        Specifies if the the keyboard device is reporting / recording events.
+        """Specifies if the the keyboard device is reporting / recording
+        events.
+
           * True:  keyboard events are being reported.
           * False: keyboard events are not being reported.
 
@@ -358,9 +356,7 @@ class WintabTablet(ioHubDeviceView):
 
     @reporting.setter
     def reporting(self, r):
-        """
-        Sets the state of keyboard event reporting / recording.
-        """
+        """Sets the state of keyboard event reporting / recording."""
         if r is True:
             self._prev_sample = None
         self._reporting = self.enableEventReporting(r)
@@ -403,8 +399,7 @@ class WintabTablet(ioHubDeviceView):
         return sorted(return_events, key=lambda x: x.time)
 
     def getEnters(self, clear=True):
-        """
-        """
+        """"""
         self._syncDeviceState()
         return_events = [e for e in self._events.get(self.ENTER, [])]
 
@@ -414,8 +409,7 @@ class WintabTablet(ioHubDeviceView):
         return sorted(return_events, key=lambda x: x.time)
 
     def getLeaves(self, clear=True):
-        """
-        """
+        """"""
         self._syncDeviceState()
         return_events = [e for e in self._events.get(self.LEAVE, [])]
 
@@ -433,10 +427,8 @@ try:
     from psychopy.visual.basevisual import MinimalStim
 
     class PenPositionStim(MinimalStim):
-        """
-        Draws the current pen x,y position with graphics that represent
-        the pressure, z axis, and tilt data for the wintab sample used.
-        """
+        """Draws the current pen x,y position with graphics that represent the
+        pressure, z axis, and tilt data for the wintab sample used."""
 
         def __init__(self, win, name=None, autoLog=None, depth=-10000):
             self.win = win
@@ -478,8 +470,8 @@ try:
             self.pen_guass = visual.PatchStim(
                 win,
                 units='norm',
-                tex="none",
-                mask="gauss",
+                tex='none',
+                mask='gauss',
                 pos=(
                     0,
                     0),
@@ -497,12 +489,12 @@ try:
                                              opacity=0.0)
 
         def updateFromEvent(self, evt):
-            """
-            Update the pen position and tilt graphics based on the data from a
-            wintab sample event.
+            """Update the pen position and tilt graphics based on the data from
+            a wintab sample event.
 
             :param evt: iohub wintab sample event
             :return:
+
             """
             # update the pen position stim based on
             # the last tablet event's data
@@ -529,7 +521,8 @@ try:
             if evt.device.axis['z']['supported']:
                 z = evt.device.axis['z']['range'] - evt.z
                 sopacity = self.min_opacity + \
-                    (z / evt.device.axis['z']['range']) * (1.0 - self.min_opacity)
+                    (z / evt.device.axis['z']['range']) * \
+                    (1.0 - self.min_opacity)
                 self.pen_guass.opacity = self.pen_tilt_line.opacity = sopacity
             else:
                 self.pen_guass.opacity = self.pen_tilt_line.opacity = 1.0
@@ -549,19 +542,22 @@ try:
                 self.pen_guass.pos[1] + pen_tilt_xy[1]
 
         def draw(self):
-            """
-            Draw the PenPositionStim to the opengl back buffer. This needs to be
-            called prior to calling win.flip() for the stim is to be displayed.
+            """Draw the PenPositionStim to the opengl back buffer. This needs
+            to be called prior to calling win.flip() for the stim is to be
+            displayed.
+
             :return: None
+
             """
             self.pen_guass.draw()
             self.pen_tilt_line.draw()
 
         def clear(self):
-            """
-            Hide the graphics on the screen, even if they are drawn,
-            by setting opacity to 0
+            """Hide the graphics on the screen, even if they are drawn, by
+            setting opacity to 0.
+
             :return: None
+
             """
             self.pen_guass.opacity = 0.0
             self.pen_tilt_line.opacity = 0.0
@@ -570,14 +566,15 @@ try:
             self.win = None
 
     class PenTracesStim(MinimalStim):
-        """
-        Graphics representing where the pen has been moved on the digitizer
+        """Graphics representing where the pen has been moved on the digitizer
         surface. Positions where sample pressure > 0 are included.
 
-        Implemented as a list of visual.ShapeStim, each representing a single
-        pen trace/segment (series on pen samples with pressure > 0). For improved
-        performance, a single pen trace can have max_trace_len points before
-        a new ShapeStim is created and made the 'current' pen trace'.
+        Implemented as a list of visual.ShapeStim, each representing a
+        single pen trace/segment (series on pen samples with pressure >
+        0). For improved performance, a single pen trace can have
+        max_trace_len points before a new ShapeStim is created and made
+        the 'current' pen trace'.
+
         """
 
         def __init__(
@@ -604,10 +601,11 @@ try:
 
         @property
         def traces(self):
-            """
-            List of np arrays, each np array is the set of vertices for one pen
-            trace.
+            """List of np arrays, each np array is the set of vertices for one
+            pen trace.
+
             :return: list
+
             """
             return [pts.vertices for pts in self.pentracestim]
 
@@ -633,21 +631,23 @@ try:
                     self.end()
 
         def draw(self):
-            """
-            Draws each pen trace ShapeStim to the opengl back buffer. This method
-            must be called prior to calling win.flip() if it is to appear on the
-            screen.
+            """Draws each pen trace ShapeStim to the opengl back buffer. This
+            method must be called prior to calling win.flip() if it is to
+            appear on the screen.
+
             :return: None
+
             """
             for pts in self.pentracestim:
                 pts.draw()
 
         def start(self, first_point):
-            """
-            Start a new pen trace, by creating a new ShapeStim, adding it to the
-            pentracestim list, and making it the current_pentrace.
+            """Start a new pen trace, by creating a new ShapeStim, adding it to
+            the pentracestim list, and making it the current_pentrace.
+
             :param first_point: the first point in the ShapStim being craeted.
             :return: None
+
             """
             self.end()
             self.current_points.append(first_point)
@@ -667,23 +667,24 @@ try:
             self.pentracestim.append(self.current_pentrace)
 
         def end(self):
-            """
-            Stop using the current_pentrace ShapeStim. Next time a pen sample
-            position is added to the PenTracesStim instance, a new ShapeStim will
-            created and added to the pentracestim list.
+            """Stop using the current_pentrace ShapeStim. Next time a pen
+            sample position is added to the PenTracesStim instance, a new
+            ShapeStim will created and added to the pentracestim list.
+
             :return: None
+
             """
             self.current_pentrace = None
             self.current_points = []
             self.last_pos = [0, 0]
 
         def append(self, pos):
-            """
-            Add a pen position (in pix coords) to the current_pentrace ShapeStim
-            vertices.
+            """Add a pen position (in pix coords) to the current_pentrace
+            ShapeStim vertices.
 
             :param pos: (x,y) tuple
             :return: None
+
             """
             if self.current_pentrace is None:
                 self.start(pos)
@@ -694,10 +695,11 @@ try:
                 self.current_pentrace.vertices = self.current_points
 
         def clear(self):
-            """
-            Remove all ShapStim being used. Next time this stim is drawn, no pen
-            traces will exist.
+            """Remove all ShapStim being used. Next time this stim is drawn, no
+            pen traces will exist.
+
             :return:
+
             """
             self.end()
             # for pts in self.pentracestim:
@@ -728,9 +730,8 @@ try:
                 intro_text1=None,
                 intro_text2=None,
                 intro_target_pos=None):
-            """
-            ScreenPositionValidation is used to perform a pen position accuracy
-            test for an iohub wintab device.
+            """ScreenPositionValidation is used to perform a pen position
+            accuracy test for an iohub wintab device.
 
             :param win: psychopy Window instance to ude for the validation graphics
             :param io: iohub connection instance
@@ -743,6 +744,7 @@ try:
             :param intro_text2: None to use default, str or unicode to set the text used for the introduction text part 2, or an instance of psychopy.visual.TextStim
             :param intro_target_pos: None to use default, or (x,y) position to place the target graphic on the introduction screen. (x,y) position must be specified in 'norm' coordinate space.
             :return:
+
             """
 
             from ..util.targetpositionsequence import TargetStim, PositionGrid
@@ -762,7 +764,7 @@ try:
             title_stim = visual.TextStim(self.win, units='norm',
                                          pos=(0, .9),
                                          height=0.1,
-                                         text="Pen Position Validation")
+                                         text='Pen Position Validation')
             if isinstance(intro_title, basestring):
                 title_stim.setText(intro_title)
             elif isinstance(intro_title, visual.TextStim):
@@ -773,18 +775,18 @@ try:
             text1_stim = visual.TextStim(self.win, units='norm',
                                          pos=(0, .65),
                                          height=0.05,
-                                         text="On the following screen, "
-                                         "press the pen on the target "
-                                         "graphic when it appears, "
-                                         "as accurately as "
-                                         "possible, until the target "
-                                         "moves to a different "
-                                         "location. Then press at the "
-                                         "next target location. "
-                                         "Hold the stylus in exactly "
-                                         "the same way as you would "
-                                         "hold a pen for normal "
-                                         "handwriting.",
+                                         text='On the following screen, '
+                                         'press the pen on the target '
+                                         'graphic when it appears, '
+                                         'as accurately as '
+                                         'possible, until the target '
+                                         'moves to a different '
+                                         'location. Then press at the '
+                                         'next target location. '
+                                         'Hold the stylus in exactly '
+                                         'the same way as you would '
+                                         'hold a pen for normal '
+                                         'handwriting.',
                                          wrapWidth=1.25
                                          )
 
@@ -799,10 +801,10 @@ try:
                                          pos=(0, -0.2),
                                          height=0.066,
                                          color='green',
-                                         text="Press the pen on the above "
-                                         "target to start the "
-                                         "validation, or the ESC key "
-                                         "to skip the procedure.")
+                                         text='Press the pen on the above '
+                                         'target to start the '
+                                         'validation, or the ESC key '
+                                         'to skip the procedure.')
             if isinstance(intro_text2, basestring):
                 text2_stim.setText(intro_text2)
             elif isinstance(intro_text2, visual.TextStim):
@@ -861,15 +863,15 @@ try:
 
             finished_graphics['title'] = visual.TextStim(
                 self.win, units='norm', pos=(
-                    0, .9), height=0.1, text="Validation Complete")
+                    0, .9), height=0.1, text='Validation Complete')
             finished_graphics['result_status'] = visual.TextStim(
                 self.win, units='norm', pos=(
-                    0, .7), height=0.07, color='blue', text="Result: {}")
+                    0, .7), height=0.07, color='blue', text='Result: {}')
             finished_graphics['result_stats'] = visual.TextStim(self.win, units='norm', pos=(
-                0, .6), height=0.05, text="{}/{} Points Validated. Min, Max, Mean Errors: {}, {}, {}")
+                0, .6), height=0.05, text='{}/{} Points Validated. Min, Max, Mean Errors: {}, {}, {}')
             finished_graphics['exit_text'] = visual.TextStim(
                 self.win, units='norm', pos=(
-                    0, .5), height=0.05, text="Press any key to continue...")
+                    0, .5), height=0.05, text='Press any key to continue...')
 
         @property
         def targetStim(self):
@@ -1011,17 +1013,17 @@ try:
             min_err = results['min_err']
             max_err = results['max_err']
             avg_err = results['avg_err']
-            point_count = results["point_count"]
+            point_count = results['point_count']
             self._finsihedScreenGraphics['result_status'].setText(
-                "Result: {}".format(status))
+                'Result: {}'.format(status))
 
             self._finsihedScreenGraphics['result_stats'].setText(
-                "%d/%d "
-                "Points Validated."
-                "Min, Max, Mean "
-                "Errors: "
-                "%.3f, %.3f, %.3f"
-                "" %
+                '%d/%d '
+                'Points Validated.'
+                'Min, Max, Mean '
+                'Errors: '
+                '%.3f, %.3f, %.3f'
+                '' %
                 (ok_point_count, point_count, min_err, max_err, avg_err))
             for ig in self._finsihedScreenGraphics.values():
                 ig.draw()
@@ -1048,12 +1050,12 @@ try:
                     self._penStim.draw()
 
         def run(self):
-            """
-            Starts the validation process. This function will not return until
-            the validation is complete. The validation results are returned
-            in dict format.
+            """Starts the validation process. This function will not return
+            until the validation is complete. The validation results are
+            returned in dict format.
 
             :return: dist containing validation results.
+
             """
 
             continue_val = self._enterIntroScreen()

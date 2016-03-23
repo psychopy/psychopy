@@ -1,5 +1,5 @@
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/daq/__init__.py
 
 Copyright (C)  2012-2013 iSolver Software Solutions
@@ -7,6 +7,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson
+
 """
 
 
@@ -75,7 +76,7 @@ class AnalogInputDevice(Device):
 
     EVENT_CLASS_NAMES = ['MultiChannelAnalogInputEvent']
     DEVICE_TYPE_ID = DeviceConstants.ANALOGINPUT
-    DEVICE_TYPE_STRING = "ANALOGINPUT"
+    DEVICE_TYPE_STRING = 'ANALOGINPUT'
     _delay_offset_adjustment = 0.0
     __slots__ = [e[0] for e in _newDataTypes]
 
@@ -108,9 +109,9 @@ class AnalogInputEvent(DeviceEvent):
 
 
 class MultiChannelAnalogInputEvent(AnalogInputEvent):
-    """
-    The AnalogInputDevice supports one event type at this time, a
-    MultiChannelAnalogInputEvent that contains all the attributes of the base
+    """The AnalogInputDevice supports one event type at this time, a
+    MultiChannelAnalogInputEvent that contains all the attributes of the base.
+
     ioHub Device class as well at 8 extra attributes, labeled AI_0 - AI_7,
     which hold the digital representation of the analog input voltage at the time
     the device took the analog readings from the 8 input channels being monitored
@@ -135,6 +136,7 @@ class MultiChannelAnalogInputEvent(AnalogInputEvent):
     channel reads for a given scan is 160 usec or less. This is low enough given
     the suggested maximum scanning rate of 1000 Hz per channel when the device is
     being used with the ioHub to be considered 'effectively' simultaneous.
+
     """
     _newDataTypes = [
         ('AI_0', N.float32),

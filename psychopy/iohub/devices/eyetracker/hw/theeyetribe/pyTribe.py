@@ -21,10 +21,8 @@ getTime = Computer.getTime
 
 
 class TheEyeTribe(object):
-    """
-    TheEyeTribe class is the client side interface to the TheEyeTribe
-    eye tracking device server.
-    """
+    """TheEyeTribe class is the client side interface to the TheEyeTribe eye
+    tracking device server."""
 
     # define the dict format for tracker set msgs
     set_tracker_prototype = {
@@ -35,9 +33,9 @@ class TheEyeTribe(object):
 
     # define the dict format for tracker get msgs
     get_tracker_prototype = {
-        "category": 'tracker',
-        "request": 'get',
-        "values": []
+        'category': 'tracker',
+        'request': 'get',
+        'values': []
     }
 
     # see http://dev.theeyetribe.com/api/#cat_tracker
@@ -130,11 +128,9 @@ class TheEyeTribe(object):
     # false: ((state & mask) == 0)
 
     def __init__(self, server_ip='127.0.0.1', server_port=6555):
-        """
-        When an instance of TheEyeTribe client interface is created,
-        it creates two greenlets, a EyeTribeTransportManager and a
-        HeartbeatPump.
-        """
+        """When an instance of TheEyeTribe client interface is created, it
+        creates two greenlets, a EyeTribeTransportManager and a
+        HeartbeatPump."""
         # _tracker_state is used to hold the last value received from the
         # eye tracker server for any tracker get keys sent. So as info
         # is requested from the server, the _tracker_state will hold a
@@ -179,9 +175,9 @@ class TheEyeTribe(object):
                 # get updated eye tracker values
                 self.sendGetMessage(*self.tracker_get_values)
             elif msg_statuscode == self.DISPLAY_CHANGE:
-                print2err("DISPLAY_CHANGE REPLY CODE: NOT HANDLED")
+                print2err('DISPLAY_CHANGE REPLY CODE: NOT HANDLED')
             elif msg_statuscode == self.CALIBRATION_CHANGED:
-                print2err("CALIBRATION_CHANGED REPLY CODE: NOT HANDLED")
+                print2err('CALIBRATION_CHANGED REPLY CODE: NOT HANDLED')
             else:
                 # TODO Handle msg status code error values
                 print2err('***********')
@@ -250,10 +246,9 @@ class TheEyeTribe(object):
         self.set_tracker_prototype['values'] = None
 
     def sendGetMessage(self, *args):
-        """
-        Send a Get Tracker msg to the server. any args passed into this method
-        are used as the keys that are to be sent to the server so the current
-        value of each can be returned.
+        """Send a Get Tracker msg to the server. any args passed into this
+        method are used as the keys that are to be sent to the server so the
+        current value of each can be returned.
 
         For example:
 
@@ -261,6 +256,7 @@ class TheEyeTribe(object):
 
         would send a msg asking for the current eye tracker state and
         framerate.
+
         """
         send_values = []
         for k in args:
@@ -276,9 +272,7 @@ class TheEyeTribe(object):
         self.get_tracker_prototype['values'] = None
 
     def processSample(self, frame_dict):
-        """
-        Process an eye tracker sample frame that has been received.
-        """
+        """Process an eye tracker sample frame that has been received."""
         # TODO proper handling of sample data
         print2err('++++++++++++++++')
         print2err('Received Sample:\nTime: ', getTime())
@@ -305,13 +299,12 @@ class TheEyeTribe(object):
             calreq['values'] = OrderedDict(
                 sorted(kwargs.items(), key=lambda t: t[0]))
         send_str = json.dumps(calreq)
-        print2err("send_str: ", send_str)
+        print2err('send_str: ', send_str)
         self._transport_manager.send(send_str)
 
     def calibrate(self):
-        """
-        Runs complete calibration process according to the TheEyeTribe APIs
-        """
+        """Runs complete calibration process according to the TheEyeTribe
+        APIs."""
         self.sendCalibrationMessage('clear')
         gevent.sleep(self.sleepInterval)
         self.sendCalibrationMessage('start', pointcount=self.calibrationPoints)
@@ -327,16 +320,12 @@ class TheEyeTribe(object):
             # gevent.sleep(self.sleepInterval)
 
     def processCalibrationResult(self, calibrationResult):
-        """
-        Process the calibration result
-        """
+        """Process the calibration result."""
         return True
 
     def close(self):
-        """
-        Close the eye tracker client by closing the transport_manager and
-        heartbeat greenlets.
-        """
+        """Close the eye tracker client by closing the transport_manager and
+        heartbeat greenlets."""
         self._heartbeat.stop()
         self._transport_manager.stop()
 
@@ -346,10 +335,9 @@ class TheEyeTribe(object):
 
 
 class EyeTribeTransportManager(gevent.Greenlet):
-    """
-    EyeTribeTransportManager is used to handle tx and rx with the
-    eye tracker sever. This class is created by the TheEyeTribe class
-    when an instance is created.
+    """EyeTribeTransportManager is used to handle tx and rx with the eye
+    tracker sever. This class is created by the TheEyeTribe class when an
+    instance is created.
 
     The client_interface arg is the TheEyeTribe class instance that is
     creating the EyeTribeTransportManager.
@@ -370,6 +358,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
     incoming data from the eye tracker server. If any is read, it is parsed into
     reply dict's. The type of server reply received is used to determine
     if it should be passed back to the HeartbeatPump or to the TheEyeTribe.
+
     """
 
     def __init__(self, client_interface, address='127.0.0.1', port=6555):
@@ -444,10 +433,12 @@ class EyeTribeTransportManager(gevent.Greenlet):
         self._socket.close()
 
     def send(self, msg):
-        """
-        send is called by other classes that want to send a msg to the
-        eye tracker server. the msg is put in a queue that is emptied
-        as the EyeTribeTransportManager runs.
+        """send is called by other classes that want to send a msg to the eye
+        tracker server.
+
+        the msg is put in a queue that is emptied as the
+        EyeTribeTransportManager runs.
+
         """
         if not isinstance(msg, basestring):
             msg = json.dumps(msg)
@@ -472,18 +463,15 @@ class EyeTribeTransportManager(gevent.Greenlet):
 
 
 class HeartbeatPump(gevent.Greenlet):
-    """
-    HeartbeatPump keeps theeyetribse sever alive.
-    """
+    """HeartbeatPump keeps theeyetribse sever alive."""
 
-    get_heartbeat_rate = {"category": "tracker", "request": "get",
-                          "values": ["heartbeatinterval"]
+    get_heartbeat_rate = {'category': 'tracker', 'request': 'get',
+                          'values': ['heartbeatinterval']
                           }
     heartbeat = {'category': 'heartbeat'}
 
     def __init__(self, transport_manager, sleep_interval=3.0):
-        """
-        HeartbeatPump is used by TheEyeTribe client class to keep the server
+        """HeartbeatPump is used by TheEyeTribe client class to keep the server
         running.
 
         transport_manager the instance of the EyeTribeTransportManager created
@@ -492,6 +480,7 @@ class HeartbeatPump(gevent.Greenlet):
         sleep_interval is the time to delay between sending heartbeats
 
         HeartbeatPump will run until it is stopped.
+
         """
         gevent.Greenlet.__init__(self)
         self._transport_manager = transport_manager
@@ -506,15 +495,12 @@ class HeartbeatPump(gevent.Greenlet):
         self.pump()
 
     def getHeartbeatRate(self):
-        '''
-        request the rate the server is expecting to receive heartbeats at.
-        '''
+        """request the rate the server is expecting to receive heartbeats
+        at."""
         self._transport_manager.send(self.get_heartbeat_rate)
 
     def pump(self):
-        """
-        Send a heartbeat msg to the server.
-        """
+        """Send a heartbeat msg to the server."""
         self._transport_manager.send(self.heartbeat)
 
     def _run(self):
@@ -527,7 +513,5 @@ class HeartbeatPump(gevent.Greenlet):
             self.pump()
 
     def stop(self):
-        """
-        Stops the Greenlet from sending heartbeat msg's.
-        """
+        """Stops the Greenlet from sending heartbeat msg's."""
         self._running = False

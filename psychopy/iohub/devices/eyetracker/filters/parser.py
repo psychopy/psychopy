@@ -234,8 +234,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
         return event_type_and_filter_ids
 
     def process(self):
-        """
-        """
+        """"""
         samples_for_processing = []
         for in_evt in self.getInputEvents():
             if self.sample_type is None:
@@ -373,7 +372,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
             existing_start_event = self.open_parser_events.get('MIS')
             if existing_start_event:
                 print2err(
-                    "PARSER ERROR: Blink Start Event already Open and is being dropped: ",
+                    'PARSER ERROR: Blink Start Event already Open and is being dropped: ',
                     existing_start_event)
             self.open_parser_events['MIS'] = current_sample
 
@@ -384,7 +383,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
             existing_start_event = self.open_parser_events.get('FIX')
             if existing_start_event:
                 print2err(
-                    "PARSER ERROR: Fixation Start Event already Open and is being dropped: ",
+                    'PARSER ERROR: Fixation Start Event already Open and is being dropped: ',
                     existing_start_event)
             self.open_parser_events['FIX'] = current_sample
 
@@ -395,7 +394,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
             existing_start_event = self.open_parser_events.get('SAC')
             if existing_start_event:
                 print2err(
-                    "PARSER ERROR: Saccade Start Event already Open and is being dropped: ",
+                    'PARSER ERROR: Saccade Start Event already Open and is being dropped: ',
                     existing_start_event)
             self.open_parser_events['SAC'] = current_sample
 
@@ -604,7 +603,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
                                     'left_%s' %
                                     (field))]))
                 else:
-                    ValueError("Unknown Sample Status: %d" % (status))
+                    ValueError('Unknown Sample Status: %d' % (status))
         mono_evt[self.io_event_fields.index(
             'type')] = EventConstants.MONOCULAR_EYE_SAMPLE
         if self.isValidSample(mono_evt):

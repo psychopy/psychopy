@@ -37,7 +37,7 @@ class ioDeviceError(Exception):
         return repr(self)
 
     def __repr__(self):
-        return "ioDeviceError:\n\tMsg: {0:>s}\n\tDevice: {1}\n".format(
+        return 'ioDeviceError:\n\tMsg: {0:>s}\n\tDevice: {1}\n'.format(
             self.msg, repr(self.device))
 
 
@@ -83,12 +83,14 @@ class ioObjectMetaClass(type):
 
 
 class ioObject(object):
-    """
-    The ioObject class is the base class for all ioHub Device and DeviceEvent classes.
+    """The ioObject class is the base class for all ioHub Device and
+    DeviceEvent classes.
 
-    Any ioHub Device or DeviceEvent class (i.e devices like Keyboard Device, Mouse Device, etc;
-    and device events like Message, KeyboardPressEvent, MouseMoveEvent, etc.)
-    also include the methods and attributes of this class.
+    Any ioHub Device or DeviceEvent class (i.e devices like Keyboard
+    Device, Mouse Device, etc; and device events like Message,
+    KeyboardPressEvent, MouseMoveEvent, etc.) also include the methods
+    and attributes of this class.
+
     """
     __metaclass__ = ioObjectMetaClass
     __slots__ = ['_attribute_values', ]
@@ -108,30 +110,32 @@ class ioObject(object):
                 self._attribute_values.append(value)
 
     def _asDict(self):
-        """
-        Return the ioObject in dictionary format, with keys as the ioObject's
-        attribute names, and dictionary values equal to the attribute values.
+        """Return the ioObject in dictionary format, with keys as the
+        ioObject's attribute names, and dictionary values equal to the
+        attribute values.
 
         Return (dict): dictionary of ioObjects attribute_name, attributes values.
+
         """
         return dict(zip(self.CLASS_ATTRIBUTE_NAMES, self._attribute_values))
 
     def _asList(self):
-        """
-        Return the ioObject in list format, which is a 1D list of the ioObject's
-        attribute values, in the order the ioObject expects them if passed to a class constructor.
+        """Return the ioObject in list format, which is a 1D list of the
+        ioObject's attribute values, in the order the ioObject expects them if
+        passed to a class constructor.
 
         Return (list): 1D list of ioObjects _attribute_values
+
         """
         return self._attribute_values
 
     def _asNumpyArray(self):
-        """
-        Return the ioObject as a numpy array, with the array values being equal to
-        what would be returned by the asList() method, and the array cell data types
-        being specified by NUMPY_DTYPE class constant.
+        """Return the ioObject as a numpy array, with the array values being
+        equal to what would be returned by the asList() method, and the array
+        cell data types being specified by NUMPY_DTYPE class constant.
 
         Return (numpy.array): numpy array representation of object.
+
         """
         return N.array([tuple(self._attribute_values), ], self.NUMPY_DTYPE)
 
@@ -149,10 +153,9 @@ HIGH_PRIORITY_CLASS = -10
 
 
 class Computer(object):
-    """
-    The Computer class does not actually extend the ioHub.devices.Device class.
-    However it is sometimes conceptually convenient to think of the Computer class as a type of
-    ioHub Device.
+    """The Computer class does not actually extend the ioHub.devices.Device
+    class. However it is sometimes conceptually convenient to think of the
+    Computer class as a type of ioHub Device.
 
     The Computer class manages the ioHub global clock used to synchronize event times
     from all ioHub Devices and ioHub DeviceEvents. This universal timebase can be accessed
@@ -181,6 +184,7 @@ class Computer(object):
     device can be accessed via the Computer class alone (using 'iohub.devices.Computer')
     or using the 'self.devices.computer' attribute of the ioHubExperimentRuntime
     class.
+
     """
     _nextEventID = 1
 
@@ -233,7 +237,7 @@ class Computer(object):
 
     def __init__(self):
         print2err(
-            "WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
+            'WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx')
 
     @staticmethod
     def getProcessPriority(proc=None):
@@ -265,12 +269,12 @@ class Computer(object):
 
     @staticmethod
     def getPriority():
-        """
-        Returns the current processes priority as a string.
+        """Returns the current processes priority as a string.
 
         This method is not supported on OS X.
 
         :return: 'normal', 'high', or 'realtime'
+
         """
         return Computer.getProcessPriority()
 
@@ -332,7 +336,7 @@ class Computer(object):
 
             except psutil.AccessDenied:
                 print2err(
-                    "WARNING: Could not increased priority for process {0}".format(
+                    'WARNING: Could not increased priority for process {0}'.format(
                         Computer.current_process.pid))
                 return False
         return True
@@ -371,7 +375,7 @@ class Computer(object):
 
             except psutil.AccessDenied:
                 print2err(
-                    "WARNING: Could not increased priority for process {0}".format(
+                    'WARNING: Could not increased priority for process {0}'.format(
                         Computer.current_process.pid))
                 return False
         return True
@@ -423,7 +427,7 @@ class Computer(object):
                 Computer.in_high_priority_mode = False
         except psutil.AccessDenied:
             print2err(
-                "WARNING: Could not disable increased priority for process {0}".format(
+                'WARNING: Could not disable increased priority for process {0}'.format(
                     Computer.current_process.pid))
             return False
         return True
@@ -451,8 +455,8 @@ class Computer(object):
 
     @staticmethod
     def getProcessAffinities():
-        """
-        Retrieve the current PsychoPy Process affinity list and ioHub Process affinity list.
+        """Retrieve the current PsychoPy Process affinity list and ioHub
+        Process affinity list.
 
         For example, on a 2 core CPU with hyper-threading, the possible 'processor'
         list would be [0,1,2,3], and by default both the PsychoPy and ioHub
@@ -503,8 +507,8 @@ class Computer(object):
 
     @staticmethod
     def setProcessAffinities(experimentProcessorList, ioHubProcessorList):
-        """
-        Sets the processor affinity for the PsychoPy Process and the ioHub Process.
+        """Sets the processor affinity for the PsychoPy Process and the ioHub
+        Process.
 
         For example, on a 2 core CPU with hyper-threading, the possible 'processor'
         list would be [0,1,2,3], and by default both the experiment and ioHub
@@ -542,15 +546,15 @@ class Computer(object):
 
         Returns:
            None
+
         """
         Computer.current_process.cpu_affinity(experimentProcessorList)
         Computer.iohub_process.cpu_affinity(ioHubProcessorList)
 
     @staticmethod
     def autoAssignAffinities():
-        """
-        Auto sets the PsychoPy Process and ioHub Process affinities
-        based on some very simple logic.
+        """Auto sets the PsychoPy Process and ioHub Process affinities based on
+        some very simple logic.
 
         It is not known at this time if the implementation of this method makes
         any sense in terms of actually improving performance. Field tests and
@@ -568,6 +572,7 @@ class Computer(object):
 
         Returns:
             None
+
         """
         cpu_count = Computer.processing_unit_count
         if cpu_count == 2:
@@ -585,7 +590,7 @@ class Computer(object):
             Computer.setAllOtherProcessesAffinity(
                 [0, 1, 6, 7], [Computer.currentProcessID, Computer.iohub_process_id])
         else:
-            print "autoAssignAffinities does not support %d processors." % (cpu_count,)
+            print 'autoAssignAffinities does not support %d processors.' % (cpu_count,)
 
     @staticmethod
     def getCurrentProcessAffinity():
@@ -696,9 +701,7 @@ class Computer(object):
 
     @staticmethod
     def currentTime():
-        """
-        Alias for Computer.currentSec()
-        """
+        """Alias for Computer.currentSec()"""
         return Computer.global_clock.getTime()
 
     @staticmethod
@@ -729,9 +732,7 @@ class Computer(object):
 
     @staticmethod
     def getTime():
-        """
-        Alias for Computer.currentSec()
-        """
+        """Alias for Computer.currentSec()"""
         return Computer.global_clock.getTime()
 
     @staticmethod
@@ -742,8 +743,7 @@ class Computer(object):
 
     @staticmethod
     def getPhysicalSystemMemoryInfo():
-        """
-        Return a class containing information about current memory usage.
+        """Return a class containing information about current memory usage.
 
         Args:
            None
@@ -758,14 +758,15 @@ class Computer(object):
         * vmem.percent: the percent of memory in use by the system.
         * vmem.used: the used amount of memory in bytes.
         * vmem.free: the amount of memory that is free in bytes.On Windows, this is the same as vmem.available.
+
         """
         m = psutil.virtual_memory()
         return m
 
     @staticmethod
     def getCPUTimeInfo(percpu=False):
-        """
-        Return a float representing the current CPU utilization as a percentage.
+        """Return a float representing the current CPU utilization as a
+        percentage.
 
         Args:
            percpu (bool): If True, a list of cputimes objects is returned,
@@ -773,13 +774,13 @@ class Computer(object):
                           If False, only a single cputimes object is returned.
         Returns:
            object: (user=float, system=float, idle=float)
+
         """
         return psutil.cpu_times_percent(percpu=percpu)
 
     @staticmethod
     def getCurrentProcess():
-        """
-        Get the current / Local process.
+        """Get the current / Local process.
 
         On Windows and Linux, this is a psutil.Process class instance.
 
@@ -788,13 +789,13 @@ class Computer(object):
 
         Returns:
            object: Process object for the current system process.
+
         """
         return Computer.current_process
 
     @staticmethod
     def getIoHubProcess():
-        """
-        Get the ioHub Process.
+        """Get the ioHub Process.
 
         On Windows and Linux, this is a psutil.Process class instance.
 
@@ -803,6 +804,7 @@ class Computer(object):
 
         Returns:
            object: Process object for the ioHub Process.
+
         """
         return Computer.iohub_process
 
@@ -810,10 +812,11 @@ class Computer(object):
 
 
 class Device(ioObject):
-    """
-    The Device class is the base class for all ioHub Device types.
-    Any ioHub Device class (i.e Keyboard, Mouse, etc)
-    also include the methods and attributes of this class.
+    """The Device class is the base class for all ioHub Device types.
+
+    Any ioHub Device class (i.e Keyboard, Mouse, etc) also include the
+    methods and attributes of this class.
+
     """
     DEVICE_USER_LABEL_INDEX = 0
     DEVICE_NUMBER_INDEX = 1
@@ -960,14 +963,14 @@ class Device(ioObject):
         self._hw_error_str = u''
 
     def getConfiguration(self):
-        """
-        Retrieve the configuration settings information used to create the device instance.
-        This will be a combination of the default settings for the device
-        (found in iohub.devices.<device_name>.default_,defice_name>.yaml, plus any
-        device settings specified by the experiment author within an
-        iohub_config.yaml file if the ioHubExperimentRuntime is being used
-        to define the experiment logic, or if using the iohub.launchHubProcess()
-        function in the experriment script, as device settings in dictionary form.
+        """Retrieve the configuration settings information used to create the
+        device instance. This will be a combination of the default settings for
+        the device (found in
+        iohub.devices.<device_name>.default_,defice_name>.yaml, plus any device
+        settings specified by the experiment author within an iohub_config.yaml
+        file if the ioHubExperimentRuntime is being used to define the
+        experiment logic, or if using the iohub.launchHubProcess() function in
+        the experriment script, as device settings in dictionary form.
 
         Changing any values in the returned dictionary has no effect on the device state.
 
@@ -976,13 +979,13 @@ class Device(ioObject):
 
         Returns:
             (dict): The dictionary of the device configuration settings used to create the device.
+
         """
         return self._configuration
 
     def getEvents(self, *args, **kwargs):
-        """
-        Retrieve any DeviceEvents that have occurred since the last call to the
-        device's getEvents() or clearEvents() methods.
+        """Retrieve any DeviceEvents that have occurred since the last call to
+        the device's getEvents() or clearEvents() methods.
 
         Note that calling getEvents() at a device level does not change the Global Event Buffer's
         contents.
@@ -996,6 +999,7 @@ class Device(ioObject):
 
         Returns:
             (list): New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time of each event, older event at index 0. The event object type is determined by the asType parameter passed to the method. By default a namedtuple object is returned for each event.
+
         """
         self._iohub_server.processDeviceEvents()
         eventTypeID = None
@@ -1050,9 +1054,8 @@ class Device(ioObject):
             event_type=None,
             filter_id=None,
             call_proc_events=True):
-        """
-        Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
-        or clearEvents() methods.
+        """Clears any DeviceEvents that have occurred since the last call to
+        the device's getEvents(), or clearEvents() methods.
 
         Note that calling clearEvents() at the device level only clears the
         given device's event buffer. The ioHub Process's Global Event Buffer
@@ -1063,6 +1066,7 @@ class Device(ioObject):
 
         Returns:
             None
+
         """
         if call_proc_events:
             self._iohub_server.processDeviceEvents()
@@ -1103,13 +1107,14 @@ class Device(ioObject):
         return self._is_reporting_events
 
     def isReportingEvents(self):
-        """
-        Returns whether a Device is currently reporting events to the ioHub Process.
+        """Returns whether a Device is currently reporting events to the ioHub
+        Process.
 
         Args: None
 
         Returns:
             (bool): Current reporting state.
+
         """
         return self._is_reporting_events
 
@@ -1131,8 +1136,7 @@ class Device(ioObject):
         return self._hw_interface_status
 
     def addFilter(self, filter_file_path, filter_class_name, kwargs):
-        """
-        Take the filter_file_path and add the filters module dir to sys.path
+        """Take the filter_file_path and add the filters module dir to sys.path
         if it does not already exist.
 
         Then import the filter module (file) class based on filter_class_name.
@@ -1142,14 +1146,15 @@ class Device(ioObject):
 
         :param filter_path:
         :return:
+
         """
         try:
             import importlib
             filter_file_path = os.path.normpath(
                 os.path.abspath(filter_file_path))
             fdir, ffile = os.path.split(filter_file_path)
-            if not ffile.endswith(".py"):
-                ffile = ffile + ".py"
+            if not ffile.endswith('.py'):
+                ffile = ffile + '.py'
             if os.path.isdir(fdir) and os.path.exists(filter_file_path):
                 if fdir not in sys.path:
                     sys.path.append(fdir)
@@ -1160,7 +1165,7 @@ class Device(ioObject):
                 # import class filter_class_name
                 filter_class = getattr(filter_module, filter_class_name, None)
                 if filter_class is None:
-                    print2err("Can not create Filter, filter class not found")
+                    print2err('Can not create Filter, filter class not found')
                     return -1
                 else:
                     # Create instance of class
@@ -1174,11 +1179,11 @@ class Device(ioObject):
                     return filter_class_instance.filter_id
 
             else:
-                print2err("Could not add filter . File not found.")
+                print2err('Could not add filter . File not found.')
             return -1
         except Exception:
             printExceptionDetailsToStdErr()
-            print2err("ERROR During Add Filter")
+            print2err('ERROR During Add Filter')
 
     def removeFilter(self, filter_file_path, filter_class_name):
         filter_key = filter_file_path + '.' + filter_class_name
@@ -1253,12 +1258,11 @@ class Device(ioObject):
         self.clearEvents()
 
     def _poll(self):
-        """
-        The _poll method is used when an ioHub Device needs to periodically
+        """The _poll method is used when an ioHub Device needs to periodically
         check for new events received from the native device / device API.
-        Normally this means that the native device interface is using some
-        data buffer or queue for new device events until the ioHub Device
-        reads them.
+        Normally this means that the native device interface is using some data
+        buffer or queue for new device events until the ioHub Device reads
+        them.
 
         The ioHub Device can *poll* and check for any new events that
         are available, retrieve the new events, and process them
@@ -1330,14 +1334,14 @@ class Device(ioObject):
 
         Returns:
             None
+
         """
         pass
 
     def _handleNativeEvent(self, *args, **kwargs):
-        """
-        The _handleEvent method can be used by the native device interface (implemented
-        by the ioHub Device class) to register new native device events
-        by calling this method of the ioHub Device class.
+        """The _handleEvent method can be used by the native device interface
+        (implemented by the ioHub Device class) to register new native device
+        events by calling this method of the ioHub Device class.
 
         When a native device interface uses the _handleNativeEvent method it is
         employing an event callback approach to notify the ioHub Process when new
@@ -1374,14 +1378,14 @@ class Device(ioObject):
 
         Returns:
             None
+
         """
         return False
 
     def _getIOHubEventObject(self, native_event_data):
-        """
-        The _getIOHubEventObject method is called by the ioHub Process to convert
-        new native device event objects that have been received to the appropriate
-        ioHub Event type representation.
+        """The _getIOHubEventObject method is called by the ioHub Process to
+        convert new native device event objects that have been received to the
+        appropriate ioHub Event type representation.
 
         If the ioHub Device has been implemented to use the _poll() method of checking for
         new events, then this method simply should return what it is passed, and is the
@@ -1398,6 +1402,7 @@ class Device(ioObject):
 
         Returns:
             tuple: The appropriate ioHub Event type in list form.
+
         """
         return native_event_data
 
@@ -1415,12 +1420,13 @@ class Device(ioObject):
 
 
 class DeviceEvent(ioObject):
-    """
-    The DeviceEvent class is the base class for all ioHub DeviceEvent types.
+    """The DeviceEvent class is the base class for all ioHub DeviceEvent types.
 
-    Any ioHub DeviceEvent class (i.e MouseMoveEvent, MouseScrollEvent, MouseButtonPressEvent,
-    KeyboardPressEvent, KeyboardReleaseEvent, etc.) also has access to the
-    methods and attributes of the DeviceEvent class.
+    Any ioHub DeviceEvent class (i.e MouseMoveEvent, MouseScrollEvent,
+    MouseButtonPressEvent, KeyboardPressEvent, KeyboardReleaseEvent,
+    etc.) also has access to the methods and attributes of the
+    DeviceEvent class.
+
     """
     EVENT_EXPERIMENT_ID_INDEX = 0
     EVENT_SESSION_ID_INDEX = 1
@@ -1486,19 +1492,23 @@ class DeviceEvent(ioObject):
         # If the device that generates the given event type does not time stamp
         # events, then the device_time is set to the logged_time for the event.
 
-        ('logged_time', N.float64),  # The sec time that the event was 'received' by the ioHub Server Process.
+        # The sec time that the event was 'received' by the ioHub Server
+        # Process.
+        ('logged_time', N.float64),
         # For devices that poll for events, this is the sec time that the poll
         # method was called for the device and the event was retrieved. For
         # devices that use the event callback, this is the sec time the callback
         # executed and accept the event. Time is in sec.msec-usec
 
-        ('time', N.float64),         # Time is in the normalized time base that all events share,
+        # Time is in the normalized time base that all events share,
+        ('time', N.float64),
         # regardless of device type. Time is calculated differently depending
         # on the device and perhaps event type.
         # Time is what should be used when comparing times of events across
         # different devices. Time is in sec.msec-usec.
 
-        ('confidence_interval', N.float32),  # This property attempts to give a sense of the amount to which
+        # This property attempts to give a sense of the amount to which
+        ('confidence_interval', N.float32),
         # the event time may be off relative to the true time the event
         # occurred. confidence_interval is calculated differently depending
         # on the device and perhaps event types. In general though, the
@@ -1510,14 +1520,17 @@ class DeviceEvent(ioObject):
         # in sec.msec-usec and will range from 0.000000 sec.msec-usec
         # and higher.
 
-        ('delay', N.float32),       # The delay of an event is the known (or estimated) delay from when the
+        # The delay of an event is the known (or estimated) delay from when the
+        ('delay', N.float32),
         # real world event occurred to when the ioHub received the event for
         # processing. This is often called the real-time end-to-end delay
         # of an event. If the delay for an event can not be reasonably estimated
         # or is not known, a delay of -1.0 is set. Delays are in sec.msec-usec
         # and valid values will range from 0.000000 sec.msec-usec and higher.
 
-        ('filter_id', N.int16)       # The filter identifier that the event passed through before being saved.
+        # The filter identifier that the event passed through before being
+        # saved.
+        ('filter_id', N.int16)
         # If the event did not pass through any filter devices, then the value will be 0.
         # Otherwise, the value is the | combination of the filter set that the
         # event passed through before being made available to the experiment,
@@ -1657,5 +1670,5 @@ try:
             '%s.devices.display' % (_pkgroot), 'Display')
         setattr(sys.modules[__name__], 'Display', display_class)
 except Exception:
-    print2err("Warning: display device module could not be imported.")
+    print2err('Warning: display device module could not be imported.')
     printExceptionDetailsToStdErr()

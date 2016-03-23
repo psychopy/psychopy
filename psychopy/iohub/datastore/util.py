@@ -1,5 +1,5 @@
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/datastore/util.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -7,6 +7,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 from tables import *
 import os
@@ -23,9 +24,8 @@ except Exception:
 
 
 def openHubFile(filepath, filename, mode):
-    """
-    Open an HDF5 DataStore file and register it so that it is closed even on interpreter crash.
-    """
+    """Open an HDF5 DataStore file and register it so that it is closed even on
+    interpreter crash."""
     global _hubFiles
     hubFile = openFile(os.path.join(filepath, filename), mode)
     _hubFiles.append(hubFile)
@@ -33,12 +33,11 @@ def openHubFile(filepath, filename, mode):
 
 
 def displayDataFileSelectionDialog(starting_dir=None):
-    """
-    Shows a FileDialog and lets you select a .hdf5 file to open for processing.
-    """
+    """Shows a FileDialog and lets you select a .hdf5 file to open for
+    processing."""
     from ..util.dialogs import FileDialog
     fdlg = FileDialog(
-        message="Select a ioHub DataStore File",
+        message='Select a ioHub DataStore File',
         defaultDir=starting_dir,
         fileTypes=FileDialog.IODATA_FILES,
         display_index=0)
@@ -46,7 +45,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
     status, filePathList = fdlg.show()
 
     if status != FileDialog.OK_RESULT:
-        print " Data File Selection Cancelled."
+        print ' Data File Selection Cancelled.'
         return None
 
     return filePathList[0]
@@ -82,11 +81,10 @@ def displayEventTableSelectionDialog(
 
 
 class ExperimentDataAccessUtility(object):
-    """
-    The ExperimentDataAccessUtility  provides a simple, high level, way to access
-    data saved in an ioHub DataStore HDF5 file. Data access is done by providing
-    information at an experiment and session level, as well as specifying the
-    ioHub Event types you want to retieve data for.
+    """The ExperimentDataAccessUtility  provides a simple, high level, way to
+    access data saved in an ioHub DataStore HDF5 file. Data access is done by
+    providing information at an experiment and session level, as well as
+    specifying the ioHub Event types you want to retieve data for.
 
     An instance of the ExperimentDataAccessUtility class is created by providing
     the location and name of the file to read, as well as any session code
@@ -103,6 +101,7 @@ class ExperimentDataAccessUtility(object):
 
     Returns:
         object: the created instance of the ExperimentDataAccessUtility, ready to get your data!
+
     """
 
     def __init__(
@@ -112,10 +111,9 @@ class ExperimentDataAccessUtility(object):
             experimentCode=None,
             sessionCodes=[],
             mode='r'):
-        """
-        An instance of the ExperimentDataAccessUtility class is created by providing
-        the location and name of the file to read, as well as any session code
-        filtering you want applied to the retieved datasets.
+        """An instance of the ExperimentDataAccessUtility class is created by
+        providing the location and name of the file to read, as well as any
+        session code filtering you want applied to the retieved datasets.
 
         Args:
             hdfFilePath (str): The path of the directory the DataStore HDF5 file is in.
@@ -128,6 +126,7 @@ class ExperimentDataAccessUtility(object):
 
         Returns:
             object: the created instance of the ExperimentDataAccessUtility, ready to get your data!
+
         """
         self.hdfFilePath = hdfFilePath
         self.hdfFileName = hdfFileName
@@ -147,42 +146,43 @@ class ExperimentDataAccessUtility(object):
         self.getExperimentMetaData()
 
     def printTableStructure(self, tableName):
-        """
-        Print to stdout the current structure and content statistics of the specified DataStore table.
-        To print out the complete structure of the DataStore file, including the name of all available tables,
-        see the printHubFileStructure method.
+        """Print to stdout the current structure and content statistics of the
+        specified DataStore table. To print out the complete structure of the
+        DataStore file, including the name of all available tables, see the
+        printHubFileStructure method.
 
         Args:
             tableName (str): The DataStore table name to print metadata information out for.
+
         """
         if self.hdfFile:
             hubFile = self.hdfFile
-            for group in hubFile.walkGroups("/"):
+            for group in hubFile.walkGroups('/'):
                 for table in hubFile.listNodes(group, classname='Table'):
                     if table.name == tableName:
                         print '------------------'
-                        print "Path:", table
-                        print "Table name:", table.name
-                        print "Number of rows in table:", table.nrows
-                        print "Number of cols in table:", len(table.colnames)
-                        print "Attribute name := type, shape:"
+                        print 'Path:', table
+                        print 'Table name:', table.name
+                        print 'Number of rows in table:', table.nrows
+                        print 'Number of cols in table:', len(table.colnames)
+                        print 'Attribute name := type, shape:'
                         for name in table.colnames:
                             print '\t', name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape)
                         print '------------------'
                         return
 
     def printHubFileStructure(self):
-        """
-        Print to stdout the current global structure of the loaded DataStore File.
-        """
+        """Print to stdout the current global structure of the loaded DataStore
+        File."""
         if self.hdfFile:
             print self.hdfFile
 
     def getExperimentMetaData(self):
-        """
-        Returns the the metadata for the experiment the datStore file is for.
+        """Returns the the metadata for the experiment the datStore file is
+        for.
 
         **Docstr TBC.**
+
         """
         if self.hdfFile:
             expcols = self.hdfFile.root.data_collection.experiment_meta_data.colnames
@@ -199,10 +199,11 @@ class ExperimentDataAccessUtility(object):
             return experiments
 
     def getSessionMetaData(self, sessions=None):
-        """
-        Returns the the metadata associated with the experiment session codes in use.
+        """Returns the the metadata associated with the experiment session
+        codes in use.
 
         **Docstr TBC.**
+
         """
         if self.hdfFile:
             if sessions is None:
@@ -221,16 +222,16 @@ class ExperimentDataAccessUtility(object):
             return sessions
 
     def getTableForPath(self, path):
-        """
-        Given a valid table path within the DataStore file, return the accociated table.
-        """
+        """Given a valid table path within the DataStore file, return the
+        accociated table."""
         self.hdfFile.getNode(path)
 
     def getEventTable(self, event_type):
-        """
-        Returns the DataStore table that contains events of the specified type.
+        """Returns the DataStore table that contains events of the specified
+        type.
 
         **Docstr TBC.**
+
         """
         if self.hdfFile:
             klassTables = self.hdfFile.root.class_table_mapping
@@ -254,7 +255,7 @@ class ExperimentDataAccessUtility(object):
                 event_value = event_type
             else:
                 print2err(
-                    "getEventTable error: event_type arguement must be a string or and int")
+                    'getEventTable error: event_type arguement must be a string or and int')
                 return None
 
             result = [
@@ -263,7 +264,7 @@ class ExperimentDataAccessUtility(object):
                         event_column, event_value))]
             if len(result) != 1:
                 print2err(
-                    "event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS: ",
+                    'event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS: ',
                     len(result))
                 return None
 
@@ -272,10 +273,8 @@ class ExperimentDataAccessUtility(object):
         return None
 
     def getEventMappingInformation(self):
-        """
-        Returns details on how ioHub Event Types are mapped to tables within
-        the given DataStore file.
-        """
+        """Returns details on how ioHub Event Types are mapped to tables within
+        the given DataStore file."""
         if self.hdfFile:
             eventMappings = dict()
             class_2_table = self.hdfFile.root.class_table_mapping
@@ -288,20 +287,22 @@ class ExperimentDataAccessUtility(object):
         return None
 
     def getEventsByType(self, condition_str=None):
-        """
-        Returns a dict of all event tables within the DataStore file that have
-        at least one event instance saved. Keys are Event Type constants,
-        as specified by iohub.EventConstants.
-        Each value is a row iterator for events of that type.
+        """Returns a dict of all event tables within the DataStore file that
+        have at least one event instance saved.
+
+        Keys are Event Type constants, as specified by
+        iohub.EventConstants. Each value is a row iterator for events of
+        that type.
+
         """
         eventTableMappings = self.getEventMappingInformation()
         if eventTableMappings:
             events_by_type = dict()
             for event_type_id, event_mapping_info in eventTableMappings.iteritems():
                 try:
-                    cond = "(type == %d)" % (event_type_id)
+                    cond = '(type == %d)' % (event_type_id)
                     if condition_str:
-                        cond += " & " + condition_str
+                        cond += ' & ' + condition_str
                     events_by_type[event_type_id] = self.hdfFile.getNode(
                         event_mapping_info.table_path).where(cond).next()
                 except StopIteration:
@@ -314,7 +315,7 @@ class ExperimentDataAccessUtility(object):
         **Docstr TBC.**
         """
         cv_group = self.hdfFile.root.data_collection.condition_variables
-        ecv = "EXP_CV_%d" % (self._experimentID,)
+        ecv = 'EXP_CV_%d' % (self._experimentID,)
         if ecv in cv_group._v_leaves:
             return cv_group._v_leaves[ecv]
         return None
@@ -324,7 +325,7 @@ class ExperimentDataAccessUtility(object):
         **Docstr TBC.**
         """
         cv_group = self.hdfFile.root.data_collection.condition_variables
-        ecv = "EXP_CV_%d" % (self._experimentID,)
+        ecv = 'EXP_CV_%d' % (self._experimentID,)
         if ecv in cv_group._v_leaves:
             ecvTable = cv_group._v_leaves[ecv]
             return ecvTable.colnames
@@ -347,7 +348,7 @@ class ExperimentDataAccessUtility(object):
 
             cv_group = self.hdfFile.root.data_collection.condition_variables
             cvrows = []
-            ecv = "EXP_CV_%d" % (self._experimentID,)
+            ecv = 'EXP_CV_%d' % (self._experimentID,)
             if ecv in cv_group._v_leaves:
                 ecvTable = cv_group._v_leaves[ecv]
 
@@ -363,7 +364,7 @@ class ExperimentDataAccessUtility(object):
                             r[:]) for r in ecvTable if all(
                             [
                                 eval(
-                                    "{0} {1} {2}".format(
+                                    '{0} {1} {2}'.format(
                                         r[conditionVarName],
                                         conditionVarComparitor[0],
                                         conditionVarComparitor[1])) for conditionVarName,
@@ -385,7 +386,7 @@ class ExperimentDataAccessUtility(object):
                         resolvedValues.append(getattr(cv, v))
                     else:
                         raise ExperimentDataAccessException(
-                            "getEventAttributeValues: {0} is not a valid attribute name in {1}".format(
+                            'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                                 v, cvNames))
                         return None
                 elif isinstance(value, basestring):
@@ -397,12 +398,12 @@ class ExperimentDataAccessUtility(object):
                 return getattr(cv, value)
             else:
                 raise ExperimentDataAccessException(
-                    "getEventAttributeValues: {0} is not a valid attribute name in {1}".format(
+                    'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                         value, cvNames))
                 return None
         else:
             raise ExperimentDataAccessException(
-                "Unhandled value type !: {0} is not a valid type for value {1}".format(
+                'Unhandled value type !: {0} is not a valid type for value {1}'.format(
                     type(value), value))
 
     def getEventAttributeValues(
@@ -437,14 +438,14 @@ class ExperimentDataAccessUtility(object):
                     (event_type_id))]
             if len(result) is not 1:
                 raise ExperimentDataAccessException(
-                    "event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.")
+                    'event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.')
             tablePathString = result[0][3]
             deviceEventTable = self.hdfFile.getNode(tablePathString)
 
             for ename in event_attribute_names:
                 if ename not in deviceEventTable.colnames:
                     raise ExperimentDataAccessException(
-                        "getEventAttribute: %s does not have a column named %s" %
+                        'getEventAttribute: %s does not have a column named %s' %
                         (deviceEventTable.title, event_attribute_names))
                     return None
 
@@ -473,13 +474,13 @@ class ExperimentDataAccessUtility(object):
                 if startConditions is None and endConditions is None:
                     for cv in filteredConditionVariableList:
 
-                        wclause = "( experiment_id == {0} ) & ( session_id == {1} )".format(
+                        wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(
                             self._experimentID, cv.session_id)
 
-                        wclause += " & ( type == {0} ) ".format(event_type_id)
+                        wclause += ' & ( type == {0} ) '.format(event_type_id)
 
                         if filter_id is not None:
-                            wclause += "& ( filter_id == {0} ) ".format(
+                            wclause += '& ( filter_id == {0} ) '.format(
                                 filter_id)
 
                         resultSetList.append([])
@@ -500,37 +501,37 @@ class ExperimentDataAccessUtility(object):
                 for cv in filteredConditionVariableList:
                     resultSetList.append([])
 
-                    wclause = "( experiment_id == {0} ) & ( session_id == {1} )".format(
+                    wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(
                         self._experimentID, cv.session_id)
 
-                    wclause += " & ( type == {0} ) ".format(event_type_id)
+                    wclause += ' & ( type == {0} ) '.format(event_type_id)
 
                     if filter_id is not None:
-                        wclause += "& ( filter_id == {0} ) ".format(filter_id)
+                        wclause += '& ( filter_id == {0} ) '.format(filter_id)
 
                     # start Conditions need to be added to where clause
                     if startConditions is not None:
-                        wclause += "& ("
+                        wclause += '& ('
                         for conditionAttributeName, conditionAttributeComparitor in startConditions.iteritems():
                             avComparison, value = conditionAttributeComparitor
                             value = self.getValuesForVariables(
                                 cv, value, cvNames)
-                            wclause += " ( {0} {1} {2} ) & ".format(
+                            wclause += ' ( {0} {1} {2} ) & '.format(
                                 conditionAttributeName, avComparison, value)
                         wclause = wclause[:-3]
-                        wclause += " ) "
+                        wclause += ' ) '
 
                     # end Conditions need to be added to where clause
                     if endConditions is not None:
-                        wclause += " & ("
+                        wclause += ' & ('
                         for conditionAttributeName, conditionAttributeComparitor in endConditions.iteritems():
                             avComparison, value = conditionAttributeComparitor
                             value = self.getValuesForVariables(
                                 cv, value, cvNames)
-                            wclause += " ( {0} {1} {2} ) & ".format(
+                            wclause += ' ( {0} {1} {2} ) & '.format(
                                 conditionAttributeName, avComparison, value)
                         wclause = wclause[:-3]
-                        wclause += " ) "
+                        wclause += ' ) '
 
                     for ename in event_attribute_names:
                         resultSetList[-1].append(
@@ -559,9 +560,8 @@ class ExperimentDataAccessUtility(object):
         return self.getEventTable(event_type).iterrows()
 
     def close(self):
-        """
-        Close the ExperimentDataAccessUtility and associated DataStore File.
-        """
+        """Close the ExperimentDataAccessUtility and associated DataStore
+        File."""
         global _hubFiles
         if self.hdfFile in _hubFiles:
             _hubFiles.remove(self.hdfFile)

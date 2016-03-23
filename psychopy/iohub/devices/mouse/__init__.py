@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/mouse/__init__.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 from .. import Computer, Device
 from ...constants import EventConstants, DeviceConstants, MouseConstants, KeyboardConstants
@@ -24,9 +25,9 @@ currentSec = Computer.currentSec
 
 
 class MouseDevice(Device):
-    """
-    The Mouse class represents a standard USB or PS2 mouse device that has up to
-    three buttons and an optional scroll wheel (1D on Windows and Linux, 2D on OSX).
+    """The Mouse class represents a standard USB or PS2 mouse device that has
+    up to three buttons and an optional scroll wheel (1D on Windows and Linux,
+    2D on OSX).
 
     Mouse position data is mapped to the coordinate space defined in the ioHub
     configuration file for the Display index specified. If the mouse is on a
@@ -85,21 +86,20 @@ class MouseDevice(Device):
         }
 
     def getSystemCursorVisibility(self):
-        """
-        Returns whether the system cursor is visible when within the physical
-        Display represented by the ioHub Display Device.
+        """Returns whether the system cursor is visible when within the
+        physical Display represented by the ioHub Display Device.
 
         Args:
             None
 
         Returns:
             bool: True if system cursor is visible when within the ioHub Display Device being used. False otherwise.
+
         """
         return self._nativeGetSystemCursorVisibility()
 
     def setSystemCursorVisibility(self, v):
-        """
-        Sets whether the system cursor is visible when within the physical
+        """Sets whether the system cursor is visible when within the physical
         Display represented by the ioHub Display Device.
 
         Args:
@@ -113,15 +113,16 @@ class MouseDevice(Device):
         return self.getSystemCursorVisibility()
 
     def getCurrentButtonStates(self):
-        """
-        Returns a list of three booleans, representing the current state of the
-        MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT ioHub Mouse Device.
+        """Returns a list of three booleans, representing the current state of
+        the MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT ioHub
+        Mouse Device.
 
         Args:
             None
 
         Returns:
             (left_pressed, middle_pressed, right_pressed): Each element is True if the associated mouse button is pressed, False otherwise.
+
         """
         return (self.activeButtons[MouseConstants.MOUSE_BUTTON_LEFT] != 0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_MIDDLE] != 0,
@@ -154,12 +155,12 @@ class MouseDevice(Device):
         return self._lock_mouse_to_display_id
 
     def _initialMousePos(self):
-        """
-        If getPosition is called prior to any mouse events being received, this
-        method gets the current system cursor pos using ctypes.
+        """If getPosition is called prior to any mouse events being received,
+        this method gets the current system cursor pos using ctypes.
 
         Windows only
         TODO: Add OS X and Linux support
+
         """
         if self._position is None:
             if Computer.system == 'win32':
@@ -181,15 +182,16 @@ class MouseDevice(Device):
                 self._lastPosition = 0.0, 0.0
 
     def getPosition(self, return_display_index=False):
-        """
-        Returns the current position of the ioHub Mouse Device. Mouse Position is in display
-        coordinate units, with 0,0 being the center of the screen.
+        """Returns the current position of the ioHub Mouse Device. Mouse
+        Position is in display coordinate units, with 0,0 being the center of
+        the screen.
 
         Args:
             return_display_index: If True, the display index that is associated with the mouse position will also be returned.
 
         Returns:
             tuple: If return_display_index is false (default), return (x,y) position of mouse. If return_display_index is True return ( (x,y), display_index).
+
         """
         self._initialMousePos()
         if return_display_index is True:
@@ -212,16 +214,17 @@ class MouseDevice(Device):
         return self._display_index
 
     def getPositionAndDelta(self, return_display_index=False):
-        """
-        Returns a tuple of tuples, being the current position of the ioHub Mouse Device as an (x,y) tuple,
-        and the amount the mouse position changed the last time it was updated (dx,dy).
-        Mouse Position and Delta are in display coordinate units.
+        """Returns a tuple of tuples, being the current position of the ioHub
+        Mouse Device as an (x,y) tuple, and the amount the mouse position
+        changed the last time it was updated (dx,dy). Mouse Position and Delta
+        are in display coordinate units.
 
         Args:
             None
 
         Returns:
             tuple: ( (x,y), (dx,dy) ) position of mouse, change in mouse position, both in Display coordinate space.
+
         """
         try:
             self._initialMousePos()
@@ -234,7 +237,7 @@ class MouseDevice(Device):
             return cpos, (change_x, change_y)
 
         except Exception as e:
-            print2err(">>ERROR getPositionAndDelta: " + str(e))
+            print2err('>>ERROR getPositionAndDelta: ' + str(e))
             printExceptionDetailsToStdErr()
             if return_display_index is True:
                 return ((0.0, 0.0), (0.0, 0.0), self._display_index)
@@ -273,12 +276,13 @@ class MouseDevice(Device):
         return self._scrollPositionY
 
     def setPosition(self, pos, display_index=None):
-        """
-        Sets the current position of the ioHub Mouse Device. Mouse position ( pos ) should be specified in
-        Display coordinate units, with 0,0 being the center of the screen. If you would like the OS system
-        mouse position to also be updated, set updateSystemMousePosition to True (the default). Otherwise,
-        set it to False. When the system mouse position is updated, your position ( pos ) is converted
-        to the associated screen pixel position expected by the OS.
+        """Sets the current position of the ioHub Mouse Device. Mouse position
+        ( pos ) should be specified in Display coordinate units, with 0,0 being
+        the center of the screen. If you would like the OS system mouse
+        position to also be updated, set updateSystemMousePosition to True (the
+        default). Otherwise, set it to False. When the system mouse position is
+        updated, your position ( pos ) is converted to the associated screen
+        pixel position expected by the OS.
 
         Args:
              pos ( (x,y) list or tuple ): The position, in Display coordinate space, to set the mouse position too.
@@ -300,8 +304,8 @@ class MouseDevice(Device):
 
             if display_index == -1:
                 print2err(
-                    " !!! Display Index -1 received by mouse.setPosition. !!!")
-                print2err(" mouse.setPos did not update mouse pos")
+                    ' !!! Display Index -1 received by mouse.setPosition. !!!')
+                print2err(' mouse.setPos did not update mouse pos')
                 return self._position
 
             px, py = display._displayCoord2Pixel(pos[0], pos[1], display_index)
@@ -316,13 +320,13 @@ class MouseDevice(Device):
 
             if mouse_display_index == -1:
                 print2err(
-                    " !!! getDisplayIndexForMousePosition returned -1 in mouse.setPosition. !!!")
-                print2err(" mouse.setPos did not update mouse pos")
+                    ' !!! getDisplayIndexForMousePosition returned -1 in mouse.setPosition. !!!')
+                print2err(' mouse.setPos did not update mouse pos')
             elif mouse_display_index != display_index:
                 print2err(
-                    " !!! requested display_index {0} != mouse_pos_index {1}".format(
+                    ' !!! requested display_index {0} != mouse_pos_index {1}'.format(
                         display_index, mouse_display_index))
-                print2err(" mouse.setPos did not update mouse pos")
+                print2err(' mouse.setPos did not update mouse pos')
             else:
                 self._lastPosition = self._position
                 self._position = px, py
@@ -364,21 +368,21 @@ class MouseDevice(Device):
 
     def _nativeSetMousePos(self, px, py):
         print2err(
-            "ERROR: _nativeSetMousePos must be overwritten by OS dependent implementation")
+            'ERROR: _nativeSetMousePos must be overwritten by OS dependent implementation')
 
     def _nativeGetSystemCursorVisibility(self):
         print2err(
-            "ERROR: _nativeGetSystemCursorVisibility must be overwritten by OS dependent implementation")
+            'ERROR: _nativeGetSystemCursorVisibility must be overwritten by OS dependent implementation')
         return True
 
     def _nativeSetSystemCursorVisibility(self, v):
         print2err(
-            "ERROR: _nativeSetSystemCursorVisibility must be overwritten by OS dependent implementation")
+            'ERROR: _nativeSetSystemCursorVisibility must be overwritten by OS dependent implementation')
         return True
 
     def _nativeLimitCursorToBoundingRect(self, clip_rect):
         print2err(
-            "ERROR: _nativeLimitCursorToBoundingRect must be overwritten by OS dependent implementation")
+            'ERROR: _nativeLimitCursorToBoundingRect must be overwritten by OS dependent implementation')
         native_clip_rect = None
         return native_clip_rect
 
@@ -397,10 +401,12 @@ from .. import DeviceEvent
 
 
 class MouseInputEvent(DeviceEvent):
-    """
-    The MouseInputEvent is an abstract class that is the parent of all MouseInputEvent types
-    that are supported in the ioHub. Mouse position is mapped to the coordinate space
-    defined in the ioHub configuration file for the Display.
+    """The MouseInputEvent is an abstract class that is the parent of all
+    MouseInputEvent types that are supported in the ioHub.
+
+    Mouse position is mapped to the coordinate space defined in the
+    ioHub configuration file for the Display.
+
     """
     PARENT_DEVICE = Mouse
     EVENT_TYPE_STRING = 'MOUSE_INPUT'
@@ -512,14 +518,14 @@ class MouseInputEvent(DeviceEvent):
 
 
 class MouseMoveEvent(MouseInputEvent):
-    """
-    MouseMoveEvent's occur when the mouse position changes. Mouse position is
-    mapped to the coordinate space defined in the ioHub configuration file
+    """MouseMoveEvent's occur when the mouse position changes. Mouse position
+    is mapped to the coordinate space defined in the ioHub configuration file
     for the Display.
 
     Event Type ID: EventConstants.MOUSE_MOVE
 
     Event Type String: 'MOUSE_MOVE'
+
     """
     EVENT_TYPE_STRING = 'MOUSE_MOVE'
     EVENT_TYPE_ID = EventConstants.MOUSE_MOVE
@@ -531,14 +537,14 @@ class MouseMoveEvent(MouseInputEvent):
 
 
 class MouseDragEvent(MouseMoveEvent):
-    """
-    MouseDragEvents occur when the mouse position changes and at least one mouse
-    button is pressed. Mouse position is mapped to the coordinate space defined
-    in the ioHub configuration file for the Display.
+    """MouseDragEvents occur when the mouse position changes and at least one
+    mouse button is pressed. Mouse position is mapped to the coordinate space
+    defined in the ioHub configuration file for the Display.
 
     Event Type ID: EventConstants.MOUSE_DRAG
 
     Event Type String: 'MOUSE_DRAG'
+
     """
     EVENT_TYPE_STRING = 'MOUSE_DRAG'
     EVENT_TYPE_ID = EventConstants.MOUSE_DRAG
@@ -550,10 +556,9 @@ class MouseDragEvent(MouseMoveEvent):
 
 
 class MouseScrollEvent(MouseInputEvent):
-    """
-    MouseScrollEvent's are generated when the scroll wheel on the
-    Mouse Device (if it has one) is moved. Vertical scrolling is supported
-    on all operating systems, horizontal scrolling is only supported on OS X.
+    """MouseScrollEvent's are generated when the scroll wheel on the Mouse
+    Device (if it has one) is moved. Vertical scrolling is supported on all
+    operating systems, horizontal scrolling is only supported on OS X.
 
     Each MouseScrollEvent provides the number of units the wheel was turned
     in each supported dimension, as well as the absolute scroll value for
@@ -562,6 +567,7 @@ class MouseScrollEvent(MouseInputEvent):
     Event Type ID: EventConstants.MOUSE_SCROLL
 
     Event Type String: 'MOUSE_SCROLL'
+
     """
     EVENT_TYPE_STRING = 'MOUSE_SCROLL'
     EVENT_TYPE_ID = EventConstants.MOUSE_SCROLL
@@ -595,10 +601,10 @@ class MouseButtonEvent(MouseInputEvent):
 
 
 class MouseButtonPressEvent(MouseButtonEvent):
-    """
-    MouseButtonPressEvent's are created when a button on the mouse is pressed.
-    The button_state of the event will equal MouseConstants.MOUSE_BUTTON_STATE_PRESSED,
-    and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_LEFT,
+    """MouseButtonPressEvent's are created when a button on the mouse is
+    pressed. The button_state of the event will equal
+    MouseConstants.MOUSE_BUTTON_STATE_PRESSED, and the button that was pressed
+    (button_id) will be MouseConstants.MOUSE_BUTTON_LEFT,
     MouseConstants.MOUSE_BUTTON_RIGHT, or MouseConstants.MOUSE_BUTTON_MIDDLE,
     assuming you have a 3 button mouse.
 
@@ -642,6 +648,7 @@ class MouseButtonPressEvent(MouseButtonEvent):
     Event Type ID: EventConstants.MOUSE_BUTTON_PRESS
 
     Event Type String: 'MOUSE_BUTTON_PRESS'
+
     """
     EVENT_TYPE_STRING = 'MOUSE_BUTTON_PRESS'
     EVENT_TYPE_ID = EventConstants.MOUSE_BUTTON_PRESS
@@ -653,8 +660,7 @@ class MouseButtonPressEvent(MouseButtonEvent):
 
 
 class MouseButtonReleaseEvent(MouseButtonEvent):
-    """
-    MouseButtonUpEvent's are created when a button on the mouse is released.
+    """MouseButtonUpEvent's are created when a button on the mouse is released.
 
     The button_state of the event will equal MouseConstants.MOUSE_BUTTON_STATE_RELEASED,
     and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_LEFT,
@@ -664,6 +670,7 @@ class MouseButtonReleaseEvent(MouseButtonEvent):
     Event Type ID: EventConstants.MOUSE_BUTTON_RELEASE
 
     Event Type String: 'MOUSE_BUTTON_RELEASE'
+
     """
     EVENT_TYPE_STRING = 'MOUSE_BUTTON_RELEASE'
     EVENT_TYPE_ID = EventConstants.MOUSE_BUTTON_RELEASE
@@ -675,16 +682,16 @@ class MouseButtonReleaseEvent(MouseButtonEvent):
 
 
 class MouseMultiClickEvent(MouseButtonEvent):
-    """
-    MouseMultiClickEvent's are created when you rapidly press and release a
+    """MouseMultiClickEvent's are created when you rapidly press and release a
     mouse button two or more times. This event may never get triggered if your
-    OS does not support it. The button that was multi clicked (button_id)
-    will be MouseConstants.MOUSE_BUTTON_LEFT, MouseConstants.MOUSE_BUTTON_RIGHT,
-    or MouseConstants.MOUSE_BUTTON_MIDDLE, assuming you have a 3 button mouse.
+    OS does not support it. The button that was multi clicked (button_id) will
+    be MouseConstants.MOUSE_BUTTON_LEFT, MouseConstants.MOUSE_BUTTON_RIGHT, or
+    MouseConstants.MOUSE_BUTTON_MIDDLE, assuming you have a 3 button mouse.
 
     Event Type ID: EventConstants.MOUSE_MULTI_CLICK
 
     Event Type String: 'MOUSE_MULTI_CLICK'
+
     """
     EVENT_TYPE_STRING = 'MOUSE_MULTI_CLICK'
     EVENT_TYPE_ID = EventConstants.MOUSE_MULTI_CLICK

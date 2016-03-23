@@ -1,5 +1,5 @@
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/daq/hw/mc/__init__.py
 
 Copyright (C)  2012-2013 iSolver Software Solutions
@@ -7,6 +7,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson
+
 """
 
 
@@ -22,9 +23,8 @@ currentSec = Computer.currentSec
 
 
 class AnalogInput(AnalogInputDevice):
-    """
-    The Measurement Computing Implementation for the ioHub AnalogInput Device type.
-    """
+    """The Measurement Computing Implementation for the ioHub AnalogInput
+    Device type."""
     _DAQ_GAIN_OPTIONS = dict()
     _DAQ_GAIN_OPTIONS['BIP10VOLTS'] = BIP10VOLTS
 
@@ -46,10 +46,10 @@ class AnalogInput(AnalogInputDevice):
     __slots__ = [e[0] for e in _newDataTypes] + ['_memory_handle',
                                                  '_device_status',
                                                  '_sample_data_buffer',
-                                                 "_input_sample_buffer_size",
-                                                 "_current_sample_buffer_index",
-                                                 "_samples_received_count",
-                                                 "_last_sample_buffer_index",
+                                                 '_input_sample_buffer_size',
+                                                 '_current_sample_buffer_index',
+                                                 '_samples_received_count',
+                                                 '_last_sample_buffer_index',
                                                  '_local_sample_buffer',
                                                  '_local_sample_count_created',
                                                  '_last_start_recording_time_pre',
@@ -65,11 +65,11 @@ class AnalogInput(AnalogInputDevice):
 
         if self.model_name not in self._SUPPORTED_MODELS:
             print2err(
-                "AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter." %
+                'AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter.' %
                 (self.model_name, str(
                     self._SUPPORTED_MODELS.keys()),))
             raise ioDeviceError(
-                self, "AnalogInput Model not supported: %s" %
+                self, 'AnalogInput Model not supported: %s' %
                 (self.model_name))
 
         if self.model_name in self._SAMPLE_BLOCK_TRANSFER_SIZE:
@@ -77,32 +77,32 @@ class AnalogInput(AnalogInputDevice):
                 self.model_name] * self.input_channel_count
         else:
             print2err(
-                "AnalogInput Model %s has no block transfer size specified. Supported models are %s, using model_name parameter." %
+                'AnalogInput Model %s has no block transfer size specified. Supported models are %s, using model_name parameter.' %
                 (self.model_name, str(
                     self._SAMPLE_BLOCK_TRANSFER_SIZE.keys()),))
             raise ioDeviceError(
-                self, "AnalogInput Model not supported: %s" %
+                self, 'AnalogInput Model not supported: %s' %
                 (self.model_name))
 
         if self.gain in self._DAQ_GAIN_OPTIONS:
             self.gain = c_int(self._DAQ_GAIN_OPTIONS[self.gain])
         else:
             print2err(
-                "AnalogInput gain value [%s] is not supported. Supported gain values are %s, using the gain parameter." %
+                'AnalogInput gain value [%s] is not supported. Supported gain values are %s, using the gain parameter.' %
                 (str(
                     self._DAQ_GAIN_OPTIONS.keys()),
                  ))
             raise ioDeviceError(
-                self, "AnalogInput gain not supported: %s" %
+                self, 'AnalogInput gain not supported: %s' %
                 (self.gain))
 
         if self.input_channel_count != 8:
-            print2err("AnalogInput input_channel_count must be 8.")
+            print2err('AnalogInput input_channel_count must be 8.')
             raise ioDeviceError(
-                self, "AnalogInput input_channel_count must be 8.")
+                self, 'AnalogInput input_channel_count must be 8.')
 
         # load the MC DLL
-        _DLL = windll.LoadLibrary("cbw32.dll")
+        _DLL = windll.LoadLibrary('cbw32.dll')
         AnalogInput._DLL = _DLL
 
         # get the MC API software version number
@@ -160,11 +160,11 @@ class AnalogInput(AnalogInputDevice):
             _fields_ = [('low_channel', c_int),
                         ('high_channel', c_int),
                         ('save_channels', POINTER(c_int)),
-                        ("input_channel_count", c_int),
-                        ("save_channel_count", c_int),
-                        ("count", c_int),
-                        ("indexes", POINTER(c_uint)),
-                        ("values", POINTER(c_uint16))]
+                        ('input_channel_count', c_int),
+                        ('save_channel_count', c_int),
+                        ('count', c_int),
+                        ('indexes', POINTER(c_uint)),
+                        ('values', POINTER(c_uint16))]
 
             @staticmethod
             def create(low, high, save_channels, asize):
@@ -224,7 +224,7 @@ class AnalogInput(AnalogInputDevice):
 
                  # Make sure memory handle to sample buffer is a valid pointer
                 if self._memory_handle == 0:
-                    print2err("\nERROR ALLOCATING DAQ MEMORY: out of memory\n")
+                    print2err('\nERROR ALLOCATING DAQ MEMORY: out of memory\n')
                     sys.exit(1)
             except Exception:
                 print2err('------------- Error creating buffers -----------')
@@ -269,7 +269,7 @@ class AnalogInput(AnalogInputDevice):
                 result = self._DLL.cbWinBufFree(self._memory_handle)
                 if result != 0:
                     print2err(
-                        "ERROR calling cbWinBufFree TO FREE DAQ MEMORY: {0}".format(result))
+                        'ERROR calling cbWinBufFree TO FREE DAQ MEMORY: {0}'.format(result))
 
         return enable
 
@@ -308,7 +308,7 @@ class AnalogInput(AnalogInputDevice):
                     for v in xrange(lastIndex, currentIndex):
                         self._saveScannedEvent(logged_time, samples, v)
         else:
-            ioHub.print2err("Error: MC DAQ not responding. Exiting...")
+            ioHub.print2err('Error: MC DAQ not responding. Exiting...')
             self.getConfiguration['_ioServer'].shutDown()
             sys.exit(1)
 

@@ -18,10 +18,12 @@ RECT = ctypes.wintypes.RECT
 
 
 class Mouse(MouseDevice):
-    """
-    The Mouse class and related events represent a standard computer mouse device
-    and the events a standard mouse can produce. Mouse position data is mapped to
-    the coordinate space defined in the ioHub configuration file for the Display.
+    """The Mouse class and related events represent a standard computer mouse
+    device and the events a standard mouse can produce.
+
+    Mouse position data is mapped to the coordinate space defined in the
+    ioHub configuration file for the Display.
+
     """
     WM_MOUSEFIRST = 0x0200
     WM_MOUSEMOVE = 0x0200

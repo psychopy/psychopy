@@ -109,12 +109,11 @@ class DeviceRPC(object):
 
 
 class ioHubDeviceView(object):
-    """
-    ioHubDeviceView is used by the ioHubConnection class to create a PsychoPy
-    Process side representation of each ioHub Process Device created for
-    the experiment. ioHubDeviceView instances are never created directly by a user script,
-    they are created for you by the ioHubConnection class when it connects to
-    the ioHub Process.
+    """ioHubDeviceView is used by the ioHubConnection class to create a
+    PsychoPy Process side representation of each ioHub Process Device created
+    for the experiment. ioHubDeviceView instances are never created directly by
+    a user script, they are created for you by the ioHubConnection class when
+    it connects to the ioHub Process.
 
     The ioHubDeviceView provides methods to access events at a device level
     as well as other methods allowing interaction with the device being accessed.
@@ -130,6 +129,7 @@ class ioHubDeviceView(object):
     Device instance. This allows a PsychoPy experiment to call device methods
     that are actually interpreted on the ioHub Process as if the device method
     calls were being made locally.
+
     """
 
     def __init__(self, hubClient, device_class_name, device_config):
@@ -195,16 +195,17 @@ class ioHubDeviceView(object):
         return self.device_class
 
     def getDeviceInterface(self):
-        """
-        getDeviceInterface returns a list containing the names of all methods that are callable
-        for the ioHubDeviceView object. Only public methods are considered to be valid members of
-        the devices interface. (so any method beginning with a '_' is not included.
+        """getDeviceInterface returns a list containing the names of all
+        methods that are callable for the ioHubDeviceView object. Only public
+        methods are considered to be valid members of the devices interface.
+        (so any method beginning with a '_' is not included.
 
         Args:
             None
 
         Returns:
             (tuple): the list of method names that make up the ioHubDeviceView interface.
+
         """
         return self._methods
 
@@ -233,11 +234,9 @@ class ioHubDevices(object):
 
 
 class ioHubConnection(object):
-    """
-    ioHubConnection is responsible for creating,
-    sending requests to, and reading replies from the ioHub
-    Process. This class can also shut down and disconnect the
-    ioHub Process.
+    """ioHubConnection is responsible for creating, sending requests to, and
+    reading replies from the ioHub Process. This class can also shut down and
+    disconnect the ioHub Process.
 
     The ioHubConnection class is also used as the interface to any ioHub Device
     instances that have been created so that events from the device can be
@@ -266,12 +265,12 @@ class ioHubConnection(object):
         if ioHubConfig:
             if not isinstance(ioHubConfig, dict):
                 raise ioHubError(
-                    "The provided ioHub Configuration is not a dictionary.",
+                    'The provided ioHub Configuration is not a dictionary.',
                     ioHubConfig)
 
         if ioHubConnection.ACTIVE_CONNECTION is not None:
             raise AttributeError(
-                "An existing ioHubConnection is already open. Use ioHubConnection.getActiveConnection() to access it; or use ioHubConnection.quit() to close it.")
+                'An existing ioHubConnection is already open. Use ioHubConnection.getActiveConnection() to access it; or use ioHubConnection.quit() to close it.')
 
         Computer.psychopy_process = psutil.Process()
 
@@ -309,9 +308,9 @@ class ioHubConnection(object):
 
         self._shutdown_attempted = False
         self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
-        if self.iohub_status != "OK":
+        if self.iohub_status != 'OK':
             raise RuntimeError(
-                "Error starting ioHub server: %s" %
+                'Error starting ioHub server: %s' %
                 (self.iohub_status))
 
     @classmethod
@@ -350,9 +349,9 @@ class ioHubConnection(object):
         return self.deviceByLabel.get(deviceName, None)
 
     def getEvents(self, device_label=None, as_type='namedtuple'):
-        """
-        Retrieve any events that have been collected by the ioHub Process from
-        monitored devices since the last call to getEvents() or clearEvents().
+        """Retrieve any events that have been collected by the ioHub Process
+        from monitored devices since the last call to getEvents() or
+        clearEvents().
 
         By default all events for all monitored devices are returned,
         with each event being represented as a namedtuple of all event attributes.
@@ -380,6 +379,7 @@ class ioHubConnection(object):
 
         Returns:
             tuple: A tuple of event objects, where the event object type is defined by the 'as_type' parameter.
+
         """
 
         r = None
@@ -413,10 +413,9 @@ class ioHubConnection(object):
         return []
 
     def clearEvents(self, device_label='all'):
-        """
-        Clears events from the ioHub Process's Global Event Buffer (by default)
-        so that unneeded events are not sent to the PsychoPy Process the
-        next time getEvents() is called.
+        """Clears events from the ioHub Process's Global Event Buffer (by
+        default) so that unneeded events are not sent to the PsychoPy Process
+        the next time getEvents() is called.
 
         If device_label is 'all', ( the default ), then events from both the ioHub
         *Global Event Buffer* and all *Device Event Buffer's* are cleared.
@@ -434,6 +433,7 @@ class ioHubConnection(object):
 
         Returns:
             None
+
         """
         if device_label is None:
             self.allEvents = []
@@ -447,9 +447,9 @@ class ioHubConnection(object):
                 d.clearEvents()
 
     def sendMessageEvent(self, text, category='', offset=0.0, sec_time=None):
-        """
-        Create and send an Experiment MessageEvent to the ioHub Server Process
-        for storage with the rest of the event data being recorded in the ioDataStore.
+        """Create and send an Experiment MessageEvent to the ioHub Server
+        Process for storage with the rest of the event data being recorded in
+        the ioDataStore.
 
         .. note::
             MessageEvents can be thought of as DeviceEvents from the virtual PsychoPy
@@ -466,6 +466,7 @@ class ioHubConnection(object):
 
         Returns:
             bool: True
+
         """
         self._sendToHubServer(
             ('EXP_DEVICE', 'EVENT_TX', [
@@ -474,15 +475,15 @@ class ioHubConnection(object):
         return True
 
     def getHubServerConfig(self):
-        """
-        Returns a dict containing the ioHub Server configuration that is being
-        used for the current ioHub experiment.
+        """Returns a dict containing the ioHub Server configuration that is
+        being used for the current ioHub experiment.
 
         Args:
             None
 
         Returns:
             dict: ioHub Server configuration.
+
         """
 
         return self._iohub_server_config
@@ -491,17 +492,17 @@ class ioHubConnection(object):
         return self.experimentSessionID
 
     def getSessionMetaData(self):
-        """
-        Returns a dict representing the experiment session data that is being
-        used for the current ioHub Experiment Session. Changing values in the
-        dict has no effect on the session data that has already been saved to
-        the ioHub DataStore.
+        """Returns a dict representing the experiment session data that is
+        being used for the current ioHub Experiment Session. Changing values in
+        the dict has no effect on the session data that has already been saved
+        to the ioHub DataStore.
 
         Args:
             None
 
         Returns:
             dict: Experiment Session metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
+
         """
         return self._sessionMetaData
 
@@ -509,21 +510,20 @@ class ioHubConnection(object):
         return self.experimentID
 
     def getExperimentMetaData(self):
-        """
-        Returns a dict representing the experiment data that is being
-        used for the current ioHub Experiment.
+        """Returns a dict representing the experiment data that is being used
+        for the current ioHub Experiment.
 
         Args:
             None
 
         Returns:
             dict: Experiment metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
+
         """
         return self._experimentMetaData
 
     def wait(self, delay, check_hub_interval=0.02):
-        """
-        Pause the experiment script execution for a duration equal to the
+        """Pause the experiment script execution for a duration equal to the
         delay (in sec.msec format). time.sleep() is used to make the wait
         operation give time up to the operating system.
 
@@ -551,8 +551,6 @@ class ioHubConnection(object):
 
         Returns:
             float/double: The actual duration of the delay in sec.msec format.
-
-
 
         """
         stime = Computer.currentTime()
@@ -651,12 +649,12 @@ class ioHubConnection(object):
         self.initializeConditionVariableTable(ConditionVariableDescription)
 
     def initializeConditionVariableTable(self, condition_variable_provider):
-        """
-        Create a condition variable table in the ioDataStore (in the class_table_mapping
-        group) when utilizing the iohub.util.ExperimentVariableProvider class in the
-        experiment handling script. Each Dependent and Independent variable defined by the
-        condition_variable_provider instance results in a column created in the ioDataStore
-        for the experiment.
+        """Create a condition variable table in the ioDataStore (in the
+        class_table_mapping group) when utilizing the
+        iohub.util.ExperimentVariableProvider class in the experiment handling
+        script. Each Dependent and Independent variable defined by the
+        condition_variable_provider instance results in a column created in the
+        ioDataStore for the experiment.
 
         Column names match the condition variable names defined for the ExperimentVariableProvider.
 
@@ -665,6 +663,7 @@ class ioHubConnection(object):
 
         Returns:
             None
+
         """
         r = self._sendToHubServer(
             ('RPC',
@@ -675,12 +674,12 @@ class ioHubConnection(object):
         return r[2]
 
     def addTrialHandlerRecord(self, cv_row):
-        """
-        Adds the values from a TriaHandler row / record to the iohub data file
-        for future data analysis use.
+        """Adds the values from a TriaHandler row / record to the iohub data
+        file for future data analysis use.
 
         :param cv_row:
         :return: None
+
         """
         val_list = []
         if self._cv_order:
@@ -691,19 +690,19 @@ class ioHubConnection(object):
         self.addRowToConditionVariableTable(val_list)
 
     def addRowToConditionVariableTable(self, data):
-        """
-        Add a row to the condition variable table for the current
-        experiment (created by calling the initializeConditionVariableTable() method)
-        when using iohub.util.ExperimentVariableProvider class in the
-        experiment handling script. Each row in a condition
-        variable table contains the state of all the Dependent and Independent
-        Variables that were defined for the ExperimentVariableProvider.
+        """Add a row to the condition variable table for the current experiment
+        (created by calling the initializeConditionVariableTable() method) when
+        using iohub.util.ExperimentVariableProvider class in the experiment
+        handling script. Each row in a condition variable table contains the
+        state of all the Dependent and Independent Variables that were defined
+        for the ExperimentVariableProvider.
 
         Args:
             data: A Condition Variable Set object, as received from the ExperimentVariableProvider.getNextConditionSet() method. ANy changes to the values of the condition variables within the object are reflected in the data saved to the ioDataStore.
 
         Returns:
             None
+
         """
         for i, d in enumerate(data):
             if isinstance(d, unicode):
@@ -741,18 +740,14 @@ class ioHubConnection(object):
         return self._sendToHubServer(('RPC', 'getTime'))[2]
 
     def setPriority(self, level='normal', disable_gc=False):
-        """
-        See Computer.setPriority documentation, where current process will be
-        the iohub process.
-        """
+        """See Computer.setPriority documentation, where current process will
+        be the iohub process."""
         return self._sendToHubServer(
             ('RPC', 'setPriority', [level, disable_gc]))[2]
 
     def getPriority(self):
-        """
-        See Computer.getPriority documentation, where current process will be
-        the iohub process.
-        """
+        """See Computer.getPriority documentation, where current process will
+        be the iohub process."""
         return self._sendToHubServer(('RPC', 'getPriority'))[2]
 
     def enableHighPriority(self, disable_gc=False):
@@ -823,15 +818,14 @@ class ioHubConnection(object):
         return r[2]
 
     def addDeviceToMonitor(self, device_class, device_config={}):
-        """
-        Adds a device to the ioHub Process for event monitoring after the
-        ioHub Process has been started. Normally all devices should be specified
-        to the function or class that is having the ioHubConnection class instance
-        created, and therefore the ioHub Process started. This is due to the
-        fact that 'adding' a device to be monitored can take several, to tens,
-        or even a couple hundred msec to perform on the ioHub server (depending on the
-        device type). When this is occurring, events from existing devices can not
-        be monitored.
+        """Adds a device to the ioHub Process for event monitoring after the
+        ioHub Process has been started. Normally all devices should be
+        specified to the function or class that is having the ioHubConnection
+        class instance created, and therefore the ioHub Process started. This
+        is due to the fact that 'adding' a device to be monitored can take
+        several, to tens, or even a couple hundred msec to perform on the ioHub
+        server (depending on the device type). When this is occurring, events
+        from existing devices can not be monitored.
 
         Therefore it is best to define all devices the experiment will use during
         runtime at the time the ioHub Process is being created. If a device does
@@ -844,6 +838,7 @@ class ioHubConnection(object):
 
         Returns:
             DeviceView Instance: The PsychoPy Process's view of the ioHub Device created that was created, as would be returned if a device was accessed using the .devices attribute or the .getDeviceByLabel() method.
+
         """
         try:
             r = self._sendToHubServer(
@@ -853,69 +848,63 @@ class ioHubConnection(object):
         except Exception:
             printExceptionDetailsToStdErr()
             raise ioHubError(
-                "Error in _addDeviceToMonitor: device_class: ",
+                'Error in _addDeviceToMonitor: device_class: ',
                 device_class,
-                " . device_config: ",
+                ' . device_config: ',
                 device_config)
 
     def flushDataStoreFile(self):
-        """
-        Manually tell the ioDataStore to flush any events it has buffered in memory to disk."
+        """Manually tell the ioDataStore to flush any events it has buffered in
+        memory to disk.".
 
         Args:
             None
 
         Returns:
             None
+
         """
         r = self._sendToHubServer(('RPC', 'flushIODataStoreFile'))
-        print "flushIODataStoreFile: ", r[2]
+        print 'flushIODataStoreFile: ', r[2]
         return r
 
     def startCustomTasklet(self, task_name, task_class_path, **class_kwargs):
-        """
-
-        """
+        """"""
         class_kwargs.setdefault('name', task_name)
         r = self._sendToHubServer(
             ('CUSTOM_TASK', 'START', task_name, task_class_path, class_kwargs))
         return r
 
     def stopCustomTasklet(self, task_name):
-        """
-
-        """
+        """"""
         r = self._sendToHubServer(('CUSTOM_TASK', 'STOP', task_name))
         return r
 
     def shutdown(self):
-        """
-        Tells the ioHub Process to close all ioHub Devices, the ioDataStore,
-        and the connection monitor between the PsychoPy and ioHub Processes. Then
-        exit the Server Process itself.
+        """Tells the ioHub Process to close all ioHub Devices, the ioDataStore,
+        and the connection monitor between the PsychoPy and ioHub Processes.
+        Then exit the Server Process itself.
 
         Args:
             None
 
         Returns:
             None
+
         """
         self._shutDownServer()
 
     def quit(self):
-        """
-        Same as the shutdown() method, but has same name as PsychoPy
-        core.quit() so maybe easier to remember.
-        """
+        """Same as the shutdown() method, but has same name as PsychoPy
+        core.quit() so maybe easier to remember."""
         self.shutdown()
 
     # Private Methods.....
 
     def _startServer(self, ioHubConfig=None, ioHubConfigAbsPath=None):
-        """
-        Starts the ioHub Process, storing it's process id, and creating the experiment side device representation
-        for IPC access to public device methods.
-        """
+        """Starts the ioHub Process, storing it's process id, and creating the
+        experiment side device representation for IPC access to public device
+        methods."""
         experiment_info = None
         session_info = None
 
@@ -951,7 +940,7 @@ class ioHubConnection(object):
         elif ioHubConfigAbsPath is not None and ioHubConfig is None:
             ioHubConfig = load(file(ioHubConfigAbsPath, u'r'), Loader=Loader)
         else:
-            return "ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided."
+            return 'ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided.'
 
         if ioHubConfig:
             updateDict(ioHubConfig, hub_defaults_config)
@@ -981,7 +970,7 @@ class ioHubConnection(object):
         run_script = os.path.join(IOHUB_DIRECTORY, 'launchHubProcess.py')
         subprocessArgList = [sys.executable,
                              run_script,
-                             "%.6f" % Computer.global_clock.getLastResetTime(),
+                             '%.6f' % Computer.global_clock.getLastResetTime(),
                              rootScriptPath, ioHubConfigAbsPath,
                              str(Computer.current_process.pid)]
 
@@ -1002,7 +991,7 @@ class ioHubConnection(object):
                 except psutil.NoSuchProcess:
                     pass
             except Exception as e:
-                print "Warning: Exception while checking for existing iohub process:"
+                print 'Warning: Exception while checking for existing iohub process:'
                 import traceback
                 traceback.print_exc()
 
@@ -1017,7 +1006,7 @@ class ioHubConnection(object):
         Computer.iohub_process = psutil.Process(self._server_process.pid)
 
         hubonline = False
-        stdout_read_data = ""
+        stdout_read_data = ''
         if Computer.system == 'win32':
             # print 'IOSERVER STARTING UP....'
             # wait for server to send back 'IOHUB_READY' text over stdout, indicating it is running
@@ -1037,21 +1026,21 @@ class ioHubConnection(object):
                         # timeout...."
                         break
                     elif server_output.rstrip() == 'IOHUB_FAILED':
-                        return "ioHub sstartup failed, reveived IOHUB_FAILED"
+                        return 'ioHub sstartup failed, reveived IOHUB_FAILED'
 
                 else:
                     time.sleep(0.001)
         else:
-            r = "hi"
+            r = 'hi'
             while r:
                 r = self._server_process.stdout.readline()
                 if r and r.rstrip().strip() == 'IOHUB_READY':
                     hubonline = True
                     break
                 elif r and r.rstrip().strip() == 'IOHUB_FAILED':
-                    return "ioHub startup failed, received IOHUB_FAILED"
+                    return 'ioHub startup failed, received IOHUB_FAILED'
                 else:
-                    stdout_read_data += "startup_read: {0}\n".format(r)
+                    stdout_read_data += 'startup_read: {0}\n'.format(r)
         # If ioHub server did not repond correctly, terminate process and exit
         # the program.
         if hubonline is False:
@@ -1060,7 +1049,7 @@ class ioHubConnection(object):
             except Exception as e:
                 raise e
             finally:
-                return "ioHub startup timed out. iohub Server startup Failed. " + stdout_read_data
+                return 'ioHub startup timed out. iohub Server startup Failed. ' + stdout_read_data
 
         ioHubConnection.ACTIVE_CONNECTION = proxy(self)
         try:
@@ -1077,7 +1066,7 @@ class ioHubConnection(object):
         # save ioHub ProcessID to file so next time it is started,
         # it can be checked and killed if necessary
         iopFile = open(iopFileName, 'w')
-        iopFile.write("ioHub PID: " + str(Computer.iohub_process_id))
+        iopFile.write('ioHub PID: ' + str(Computer.iohub_process_id))
         iopFile.flush()
         iopFile.close()
 
@@ -1100,14 +1089,12 @@ class ioHubConnection(object):
         try:
             self._createDeviceList(ioHubConfig['monitor_devices'])
         except Exception as e:
-            return "Error in _createDeviceList: ", str(e)
+            return 'Error in _createDeviceList: ', str(e)
         # print 'Created Experiment Process Device List'
-        return "OK"
+        return 'OK'
 
     def _get_maxsize(self, maxsize):
-        """
-        Used by _startServer pipe reader code.
-        """
+        """Used by _startServer pipe reader code."""
         if maxsize is None:
             maxsize = 1024
         elif maxsize < 1:
@@ -1115,8 +1102,10 @@ class ioHubConnection(object):
         return maxsize
 
     def _serverStdOutHasData(self, maxsize=256):
-        """
-        Used by _startServer pipe reader code. Allows for async check for data on pipe in windows.
+        """Used by _startServer pipe reader code.
+
+        Allows for async check for data on pipe in windows.
+
         """
         if Computer.system == 'win32':
             #  >> WIN32_ONLY
@@ -1142,18 +1131,23 @@ class ioHubConnection(object):
             return True
 
     def _readServerStdOutLine(self):
-        """
-        Used by _startServer pipe reader code. Reads a line from the ioHub server stdout. This is blocking.
+        """Used by _startServer pipe reader code.
+
+        Reads a line from the ioHub server stdout. This is blocking.
+
         """
         for line in iter(self._server_process.stdout.readline, ''):
             yield line
 
     def _createDeviceList(self, monitor_devices_config):
-        """
-        Populate the devices attribute object with the registered devices of the ioHub. Each ioHub device becomes an attribute
+        """Populate the devices attribute object with the registered devices of
+        the ioHub.
+
+        Each ioHub device becomes an attribute
         of the devices instance, with the attribute name == the name give the device in the ioHub configuration file.
         Each device in allows access to the pupic method interface of the device via transparent IPC calls to the ioHub server process
         from the expriment process.
+
         """
         # get the list of devices registered with the ioHub
         for device_config_dict in monitor_devices_config:
@@ -1163,7 +1157,7 @@ class ioHubConnection(object):
                 try:
                     self._addDeviceView(device_class_name, device_config)
                 except Exception:
-                    print2err("_createDeviceList: Error adding class. ")
+                    print2err('_createDeviceList: Error adding class. ')
                     printExceptionDetailsToStdErr()
 
     def _addDeviceView(self, device_class_name, device_config):
@@ -1173,12 +1167,12 @@ class ioHubConnection(object):
             class_name_start = device_class_name.rfind('.')
             device_module_path = '%s.devices.' % _pkgroot
             if class_name_start > 0:
-                device_module_path = "{0}{1}".format(
+                device_module_path = '{0}{1}'.format(
                     device_module_path, device_class_name[
                         :class_name_start].lower())
                 device_class_name = device_class_name[class_name_start + 1:]
             else:
-                device_module_path = "{0}{1}".format(
+                device_module_path = '{0}{1}'.format(
                     device_module_path, device_class_name.lower())
 
             device_class, device_class_name, event_classes = import_device(
@@ -1203,7 +1197,7 @@ class ioHubConnection(object):
                 iohubclientmod, device_class_name.lower(), False)
             if local_module:
                 # need to touch local_module since it was lazy loaded
-                exec("import {pkgroot}.client.{local_module}".format(
+                exec('import {pkgroot}.client.{local_module}'.format(
                     pkgroot=_pkgroot, local_module=device_class_name.lower()))
                 local_class = getattr(local_module, device_class_name, False)
             d = None
@@ -1220,13 +1214,12 @@ class ioHubConnection(object):
             self.deviceByLabel[name] = d
             return d
         except Exception:
-            print2err("_addDeviceView: Error adding class. ")
+            print2err('_addDeviceView: Error adding class. ')
             printExceptionDetailsToStdErr()
         return None
 
     def _sendToHubServer(self, ioHubMessage):
-        """
-        General purpose message sending routine, used to send a message from
+        """General purpose message sending routine, used to send a message from
         the PsychoPy Process to the ioHub Process, and then wait for the reply
         from the ioHub Process before returning.
 
@@ -1251,6 +1244,7 @@ class ioHubConnection(object):
             messageList (tuple): ioHub Server Message to send.
 
         Return (object): the message response from the ioHub Server process.
+
         """
         try:
             # send request to host, return is # bytes sent.
@@ -1299,13 +1293,11 @@ class ioHubConnection(object):
 #            cls._replyDictionary[address].append((result,bytes_sent))
 
     def _sendExperimentInfo(self, experimentInfoDict):
-        """
-        Sends the experiment info from the experiment config file to the
+        """Sends the experiment info from the experiment config file to the
         ioHub Server, which passes it to the ioDataStore, determines if the
         experiment already exists in the experiment file based on
-        'experiment_code', and returns a new or existing experiment ID based
-        on that criteria.
-        """
+        'experiment_code', and returns a new or existing experiment ID based on
+        that criteria."""
         fieldOrder = (('experiment_id', 0), ('code', ''), ('title', ''),
                       ('description', ''), ('version', ''), ('total_sessions_to_run', 0))
         values = []
@@ -1323,19 +1315,21 @@ class ioHubConnection(object):
         return r[2]
 
     def _sendSessionInfo(self, sessionInfoDict):
-        """
-        Sends the experiment session info from the experiment config file and
-        the values entered into the session dialog to the ioHub Server,
-        which passes it to the ioDataStore. The dataStore determines if the session
-        already exists in the experiment file based on 'session_code',
-        and returns a new session ID  if session_code is not in use by the experiment.
+        """Sends the experiment session info from the experiment config file
+        and the values entered into the session dialog to the ioHub Server,
+        which passes it to the ioDataStore.
+
+        The dataStore determines if the session already exists in the
+        experiment file based on 'session_code', and returns a new
+        session ID  if session_code is not in use by the experiment.
+
         """
         if self.experimentID is None:
             raise ValueError(
-                "Experiment ID must be set by calling _sendExperimentInfo before calling _sendSessionInfo.")
+                'Experiment ID must be set by calling _sendExperimentInfo before calling _sendSessionInfo.')
         if 'code' not in sessionInfoDict:
             raise ValueError(
-                "Code must be provided in sessionInfoDict ( StringCol(24) ).")
+                'Code must be provided in sessionInfoDict ( StringCol(24) ).')
         if 'name' not in sessionInfoDict:
             sessionInfoDict['name'] = ''
         if 'comments' not in sessionInfoDict:
@@ -1358,22 +1352,18 @@ class ioHubConnection(object):
 
     @staticmethod
     def _eventListToObject(eventValueList):
-        """
-        Convert an ioHub event that is current represented as an ordered list
-        of values, and return the correct ioHub.devices.DeviceEvent subclass
-        for the given event type.
-        """
+        """Convert an ioHub event that is current represented as an ordered
+        list of values, and return the correct ioHub.devices.DeviceEvent
+        subclass for the given event type."""
         eclass = EventConstants.getClass(
             eventValueList[DeviceEvent.EVENT_TYPE_ID_INDEX])
         return eclass.createEventAsClass(eventValueList)
 
     @staticmethod
     def _eventListToDict(eventValueList):
-        """
-        Convert an ioHub event that is current represented as an ordered list
-        of values, and return the event as a
-        dictionary of attribute name, attribute values for the object.
-        """
+        """Convert an ioHub event that is current represented as an ordered
+        list of values, and return the event as a dictionary of attribute name,
+        attribute values for the object."""
         try:
             if isinstance(eventValueList, dict):
                 return eventValueList
@@ -1383,15 +1373,13 @@ class ioHubConnection(object):
         except Exception:
             printExceptionDetailsToStdErr()
             raise ioHubError(
-                "Error converting ioHub Server event list response to a dict",
+                'Error converting ioHub Server event list response to a dict',
                 event_list_response=eventValueList)
 
     @staticmethod
     def _eventListToNamedTuple(eventValueList):
-        """
-        Convert an ioHub event that is currently represented as an ordered list
-        of values, and return the event as a namedtuple.
-        """
+        """Convert an ioHub event that is currently represented as an ordered
+        list of values, and return the event as a namedtuple."""
         try:
             if not isinstance(eventValueList, list):
                 return eventValueList
@@ -1401,7 +1389,7 @@ class ioHubConnection(object):
         except Exception:
             printExceptionDetailsToStdErr()
             raise ioHubError(
-                "Error converting ioHub Server event list response to a namedtuple",
+                'Error converting ioHub Server event list response to a namedtuple',
                 event_list_response=eventValueList)
 
     # client utility methods.
@@ -1426,10 +1414,10 @@ class ioHubConnection(object):
                     r = Computer.iohub_process.wait(timeout=5)
                     print 'ioHub Server Process Completed With Code: ', r
             except TimeoutError:
-                print "Warning: TimeoutExpired, Killing ioHub Server process."
+                print 'Warning: TimeoutExpired, Killing ioHub Server process.'
                 Computer.iohub_process.kill()
             except Exception:
-                print "Warning: Unhandled Exception. Killing ioHub Server process."
+                print 'Warning: Unhandled Exception. Killing ioHub Server process.'
                 if Computer.iohub_process:
                     Computer.iohub_process.kill()
                 printExceptionDetailsToStdErr()
@@ -1441,9 +1429,7 @@ class ioHubConnection(object):
             return True
 
     def _isErrorReply(self, data):
-        """
-
-        """
+        """"""
         if isIterable(data) and len(data) > 0:
             if isIterable(data[0]):
                 return False
@@ -1453,7 +1439,7 @@ class ioHubConnection(object):
                     return data
                 return False
         else:
-            return "Invalid Response Received from ioHub Server"
+            return 'Invalid Response Received from ioHub Server'
 
     def _osxKillAndFreePort(self):
         p = subprocess.Popen(['lsof', '-i:9000', '-P'], stdout=subprocess.PIPE)
@@ -1474,9 +1460,8 @@ class ioHubConnection(object):
 
 
 def launchHubServer(**kwargs):
-    """
-    The launchHubServer function is used to start the ioHub Process
-    by the main psychopy experiment script.
+    """The launchHubServer function is used to start the ioHub Process by the
+    main psychopy experiment script.
 
     To use ioHub for keyboard and mouse event reporting only, simply use
     the function in a way similar to the following::
@@ -1521,6 +1506,7 @@ def launchHubServer(**kwargs):
 
     Please see the psychopy/demos/coder/iohub/launchHub.py demo for examples
     of different ways to use the launchHubServer function.
+
     """
     exp_code = kwargs.get('experiment_code', None)
     if exp_code:
@@ -1541,7 +1527,7 @@ def launchHubServer(**kwargs):
         # this means we should auto_generate a session code
         import datetime
         sess_code = u"S_{0}".format(
-            datetime.datetime.now().strftime("%d_%m_%Y_%H_%M"))
+            datetime.datetime.now().strftime('%d_%m_%Y_%H_%M'))
 
     session_info = dict(code=sess_code)
     sess_info = kwargs.get('session_info', None)
@@ -1588,7 +1574,7 @@ def launchHubServer(**kwargs):
             return isinstance(func, types.FunctionType)
 
         def func2str(func):
-            return "%s.%s" % (func.__module__, func.__name__)
+            return '%s.%s' % (func.__module__, func.__name__)
 
         def configfuncs2str(config):
             for k, v in config.items():
@@ -1672,11 +1658,10 @@ def launchHubServer(**kwargs):
 
 
 class ioHubExperimentRuntime(object):
-    """
-    The ioHubExperimentRuntime class brings together several aspects of the ioHub
-    Event Monitoring Framework, making it simplier to define and manage experiments
-    that use multiple ioHub Device types, particularly when using more complicated
-    devices such as the Eye Tracker or Analog Input Device.
+    """The ioHubExperimentRuntime class brings together several aspects of the
+    ioHub Event Monitoring Framework, making it simplier to define and manage
+    experiments that use multiple ioHub Device types, particularly when using
+    more complicated devices such as the Eye Tracker or Analog Input Device.
 
     Other benefits of using the ioHubExperimentRuntime class include:
 
@@ -1718,6 +1703,7 @@ class ioHubExperimentRuntime(object):
     your intended application or experiment paradigm, and modify the iohub_config.yaml
     ensuring the devices required by your program are defined as needed. Then run the
     project by launching the run.py script with a Python interpreter.
+
     """
 
     def __init__(self, configFilePath, configFile):
@@ -1789,10 +1775,10 @@ class ioHubExperimentRuntime(object):
         self.devices.computer = Computer
 
     def run(self, *sys_argv):
-        """
-        The run method must be overwritten by your subclass of ioHubExperimentRuntime,
-        and would include the equivelent logic to what would be added to the
-        main starting script in a procedural PsychoPy script.
+        """The run method must be overwritten by your subclass of
+        ioHubExperimentRuntime, and would include the equivelent logic to what
+        would be added to the main starting script in a procedural PsychoPy
+        script.
 
         When the run method starts, the ioHub Server is online and any devices
         specified for the experiment are ready for use. When the contents of the run method
@@ -1805,18 +1791,20 @@ class ioHubExperimentRuntime(object):
 
         Returns:
             User defined.
+
         """
         pass
 
     def getConfiguration(self):
-        """
-        Returns the full parsing of experiment_config.yaml as a python dictionary.
+        """Returns the full parsing of experiment_config.yaml as a python
+        dictionary.
 
         Args:
             None
 
         Returns:
             dict: The python object representation of the contents of the experiment_config.yaml file loaded for the experiment.
+
         """
         return self.configuration
 
@@ -1838,46 +1826,45 @@ class ioHubExperimentRuntime(object):
         return self.experimentConfig
 
     def getSessionMetaData(self):
-        """
-        Returns the experiment session parameters saved to the ioHub DataStore
-        for the current experiment session. These are the parameters defined in
-        the session_defaults section of the experiment_config.yaml and are also
-        optionally displayed in the Session Input Dialog at the start of each
-        experiment session.
+        """Returns the experiment session parameters saved to the ioHub
+        DataStore for the current experiment session. These are the parameters
+        defined in the session_defaults section of the experiment_config.yaml
+        and are also optionally displayed in the Session Input Dialog at the
+        start of each experiment session.
 
         Args:
             None
 
         Returns:
             dict: The python object representation of the session meta data saved to the ioHub DataStore for the current experiment run.
+
         """
         if self.hub is not None:
             return self.hub.getSessionMetaData()
         return self.experimentSessionDefaults
 
     def getUserDefinedParameters(self):
-        """
-        Return only the user defined session parameters defined in the experiment_config.yaml.
-        These parameters are displayed in the Session Input Dialog (if enabled)
-        and the value entered for each parameter is provide in the state of the returned dict.
-        These parameters and values are also saved in the session meta data table of the ioHub
-        DataStore.
+        """Return only the user defined session parameters defined in the
+        experiment_config.yaml. These parameters are displayed in the Session
+        Input Dialog (if enabled) and the value entered for each parameter is
+        provide in the state of the returned dict. These parameters and values
+        are also saved in the session meta data table of the ioHub DataStore.
 
         Args:
             None
 
         Returns:
             dict: The python object representation of the user defined session parameters saved to the ioHub DataStore for the current experiment run.
+
         """
         return self.sessionUserVariables
 
     def isSessionCodeInUse(self, current_sess_code):
-        """
-        Session codes must be unique within an experiment. This method will
-        return True if the provided session code is already used in one of
-        the existing experiment sessions saved to the ioHub DataStore.
-        False is returned if the session code is not used, and
-        would therefore make a valid session code for the current run.
+        """Session codes must be unique within an experiment. This method will
+        return True if the provided session code is already used in one of the
+        existing experiment sessions saved to the ioHub DataStore. False is
+        returned if the session code is not used, and would therefore make a
+        valid session code for the current run.
 
         Args:
             current_sess_code (str): The string being requested to be used as the
@@ -1885,17 +1872,18 @@ class ioHubExperimentRuntime(object):
 
         Returns:
             bool: True if the code given is already in use. False if it is not in use.
+
         """
         r = self.hub._sendToHubServer(
             ('RPC', 'checkIfSessionCodeExists', (current_sess_code,)))
         return r[2]
 
     def prePostExperimentVariableCallback(self, experiment_meta_data):
-        """
-        This method is called prior to the experiment meta data being sent to the ioHub
-        DataStore to be saved as the details regarding the current experiment being run.
-        Any changes made to the experiment_meta_data dict passed into the method
-        will be reflected in the data values saved to the ioHub DataStore.
+        """This method is called prior to the experiment meta data being sent
+        to the ioHub DataStore to be saved as the details regarding the current
+        experiment being run. Any changes made to the experiment_meta_data dict
+        passed into the method will be reflected in the data values saved to
+        the ioHub DataStore.
 
         Note that the same dict object that is passed into the method as an arguement
         must be returned by the method as the result.
@@ -1905,15 +1893,16 @@ class ioHubExperimentRuntime(object):
 
         Returns:
             dict: The experiment_meta_data arg passed to the method.
+
         """
         return experiment_meta_data
 
     def prePostSessionVariableCallback(self, session_meta_data):
-        """
-        This method is called prior to the session meta data being sent to the ioHub
-        DataStore to be saved as the details regarding the current session being run.
-        Any changes made to the session_meta_data dict passed into the method
-        will be reflected in the data values saved to the ioHub DataStore for the session.
+        """This method is called prior to the session meta data being sent to
+        the ioHub DataStore to be saved as the details regarding the current
+        session being run. Any changes made to the session_meta_data dict
+        passed into the method will be reflected in the data values saved to
+        the ioHub DataStore for the session.
 
         Note that the same dict object that is passed into the method as an arguement
         must be returned by the method as the result.
@@ -1923,6 +1912,7 @@ class ioHubExperimentRuntime(object):
 
         Returns:
             dict: The session_meta_data arg passed to the method.
+
         """
         org_sess_code = session_meta_data.setdefault('code', 'default_sess')
         scount = 1
@@ -1935,9 +1925,8 @@ class ioHubExperimentRuntime(object):
 
     @staticmethod
     def printExceptionDetails():
-        """
-        Prints out stack trace information for the last exception raised by the
-        PsychoPy Process.
+        """Prints out stack trace information for the last exception raised by
+        the PsychoPy Process.
 
         Currently a lot of redundant data is printed regarding the exception and stack trace.
 
@@ -1948,38 +1937,37 @@ class ioHubExperimentRuntime(object):
 
         Returns:
             None
+
         """
         import traceback
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        print("*** print_tb:")
+        print('*** print_tb:')
         traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
-        print("*** print_exception:")
+        print('*** print_exception:')
         traceback.print_exception(exc_type, exc_value, exc_traceback,
                                   limit=2, file=sys.stdout)
-        print("*** print_exc:")
+        print('*** print_exc:')
         traceback.print_exc()
-        print("*** format_exc, first and last line:")
+        print('*** format_exc, first and last line:')
         formatted_lines = traceback.format_exc().splitlines()
         print(formatted_lines[0])
         print(formatted_lines[-1])
-        print("*** format_exception:")
+        print('*** format_exception:')
         print(repr(traceback.format_exception(exc_type, exc_value,
                                               exc_traceback)))
-        print("*** extract_tb:")
+        print('*** extract_tb:')
         print(repr(traceback.extract_tb(exc_traceback)))
-        print("*** format_tb:")
+        print('*** format_tb:')
         print(repr(traceback.format_tb(exc_traceback)))
-        print("*** tb_lineno:", exc_traceback.tb_lineno)
+        print('*** tb_lineno:', exc_traceback.tb_lineno)
 
     @staticmethod
     def mergeConfigurationFiles(
             base_config_file_path,
             update_from_config_file_path,
             merged_save_to_path):
-        """
-        Merges two iohub configuration files into one and saves it to a file
-        using the path/file name in merged_save_to_path.
-        """
+        """Merges two iohub configuration files into one and saves it to a file
+        using the path/file name in merged_save_to_path."""
         base_config = load(file(base_config_file_path, 'r'), Loader=Loader)
         update_from_config = load(
             file(
@@ -2017,9 +2005,9 @@ class ioHubExperimentRuntime(object):
         and should not be called directly.
         """
         display_experiment_dialog = self.configuration.get(
-            "display_experiment_dialog", False)
+            'display_experiment_dialog', False)
         display_session_dialog = self.configuration.get(
-            "display_session_dialog", False)
+            'display_session_dialog', False)
 
         if display_experiment_dialog is True:
             # display a read only dialog verifying the experiment parameters
@@ -2028,7 +2016,7 @@ class ioHubExperimentRuntime(object):
             # was started.
             exitExperiment = self._displayExperimentSettingsDialog()
             if exitExperiment:
-                print "User Cancelled Experiment Launch."
+                print 'User Cancelled Experiment Launch.'
                 self._close()
                 sys.exit(1)
 
@@ -2089,7 +2077,7 @@ class ioHubExperimentRuntime(object):
                     tempdict = self._displayExperimentSessionSettingsDialog(
                         allSessionDialogVariables, sessionVariableOrder)
                     if tempdict is None:
-                        print "User Cancelled Experiment Launch."
+                        print 'User Cancelled Experiment Launch.'
                         self._close()
                         sys.exit(1)
 
@@ -2103,9 +2091,9 @@ class ioHubExperimentRuntime(object):
                         if display_device:
                             display_id = display_device.getIndex()
                         msg_dialog = MessageDialog(
-                            "Session Code {0} is already in use by the experiment.\nPlease enter a new Session Code".format(
+                            'Session Code {0} is already in use by the experiment.\nPlease enter a new Session Code'.format(
                                 tempdict['code']),
-                            "Session Code In Use",
+                            'Session Code In Use',
                             dialogType=MessageDialog.ERROR_DIALOG,
                             allowCancel=False,
                             display_index=display_id)
@@ -2166,14 +2154,15 @@ class ioHubExperimentRuntime(object):
                 other_process_affinity, ignore)
 
     def start(self, *sys_argv):
-        """
-        This method should be called from within a user script which as extended
-        this class to start the ioHub Server. The run() method of the class,
-        containing the user experiment logic, is then called. When the run() method
-        completes, the ioHub Server is stopped and the program exits.
+        """This method should be called from within a user script which as
+        extended this class to start the ioHub Server. The run() method of the
+        class, containing the user experiment logic, is then called. When the
+        run() method completes, the ioHub Server is stopped and the program
+        exits.
 
         Args: None
         Return: None
+
         """
         try:
             result = self.run(*sys_argv)
@@ -2210,11 +2199,16 @@ class ioHubExperimentRuntime(object):
 
     def _displayExperimentSessionSettingsDialog(
             self, allSessionDialogVariables, sessionVariableOrder):
-        """
-        Display an editable dialog showing the experiment session setting retrieved from the configuration file.
-        This includes the few mandatory ioHub experiment session attributes, as well as any user defined experiment session
-        attributes that have been defined in the experiment configuration file. If OK is selected in the dialog,
-        the experiment logic continues, otherwise the experiment session is terminated.
+        """Display an editable dialog showing the experiment session setting
+        retrieved from the configuration file.
+
+        This includes the few mandatory ioHub experiment session
+        attributes, as well as any user defined experiment session
+        attributes that have been defined in the experiment
+        configuration file. If OK is selected in the dialog, the
+        experiment logic continues, otherwise the experiment session is
+        terminated.
+
         """
         result = None
         try:
@@ -2231,9 +2225,7 @@ class ioHubExperimentRuntime(object):
         return result
 
     def _close(self):
-        """
-        Close the experiment runtime and the ioHub server process.
-        """
+        """Close the experiment runtime and the ioHub server process."""
         # terminate the ioServer
         if self.hub:
             self.hub._shutDownServer()
@@ -2256,12 +2248,14 @@ class ioHubExperimentRuntimeError(Exception):
 
 
 class ioEvent(object):
-    """
-    Parent class for all events generated by a psychopy.iohub device. These
-    devices are monitored asynchronously to the psychopy experiment process
-    itself. Therefore generated events are not influenced by the experiment
-    runtime state when they become available. This helps to reduce
-    software related sources of event time stamp error.
+    """Parent class for all events generated by a psychopy.iohub device.
+
+    These devices are monitored asynchronously to the psychopy
+    experiment process itself. Therefore generated events are not
+    influenced by the experiment runtime state when they become
+    available. This helps to reduce software related sources of event
+    time stamp error.
+
     """
     _attrib_index = dict()
     _attrib_index['id'] = DeviceEvent.EVENT_ID_INDEX
@@ -2276,39 +2270,40 @@ class ioEvent(object):
 
     @property
     def device(self):
-        """
-        The ioHubDeviceView that is associated with the event, i.e. the iohub
-        device that generated the event
+        """The ioHubDeviceView that is associated with the event, i.e. the
+        iohub device that generated the event.
 
         :return: ioHubDeviceView
+
         """
         return self._device
 
     @property
     def time(self):
-        """
-        The time stamp of the event, in the same time base that is used
-        by psychopy.core.getTime()
+        """The time stamp of the event, in the same time base that is used by
+        psychopy.core.getTime()
 
         :return: float
+
         """
         return self._time
 
     @property
     def id(self):
-        """
-        The unique id for the event; sometimes used to track associated events.
+        """The unique id for the event; sometimes used to track associated
+        events.
 
         :return: int
+
         """
         return self._id
 
     @property
     def type(self):
-        """
-        The string type constant for the event.
+        """The string type constant for the event.
 
         :return: str
+
         """
         return EventConstants.getName(self._type)
 
@@ -2320,7 +2315,7 @@ class ioEvent(object):
         return d
 
     def __str__(self):
-        return "time: %.3f, type: %s, id: %d" % (self.time,
+        return 'time: %.3f, type: %s, id: %d' % (self.time,
                                                  self.type,
                                                  self.id)
 
@@ -2334,5 +2329,5 @@ try:
     from ..lazy_import import lazy_import
     lazy_import(globals(), _lazyImports)
 except Exception as e:
-    print2err("lazy_import Exception:", e)
+    print2err('lazy_import Exception:', e)
     exec(_lazyImports)

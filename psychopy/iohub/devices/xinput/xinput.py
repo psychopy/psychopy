@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub Python Module
+"""ioHub Python Module.
+
 .. file: ioHub/devices/xinput/xinput.py
 
 fileauthor: Sol Simpson <sol@isolver-software.com>
@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> +
 contributors, please see credits section of documentation.
+
 """
 
 from xinput_h import *

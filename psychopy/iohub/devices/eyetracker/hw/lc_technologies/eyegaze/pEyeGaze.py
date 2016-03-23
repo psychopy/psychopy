@@ -1,12 +1,12 @@
-"""
-ioHub
-ioHub Common Eye Tracker Interface
+"""ioHub ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyetracker/hw/lc_technologies/eyegaze/pEyeGaze.py
 
 Copyright (C) 2012-2013 XXXXXXXX, iSolver Software Solutions
 Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
 
 .. moduleauthor:: Sol Simpson + contributors
+
 """
 
 # Begin preamble
@@ -234,7 +234,7 @@ class UserString:
 
 
 class MutableString(UserString):
-    """mutable string objects
+    """mutable string objects.
 
     Python strings are immutable objects.  This has the advantage, that
     strings may be used as dictionary keys.  If this property isn't needed
@@ -247,13 +247,15 @@ class MutableString(UserString):
     __hash__ method inherited from UserString.  This would lead to
     errors that would be very hard to track down.
 
-    A faster and better solution is to rewrite your program using lists."""
+    A faster and better solution is to rewrite your program using lists.
 
-    def __init__(self, string=""):
+    """
+
+    def __init__(self, string=''):
         self.data = string
 
     def __hash__(self):
-        raise TypeError("unhashable type (it is mutable)")
+        raise TypeError('unhashable type (it is mutable)')
 
     def __setitem__(self, index, sub):
         if index < 0:
@@ -306,7 +308,7 @@ class String(MutableString, Union):
     _fields_ = [('raw', POINTER(c_char)),
                 ('data', c_char_p)]
 
-    def __init__(self, obj=""):
+    def __init__(self, obj=''):
         if isinstance(obj, (str, unicode, UserString)):
             self.data = str(obj)
         else:
@@ -359,8 +361,8 @@ def ReturnString(obj, func=None, arguments=None):
 
 
 def UNCHECKED(type):
-    if (hasattr(type, "_type_") and isinstance(type._type_, str)
-            and type._type_ != "P"):
+    if (hasattr(type, '_type_') and isinstance(type._type_, str)
+            and type._type_ != 'P'):
         return type
     else:
         return c_void_p
@@ -440,7 +442,7 @@ import ctypes.util
 
 def _environ_path(name):
     if name in os.environ:
-        return os.environ[name].split(":")
+        return os.environ[name].split(':')
     else:
         return []
 
@@ -458,7 +460,7 @@ class LibraryLoader(object):
             if os.path.exists(path):
                 return self.load(path)
 
-        raise ImportError("%s not found." % libname)
+        raise ImportError('%s not found.' % libname)
 
     def load(self, path):
         """Given a path to a library, load it."""
@@ -494,8 +496,8 @@ class LibraryLoader(object):
 
 
 class DarwinLibraryLoader(LibraryLoader):
-    name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
-                    "%s.so", "%s.bundle", "%s"]
+    name_formats = ['lib%s.dylib', 'lib%s.so', 'lib%s.bundle', '%s.dylib',
+                    '%s.so', '%s.bundle', '%s']
 
     def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
@@ -519,7 +521,7 @@ class DarwinLibraryLoader(LibraryLoader):
         '''
 
         dyld_fallback_library_path = _environ_path(
-            "DYLD_FALLBACK_LIBRARY_PATH")
+            'DYLD_FALLBACK_LIBRARY_PATH')
         if not dyld_fallback_library_path:
             dyld_fallback_library_path = [os.path.expanduser('~/lib'),
                                           '/usr/local/lib', '/usr/lib']
@@ -527,13 +529,13 @@ class DarwinLibraryLoader(LibraryLoader):
         dirs = []
 
         if '/' in libname:
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
         else:
-            dirs.extend(_environ_path("LD_LIBRARY_PATH"))
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('LD_LIBRARY_PATH'))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
 
         dirs.extend(self.other_dirs)
-        dirs.append(".")
+        dirs.append('.')
         dirs.append(os.path.dirname(__file__))
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
@@ -561,15 +563,15 @@ class PosixLibraryLoader(LibraryLoader):
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
         directories = []
-        for name in ("LD_LIBRARY_PATH",
-                     "SHLIB_PATH",  # HPUX
-                     "LIBPATH",  # OS/2, AIX
-                     "LIBRARY_PATH",  # BE/OS
+        for name in ('LD_LIBRARY_PATH',
+                     'SHLIB_PATH',  # HPUX
+                     'LIBPATH',  # OS/2, AIX
+                     'LIBRARY_PATH',  # BE/OS
                      ):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
-        directories.append(".")
+        directories.append('.')
         directories.append(os.path.dirname(__file__))
 
         try:
@@ -585,7 +587,7 @@ class PosixLibraryLoader(LibraryLoader):
         ext_re = re.compile(r'\.s[ol]$')
         for dir in directories:
             try:
-                for path in glob.glob("%s/*.s[ol]*" % dir):
+                for path in glob.glob('%s/*.s[ol]*' % dir):
                     file = os.path.basename(path)
 
                     # Index by filename
@@ -613,7 +615,7 @@ class PosixLibraryLoader(LibraryLoader):
 
         path = ctypes.util.find_library(libname)
         if path:
-            yield os.path.join("/lib", path)
+            yield os.path.join('/lib', path)
 
 # Windows
 
@@ -635,7 +637,7 @@ class _WindowsLibrary(object):
 
 
 class WindowsLibraryLoader(LibraryLoader):
-    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
+    name_formats = ['%s.dll', 'lib%s.dll', '%slib.dll']
 
     def load_library(self, libname):
         try:
@@ -656,7 +658,7 @@ class WindowsLibraryLoader(LibraryLoader):
                 except WindowsError:
                     result = None
             if result is None:
-                raise ImportError("%s not found." % libname)
+                raise ImportError('%s not found.' % libname)
         return result
 
     def load(self, path):
@@ -678,9 +680,9 @@ class WindowsLibraryLoader(LibraryLoader):
 # the Ctypesgen maintainers.
 
 loaderclass = {
-    "darwin": DarwinLibraryLoader,
-    "cygwin": WindowsLibraryLoader,
-    "win32": WindowsLibraryLoader
+    'darwin': DarwinLibraryLoader,
+    'cygwin': WindowsLibraryLoader,
+    'win32': WindowsLibraryLoader
 }
 
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
@@ -697,7 +699,7 @@ del loaderclass
 
 # Begin libraries
 
-_libs["lctigaze"] = load_library("lctigaze")
+_libs['lctigaze'] = load_library('lctigaze')
 
 # 1 libraries
 # End libraries
@@ -1313,9 +1315,7 @@ _COMM_CHANNEL_TYPES = dict(
 
 
 def initializeEyeGazeDevice(iohub_display, iohub_device_config):
-    """
-    Initiale and connect to the EyeGaze eye tracker.
-    """
+    """Initiale and connect to the EyeGaze eye tracker."""
     stEgControl = _stEgControl()
 
     # Tell Eyegaze the length of the Eyegaze
@@ -1377,10 +1377,10 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
 
     if conn_type not in _COMM_CHANNEL_TYPES:
         print2err(
-            "ERROR: EyeGaze connection_settings comm_type (first list element) must be one of {0}. Received: {1}.".format(
+            'ERROR: EyeGaze connection_settings comm_type (first list element) must be one of {0}. Received: {1}.'.format(
                 _COMM_CHANNEL_TYPES,
                 conn_type))
-        print2err("..... USING DEFAULT SETTING OF LOCAL")
+        print2err('..... USING DEFAULT SETTING OF LOCAL')
         conn_type = 'LOCAL'
 
     stEgControl.iCommType = _COMM_CHANNEL_TYPES[conn_type]

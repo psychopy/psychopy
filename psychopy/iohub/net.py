@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/net.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 from .devices import Computer
@@ -149,11 +150,9 @@ class UDPClientConnection(SocketConnection):
 
 
 class ioHubTimeSyncConnection(UDPClientConnection):
-    """
-    A special purpose version of the UDPClientConnection class which has the only
-    job of sending and receiving time sync rmessage requests and responses with a remote
-    ioHub Server instance.
-    """
+    """A special purpose version of the UDPClientConnection class which has the
+    only job of sending and receiving time sync rmessage requests and responses
+    with a remote ioHub Server instance."""
 
     def __init__(self, remote_address):
         self.remote_iohub_address = tuple(remote_address)
@@ -210,12 +209,14 @@ class ioHubTimeSyncConnection(UDPClientConnection):
 
 
 class ioHubTimeGreenSyncManager(Greenlet):
-    """
-    The time syncronization manager class used within an ioHub Server when a
-    ioHubRemoteEventSubscriber device is running. The time syncronization manager
-    monitors and calculates the ongoing offset and drift between the local ioHub
-    instance and a remote ioHub instance running on another computer that is
-    publishing events that are being received by the local ioHubRemoteEventSubscriber.
+    """The time syncronization manager class used within an ioHub Server when a
+    ioHubRemoteEventSubscriber device is running.
+
+    The time syncronization manager monitors and calculates the ongoing
+    offset and drift between the local ioHub instance and a remote ioHub
+    instance running on another computer that is publishing events that
+    are being received by the local ioHubRemoteEventSubscriber.
+
     """
 
     def __init__(self, remote_address, sync_state_target):
@@ -230,7 +231,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
             self.sync_state_target = proxy(sync_state_target)
         except Exception as e:
             print2err(
-                "** Exception during ioHubTimeGreenSyncManager.__init__: ",
+                '** Exception during ioHubTimeGreenSyncManager.__init__: ',
                 self._remote_address)
             printExceptionDetailsToStdErr()
 
@@ -244,7 +245,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
             r = self._sync()
             if r is False:
                 print2err(
-                    "SYNC FAILED: ioHubTimeGreenSyncManager {0}.".format(
+                    'SYNC FAILED: ioHubTimeGreenSyncManager {0}.'.format(
                         self._remote_address))
         self._close()
 
@@ -322,11 +323,9 @@ class ioHubTimeSyncManager(object):
 
 
 class TimeSyncState(object):
-    """
-    Container class used by an ioHubSyncManager to hold the data necessary to
-    calculate the current time base offset and drift between an ioHub Server
-    and a ioHubRemoteEventSubscriber client.
-    """
+    """Container class used by an ioHubSyncManager to hold the data necessary
+    to calculate the current time base offset and drift between an ioHub Server
+    and a ioHubRemoteEventSubscriber client."""
     RTTs = RingBuffer(10)
     L_times = RingBuffer(10)
     R_times = RingBuffer(10)
@@ -334,37 +333,31 @@ class TimeSyncState(object):
     offsets = RingBuffer(20)
 
     def getDrift(self):
-        """
-        Current drift between two time bases.
-        """
+        """Current drift between two time bases."""
         return self.drifts.mean()
 
     def getOffset(self):
-        """
-        Current offset between two time bases.
-        """
+        """Current offset between two time bases."""
         return self.offsets.mean()
 
     def getAccuracy(self):
-        """
-        Current accuracy of the time syncronization, as calculated as the
+        """Current accuracy of the time syncronization, as calculated as the.
+
         average of the last 10 round trip time sync request - response delays
         divided by two.
+
         """
         return self.RTTs.mean() / 2.0
 
     def local2RemoteTime(self, local_time=None):
-        """
-        Converts a local time (sec.msec format) to the corresponding remote
-        computer time, using the current offset and drift measures.
-        """
+        """Converts a local time (sec.msec format) to the corresponding remote
+        computer time, using the current offset and drift measures."""
         if local_time is None:
             local_time = Computer.currentSec()
         return self.getDrift() * local_time + self.getOffset()
 
     def remote2LocalTime(self, remote_time):
-        """
-        Converts a remote computer time (sec.msec format) to the corresponding local
-        time, using the current offset and drift measures.
-        """
+        """Converts a remote computer time (sec.msec format) to the
+        corresponding local time, using the current offset and drift
+        measures."""
         return (remote_time - self.getOffset()) / self.getDrift()

@@ -1,6 +1,5 @@
-"""
-ioHub
-Common Eye Tracker Interface
+"""ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyetracker/hw/lc_technologies/eyegaze/EyeTracker.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -10,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
@@ -29,8 +29,7 @@ def localfunc():
 
 class EyeTracker(EyeTrackerDevice):
     """The EyeGaze EyeTracker class implements support of the LC Technologies
-    eye tracker lines for the ioHub Common Eye Tracker Interface.
-    """
+    eye tracker lines for the ioHub Common Eye Tracker Interface."""
     DEVICE_TIMEBASE_TO_SEC = 0.000001
 
     EVENT_CLASS_NAMES = [
@@ -46,9 +45,7 @@ class EyeTracker(EyeTrackerDevice):
     # <<<
 
     def __init__(self, *args, **kwargs):
-        """
-        EyeGaze EyeTracker class.
-        """
+        """EyeGaze EyeTracker class."""
         EyeTrackerDevice.__init__(self, *args, **kwargs)
 
         self._eyegaze_control = None
@@ -61,15 +58,15 @@ class EyeTracker(EyeTrackerDevice):
         self._is_eye_follower = bool(tracker_type_info['bEyefollower'])
 
     def trackerTime(self):
-        """
-        trackerTime returns the current time reported by the
-        eye tracker device. EyeGaze reports tracker time in usec.
+        """trackerTime returns the current time reported by the eye tracker
+        device. EyeGaze reports tracker time in usec.
 
         Args:
             None
 
         Return:
             float: The eye tracker hardware's reported current time.
+
         """
         return pEyeGaze.lct_TimerRead(
             None) - (pEyeGaze.EgGetApplicationStartTimeSec() / self.DEVICE_TIMEBASE_TO_SEC)
@@ -89,10 +86,9 @@ class EyeTracker(EyeTrackerDevice):
             pEyeGaze.EgGetApplicationStartTimeSec()
 
     def setConnectionState(self, enable):
-        """
-        setConnectionState is used to connect ( setConnectionState(True) )
-        or disable ( setConnectionState(False) ) the connection of the ioHub
-        to the eyetracker hardware.
+        """setConnectionState is used to connect ( setConnectionState(True) )
+        or disable ( setConnectionState(False) ) the connection of the ioHub to
+        the eyetracker hardware.
 
         Note that a connection to the eye tracking hardware is automatically
         openned when the ioHub Server process is started. So there is no need to
@@ -118,7 +114,7 @@ class EyeTracker(EyeTrackerDevice):
                         self._display_device, self.getConfiguration())
                     if self._eyegaze_control is None:
                         print2err(
-                            "Could not connect to EyeGaze. Exiting app..")
+                            'Could not connect to EyeGaze. Exiting app..')
                         sys.exit(0)
                     if self._eyegaze_control:
                         return True
@@ -129,24 +125,25 @@ class EyeTracker(EyeTrackerDevice):
                     return False
             else:
                 return print2err(
-                    "INVALID_METHOD_ARGUMENT_VALUE. ",
-                    "EyeTracker.setConnectionState: ",
+                    'INVALID_METHOD_ARGUMENT_VALUE. ',
+                    'EyeTracker.setConnectionState: ',
                     enable)
         except Exception as e:
             # ("IOHUB_DEVICE_EXCEPTION",error_message="An unhandled exception occurred on the ioHub Server Process.",method="EyeTracker.setConnectionState",arguement='enable', value=enable, error=e)
             return printExceptionDetailsToStdErr()
 
     def isConnected(self):
-        """
-        isConnected returns whether the ioHub EyeTracker Device is connected to the
-        eye tracker hardware or not. An eye tracker must be connected to the ioHub
-        for any of the Common Eye Tracker Interface functionality to work.
+        """isConnected returns whether the ioHub EyeTracker Device is connected
+        to the eye tracker hardware or not. An eye tracker must be connected to
+        the ioHub for any of the Common Eye Tracker Interface functionality to
+        work.
 
         Args:
             None
 
         Return:
             bool:  True = the eye tracking hardware is connected. False otherwise.
+
         """
         try:
             return self._eyegaze_control is not None
@@ -202,12 +199,11 @@ class EyeTracker(EyeTrackerDevice):
             # method="EyeTracker.sendCommand", key=key,value=value, error=e)
 
     def sendMessage(self, message_contents, time_offset=None):
-        """
-        sendMessage is not supported by this implementation of the Common Eye Tracker Interface.
-        """
+        """sendMessage is not supported by this implementation of the Common
+        Eye Tracker Interface."""
         try:
             if self._eyegaze_control:
-                print2err("EyeGaze sendMessage not yet implemented")
+                print2err('EyeGaze sendMessage not yet implemented')
                 return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
         except Exception as e:
             return printExceptionDetailsToStdErr()  # ("IOHUB_DEVICE_EXCEPTION",
@@ -219,10 +215,9 @@ class EyeTracker(EyeTrackerDevice):
     def runSetupProcedure(
             self,
             starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
-        """
-        The runSetupProcedure allows the eye tracker interface to perform
-        such things as participant placement validation, camera setup, calibration,
-        and validation type activities.
+        """The runSetupProcedure allows the eye tracker interface to perform
+        such things as participant placement validation, camera setup,
+        calibration, and validation type activities.
 
         For the EyeGaze implementation, the DEFAULT_SETUP_PROCEDURE starting state is
         supported, which launches the external EyeGaze calibrate.exe calibration routine.
@@ -233,6 +228,7 @@ class EyeTracker(EyeTrackerDevice):
 
         Returns:
             None
+
         """
         try:
             # calibration_properties=self.getConfiguration().get('calibration',None)
@@ -248,29 +244,29 @@ class EyeTracker(EyeTrackerDevice):
                 import gevent
                 import os
                 org_cwd = os.getcwdu()
-                print2err("==========")
-                print2err("CWD Prior to calibrate.exe launch: ", org_cwd)
+                print2err('==========')
+                print2err('CWD Prior to calibrate.exe launch: ', org_cwd)
                 p = subprocess.Popen(
                     (u'calibrate.exe', u''), cwd=u'c:\\eyegaze\\')
                 while p.poll() is None:
                     gevent.sleep(0.05)
                 self.setConnectionState(True)
                 new_cwd = os.getcwdu()
-                print2err("CWD after calibrate.exe: ", new_cwd)
-                print2err("==========")
+                print2err('CWD after calibrate.exe: ', new_cwd)
+                print2err('==========')
         except Exception as e:
             return printExceptionDetailsToStdErr()
 
     def isRecordingEnabled(self):
-        """
-        The isRecordingEnabled method indicates if the eye tracker device is currently
-        recording data or not.
+        """The isRecordingEnabled method indicates if the eye tracker device is
+        currently recording data or not.
 
         Args:
            None
 
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
+
         """
         try:
             return self._eyegaze_control is not None and self._eyegaze_control.bTrackingActive in [
@@ -279,9 +275,11 @@ class EyeTracker(EyeTrackerDevice):
             return printExceptionDetailsToStdErr()
 
     def enableEventReporting(self, enabled=True):
-        """
-        Device type independent method equal to the EyeTracker.setRecordingState method.
+        """Device type independent method equal to the
+        EyeTracker.setRecordingState method.
+
         Please see setRecordingState for details.
+
         """
         try:
             if self._eyegaze_control:
@@ -291,8 +289,7 @@ class EyeTracker(EyeTrackerDevice):
             return printExceptionDetailsToStdErr()
 
     def setRecordingState(self, recording):
-        """
-        The setRecordingState method is used to start or stop the recording
+        """The setRecordingState method is used to start or stop the recording
         and transmition of eye data from the eye tracking device.
 
         Args:
@@ -300,6 +297,7 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:
             bool: the current recording state of the eye tracking device
+
         """
         try:
             if not isinstance(recording, bool):
@@ -319,9 +317,9 @@ class EyeTracker(EyeTrackerDevice):
             return printExceptionDetailsToStdErr()
 
     def getLastSample(self):
-        """
-        The getLastSample method returns the most recent ioHub sample event available.
-        The eye tracker must be recording data for a sample event to be returned, otherwise None is returned.
+        """The getLastSample method returns the most recent ioHub sample event
+        available. The eye tracker must be recording data for a sample event to
+        be returned, otherwise None is returned.
 
         Args:
             None
@@ -332,6 +330,7 @@ class EyeTracker(EyeTrackerDevice):
             EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this event type is returned.
 
             BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event of this event type is returned.
+
         """
 
         try:
@@ -340,11 +339,11 @@ class EyeTracker(EyeTrackerDevice):
             return printExceptionDetailsToStdErr()
 
     def getLastGazePosition(self):
-        """
-        The getLastGazePosition method returns the most recent eye gaze position
-        retieved from the eye tracker device. This is the position on the
-        calibrated 2D surface that the eye tracker is reporting as the current
-        eye position. The units are in the units in use by the Display device.
+        """The getLastGazePosition method returns the most recent eye gaze
+        position retieved from the eye tracker device. This is the position on
+        the calibrated 2D surface that the eye tracker is reporting as the
+        current eye position. The units are in the units in use by the Display
+        device.
 
         If binocular recording is being performed, the average position of both
         eyes is returned.
@@ -359,6 +358,7 @@ class EyeTracker(EyeTrackerDevice):
             None: If the eye tracker is not currently recording data or no eye samples have been received.
 
             tuple: Latest (gaze_x,gaze_y) position of the eye(s)
+
         """
         try:
             return self._latest_gaze_position
@@ -385,7 +385,7 @@ class EyeTracker(EyeTrackerDevice):
                 # TBD what to do here (lof to dataStore log?, log to LC data
                 # file?)
                 print2err(
-                    "\nWARNING: %d EyeGaze Eye Samples Have Been Lost.\n" %
+                    '\nWARNING: %d EyeGaze Eye Samples Have Been Lost.\n' %
                     (self._eyegaze_control.iNBufferOverflow))
 
             for i in range(sample_count_available):
@@ -564,17 +564,16 @@ class EyeTracker(EyeTrackerDevice):
 
                 else:  # WTF
                     print2err(
-                        "ERROR: EyeGaze reported camera count is invalid: ",
+                        'ERROR: EyeGaze reported camera count is invalid: ',
                         self._camera_count)
 
         except Exception:
-            print2err("ERROR occurred during poll:")
+            print2err('ERROR occurred during poll:')
             printExceptionDetailsToStdErr()
 
 
 def _eyeTrackerToDisplayCoords(self, eyetracker_point):
-    """
-    """
+    """"""
     try:
         cl, ct, cr, cb = self._display_device.getCoordBounds()
         cw, ch = cr - cl, ct - cb
@@ -585,13 +584,12 @@ def _eyeTrackerToDisplayCoords(self, eyetracker_point):
         gxn, gyn = eyetracker_point[0] / dw, eyetracker_point[1] / dh
         return cl + cw * gxn, cb + ch * (1.0 - gyn)
     except Exception:
-        print2err("ERROR occurred during _eyeTrackerToDisplayCoords:")
+        print2err('ERROR occurred during _eyeTrackerToDisplayCoords:')
         printExceptionDetailsToStdErr()
 
 
 def _displayToEyeTrackerCoords(self, display_x, display_y):
-    """
-    """
+    """"""
     try:
         cl, ct, cr, cb = self._display_device.getCoordBounds()
         cw, ch = cr - cl, ct - cb
@@ -603,5 +601,5 @@ def _displayToEyeTrackerCoords(self, display_x, display_y):
         return cxn * dw, cyn * dh
 
     except Exception:
-        print2err("ERROR occurred during _displayToEyeTrackerCoords:")
+        print2err('ERROR occurred during _displayToEyeTrackerCoords:')
         printExceptionDetailsToStdErr()

@@ -1,6 +1,5 @@
-"""
-ioHub
-ioHub Common Eye Tracker Interface
+"""ioHub ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyetracker/eye_events.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +7,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 from .. import DeviceEvent
@@ -24,15 +24,14 @@ class EyeTrackerEvent(DeviceEvent):
 
 
 class MonocularEyeSampleEvent(EyeTrackerEvent):
-    """
-    A MonocularEyeSampleEvent represents the eye position and eye attribute data
-    collected from one frame or reading of an eye tracker device that is recoding
-    from only one eye, or is recording from both eyes and averaging the
-    binocular data. The eye sample class contains a large number of attributes
-    to try and accommodate for the different field types different eye trackers
-    report at a sample level. Therefore it will not be uncommon for a given
-    eye tracker implementation to provide a NOT_SUPPORTED_FIELD value
-    for many attributes.
+    """A MonocularEyeSampleEvent represents the eye position and eye attribute
+    data collected from one frame or reading of an eye tracker device that is
+    recoding from only one eye, or is recording from both eyes and averaging
+    the binocular data. The eye sample class contains a large number of
+    attributes to try and accommodate for the different field types different
+    eye trackers report at a sample level. Therefore it will not be uncommon
+    for a given eye tracker implementation to provide a NOT_SUPPORTED_FIELD
+    value for many attributes.
 
     Please refer to the implementation specific documentation for the eye tracker
     of interest for more details.
@@ -40,6 +39,7 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
     Event Type ID: EventConstants.MONOCULAR_EYE_SAMPLE
 
     Event Type String: 'MONOCULAR_EYE_SAMPLE'
+
     """
     _newDataTypes = [
         # The eye type that the sample is from. Valid values are:
@@ -151,7 +151,7 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
         # Meaning is completely tracker dependent.
     ]
     EVENT_TYPE_ID = EventConstants.MONOCULAR_EYE_SAMPLE
-    EVENT_TYPE_STRING = "MONOCULAR_EYE_SAMPLE"
+    EVENT_TYPE_STRING = 'MONOCULAR_EYE_SAMPLE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
 
     __slots__ = [e[0] for e in _newDataTypes]
@@ -284,11 +284,10 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
 
 
 class EyeSampleEvent(EyeTrackerEvent):
-    """
-    A EyeSampleEvent reports minimal data regarding an eye sample, containing
-    a subset of the full MonocularEyeSampleEvent fields. Support for this event
-    type is optional. If requested but not supported, no events of this type
-    will be returned.
+    """A EyeSampleEvent reports minimal data regarding an eye sample,
+    containing a subset of the full MonocularEyeSampleEvent fields. Support for
+    this event type is optional. If requested but not supported, no events of
+    this type will be returned.
 
     Both EyeSampleEvents and MonocularEyeSampleEvent /
     BinocularEyeSampleEvents can be requested from the eye tracker,
@@ -305,6 +304,7 @@ class EyeSampleEvent(EyeTrackerEvent):
     Event Type ID: EventConstants.EYE_SAMPLE
 
     Event Type String: 'EYE_SAMPLE'
+
     """
     _newDataTypes = [
         ('x', np.float32),  # The horizontal eye position. Unit type used is
@@ -322,7 +322,7 @@ class EyeSampleEvent(EyeTrackerEvent):
     ]
 
     EVENT_TYPE_ID = EventConstants.EYE_SAMPLE
-    EVENT_TYPE_STRING = "EYE_SAMPLE"
+    EVENT_TYPE_STRING = 'EYE_SAMPLE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
 
     __slots__ = [e[0] for e in _newDataTypes]
@@ -348,16 +348,17 @@ class EyeSampleEvent(EyeTrackerEvent):
 
 
 class BinocularEyeSampleEvent(EyeTrackerEvent):
-    """
-    The BinocularEyeSampleEvent event represents the eye position and eye attribute data collected from
-    one frame or reading of an eye tracker device that is recording both eyes of a participant.
-    The BinocularEyeSample class contains a large number of attributes to try and accommodate
-    for the different field types different eye trackers report at a sample level.
-    Therefore it will be common for a given eye tracker implementation to provide a
-    NOT_SUPPORTED_FIELD value for many attributes.
+    """The BinocularEyeSampleEvent event represents the eye position and eye
+    attribute data collected from one frame or reading of an eye tracker device
+    that is recording both eyes of a participant. The BinocularEyeSample class
+    contains a large number of attributes to try and accommodate for the
+    different field types different eye trackers report at a sample level.
+    Therefore it will be common for a given eye tracker implementation to
+    provide a NOT_SUPPORTED_FIELD value for many attributes.
 
-    Please refer to the implementation specific documentation for the eye tracker
-    of interest for more details.
+    Please refer to the implementation specific documentation for the
+    eye tracker of interest for more details.
+
     """
     _newDataTypes = [
         ('left_gaze_x', 'f4'),
@@ -402,7 +403,7 @@ class BinocularEyeSampleEvent(EyeTrackerEvent):
     ]
 
     EVENT_TYPE_ID = EventConstants.BINOCULAR_EYE_SAMPLE
-    EVENT_TYPE_STRING = "BINOCULAR_EYE_SAMPLE"
+    EVENT_TYPE_STRING = 'BINOCULAR_EYE_SAMPLE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
 
     __slots__ = [e[0] for e in _newDataTypes]
@@ -644,13 +645,17 @@ class BinocularEyeSampleEvent(EyeTrackerEvent):
 
 
 class FixationStartEvent(EyeTrackerEvent):
-    """
-    A FixationStartEvent is generated when the beginning of an eye fixation ( in very general terms,
-    a period of relatively stable eye position ) is detected by the eye trackers sample parsing algorithms.
-    Please refer to the implementation specific interface documentation for your eye tracker, and even the
-    eye tracker's reference material itself, it you are looking for a more precise definition of how the eye
-    tracker manufacturer has implemented their parser and how it determines when a FixationStartEvent occurs,
-    assuming it supports this event type at all.
+    """A FixationStartEvent is generated when the beginning of an eye fixation
+    ( in very general terms, a period of relatively stable eye position ) is
+    detected by the eye trackers sample parsing algorithms.
+
+    Please refer to the implementation specific interface documentation
+    for your eye tracker, and even the eye tracker's reference material
+    itself, it you are looking for a more precise definition of how the
+    eye tracker manufacturer has implemented their parser and how it
+    determines when a FixationStartEvent occurs, assuming it supports
+    this event type at all.
+
     """
     _newDataTypes = [
         # The eye type that the fixation is from. Valid values are:

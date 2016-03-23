@@ -4,9 +4,10 @@ from ctypes import byref
 
 
 def initEyeGaze():
-    """
-    Function to create the _stEgControl object and init the
-    EyeGaze system. Exits the program if the init fails.
+    """Function to create the _stEgControl object and init the EyeGaze system.
+
+    Exits the program if the init fails.
+
     """
     import sys
 
@@ -24,16 +25,17 @@ def initEyeGaze():
 
     result = pEyeGaze.EgInit(byref(eyegaze_control))
     if result != 0:
-        print "Could not connect to EyeGaze. Error: ", result
+        print 'Could not connect to EyeGaze. Error: ', result
         sys.exit(0)
 
     return eyegaze_control
 
 
 def runCalibration(eyegaze_control):
-    """
-    Function to run the external calibrate.exe program.
+    """Function to run the external calibrate.exe program.
+
     Returns a new instance of _stEgControl (probably not 'necessary').
+
     """
     import subprocess
     import time

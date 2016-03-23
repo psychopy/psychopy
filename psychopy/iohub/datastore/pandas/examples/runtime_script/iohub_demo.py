@@ -24,7 +24,7 @@ mouse = io.devices.mouse
 
 win = visual.Window(allowGUI=False, fullscr=True)
 gabor = visual.GratingStim(
-    win, tex="sin", mask="gauss", texRes=256, size=[
+    win, tex='sin', mask='gauss', texRes=256, size=[
         200.0, 200.0], sf=[
             4, 0], ori=0, name='gabor1')
 letter = visual.TextStim(win, pos=(0.0, 0.0), text='X')
@@ -92,7 +92,7 @@ for t, trial in enumerate(trials):
                 break
 
     if key_pressed is None:
-        print "Experiment Terminated By User"
+        print 'Experiment Terminated By User'
         io.quit()
         core.quit()
         import sys

@@ -45,11 +45,13 @@ getTime = core.getTime
 
 
 class TargetStim(object):
-    """
-    TargetStim creates a target graphic that can be used during a sequential
-    fixation task. The stim consists of two psychopy circle stim, one is
-    used to draw the outer edge of the target and the target body fill.
-    The second is used to draw a dot in the center of the larger circle.
+    """TargetStim creates a target graphic that can be used during a sequential
+    fixation task.
+
+    The stim consists of two psychopy circle stim, one is used to draw
+    the outer edge of the target and the target body fill. The second is
+    used to draw a dot in the center of the larger circle.
+
     """
 
     def __init__(self,
@@ -102,23 +104,24 @@ class TargetStim(object):
             self.stim.append(centerdot)
 
     def setRadius(self, r):
-        """
-        Update the radius of the target stim.
-        """
+        """Update the radius of the target stim."""
         self.stim[0].radius = r
 
     def setPos(self, pos):
-        """
-        Set the position of the target stim. The target center will be drawn at
-        the position given.
+        """Set the position of the target stim.
+
+        The target center will be drawn at the position given.
+
         """
         for s in self.stim:
             s.setPos(pos)
 
     def draw(self):
-        """
-        Draw the Target stim. (this simply calls the draw method of the
-        psychopy stim used, in the correct order).
+        """Draw the Target stim.
+
+        (this simply calls the draw method of the psychopy stim used, in
+        the correct order).
+
         """
         for s in self.stim:
             s.draw()
@@ -128,8 +131,7 @@ class TargetStim(object):
 
 
 class PositionGrid(object):
-    """
-    PositionGrid provides a flexible way to generate a set of x,y position
+    """PositionGrid provides a flexible way to generate a set of x,y position
     values within the boundaries of the psychopy window object provided.
 
     The class provides a set of arguments that represent commonly needed
@@ -330,11 +332,12 @@ class PositionGrid(object):
             return len(self.positions)
 
     def plot(self, **kwargs):
-        """
-        Uses Matplotlib to create a figure illustrating the screen positions,
-        and presentation order, for the PositionGrid's current state.
+        """Uses Matplotlib to create a figure illustrating the screen
+        positions, and presentation order, for the PositionGrid's current
+        state.
 
         **kwargs will be directly passed to pyplot.scatter() as kwargs.
+
         """
         from matplotlib import pyplot as pl
         x = [p[0] for p in self]
@@ -347,10 +350,10 @@ class PositionGrid(object):
         for i in range(len(x)):
             pl.text(x[i], y[i], str(i), size=11, horizontalalignment='center',
                     verticalalignment='center')
-        pl.xlabel("Horizontal Target Position")
-        pl.ylabel("Vertical Target Position")
+        pl.xlabel('Horizontal Target Position')
+        pl.ylabel('Vertical Target Position')
         pl.title(
-            "PositionGrid Generated Screen Locations\n(Point Number is List Index)")
+            'PositionGrid Generated Screen Locations\n(Point Number is List Index)')
         pl.show()
 
     def randomize(self):
@@ -374,10 +377,8 @@ class PositionGrid(object):
         self._generatePosOffsets()
 
     def _generatePosOffsets(self):
-        """
-        Create a new set of position displayment 'noise' based on the noiseStd
-        value given when the object was initialized.
-        """
+        """Create a new set of position displayment 'noise' based on the
+        noiseStd value given when the object was initialized."""
         horzPosOffsetList = np.zeros((len(self), 1))
         if self.horzStd:
             horzPosOffsetList = np.random.normal(0.0, self.horzStd,
@@ -397,16 +398,16 @@ class PositionGrid(object):
         return self.next()
 
     def next(self):
-        """
-        Returns the next position in the list. Usually this method is not
-        called directly. Instead, positions are accessed by iterating over
-        the PositionGrid object.
+        """Returns the next position in the list. Usually this method is not
+        called directly. Instead, positions are accessed by iterating over the
+        PositionGrid object.
 
         pos = PositionGrid(....)
 
         for p in pos:
             # do something cool with it
             pass
+
         """
         if self.posIndex < len(self.positions):
             pos = self.positions[self.posIndex] + \
@@ -423,12 +424,11 @@ class PositionGrid(object):
 
 
 class TargetPosSequenceStim(object):
-    """
-    TargetPosSequenceStim combines an instance of a Target stim and an instance
-    of a PositionGrid to create everything needed to present the target at
-    each position returned by the PositionGrid instance within the psychopy
-    window used to create the Target stim. The target is presented at each
-    position sequentially.
+    """TargetPosSequenceStim combines an instance of a Target stim and an
+    instance of a PositionGrid to create everything needed to present the
+    target at each position returned by the PositionGrid instance within the
+    psychopy window used to create the Target stim. The target is presented at
+    each position sequentially.
 
     By providing keyword arguments to the TargetPosSequenceStim.display(...)
     method, position animation between target positions, and target stim
@@ -444,6 +444,7 @@ class TargetPosSequenceStim(object):
     Events which occur during each target position presentation period are
     stored and are available at the end of the display() period, grouped by
     position index and device event types.
+
     """
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
@@ -454,23 +455,23 @@ class TargetPosSequenceStim(object):
     #
     message_types = dict(
         # position_count
-        BEGIN_SEQUENCE=("BEGIN_SEQUENCE", '', int),
+        BEGIN_SEQUENCE=('BEGIN_SEQUENCE', '', int),
         # position_count
-        DONE_SEQUENCE=("DONE_SEQUENCE", '', int),
+        DONE_SEQUENCE=('DONE_SEQUENCE', '', int),
         # event_type_id event_time
-        NEXT_POS_TRIG=("NEXT_POS_TRIG", '', int, float),
+        NEXT_POS_TRIG=('NEXT_POS_TRIG', '', int, float),
         # position_count from_x,from_y to_x,to_y
-        START_DRAW=("START_DRAW", ',', int, float, float, float, float),
+        START_DRAW=('START_DRAW', ',', int, float, float, float, float),
         # position_count from_x,from_y to_x,to_y
-        SYNCTIME=("SYNCTIME", ',', int, float, float, float, float),
+        SYNCTIME=('SYNCTIME', ',', int, float, float, float, float),
         # current_radius original_radius
-        EXPAND_SIZE=("EXPAND_SIZE", '', float, float),
+        EXPAND_SIZE=('EXPAND_SIZE', '', float, float),
         # current_radius original_radius
-        CONTRACT_SIZE=("CONTRACT_SIZE", '', float, float),
+        CONTRACT_SIZE=('CONTRACT_SIZE', '', float, float),
         # current_x,current_y
-        POS_UPDATE=("POS_UPDATE", ',', float, float),
+        POS_UPDATE=('POS_UPDATE', ',', float, float),
         # final_x,final_y
-        TARGET_POS=("TARGET_POS", ',', float, float)
+        TARGET_POS=('TARGET_POS', ',', float, float)
     )
     max_msg_type_length = max([len(s) for s in message_types.keys()])
 
@@ -518,7 +519,7 @@ class TargetPosSequenceStim(object):
                  # events for.
                  triggers=None,     # The triggers to use for controlling target
                                     # position progression.
-                 msgcategory="",     # As the display() process is preformed,
+                 msgcategory='',     # As the display() process is preformed,
                                     # iohub experiment messages are generated
                                     # providing information on the state of the
                                     # target and position. msgcategory can be
@@ -592,33 +593,29 @@ class TargetPosSequenceStim(object):
             # A single Trigger object was provided
             self.triggers = (triggers,)
         else:
-            raise ValueError("The triggers kwarg could not be understood as a "
-                             "valid triggers input value.")
+            raise ValueError('The triggers kwarg could not be understood as a '
+                             'valid triggers input value.')
 
     def getIO(self):
-        """
-        Get the active ioHubConnection instance.
-        """
+        """Get the active ioHubConnection instance."""
         return self.io
 
     def _draw(self):
-        """
-        Fill the window with the specified background color and draw the target
-        stim.
-        """
+        """Fill the window with the specified background color and draw the
+        target stim."""
         if self.background:
             self.background.draw()
         self.target.draw()
 
     def _animateTarget(self, topos, frompos, **kwargs):
-        """
-        Internal method.
+        """Internal method.
 
         Any logic related to drawing the target at the new screen position,
         including any intermediate animation effects, is done here.
 
         Return the flip time when the target was first drawn at the newpos
         location.
+
         """
         io = self.getIO()
         if frompos is not None:
@@ -635,7 +632,7 @@ class TargetPosSequenceStim(object):
                     self.target.setPos(frompos * (1.0 - mu) + topos * mu)
                     self._draw()
                     fliptime = self.win.flip()
-                    io.sendMessageEvent("POS_UPDATE %.2f,%.2f" % (
+                    io.sendMessageEvent('POS_UPDATE %.2f,%.2f' % (
                                         tpos[0], tpos[1]), self.msgcategory,
                                         sec_time=fliptime)
                     self._addDeviceEvents()
@@ -643,7 +640,7 @@ class TargetPosSequenceStim(object):
         self.target.setPos(topos)
         self._draw()
         fliptime = self.win.flip()
-        io.sendMessageEvent("TARGET_POS %.2f,%.2f" % (topos[0], topos[1]),
+        io.sendMessageEvent('TARGET_POS %.2f,%.2f' % (topos[0], topos[1]),
                             self.msgcategory, sec_time=fliptime)
         self._addDeviceEvents()
 
@@ -664,7 +661,7 @@ class TargetPosSequenceStim(object):
                     self.target.setRadius(cradius)
                     self._draw()
                     fliptime = self.win.flip()
-                    io.sendMessageEvent("EXPAND_SIZE %.2f %.2f" % (
+                    io.sendMessageEvent('EXPAND_SIZE %.2f %.2f' % (
                                         cradius, initialradius),
                                         self.msgcategory, sec_time=fliptime)
                     self._addDeviceEvents()
@@ -678,7 +675,7 @@ class TargetPosSequenceStim(object):
                     self.target.setRadius(cradius)
                     self._draw()
                     fliptime = self.win.flip()
-                    io.sendMessageEvent("CONTRACT_SIZE %.2f %.2f" % (
+                    io.sendMessageEvent('CONTRACT_SIZE %.2f %.2f' % (
                                         cradius, initialradius),
                                         self.msgcategory, sec_time=fliptime)
                     self._addDeviceEvents()
@@ -687,23 +684,24 @@ class TargetPosSequenceStim(object):
         return fliptime
 
     def moveTo(self, topos, frompos, **kwargs):
-        """
-        Indicates that the target should be moved frompos to topos.
+        """Indicates that the target should be moved frompos to topos.
+
         If a PositionGrid has been provided, moveTo should not be called
-        directly. Instead, use the display() method to start the full target
-        position presentation sequence.
+        directly. Instead, use the display() method to start the full
+        target position presentation sequence.
+
         """
         io = self.getIO()
         fpx, fpy = -1, -1
         if frompos is not None:
             fpx, fpy = frompos[0], frompos[1]
-        io.sendMessageEvent("START_DRAW %d %.2f,%.2f %.2f,%.2f" % (
+        io.sendMessageEvent('START_DRAW %d %.2f,%.2f %.2f,%.2f' % (
             self.positions.posIndex, fpx, fpy,
             topos[0], topos[1]), self.msgcategory)
 
         fliptime = self._animateTarget(topos, frompos, **kwargs)
 
-        io.sendMessageEvent("SYNCTIME %d %.2f,%.2f %.2f,%.2f" % (
+        io.sendMessageEvent('SYNCTIME %d %.2f,%.2f %.2f,%.2f' % (
             self.positions.posIndex, fpx, fpy,
             topos[0], topos[1]), self.msgcategory, sec_time=fliptime)
 
@@ -716,10 +714,8 @@ class TargetPosSequenceStim(object):
             sleep(0.001)
 
     def _hasTriggerFired(self, **kwargs):
-        """
-        Used internally to know when one of the triggers has occurred and the
-        target should move to the next target position.
-        """
+        """Used internally to know when one of the triggers has occurred and
+        the target should move to the next target position."""
         # wait for trigger to fire
         triggered = None
         for trig in self.triggers:
@@ -736,18 +732,16 @@ class TargetPosSequenceStim(object):
                 event_type_id = trig_evt.type
             # get time trigger of trigger event
             event_time = triggered.getTriggeringTime()
-            self.getIO().sendMessageEvent("NEXT_POS_TRIG %d %.3f" % (
+            self.getIO().sendMessageEvent('NEXT_POS_TRIG %d %.3f' % (
                 event_type_id, event_time), self.msgcategory)
             for trig in self.triggers:
                 trig.resetTrigger()
         return triggered
 
     def _initTargetData(self, frompos, topos):
-        """
-        Internally used to create the data structure used to store position
+        """Internally used to create the data structure used to store position
         information and events which occurred during each target position
-        period.
-        """
+        period."""
         if self.storeevents:
             deviceevents = {}
             for device in self.storeevents:
@@ -767,11 +761,10 @@ class TargetPosSequenceStim(object):
                 dev_events.extend(dev.getEvents())
 
     def display(self, **kwargs):
-        """
-        Display the target at each point in the position grid, performing
-        target animation if requested. The target then holds position until
-        one of the specified triggers occurs, resulting in the target moving
-        to the next position in the positiongrid.
+        """Display the target at each point in the position grid, performing
+        target animation if requested. The target then holds position until one
+        of the specified triggers occurs, resulting in the target moving to the
+        next position in the positiongrid.
 
         To setup target animation between grid positions, the following keyword
         arguments are supported. If an option is not specified, the animation
@@ -830,13 +823,14 @@ class TargetPosSequenceStim(object):
         When this method returns, the target has been displayed at all
         positions. Data collected for each position period can be accessed via
         the targetdata attribute.
+
         """
         del self.targetdata[:]
         prevpos = None
 
         io = self.getIO()
         io.clearEvents('all')
-        io.sendMessageEvent("BEGIN_SEQUENCE {0}".format(
+        io.sendMessageEvent('BEGIN_SEQUENCE {0}'.format(
             len(self.positions.positions)), self.msgcategory)
         turn_rec_off = []
         for d in self.storeevents:
@@ -855,7 +849,7 @@ class TargetPosSequenceStim(object):
         for d in turn_rec_off:
             d.enableEventReporting(False)
 
-        io.sendMessageEvent("DONE_SEQUENCE {0}".format(
+        io.sendMessageEvent('DONE_SEQUENCE {0}'.format(
             len(self.positions.positions)), self.msgcategory)
         sleep(0.025)
         self._addDeviceEvents()
@@ -921,10 +915,8 @@ class TargetPosSequenceStim(object):
         return self.target_pos_msgs
 
     def getSampleMessageData(self):
-        """
-        Return a list of numpy ndarrays, each containing joined eye sample
-        and previous / next experiment message data for the sample's time.
-        """
+        """Return a list of numpy ndarrays, each containing joined eye sample
+        and previous / next experiment message data for the sample's time."""
 
         # preprocess message events
         self._processMessageEvents()
@@ -1119,9 +1111,8 @@ validation:
 
 
 class ValidationProcedure(object):
-    """
-    ValidationProcedure can be used to check the accuracy of a calibrated eye
-    tracking system.
+    """ValidationProcedure can be used to check the accuracy of a calibrated
+    eye tracking system.
 
     One a ValidationProcedure class instance has been created, the
     display(**kwargs) method can be called to run the full validation process.
@@ -1188,6 +1179,7 @@ class ValidationProcedure(object):
        saved as a png file in the same directory as the calling stript.
 
     See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
+
     """
 
     def __init__(
@@ -1203,7 +1195,7 @@ class ValidationProcedure(object):
             accuracy_period_start=0.350,
             accuracy_period_stop=.050,
             show_intro_screen=True,
-            intro_text="Validation procedure is now going to be performed.",
+            intro_text='Validation procedure is now going to be performed.',
             show_results_screen=True,
             results_in_degrees=False,
             save_figure=None,
@@ -1311,13 +1303,15 @@ class ValidationProcedure(object):
         self.io.clearEvents('all')
 
     def display(self, **kwargs):
-        """
-        Begin the validation procedure. The method returns after the full
+        """Begin the validation procedure.
+
+        The method returns after the full
         validation process is complete, including:
             a) display of an instruction screen
             b) display of the target position sequence used for validation
                data collection.
             c) display of a validation accuracy results plot.
+
         """
 
         if self.show_intro_screen:
@@ -1341,7 +1335,7 @@ class ValidationProcedure(object):
 
     def _generateImageName(self):
         import datetime
-        file_name = 'validation_' + datetime.datetime.now().strftime("%d_%m_%Y_%H_%M") + '.png'
+        file_name = 'validation_' + datetime.datetime.now().strftime('%d_%m_%Y_%H_%M') + '.png'
         if self.save_figure_path:
             return normjoin(self.save_figure_path, file_name)
         rootScriptPath = os.path.dirname(sys.argv[0])
@@ -1379,7 +1373,7 @@ class ValidationProcedure(object):
             summed_error = 0.0
             point_count = 0
 
-            self.io.sendMessageEvent("Results", 'VALIDATION')
+            self.io.sendMessageEvent('Results', 'VALIDATION')
             results = dict(
                 display_size=self.display_size,
                 position_count=len(sample_array),
@@ -1389,17 +1383,17 @@ class ValidationProcedure(object):
                 position_results=[])
 
             self.io.sendMessageEvent(
-                "display_size: {0}".format(
+                'display_size: {0}'.format(
                     self.display_size), 'VALIDATION')
             self.io.sendMessageEvent(
-                "target position_count: {0}".format(
+                'target position_count: {0}'.format(
                     len(sample_array)), 'VALIDATION')
-            self.io.sendMessageEvent("target_positions: {0}".format(
+            self.io.sendMessageEvent('target_positions: {0}'.format(
                 [p for p in self.targetsequence.positions]), 'VALIDATION')
 
             for pindex, samplesforpos in enumerate(sample_array):
                 self.io.sendMessageEvent(
-                    "Target Position Results: {0}".format(pindex), 'VALIDATION')
+                    'Target Position Results: {0}'.format(pindex), 'VALIDATION')
 
                 stationary_samples = samplesforpos[
                     samplesforpos['targ_state'] == self.targetsequence.TARGET_STATIONARY]
@@ -1461,11 +1455,11 @@ class ValidationProcedure(object):
                         filter_etime],
                     sample_from_filter_stages=sample_msg_data_filtering,
                     valid_filtered_sample_perc=accuracy_calc_good_sample_perc)
-                self.io.sendMessageEvent("sample_time_range: {0}".format(
+                self.io.sendMessageEvent('sample_time_range: {0}'.format(
                     [first_stime, last_stime]), 'VALIDATION')
-                self.io.sendMessageEvent("filter_samples_time_range: {0}".format(
+                self.io.sendMessageEvent('filter_samples_time_range: {0}'.format(
                     [filter_stime, filter_etime]), 'VALIDATION')
-                self.io.sendMessageEvent("valid_filtered_sample_perc: {0}".format(
+                self.io.sendMessageEvent('valid_filtered_sample_perc: {0}'.format(
                     accuracy_calc_good_sample_perc), 'VALIDATION')
 
                 if accuracy_calc_good_sample_perc == 0.0:
@@ -1515,20 +1509,20 @@ class ValidationProcedure(object):
                     position_results['stdev_error'] = lr_error_std
 
                     self.io.sendMessageEvent(
-                        "calculation_status: {0}".format('PASSED'), 'VALIDATION')
+                        'calculation_status: {0}'.format('PASSED'), 'VALIDATION')
                     self.io.sendMessageEvent(
-                        "target_position: {0}".format(
+                        'target_position: {0}'.format(
                             (target_x[0], target_y[0])), 'VALIDATION')
                     self.io.sendMessageEvent(
-                        "min_error: {0}".format(lr_error_min), 'VALIDATION')
+                        'min_error: {0}'.format(lr_error_min), 'VALIDATION')
                     self.io.sendMessageEvent(
-                        "max_error: {0}".format(lr_error_max), 'VALIDATION')
+                        'max_error: {0}'.format(lr_error_max), 'VALIDATION')
                     self.io.sendMessageEvent(
-                        "mean_error: {0}".format(lr_error_mean), 'VALIDATION')
+                        'mean_error: {0}'.format(lr_error_mean), 'VALIDATION')
                     self.io.sendMessageEvent(
-                        "stdev_error: {0}".format(lr_error_std), 'VALIDATION')
+                        'stdev_error: {0}'.format(lr_error_std), 'VALIDATION')
                     self.io.sendMessageEvent(
-                        "Done Target Position Results : {0}".format(pindex), 'VALIDATION')
+                        'Done Target Position Results : {0}'.format(pindex), 'VALIDATION')
 
                     normed_time = (time - time.min()) / \
                         (time.max() - time.min())
@@ -1561,12 +1555,12 @@ class ValidationProcedure(object):
             else:
                 pl.xlim(-pixw / 2, pixw / 2)
                 pl.ylim(-pixh / 2, pixh / 2)
-            pl.xlabel("Horizontal Position (%s)" % (unit_type))
-            pl.ylabel("Vertical Position (%s)" % (unit_type))
+            pl.xlabel('Horizontal Position (%s)' % (unit_type))
+            pl.ylabel('Vertical Position (%s)' % (unit_type))
 
             mean_error = summed_error / point_count
             pl.title(
-                "Validation Accuracy (%s)\nMin: %.2f, Max: %.2f, Mean %.2f" %
+                'Validation Accuracy (%s)\nMin: %.2f, Max: %.2f, Mean %.2f' %
                 (unit_type, min_error, max_error, mean_error))
 
             results['min_error'] = min_error
@@ -1574,14 +1568,14 @@ class ValidationProcedure(object):
             results['mean_error'] = mean_error
 
             self.io.sendMessageEvent(
-                "Overall Results Coord Type: {0}".format(unit_type),
+                'Overall Results Coord Type: {0}'.format(unit_type),
                 'VALIDATION')
             self.io.sendMessageEvent(
-                "min_error: {0}".format(min_error), 'VALIDATION')
+                'min_error: {0}'.format(min_error), 'VALIDATION')
             self.io.sendMessageEvent(
-                "max_error: {0}".format(max_error), 'VALIDATION')
+                'max_error: {0}'.format(max_error), 'VALIDATION')
             self.io.sendMessageEvent(
-                "mean_error: {0}".format(mean_error), 'VALIDATION')
+                'mean_error: {0}'.format(mean_error), 'VALIDATION')
 
             self.validation_results = results
 
@@ -1591,16 +1585,16 @@ class ValidationProcedure(object):
             fig_name = self._generateImageName()
             fig.savefig(fig_name, dpi=self.use_dpi)
             self.io.sendMessageEvent(
-                "Validation Plot: %s" %
+                'Validation Plot: %s' %
                 (fig_name), 'VALIDATION')
             return fig, fig_name
         except Exception:
-            print "\nError While Calculating Accuracy Stats:"
+            print '\nError While Calculating Accuracy Stats:'
             import traceback
             traceback.print_exc()
             print
 
-        self.io.sendMessageEvent("Validation Report Complete", 'VALIDATION')
+        self.io.sendMessageEvent('Validation Report Complete', 'VALIDATION')
 
     def getValidationResults(self):
         return self.validation_results
@@ -1664,7 +1658,7 @@ class ValidationProcedure(object):
         return self.win.flip()
 
     def showIntroScreen(self):
-        text = self.intro_text + "\nPress SPACE to Start...."
+        text = self.intro_text + '\nPress SPACE to Start....'
         textpos = (0, 0)
         if self.textstim:
             self.textstim.setText(text)

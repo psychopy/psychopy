@@ -21,13 +21,14 @@ hypot = np.hypot
 class VisualAngleCalc(object):
 
     def __init__(self, display_size_mm, display_res_pix, eye_distance_mm=None):
-        """
-        Used to store calibrated surface information and eye to screen distance
-        so that pixel positions can be converted to visual degree positions.
+        """Used to store calibrated surface information and eye to screen
+        distance so that pixel positions can be converted to visual degree
+        positions.
 
         Note: The information for display_size_mm,display_res_pix, and default
         eye_distance_mm could all be read automatically when openning a ioDataStore
         file. This automation should be implemented in a future release.
+
         """
         self._display_width = display_size_mm[0]
         self._display_height = display_size_mm[1]
@@ -69,9 +70,10 @@ class VisualAngleCalc(object):
 
 def generatedPointGrid(pixel_width, pixel_height, width_scalar=1.0,
                        height_scalar=1.0, horiz_points=5, vert_points=5):
-    """
-    Generate a set of points in a NxM grid. Useful for creating calibration
-    target positions, etc.
+    """Generate a set of points in a NxM grid.
+
+    Useful for creating calibration target positions, etc.
+
     """
     swidth = pixel_width * width_scalar
     sheight = pixel_height * height_scalar
@@ -108,7 +110,7 @@ if __name__ == '__main__':
 
     fig = pyplot.figure()
     fig.suptitle(
-        "Pixel to Visual Angle (Eye Dist: %.1f cm, %0.3fx%0.3f cm/pixel" %
+        'Pixel to Visual Angle (Eye Dist: %.1f cm, %0.3fx%0.3f cm/pixel' %
         (edist / 10, vacalc.mmpp_x, vacalc.mmpp_y))
     ax1 = fig.add_subplot(211)
     ax1.plot(x_pos, y_pos, '+g')

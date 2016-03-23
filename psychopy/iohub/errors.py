@@ -34,7 +34,7 @@ class ioHubError(Exception):
         return repr(self)
 
     def __repr__(self):
-        r = "ioHubError:\nArgs: {0}\n".format(self.args)
+        r = 'ioHubError:\nArgs: {0}\n'.format(self.args)
         for k, v in self.kwargs.iteritems():
-            r += "\t{0}: {1}\n".format(k, v)
+            r += '\t{0}: {1}\n'.format(k, v)
         return r

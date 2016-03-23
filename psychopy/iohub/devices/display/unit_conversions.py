@@ -1,5 +1,5 @@
-"""
-ioHub
+"""ioHub.
+
 .. file: iohub/devices/display/unit_conversion.py
 
 Sudo code provided by Josh Borah
@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>, Josh Borah <josh@a-s-l.com>
+
 """
 
 from math import atan, tan, sqrt
@@ -150,8 +151,8 @@ def saToDist(eye2dsply, saH, saV):
     if saH < 0.0:
         signsaH = -1.0
 
-    distV = signsaV * sqrt((Dsqrd * tansaV_sqrd + Dsqrd * \
-                           tansaH_sqrd * tansaV_sqrd) / (1 - tansaH_sqrd * tansaV_sqrd))
+    distV = signsaV * sqrt((Dsqrd * tansaV_sqrd + Dsqrd *
+                            tansaH_sqrd * tansaV_sqrd) / (1 - tansaH_sqrd * tansaV_sqrd))
 
     distH = signsaH * sqrt((Dsqrd + distV * distV) * tansaH_sqrd)
 

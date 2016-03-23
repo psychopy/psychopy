@@ -112,12 +112,12 @@ class KeyboardEvent(ioEvent):
 
     @property
     def char(self):
-        """
-        The unicode value of the keyboard event, if available. This field is
+        """The unicode value of the keyboard event, if available. This field is
         only populated when the keyboard event results in a character that
         could be printable.
 
         :return: unicode, '' if no char value is available for the event.
+
         """
         return self._char
 
@@ -146,7 +146,7 @@ class KeyboardEvent(ioEvent):
         return self._modifiers
 
     def __str__(self):
-        return "%s, key: %s char: %s, modifiers: %s" % (
+        return '%s, key: %s char: %s, modifiers: %s' % (
             ioEvent.__str__(self), self.key,
             self.char,
             str(self.modifiers))
@@ -161,18 +161,14 @@ class KeyboardEvent(ioEvent):
 
 
 class KeyboardPress(KeyboardEvent):
-    """
-    An iohub Keyboard device key press event.
-    """
+    """An iohub Keyboard device key press event."""
 
     def __init__(self, ioe_array):
         super(KeyboardPress, self).__init__(ioe_array)
 
 
 class KeyboardRelease(KeyboardEvent):
-    """
-    An iohub Keyboard device key release event.
-    """
+    """An iohub Keyboard device key release event."""
     _attrib_index = dict()
     _attrib_index['duration'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
         'duration')
@@ -187,8 +183,7 @@ class KeyboardRelease(KeyboardEvent):
 
     @property
     def duration(self):
-        """
-        The duration (in seconds) of the key press. This is calculated by
+        """The duration (in seconds) of the key press. This is calculated by
         subtracting the current event.time from the associated keypress.time.
 
         If no matching keypress event was reported prior to this event, then
@@ -198,32 +193,31 @@ class KeyboardRelease(KeyboardEvent):
         press and release event times.
 
         :return: float
+
         """
         return self._duration
 
     @property
     def pressEventID(self):
-        """
-        The event.id of the associated press event.
+        """The event.id of the associated press event.
 
         The key press id is 0 if no associated KeyboardPress event was found.
         See the duration property documentation for details on when this can
         occur.
 
         :return: unsigned int
+
         """
         return self._press_event_id
 
     def __str__(self):
-        return "%s, duration: %.3f press_event_id: %d" % (
+        return '%s, duration: %.3f press_event_id: %d' % (
             KeyboardEvent.__str__(self), self.duration, self.pressEventID)
 
 
 class Keyboard(ioHubDeviceView):
-    """
-    The Keyboard device provides access to KeyboardPress and KeyboardRelease
-    events as well as the current keyboard state.
-    """
+    """The Keyboard device provides access to KeyboardPress and KeyboardRelease
+    events as well as the current keyboard state."""
     KEY_PRESS = EventConstants.KEYBOARD_PRESS
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
     _type2class = {KEY_PRESS: KeyboardPress, KEY_RELEASE: KeyboardRelease}
@@ -245,11 +239,11 @@ class Keyboard(ioHubDeviceView):
             'clearEvents')
 
     def _syncDeviceState(self):
-        """
-        An optimized iohub server request that receives all device state and
+        """An optimized iohub server request that receives all device state and
         event information in one response.
 
         :return: None
+
         """
         kb_state = self.getCurrentDeviceState()
         self._reporting = kb_state.get('reporting_events')
@@ -283,8 +277,9 @@ class Keyboard(ioHubDeviceView):
 
     @property
     def reporting(self):
-        """
-        Specifies if the the keyboard device is reporting / recording events.
+        """Specifies if the the keyboard device is reporting / recording
+        events.
+
           * True:  keyboard events are being reported.
           * False: keyboard events are not being reported.
 
@@ -305,9 +300,7 @@ class Keyboard(ioHubDeviceView):
 
     @reporting.setter
     def reporting(self, r):
-        """
-        Sets the state of keyboard event reporting / recording.
-        """
+        """Sets the state of keyboard event reporting / recording."""
         self._reporting = self.enableEventReporting(r)
         return self._reporting
 
@@ -374,17 +367,20 @@ class Keyboard(ioHubDeviceView):
         return sorted(return_events, key=lambda x: x.time)
 
     def getPresses(self, keys=None, chars=None, mods=None, clear=True):
-        """
-        See the getKeys() method documentation. This method is identical, but
-        only returns KeyboardPress events.
+        """See the getKeys() method documentation.
+
+        This method is identical, but only returns KeyboardPress events.
+
         """
         return self.getKeys(keys, chars, mods, None, self.KEY_PRESS, clear)
 
     def getReleases(self, keys=None, chars=None, mods=None, duration=None,
                     clear=True):
-        """
-        See the getKeys() method documentation. This method is identical, but
-        only returns KeyboardRelease events.
+        """See the getKeys() method documentation.
+
+        This method is identical, but only returns KeyboardRelease
+        events.
+
         """
         return self.getKeys(
             keys,
@@ -404,9 +400,9 @@ class Keyboard(ioHubDeviceView):
             etype=None,
             clear=True,
             checkInterval=0.002):
-        """
-        Blocks experiment execution until at least one matching KeyboardEvent
-        occurs, or until maxWait seconds has passed since the method was called.
+        """Blocks experiment execution until at least one matching
+        KeyboardEvent occurs, or until maxWait seconds has passed since the
+        method was called.
 
         Keyboard events are filtered using any non None kwargs values
         in the same way as the getKeys() method. See getKeys() for a description
@@ -417,6 +413,7 @@ class Keyboard(ioHubDeviceView):
 
         :param maxWait: Specifies the maximum time (in seconds) that the method will block for. If 0, waitForKeys() is identical to getKeys(). If None, the methods blocks indefinately.
         :param checkInterval: Specifies the number of seconds.msecs between geyKeys() calls while waiting. The method sleeps between geyKeys() calls, up until checkInterval*2.0 sec prior to the maxWait. After that time, keyboard events are constantly checked until the method times out.
+
         """
         start_time = getTime()
         if maxWait is None:
@@ -449,18 +446,21 @@ class Keyboard(ioHubDeviceView):
 
     def waitForPresses(self, maxWait=None, keys=None, chars=None, mods=None,
                        duration=None, clear=True, checkInterval=0.002):
-        """
-        See the waitForKeys() method documentation. This method is identical, but
-        only returns KeyboardPress events.
+        """See the waitForKeys() method documentation.
+
+        This method is identical, but only returns KeyboardPress events.
+
         """
         return self.waitForKeys(maxWait, keys, chars, mods, duration,
                                 self.KEY_PRESS, clear, checkInterval)
 
     def waitForReleases(self, maxWait=None, keys=None, chars=None, mods=None,
                         duration=None, clear=True, checkInterval=0.002):
-        """
-        See the waitForKeys() method documentation. This method is identical, but
-        only returns KeyboardRelease events.
+        """See the waitForKeys() method documentation.
+
+        This method is identical, but only returns KeyboardRelease
+        events.
+
         """
         return self.waitForKeys(maxWait, keys, chars, mods, duration,
                                 self.KEY_RELEASE, clear, checkInterval)

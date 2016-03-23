@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub Python Module
+"""ioHub Python Module.
+
 .. file: ioHub/devices/xinput/__init__.py
 
 fileauthor: Sol Simpson <sol@isolver-software.com>
@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> +
 contributors, please see credits section of documentation.
+
 """
 
 import xinput
@@ -54,10 +55,10 @@ class XInputDevice(Device):
 
 
 class Gamepad(XInputDevice):
-    """
-    The ioHub xinput.Gamepad Device supports monitoring events from a Windows XInput
-    complient device. Due to the nature of the XInput interface, these events can
-    be provided regardless of whether a PsychoPy Window is currently created or has focus.
+    """The ioHub xinput.Gamepad Device supports monitoring events from a
+    Windows XInput complient device. Due to the nature of the XInput interface,
+    these events can be provided regardless of whether a PsychoPy Window is
+    currently created or has focus.
 
     The ioHub XInput interface supports the full XInput 1.3 specification. XInput
     events can be read, the capabilities of the connected bevice can be queried, as
@@ -72,6 +73,7 @@ class Gamepad(XInputDevice):
         #. Logitech F310 Wired controller.
 
     **+** These controllers support the rumble (vibration) setting feature supported by the ioHub XInput Interface.
+
     """
     DEVICE_TYPE_ID = DeviceConstants.GAMEPAD
     DEVICE_LABEL = 'GAMEPAD'
@@ -92,19 +94,19 @@ class Gamepad(XInputDevice):
 
         if self.device_number in self._ASSIGNED_USER_IDS:
             raise ioDeviceError(
-                self, "XInputDevice with device_number %d already in use." %
+                self, 'XInputDevice with device_number %d already in use.' %
                 (self.device_number))
 
         if len(self._ASSIGNED_USER_IDS) == xinput.XUSER_MAX_COUNT:
             raise ioDeviceError(
-                self, "XInputDevice max user count reached: %d." %
+                self, 'XInputDevice max user count reached: %d.' %
                 (xinput.XUSER_MAX_COUNT))
 
         if self.device_number >= 0 and self.device_number < xinput.XUSER_MAX_COUNT:
             connectedOK = _initializeGamePad(self, self.device_number)
             if not connectedOK:
                 raise ioDeviceError(
-                    self, "XInputDevice with device_number %d is not connected." %
+                    self, 'XInputDevice with device_number %d is not connected.' %
                     (self.device_number))
         else:
             self.device_number = -1
@@ -116,7 +118,7 @@ class Gamepad(XInputDevice):
                     break
                 else:
                     raise ioDeviceError(
-                        self, "No XInputDevice is Available for Use. Please check Connections.")
+                        self, 'No XInputDevice is Available for Use. Please check Connections.')
 
         self._last_read_capabilities_dict = None
 
@@ -183,14 +185,15 @@ class Gamepad(XInputDevice):
         return self._device_state.Gamepad.wButtons
 
     def getPressedButtonList(self):
-        """
-        Returns a list of button names, as defined in XInputGamePadConstants, that are currently pressed.
+        """Returns a list of button names, as defined in
+        XInputGamePadConstants, that are currently pressed.
 
         Args:
             None
 
         Returns:
             list: Names of buttons currently pressed.
+
         """
         bdict = self._getButtonNameList(self._device_state.Gamepad.wButtons)
         blist = []
@@ -233,16 +236,17 @@ class Gamepad(XInputDevice):
             right_stick=rightStick)
 
     def getRumbleState(self):
-        """
-        Returns the current amount the low and high frequency rumble motors are
-        engaged as a (low,high) tuple, returned as the % of possible intensitity for each motor.
-        The resolution of the value for each motor is 16 bits.
+        """Returns the current amount the low and high frequency rumble motors
+        are engaged as a (low,high) tuple, returned as the % of possible
+        intensitity for each motor. The resolution of the value for each motor
+        is 16 bits.
 
         Args:
             None
 
         Returns:
             tuple: (low_frequency, high_frequency) rumble motor stats on devices that support vibration / rumble settings. Each value is returned as a percentage between 0.0 and 100.0.
+
         """
         NormalizedLowFrequencyValue = 100.0 * \
             (self._rumble.wLeftMotorSpeed / 65535.0)
@@ -255,10 +259,9 @@ class Gamepad(XInputDevice):
             lowFrequencyValue=0,
             highFrequencyValue=0,
             duration=1.0):
-        """
-        Sets the xinput.Gamepad device's vibration / rumble feedback state for each of the
-        low and high requency vibration motors. This ethod is only supported
-        on devices that physically support rumble setting.
+        """Sets the xinput.Gamepad device's vibration / rumble feedback state
+        for each of the low and high requency vibration motors. This ethod is
+        only supported on devices that physically support rumble setting.
 
         By using different low and high drequence settings and duraations, different
         vibration feedback effects can be achieved. This can be further enhanced by
@@ -284,6 +287,7 @@ class Gamepad(XInputDevice):
 
         Returns:
             (float,float): (command_return_time, command_call_duration), where command_return_time is the sec.msec time that the call to the native device to update vibration setting returned to the ioHub process, and command_call_duration is the sec.msec time taken for the native device call to return to the ioHub process.
+
         """
         DeNormalizedLowFrequencyValue = int(
             65535.0 * (lowFrequencyValue / 100.0))
@@ -314,9 +318,9 @@ class Gamepad(XInputDevice):
         return t2, t2 - t1
 
     def updateBatteryInformation(self):
-        """
-        Informs the xinput gamepad to read the battery status information
-        from the native device and return the latest battery status information.
+        """Informs the xinput gamepad to read the battery status information
+        from the native device and return the latest battery status
+        information.
 
         Given the possible uses of the returned information, it is unlikely that
         the status needs to be read from the native device every time the calling
@@ -327,6 +331,7 @@ class Gamepad(XInputDevice):
 
         Returns:
             tuple: (battery_level, battery_type) where battery_level is a string constant indicating if the device's battery is at a low, medium, or high charge level. battery_type indicates if the gamepad actually uses a battery, or if it is a wired device and is powered via USB. In the latter case, ['BATTERY_LEVEL_FULL', 'BATTERY_TYPE_WIRED'] is always returned.
+
         """
         xinput._xinput_dll.XInputGetBatteryInformation(
             self.device_number,  # Index of the gamer associated with the device
@@ -341,11 +346,10 @@ class Gamepad(XInputDevice):
         return bl, bt
 
     def getLastReadBatteryInfo(self):
-        """
-        Return the last read battery status information from the xinput.Gamepad device.
-        This method does not query the native device for the most recent battery
-        status data, and instead returns the values read the last time the native
-        device was actually queried.
+        """Return the last read battery status information from the
+        xinput.Gamepad device. This method does not query the native device for
+        the most recent battery status data, and instead returns the values
+        read the last time the native device was actually queried.
 
         To have the battery status information updated and return this latest status data, use
         updateBatteryInformation()
@@ -354,6 +358,7 @@ class Gamepad(XInputDevice):
 
         Returns:
             tuple: (battery_level, battery_type) where battery_level is a string constant indicating if the device's battery was at a low, medium, or high charge level the last time the device was queried for this information. battery_type indicates if the gamepad actually uses a battery, or if it is a wired device and is powered via USB. In the latter case,  ['BATTERY_LEVEL_FULL', 'BATTERY_TYPE_WIRED'] is always returned.
+
         """
         bl = XInputGamePadConstants._batteryLevels.getName(
             self._battery_information.BatteryLevel)
@@ -362,9 +367,9 @@ class Gamepad(XInputDevice):
         return bl, bt
 
     def updateCapabilitiesInformation(self):
-        """
-        Informs the xinput gamepad to read the capability information available
-        from the native device and return this data in a dictionary format.
+        """Informs the xinput gamepad to read the capability information
+        available from the native device and return this data in a dictionary
+        format.
 
         Given the possible uses of the returned information, it is unlikely that
         the  capability information needs to be read from the native device
@@ -390,6 +395,7 @@ class Gamepad(XInputDevice):
 
         Returns:
             tuple: The device capabilities in dict format.
+
         """
         xinput._xinput_dll.XInputGetCapabilities(
             self.device_number,
@@ -435,8 +441,8 @@ class Gamepad(XInputDevice):
         return self._last_read_capabilities_dict
 
     def getLastReadCapabilitiesInfo(self):
-        """
-        Return the last read capability information for the xinput.Gamepad device connected.
+        """Return the last read capability information for the xinput.Gamepad
+        device connected.
 
         This method does not query the native device for this data, and instead
         returns the data read the last time the native device was actually queried,
@@ -467,6 +473,7 @@ class Gamepad(XInputDevice):
 
         Returns:
             tuple: The device capabilities in dict format.
+
         """
 
         if self._last_read_capabilities_dict is None:
@@ -658,10 +665,9 @@ def _initializeGamePad(gamepad, device_number):
 
 
 class GamepadStateChangeEvent(DeviceEvent):
-    """
-    GamepadStateChangeEvent events are generated when ever any aspect of the gamepad's
-    state changes (i.e. when a button event occurs, and trigger value changes,
-    or a thumbstick value changes).
+    """GamepadStateChangeEvent events are generated when ever any aspect of the
+    gamepad's state changes (i.e. when a button event occurs, and trigger value
+    changes, or a thumbstick value changes).
 
     The event includes fields to hold the updated information for all the possible
     state changes that can occur. Fields that have a value of 0.0 indicate no change has occurred
@@ -677,6 +683,7 @@ class GamepadStateChangeEvent(DeviceEvent):
     Event Type ID: EventConstants.GAMEPAD_STATE_CHANGE
 
     Event Type String: 'GAMEPAD_STATE_CHANGE'
+
     """
     PARENT_DEVICE = Gamepad
     EVENT_TYPE_ID = EventConstants.GAMEPAD_STATE_CHANGE
@@ -698,10 +705,13 @@ class GamepadStateChangeEvent(DeviceEvent):
         # would equal the stick being in the center position, not moved. 1.0 would indicate the stick
         # is pushed all the way to the outer rail of the thumbstick movement circle. The resolution of
         # each thumbstick is about 16 bits for each measure.
-        ('left_thumb_stick', N.dtype([('x', N.float32), ('y', N.float32), ('magnitude', N.float32)])),
-        ('right_thumb_stick', N.dtype([('x', N.float32), ('y', N.float32), ('magnitude', N.float32)])),
+        ('left_thumb_stick', N.dtype(
+            [('x', N.float32), ('y', N.float32), ('magnitude', N.float32)])),
+        ('right_thumb_stick', N.dtype(
+            [('x', N.float32), ('y', N.float32), ('magnitude', N.float32)])),
 
-        ('left_trigger', N.float32),   # the triggers are the two pistol finger analog buttons on the
+        # the triggers are the two pistol finger analog buttons on the
+        ('left_trigger', N.float32),
         # XInput gamepad. The value is normalized to between 0.0 (not pressed)
         # and 1.0 (fully depressed). The resolution of the triggers are 8 bits.
         ('right_trigger', N.float32)

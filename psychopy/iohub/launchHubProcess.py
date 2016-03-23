@@ -81,7 +81,7 @@ def run(rootScriptPathDir, configFilePath):
 
             gevent.spawn(s.processEventsTasklet, 0.01)
 
-            sys.stdout.write("IOHUB_READY\n\r\n\r")
+            sys.stdout.write('IOHUB_READY\n\r\n\r')
 
             #print2err("Computer.psychopy_process: ", Computer.psychopy_process)
             if Computer.psychopy_process:
@@ -105,7 +105,7 @@ def run(rootScriptPathDir, configFilePath):
                 glets.append(m)
             glets.append(gevent.spawn(s.processEventsTasklet, 0.01))
 
-            sys.stdout.write("IOHUB_READY\n\r\n\r")
+            sys.stdout.write('IOHUB_READY\n\r\n\r')
             sys.stdout.flush()
 
             #print2err("Computer.psychopy_process: ", Computer.psychopy_process)
@@ -114,15 +114,15 @@ def run(rootScriptPathDir, configFilePath):
 
             gevent.joinall(glets)
 
-        s.log("Server END Time Offset: {0}".format(
+        s.log('Server END Time Offset: {0}'.format(
             Computer.global_clock.getLastResetTime()), 'DEBUG')
 
     except Exception as e:
-        print2err("Error occurred during ioServer.start(): ", str(e))
+        print2err('Error occurred during ioServer.start(): ', str(e))
         printExceptionDetailsToStdErr()
-        print2err("------------------------------")
+        print2err('------------------------------')
 
-        sys.stdout.write("IOHUB_FAILED\n\r\n\r")
+        sys.stdout.write('IOHUB_FAILED\n\r\n\r')
         sys.stdout.flush()
 
         try:

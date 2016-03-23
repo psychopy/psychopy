@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/serial/__init__.py
 
 Copyright (C) 2012-2014 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 import serial
 import numpy as N
@@ -19,10 +20,12 @@ getTime = Computer.getTime
 
 
 class Serial(Device):
-    """
-    A general purpose serial input interface device. Configuration options
-    are used to define how the serial input data should be parsed, and what
-    conditions create a serial input event to be generated.
+    """A general purpose serial input interface device.
+
+    Configuration options are used to define how the serial input data
+    should be parsed, and what conditions create a serial input event to
+    be generated.
+
     """
     _bytesizes = {
         5: serial.FIVEBITS,
@@ -49,7 +52,7 @@ class Serial(Device):
     _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32), ]
     EVENT_CLASS_NAMES = ['SerialInputEvent', 'SerialByteChangeEvent']
     DEVICE_TYPE_ID = DeviceConstants.SERIAL
-    DEVICE_TYPE_STRING = "SERIAL"
+    DEVICE_TYPE_STRING = 'SERIAL'
     _serial_slots = [
         'port', 'baud', 'bytesize', 'parity', 'stopbits', '_serial',
         '_timeout', '_rx_buffer', '_parser_config', '_parser_state',
@@ -68,9 +71,9 @@ class Serial(Device):
                 self.port = pports[0]
                 if len(pports) > 1:
                     print2err(
-                        "Warning: Serial device port configuration set "
+                        'Warning: Serial device port configuration set '
                         "to 'auto'.\nMultiple serial ports found:\n",
-                        pports, "\n** Using port ", self.port
+                        pports, '\n** Using port ', self.port
                     )
         self.baud = self.getConfiguration().get('baud')
         self.bytesize = self._bytesizes[
@@ -125,8 +128,8 @@ class Serial(Device):
                 self._custom_parser = getattr(mod, func_name)
             except Exception:
                 print2err(
-                    "ioHub Serial Device Error: could not load "
-                    "custom_parser function: ", custom_parser_func_str)
+                    'ioHub Serial Device Error: could not load '
+                    'custom_parser function: ', custom_parser_func_str)
                 printExceptionDetailsToStdErr()
 
             if self._custom_parser:
@@ -148,9 +151,7 @@ class Serial(Device):
 
     @classmethod
     def findPorts(cls):
-        """
-        Finds serial ports that are available.
-        """
+        """Finds serial ports that are available."""
         import os
         available = []
         if os.name == 'nt':  # Windows
@@ -167,7 +168,7 @@ class Serial(Device):
             available = [port[0] for port in list_ports.comports()]
 
         if len(available) < 1:
-            print2err("Error: unable to find any serial ports on the computer.")
+            print2err('Error: unable to find any serial ports on the computer.')
             return []
         return available
 
@@ -234,9 +235,10 @@ class Serial(Device):
         return getTime()
 
     def getSecTime(self):
-        """
-        Returns current device time in sec.msec format.
+        """Returns current device time in sec.msec format.
+
         Relies on a functioning getDeviceTime() method.
+
         """
         return self.getTime()
 
@@ -265,13 +267,14 @@ class Serial(Device):
         return Device.enableEventReporting(self, enabled)
 
     def isReportingEvents(self):
-        """
-        Returns whether a Device is currently reporting events to the ioHub Process.
+        """Returns whether a Device is currently reporting events to the ioHub
+        Process.
 
         Args: None
 
         Returns:
             (bool): Current reporting state.
+
         """
         return Device.isReportingEvents(self)
 
@@ -280,7 +283,7 @@ class Serial(Device):
             self.port, self.baud, timeout=self._timeout)
         if self._serial is None:
             raise ValueError(
-                "Error: Serial Port Connection Failed: %d" %
+                'Error: Serial Port Connection Failed: %d' %
                 (self.port))
         self._serial.flushInput()
         inBytes = self._serial.inWaiting()
@@ -400,7 +403,7 @@ class Serial(Device):
                                 if isinstance(evt, dict):
                                     evt_time = evt.get('time', read_time)
                                     evt_data = evt.get(
-                                        'data', "NO DATA FIELD IN EVENT DICT.")
+                                        'data', 'NO DATA FIELD IN EVENT DICT.')
                                     self._createSerialEvent(
                                         logged_time, evt_time, evt_data)
                                 else:
@@ -410,11 +413,11 @@ class Serial(Device):
 
                         except Exception:
                             print2err(
-                                "ioHub Serial Device Error: Exception during parsing function call.")
+                                'ioHub Serial Device Error: Exception during parsing function call.')
                             import traceback
                             import sys
                             traceback.print_exc(file=sys.stderr)
-                            print2err("---")
+                            print2err('---')
 
                 elif self._byte_diff_mode:
                     rx = self.read()
@@ -487,10 +490,10 @@ class Serial(Device):
             self._last_poll_time = read_time
             return True
         except Exception as e:
-            print2err("--------------------------------")
-            print2err("ERROR in Serial._poll: ", e)
+            print2err('--------------------------------')
+            print2err('ERROR in Serial._poll: ', e)
             printExceptionDetailsToStdErr()
-            print2err("---------------------")
+            print2err('---------------------')
 
     def _close(self):
         self.setConnectionState(False)
@@ -498,9 +501,7 @@ class Serial(Device):
 
 
 class Pstbox(Serial):
-    """
-    Provides convenient access to the PST Serial Response Box.
-    """
+    """Provides convenient access to the PST Serial Response Box."""
     EVENT_CLASS_NAMES = ['PstboxButtonEvent', ]
     DEVICE_TYPE_ID = DeviceConstants.PSTBOX
     DEVICE_TYPE_STRING = 'PSTBOX'
@@ -553,8 +554,7 @@ class Pstbox(Serial):
         self._state = state
 
     def getState(self):
-        """
-        Return the current state of the response box.
+        """Return the current state of the response box.
 
         Returns
         -------
@@ -578,8 +578,7 @@ class Pstbox(Serial):
         return self._state
 
     def getLampState(self):
-        """
-        Return the current state of the lamps.
+        """Return the current state of the lamps.
 
         Returns
         -------
@@ -600,8 +599,7 @@ class Pstbox(Serial):
         return self._lamp_state
 
     def setLampState(self, state):
-        """
-        Change the state of the lamps (on/off).
+        """Change the state of the lamps (on/off).
 
         Parameters
         ----------
@@ -631,8 +629,7 @@ class Pstbox(Serial):
         self._update_state()
 
     def getStreamingState(self):
-        """
-        Get the current streaming state.
+        """Get the current streaming state.
 
         Returns
         -------
@@ -647,8 +644,7 @@ class Pstbox(Serial):
         return self._streaming_state
 
     def setStreamingState(self, state):
-        """
-        Switch on or off streaming mode.
+        """Switch on or off streaming mode.
 
         If streaming mode is disabled, the box will not send anything
         to the computer.
@@ -667,8 +663,7 @@ class Pstbox(Serial):
         self._update_state()
 
     def getButtonQueryState(self):
-        """
-        Get the current button query state.
+        """Get the current button query state.
 
         If the box is not querying buttons, no button presses will
         be reported.
@@ -686,8 +681,7 @@ class Pstbox(Serial):
         return self._button_query_state
 
     def setButtonQueryState(self, state):
-        """
-        Switch on or off button querying.
+        """Switch on or off button querying.
 
         Parameters
         ----------

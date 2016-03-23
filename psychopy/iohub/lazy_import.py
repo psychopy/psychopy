@@ -42,14 +42,14 @@ it isn't safe to pass these variables to other functions before they
 have been replaced. This is especially true for constants, sometimes
 true for classes or functions (when used as a factory, or you want
 to inherit from them).
+
 """
 
 from __future__ import absolute_import
 
 
 class BzrError(Exception):
-    """
-    Base class for errors raised by bzrlib.
+    """Base class for errors raised by bzrlib.
 
     :cvar internal_error: if True this was probably caused by a bzr bug and
         should be displayed with a traceback; if False (or absent) this was
@@ -58,6 +58,7 @@ class BzrError(Exception):
 
     :cvar _fmt: Format string to display the error; this is expanded
         by the instance's dict.
+
     """
 
     internal_error = False
@@ -80,6 +81,7 @@ class BzrError(Exception):
         :param msg: If given, this is the literal complete text for the error,
            not subject to expansion. 'msg' is used instead of 'message' because
            python evolved and, in 2.6, forbids the use of 'message'.
+
         """
         Exception.__init__(self)
         if msg is not None:
@@ -138,7 +140,7 @@ class BzrError(Exception):
         return '%s(%s)' % (self.__class__.__name__, str(self))
 
     def _get_format_string(self):
-        """Return format string for this exception or None"""
+        """Return format string for this exception or None."""
         fmt = getattr(self, '_fmt', None)
         if fmt is not None:
             #from bzrlib.i18n import gettext
@@ -156,8 +158,10 @@ class InternalBzrError(BzrError):
     """Base class for errors that are internal in nature.
 
     This is a convenience class for errors that are internal. The
-    internal_error attribute can still be altered in subclasses, if needed.
-    Using this class is simply an easy way to get internal errors.
+    internal_error attribute can still be altered in subclasses, if
+    needed. Using this class is simply an easy way to get internal
+    errors.
+
     """
 
     internal_error = True
@@ -165,8 +169,8 @@ class InternalBzrError(BzrError):
 
 class IllegalUseOfScopeReplacer(InternalBzrError):
 
-    _fmt = ("ScopeReplacer object %(name)r was used incorrectly:"
-            " %(msg)s%(extra)s")
+    _fmt = ('ScopeReplacer object %(name)r was used incorrectly:'
+            ' %(msg)s%(extra)s')
 
     def __init__(self, name, msg, extra=None):
         BzrError.__init__(self)
@@ -180,7 +184,7 @@ class IllegalUseOfScopeReplacer(InternalBzrError):
 
 class InvalidImportLine(InternalBzrError):
 
-    _fmt = "Not a valid import statement: %(msg)\n%(text)s"
+    _fmt = 'Not a valid import statement: %(msg)\n%(text)s'
 
     def __init__(self, text, msg):
         BzrError.__init__(self)
@@ -190,8 +194,8 @@ class InvalidImportLine(InternalBzrError):
 
 class ImportNameCollision(InternalBzrError):
 
-    _fmt = ("Tried to import an object to the same name as"
-            " an existing object. %(name)s")
+    _fmt = ('Tried to import an object to the same name as'
+            ' an existing object. %(name)s')
 
     def __init__(self, name):
         BzrError.__init__(self)
@@ -201,8 +205,9 @@ class ImportNameCollision(InternalBzrError):
 class ScopeReplacer(object):
     """A lazy object that will replace itself in the appropriate scope.
 
-    This object sits, ready to create the real object the first time it is
-    needed.
+    This object sits, ready to create the real object the first time it
+    is needed.
+
     """
 
     __slots__ = ('_scope', '_factory', '_name', '_real_obj')
@@ -214,13 +219,14 @@ class ScopeReplacer(object):
     _should_proxy = True
 
     def __init__(self, scope, factory, name):
-        """Create a temporary object in the specified scope.
-        Once used, a real object will be placed in the scope.
+        """Create a temporary object in the specified scope. Once used, a real
+        object will be placed in the scope.
 
         :param scope: The scope the object should appear in
         :param factory: A callable that will create the real object.
             It will be passed (self, scope, name)
         :param name: The variable name in the given scope.
+
         """
         object.__setattr__(self, '_scope', scope)
         object.__setattr__(self, '_factory', factory)
@@ -229,7 +235,7 @@ class ScopeReplacer(object):
         scope[name] = self
 
     def _resolve(self):
-        """Return the real object for which this is a placeholder"""
+        """Return the real object for which this is a placeholder."""
         name = object.__getattribute__(self, '_name')
         real_obj = object.__getattribute__(self, '_real_obj')
         if real_obj is None:
@@ -239,7 +245,7 @@ class ScopeReplacer(object):
             obj = factory(self, scope, name)
             if obj is self:
                 raise IllegalUseOfScopeReplacer(
-                    name, msg="Object tried"
+                    name, msg='Object tried'
                     " to replace itself, check it's not using its own scope.")
 
             # Check if another thread has jumped in while obj was generated.
@@ -255,8 +261,8 @@ class ScopeReplacer(object):
         # Raise if proxying is disabled as obj has already been generated.
         if not ScopeReplacer._should_proxy:
             raise IllegalUseOfScopeReplacer(
-                name, msg="Object already replaced, did you assign it"
-                          " to another variable?")
+                name, msg='Object already replaced, did you assign it'
+                          ' to another variable?')
         return real_obj
 
     def __getattribute__(self, attr):
@@ -280,6 +286,7 @@ def disallow_proxying():
     indirection, so it should be called when executing unit tests.
 
     Only lazy imports that happen after this call are affected.
+
     """
     ScopeReplacer._should_proxy = False
 
@@ -291,6 +298,7 @@ class ImportReplacer(ScopeReplacer):
     entries also ImportReplacer objects.
 
     At present, this only supports 'import foo.bar.baz' syntax.
+
     """
 
     # '_import_replacer_children' is intentionally a long semi-unique name
@@ -303,8 +311,8 @@ class ImportReplacer(ScopeReplacer):
     __slots__ = ('_import_replacer_children', '_member', '_module_path')
 
     def __init__(self, scope, name, module_path, member=None, children={}):
-        """Upon request import 'module_path' as the name 'module_name'.
-        When imported, prepare children to also be imported.
+        """Upon request import 'module_path' as the name 'module_name'. When
+        imported, prepare children to also be imported.
 
         :param scope: The scope that objects should be imported into.
             Typically this is globals()
@@ -332,6 +340,7 @@ class ImportReplacer(ScopeReplacer):
                                    children={}
             from foo import bar, baz would get translated into 2 import
             requests. On for 'name=bar' and one for 'name=baz'
+
         """
         if (member is not None) and children:
             raise ValueError('Cannot supply both a member and children')
@@ -377,7 +386,7 @@ class ImportReplacer(ScopeReplacer):
 
 
 class ImportProcessor(object):
-    """Convert text that users input into lazy import requests"""
+    """Convert text that users input into lazy import requests."""
 
     # TODO: jam 20060912 This class is probably not strict enough about
     #       what type of text it allows. For example, you can do:
@@ -397,8 +406,9 @@ class ImportProcessor(object):
     def lazy_import(self, scope, text):
         """Convert the given text into a bunch of lazy import objects.
 
-        This takes a text string, which should be similar to normal python
-        import markup.
+        This takes a text string, which should be similar to normal
+        python import markup.
+
         """
         self._build_map(text)
         self._convert_imports(scope)
@@ -410,7 +420,7 @@ class ImportProcessor(object):
                                     member=info[1], children=info[2])
 
     def _build_map(self, text):
-        """Take a string describing imports, and build up the internal map"""
+        """Take a string describing imports, and build up the internal map."""
         for line in self._canonicalize_import_text(text):
             if line.startswith('import '):
                 self._convert_import_str(line)
@@ -426,6 +436,7 @@ class ImportProcessor(object):
         This only understands 'import foo, foo.bar, foo.bar.baz as bing'
 
         :param import_str: The import string to process
+
         """
         if not import_str.startswith('import '):
             raise ValueError('bad import string %r' % (import_str,))
@@ -472,6 +483,7 @@ class ImportProcessor(object):
         """This converts a 'from foo import bar' string into an import map.
 
         :param from_str: The import string to process
+
         """
         if not from_str.startswith('from '):
             raise ValueError('bad from/import %r' % from_str)
@@ -501,8 +513,9 @@ class ImportProcessor(object):
     def _canonicalize_import_text(self, text):
         """Take a list of imports, and split it into regularized form.
 
-        This is meant to take regular import text, and convert it to
-        the forms that the rest of the converters prefer.
+        This is meant to take regular import text, and convert it to the
+        forms that the rest of the converters prefer.
+
         """
         out = []
         cur = None
@@ -555,6 +568,7 @@ def lazy_import(scope, text, lazy_import_class=None):
     because other objects (functions/classes/variables) are frequently
     used without accessing a member, which means we cannot tell they
     have been used.
+
     """
     # This is just a helper around ImportProcessor.lazy_import
     proc = ImportProcessor(lazy_import_class=lazy_import_class)

@@ -23,32 +23,36 @@ class ValidationError(Exception):
 
 
 class BooleanValueError(ValidationError):
-    """Exception raised for errors when a bool was expected for the settings parameter value.
+    """Exception raised for errors when a bool was expected for the settings
+    parameter value.
 
     Attributes:
         device_config_setting_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         msg -- explanation of the error
+
     """
 
     def __init__(self, device_param_name, value_given):
-        self.msg = "A bool value is required for the given Device configuration parameter"
+        self.msg = 'A bool value is required for the given Device configuration parameter'
         self.device_config_param_name = device_param_name
         self.value_given = value_given
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class StringValueError(ValidationError):
-    """Exception raised for errors when a str was expected for the settings parameter value.
+    """Exception raised for errors when a str was expected for the settings
+    parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         device_config_param_constraints  -- the set of constraints that apply to the parameter.
         msg -- explanation of the error
+
     """
 
     def __init__(
@@ -56,24 +60,26 @@ class StringValueError(ValidationError):
             device_config_param_name,
             value_given,
             device_config_param_constraints):
-        self.msg = "A str value is required for the given Device configuration parameter that meets the specified constraints"
+        self.msg = 'A str value is required for the given Device configuration parameter that meets the specified constraints'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
         self.device_config_param_constraints = device_config_param_constraints
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class FloatValueError(ValidationError):
-    """Exception raised for errors when a float was expected for the settings parameter value.
+    """Exception raised for errors when a float was expected for the settings
+    parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         device_config_param_constraints  -- the set of constraints that apply to the parameter.
         msg -- explanation of the error
+
     """
 
     def __init__(
@@ -81,24 +87,26 @@ class FloatValueError(ValidationError):
             device_config_param_name,
             value_given,
             device_config_param_constraints):
-        self.msg = "A float value is required for the given Device configuration parameter that meets the specified constraints"
+        self.msg = 'A float value is required for the given Device configuration parameter that meets the specified constraints'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
         self.device_config_param_constraints = device_config_param_constraints
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class IntValueError(ValidationError):
-    """Exception raised for errors when an int was expected for the settings parameter value.
+    """Exception raised for errors when an int was expected for the settings
+    parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         device_config_param_constraints  -- the set of constraints that apply to the parameter.
         msg -- explanation of the error
+
     """
 
     def __init__(
@@ -106,24 +114,26 @@ class IntValueError(ValidationError):
             device_config_param_name,
             value_given,
             device_config_param_constraints):
-        self.msg = "An int value is required for the given Device configuration parameter that meets the specified constraints"
+        self.msg = 'An int value is required for the given Device configuration parameter that meets the specified constraints'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
         self.device_config_param_constraints = device_config_param_constraints
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class NumberValueError(ValidationError):
-    """Exception raised for errors when an int OR float was expected for the settings parameter value.
+    """Exception raised for errors when an int OR float was expected for the
+    settings parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         device_config_param_constraints  -- the set of constraints that apply to the parameter.
         msg -- explanation of the error
+
     """
 
     def __init__(
@@ -131,91 +141,99 @@ class NumberValueError(ValidationError):
             device_config_param_name,
             value_given,
             device_config_param_constraints):
-        self.msg = "An int or float value is required for the given Device configuration parameter that meets the specified constraints"
+        self.msg = 'An int or float value is required for the given Device configuration parameter that meets the specified constraints'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
         self.device_config_param_constraints = device_config_param_constraints
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class IpValueError(ValidationError):
-    """Exception raised for errors when an IP address was expected for the settings parameter value.
+    """Exception raised for errors when an IP address was expected for the
+    settings parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         msg -- explanation of the error
+
     """
 
     def __init__(self, device_config_param_name, value_given):
-        self.msg = "An IP address value is required for the given Device configuration parameter."
+        self.msg = 'An IP address value is required for the given Device configuration parameter.'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class ColorValueError(ValidationError):
-    """Exception raised for errors when a color was expected for the settings parameter value.
+    """Exception raised for errors when a color was expected for the settings
+    parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         msg -- explanation of the error
+
     """
 
     def __init__(self, device_config_param_name, value_given):
-        self.msg = "A color value is required for the given Device configuration parameter."
+        self.msg = 'A color value is required for the given Device configuration parameter.'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class DateStringValueError(ValidationError):
-    """Exception raised for errors when a date string was expected for the settings parameter value.
+    """Exception raised for errors when a date string was expected for the
+    settings parameter value.
 
     Attributes:
         device_config_param_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         msg -- explanation of the error
+
     """
 
     def __init__(self, device_config_param_name, value_given):
-        self.msg = "A date string value is required for the given Device configuration parameter."
+        self.msg = 'A date string value is required for the given Device configuration parameter.'
         self.device_config_param_name = device_config_param_name
         self.value_given = value_given
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n'.format(
             self.__class__.__name__, self.msg, self.device_config_param_name, self.value_given)
 
 
 class NonSupportedValueError(ValidationError):
-    """Exception raised when the configuration value provided does not match one of the possible valid Device configuration parameter values.
+    """Exception raised when the configuration value provided does not match
+    one of the possible valid Device configuration parameter values.
 
     Attributes:
         device_config_setting_name -- The name of the Device configuration parameter that has the error.
         value_given  -- the value read from the experiment configuration file.
         valid_values  -- the valid options for the configuration setting.
         msg -- explanation of the error
+
     """
 
     def __init__(self, device_param_name, value_given, valid_values):
-        self.msg = "A the provided value is not supported for the given Device configuration parameter"
+        self.msg = 'A the provided value is not supported for the given Device configuration parameter'
         self.device_config_param_name = device_param_name
         self.value_given = value_given
         self.valid_values = valid_values
 
     def __str__(self):
-        return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n\tconstraints: {4}".format(
+        return '\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n\tconstraints: {4}'.format(
             self.__class__.__name__,
             self.msg,
             self.device_config_param_name,
@@ -421,7 +439,7 @@ def buildConfigParamValidatorMapping(
         if parent_name is None:
             current_param_path = param_name
         else:
-            current_param_path = "%s.%s" % (parent_name, param_name)
+            current_param_path = '%s.%s' % (parent_name, param_name)
 
         keyword_validator_function = None
         if isinstance(param_name, basestring):
@@ -467,7 +485,7 @@ def validateConfigDictToFuncMapping(
         if parent_param_path is None:
             current_param_path = config_param
         else:
-            current_param_path = "%s.%s" % (parent_param_path, config_param)
+            current_param_path = '%s.%s' % (parent_param_path, config_param)
 
         param_validation = param_validation_func_mapping.get(
             current_param_path, None)

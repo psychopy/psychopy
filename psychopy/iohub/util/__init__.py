@@ -46,7 +46,7 @@ def addDirectoryToPythonPath(path_from_iohub_root, leaf_folder=''):
         IOHUB_DIRECTORY,
         path_from_iohub_root,
         sys.platform,
-        "python{0}{1}".format(
+        'python{0}{1}'.format(
             *
             sys.version_info[
                 0:2]),
@@ -54,14 +54,18 @@ def addDirectoryToPythonPath(path_from_iohub_root, leaf_folder=''):
     if os.path.isdir(dir_path) and dir_path not in sys.path:
         sys.path.append(dir_path)
     else:
-        print2err("Could not add path: ", dir_path)
+        print2err('Could not add path: ', dir_path)
         dir_path = None
     return dir_path
 
 
 def module_path(local_function):
-    """ returns the module path without the use of __file__.  Requires a function defined
-   locally in the module. from http://stackoverflow.com/questions/729583/getting-file-path-of-imported-module"""
+    """returns the module path without the use of __file__.
+
+    Requires a function defined
+    locally in the module. from http://stackoverflow.com/questions/729583/getting-file-path-of-imported-module
+
+    """
     return os.path.abspath(inspect.getsourcefile(local_function))
 
 
@@ -78,13 +82,15 @@ if sys.platform == 'win32':
     import pythoncom
 
     def win32MessagePump():
-        """
-        Pumps the Experiment Process Windows Message Queue so the PsychoPy Window
-        does not appear to be 'dead' to the OS. If you are not flipping regularly
-        (say because you do not need to and do not want to block frequently,
-        you can call this, which will not block waiting for messages, but only
-        pump out what is in the que already. On an i7 desktop, this call method
-        takes between 10 and 90 usec.
+        """Pumps the Experiment Process Windows Message Queue so the PsychoPy
+        Window does not appear to be 'dead' to the OS.
+
+        If you are not flipping regularly (say because you do not need
+        to and do not want to block frequently, you can call this, which
+        will not block waiting for messages, but only pump out what is
+        in the que already. On an i7 desktop, this call method takes
+        between 10 and 90 usec.
+
         """
         if pythoncom.PumpWaitingMessages() == 1:
             raise KeyboardInterrupt()
@@ -125,12 +131,11 @@ def convertCamelToSnake(name, lower_snake=True):
 
 
 class NumPyRingBuffer(object):
-    """
-    NumPyRingBuffer is a circular buffer implemented using a one dimensional
+    """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
-    behavour does not require any array copies to occur while the ring buffer is
-    maintained, while at the same time allowing sequential element access into the
-    numpy array using a subset of standard slice notation.
+    behavour does not require any array copies to occur while the ring buffer
+    is maintained, while at the same time allowing sequential element access
+    into the numpy array using a subset of standard slice notation.
 
     When the circular buffer is created, a maximum size , or maximum
     number of elements,  that the buffer can hold *must* be specified. When
@@ -175,8 +180,6 @@ class NumPyRingBuffer(object):
             print '\tFirst 3 Elements: ',ring_buffer[:3]
             print '\tLast 3 Elements: ',ring_buffer[-3:]
 
-
-
     """
 
     def __init__(self, max_size, dtype=numpy.float32):
@@ -186,16 +189,16 @@ class NumPyRingBuffer(object):
         self._index = 0
 
     def append(self, element):
-        """
-        Add element e to the end of the RingBuffer. The element must match the
-        numpy data type specified when the NumPyRingBuffer was created. By default,
-        the RingBuffer uses float32 values.
+        """Add element e to the end of the RingBuffer. The element must match
+        the numpy data type specified when the NumPyRingBuffer was created. By
+        default, the RingBuffer uses float32 values.
 
         If the Ring Buffer is full, adding the element to the end of the array
         removes the currently oldest element from the start of the array.
 
         :param numpy.dtype element: An element to add to the RingBuffer.
         :returns None:
+
         """
         i = self._index
         self._npa[i % self.max_size] = element
@@ -203,14 +206,14 @@ class NumPyRingBuffer(object):
         self._index += 1
 
     def getElements(self):
-        """
-        Return the numpy array being used by the RingBuffer, the length of
-        which will be equal to the number of elements added to the list, or
-        the last max_size elements added to the list. Elements are in order
-        of addition to the ring buffer.
+        """Return the numpy array being used by the RingBuffer, the length of
+        which will be equal to the number of elements added to the list, or the
+        last max_size elements added to the list. Elements are in order of
+        addition to the ring buffer.
 
         :param None:
         :returns numpy.array: The array of data elements that make up the Ring Buffer.
+
         """
         return self._npa[
             self._index %
@@ -219,20 +222,21 @@ class NumPyRingBuffer(object):
                 self.max_size) + self.max_size]
 
     def isFull(self):
-        """
-        Indicates if the RingBuffer is at it's max_size yet.
+        """Indicates if the RingBuffer is at it's max_size yet.
 
         :param None:
         :returns bool: True if max_size or more elements have been added to the RingBuffer; False otherwise.
+
         """
         return self._index >= self.max_size
 
     def clear(self):
-        """
-        Clears the RingBuffer. The next time an element is added to the buffer, it will have a size of one.
+        """Clears the RingBuffer. The next time an element is added to the
+        buffer, it will have a size of one.
 
         :param None:
         :returns None:
+
         """
         self._index = 0
 

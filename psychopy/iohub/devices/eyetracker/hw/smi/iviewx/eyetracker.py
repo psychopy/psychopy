@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
-Common Eye Tracker Interface
+"""ioHub Common Eye Tracker Interface.
+
 .. file: ioHub/devices/eyetracker/hw/smi/iViewX/eyetracker.py
 
 Copyright (C) 2012-2014, iSolver Software Solutions
@@ -9,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 from __future__ import division
 
@@ -112,7 +112,7 @@ class EyeTracker(EyeTrackerDevice):
                             filter_state_set)
                     except Exception as e:
                         print2err(
-                            "Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+                            'Note: pyViewX.ConfigureFilter to disable filtering call failed.')
 
                     # Try disabling filtering using the DisableGazeDataFilter
                     # SMI C func. Not sure if this is 'officially' supported.
@@ -130,22 +130,22 @@ class EyeTracker(EyeTrackerDevice):
                             filter_state_set)
                     except Exception as e:
                         print2err(
-                            "Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+                            'Note: pyViewX.ConfigureFilter to disable filtering call failed.')
 
                     # Try enabling filtering using the DisableGazeDataFilter
                     # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.EnableGazeDataFilter()
                 else:
                     print2err(
-                        "Warning: Unsupported iViewX sample filter level value: ",
+                        'Warning: Unsupported iViewX sample filter level value: ',
                         filter_level,
-                        "=",
+                        '=',
                         level_int)
             else:
                 print2err(
-                    "Warning: Unsupported iViewX sample filter type: ",
+                    'Warning: Unsupported iViewX sample filter type: ',
                     filter_type,
-                    ". Only FILTER_ALL is supported.")
+                    '. Only FILTER_ALL is supported.')
 
             ####
             # Native file saving...
@@ -178,7 +178,7 @@ class EyeTracker(EyeTrackerDevice):
                     'sampling_rate']
                 if requested_sampling_rate != sampling_rate:
                     print2err(
-                        "WARNING: iViewX requested frame rate of {0} != current rate of {1}:".format(
+                        'WARNING: iViewX requested frame rate of {0} != current rate of {1}:'.format(
                             requested_sampling_rate, sampling_rate))
 
                 self._runtime_settings['sampling_rate'] = sampling_rate
@@ -186,22 +186,20 @@ class EyeTracker(EyeTrackerDevice):
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_OK
         except Exception:
             print2err(
-                " ---- Error during SMI iView EyeTracker Initialization ---- ")
+                ' ---- Error during SMI iView EyeTracker Initialization ---- ')
             printExceptionDetailsToStdErr()
             print2err(
-                " ---- Error during SMI iView EyeTracker Initialization ---- ")
+                ' ---- Error during SMI iView EyeTracker Initialization ---- ')
 
     def trackerTime(self):
-        """
-        trackerTime returns the current iViewX Application or Server time in
-        usec format as a long integer.
-        """
+        """trackerTime returns the current iViewX Application or Server time in
+        usec format as a long integer."""
         tracker_time = c_longlong(0)
         r = pyViewX.GetCurrentTimestamp(byref(tracker_time))
         if r == pyViewX.RET_SUCCESS:
             return tracker_time.value
         print2err(
-            "iViewX trackerTime FAILED: error: {0} timeval: {1}".format(
+            'iViewX trackerTime FAILED: error: {0} timeval: {1}'.format(
                 r, tracker_time))
         return EyeTrackerConstants.EYETRACKER_ERROR
 
@@ -215,14 +213,13 @@ class EyeTracker(EyeTrackerDevice):
         if r == pyViewX.RET_SUCCESS:
             return tracker_time.value * self.DEVICE_TIMEBASE_TO_SEC
         print2err(
-            "iViewX trackerSec FAILED: error: {0} timeval: {1}".format(
+            'iViewX trackerSec FAILED: error: {0} timeval: {1}'.format(
                 r, tracker_time))
         return EyeTrackerConstants.EYETRACKER_ERROR
 
     def isConnected(self):
-        """
-        isConnected indicates if there is an active connection between the ioHub
-        Server and the eye tracking device.
+        """isConnected indicates if there is an active connection between the
+        ioHub Server and the eye tracking device.
 
         Note that when the SMI iViewX EyeTracker class is created when the ioHub server starts,
         a connection is automatically created with the eye tracking device.
@@ -230,6 +227,7 @@ class EyeTracker(EyeTrackerDevice):
         The ioHub must be connected to the eye tracker device for it to be able to receive
         events from the eye tracking system. Eye tracking events are received when
         isConnected() == True and when isRecordingEnabled() == True.
+
         """
         try:
             r = pyViewX.IsConnected()
@@ -239,26 +237,27 @@ class EyeTracker(EyeTrackerDevice):
                 connected = False
             else:
                 print2err(
-                    "iViewX isConnected() returned unexpected value {0}".format(r))
+                    'iViewX isConnected() returned unexpected value {0}'.format(r))
                 connected = EyeTrackerConstants.EYETRACKER_ERROR
             return connected
         except Exception as e:
-            print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
+            print2err(' ---- SMI EyeTracker isConnected ERROR ---- ')
             printExceptionDetailsToStdErr()
-        print2err("isConnected error!!: ", connected)
+        print2err('isConnected error!!: ', connected)
         return False
 
     def setConnectionState(self, enable):
-        """
-        setConnectionState connects the ioHub Server to the SMI iViewX device if
-        the enable arguement is True, otherwise an open connection is closed with
-        the device. Calling this method multiple times with the same value has no effect.
+        """setConnectionState connects the ioHub Server to the SMI iViewX
+        device if the enable arguement is True, otherwise an open connection is
+        closed with the device. Calling this method multiple times with the
+        same value has no effect.
 
         Note that when the SMI iViewX EyeTracker class is created when the ioHub server starts,
         a connection is automatically created with the eye tracking device.
 
         If the eye tracker is currently recording eye data and sending it to the
         ioHub server, the recording will be stopped prior to closing the connection.
+
         """
         try:
             if enable is True or enable is False:
@@ -269,7 +268,7 @@ class EyeTracker(EyeTrackerDevice):
                                         self._et_pc_port)
                     if r != pyViewX.RET_SUCCESS:
                         print2err(
-                            "iViewX ERROR connecting to tracker: {0}".format(r))
+                            'iViewX ERROR connecting to tracker: {0}'.format(r))
                     return self.isConnected()
                 elif enable is False and self.isConnected():
                     if self.isRecordingEnabled():
@@ -277,21 +276,23 @@ class EyeTracker(EyeTrackerDevice):
                     r = pyViewX.Disconnect()
                     if r != pyViewX.RET_SUCCESS:
                         print2err(
-                            "iViewX ERROR disconnecting from tracker: {0}".format(r))
+                            'iViewX ERROR disconnecting from tracker: {0}'.format(r))
                     return self.isConnected()
             else:
                 print2err(
-                    " ---- SMI EyeTracker setConnectionState INVALID_METHOD_ARGUMENT_VALUE ---- ")
+                    ' ---- SMI EyeTracker setConnectionState INVALID_METHOD_ARGUMENT_VALUE ---- ')
                 printExceptionDetailsToStdErr()
         except Exception as e:
-            print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
+            print2err(' ---- SMI EyeTracker isConnected ERROR ---- ')
             printExceptionDetailsToStdErr()
 
     def sendMessage(self, message_contents, time_offset=None):
-        """
-        The sendMessage method is currently not supported by the SMI iViewX
-        implementation of the Common Eye Tracker Interface. Once native data file
-        saving is implemented for the iViewX, this method will become available.
+        """The sendMessage method is currently not supported by the SMI iViewX
+        implementation of the Common Eye Tracker Interface.
+
+        Once native data file saving is implemented for the iViewX, this
+        method will become available.
+
         """
         try:
             # Possible return codes:
@@ -301,7 +302,7 @@ class EyeTracker(EyeTrackerDevice):
             r = pyViewX.SendImageMessage(pyViewX.String(message_contents))
             if r != pyViewX.RET_SUCCESS:
                 print2err(
-                    "iViewX ERROR {0} when sendMessage to tracker: {1}".format(
+                    'iViewX ERROR {0} when sendMessage to tracker: {1}'.format(
                         r, message_contents))
                 return EyeTrackerConstants.EYETRACKER_ERROR
             return EyeTrackerConstants.EYETRACKER_OK
@@ -310,10 +311,9 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
     def sendCommand(self, key, value=None):
-        """
-        The sendCommand method can be used to make calls to the
-        iViewX iV_SetTrackingParameter function. The sendCommand method requires
-        valid key and value arguements.
+        """The sendCommand method can be used to make calls to the iViewX
+        iV_SetTrackingParameter function. The sendCommand method requires valid
+        key and value arguements.
 
         Currently supported 'key' arguement values, with their mapping to the
         associated iViewX API constant, are:
@@ -480,17 +480,17 @@ class EyeTracker(EyeTrackerDevice):
         win32gui.MessageBox(None, message, caption, 0)
 
     def _showSetupKeyOptionsDialog(self):
-        msg_text = "The following Keyboard Commands will be available during User Setup:\n"
-        msg_text += "\n\tE : Display Eye Image Window.\n"
-        msg_text += "\tT : Display Tracking Monitor Window.\n"
-        msg_text += "\tC : Start Calibration Routine.\n"
-        msg_text += "\tV : Start Validation Routine.\n"
-        msg_text += "\tESCAPE : Exit the Setup Procedure.\n"
-        msg_text += "\tF1 : Show this Dialog.\n"
-        msg_text += "\nPress OK to begin"
+        msg_text = 'The following Keyboard Commands will be available during User Setup:\n'
+        msg_text += '\n\tE : Display Eye Image Window.\n'
+        msg_text += '\tT : Display Tracking Monitor Window.\n'
+        msg_text += '\tC : Start Calibration Routine.\n'
+        msg_text += '\tV : Start Validation Routine.\n'
+        msg_text += '\tESCAPE : Exit the Setup Procedure.\n'
+        msg_text += '\tF1 : Show this Dialog.\n'
+        msg_text += '\nPress OK to begin'
 
         self._showSimpleWin32Dialog(
-            msg_text, "Common Eye Tracker Interface - iViewX Calibration")
+            msg_text, 'Common Eye Tracker Interface - iViewX Calibration')
 
     def _showEyeImageMonitor(self):
 
@@ -504,13 +504,13 @@ class EyeTracker(EyeTrackerDevice):
 
         if result == pyViewX.ERR_NOT_CONNECTED:
             self._showSimpleWin32Dialog(
-                "Eye Image Monitor can not be Displayed. An iViewX System is not Connected to the ioHub.",
-                "Common Eye Tracker Interface - ERROR")
+                'Eye Image Monitor can not be Displayed. An iViewX System is not Connected to the ioHub.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
         if result == pyViewX.ERR_WRONG_DEVICE:
             self._showSimpleWin32Dialog(
-                "Eye Image Monitor can not be Displayed. The iViewX Model being used does not support this Operation.",
-                "Common Eye Tracker Interface - ERROR")
+                'Eye Image Monitor can not be Displayed. The iViewX Model being used does not support this Operation.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
 
     def _showTrackingMonitor(self):
@@ -525,13 +525,13 @@ class EyeTracker(EyeTrackerDevice):
         #ioHub.print2err('ShowTrackingMonitor result: ',result)
         if result == pyViewX.ERR_NOT_CONNECTED:
             self._showSimpleWin32Dialog(
-                "Tracking Monitor can not be Displayed. An iViewX System is not Connected to the ioHub.",
-                "Common Eye Tracker Interface - ERROR")
+                'Tracking Monitor can not be Displayed. An iViewX System is not Connected to the ioHub.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
         if result == pyViewX.ERR_WRONG_DEVICE:
             self._showSimpleWin32Dialog(
-                "Tracking Monitor can not be Displayed. The iViewX Model being used does not support this Operation.",
-                "Common Eye Tracker Interface - ERROR")
+                'Tracking Monitor can not be Displayed. The iViewX Model being used does not support this Operation.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
 
     def _calibrate(self):
@@ -552,20 +552,20 @@ class EyeTracker(EyeTrackerDevice):
 
         if result == pyViewX.ERR_WRONG_PARAMETER:
             self._showSimpleWin32Dialog(
-                "Calibration Could not be Performed. An invalid setting was passed to the procedure.",
-                "Common Eye Tracker Interface - ERROR")
+                'Calibration Could not be Performed. An invalid setting was passed to the procedure.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
 
         elif result == pyViewX.ERR_WRONG_DEVICE:
             self._showSimpleWin32Dialog(
-                "Calibration Could not be Performed. The iViewX Model being used does not support this Operation.",
-                "Common Eye Tracker Interface - ERROR")
+                'Calibration Could not be Performed. The iViewX Model being used does not support this Operation.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
 
         elif result == pyViewX.ERR_WRONG_CALIBRATION_METHOD:
             self._showSimpleWin32Dialog(
-                "Calibration Could not be Performed. The Calibration Type being used is not Supported by the attached iViewX Model.",
-                "Common Eye Tracker Interface - ERROR")
+                'Calibration Could not be Performed. The Calibration Type being used is not Supported by the attached iViewX Model.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
 
         # pyViewX.Calibrate return codes:
@@ -581,29 +581,29 @@ class EyeTracker(EyeTrackerDevice):
 
         if result == pyViewX.ERR_NOT_CONNECTED:
             self._showSimpleWin32Dialog(
-                "Tracking Monitor can not be Displayed. An iViewX System is not Connected to the ioHub.",
-                "Common Eye Tracker Interface - ERROR")
+                'Tracking Monitor can not be Displayed. An iViewX System is not Connected to the ioHub.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
         elif result == pyViewX.RET_CALIBRATION_ABORTED:
             self._showSimpleWin32Dialog(
-                "The Calibration Procedure was Aborted.",
-                "Common Eye Tracker Interface - WARNING")
+                'The Calibration Procedure was Aborted.',
+                'Common Eye Tracker Interface - WARNING')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_SETUP_ABORTED
         elif result == pyViewX.ERR_WRONG_DEVICE:
             self._showSimpleWin32Dialog(
-                "Calibration Could not be Performed. The iViewX Model being used does not support this Operation.",
-                "Common Eye Tracker Interface - ERROR")
+                'Calibration Could not be Performed. The iViewX Model being used does not support this Operation.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
         elif result == pyViewX.ERR_WRONG_CALIBRATION_METHOD:
             self._showSimpleWin32Dialog(
-                "Calibration Could not be Performed. The Calibration Type being used is not Supported by the attached iViewX Model.",
-                "Common Eye Tracker Interface - ERROR")
+                'Calibration Could not be Performed. The Calibration Type being used is not Supported by the attached iViewX Model.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
         else:
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_OK
             self._showSimpleWin32Dialog(
                 "Calibration Completed. Press 'V' to Validate, ESCAPE to exit Setup, F1 to view all Options.",
-                "Common Eye Tracker Interface")
+                'Common Eye Tracker Interface')
 
     def _validate(self):
         # pyViewX.Validate return codes:
@@ -617,18 +617,18 @@ class EyeTracker(EyeTrackerDevice):
 
         if result == pyViewX.ERR_NOT_CONNECTED:
             self._showSimpleWin32Dialog(
-                "Validation Procedure Failed. An iViewX System is not Connected to the ioHub.",
-                "Common Eye Tracker Interface - ERROR")
+                'Validation Procedure Failed. An iViewX System is not Connected to the ioHub.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
         elif result == pyViewX.ERR_NOT_CALIBRATED:
             self._showSimpleWin32Dialog(
-                "Validation can only be Performed after a Successful Calibration.",
-                "Common Eye Tracker Interface - WARNING")
+                'Validation can only be Performed after a Successful Calibration.',
+                'Common Eye Tracker Interface - WARNING')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_VALIDATION_ERROR
         elif result == pyViewX.ERR_WRONG_DEVICE:
             self._showSimpleWin32Dialog(
-                "Validation Procedure Failed. The iViewX Model being used does not support this Operation.",
-                "Common Eye Tracker Interface - ERROR")
+                'Validation Procedure Failed. The iViewX Model being used does not support this Operation.',
+                'Common Eye Tracker Interface - ERROR')
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_MODEL_NOT_SUPPORTED
         else:
             self._last_setup_result = EyeTrackerConstants.EYETRACKER_OK
@@ -650,23 +650,23 @@ class EyeTracker(EyeTrackerDevice):
 
             if result == pyViewX.ERR_NOT_CONNECTED:
                 self._showSimpleWin32Dialog(
-                    "Validation Procedure Failed. An iViewX System is not Connected to the ioHub.",
-                    "Common Eye Tracker Interface - ERROR")
+                    'Validation Procedure Failed. An iViewX System is not Connected to the ioHub.',
+                    'Common Eye Tracker Interface - ERROR')
                 self._last_setup_result = EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
             elif result == pyViewX.ERR_NOT_CALIBRATED:
                 self._showSimpleWin32Dialog(
-                    "Validation can only be Performed after a Successful Calibration.",
-                    "Common Eye Tracker Interface - WARNING")
+                    'Validation can only be Performed after a Successful Calibration.',
+                    'Common Eye Tracker Interface - WARNING')
                 self._last_setup_result = EyeTrackerConstants.EYETRACKER_VALIDATION_ERROR
             elif result == pyViewX.ERR_NOT_VALIDATED:
                 self._showSimpleWin32Dialog(
-                    "Validation Accuracy Calculation Failed. The System has not been Validated.",
-                    "Common Eye Tracker Interface - ERROR")
+                    'Validation Accuracy Calculation Failed. The System has not been Validated.',
+                    'Common Eye Tracker Interface - ERROR')
                 self._last_setup_result = EyeTrackerConstants.EYETRACKER_VALIDATION_ERROR
             elif result == pyViewX.ERR_WRONG_PARAMETER:
                 self._showSimpleWin32Dialog(
-                    "Validation Accuracy Calculation Failed. An invalid setting was passed to the procedure.",
-                    "Common Eye Tracker Interface - ERROR")
+                    'Validation Accuracy Calculation Failed. An invalid setting was passed to the procedure.',
+                    'Common Eye Tracker Interface - ERROR')
                 self._last_setup_result = EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
             else:
                 self._last_setup_result = dict()
@@ -674,8 +674,8 @@ class EyeTracker(EyeTrackerDevice):
                     self._last_setup_result[a] = getattr(accuracy_results, a)
 
                 self._showSimpleWin32Dialog(
-                    "Validation Completed. Press ESCAPE to return to the Experiment Script, F1 to view all Options.",
-                    "Common Eye Tracker Interface")
+                    'Validation Completed. Press ESCAPE to return to the Experiment Script, F1 to view all Options.',
+                    'Common Eye Tracker Interface')
 
     def _getKeyboardPress(self, key_mappings):
         from ..... import KeyboardPressEvent
@@ -734,10 +734,12 @@ class EyeTracker(EyeTrackerDevice):
             self._ioKeyboardHandler = None
 
     def isRecordingEnabled(self, *args, **kwargs):
-        """
-        isRecordingEnabled returns True if the eye tracking device is currently connected and
-        sending eye event data to the ioHub server. If the eye tracker is not recording, or is not
-        connected to the ioHub server, False will be returned.
+        """isRecordingEnabled returns True if the eye tracking device is
+        currently connected and sending eye event data to the ioHub server.
+
+        If the eye tracker is not recording, or is not connected to the
+        ioHub server, False will be returned.
+
         """
         try:
             return self.isConnected() and self.isReportingEvents()
@@ -771,13 +773,13 @@ class EyeTracker(EyeTrackerDevice):
                     return self.isRecordingEnabled()
                 if r == pyViewX.ERR_NOT_CONNECTED:
                     print2err(
-                        "StartRecording FAILED: pyViewX.ERR_NOT_CONNECTED", r)
+                        'StartRecording FAILED: pyViewX.ERR_NOT_CONNECTED', r)
                     pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
                     EyeTrackerDevice.enableEventReporting(self, False)
                     return False  # EyeTrackerConstants.EYETRACKER_ERROR
                 if r == pyViewX.ERR_WRONG_DEVICE:
                     print2err(
-                        "iViewX setRecordingState True Failed: ERR_WRONG_DEVICE")
+                        'iViewX setRecordingState True Failed: ERR_WRONG_DEVICE')
                     pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
                     EyeTrackerDevice.enableEventReporting(self, False)
                     return False  # EyeTrackerConstants.EYETRACKER_ERROR
@@ -797,21 +799,19 @@ class EyeTracker(EyeTrackerDevice):
 
                 if r == pyViewX.ERR_NOT_CONNECTED:
                     print2err(
-                        "iViewX setRecordingState(False) Failed: ERR_NOT_CONNECTED")
+                        'iViewX setRecordingState(False) Failed: ERR_NOT_CONNECTED')
                     return False  # EyeTrackerConstants.EYETRACKER_ERROR
                 if r == pyViewX.ERR_WRONG_DEVICE:
                     print2err(
-                        "iViewX setRecordingState(False) Failed: ERR_WRONG_DEVICE")
+                        'iViewX setRecordingState(False) Failed: ERR_WRONG_DEVICE')
                     return False  # EyeTrackerConstants.EYETRACKER_ERROR
 
         except Exception as e:
             printExceptionDetailsToStdErr()
 
     def enableEventReporting(self, enabled=True):
-        """
-        enableEventReporting is the device type independent method that is equivelent
-        to the EyeTracker specific setRecordingState method.
-        """
+        """enableEventReporting is the device type independent method that is
+        equivelent to the EyeTracker specific setRecordingState method."""
         try:
             result2 = self.setRecordingState(enabled)
             EyeTrackerDevice.enableEventReporting(self, enabled)
@@ -821,11 +821,13 @@ class EyeTracker(EyeTrackerDevice):
         return False
 
     def getLastSample(self):
-        """
-        getLastSample returns the most recent BinocularEyeSampleEvent received
-        from the iViewX system. Any position fields are in Display
-        device coordinate space. If the eye tracker is not recording or is not
-        connected, then None is returned.
+        """getLastSample returns the most recent BinocularEyeSampleEvent
+        received from the iViewX system.
+
+        Any position fields are in Display device coordinate space. If
+        the eye tracker is not recording or is not connected, then None
+        is returned.
+
         """
         try:
             return self._latest_sample
@@ -833,12 +835,15 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
     def getLastGazePosition(self):
-        """
-        getLastGazePosition returns the most recent x,y eye position, in Display
-        device coordinate space, received by the ioHub server from the iViewX device.
-        In the case of binocular recording, and if both eyes are successfully being tracked,
-        then the average of the two eye positions is returned.
-        If the eye tracker is not recording or is not connected, then None is returned.
+        """getLastGazePosition returns the most recent x,y eye position, in
+        Display device coordinate space, received by the ioHub server from the
+        iViewX device.
+
+        In the case of binocular recording, and if both eyes are
+        successfully being tracked, then the average of the two eye
+        positions is returned. If the eye tracker is not recording or is
+        not connected, then None is returned.
+
         """
         try:
             return self._latest_gaze_position
@@ -1003,22 +1008,22 @@ class EyeTracker(EyeTrackerDevice):
 
             self._addNativeEventToBuffer(binocSample)
         except Exception:
-            print2err("ERROR occurred during iViewX Sample Callback.")
+            print2err('ERROR occurred during iViewX Sample Callback.')
             printExceptionDetailsToStdErr()
         finally:
             return 0
 
     def _getIOHubEventObject(self, native_event_data):
-        """
-        The _getIOHubEventObject method is called by the ioHub Process to convert
-        new native device event objects that have been received to the appropriate
-        ioHub Event type representation.
+        """The _getIOHubEventObject method is called by the ioHub Process to
+        convert new native device event objects that have been received to the
+        appropriate ioHub Event type representation.
 
         Args:
             native_event_data: object or tuple of (callback_time, native_event_object)
 
         Returns:
             tuple: The appropriate ioHub Event type in list form.
+
         """
 
         self._latest_sample = native_event_data
@@ -1058,8 +1063,7 @@ class EyeTracker(EyeTrackerDevice):
         return native_event_data
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
-        """
-        """
+        """"""
         try:
             gaze_x, gaze_y = eyetracker_point
             dw, dh = self._display_device.getPixelResolution()
@@ -1073,8 +1077,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):
-        """
-        """
+        """"""
         try:
             cl, ct, cr, cb = self._display_device.getCoordBounds()
             cw, ch = cr - cl, ct - cb
@@ -1097,16 +1100,16 @@ class EyeTracker(EyeTrackerDevice):
                 return dict(
                     sampling_rate=int(
                         systemInfo.samplerate),
-                    eyetracking_engine_version="{0}.{1}.{2}".format(
+                    eyetracking_engine_version='{0}.{1}.{2}'.format(
                         systemInfo.iV_MajorVersion,
                         systemInfo.iV_MinorVersion,
                         systemInfo.iV_Buildnumber),
-                    client_sdk_version="{0}.{1}.{2}".format(
+                    client_sdk_version='{0}.{1}.{2}'.format(
                         systemInfo.API_MajorVersion,
                         systemInfo.API_MinorVersion,
                         systemInfo.API_Buildnumber),
                     model_name=systemInfo.iV_ETDevice)
-            print2err("GetSystemInfo FAILED: " + str(res))
+            print2err('GetSystemInfo FAILED: ' + str(res))
             return EyeTrackerConstants.EYETRACKER_ERROR
         except Exception as e:
             printExceptionDetailsToStdErr()

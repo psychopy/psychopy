@@ -12,9 +12,7 @@ import pylabjack
 
 
 class AnalogInput(AnalogInputDevice):
-    """
-    The Labjack Implementation for the ioHub AnalogInput Device type.
-    """
+    """The Labjack Implementation for the ioHub AnalogInput Device type."""
     _SUPPORTED_MODELS = dict()
     _SUPPORTED_MODELS['U6'] = pylabjack.u6.U6
 
@@ -31,8 +29,7 @@ class AnalogInput(AnalogInputDevice):
                                                  '_part_sample']
 
     def __init__(self, *args, **kwargs):
-        """
-        """
+        """"""
         AnalogInputDevice.__init__(self, *args, **kwargs)
 
         self._labjack = None
@@ -57,15 +54,15 @@ class AnalogInput(AnalogInputDevice):
                 self._data_streaming_thread = LabJackDataReader(self)
                 self._data_streaming_thread.start()
             except Exception:
-                print2err("ERROR DURING LABJACK INIT")
+                print2err('ERROR DURING LABJACK INIT')
                 printExceptionDetailsToStdErr()
         else:
             print2err(
-                "AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter." %
+                'AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter.' %
                 (self.model_name, str(
                     self._SUPPORTED_MODELS.keys()),))
             raise ioDeviceError(
-                self, "AnalogInput Model not supported: %s" %
+                self, 'AnalogInput Model not supported: %s' %
                 (self.model_name))
             sys.exit(0)
 
@@ -87,9 +84,9 @@ class AnalogInput(AnalogInputDevice):
                 self._part_sample = None
 
         except Exception:
-            print2err("----- LabJack AnalogInput enableEventReporting ERROR ----")
+            print2err('----- LabJack AnalogInput enableEventReporting ERROR ----')
             printExceptionDetailsToStdErr()
-            print2err("---------------------------------------------------------")
+            print2err('---------------------------------------------------------')
 
     def _nativeEventCallback(self, labjack_data):
         if not self.isReportingEvents():
@@ -336,5 +333,5 @@ class LabJackDataReader(threading.Thread):
             self.iohub_device = None
             self.labjack_device = None
         except Exception:
-            print2err("ERROR IN THREAD RUN:")
+            print2err('ERROR IN THREAD RUN:')
             printExceptionDetailsToStdErr()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/keyboard/_win32.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -8,6 +8,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 import pyHook
@@ -218,9 +219,9 @@ class Keyboard(ioHubKeyboardDevice):
     def _addEventToTestLog(self, event_data):
         if self._log_events_file is None:
             import datetime
-            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
+            cdate = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
             self._log_events_file = open(
-                "win32_events_{0}.log".format(cdate), "w")
+                'win32_events_{0}.log'.format(cdate), 'w')
         self._log_events_file.write(self._evt2json(event_data) + '\n')
 
     def _nativeEventCallback(self, event):

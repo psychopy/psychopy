@@ -1,6 +1,6 @@
 ﻿# coding=utf-8
-"""
-ioHub
+"""ioHub.
+
 .. file: ioHub/devices/display/__init__.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
@@ -10,6 +10,7 @@ Distributed under the terms of the GNU General Public License
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 import wx
@@ -24,12 +25,14 @@ currentSec = Computer.currentSec
 
 
 class Display(Device):
-    """
-    The ioHub Display Device represents a 2D visual stimulus presentation surface that
-    is connected to the computer running ioHub and PsychoPy. The Display Device
+    """The ioHub Display Device represents a 2D visual stimulus presentation
+    surface that is connected to the computer running ioHub and PsychoPy.
+
+    The Display Device
     can be queries for several run-time properties that are read when the device is created,
     and is also used for transforming the physical Display surface area and pixel resolution
     into alternative coordinate system types that can be used during an experiment.
+
     """
     _coord_type_mappings = dict(pix='pix', pixel='pix', pixels='pix',
                                 deg='deg', degree='deg', degrees='deg',
@@ -68,12 +71,12 @@ class Display(Device):
         self._addRuntimeInfoToDisplayConfig()
 
     def getDeviceNumber(self):
-        """
-        Same as Display.getIndex(). All ioHub devices have a device_number,
+        """Same as Display.getIndex(). All ioHub devices have a device_number,
         so for the Display Device it makes sense to map device_number to the
         Display index.
 
         See Display.getIndex().
+
         """
         return self.device_number
 
@@ -94,16 +97,17 @@ class Display(Device):
 
     @classmethod
     def getDisplayCount(cls):
-        """
-        Returns the number of monitors connected to the computer that are also
-        active. For example, a Computer may have 3 Displays connected to it,
-        but the video card may only support having two displays active at a time.
+        """Returns the number of monitors connected to the computer that are
+        also active. For example, a Computer may have 3 Displays connected to
+        it, but the video card may only support having two displays active at a
+        time.
 
         Args:
             None
 
         Returns:
             int: Total number of displays active on the computer.
+
         """
         return len(cls._computer_display_runtime_info_list)
 
@@ -159,11 +163,10 @@ class Display(Device):
         return self.getConfiguration()['reporting_unit_type']
 
     def getPixelsPerDegree(self):
-        """
-        Returns the Display's horizontal and vertical pixels per degree This is
-        currently calculated using the PsychoPy built in function. Therefore PPD x and
-        PPD y will be the same value, as only the monitor width and participants
-        viewing distance is currently used.
+        """Returns the Display's horizontal and vertical pixels per degree This
+        is currently calculated using the PsychoPy built in function. Therefore
+        PPD x and PPD y will be the same value, as only the monitor width and
+        participants viewing distance is currently used.
 
         The physical characteristics of the Display and the Participants viewing distance
         we either be based on the ioHub settings specified, or based on the information
@@ -175,22 +178,24 @@ class Display(Device):
 
         Returns:
             tuple: (ppd_x, ppd_y)
+
         """
         try:
             return self.getConfiguration()['runtime_info']['pixels_per_degree']
         except Exception:
-            print2err("ERROR GETTING PPD !")
+            print2err('ERROR GETTING PPD !')
             printExceptionDetailsToStdErr()
 
     def getPixelResolution(self):
-        """
-        Get the Display's pixel resolution based on the current graphics mode.
+        """Get the Display's pixel resolution based on the current graphics
+        mode.
 
         Args:
             None
 
         Returns:
             tuple: (width,height) of the monitor in pixels based.
+
         """
         return self.getConfiguration()['runtime_info']['pixel_resolution']
 
@@ -209,9 +214,8 @@ class Display(Device):
                 ['runtime_info']['retrace_rate']) * 0.001
 
     def getBounds(self):
-        """
-        Get the Display's pixel bounds; representing the left,top,right,and bottom
-        edge of the the display screen in native pixel units.
+        """Get the Display's pixel bounds; representing the left,top,right,and
+        bottom edge of the the display screen in native pixel units.
 
         .. note:: (left, top, right, bottom) bounds will 'not' always be (0, 0, pixel_width, pixel_height). If a multiple display setup is being used, (left, top, right, bottom) indicates the actual absolute pixel bounds assigned to that monitor by the OS. It can be assumed that right = left + display_pixel_width and bottom =  top + display_pixel_height
 
@@ -220,44 +224,45 @@ class Display(Device):
 
         Returns:
             tuple: (left, top, right, bottom) Native pixel bounds for the Display.
+
         """
         return self.getConfiguration()['runtime_info']['bounds']
 
     def getCoordBounds(self):
-        """
-        Get the Display's left, top, right, and bottom border bounds, specified
-        in the coordinate space returned by Display.getCoordinateType()
+        """Get the Display's left, top, right, and bottom border bounds,
+        specified in the coordinate space returned by
+        Display.getCoordinateType()
 
         Args:
             None
 
         Returns:
             tuple: (left, top, right, bottom) coordinate bounds for the Display represented in Display.getCoordinateType() units.
+
         """
         return self.getConfiguration()['runtime_info']['coordinate_bounds']
 
     def getDefaultEyeDistance(self):
-        """
-        Returns the default  distance from the particpant's eye to the Display's
-        physical screen surface, as specified in the ioHub Display device's
-        configuration settings or the PsychoPy Monitor Configuration.
-        Currently this is the distance from the participant's
-        eye of interest ( or the average distance of both eyes when binocular
-        data is being obtained ) to the center of the Display screen being used
-        for stimulus presentation.
+        """Returns the default  distance from the particpant's eye to the
+        Display's physical screen surface, as specified in the ioHub Display
+        device's configuration settings or the PsychoPy Monitor Configuration.
+        Currently this is the distance from the participant's eye of interest (
+        or the average distance of both eyes when binocular data is being
+        obtained ) to the center of the Display screen being used for stimulus
+        presentation.
 
         Args:
             None
 
         Returns:
             int: Default distance in mm from the participant to the display screen surface.
+
         """
         return self.getConfiguration()['default_eye_distance']\
             ['surface_center']
 
     def getPhysicalDimensions(self):
-        """
-        Returns the Display's physical screen area ( width,  height ) as
+        """Returns the Display's physical screen area ( width,  height ) as
         specified in the ioHub Display devices configuration settings or by a
         PsychoPy Monitor Configuartion file.
 
@@ -266,19 +271,20 @@ class Display(Device):
 
         Returns:
             dict: A dict containing the screen 'width' and 'height' as keys, as well as the 'unit_type' the width and height are specified in. Currently only 'mm' is supported for unit_type.
+
         """
         return self.getConfiguration()['physical_dimensions']
 
     def getPsychopyMonitorName(self):
-        """
-        Returns the name of the PsychoPy Monitor Configuration file being used
-        with the Display.
+        """Returns the name of the PsychoPy Monitor Configuration file being
+        used with the Display.
 
         Args:
             None
 
         Returns:
             str: Name of the PsychoPy Monitor Configuration being used with the Display.
+
         """
         return self.getConfiguration().get('psychopy_monitor_name')
 
@@ -361,15 +367,16 @@ class Display(Device):
 
     @classmethod
     def _getConfigurationByIndex(cls, display_index):
-        """
-        Returns full configuration dictionary for the Display device created with
-        the specified display_index (called device_number in the device configuration settings).
+        """Returns full configuration dictionary for the Display device created
+        with the specified display_index (called device_number in the device
+        configuration settings).
 
         Args:
             display_index (int): display number to return the configuration dictionary for.
 
         Returns:
             dict: The configuration settings used to create the ioHub Display Device instance.
+
         """
         if display_index is None or display_index < 0:
             return None
@@ -417,16 +424,16 @@ class Display(Device):
 
     @classmethod
     def _getDisplayIndexForNativePixelPosition(cls, pixel_pos):
-        """
-        Returns the index of the display that the native OS pixel position would
-        fall within, based on the bounds information that ioHub has for each
-        active computer display.
+        """Returns the index of the display that the native OS pixel position
+        would fall within, based on the bounds information that ioHub has for
+        each active computer display.
 
         Args:
             pixel_pos (tuple): the native x,y position to query the display index of.
 
         Returns:
             int: The index of the display that the pixel_pos falls within based on each display's bounds.
+
         """
         px, py = pixel_pos
         for d in cls._getComputerDisplayRuntimeInfoList():
@@ -439,17 +446,18 @@ class Display(Device):
 
     @classmethod
     def _getEnabledDisplayCount(cls):
-        """
-        Returns the number of Display Device instances that the ioHub Server has
-        been informed about. Currently, only one Display instance can be created,
-        representing any of the computer's physical active displays. This display
-        will be used to create the full screen window used for stimulus presentation.
+        """Returns the number of Display Device instances that the ioHub Server
+        has been informed about. Currently, only one Display instance can be
+        created, representing any of the computer's physical active displays.
+        This display will be used to create the full screen window used for
+        stimulus presentation.
 
         Args:
             None
 
         Returns:
             int: ioHub Display Device count. Currently limited to 1.
+
         """
         return len(cls._enabled_display_instances)
 
@@ -511,9 +519,9 @@ class Display(Device):
             pixel_width = runtime_info['pixel_width']
             pixel_height = runtime_info['pixel_height']
 
-            phys_width = display_config["physical_dimensions"]['width']
-            phys_height = display_config["physical_dimensions"]['height']
-            phys_unit_type = display_config["physical_dimensions"]['unit_type']
+            phys_width = display_config['physical_dimensions']['width']
+            phys_height = display_config['physical_dimensions']['height']
+            phys_unit_type = display_config['physical_dimensions']['unit_type']
 
             # add pixels_per_degree to runtime info
             try:
@@ -550,7 +558,7 @@ class Display(Device):
             coord_type = Display._coord_type_mappings[coord_type]
         else:
             print2err(
-                " *** Display device error: Unknown coordinate type: {0}".format(coord_type))
+                ' *** Display device error: Unknown coordinate type: {0}'.format(coord_type))
             return
 
         self._pix2coord = None
@@ -641,7 +649,7 @@ class Display(Device):
                     self._coord2pix = degcoord2pix
             except ImportError:
                 print2err(
-                    "WARNING: iohub.devices.Display: cm and deg coord types only supported with psychopy.")
+                    'WARNING: iohub.devices.Display: cm and deg coord types only supported with psychopy.')
 
     def _createPsychopyCalibrationFile(self):
         display_config = self.getConfiguration()

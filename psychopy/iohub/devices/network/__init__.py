@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub Python Module
+"""ioHub Python Module.
+
 .. file: ioHub/devices/network/__init__.py
 
 fileauthor: Sol Simpson <sol@isolver-software.com>
@@ -10,6 +10,7 @@ Distributed under the terms of the GNU General Public License
 (GPL version 3 or any later version).
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
+
 """
 
 import gevent
@@ -29,18 +30,19 @@ from ...constants import DeviceConstants, EventConstants
 
 
 class EventPublisher(Device):
-    """
-    The ioHub EventPublisher Device can be used to publish events created by any locally
-    monitored ioHub Devices to remote subscribing computers using tcp/ip.
-    (a list of event types that the EventPublisher Device will publish can be specified
-    in the EventPublisher device config settings).
+    """The ioHub EventPublisher Device can be used to publish events created by
+    any locally monitored ioHub Devices to remote subscribing computers using
+    tcp/ip. (a list of event types that the EventPublisher Device will publish
+    can be specified in the EventPublisher device config settings).
 
-    Other than specifiying that a EventPublisher device is desired during the experiment
-    by adding the device configuration to the experiment's iohub_config.yaml,
-    nothing else needs to be done during the experiment runtime. The EventPublisher
-    device automatically handles publishing all requested event types to any
-    connected RemoteEventSubscriber devices that have indicated interest in the
+    Other than specifiying that a EventPublisher device is desired
+    during the experiment by adding the device configuration to the
+    experiment's iohub_config.yaml, nothing else needs to be done during
+    the experiment runtime. The EventPublisher device automatically
+    handles publishing all requested event types to any connected
+    RemoteEventSubscriber devices that have indicated interest in the
     event type being dispatched.
+
     """
     _packer = msgpack.Packer()
     pack = _packer.pack
@@ -69,16 +71,14 @@ class EventPublisher(Device):
             self._pub_socket = self._zmq_context.socket(zmq.PUB)
             self._pub_socket.setsockopt(zmq.LINGER, 0)
             self._publishing_protocal = device_config.get(
-                'publishing_protocal', "tcp://127.0.0.1:5555")
+                'publishing_protocal', 'tcp://127.0.0.1:5555')
             self._pub_socket.bind(self._publishing_protocal)
         except Exception as e:
-            print2err("** Exception during EventPublisher.__init__: ", e)
+            print2err('** Exception during EventPublisher.__init__: ', e)
             printExceptionDetailsToStdErr()
 
     def _handleEvent(self, e):
-        """
-        Publish the Event as long as it was generated locally"
-        """
+        """Publish the Event as long as it was generated locally"."""
         if e[2] == 0:
             #print2err("PUBLISHING: ",e[:8])
             e_id = e[DeviceEvent.EVENT_TYPE_ID_INDEX]
@@ -123,12 +123,11 @@ class EventPublisher(Device):
 
 
 class RemoteEventSubscriber(Device):
-    """
-    The RemoteEventSubscriber Device allows the ioHub Server it is running in
-    to receive ioHub events from networked remote ioHub Server instances running on seperate
-    computers. The remote ioHub Server must be running an instance the
-    EventPublisher device for RemoteEventSubscriber to receive events from that
-    ioHub Server instance.
+    """The RemoteEventSubscriber Device allows the ioHub Server it is running
+    in to receive ioHub events from networked remote ioHub Server instances
+    running on seperate computers. The remote ioHub Server must be running an
+    instance the EventPublisher device for RemoteEventSubscriber to receive
+    events from that ioHub Server instance.
 
     When a RemoteEventSubscriber device is configured for an experiment, the
     ip address and port of the remote EventPublisher device is specified. A list
@@ -213,13 +212,11 @@ class RemoteEventSubscriber(Device):
                 gevent.spawn(self._poll)  # really like _run
         except Exception as e:
             print2err(
-                "** Exception during RemoteEventSubscriber.__init__: ", e)
+                '** Exception during RemoteEventSubscriber.__init__: ', e)
             printExceptionDetailsToStdErr()
 
     def _handleEvent(self, e):
-        """
-        Handle the Event as long as it was generated remotely...."
-        """
+        """Handle the Event as long as it was generated remotely...."."""
         if e[2] > 0:
             #print2err('SUB RX callback: ',e[0:8])
             Device._handleEvent(self, e)
