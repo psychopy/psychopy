@@ -18,9 +18,20 @@ try:
 except:
     havePyosf = False
 from . import wxIDs
-from psychopy import logging, web
+from psychopy import logging, web, prefs
 from psychopy.app import dialogs
 from .localization import _translate
+
+# Projects FileHistory sub-menu
+global projHistory
+idBase = wx.NewId()
+projHistory = wx.FileHistory(maxFiles=10, idBase=idBase)
+projHistory.idBase = idBase
+for filename in prefs.appData['projects']['fileHistory']:
+    projHistory.AddFileToHistory(filename)
+
+global usersList
+usersList = wx.FileHistory(maxFiles=10, idBase=wx.NewId())
 
 
 class ProjectsMenu(wx.Menu):
@@ -30,27 +41,6 @@ class ProjectsMenu(wx.Menu):
     knownUsers = None
     searchDlg = None
 
-    @classmethod
-    def setUser(self, user):
-        """
-        a classmethod allowing all instances of this class to update their
-        username lists in the submenu
-
-        Parameters
-        ----------
-        user : str
-            OSF username (email address) of the user
-
-        """
-        if user == self._user:
-            return  # nothing to do here. Move along please.
-        self._user = user
-        self.app.osf_session = pyosf.Session(user)
-
-        self.appData['user'] = user
-        if self.searchDlg is not None:
-            self.searchDlg.updateUserProjs()
-
     def __init__(self, parent):
         wx.Menu.__init__(self)
         self.parent = parent
@@ -58,11 +48,17 @@ class ProjectsMenu(wx.Menu):
         keys = self.app.keys
         ProjectsMenu.appData = self.app.prefs.appData['projects']
 
+        global projHistory
+        self.projHistory = projHistory  # so we can treat as local from here
+        global usersList
+        self.userList = usersList
+
         if self.app.osf_session is None:
             # create a default (anonymous) session with osf
             self.app.osf_session = pyosf.Session()
 
         self.Append(wxIDs.projsAbout, "Tell me more...")
+        wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
         if not havePyosf:
             self.Append(wx.NewId(), "Requires pyosf (not installed)")
             ProjectsMenu.knownUsers = {}
@@ -70,61 +66,75 @@ class ProjectsMenu(wx.Menu):
             ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
 
         # sub-menu to open previous or new projects
-        self.openMenu = wx.Menu()
-        self.openMenu.Append(wxIDs.projsOpen,
-                             "From file...\t{}".format(keys['projectsOpen']))
+        self.projsSubMenu = wx.Menu()
+        self.projsSubMenu.Append(wxIDs.projsOpen,
+                                 "From file...\t{}".format(keys['projectsOpen']))
         wx.EVT_MENU(parent, wxIDs.projsOpen,  self.onOpenFile)
-        self.openMenu.AppendSeparator()
-        self.projHistory = wx.FileHistory(maxFiles=10)
-        self.projHistory.UseMenu(self.openMenu)
-        for filename in self.appData['fileHistory']:
-            self.projHistory.AddFileToHistory(filename)
-        self.Bind(wx.EVT_MENU_RANGE, self.onFileHistory,
-                  id=wx.ID_FILE1, id2=wx.ID_FILE9)
+        self.projsSubMenu.AppendSeparator()
+        self.projHistory.UseMenu(self.projsSubMenu)
+        try:
+            self.projHistory.AddFilesToMenu(self.projsSubMenu)
+        except:
+            self.projHistory.AddFilesToThisMenu(self.projsSubMenu)
+        parent.Bind(wx.EVT_MENU_RANGE, self.onProjFromHistory,
+                  id=self.projHistory.idBase,
+                  id2=self.projHistory.idBase+9)
+        self.AppendSubMenu(self.projsSubMenu, "Open")
 
         # sub-menu for usernames and login
         self.userMenu = wx.Menu()
         # if a user was previously logged in then set them as current
-        if self.appData['user'] and self.appData['user'] in self.knownUsers:
-            ProjectsMenu.setUser(self.appData['user'])
+        if ProjectsMenu.appData['user'] and \
+                ProjectsMenu.appData['user'] in self.knownUsers:
+            self.setUser(ProjectsMenu.appData['user'])
         for name in self.knownUsers:
-            self.addUserToSubMenu(name)
+            self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
         self.userMenu.Append(wxIDs.projsNewUser,
                              "Log in...\t{}".format(keys['projectsLogIn']))
         wx.EVT_MENU(parent, wxIDs.projsNewUser,  self.onLogIn)
-
-        wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
-        self.AppendSubMenu(self.openMenu, "Open")
         self.AppendSubMenu(self.userMenu, "User")
+
+        # search
         self.Append(wxIDs.projsSearch,
                     "Search OSF\t{}".format(keys['projectFind']))
         wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
+
         self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
         wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
 
-    def addUserToSubMenu(self, username):
+    def addToSubMenu(self, name, menu, function):
         thisId = wx.NewId()
-        self.userMenu.Append(thisId, username)
-        wx.EVT_MENU(self.parent, thisId,  self.onSetUser)
+        menu.Append(thisId, name)
+        wx.EVT_MENU(self.parent, thisId, function)
 
     def addFileToHistory(self, filename):
         self.projHistory.AddFileToHistory(filename)
 
-    def onFileHistory(self, evt=None):
+    def onProjFromHistory(self, evt=None):
         # get the file based on the menu ID
-        fileNum = evt.GetId() - wx.ID_FILE1
-        path = self.fileHistory.GetHistoryFile(fileNum)
-        self.setCurrentDoc(path)  # load the file
-        # add it back to the history so it will be moved up the list
-        self.fileHistory.AddFileToHistory(path)
+        fileNum = evt.GetId() - self.projHistory.idBase
+        path = self.projHistory.GetHistoryFile(fileNum)
+        print 'trying%s' % path
+        self.openProj(path)
 
     def onAbout(self, event):
         logging.info("")
         pass  # TODO: go to web page
 
     def onSetUser(self, event):
-        self.setUser(self.userMenu.GetLabelText(event.GetId()))
+        user = self.userMenu.GetLabelText(event.GetId())
+        self.setUser(user)
+
+    def setUser(self, user):
+        if user == self._user:
+            return  # nothing to do here. Move along please.
+        self._user = user
+        self.app.osf_session = pyosf.Session(user)
+
+        ProjectsMenu.appData['user'] = user
+        if self.searchDlg is not None:
+            self.searchDlg.updateUserProjs()
 
     def onSync(self, event):
         logging.info("")
@@ -148,13 +158,30 @@ class ProjectsMenu(wx.Menu):
                 self.addUserToSubMenu(username)
 
     def onOpenFile(self, event):
+        """Open project file from dialog
+        """
         dlg = wx.FileDialog(parent=None, message=("Open local project file"),
                             style=wx.FD_OPEN,
                             wildcard="Project files (*.psyproj)|*.psyproj")
         if dlg.ShowModal() == wx.ID_OK:
-            projFrame = ProjectSyncFrame(parent=None, id=-1)
-            projFrame.projFilePath.SetValue(dlg.GetPath())
-            projFrame.loadProjectFile(dlg.GetPath())
+            projFile = dlg.GetPath()
+            self.openProj(projFile)
+
+    def openProj(self, projFile):
+        # create a sync frame to put that in
+        syncFrame = ProjectSyncFrame(parent=self.app, id=-1)
+        syncFrame.setProjFile(projFile)
+        self.updateProjHist(projFile)
+
+    def updateProjHist(self, projFile):
+        # add it back to the history so it will be moved up the list
+        self.projHistory.AddFileToHistory(projFile)  # the menu item
+        projList = ProjectsMenu.appData['fileHistory']  # the saved history
+        if projFile not in projList:
+            projList.insert(0, projFile)
+            if len(projList) > 10:
+                ProjectsMenu.appData['fileHistory'] = projList[:10]
+
 
 class LogInDlg(wx.Dialog):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
@@ -327,7 +354,6 @@ class SearchFrame(wx.Frame):
         aTable = wx.AcceleratorTable([(0,  wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
-        self.app.trackFrame(self)
         self.Show()  # show the window before doing search/updates
         self.updateUserProjs()  # update the info in myProjectsPanel
 
@@ -608,9 +634,15 @@ class ProjectSyncFrame(wx.Frame):
             if not newPath.endswith(".psyproj"):
                 newPath += ".psyproj"
             self.projFilePath.SetValue(newPath)
-        # does this project file already exist?
-        if os.path.isfile(newPath):
-            project = pyosf.Project(project_file=newPath)
+        # try to set this project file
+        self.setProjFile(newPath)
+
+    def setProjFile(self, projFile):
+        """Set the path of the project file. If this loads successfully
+        then the project root and OSF project ID will also be updated
+        """
+        if os.path.isfile(projFile):
+            project = pyosf.Project(project_file=projFile)
             # check this is the same project!
             if self.OSFproject and project.osf.id != self.OSFproject.id:
                 raise IOError("The project file relates to a different"
