@@ -1047,6 +1047,8 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
+        self.app.trackFrame(self)
+
     def makeToolbar(self):
         # ---toolbar---#000000#FFFFFF-----------------------------------------
         _style = wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT
@@ -1377,13 +1379,12 @@ class BuilderFrame(wx.Frame):
             # as of wx3.0 the AUI manager needs to be uninitialised explicitly
             self._mgr.UnInit()
             # is it the last frame?
-            lastFrame = bool(len(wx.GetApp().allFrames) == 1)
+            lastFrame = bool(len(wx.GetApp().getAllFrames()) == 1)
             quitting = wx.GetApp().quitting
             if lastFrame and sys.platform != 'darwin' and not quitting:
                 wx.GetApp().quit(event)
             else:
-                self.app.allFrames.remove(self)
-                self.app.builderFrames.remove(self)
+                self.app.forgetFrame(self)
                 self.Destroy()  # required
 
     def quit(self, event=None):

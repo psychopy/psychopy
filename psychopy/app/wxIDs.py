@@ -68,6 +68,7 @@ docsPrefsDlg = wx.NewId()
 
 # projects menu
 projsAbout = wx.NewId()
+projsOpen = wx.NewId()
 projsSearch = wx.NewId()
 projsSync = wx.NewId()
 projsLogin = wx.NewId()

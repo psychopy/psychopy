@@ -1454,6 +1454,7 @@ class CoderFrame(wx.Frame):
             self.Fit()
             self.paneManager.Update()
         self.SendSizeEvent()
+        self.app.trackFrame(self)
 
     def makeMenus(self):
         # ---Menus---#000000#FFFFFF-------------------------------------------
@@ -2034,7 +2035,7 @@ class CoderFrame(wx.Frame):
         """Close open windows, update prefs.appData (but don't save)
         and either close the frame or hide it
         """
-        if len(self.app.builderFrames) == 0 and sys.platform != 'darwin':
+        if len(self.app.getAllFrames(frameType="builder")) == 0 and sys.platform != 'darwin':
             if not self.app.quitting:
                 # send the event so it can be vetoed if neded
                 self.app.quit(event)
@@ -2079,7 +2080,7 @@ class CoderFrame(wx.Frame):
         # as of wx3.0 the AUI manager needs to be uninitialised explicitly
         self.paneManager.UnInit()
 
-        self.app.allFrames.remove(self)
+        self.app.forgetFrame(self)
         self.Destroy()
         self.app.coder = None
 

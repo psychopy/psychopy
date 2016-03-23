@@ -46,6 +46,7 @@ class ProjectsMenu(wx.Menu):
             return  # nothing to do here. Move along please.
         self._user = user
         self.app.osf_session = pyosf.Session(user)
+
         self.appData['user'] = user
         if self.searchDlg is not None:
             self.searchDlg.updateUserProjs()
@@ -67,7 +68,22 @@ class ProjectsMenu(wx.Menu):
             ProjectsMenu.knownUsers = {}
         else:
             ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
-        self.userMenu = wx.Menu()  # a sub-menu for usernames and login
+
+        # sub-menu to open previous or new projects
+        self.openMenu = wx.Menu()
+        self.openMenu.Append(wxIDs.projsOpen,
+                             "From file...\t{}".format(keys['projectsOpen']))
+        wx.EVT_MENU(parent, wxIDs.projsOpen,  self.onOpenFile)
+        self.openMenu.AppendSeparator()
+        self.projHistory = wx.FileHistory(maxFiles=10)
+        self.projHistory.UseMenu(self.openMenu)
+        for filename in self.appData['fileHistory']:
+            self.projHistory.AddFileToHistory(filename)
+        self.Bind(wx.EVT_MENU_RANGE, self.onFileHistory,
+                  id=wx.ID_FILE1, id2=wx.ID_FILE9)
+
+        # sub-menu for usernames and login
+        self.userMenu = wx.Menu()
         # if a user was previously logged in then set them as current
         if self.appData['user'] and self.appData['user'] in self.knownUsers:
             ProjectsMenu.setUser(self.appData['user'])
@@ -79,6 +95,7 @@ class ProjectsMenu(wx.Menu):
         wx.EVT_MENU(parent, wxIDs.projsNewUser,  self.onLogIn)
 
         wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
+        self.AppendSubMenu(self.openMenu, "Open")
         self.AppendSubMenu(self.userMenu, "User")
         self.Append(wxIDs.projsSearch,
                     "Search OSF\t{}".format(keys['projectFind']))
@@ -90,6 +107,17 @@ class ProjectsMenu(wx.Menu):
         thisId = wx.NewId()
         self.userMenu.Append(thisId, username)
         wx.EVT_MENU(self.parent, thisId,  self.onSetUser)
+
+    def addFileToHistory(self, filename):
+        self.projHistory.AddFileToHistory(filename)
+
+    def onFileHistory(self, evt=None):
+        # get the file based on the menu ID
+        fileNum = evt.GetId() - wx.ID_FILE1
+        path = self.fileHistory.GetHistoryFile(fileNum)
+        self.setCurrentDoc(path)  # load the file
+        # add it back to the history so it will be moved up the list
+        self.fileHistory.AddFileToHistory(path)
 
     def onAbout(self, event):
         logging.info("")
@@ -103,7 +131,7 @@ class ProjectsMenu(wx.Menu):
         pass  # TODO: project sync and enable/disable
 
     def onSearch(self, event):
-        ProjectsMenu.searchDlg = SearchDlg(app=self.parent.app)
+        ProjectsMenu.searchDlg = SearchFrame(app=self.parent.app)
         ProjectsMenu.searchDlg.Show()
 
     def onLogIn(self, event):
@@ -119,6 +147,14 @@ class ProjectsMenu(wx.Menu):
                 # it wasn't there, but is now. Add to menu
                 self.addUserToSubMenu(username)
 
+    def onOpenFile(self, event):
+        dlg = wx.FileDialog(parent=None, message=("Open local project file"),
+                            style=wx.FD_OPEN,
+                            wildcard="Project files (*.psyproj)|*.psyproj")
+        if dlg.ShowModal() == wx.ID_OK:
+            projFrame = ProjectSyncFrame(parent=None, id=-1)
+            projFrame.projFilePath.SetValue(dlg.GetPath())
+            projFrame.loadProjectFile(dlg.GetPath())
 
 class LogInDlg(wx.Dialog):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
@@ -219,14 +255,15 @@ class LogInDlg(wx.Dialog):
         self.Update()
 
 
-class SearchDlg(wx.Dialog):
+class SearchFrame(wx.Frame):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
 
     def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
         title = "Search OSF (Open Science Framework)"
-        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
+        self.frameType = 'OSFsearch'
+        wx.Frame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
         self.currentProject = None
 
@@ -290,6 +327,7 @@ class SearchDlg(wx.Dialog):
         aTable = wx.AcceleratorTable([(0,  wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
+        self.app.trackFrame(self)
         self.Show()  # show the window before doing search/updates
         self.updateUserProjs()  # update the info in myProjectsPanel
 
@@ -469,8 +507,10 @@ class ProjectSyncFrame(wx.Frame):
 
     def __init__(self, parent, id, size=(600, 300), *args, **kwargs):
         wx.Frame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
-        self.app = parent
+        self.frameType = 'project'
+        self.app = wx.GetApp()
         self.OSFproject = None
+        self.syncStatus = None
 
         # title
         self.title = wx.StaticText(self, -1, "No project opened",
@@ -534,7 +574,17 @@ class ProjectSyncFrame(wx.Frame):
         self.SetSizerAndFit(self.mainSizer)
         self.SetAutoLayout(True)
         self.update()
+
+        self.app.trackFrame(self)
         self.Show()
+
+    def loadProjectFile(self, filepath):
+        project = pyosf.Project(project_file=filepath)
+        self.localPath.SetValue(project.root_path)
+        if project.osf:
+            self.setOSFproject(project.osf)
+        self.project = project
+        self.update()
 
     def setOSFproject(self, OSFproject):
         self.OSFproject = OSFproject
@@ -549,32 +599,59 @@ class ProjectSyncFrame(wx.Frame):
         self.update()
 
     def onBrowseProjFile(self, evt):
-        dlg = wx.FileDialog(self, message=("File to store project info"),
+        dlg = wx.FileDialog(self,
+                            message=("File to store project info"),
                             style=wx.FD_SAVE,
                             wildcard="Project files (*.psyproj)|*.psyproj")
         if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.getPath()
+            newPath = dlg.GetPath()
             if not newPath.endswith(".psyproj"):
                 newPath += ".psyproj"
             self.projFilePath.SetValue(newPath)
         # does this project file already exist?
-
         if os.path.isfile(newPath):
             project = pyosf.Project(project_file=newPath)
             # check this is the same project!
             if self.OSFproject and project.osf.id != self.OSFproject.id:
                 raise IOError("The project file relates to a different"
                               "OSF project and cannot be used for this one")
-            self.localPath.SetValue(self.project.root_path)
-            if not project.osf:
+            self.localPath.SetValue(project.root_path)
+            if project.osf:
                 self.setOSFproject(project.osf)
+            self.project = project
         self.update()
 
     def onSyncBtn(self, evt):
         self.project = pyosf.Project(project_file=self.projFilePath.GetValue(),
-                                     root_path=self.projFilePath.GetValue(),
-                                     osf=self.project)
-        self.syncStatusPanel = SyncStatusPanel(self, -1, )
+                                     root_path=self.localPath.GetValue(),
+                                     osf=self.OSFproject)
+        if self.syncStatus is None:
+            self.syncStatus = SyncStatusPanel(parent=self, id=-1,
+                                              project=self.project)
+            self.mainSizer.Add(self.syncStatus,
+                               flag=wx.ALIGN_CENTER | wx.EXPAND | wx.ALL,
+                               border=5)
+            self.mainSizer.Fit(self)
+        else:
+            self.syncStatus.reset()
+
+        self.update(status="Checking for changes")
+        wx.Yield()
+        changes = self.project.get_changes()
+        self.update(status="Applying changes")
+        wx.Yield()
+        # start the threads up/downloading
+        changes.apply(self.project, threaded=True)
+        # to check the status we need the
+        while True:
+            progress = self.project.osf.session.get_progress()
+            if progress == 1:
+                self.update("Sync complete")
+                changes.finish_sync(self.project)
+                self.project.save()
+                break
+            else:
+                self.syncStatus.setProgress(progress)
 
     def update(self, status=None):
         """Update to a particular status if given or deduce status msg if not
@@ -593,10 +670,47 @@ class ProjectSyncFrame(wx.Frame):
         self.Layout()
         self.Update()
 
+    def closeFrame(event=None, checkSave=True):
+        # todo: save current info
+        self.Destroy()
+
 
 class SyncStatusPanel(wx.Panel):
     def __init__(self, parent, id, project, *args, **kwargs):
         wx.Panel.__init__(self, parent, id, *args, **kwargs)
         self.project = project
-        self.sizer = wx.FlexGridSizer(rows=3, cols=2, vgap=2, hgap=2)
-        self.sizer.AddGrowableColumn(2)
+        self.sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        self.sizer.AddGrowableCol(1)
+
+        upLabel = wx.StaticText(self, -1, "Uploading:")
+        self.upProg = wx.Gauge(self, -1, range=1, size=(200, -1))
+        downLabel = wx.StaticText(self, -1, "Downloading:")
+        self.downProg = wx.Gauge(self, -1, range=1, size=(200, -1))
+        self.sizer.AddMany([upLabel, self.upProg,
+                            downLabel, self.downProg])
+        self.SetSizerAndFit(self.sizer)
+
+    def reset(self):
+        self.upProg.SetRange(1)
+        self.upProg.SetValue(0)
+        self.downProg.SetRange(1)
+        self.downProg.SetValue(0)
+
+    def setProgress(self, progress):
+        upDone, upTot = progress['up']
+        downDone, downTot = progress['down']
+        if upTot == 0:
+            self.upProg.SetRange(1)
+            self.upProg.SetValue(1)
+        else:
+            self.upProg.SetRange(upTot)
+            self.upProg.SetValue(upDone)
+        if downTot == 0:
+            self.downProg.SetRange(1)
+            self.downProg.SetValue(1)
+        else:
+            self.downProg.SetRange(downTot)
+            self.downProg.SetValue(downDone)
+        self.Update()
+        wx.Yield()
+        time.sleep(0.1)
