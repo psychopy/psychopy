@@ -13,7 +13,10 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-import gc, os, sys, copy
+import gc
+import os
+import sys
+import copy
 import collections
 from collections import deque
 from operator import itemgetter
@@ -22,7 +25,9 @@ import psutil
 from ..util import convertCamelToSnake, clock
 from .. import _pkgroot
 
+
 class ioDeviceError(Exception):
+
     def __init__(self, device, msg):
         Exception.__init__(self, msg)
         self.device = device
@@ -32,44 +37,50 @@ class ioDeviceError(Exception):
         return repr(self)
 
     def __repr__(self):
-        return "ioDeviceError:\n\tMsg: {0:>s}\n\tDevice: {1}\n".format(self.msg,repr(self.device))
+        return "ioDeviceError:\n\tMsg: {0:>s}\n\tDevice: {1}\n".format(
+            self.msg, repr(self.device))
+
 
 class ioObjectMetaClass(type):
+
     def __new__(meta, name, bases, dct):
         return type.__new__(meta, name, bases, dct)
+
     def __init__(cls, name, bases, dct):
-        type.__init__(cls,name, bases, dct)
+        type.__init__(cls, name, bases, dct)
 
         if '_newDataTypes' not in dct:
-            cls._newDataTypes=[]
+            cls._newDataTypes = []
 
         if '_baseDataTypes' not in dct:
             parent = cls._findDeviceParent(bases)
             if parent:
-                cls._baseDataTypes=parent._dataType
+                cls._baseDataTypes = parent._dataType
             else:
-                cls._baseDataTypes=[]
+                cls._baseDataTypes = []
 
-        cls._dataType=cls._baseDataTypes+cls._newDataTypes
-        cls.CLASS_ATTRIBUTE_NAMES=[e[0] for e in cls._dataType]
-        cls.NUMPY_DTYPE=N.dtype(cls._dataType)
+        cls._dataType = cls._baseDataTypes + cls._newDataTypes
+        cls.CLASS_ATTRIBUTE_NAMES = [e[0] for e in cls._dataType]
+        cls.NUMPY_DTYPE = N.dtype(cls._dataType)
 
-        if len(cls.__subclasses__())==0 and 'DeviceEvent' in [c.__name__ for c in cls.mro()]:
-            cls.namedTupleClass=collections.namedtuple(name+'NT',cls.CLASS_ATTRIBUTE_NAMES)
+        if len(cls.__subclasses__()) == 0 and 'DeviceEvent' in [
+                c.__name__ for c in cls.mro()]:
+            cls.namedTupleClass = collections.namedtuple(
+                name + 'NT', cls.CLASS_ATTRIBUTE_NAMES)
 
-
-    def _findDeviceParent(cls,bases):
-        parent=None
-        if len(bases)==1:
-            parent=bases[0]
+    def _findDeviceParent(cls, bases):
+        parent = None
+        if len(bases) == 1:
+            parent = bases[0]
         else:
             for p in bases:
                 if 'Device' in p.__name__:
-                    parent=p
+                    parent = p
                     break
         if parent is None or 'object' in parent.__name__:
             return None
         return parent
+
 
 class ioObject(object):
     """
@@ -79,20 +90,21 @@ class ioObject(object):
     and device events like Message, KeyboardPressEvent, MouseMoveEvent, etc.)
     also include the methods and attributes of this class.
     """
-    __metaclass__= ioObjectMetaClass
-    __slots__=['_attribute_values',]
-    def __init__(self,*args,**kwargs):
-        self._attribute_values=[]
+    __metaclass__ = ioObjectMetaClass
+    __slots__ = ['_attribute_values', ]
+
+    def __init__(self, *args, **kwargs):
+        self._attribute_values = []
 
         if len(args) > 0:
-            for i,n in enumerate(self.CLASS_ATTRIBUTE_NAMES):
-                setattr(self,n,args[i])
+            for i, n in enumerate(self.CLASS_ATTRIBUTE_NAMES):
+                setattr(self, n, args[i])
                 self._attribute_values.append(args[i])
 
-        elif len(kwargs)>0:
+        elif len(kwargs) > 0:
             for key in self.CLASS_ATTRIBUTE_NAMES:
-                value=kwargs[key]
-                setattr(self,key,value)
+                value = kwargs[key]
+                setattr(self, key, value)
                 self._attribute_values.append(value)
 
     def _asDict(self):
@@ -102,7 +114,7 @@ class ioObject(object):
 
         Return (dict): dictionary of ioObjects attribute_name, attributes values.
         """
-        return dict(zip(self.CLASS_ATTRIBUTE_NAMES,self._attribute_values))
+        return dict(zip(self.CLASS_ATTRIBUTE_NAMES, self._attribute_values))
 
     def _asList(self):
         """
@@ -121,19 +133,20 @@ class ioObject(object):
 
         Return (numpy.array): numpy array representation of object.
         """
-        return N.array([tuple(self._attribute_values),],self.NUMPY_DTYPE)
+        return N.array([tuple(self._attribute_values), ], self.NUMPY_DTYPE)
 
     def _getRPCInterface(self):
-        rpcList=[]
+        rpcList = []
         dlist = dir(self)
         for d in dlist:
-            if d[0] is not '_' and d not in ['asNumpyArray',]:
-                if callable(getattr(self,d)):
+            if d[0] is not '_' and d not in ['asNumpyArray', ]:
+                if callable(getattr(self, d)):
                     rpcList.append(d)
         return rpcList
 
 REALTIME_PRIORITY_CLASS = -18
 HIGH_PRIORITY_CLASS = -10
+
 
 class Computer(object):
     """
@@ -169,11 +182,11 @@ class Computer(object):
     or using the 'self.devices.computer' attribute of the ioHubExperimentRuntime
     class.
     """
-    _nextEventID=1
+    _nextEventID = 1
 
     #: True if the current process is the ioHub Server Process. False if the
     #: current process is the Experiment Runtime Process.
-    is_iohub_process=False
+    is_iohub_process = False
 
     #: If Computer class is on the iohub server process, psychopy_process is
     #: the psychopy process created from the pid passed to iohub on startup.
@@ -184,20 +197,20 @@ class Computer(object):
     #: True if the current process is currently in high or real-time priority mode
     #: (enabled by calling Computer.enableHighPriority() or Computer.enableRealTimePriority() )
     #: False otherwise.
-    in_high_priority_mode=False
+    in_high_priority_mode = False
 
     #: global_clock is used as the common time base for all devices
     #: and between the ioHub Server and Experiment Runtime Process. Do not
     #: access this class directly, instead use the Computer.getTime()
     #: and associated method name alias's to actually get the current ioHub time.
-    global_clock=clock.monotonicClock
+    global_clock = clock.monotonicClock
 
     #: The name of the current operating system Python is running on.
-    system=sys.platform
+    system = sys.platform
 
     #: Python Env. bits: 32 or 64. Note that when a
     #: Python 32 bit runtime is used a 64 bit OS sysbits will equal 32.
-    sysbits = 32+int(sys.maxsize > 2**32)*32
+    sysbits = 32 + int(sys.maxsize > 2**32) * 32
 
     #: Attribute representing the number of *processing units* available on the current computer.
     #: This includes cpu's, cpu cores, and hyperthreads. Notes:
@@ -205,22 +218,22 @@ class Computer(object):
     #:      * For single core CPU's,  num_cores_per_cpu = 1.
     #:      * For CPU's that do not support hyperthreading,  num_hyperthreads = 1, otherwise num_hyperthreads = 2.
     processing_unit_count = psutil.cpu_count()
-    core_count = psutil.cpu_count(False) #hyperthreads not included
+    core_count = psutil.cpu_count(False)  # hyperthreads not included
 
     #: Access to the psutil.Process class for the current system Process.
     current_process = psutil.Process()
 
     #: The OS process ID of the ioHub Process.
-    iohub_process_id=None
+    iohub_process_id = None
 
     #: The psutil Process object for the ioHub Process.
-    iohub_process=None
+    iohub_process = None
 
-    _process_original_nice_value=psutil.Process().nice() # used on linux.
+    _process_original_nice_value = psutil.Process().nice()  # used on linux.
 
     def __init__(self):
-        print2err("WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
-
+        print2err(
+            "WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
 
     @staticmethod
     def getProcessPriority(proc=None):
@@ -307,18 +320,20 @@ class Computer(object):
         if Computer.in_high_priority_mode is False:
             nice_val = HIGH_PRIORITY_CLASS
             Computer._process_original_nice_value = Computer.current_process.nice()
-            if Computer.system=='win32':
+            if Computer.system == 'win32':
                 nice_val = psutil.HIGH_PRIORITY_CLASS
 
             try:
                 Computer.current_process.nice(nice_val)
-                Computer.in_high_priority_mode=True
+                Computer.in_high_priority_mode = True
 
                 if disable_gc:
                     gc.disable()
 
             except psutil.AccessDenied:
-                print2err("WARNING: Could not increased priority for process {0}".format(Computer.current_process.pid))
+                print2err(
+                    "WARNING: Could not increased priority for process {0}".format(
+                        Computer.current_process.pid))
                 return False
         return True
 
@@ -344,18 +359,20 @@ class Computer(object):
         if Computer.in_high_priority_mode is False:
             nice_val = REALTIME_PRIORITY_CLASS
             Computer._process_original_nice_value = Computer.current_process.nice()
-            if Computer.system=='win32':
+            if Computer.system == 'win32':
                 nice_val = psutil.REALTIME_PRIORITY_CLASS
 
             try:
                 Computer.current_process.nice(nice_val)
-                Computer.in_high_priority_mode=True
+                Computer.in_high_priority_mode = True
 
                 if disable_gc:
                     gc.disable()
 
             except psutil.AccessDenied:
-                print2err("WARNING: Could not increased priority for process {0}".format(Computer.current_process.pid))
+                print2err(
+                    "WARNING: Could not increased priority for process {0}".format(
+                        Computer.current_process.pid))
                 return False
         return True
 
@@ -403,9 +420,11 @@ class Computer(object):
                 gc.enable()
 
                 Computer.current_process.nice(nice_val)
-                Computer.in_high_priority_mode=False
+                Computer.in_high_priority_mode = False
         except psutil.AccessDenied:
-            print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.current_process.pid))
+            print2err(
+                "WARNING: Could not disable increased priority for process {0}".format(
+                    Computer.current_process.pid))
             return False
         return True
 
@@ -479,7 +498,8 @@ class Computer(object):
             (list,list) Tuple of two lists: PsychoPy Process affinity ID list and ioHub Process affinity ID list.
 
         """
-        return Computer.current_process.cpu_affinity(),Computer.iohub_process.cpu_affinity()
+        return Computer.current_process.cpu_affinity(
+        ), Computer.iohub_process.cpu_affinity()
 
     @staticmethod
     def setProcessAffinities(experimentProcessorList, ioHubProcessorList):
@@ -549,19 +569,23 @@ class Computer(object):
         Returns:
             None
         """
-        cpu_count=Computer.processing_unit_count
+        cpu_count = Computer.processing_unit_count
         if cpu_count == 2:
-            #print 'Assigning experiment process to CPU 0, ioHubServer process to CPU 1'
-            Computer.setProcessAffinities([0,],[1,])
+            # print 'Assigning experiment process to CPU 0, ioHubServer process
+            # to CPU 1'
+            Computer.setProcessAffinities([0, ], [1, ])
         elif cpu_count == 4:
-            #print 'Assigning experiment process to CPU 0,1, ioHubServer process to CPU 2,3'
-            Computer.setProcessAffinities([0,1],[2,3])
+            # print 'Assigning experiment process to CPU 0,1, ioHubServer
+            # process to CPU 2,3'
+            Computer.setProcessAffinities([0, 1], [2, 3])
         elif cpu_count == 8:
-            #print 'Assigning experiment process to CPU 2,3, ioHubServer process to CPU 4,5, attempting to assign all others to 0,1,6,7'
-            Computer.setProcessAffinities([2,3],[4,5])
-            Computer.setAllOtherProcessesAffinity([0,1,6,7],[Computer.currentProcessID,Computer.iohub_process_id])
+            # print 'Assigning experiment process to CPU 2,3, ioHubServer
+            # process to CPU 4,5, attempting to assign all others to 0,1,6,7'
+            Computer.setProcessAffinities([2, 3], [4, 5])
+            Computer.setAllOtherProcessesAffinity(
+                [0, 1, 6, 7], [Computer.currentProcessID, Computer.iohub_process_id])
         else:
-            print "autoAssignAffinities does not support %d processors."%(cpu_count,)
+            print "autoAssignAffinities does not support %d processors." % (cpu_count,)
 
     @staticmethod
     def getCurrentProcessAffinity():
@@ -593,7 +617,7 @@ class Computer(object):
         return Computer.current_process.cpu_affinity(processorList)
 
     @staticmethod
-    def setProcessAffinityByID(process_id,processor_list):
+    def setProcessAffinityByID(process_id, processor_list):
         """
         Sets the list of 'processor' ID's (from 0 to Computer.processing_unit_count-1)
         that the process with the provided OS Process ID is able to run on.
@@ -606,7 +630,7 @@ class Computer(object):
         Returns:
             None
         """
-        p=psutil.Process(process_id)
+        p = psutil.Process(process_id)
         return p.cpu_affinity(processor_list)
 
     @staticmethod
@@ -621,11 +645,13 @@ class Computer(object):
         Returns:
            processorList (list): list of int processor ID's to set process with the given processID too. An empty list means all processors.
         """
-        p=psutil.Process(process_id)
+        p = psutil.Process(process_id)
         return p.cpu_affinity()
 
     @staticmethod
-    def setAllOtherProcessesAffinity(processor_list, exclude_process_id_list=[]):
+    def setAllOtherProcessesAffinity(
+            processor_list,
+            exclude_process_id_list=[]):
         """
         Sets the affinity for all OS Processes other than those specified in the
         exclude_process_id_list, to the processing unit indexes specified in processor_list.
@@ -659,7 +685,7 @@ class Computer(object):
     def getProcessFromName(pnames, id_only=False):
         procs = []
         if isinstance(pnames, basestring):
-            pnames = [pnames,]
+            pnames = [pnames, ]
         for p in psutil.process_iter():
             if p.name() in pnames:
                 if id_only:
@@ -711,7 +737,7 @@ class Computer(object):
     @staticmethod
     def _getNextEventID():
         n = Computer._nextEventID
-        Computer._nextEventID+=1
+        Computer._nextEventID += 1
         return n
 
     @staticmethod
@@ -733,7 +759,7 @@ class Computer(object):
         * vmem.used: the used amount of memory in bytes.
         * vmem.free: the amount of memory that is free in bytes.On Windows, this is the same as vmem.available.
         """
-        m= psutil.virtual_memory()
+        m = psutil.virtual_memory()
         return m
 
     @staticmethod
@@ -749,7 +775,6 @@ class Computer(object):
            object: (user=float, system=float, idle=float)
         """
         return psutil.cpu_times_percent(percpu=percpu)
-
 
     @staticmethod
     def getCurrentProcess():
@@ -782,53 +807,74 @@ class Computer(object):
         return Computer.iohub_process
 
 ########### Base Abstract Device that all other Devices inherit from ##########
+
+
 class Device(ioObject):
     """
     The Device class is the base class for all ioHub Device types.
     Any ioHub Device class (i.e Keyboard, Mouse, etc)
     also include the methods and attributes of this class.
     """
-    DEVICE_USER_LABEL_INDEX=0
-    DEVICE_NUMBER_INDEX=1
-    DEVICE_MANUFACTURER_NAME_INDEX=2
-    DEVICE_MODEL_NAME_INDEX=3
-    DEVICE_MODEL_NUMBER_INDEX=4
-    DEVICE_SOFTWARE_VERSION_INDEX=5
-    DEVICE_HARDWARE_VERSION_INDEX=6
-    DEVICE_FIRMWARE_VERSION_INDEX=7
-    DEVICE_SERIAL_NUMBER_INDEX=8
-    DEVICE_BUFFER_LENGTH_INDEX=9
-    DEVICE_MAX_ATTRIBUTE_INDEX=9
+    DEVICE_USER_LABEL_INDEX = 0
+    DEVICE_NUMBER_INDEX = 1
+    DEVICE_MANUFACTURER_NAME_INDEX = 2
+    DEVICE_MODEL_NAME_INDEX = 3
+    DEVICE_MODEL_NUMBER_INDEX = 4
+    DEVICE_SOFTWARE_VERSION_INDEX = 5
+    DEVICE_HARDWARE_VERSION_INDEX = 6
+    DEVICE_FIRMWARE_VERSION_INDEX = 7
+    DEVICE_SERIAL_NUMBER_INDEX = 8
+    DEVICE_BUFFER_LENGTH_INDEX = 9
+    DEVICE_MAX_ATTRIBUTE_INDEX = 9
 
     # Multiplier to use to convert this devices event time stamps to sec format.
-    # This is set by the author of the device class or interface implementation.
-    DEVICE_TIMEBASE_TO_SEC=1.0
+    # This is set by the author of the device class or interface
+    # implementation.
+    DEVICE_TIMEBASE_TO_SEC = 1.0
 
-    _baseDataTypes=ioObject._baseDataTypes
-    _newDataTypes=[
-                   ('name',N.str,24),           # The name given to this device instance. User Defined. Should be
-                                                # unique within all devices of the same type_id for a given experiment.
-                   ('device_number', N.uint8),  # For devices that support multiple connected to the computer at once, with some devices the device_number can be used to select which device ot use.
-                   ('manufacturer_name',N.str_,64), # The name of the manufacturer for the device being used.
-                   ('model_name',N.str_,32),    # The string name of the device model being used. Some devices support different models.
-                   ('model_number',N.str_,32),    # The device model number being used. Some devices support different models.
-                   ('software_version',N.str_,8), # Used to optionally store the devices software / API version being used by the ioHub Device
-                   ('hardware_version',N.str_,8), # Used to optionally store the devices hardware version
-                   ('firmware_version',N.str_,8), # Used to optionally store the devices firmware
-                   ('serial_number',N.str_,32),    # The serial number for the device being used. Serial numbers 'should' be unique across all devices of the same brand and model.
-                   ('manufacture_date',N.str_,10),    # The serial number for the device being used. Serial numbers 'should' be unique across all devices of the same brand and model.
-                   ('event_buffer_length',N.uint16) # The maximum size of the device level event buffer for this
-                                                        # device instance. If the buffer becomes full, when a new event
-                                                        # is added, the oldest event in the buffer is removed.
-                ]
+    _baseDataTypes = ioObject._baseDataTypes
+    _newDataTypes = [
+        # The name given to this device instance. User Defined. Should be
+        ('name', N.str, 24),
+        # unique within all devices of the same type_id for a given experiment.
+        # For devices that support multiple connected to the computer at once,
+        # with some devices the device_number can be used to select which
+        # device ot use.
+        ('device_number', N.uint8),
+        # The name of the manufacturer for the device being used.
+        ('manufacturer_name', N.str_, 64),
+        # The string name of the device model being used. Some devices support
+        # different models.
+        ('model_name', N.str_, 32),
+        # The device model number being used. Some devices support different
+        # models.
+        ('model_number', N.str_, 32),
+        # Used to optionally store the devices software / API version being
+        # used by the ioHub Device
+        ('software_version', N.str_, 8),
+        # Used to optionally store the devices hardware version
+        ('hardware_version', N.str_, 8),
+        # Used to optionally store the devices firmware
+        ('firmware_version', N.str_, 8),
+        # The serial number for the device being used. Serial numbers 'should'
+        # be unique across all devices of the same brand and model.
+        ('serial_number', N.str_, 32),
+        # The serial number for the device being used. Serial numbers 'should'
+        # be unique across all devices of the same brand and model.
+        ('manufacture_date', N.str_, 10),
+        # The maximum size of the device level event buffer for this
+        ('event_buffer_length', N.uint16)
+        # device instance. If the buffer becomes full, when a new event
+        # is added, the oldest event in the buffer is removed.
+    ]
 
-    EVENT_CLASS_NAMES=[]
+    EVENT_CLASS_NAMES = []
 
-    _display_device=None
-    _iohub_server=None
+    _display_device = None
+    _iohub_server = None
     next_filter_id = 1
-    DEVICE_TYPE_ID=None
-    DEVICE_TYPE_STRING=None
+    DEVICE_TYPE_ID = None
+    DEVICE_TYPE_STRING = None
 
     # _hw_interface_status constants
     HW_STAT_UNDEFINED = u"HW_STAT_UNDEFINED"
@@ -836,71 +882,69 @@ class Device(ioObject):
     HW_STAT_ERROR = u"HW_ERROR"
     HW_STAT_OK = u"HW_OK"
 
+    __slots__ = [e[0] for e in _newDataTypes] + ['_hw_interface_status',
+                                                 '_hw_error_str',
+                                                 '_native_event_buffer',
+                                                 '_event_listeners',
+                                                 '_iohub_event_buffer',
+                                                 '_last_poll_time',
+                                                 '_last_callback_time',
+                                                 '_is_reporting_events',
+                                                 '_configuration',
+                                                 'monitor_event_types',
+                                                 '_filters']
 
-    __slots__=[e[0] for e in _newDataTypes]+['_hw_interface_status',
-                                             '_hw_error_str',
-                                             '_native_event_buffer',
-                                            '_event_listeners',
-                                            '_iohub_event_buffer',
-                                            '_last_poll_time',
-                                            '_last_callback_time',
-                                            '_is_reporting_events',
-                                            '_configuration',
-                                            'monitor_event_types',
-                                            '_filters']
-
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         #: The user defined name given to this device instance. A device name must be
         #: unique for all devices of the same type_id in a given experiment.
-        self.name=None
+        self.name = None
 
         #: For device classes that support having multiple of the same type
         #: being monitored by the ioHub Process at the same time (for example XInput gamepads),
         #: device_number is used to indicate which of the connected devices of that
         #: type a given ioHub Device instance should connect to.
-        self.device_number=None
+        self.device_number = None
 
         #: The maximum size ( in event objects ) of the device level event buffer for this
         #: device instance. If the buffer becomes full, when a new event
         #: is added, the oldest event in the buffer is removed.
-        self.event_buffer_length=None
+        self.event_buffer_length = None
 
         #: A list of event class names that can be generated by this device type
         #: and should be monitored and reported by the ioHub Process.
-        self.monitor_event_types=None
+        self.monitor_event_types = None
 
         #: The name of the manufacturer of the device.
-        self.manufacturer_name=None
+        self.manufacturer_name = None
 
         #: The model of this Device subclasses instance. Some Device types
         #: explicitedly support different models of the device and use different
         #: logic in the ioHub Device implementation based on the model_name given.
-        self.model_name=None
+        self.model_name = None
 
         #: Model number can be optionally used to hold the specific model number
         #: specified on the device.
-        self.model_number=None
+        self.model_number = None
 
         #: The software version attribute can optionally be used to store the
         #: devices software / API version being used by the ioHub Device
-        self.software_version=None
+        self.software_version = None
 
         #: The hardware version attribute can optionally be used to store the
         #: physical devices hardware version / revision.
-        self.hardware_version=None
+        self.hardware_version = None
 
         #: The firmware version attribute can optionally be used to store the
         #: physical devices hardware version / revision.
-        self.firmware_version=None
+        self.firmware_version = None
 
         #: The unique serial number of the specific device instance being used,
         #: if applicable.
-        self.serial_number=None
+        self.serial_number = None
 
         #: The manufactured date of the specific device instance being used,
         #: if applicable.(Use DD-MM-YYYY string format.)
-        self.manufacture_date=None
-
+        self.manufacture_date = None
 
         ioObject.__init__(self, *args, **kwargs)
 
@@ -913,7 +957,7 @@ class Device(ioObject):
         self._native_event_buffer = deque(maxlen=self.event_buffer_length)
         self._filters = dict()
         self._hw_interface_status = self.HW_STAT_UNDEFINED
-        self._hw_error_str=u''
+        self._hw_error_str = u''
 
     def getConfiguration(self):
         """
@@ -935,7 +979,7 @@ class Device(ioObject):
         """
         return self._configuration
 
-    def getEvents(self,*args,**kwargs):
+    def getEvents(self, *args, **kwargs):
         """
         Retrieve any DeviceEvents that have occurred since the last call to the
         device's getEvents() or clearEvents() methods.
@@ -956,44 +1000,56 @@ class Device(ioObject):
         self._iohub_server.processDeviceEvents()
         eventTypeID = None
         clearEvents = True
-        if len(args)==1:
-            eventTypeID=args[0]
-        elif len(args)==2:
-            eventTypeID=args[0]
-            clearEvents=args[1]
+        if len(args) == 1:
+            eventTypeID = args[0]
+        elif len(args) == 2:
+            eventTypeID = args[0]
+            clearEvents = args[1]
 
         if eventTypeID is None:
-            eventTypeID=kwargs.get('event_type_id',None)
+            eventTypeID = kwargs.get('event_type_id', None)
             if eventTypeID is None:
-                eventTypeID=kwargs.get('event_type',None)
-        clearEvents=kwargs.get('clearEvents',True)
+                eventTypeID = kwargs.get('event_type', None)
+        clearEvents = kwargs.get('clearEvents', True)
 
-        filter_id=kwargs.get('filter_id',None)
+        filter_id = kwargs.get('filter_id', None)
 
-        currentEvents=[]
+        currentEvents = []
         if eventTypeID:
-            currentEvents=list(self._iohub_event_buffer.get(eventTypeID,[]))
+            currentEvents = list(self._iohub_event_buffer.get(eventTypeID, []))
 
             if filter_id:
-                currentEvents = [e for e in currentEvents if e[DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]
+                currentEvents = [
+                    e for e in currentEvents if e[
+                        DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]
 
-            if clearEvents is True and len(currentEvents)>0:
-                self.clearEvents(eventTypeID,filter_id=filter_id, call_proc_events=False)
+            if clearEvents is True and len(currentEvents) > 0:
+                self.clearEvents(
+                    eventTypeID,
+                    filter_id=filter_id,
+                    call_proc_events=False)
         else:
             if filter_id:
-                [currentEvents.extend([fe for fe in l if fe[DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]) for l in self._iohub_event_buffer.values()]
+                [currentEvents.extend([fe for fe in l if fe[
+                                      DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]) for l in self._iohub_event_buffer.values()]
             else:
-                [currentEvents.extend(l) for l in self._iohub_event_buffer.values()]
+                [currentEvents.extend(l)
+                 for l in self._iohub_event_buffer.values()]
 
-            if clearEvents is True and len(currentEvents)>0:
+            if clearEvents is True and len(currentEvents) > 0:
                 self.clearEvents(filter_id=filter_id, call_proc_events=False)
 
-        if len(currentEvents)>0:
-            currentEvents=sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
+        if len(currentEvents) > 0:
+            currentEvents = sorted(
+                currentEvents, key=itemgetter(
+                    DeviceEvent.EVENT_HUB_TIME_INDEX))
         return currentEvents
 
-
-    def clearEvents(self, event_type=None, filter_id=None, call_proc_events=True):
+    def clearEvents(
+            self,
+            event_type=None,
+            filter_id=None,
+            call_proc_events=True):
         """
         Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
         or clearEvents() methods.
@@ -1014,20 +1070,22 @@ class Device(ioObject):
         if event_type:
             if filter_id:
                 event_que = self._iohub_event_buffer[event_type]
-                newque = deque([e for e in event_que if e[DeviceEvent.EVENT_FILTER_ID_INDEX] != filter_id], maxlen=self.event_buffer_length)
+                newque = deque([e for e in event_que if e[
+                               DeviceEvent.EVENT_FILTER_ID_INDEX] != filter_id], maxlen=self.event_buffer_length)
                 self._iohub_event_buffer[event_type] = newque
             else:
-                self._iohub_event_buffer.setdefault(event_type,
-                                deque(maxlen=self.event_buffer_length)).clear()
+                self._iohub_event_buffer.setdefault(
+                    event_type, deque(maxlen=self.event_buffer_length)).clear()
         else:
             if filter_id:
                 for event_type, event_deque in self._iohub_event_buffer.items():
-                    newque = deque([e for e in event_deque if e[DeviceEvent.EVENT_FILTER_ID_INDEX] != filter_id], maxlen=self.event_buffer_length)
+                    newque = deque([e for e in event_deque if e[
+                                   DeviceEvent.EVENT_FILTER_ID_INDEX] != filter_id], maxlen=self.event_buffer_length)
                     self._iohub_event_buffer[event_type] = newque
             else:
                 self._iohub_event_buffer.clear()
 
-    def enableEventReporting(self,enabled=True):
+    def enableEventReporting(self, enabled=True):
         """
         Specifies if the device should be reporting events to the ioHub Process
         (enabled=True) or whether the device should stop reporting events to the
@@ -1041,7 +1099,7 @@ class Device(ioObject):
             bool: The current reporting state.
         """
         self.clearEvents()
-        self._is_reporting_events=enabled
+        self._is_reporting_events = enabled
         return self._is_reporting_events
 
     def isReportingEvents(self):
@@ -1057,10 +1115,10 @@ class Device(ioObject):
 
     def _setHardwareInterfaceStatus(self, status, error_msg=u''):
         if status is True:
-            self._hw_interface_status =  self.HW_STAT_OK
+            self._hw_interface_status = self.HW_STAT_OK
             self._hw_error_str = u""
         elif status is False:
-            self._hw_interface_status =  self.HW_STAT_ERROR
+            self._hw_interface_status = self.HW_STAT_ERROR
             self._hw_error_str = error_msg
         else:
             self._hw_interface_status = status
@@ -1087,10 +1145,11 @@ class Device(ioObject):
         """
         try:
             import importlib
-            filter_file_path = os.path.normpath(os.path.abspath(filter_file_path))
+            filter_file_path = os.path.normpath(
+                os.path.abspath(filter_file_path))
             fdir, ffile = os.path.split(filter_file_path)
             if not ffile.endswith(".py"):
-                ffile = ffile+".py"
+                ffile = ffile + ".py"
             if os.path.isdir(fdir) and os.path.exists(filter_file_path):
                 if fdir not in sys.path:
                     sys.path.append(fdir)
@@ -1109,7 +1168,7 @@ class Device(ioObject):
                     filter_class_instance = filter_class(**kwargs)
                     filter_class_instance._parent_device_type = self.DEVICE_TYPE_ID
                     # Add to filter list for device
-                    filter_key = filter_file_path+'.'+filter_class_name
+                    filter_key = filter_file_path + '.' + filter_class_name
                     filter_class_instance._filter_key = filter_key
                     self._filters[filter_key] = filter_class_instance
                     return filter_class_instance.filter_id
@@ -1122,27 +1181,28 @@ class Device(ioObject):
             print2err("ERROR During Add Filter")
 
     def removeFilter(self, filter_file_path, filter_class_name):
-        filter_key = filter_file_path+'.'+filter_class_name
+        filter_key = filter_file_path + '.' + filter_class_name
         if filter_key in self._filters:
             del self._filters[filter_key]
             return True
         return False
 
-    def resetFilter(self,filter_file_path, filter_class_name):
-        filter_key = filter_file_path+'.'+filter_class_name
+    def resetFilter(self, filter_file_path, filter_class_name):
+        filter_key = filter_file_path + '.' + filter_class_name
         if filter_key in self._filters:
             self._filters[filter_key].reset()
             return True
         return False
 
-    def enableFilters(self,yes=True):
+    def enableFilters(self, yes=True):
         for f in self._filters.values():
             f.enable = yes
 
-    def _handleEvent(self,e):
+    def _handleEvent(self, e):
         event_type_id = e[DeviceEvent.EVENT_TYPE_ID_INDEX]
-        self._iohub_event_buffer.setdefault(event_type_id,
-                               deque(maxlen=self.event_buffer_length)).append(e)
+        self._iohub_event_buffer.setdefault(
+            event_type_id, deque(
+                maxlen=self.event_buffer_length)).append(e)
 
         # Add the event to any filters bound to the device which
         # list wanting the event's type and events filter_id
@@ -1152,33 +1212,35 @@ class Device(ioObject):
                 current_filter_id = event_filter.filter_id
                 if current_filter_id != input_evt_filter_id:
                     # stops circular event processing
-                    evt_filter_ids= event_filter.input_event_types.get(event_type_id, [])
+                    evt_filter_ids = event_filter.input_event_types.get(
+                        event_type_id, [])
                     if input_evt_filter_id in evt_filter_ids:
                         event_filter._addInputEvent(copy.deepcopy(e))
 
     def _getNativeEventBuffer(self):
         return self._native_event_buffer
 
-    def _addNativeEventToBuffer(self,e):
+    def _addNativeEventToBuffer(self, e):
         if self.isReportingEvents():
             self._native_event_buffer.append(e)
 
-    def _addEventListener(self,l,eventTypeIDs):
+    def _addEventListener(self, l, eventTypeIDs):
         for ei in eventTypeIDs:
-            self._event_listeners.setdefault(ei,[]).append(l)
+            self._event_listeners.setdefault(ei, []).append(l)
 
-    def _removeEventListener(self,l):
+    def _removeEventListener(self, l):
         for etypelisteners in self._event_listeners.values():
             if l in etypelisteners:
                 etypelisteners.remove(l)
 
-    def _getEventListeners(self,forEventType):
-        return self._event_listeners.get(forEventType,[])
+    def _getEventListeners(self, forEventType):
+        return self._event_listeners.get(forEventType, [])
 
     def getCurrentDeviceState(self, clear_events=True):
-        result_dict={}
+        result_dict = {}
         self._iohub_server.processDeviceEvents()
-        events = {key:tuple(value) for key, value in self._iohub_event_buffer.items()}
+        events = {key: tuple(value)
+                  for key, value in self._iohub_event_buffer.items()}
         result_dict['events'] = events
         if clear_events:
             self.clearEvents(call_proc_events=False)
@@ -1271,7 +1333,7 @@ class Device(ioObject):
         """
         pass
 
-    def _handleNativeEvent(self,*args,**kwargs):
+    def _handleNativeEvent(self, *args, **kwargs):
         """
         The _handleEvent method can be used by the native device interface (implemented
         by the ioHub Device class) to register new native device events
@@ -1315,7 +1377,7 @@ class Device(ioObject):
         """
         return False
 
-    def _getIOHubEventObject(self,native_event_data):
+    def _getIOHubEventObject(self, native_event_data):
         """
         The _getIOHubEventObject method is called by the ioHub Process to convert
         new native device event objects that have been received to the appropriate
@@ -1339,18 +1401,18 @@ class Device(ioObject):
         """
         return native_event_data
 
-
     def _close(self):
         try:
-            self.__class__._iohub_server=None
-            self.__class__._display_device=None
+            self.__class__._iohub_server = None
+            self.__class__._display_device = None
         except Exception:
             pass
 
     def __del__(self):
         self._close()
 
-########### Base Device Event that all other Device Events inherit from ##########
+########### Base Device Event that all other Device Events inherit from ##
+
 
 class DeviceEvent(ioObject):
     """
@@ -1360,151 +1422,159 @@ class DeviceEvent(ioObject):
     KeyboardPressEvent, KeyboardReleaseEvent, etc.) also has access to the
     methods and attributes of the DeviceEvent class.
     """
-    EVENT_EXPERIMENT_ID_INDEX=0
-    EVENT_SESSION_ID_INDEX=1
-    DEVICE_ID_INDEX=2
-    EVENT_ID_INDEX=3
-    EVENT_TYPE_ID_INDEX=4
-    EVENT_DEVICE_TIME_INDEX=5
-    EVENT_LOGGED_TIME_INDEX=6
-    EVENT_HUB_TIME_INDEX=7
-    EVENT_CONFIDENCE_INTERVAL_INDEX=8
-    EVENT_DELAY_INDEX=9
-    EVENT_FILTER_ID_INDEX=10
-    BASE_EVENT_MAX_ATTRIBUTE_INDEX=EVENT_FILTER_ID_INDEX
+    EVENT_EXPERIMENT_ID_INDEX = 0
+    EVENT_SESSION_ID_INDEX = 1
+    DEVICE_ID_INDEX = 2
+    EVENT_ID_INDEX = 3
+    EVENT_TYPE_ID_INDEX = 4
+    EVENT_DEVICE_TIME_INDEX = 5
+    EVENT_LOGGED_TIME_INDEX = 6
+    EVENT_HUB_TIME_INDEX = 7
+    EVENT_CONFIDENCE_INTERVAL_INDEX = 8
+    EVENT_DELAY_INDEX = 9
+    EVENT_FILTER_ID_INDEX = 10
+    BASE_EVENT_MAX_ATTRIBUTE_INDEX = EVENT_FILTER_ID_INDEX
 
     # The Device Class that generates the given type of event.
-    PARENT_DEVICE=None
+    PARENT_DEVICE = None
 
     # The string label for the given DeviceEvent type. Should be usable to get Event type
     #  from ioHub.EventConstants.getName(EVENT_TYPE_STRING), the value of which is the
-    # event type id. This is set by the author of the event class implementation.
-    EVENT_TYPE_STRING='UNDEFINED_EVENT'
+    # event type id. This is set by the author of the event class
+    # implementation.
+    EVENT_TYPE_STRING = 'UNDEFINED_EVENT'
 
     # The type id int for the given DeviceEvent type. Should be one of the int values in
-    # ioHub.EventConstants.EVENT_TYPE_ID. This is set by the author of the event class implementation.
-    EVENT_TYPE_ID=0
+    # ioHub.EventConstants.EVENT_TYPE_ID. This is set by the author of the
+    # event class implementation.
+    EVENT_TYPE_ID = 0
 
+    _baseDataTypes = ioObject._baseDataTypes
+    _newDataTypes = [
+        # The ioDataStore experiment ID assigned to the experiment code
+        ('experiment_id', N.uint8),
+        # specified in the experiment configuration file for the experiment.
 
-    _baseDataTypes=ioObject._baseDataTypes
-    _newDataTypes=[
-                ('experiment_id',N.uint8), # The ioDataStore experiment ID assigned to the experiment code
-                                            # specified in the experiment configuration file for the experiment.
+        # The ioDataStore session ID assigned to the currently running
+        ('session_id', N.uint8),
+        # experiment session. Each time the experiment script is run,
+        # a new session id is generated for use within the hdf5 file.
 
-                ('session_id',N.uint8),    # The ioDataStore session ID assigned to the currently running
-                                            # experiment session. Each time the experiment script is run,
-                                            # a new session id is generated for use within the hdf5 file.
+        # The unique id assigned to the device that generated the event.
+        ('device_id', N.uint8),
+        # CUrrrently not used, but will be in the future for device types that
+        # support > one instance of that device type to be enabled
+        # during an experiment. Currenly only one device of a given type
+        # can be used in an experiment.
 
-                ('device_id',N.uint8),     # The unique id assigned to the device that generated the event.
-                                            # CUrrrently not used, but will be in the future for device types that
-                                            # support > one instance of that device type to be enabled
-                                            # during an experiment. Currenly only one device of a given type
-                                            #can be used in an experiment.
+        # The id assigned to the current device event instance. Every device
+        ('event_id', N.uint32),
+        # event generated by monitored devices during an experiment session is
+        # assigned a unique id, starting from 0 for each session, incrementing
+        # by +1 for each new event.
 
-                ('event_id',N.uint32),      # The id assigned to the current device event instance. Every device
-                                            # event generated by monitored devices during an experiment session is
-                                            # assigned a unique id, starting from 0 for each session, incrementing
-                                            # by +1 for each new event.
+        # The type id for the event. This is used to create DeviceEvent objects
+        ('type', N.uint8),
+        # or dictionary representations of an event based on the data from an
+        # event value list.
 
-                ('type',N.uint8),           # The type id for the event. This is used to create DeviceEvent objects
-                                            # or dictionary representations of an event based on the data from an
-                                            # event value list.
+        # If the device that generates the given device event type also time
+        # stamps
+        ('device_time', N.float64),
+        # events, this field is the time of the event as given by the device,
+        # converted to sec.msec-usec for consistency with all other ioHub device times.
+        # If the device that generates the given event type does not time stamp
+        # events, then the device_time is set to the logged_time for the event.
 
-                ('device_time',N.float64),   # If the device that generates the given device event type also time stamps
-                                            # events, this field is the time of the event as given by the device,
-                                            # converted to sec.msec-usec for consistency with all other ioHub device times.
-                                            # If the device that generates the given event type does not time stamp
-                                            # events, then the device_time is set to the logged_time for the event.
+        ('logged_time', N.float64),  # The sec time that the event was 'received' by the ioHub Server Process.
+        # For devices that poll for events, this is the sec time that the poll
+        # method was called for the device and the event was retrieved. For
+        # devices that use the event callback, this is the sec time the callback
+        # executed and accept the event. Time is in sec.msec-usec
 
-                ('logged_time', N.float64),  # The sec time that the event was 'received' by the ioHub Server Process.
-                                            # For devices that poll for events, this is the sec time that the poll
-                                            # method was called for the device and the event was retrieved. For
-                                            # devices that use the event callback, this is the sec time the callback
-                                            # executed and accept the event. Time is in sec.msec-usec
+        ('time', N.float64),         # Time is in the normalized time base that all events share,
+        # regardless of device type. Time is calculated differently depending
+        # on the device and perhaps event type.
+        # Time is what should be used when comparing times of events across
+        # different devices. Time is in sec.msec-usec.
 
-                ('time',N.float64),         # Time is in the normalized time base that all events share,
-                                            # regardless of device type. Time is calculated differently depending
-                                            # on the device and perhaps event type.
-                                            # Time is what should be used when comparing times of events across
-                                            # different devices. Time is in sec.msec-usec.
+        ('confidence_interval', N.float32),  # This property attempts to give a sense of the amount to which
+        # the event time may be off relative to the true time the event
+        # occurred. confidence_interval is calculated differently depending
+        # on the device and perhaps event types. In general though, the
+        # smaller the confidence_interval, the more likely it is that the
+        # calculated time of the event is correct. For devices where
+        # a realistic confidence_interval can not be calculated,
+        # for example if the event device delay is unknown, then a value
+        # of -1.0 should be used. Valid confidence_interval values are
+        # in sec.msec-usec and will range from 0.000000 sec.msec-usec
+        # and higher.
 
-                ('confidence_interval', N.float32), # This property attempts to give a sense of the amount to which
-                                                    # the event time may be off relative to the true time the event
-                                                    # occurred. confidence_interval is calculated differently depending
-                                                    # on the device and perhaps event types. In general though, the
-                                                    # smaller the confidence_interval, the more likely it is that the
-                                                    # calculated time of the event is correct. For devices where
-                                                    # a realistic confidence_interval can not be calculated,
-                                                    # for example if the event device delay is unknown, then a value
-                                                    # of -1.0 should be used. Valid confidence_interval values are
-                                                    # in sec.msec-usec and will range from 0.000000 sec.msec-usec
-                                                    # and higher.
+        ('delay', N.float32),       # The delay of an event is the known (or estimated) delay from when the
+        # real world event occurred to when the ioHub received the event for
+        # processing. This is often called the real-time end-to-end delay
+        # of an event. If the delay for an event can not be reasonably estimated
+        # or is not known, a delay of -1.0 is set. Delays are in sec.msec-usec
+        # and valid values will range from 0.000000 sec.msec-usec and higher.
 
-                ('delay',N.float32)  ,       # The delay of an event is the known (or estimated) delay from when the
-                                            # real world event occurred to when the ioHub received the event for
-                                            # processing. This is often called the real-time end-to-end delay
-                                            # of an event. If the delay for an event can not be reasonably estimated
-                                            # or is not known, a delay of -1.0 is set. Delays are in sec.msec-usec
-                                            # and valid values will range from 0.000000 sec.msec-usec and higher.
-
-                ('filter_id',N.int16)       # The filter identifier that the event passed through before being saved.
-                                            # If the event did not pass through any filter devices, then the value will be 0.
-                                            # Otherwise, the value is the | combination of the filter set that the
-                                            # event passed through before being made available to the experiment,
-                                            # or saved to the ioDataStore. The filter id can be used to determine
-                                            # which filters an event was handled by, but not the order in which handling was done.
-                                            # Default value is 0.
-                ]
+        ('filter_id', N.int16)       # The filter identifier that the event passed through before being saved.
+        # If the event did not pass through any filter devices, then the value will be 0.
+        # Otherwise, the value is the | combination of the filter set that the
+        # event passed through before being made available to the experiment,
+        # or saved to the ioDataStore. The filter id can be used to determine
+        # which filters an event was handled by, but not the order in which handling was done.
+        # Default value is 0.
+    ]
 
     # The name of the hdf5 table used to store events of this type in the ioDataStore pytables file.
     # This is set by the author of the event class implementation.
-    IOHUB_DATA_TABLE=None
+    IOHUB_DATA_TABLE = None
 
-    __slots__=[e[0] for e in _newDataTypes]
+    __slots__ = [e[0] for e in _newDataTypes]
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         #: The ioHub DataStore experiment ID assigned to the experiment that is running when the event is collected.
         #: 0 indicates no experiment has been defined.
-        self.experiment_id=None
+        self.experiment_id = None
 
         #: The ioHub DataStore session ID assigned for teh current experiment run.
         #: Each time the experiment script is run, a new session id is generated for use
         #: by the ioHub DataStore within the hdf5 file.
-        self.session_id=None
+        self.session_id = None
 
-        self.device_id=None
+        self.device_id = None
 
         #: The id assigned to the current event instance. Every device
         #: event generated by the ioHub Process is assigned a unique id,
         #: starting from 0 for each session, incrementing by +1 for each new event.
-        self.event_id=None
+        self.event_id = None
 
         #: The type id for the event. This is used to create DeviceEvent objects
         #: or dictionary representations of an event based on the data from an
         #: event value list. Event types are all defined in the
         #: iohub.constants.EventConstants class as class attributes.
-        self.type=None
+        self.type = None
 
         #: If the device that generates an event type also time stamps
         #: the events, this field is the time of the event as given by the device,
         #: converted to sec.msec-usec for consistancy with all other device times.
         #: If the device that generates the event does not time stamp
         #: events, then the device_time is set to the logged_time for the event.
-        self.device_time=None
+        self.device_time = None
 
         #: The sec.msec time that the event was 'received' by the ioHub Process.
         #: For devices where the ioHub polls for events, this is the time that the poll
         #: method was called for the device and the event was retrieved. For
         #: devices that use the event callback to inform the ioHub of new events,
         #: this is the time the callback began to be executed. Time is in sec.msec-usec
-        self.logged_time=None
+        self.logged_time = None
 
         #: The calculated ioHub time is in the normalized time base that all events share,
         #: regardless of device type. Time is calculated differently depending
         #: on the device and perhaps event type.
         #: Time is what should be used when comparing times of events across
         #: different devices or with times given py psychopy.core.getTime(). Time is in sec.msec-usec.
-        self.time=None
+        self.time = None
 
         #: This property attempts to give a sense of the amount to which
         #: the event time may be off relative to the true time the event
@@ -1517,7 +1587,7 @@ class DeviceEvent(ioObject):
         #: of 0.0 is used. Valid confidence_interval values are
         #: in sec.msec-usec and will range from 0.000001 sec.msec-usec
         #: and higher.
-        self.confidence_interval=None
+        self.confidence_interval = None
 
         #: The delay of an event is the known (or estimated) delay from when the
         #: real world event occurred to when the ioHub received the event for
@@ -1528,27 +1598,27 @@ class DeviceEvent(ioObject):
         #: the delay of an event is suptracted from the initially determined ioHub
         #: time for the eventso that the event.time attribute reports the actual
         #: event time as accurately as possible.
-        self.delay=None
+        self.delay = None
 
-        self.filter_id=None
+        self.filter_id = None
 
-        ioObject.__init__(self,*args,**kwargs)
+        ioObject.__init__(self, *args, **kwargs)
 
-    def __cmp__(self,other):
-        return self.time-other.time
+    def __cmp__(self, other):
+        return self.time - other.time
 
     @classmethod
-    def createEventAsClass(cls,eventValueList):
-        kwargs =cls.createEventAsDict(eventValueList)
+    def createEventAsClass(cls, eventValueList):
+        kwargs = cls.createEventAsDict(eventValueList)
         return cls(**kwargs)
 
     @classmethod
-    def createEventAsDict(cls,values):
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+    def createEventAsDict(cls, values):
+        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES, values))
 
-    #noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences
     @classmethod
-    def createEventAsNamedTuple(cls,valueList):
+    def createEventAsNamedTuple(cls, valueList):
         return cls.namedTupleClass(*valueList)
 #
 # Import Devices and DeviceEvents
@@ -1557,33 +1627,35 @@ class DeviceEvent(ioObject):
 
 import sys
 
+
 def import_device(module_path, device_class_name):
     module = __import__(module_path, fromlist=[device_class_name])
-    device_class=getattr(module, device_class_name)
+    device_class = getattr(module, device_class_name)
 
     setattr(sys.modules[__name__], device_class_name, device_class)
 
-    event_classes=dict()
+    event_classes = dict()
 
     for event_class_name in device_class.EVENT_CLASS_NAMES:
-        event_constant_string=convertCamelToSnake(event_class_name[:-5],False)
+        event_constant_string = convertCamelToSnake(
+            event_class_name[:-5], False)
 
         event_module = __import__(module_path, fromlist=[event_class_name])
-        event_class=getattr(event_module, event_class_name)
+        event_class = getattr(event_module, event_class_name)
 
-        event_class.DEVICE_PARENT=device_class
+        event_class.DEVICE_PARENT = device_class
 
-        event_classes[event_constant_string]=event_class
+        event_classes[event_constant_string] = event_class
 
         setattr(sys.modules[__name__], event_class_name, event_class)
 
-    return device_class,device_class_name,event_classes
+    return device_class, device_class_name, event_classes
 
 try:
-    if getattr(sys.modules[__name__],'Display',None) is None:
-        display_class,device_class_name,event_classes=import_device('%s.devices.display'%(_pkgroot),'Display')
-        setattr(sys.modules[__name__],'Display', display_class)
+    if getattr(sys.modules[__name__], 'Display', None) is None:
+        display_class, device_class_name, event_classes = import_device(
+            '%s.devices.display' % (_pkgroot), 'Display')
+        setattr(sys.modules[__name__], 'Display', display_class)
 except Exception:
     print2err("Warning: display device module could not be imported.")
     printExceptionDetailsToStdErr()
-

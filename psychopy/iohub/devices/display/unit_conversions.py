@@ -24,14 +24,29 @@ from math import atan, tan, sqrt
 # center pixel,  and are real distance units (inches, centimeters, etc.) along horizontal and
 # vertical screen axes.
 #
-def distToPixel(hpix_per_dist_unit, vpix_per_dist_unit, pixHres, pixVres, distH, distV):
-    pixH = pixHres/2.0 + (distH * hpix_per_dist_unit)
-    pixV = pixVres/2.0 + (distV * vpix_per_dist_unit)
+
+
+def distToPixel(
+        hpix_per_dist_unit,
+        vpix_per_dist_unit,
+        pixHres,
+        pixVres,
+        distH,
+        distV):
+    pixH = pixHres / 2.0 + (distH * hpix_per_dist_unit)
+    pixV = pixVres / 2.0 + (distV * vpix_per_dist_unit)
     return pixH, pixV
 
-def pixelToDist(hpix_per_dist_unit,vpix_per_dist_unit,pixHres, pixVres, pixH, pixV):
-    distH = (pixH - pixHres/2.0) / hpix_per_dist_unit
-    distV = (pixV - pixVres/2.0) / vpix_per_dist_unit
+
+def pixelToDist(
+        hpix_per_dist_unit,
+        vpix_per_dist_unit,
+        pixHres,
+        pixVres,
+        pixH,
+        pixV):
+    distH = (pixH - pixHres / 2.0) / hpix_per_dist_unit
+    distV = (pixV - pixVres / 2.0) / vpix_per_dist_unit
     return distH, distV
 
 #
@@ -54,10 +69,13 @@ def pixelToDist(hpix_per_dist_unit,vpix_per_dist_unit,pixHres, pixVres, pixH, pi
 # horizontal and vertical display axes. A factor of 57.2958 is used so that the values
 # correspond to degrees rather than radians.
 #
-def convertDistToNd(eye2display,distH,distV):
-    ndH =  57.2958 * distH / eye2display
-    ndV =  57.2958 * distV / eye2display
-    return ndH,ndV
+
+
+def convertDistToNd(eye2display, distH, distV):
+    ndH = 57.2958 * distH / eye2display
+    ndV = 57.2958 * distV / eye2display
+    return ndH, ndV
+
 
 def convertNdToDist(eye2display, ndH, ndV):
     distH = ndH * eye2display / 57.2958
@@ -72,29 +90,34 @@ def convertNdToDist(eye2display, ndH, ndV):
 # visual angle between the origin and the intersection of the Cartesian
 # coordinate line with the horizontal axes.
 #
+
+
 def distToCa(eye2display, distH, distV):
-    caH = 57.2958 * atan( distH/eye2display )
-    caV = 57.2958 * atan( distV/eye2display )
-    return caH,caV
+    caH = 57.2958 * atan(distH / eye2display)
+    caV = 57.2958 * atan(distV / eye2display)
+    return caH, caV
+
 
 def caToDist(eye2display, caH, caV):
-    distH =  eye2display * tan(caH/57.2958)
-    distV = eye2display * tan(caV/57.2968)
-    return distH,distV
+    distH = eye2display * tan(caH / 57.2958)
+    distV = eye2display * tan(caV / 57.2968)
+    return distH, distV
 
 
 #
 # Convert between distance coordinates (distH, distV) and Fick Coordinates (as,el)
 #
-def distToFick(eye2display,distH,distV):
-    az = 57.2958 * atan( distH/eye2display )
-    el =  57.2958 * atan( distV/ sqrt( eye2display * eye2display + distH * distH ) )
-    return az,el
+def distToFick(eye2display, distH, distV):
+    az = 57.2958 * atan(distH / eye2display)
+    el = 57.2958 * atan(distV / sqrt(eye2display *
+                                     eye2display + distH * distH))
+    return az, el
+
 
 def fickToDist(eye2display, az, el):
-    distH = eye2display * tan( az/57.2958 )
-    distV = sqrt(eye2display * eye2display + distH * distH) * tan( el/57.2958 )
-    return distH/distV
+    distH = eye2display * tan(az / 57.2958)
+    distV = sqrt(eye2display * eye2display + distH * distH) * tan(el / 57.2958)
+    return distH / distV
 
 #
 # Convert between distance coordinates (distH, distV) and 'symmetric angle'
@@ -104,14 +127,19 @@ def fickToDist(eye2display, az, el):
 # same as the Fick elevation angle.  The horizontal coordinate is measured in a
 # symmetrical fashion and is not the same as the Fick azimuth angle.
 #
+
+
 def distToSa(eye2display, distH, distV):
-    saH = 57.2958 * atan(distH/ sqrt(eye2display * eye2display + distV * distV))
-    saV = 57.2958 * atan(distV/ sqrt(eye2display * eye2display + distH * distH))
-    return saH,saV
+    saH = 57.2958 * atan(distH / sqrt(eye2display *
+                                      eye2display + distV * distV))
+    saV = 57.2958 * atan(distV / sqrt(eye2display *
+                                      eye2display + distH * distH))
+    return saH, saV
+
 
 def saToDist(eye2dsply, saH, saV):
-    tansaV_sqrd = tan( saV/57.2958) * tan( saV/57.2958)
-    tansaH_sqrd = tan( saH/57.2958) * tan( saH/57.2958)
+    tansaV_sqrd = tan(saV / 57.2958) * tan(saV / 57.2958)
+    tansaH_sqrd = tan(saH / 57.2958) * tan(saH / 57.2958)
     Dsqrd = eye2dsply * eye2dsply
 
     signsaV = 1.0
@@ -122,8 +150,9 @@ def saToDist(eye2dsply, saH, saV):
     if saH < 0.0:
         signsaH = -1.0
 
-    distV = signsaV * sqrt((Dsqrd * tansaV_sqrd  + Dsqrd * tansaH_sqrd * tansaV_sqrd)/ ( 1- tansaH_sqrd * tansaV_sqrd ))
+    distV = signsaV * sqrt((Dsqrd * tansaV_sqrd + Dsqrd * \
+                           tansaH_sqrd * tansaV_sqrd) / (1 - tansaH_sqrd * tansaV_sqrd))
 
     distH = signsaH * sqrt((Dsqrd + distV * distV) * tansaH_sqrd)
 
-    return distV,distH
+    return distV, distH

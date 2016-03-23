@@ -37,22 +37,24 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
 
 EXP_SCRIPT_DIRECTORY = ''
 
+
 def _localFunc():
     return None
-IOHUB_DIRECTORY=module_directory(_localFunc)
+IOHUB_DIRECTORY = module_directory(_localFunc)
 
-_ispkg=True
+_ispkg = True
 _pkgroot = 'iohub'
-if IOHUB_DIRECTORY.find('psychopy') >=0:
-    _ispkg=False
+if IOHUB_DIRECTORY.find('psychopy') >= 0:
+    _ispkg = False
     _pkgroot = 'psychopy.iohub'
 
-_DATA_STORE_AVAILABLE=False
+_DATA_STORE_AVAILABLE = False
 try:
     from .datastore import pandas as _dspandas
-    _DATA_STORE_AVAILABLE=True
-except Exception, e:
-    print2err("WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
+    _DATA_STORE_AVAILABLE = True
+except Exception as e:
+    print2err(
+        "WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
     printExceptionDetailsToStdErr()
 
 from .util.fix_encoding import fix_encoding

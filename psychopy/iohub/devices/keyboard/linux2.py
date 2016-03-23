@@ -26,14 +26,18 @@ class Keyboard(ioHubKeyboardDevice):
 
         if self.event_id_index is None:
             from . import KeyboardInputEvent
-            Keyboard.auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')
-            Keyboard.key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
-            Keyboard.key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
+            Keyboard.auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+                'auto_repeated')
+            Keyboard.key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+                'key')
+            Keyboard.key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+                'key_id')
             Keyboard.event_type_index = KeyboardInputEvent.EVENT_TYPE_ID_INDEX
-            Keyboard.event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
-            Keyboard.win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
+            Keyboard.event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+                'modifiers')
+            Keyboard.win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+                'window_id')
             Keyboard.event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
-
 
     def _nativeEventCallback(self, event):
         try:
@@ -47,10 +51,12 @@ class Keyboard(ioHubKeyboardDevice):
                     'report_system_wide_events', True)
                 if report_system_wide_events is False:
                     pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
-                    if len(pyglet_window_hnds) > 0 and event_array[self.win_id_index] not in pyglet_window_hnds:
+                    if len(pyglet_window_hnds) > 0 and event_array[
+                            self.win_id_index] not in pyglet_window_hnds:
                         return True
 
-                is_pressed = event_array[self.event_type_index] == EventConstants.KEYBOARD_PRESS
+                is_pressed = event_array[
+                    self.event_type_index] == EventConstants.KEYBOARD_PRESS
 
                 if is_pressed and self._report_auto_repeats is False:
                     # AUto repeat value provided by pyXHook code
@@ -60,7 +66,8 @@ class Keyboard(ioHubKeyboardDevice):
 
                 # set event id for event since it has passed all filters
                 event_array[self.event_id_index] = Computer._getNextEventID()
-                ioHubKeyboardDevice._modifier_value = event_array[self.event_modifiers_index]
+                ioHubKeyboardDevice._modifier_value = event_array[
+                    self.event_modifiers_index]
 
                 self._updateKeyboardEventState(event_array, is_pressed)
 

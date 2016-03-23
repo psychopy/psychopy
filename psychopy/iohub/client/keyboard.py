@@ -92,7 +92,8 @@ class KeyboardEvent(ioEvent):
 
     """
     _attrib_index = dict()
-    _attrib_index['key'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
+    _attrib_index[
+        'key'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
     _attrib_index['char'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
         'char')
     _attrib_index['modifiers'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
@@ -105,11 +106,9 @@ class KeyboardEvent(ioEvent):
         self._modifiers = KeyboardConstants._modifierCodes2Labels(
             ioe_array[KeyboardEvent._attrib_index['modifiers']])
 
-
     @property
     def key(self):
         return self._key
-
 
     @property
     def char(self):
@@ -121,7 +120,6 @@ class KeyboardEvent(ioEvent):
         :return: unicode, '' if no char value is available for the event.
         """
         return self._char
-
 
     @property
     def modifiers(self):
@@ -158,13 +156,15 @@ class KeyboardEvent(ioEvent):
             return self.key == v.key or self.char == v.char
         return self.key == v or self.char == v
 
-    def __ne__(self,v):
+    def __ne__(self, v):
         return not self.__eq__()
+
 
 class KeyboardPress(KeyboardEvent):
     """
     An iohub Keyboard device key press event.
     """
+
     def __init__(self, ioe_array):
         super(KeyboardPress, self).__init__(ioe_array)
 
@@ -185,7 +185,6 @@ class KeyboardRelease(KeyboardEvent):
         self._duration = ioe_array[self._attrib_index['duration']]
         self._press_event_id = ioe_array[self._attrib_index['press_event_id']]
 
-
     @property
     def duration(self):
         """
@@ -201,7 +200,6 @@ class KeyboardRelease(KeyboardEvent):
         :return: float
         """
         return self._duration
-
 
     @property
     def pressEventID(self):
@@ -230,6 +228,7 @@ class Keyboard(ioHubDeviceView):
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
     _type2class = {KEY_PRESS: KeyboardPress, KEY_RELEASE: KeyboardRelease}
     # TODO: name and class args should just be auto generated in init.
+
     def __init__(self, ioclient, device_class_name, device_config):
         super(Keyboard, self).__init__(ioclient, device_class_name,
                                        device_config)
@@ -240,7 +239,10 @@ class Keyboard(ioHubDeviceView):
         self._event_buffer_length = self._device_config.get(
             'event_buffer_length')
 
-        self._clearEventsRPC = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
+        self._clearEventsRPC = DeviceRPC(
+            self.hubClient._sendToHubServer,
+            self.device_class,
+            'clearEvents')
 
     def _syncDeviceState(self):
         """
@@ -279,7 +281,6 @@ class Keyboard(ioHubDeviceView):
         self._syncDeviceState()
         return self._pressed_keys
 
-
     @property
     def reporting(self):
         """
@@ -302,7 +303,6 @@ class Keyboard(ioHubDeviceView):
         """
         return self._reporting
 
-
     @reporting.setter
     def reporting(self, r):
         """
@@ -312,14 +312,15 @@ class Keyboard(ioHubDeviceView):
         return self._reporting
 
     def clearEvents(self, event_type=None, filter_id=None):
-        result = self._clearEventsRPC(event_type=event_type,filter_id=filter_id)
+        result = self._clearEventsRPC(
+            event_type=event_type, filter_id=filter_id)
         for etype, elist in self._events.items():
             if event_type is None or event_type == etype:
                 elist.clear()
         return result
 
     def getKeys(self, keys=None, chars=None, mods=None, duration=None,
-                 etype=None, clear=True):
+                etype=None, clear=True):
         """
         Return a list of any KeyboardPress or KeyboardRelease events that have
         occurred since the last time either:
@@ -349,13 +350,12 @@ class Keyboard(ioHubDeviceView):
         """
         self._syncDeviceState()
 
-
         def filterEvent(e):
             return (keys is None or e.key in keys) and (
                 chars is None or e.char in chars) and (duration is None or (
-                duration // abs(duration) * e.duration) >= duration) and (
-                       mods is None or len(
-                           [m for m in mods if m in e.modifiers]) > 0)
+                    duration // abs(duration) * e.duration) >= duration) and (
+                mods is None or len(
+                    [m for m in mods if m in e.modifiers]) > 0)
 
         return_events = []
         if etype is None or etype == Keyboard.KEY_PRESS:
@@ -378,7 +378,7 @@ class Keyboard(ioHubDeviceView):
         See the getKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
         """
-        return self.getKeys(keys, chars, mods, None, self.KEY_PRESS,  clear)
+        return self.getKeys(keys, chars, mods, None, self.KEY_PRESS, clear)
 
     def getReleases(self, keys=None, chars=None, mods=None, duration=None,
                     clear=True):
@@ -386,10 +386,24 @@ class Keyboard(ioHubDeviceView):
         See the getKeys() method documentation. This method is identical, but
         only returns KeyboardRelease events.
         """
-        return self.getKeys(keys, chars, mods, duration, self.KEY_RELEASE, clear)
+        return self.getKeys(
+            keys,
+            chars,
+            mods,
+            duration,
+            self.KEY_RELEASE,
+            clear)
 
-    def waitForKeys(self, maxWait=None, keys=None, chars=None, mods=None,
-                   duration=None, etype=None, clear=True, checkInterval=0.002):
+    def waitForKeys(
+            self,
+            maxWait=None,
+            keys=None,
+            chars=None,
+            mods=None,
+            duration=None,
+            etype=None,
+            clear=True,
+            checkInterval=0.002):
         """
         Blocks experiment execution until at least one matching KeyboardEvent
         occurs, or until maxWait seconds has passed since the method was called.
@@ -408,7 +422,7 @@ class Keyboard(ioHubDeviceView):
         if maxWait is None:
             maxWait = 7200.0
 
-        timeout = start_time+maxWait
+        timeout = start_time + maxWait
         key = []
 
         def pumpKeys():
@@ -418,13 +432,13 @@ class Keyboard(ioHubDeviceView):
             win32MessagePump()
             return key
 
-        while getTime() < timeout - checkInterval*2:
+        while getTime() < timeout - checkInterval * 2:
             # Pump events on pyglet windows if they exist
-            ltime=getTime()
+            ltime = getTime()
             key = pumpKeys()
             if key:
                 return key
-            sleep_dur=max(checkInterval-(getTime()-ltime),0.0001)
+            sleep_dur = max(checkInterval - (getTime() - ltime), 0.0001)
             time.sleep(sleep_dur)
 
         while getTime() < timeout:
@@ -434,7 +448,7 @@ class Keyboard(ioHubDeviceView):
         return key
 
     def waitForPresses(self, maxWait=None, keys=None, chars=None, mods=None,
-                   duration=None, clear=True, checkInterval=0.002):
+                       duration=None, clear=True, checkInterval=0.002):
         """
         See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
@@ -442,9 +456,8 @@ class Keyboard(ioHubDeviceView):
         return self.waitForKeys(maxWait, keys, chars, mods, duration,
                                 self.KEY_PRESS, clear, checkInterval)
 
-
     def waitForReleases(self, maxWait=None, keys=None, chars=None, mods=None,
-                   duration=None, clear=True, checkInterval=0.002):
+                        duration=None, clear=True, checkInterval=0.002):
         """
         See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardRelease events.

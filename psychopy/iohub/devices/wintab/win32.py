@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # $Id:$
 
-#Initial file based on pyglet.libs.win32
+# Initial file based on pyglet.libs.win32
 
 import ctypes
 from ...errors import print2err
@@ -19,20 +19,23 @@ WTPKT = DWORD
 
 LCNAMELEN = 40
 
-def print_struct(s,pretxt=''):
-    print2err("{}{}:".format(pretxt,s))
+
+def print_struct(s, pretxt=''):
+    print2err("{}{}:".format(pretxt, s))
     for field_name, field_type in s._fields_:
         print2err("\t{}:\t{}".format(field_name, getattr(s, field_name)))
     print2err("<<<<<<<<")
 
+
 def struct2dict(s):
     csdict = {}
     for field_name, field_type in s._fields_:
-        ufield_name =  field_name
+        ufield_name = field_name
         if field_name.startswith('ax'):
-            ufield_name=field_name[2:].lower()
-        csdict[ufield_name]=getattr(s, field_name)
+            ufield_name = field_name[2:].lower()
+        csdict[ufield_name] = getattr(s, field_name)
     return csdict
+
 
 class AXIS(ctypes.Structure):
     _fields_ = (
@@ -48,6 +51,7 @@ class AXIS(ctypes.Structure):
     def get_bias(self):
         return -self.axMin
 
+
 class ORIENTATION(ctypes.Structure):
     _fields_ = (
         ('orAzimuth', ctypes.c_int),
@@ -55,12 +59,14 @@ class ORIENTATION(ctypes.Structure):
         ('orTwist', ctypes.c_int)
     )
 
+
 class ROTATION(ctypes.Structure):
     _fields_ = (
         ('roPitch', ctypes.c_int),
         ('roRoll', ctypes.c_int),
         ('roYaw', ctypes.c_int),
     )
+
 
 class LOGCONTEXT(ctypes.Structure):
     _fields_ = (
@@ -101,27 +107,28 @@ class LOGCONTEXT(ctypes.Structure):
     )
 
 
-PK_CONTEXT = 0x0001	# reporting context
-PK_STATUS = 0x0002	# status bits
-PK_TIME = 0x0004	# time stamp
-PK_CHANGED = 0x0008	# change bit vector
-PK_SERIAL_NUMBER = 0x0010	# packet serial number
-PK_CURSOR = 0x0020	# reporting cursor
-PK_BUTTONS = 0x0040	# button information
-PK_X = 0x0080	# x axis
-PK_Y = 0x0100	# y axis
-PK_Z = 0x0200	# z axis
-PK_NORMAL_PRESSURE = 0x0400	# normal or tip pressure
-PK_TANGENT_PRESSURE = 0x0800	# tangential or barrel pressure
-PK_ORIENTATION = 0x1000	# orientation info: tilts
-PK_ROTATION = 0x2000	# rotation info; 1.1
+PK_CONTEXT = 0x0001  # reporting context
+PK_STATUS = 0x0002  # status bits
+PK_TIME = 0x0004  # time stamp
+PK_CHANGED = 0x0008  # change bit vector
+PK_SERIAL_NUMBER = 0x0010  # packet serial number
+PK_CURSOR = 0x0020  # reporting cursor
+PK_BUTTONS = 0x0040  # button information
+PK_X = 0x0080  # x axis
+PK_Y = 0x0100  # y axis
+PK_Z = 0x0200  # z axis
+PK_NORMAL_PRESSURE = 0x0400  # normal or tip pressure
+PK_TANGENT_PRESSURE = 0x0800  # tangential or barrel pressure
+PK_ORIENTATION = 0x1000  # orientation info: tilts
+PK_ROTATION = 0x2000  # rotation info; 1.1
 
 DEFAULT_PACKET_DATA_FIELDS = (
-            PK_STATUS | PK_TIME | PK_CHANGED |
-            PK_SERIAL_NUMBER | PK_CURSOR | PK_BUTTONS |
-            PK_X | PK_Y | PK_Z |
-            PK_NORMAL_PRESSURE |
-            PK_ORIENTATION)
+    PK_STATUS | PK_TIME | PK_CHANGED |
+    PK_SERIAL_NUMBER | PK_CURSOR | PK_BUTTONS |
+    PK_X | PK_Y | PK_Z |
+    PK_NORMAL_PRESSURE |
+    PK_ORIENTATION)
+
 
 class PACKET(ctypes.Structure):
     _fields_ = (
@@ -146,7 +153,7 @@ TU_CIRCLE = 3
 # messages
 WT_DEFBASE = 0x7ff0
 WT_MAXOFFSET = 0xf
-WT_PACKET = 0 # remember to add base
+WT_PACKET = 0  # remember to add base
 WT_CTXOPEN = 1
 WT_CTXCLOSE = 2
 WT_CTXUPDATE = 3
@@ -155,7 +162,7 @@ WT_PROXIMITY = 5
 WT_INFOCHANGE = 6
 WT_CSRCHANGE = 7
 
-# system button assignment values 
+# system button assignment values
 SBN_NONE = 0x00
 SBN_LCLICK = 0x01
 SBN_LDBLCLICK = 0x02
@@ -167,7 +174,7 @@ SBN_MCLICK = 0x07
 SBN_MDBLCLICK = 0x08
 SBN_MDRAG = 0x09
 
-# for Pen Windows 
+# for Pen Windows
 SBN_PTCLICK = 0x10
 SBN_PTDBLCLICK = 0x20
 SBN_PTDRAG = 0x30
@@ -187,11 +194,11 @@ SBN_P3DRAG = 0xF0
 HWC_INTEGRATED = 0x0001
 HWC_TOUCH = 0x0002
 HWC_HARDPROX = 0x0004
-HWC_PHYSID_CURSORS = 0x0008 # 1.1 
+HWC_PHYSID_CURSORS = 0x0008  # 1.1
 
-CRC_MULTIMODE = 0x0001 # 1.1 
-CRC_AGGREGATE = 0x0002 # 1.1 
-CRC_INVERT = 0x0004 # 1.1 
+CRC_MULTIMODE = 0x0001  # 1.1
+CRC_AGGREGATE = 0x0002  # 1.1
+CRC_INVERT = 0x0004  # 1.1
 
 WTI_INTERFACE = 1
 IFC_WINTABID = 1
@@ -219,8 +226,8 @@ STA_MAX = 8
 
 WTI_DEFCONTEXT = 3
 WTI_DEFSYSCTX = 4
-WTI_DDCTXS = 400 # 1.1 
-WTI_DSCTXS = 500 # 1.1 
+WTI_DDCTXS = 400  # 1.1
+WTI_DSCTXS = 500  # 1.1
 CTX_NAME = 1
 CTX_OPTIONS = 2
 CTX_STATUS = 3
@@ -275,8 +282,8 @@ DVC_Z = 14
 DVC_NPRESSURE = 15
 DVC_TPRESSURE = 16
 DVC_ORIENTATION = 17
-DVC_ROTATION = 18 # 1.1 
-DVC_PNPID = 19 # 1.1 
+DVC_ROTATION = 18  # 1.1
+DVC_PNPID = 19  # 1.1
 DVC_MAX = 19
 
 WTI_CURSORS = 200
@@ -294,12 +301,12 @@ CSR_NPRESPONSE = 11
 CSR_TPBUTTON = 12
 CSR_TPBTNMARKS = 13
 CSR_TPRESPONSE = 14
-CSR_PHYSID = 15 # 1.1 
-CSR_MODE = 16 # 1.1 
-CSR_MINPKTDATA = 17 # 1.1 
-CSR_MINBUTTONS = 18 # 1.1 
-CSR_CAPABILITIES = 19 # 1.1 
-CSR_TYPE = 20 # 1.2 
+CSR_PHYSID = 15  # 1.1
+CSR_MODE = 16  # 1.1
+CSR_MINPKTDATA = 17  # 1.1
+CSR_MINBUTTONS = 18  # 1.1
+CSR_CAPABILITIES = 19  # 1.1
+CSR_TYPE = 20  # 1.2
 CSR_MAX = 20
 
 WTI_EXTENSIONS = 300
@@ -311,32 +318,32 @@ EXT_AXES = 5
 EXT_DEFAULT = 6
 EXT_DEFCONTEXT = 7
 EXT_DEFSYSCTX = 8
-EXT_CURSORS = 9 
-EXT_MAX = 109 # Allow 100 cursors 
+EXT_CURSORS = 9
+EXT_MAX = 109  # Allow 100 cursors
 CXO_SYSTEM = 0x0001
 CXO_PEN = 0x0002
 CXO_MESSAGES = 0x0004
 CXO_MARGIN = 0x8000
 CXO_MGNINSIDE = 0x4000
-CXO_CSRMESSAGES = 0x0008 # 1.1 
+CXO_CSRMESSAGES = 0x0008  # 1.1
 
-# context status values 
+# context status values
 CXS_DISABLED = 0x0001
 CXS_OBSCURED = 0x0002
 CXS_ONTOP = 0x0004
 
-# context lock values 
+# context lock values
 CXL_INSIZE = 0x0001
 CXL_INASPECT = 0x0002
 CXL_SENSITIVITY = 0x0004
 CXL_MARGIN = 0x0008
 CXL_SYSOUT = 0x0010
-# packet status values 
+# packet status values
 TPS_PROXIMITY = 0x0001
 TPS_QUEUE_ERR = 0x0002
 TPS_MARGIN = 0x0004
 TPS_GRAB = 0x0008
-TPS_INVERT = 0x0010 # 1.1 
+TPS_INVERT = 0x0010  # 1.1
 
 TBN_NONE = 0
 TBN_UP = 1
@@ -344,13 +351,13 @@ TBN_DOWN = 2
 PKEXT_ABSOLUTE = 1
 PKEXT_RELATIVE = 2
 
-# Extension tags. 
-WTX_OBT = 0	# Out of bounds tracking 
-WTX_FKEYS = 1	# Function keys 
-WTX_TILT = 2	# Raw Cartesian tilt; 1.1 
-WTX_CSRMASK = 3	# select input by cursor type; 1.1 
-WTX_XBTNMASK = 4	# Extended button mask; 1.1 
-WTX_EXPKEYS = 5	# ExpressKeys; 1.3 
+# Extension tags.
+WTX_OBT = 0  # Out of bounds tracking
+WTX_FKEYS = 1  # Function keys
+WTX_TILT = 2  # Raw Cartesian tilt; 1.1
+WTX_CSRMASK = 3  # select input by cursor type; 1.1
+WTX_XBTNMASK = 4  # Extended button mask; 1.1
+WTX_EXPKEYS = 5  # ExpressKeys; 1.3
 
 
 # Tablet releated class definitions
@@ -362,11 +369,13 @@ from pyglet.event import EventDispatcher
 from .. import Computer
 from ...constants import EventConstants
 
+
 def wtinfo(category, index, buffer):
     size = lib.WTInfoW(category, index, None)
     assert size <= ctypes.sizeof(buffer)
     lib.WTInfoW(category, index, ctypes.byref(buffer))
     return buffer
+
 
 def wtinfo_string(category, index):
     size = lib.WTInfoW(category, index, None)
@@ -374,25 +383,30 @@ def wtinfo_string(category, index):
     lib.WTInfoW(category, index, buffer)
     return buffer.value
 
+
 def wtinfo_uint(category, index):
     buffer = UINT()
     lib.WTInfoW(category, index, ctypes.byref(buffer))
     return buffer.value
+
 
 def wtinfo_word(category, index):
     buffer = WORD()
     lib.WTInfoW(category, index, ctypes.byref(buffer))
     return buffer.value
 
+
 def wtinfo_dword(category, index):
     buffer = DWORD()
     lib.WTInfoW(category, index, ctypes.byref(buffer))
     return buffer.value
 
+
 def wtinfo_wtpkt(category, index):
     buffer = WTPKT()
     lib.WTInfoW(category, index, ctypes.byref(buffer))
     return buffer.value
+
 
 def wtinfo_bool(category, index):
     buffer = BOOL()
@@ -411,13 +425,14 @@ class Win32WintabTablet(object):
     multiple windows.  If more than one tablet is connected, the behaviour is
     undefined.
     '''
+
     def __init__(self, index):
         self._device = WTI_DEVICES + index
         self.name = wtinfo_string(self._device, DVC_NAME).strip()
         self.id = wtinfo_string(self._device, DVC_PNPID)
         self.hardware_type = wtinfo_uint(self._device, DVC_HARDWARE)
 
-        self.hw_model_info=dict()
+        self.hw_model_info = dict()
         self.hw_model_info['name'] = self.name
         self.hw_model_info['id'] = self.id
         self.hw_model_info['type'] = self.hardware_type
@@ -428,21 +443,21 @@ class Win32WintabTablet(object):
         n_cursors = wtinfo_uint(self._device, DVC_NCSRTYPES)
         first_cursor = wtinfo_uint(self._device, DVC_FIRSTCSR)
 
-        self.hw_axis_info=dict()
+        self.hw_axis_info = dict()
 
-        self._x_axis = 	wtinfo(self._device, DVC_X, AXIS())
-        self._y_axis = 	wtinfo(self._device, DVC_Y, AXIS())
-        self._z_axis = 	wtinfo(self._device, DVC_Z, AXIS())
+        self._x_axis = wtinfo(self._device, DVC_X, AXIS())
+        self._y_axis = wtinfo(self._device, DVC_Y, AXIS())
+        self._z_axis = wtinfo(self._device, DVC_Z, AXIS())
 
         self.tip_pressure_axis = wtinfo(self._device, DVC_NPRESSURE,
-                                    AXIS())
-        #self.barrel_pressure_axis = wtinfo(self._device, DVC_TPRESSURE,
+                                        AXIS())
+        # self.barrel_pressure_axis = wtinfo(self._device, DVC_TPRESSURE,
         #                            AXIS())
 
         self.orient_axis = wtinfo(self._device, DVC_ORIENTATION,
-                                  (AXIS*3)())
+                                  (AXIS * 3)())
 
-        #self.rotation_axis = wtinfo(self._device, DVC_ROTATION,
+        # self.rotation_axis = wtinfo(self._device, DVC_ROTATION,
         #                          (AXIS*3)())
 
         self.hw_axis_info['x'] = struct2dict(self._x_axis)
@@ -451,7 +466,7 @@ class Win32WintabTablet(object):
         # seems that z axis min value is being reported as -1023,
         # but it is never < 0 in PACKET field, so setting z min to 0
         #print2err("z axis: ", self.hw_axis_info['z'])
-        self.hw_axis_info['z']['min']=0
+        self.hw_axis_info['z']['min'] = 0
 
         self.hw_axis_info['pressure'] = struct2dict(self.tip_pressure_axis)
         #self.hw_axis_info['barrel_pressure_axis'] = struct2dict(self.barrel_pressure_axis)
@@ -484,6 +499,7 @@ class Win32WintabTablet(object):
         pc = Win32WintabTabletCanvas(self, window)
         return pc
 
+
 class Win32WintabTabletCanvas(EventDispatcher):
     '''Event dispatcher for tablets.
 
@@ -499,7 +515,8 @@ class Win32WintabTabletCanvas(EventDispatcher):
         `window` : Window
             The window on which this tablet was opened.
     '''
-    iohub_wt_device=None
+    iohub_wt_device = None
+
     def __init__(self, device, window, msg_base=WT_DEFBASE):
         self.window = window
         #super(EventDispatcher, self).__init__()
@@ -522,10 +539,9 @@ class Win32WintabTabletCanvas(EventDispatcher):
         context_info.lcPktData = DEFAULT_PACKET_DATA_FIELDS
         context_info.lcPktMode = 0   # All absolute
 
-
         # set output scaling, right now, out == in
         # TODO: determine what coord space we want to output in.
-        context_info.lcOutOrgX = context_info.lcOutOrgY = 0;
+        context_info.lcOutOrgX = context_info.lcOutOrgY = 0
 
         # Set the entire tablet as active
         context_info.lcInOrgX = 0
@@ -538,9 +554,12 @@ class Win32WintabTabletCanvas(EventDispatcher):
         context_info.lcOutOrgX = context_info.lcInOrgX
         context_info.lcOutOrgY = context_info.lcInOrgY
         context_info.lcOutOrgZ = context_info.lcInOrgZ
-        context_info.lcOutExtX =  context_info.lcInExtX #INT(scale[0] * context_info.lcInExtX);
-        context_info.lcOutExtY =  context_info.lcInExtY #INT(scale[1] * context_info.lcInExtY);
-        context_info.lcOutExtZ =  context_info.lcInExtZ #INT(scale[1] * context_info.lcInExtY);
+        # INT(scale[0] * context_info.lcInExtX);
+        context_info.lcOutExtX = context_info.lcInExtX
+        # INT(scale[1] * context_info.lcInExtY);
+        context_info.lcOutExtY = context_info.lcInExtY
+        # INT(scale[1] * context_info.lcInExtY);
+        context_info.lcOutExtZ = context_info.lcInExtZ
 
         self._context = lib.WTOpenW(window._hwnd,
                                     ctypes.byref(context_info),
@@ -561,7 +580,7 @@ class Win32WintabTabletCanvas(EventDispatcher):
     def getContextInfo(self):
         return struct2dict(self.context_info)
 
-    def enable(self,enable=True):
+    def enable(self, enable=True):
         lib.WTEnable(self._context, enable)
 
     def close(self):
@@ -576,7 +595,10 @@ class Win32WintabTabletCanvas(EventDispatcher):
         if self._current_cursor:
             self.addHubEvent(None, EventConstants.WINTAB_TABLET_ENTER_REGION)
 
-    def addHubEvent(self,packet,evt_type=EventConstants.WINTAB_TABLET_SAMPLE):
+    def addHubEvent(
+            self,
+            packet,
+            evt_type=EventConstants.WINTAB_TABLET_SAMPLE):
         # TODO: Display (screen) index
         display_id = 0
         window_id = self.window._hwnd
@@ -586,42 +608,44 @@ class Win32WintabTabletCanvas(EventDispatcher):
             ccursor = 0
         else:
             ccursor = ccursor._cursor
-            
-        cevt=None
-        if packet == None or evt_type != EventConstants.WINTAB_TABLET_SAMPLE:
+
+        cevt = None
+        if packet is None or evt_type != EventConstants.WINTAB_TABLET_SAMPLE:
             cevt = [evt_type,
                     0,
                     0,
                     0,
                     0,
-                    0,                 #('x',N.int32),
-                    0,                 #('y',N.int32),
-                    0,                 #('z',N.int32),
-                    0,          #('pressure',N.uint32),
-                    0,         #('orient_azimuth',N.int32),
-                    0,        #('orient_altitude;',N.int32),
-                    0,           #('orient_twist',N.int32),
-                    0          #('status', N.uint8)
+                    0,  # ('x',N.int32),
+                    0,  # ('y',N.int32),
+                    0,  # ('z',N.int32),
+                    0,  # ('pressure',N.uint32),
+                    0,  # ('orient_azimuth',N.int32),
+                    0,  # ('orient_altitude;',N.int32),
+                    0,  # ('orient_twist',N.int32),
+                    0  # ('status', N.uint8)
                     ]
         else:
             cevt = [evt_type,
-                    packet.pkTime/1000.0,
+                    packet.pkTime / 1000.0,
                     packet.pkStatus,
                     packet.pkSerialNumber,
                     packet.pkButtons,
-                    packet.pkX,                 #('x',N.int32),
-                    packet.pkY,                 #('y',N.int32),
-                    packet.pkZ,                 #('z',N.int32),
+                    packet.pkX,  # ('x',N.int32),
+                    packet.pkY,  # ('y',N.int32),
+                    packet.pkZ,  # ('z',N.int32),
                     #(packet.pkNormalPressure + self._pressure_bias) * \
                     #            self._pressure_scale,
-                    packet.pkNormalPressure,          #('pressure',N.uint32),
-                    packet.pkOrientation.orAzimuth,         #('orient_azimuth',N.int32),
-                    packet.pkOrientation.orAltitude,        #('orient_altitude;',N.int32),
-                    packet.pkOrientation.orTwist,           #('orient_twist',N.int32),
-                    0          #('status', N.uint8)
+                    packet.pkNormalPressure,  # ('pressure',N.uint32),
+                    # ('orient_azimuth',N.int32),
+                    packet.pkOrientation.orAzimuth,
+                    # ('orient_altitude;',N.int32),
+                    packet.pkOrientation.orAltitude,
+                    packet.pkOrientation.orTwist,  # ('orient_twist',N.int32),
+                    0  # ('status', N.uint8)
                     ]
         self._iohub_events.append(cevt)
-        
+
     @pyglet.window.win32.Win32EventHandler(0)
     def _event_wt_packet(self, msg, wParam, lParam):
         if lParam != self._context:
@@ -636,7 +660,7 @@ class Win32WintabTabletCanvas(EventDispatcher):
 
         if self._current_cursor is None:
             self._set_current_cursor(packet.pkCursor)
-        
+
         self.addHubEvent(packet)
 
     @pyglet.window.win32.Win32EventHandler(0)
@@ -656,8 +680,8 @@ class Win32WintabTabletCanvas(EventDispatcher):
             self._current_cursor = None
 
 
-
 class Win32WintabTabletCursor(object):
+
     def __init__(self, device, index):
         self.device = device
         self._cursor = WTI_CURSORS + index
@@ -674,22 +698,26 @@ class Win32WintabTabletCursor(object):
             return
 
         self.id = (wtinfo_dword(self._cursor, CSR_TYPE) << 32) | \
-                  wtinfo_dword(self._cursor, CSR_PHYSID)
+            wtinfo_dword(self._cursor, CSR_PHYSID)
 
     def __repr__(self):
         return 'WintabCursor(%r)' % self.name
+
 
 def get_spec_version():
     spec_version = wtinfo_word(WTI_INTERFACE, IFC_SPECVERSION)
     return spec_version
 
+
 def get_interface_name():
     interface_name = wtinfo_string(WTI_INTERFACE, IFC_WINTABID)
     return interface_name
 
+
 def get_implementation_version():
     impl_version = wtinfo_word(WTI_INTERFACE, IFC_IMPLVERSION)
     return impl_version
+
 
 def get_tablets(display=None):
     # Require spec version 1.1 or greater

@@ -46,7 +46,8 @@ to inherit from them).
 
 from __future__ import absolute_import
 
-class BzrError(StandardError):
+
+class BzrError(Exception):
     """
     Base class for errors raised by bzrlib.
 
@@ -80,7 +81,7 @@ class BzrError(StandardError):
            not subject to expansion. 'msg' is used instead of 'message' because
            python evolved and, in 2.6, forbids the use of 'message'.
         """
-        StandardError.__init__(self)
+        Exception.__init__(self)
         if msg is not None:
             # I was going to deprecate this, but it actually turns out to be
             # quite handy - mbp 20061103.
@@ -103,8 +104,8 @@ class BzrError(StandardError):
                 # __str__() should always return a 'str' object
                 # never a 'unicode' object.
                 return s
-        except Exception, e:
-            pass # just bind to 'e' for formatting below
+        except Exception as e:
+            pass  # just bind to 'e' for formatting below
         else:
             e = None
         return 'Unprintable exception %s: dict=%r, fmt=%r, error=%r' \
@@ -143,12 +144,13 @@ class BzrError(StandardError):
             #from bzrlib.i18n import gettext
             def gettext(t):
                 return t
-            return gettext(unicode(fmt)) # _fmt strings should be ascii
+            return gettext(unicode(fmt))  # _fmt strings should be ascii
 
     def __eq__(self, other):
         if self.__class__ is not other.__class__:
             return NotImplemented
         return self.__dict__ == other.__dict__
+
 
 class InternalBzrError(BzrError):
     """Base class for errors that are internal in nature.
@@ -159,6 +161,7 @@ class InternalBzrError(BzrError):
     """
 
     internal_error = True
+
 
 class IllegalUseOfScopeReplacer(InternalBzrError):
 
@@ -235,7 +238,8 @@ class ScopeReplacer(object):
             scope = object.__getattribute__(self, '_scope')
             obj = factory(self, scope, name)
             if obj is self:
-                raise IllegalUseOfScopeReplacer(name, msg="Object tried"
+                raise IllegalUseOfScopeReplacer(
+                    name, msg="Object tried"
                     " to replace itself, check it's not using its own scope.")
 
             # Check if another thread has jumped in while obj was generated.
@@ -313,7 +317,7 @@ class ImportReplacer(ScopeReplacer):
         :param children: Children entries to be imported later.
             This should be a map of children specifications.
             ::
-            
+
                 {'foo':(['bzrlib', 'foo'], None,
                     {'bar':(['bzrlib', 'foo', 'bar'], None {})})
                 }
@@ -348,7 +352,12 @@ class ImportReplacer(ScopeReplacer):
         module_path = object.__getattribute__(self, '_module_path')
         module_python_path = '.'.join(module_path)
         if member is not None:
-            module = __import__(module_python_path, scope, scope, [member], level=0)
+            module = __import__(
+                module_python_path,
+                scope,
+                scope,
+                [member],
+                level=0)
             return getattr(module, member)
         else:
             module = __import__(module_python_path, scope, scope, [], level=0)
@@ -408,8 +417,8 @@ class ImportProcessor(object):
             elif line.startswith('from '):
                 self._convert_from_str(line)
             else:
-                raise InvalidImportLine(line,
-                    "doesn't start with 'import ' or 'from '")
+                raise InvalidImportLine(
+                    line, "doesn't start with 'import ' or 'from '")
 
     def _convert_import_str(self, import_str):
         """This converts a import string into an import map.

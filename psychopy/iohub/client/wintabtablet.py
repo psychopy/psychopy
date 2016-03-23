@@ -26,8 +26,9 @@ else:
     FRAC = lambda x: x & 0x0000ffff
     INT = lambda x: x >> 16
 
+
 def FIX_DOUBLE(x):
-    return INT(x) + FRAC(x)/65536.0
+    return INT(x) + FRAC(x) / 65536.0
 
 """
 TabletPen Device and Events Types
@@ -39,13 +40,15 @@ class PenSampleEvent(ioEvent):
     """
     Represents a tablet pen position / pressure event.
     """
-    STATES=dict()
-    # A sample that is the first sample following a time gap in the sample stream
+    STATES = dict()
+    # A sample that is the first sample following a time gap in the sample
+    # stream
     STATES[1] = 'FIRST_ENTER'
     # A sample that is the first sample with pressure == 0
     # following a sample with pressure > 0
     STATES[2] = 'FIRST_HOVER'
-    # A sample that has pressure == 0, and previous sample also had pressure  == 0
+    # A sample that has pressure == 0, and previous sample also had pressure
+    # == 0
     STATES[4] = 'HOVERING'
     # A sample that is the first sample with pressure > 0
     # following a sample with pressure == 0
@@ -55,25 +58,30 @@ class PenSampleEvent(ioEvent):
     STATES[16] = 'PRESSED'
 
     _attrib_index = dict()
-    _attrib_index['x'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('x')
-    _attrib_index['y'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('y')
-    _attrib_index['z'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('z')
-    _attrib_index['buttons'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('buttons')
+    _attrib_index[
+        'x'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('x')
+    _attrib_index[
+        'y'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('y')
+    _attrib_index[
+        'z'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('z')
+    _attrib_index[
+        'buttons'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('buttons')
     _attrib_index['pressure'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
         'pressure')
     _attrib_index['altitude'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
         'orient_altitude')
     _attrib_index['azimuth'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
         'orient_azimuth')
-    _attrib_index['status'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
-        'status')
+    _attrib_index[
+        'status'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('status')
+
     def __init__(self, ioe_array, device):
         super(PenSampleEvent, self).__init__(ioe_array, device)
         for efname, efvalue in PenSampleEvent._attrib_index.items():
-            if efvalue>=0:
-                setattr(self,'_'+efname,ioe_array[efvalue])
-        self._velocity=0.0
-        self._accelleration=0.0
+            if efvalue >= 0:
+                setattr(self, '_' + efname, ioe_array[efvalue])
+        self._velocity = 0.0
+        self._accelleration = 0.0
 
     @property
     def x(self):
@@ -85,12 +93,13 @@ class PenSampleEvent(ioEvent):
 
     def getPixPos(self, win):
         sw, sh = win.winHandle.width, win.winHandle.height
-        nx, ny = self._x/self.device.axis['x']['range'], self._y/self.device.axis['y']['range']
-        return int(nx*sw-sw/2), int(ny*sh-sh/2)
+        nx, ny = self._x / \
+            self.device.axis['x']['range'], self._y / self.device.axis['y']['range']
+        return int(nx * sw - sw / 2), int(ny * sh - sh / 2)
 
     def getNormPos(self):
-        return (-1.0+(self._x/ self.device.axis['x']['range'])*2.0,
-                -1.0+(self._y/ self.device.axis['y']['range'])*2.0)
+        return (-1.0 + (self._x / self.device.axis['x']['range']) * 2.0,
+                -1.0 + (self._y / self.device.axis['y']['range']) * 2.0)
 
     @property
     def z(self):
@@ -114,7 +123,7 @@ class PenSampleEvent(ioEvent):
 
     @property
     def status(self):
-        return [v for k, v in self.STATES.items() if self._status&k==k]
+        return [v for k, v in self.STATES.items() if self._status & k == k]
 
     @property
     def tilt(self):
@@ -131,18 +140,19 @@ class PenSampleEvent(ioEvent):
         value.
         '''
         axis = self.device.axis
-        if axis['orient_altitude']['supported'] and axis['orient_azimuth']['supported']:
+        if axis['orient_altitude']['supported'] and axis[
+                'orient_azimuth']['supported']:
             tilt1 = axis['orient_altitude']['adjust'] - \
-                    abs(self.altitude)/axis['orient_altitude']['factor']
+                abs(self.altitude) / axis['orient_altitude']['factor']
             # below line would normalize the altitude to approx. between 0 and 1.0
             #
             #tilt1 = (1.0 -(self.altitude/axis['orient_altitude']['axMax']))
 
             #/* adjust azimuth */
-            tilt2 = float(self.azimuth/axis['orient_azimuth']['factor'])
+            tilt2 = float(self.azimuth / axis['orient_azimuth']['factor'])
 
             return tilt1, tilt2
-        return 0,0
+        return 0, 0
 
     @property
     def velocity(self):
@@ -187,15 +197,19 @@ class PenEnterRegionEvent(ioEvent):
     """
     Occurs when Stylus enters the tablet region.
     """
+
     def __init__(self, ioe_array, device):
         super(PenEnterRegionEvent, self).__init__(ioe_array, device)
+
 
 class PenLeaveRegionEvent(ioEvent):
     """
     Occurs when Stylus leaves the tablet region.
     """
+
     def __init__(self, ioe_array, device):
         super(PenLeaveRegionEvent, self).__init__(ioe_array, device)
+
 
 class WintabTablet(ioHubDeviceView):
     """
@@ -207,18 +221,22 @@ class WintabTablet(ioHubDeviceView):
     _type2class = {SAMPLE: PenSampleEvent, ENTER: PenEnterRegionEvent,
                    LEAVE: PenLeaveRegionEvent}
     # TODO: name and class args should just be auto generated in init.
+
     def __init__(self, ioclient, device_class_name, device_config):
         super(WintabTablet, self).__init__(ioclient, device_class_name,
-                                       device_config)
+                                           device_config)
 
-        self._prev_sample=None
+        self._prev_sample = None
 
         self._events = dict()
         self._reporting = False
         self._device_config = device_config
         self._event_buffer_length = self._device_config.get(
             'event_buffer_length')
-        self._clearEventsRPC = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
+        self._clearEventsRPC = DeviceRPC(
+            self.hubClient._sendToHubServer,
+            self.device_class,
+            'clearEvents')
         self._context = {'Context': {'status': 'Device not Initialized'}}
         self._axis = {'Axis': {'status': 'Device not Initialized'}}
         self._hw_model = {'ModelInfo': {'status': 'Device not Initialized'}}
@@ -231,51 +249,62 @@ class WintabTablet(ioHubDeviceView):
 
             # Add extra axis info
             for axis in self._axis.values():
-                axis['range'] = axis['max']-axis['min']
+                axis['range'] = axis['max'] - axis['min']
                 axis['supported'] = axis['range'] != 0
-
 
             # Add tilt related calc constants to orient_azimuth
             # and orient_altitude axis
             #
-            if self._axis['orient_azimuth']['supported'] and self._axis['orient_altitude']['supported']:
+            if self._axis['orient_azimuth']['supported'] and self._axis[
+                    'orient_altitude']['supported']:
                 azimuth_axis = self._axis['orient_azimuth']
-                azimuth_axis['factor'] = FIX_DOUBLE(azimuth_axis['resolution'])/(2*math.pi)
+                azimuth_axis['factor'] = FIX_DOUBLE(
+                    azimuth_axis['resolution']) / (2 * math.pi)
 
                 altitude_axis = self._axis['orient_altitude']
                 # convert altitude resolution to double
-                altitude_axis['factor'] = FIX_DOUBLE(altitude_axis['resolution'])
+                altitude_axis['factor'] = FIX_DOUBLE(
+                    altitude_axis['resolution'])
                 # adjust for maximum value at vertical */
-                altitude_axis['adjust'] = altitude_axis['max']/altitude_axis['factor']
+                altitude_axis['adjust'] = altitude_axis[
+                    'max'] / altitude_axis['factor']
 
-    def _calculateVelAccel(self,s):
+    def _calculateVelAccel(self, s):
         curr_samp = self._type2class[self.SAMPLE](s, self)
         if 'FIRST_ENTER' in curr_samp.status:
-            self._prev_sample=None
+            self._prev_sample = None
         prev_samp = self._prev_sample
         if prev_samp:
             try:
-                dx=curr_samp.x-prev_samp.x
-                dy=curr_samp.y-prev_samp.y
-                dt=(curr_samp.time-prev_samp.time)
+                dx = curr_samp.x - prev_samp.x
+                dy = curr_samp.y - prev_samp.y
+                dt = (curr_samp.time - prev_samp.time)
                 if dt <= 0:
-                    print("Warning: dt == 0: {}, {}, {}".format(dt,curr_samp.time, prev_samp.time ))
+                    print(
+                        "Warning: dt == 0: {}, {}, {}".format(
+                            dt, curr_samp.time, prev_samp.time))
                     curr_samp.velocity = (0, 0, 0)
                     curr_samp.accelleration = (0, 0, 0)
                 else:
-                    cvx, cvy, cvxy = curr_samp.velocity = dx/dt, dy/dt, np.sqrt(dx*dx+dy*dy)/dt
+                    cvx, cvy, cvxy = curr_samp.velocity = dx / \
+                        dt, dy / dt, np.sqrt(dx * dx + dy * dy) / dt
 
                     pvx, pvy, pvxy = prev_samp.velocity
                     if prev_samp.velocity != (0, 0, 0):
-                        curr_samp.accelleration = (cvx-pvx)/dt, (cvy-pvy)/dt, np.sqrt((cvx-pvx)*(cvx-pvx)+(cvy-pvy)*(cvy-pvy))/dt
+                        curr_samp.accelleration = (cvx - pvx) / dt, (cvy - pvy) / dt, np.sqrt(
+                            (cvx - pvx) * (cvx - pvx) + (cvy - pvy) * (cvy - pvy)) / dt
                     else:
                         curr_samp.accelleration = (0, 0, 0)
-            except ZeroDivisionError, e:
-                print("ERROR: wintab._calculateVelAccel ZeroDivisionError occurred. prevId: %d, currentId: %d"%(curr_samp.id, prev_samp.id))
+            except ZeroDivisionError as e:
+                print(
+                    "ERROR: wintab._calculateVelAccel ZeroDivisionError occurred. prevId: %d, currentId: %d" %
+                    (curr_samp.id, prev_samp.id))
                 curr_samp.velocity = (0, 0, 0)
                 curr_samp.accelleration = (0, 0, 0)
-            except Exception, e:
-                print("ERROR: wintab._calculateVelAccel error [%s] occurred. prevId: %d, currentId: %d"%(str(e), curr_samp.id, prev_samp.id))
+            except Exception as e:
+                print(
+                    "ERROR: wintab._calculateVelAccel error [%s] occurred. prevId: %d, currentId: %d" %
+                    (str(e), curr_samp.id, prev_samp.id))
                 curr_samp.velocity = (0, 0, 0)
                 curr_samp.accelleration = (0, 0, 0)
         else:
@@ -295,13 +324,15 @@ class WintabTablet(ioHubDeviceView):
         self._reporting = kb_state.get('reporting_events')
 
         for etype, event_arrays in kb_state.get('events').items():
-            et_queue = self._events.setdefault(etype, deque(maxlen=self._event_buffer_length))
+            et_queue = self._events.setdefault(
+                etype, deque(maxlen=self._event_buffer_length))
 
             if etype == self.SAMPLE:
                 for s in event_arrays:
                     et_queue.append(self._calculateVelAccel(s))
             else:
-                et_queue.extend([self._type2class[etype](e, self) for e in event_arrays])
+                et_queue.extend([self._type2class[etype](e, self)
+                                 for e in event_arrays])
 
     @property
     def reporting(self):
@@ -325,14 +356,13 @@ class WintabTablet(ioHubDeviceView):
         """
         return self._reporting
 
-
     @reporting.setter
     def reporting(self, r):
         """
         Sets the state of keyboard event reporting / recording.
         """
         if r is True:
-            self._prev_sample=None
+            self._prev_sample = None
         self._reporting = self.enableEventReporting(r)
         return self._reporting
 
@@ -349,7 +379,8 @@ class WintabTablet(ioHubDeviceView):
         return self._hw_model
 
     def clearEvents(self, event_type=None, filter_id=None):
-        result = self._clearEventsRPC(event_type=event_type,filter_id=filter_id)
+        result = self._clearEventsRPC(
+            event_type=event_type, filter_id=filter_id)
         for etype, elist in self._events.items():
             if event_type is None or event_type == etype:
                 elist.clear()
@@ -394,23 +425,25 @@ class WintabTablet(ioHubDeviceView):
         return sorted(return_events, key=lambda x: x.time)
 
 #
-## iohub wintab util objects / functions for stylus,
-## position traces, and validation process psychopy graphics.
+# iohub wintab util objects / functions for stylus,
+# position traces, and validation process psychopy graphics.
 #
 try:
     from psychopy import visual, core
     from psychopy.visual.basevisual import MinimalStim
+
     class PenPositionStim(MinimalStim):
         """
         Draws the current pen x,y position with graphics that represent
         the pressure, z axis, and tilt data for the wintab sample used.
         """
+
         def __init__(self, win, name=None, autoLog=None, depth=-10000):
             self.win = win
             self.depth = depth
-            super(PenPositionStim, self).__init__(name,autoLog)
+            super(PenPositionStim, self).__init__(name, autoLog)
 
-            ### Pen Hovering Related
+            # Pen Hovering Related
 
             # opaticy is changed based on pen's z axis value, if z axis data
             # is available.
@@ -423,7 +456,7 @@ try:
             # position dot when z val > 0.
             self.hover_color = 'red'
 
-            ### Pen Pressure Related
+            # Pen Pressure Related
 
             # Smallest radius (in norm units) that the pen position gaussian blob
             # will have, which occurs when pen pressure value is 0
@@ -435,24 +468,33 @@ try:
             # Color of pen position blob when pressure > 0.
             self.touching_color = 'green'
 
-            ### Pen tilt Related
+            # Pen tilt Related
 
             # Color of line graphic used to represent the pens tilt relative to the
             # digitizer surface.
-            self.tiltline_color = (1,1,0)
+            self.tiltline_color = (1, 1, 0)
 
             # Create a Gausian blob stim to use for pen position graphic
-            self.pen_guass = visual.PatchStim(win, units='norm', tex="none",
-                                       mask="gauss", pos=(0,0),
-                                       size=(self.min_size, self.min_size),
-                                       color=self.hover_color,
-                                       autoLog=False, opacity = 0.0)
+            self.pen_guass = visual.PatchStim(
+                win,
+                units='norm',
+                tex="none",
+                mask="gauss",
+                pos=(
+                    0,
+                    0),
+                size=(
+                    self.min_size,
+                    self.min_size),
+                color=self.hover_color,
+                autoLog=False,
+                opacity=0.0)
 
             # Create a line stim to use for pen position graphic
-            self.pen_tilt_line = visual.Line(win, units='norm', start=[0,0],
-                                    end=[0.5,0.5],
-                                    lineColor=self.tiltline_color,
-                                    opacity = 0.0)
+            self.pen_tilt_line = visual.Line(win, units='norm', start=[0, 0],
+                                             end=[0.5, 0.5],
+                                             lineColor=self.tiltline_color,
+                                             opacity=0.0)
 
         def updateFromEvent(self, evt):
             """
@@ -466,16 +508,17 @@ try:
             # the last tablet event's data
             if evt.pressure > 0:
                 # pen is touching tablet surface
-                self.pen_guass.color=self.touching_color
+                self.pen_guass.color = self.touching_color
             else:
                 # pen is hovering just above tablet surface
-                self.pen_guass.color=self.hover_color
+                self.pen_guass.color = self.hover_color
 
             if evt.device.axis['pressure']['supported']:
-                # change size of pen position blob based on samples pressure value
+                # change size of pen position blob based on samples pressure
+                # value
                 self.pen_guass.size = self.min_size + \
-                       (evt.pressure/evt.device.axis['pressure']['range']) * \
-                       self.size_range
+                    (evt.pressure / evt.device.axis['pressure']['range']) * \
+                    self.size_range
 
             # set the position of the gauss blob to be the pen x,y value converted
             # to norm screen coords.
@@ -484,8 +527,9 @@ try:
             # if supported, update all graphics opacity based on the samples z value
             # otherwise opacity is always 1.0
             if evt.device.axis['z']['supported']:
-                z = evt.device.axis['z']['range']-evt.z
-                sopacity = self.min_opacity + (z/evt.device.axis['z']['range'])*(1.0-self.min_opacity)
+                z = evt.device.axis['z']['range'] - evt.z
+                sopacity = self.min_opacity + \
+                    (z / evt.device.axis['z']['range']) * (1.0 - self.min_opacity)
                 self.pen_guass.opacity = self.pen_tilt_line.opacity = sopacity
             else:
                 self.pen_guass.opacity = self.pen_tilt_line.opacity = 1.0
@@ -499,11 +543,10 @@ try:
             t1, t2 = evt.tilt
             pen_tilt_xy = 0, 0
             if t1 != t2 != 0:
-                pen_tilt_xy = t1*math.sin(t2), t1*math.cos(t2)
+                pen_tilt_xy = t1 * math.sin(t2), t1 * math.cos(t2)
 
-            self.pen_tilt_line.end = self.pen_guass.pos[0]+pen_tilt_xy[0],\
-                            self.pen_guass.pos[1]+pen_tilt_xy[1]
-
+            self.pen_tilt_line.end = self.pen_guass.pos[0] + pen_tilt_xy[0],\
+                self.pen_guass.pos[1] + pen_tilt_xy[1]
 
         def draw(self):
             """
@@ -526,7 +569,6 @@ try:
         def __del__(self):
             self.win = None
 
-
     class PenTracesStim(MinimalStim):
         """
         Graphics representing where the pen has been moved on the digitizer
@@ -537,21 +579,28 @@ try:
         performance, a single pen trace can have max_trace_len points before
         a new ShapeStim is created and made the 'current' pen trace'.
         """
-        def __init__(self, win,  maxlen = 256, name=None, autoLog=None, depth=-1000):
-            self.depth=depth
+
+        def __init__(
+                self,
+                win,
+                maxlen=256,
+                name=None,
+                autoLog=None,
+                depth=-1000):
+            self.depth = depth
             self.win = win
-            super(PenTracesStim, self).__init__(name,autoLog)
+            super(PenTracesStim, self).__init__(name, autoLog)
             # A single pen trace can have at most max_trace_len points.
             self.max_trace_len = maxlen
             # The list of ShapeStim representing pen traces
             self.pentracestim = []
-            # The ShapeStim state new / upcoming position points will be added to.
+            # The ShapeStim state new / upcoming position points will be added
+            # to.
             self.current_pentrace = None
             # A list representation of the current_pentrace.vertices
-            self.current_points=[]
+            self.current_points = []
             # The last pen position added to a pen trace.
-            self.last_pos = [0,0]
-
+            self.last_pos = [0, 0]
 
         @property
         def traces(self):
@@ -571,14 +620,14 @@ try:
             for pevt in sample_events:
                 if 'FIRST_ENTER' in pevt.status:
                     self.end()
-                if pevt.pressure>0:
+                if pevt.pressure > 0:
                     lpx, lpy = self.last_pos
-                    px,py = pevt.getPixPos(self.win)
+                    px, py = pevt.getPixPos(self.win)
                     if lpx != px or lpy != py:
                         if len(self.current_points) >= self.max_trace_len:
                             self.end()
                             self.append((lpx, lpy))
-                        self.last_pos = (px,py)
+                        self.last_pos = (px, py)
                         self.append(self.last_pos)
                 else:
                     self.end()
@@ -603,18 +652,18 @@ try:
             self.end()
             self.current_points.append(first_point)
             self.current_pentrace = visual.ShapeStim(
-                                            self.win,
-                                            units='pix',
-                                            lineWidth=2,
-                                            lineColor=(-1, -1, -1),
-                                            lineColorSpace='rgb',
-                                            vertices=self.current_points,
-                                            closeShape=False,
-                                            pos=(0, 0),
-                                            size=1,
-                                            ori=0.0,
-                                            opacity=1.0,
-                                            interpolate=True)
+                self.win,
+                units='pix',
+                lineWidth=2,
+                lineColor=(-1, -1, -1),
+                lineColorSpace='rgb',
+                vertices=self.current_points,
+                closeShape=False,
+                pos=(0, 0),
+                size=1,
+                ori=0.0,
+                opacity=1.0,
+                interpolate=True)
             self.pentracestim.append(self.current_pentrace)
 
         def end(self):
@@ -625,8 +674,8 @@ try:
             :return: None
             """
             self.current_pentrace = None
-            self.current_points=[]
-            self.last_pos = [0,0]
+            self.current_points = []
+            self.last_pos = [0, 0]
 
         def append(self, pos):
             """
@@ -651,7 +700,7 @@ try:
             :return:
             """
             self.end()
-            #for pts in self.pentracestim:
+            # for pts in self.pentracestim:
             #    pts.vertices = [(0,0)]
             del self.pentracestim[:]
 
@@ -660,15 +709,25 @@ try:
             self.win = None
 
     #
-    ## Pen position validation process code
+    # Pen position validation process code
     #
 
     class ScreenPositionValidation(object):
         NUM_VALID_SAMPLES_PER_TARG = 100
-        TARGET_TIMEOUT=10.0
-        def __init__(self, win, io, target_stim = None, pos_grid = None,
-                     display_pen_pos = True, force_quit=True, intro_title=None,
-                     intro_text1=None, intro_text2=None, intro_target_pos=None):
+        TARGET_TIMEOUT = 10.0
+
+        def __init__(
+                self,
+                win,
+                io,
+                target_stim=None,
+                pos_grid=None,
+                display_pen_pos=True,
+                force_quit=True,
+                intro_title=None,
+                intro_text1=None,
+                intro_text2=None,
+                intro_target_pos=None):
             """
             ScreenPositionValidation is used to perform a pen position accuracy
             test for an iohub wintab device.
@@ -690,7 +749,7 @@ try:
 
             self.win = win
             self.io = io
-            self._lastPenSample=None
+            self._lastPenSample = None
             self._targetStim = target_stim
             self._positionGrid = pos_grid
             self._forceQuit = force_quit
@@ -701,9 +760,9 @@ try:
 
             # Title Text
             title_stim = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, .9),
-                                                        height = 0.1,
-                                                text="Pen Position Validation")
+                                         pos=(0, .9),
+                                         height=0.1,
+                                         text="Pen Position Validation")
             if isinstance(intro_title, basestring):
                 title_stim.setText(intro_title)
             elif isinstance(intro_title, visual.TextStim):
@@ -712,22 +771,22 @@ try:
 
             # Intro Text part 1
             text1_stim = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, .65),
-                                                        height = 0.05,
-                                                text="On the following screen, "
-                                                     "press the pen on the target "
-                                                     "graphic when it appears, "
-                                                     "as accurately as "
-                                                     "possible, until the target "
-                                                     "moves to a different "
-                                                     "location. Then press at the "
-                                                     "next target location. "
-                                                     "Hold the stylus in exactly "
-                                                     "the same way as you would "
-                                                     "hold a pen for normal "
-                                                     "handwriting.",
-                                                wrapWidth=1.25
-                                                )
+                                         pos=(0, .65),
+                                         height=0.05,
+                                         text="On the following screen, "
+                                         "press the pen on the target "
+                                         "graphic when it appears, "
+                                         "as accurately as "
+                                         "possible, until the target "
+                                         "moves to a different "
+                                         "location. Then press at the "
+                                         "next target location. "
+                                         "Hold the stylus in exactly "
+                                         "the same way as you would "
+                                         "hold a pen for normal "
+                                         "handwriting.",
+                                         wrapWidth=1.25
+                                         )
 
             if isinstance(intro_text1, basestring):
                 text1_stim.setText(intro_text1)
@@ -737,13 +796,13 @@ try:
 
             # Intro Text part 2
             text2_stim = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, -0.2),
-                                                        height = 0.066,
-                                                        color = 'green',
-                                                text="Press the pen on the above "
-                                                     "target to start the "
-                                                     "validation, or the ESC key "
-                                                     "to skip the procedure.")
+                                         pos=(0, -0.2),
+                                         height=0.066,
+                                         color='green',
+                                         text="Press the pen on the above "
+                                         "target to start the "
+                                         "validation, or the ESC key "
+                                         "to skip the procedure.")
             if isinstance(intro_text2, basestring):
                 text2_stim.setText(intro_text2)
             elif isinstance(intro_text2, visual.TextStim):
@@ -754,26 +813,26 @@ try:
             if self._displayPenPosition:
                 # Validation Screen Graphics
                 self._penStim = visual.Circle(self.win,
-                                    radius=4,
-                                    fillColor=[255,0,0],
-                                    lineColor=[255,0,0],
-                                    lineWidth=0,
-                                    edges=8,#int(np.pi*radius),
-                                    units='pix',
-                                    lineColorSpace='rgb255',
-                                    fillColorSpace='rgb255',
-                                    opacity=0.9,
-                                    contrast=1,
-                                    interpolate=True,
-                                    autoLog=False)
+                                              radius=4,
+                                              fillColor=[255, 0, 0],
+                                              lineColor=[255, 0, 0],
+                                              lineWidth=0,
+                                              edges=8,  # int(np.pi*radius),
+                                              units='pix',
+                                              lineColorSpace='rgb255',
+                                              fillColorSpace='rgb255',
+                                              opacity=0.9,
+                                              contrast=1,
+                                              interpolate=True,
+                                              autoLog=False)
 
             if self._targetStim is None:
                 self._targetStim = TargetStim(win,
                                               radius=16,
-                                              fillcolor=[64,64,64],
-                                              edgecolor=[192,192,192],
+                                              fillcolor=[64, 64, 64],
+                                              edgecolor=[192, 192, 192],
                                               edgewidth=1,
-                                              dotcolor=[255,255,255],
+                                              dotcolor=[255, 255, 255],
                                               dotradius=3,
                                               units='pix',
                                               colorspace='rgb255',
@@ -786,35 +845,31 @@ try:
             intro_graphics['target'] = self._targetStim
 
             if self._positionGrid is None:
-                self._positionGrid = PositionGrid(winSize=win.monitor.getSizePix(),
-                                                  shape=[3,3],
-                                                  scale=0.9,
-                                                  posList=None,
-                                                  noiseStd=None,
-                                                  firstposindex=0,
-                                                  repeatfirstpos=True)
+                self._positionGrid = PositionGrid(
+                    winSize=win.monitor.getSizePix(),
+                    shape=[
+                        3,
+                        3],
+                    scale=0.9,
+                    posList=None,
+                    noiseStd=None,
+                    firstposindex=0,
+                    repeatfirstpos=True)
 
             # IntroScreen Graphics
             finished_graphics = self._finsihedScreenGraphics = OrderedDict()
 
-            finished_graphics['title'] = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, .9),
-                                                        height = 0.1,
-                                                text="Validation Complete")
-            finished_graphics['result_status'] = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, .7),
-                                                        height = 0.07,
-                                                        color = 'blue',
-                                                text="Result: {}")
-            finished_graphics['result_stats'] = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, .6),
-                                                        height = 0.05,
-                                                text="{}/{} Points Validated. Min, Max, Mean Errors: {}, {}, {}")
-            finished_graphics['exit_text'] = visual.TextStim(self.win, units='norm',
-                                                        pos=(0, .5),
-                                                        height = 0.05,
-                                                text="Press any key to continue...")
-
+            finished_graphics['title'] = visual.TextStim(
+                self.win, units='norm', pos=(
+                    0, .9), height=0.1, text="Validation Complete")
+            finished_graphics['result_status'] = visual.TextStim(
+                self.win, units='norm', pos=(
+                    0, .7), height=0.07, color='blue', text="Result: {}")
+            finished_graphics['result_stats'] = visual.TextStim(self.win, units='norm', pos=(
+                0, .6), height=0.05, text="{}/{} Points Validated. Min, Max, Mean Errors: {}, {}, {}")
+            finished_graphics['exit_text'] = visual.TextStim(
+                self.win, units='norm', pos=(
+                    0, .5), height=0.05, text="Press any key to continue...")
 
         @property
         def targetStim(self):
@@ -848,16 +903,16 @@ try:
                 if samples:
                     self._drawPenStim(samples[-1])
                     spos = samples[-1].getPixPos(self.win)
-                    if samples[-1].pressure>0 and \
+                    if samples[-1].pressure > 0 and \
                             self._introScreenGraphics['target'].contains(spos):
-                        if hitcount>10:
-                            exit_screen=True
-                        hitcount=hitcount+1
+                        if hitcount > 10:
+                            exit_screen = True
+                        hitcount = hitcount + 1
                     else:
-                        hitcount=0
+                        hitcount = 0
                 self.win.flip()
                 if 'escape' in kb.getPresses():
-                    exit_screen=True
+                    exit_screen = True
                     pen.reporting = False
                     return False
 
@@ -865,9 +920,9 @@ try:
             return True
 
         def _enterValidationSequence(self):
-            val_results=dict(target_data=dict(), avg_err=0, min_err=1000,
-                             max_err=-1000, status='PASSED', point_count=0,
-                             ok_point_count=0)
+            val_results = dict(target_data=dict(), avg_err=0, min_err=1000,
+                               max_err=-1000, status='PASSED', point_count=0,
+                               ok_point_count=0)
 
             self._lastPenSample = None
 
@@ -886,22 +941,21 @@ try:
 
                 val_sample_list = []
 
-                while len(val_sample_list)<self.NUM_VALID_SAMPLES_PER_TARG:
-                    if core.getTime()-targ_onset_time>self.TARGET_TIMEOUT:
+                while len(val_sample_list) < self.NUM_VALID_SAMPLES_PER_TARG:
+                    if core.getTime() - targ_onset_time > self.TARGET_TIMEOUT:
                         break
                     self._targetStim.draw()
 
                     samples = pen.getSamples()
                     for s in samples:
                         spos = s.getPixPos(self.win)
-                        if s.pressure>0 and self.targetStim.contains(spos):
-                            dx=math.fabs(tp[0]-spos[0])
-                            dy=math.fabs(tp[1]-spos[1])
-                            perr=math.sqrt(dx*dx+dy*dy)
-                            val_sample_list.append((spos[0],spos[1],perr))
+                        if s.pressure > 0 and self.targetStim.contains(spos):
+                            dx = math.fabs(tp[0] - spos[0])
+                            dy = math.fabs(tp[1] - spos[1])
+                            perr = math.sqrt(dx * dx + dy * dy)
+                            val_sample_list.append((spos[0], spos[1], perr))
                         else:
-                            val_sample_list=[]
-
+                            val_sample_list = []
 
                     if samples:
                         self._drawPenStim(samples[-1])
@@ -910,36 +964,40 @@ try:
                         self._drawPenStim(self._lastPenSample)
                     self.win.flip()
 
-
                 tp = int(tp[0]), int(tp[1])
-                val_results['target_data'][tp]=None
-                val_results['point_count']=val_results['point_count']+1
+                val_results['target_data'][tp] = None
+                val_results['point_count'] = val_results['point_count'] + 1
 
                 if val_sample_list:
                     pos_acc_array = np.asarray(val_sample_list)
-                    serr_array = pos_acc_array[:,2]
+                    serr_array = pos_acc_array[:, 2]
 
                     targ_err_stats = val_results['target_data'][tp] = dict()
-                    targ_err_stats['samples']=pos_acc_array
-                    targ_err_stats['count']=len(val_sample_list)
-                    targ_err_stats['min']=serr_array.min()
-                    targ_err_stats['max']=serr_array.max()
-                    targ_err_stats['mean']=serr_array.mean()
-                    targ_err_stats['median']=np.median(serr_array)
-                    targ_err_stats['stdev']=serr_array.std()
+                    targ_err_stats['samples'] = pos_acc_array
+                    targ_err_stats['count'] = len(val_sample_list)
+                    targ_err_stats['min'] = serr_array.min()
+                    targ_err_stats['max'] = serr_array.max()
+                    targ_err_stats['mean'] = serr_array.mean()
+                    targ_err_stats['median'] = np.median(serr_array)
+                    targ_err_stats['stdev'] = serr_array.std()
 
-                    val_results['min_err']=min(val_results['min_err'], targ_err_stats['min'])
-                    val_results['max_err']=max(val_results['max_err'], targ_err_stats['max'])
+                    val_results['min_err'] = min(
+                        val_results['min_err'], targ_err_stats['min'])
+                    val_results['max_err'] = max(
+                        val_results['max_err'], targ_err_stats['max'])
 
-                    val_results['avg_err']=val_results['avg_err']+targ_err_stats['mean']
-                    val_results['ok_point_count']=val_results['ok_point_count']+1
+                    val_results['avg_err'] = val_results[
+                        'avg_err'] + targ_err_stats['mean']
+                    val_results['ok_point_count'] = val_results[
+                        'ok_point_count'] + 1
                 else:
-                    val_results['status']='FAILED'
+                    val_results['status'] = 'FAILED'
 
                 self._lastPenSample = None
 
-            if val_results['ok_point_count']>0:
-                val_results['avg_err']=val_results['avg_err']/val_results['ok_point_count']
+            if val_results['ok_point_count'] > 0:
+                val_results['avg_err'] = val_results[
+                    'avg_err'] / val_results['ok_point_count']
 
             pen.reporting = False
 
@@ -954,19 +1012,17 @@ try:
             max_err = results['max_err']
             avg_err = results['avg_err']
             point_count = results["point_count"]
-            self._finsihedScreenGraphics['result_status'].setText("Result: {}".format(status))
+            self._finsihedScreenGraphics['result_status'].setText(
+                "Result: {}".format(status))
 
-            self._finsihedScreenGraphics['result_stats'].setText("%d/%d "
-                                                                 "Points Validated."
-                                                                 "Min, Max, Mean "
-                                                                 "Errors: "
-                                                                 "%.3f, %.3f, %.3f"
-                                                                 ""%(
-                                                                    ok_point_count,
-                                                                    point_count,
-                                                                    min_err,
-                                                                    max_err,
-                                                                    avg_err))
+            self._finsihedScreenGraphics['result_stats'].setText(
+                "%d/%d "
+                "Points Validated."
+                "Min, Max, Mean "
+                "Errors: "
+                "%.3f, %.3f, %.3f"
+                "" %
+                (ok_point_count, point_count, min_err, max_err, avg_err))
             for ig in self._finsihedScreenGraphics.values():
                 ig.draw()
             self.win.flip()
@@ -977,18 +1033,17 @@ try:
                     ig.draw()
                 self.win.flip()
 
-
         def _drawPenStim(self, s):
             if self._displayPenPosition:
                 spos = s.getPixPos(self.win)
                 if spos:
                     self._penStim.setPos(spos)
                     if s.pressure == 0:
-                        self._penStim.setFillColor([255,0,0])
-                        self._penStim.setLineColor([255,0,0])
+                        self._penStim.setFillColor([255, 0, 0])
+                        self._penStim.setLineColor([255, 0, 0])
                     else:
-                        self._penStim.setFillColor([0,0,255])
-                        self._penStim.setLineColor([0,0,255])
+                        self._penStim.setFillColor([0, 0, 255])
+                        self._penStim.setLineColor([0, 0, 255])
 
                     self._penStim.draw()
 
@@ -1008,7 +1063,7 @@ try:
 
             # delay about 0.5 sec before staring validation
             ftime = self.win.flip()
-            while core.getTime()-ftime < 0.5:
+            while core.getTime() - ftime < 0.5:
                 self.win.flip()
                 self.io.clearEvents()
 
@@ -1016,7 +1071,7 @@ try:
 
             # delay about 0.5 sec before showing validation end screen
             ftime = self.win.flip()
-            while core.getTime()-ftime < 0.5:
+            while core.getTime() - ftime < 0.5:
                 self.win.flip()
                 self.io.clearEvents()
 
@@ -1028,7 +1083,7 @@ try:
 
             # returning None indicates to experiment that the vaidation process
             # was terminated by the user
-            #return None
+            # return None
 
         def free(self):
             self.win = None

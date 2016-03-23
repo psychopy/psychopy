@@ -74,14 +74,14 @@ QZ_DOWN = 0x7D
 QZ_RIGHT = 0x7C
 QZ_KP0 = 0x52
 QZ_KP_PERIOD = 0x41
-QZ_F1=145 #Keycode on Apple wireless kb
-QZ_F2=144 #Keycode on Apple wireless kb
-QZ_F3=160 #Keycode on Apple wireless kb
-QZ_F4=131 #Keycode on Apple wireless kb
+QZ_F1 = 145  # Keycode on Apple wireless kb
+QZ_F2 = 144  # Keycode on Apple wireless kb
+QZ_F3 = 160  # Keycode on Apple wireless kb
+QZ_F4 = 131  # Keycode on Apple wireless kb
 
-code2label={}
-for k,v in locals().items():
+code2label = {}
+for k, v in locals().items():
     if k.startswith('QZ_'):
-        klabel = u''+k[3:].lower()
+        klabel = u'' + k[3:].lower()
         code2label[klabel] = v
         code2label[v] = klabel

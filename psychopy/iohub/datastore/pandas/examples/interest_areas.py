@@ -1,37 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Demonstrates using Interest Areas to filter events by spatial locations. 
+Demonstrates using Interest Areas to filter events by spatial locations.
 
 NOTE: The use of Interest Areas within the datastore.panda module requires
 that the python module called 'shapely' is installed on your python env.
-s 
+s
 @author: Sol
 """
 from psychopy.iohub.datastore.pandas import ioHubPandasDataView
-from psychopy.iohub.datastore.pandas.interestarea import Circle,Ellipse,Rectangle
+from psychopy.iohub.datastore.pandas.interestarea import Circle, Ellipse, Rectangle
 
 
-exp_data=ioHubPandasDataView('io_stroop.hdf5')
+exp_data = ioHubPandasDataView('io_stroop.hdf5')
 
 print 'Available Event Tables:'
 print
 print exp_data.event_table_info
 print
 
-print 'MOUSE_MOVE events:',exp_data.MOUSE_MOVE.shape
+print 'MOUSE_MOVE events:', exp_data.MOUSE_MOVE.shape
 print exp_data.MOUSE_MOVE
 print
 
 print 'Creating Interest Areas....'
-print 
+print
 
 # create some InterestAreas. Positions are in pixels in the data file,
 # so represent interest areas in the pixel coord space as well.
 #
-circle = Circle('Circle IA',[0,0],400)
-rect=Rectangle('Rect IA',-200,200,200,-200)
-ellipse=Ellipse('Ellipse IA',[300,300],100,200,45)
-spot=Circle('Spot IA',[300,300],10)
+circle = Circle('Circle IA', [0, 0], 400)
+rect = Rectangle('Rect IA', -200, 200, 200, -200)
+ellipse = Ellipse('Ellipse IA', [300, 300], 100, 200, 45)
+spot = Circle('Spot IA', [300, 300], 10)
 
 print 'Filtering MOUSE MOVE events by each IP created.'
 print

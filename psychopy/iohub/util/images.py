@@ -6690,4 +6690,3 @@ customcontrol = PyEmbeddedImage(
     "MX3bKEOBCKjmgI47XoIXgFIUBX/3bp3////2P/QGWsxIJsvdP+sAAAAASUVORK5CYII=")
 index.append('customcontrol')
 catalog['customcontrol'] = customcontrol
-

@@ -29,14 +29,15 @@ else:
         from ctypes import byref, c_long, CDLL, Structure
         libc = CDLL("libc.so.6")
         CLOCK_MONOTONIC = 1
+
         class Timespec(Structure):
             _fields_ = [("tv_sec", c_long),
                         ("tv_nsec", c_long)]
         _ctime = Timespec()
 
         def _getTime():
-            libc.clock_gettime( CLOCK_MONOTONIC, byref(_ctime))
-            return _ctime.tv_sec+_ctime.tv_nsec / 1000000000.0
+            libc.clock_gettime(CLOCK_MONOTONIC, byref(_ctime))
+            return _ctime.tv_sec + _ctime.tv_nsec / 1000000000.0
     else:
         curPyver = sys.version_info
         if curPyver[0] == 2 and curPyver[1] <= 6:
@@ -45,7 +46,6 @@ else:
         else:
             import timeit
             _getTime = timeit.default_timer
-
 
     class MonotonicClock(object):
         """A convenient class to keep track of time in your experiments using a
@@ -73,6 +73,7 @@ else:
             return self._timeAtLastReset
 
     monotonicClock = MonotonicClock()
+
 
 def getTime():
     return monotonicClock.getTime()

@@ -9,8 +9,15 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson + contributors
 """
 #from ioHub import addDirectoryToPythonPath
-#addDirectoryToPythonPath('devices/eyetracker/hw/smi/iviewx','bin')
+# addDirectoryToPythonPath('devices/eyetracker/hw/smi/iviewx','bin')
 
-from eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
-                        FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
-                        SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)
+from eyetracker import (
+    EyeTracker,
+    MonocularEyeSampleEvent,
+    BinocularEyeSampleEvent,
+    FixationStartEvent,
+    FixationEndEvent,
+    SaccadeStartEvent,
+    SaccadeEndEvent,
+    BlinkStartEvent,
+    BlinkEndEvent)

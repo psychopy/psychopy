@@ -23,18 +23,27 @@ getTime = core.getTime
 #
 # ScreenState Class------------------------------------------------------------
 #
+
+
 class ScreenState(object):
     _currentState = None
     experimentRuntime = None
     window = None
 
-    def __init__(self,experimentRuntime=None, eventTriggers=None, timeout=None,
-                 background_color=(255, 255, 255)):
+    def __init__(
+        self,
+        experimentRuntime=None,
+        eventTriggers=None,
+        timeout=None,
+        background_color=(
+            255,
+            255,
+            255)):
         if ScreenState.experimentRuntime is None:
-            ScreenState.experimentRuntime=weakref.ref(experimentRuntime)
-            ScreenState.window=weakref.ref(experimentRuntime.window)
+            ScreenState.experimentRuntime = weakref.ref(experimentRuntime)
+            ScreenState.window = weakref.ref(experimentRuntime.window)
 
-        w, h=self.experimentRuntime().devices.display.getPixelResolution()
+        w, h = self.experimentRuntime().devices.display.getPixelResolution()
         self._screen_background_fill = visual.Rect(self.window(), w, h,
                                                    lineColor=background_color,
                                                    lineColorSpace='rgb255',
@@ -48,7 +57,7 @@ class ScreenState(object):
         self.stimNames = []
 
         if isinstance(eventTriggers, Trigger):
-            eventTriggers=[eventTriggers, ]
+            eventTriggers = [eventTriggers, ]
         elif eventTriggers is None:
             eventTriggers = []
 
@@ -58,7 +67,7 @@ class ScreenState(object):
         self.dirty = True
 
     def setScreenColor(self, rgbColor):
-        #self.window().setColor(rgbColor,'rgb255')
+        # self.window().setColor(rgbColor,'rgb255')
         self._screen_background_fill.setFillColor(color=rgbColor,
                                                   colorSpace='rgb255')
         self._screen_background_fill.setLineColor(color=rgbColor,
@@ -95,8 +104,8 @@ class ScreenState(object):
     # of event type for that device.
     # Otherwise method does not reurn until timeout seconds has passed.
     # Returns: [flip_time, time_since_flip, event]
-    #          all elements but flip_time may be None. All times are in sec.msec
-    def switchTo(self,clearEvents=True, msg=None):
+    # all elements but flip_time may be None. All times are in sec.msec
+    def switchTo(self, clearEvents=True, msg=None):
         """
         Switches to the screen state defined by the class instance. The screen
         stim are built and a flip occurs.
@@ -148,11 +157,11 @@ class ScreenState(object):
         lastMsgPumpTime = 0
         self.build()
         self._start_time = self.flip(text=msg)
-        endTime = self._start_time+self.timeout
+        endTime = self._start_time + self.timeout
         localClearEvents('all')
 
         if event_triggers and len(event_triggers) > 0:
-            while getTime()+0.002 < endTime:
+            while getTime() + 0.002 < endTime:
                 for trigger in event_triggers:
                     if trigger.triggered() is True:
 
@@ -162,39 +171,38 @@ class ScreenState(object):
                         trigger.resetLastTriggeredInfo()
 
                         if funcToCall:
-                            exitState = funcToCall(self._start_time,
-                                                    getTime()-self._start_time,
-                                                    event, **kwargs)
+                            exitState = funcToCall(
+                                self._start_time, getTime() - self._start_time, event, **kwargs)
                             if exitState is True:
                                 localClearEvents('all')
                                 Trigger.clearEventHistory()
                                 return (self._start_time,
-                                        getTime()-self._start_time, event)
+                                        getTime() - self._start_time, event)
                         break
 
                 Trigger.clearEventHistory()
 
                 tempTime = getTime()
-                if tempTime+0.002 < endTime:
+                if tempTime + 0.002 < endTime:
                     time.sleep(0.001)
 
-                    if tempTime-lastMsgPumpTime > 0.5:
+                    if tempTime - lastMsgPumpTime > 0.5:
                         win32MessagePump()
                         lastMsgPumpTime = tempTime
 
             localClearEvents('all')
             while getTime() < endTime:
                 pass
-            return self._start_time, getTime()-self._start_time, None
+            return self._start_time, getTime() - self._start_time, None
 
         elif self.timeout is not None:
-            ER.hub.wait(self.timeout-0.002)
+            ER.hub.wait(self.timeout - 0.002)
             localClearEvents('all')
 
             while getTime() < endTime:
                 pass
 
-            return self._start_time, getTime()-self._start_time, None
+            return self._start_time, getTime() - self._start_time, None
 
         return self._start_time, None, None
 
@@ -213,14 +221,15 @@ class ScreenState(object):
             self.sendMessage(text, ftime)
         return ftime
 
-    def sendMessage(self, text, mtime = None):
+    def sendMessage(self, text, mtime=None):
         if mtime is None:
             mtime = getTime()
         mtext = text
         try:
             tracker = self.experimentRuntime().getDevice('tracker')
             if tracker is not None and tracker.isConnected() is True:
-                mtext = "%s : tracker_time [%.6f]"%(mtext, tracker.trackerSec())
+                mtext = "%s : tracker_time [%.6f]" % (
+                    mtext, tracker.trackerSec())
                 tracker.sendMessage(mtext)
             else:
                 print '----------------------'
@@ -236,32 +245,43 @@ class ScreenState(object):
     def getCurrentScreenState(cls):
         return cls._currentState
 
+
 class ClearScreen(ScreenState):
-    def __init__(self,experimentRuntime, eventTriggers=None, timeout=None,
+
+    def __init__(self, experimentRuntime, eventTriggers=None, timeout=None,
                  background_color=(255, 255, 255)):
         ScreenState.__init__(self, experimentRuntime, eventTriggers, timeout,
                              background_color)
 
     def flip(self, text=None):
         if text is None:
-            text = "CLR_SCREEN SYNC: [%s] "%(text)
+            text = "CLR_SCREEN SYNC: [%s] " % (text)
         return ScreenState.flip(self, text)
 
 
 class InstructionScreen(ScreenState):
+
     def __init__(self, experimentRuntime, text='Default Text',
                  eventTriggers=None, timeout=None, text_color=[0, 0, 0],
                  text_pos=[0, 0], text_height=32,
                  background_color=(255, 255, 255)):
 
-        ScreenState.__init__(self,experimentRuntime, eventTriggers, timeout,
+        ScreenState.__init__(self, experimentRuntime, eventTriggers, timeout,
                              background_color)
 
         l, t, r, b = self.experimentRuntime().devices.display.getBounds()
-        self.stim['TEXTLINE'] = visual.TextStim(self.window(), text=text,
-                    pos=text_pos, height=text_height, color=text_color,
-                    colorSpace='rgb255', alignHoriz='center',
-                    alignVert='center', units='pix', wrapWidth=(r-l)*.9)
+        self.stim['TEXTLINE'] = visual.TextStim(
+            self.window(),
+            text=text,
+            pos=text_pos,
+            height=text_height,
+            color=text_color,
+            colorSpace='rgb255',
+            alignHoriz='center',
+            alignVert='center',
+            units='pix',
+            wrapWidth=(
+                r - l) * .9)
         self.stimNames.append('TEXTLINE')
 
     def setText(self, text):
@@ -272,7 +292,7 @@ class InstructionScreen(ScreenState):
         self.stim['TEXTLINE'].setColor(rgbColor, 'rgb255')
         self.dirty = True
 
-    def setTextSize(self,size):
+    def setTextSize(self, size):
         self.stim['TEXTLINE'].setSize(size)
         self.dirty = True
 
@@ -281,12 +301,14 @@ class InstructionScreen(ScreenState):
 
     def flip(self, text=''):
         if text is None:
-            text = "INSTRUCT_SCREEN SYNC: [%s] [%s] "%(self.stim['TEXTLINE'].text[0:30], text)
+            text = "INSTRUCT_SCREEN SYNC: [%s] [%s] " % (
+                self.stim['TEXTLINE'].text[0:30], text)
         return ScreenState.flip(self, text)
 
 
 class ImageScreen(ScreenState):
-    def __init__(self, experimentRuntime, imageName, imagePos=(0,0),
+
+    def __init__(self, experimentRuntime, imageName, imagePos=(0, 0),
                  imageSize=None, eventTriggers=None, timeout=None,
                  background_color=(255, 255, 255)):
 
@@ -299,8 +321,12 @@ class ImageScreen(ScreenState):
             from PIL import Image
             imageSize = Image.open(imageName).size
 
-        self.stim['IMAGE'] = visual.ImageStim(self.window(), image=imageName,
-                                pos=imagePos, size=imageSize, name=imageName)
+        self.stim['IMAGE'] = visual.ImageStim(
+            self.window(),
+            image=imageName,
+            pos=imagePos,
+            size=imageSize,
+            name=imageName)
 
         self.stim['IMAGE'].imageName = imageName
         self.stimNames.append('IMAGE')
@@ -323,8 +349,8 @@ class ImageScreen(ScreenState):
 
     def flip(self, text=''):
         if text is None:
-            text = "IMAGE_SCREEN SYNC: [%s] [%s] " % (self.stim['IMAGE'].imageName,
-                                                      text)
+            text = "IMAGE_SCREEN SYNC: [%s] [%s] " % (
+                self.stim['IMAGE'].imageName, text)
         return ScreenState.flip(self, text)
 
 
@@ -332,9 +358,9 @@ class ImageScreen(ScreenState):
 
 class Trigger(object):
     __slots__ = ['trigger_function', 'user_kwargs', '_last_triggered_event',
-                 'repeat_count', 'triggered_count','_last_triggered_time']
+                 'repeat_count', 'triggered_count', '_last_triggered_time']
 
-    def __init__(self, trigger_function=lambda a, b, c: True==True,
+    def __init__(self, trigger_function=lambda a, b, c: True,
                  user_kwargs={}, repeat_count=0):
         self.trigger_function = trigger_function
         self.user_kwargs = user_kwargs
@@ -376,6 +402,7 @@ class Trigger(object):
 
 # Device EventTrigger Class ---------------------------------------------------
 
+
 class TimeTrigger(Trigger):
     """
     TimeTrigger's are used by ScreenState objects. A TimeTrigger
@@ -383,9 +410,10 @@ class TimeTrigger(Trigger):
     the classes triggered() method returns True. start_time and delay can be
     sec.msec float, or a callable object (that takes no parameters).
     """
-    __slots__=['startTime', 'delay', '_start_time']
+    __slots__ = ['startTime', 'delay', '_start_time']
+
     def __init__(self, start_time, delay, repeat_count=0,
-                 trigger_function = lambda a, b, c: True==True, user_kwargs={}):
+                 trigger_function=lambda a, b, c: True, user_kwargs={}):
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
 
         self._start_time = start_time
@@ -420,7 +448,7 @@ class TimeTrigger(Trigger):
             delay = self.delay()
 
         ct = getTime()
-        if ct-start_time >= delay:
+        if ct - start_time >= delay:
             self._last_triggered_time = ct
             self._last_triggered_event = ct
             self.triggered_count += 1
@@ -443,8 +471,9 @@ class DeviceEventTrigger(Trigger):
     """
     _lastEventsByDevice = dict()
     __slots__ = ['device', 'event_type', 'event_attribute_conditions']
+
     def __init__(self, device, event_type, event_attribute_conditions={},
-                 repeat_count=-1, trigger_function=lambda a, b, c: True==True,
+                 repeat_count=-1, trigger_function=lambda a, b, c: True,
                  user_kwargs={}):
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
         self.device = device
@@ -471,17 +500,20 @@ class DeviceEventTrigger(Trigger):
             else:
                 for (attrname,
                      conds) in self.event_attribute_conditions.iteritems():
-                    if isinstance(conds, (list, tuple)) and getattr(event, attrname) in conds:
-                        # event_value is a list or tuple of possible values that are OK
+                    if isinstance(
+                            conds, (list, tuple)) and getattr(
+                            event, attrname) in conds:
+                        # event_value is a list or tuple of possible values
+                        # that are OK
                         pass
-                    elif getattr(event,attrname) is conds or getattr(event, attrname) == conds:
+                    elif getattr(event, attrname) is conds or getattr(event, attrname) == conds:
                         # event_value is a single value
                         pass
                     else:
                         foundEvent = False
 
             if foundEvent is True:
-                self._last_triggered_time=getTime()
+                self._last_triggered_time = getTime()
                 self._last_triggered_event = event
                 self.triggered_count += 1
                 return True
@@ -507,10 +539,10 @@ class DeviceEventTrigger(Trigger):
         if self.device in self._lastEventsByDevice:
             del self._lastEventsByDevice[self.device]
 
-####################################################################################
+##########################################################################
 
 #
-## MovementPatterns for Visual Stimuli
+# MovementPatterns for Visual Stimuli
 #
 
 # sinusoidal movement pattern, based on code posted by
@@ -523,7 +555,10 @@ class DeviceEventTrigger(Trigger):
 #    retrace start
 #   -this tries to ensure a more consistent motion, regardless of when the
 #    position update is applied to the stimulus during the retrace interval
+
+
 class SinusoidalMotion(object):
+
     def __init__(self,
                  amplitude_xy=(15.0, 0.0),       # max horz,vert excursion
                  peak_velocity_xy=(10.0, 10.0),  # deg/s peak velocity x , y
@@ -531,9 +566,10 @@ class SinusoidalMotion(object):
                  display=None,                   # ioHub display class
                  start_time=0.0,  # in seconds , 0.0 means use first flip time
                  ):
-        self.amplX , self.amplY = amplitude_xy
+        self.amplX, self.amplY = amplitude_xy
         self.peakVelX, self.peakVelY = peak_velocity_xy
-        self.phaseX, self.phaseY = numpy.deg2rad(phase_xy[0]), numpy.deg2rad(phase_xy[1])
+        self.phaseX, self.phaseY = numpy.deg2rad(
+            phase_xy[0]), numpy.deg2rad(phase_xy[1])
         self.startTime = start_time
         self.lastPositionTime = None
         self.nextFlipTimeEstimate = None
@@ -545,25 +581,25 @@ class SinusoidalMotion(object):
 
         self.wX = 0.0
         if self.amplX != 0.0:
-            self.freqX = self.peakVelX/(-2.0*self.amplX*numpy.pi)
-            self.wX = 2.0*numpy.pi*self.freqX
+            self.freqX = self.peakVelX / (-2.0 * self.amplX * numpy.pi)
+            self.wX = 2.0 * numpy.pi * self.freqX
 
         self.wY = 0.0
         if self.amplY != 0:
-            self.freqY = self.peakVelY/(-2.0*self.amplY*numpy.pi)
-            self.wY = 2.0*numpy.pi*self.freqY
+            self.freqY = self.peakVelY / (-2.0 * self.amplY * numpy.pi)
+            self.wY = 2.0 * numpy.pi * self.freqY
 
     def getPos(self):
         t = 0.0
         if self.lastPositionTime:
-            nextFlipTimeEstimate = self.lastPositionTime+self.reportedRetraceInterval
+            nextFlipTimeEstimate = self.lastPositionTime + self.reportedRetraceInterval
             while nextFlipTimeEstimate < getTime():
                 nextFlipTimeEstimate += self.reportedRetraceInterval
             self.nextFlipTimeEstimate = nextFlipTimeEstimate
-            t = nextFlipTimeEstimate-self.startTime
+            t = nextFlipTimeEstimate - self.startTime
 
-        self.pos = (self.amplX*numpy.cos(self.wX*t + self.phaseX),
-                  self.amplY*numpy.sin(self.wY*t + self.phaseY))
+        self.pos = (self.amplX * numpy.cos(self.wX * t + self.phaseX),
+                    self.amplY * numpy.sin(self.wY * t + self.phaseY))
 
         return self.pos
 
