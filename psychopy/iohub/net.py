@@ -50,7 +50,7 @@ class SocketConnection(object):
         self._rcvBufferLength = rcvBufferLength
         self.lastAddress = None
         self.sock = None
-        self.initSocket()
+        self.initSocket(broadcast,blocking, timeout)
 
         self.coder = msgpack
         self.packer = msgpack.Packer()
@@ -84,7 +84,6 @@ class SocketConnection(object):
 
     def sendTo(self, data, address=None):
         if address is None:
-            #print2err('{0}: {1}'.format(self.__class__.__name__,address))
             address = self._remote_host, self._remote_port
         d = self.pack(data)
         byte_count = len(d)
@@ -125,7 +124,7 @@ class UDPClientConnection(SocketConnection):
             rcvBufferLength=MAX_PACKET_SIZE,
             broadcast=False,
             blocking=1,
-            timeout=1):
+            timeout=None):
         SocketConnection.__init__(
             self,
             remote_host=remote_host,
@@ -135,7 +134,7 @@ class UDPClientConnection(SocketConnection):
             blocking=blocking,
             timeout=timeout)
 
-    def initSocket(self, **kwargs):
+    def initSocket(self, broadcast, blocking, timeout):
         if Computer.is_iohub_process is True:
             from gevent import socket
         else:
@@ -145,6 +144,8 @@ class UDPClientConnection(SocketConnection):
             socket.SOL_SOCKET,
             socket.SO_RCVBUF,
             MAX_PACKET_SIZE)
+        self.sock.settimeout(timeout)
+        self.sock.setblocking(blocking)
 
 ##### TIME SYNC CLASS ######
 
@@ -271,8 +272,6 @@ class ioHubTimeGreenSyncManager(Greenlet):
                 return True
         except Exception as e:
             return False
-            #print2err("** Exception during ioHubTimeGreenSyncManager._sync: ",self._remote_address,' ',e)
-            # printExceptionDetailsToStdErr()
         return False
 
     def _close(self):

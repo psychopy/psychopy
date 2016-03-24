@@ -1122,6 +1122,7 @@ try:
         # Sample Filter Types
         FILTER_FILE = 10
         FILTER_NET = 11
+        FILTER_ONLINE = 11
         FILTER_SERIAL = 12
         FILTER_ANALOG = 13
         FILTER_ALL = 14

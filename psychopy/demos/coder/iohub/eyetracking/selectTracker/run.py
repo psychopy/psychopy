@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-
-# TODO: Retest because of changes
-
 """
 eye_tracker/run.py
 
