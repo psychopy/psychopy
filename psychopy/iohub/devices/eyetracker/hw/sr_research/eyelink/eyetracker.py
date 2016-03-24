@@ -1,24 +1,9 @@
 """
-ioHub
-Common Eye Tracker Interface
-.. file: iohub/devices/eyetracker/hw/sr_research/eyelink/eyetracker.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
----------------------------------------------------------------------------------------------------------------------
-This file uses the pylink module, Copyright (C) SR Research Ltd. License type unknown as it is not provided in the
-pylink distribution (atleast when downloaded May 2012). At the time of writing, Pylink is freely avalaible for
-download from  www.sr-support.com once you are registered and includes the necessary C DLLs.
-
-EyeLink is also a registered trademark of SR Research Ltd, Ontario, Canada.
----------------------------------------------------------------------------------------------------------------------
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
+ioHub Common Eye Tracker Interface for EyeLink(C) Systems.  
 """
+# Part of the PsychoPy.iohub library
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 import numpy as np
@@ -1078,12 +1063,24 @@ class EyeTracker(EyeTrackerDevice):
         for pkey,v in runtimeSettings.iteritems():
 
             if pkey == 'sample_filtering':
-                all_filters=dict()                
-                #ioHub.print2err("sample_filtering: {0}".format(v))
-                for filter_type, filter_level in v.iteritems():
-                    if filter_type in ['FILTER_ALL','FILTER_FILE','FILTER_ONLINE']:
-                        if filter_level in  ['FILTER_LEVEL_OFF','FILTER_LEVEL_1','FILTER_LEVEL_2']:
-                            all_filters[filter_type]=filter_level
+                all_filters={'FILTER_FILE': 'FILTER_LEVEL_2', 
+                             'FILTER_ONLINE': 'FILTER_LEVEL_OFF'}    
+                #print2err("sample_filtering: {0}".format(v))
+            
+                if str(v) in ('FILTER_OFF','FILTER_LEVEL_OFF','FILTER_LEVEL_1','FILTER_LEVEL_2'):
+                    vd = {u'FILTER_ALL': str(v)}                    
+                    v = vd
+                    
+                fkeys = [str(k) for k in v.keys()]                
+                if 'FILTER_ALL' in fkeys:
+                    for k in all_filters.keys():
+                        all_filters[k] = str(v[u'FILTER_ALL'])
+                else:
+                    for k in fkeys:
+                        if k in all_filters.keys():
+                            all_filters[k]=str(v[k])
+                            
+                #print2err("processed sample_filtering: {0}".format(all_filters))
                 self._setSampleFilterLevel(all_filters)
             elif pkey == 'sampling_rate':
                 self._setSamplingRate(v)
@@ -1106,7 +1103,7 @@ class EyeTracker(EyeTrackerDevice):
     def _fileTransferProgressUpdate(self,size,received):
         if EyeTracker._file_transfer_progress_dialog is None:
             EyeTracker._file_transfer_progress_dialog =  ProgressBarDialog(
-                    "OpenPsycho pyEyeTrackerInterface",
+                    "ioHub EyeLink Interface",
                     "Transferring  " + self._full_edf_name+'.EDF to '+self._local_edf_dir,
                     100,display_index=self._display_device.getIndex())
         elif received >= size and EyeTracker._file_transfer_progress_dialog:
@@ -1238,34 +1235,18 @@ class EyeTracker(EyeTrackerDevice):
         """
         """
         try:
-            if len(filter_settings_dict)>0:
-                supportedTypes='FILTER_ALL','FILTER_FILE','FILTER_ONLINE'
-                supportedLevels= 'FILTER_OFF','FILTER_LEVEL_OFF','FILTER_LEVEL_1','FILTER_LEVEL_2'
-
-                ffilter=0
-                lfilter=0
-                update_filter=False
-                for key,value in filter_settings_dict.iteritems():
-                    if key in supportedTypes and value in supportedLevels:
-                        if key == 'FILTER_ALL':
-                            self._eyelink.setHeuristicLinkAndFileFilter(getattr(EyeTrackerConstants,value),getattr(EyeTrackerConstants,value))
-                            return EyeTrackerConstants.EYETRACKER_OK
-                        elif key == 'FILTER_FILE':
-                            ffilter=getattr(EyeTrackerConstants,value)
-                            update_filter=True
-                        elif key == 'FILTER_ONLINE':
-                            lfilter=getattr(EyeTrackerConstants,value)
-                            update_filter=True
-                    else:
-                        print2err('filter bad: ',value)
-                        
-                if update_filter:  
-                    self._eyelink.setHeuristicLinkAndFileFilter(lfilter,ffilter)
-                    return EyeTrackerConstants.EYETRACKER_OK
-                    
-            return EyeTrackerConstants.EYETRACKER_ERROR
+            #print2err('filter_settings_dict:',filter_settings_dict)
+            lfilter = EyeTrackerConstants.getID(filter_settings_dict['FILTER_ONLINE'])
+            ffilter = EyeTrackerConstants.getID(filter_settings_dict['FILTER_FILE'])
+            if lfilter is None:
+                lfilter = 0
+            if ffilter is None:
+                ffilter = 0
+            #print2err('lfilter, ffilter: {}, {}'.format(lfilter, ffilter))
+            self._eyelink.setHeuristicLinkAndFileFilter(lfilter, ffilter)            
+            return EyeTrackerConstants.EYETRACKER_OK
         except Exception:
-            print2err("EYELINK Error during _setSampleFilterLevel:")
+            print2err("EYELINK Error during _setSampleFilterLevel: ", filter_settings_dict)
             printExceptionDetailsToStdErr()
             return EyeTrackerConstants.EYETRACKER_ERROR
 

@@ -233,7 +233,10 @@ class Dlg(QtWidgets.QDialog):
 
             def handleCurrentIndexChanged(new_index):
                 ix = self.inputFields.index(inputBox)
-                self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
+                try:
+                    self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
+                except AttributeError:
+                    self.data[ix] = inputBox.itemData(new_index)[0]
                 msg = ("handleCurrentIndexChanged: inputFieldName={0}, "
                        "selected={1}, type: {2}")
                 logging.debug(msg.format(label, self.data[ix],
