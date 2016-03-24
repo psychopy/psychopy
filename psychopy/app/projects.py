@@ -642,6 +642,7 @@ class ProjectSyncFrame(wx.Frame):
         then the project root and OSF project ID will also be updated
         """
         if os.path.isfile(projFile):
+            self.projFilePath.SetValue(projFile)
             project = pyosf.Project(project_file=projFile)
             # check this is the same project!
             if self.OSFproject and project.osf.id != self.OSFproject.id:
@@ -657,6 +658,7 @@ class ProjectSyncFrame(wx.Frame):
         self.project = pyosf.Project(project_file=self.projFilePath.GetValue(),
                                      root_path=self.localPath.GetValue(),
                                      osf=self.OSFproject)
+        # create or reset progress indicators
         if self.syncStatus is None:
             self.syncStatus = SyncStatusPanel(parent=self, id=-1,
                                               project=self.project)
@@ -670,17 +672,23 @@ class ProjectSyncFrame(wx.Frame):
         self.update(status="Checking for changes")
         wx.Yield()
         changes = self.project.get_changes()
+        print(str(changes))
+        for thisAction in changes.dry_run():
+            print thisAction
         self.update(status="Applying changes")
         wx.Yield()
         # start the threads up/downloading
-        changes.apply(self.project, threaded=True)
+        changes.apply(threaded=True)
         # to check the status we need the
         while True:
-            progress = self.project.osf.session.get_progress()
+            progress = changes.progress
             if progress == 1:
                 self.update("Sync complete")
-                changes.finish_sync(self.project)
+                changes.finish_sync()
                 self.project.save()
+                # get rid of progress markers
+                self.syncStatus.Destroy()
+                self.syncStatus = None
                 break
             else:
                 self.syncStatus.setProgress(progress)
