@@ -1,26 +1,13 @@
 """
-ioHub
-Common Eye Tracker Interface
-.. file: ioHub/devices/eyeTracker/hw/sr_research/eyelink/eyeLinkCoreGraphicsIOHubPsychopy.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-
-Copyright (C) 2012 Sol Simpson
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
----------------------------------------------------------------------------------------------------------------------
-This file uses the pylink module, Copyright (C) SR Research Ltd. License type unknown as it is not provided in the
-pylink distribution (atleast when downloaded May 2012). At the time of writing, Pylink is freely avalaible for
-download from  www.sr-support.com once you are registered and includes the necessary C DLLs.
----------------------------------------------------------------------------------------------------------------------
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
+ioHub Common Eye Tracker Interface for EyeLink(C) Systems.  
+EyeLink(C) calibration graphics implemented using PsychoPy.
 """
+# Part of the PsychoPy.iohub library
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy as np
 import scipy
-import psychopy
 from psychopy import visual
 import sys
 import tempfile
@@ -28,6 +15,7 @@ import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants, KeyboardConstants
 from ...... import convertCamelToSnake, print2err, printExceptionDetailsToStdErr
+from ......util import win32MessagePump
 import pylink
 
 class FixationTarget(object):
@@ -423,6 +411,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     def get_input_key(self):
         if Computer.getTime() - self._lastMsgPumpTime > self.IOHUB_HEARTBEAT_INTERVAL:
             if self._iohub_server:
+                win32MessagePump()
                 for dm in self._iohub_server.deviceMonitors:
                     dm.device._poll()
                 self._iohub_server.processDeviceEvents()

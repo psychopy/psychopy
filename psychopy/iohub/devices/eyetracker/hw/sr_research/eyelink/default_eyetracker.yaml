@@ -175,7 +175,8 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   the missing filter type will have filter level set to FILTER_OFF.
         #        
         sample_filtering:
-            FILTER_ALL: FILTER_LEVEL_OFF
+            FILTER_FILE: FILTER_LEVEL_2
+            FILTER_ONLINE: FILTER_LEVEL_OFF
         
         vog_settings:
             # pupil_measure_types: sr_research.eyelink.EyeTracker supports one
