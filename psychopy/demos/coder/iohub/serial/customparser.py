@@ -1,5 +1,4 @@
-"""
-Demo using a custom serial rx parser to generate ioHub Serial Device events.
+"""Demo using a custom serial rx parser to generate ioHub Serial Device events.
 
 The parseserial.py file is also required for this demo, as it contains the
 custom parser function that the ioHub Serial device uses during runtime.
@@ -32,7 +31,7 @@ BAUDRATE = 19200
 #            if __name__ == '__main__':
 #        condition so it is not run when the file is only imported.
 
-event_parser_info = dict(parser_function="parseserial.checkForSerialEvents",
+event_parser_info = dict(parser_function='parseserial.checkForSerialEvents',
                          parser_kwargs=dict(var1='not used', var2=1234))
 # configure iohub
 exp_code = 'serial_demo'
@@ -58,7 +57,8 @@ serial_device.enableEventReporting(True)
 win = visual.Window((1024, 768), units='pix')
 
 # Instruction text.
-instruction = visual.TextStim(win, text='Monitoring for serial input events....\n\nPress any key to exit.')
+instruction = visual.TextStim(
+    win, text='Monitoring for serial input events....\n\nPress any key to exit.')
 # Display instruction.
 instruction.draw()
 win.flip()
@@ -69,7 +69,7 @@ io.clearEvents('all')
 # Print any serial events.
 #
 while not keyboard.getPresses():
-    serial_device.write("TEST")
+    serial_device.write('TEST')
     for serevt in serial_device.getEvents():
         print(serevt)
     io.wait(.500)

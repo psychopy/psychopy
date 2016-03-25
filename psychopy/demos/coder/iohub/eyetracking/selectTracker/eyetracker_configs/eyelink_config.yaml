@@ -69,7 +69,7 @@ monitor_devices:
             sampling_rate: 500
             # eyetracker.hw.sr_research.eyelink.EyeTracker supports the 
             # following track_eyes values:  LEFT_EYE, RIGHT_EYE, BINOCULAR
-            track_eyes: RIGHT_EYE
+            track_eyes: BINOCULAR
             # Sample filtering defines the native eye tracker filtering level to be 
             # applied to the sample event data before it is sent to the specified data stream.
             # The sample filter section can contain multiple key : value entries if 
@@ -172,4 +172,4 @@ monitor_devices:
         # The model_name setting allows the definition of the eye tracker model being used.
         # For the eyelink implementation, valid values are:
         # 'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 'EYELINK 1000 LONG RANGE', 'EYELINK 2'
-        model_name: EYELINK 1000 TOWER
+        model_name: EYELINK 1000 DESKTOP

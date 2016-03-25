@@ -1,13 +1,14 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-"""
-Demo of basic mouse handling from the ioHub (a separate asynchronous process for
-fetching and processing events from hardware; mice, keyboards, eyetrackers).
+"""Demo of basic mouse handling from the ioHub (a separate asynchronous process
+for fetching and processing events from hardware; mice, keyboards,
+eyetrackers).
 
 Inital Version: May 6th, 2013, Sol Simpson
 Abbrieviated: May 2013, Jon Peirce
 Updated July, 2013, Sol, Added timeouts
+
 """
 
 from __future__ import division
@@ -37,21 +38,28 @@ win = visual.Window(display_resolution,
                     units='pix', fullscr=True, allowGUI=False, screen=0)
 
 # Create some psychopy visual stim (same as how you would do so normally):
-fixSpot = visual.GratingStim(win, tex="none", mask="gauss",
-    pos=(0, 0), size=(30, 30), color='black', autoLog=False)
+fixSpot = visual.GratingStim(
+    win, tex='none', mask='gauss', pos=(
+        0, 0), size=(
+            30, 30), color='black', autoLog=False)
 grating = visual.GratingStim(win, pos=(300, 0),
-    tex="sin", mask="gauss",
-    color=[1.0, 0.5, -1.0],
-    size=(150.0, 150.0), sf=(0.01, 0.0),
-    autoLog=False)
-message = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/3)),
-    alignHoriz='center', alignVert='center', height=40,
-    text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
-    autoLog=False, wrapWidth=display_resolution[0] * .9)
-message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/4)),
-    alignHoriz='center', alignVert='center', height=40,
-    text='Press Any Key to Quit.',
-    autoLog=False, wrapWidth=display_resolution[0] * .9)
+                             tex='sin', mask='gauss',
+                             color=[1.0, 0.5, -1.0],
+                             size=(150.0, 150.0), sf=(0.01, 0.0),
+                             autoLog=False)
+message = visual.TextStim(win,
+                          pos=(0.0,
+                               -(display_resolution[1] / 3)),
+                          alignHoriz='center',
+                          alignVert='center',
+                          height=40,
+                          text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
+                          autoLog=False,
+                          wrapWidth=display_resolution[0] * .9)
+message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1] / 4)),
+                           alignHoriz='center', alignVert='center', height=40,
+                           text='Press Any Key to Quit.',
+                           autoLog=False, wrapWidth=display_resolution[0] * .9)
 
 last_wheelPosY = 0
 
@@ -76,7 +84,8 @@ while not kb_events:
     elif right_button:
         grating.setPos(position)
 
-    # If no buttons are pressed on the Mouse, move the position of the mouse cursor.
+    # If no buttons are pressed on the Mouse, move the position of the mouse
+    # cursor.
     if True not in (left_button, middle_button, right_button):
         fixSpot.setPos(position)
 
@@ -92,7 +101,8 @@ while not kb_events:
     wheel_dY = wheelPosY - last_wheelPosY
     last_wheelPosY = wheelPosY
 
-    # Change the orientation of the visual grating based on any vertical mouse wheel movement.
+    # Change the orientation of the visual grating based on any vertical mouse
+    # wheel movement.
     grating.setOri(wheel_dY * 5, '+')
 
     # Advance 0.05 cycles per frame.
@@ -114,7 +124,7 @@ while not kb_events:
         demo_timeout_start = mouse_events[-1].time
 
     if flip_time - demo_timeout_start > 15.0:
-        print("Ending Demo Due to 15 Seconds of Inactivity.")
+        print('Ending Demo Due to 15 Seconds of Inactivity.')
         break
 
 # End of Example
