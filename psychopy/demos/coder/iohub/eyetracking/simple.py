@@ -2,8 +2,9 @@
 Simple iohub eye tracker device demo. Shows how monitoring for central
 fixation monitoring could be done.
 No iohub config .yaml files are needed for this demo.
-Change the eyetracker_config dict to use a different eye tracker
-implementation if using a system other than the eyelink.
+Demo config is setup for an EyeLink(C) 1000 Desktop System. 
+To to use a different eye tracker implementation, change the 
+iohub_tracker_class_path and eyetracker_config dict script variables.
 '''
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
@@ -13,17 +14,17 @@ TRIAL_COUNT = 2
 # Maximum trial time / time timeout
 T_MAX = 10.0
 
+iohub_tracker_class_path = 'eyetracker.hw.sr_research.eyelink.EyeTracker'
 eyetracker_config = dict()
 eyetracker_config['name'] = 'tracker'
 eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-eyetracker_config['simulation_mode'] = True
-eyetracker_config['runtime_settings'] = dict(sampling_rate=500,
-                                             track_eyes='BINOCULAR')
+#eyetracker_config['simulation_mode'] = True
+eyetracker_config['runtime_settings'] = dict(sampling_rate=1000,
+                                             track_eyes='RIGHT')
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
-io = launchHubServer(**{'eyetracker.hw.sr_research.eyelink.EyeTracker':
-                        eyetracker_config})
+io = launchHubServer(**{iohub_tracker_class_path: eyetracker_config})
 
 # Get some iohub devices for future access.
 keyboard = io.devices.keyboard
