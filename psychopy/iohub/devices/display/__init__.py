@@ -12,8 +12,6 @@ Distributed under the terms of the GNU General Public License
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 
 """
-
-import wx
 import sys
 from .. import Device, Computer
 from ... import _ispkg
@@ -467,40 +465,67 @@ class Display(Device):
 
     @classmethod
     def _createAllRuntimeInfoDicts(cls):
-        tempd = ioHubDialog()
-        display_count = wx.Display.GetCount()
-
         runtime_info_list = []
+        try:
+            #try getting screen info using pyglet 1.2.x
+            import pyglet
+            default_screen = pyglet.canvas.get_display().get_default_screen()
+            dx, dy = default_screen.x, default_screen.y
+            dw, dh = default_screen.width, default_screen.height
+            dbounds = (dx, dy, dx + dw, dy + dh)
+            pyglet_screens = pyglet.canvas.get_display().get_screens()
+            display_count = len(pyglet_screens)
+            for i in range(display_count):
+                d = pyglet_screens[i]
+                mode = d.get_mode()
+                x, y, w, h = d.x, d.y, d.width, d.height
+                runtime_info = dict()
+                runtime_info['index'] = i
+                runtime_info['pixel_width'] = w
+                runtime_info['pixel_height'] = h
+                runtime_info['bounds'] = (x, y, x + w, y + h)
+                runtime_info['retrace_rate'] = mode.rate
+                runtime_info['bits_per_pixel'] = mode.depth
+                runtime_info['primary'] = runtime_info['bounds'] == dbounds
+                if mode and mode.width > 0 and mode.height > 0:
+                    runtime_info['pixel_resolution'] = mode.width, mode.height
+                else:
+                    runtime_info['pixel_resolution'] = w, h
+                runtime_info_list.append(runtime_info)
+            return runtime_info_list
+        except Exception:
+            pass
 
-        for i in range(display_count):
-            d = wx.Display(i)
-            mode = d.GetCurrentMode()
-            x, y, w, h = d.GetGeometry()
-            primary = d.IsPrimary()
-            # ok=d.IsOk()
-            runtime_info = dict()
-            runtime_info['index'] = i
-            runtime_info['pixel_width'] = w
-            runtime_info['pixel_height'] = h
-            runtime_info['bounds'] = (x, y, x + w, y + h)
-            runtime_info['retrace_rate'] = mode.refresh
-            runtime_info['bits_per_pixel'] = mode.bpp
-            runtime_info['primary'] = primary
-            if mode.w > 0 and mode.h > 0:
-                runtime_info['pixel_resolution'] = mode.w, mode.h
-            else:
-                runtime_info['pixel_resolution'] = w - x, h - y
-
-            runtime_info_list.append(runtime_info)
-
-            #ioHub.print2err("Display {0} runtime info: {1}".format(i,runtime_info))
-            del d
-
-        tempd.Destroy()
-        tempd = None
-
-        return runtime_info_list
-
+        try:
+            # fallback on using wx....
+            import wx
+            tempd = ioHubDialog()
+            display_count = wx.Display.GetCount()
+            for i in range(display_count):
+                d = wx.Display(i)
+                mode = d.GetCurrentMode()
+                x, y, w, h = d.GetGeometry()
+                primary = d.IsPrimary()
+                runtime_info = dict()
+                runtime_info['index'] = i
+                runtime_info['pixel_width'] = w
+                runtime_info['pixel_height'] = h
+                runtime_info['bounds'] = (x, y, x + w, y + h)
+                runtime_info['retrace_rate'] = mode.refresh
+                runtime_info['bits_per_pixel'] = mode.bpp
+                runtime_info['primary'] = primary
+                if mode.w > 0 and mode.h > 0:
+                    runtime_info['pixel_resolution'] = mode.w, mode.h
+                else:
+                    runtime_info['pixel_resolution'] = w - x, h - y
+                runtime_info_list.append(runtime_info)
+                del d    
+            tempd.Destroy()
+            tempd = None
+            return runtime_info_list
+        except Exception:
+            printExceptionDetailsToStdErr()
+        
     def _addRuntimeInfoToDisplayConfig(self):
 
         if self not in Display._enabled_display_instances:
