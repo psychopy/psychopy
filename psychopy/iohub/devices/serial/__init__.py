@@ -735,6 +735,7 @@ class SerialInputEvent(DeviceEvent):
         ('port', N.str, 32),
         ('data', N.str, 256)
     ]
+    PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.SERIAL_INPUT
     EVENT_TYPE_STRING = 'SERIAL_INPUT'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
@@ -750,6 +751,7 @@ class SerialByteChangeEvent(DeviceEvent):
         ('prev_byte', N.uint8),
         ('current_byte', N.uint8)
     ]
+    PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.SERIAL_BYTE_CHANGE
     EVENT_TYPE_STRING = 'SERIAL_BYTE_CHANGE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
@@ -769,6 +771,7 @@ class PstboxButtonEvent(DeviceEvent):
         ('button_event', N.str, 7)
     ]
 
+    PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
     EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING

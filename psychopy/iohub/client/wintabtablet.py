@@ -1,13 +1,8 @@
-from __future__ import division
 # -*- coding: utf-8 -*-
-# ioHub Python Module
-# .. file: iohub/client/wintabtablet.py
-#
-# fileauthor: Sol Simpson <sol@isolver-software.com>
-#
-# Copyright (C) 2012-2015 iSolver Software Solutions
-# Distributed under the terms of the GNU General Public License
-# (GPL version 3 or any later version).
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import division
 
 from collections import deque, OrderedDict
 import math
@@ -15,7 +10,9 @@ import numpy as np
 
 from . import ioHubDeviceView, ioEvent, DeviceRPC
 from ..devices import Computer
-from ..devices.wintab import WintabTabletSampleEvent, WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent
+from ..devices.wintab import WintabTabletSampleEvent
+from ..devices.wintab import WintabTabletEnterRegionEvent
+from ..devices.wintab import WintabTabletLeaveRegionEvent
 from ..constants import EventConstants
 
 if Computer.system == 'win32':

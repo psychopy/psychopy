@@ -1,18 +1,8 @@
-# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-from ..errors import print2err
 
-"""
-ioHub
-.. file: iohub/util/__init__.py
-
-Copyright (C) 2012-2014 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com>
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
-"""
 import sys
 import os
 import inspect
@@ -20,6 +10,7 @@ import warnings
 import numpy
 import collections
 
+from ..errors import print2err
 # Path Update / Location functions
 
 
@@ -82,8 +73,9 @@ if sys.platform == 'win32':
     import pythoncom
 
     def win32MessagePump():
-        """Pumps the Experiment Process Windows Message Queue so the PsychoPy
-        Window does not appear to be 'dead' to the OS.
+        """Pumps the Windows Message Queue so that PsychoPy
+        Window(s) lock up if psychopy has not called
+        the windows 'dispatch_events()' method recently.
 
         If you are not flipping regularly (say because you do not need
         to and do not want to block frequently, you can call this, which
@@ -374,7 +366,7 @@ def rotate2D(pts, origin, ang=None):
 
 ###############################################################################
 #
-# Verify the validity of a given Python release number
+# Verify the validity of a given Python package release number
 #
 
 try:

@@ -443,6 +443,7 @@ class AnalogInputEvent(DeviceEvent):
     EVENT_TYPE_ID = EventConstants.ANALOG_INPUT
     EVENT_TYPE_STRING = 'ANALOG_INPUT'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+    PARENT_DEVICE = MCU
     __slots__ = [e[0] for e in _newDataTypes]
 
     def __init__(self, *args, **kwargs):
@@ -463,6 +464,7 @@ class ThresholdEvent(DeviceEvent):
     EVENT_TYPE_ID = EventConstants.THRESHOLD
     EVENT_TYPE_STRING = 'THRESHOLD'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+    PARENT_DEVICE = MCU    
     __slots__ = [e[0] for e in _newDataTypes]
 
     def __init__(self, *args, **kwargs):
@@ -475,6 +477,7 @@ class DigitalInputEvent(DeviceEvent):
     EVENT_TYPE_ID = EventConstants.DIGITAL_INPUT
     EVENT_TYPE_STRING = 'DIGITAL_INPUT'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+    PARENT_DEVICE = MCU
     __slots__ = [e[0] for e in _newDataTypes]
 
     def __init__(self, *args, **kwargs):

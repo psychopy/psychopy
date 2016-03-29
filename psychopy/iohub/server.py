@@ -1,31 +1,27 @@
 # -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 
-"""
-ioHub
-.. file: ioHub/server.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-"""
-import gevent
-from gevent.server import DatagramServer
-from gevent import Greenlet
 import os
 import sys
 from operator import itemgetter
 from collections import deque, OrderedDict
+
+import gevent
+from gevent.server import DatagramServer
+from gevent import Greenlet
+
 from . import _pkgroot, load, dump, Loader, Dumper
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
+from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
 from .util import convertCamelToSnake, win32MessagePump
 from .constants import DeviceConstants, EventConstants
 from .devices import Computer, DeviceEvent, import_device
 from .devices.deviceConfigValidation import validateDeviceConfiguration
+
 currentSec = Computer.currentSec
 
 try:

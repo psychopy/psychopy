@@ -34,7 +34,7 @@ class ioHubKeyboardDevice(Device):
 
     EVENT_CLASS_NAMES = [
         'KeyboardInputEvent',
-        'KeyboardKeyEvent',
+#        'KeyboardKeyEvent',
         'KeyboardPressEvent',
         'KeyboardReleaseEvent']  # ,'KeyboardCharEvent']
 
@@ -126,6 +126,9 @@ class KeyboardInputEvent(DeviceEvent):
     all Keyboard related event types."""
 
     PARENT_DEVICE = Keyboard
+    EVENT_TYPE_ID = EventConstants.KEYBOARD_INPUT
+    EVENT_TYPE_STRING = 'KEYBOARD_INPUT'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
 
     # TODO: Determine real maximum key name string and modifiers string
     # lengths and set appropriately.
@@ -251,22 +254,7 @@ class KeyboardInputEvent(DeviceEvent):
         return cls.namedTupleClass(*valueList)
 
 
-class KeyboardKeyEvent(KeyboardInputEvent):
-    EVENT_TYPE_ID = EventConstants.KEYBOARD_KEY
-    EVENT_TYPE_STRING = 'KEYBOARD_KEY'
-    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
-    __slots__ = []
-
-    def __init__(self, *args, **kwargs):
-        """
-
-        :rtype : object
-        :param kwargs:
-        """
-        KeyboardInputEvent.__init__(self, *args, **kwargs)
-
-
-class KeyboardPressEvent(KeyboardKeyEvent):
+class KeyboardPressEvent(KeyboardInputEvent):
     """A KeyboardPressEvent is generated when a key is pressed down. The event
     is created prior to the keyboard key being released. If a key is held down
     for an extended period of time, multiple KeyboardPressEvent events may be
@@ -285,14 +273,14 @@ class KeyboardPressEvent(KeyboardKeyEvent):
     """
     EVENT_TYPE_ID = EventConstants.KEYBOARD_PRESS
     EVENT_TYPE_STRING = 'KEYBOARD_PRESS'
-    IOHUB_DATA_TABLE = KeyboardKeyEvent.IOHUB_DATA_TABLE
+    IOHUB_DATA_TABLE = KeyboardInputEvent.IOHUB_DATA_TABLE
     __slots__ = []
 
     def __init__(self, *args, **kwargs):
-        KeyboardKeyEvent.__init__(self, *args, **kwargs)
+        KeyboardInputEvent.__init__(self, *args, **kwargs)
 
 
-class KeyboardReleaseEvent(KeyboardKeyEvent):
+class KeyboardReleaseEvent(KeyboardInputEvent):
     """A KeyboardReleaseEvent is generated when a key the keyboard is released.
 
     Event Type ID: EventConstants.KEYBOARD_RELEASE
@@ -302,8 +290,8 @@ class KeyboardReleaseEvent(KeyboardKeyEvent):
     """
     EVENT_TYPE_ID = EventConstants.KEYBOARD_RELEASE
     EVENT_TYPE_STRING = 'KEYBOARD_RELEASE'
-    IOHUB_DATA_TABLE = KeyboardKeyEvent.IOHUB_DATA_TABLE
+    IOHUB_DATA_TABLE = KeyboardInputEvent.IOHUB_DATA_TABLE
     __slots__ = []
 
     def __init__(self, *args, **kwargs):
-        KeyboardKeyEvent.__init__(self, *args, **kwargs)
+        KeyboardInputEvent.__init__(self, *args, **kwargs)

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed May 01 06:30:07 2013
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 
-@author: Sol
-"""
 import gevent
 import json
 import os

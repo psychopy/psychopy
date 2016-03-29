@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 08 15:13:55 2012
-
-@author: Sol
-
-"""
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 from .errors import print2err
 
 try:
@@ -115,10 +111,10 @@ try:
         """
 
         KEYBOARD_INPUT = 20
-        KEYBOARD_KEY = 21
+        #KEYBOARD_KEY = 21
         KEYBOARD_PRESS = 22
         KEYBOARD_RELEASE = 23
-        KEYBOARD_CHAR = 24
+        #KEYBOARD_CHAR = 24
 
         MOUSE_INPUT = 30
         MOUSE_BUTTON = 31
@@ -286,9 +282,6 @@ try:
             if cls._classes is None:
                 cls._classes = {}
 
-            #import iohub
-            #iohub.print2err("Adding Device Event Mappings for device: ",device_class.__name__)
-
             for event_id in device_event_ids:
                 event_constant_string = cls.getName(event_id)
                 event_class = None
@@ -296,15 +289,12 @@ try:
                     if event_class.EVENT_TYPE_ID == event_id:
                         cls._classes[event_id] = event_class
                         cls._classes[event_class] = event_id
-                        #iohub.print2err("\tAdding Event Class Mapping: ",event_constant_string, " = ",event_id)
                         break
 
                 if event_id not in cls._classes.keys():
                     print2err(
                         '\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ',
-                        event_constant_string,
-                        ' = ',
-                        event_id)
+                        event_constant_string, ' = ', event_id)
 
     EventConstants.initialize()
 

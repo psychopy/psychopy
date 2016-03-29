@@ -234,7 +234,7 @@ class ioHubPandasDataView(object):
 
     def _createGlobalEventData(self):
         SKIP_EVENT_TYPES = [
-            'KEYBOARD_KEY',
+            'KEYBOARD_INPUT',
             'MOUSE_INPUT',
             'TOUCH']  # KEYBOARD_CHAR
         global_event_fields = [
