@@ -60,6 +60,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                 'bidi', #for right-left language conversions
                                 'requests', #for efficient uploading to servers
                                 'PyQt5',
+                                'pyosf',
                                 ],
                               excludes=['bsddb'],#anything we need to forcibly exclude?
                               resources=resources,
