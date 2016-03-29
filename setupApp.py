@@ -37,8 +37,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   '_elementtree', 'pyexpat',#these 2 are needed by xml, which is needed by openpyxl
                                   'ioLabs','hid',#'pypsignifit', #psignifit is not available on py2.7
                                   'pp','ppauto','ppcommon','pptransport','ppworker',#annoying non-standard structure of pp
-                                  'pyo','greenlet','vlc',
-                                  'PyQt4','zmq','tornado',
+                                  'pyo','greenlet','vlc','zmq','tornado',
                                   'psutil',#for iohub
                                   'pysoundcard','soundfile',
                                   'cv2',
@@ -60,8 +59,9 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                 'psychopy_ext','pyfilesec','rusocsci',
                                 'bidi', #for right-left language conversions
                                 'requests', #for efficient uploading to servers
+                                'PyQt5',
                                 ],
-                              excludes=[],#anything we need to forcibly exclude?
+                              excludes=['bsddb'],#anything we need to forcibly exclude?
                               resources=resources,
                               argv_emulation=True,
                               site_packages=True,
