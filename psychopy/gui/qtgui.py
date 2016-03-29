@@ -10,10 +10,12 @@ try:
     from PyQt4 import QtGui
     QtWidgets = QtGui  # in qt4 these were all in one package
     from PyQt4.QtCore import Qt
+    QtVersion = 4
 except Exception:
     from PyQt5 import QtWidgets
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
+    QtVersion = 5
 
 from psychopy import logging
 import numpy as np
@@ -233,7 +235,10 @@ class Dlg(QtWidgets.QDialog):
 
             def handleCurrentIndexChanged(new_index):
                 ix = self.inputFields.index(inputBox)
-                self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
+                if QtVersion==4:
+                    self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
+                else:
+                    self.data[ix] = inputBox.itemData(new_index)[0]
                 msg = ("handleCurrentIndexChanged: inputFieldName={0}, "
                        "selected={1}, type: {2}")
                 logging.debug(msg.format(label, self.data[ix],
