@@ -46,3 +46,8 @@ prevFiles = list(default=list())  #file open on last quit
     auiPerspective = string(default='')
     state = option('normal','maxim', default='normal')
     lastOpened = integer(default=0)
+
+[projects]
+fileHistory = list(default=list())  #files in history
+prevFiles = list(default=list())  #file open on last quit
+user = string(default='')
