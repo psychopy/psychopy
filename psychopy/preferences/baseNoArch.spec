@@ -191,6 +191,8 @@
     pasteRoutine = string(default='Ctrl+Shift+V')
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
+    #Builder: rename an existing routine
+    renameRoutine = string(default='Ctrl+Shift+R')
     # switch to Builder window from Coder
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
