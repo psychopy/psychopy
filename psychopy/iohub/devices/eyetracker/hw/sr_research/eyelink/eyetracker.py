@@ -1,24 +1,9 @@
 """
-ioHub
-Common Eye Tracker Interface
-.. file: iohub/devices/eyetracker/hw/sr_research/eyelink/eyetracker.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
----------------------------------------------------------------------------------------------------------------------
-This file uses the pylink module, Copyright (C) SR Research Ltd. License type unknown as it is not provided in the
-pylink distribution (atleast when downloaded May 2012). At the time of writing, Pylink is freely avalaible for
-download from  www.sr-support.com once you are registered and includes the necessary C DLLs.
-
-EyeLink is also a registered trademark of SR Research Ltd, Ontario, Canada.
----------------------------------------------------------------------------------------------------------------------
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
+ioHub Common Eye Tracker Interface for EyeLink(C) Systems.  
 """
+# Part of the PsychoPy.iohub library
+# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import os
 import numpy as np
@@ -532,6 +517,7 @@ class EyeTracker(EyeTrackerDevice):
                     if ne.isBinocular():
                         # binocular sample
                         status=0
+                        lastgaze=None
                         event_type=EventConstants.BINOCULAR_EYE_SAMPLE
                         myeye=EyeTrackerConstants.BINOCULAR
                         leftData=ne.getLeftEye()
@@ -554,7 +540,8 @@ class EyeTracker(EyeTrackerDevice):
                             leftPupilSize=0
                         else:    
                             leftGaze=self._eyeTrackerToDisplayCoords((gx,gy))
-
+                            lastgaze = leftGaze
+                        
                         rightPupilSize=rightData.getPupilSize()
                         rightRawPupil=rightData.getRawPupil()
                         rightHref=rightData.getHREF()
@@ -569,27 +556,13 @@ class EyeTracker(EyeTrackerDevice):
                             rightPupilSize=0
                         else:    
                             rightGaze=self._eyeTrackerToDisplayCoords((gx,gy))
-
-                        if status == 0:
-                            g=[pylink.MISSING_DATA,pylink.MISSING_DATA]
-                            for i in range(2):
-                                ic=0
-                                if leftGaze[i] != pylink.MISSING_DATA:
-                                    g[i]+=leftGaze[i]
-                                    ic+=1                                
-                                if rightGaze[i] != pylink.MISSING_DATA:
-                                    g[i]+=rightGaze[i]
-                                    ic+=1
-                                    
-                                # Missing data fix provided by Chencan QIAN    
-                                if ic == 2:
-                                    g[i]=g[i]/2.0
-                                elif ic == 0:
-                                    g[i]=0 #pylink.MISSING_DATA
-                            
-                            self._latest_gaze_position=g
-                        else:
-                            self._latest_gaze_position=None
+                            if lastgaze is None:
+                                lastgaze = rightGaze
+                            else:
+                                lastgaze = [lastgaze[0]+rightGaze[0], lastgaze[1]+rightGaze[1]]
+                                lastgaze = lastgaze[0]/2.0, lastgaze[1]/2.0
+                                
+                        self._latest_gaze_position=lastgaze
 
                         # TO DO: EyeLink pyLink does not expose sample velocity fields. Patch and fix.
                         vel_x=0
@@ -1078,12 +1051,24 @@ class EyeTracker(EyeTrackerDevice):
         for pkey,v in runtimeSettings.iteritems():
 
             if pkey == 'sample_filtering':
-                all_filters=dict()                
-                #ioHub.print2err("sample_filtering: {0}".format(v))
-                for filter_type, filter_level in v.iteritems():
-                    if filter_type in ['FILTER_ALL','FILTER_FILE','FILTER_ONLINE']:
-                        if filter_level in  ['FILTER_LEVEL_OFF','FILTER_LEVEL_1','FILTER_LEVEL_2']:
-                            all_filters[filter_type]=filter_level
+                all_filters={'FILTER_FILE': 'FILTER_LEVEL_2', 
+                             'FILTER_ONLINE': 'FILTER_LEVEL_OFF'}    
+                #print2err("sample_filtering: {0}".format(v))
+            
+                if str(v) in ('FILTER_OFF','FILTER_LEVEL_OFF','FILTER_LEVEL_1','FILTER_LEVEL_2'):
+                    vd = {u'FILTER_ALL': str(v)}                    
+                    v = vd
+                    
+                fkeys = [str(k) for k in v.keys()]                
+                if 'FILTER_ALL' in fkeys:
+                    for k in all_filters.keys():
+                        all_filters[k] = str(v[u'FILTER_ALL'])
+                else:
+                    for k in fkeys:
+                        if k in all_filters.keys():
+                            all_filters[k]=str(v[k])
+                            
+                #print2err("processed sample_filtering: {0}".format(all_filters))
                 self._setSampleFilterLevel(all_filters)
             elif pkey == 'sampling_rate':
                 self._setSamplingRate(v)
@@ -1106,7 +1091,7 @@ class EyeTracker(EyeTrackerDevice):
     def _fileTransferProgressUpdate(self,size,received):
         if EyeTracker._file_transfer_progress_dialog is None:
             EyeTracker._file_transfer_progress_dialog =  ProgressBarDialog(
-                    "OpenPsycho pyEyeTrackerInterface",
+                    "ioHub EyeLink Interface",
                     "Transferring  " + self._full_edf_name+'.EDF to '+self._local_edf_dir,
                     100,display_index=self._display_device.getIndex())
         elif received >= size and EyeTracker._file_transfer_progress_dialog:
@@ -1167,13 +1152,13 @@ class EyeTracker(EyeTrackerDevice):
                                 print2err("ERROR: setEyesToTrack: Failed to get supported modes. ")
                                 return EyeTrackerConstants.EYETRACKER_ERROR
                             modes = modes.strip().split()
-                            print2err("EL Modes: ", modes)
+                            #print2err("EL Modes: ", modes)
                             for x in modes:
                                 if x[-1] == 'B':
                                     x =int(x.replace('B',' ').strip())
                                     rts.append(x)
-                            print2err("EL srate: ", srate)
-                            print2err("EL rts: ", rts)
+                            #print2err("EL srate: ", srate)
+                            #print2err("EL rts: ", rts)
                             if srate in rts:
                                 self._eyelink.sendCommand("binocular_enabled = YES")
                                 return True
@@ -1238,34 +1223,18 @@ class EyeTracker(EyeTrackerDevice):
         """
         """
         try:
-            if len(filter_settings_dict)>0:
-                supportedTypes='FILTER_ALL','FILTER_FILE','FILTER_ONLINE'
-                supportedLevels= 'FILTER_OFF','FILTER_LEVEL_OFF','FILTER_LEVEL_1','FILTER_LEVEL_2'
-
-                ffilter=0
-                lfilter=0
-                update_filter=False
-                for key,value in filter_settings_dict.iteritems():
-                    if key in supportedTypes and value in supportedLevels:
-                        if key == 'FILTER_ALL':
-                            self._eyelink.setHeuristicLinkAndFileFilter(getattr(EyeTrackerConstants,value),getattr(EyeTrackerConstants,value))
-                            return EyeTrackerConstants.EYETRACKER_OK
-                        elif key == 'FILTER_FILE':
-                            ffilter=getattr(EyeTrackerConstants,value)
-                            update_filter=True
-                        elif key == 'FILTER_ONLINE':
-                            lfilter=getattr(EyeTrackerConstants,value)
-                            update_filter=True
-                    else:
-                        print2err('filter bad: ',value)
-                        
-                if update_filter:  
-                    self._eyelink.setHeuristicLinkAndFileFilter(lfilter,ffilter)
-                    return EyeTrackerConstants.EYETRACKER_OK
-                    
-            return EyeTrackerConstants.EYETRACKER_ERROR
+            #print2err('filter_settings_dict:',filter_settings_dict)
+            lfilter = EyeTrackerConstants.getID(filter_settings_dict['FILTER_ONLINE'])
+            ffilter = EyeTrackerConstants.getID(filter_settings_dict['FILTER_FILE'])
+            if lfilter is None:
+                lfilter = 0
+            if ffilter is None:
+                ffilter = 0
+            #print2err('lfilter, ffilter: {}, {}'.format(lfilter, ffilter))
+            self._eyelink.setHeuristicLinkAndFileFilter(lfilter, ffilter)            
+            return EyeTrackerConstants.EYETRACKER_OK
         except Exception:
-            print2err("EYELINK Error during _setSampleFilterLevel:")
+            print2err("EYELINK Error during _setSampleFilterLevel: ", filter_settings_dict)
             printExceptionDetailsToStdErr()
             return EyeTrackerConstants.EYETRACKER_ERROR
 
@@ -1372,7 +1341,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
             return EyeTrackerConstants.EYETRACKER_ERROR
 
-    def _readResultFromTracker(self,cmd,timeout=2):
+    def _readResultFromTracker(self,cmd,timeout=5):
         try:
             self._eyelink.readRequest(cmd)
     
@@ -1440,13 +1409,21 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:        
             if self.isConnected():
+                srate = self._eyelink.getSampleRate()
+                if srate is None or srate < 0:
+                    srate = self._readResultFromTracker('sample_rate',5)    
+                #print2err('srate: ', srate," ", type(srate))
+                if srate:                
+                    return int(srate)
                 return self._eyelink.getSampleRate()
+            else:
+                print2err("EYELINK_getSamplingRate: isConnected() is False")
             return EyeTrackerConstants.EYETRACKER_ERROR
         except Exception:
             print2err("EYELINK Error during _getSamplingRate:")
             printExceptionDetailsToStdErr()
             return EyeTrackerConstants.EYETRACKER_ERROR
-
+            
 #================= Command Functions ==========================================
 
 _EYELINK_HOST_MODES={
