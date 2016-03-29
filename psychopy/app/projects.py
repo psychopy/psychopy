@@ -15,7 +15,7 @@ try:
     from pyosf import constants
     constants.PROJECT_NAME = "PsychoPy"
     havePyosf = True
-except:
+except ImportError:
     havePyosf = False
 from . import wxIDs
 from psychopy import logging, web, prefs
@@ -68,7 +68,8 @@ class ProjectsMenu(wx.Menu):
         # sub-menu to open previous or new projects
         self.projsSubMenu = wx.Menu()
         self.projsSubMenu.Append(wxIDs.projsOpen,
-                                 "From file...\t{}".format(keys['projectsOpen']))
+                                 "From file...\t{}"
+                                 .format(keys['projectsOpen']))
         wx.EVT_MENU(parent, wxIDs.projsOpen,  self.onOpenFile)
         self.projsSubMenu.AppendSeparator()
         self.projHistory.UseMenu(self.projsSubMenu)
@@ -77,8 +78,8 @@ class ProjectsMenu(wx.Menu):
         except:
             self.projHistory.AddFilesToThisMenu(self.projsSubMenu)
         parent.Bind(wx.EVT_MENU_RANGE, self.onProjFromHistory,
-                  id=self.projHistory.idBase,
-                  id2=self.projHistory.idBase+9)
+                    id=self.projHistory.idBase,
+                    id2=self.projHistory.idBase+9)
         self.AppendSubMenu(self.projsSubMenu, "Open")
 
         # sub-menu for usernames and login
@@ -115,7 +116,6 @@ class ProjectsMenu(wx.Menu):
         # get the file based on the menu ID
         fileNum = evt.GetId() - self.projHistory.idBase
         path = self.projHistory.GetHistoryFile(fileNum)
-        print 'trying%s' % path
         self.openProj(path)
 
     def onAbout(self, event):
@@ -282,7 +282,31 @@ class LogInDlg(wx.Dialog):
         self.Update()
 
 
-class SearchFrame(wx.Frame):
+class BaseFrame(wx.Frame):
+    def makeFileMenu(self):
+        # ---_file---#000000#FFFFFF-------------------------------------------
+        fileMenu = wx.Menu()
+        app = wx.GetApp()
+        keyCodes = app.keys
+
+        # add items to file menu
+        fileMenu.Append(wx.ID_CLOSE,
+                        _translate("&Close View\t%s") % keyCodes['close'],
+                        _translate("Close current window"))
+        wx.EVT_MENU(self, wx.ID_CLOSE, self.closeFrame)
+        # -------------quit
+        fileMenu.AppendSeparator()
+        fileMenu.Append(wx.ID_EXIT,
+                        _translate("&Quit\t%s") % keyCodes['quit'],
+                        _translate("Terminate the program"))
+        wx.EVT_MENU(self, wx.ID_EXIT, app.quit)
+        return fileMenu
+
+    def closeFrame(self, event=None, checkSave=True):
+        self.Destroy()
+
+
+class SearchFrame(BaseFrame):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
 
@@ -293,6 +317,12 @@ class SearchFrame(wx.Frame):
         wx.Frame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
         self.currentProject = None
+
+        # set up menu bar
+        menuBar = wx.MenuBar()
+        self.fileMenu = self.makeFileMenu()
+        menuBar.Append(self.fileMenu, _translate('&File'))
+        self.SetMenuBar(menuBar)
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
@@ -529,7 +559,7 @@ class DetailsPanel(richtext.RichTextCtrl):
         self.app.followLink(url=evt.GetString())
 
 
-class ProjectSyncFrame(wx.Frame):
+class ProjectSyncFrame(BaseFrame):
 
     def __init__(self, parent, id, size=(600, 300), *args, **kwargs):
         wx.Frame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
@@ -537,6 +567,11 @@ class ProjectSyncFrame(wx.Frame):
         self.app = wx.GetApp()
         self.OSFproject = None
         self.syncStatus = None
+
+        menuBar = wx.MenuBar()
+        self.fileMenu = self.makeFileMenu()
+        menuBar.Append(self.fileMenu, _translate('&File'))
+        self.SetMenuBar(menuBar)
 
         # title
         self.title = wx.StaticText(self, -1, "No project opened",
@@ -672,11 +707,8 @@ class ProjectSyncFrame(wx.Frame):
         self.update(status="Checking for changes")
         wx.Yield()
         changes = self.project.get_changes()
-        print(str(changes))
-        for thisAction in changes.dry_run():
-            print thisAction
         self.update(status="Applying changes")
-        wx.Yield()
+        wx.Yield()  # give wx a moment to breath
         # start the threads up/downloading
         changes.apply(threaded=True)
         # to check the status we need the
@@ -709,10 +741,6 @@ class ProjectSyncFrame(wx.Frame):
         self.status.SetLabel("Status: " + status)
         self.Layout()
         self.Update()
-
-    def closeFrame(event=None, checkSave=True):
-        # todo: save current info
-        self.Destroy()
 
 
 class SyncStatusPanel(wx.Panel):
