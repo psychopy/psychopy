@@ -107,7 +107,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             wrapWidth=800.0)
 
         # Clear all events from the global and device level event buffers.
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
 
         # Run a number of analog input recording /trials/
         #
@@ -116,7 +116,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             psychoStim['title'].setText(
                 'Analog Input Test. Trial %d of %d' %
                 (i + 1, trial_count))
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
 
             # Start streaming AnalogInput data.
             #

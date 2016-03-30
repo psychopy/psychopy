@@ -50,7 +50,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         if msg_dialog.show() == MessageDialog.OK_RESULT:
             # wait until 'ESCAPE' is pressed, or quit after 15 seconds of no kb
             # events.
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
             last_event_time = Computer.getTime()
             while run_demo is True and Computer.getTime() - last_event_time < 15.0:
                 local_kb_events = kb.getEvents()

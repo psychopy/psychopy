@@ -1,4 +1,10 @@
-# /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Headers/Events.h
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+
+# /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/
+# HIToolbox.framework/Headers/Events.h
 
 QZ_ESCAPE = 0x35
 QZ_F1 = 0x7A

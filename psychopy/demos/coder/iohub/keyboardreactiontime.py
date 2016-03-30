@@ -56,7 +56,7 @@ for s in stim:
 flip_time = win.flip()
 
 # Clear all events from all ioHub event buffers.
-io.clearEvents('all')
+io.clearEvents()
 
 # Run until space bar is pressed, or larger than window
 spacebar_rt = last_len = 0.0
@@ -78,7 +78,7 @@ while spacebar_rt == 0.0 or last_len >= win.size[0]:
     io.clearEvents()
     win.flip()
 
-io.clearEvents('all')
+io.clearEvents()
 
 results = 'Did you Forget to Press the Spacebar?\n'
 if spacebar_rt > 0.0:
@@ -94,7 +94,7 @@ for s in stim:
     s.draw()
 win.flip()
 
-io.clearEvents('all')
+io.clearEvents()
 while not keyboard.getPresses():
     core.wait(0.005)
 

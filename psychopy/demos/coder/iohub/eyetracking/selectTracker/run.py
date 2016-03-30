@@ -99,7 +99,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.hub.sendMessageEvent(text='EXPERIMENT_START', sec_time=flip_time)
 
         # wait until a key event occurs after the instructions are displayed
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
         kb.waitForPresses()
 
         # Send some information to the ioHub DataStore as experiment messages
@@ -122,7 +122,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             text='Eye Tracker being Used: {0}'.format(selected_eyetracker_name))
         self.hub.sendMessageEvent(text='IO_HUB EXPERIMENT_INFO END')
 
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
         t = 0
         for trial in trials:
             # Update the instuction screen text...
@@ -149,7 +149,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             trial['trial_id'] = t + 1
             trial['TRIAL_START'] = flip_time
             self.hub.sendMessageEvent(text='TRIAL_START', sec_time=flip_time)
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
             tracker.setRecordingState(True)
 
             # Get the image name for this trial
@@ -212,7 +212,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # ioDataStore.
             #
             self.hub.addRowToConditionVariableTable(trial.values())
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
             t += 1
 
         # Disconnect the eye tracking device.

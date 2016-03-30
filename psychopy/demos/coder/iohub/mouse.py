@@ -63,7 +63,7 @@ message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1] / 4)),
 
 last_wheelPosY = 0
 
-io.clearEvents('all')
+io.clearEvents()
 
 demo_timeout_start = core.getTime()
 # Run the example until a keyboard event is received.

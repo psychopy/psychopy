@@ -133,7 +133,7 @@ def main():
             # forces pyglet to get events from the windows event queue
             core.wait(0.05)
             mcu.enableEventReporting(True)
-            io.clearEvents('all')
+            io.clearEvents()
         except Exception:
             import traceback
             traceback.print_exc()
@@ -212,7 +212,7 @@ def main():
         if mcu:
             mcu.enableEventReporting(False)
         if io:
-            io.clearEvents('all')
+            io.clearEvents()
             io.quit()
 
 # Misc. constaints for ioSync

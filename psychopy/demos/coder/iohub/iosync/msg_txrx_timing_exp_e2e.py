@@ -52,7 +52,7 @@ mcu.enableEventReporting(True)
 
 # clear out any old events before starting test
 old_stuff = mcu.getRequestResponse()
-io.clearEvents('all')
+io.clearEvents()
 
 # Run test
 for i in range(repetitions):

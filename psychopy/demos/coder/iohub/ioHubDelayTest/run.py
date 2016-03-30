@@ -207,7 +207,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # This is VERY IMPORTANT, given an existing bug in ioHub.
         # You would want to do this before each trial started until the bug is
         # fixed.
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
 
     def updateStats(self, events, duration, ifi):
         # ctime it took to get events from ioHub

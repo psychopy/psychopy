@@ -93,7 +93,7 @@ try:
     mcu = io.devices.mcu
     kb = io.devices.keyboard
     mcu.enableEventReporting(True)
-    io.clearEvents('all')
+    io.clearEvents()
     bbox = ButtonBoxState()
     while not kb.getEvents():
         mcu_events = mcu.getEvents()
@@ -105,7 +105,7 @@ try:
                 print 'Released:', bbox.released
                 print '<<'
         core.wait(0.002, 0)
-    io.clearEvents('all')
+    io.clearEvents()
 except Exception:
     import traceback
     traceback.print_exc()

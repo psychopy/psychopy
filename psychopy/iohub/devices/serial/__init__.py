@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
-"""ioHub.
-
-.. file: ioHub/devices/serial/__init__.py
-
-Copyright (C) 2012-2014 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
-"""
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 import serial
 import numpy as N
 from ... import EXP_SCRIPT_DIRECTORY

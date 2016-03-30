@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 11 18:52:59 2013
-
-@author: isolver
-"""
-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 from ctypes import cdll
 from . import MouseDevice
 from ...constants import MouseConstants

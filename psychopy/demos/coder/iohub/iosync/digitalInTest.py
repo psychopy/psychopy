@@ -19,7 +19,7 @@ is high, state will equal 1, DI_1 = 2,  DI_2 = 4 etc.
 So digital input state = sum(2**di), where di is the index of an input that
 is high, bound by 0 <= di <= 7.
 
-If the ioSync program (iosync.ino) running on the teensy 3 shuld be compiled
+If the ioSync program (iosync.ino) running on the teensy 3 should be compiled
 with the following define setting:
 
 #define DIGITAL_INPUT_TYPE INPUT_PULLUP
@@ -57,13 +57,13 @@ try:
 
     core.wait(0.5)
     mcu.enableEventReporting(True)
-    io.clearEvents('all')
+    io.clearEvents()
     while not kb.getEvents():
         mcu_events = mcu.getEvents()
         for mcu_evt in mcu_events:
             print'{0}\t{1}'.format(mcu_evt.time, mcu_evt.state)
         core.wait(0.002, 0)
-    io.clearEvents('all')
+    io.clearEvents()
 except Exception:
     import traceback
     traceback.print_exc()

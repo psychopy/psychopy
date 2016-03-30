@@ -52,7 +52,7 @@ try:
     kb = io.devices.keyboard
 
     mcu.enableEventReporting(True)
-    io.clearEvents('all')
+    io.clearEvents()
     i = 0
     print "Saving Analog Data to File. Press 'escape' Key to Quit..."
     aout = file('analog_output.txt', 'w')
@@ -74,7 +74,7 @@ try:
         core.wait(0.002, 0)
     aout.flush()
     aout.close()
-    io.clearEvents('all')
+    io.clearEvents()
 except Exception:
     import traceback
     traceback.print_exc()

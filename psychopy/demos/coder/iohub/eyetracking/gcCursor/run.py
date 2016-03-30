@@ -151,7 +151,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.hub.sendMessageEvent(text='EXPERIMENT_START', sec_time=flip_time)
 
         # Wait until a key event occurs after the instructions are displayed
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
         kb.waitForPresses()
 
         # Send some information to the ioDataStore as experiment messages,
@@ -173,7 +173,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 *display.getPixelsPerDegree()))
         self.hub.sendMessageEvent(text='IO_HUB EXPERIMENT_INFO END')
 
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
 
         # For each trial in the set of trials within the current block.
         #
@@ -192,7 +192,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Wait until a space key press event occurs after the
             # start trial instuctions have been displayed.
             #
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
             kb.waitForPresses(keys=[' ', ])
 
             # Space Key has been pressed, start the trial.
@@ -219,7 +219,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             flip_time = window.flip()
             # Clear all the events received prior to the trial start.
             #
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
             # Send a msg to the ioHub indicating that the trial started,
             # and the time of the first retrace displaying the trial stim.
             #
@@ -298,7 +298,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
             # Clear all event buffers
             #
-            self.hub.clearEvents('all')
+            self.hub.clearEvents()
             t += 1
 
         # All trials have been run, so end the experiment.
@@ -322,7 +322,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         instructions_text_stim.draw()
         flip_time = window.flip()
         self.hub.sendMessageEvent(text='SHOW_DONE_TEXT', sec_time=flip_time)
-        self.hub.clearEvents('all')
+        self.hub.clearEvents()
         # wait until any key is pressed
         kb.waitForPresses()
     # End of experiment logic

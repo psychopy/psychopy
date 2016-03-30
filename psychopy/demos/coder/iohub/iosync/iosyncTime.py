@@ -25,7 +25,7 @@ mcu = io.devices.mcu
 mcu.enableEventReporting(True)
 
 old_stuff = mcu.getRequestResponse()
-io.clearEvents('all')
+io.clearEvents()
 
 for i in range(repetitions):
     request = mcu.requestTime()

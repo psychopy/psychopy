@@ -62,7 +62,7 @@ instruction = visual.TextStim(
 # Display instruction.
 instruction.draw()
 win.flip()
-io.clearEvents('all')
+io.clearEvents()
 
 # Check for keyboard and serial events.
 # Exit on keyboard press event.

@@ -50,7 +50,7 @@ import ctypes as ct
 from Xlib import X, display
 from Xlib.ext import record
 from Xlib.protocol import rq
-import .xlib as _xlib
+from . import xlib as _xlib
 
 from ..devices import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes

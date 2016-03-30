@@ -1,13 +1,9 @@
-"""ioHub.
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 
-.. file: ioHub/devices/mcu/iosync/pysync.py
-
-Copyright (C) 2013-2014 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com>
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
+"""
 Python Interface for ioSync. ioSync uses a Teensy 3 / 3.1 microcontroller
 to provide a low cost solution for digital and analog inputs, as well as digital
 outputs.
@@ -278,7 +274,7 @@ class T3Request(object):
 
     @classmethod
     def _readRequestReply(cls, t3, request_id):
-        request = t3.getPendingRequests().pop(request_id, None)
+        request = t3.getActiveRequests().pop(request_id, None)
         if request is None:
             return None
         request.rx_time = getTime()

@@ -148,7 +148,7 @@ try:
     mcu.enableEventReporting(True)
 
     event.getKeys()
-    io.clearEvents('all')
+    io.clearEvents()
     mcu.getRequestResponse()
 
     i = 0

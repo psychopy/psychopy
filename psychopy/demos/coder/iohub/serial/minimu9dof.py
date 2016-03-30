@@ -58,7 +58,7 @@ kb = io.devices.keyboard
 ser = io.devices.serial
 event_count = 0
 
-io.clearEvents('all')
+io.clearEvents()
 print 'Saving Serial Port Events. Press any key to exit.'
 ser.enableEventReporting(True)
 stime = core.getTime()

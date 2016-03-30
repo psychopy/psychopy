@@ -50,7 +50,7 @@ try:
 
     mcu.setDigitalOutputByte(0)
     old_stuff = mcu.getRequestResponse()
-    io.clearEvents('all')
+    io.clearEvents()
     for i in range(repetitions):
         for dl in [0, 1, 0, 1, 0, 1, 0, 1]:
             mcu.setDigitalOutputByte(dl)

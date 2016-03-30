@@ -255,7 +255,7 @@ STIM_LIST = [title_label, title2_label, key_text_label, char_label,
 
 # Clear all events from the global and device level ioHub Event Buffers.
 
-io.clearEvents('all')
+io.clearEvents()
 
 QUIT_EXP = False
 demo_timeout_start = core.getTime()

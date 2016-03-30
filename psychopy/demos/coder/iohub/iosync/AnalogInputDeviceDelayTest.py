@@ -117,7 +117,7 @@ try:
     print
     core.wait(1.0)
     mcu.getRequestResponse()
-    io.clearEvents('all')
+    io.clearEvents()
     response_times = []
     for i, c in enumerate(ttl_bytes):
         ain_channel_name = 'AI_%d' % c
@@ -164,14 +164,14 @@ try:
 
         core.wait(0.2, .1)
         mcu.getRequestResponse()
-        io.clearEvents('all')
+        io.clearEvents()
 
     mcu.setDigitalOutputByte(0)
     core.wait(0.2, .1)
     mcu.getRequestResponse()
     mcu.enableEventReporting(False)
     ain.enableEventReporting(False)
-    io.clearEvents('all')
+    io.clearEvents()
 
     analog_timing_errors = ai_event_results[:, 1] - ai_event_results[:, 4]
     avg_timing_error = analog_timing_errors.mean()
