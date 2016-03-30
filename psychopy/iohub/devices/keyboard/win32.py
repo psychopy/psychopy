@@ -18,11 +18,9 @@ getTime = Computer.getTime
 jdumps = lambda x: str(x)
 try:
     import ujson
-
     jdumps = ujson.dumps
 except Exception:
     import json
-
     jdumps = json.dumps
 
 # Map key value when numlock is ON

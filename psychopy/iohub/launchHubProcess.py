@@ -9,22 +9,22 @@ import os
 import sys
 try:
     import iohub
-    from iohub import load, Loader, IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
+    from iohub import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
     from iohub.devices import Computer
     Computer.is_iohub_process = True
     from iohub.errors import print2err, printExceptionDetailsToStdErr
     from iohub.server import ioServer
     from iohub import util
-    from iohub.util import updateDict
+    from iohub.util import updateDict, yload, yLoader
 except ImportError:
     import psychopy.iohub
-    from psychopy.iohub import load, Loader, IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
+    from psychopy.iohub import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY
     from psychopy.iohub.devices import Computer
     Computer.is_iohub_process = True
     from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
     from psychopy.iohub.server import ioServer
     from psychopy.iohub import util
-    from psychopy.iohub.util import updateDict
+    from psychopy.iohub.util import updateDict, yload, yLoader
 
 
 def run(rootScriptPathDir, configFilePath):
@@ -40,15 +40,15 @@ def run(rootScriptPathDir, configFilePath):
         tf.close()
         os.remove(configFilePath)
     else:
-        ioHubConfig = load(file(configFilePath, 'r'), Loader=Loader)
+        ioHubConfig = yload(file(configFilePath, 'r'), Loader=yLoader)
 
-    hub_defaults_config = load(
+    hub_defaults_config = yload(
         file(
             os.path.join(
                 IOHUB_DIRECTORY,
                 'default_config.yaml'),
             'r'),
-        Loader=Loader)
+        Loader=yLoader)
     updateDict(ioHubConfig, hub_defaults_config)
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)

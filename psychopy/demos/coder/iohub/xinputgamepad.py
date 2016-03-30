@@ -140,7 +140,7 @@ if __name__ == '__main__':
             rumble_command_time, rumble_command_duration = rt, rd
 
         # Drift the grating
-        grating.setPhase(t * 2)
+        grating.setPhase(core.getTime() * 2)
 
         message.draw()
         button_state_txt.draw()

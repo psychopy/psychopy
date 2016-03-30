@@ -6,18 +6,15 @@ Authors: Sol Simpson, Jeremy Gray
 
 Changes:
     *. September, 2012: Initial release (SS).
-    *. April, 2013: greatly improved graphics rendering time by optimizing PsychoPy stim resource usage (JG).
+    *. April, 2013: greatly improved graphics rendering time by optimizing
+                    PsychoPy stim resource usage (JG).
 
 """
-
-# TODO: Retest because of changes
-
 from numpy import zeros
 from collections import OrderedDict
 from psychopy import core, visual
 from psychopy.iohub.devices import Computer
 from psychopy.iohub.client import ioHubExperimentRuntime
-from psychopy.iohub.constants import EventConstants
 
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -28,10 +25,10 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         new events from the ioHub server to when a response with >=1 new
         event is received and ready for use within the experiment script.
 
-        Only getEvent requests that return with atleast one new event are used in
-        the calculated statistics to try and ensure the reported delay is measuring
-        the higher processing load case of new events being returned, vs. the
-        case of no new events being available.
+        Only getEvent requests that return with atleast one new event are used
+        in the calculated statistics to try and ensure the reported delay is
+        measuring the higher processing load case of new events being
+        returned, vs. the case of no new events being available.
 
         At the end of the test, a MatPlotLib figure is displayed showing a
         histogram of the round trip event request delays as well as two figures
@@ -75,7 +72,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 'This is a test message %.3f' %
                 self.flipTime)
 
-            # check for any new events from any of the devices, and return the events list and the time it took to
+            # check for any new events from any of the devices,
+            # and return the events list and the time it took to
             # request the events and receive the reply
             self.events, callDuration = self.checkForEvents()
             if self.events:
@@ -111,64 +109,68 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         currentPosition = self.mouse.setPosition((0, 0))
         self.mouse.setSystemCursorVisibility(False)
 
-        fixation = visual.PatchStim(self.psychoWindow, size=25, pos=[0, 0], sf=0,
-                                    color=[-1, -1, -1], colorSpace='rgb')
-        title = visual.TextStim(
-            win=self.psychoWindow, text='ioHub getEvents Delay Test', pos=[
-                0, 125], height=36, color=[
-                1, .5, 0], colorSpace='rgb', alignHoriz='center', wrapWidth=800.0)
+        fixation = visual.PatchStim(self.psychoWindow, size=25, pos=[0, 0],
+                                    sf=0, color=[-1, -1, -1], colorSpace='rgb')
+        title = visual.TextStim(win=self.psychoWindow,
+                                text='ioHub getEvents Delay Test',
+                                pos=[0, 125], height=36, color=[1, .5, 0],
+                                colorSpace='rgb', alignHoriz='center',
+                                wrapWidth=800.0)
 
-        instr = visual.TextStim(win=self.psychoWindow,
-                                text='Move the mouse around, press keyboard keys and mouse buttons',
+        instxt = 'Move the mouse around, press keyboard keys and mouse buttons'
+        instr = visual.TextStim(win=self.psychoWindow, text=instxt,
                                 pos=[0, -125], height=32, color=[-1, -1, -1],
-                                colorSpace='rgb', alignHoriz='center', wrapWidth=800.0)
+                                colorSpace='rgb', alignHoriz='center',
+                                wrapWidth=800.0)
 
-        self.psychoStim['static'] = visual.BufferImageStim(
-            win=self.psychoWindow, stim=(fixation, title, instr))
-        self.psychoStim['grating'] = visual.PatchStim(
-            self.psychoWindow, mask='circle', size=75, pos=[-100, 0], sf=.075)
-        self.psychoStim['keytext'] = visual.TextStim(
-            win=self.psychoWindow, text='key', pos=[
-                0, 300], height=48, color=[
-                -1, -1, -1], colorSpace='rgb', alignHoriz='left', wrapWidth=800.0)
-        self.psychoStim['mouseDot'] = visual.GratingStim(
-            win=self.psychoWindow,
-            tex=None,
-            mask='gauss',
-            pos=currentPosition,
-            size=(
-                50,
-                50),
-            color='purple')
-        self.psychoStim['progress'] = visual.ShapeStim(
-            win=self.psychoWindow, vertices=[
-                (0, 0), (0, 0), (0, 0), (0, 0)], pos=(
-                400, -300))
+        self.psychoStim['static'] = visual.BufferImageStim(self.psychoWindow,
+                                                           stim=(fixation,
+                                                                 title, instr))
+        self.psychoStim['grating'] = visual.PatchStim(self.psychoWindow,
+                                                      mask='circle', size=75,
+                                                      pos=[-100, 0], sf=.075)
+        self.psychoStim['keytext'] = visual.TextStim(self.psychoWindow,
+                                                     text='key',
+                                                     pos=[0, 300],
+                                                     height=48,
+                                                     color=[-1, -1, -1],
+                                                     colorSpace='rgb',
+                                                     alignHoriz='left',
+                                                     wrapWidth=800.0)
+        self.psychoStim['mouseDot'] = visual.GratingStim(self.psychoWindow,
+                                                         tex=None,
+                                                         mask='gauss',
+                                                         pos=currentPosition,
+                                                         size=(50, 50),
+                                                         color='purple')
+        self.psychoStim['progress'] = visual.ShapeStim(self.psychoWindow,
+                                                       vertices=[(0, 0),
+                                                                 (0, 0),
+                                                                 (0, 0),
+                                                                 (0, 0)],
+                                                       pos=(400, -300))
 
     def drawAndFlipPsychoWindow(self):
-        self.psychoStim['grating'].setPhase(
-            0.05, '+')  # advance phase by 0.05 of a cycle
+        # advance phase by 0.05 of a cycle
+        self.psychoStim['grating'].setPhase(0.05, '+')
         currentPosition, currentDisplayIndex = self.mouse.getPosition(
             return_display_index=True)
 
         if currentDisplayIndex == self.display.getIndex():
-            currentPosition = (
-                float(
-                    currentPosition[0]), float(
-                    currentPosition[1]))
+            currentPosition = (float(currentPosition[0]),
+                               float(currentPosition[1]))
             self.psychoStim['mouseDot'].setPos(currentPosition)
 
         if self.events:
             diff = self.totalEventRequestsForTest - self.numEventRequests
-            v = self.psychoWindow.size[1] / 2.0 * \
-                diff / self.totalEventRequestsForTest
+            v = self.psychoWindow.size[1] / 2.0
+            v = v * diff / self.totalEventRequestsForTest
             vert = [[0, 0], [0, v], [2, v], [2, 0]]
             self.psychoStim['progress'].setVertices(vert)
 
-            for r in self.events:
-                if r.type is EventConstants.KEYBOARD_PRESS:  # keypress code
-                    self.psychoStim['keytext'].setText(r.key)
-
+            kb_presses = self.kb.getPresses()
+            for r in kb_presses:
+                self.psychoStim['keytext'].setText(r.key)
             self.events = None
 
         [self.psychoStim[skey].draw() for skey in self.psychoStim]
@@ -192,57 +194,51 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def initStats(self):
         if self.hub is None:
-            print(
-                'Error: ioHub must be enabled to run the testEventRetrievalTiming test.')
+            print("Error: ioHub must be enabled to run "
+                  "the testEventRetrievalTiming test.")
             return
 
         # Init Results numpy array
         self.results = zeros((self.totalEventRequestsForTest, 3), dtype='f4')
-
         self.numEventRequests = 0
         self.flipTime = 0.0
         self.lastFlipTime = 0.0
 
         # clear the ioHub event Buffer before starting the test.
-        # This is VERY IMPORTANT, given an existing bug in ioHub.
-        # You would want to do this before each trial started until the bug is
-        # fixed.
         self.hub.clearEvents()
 
     def updateStats(self, events, duration, ifi):
         # ctime it took to get events from ioHub
         self.results[self.numEventRequests][0] = duration
-        self.results[self.numEventRequests][1] = len(
-            events)  # number of events returned
+        # number of events returned
+        self.results[self.numEventRequests][1] = len(events)
         # calculating inter flip interval.
         self.results[self.numEventRequests][2] = ifi * 1000.0
         # incrementing tally counterfgh
         self.numEventRequests += 1
 
     def spinDownTest(self):
-        # OK, we have collected the number of requested getEvents, that have returned >0 events
-        # so _close psychopy window
+        # OK, we have collected the number of requested getEvents,
+        # that have returned >0 events so _close psychopy window
         self.psychoWindow.close()
 
         # disable high priority in both processes
         Computer.disableHighPriority()
 
     def plotResults(self):
-        #### calculate stats on collected data and draw some plots ####
+        # calculate stats on collected data and draw some plots
         import matplotlib.mlab as mlab
-        from matplotlib.pyplot import axis, title, xlabel, hist, grid, show, ylabel, plot
+        from matplotlib.pyplot import (axis, title, xlabel, hist, grid, show,
+                                       ylabel, plot)
         import pylab
 
         results = self.results
-
         durations = results[:, 0]
         flips = results[1:, 2]
-
         dmin = durations.min()
         dmax = durations.max()
         dmean = durations.mean()
         dstd = durations.std()
-
         fmean = flips.mean()
         fstd = flips.std()
 
@@ -250,37 +246,34 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         pylab.subplot(1, 3, 1)
 
         # the histogram of the delay data
-        n, bins, patches = hist(
-            durations, 50, normed=True, facecolor='blue', alpha=0.75)
+        n, bins, patches = hist(durations, 50, normed=True, facecolor='blue',
+                                alpha=0.75)
         # add a 'best fit' line
         y = mlab.normpdf(bins, dmean, dstd)
         plot(bins, y, 'r--', linewidth=1)
         xlabel('ioHub getEvents Delay')
         ylabel('Percentage')
-        title(
-            'ioHub Event Delay Histogram (msec.usec):\n' +
-            r'$\ \min={0:.3f},\ \max={1:.3f},\ \mu={2:.3f},\ \sigma={3:.3f}$'.format(
-                dmin,
-                dmax,
-                dmean,
-                dstd))
+        title('ioHub Event Delay Histogram (msec.usec):\n' +
+              r'$\ \min={0:.3f},\ \max={1:.3f},\ \mu={2:.3f},\ \sigma={3:.3f}$'.format(
+              dmin, dmax, dmean, dstd))
         axis([0, dmax + 1.0, 0, 25.0])
         grid(True)
 
-        # graphs of the retrace data ( taken from retrace example in psychopy
-        # demos folder)
+        # graphs of the retrace data
+        # Code taken from retrace example in psychopy demos folder.
         intervalsMS = flips
         m = fmean
         sd = fstd
-        distString = 'Mean={0:.1f}ms,    s.d.={1:.1f},    99%CI={2:.1f}-{3:.1f}'.format(
-            m, sd, m - 3 * sd, m + 3 * sd)
+        dstr_proto = "Mean={0:.1f}ms,\ts.d.={1:.1f},\t99%CI={2:.1f}-{3:.1f}"
+        distString = dstr_proto.format(m, sd, m - 3 * sd, m + 3 * sd)
         nTotal = len(intervalsMS)
         nDropped = sum(intervalsMS > (1.5 * m))
         droppedString = 'Dropped/Frames = {0:d}/{1:d} = {2}%'.format(
-            nDropped, nTotal, int(nDropped) / float(nTotal))
+                                                nDropped,
+                                                nTotal,
+                                                int(nDropped) / float(nTotal))
 
         pylab.subplot(1, 3, 2)
-
         # plot the frameintervals
         pylab.plot(intervalsMS, '-')
         pylab.ylabel('t (ms)')

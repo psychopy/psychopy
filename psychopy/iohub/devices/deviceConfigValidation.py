@@ -10,7 +10,8 @@
 import socket
 import os
 
-from .. import load, dump, Loader, Dumper, _pkgroot
+from .. import _pkgroot
+from ..util import yload, ydump, yLoader, yDumper
 from ..util import module_directory
 from ..errors import print2err
 
@@ -417,7 +418,7 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
 
 
 def loadYamlFile(yaml_file_path, print_file=False):
-    yaml_file_contents = load(file(yaml_file_path, 'r'), Loader=Loader)
+    yaml_file_contents = yload(file(yaml_file_path, 'r'), Loader=yLoader)
 #    if print_file:
 #        print 'yaml_file_contents:'
 #        print 'file: ',yaml_file_path
@@ -531,7 +532,6 @@ def validateDeviceConfiguration(
                 '.',
                 os.path.sep),
             'supported_config_settings.yaml')
-    #print2err("{0} using config settings file: ".format(device_class_name.lower()),validation_file_path)
     device_settings_validation_dict = loadYamlFile(
         validation_file_path, print_file=True)
     device_settings_validation_dict = device_settings_validation_dict[

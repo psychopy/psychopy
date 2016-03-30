@@ -21,7 +21,7 @@ except ImportError:
 import psutil
 
 from .. import _pkgroot, IOHUB_DIRECTORY, _DATA_STORE_AVAILABLE
-from .. import load, dump, Loader, Dumper
+from ..util import yload, ydump, yLoader, yDumper
 from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 from ..util.dialogs import MessageDialog
 from ..util import isIterable, updateDict, win32MessagePump
@@ -904,13 +904,13 @@ class ioHubConnection(object):
 
         rootScriptPath = os.path.dirname(sys.argv[0])
 
-        hub_defaults_config = load(
+        hub_defaults_config = yload(
             file(
                 os.path.join(
                     IOHUB_DIRECTORY,
                     'default_config.yaml'),
                 'r'),
-            Loader=Loader)
+            Loader=yLoader)
 
         if ioHubConfigAbsPath is None and ioHubConfig is None:
             ioHubConfig = dict(
@@ -932,7 +932,7 @@ class ioHubConnection(object):
                     return "ERROR: ioHubConfig:ioDataStore must contain both a 'experiment_info' and a 'session_info' key with a dict value each."
 
         elif ioHubConfigAbsPath is not None and ioHubConfig is None:
-            ioHubConfig = load(file(ioHubConfigAbsPath, u'r'), Loader=Loader)
+            ioHubConfig = yload(file(ioHubConfigAbsPath, u'r'), Loader=yLoader)
         else:
             return 'ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided.'
 
@@ -1550,11 +1550,11 @@ def launchHubServer(**kwargs):
     if kwargs.get('iohub_config_name'):
         # Load the specified iohub configuration file, converting it to a
         # python dict.
-        io_config = load(
+        io_config = yload(
             file(
                 kwargs.get('iohub_config_name'),
                 'r'),
-            Loader=Loader)
+            Loader=yLoader)
         monitor_devices_config = io_config.get('monitor_devices')
 
     ioConfig = None
@@ -1721,13 +1721,13 @@ class ioHubExperimentRuntime(object):
 
         # load the experiment config settings from the experiment_config.yaml file.
         # The file must be in the same directory as the experiment script.
-        self.configuration = load(
+        self.configuration = yload(
             file(
                 os.path.join(
                     self.configFilePath,
                     self.configFileName),
                 u'r'),
-            Loader=Loader)
+            Loader=yLoader)
 
         import random
         random.seed(Computer.getTime() * 1000.123)
@@ -1962,12 +1962,12 @@ class ioHubExperimentRuntime(object):
             merged_save_to_path):
         """Merges two iohub configuration files into one and saves it to a file
         using the path/file name in merged_save_to_path."""
-        base_config = load(file(base_config_file_path, 'r'), Loader=Loader)
-        update_from_config = load(
+        base_config = yload(file(base_config_file_path, 'r'), Loader=yLoader)
+        update_from_config = yload(
             file(
                 update_from_config_file_path,
                 'r'),
-            Loader=Loader)
+            Loader=yLoader)
 
         def merge(update, base):
             if isinstance(update, dict) and isinstance(base, dict):
@@ -1987,7 +1987,7 @@ class ioHubExperimentRuntime(object):
 
         import copy
         merged = merge(copy.deepcopy(update_from_config), base_config)
-        dump(merged, file(merged_save_to_path, 'w'), Dumper=Dumper)
+        ydump(merged, file(merged_save_to_path, 'w'), Dumper=yDumper)
 
         return merged
 

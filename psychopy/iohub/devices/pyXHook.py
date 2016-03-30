@@ -59,11 +59,9 @@ from ..errors import print2err
 jdumps = lambda x: str(x)
 try:
     import ujson
-
     jdumps = ujson.dumps
 except Exception:
     import json
-
     jdumps = json.dumps
 
 getTime = Computer.getTime

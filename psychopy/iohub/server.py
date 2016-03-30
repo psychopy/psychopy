@@ -13,11 +13,12 @@ import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
 
-from . import _pkgroot, load, dump, Loader, Dumper
+from . import _pkgroot
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
 from .util import convertCamelToSnake, win32MessagePump
+from .util import yload, ydump, yLoader, yDumper
 from .constants import DeviceConstants, EventConstants
 from .devices import Computer, DeviceEvent, import_device
 from .devices.deviceConfigValidation import validateDeviceConfiguration
@@ -562,8 +563,8 @@ class ioServer(object):
                 default_datastore_config_path = os.path.join(
                     IOHUB_DIRECTORY, 'datastore', 'default_datastore.yaml')
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
-                _dslabel, default_datastore_config = load(
-                    file(default_datastore_config_path, 'r'), Loader=Loader).popitem()
+                _dslabel, default_datastore_config = yload(
+                    file(default_datastore_config_path, 'r'), Loader=yLoader).popitem()
 
                 for default_key, default_value in default_datastore_config.iteritems():
                     if default_key not in experiment_datastore_config:
@@ -868,8 +869,8 @@ class ioServer(object):
         #print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
         self.log('Loading Device Defaults file: %s' % (device_class_name,))
 
-        _dclass, default_device_config = load(
-            file(dconfigPath, 'r'), Loader=Loader).popitem()
+        _dclass, default_device_config = yload(
+            file(dconfigPath, 'r'), Loader=yLoader).popitem()
 
         #print2err("Device Defaults:\n\tdevice_class: {0}\n\tdefault_device_config:{1}\n".format(device_class_name,default_device_config))
 
