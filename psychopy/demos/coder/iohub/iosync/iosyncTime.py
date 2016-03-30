@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-"""This demo requires that an ioSync device is correctly connected to the
-computer running this script.
-
-Script can be used to test the accuracy of the conversion from ioSync
-time stamps to iohub the time base.
-
+"""
+This demo requires that an ioSync device is correctly connected to the
+computer running this script. Script can be used to test the accuracy 
+of the conversion from ioSync time stamps to iohub the time base.
 """
 
 repetitions = 1000

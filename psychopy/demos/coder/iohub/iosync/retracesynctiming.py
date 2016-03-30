@@ -16,9 +16,6 @@ at:
 http://www.adafruit.com/products/1384
 
 """
-
-# TODO: Retest because of changes
-
 import time
 import numpy as np
 from psychopy import visual, core, event

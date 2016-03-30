@@ -111,25 +111,26 @@ class MCU(Device):
             elif len(syncPorts) > 1:
                 self.serial_port = syncPorts[0]
             else:
-                print2err(
-                    'ioSync ERROR: No ioSync Devices found. Check cabling and serial device driver. ')
-
-        self.setConnectionState(True)
+                self.serial_port = None
+        self.setConnectionState(self.serial_port is not None)
 
     def setConnectionState(self, enable):
         if enable is True:
-            if self._mcu is None:
+            if self._mcu is None and self.serial_port:
                 self._mcu = T3MC(self.serial_port)
                 self._resetLocalState()
 
         elif enable is False:
             if self._mcu:
-                self._mcu.resetState(blocking=True)
+                self._mcu.resetState()
                 self._mcu.close()
                 self._mcu = None
 
         return self.isConnected()
 
+    def getSerialPort(self):
+        return self.serial_port
+        
     def isConnected(self):
         return self._mcu is not None
 
@@ -229,7 +230,7 @@ class MCU(Device):
         self._last_sync_time = getTime()
 
     def resetState(self):
-        request = self._mcu.resetState(blocking=True)
+        request = self._mcu.resetState()
         self._resetLocalState()
         self._request_dict[request.getID()] = request
         return request.asdict()

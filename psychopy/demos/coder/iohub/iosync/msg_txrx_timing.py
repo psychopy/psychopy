@@ -3,27 +3,14 @@
 computer running this script.
 
 Script can be used to test the round trip time from when an ioSync message
-request is sent to when to when the ioSync reply is received. In this test
-the 'GET_TIME' request type is sent, which causes ioSync to return the
-current ioSync MCU 48 bit usec time.
+request is sent to when to when the ioSync reply is received. Request - Reply
+duration is calculated for both the iohub device <-> ioSync hardware and
+psychopy process <-> ioSync hardware.
 
-Each test iteration does the following(in sudo code):
-
-    request = iosync.requestTime()
-
-    reply_id = None
-    while reply_id is None:
-        reply = iosync.getReplies()
-        if reply.id == request.id:
-            reply_id = reply.id
-            tx_time = request.tx_time
-            rx_time = response.rx_time
-            round_trip_delay = rx_time - tx_time
-
-    sleep(0.00075) # sleep 750 usec before running next iteration
+In this test, 'GET_TIME' requests are repeatedly sent, each resulting in an
+ioSync reply containing current ioSync MCU 48 bit usec time.
 
 When the data has been collected, a plot is displayed with the results.
-
 """
 # How many request - reply iterations should be run.
 repetitions = 10000

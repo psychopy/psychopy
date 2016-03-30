@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
 """This demo requires that an ioSync device is correctly connected to the
 computer running this script.
 
@@ -7,9 +8,6 @@ time. The GUI can also be used to toggle the state of any of the digital
 output lines.
 
 """
-
-# TODO: Retest because of changes
-
 LUX_AIN = 0
 
 import sys
@@ -32,7 +30,9 @@ def main():
     io = None
     kb = None
     iomouse = None
-    digital_input_state = 0
+    # digital inputs use pullup resistor, so high = off (0),
+    # low = on (1)
+    digital_input_state = 255   
     digital_output_state = 0
     last_analog_in_event = None
     try:
@@ -107,7 +107,7 @@ def main():
             # digital inputs are set to use pull ups by default,
             # so 'off' is high and 'on' is when the line goes low.
             din_state_button = DigitalLineStateButton(
-                win, i, './off.png', './on.png', pos=(-350 + i * 100, -100), size=(50, 50), title=din_name, initial_state=True)
+                win, i, './off.png', './on.png', pos=(-350 + i * 100, -100), size=(50, 50), title=din_name, initial_state=False)
             digital_in_lines.append(din_state_button)
 
             dout_name = 'DO_%d' % (i)
@@ -170,7 +170,7 @@ def main():
                     raw_ratio = vraw / MAX_RAW
                     vstr = '%.3fV' % (toVolts(vraw))
                     if LUX_AIN == c:
-                        vstr = '%d Lux' % (int(tolux(vraw)))
+                        vstr = '%.3f Lux' % (tolux(vraw))
                     m.update_gauge(raw_ratio, vstr)
                 last_analog_in_event = None
             else:
@@ -199,26 +199,28 @@ def main():
             win.flip()
             core.wait(0.033, 0.0)
 
-        # turn off ioSync Recording
-        # and do misc. cleanup
-        mcu.setDigitalOutputByte(0)
-        mcu.enableEventReporting(False)
-        win.close()
-
     except Exception:
         import traceback
         traceback.print_exc()
     finally:
         if mcu:
+            # turn off ioSync Recording
+            # and do misc. cleanup
+            mcu.setDigitalOutputByte(0)
             mcu.enableEventReporting(False)
+            mcu.setConnectionState(False)
+            mcu = None
+        if win:
+            win.close()
+            win = None
         if io:
-            io.clearEvents()
             io.quit()
+            io = None
 
 # Misc. constaints for ioSync
-MAX_RAW = 2.0 ** 16
-MAX_LUX = 15.0  # in k lux
-MAX_AIN_V = 3.3
+MAX_RAW = 65535.0 # 16 bit
+MAX_LUX = 5.0  # in k lux
+MAX_AIN_V = 3.266
 LOG_LUX_RANGE = MAX_AIN_V
 LOG_LUX_RATIO = LOG_LUX_RANGE / MAX_RAW
 DIGITAL_ANALOG_16_STEP = MAX_AIN_V / MAX_RAW
