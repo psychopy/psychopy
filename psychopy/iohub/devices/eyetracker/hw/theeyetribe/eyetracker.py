@@ -1,16 +1,9 @@
+"""ioHub Common Eye Tracker Interface for TheEyeTribe(C) System"""
 # -*- coding: utf-8 -*-
-"""ioHub Common Eye Tracker Interface for the TheEyeTribe system.
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 
-.. file: ioHub/devices/eyetracker/hw/theeyetribe/eyetracker.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License
-(GPL version 3 or any later version).
-
-.. moduleauthor:: ????
-.. fileauthor:: ???
-
-"""
 
 import numpy as np
 from .....constants import EventConstants, EyeTrackerConstants

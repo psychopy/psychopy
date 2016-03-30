@@ -1,13 +1,11 @@
+"""ioHub Common Eye Tracker Interface"""
 # -*- coding: utf-8 -*-
-# ioHub Python Module
-# .. file: psychopy/iohub/devices/eyetracker/hw/gazepoint/gp3/eyetracker.py
-#
-# .. fileauthor:: Martin Guest Sol Simpson
-#
-# Distributed under the terms of the GNU General Public License
-# (GPL version 3 or any later version).
-#
-#
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+# .. fileauthor:: Martin Guest
+# .. fileauthor:: Sol Simpson
+
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer

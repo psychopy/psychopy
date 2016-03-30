@@ -1,17 +1,8 @@
 # -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-from ..errors import print2err, printExceptionDetailsToStdErr
-
-"""
-ioHub
-.. file: ioHub/devices/__init__.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-"""
 
 import gc
 import os
@@ -20,11 +11,13 @@ import copy
 import collections
 from collections import deque
 from operator import itemgetter
+
 import numpy as N
 import psutil
-from ..util import convertCamelToSnake, clock
-from .. import _pkgroot
 
+from ..util import convertCamelToSnake, clock
+from ..errors import print2err, printExceptionDetailsToStdErr
+from .. import _pkgroot
 
 class ioDeviceError(Exception):
 

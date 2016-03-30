@@ -1,12 +1,16 @@
-__author__ = 'Sol'
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import numpy as np
 from collections import deque
+
 from ..util import NumPyRingBuffer
 from . import DeviceEvent, Computer
 from ..constants import EventConstants
 
 # Event Filter / Translator / Parser Class Prototype
-
 
 class DeviceEventFilter(object):
     """Base class for creating a filtered / processed event stream from a

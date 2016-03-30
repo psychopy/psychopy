@@ -3,7 +3,7 @@ ioHub Common Eye Tracker Interface for EyeLink(C) Systems.
 EyeLink(C) calibration graphics implemented using PsychoPy.
 """
 # Part of the PsychoPy.iohub library
-# Copyright (C) 2012-2016 iSolver Software Solutionse
+# Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 import numpy as np
 import scipy

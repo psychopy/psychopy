@@ -31,15 +31,16 @@
 #    Daniel Folkinshteyn <nanotube@users.sf.net>
 #    So if there are any bugs, they are probably my fault. :)
 #
+
 #   January 2013: File modified by
 #      Sol Simpson (sol@isolver-software.com), with some cleanup done and
 #      modifications made so it integrated with the ioHub module more effecively
 #     ( but therefore making this version not useful for general application usage)
 #
-# March, 2013: -Fixed an existing bug that caused capslock not to have an effect,
+#   March, 2013: -Fixed an existing bug that caused capslock not to have an effect,
 #              -Added tracking of what keys are pressed and how many auto repeat
 #              press events each has received.
-# April, 2013: - Modified to directly return ioHub device event arrays
+#   April, 2013: - Modified to directly return ioHub device event arrays
 #             - optimized keysym lookup by loading into a dict cache
 #             - started adding support for reporting unicode keys
 
@@ -49,7 +50,7 @@ import ctypes as ct
 from Xlib import X, display
 from Xlib.ext import record
 from Xlib.protocol import rq
-import xlib as _xlib
+import .xlib as _xlib
 
 from ..devices import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 14 16:32:33 2013
-
-@author: Sol
-"""
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 
 # Takes a device configuration yaml dict and processes it based on the devices
 # support_settings_values.yaml (which must be in the same directory as the Device class)

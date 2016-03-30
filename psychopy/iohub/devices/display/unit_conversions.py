@@ -1,18 +1,11 @@
-"""ioHub.
-
-.. file: iohub/devices/display/unit_conversion.py
-
-Sudo code provided by Josh Borah
-Converted to Python by Sol Simpson
-
-This file Copyright (C) 2012 Josh Borah, 2012-2013 iSolver Software Solutions
-
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>, Josh Borah <josh@a-s-l.com>
-
-"""
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2013 Josh Borah
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+#
+# fileauthor:: Sol Simpson <sol@isolver-software.com>
+# fileauthor:: Josh Borah <josh@a-s-l.com>
 
 from math import atan, tan, sqrt
 

@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
+# ioHub DataStore to Pandas DataFrames - Event Filtering Support
+# Part of the psychopy.iohub library.
+# .. moduleauthor:: Sol Simpson <sol@isolver-software.com> and
+#                   Pierce Edmiston <pierce.edmiston@gmail.com>
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-"""
-ioHub DataStore to Pandas DataFrame Module with Event Filtering Support
 
-.. file: psychopy.iohub.datastore.pandas.interestarea.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License
-(GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> and
-                  Pierce Edmiston <pierce.edmiston@gmail.com>
-"""
 try:
     import shapely
     import shapely.geometry

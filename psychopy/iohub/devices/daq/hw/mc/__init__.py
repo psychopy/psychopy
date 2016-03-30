@@ -1,22 +1,14 @@
-"""ioHub.
-
-.. file: ioHub/devices/daq/hw/mc/__init__.py
-
-Copyright (C)  2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson
-
-"""
-
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
 from .... import Computer, ioDeviceError
 
 from ctypes import *
-from constants import *
+from .constants import *
 from .....errors import print2err
 
 currentSec = Computer.currentSec

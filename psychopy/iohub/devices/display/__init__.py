@@ -1,17 +1,8 @@
-﻿# coding=utf-8
-"""ioHub.
+﻿# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 
-.. file: ioHub/devices/display/__init__.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-
-Distributed under the terms of the GNU General Public License
-(GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
-"""
 import sys
 from .. import Device, Computer
 from ... import _ispkg
