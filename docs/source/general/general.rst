@@ -5,7 +5,7 @@ These are issues that users should be aware of, whether they are using Builder o
 
 .. toctree::
    :maxdepth: 1
-   
+
    monitors
    units
    colours
@@ -13,6 +13,7 @@ These are issues that users should be aware of, whether they are using Builder o
    dataOutputs
    gamma
    rendering
+   projects
 
 .. toctree::
    :maxdepth: 2

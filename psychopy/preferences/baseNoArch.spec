@@ -191,6 +191,8 @@
     pasteRoutine = string(default='Ctrl+Shift+V')
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
+    #Builder: rename an existing routine
+    renameRoutine = string(default='Ctrl+Shift+R')
     # switch to Builder window from Coder
     switchToBuilder = string(default='Ctrl+L')
     # switch to Coder window from Builder
@@ -205,3 +207,9 @@
     smallerRoutine = string(default='Ctrl+Shift+-')
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')
+
+    # Projects: Log in
+    projectsLogIn = string(default='Ctrl+Alt+I')
+    projectsSync = string(default='Ctrl+Alt+Y')
+    projectFind = string(default='Ctrl+Alt+F')
+    projectsOpen = string(default='Ctrl+Alt+O')

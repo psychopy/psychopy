@@ -7,12 +7,9 @@ from __future__ import absolute_import
 import wx
 from wx.lib import platebtn, scrolledpanel
 try:
-    from wx.lib import flatnotebook
     from wx import aui
 except Exception:
-    from wx.lib.agw import flatnotebook
     import wx.lib.agw.aui as aui  # some versions of phoenix
-from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.stc
 
 import sys
@@ -28,6 +25,7 @@ from ..localization import _translate
 
 from . import experiment, components
 from .. import stdOutRich, dialogs
+from .. import projects
 from psychopy import logging
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
@@ -433,7 +431,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
         # draw entries on timeline (if they have some time definition)
-        if startTime != None and duration != None:
+        if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
             dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0),
@@ -531,6 +529,10 @@ class RoutinesNotebook(aui.AuiNotebook):
         #        routinePage = RoutinePage(parent=self, routine=routine)
         routinePage = RoutineCanvas(notebook=self, routine=routine)
         self.AddPage(routinePage, routineName)
+
+    def renameRoutinePage(self, index, newName,):
+
+        self.SetPageText(index, newName)
 
     def removePages(self):
         for ii in range(self.GetPageCount()):
@@ -829,7 +831,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             currRoutinePage.redrawRoutine()
             self.frame.addToUndoStack(
                 "ADD `%s` to `%s`" % (compName, currRoutine.name))
-            wasNotInFavs = (not newClassStr in self.favorites.getFavorites())
+            wasNotInFavs = (newClassStr not in self.favorites.getFavorites())
             self.favorites.promoteComponent(newClassStr, 1)
             # was that promotion enough to be a favorite?
             if wasNotInFavs and newClassStr in self.favorites.getFavorites():
@@ -1002,7 +1004,7 @@ class BuilderFrame(wx.Frame):
             parent=self, app=self.app, size=(700, 300))
 
         # setup a default exp
-        if fileName != None and os.path.isfile(fileName):
+        if fileName is not None and os.path.isfile(fileName):
             self.fileOpen(filename=fileName, closeCurrent=False)
         else:
             self.lastSavedCopy = None
@@ -1049,6 +1051,8 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
+        self.app.trackFrame(self)
+
     def makeToolbar(self):
         # ---toolbar---#000000#FFFFFF-----------------------------------------
         _style = wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT
@@ -1077,7 +1081,7 @@ class BuilderFrame(wx.Frame):
         compileBmp = wx.Bitmap(join(rc, 'compile%i.png' % tbSize), PNG)
         settingsBmp = wx.Bitmap(join(rc, 'settingsExp%i.png' % tbSize), PNG)
         preferencesBmp = wx.Bitmap(join(rc, 'preferences%i.png' % tbSize),
-                                    PNG)
+                                   PNG)
         monitorsBmp = wx.Bitmap(join(rc, 'monitors%i.png' % tbSize), PNG)
 
         ctrlKey = 'Ctrl+'  # OS-dependent tool-tips
@@ -1309,6 +1313,10 @@ class BuilderFrame(wx.Frame):
                                "experiment"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.pasteRoutine, self.onPasteRoutine)
+        menu.Append(self.IDs.renameRoutine,
+                    _translate("&Rename Routine\t%s") % keys['renameRoutine'],
+                    _translate("Change the name of this routine"))
+        wx.EVT_MENU(self, self.IDs.renameRoutine, self.renameRoutine)
         menu.AppendSeparator()
 
         menu.Append(self.IDs.addRoutineToFlow,
@@ -1338,6 +1346,10 @@ class BuilderFrame(wx.Frame):
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
         menuBar.Append(self.demosMenu, _translate('&Demos'))
+
+        # ---_projects---#000000#FFFFFF-------------------------------------------
+        self.projectsMenu = projects.ProjectsMenu(parent=self)
+        menuBar.Append(self.projectsMenu, "P&rojects")
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1375,13 +1387,12 @@ class BuilderFrame(wx.Frame):
             # as of wx3.0 the AUI manager needs to be uninitialised explicitly
             self._mgr.UnInit()
             # is it the last frame?
-            lastFrame = bool(len(wx.GetApp().allFrames) == 1)
+            lastFrame = bool(len(wx.GetApp().getAllFrames()) == 1)
             quitting = wx.GetApp().quitting
             if lastFrame and sys.platform != 'darwin' and not quitting:
                 wx.GetApp().quit(event)
             else:
-                self.app.allFrames.remove(self)
-                self.app.builderFrames.remove(self)
+                self.app.forgetFrame(self)
                 self.Destroy()  # required
 
     def quit(self, event=None):
@@ -1638,7 +1649,7 @@ class BuilderFrame(wx.Frame):
         tmp = []
         fhMax = self.fileHistoryMaxFiles
         for f in self.appData['fileHistory'][-3 * fhMax:]:
-            if not f in tmp:
+            if f not in tmp:
                 tmp.append(f)
         self.appData['fileHistory'] = copy.copy(tmp[-fhMax:])
 
@@ -1920,9 +1931,6 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
 
-        # provide a finished... message
-        msg = "\n" + " Finished ".center(80, "#")  # 80 chars padded with #
-
         # then return stdout to its org location
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
@@ -2003,7 +2011,37 @@ class BuilderFrame(wx.Frame):
     def addRoutine(self, event=None):
         self.routinePanel.createNewRoutine()
 
+    def renameRoutine(self, name, event=None, returnName=True):
+        # get notebook details
+        currentRoutine = self.routinePanel.getCurrentPage()
+        currentRoutineIndex = self.routinePanel.GetPageIndex(currentRoutine)
+        routine = self.routinePanel.GetPage(
+            self.routinePanel.GetSelection()).routine
+        oldName = routine.name
+        msg = _translate("What is the new name for the Routine?")
+        dlg = wx.TextEntryDialog(self, message=msg,
+                                 caption=_translate('Rename'))
+        exp = self.exp
+        if dlg.ShowModal() == wx.ID_OK:
+            name = dlg.GetValue()
+            # silently auto-adjust the name to be valid, and register in the
+            # namespace:
+            name = exp.namespace.makeValid(
+                name, prefix='routine')
+            if oldName in self.exp.routines.keys():
+                # Swap old with new names
+                self.exp.routines[oldName].name = name
+                self.exp.routines[name] = self.exp.routines.pop(oldName)
+                for comp in self.exp.routines[name]:
+                    comp.parentName = name
+                self.exp.namespace.rename(oldName, name)
+                self.routinePanel.renameRoutinePage(currentRoutineIndex, name)
+                self.addToUndoStack("`RENAME Routine `%s`" % oldName)
+                dlg.Destroy()
+                self.flowPanel.draw()
+
     def generateScript(self, experimentPath):
+        self.app.prefs.app['debugMode'] = "debugMode"
         if self.app.prefs.app['debugMode']:
             return self.exp.writeScript(expPath=experimentPath)
             # getting the track-back is very helpful when debugging the app
@@ -2117,15 +2155,3 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
-
-
-def appDataToFrames(prefs):
-    """Takes the standard PsychoPy prefs and returns a list of appData
-    dictionaries, for the Builder frames.
-    (Needed because prefs stores a dict of lists, but we need a list of dicts)
-    """
-    dat = prefs.appData['builder']
-
-
-def framesToAppData(prefs):
-    pass
