@@ -1178,8 +1178,7 @@ class ioHubConnection(object):
             for ev in event_classes.values():
                 if ev.EVENT_TYPE_ID:
                     device_event_ids.append(ev.EVENT_TYPE_ID)
-            EventConstants.addClassMappings(
-                device_class, device_event_ids, event_classes)
+            EventConstants.addClassMappings(device_event_ids, event_classes)
 
             name_start = name.rfind('.')
             if name_start > 0:

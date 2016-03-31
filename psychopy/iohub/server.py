@@ -682,8 +682,8 @@ class ioServer(object):
             if device_instance_and_config:
                 device_instance, device_config, device_event_ids, event_classes = device_instance_and_config
                 DeviceConstants.addClassMapping(device_instance.__class__)
-                EventConstants.addClassMappings(
-                    device_instance.__class__, device_event_ids, event_classes)
+                EventConstants.addClassMappings(device_event_ids, 
+                                                event_classes)
             else:
                 print2err(
                     '## Device was not started by the ioHub Server: ',
