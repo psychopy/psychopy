@@ -6,13 +6,13 @@ from __future__ import division, absolute_import
 import sys
 
 from .errors import print2err, printExceptionDetailsToStdErr
-from .util import module_directory
+from .util import module_directory, fix_encoding
+fix_encoding.fix_encoding()
 
 if sys.platform == 'darwin':
     import objc  # pylint: disable=import-error
 
 EXP_SCRIPT_DIRECTORY = ''
-
 
 def _localFunc():
     return None
@@ -26,13 +26,10 @@ if IOHUB_DIRECTORY.find('psychopy') >= 0:
 
 _DATA_STORE_AVAILABLE = False
 try:
-    import tables
+    import tables # pylint: disable=wrong-import-position
     _DATA_STORE_AVAILABLE = True
 except ImportError:
     print2err('WARNING: pytables package not found. ',
               'ioHub functionality will be disabled.')
-except Exception:
+except Exception: # pylint: disable=broad-except
     printExceptionDetailsToStdErr()
-
-from .util.fix_encoding import fix_encoding
-fix_encoding()

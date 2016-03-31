@@ -5,13 +5,11 @@ import sys
 from .errors import print2err
 
 
-
 class Constants(object):
     UNDEFINED = 0
     _keys = None
     _names = None
     _classes = None
-
     _initialized = False
 
     @classmethod
@@ -86,19 +84,7 @@ class EventConstants(Constants):
     * str constant
     * event class associated with a constant
 
-    The EventConstants class is initialized when ioHub is started. All
-    constants and methods available are class level attributes and methods.
-    Therefore do not ever create an instance of a Constants class; simply
-    access it directly, such as::
-
-        int_kbp_c=iohub.EventConstants.KEYBOARD_PRESS
-        str_kbp_c=iohub.EventConstants.getName(int_kbp_c)
-        kbp_class=iohub.EventConstants.getClass(int_kbp_c)
-
-        print 'KeyboardPress Event Type ID Constant: ', int_kbp_c
-        print 'KeyboardPress Event Type Name Constant: ', str_kbp_c
-        print 'KeyboardPress Event Type Class: ',kbp_class
-
+    Access event constants using the EventConstants class attributes & methods.
     """
     KEYBOARD_INPUT = 20
     #: Constant for a Keyboard Press Event.
@@ -244,21 +230,10 @@ class DeviceConstants(Constants):
     * str constant
     * device class associated with a constant
 
-    The DeviceConstants class is initialized when ioHub is started. All
-    constants and methods available are class level attributes and methods.
-    Therefore do nit ever create an instance of a Constants class; simply
-    access it directly, such as::
-
-        int_kbdev_const=iohub.DeviceConstants.KEYBOARD
-        str_kbdev_const=iohub.DeviceConstants.getName(int_kbdev_const)
-        iohub_kb_devclass=iohub.DeviceConstants.getClass(int_kbdev_const)
-
-        print 'Keyboard Device Type ID Constant: ',int_kbdev_const
-        print 'Keyboard Device Type Name Constant: ',str_kbdev_const
-        print 'Keyboard Device Type ioHub Class: ',iohub_kbdev_class
-
+    Access device constants using the DeviceConstants class attributes
+    & methods.
     """
-    #: Constant for a Device Type not currently categoried.
+    #: Constant for a Device Type not currently categorized.
     OTHER = 1
 
     #: Constant for a Keyboard Device.
@@ -363,10 +338,8 @@ MouseConstants.initialize()
 # pylint: disable=protected-access
 
 if sys.platform == 'win32':
-
     class AsciiConstants(Constants):
         # Mainly from the pyHook lookup Table, some from Pyglet
-
         BACKSPACE = 0x08
         TAB = 0x09
         LINEFEED = 0x0A
@@ -484,7 +457,7 @@ if sys.platform == 'win32':
     AsciiConstants.initialize()
 
     class VirtualKeyCodes(Constants):
-            # Mainly from the pyHook lookup Table, some from Pyglet
+        # Mainly from the pyHook lookup Table, some from Pyglet
         VK_CANCEL = 0x03
         VK_BACKSPACE = 0x08
         VK_TAB = 0x09
@@ -632,7 +605,6 @@ if sys.platform == 'win32':
 
 elif sys.platform == 'linux2':
     class VirtualKeyCodes(Constants):
-
         @classmethod
         def getName(cls, cid):
             return cls._names.get(cid, None)
@@ -669,7 +641,6 @@ elif sys.platform == 'darwin':
         ANSI_Keypad7 = 0x59
         ANSI_Keypad8 = 0x5B
         ANSI_Keypad9 = 0x5C
-
         @classmethod
         def getName(cls, cid):
             return cls._names.get(cid, None)
@@ -760,8 +731,7 @@ elif sys.platform == 'darwin':
         CONTROL = 0x2303  # Unicode UP ARROWHEAD
         OPTION = 0x2325  # Unicode OPTION KEY
         COMMAND = 0x2318  # Unicode PLACE OF INTEREST SIGN
-        # Unicode LOWER RIGHT PENCIL;
-        # actually pointed left until Mac OS X 10.3
+        # Unicode LOWER RIGHT PENCIL; actually pointed left until Mac OS X 10.3
         PENCIL_RIGHT = 0x270E
         # Unicode LOWER LEFT PENCIL; available in Mac OS X 10.3 and later
         PENCIL_LEFT = 0xF802
@@ -946,18 +916,15 @@ ModifierKeyCodes._keys.remove(ModifierKeyCodes.getID('UNDEFINED'))
 
 
 class KeyboardConstants(Constants):
-    """Stores internal windows hook constants including hook types,
-    mappings from virtual keycode name to value and value to name, and
-    event type value to name."""
+    """Stores internally used mappings between OS and iohub keyboard key
+    constants."""
 
     _virtualKeyCodes = VirtualKeyCodes()
-
     if sys.platform == 'win32':
         _asciiKeyCodes = AsciiConstants()
     if sys.platform == 'darwin':
         _unicodeChars = UnicodeChars()
         _ansiKeyCodes = AnsiKeyCodes()
-
     _modifierCodes = ModifierKeyCodes()
 
     @classmethod
@@ -1007,11 +974,6 @@ KeyboardConstants.initialize()
 
 
 class EyeTrackerConstants(Constants):
-
-    #
-    # Sample Filtering related constants
-    #
-
     # Sample Filter Levels
     FILTER_LEVEL_OFF = 0
     FILTER_OFF = 0
@@ -1030,21 +992,18 @@ class EyeTrackerConstants(Constants):
     FILTER_ANALOG = 13
     FILTER_ALL = 14
 
-    #
     # Eye Type Constants
-    #
     LEFT_EYE = 21
     RIGHT_EYE = 22
     SIMULATED_MONOCULAR = 23
     MONOCULAR = 24
-
     BINOCULAR = 26
     BINOCULAR_AVERAGED = 27
     BINOCULAR_CUSTOM = 28
     SIMULATED_BINOCULAR = 29
-    #
+
+
     # Calibration / Validation Related Constants
-    #
 
     # Target Point Count
     NO_POINTS = 40
@@ -1084,9 +1043,7 @@ class EyeTrackerConstants(Constants):
     VALIDATION_STATE = 103
     DRIFT_CORRECTION_STATE = 104
 
-    #
     # Pupil Measure Type Constants
-    #
     PUPIL_AREA = 70
     PUPIL_DIAMETER = 71
     PUPIL_WIDTH = 72
@@ -1101,22 +1058,16 @@ class EyeTrackerConstants(Constants):
     PUPIL_MINOR_AXIS_MM = 81
     PUPIL_RADIUS_MM = 82
 
-    #
-    # Video Based Eye Tracking Method Constants
-    #
+
+    # Video Based Eye Tracking Algorithm Constants
     PUPIL_CR_TRACKING = 140
     PUPIL_ONLY_TRACKING = 141
 
-    #
-    # Video Based Pupil Center Calculation Algorithm Constants
-    #
     ELLIPSE_FIT = 146
     CIRCLE_FIT = 147
     CENTROID_FIT = 148
 
-    #
     # Eye Tracker Interface Return Code Constants
-    #
     EYETRACKER_OK = 200
     # EYETRACKER_ERROR deprecated for EYETRACKER_UNDEFINED_ERROR
     EYETRACKER_ERROR = 201
@@ -1134,10 +1085,7 @@ class EyeTrackerConstants(Constants):
 
 EyeTrackerConstants.initialize()
 
-
-#
-# Gamepad related
-#
+# XInput Gamepad related
 
 class XInputBatteryTypeConstants(Constants):
     # The device is not connected.
@@ -1154,9 +1102,7 @@ XInputBatteryTypeConstants.initialize()
 try:
     XInputBatteryTypeConstants._keys.remove(
         XInputBatteryTypeConstants.getID('UNDEFINED'))
-except KeyError:
-    pass
-except Exception:
+except Exception:  # pylint: disable=broad-except
     pass
 
 class XInputBatteryLevelConstants(Constants):
@@ -1170,9 +1116,7 @@ XInputBatteryLevelConstants.initialize()
 try:
     XInputBatteryLevelConstants._keys.remove(
         XInputBatteryLevelConstants.getID('UNDEFINED'))
-except KeyError:
-    pass
-except Exception:
+except Exception:  # pylint: disable=broad-except
     pass
 
 
@@ -1190,9 +1134,7 @@ XInputCapabilitiesConstants.initialize()
 try:
     XInputCapabilitiesConstants._keys.remove(
         XInputCapabilitiesConstants.getID('UNDEFINED'))
-except KeyError:
-    pass
-except Exception:
+except Exception:  # pylint: disable=broad-except
     pass
 
 class XInputGamePadConstants(Constants):
@@ -1219,9 +1161,7 @@ XInputGamePadConstants.initialize()
 try:
     XInputGamePadConstants._keys.remove(
         XInputGamePadConstants.getID('UNDEFINED'))
-except KeyError:
-    pass
-except Exception:
+except Exception:  # pylint: disable=broad-except
     pass
 
 # pylint: enable=protected-access

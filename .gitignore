@@ -85,6 +85,8 @@ appData.cfg
 *.hdf5
 *.7z
 
+.cache
+
 # Documentation generated files #
 #################################
 .coverage
