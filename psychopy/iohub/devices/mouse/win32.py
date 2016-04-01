@@ -219,12 +219,20 @@ class Mouse(MouseDevice):
         confidence_interval = 0.0
         delay = 0.0
 
-        # From MSDN: http://msdn.microsoft.com/en-us/library/windows/desktop/ms644939(v=vs.85).aspx
-        # The time is a long integer that specifies the elapsed time, in milliseconds, from the time the system was started to the time the message was
-        # created (that is, placed in the thread's message queue).REMARKS: The return value from the GetMessageTime function does not necessarily increase
-        # between subsequent messages, because the value wraps to zero if the timer count exceeds the maximum value for a long integer. To calculate time
-        # delays between messages, verify that the time of the second message is greater than the time of the first message; then, subtract the time of the
-        # first message from the time of the second message.
+        # From MSDN:
+        # http://msdn.microsoft.com/en-us/library/windows/desktop/ms644939(v=vs.85).aspx
+        #
+        # The time is a long integer that specifies the elapsed time,
+        # in milliseconds, from the time the system was started to the time
+        # the message was created (that is, placed in the thread's message
+        # queue).REMARKS: The return value from the GetMessageTime function
+        # does not necessarily increase between subsequent messages,
+        # because the value wraps to zero if the timer count exceeds
+        # the maximum value for a long integer. To calculate time
+        # delays between messages, verify that the time of the second message
+        # is greater than the time of the first message;
+        # then, subtract the time of the first message from the time
+        # of the second message.
         device_time = event.Time / 1000.0  # convert to sec
 
         hubTime = logged_time

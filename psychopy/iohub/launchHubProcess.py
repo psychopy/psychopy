@@ -94,7 +94,13 @@ def run(rootScriptPathDir, configFilePath):
             s.shutdown()
 
 if __name__ == '__main__':
+    psychopy_pid = None
+    initial_offset = 0.0
+    scriptPathDir = None
+    configFileName = None
+
     prog = sys.argv[0]
+
     if len(sys.argv) >= 2:
         initial_offset = float(sys.argv[1])
     if len(sys.argv) >= 3:

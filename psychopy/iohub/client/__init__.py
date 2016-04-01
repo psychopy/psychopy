@@ -661,7 +661,7 @@ class ioHubConnection(object):
         """
         r = self._sendToHubServer(
             ('RPC',
-             'initializeConditionVariableTable',
+             'initConditionVariableTable',
              (self.experimentID,
               self.experimentSessionID,
               condition_variable_provider._numpyConditionVariableDescriptor)))
@@ -703,7 +703,7 @@ class ioHubConnection(object):
                 data[i] = d.encode('utf-8')
         r = self._sendToHubServer(
             ('RPC',
-             'addRowToConditionVariableTable',
+             'extendConditionVariableTable',
              (self.experimentID,
               self.experimentSessionID,
               data)))

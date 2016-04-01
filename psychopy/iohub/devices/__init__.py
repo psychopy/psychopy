@@ -720,7 +720,6 @@ class Computer(object):
         Returns:
            None
         """
-
         return Computer.global_clock.getTime()
 
     @staticmethod

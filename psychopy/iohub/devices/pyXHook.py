@@ -140,7 +140,7 @@ class HookManager(threading.Thread):
     def __init__(self, log_event_details=False):
         threading.Thread.__init__(self)
         self.finished = threading.Event()
-
+        self._running = False
         self.log_events = log_event_details
         self.log_events_file = None
 
@@ -195,6 +195,7 @@ class HookManager(threading.Thread):
         self._xkey_evt.subwindow = 0  # ', Window)
 
     def run(self):
+        self._running = True
         # Check if the extension is present
         if not self.record_dpy.has_extension('RECORD'):
             print2err(
@@ -236,6 +237,7 @@ class HookManager(threading.Thread):
 
     def cancel(self):
         self.finished.set()
+        self._running = False
         self.local_dpy.record_disable_context(self.ctx)
         self.local_dpy.flush()
         self._xlib.XCloseDisplay(self._xdisplay)

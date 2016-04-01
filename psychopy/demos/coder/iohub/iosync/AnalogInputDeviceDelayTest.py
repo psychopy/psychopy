@@ -67,7 +67,7 @@ to leave these at [0,1]
 
 The repetitions variable specifies how many times the line defined by
 analog_input_channels should be toggled through. For example, assuming
-analog_input_channels = [0.1] and repetitions = 10, then 2x10 = 20 state
+analog_input_channels = [0,1] and repetitions = 10, then 2x10 = 20 state
 changes will occur and will be used for the delay error correction calculation.
 
 """

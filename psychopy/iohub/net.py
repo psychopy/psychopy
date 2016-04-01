@@ -3,28 +3,27 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from .devices import Computer
-import msgpack
-from .errors import print2err, printExceptionDetailsToStdErr
-
-try:
-    import msgpack_numpy as m
-    m.patch()
-except Exception:
-    pass
 import struct
 from weakref import proxy
-from .util import NumPyRingBuffer as RingBuffer
 
-getTime = Computer.getTime
+from gevent import sleep, Greenlet
+import msgpack
+try:
+    import msgpack_numpy
+    msgpack_numpy.patch()
+except ImportError:
+    from .errors import print2err
+    print2err("Warning: msgpack_numpy could not be imported. ",
+              "This may cause issues for iohub.")
+
+from .devices import Computer
+from .errors import print2err, printExceptionDetailsToStdErr
+from .util import NumPyRingBuffer as RingBuffer
 
 MAX_PACKET_SIZE = 64 * 1024
 
-from gevent import sleep, Greenlet
-
 
 class SocketConnection(object):
-
     def __init__(
             self,
             local_host=None,
@@ -42,7 +41,7 @@ class SocketConnection(object):
         self._rcvBufferLength = rcvBufferLength
         self.lastAddress = None
         self.sock = None
-        self.initSocket(broadcast,blocking, timeout)
+        self.initSocket(broadcast, blocking, timeout)
 
         self.coder = msgpack
         self.packer = msgpack.Packer()
@@ -61,12 +60,8 @@ class SocketConnection(object):
 
         if broadcast is True:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            self.sock.setsockopt(
-                socket.IPPROTO_IP,
-                socket.IP_MULTICAST_TTL,
-                struct.pack(
-                    '@i',
-                    1))
+            self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL,
+                                 struct.pack('@i', 1))
 
         if blocking is not 0:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -77,10 +72,9 @@ class SocketConnection(object):
     def sendTo(self, data, address=None):
         if address is None:
             address = self._remote_host, self._remote_port
-        d = self.pack(data)
-        byte_count = len(d)
-        self.sock.sendto(d, address)
-        return byte_count
+        packed_data = self.pack(data)
+        self.sock.sendto(packed_data, address)
+        return len(packed_data)
 
     def receive(self):
         try:
@@ -90,52 +84,38 @@ class SocketConnection(object):
             result = self.unpack()
             if result[0] == 'IOHUB_MULTIPACKET_RESPONSE':
                 num_packets = result[1]
-
-                for p in xrange(num_packets - 1):
+                while num_packets > 0:
                     data, address = self.sock.recvfrom(self._rcvBufferLength)
                     self.feed(data)
-
-                data, address = self.sock.recvfrom(self._rcvBufferLength)
-                self.feed(data)
+                    num_packets = num_packets - 1
                 result = self.unpack()
             return result, address
-        except Exception as e:
+        except Exception: # pylint: disable=broad-except
             printExceptionDetailsToStdErr()
-            #raise e
 
     def close(self):
         self.sock.close()
 
 
 class UDPClientConnection(SocketConnection):
+    def __init__(self, remote_host='127.0.0.1', remote_port=9000,
+                 rcvBufferLength=MAX_PACKET_SIZE, broadcast=False,
+                 blocking=1, timeout=None):
+        SocketConnection.__init__(self, remote_host=remote_host,
+                                  remote_port=remote_port,
+                                  rcvBufferLength=rcvBufferLength,
+                                  broadcast=broadcast,
+                                  blocking=blocking,
+                                  timeout=timeout)
 
-    def __init__(
-            self,
-            remote_host='127.0.0.1',
-            remote_port=9000,
-            rcvBufferLength=MAX_PACKET_SIZE,
-            broadcast=False,
-            blocking=1,
-            timeout=None):
-        SocketConnection.__init__(
-            self,
-            remote_host=remote_host,
-            remote_port=remote_port,
-            rcvBufferLength=rcvBufferLength,
-            broadcast=broadcast,
-            blocking=blocking,
-            timeout=timeout)
-
-    def initSocket(self, broadcast, blocking, timeout):
+    def initSocket(self, broadcast=False, blocking=1, timeout=None):
         if Computer.is_iohub_process is True:
             from gevent import socket
         else:
             import socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.setsockopt(
-            socket.SOL_SOCKET,
-            socket.SO_RCVBUF,
-            MAX_PACKET_SIZE)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,
+                             MAX_PACKET_SIZE)
         self.sock.settimeout(timeout)
         self.sock.setblocking(blocking)
 
@@ -179,7 +159,7 @@ class ioHubTimeSyncConnection(UDPClientConnection):
         min_local_time = 0.0
         min_remote_time = 0.0
 
-        for s in xrange(sync_count):
+        while sync_count > 0:
             # send sync request
             sync_start = Computer.currentSec()
             sendto(pack(sync_data), remote_address)
@@ -187,7 +167,7 @@ class ioHubTimeSyncConnection(UDPClientConnection):
 
             # get reply
             feed(recvfrom(rcvBufferLength)[0])
-            sync_rep, remote_time = unpack()
+            _, remote_time = unpack()
             sync_end = Computer.currentSec()
             rtt = sync_end - (sync_start + sync_start2) / 2.0
 
@@ -197,6 +177,7 @@ class ioHubTimeSyncConnection(UDPClientConnection):
             if old_delay != min_delay:
                 min_local_time = (sync_end + sync_start) / 2.0
                 min_remote_time = remote_time
+            sync_count = sync_count - 1
 
         return min_delay, min_local_time, min_remote_time
 
@@ -222,13 +203,14 @@ class ioHubTimeGreenSyncManager(Greenlet):
                 self._sync_socket = ioHubTimeSyncConnection(remote_address)
                 sleep(1)
             self.sync_state_target = proxy(sync_state_target)
-        except Exception as e:
+            self._running = False
+        except Exception: # pylint: disable=broad-except
             print2err(
                 '** Exception during ioHubTimeGreenSyncManager.__init__: ',
                 self._remote_address)
             printExceptionDetailsToStdErr()
 
-    def _run(self):
+    def _run(self): # pylint: disable=method-hidden
         self._running = True
         while self._sync(False) is False:
             sleep(0.5)
@@ -245,7 +227,8 @@ class ioHubTimeGreenSyncManager(Greenlet):
     def _sync(self, calc_drift_and_offset=True):
         try:
             if self._sync_socket:
-                min_delay, min_local_time, min_remote_time = self._sync_socket.sync()
+                r = self._sync_socket.sync()
+                min_delay, min_local_time, min_remote_time = r
                 sync_state_target = self.sync_state_target
                 sync_state_target.RTTs.append(min_delay)
                 sync_state_target.L_times.append(min_local_time)
@@ -262,7 +245,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
                     r = sync_state_target.R_times[-1]
                     self.sync_state_target.offsets = (r - l)
                 return True
-        except Exception as e:
+        except Exception: # pylint: disable=broad-except
             return False
         return False
 
@@ -286,7 +269,8 @@ class ioHubTimeSyncManager(object):
 
     def sync(self, calc_drift_and_offset=True):
         if self._sync_socket:
-            min_delay, min_local_time, min_remote_time = self._sync_socket.sync()
+            r = self._sync_socket.sync()
+            min_delay, min_local_time, min_remote_time = r
             sync_state_target = self.sync_state_target
             sync_state_target.RTTs.append(min_delay)
             sync_state_target.L_times.append(min_local_time)
@@ -305,7 +289,6 @@ class ioHubTimeSyncManager(object):
 
     def close(self):
         if self._sync_socket:
-            self._running = False
             self._sync_socket.close()
             self._sync_socket = None
 

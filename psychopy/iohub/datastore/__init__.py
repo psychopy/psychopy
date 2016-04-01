@@ -37,14 +37,13 @@ SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'March 29th, 2016'
 
 
-class ioHubpyTablesFile():
-
-    def __init__(self, fileName, folderPath, fmode='a', ioHubsettings=None):
+class DataStoreFile():
+    def __init__(self, fileName, folderPath, fmode='a', iohub_settings=None):
         self.fileName = fileName
         self.folderPath = folderPath
         self.filePath = os.path.join(folderPath, fileName)
 
-        self.settings = ioHubsettings
+        self.settings = iohub_settings
 
         self.active_experiment_id = None
         self.active_session_id = None
@@ -122,7 +121,7 @@ class ioHubpyTablesFile():
         return ''.join([t[0].upper() + t[1:] for t in tokens])
 
     def groupNodeForEvent(self, event_cls):
-        evt_group_label = event_cls.PARENT_DEVICE.DEVICE_TYPE_STRING.lower()   
+        evt_group_label = event_cls.PARENT_DEVICE.DEVICE_TYPE_STRING.lower()
         datevts_node = self.emrtFile.root.data_collection.events
         try:
             # If group for event table already exists return it....
@@ -134,7 +133,7 @@ class ioHubpyTablesFile():
             self.emrtFile.createGroup(datevts_node, evt_group_label,
                                       title=egtitle)
             return datevts_node._f_get_child(evt_group_label)
-        
+
     def updateDataStoreStructure(self, device_instance, event_class_dict):
         dfilter = tables.Filters(
             complevel=0,
@@ -179,7 +178,7 @@ class ioHubpyTablesFile():
                         print2err('--------------------------------------')
 
                 if event_table_label in self.TABLES:
-                    self.addClassMapping(event_cls, 
+                    self.addClassMapping(event_cls,
                                          self.TABLES[event_table_label])
                 else:
                     print2err(
@@ -243,7 +242,7 @@ class ioHubpyTablesFile():
         self.flush()
         return self.active_session_id
 
-    def _initializeConditionVariableTable(
+    def initConditionVariableTable(
             self, experiment_id, session_id, np_dtype):
         expcv_table = None
         expcv_node = self.emrtFile.root.data_collection.condition_variables
@@ -279,7 +278,7 @@ class ioHubpyTablesFile():
         return True
 
 
-    def _addRowToConditionVariableTable(self, experiment_id, session_id, data):
+    def extendConditionVariableTable(self, experiment_id, session_id, data):
         if self._EXP_COND_DTYPE is None:
             return False
         if self.emrtFile and 'EXP_CV' in self.TABLES:
@@ -367,7 +366,7 @@ class ioHubpyTablesFile():
 
     def bufferedFlush(self, eventCount=1):
         '''
-        If flushCounter threshold is >=0 then do some checks. If it is < 0, 
+        If flushCounter threshold is >=0 then do some checks. If it is < 0,
         then flush only occurs when command is sent to ioHub,
         so do nothing here.
         '''

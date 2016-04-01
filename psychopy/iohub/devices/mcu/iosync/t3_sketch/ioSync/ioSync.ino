@@ -49,11 +49,13 @@ DONE but RETEST:
 //     - Ensure Tools -> USB Type is set to "Serial" only.
 //     - Rebuild the iosync sketch and upload it.
 //
-//#define KEYBOARD
+#define KEYBOARD
 
 // >>>>>> DIGITAL_INPUT_TYPE <<<<<<<
 //
 // Setting Digital Input Type ( INPUT or INPUT_PULLUP )
+// or, if using modified Teensiduino code as of March 31, 2016
+// INPUT_PULLDOWN is also supported.
 #define DIGITAL_INPUT_TYPE INPUT_PULLUP
 
 // >>>>>> LED Pin To Use <<<<<<<
@@ -427,11 +429,11 @@ void handleSetDigitalOutStateRx(byte request_type,byte request_id,byte request_r
   ((dout & 0x40)) ? digitalWriteFast(27, HIGH) : digitalWriteFast(27, LOW);
   ((dout & 0x80)) ? digitalWriteFast(28, HIGH) : digitalWriteFast(28, LOW);
 
-  int i=0;
-  for (byte mask = 00000001; mask>0; mask <<= 1) { //iterate through bit mask
-    digitalWrite(DOUT_PINS[i],dout & mask); // set 1
-    i++;
-  }
+  //int i=0;
+  //for (byte mask = 00000001; mask>0; mask <<= 1) { //iterate through bit mask
+  //  digitalWrite(DOUT_PINS[i],dout & mask); // set 1
+  //  i++;
+  //}
 }
 
 //------------------------
@@ -480,8 +482,7 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
    1: Tx Byte Count
    2 - 7: usec time that pin was set.    
    */
-  char pin_value[2]={
-    0,0  }; // pin number, Pin state
+  char pin_value[2]={0,0}; // pin number, Pin state
   Serial.readBytes(pin_value,2);
 
   digitalWriteFast(DOUT_PINS[pin_value[0]],pin_value[1]);
@@ -516,8 +517,7 @@ void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte reques
    2 - 7: usec time that pin was set.    
    */
   unsigned int usec_duration;
-  char key_event_info[2]={
-    0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
+  char key_event_info[2]={0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
   Serial.readBytes(key_event_info,2);
   
   usec_duration=(unsigned int)(((byte)key_event_info[1])*100000);
