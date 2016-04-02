@@ -413,7 +413,6 @@ class Serial(Device):
 
                 elif self._byte_diff_mode:
                     rx = self.read()
-
                     read_time = getTime()
                     for c in rx:
                         if self._rx_buffer is not None and c != self._rx_buffer:
@@ -763,7 +762,7 @@ class PstboxButtonEvent(DeviceEvent):
         ('button_event', N.str, 7)
     ]
 
-    PARENT_DEVICE = Serial
+    PARENT_DEVICE = Pstbox
     EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
     EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING

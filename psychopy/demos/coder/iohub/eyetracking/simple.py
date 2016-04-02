@@ -53,7 +53,7 @@ while t < TRIAL_COUNT:
     tracker.setRecordingState(True)
     run_trial = True
     while run_trial is True:
-        # Get the latest gaze position in dispolay coord space..
+        # Get the latest gaze position in display coord space..
         gpos = tracker.getLastGazePosition()
 
         # Update stim based on gaze position
