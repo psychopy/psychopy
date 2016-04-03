@@ -29,8 +29,10 @@ from psychopy.iohub.client import launchHubServer
 getTime = core.getTime
 
 key_evts = "This is a test."
-key_dur = 0.5
-iki = 1.0
+# If key_dur is too long (~ >= 0.5 sec), extra press events may occur
+# because of the OS key auto-repeat functionality.
+key_dur = 0.25
+iki = 0.5
 genkey_evts =[(c, key_dur) for c in key_evts]
 
 mcu = None
