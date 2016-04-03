@@ -2,19 +2,17 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import division, absolute_import
 
 # Takes a device configuration yaml dict and processes it based on the devices
-# support_settings_values.yaml (which must be in the same directory as the Device class)
-# to ensure all entries for the device setting are valid values.
+# support_settings_values.yaml (which must be in the same directory as the
+# Device class) to ensure all entries for the device setting are valid values.
 
 import socket
 import os
 
 from .. import _pkgroot
-from ..util import yload, ydump, yLoader, yDumper
-from ..util import module_directory
-from ..errors import print2err
-
+from ..util import yload, yLoader, module_directory
 
 class ValidationError(Exception):
     """Base class for exceptions in this module."""

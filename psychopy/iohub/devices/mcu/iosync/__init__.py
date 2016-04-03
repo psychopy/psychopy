@@ -2,6 +2,8 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import division, absolute_import
+
 """
 ioSync MCU Device.
 ===================
@@ -62,22 +64,23 @@ MCU Access
 - Get the current Analog Input values. ( getAnalogInputs() method )
 
 """
-import pysync
-from pysync import T3MC, T3Request, T3Event
+
+import numpy as np
+import gevent
 
 from ... import Computer, Device, DeviceEvent
 from ....constants import DeviceConstants, EventConstants
 from ....errors import print2err, printExceptionDetailsToStdErr
-import numpy as N
-import gevent
+from .pysync import T3MC, T3Request, T3Event
+
 getTime = Computer.getTime
 
 
 class MCU(Device):
     """"""
     DEVICE_TIMEBASE_TO_SEC = 1.0
-    _newDataTypes = [('serial_port', N.str, 32),
-                     ('time_sync_interval', N.float32)]
+    _newDataTypes = [('serial_port', np.str, 32),
+                     ('time_sync_interval', np.float32)]
     EVENT_CLASS_NAMES = [
         'AnalogInputEvent',
         'DigitalInputEvent',
@@ -130,7 +133,7 @@ class MCU(Device):
 
     def getSerialPort(self):
         return self.serial_port
-        
+
     def isConnected(self):
         return self._mcu is not None
 
@@ -207,8 +210,9 @@ class MCU(Device):
         self._request_dict[request.getID()] = request
         return request.asdict()
 
-    def generateKeyboardEvent(self, use_char, press_duration):
-        request = self._mcu.generateKeyboardEvent(use_char, press_duration)
+    def generateKeyboardEvent(self, key_symbol, press_duration):
+        request = self._mcu.generateKeyboardEvent(key_symbol.lower(),
+                                                  int(press_duration * 10))
         self._request_dict[request.getID()] = request
         return request.asdict()
 
@@ -232,94 +236,6 @@ class MCU(Device):
     def resetState(self):
         request = self._mcu.resetState()
         self._resetLocalState()
-        self._request_dict[request.getID()] = request
-        return request.asdict()
-
-    def sendMorseCode(self, text='SOS', pin=0):
-        """Spawns a separate greenlet to have iohub issue a series of led
-        outputs to flash the text as morse code.
-
-        TOTALLY UNTESTED; MAY CRASH IOHUB!
-
-        :param text:
-        :param pin:
-        :return:
-
-        """
-        CODE = {' ': ' ',
-                "'": '.----.',
-                '(': '-.--.-',
-                ')': '-.--.-',
-                ',': '--..--',
-                '-': '-....-',
-                '.': '.-.-.-',
-                '/': '-..-.',
-                '0': '-----',
-                '1': '.----',
-                '2': '..---',
-                '3': '...--',
-                '4': '....-',
-                '5': '.....',
-                '6': '-....',
-                '7': '--...',
-                '8': '---..',
-                '9': '----.',
-                ':': '---...',
-                ';': '-.-.-.',
-                '?': '..--..',
-                'A': '.-',
-                'B': '-...',
-                'C': '-.-.',
-                'D': '-..',
-                'E': '.',
-                'F': '..-.',
-                'G': '--.',
-                'H': '....',
-                'I': '..',
-                'J': '.---',
-                'K': '-.-',
-                'L': '.-..',
-                'M': '--',
-                'N': '-.',
-                'O': '---',
-                'P': '.--.',
-                'Q': '--.-',
-                'R': '.-.',
-                'S': '...',
-                'T': '-',
-                'U': '..-',
-                'V': '...-',
-                'W': '.--',
-                'X': '-..-',
-                'Y': '-.--',
-                'Z': '--..',
-                '_': '..--.-'}
-
-        def dot(pin):
-            self.setDigitalOutputPin(pin, 1)
-            gevent.time.sleep(0.2)
-            self.setDigitalOutputPin(pin, 0)
-            gevent.time.sleep(0.2)
-
-        def dash(pin):
-            self.setDigitalOutputPin(pin, 1)
-            gevent.time.sleep(0.5)
-            self.setDigitalOutputPin(pin, 0)
-            gevent.time.sleep(0.2)
-
-        def morseDigitalOut(text, pin):
-            for letter in text:
-                for symbol in CODE[letter.upper()]:
-                    if symbol == '-':
-                        dash(pin)
-                    elif symbol == '.':
-                        dot(pin)
-                    else:
-                        gevent.time.sleep(0.5)
-
-        gevent.spawn(morseDigitalOut, [text, pin])
-
-        request = self._mcu.getSecTime()
         self._request_dict[request.getID()] = request
         return request.asdict()
 
@@ -425,14 +341,14 @@ class MCU(Device):
 
 class AnalogInputEvent(DeviceEvent):
     _newDataTypes = [
-        ('AI_0', N.float32),
-        ('AI_1', N.float32),
-        ('AI_2', N.float32),
-        ('AI_3', N.float32),
-        ('AI_4', N.float32),
-        ('AI_5', N.float32),
-        ('AI_6', N.float32),
-        ('AI_7', N.float32)
+        ('AI_0', np.float32),
+        ('AI_1', np.float32),
+        ('AI_2', np.float32),
+        ('AI_3', np.float32),
+        ('AI_4', np.float32),
+        ('AI_5', np.float32),
+        ('AI_6', np.float32),
+        ('AI_7', np.float32)
     ]
     EVENT_TYPE_ID = EventConstants.ANALOG_INPUT
     EVENT_TYPE_STRING = 'ANALOG_INPUT'
@@ -446,19 +362,19 @@ class AnalogInputEvent(DeviceEvent):
 
 class ThresholdEvent(DeviceEvent):
     _newDataTypes = [
-        ('AI_0', N.float32),
-        ('AI_1', N.float32),
-        ('AI_2', N.float32),
-        ('AI_3', N.float32),
-        ('AI_4', N.float32),
-        ('AI_5', N.float32),
-        ('AI_6', N.float32),
-        ('AI_7', N.float32)
+        ('AI_0', np.float32),
+        ('AI_1', np.float32),
+        ('AI_2', np.float32),
+        ('AI_3', np.float32),
+        ('AI_4', np.float32),
+        ('AI_5', np.float32),
+        ('AI_6', np.float32),
+        ('AI_7', np.float32)
     ]
     EVENT_TYPE_ID = EventConstants.THRESHOLD
     EVENT_TYPE_STRING = 'THRESHOLD'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
-    PARENT_DEVICE = MCU    
+    PARENT_DEVICE = MCU
     __slots__ = [e[0] for e in _newDataTypes]
 
     def __init__(self, *args, **kwargs):
@@ -466,7 +382,7 @@ class ThresholdEvent(DeviceEvent):
 
 
 class DigitalInputEvent(DeviceEvent):
-    _newDataTypes = [('state', N.uint8)  # the value of the 8 digital input lines as an uint8.
+    _newDataTypes = [('state', np.uint8)  # the value of the 8 digital input lines as an uint8.
                      ]
     EVENT_TYPE_ID = EventConstants.DIGITAL_INPUT
     EVENT_TYPE_STRING = 'DIGITAL_INPUT'

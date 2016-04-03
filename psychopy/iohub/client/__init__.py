@@ -2,7 +2,7 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division
+from __future__ import division, absolute_import
 
 import os
 import sys
@@ -13,12 +13,14 @@ import json
 import signal
 from weakref import proxy
 
+import psutil
+
 psycho_logging = None
 try:
     import psychopy.logging as psycho_logging
 except ImportError:
     pass
-import psutil
+
 
 from .. import _pkgroot, IOHUB_DIRECTORY, _DATA_STORE_AVAILABLE
 from ..util import yload, ydump, yLoader, yDumper

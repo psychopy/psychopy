@@ -1,3 +1,4 @@
+from __future__ import division, absolute_import
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #
 # Copyright (C) 2008 Tim Alexander <dragonfyre13@gmail.com>

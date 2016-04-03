@@ -311,7 +311,7 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
-  REQUEST_TX_HEADER_BYTE_COUNT+2,
+  REQUEST_TX_HEADER_BYTE_COUNT+3,
   REQUEST_TX_HEADER_BYTE_COUNT, 
   REQUEST_TX_HEADER_BYTE_COUNT+2  
 };
@@ -492,12 +492,8 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
 
 //------------------------
 #ifdef KEYBOARD
-  IntervalTimer resetKey1;
-  volatile byte reset_key1_active = 0;
-  
-  void setResetKey1Active(void) {
-    reset_key1_active=1;
-  }
+  elapsedMillis since_key1_press;
+  unsigned int key1_msec_dur;
 
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -507,8 +503,8 @@ void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte reques
    0: SET_DIGITAL_OUT_PIN
    1: Request ID
    2: Rx Byte Count
-   3: send_char (0-255)
-   4: press_duration in msec (100 msec increments)
+   3-4: unsigned short for keyboard symbol constant in arduino\hardware\teensy\avr\cores\teensy3\keylayouts.h
+   5: press_duration in msec (100 msec increments)
    
    
    TX Bytes ( 7 ):
@@ -516,19 +512,20 @@ void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte reques
    1: Tx Byte Count
    2 - 7: usec time that pin was set.    
    */
-  unsigned int usec_duration;
-  char key_event_info[2]={0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
-  Serial.readBytes(key_event_info,2);
-  
-  usec_duration=(unsigned int)(((byte)key_event_info[1])*100000);
-  Keyboard.set_key1(KEY_V);  
+  uint16_t t3_key_symbol;
+  char key_event_info[3]={0,0,0}; // unsignedshort to send, 8 bit duration ( v*100 msec incremnents)
+  Serial.readBytes(key_event_info,3);
+
+  t3_key_symbol = (uint16_t)(key_event_info[0]<<8 | key_event_info[1]);
+  Keyboard.set_key1(t3_key_symbol);  
   Keyboard.send_now();
-  resetKey1.begin(setResetKey1Active, usec_duration);
+  since_key1_press = 0;
+  key1_msec_dur=(unsigned int)(((byte)key_event_info[2])*100);
 }
 #else
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
-  char key_event_info[2]={0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
-  Serial.readBytes(key_event_info,2);
+  char key_event_info[3]={0,0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
+  Serial.readBytes(key_event_info,3);
 }
 #endif
 
@@ -800,9 +797,9 @@ void initAnalogInputs(){
   }
   // What should be used as the analog reference source.
   // Options: 
-  //  DEFAULT: ??
+  //  DEFAULT: 3.3 V
   //  INTERNAL:  1.0 ±0.3V (0.97 to 1.03 V) (source http://www.pjrc.com/teensy/K20P64M50SF0.pdf)
-  //  EXTERNAL: Use the input applied to the AGND. See here from some considerations if this is used. http://forum.pjrc.com/threads/23585-AREF-is-making-me-lose-my-hair 
+  //  EXTERNAL: Use the input applied to the AREF / AGND. See here from some considerations if this is used. http://forum.pjrc.com/threads/23585-AREF-is-making-me-lose-my-hair 
   analogReference(AIN_REF);
   // Analog input bit resolution 10 - 16 bits are supported
   analogReadRes(AIN_RES);
@@ -866,16 +863,11 @@ void loop()
   handleHostSerialRequests();
 
   #ifdef KEYBOARD
-    byte reset_key1_copy; // holds a copy of the reset_key1_active
-    noInterrupts();
-    reset_key1_copy = reset_key1_active;
-    interrupts();  
-    if (reset_key1_copy == 1){
+   if (key1_msec_dur > 0 && since_key1_press >= key1_msec_dur){
       Keyboard.set_key1(0);
       Keyboard.send_now();
-      reset_key1_active=0;
-      resetKey1.end();
-     }
+      key1_msec_dur = 0;
+   }
   #endif
   
   if ( tx_byte_buffer_index>0 && (byteBufferFreeSize()<24 || sinceLastSerialTx>=MAX_TX_BUFFERING_INTERVAL) ){
