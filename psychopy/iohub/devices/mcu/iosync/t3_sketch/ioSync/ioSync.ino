@@ -311,7 +311,7 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
-  REQUEST_TX_HEADER_BYTE_COUNT+3,
+  REQUEST_TX_HEADER_BYTE_COUNT+5,
   REQUEST_TX_HEADER_BYTE_COUNT, 
   REQUEST_TX_HEADER_BYTE_COUNT+2  
 };
@@ -493,7 +493,7 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
 //------------------------
 #ifdef KEYBOARD
   elapsedMillis since_key1_press;
-  unsigned int key1_msec_dur;
+  unsigned int key1_msec_dur=0;
 
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -504,7 +504,8 @@ void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte reques
    1: Request ID
    2: Rx Byte Count
    3-4: unsigned short for keyboard symbol constant in arduino\hardware\teensy\avr\cores\teensy3\keylayouts.h
-   5: press_duration in msec (100 msec increments)
+   5-6: unsigned short for keyboard mofifier constants (OR'ed) in arduino\hardware\teensy\avr\cores\teensy3\keylayouts.h
+   7: press_duration in msec (100 msec increments)
    
    
    TX Bytes ( 7 ):
@@ -513,14 +514,20 @@ void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte reques
    2 - 7: usec time that pin was set.    
    */
   uint16_t t3_key_symbol;
-  char key_event_info[3]={0,0,0}; // unsignedshort to send, 8 bit duration ( v*100 msec incremnents)
-  Serial.readBytes(key_event_info,3);
+  uint16_t t3_key_mods;
+  char key_event_info[5]={0,0,0,0,0}; // unsignedshort to send, 8 bit duration ( v*100 msec incremnents)
+  Serial.readBytes(key_event_info,5);
+
+  t3_key_mods = (uint16_t)(key_event_info[2]<<8 | key_event_info[3]);
+  Keyboard.set_modifier(t3_key_mods);  
+  Keyboard.send_now();  
 
   t3_key_symbol = (uint16_t)(key_event_info[0]<<8 | key_event_info[1]);
   Keyboard.set_key1(t3_key_symbol);  
   Keyboard.send_now();
+  
   since_key1_press = 0;
-  key1_msec_dur=(unsigned int)(((byte)key_event_info[2])*100);
+  key1_msec_dur=(unsigned int)(((byte)key_event_info[4])*100);
 }
 #else
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
@@ -864,6 +871,7 @@ void loop()
 
   #ifdef KEYBOARD
    if (key1_msec_dur > 0 && since_key1_press >= key1_msec_dur){
+      Keyboard.set_modifier(0); 
       Keyboard.set_key1(0);
       Keyboard.send_now();
       key1_msec_dur = 0;

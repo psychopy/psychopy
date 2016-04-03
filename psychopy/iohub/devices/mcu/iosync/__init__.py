@@ -210,8 +210,9 @@ class MCU(Device):
         self._request_dict[request.getID()] = request
         return request.asdict()
 
-    def generateKeyboardEvent(self, key_symbol, press_duration):
+    def generateKeyboardEvent(self, key_symbol, modifiers, press_duration):
         request = self._mcu.generateKeyboardEvent(key_symbol.lower(),
+                                                  modifiers,
                                                   int(press_duration * 10))
         self._request_dict[request.getID()] = request
         return request.asdict()

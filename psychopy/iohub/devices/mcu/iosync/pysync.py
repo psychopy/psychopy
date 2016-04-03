@@ -115,15 +115,16 @@ from ... import Computer
 from ....errors import print2err
 from ....util import NumPyRingBuffer as RingBuffer
 
-from .t3keymap import char2t3code
+from .t3keymap import char2t3code, mod2t3code
 
 getTime = Computer.getTime
 
 
-_t3key_format = struct.Struct('!HB')
+_t3key_format = struct.Struct('!HHB')
 _keycode2bytes = dict()
+
 for ctckey, ctcshort in char2t3code.items():
-    _keycode2bytes[ctckey] = bytearray(_t3key_format.pack(ctcshort, 0))
+    _keycode2bytes[ctckey] = bytearray(_t3key_format.pack(ctcshort, 0, 0))
 
 class T3Event(object):
     DIGITAL_INPUT_EVENT = 1
@@ -377,18 +378,37 @@ class GenerateKeyboardEventRequest(T3Request):
     in the iohub.devices.mcu.iosync.t3keymap.char2t3code dict.
     """
 
-    def __init__(self, key_symbol, press_duration=15):
-        ba3 = _keycode2bytes.get(key_symbol, None)
-        if ba3 is None:
+    def __init__(self, key_symbol, modifiers=[], press_duration=0.2):
+        ba5 = _keycode2bytes.get(key_symbol, None)
+        if ba5 is None:
             estr = "GenerateKeyboardEventRequest: {} is not a valid key_symbol.".format(key_symbol)
             raise ValueError(estr)
+
         if press_duration < 0 or press_duration > 255:
             estr = "GenerateKeyboardEventRequest: {} is not a valid press_duration.".format(press_duration)
             raise ValueError(estr)
-        # First 2 bytes of ba3 are the teensy 3 key code mapping.
-        # Update 3rd byte to hold the press_duration.
-        ba3[2]=press_duration
-        T3Request.__init__(self, T3Request.GENERATE_KEYBOARD_EVENT, ba3)
+
+        mods = 0
+        for m in modifiers:
+            mv = mod2t3code.get(m, None)
+            if mv is None:
+                estr = "KeyboardRequest: {} is not a valid modifier.".format(m)
+                raise ValueError(estr)
+            else:
+                mods = mods | mv
+
+        # array ix 2,3 are the teensy 3 modifier codes
+        if mods:
+            ma = struct.pack("!H", mods)
+            ba5[2] = ma[0]
+            ba5[3] = ma[1]
+        else:
+            ba5[2] = 0
+            ba5[3] = 0
+
+        # Update 5th byte to hold the press_duration.
+        ba5[4]=press_duration
+        T3Request.__init__(self, T3Request.GENERATE_KEYBOARD_EVENT, ba5)
 
 
 class SetT3DigitalOutputStateRequest(T3Request):
@@ -626,8 +646,8 @@ class T3MC(object):
         self._sendT3Request(r)
         return r
 
-    def generateKeyboardEvent(self, use_char, press_duration):
-        r = GenerateKeyboardEventRequest(use_char, press_duration)
+    def generateKeyboardEvent(self,key_symbol, modifiers, press_duration):
+        r = GenerateKeyboardEventRequest(key_symbol, modifiers, press_duration)
         self._sendT3Request(r)
         return r
 
