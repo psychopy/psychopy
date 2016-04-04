@@ -1450,8 +1450,9 @@ class ioEvent(object):
                                                  self.id)
 
 
+from .expruntime import ioHubExperimentRuntime
+
 _lazyImports = """
-from {pkgroot}.client.expruntime import ioHubExperimentRuntime
 from {pkgroot}.client.connect import launchHubServer
 
 from {pkgroot}.client import keyboard
