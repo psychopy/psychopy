@@ -309,29 +309,31 @@ class udpServer(DatagramServer):
             return False
 
     def sendResponse(self, data, address):
+        reply_data_sz = -1
+        max_pkt_sz = int(MAX_PACKET_SIZE / 2 - 20)
+        pkt_cnt = -1
+        p = si = -1
         try:
-            pkt_count = -1
-            pktdata_sz = -1
-            max_sz = int(MAX_PACKET_SIZE / 2 - 20)
-            pktdata = self.pack(data)
-            pktdata_sz = len(pktdata)
-            if pktdata_sz >= max_sz:
-                mpkt_resp = 'IOHUB_MULTIPACKET_RESPONSE'
-                pkt_count = int(pktdata_sz // max_sz) + 1
-                self.sendResponse((mpkt_resp, pkt_count), address)
-                p = 0
-                while p < pkt_count-1:
-                    self.socket.sendto(pktdata[p*max_sz:(p+1)*max_sz], address)
-                    p = p + 1
-                self.socket.sendto(pktdata[(p+1)*max_sz:pktdata_sz], address)
+            reply_data = self.pack(data)
+            reply_data_sz = len(reply_data)
+            if reply_data_sz >= max_pkt_sz:
+                pkt_cnt = int(reply_data_sz // max_pkt_sz) + 1
+                mpr_payload = ('IOHUB_MULTIPACKET_RESPONSE', pkt_cnt)
+                self.sendResponse(mpr_payload, address)
+                for p in xrange(pkt_cnt - 1):
+                    si = p*max_pkt_sz
+                    self.socket.sendto(reply_data[si:si+max_pkt_sz], address)
+                si = (p+1)*max_pkt_sz
+                self.socket.sendto(reply_data[si:reply_data_sz], address)
             else:
-                self.socket.sendto(pktdata, address)
+                self.socket.sendto(reply_data, address)
         except Exception:
             print2err('=============================')
             print2err('Error trying to send data to experiment process:')
-            print2err('max_sz: ', max_sz)
-            print2err('pktdata_sz: ', pktdata_sz)
-            print2err('pkt_count: ', pkt_count)
+            print2err('max_pkt_sz: ', max_pkt_sz)
+            print2err('reply_data_sz: ', reply_data_sz)
+            print2err('pkt_cnt: ', pkt_cnt)
+            print2err('packet index, byte index: ', p, si)
             printExceptionDetailsToStdErr()
             print2err('=============================')
             pktdata = self.pack('IOHUB_SERVER_RESPONSE_ERROR')
