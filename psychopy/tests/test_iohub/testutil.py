@@ -11,8 +11,10 @@ getTime = Computer.getTime
 from psychopy.tests.utils import skip_under_travis
 
 @skip_under_travis
-def startHubProcess():
-    io = launchHubServer()
+def startHubProcess(iohub_config=None):
+    if iohub_config is None:
+        iohub_config = {}
+    io = launchHubServer(**iohub_config)
     assert io != None
 
     io_proc = Computer.getIoHubProcess()
