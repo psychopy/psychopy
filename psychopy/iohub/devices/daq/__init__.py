@@ -76,7 +76,7 @@ class AnalogInputDevice(Device):
     EVENT_CLASS_NAMES=['MultiChannelAnalogInputEvent']
     DEVICE_TYPE_ID=DeviceConstants.ANALOGINPUT
     DEVICE_TYPE_STRING="ANALOGINPUT"
-
+    _delay_offset_adjustment=0.0
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self, *args, **kwargs):
         
@@ -88,6 +88,12 @@ class AnalogInputDevice(Device):
         self.channel_sampling_rate=None
         
         Device.__init__(self,*args, **kwargs['dconfig'])
+
+    def getDelayOffset(self):
+        return self._delay_offset_adjustment
+
+    def setDelayOffset(self,v):
+        self.__class__._delay_offset_adjustment=v
 
     def _poll(self):
         return self.isReportingEvents()

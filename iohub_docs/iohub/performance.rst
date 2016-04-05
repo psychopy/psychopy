@@ -40,7 +40,7 @@ that the ioHub - PsychoPy dual process model works as intended:
     #. Communication between PsychoPy and the ioHub is very fast, however it is still *slow* relative to how much information can be passed around within a single application process. Therefore, as is seen in the ioHub examples, requests for static data values from the ioHub Process are generally made once and saved to a local PsychoPy variable that can be referenced through out the experiment. Repeatedly calling an ioHub device method that will always return the same value is a waste of interprocess messaging, no matter how fast that messaging may be. In some cases it is obviously necessary to ask for the data from the ioHub server every frame. That is expected and in general will never be an issue. However it is a good practice to do so when necessary only, and cache static values locally when possible. 
     
 
-ioHub Event Model and ioDataStore DeviceEvent storage
+ioHub Event Model and ioDataStore DeviceEvent Storage
 =====================================================
 
 When ioHub is used for event monitoring, all event detection (and even storage) is 

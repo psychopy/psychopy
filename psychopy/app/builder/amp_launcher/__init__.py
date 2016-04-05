@@ -185,6 +185,7 @@ class AmpLauncherDialog(wx.Dialog):
     def get_persistent_config(self):
         return {
             "save_signal": self.GetParent().exp.settings.params['saveSignal'].val,
+            "save_etr": self.GetParent().exp.settings.params['saveEtr'].val,
             "obci_data_dir": self.GetParent().exp.settings.params['obciDataDirectory'].val 
         }
     

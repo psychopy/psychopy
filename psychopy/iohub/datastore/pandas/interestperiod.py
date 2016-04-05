@@ -41,12 +41,17 @@ class InterestPeriodDefinition(object):
     def ipid(self):
         return self._ipid
     
-    def find(self, target_df):
-        df = target_df[:]
-        df['ip_id_num'] = np.nan        
-        df['ip_id'] = np.nan
-        df['ip_name'] = np.nan
-        return df.groupby(level=[0,1], group_keys=False).apply(self.__find)
+    def find(self, target, ip_cols=None):
+        df = target[:]
+        df['ip_id_num'] = np.nan 
+        df['ip_id'] = self.ipid
+        df['ip_name'] = self.name
+        df = df.groupby(level=[0,1], group_keys=False).apply(self.__find)
+        
+        if ip_cols is not None:
+            df = self._merge_ip_cols(df, ip_cols)
+        
+        return df
     
     def __find(self, target_group):
         group_id = target_group.index[0]
@@ -58,18 +63,21 @@ class InterestPeriodDefinition(object):
                          (target_group['time'] <= ip['end_time']))
                 target_in_ip = target_group[in_ip]
                 target_in_ip['ip_id_num'] = ip['ip_id_num']
-                target_in_ip['ip_id'] = ip['ip_id']
-                target_in_ip['ip_name'] = ip['ip_name']
                 overlapping += [target_in_ip]
             target_filtered = pd.concat(overlapping)
         else:
             target_filtered = target_group[[False]*len(target_group)]
         return target_filtered
     
-    def filter(self, target):
-        df = target.groupby(level=[0,1], group_keys=False).apply(self.__filter)
+    def filter(self, target, ip_cols=None):
+        df = target[:]
         df['ip_id'] = self.ipid
         df['ip_name'] = self.name
+        df = target.groupby(level=[0,1], group_keys=False).apply(self.__filter)
+        
+        if ip_cols is not None:
+            df = self._merge_ip_cols(df, ip_cols)
+        
         return df
     
     def __filter(self, group):
@@ -83,6 +91,21 @@ class InterestPeriodDefinition(object):
         group['ip_id_num'] = np.nan
         group['ip_id_num'][mask] = start_idx
         return group[mask]
+    
+    def _merge_ip_cols(self, target, cols):
+        if not isinstance(cols, dict):
+            if not hasattr(cols, '__iter__'):
+                cols = [cols]
+            cols = dict(zip(cols,cols))
+        
+        temp_target = target.set_index('ip_id_num', append=True)
+        temp_ips = self.ip_df.set_index('ip_id_num', append=True)
+        temp_ips = temp_ips[cols.keys()]
+        
+        temp_target = temp_target.merge(temp_ips, left_index=True, right_index=True)
+        temp_target = temp_target.rename(columns=cols)
+        temp_target = temp_target.reset_index('ip_id_num')
+        return temp_target
     
     def _extract_criteria_match(self, source, criteria, return_cols, exact):
         col = criteria.keys()[0] # eventually we'll want to allow for
@@ -99,19 +122,23 @@ class InterestPeriodDefinition(object):
         keep_cols = return_cols.keys()
         matches = source[is_match][keep_cols].rename(columns=return_cols)
         
-        matches['ip_id_num'] = range(len(matches)) # add num here to help merge
-                                                   # later on, e.g., _ip_zipper
         return matches
+    
+    def __enumerate_ips(self, group):
+        group['ip_id_num'] = range(len(group))
+        return group
     
     def _ip_zipper(self, start, end, temp_index='ip_id_num'):
         # TODO: make sure the two dfs "zip" nicely
-        _start = start.set_index(temp_index, append=True)
-        _end = end.set_index(temp_index, append=True)
+        _start = start.groupby(level=[0,1]).apply(self.__enumerate_ips)
+        _end = end.groupby(level=[0,1]).apply(self.__enumerate_ips)
+        
+        _start.set_index(temp_index, append=True, inplace=True)
+        _end.set_index(temp_index, append=True, inplace=True)
         
         _all = pd.merge(_start, _end, left_index=True, right_index=True)
         return _all.reset_index(temp_index)
-        
-        
+
 #############################################
 
 class EventBasedIP(InterestPeriodDefinition):

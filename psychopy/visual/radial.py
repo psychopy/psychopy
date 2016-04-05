@@ -22,8 +22,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.tools.attributetools import attributeSetter, logAttrib
 from psychopy.visual.grating import GratingStim
 
 try:
@@ -88,8 +87,26 @@ class RadialStim(GratingStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False) #autolog should start off false
+        super(RadialStim, self).__init__(win, units=units, name=name, autoLog=False) #autolog should start off false
+
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
+
+        # JRG: hack to dodge method-resolution-order issues:
+        # work-around #1 (not currently implemented: ugly, and lead to test failures on travis-ci)
+        # self._updateList() is defined in BaseVisualStim and calls _updateListShaders or NoShaders
+        # as needed. However, this also gets called in GratingStim.__init__, which is
+        # called above by super(RadialStim, self).__init__()
+        # so strategy: let GratingStim.__init__ do its thing, THEN rearrange the
+        # namespace so that BaseVisualStim._updateList can do its thing during
+        # the normal operation of RadialStim. There's got to be a better way:
+        # initially hide _updateListShadersRadial and _updateListNoShadersRadial
+        # now unhide them, since will not need GratingStim.__init__ again:
+
+        # uncomment these lines to implement #1, and change _updataListShaders to _updateListShadersRadial, etc
+        #self._updateListShaders = self._updateListShadersRadial
+        #self._updateListNoShaders = self._updateListNoShadersRadial
+
+        # workaround #2: comment out self._updateList() in GratingStim.__init__ line 162
 
         # UGLY HACK again. (See same section in GratingStim for ideas)
         self.__dict__['contrast'] = 1
@@ -124,7 +141,6 @@ class RadialStim(GratingStim):
             self.setColor(lms, colorSpace='lms')
         else:
             self.setColor(color)
-
 
         self.ori = float(ori)
         self.angularRes = angularRes
@@ -344,6 +360,8 @@ class RadialStim(GratingStim):
             GL.glUseProgram(0)
         else:
             #the list does the texture mapping
+            if self._needTextureUpdate:
+                self.setTex(value=self.tex, log=False)
             if self._needUpdate:
                 self._updateList()
             GL.glCallList(self._listID)
@@ -487,9 +505,7 @@ class RadialStim(GratingStim):
         """Change the alpha-mask for the stimulus
         """
         self.mask = value
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'mask')
 
     def __del__(self):
         if not self.useShaders:

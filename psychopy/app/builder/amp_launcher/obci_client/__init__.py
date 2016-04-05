@@ -1,11 +1,16 @@
-from obci.control.common.message import OBCIMessageTool
-from obci.control.launcher import launcher_messages
-import obci_connection
+
 import threading
-import zmq
 import json
 import time
 import os
+
+import zmq
+
+import obci_connection
+
+from obci.control.common.message import OBCIMessageTool
+from obci.control.launcher import launcher_messages
+
 
 class TimeoutException(Exception):
     pass
@@ -17,6 +22,7 @@ class LaunchFailedException(Exception):
 
 class ObciScanner(object):
     pass
+
 
 class ObciLauncher(object):
     """
@@ -153,12 +159,37 @@ class ExperimentSettings(object):
             "log_dir": "~/.obci/logs",
             "experiment_uuid": ""
         }
+
         peers = {
             'amplifier': amplifier_peer,
             'scenario_dir': '',
             'config_server': {'config':{"local_params": local_log_params, 'external_params': {}, 'config_sources': {}, "launch_dependencies": {}}, 'path':'control/peer/config_server.py'},
             'mx': {'config': {'external_params': {}, 'config_sources': {}, 'launch_dependencies': {}, 'local_params': {}}, u'path': 'multiplexer-install/bin/mxcontrol'}
         }
+
+        if self.amp_config["save_etr"]:
+            etr_saver = {
+                # ---------------- TODO ---------------
+                #'config': {
+                #    'config_sources': {'amplifier': ''},
+                #    'external_params': {},
+                #    'launch_dependencies': {'amplifier': ''},
+                #    'local_params': {
+                #        'save_file_name': self.amp_config["data_file_name"],
+                #        'save_file_path': self.amp_config["obci_data_dir"],
+                #        "console_log_level": "info",
+                #        "file_log_level": "debug",
+                #        "mx_log_level": "info",
+                #        "log_dir": "~/.obci/logs"
+                #    }
+                #},
+                #'config_sources': {'amplifier': 'amplifier'},
+                #'launch_dependencies': {'amplifier': 'amplifier'},
+
+                'path': 'acquisition/etr_saver_peer.py'
+            }
+            peers['etr_saver'] = etr_saver
+
         if self.amp_config["save_signal"]:
             tag_saver = {
                 'config': {

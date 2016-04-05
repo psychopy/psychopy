@@ -37,6 +37,8 @@ Materials for Coder
 
 - The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ offers a `one-day crash course to Python and PsychoPy on a IPython Notebook <http://nbviewer.ipython.org/7036997>`_, and has lots of great information taking you from basic programming to advanced techniques.
 
+- Radboud University, Nijmegen also has a `PsychoPy programming course <https://www.socsci.ru.nl/~wilberth/nocms/psychopy/print.php>`_
+
 ---------------------------------
 
 Previous events

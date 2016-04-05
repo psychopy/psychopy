@@ -11,6 +11,7 @@ import psychopy  # so we can get the __path__
 from psychopy import logging
 
 from psychopy.visual.polygon import Polygon
+from psychopy.tools.attributetools import logAttrib
 
 import numpy
 
@@ -45,7 +46,7 @@ class Circle(Polygon):
         #initialise parent class
         kwargs['edges'] = edges
         kwargs['radius'] = radius
-        Polygon.__init__(self, win, **kwargs)
+        super(Circle, self).__init__(win, **kwargs)
 
 
     def setRadius(self, radius, log=True):
@@ -54,6 +55,4 @@ class Circle(Polygon):
         self.radius = numpy.asarray(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'radius', radius)

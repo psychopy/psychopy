@@ -4,16 +4,16 @@
 =================================================================================
 
 .. automodule:: psychopy.parallel
-    :members:
+    :members: ParallelPort
+    
+Legacy functions
+~~~~~~~~~~~~~~~~~~~~
 
-:class:`PParallelLinux`
-------------------------------------
-.. autoclass:: psychopy.parallel.PParallelLinux
+We would strongly recommend you use the class above instead: these are provided for backwards compatibility only.
 
-:class:`PParallelInpOut32`
-------------------------------------
-.. autoclass:: psychopy.parallel.PParallelInpOut32
-
-:class:`PParallelDLPortIO`
-------------------------------------
-.. autoclass:: psychopy.parallel.PParallelDLPortIO
+.. automethod:: 
+    psychopy.parallel.setPortAddress
+    
+.. automethod:: psychopy.parallel.setData
+.. automethod:: psychopy.parallel.setPin
+.. automethod:: psychopy.parallel.readPin

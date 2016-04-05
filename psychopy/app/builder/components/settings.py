@@ -3,7 +3,7 @@ from _base import *
 import os
 from psychopy import logging
 
-#this is not a standard component - it will appear on toolbar not in components panel
+# this is not a standard component - it will appear on toolbar not in components panel
 
 DEFAULT_PARAM_VALUES = {
   'sendTags': False,
@@ -11,6 +11,7 @@ DEFAULT_PARAM_VALUES = {
   'doSignal': False,
   'serialTriggerDevice': '/dev/ttyUSB0',
   'saveSignal': False,
+  'saveEtr': False,
   'applianceType':'', 
   'applianceDevicePath':'/dev/ttyUSB0', 
   'applianceIntensity':'250'
@@ -37,13 +38,24 @@ class SettingsComponent:
             print filename[0:5]
         #params
         self.params={}
-        self.order=['expName','Show info dlg','Experiment info','filename',
+        self.order=['expName','Show info dlg','Experiment info',
+            'Data filename',
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
+        #basic params
         self.params['expName']=Param(expName, valType='str', allowedTypes=[],
             hint="Name of the entire experiment (taken by default from the filename on save)",
             label="Experiment name")
+        self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
+            hint="Start the experiment with a dialog to set info (e.g.participant or condition)",
+            categ='Basic')
+        self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
+            hint="Enable the <esc> key, to allow subjects to quit / break out of the experiment")
+        self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
+            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.",
+            categ='Basic')
+        #data params
         self.params['Data filename']=Param(filename, valType='code', allowedTypes=[],
             hint="Code to create your custom file name base. Don't give a file extension - this will be added.",
             categ='Data')
@@ -95,14 +107,6 @@ class SettingsComponent:
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.",
             categ='Data')
-        self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
-            hint="Start the experiment with a dialog to set info (e.g.participant or condition)",
-            categ='Data')
-        self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
-            hint="Enable the <esc> key, to allow subjects to quit / break out of the experiment")
-        self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
-            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.",
-            categ='Data')
         self.params['logging level']=Param(logging, valType='code',
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
@@ -129,6 +133,10 @@ class SettingsComponent:
             paramValues['saveSignal'], valType="bool",
             hint="Should amp signal be saved?",
             label="Save signal and tags in OBCI", categ='OpenBCI')
+        self.params["saveEtr"] = Param(
+            paramValues['saveEtr'], valType="bool",
+            hint="Should eyetracker signal be saved?",
+            label="Save eyetracker signal in OBCI", categ='OpenBCI')
         self.params["obciDataDirectory"] = Param(
             "~", valType="str",
             hint="Remote directory in which OBCI will save experiment data",

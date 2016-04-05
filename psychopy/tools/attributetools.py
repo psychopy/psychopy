@@ -18,9 +18,9 @@ class attributeSetter(object):
 
     def __set__(self, obj, value):
         newValue = self.func(obj, value)
-        if obj.autoLog is True:
+        if (obj.autoLog is True) and (self.func.__name__ is not 'autoLog'):
             obj.win.logOnFlip("%s: %s = %s" % (obj.__class__.__name__,
-                                               self.func.__name__, newValue),
+                                               self.func.__name__, value),
                               level=logging.EXP, obj=obj)
         return newValue
 
@@ -72,3 +72,14 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
             self.__dict__[attrib] = newValue
         else:
             setattr(self, attrib, newValue)
+
+def logAttrib(self, log, attrib, value=None):
+    """
+    Logs a change of a visual attribute on the next window.flip.
+    If value=None, it will take the value of self.attrib.
+    """
+    if log or log is None and self.autoLog:
+        if value is None:
+            value = getattr(self, attrib)
+        self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, value),
+            level=logging.EXP,obj=self)

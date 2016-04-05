@@ -2,6 +2,36 @@
 ioHub Change Log
 #################
 
+Release 0.9
+#############
+
+#. Added support for Elo Touch Screen devices that have a serial port interface.
+
+#. Added support for the Teensy 3.0 / 3.1 MCU via the ioSync interface.
+
+#. Further integrated psychopy and iohub APIs; including support for TrialHandler data as the content for ioDataStore ConditionVariable table.
+
+#. Mouse and Keyboard events can now be filtered so only events targeted at a psychopy window are recorded.
+
+#. Reorganized psychopy.demos.coder.iohub file and directory structure.
+
+#. EyeLink interface tested on Windows, Linux and OS X platforms.
+
+#. Tobii User Setup graphics now includes eye position within head box feedback as well as animated calibration target graphics.
+
+#. Tobii interface tested on Windows and Linux OS's.
+
+#. SMI interface updated to January 2014 build of SMI C DLLs. Interface also now used callbacks to receive new data so polling is no longer required.
+
+#. SMI interface tested / bug fixed for both single and dual PC configurations, and for iViewX High Speed, REDm, and RED 250 Hz models.
+
+#. LC Technologies interface tested / bug fixed for support of the Gaze Follower model.
+
+#. TheEyeTribe common eye tracker interface added (data saving / steaming implemented; built in calibration incomplete).
+
+#. ioDataStore files can now be read using a Pandas based interface.
+
+#. Fixed many bugs, added many minor enhancements, on all supported platforms (See psychopy/psychopy change history to March 21st, isolver submitted commits).
 
 Release 0.7
 #############

@@ -20,14 +20,15 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
 import numpy
 
 
-class ShapeStim(BaseVisualStim):
+class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
 
     Shapes can be outlines or filled, by setting lineRGB and fillRGB to
@@ -80,7 +81,7 @@ class ShapeStim(BaseVisualStim):
         self._initParams.remove('self')
 
         # Initialize inheritance and remove unwanted methods
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False) #autoLog is set later
+        super(ShapeStim, self).__init__(win, units=units, name=name, autoLog=False) #autoLog is set later
         self.__dict__['setColor'] = None
         self.__dict__['color'] = None
         self.__dict__['colorSpace'] = None
@@ -212,11 +213,9 @@ class ShapeStim(BaseVisualStim):
                 raise ValueError("New value for setXYs should be 2x1 or Nx2")
         #set value and log
         setWithOperation(self, 'vertices', value, operation)
+        logAttrib(self, log, 'vertices', value)
         self._needVertexUpdate=True
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
         Draw the stimulus in its relevant window. You must call
@@ -243,10 +242,10 @@ class ShapeStim(BaseVisualStim):
 
         if self.interpolate:
             GL.glEnable(GL.GL_LINE_SMOOTH)
-            GL.glEnable(GL.GL_POLYGON_SMOOTH)
+            GL.glEnable(GL.GL_MULTISAMPLE)
         else:
             GL.glDisable(GL.GL_LINE_SMOOTH)
-            GL.glDisable(GL.GL_POLYGON_SMOOTH)
+            GL.glDisable(GL.GL_MULTISAMPLE)
         GL.glVertexPointer(2, GL.GL_DOUBLE, 0, vertsPix.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)

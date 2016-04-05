@@ -21,15 +21,16 @@ OS and Device Support
 
 * Support for the following operating Systems:
 	#. Windows XP SP3, 7, 8
-	#. Apple OS X 10.6+
+	#. Apple OS X 10.6 - 10.8.5 ( 10.9 *is not* currently supported
 	#. Linux 2.6+
 	
 * Monitoring of events from computer devices such as:
 	#. Keyboard
 	#. Mouse
 	#. Analog to Digital Converter
-	#. XInput compatible gamepad
+	#. XInput Compatible Game Pad
 	#. Eye Tracker, via a Common Eye Tracking Interface
+	#. Elo Touch Screens
 	
 .. note::
     The Common Eye Tracking Interface provides the same user level API for all supported hardware,
@@ -42,6 +43,7 @@ OS and Device Support
         #. `LC Technologies <http://www.eyegaze.com>`_ EyeGaze and EyeFollower models.
         #. `SensoMotoric Instruments <http://www.smivision.com>`_ iViewX models.
         #. `SR Research <http://www.sr-research.com>`_ EyeLink models.
+        #. `TheEyeTribe <http://theeyetribe.com/>`_ TheEyeTribe system (In Progress).
         #. `Tobii <http://www.tobii.com>`_ Technologies Tobii models.
 
 ioHub Features
