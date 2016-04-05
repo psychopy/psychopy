@@ -52,7 +52,7 @@ PsychoPy 1.83.04
 released Feb 2016
 
 * FIXED: Mac Standalone was (still) not launching on some versions of OSX
-* FIXED: MovieStim3 not working on all graphics cards (glPopAttrib). Thanks Bryan Cort for finding the fix
+* FIXED: MovieStim3 not working on all graphics cards (glPopAttrib). Thanks Bryan Cort and Frank Papenmeier for their help
 * FIXED: MovieStim3 bug with movies that had no audio stream
 * ADDED: Option to turn off audio in Movies from Builder when not needed (better performance and fewer shutdown-probs)
 * FIXED: Data saving is forced at the end of Builder Experiments even if script fails to exit properly (red stop button less likely to lose data)
