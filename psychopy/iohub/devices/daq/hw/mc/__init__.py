@@ -9,7 +9,7 @@ from .... import Computer, ioDeviceError
 
 from ctypes import *
 from .constants import *
-from .....errors import print2err
+from .....errors import print2err, printExceptionDetailsToStdErr
 
 currentSec = Computer.currentSec
 
@@ -94,7 +94,11 @@ class AnalogInput(AnalogInputDevice):
                 self, 'AnalogInput input_channel_count must be 8.')
 
         # load the MC DLL
-        _DLL = windll.LoadLibrary('cbw32.dll')
+        try:
+            _DLL = windll.LoadLibrary('cbw32.dll')
+        except Exception:
+            _DLL = windll.LoadLibrary('cbw64.dll')
+
         AnalogInput._DLL = _DLL
 
         # get the MC API software version number
@@ -300,7 +304,7 @@ class AnalogInput(AnalogInputDevice):
                     for v in xrange(lastIndex, currentIndex):
                         self._saveScannedEvent(logged_time, samples, v)
         else:
-            ioHub.print2err('Error: MC DAQ not responding. Exiting...')
+            print2err('Error: MC DAQ not responding. Exiting...')
             self.getConfiguration['_ioServer'].shutDown()
             sys.exit(1)
 
@@ -376,7 +380,11 @@ class AnalogInput(AnalogInputDevice):
         # this should be taking board ID and AIFUNCTION
         # but when ever I give it second param ctypes throws
         # a `4 bytes too much`error
-        ulStat = self._DLL.cbStopBackground(c_int32(self.device_number))
+        try:
+            ulStat = self._DLL.cbStopBackground(c_int32(self.device_number))
+        except TypeError:
+            ulStat = self._DLL.cbStopBackground(self.device_number)
+
         ulStat = self._DLL.cbWinBufFree(
             cast(self._memory_handle, POINTER(c_void_p)))
 

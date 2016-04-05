@@ -1,6 +1,6 @@
 title: AnalogInput Example
 code: ai_test
-version: '1.0'
+version: '1.1'
 description: Displays values of 8 ch from AnalogInput Device
 session_defaults:
     name: Session Name
