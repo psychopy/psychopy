@@ -4,16 +4,17 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from weakref import proxy
+from collections import OrderedDict
+
 import gevent
 from gevent import sleep, socket, queue
 from gevent.server import StreamServer
-from .....errors import print2err, printExceptionDetailsToStdErr
-
 try:
     import ujson as json
 except Exception:
     import json
-from collections import OrderedDict
+
+from .....errors import print2err, printExceptionDetailsToStdErr
 from .... import Computer
 
 getTime = Computer.getTime

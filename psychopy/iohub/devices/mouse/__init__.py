@@ -2,7 +2,7 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from .. import Computer, Device
+from .. import Device, Computer
 from ...constants import EventConstants, DeviceConstants, MouseConstants, KeyboardConstants
 import numpy as N
 from collections import namedtuple

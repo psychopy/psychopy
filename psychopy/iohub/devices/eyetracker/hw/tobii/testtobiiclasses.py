@@ -8,6 +8,7 @@ if __name__ == '__main__':
     import time
     from .tobiiclasses import TobiiTrackerBrowser, TobiiTracker
     from psychopy.iohub.devices import Computer
+
     getTime = Computer.getTime
     # init global clock manually for test
     from psychopy.clock import MonotonicClock

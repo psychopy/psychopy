@@ -23,7 +23,8 @@ from .. import _pkgroot, IOHUB_DIRECTORY
 from ..util import yload, yLoader
 from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 from ..util import isIterable, updateDict, win32MessagePump
-from ..devices import Computer, DeviceEvent, import_device
+from ..devices import DeviceEvent, import_device
+from ..devices.computer import Computer
 from ..devices.experiment import MessageEvent, LogEvent
 from ..constants import DeviceConstants, EventConstants
 

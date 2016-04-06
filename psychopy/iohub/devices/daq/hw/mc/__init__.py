@@ -5,7 +5,7 @@
 
 import sys
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
-from .... import Computer, ioDeviceError
+from .... import ioDeviceError, Computer
 
 from ctypes import *
 from .constants import *

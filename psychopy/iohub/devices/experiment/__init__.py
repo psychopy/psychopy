@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy as N
-from .. import Device, Computer, DeviceEvent
+from .. import Device, DeviceEvent, Computer
 from ...constants import DeviceConstants, EventConstants
 
 currentSec = Computer.currentSec

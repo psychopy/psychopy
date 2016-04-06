@@ -27,7 +27,8 @@ from .net import MAX_PACKET_SIZE
 from .util import convertCamelToSnake, win32MessagePump
 from .util import yload, yLoader
 from .constants import DeviceConstants, EventConstants
-from .devices import Computer, DeviceEvent, import_device
+from .devices import DeviceEvent, import_device
+from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
 
 getTime = Computer.getTime

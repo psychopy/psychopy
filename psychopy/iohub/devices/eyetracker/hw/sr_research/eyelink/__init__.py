@@ -4,6 +4,7 @@
  # Distributed under the terms of the GNU General Public License (GPL).
 from ......util import addDirectoryToPythonPath
 from ..... import Computer
+
 if Computer.system == 'win32' and Computer.sysbits == 32:
     addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
 

@@ -2,7 +2,7 @@ __author__ = 'Sol'
 
 import numpy as np
 import json
-from ..devices import Computer
+from  ..devices import Computer
 from collections import OrderedDict
 from ..errors import print2err, printExceptionDetailsToStdErr
 

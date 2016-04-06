@@ -11,7 +11,7 @@ import copy
 import sys
 from collections import OrderedDict
 import numpy as np
-from .....devices import Computer, ioDeviceError
+from .....devices import ioDeviceError, Computer
 from .....errors import print2err, printExceptionDetailsToStdErr
 
 getTime = Computer.getTime

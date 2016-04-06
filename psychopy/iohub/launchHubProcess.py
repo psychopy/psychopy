@@ -25,6 +25,7 @@ except ImportError:
     import psychopy.iohub
     from psychopy.iohub import IOHUB_DIRECTORY, _ispkg
     from psychopy.iohub.devices import Computer
+
     Computer.is_iohub_process = True
     from psychopy.iohub.errors import printExceptionDetailsToStdErr
     from psychopy.iohub.server import ioServer

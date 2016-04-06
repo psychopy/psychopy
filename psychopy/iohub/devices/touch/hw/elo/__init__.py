@@ -4,13 +4,14 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import math
 from collections import deque
-import serial
-import gevent
-from .....errors import printExceptionDetailsToStdErr
-from .....constants import EventConstants, DeviceConstants
-from ... import TouchDevice
-from .elo_serial import *
 
+import gevent
+import serial
+
+from .elo_serial import *
+from ... import TouchDevice
+from .....constants import EventConstants, DeviceConstants
+from .....errors import printExceptionDetailsToStdErr
 
 currentSec = Computer.currentSec
 getTime = Computer.currentSec

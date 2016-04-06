@@ -14,7 +14,7 @@ try:
 except Exception:
     pass
 
-from .. import Computer, Device, DeviceEvent
+from .. import Device, DeviceEvent, Computer
 from ...constants import DeviceConstants, EventConstants
 
 

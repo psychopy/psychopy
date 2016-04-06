@@ -8,7 +8,8 @@ from AppKit import NSEvent
 
 from . import MouseDevice
 from ...errors import print2err, printExceptionDetailsToStdErr
-from .. import Computer, Keyboard
+from .. import Keyboard
+from .. import Computer
 from ...constants import EventConstants, MouseConstants
 
 currentSec = Computer.getTime

@@ -53,7 +53,7 @@ from Xlib.ext import record
 from Xlib.protocol import rq
 from . import xlib as _xlib
 
-from ..devices import Computer
+from .computer import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
 from ..errors import print2err
 

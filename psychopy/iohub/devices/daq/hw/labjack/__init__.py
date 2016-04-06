@@ -7,7 +7,7 @@ import sys
 import numpy as N
 
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
-from .... import Computer, ioDeviceError
+from .... import ioDeviceError, Computer
 from .....errors import print2err, printExceptionDetailsToStdErr
 
 from .....util import addDirectoryToPythonPath

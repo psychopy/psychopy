@@ -10,7 +10,7 @@ import copy
 
 from ......util import convertCamelToSnake
 from ......constants import EventConstants, EyeTrackerConstants
-from ..... import Computer, DeviceEvent
+from ..... import DeviceEvent, Computer
 from .... import EyeTrackerDevice
 from ....eye_events import *
 from ......errors import print2err, printExceptionDetailsToStdErr

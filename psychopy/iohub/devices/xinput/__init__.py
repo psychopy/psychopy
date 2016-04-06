@@ -5,7 +5,7 @@
 import xinput
 import numpy as N
 import gevent
-from .. import Computer, Device, DeviceEvent, ioDeviceError
+from .. import Device, DeviceEvent, ioDeviceError, Computer
 from ...constants import XInputGamePadConstants, DeviceConstants, EventConstants
 
 

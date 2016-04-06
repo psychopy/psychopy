@@ -510,13 +510,13 @@ class Display(Device):
                 else:
                     runtime_info['pixel_resolution'] = w - x, h - y
                 runtime_info_list.append(runtime_info)
-                del d    
+                del d
             tempd.Destroy()
             tempd = None
             return runtime_info_list
         except Exception:
             printExceptionDetailsToStdErr()
-        
+
     def _addRuntimeInfoToDisplayConfig(self):
 
         if self not in Display._enabled_display_instances:

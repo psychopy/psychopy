@@ -68,7 +68,7 @@ MCU Access
 import numpy as np
 import gevent
 
-from ... import Computer, Device, DeviceEvent
+from ... import Device, DeviceEvent, Computer
 from ....constants import DeviceConstants, EventConstants
 from ....errors import print2err, printExceptionDetailsToStdErr
 from .pysync import T3MC, T3Request, T3Event
