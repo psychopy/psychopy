@@ -978,6 +978,8 @@ class ioHubConnection(object):
                              str(Computer.current_process.pid)]
 
         # If running coverage, add env var's needed to supprocess
+        # pytest coverage can then be called from cmdline like:
+        # C:\...\psychopy\psychopy>py.test --cov=psychopy.iohub .\tests\test_iohub
         #envars = dict(os.environ)
         #envars['COVERAGE_PROCESS_START'] = 'iohub.converagerc'
         # self._server_process = subprocess.Popen( subprocessArgList,

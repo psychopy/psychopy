@@ -419,7 +419,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.size = (0, 0)
 
         self._registerEventMonitors()
-        self._ioMouse.setSystemCursorVisibility(False)
+        #self._ioMouse.setSystemCursorVisibility(False)
         self._lastMsgPumpTime = Computer.getTime()
         self.clearAllEventBuffers()
 

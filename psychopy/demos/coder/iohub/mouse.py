@@ -1,22 +1,13 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-
-"""Demo of basic mouse handling from the ioHub (a separate asynchronous process
-for fetching and processing events from hardware; mice, keyboards,
-eyetrackers).
-
-Inital Version: May 6th, 2013, Sol Simpson
-Abbrieviated: May 2013, Jon Peirce
-Updated July, 2013, Sol, Added timeouts
-
+"""Demo of ioHub Mouse device and event handling.
 """
-
-from __future__ import division
+from __future__ import division, print_function, absolute_import
 
 import sys
 
 from psychopy import visual, core
-from psychopy.iohub.client import launchHubServer
+from psychopy.iohub.client import launchHubServer #pylint: disable=no-name-in-module
 
 # create the process that will run in the background polling devices
 io = launchHubServer()
@@ -26,22 +17,20 @@ display = io.devices.display
 keyboard = io.devices.keyboard
 mouse = io.devices.mouse
 
-# Hide the 'system mouse cursor'.
-mouse.setSystemCursorVisibility(False)
-
-# We can use display to find info for the Window creation, like the resolution
-# (which means PsychoPy won't warn you that the fullscreen does not match your requested size)
+# Use iohub display device to get the actual resolution
+# (which means PsychoPy won't warn you that the full screen does not match
+# your requested size)
 display_resolution = display.getPixelResolution()
+display_index = display.getIndex()
 
 # ioHub currently supports the use of a single full-screen PsychoPy Window
-win = visual.Window(display_resolution,
-                    units='pix', fullscr=True, allowGUI=False, screen=0)
+win = visual.Window(display_resolution, units='pix', fullscr=True,
+                    allowGUI=False, screen=display_index)
 
 # Create some psychopy visual stim (same as how you would do so normally):
-fixSpot = visual.GratingStim(
-    win, tex='none', mask='gauss', pos=(
-        0, 0), size=(
-            30, 30), color='black', autoLog=False)
+fixSpot = visual.GratingStim(win, tex='none', mask='gauss', pos=(0, 0),
+                             size=(30, 30), color='black', autoLog=False)
+
 grating = visual.GratingStim(win, pos=(300, 0),
                              tex='sin', mask='gauss',
                              color=[1.0, 0.5, -1.0],
@@ -53,7 +42,8 @@ message = visual.TextStim(win,
                           alignHoriz='center',
                           alignVert='center',
                           height=40,
-                          text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
+                          text='move=mv-spot, left-drag=SF, '
+                               'right-drag=mv-grating, scroll=ori',
                           autoLog=False,
                           wrapWidth=display_resolution[0] * .9)
 message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1] / 4)),
@@ -90,7 +80,8 @@ while not kb_events:
         fixSpot.setPos(position)
 
     if sys.platform == 'darwin':
-        # On OS X, both x and y mouse wheel events can be detected, assuming the mouse being used
+        # On OS X, both x and y mouse wheel events can be detected, assuming
+        #  the mouse being used
         # supported 2D mouse wheel motion.
         wheelPosX, wheelPosY = mouse.getScroll()
     else:

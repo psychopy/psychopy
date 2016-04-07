@@ -109,10 +109,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                screen=display.getIndex()
                                )
 
-        # Hide the 'system mouse cursor' during the experiment.
-        #
-        mouse.setSystemCursorVisibility(False)
-
         # Create a dict of image stim for trials and a gaze blob to show the
         # reported gaze position with.
         #

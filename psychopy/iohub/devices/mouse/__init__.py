@@ -2,19 +2,22 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from .. import Device, Computer
-from ...constants import EventConstants, DeviceConstants, MouseConstants, KeyboardConstants
-import numpy as N
+from __future__ import division, absolute_import
+
 from collections import namedtuple
+
+import numpy as np
+
+from .. import Device, Computer
+from ...constants import EventConstants, DeviceConstants
+from ...constants import MouseConstants, KeyboardConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
 
 RectangleBorder = namedtuple('RectangleBorderClass', 'left top right bottom')
-
-
 currentSec = Computer.currentSec
 
-# OS ' independent' view of the Mouse Device
 
+# OS ' independent' view of the Mouse Device
 
 class MouseDevice(Device):
     """The Mouse class represents a standard USB or PS2 mouse device that has
@@ -31,7 +34,8 @@ class MouseDevice(Device):
             monitor is attached to the computer, or if the primary monitor
             (monitor index 0) is used for the Full Screen PsychoPy Window.
 
-            Essentially, the consideration of the monitor the mouse is currently
+            Essentially, the consideration of the monitor the mouse is
+            currently
             over is assumed to be index 0 on Linux and OSX and the
             logic for translating Mouse position information assumes that
             only one monitor is present at this time.
@@ -77,32 +81,30 @@ class MouseDevice(Device):
             MouseConstants.MOUSE_BUTTON_MIDDLE: 0,
         }
 
-    def getSystemCursorVisibility(self):
-        """Returns whether the system cursor is visible when within the
-        physical Display represented by the ioHub Display Device.
+    # def getSystemCursorVisibility(self):
+    #     """Returns whether the system cursor is visible when within the
+    #     physical Display represented by the ioHub Display Device.
+    #
+    #     Returns:
+    #         bool: True if system cursor is visible when within the ioHub
+    #         Display Device being used. False otherwise.
+    #
+    #     """
+    #     return self._nativeGetSystemCursorVisibility()
 
-        Args:
-            None
-
-        Returns:
-            bool: True if system cursor is visible when within the ioHub Display Device being used. False otherwise.
-
-        """
-        return self._nativeGetSystemCursorVisibility()
-
-    def setSystemCursorVisibility(self, v):
-        """Sets whether the system cursor is visible when within the physical
-        Display represented by the ioHub Display Device.
-
-        Args:
-            v (bool): True = Make system cursor visible. False = Hide system cursor
-
-        Returns:
-            (bool): True if system cursor is visible. False otherwise.
-
-        """
-        self._nativeSetSystemCursorVisibility(v)
-        return self.getSystemCursorVisibility()
+    # def setSystemCursorVisibility(self, v):
+    #     """Sets whether the system cursor is visible when within the physical
+    #     Display represented by the ioHub Display Device.
+    #
+    #     Args:
+    #         v (bool): True = Show system cursor. False = Hide system cursor.
+    #
+    #     Returns:
+    #         (bool): True if system cursor is visible. False otherwise.
+    #     """
+    #
+    #     self._nativeSetSystemCursorVisibility(v)
+    #     #return self.getSystemCursorVisibility()
 
     def getCurrentButtonStates(self):
         """Returns a list of three booleans, representing the current state of
@@ -113,38 +115,39 @@ class MouseDevice(Device):
             None
 
         Returns:
-            (left_pressed, middle_pressed, right_pressed): Each element is True if the associated mouse button is pressed, False otherwise.
+            (left_pressed, middle_pressed, right_pressed): Tuple of 3 bool
+            values where True == Pressed.
 
         """
         return (self.activeButtons[MouseConstants.MOUSE_BUTTON_LEFT] != 0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_MIDDLE] != 0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_RIGHT] != 0)
 
-    def lockMouseToDisplayID(self, display_id):
-        self._lock_mouse_to_display_id = display_id
-        if display_id is not None:
-            if display_id not in self._clipRectsForDisplayID:
-                screen = self._display_device.getConfiguration()[
-                    'runtime_info']
-                if screen:
-                    left, top, right, bottom = screen['bounds']
-                    clip_rect = RectangleBorder(left, top, right, bottom)
-                    native_clip_rect = self._nativeLimitCursorToBoundingRect(
-                        clip_rect)
-                self._clipRectsForDisplayID[
-                    display_id] = native_clip_rect, clip_rect
-        else:
-            if None not in self._clipRectsForDisplayID:
-                left, top, right, bottom = screen['bounds']
-                clip_rect = RectangleBorder(left, top, right, bottom)
-                native_clip_rect = self._nativeLimitCursorToBoundingRect(
-                    clip_rect)
-                self._clipRectsForDisplayID[
-                    display_id] = native_clip_rect, clip_rect
-        return self._clipRectsForDisplayID[display_id][1]
-
-    def getlockedMouseDisplayID(self):
-        return self._lock_mouse_to_display_id
+    # def lockMouseToDisplayID(self, display_id):
+    #     self._lock_mouse_to_display_id = display_id
+    #     if display_id is not None:
+    #         if display_id not in self._clipRectsForDisplayID:
+    #             screen = self._display_device.getConfiguration()[
+    #                 'runtime_info']
+    #             if screen:
+    #                 left, top, right, bottom = screen['bounds']
+    #                 clip_rect = RectangleBorder(left, top, right, bottom)
+    #                 native_clip_rect = self._nativeLimitCursorToBoundingRect(
+    #                         clip_rect)
+    #             self._clipRectsForDisplayID[
+    #                 display_id] = native_clip_rect, clip_rect
+    #     else:
+    #         if None not in self._clipRectsForDisplayID:
+    #             left, top, right, bottom = screen['bounds']
+    #             clip_rect = RectangleBorder(left, top, right, bottom)
+    #             native_clip_rect = self._nativeLimitCursorToBoundingRect(
+    #                     clip_rect)
+    #             self._clipRectsForDisplayID[
+    #                 display_id] = native_clip_rect, clip_rect
+    #     return self._clipRectsForDisplayID[display_id][1]
+    #
+    # def getlockedMouseDisplayID(self):
+    #     return self._lock_mouse_to_display_id
 
     def _initialMousePos(self):
         """If getPosition is called prior to any mouse events being received,
@@ -168,10 +171,11 @@ class MouseDevice(Device):
                 if ok:
                     self._position = [mpos.x, mpos.y]
                     self._lastPosition = self._position
-            else:
-                # TODO : Handle OS X and Linux in this case.
-                self._position = 0.0, 0.0
-                self._lastPosition = 0.0, 0.0
+        if self._position is None:
+            # TODO : Handle OS X and Linux in this case.
+            # TODO: Handle when Windows GetCursorPos fails.
+            self._position = 0.0, 0.0
+            self._lastPosition = 0.0, 0.0
 
     def getPosition(self, return_display_index=False):
         """Returns the current position of the ioHub Mouse Device. Mouse
@@ -179,10 +183,13 @@ class MouseDevice(Device):
         the screen.
 
         Args:
-            return_display_index: If True, the display index that is associated with the mouse position will also be returned.
+            return_display_index: If True, the display index that is
+            associated with the mouse position will also be returned.
 
         Returns:
-            tuple: If return_display_index is false (default), return (x,y) position of mouse. If return_display_index is True return ( (x,y), display_index).
+            tuple: If return_display_index is false (default), return (x,
+            y) position of mouse. If return_display_index is True return ( (
+            x,y), display_index).
 
         """
         self._initialMousePos()
@@ -193,15 +200,20 @@ class MouseDevice(Device):
     def getDisplayIndex(self):
         """
         Returns the current display index of the ioHub Mouse Device.
-        If the display index == the index of the display being used for stimulus
+        If the display index == the index of the display being used for
+        stimulus
         presentation, then mouse position is in the display's coordinate units.
-        If the display index != the index of the display being used for stimulus
-        presentation, then mouse position is in OS system mouse ccordinate space.
+        If the display index != the index of the display being used for
+        stimulus
+        presentation, then mouse position is in OS system mouse ccordinate
+        space.
 
         Args:
             None
         Returns:
-            (int): index of the Display the mouse is over. Display index's range from 0 to N-1, where N is the number of Display's active on the Computer.
+            (int): index of the Display the mouse is over. Display index's
+            range from 0 to N-1, where N is the number of Display's active
+            on the Computer.
         """
         return self._display_index
 
@@ -215,7 +227,8 @@ class MouseDevice(Device):
             None
 
         Returns:
-            tuple: ( (x,y), (dx,dy) ) position of mouse, change in mouse position, both in Display coordinate space.
+            tuple: ( (x,y), (dx,dy) ) position of mouse, change in mouse
+            position, both in Display coordinate space.
 
         """
         try:
@@ -237,9 +250,12 @@ class MouseDevice(Device):
 
     def getScroll(self):
         """
-        Returns the current vertical scroll value for the mouse. The vertical scroll value changes when the
-        scroll wheel on a mouse is moved up or down. The vertical scroll value is in an arbitrary value space
-        ranging for -32648 to +32648. Scroll position is initialize to 0 when the experiment starts.
+        Returns the current vertical scroll value for the mouse. The
+        vertical scroll value changes when the
+        scroll wheel on a mouse is moved up or down. The vertical scroll
+        value is in an arbitrary value space
+        ranging for -32648 to +32648. Scroll position is initialize to 0
+        when the experiment starts.
 
         Args:
             None
@@ -251,14 +267,19 @@ class MouseDevice(Device):
 
     def setScroll(self, s):
         """
-        Sets the current vertical scroll value for the mouse. The vertical scroll value changes when the
-        scroll wheel on a mouse is moved up or down. The vertical scroll value is in an
-        arbitrary value space ranging for -32648 to +32648. Scroll position is initialize to 0 when
-        the experiment starts. This method allows you to change the scroll value to anywhere in the
+        Sets the current vertical scroll value for the mouse. The vertical
+        scroll value changes when the
+        scroll wheel on a mouse is moved up or down. The vertical scroll
+        value is in an
+        arbitrary value space ranging for -32648 to +32648. Scroll position
+        is initialize to 0 when
+        the experiment starts. This method allows you to change the scroll
+        value to anywhere in the
         valid value range.
 
         Args (int):
-            The scroll position you want to set the vertical scroll to. Should be a number between -32648 to +32648.
+            The scroll position you want to set the vertical scroll to.
+            Should be a number between -32648 to +32648.
 
         Returns:
             int: current vertical scroll value.
@@ -277,14 +298,19 @@ class MouseDevice(Device):
         pixel position expected by the OS.
 
         Args:
-             pos ( (x,y) list or tuple ): The position, in Display coordinate space, to set the mouse position too.
+             pos ( (x,y) list or tuple ): The position, in Display
+             coordinate space, to set the mouse position too.
 
-             updateSystemMousePosition (bool): True = the OS mouse position will also be updated, False = it will not.
+             updateSystemMousePosition (bool): True = the OS mouse position
+             will also be updated, False = it will not.
 
         Returns:
             tuple: new (x,y) position of mouse in Display coordinate space.
 
         """
+        # TODO: Verify Mouse.setPosition code. Needs to handle multiple monitor
+        #      case and when to keep mouse pos within display bounds and when
+        #      not too.
         if isinstance(
                 pos[0], (int, long, float, complex)) and isinstance(
                 pos[1], (int, long, float, complex)):
@@ -296,7 +322,8 @@ class MouseDevice(Device):
 
             if display_index == -1:
                 print2err(
-                    ' !!! Display Index -1 received by mouse.setPosition. !!!')
+                        ' !!! Display Index -1 received by '
+                        'mouse.setPosition. !!!')
                 print2err(' mouse.setPos did not update mouse pos')
                 return self._position
 
@@ -304,20 +331,22 @@ class MouseDevice(Device):
 
             result = self._validateMousePosition((px, py), display_index)
 
-            if not result:
+            if isinstance(result, (list, tuple)):
                 px, py = result
 
             mouse_display_index = self.getDisplayIndexForMousePosition(
-                (px, py))
+                    (px, py))
 
             if mouse_display_index == -1:
                 print2err(
-                    ' !!! getDisplayIndexForMousePosition returned -1 in mouse.setPosition. !!!')
+                        ' !!! getDisplayIndexForMousePosition returned -1 in '
+                        'mouse.setPosition. !!!')
                 print2err(' mouse.setPos did not update mouse pos')
             elif mouse_display_index != display_index:
                 print2err(
-                    ' !!! requested display_index {0} != mouse_pos_index {1}'.format(
-                        display_index, mouse_display_index))
+                        ' !!! requested display_index {0} != mouse_pos_index '
+                        '{1}'.format(
+                                display_index, mouse_display_index))
                 print2err(' mouse.setPos did not update mouse pos')
             else:
                 self._lastPosition = self._position
@@ -332,7 +361,7 @@ class MouseDevice(Device):
 
     def getDisplayIndexForMousePosition(self, system_mouse_pos):
         return self._display_device._getDisplayIndexForNativePixelPosition(
-            system_mouse_pos)
+                system_mouse_pos)
 
     def _validateMousePosition(self, pixel_pos, display_index):
         left, top, right, bottom = self._display_device.getBounds()
@@ -360,32 +389,37 @@ class MouseDevice(Device):
 
     def _nativeSetMousePos(self, px, py):
         print2err(
-            'ERROR: _nativeSetMousePos must be overwritten by OS dependent implementation')
+                'ERROR: _nativeSetMousePos must be overwritten by OS '
+                'dependent implementation')
 
-    def _nativeGetSystemCursorVisibility(self):
-        print2err(
-            'ERROR: _nativeGetSystemCursorVisibility must be overwritten by OS dependent implementation')
-        return True
+    # def _nativeGetSystemCursorVisibility(self):
+    #     print2err(
+    #             'ERROR: _nativeGetSystemCursorVisibility must be overwritten '
+    #             'by OS dependent implementation')
+    #     return True
+    #
+    # def _nativeSetSystemCursorVisibility(self, v):
+    #     print2err(
+    #             'ERROR: _nativeSetSystemCursorVisibility must be overwritten '
+    #             'by OS dependent implementation')
+    #     return True
 
-    def _nativeSetSystemCursorVisibility(self, v):
-        print2err(
-            'ERROR: _nativeSetSystemCursorVisibility must be overwritten by OS dependent implementation')
-        return True
+    #def _nativeLimitCursorToBoundingRect(self, clip_rect):
+    #    print2err(
+    #            'ERROR: _nativeLimitCursorToBoundingRect must be overwritten '
+    #            'by OS dependent implementation')
+    #    native_clip_rect = None
+    #    return native_clip_rect
 
-    def _nativeLimitCursorToBoundingRect(self, clip_rect):
-        print2err(
-            'ERROR: _nativeLimitCursorToBoundingRect must be overwritten by OS dependent implementation')
-        native_clip_rect = None
-        return native_clip_rect
 
 if Computer.system == 'win32':
-    from win32 import Mouse
+    from .win32 import Mouse
 
 elif Computer.system == 'linux2':
-    from linux2 import Mouse
+    from .linux2 import Mouse
 
 elif Computer.system == 'darwin':
-    from darwin import Mouse
+    from .darwin import Mouse
 
 ############# OS Independent Mouse Event Classes ####################
 
@@ -407,44 +441,44 @@ class MouseInputEvent(DeviceEvent):
 
     _newDataTypes = [
         # gives the display index that the mouse was over for the event.
-        ('display_id', N.uint8),
+        ('display_id', np.uint8),
         # 1 if button is pressed, 0 if button is released
-        ('button_state', N.uint8),
+        ('button_state', np.uint8),
         # 1, 2,or 4, representing left, right, and middle buttons
-        ('button_id', N.uint8),
+        ('button_id', np.uint8),
         # sum of currently active button int values
-        ('pressed_buttons', N.uint8),
+        ('pressed_buttons', np.uint8),
 
         # x position of the position when the event occurred
-        ('x_position', N.int16),
+        ('x_position', np.int16),
         # y position of the position when the event occurred
-        ('y_position', N.int16),
+        ('y_position', np.int16),
 
         # horizontal scroll wheel position change when the event occurred (OS X
         # only)
-        ('scroll_dx', N.int8),
+        ('scroll_dx', np.int8),
         # horizontal scroll wheel abs. position when the event occurred (OS X
         # only)
-        ('scroll_x', N.int16),
+        ('scroll_x', np.int16),
         # vertical scroll wheel position change when the event occurred
-        ('scroll_dy', N.int8),
+        ('scroll_dy', np.int8),
         # vertical scroll wheel abs. position when the event occurred
-        ('scroll_y', N.int16),
+        ('scroll_y', np.int16),
 
         # indicates what modifier keys were active when the mouse event
         # occurred.
-        ('modifiers', N.uint32),
+        ('modifiers', np.uint32),
 
         # window ID that the mouse was over when the event occurred
-        ('window_id', N.uint64)
+        ('window_id', np.uint64)
         # (window does not need to have focus)
     ]
 
     __slots__ = [e[0] for e in _newDataTypes]
 
     def __init__(self, *args, **kwargs):
-
-        #: The id of the display that the mouse was over when the event occurred.
+        #: The id of the display that the mouse was over when the event
+        # occurred.
         #: Only supported on Windows at this time. Always 0 on other OS's.
         self.display_id = None
 
@@ -459,10 +493,12 @@ class MouseInputEvent(DeviceEvent):
         #: 'All' currently pressed button id's logically OR'ed together.
         self.pressed_buttons = None
 
-        #: x position of the Mouse when the event occurred; in display coordinate space.
+        #: x position of the Mouse when the event occurred; in display
+        # coordinate space.
         self.x_position = None
 
-        #: y position of the Mouse when the event occurred; in display coordinate space.
+        #: y position of the Mouse when the event occurred; in display
+        # coordinate space.
         self.y_position = None
 
         #: Horizontal scroll wheel position change when the event occurred.
@@ -479,13 +515,16 @@ class MouseInputEvent(DeviceEvent):
         #: Vertical scroll wheel absolute position when the event occurred.
         self.scroll_y = None
 
-        #: List of the modifiers that were active when the mouse event occurred,
+        #: List of the modifiers that were active when the mouse event
+        # occurred,
         #: provided in online events as a list of the modifier constant labels
         #: specified in iohub.ModifierConstants
-        #: list: Empty if no modifiers are pressed, otherwise each elemnt is the string name of a modifier constant.
+        #: list: Empty if no modifiers are pressed, otherwise each elemnt is
+        #  the string name of a modifier constant.
         self.modifiers = 0
 
-        #: Window handle reference that the mouse was over when the event occurred
+        #: Window handle reference that the mouse was over when the event
+        # occurred
         #: (window does not need to have focus)
         self.window_id = None
 
@@ -494,8 +533,9 @@ class MouseInputEvent(DeviceEvent):
     @classmethod
     def _convertFields(cls, event_value_list):
         modifier_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('modifiers')
-        event_value_list[modifier_value_index] = KeyboardConstants._modifierCodes2Labels(
-            event_value_list[modifier_value_index])
+        event_value_list[
+            modifier_value_index] = KeyboardConstants._modifierCodes2Labels(
+                event_value_list[modifier_value_index])
 
     @classmethod
     def createEventAsDict(cls, values):
@@ -601,37 +641,44 @@ class MouseButtonPressEvent(MouseButtonEvent):
     assuming you have a 3 button mouse.
 
     To get the current state of all three buttons on the Mouse Device,
-    the pressed_buttons attribute can be read, which tracks the state of all three
+    the pressed_buttons attribute can be read, which tracks the state of all
+    three
     mouse buttons as an int that is equal to the sum of any pressed button id's
     ( MouseConstants.MOUSE_BUTTON_LEFT,  MouseConstants.MOUSE_BUTTON_RIGHT, or
     MouseConstants.MOUSE_BUTTON_MIDDLE ).
 
-    To tell if a given mouse button was depressed when the event occurred, regardless of which
+    To tell if a given mouse button was depressed when the event occurred,
+    regardless of which
     button triggered the event, you can use the following::
 
-        isButtonPressed = event.pressed_buttons & MouseConstants.MOUSE_BUTTON_xxx == MouseConstants.MOUSE_BUTTON_xxx
+        isButtonPressed = event.pressed_buttons &
+        MouseConstants.MOUSE_BUTTON_xxx == MouseConstants.MOUSE_BUTTON_xxx
 
     where xxx is LEFT, RIGHT, or MIDDLE.
 
-    For example, if at the time of the event both the left and right mouse buttons
+    For example, if at the time of the event both the left and right mouse
+    buttons
     were in a pressed state::
 
         buttonToCheck=MouseConstants.MOUSE_BUTTON_RIGHT
-        isButtonPressed = event.pressed_buttons & buttonToCheck == buttonToCheck
+        isButtonPressed = event.pressed_buttons & buttonToCheck ==
+        buttonToCheck
 
         print isButtonPressed
 
         >> True
 
         buttonToCheck=MouseConstants.MOUSE_BUTTON_LEFT
-        isButtonPressed = event.pressed_buttons & buttonToCheck == buttonToCheck
+        isButtonPressed = event.pressed_buttons & buttonToCheck ==
+        buttonToCheck
 
         print isButtonPressed
 
         >> True
 
         buttonToCheck=MouseConstants.MOUSE_BUTTON_MIDDLE
-        isButtonPressed = event.pressed_buttons & buttonToCheck == buttonToCheck
+        isButtonPressed = event.pressed_buttons & buttonToCheck ==
+        buttonToCheck
 
         print isButtonPressed
 
@@ -654,8 +701,10 @@ class MouseButtonPressEvent(MouseButtonEvent):
 class MouseButtonReleaseEvent(MouseButtonEvent):
     """MouseButtonUpEvent's are created when a button on the mouse is released.
 
-    The button_state of the event will equal MouseConstants.MOUSE_BUTTON_STATE_RELEASED,
-    and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_LEFT,
+    The button_state of the event will equal
+    MouseConstants.MOUSE_BUTTON_STATE_RELEASED,
+    and the button that was pressed (button_id) will be
+    MouseConstants.MOUSE_BUTTON_LEFT,
     MouseConstants.MOUSE_BUTTON_RIGHT, or MouseConstants.MOUSE_BUTTON_MIDDLE,
     assuming you have a 3 button mouse.
 

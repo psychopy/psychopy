@@ -107,7 +107,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             screen=self.display.getIndex())
 
         currentPosition = self.mouse.setPosition((0, 0))
-        self.mouse.setSystemCursorVisibility(False)
 
         fixation = visual.PatchStim(self.psychoWindow, size=25, pos=[0, 0],
                                     sf=0, color=[-1, -1, -1], colorSpace='rgb')

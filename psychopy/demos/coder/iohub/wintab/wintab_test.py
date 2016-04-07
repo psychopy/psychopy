@@ -63,9 +63,7 @@ def createPsychopyGraphics():
     myWin = visual.Window(units='pix', color=[128, 128, 128],
                           colorSpace='rgb255', fullscr=True, allowGUI=False)
 
-    # hide the OS system mouse when on experiment window
     mouse.setPosition((0, 0))
-    mouse.setSystemCursorVisibility(False)
 
     # INITIALISE SOME STIMULI
     evt_text = visual.TextStim(myWin, units='norm', height=0.05,

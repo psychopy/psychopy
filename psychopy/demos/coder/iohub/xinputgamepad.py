@@ -60,9 +60,6 @@ if __name__ == '__main__':
         allowGUI=False,
         screen=screen_index)
 
-    # Hide the 'system mouse cursor'
-    mouse.setSystemCursorVisibility(False)
-
     gamepad.updateBatteryInformation()
     bat = gamepad.getLastReadBatteryInfo()
     print('Battery Info: ', bat)

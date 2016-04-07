@@ -2,12 +2,13 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import division, absolute_import
+
 from ctypes import cdll
+
 from . import MouseDevice
+from .. import Keyboard, Computer, Device, xlib
 from ...constants import MouseConstants
-from .. import Keyboard
-from .. import Computer, Device
-from .. import xlib
 from ...errors import print2err, printExceptionDetailsToStdErr
 
 currentSec = Computer.getTime
@@ -74,33 +75,33 @@ class Mouse(MouseDevice):
             int(py))
         Mouse._xdll.XFlush(Mouse._xdisplay)
 
-    def _nativeGetSystemCursorVisibility(self):
-        return self._cursorVisible
+    #def _nativeGetSystemCursorVisibility(self):
+    #    return self._cursorVisible
 
-    def _nativeSetSystemCursorVisibility(self, v):
-        if Mouse._xfixsdll is None:
-            print2err(
-                'Xfixes DLL could not be loaded. Cursor visiblity support is unavailable.')
-            return True
+    # def _nativeSetSystemCursorVisibility(self, v):
+    #     if Mouse._xfixsdll is None:
+    #         print2err(
+    #             'Xfixes DLL could not be loaded. Cursor visiblity support is unavailable.')
+    #         return True
+    #
+    #     if v is True and self._nativeGetSystemCursorVisibility() is False:
+    #         Mouse._xfixsdll.XFixesShowCursor(
+    #             Mouse._xdisplay, self._display_device._xwindow)
+    #         Mouse._xfixsdll.XFlush(Mouse._xdisplay)
+    #         self._cursorVisible = True
+    #     elif v is False and self._nativeGetSystemCursorVisibility() is True:
+    #         Mouse._xfixsdll.XFixesHideCursor(
+    #             Mouse._xdisplay, self._display_device._xwindow)
+    #         Mouse._xfixsdll.XFlush(Mouse._xdisplay)
+    #         self._cursorVisible = False
+    #
+    #     return self._nativeGetSystemCursorVisibility()
 
-        if v is True and self._nativeGetSystemCursorVisibility() is False:
-            Mouse._xfixsdll.XFixesShowCursor(
-                Mouse._xdisplay, self._display_device._xwindow)
-            Mouse._xfixsdll.XFlush(Mouse._xdisplay)
-            self._cursorVisible = True
-        elif v is False and self._nativeGetSystemCursorVisibility() is True:
-            Mouse._xfixsdll.XFixesHideCursor(
-                Mouse._xdisplay, self._display_device._xwindow)
-            Mouse._xfixsdll.XFlush(Mouse._xdisplay)
-            self._cursorVisible = False
-
-        return self._nativeGetSystemCursorVisibility()
-
-    def _nativeLimitCursorToBoundingRect(self, clip_rect):
-        print2err(
-            'WARNING: Mouse._nativeLimitCursorToBoundingRect not implemented on Linux yet.')
-        native_clip_rect = None
-        return native_clip_rect
+    #def _nativeLimitCursorToBoundingRect(self, clip_rect):
+    #    print2err(
+    #        'WARNING: Mouse._nativeLimitCursorToBoundingRect not implemented on Linux yet.')
+    #    native_clip_rect = None
+    #    return native_clip_rect
 
     def _nativeEventCallback(self, event):
         try:
@@ -148,9 +149,9 @@ class Mouse(MouseDevice):
 
     def _close(self):
         if Mouse._xdll:
-            if Mouse._xfixsdll and self._nativeGetSystemCursorVisibility() is False:
-                Mouse._xfixsdll.XFixesShowCursor(
-                    Mouse._xdisplay, self._display_device._xwindow)
+            #if Mouse._xfixsdll and self._nativeGetSystemCursorVisibility() is False:
+            #    Mouse._xfixsdll.XFixesShowCursor(
+            #        Mouse._xdisplay, self._display_device._xwindow)
             Mouse._xdll.XCloseDisplay(Mouse._xdisplay)
             Mouse._xdll = None
             Mouse._xfixsdll = None

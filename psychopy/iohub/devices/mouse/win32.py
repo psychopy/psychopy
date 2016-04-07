@@ -2,15 +2,16 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import division, absolute_import
+
 import ctypes
+
 from . import MouseDevice
 from ...constants import EventConstants, MouseConstants
-from .. import Keyboard
-from .. import Computer, Device
+from .. import Keyboard, Computer, Device
 from ...errors import print2err
 
 currentSec = Computer.getTime
-
 POINT = ctypes.wintypes.POINT
 RECT = ctypes.wintypes.RECT
 
@@ -94,7 +95,7 @@ class Mouse(MouseDevice):
 
         self._user32 = ctypes.windll.user32
 
-        self.getSystemCursorVisibility()
+        #self.getSystemCursorVisibility()
         self._original_system_cursor_clipping_rect = RECT()
         self._user32.GetClipCursor(ctypes.byref(
             self._original_system_cursor_clipping_rect))
@@ -118,14 +119,14 @@ class Mouse(MouseDevice):
         self._user32.SetCursorPos(int(px), int(py))
         #ioHub.print2err(" mouse.setPos updated to {0}".format((px,py)))
 
-    def _nativeGetSystemCursorVisibility(self):
-        self._user32.ShowCursor(False)
-        self._isVisible = self._user32.ShowCursor(True)
-        return self._isVisible >= 0
+    # def _nativeGetSystemCursorVisibility(self):
+    #     self._user32.ShowCursor(False)
+    #     self._isVisible = self._user32.ShowCursor(True)
+    #     return self._isVisible >= 0
 
-    def _nativeSetSystemCursorVisibility(self, v):
-        self._isVisible = self._user32.ShowCursor(v)
-        return self._isVisible >= 0
+    #def _nativeSetSystemCursorVisibility(self, v):
+    #    self._isVisible = self._user32.ShowCursor(v)
+    #    return self._isVisible >= 0
 
     def _nativeEventCallback(self, event):
         if self.isReportingEvents():
@@ -193,7 +194,7 @@ class Mouse(MouseDevice):
                     bstate == MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
 
             abuttonSum = 0
-            for k, v in self.activeButtons.iteritems():
+            for k, v in self.activeButtons.items():
                 abuttonSum += k * v
 
             event.ActiveButtons = abuttonSum

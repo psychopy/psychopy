@@ -2,14 +2,15 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import division, absolute_import
+
 from copy import copy
 import Quartz as Qz
 from AppKit import NSEvent
 
 from . import MouseDevice
+from .. import Keyboard, Computer, Device
 from ...errors import print2err, printExceptionDetailsToStdErr
-from .. import Keyboard
-from .. import Computer, Device
 from ...constants import EventConstants, MouseConstants
 
 currentSec = Computer.getTime
@@ -115,20 +116,20 @@ class Mouse(MouseDevice):
             Qz.CGPointMake(float(px), float(py)))
         #print2err('_nativeSetMousePos result: ',result)
 
-    def _nativeGetSystemCursorVisibility(self):
-        return Qz.CGCursorIsVisible()
+    #def _nativeGetSystemCursorVisibility(self):
+    #    return Qz.CGCursorIsVisible()
+    #
+    # def _nativeSetSystemCursorVisibility(self, v):
+    #     if v and not Qz.CGCursorIsVisible():
+    #         Qz.CGDisplayShowCursor(Qz.CGMainDisplayID())
+    #     elif not v and Qz.CGCursorIsVisible():
+    #         Qz.CGDisplayHideCursor(Qz.CGMainDisplayID())
 
-    def _nativeSetSystemCursorVisibility(self, v):
-        if v and not Qz.CGCursorIsVisible():
-            Qz.CGDisplayShowCursor(Qz.CGMainDisplayID())
-        elif not v and Qz.CGCursorIsVisible():
-            Qz.CGDisplayHideCursor(Qz.CGMainDisplayID())
-
-    def _nativeLimitCursorToBoundingRect(self, clip_rect):
-        print2err(
-            'WARNING: Mouse._nativeLimitCursorToBoundingRect not implemented on OSX yet.')
-        native_clip_rect = None
-        return native_clip_rect
+    #def _nativeLimitCursorToBoundingRect(self, clip_rect):
+    #    print2err(
+    #        'WARNING: Mouse._nativeLimitCursorToBoundingRect not implemented on OSX yet.')
+    #    native_clip_rect = None
+    #    return native_clip_rect
 
     def getScroll(self):
         """
@@ -244,7 +245,7 @@ class Mouse(MouseDevice):
                             button_state == MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
 
                     pressed_buttons = 0
-                    for k, v in self.activeButtons.iteritems():
+                    for k, v in self.activeButtons.items():
                         pressed_buttons += k * v
 
                     # Create Event List
@@ -287,10 +288,10 @@ class Mouse(MouseDevice):
         return native_event_data
 
     def _close(self):
-        try:
-            self._nativeSetSystemCursorVisibility(True)
-        except Exception:
-            pass
+        #try:
+        #    self._nativeSetSystemCursorVisibility(True)
+        #except Exception:
+        #    pass
 
         try:
             Qz.CGEventTapEnable(self._tap, False)
