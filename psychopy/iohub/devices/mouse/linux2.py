@@ -6,7 +6,7 @@ from ctypes import cdll
 from . import MouseDevice
 from ...constants import MouseConstants
 from .. import Keyboard
-from .. import Computer
+from .. import Computer, Device
 from .. import xlib
 from ...errors import print2err, printExceptionDetailsToStdErr
 
@@ -114,7 +114,7 @@ class Mouse(MouseDevice):
                         -1] not in psychowins:
                     return True
 
-                event_array[3] = Computer._getNextEventID()
+                event_array[3] = Device._getNextEventID()
 
                 display_index = self._display_device.getIndex()
                 x, y = self._display_device._pixel2DisplayCoord(

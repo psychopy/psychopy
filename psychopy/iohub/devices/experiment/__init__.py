@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy as N
-from .. import Device, DeviceEvent, Computer
+from .. import Device, DeviceEvent, Computer, Device
 from ...constants import DeviceConstants, EventConstants
 
 currentSec = Computer.currentSec
@@ -69,7 +69,7 @@ class Experiment(Device):
                 native_event_data = list(native_event_data)
 
             native_event_data[
-                DeviceEvent.EVENT_ID_INDEX] = Computer._getNextEventID()
+                DeviceEvent.EVENT_ID_INDEX] = Device._getNextEventID()
 
             # set logged time of event
             native_event_data[
@@ -170,7 +170,7 @@ class MessageEvent(DeviceEvent):
             csec = sec_time
         event_num = 0
         if set_event_id:
-            event_num = Computer._getNextEventID()
+            event_num = Device._getNextEventID()
         return (0, 0, 0, event_num, MessageEvent.EVENT_TYPE_ID,
                 csec, 0, 0, 0.0, 0.0, 0, msg_offset, category, text)
 

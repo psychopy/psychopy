@@ -10,7 +10,7 @@ import pylink
 from ......constants import EventConstants, EyeTrackerConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......util.dialogs import ProgressBarDialog
-from ..... import Computer
+from ..... import Computer, Device
 from .... import EyeTrackerDevice
 from ....eye_events import *
 
@@ -628,7 +628,7 @@ class EyeTracker(EyeTrackerDevice):
                             0,
                             0,
                             0,  # device id (not currently used)
-                            Computer._getNextEventID(),
+                            Device._getNextEventID(),
                             event_type,
                             ne.event_timestamp,
                             ne.logged_time,
@@ -721,7 +721,7 @@ class EyeTracker(EyeTrackerDevice):
                         monoSample = [0,
                                       0,
                                       0,  # device id (not currently used)
-                                      Computer._getNextEventID(),
+                                      Device._getNextEventID(),
                                       event_type,
                                       ne.event_timestamp,
                                       ne.logged_time,
@@ -793,7 +793,7 @@ class EyeTracker(EyeTrackerDevice):
                     fee = [0,
                            0,
                            0,  # device id (not currently used)
-                           Computer._getNextEventID(),
+                           Device._getNextEventID(),
                            etype,
                            ne.event_timestamp,
                            ne.logged_time,
@@ -895,7 +895,7 @@ class EyeTracker(EyeTrackerDevice):
                     see = [0,
                            0,
                            0,  # device id (not currently used)
-                           Computer._getNextEventID(),
+                           Device._getNextEventID(),
                            etype,
                            ne.event_timestamp,
                            ne.logged_time,
@@ -968,7 +968,7 @@ class EyeTracker(EyeTrackerDevice):
                         0,
                         0,
                         0,
-                        Computer._getNextEventID(),
+                        Device._getNextEventID(),
                         etype,
                         ne.event_timestamp,
                         ne.logged_time,
@@ -1008,7 +1008,7 @@ class EyeTracker(EyeTrackerDevice):
                         0,                                      # exp ID
                         0,                                      # sess ID
                         0,  # device id (not currently used)
-                        Computer._getNextEventID(),              # event ID
+                        Device._getNextEventID(),              # event ID
                         etype,                                  # event type
                         ne.event_timestamp,
                         ne.logged_time,
@@ -1054,7 +1054,7 @@ class EyeTracker(EyeTrackerDevice):
                         0,
                         0,
                         0,  # device id (not currently used)
-                        Computer._getNextEventID(),
+                        Device._getNextEventID(),
                         etype,
                         ne.event_timestamp,
                         ne.logged_time,

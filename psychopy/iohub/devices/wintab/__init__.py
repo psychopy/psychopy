@@ -240,7 +240,7 @@ class WintabTablet(Device):
             iohub_time = iotime + (wt_event[1] - hwtime)
             #print2err('STIME: ',[iohub_time, logged_time, logged_time-iohub_time])
 
-        ioevt = [0, 0, 0, Computer._getNextEventID(),
+        ioevt = [0, 0, 0, Device._getNextEventID(),
                  evt_type,
                  device_time,
                  logged_time,

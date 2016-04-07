@@ -499,7 +499,7 @@ class Gamepad(XInputDevice):
                     # device id : number 0-3 representing which controller
                     # event is from.
                     self.device_number,
-                    Computer._getNextEventID(),             # unique event id
+                    Device._getNextEventID(),             # unique event id
                     GamepadStateChangeEvent.EVENT_TYPE_ID,  # id representation of event type
                     self._state_time,                       # device Time
                     t,                                      # logged time
@@ -538,7 +538,7 @@ class Gamepad(XInputDevice):
                 0,                                      # session_id filled in by ioHub
                 # number 0-3 representing which controller event is from.
                 self.device_number,
-                Computer._getNextEventID(),             # unique event id
+                Device._getNextEventID(),             # unique event id
                 GamepadDisconnectEvent.EVENT_TYPE_ID,  # id representation of event type
                 self._state_time,                       # device Time
                 t,                                      # logged time

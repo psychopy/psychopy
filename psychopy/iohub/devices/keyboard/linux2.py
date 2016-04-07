@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from . import ioHubKeyboardDevice
-from .. import Computer
+from .. import Computer, Device
 from ...constants import EventConstants
 from ...errors import printExceptionDetailsToStdErr
 
@@ -58,7 +58,7 @@ class Keyboard(ioHubKeyboardDevice):
                         return True
 
                 # set event id for event since it has passed all filters
-                event_array[self.event_id_index] = Computer._getNextEventID()
+                event_array[self.event_id_index] = Device._getNextEventID()
                 ioHubKeyboardDevice._modifier_value = event_array[
                     self.event_modifiers_index]
 

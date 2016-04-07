@@ -7,7 +7,7 @@ import sys
 import numpy as N
 
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
-from .... import ioDeviceError, Computer
+from .... import ioDeviceError, Computer, Device
 from .....errors import print2err, printExceptionDetailsToStdErr
 
 from .....util import addDirectoryToPythonPath
@@ -201,7 +201,7 @@ class AnalogInput(AnalogInputDevice):
         for s in range(len(ain[0])):
             multi_channel_event = list(event)
 
-            multi_channel_event[3] = Computer._getNextEventID()
+            multi_channel_event[3] = Device._getNextEventID()
             multi_channel_event[5] = float(
                 self._scan_count) / float(self.channel_sampling_rate)  # device_time
             multi_channel_event[7] = multi_channel_event[

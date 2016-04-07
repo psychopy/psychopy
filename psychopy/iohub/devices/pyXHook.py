@@ -445,7 +445,7 @@ class HookManager(threading.Thread):
         return [[0,
                  0,
                  0,  # device id (not currently used)
-                 0,  # to be assigned by ioHub server# Computer._getNextEventID(),
+                 0,  # to be assigned by ioHub server# Device._getNextEventID(),
                  event_type_id,
                  event.time * self.DEVICE_TIME_TO_SECONDS,
                  event.iohub_logged_time,
@@ -586,7 +586,7 @@ class HookManager(threading.Thread):
         return [[0,
                  0,
                  0,  # device id (not currently used)
-                 0,  # to be assigned by ioHub server# Computer._getNextEventID(),
+                 0,  # to be assigned by ioHub server# Device._getNextEventID(),
                  event_type_id,
                  event.time * self.DEVICE_TIME_TO_SECONDS,
                  event.iohub_logged_time,

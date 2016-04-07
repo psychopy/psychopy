@@ -321,7 +321,7 @@ class Serial(Device):
     def _createSerialEvent(self, logged_time, read_time, event_data):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
-        elist = [0, 0, 0, Computer._getNextEventID(),
+        elist = [0, 0, 0, Device._getNextEventID(),
                  EventConstants.SERIAL_INPUT,
                  read_time,
                  logged_time,
@@ -338,7 +338,7 @@ class Serial(Device):
     def _createMultiByteSerialEvent(self, logged_time, read_time):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
-        elist = [0, 0, 0, Computer._getNextEventID(),
+        elist = [0, 0, 0, Device._getNextEventID(),
                  EventConstants.SERIAL_INPUT,
                  read_time,
                  logged_time,
@@ -360,7 +360,7 @@ class Serial(Device):
             new_byte):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
-        elist = [0, 0, 0, Computer._getNextEventID(),
+        elist = [0, 0, 0, Device._getNextEventID(),
                  EventConstants.SERIAL_BYTE_CHANGE,
                  read_time,
                  logged_time,
@@ -706,7 +706,7 @@ class Pstbox(Serial):
             # Handles when data rx does not match either N.where within the try
             return
         events = [
-            0, 0, 0, Computer._getNextEventID(),
+            0, 0, 0, Device._getNextEventID(),
             EventConstants.PSTBOX_BUTTON,
             read_time,
             logged_time,

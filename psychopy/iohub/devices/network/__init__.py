@@ -234,7 +234,7 @@ class RemoteEventSubscriber(Device):
 
                 data[0] = 0
                 data[1] = 0
-                data[3] = Computer._getNextEventID()  # set event id
+                data[3] = Device._getNextEventID()  # set event id
                 network_delay = 0.0
 
                 if time_sync_manager:

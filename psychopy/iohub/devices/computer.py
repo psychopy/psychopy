@@ -28,8 +28,6 @@ class Computer(object):
     all supported functionality can be accessed directly from the Computer
     class itself; an instance of the class never needs to be created.
     """
-    _nextEventID = 1
-
     #: True if the current process is the ioHub Server Process. False if the
     #: current process is the Experiment Runtime Process.
     is_iohub_process = False
@@ -575,12 +573,6 @@ class Computer(object):
     def getTime():
         """Alias for Computer.currentSec()"""
         return Computer.global_clock.getTime()
-
-    @staticmethod
-    def _getNextEventID():
-        n = Computer._nextEventID
-        Computer._nextEventID += 1
-        return n
 
     @staticmethod
     def getPhysicalSystemMemoryInfo():

@@ -8,7 +8,7 @@ import numpy as np
 from collections import deque
 
 from ..util import NumPyRingBuffer
-from . import DeviceEvent, Computer
+from . import Device, DeviceEvent, Computer
 from ..constants import EventConstants
 
 # Event Filter / Translator / Parser Class Prototype
@@ -107,7 +107,7 @@ class DeviceEventFilter(object):
         raise RuntimeError('process method must be implemented by subclass.')
 
     def addOutputEvent(self, e):
-        e[self.event_id_index] = Computer._getNextEventID()
+        e[self.event_id_index] = Device._getNextEventID()
         e[self.event_filter_id_index] = self.filter_id
         self._output_events.append(e)
 

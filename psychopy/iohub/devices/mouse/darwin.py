@@ -9,7 +9,7 @@ from AppKit import NSEvent
 from . import MouseDevice
 from ...errors import print2err, printExceptionDetailsToStdErr
 from .. import Keyboard
-from .. import Computer
+from .. import Computer, Device
 from ...constants import EventConstants, MouseConstants
 
 currentSec = Computer.getTime
@@ -56,7 +56,7 @@ class Mouse(MouseDevice):
     _EVENT_TEMPLATE_LIST = [0,  # experiment id
                             0,  # session id
                             0,  # device id
-                            0,  # Computer._getNextEventID(),
+                            0,  # Device._getNextEventID(),
                             0,  # ioHub Event type
                             0.0,  # event device time,
                             0.0,  # event logged_time,
@@ -251,7 +251,7 @@ class Mouse(MouseDevice):
                     # index 0 and 1 are session and exp. ID's
                     # index 2 is (yet to be used) device_id
                     ioe = self._EVENT_TEMPLATE_LIST
-                    ioe[3] = Computer._getNextEventID()
+                    ioe[3] = Device._getNextEventID()
                     ioe[4] = ioe_type  # event type code
                     ioe[5] = device_time
                     ioe[6] = logged_time

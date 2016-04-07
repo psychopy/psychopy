@@ -7,7 +7,7 @@
 
 import numpy as np
 from .....constants import EventConstants, EyeTrackerConstants
-from .... import Computer
+from .... import Computer, Device
 from ... import EyeTrackerDevice
 from ...eye_events import *
 from gevent import socket
@@ -413,7 +413,7 @@ class EyeTracker(EyeTrackerDevice):
                 0,
                 0,
                 0,  # device id (not currently used)
-                Computer._getNextEventID(),
+                Device._getNextEventID(),
                 event_type,
                 event_timestamp,
                 logged_time,

@@ -307,7 +307,7 @@ class MCU(Device):
                     elist[0] = 0
                     elist[1] = 0
                     elist[2] = 0
-                    elist[3] = Computer._getNextEventID()
+                    elist[3] = Device._getNextEventID()
                     elist[5] = device_time
                     elist[6] = logged_time
                     elist[7] = iohub_time

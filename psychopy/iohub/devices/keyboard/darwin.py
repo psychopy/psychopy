@@ -7,7 +7,7 @@ import Quartz as Qz
 from AppKit import NSEvent  # NSKeyUp, NSSystemDefined, NSEvent
 from . import ioHubKeyboardDevice
 from ...constants import KeyboardConstants, DeviceConstants, EventConstants
-from .. import Computer
+from .. import Computer, Device
 
 #>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -120,7 +120,7 @@ class Keyboard(ioHubKeyboardDevice):
     _EVENT_TEMPLATE_LIST = [0,  # experiment id
                             0,  # session id
                             0,  # device id (not currently used)
-                            0,  # Computer._getNextEventID(),
+                            0,  # Device._getNextEventID(),
                             0,  # ioHub Event type
                             0.0,  # event device time,
                             0.0,  # event logged_time,
@@ -332,7 +332,7 @@ class Keyboard(ioHubKeyboardDevice):
                 if ioe_type:
 
                     ioe = self._EVENT_TEMPLATE_LIST
-                    ioe[3] = Computer._getNextEventID()
+                    ioe[3] = Device._getNextEventID()
                     ioe[4] = ioe_type
                     ioe[5] = device_time
                     ioe[6] = logged_time

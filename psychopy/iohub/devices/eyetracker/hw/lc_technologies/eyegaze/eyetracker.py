@@ -6,7 +6,7 @@
 
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
-from ..... import Computer
+from ..... import Computer, Device
 from .... import EyeTrackerDevice
 from ....eye_events import *
 
@@ -413,7 +413,7 @@ class EyeTracker(EyeTrackerDevice):
                         # session_id (filled in by ioHub)
                         0,
                         0,  # device id (always 0 now)
-                        Computer._getNextEventID(),
+                        Device._getNextEventID(),
                         event_type,
                         device_event_timestamp,
                         logged_time,
@@ -489,7 +489,7 @@ class EyeTracker(EyeTrackerDevice):
                         # session_id (filled in by ioHub)
                         0,
                         0,  # device id (always 0 now)
-                        Computer._getNextEventID(),
+                        Device._getNextEventID(),
                         event_type,
                         device_event_timestamp,
                         logged_time,

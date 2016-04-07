@@ -8,7 +8,7 @@
 
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
-from ..... import Computer
+from ..... import Computer, Device
 from .... import EyeTrackerDevice
 from ....eye_events import *
 from gevent import socket
@@ -480,7 +480,7 @@ class EyeTracker(EyeTrackerDevice):
                         0,  # experiment_id, iohub fills in automatically
                         0,  # session_id, iohub fills in automatically
                         0,  # device id, keep at 0
-                        Computer._getNextEventID(),  # iohub event unique ID
+                        Device._getNextEventID(),  # iohub event unique ID
                         event_type,  # BINOCULAR_EYE_SAMPLE
                         event_timestamp,  # eye tracker device time stamp
                         logged_time,  # time _poll is called

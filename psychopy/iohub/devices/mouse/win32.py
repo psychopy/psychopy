@@ -6,7 +6,7 @@ import ctypes
 from . import MouseDevice
 from ...constants import EventConstants, MouseConstants
 from .. import Keyboard
-from .. import Computer
+from .. import Computer, Device
 from ...errors import print2err
 
 currentSec = Computer.getTime
@@ -241,7 +241,7 @@ class Mouse(MouseDevice):
         r = [0,
              0,
              0,  # device id
-             Computer._getNextEventID(),
+             Device._getNextEventID(),
              etype,
              device_time,
              logged_time,

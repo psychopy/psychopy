@@ -10,7 +10,7 @@ import copy
 
 from ......util import convertCamelToSnake
 from ......constants import EventConstants, EyeTrackerConstants
-from ..... import DeviceEvent, Computer
+from ..... import DeviceEvent, Computer, Device
 from .... import EyeTrackerDevice
 from ....eye_events import *
 from ......errors import print2err, printExceptionDetailsToStdErr
@@ -949,7 +949,7 @@ class EyeTracker(EyeTrackerDevice):
                 0,
                 0,
                 0,  # device id (not currently used)
-                Computer._getNextEventID(),
+                Device._getNextEventID(),
                 event_type,
                 event_timestamp,
                 logged_time,

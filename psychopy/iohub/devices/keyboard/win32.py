@@ -8,7 +8,7 @@ import ctypes
 from unicodedata import category as ucategory
 from . import ioHubKeyboardDevice
 from ...constants import KeyboardConstants, EventConstants
-from .. import Computer
+from .. import Computer, Device
 from ...errors import print2err, printExceptionDetailsToStdErr
 
 win32_vk = KeyboardConstants._virtualKeyCodes
@@ -281,7 +281,7 @@ class Keyboard(ioHubKeyboardDevice):
             kb_event = [0,
                         0,
                         0,  # device id (not currently used)
-                        Computer._getNextEventID(),
+                        Device._getNextEventID(),
                         event.Type,
                         device_time,
                         notifiedTime,

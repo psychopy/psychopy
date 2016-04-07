@@ -204,6 +204,7 @@ class Device(ioObject):
 
     EVENT_CLASS_NAMES = []
 
+    _next_event_id = 1
     _display_device = None
     _iohub_server = None
     next_filter_id = 1
@@ -292,6 +293,12 @@ class Device(ioObject):
         self._filters = dict()
         self._hw_interface_status = self.HW_STAT_UNDEFINED
         self._hw_error_str = u''
+
+    @staticmethod
+    def _getNextEventID():
+        n = Device._next_event_id
+        Device._next_event_id += 1
+        return n
 
     def getConfiguration(self):
         """Retrieve the configuration settings information used to create the
