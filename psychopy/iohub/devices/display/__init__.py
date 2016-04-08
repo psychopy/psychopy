@@ -10,7 +10,7 @@ from ...constants import DeviceConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
 from ...util.dialogs import ioHubDialog
 
-currentSec = Computer.currentSec
+currentSec = Computer.getTime
 
 
 class Display(Device):
@@ -100,15 +100,11 @@ class Display(Device):
         """
         return len(cls._computer_display_runtime_info_list)
 
-    def getRuntimeInfo(self):
+    def getRuntimeInfo(self, display_index = None):
         """
         Returns a dictionary containing run-time determined settings for the
-        current Display Device,  based on querying system settings regarding the
-        Monitor. Some of these values may not represent the *actual* state the Display
-        is running in if there is an issue with the Display driver or OS interface to it.
-        The main property that should always be questioned is the Display's reported
-        retrace rate. An independent test should be done to determine if the reported
-        retrace rate matches the actual rate measured.
+        Display Device,  based on querying system settings regarding the
+        Monitor.
 
         A Display's run-time properties consist of:
 
@@ -122,17 +118,21 @@ class Display(Device):
         * primary: True if the current Monitor is also the primary monitor reported by the OS.
 
         Args:
-            None
+            display_index (int): Optional screen index to return info about.
 
         Returns:
-            dict: Run-time attributes of the Display, determined when the Display Device class was created by the ioHub Process.
+            dict: Run-time attributes of the Display specified by
+            display_index. If display_index is None, use full screen window
+            display_index.
         """
-        return self.getConfiguration()['runtime_info']
+        if display_index is None or display_index == self.getIndex():
+            return self.getConfiguration()['runtime_info']
+        return self._getRuntimeInfoByIndex(display_index)
 
     def getCoordinateType(self):
         """
         Returns the coordinate, or reporting unit, being used by the Display.
-        Supported types matvh the PsychoPy unit_types for Monitors, with the
+        Supported types match the PsychoPy unit_types for Monitors, with the
         exception of the height option:
 
         * pix   : Equivelent names for this type are *pixel* and *pixels*.
@@ -158,7 +158,7 @@ class Display(Device):
         participants viewing distance is currently used.
 
         The physical characteristics of the Display and the Participants viewing distance
-        we either be based on the ioHub settings specified, or based on the information
+        will either be based on the ioHub settings specified, or based on the information
         saved in the PsychoPy Monitor Configuartion file that can be optionally
         given to the Display Device before it is instantiated.
 
@@ -485,36 +485,6 @@ class Display(Device):
                 runtime_info_list.append(runtime_info)
             return runtime_info_list
         except Exception:
-            pass
-
-        try:
-            # fallback on using wx....
-            import wx
-            tempd = ioHubDialog()
-            display_count = wx.Display.GetCount()
-            for i in range(display_count):
-                d = wx.Display(i)
-                mode = d.GetCurrentMode()
-                x, y, w, h = d.GetGeometry()
-                primary = d.IsPrimary()
-                runtime_info = dict()
-                runtime_info['index'] = i
-                runtime_info['pixel_width'] = w
-                runtime_info['pixel_height'] = h
-                runtime_info['bounds'] = (x, y, x + w, y + h)
-                runtime_info['retrace_rate'] = mode.refresh
-                runtime_info['bits_per_pixel'] = mode.bpp
-                runtime_info['primary'] = primary
-                if mode.w > 0 and mode.h > 0:
-                    runtime_info['pixel_resolution'] = mode.w, mode.h
-                else:
-                    runtime_info['pixel_resolution'] = w - x, h - y
-                runtime_info_list.append(runtime_info)
-                del d
-            tempd.Destroy()
-            tempd = None
-            return runtime_info_list
-        except Exception:
             printExceptionDetailsToStdErr()
 
     def _addRuntimeInfoToDisplayConfig(self):
@@ -568,7 +538,14 @@ class Display(Device):
             phys_unit_type,
             phys_width,
             phys_height):
-        # calculate transform matrix
+        '''
+        For the the screen index the  full screen psychopy window is created
+        over, this function maps from psychopy coord space (pix, norm, deg,
+        all with center = 0,0) to system pix position.
+
+        For any other screen indices, mapping is not done,
+        so x_in, y_in == x_out, y_out.
+        '''
         coord_type = self.getCoordinateType()
         if coord_type in Display._coord_type_mappings:
             coord_type = Display._coord_type_mappings[coord_type]
@@ -591,7 +568,7 @@ class Display(Device):
             return (x - w / 2), -y + h / 2
 
         def psychopy2displayPix(cx, cy):
-            return l + (cx + w / 2), t + (cy - h / 2)
+            return l + (cx + w / 2), t + (cy + h / 2)
 
         if coord_type == 'pix':
             def pix2coord(self, x, y, display_index=None):
