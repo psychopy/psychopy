@@ -28,6 +28,10 @@ class TestKeyboard(object):
         # Uncomment config to use iosync keyboard to test
         # iohub keyboard device. An ioSync device must be connected to
         # a USB 2.0 port on the computer running the tests.
+        iohub_config = {}#'mcu.iosync.MCU': dict(serial_port='auto',
+                         #                      monitor_event_types=[]
+                         #                      )
+                        #}
 
         cls.io = startHubProcess(iohub_config)
         cls.keyboard = cls.io.devices.keyboard
@@ -35,6 +39,8 @@ class TestKeyboard(object):
 
         if 'mcu.iosync.MCU' in iohub_config.keys():
             iosync = cls.io.getDevice('mcu')
+            assert iosync is not None, "iosync device requested but devvice is None."
+            assert iosync.isConnected(), "iosync device requested but isConnected() == False"
             cls.iosync = iosync
 
     @classmethod
