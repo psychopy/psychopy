@@ -50,7 +50,7 @@ class WintabTablet(Device):
 
     def _init_wintab(self):
 
-        if Computer.system == 'win32' and Computer.is_iohub_process:
+        if Computer.platform == 'win32' and Computer.is_iohub_process:
             try:
                 from .win32 import get_tablets
             except:

@@ -5,7 +5,7 @@
 from ......util import addDirectoryToPythonPath
 from ..... import Computer
 
-if Computer.system == 'win32' and Computer.sysbits == 32:
+if Computer.platform == 'win32' and Computer.pybits == 32:
     addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
 
 from .eyetracker import (EyeTracker, MonocularEyeSampleEvent,

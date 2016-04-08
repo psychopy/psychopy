@@ -101,11 +101,11 @@ class ioHubKeyboardDevice(Device):
             self._log_events_file = None
         Device._close(self)
 
-if Computer.system == 'win32':
+if Computer.platform == 'win32':
     from win32 import Keyboard
-elif Computer.system == 'linux2':
+elif Computer.platform == 'linux2':
     from linux2 import Keyboard
-elif Computer.system == 'darwin':
+elif Computer.platform == 'darwin':
     from darwin import Keyboard
 
 ############# OS independent Keyboard Event classes ####################

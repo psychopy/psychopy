@@ -150,3 +150,152 @@ def saToDist(eye2dsply, saH, saV):
     distH = signsaH * sqrt((Dsqrd + distV * distV) * tansaH_sqrd)
 
     return distV, distH
+
+#-------------------------------------
+# Old code using matrix multiplication to convert between screen pix and
+# experiment software coord system...
+
+#        if coord_type=='pix':
+
+#        origin=self.getOrigin()
+#        if origin not in Display._supported_origin_types:
+#            print2err(" *** Display device error: Unknown origin type: {0}".format(origin))
+#            return
+#
+#        x1,y1,x2,y2=self.getBounds()
+#        print2err('getBounds: ',self.getBounds(),  )
+#
+#        bounds_matrix=np.matrix([[x1,y1,1,0],[-y1,x1,0,1],[x2,y2,1,0],[-y2,x2,0,1]])
+#
+#        cx1=None
+#        cy1=None
+#        cx2=None
+#        cy2=None
+#
+##        if coord_type == 'org':
+##            cx1=x1
+##            cy1=y1
+##            cx2=x2
+##            cy2=y2
+#        if coord_type == 'pix':
+#            if origin == 'center':
+#                cx1=-pixel_width/2.0
+#                cy1=pixel_height/2.0
+#                cx2=pixel_width/2.0
+#                cy2=-pixel_height/2.0
+##            elif origin == 'top_left':
+##                cx1=0
+##                cy1=0
+##                cx2=pixel_width
+##                cy2=pixel_height
+##            elif origin == 'bottom_left':
+##                cx1=0
+##                cy1=pixel_height
+##                cx2=pixel_width
+##                cy2=0
+#        elif coord_type in ['mm','cm','inch']:
+#            phys_to_coord_ratio=1.0
+##            if coord_type == 'mm':
+##                if phys_unit_type == 'cm':
+##                    phys_to_coord_ratio=10.0
+##                elif phys_unit_type == 'inch':
+##                    phys_to_coord_ratio=25.4
+#            if coord_type == 'cm':
+#                if phys_unit_type == 'mm':
+#                    phys_to_coord_ratio=0.1
+#                elif phys_unit_type == 'inch':
+#                    phys_to_coord_ratio=2.54
+##            elif coord_type == 'inch':
+##                if phys_unit_type == 'mm':
+##                    phys_to_coord_ratio=0.0393701
+##                elif phys_unit_type == 'cm':
+##                    phys_to_coord_ratio=0.393701
+#
+#            if origin == 'center':
+#                phys_to_coord_ratio=2.0*phys_to_coord_ratio
+#                cx1=-phys_width/phys_to_coord_ratio
+#                cy1=phys_height/phys_to_coord_ratio
+#                cx2=phys_width/phys_to_coord_ratio
+#                cy2=-phys_height/phys_to_coord_ratio
+##            elif origin == 'top_left':
+##                cx1=0.0
+##                cy1=0.0
+##                cx2=phys_width*phys_to_coord_ratio
+##                cy2=phys_height*phys_to_coord_ratio
+##            elif origin == 'bottom_left':
+##                cx1=0.0
+##                cy1=phys_height*phys_to_coord_ratio
+##                cx2=phys_width*phys_to_coord_ratio
+##                cy2=0.0
+#        elif coord_type == 'norm':
+#            if origin == 'center':
+#                cx1=-1.0
+#                cy1=1.0
+#                cx2=1.0
+#                cy2=-1.0
+##            elif origin == 'top_left':
+##                cx1=0.0
+##                cy1=0.0
+##                cx2=1.0
+##                cy2=1.0
+##            elif origin == 'bottom_left':
+##                cx1=0.0
+##                cy1=1.0
+##                cx2=1.0
+##                cy2=0.0
+##        elif coord_type == 'percent':
+##            if origin == 'center':
+##                cx1=-50.0
+##                cy1=50.0
+##                cx2=50.0
+##                cy2=-50.0
+##            elif origin == 'top_left':
+##                cx1=0.0
+##                cy1=0.0
+##                cx2=100.0
+##                cy2=100.0
+##            elif origin == 'bottom_left':
+##                cx1=0.0
+##                cy1=100.0
+##                cx2=100.0
+##                cy2=0.0
+#        elif coord_type == 'deg':
+#            if origin == 'center':
+#                cx1=-degree_width/2.0
+#                cy1=degree_height/2.0
+#                cx2=degree_width/2.0
+#                cy2=-degree_height/2.0
+##            elif origin == 'top_left':
+##                cx1=0.0
+##                cy1=0.0
+##                cx2=degree_width
+##                cy2=degree_height
+##            elif origin == 'bottom_left':
+##                cx1=0.0
+##                cy1=degree_height
+##                cx2=degree_width
+##                cy2=0.0
+#
+#        if cx1 is not None and cy1 is not None  and cx2 is not None and cy2 is not None :
+#            coord_matrix=np.matrix( [[cx1],[cy1],[cx2],[cy2]] )
+#            abcd = np.linalg.solve(bounds_matrix, coord_matrix)
+#            a,b,c,d=np.array(abcd)[:,0]
+#            #print2err('abcd: {0}\n a={1}, b={2} , c={3}, d={4}'.format(abcd,a,b,c,d))
+#
+#
+#            def pix2coord(self, x,y,display_index=None):
+#                #print2err('Display {0} bounds: {1}'.format(display_index,self.getBounds()))
+#                if display_index == self.getIndex():
+#                    return a*x+b*y+c, b*x-a*y+d
+#                return x,y
+#
+#            self._pix2coord=pix2coord
+#
+#            def coord2pix(self,cx,cy,display_index=None):
+#                if display_index == self.getIndex():
+#                    aabb=(a**2+b**2)
+#                    return (a*cx+b*cy-b*d-a*c)/aabb, (b*cx-a*cy-b*c+a*d)/aabb
+#                return cx,cy
+#
+#            self._coord2pix=coord2pix
+

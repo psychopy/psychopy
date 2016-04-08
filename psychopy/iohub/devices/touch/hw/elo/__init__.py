@@ -13,8 +13,8 @@ from ... import TouchDevice
 from .....constants import EventConstants, DeviceConstants
 from .....errors import printExceptionDetailsToStdErr
 
-currentSec = Computer.currentSec
-getTime = Computer.currentSec
+currentSec = Computer.getTime
+getTime = Computer.getTime
 
 # OS ' independent' view of the Elo Touch Device
 

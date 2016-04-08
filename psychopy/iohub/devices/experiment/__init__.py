@@ -7,7 +7,7 @@ import numpy as N
 from .. import Device, DeviceEvent, Computer, Device
 from ...constants import DeviceConstants, EventConstants
 
-currentSec = Computer.currentSec
+currentSec = Computer.getTime
 
 
 class Experiment(Device):

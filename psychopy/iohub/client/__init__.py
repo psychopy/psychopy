@@ -2,7 +2,7 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, print_function
 
 import os
 import sys
@@ -516,14 +516,14 @@ class ioHubConnection(object):
             float: The actual duration of the delay in sec.msec format.
 
         """
-        stime = Computer.currentTime()
+        stime = Computer.getTime()
         targetEndTime = stime + delay
 
         if check_hub_interval < 0:
             check_hub_interval = 0
 
         if check_hub_interval > 0:
-            remainingSec = targetEndTime - Computer.currentTime()
+            remainingSec = targetEndTime - Computer.getTime()
             while remainingSec > check_hub_interval+0.025:
                 time.sleep(check_hub_interval)
                 events = self.getEvents()
@@ -532,14 +532,14 @@ class ioHubConnection(object):
                 # Call win32MessagePump so PsychoPy Windows do not become
                 # 'unresponsive' if delay is long.
                 win32MessagePump()
-                remainingSec = targetEndTime - Computer.currentTime()
+                remainingSec = targetEndTime - Computer.getTime()
 
-        time.sleep(max(0.0, targetEndTime - Computer.currentTime() - 0.02))
+        time.sleep(max(0.0, targetEndTime - Computer.getTime() - 0.02))
 
-        while (targetEndTime - Computer.currentTime()) > 0.0:
+        while (targetEndTime - Computer.getTime()) > 0.0:
             pass
 
-        return Computer.currentTime() - stime
+        return Computer.getTime() - stime
 
     def createTrialHandlerRecordTable(self, trials, cv_order=None):
         """
@@ -1000,7 +1000,7 @@ class ioHubConnection(object):
         # >>>> Wait for iohub server ready signal ....
         hubonline = False
         stdout_read_data = ''
-        if Computer.system == 'win32':
+        if Computer.platform == 'win32':
             # wait for server to send back 'IOHUB_READY' text over stdout,
             # indicating it is running and ready to receive network packets
             server_output = 'hi there'
@@ -1088,7 +1088,7 @@ class ioHubConnection(object):
         """Used by _startServer pipe reader code.
            Allows for async check for data on pipe in windows.
         """
-        if Computer.system == 'win32':
+        if Computer.platform == 'win32':
             import msvcrt
             import win32pipe
 
@@ -1328,9 +1328,9 @@ class ioHubConnection(object):
                 self.udp_client.close()
                 if Computer.iohub_process:
                     r = Computer.iohub_process.wait(timeout=5)
-                    print 'ioHub Server Process Completed With Code: ', r
+                    print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
-                print 'Warning: TimeoutExpired, Killing ioHub Server process.'
+                print('Warning: TimeoutExpired, Killing ioHub Server process.')
                 Computer.iohub_process.kill()
             except Exception: # pylint: disable=broad-except
                 print("Warning: Unhandled Exception. "
@@ -1373,7 +1373,7 @@ class ioHubConnection(object):
                 PID, userID = line.split()[1:3]
                 # could verify same userID as current user, probably not needed
                 os.kill(int(PID), signal.SIGKILL)
-                print 'Called  os.kill(int(PID),signal.SIGKILL): ', PID, userID
+                print('Called  os.kill(int(PID),signal.SIGKILL): ', PID, userID)
 
     def __del__(self):
         try:

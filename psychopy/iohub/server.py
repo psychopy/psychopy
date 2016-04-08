@@ -471,7 +471,7 @@ class DeviceMonitor(Greenlet):
 
     def _run(self):
         self.running = True
-        ctime = Computer.currentSec
+        ctime = Computer.getTime
         while self.running is True:
             stime = ctime()
             self.device._poll()
@@ -662,7 +662,7 @@ class ioServer(object):
         iohub = self
         hookManager = self._hookManager
         if dev_cls_name in ('Mouse', 'Keyboard'):
-            if Computer.system == 'win32':
+            if Computer.platform == 'win32':
                 import pyHook
                 if hookManager is None:
                     iohub.log('Creating pyHook HookManager....')
@@ -679,7 +679,7 @@ class ioServer(object):
                         hookManager.KeyAll = dkeyboard._nativeEventCallback
                         hookManager.HookKeyboard()
 
-            elif Computer.system == 'linux2':
+            elif Computer.platform == 'linux2':
                 from .devices import pyXHook
                 if hookManager is None:
                     # iohub.log("Creating pyXHook Monitors....")
@@ -905,11 +905,11 @@ class ioServer(object):
         try:
             self._running = False
 
-            if Computer.system == 'linux2':
+            if Computer.platform == 'linux2':
                 if self._hookManager:
                     self._hookManager.cancel()
 
-            elif Computer.system == 'win32':
+            elif Computer.platform == 'win32':
                 del self._hookManager
                 # if self._hookManager:
                 #    self._hookManager.UnhookMouse()

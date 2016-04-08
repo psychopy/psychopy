@@ -527,7 +527,7 @@ class EyeTracker(EyeTrackerDevice):
                 if ne is None:
                     break
 
-                cltime = Computer.currentSec()
+                cltime = Computer.getTime()
                 cttime = self.trackerSec()
 
                 event_timestamp = ne.getTime() * DEVICE_TIMEBASE_TO_SEC

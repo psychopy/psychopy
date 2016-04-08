@@ -2,7 +2,7 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
+from __future__ import division, print_function, absolute_import
 
 from ctypes import cdll
 
@@ -61,6 +61,16 @@ class Mouse(MouseDevice):
         if Mouse._xfixsdll and self._xdll and self._display_device and self._display_device._xwindow is None:
             self._display_device._xwindow = self._xdll.XRootWindow(
                 Mouse._xdisplay, self._display_device.getIndex())
+
+
+    def _initialMousePos(self):
+        """If getPosition is called prior to any mouse events being received,
+        this method gets the current system cursor pos.
+        TODO: Implement Linux version
+        """
+        if self._position is None:
+            self._position = 0.0, 0.0
+            self._lastPosition = 0.0, 0.0
 
     def _nativeSetMousePos(self, px, py):
         Mouse._xdll.XWarpPointer(

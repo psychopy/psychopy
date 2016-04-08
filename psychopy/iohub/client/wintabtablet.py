@@ -2,7 +2,7 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, print_function
 
 from collections import deque
 import math
@@ -13,7 +13,7 @@ from ..devices import Computer
 from ..devices.wintab import WintabTabletSampleEvent
 from ..constants import EventConstants
 
-if Computer.system == 'win32':
+if Computer.platform == 'win32':
     import win32api
     FRAC = LOWORD = win32api.LOWORD
     INT = HIWORD = win32api.HIWORD

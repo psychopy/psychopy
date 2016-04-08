@@ -162,14 +162,14 @@ class ioHubTimeSyncConnection(UDPClientConnection):
 
         while sync_count > 0:
             # send sync request
-            sync_start = Computer.currentSec()
+            sync_start = Computer.getTime()
             sendto(pack(sync_data), remote_address)
-            sync_start2 = Computer.currentSec()
+            sync_start2 = Computer.getTime()
 
             # get reply
             feed(recvfrom(rcvBufferLength)[0])
             _, remote_time = unpack()
-            sync_end = Computer.currentSec()
+            sync_end = Computer.getTime()
             rtt = sync_end - (sync_start + sync_start2) / 2.0
 
             old_delay = min_delay
@@ -328,7 +328,7 @@ class TimeSyncState(object):
         """Converts a local time (sec.msec format) to the corresponding remote
         computer time, using the current offset and drift measures."""
         if local_time is None:
-            local_time = Computer.currentSec()
+            local_time = Computer.getTime()
         return self.getDrift() * local_time + self.getOffset()
 
     def remote2LocalTime(self, remote_time):

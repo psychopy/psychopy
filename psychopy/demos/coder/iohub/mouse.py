@@ -62,21 +62,21 @@ kb_events = None
 while not kb_events:
     # Get the current mouse position
     # posDelta is the change in position * since the last call *
-    position, posDelta = mouse.getPositionAndDelta()
+    position, posDelta,mouse_display_index = mouse.getPositionAndDelta(True)
     mouse_dX, mouse_dY = posDelta
-
+    display_ix_match = display_index == mouse_display_index
     # Get the current state of each of the Mouse Buttons
     left_button, middle_button, right_button = mouse.getCurrentButtonStates()
 
     # If the left button is pressed, change the grating's spatial frequency
     if left_button:
         grating.setSF(mouse_dX / 5000.0, '+')
-    elif right_button:
+    elif display_ix_match and right_button:
         grating.setPos(position)
 
     # If no buttons are pressed on the Mouse, move the position of the mouse
     # cursor.
-    if True not in (left_button, middle_button, right_button):
+    if display_ix_match and True not in (left_button, middle_button, right_button):
         fixSpot.setPos(position)
 
     if sys.platform == 'darwin':

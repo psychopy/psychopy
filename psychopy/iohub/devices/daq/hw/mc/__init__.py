@@ -11,7 +11,7 @@ from ctypes import *
 from .constants import *
 from .....errors import print2err, printExceptionDetailsToStdErr
 
-currentSec = Computer.currentSec
+currentSec = Computer.getTime
 
 
 class AnalogInput(AnalogInputDevice):

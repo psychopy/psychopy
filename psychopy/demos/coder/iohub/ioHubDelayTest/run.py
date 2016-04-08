@@ -181,12 +181,12 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def checkForEvents(self):
         # get the time we request events from the ioHub
-        stime = Computer.currentTime()
+        stime = Computer.getTime()
         r = self.hub.getEvents()
         if r and len(r) > 0:
             # so there were events returned in the request, so include this
             # getEvent request in the tally
-            etime = Computer.currentTime()
+            etime = Computer.getTime()
             dur = etime - stime
             return r, dur * 1000.0
         return None, None

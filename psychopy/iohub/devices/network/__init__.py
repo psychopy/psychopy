@@ -224,7 +224,7 @@ class RemoteEventSubscriber(Device):
         while self._running is True and self._time_sync_manager:
             try:
                 category, data = self._sub_socket.recv_multipart(0)
-                logged_time = Computer.currentSec()
+                logged_time = Computer.getTime()
                 if category == u'EXIT':
                     self._running = False
                     break
@@ -258,7 +258,7 @@ class RemoteEventSubscriber(Device):
 
     def _nativeEventCallback(self, native_event_data):
         if self.isReportingEvents():
-            notifiedTime = Computer.currentSec()
+            notifiedTime = Computer.getTime()
             self._addNativeEventToBuffer(native_event_data)
             self._last_callback_time = notifiedTime
 

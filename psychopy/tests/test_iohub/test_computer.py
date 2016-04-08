@@ -29,13 +29,11 @@ class TestComputer(object):
 
 
     def test_getTime(self):
-        ta = Computer.currentSec()
-        tb = Computer.currentTime()
-        tc = Computer.getTime()
+        ta = Computer.getTime()
         tp = getTime()
 
-        assert ta <= tb <= tc <= tp
-        assert tp - ta < 0.002
+        assert ta <= tp
+        assert tp - ta < 0.001
 
         ta = getTime()
         tb = self.io.getTime()
@@ -75,49 +73,30 @@ class TestComputer(object):
         assert iohub_priority_rpc == 'normal'
 
         priority_level = Computer.setPriority('high', True)
-        assert priority_level == 'high'
+        get_priority_level = Computer.getPriority()
+        assert priority_level == 'high' == get_priority_level
         priority_level = self.io.setPriority('high', True)
-        assert priority_level == 'high'
+        get_priority_level = self.io.getPriority()
+        assert priority_level == 'high' == get_priority_level
         priority_level = Computer.setPriority('normal')
-        assert priority_level == 'normal'
+        get_priority_level = Computer.getPriority()
+        assert priority_level == 'normal' == get_priority_level
         priority_level = self.io.setPriority('normal')
-        assert priority_level == 'normal'
+        get_priority_level = self.io.getPriority()
+        assert priority_level == 'normal' == get_priority_level
 
         priority_level = Computer.setPriority('realtime')
-        assert priority_level == 'realtime'
+        get_priority_level = Computer.getPriority()
+        assert priority_level == 'realtime' == get_priority_level
         priority_level = self.io.setPriority('realtime')
-        assert priority_level == 'realtime'
+        get_priority_level = self.io.getPriority()
+        assert priority_level == 'realtime' == get_priority_level
         priority_level = Computer.setPriority('normal')
-        assert priority_level == 'normal'
+        get_priority_level = Computer.getPriority()
+        assert priority_level == 'normal' == get_priority_level
         priority_level = self.io.setPriority('normal')
-        assert priority_level == 'normal'
-
-        # >> Deprecated functionality tests
-        psycho_proc = Computer.psychopy_process
-        iohub_proc = Computer.getIoHubProcess()
-
-        psycho_priority = Computer.getProcessPriority(psycho_proc)
-        iohub_priority = Computer.getProcessPriority(iohub_proc)
-        assert psycho_priority == 'normal'
-        assert local_priority == psycho_priority
-        assert iohub_priority == 'normal'
-        assert iohub_priority == iohub_priority_rpc
-
-        priority_change_ok = Computer.enableHighPriority()
-        new_psycho_priority = Computer.getProcessPriority(psycho_proc)
-        assert priority_change_ok == False or new_psycho_priority == 'high'
-
-        priority_change_ok = self.io.enableHighPriority()
-        new_io_priority = Computer.getProcessPriority(iohub_proc)
-        assert priority_change_ok == False or new_io_priority == 'high'
-
-        priority_change_ok = Computer.disableHighPriority()
-        new_psycho_priority = Computer.getProcessPriority(psycho_proc)
-        assert priority_change_ok == False or new_psycho_priority == 'normal'
-
-        priority_change_ok = self.io.disableHighPriority()
-        new_io_priority = Computer.getProcessPriority(iohub_proc)
-        assert priority_change_ok == False or new_io_priority == 'normal'
+        get_priority_level = self.io.getPriority()
+        assert priority_level == 'normal' == get_priority_level
 
     @skip_not_completed
     def test_procAffinity(self):
