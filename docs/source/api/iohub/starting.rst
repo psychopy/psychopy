@@ -2,8 +2,8 @@
 
 .. module:: psychopy.iohub.client
 
-Starting the psychopy.iohub Process
-=====================================
+Using ioHub 
+===========
 
 To use ioHub within a PsychoPy experiment script, the ioHub process must
 be started. This is usually done near the begininning of the experiment script
@@ -14,12 +14,13 @@ by calling the :func:`psychopy.iohub.client.launchHubServer` function:
 ioHubConnection Class
 --------------------------
 
-The psychopy.iohub.ioHubConnection object returned from the launchHubServer
-function provides methods for controlling the iohub process and
-accessing iohub devices and events.
+The psychopy.iohub.ioHubConnection object returned from
+:func:`psychopy.iohub.client.launchHubServer` provides 
+methods for controlling the iohub process and accessing 
+ioHub devices and events.
 
 .. autoclass:: ioHubConnection
-    :exclude-members: addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerWindowHandles, unregisterWindowHandles, wait
+    :exclude-members: eventListToObject, eventListToDict, eventListToNamedTuple, addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerWindowHandles, unregisterWindowHandles, wait
     :members:
     :member-order: bysource
 
