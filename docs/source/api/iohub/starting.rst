@@ -5,12 +5,9 @@
 Starting the psychopy.iohub Process
 =====================================
 
-To use ioHub within your PsychoPy Coder experiment script, ioHub needs to
-be started at the start of the experiment script. The easiest way to do this
-is by calling the launchHubServer function.
-
-launchHubServer function
---------------------------
+To use ioHub within a PsychoPy experiment script, the ioHub process must
+be started. This is usually done near the begininning of the experiment script
+by calling the :func:`psychopy.iohub.client.launchHubServer` function:
 
 .. autofunction:: launchHubServer
 

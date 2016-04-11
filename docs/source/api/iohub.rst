@@ -1,18 +1,25 @@
-:mod:`psychopy.iohub` - ioHub event monitoring framework
-=========================================================
+:mod:`psychopy.iohub` - Asynchronous Event Processing
+=====================================================
 
-ioHub monitors for device events in parallel with the PsychoPy experiment
-execution by running in a separate process than the main PsychoPy script. This
-means, for instance, that keyboard and mouse event timing is not quantized
-by the rate at which the window.swap() method is called.
+:mod:`psychopy.iohub` (ioHub) provides access many common devices used in
+psychology research experiments.
 
-ioHub reports device events to the PsychoPy experiment runtime as they occur.
-Optionally, events can be saved to a `HDF5 <http://www.hdfgroup.org/HDF5/>`_
-file.
+ioHub processes device events in parallel with PsychoPy experiment
+execution by running in a separate process from the PsychoPy experiment
+Python runtime. This means, for instance, that keyboard and mouse events
+are processed and time stamped quickly, regardless of whether the PsychoPy
+experiment script is in a blocking state when the event is received.
+The experiment blocks, for example, from when
+:func:`psychopy.visual.window.flip()`
+is called until the start of the next screen retrace.
 
-All iohub events are timestamped using the PsychoPy global time base
-(psychopy.core.getTime()). Events can be accessed as a device independent
-event stream, or from a specific device of interest.
+ioHub device events can be accessed during experiment runtime via the
+class:`psychopy.iohub.client.ioHubConnection` object. Optionally, events can
+be saved to a `HDF5 <http://www.hdfgroup.org/HDF5/>`_ file.
+
+All iohub events are timestamped using the same clock used by the
+:func:`psychopy.core.getTime` function, making the comparison of important
+experiment times and iohub event times straight forward.
 
 A comprehensive set of examples that each use at least one of the iohub devices
 is available in the psychopy/demos/coder/iohub folder.
@@ -29,10 +36,10 @@ Using psychopy.iohub:
 -----------------------
 
 .. toctree::
-   :maxdepth: 2
-   :glob:
+    :maxdepth: 2
+    :glob:
 
-   iohub/requirements
-   iohub/starting
-   iohub/devices
+    iohub/requirements
+    iohub/starting
+    iohub/devices
 

@@ -11,15 +11,13 @@ from ...constants import XInputGamePadConstants, DeviceConstants, EventConstants
 
 def enableXInput():
     # Enables xinput on the system
-    if not hasattr(xinput, 'xinput_dll'):
-        xinput.loadDLL()
+    xinput.loadDLL()
     xinput._xinput_dll.XInputEnable(True)
 
 
 def disableXInput():
     # Disables xinput on the system
-    if not hasattr(xinput, 'xinput_dll'):
-        xinput.loadDLL()
+    xinput.loadDLL()
     xinput._xinput_dll.XInputEnable(False)
 
 
@@ -38,8 +36,7 @@ class XInputDevice(Device):
     def __init__(self, *args, **kwargs):
         Device.__init__(self, *args, **kwargs['dconfig'])
 
-        if not hasattr(xinput, 'xinput_dll'):
-            xinput.loadDLL()
+        xinput.loadDLL()
 
 
 class Gamepad(XInputDevice):
@@ -321,6 +318,9 @@ class Gamepad(XInputDevice):
             tuple: (battery_level, battery_type) where battery_level is a string constant indicating if the device's battery is at a low, medium, or high charge level. battery_type indicates if the gamepad actually uses a battery, or if it is a wired device and is powered via USB. In the latter case, ['BATTERY_LEVEL_FULL', 'BATTERY_TYPE_WIRED'] is always returned.
 
         """
+        if not hasattr(xinput._xinput_dll,'XInputGetBatteryInformation'):
+            return 'N/A', 'N/A'
+
         xinput._xinput_dll.XInputGetBatteryInformation(
             self.device_number,  # Index of the gamer associated with the device
             xinput.BATTERY_DEVTYPE_GAMEPAD,  # Which device on this user index

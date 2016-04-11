@@ -6,23 +6,6 @@ import ctypes
 import ctypes.wintypes
 from ctypes.wintypes import WORD, SHORT, DWORD, WCHAR, c_ubyte
 
-
-UNICODE = False
-XINPUT_USE_9_1_0 = False
-
-if XINPUT_USE_9_1_0 is False:
-    XINPUT_DLL_A = 'xinput1_3'
-    XINPUT_DLL_W = u"xinput1_3"
-else:
-    XINPUT_DLL_A = 'xinput9_1_0'
-    XINPUT_DLL_W = u"xinput9_1_0"
-
-if UNICODE:
-    XINPUT_DLL = XINPUT_DLL_W
-else:
-    XINPUT_DLL = XINPUT_DLL_A
-
-
 #
 # Device Type
 #
@@ -38,50 +21,49 @@ XINPUT_DEVSUBTYPE_GAMEPAD = 0x01  # Gamepad controller.
 # and all standard buttons (A, B, X, Y,
 # START, BACK, LB, RB, LSB, RSB).
 
-if XINPUT_USE_9_1_0 is False:
 
-    XINPUT_DEVSUBTYPE_WHEEL = 0x02  # Racing wheel controller.
-    # Left Stick X reports the wheel rotation,
-    # Right Trigger is the acceleration pedal,
-    # and Left Trigger is the brake pedal.
-    # Includes Directional Pad and most standard
-    # buttons (A, B, X, Y, START, BACK, LB, RB).
-    # LSB and RSB are optional.
+XINPUT_DEVSUBTYPE_WHEEL = 0x02  # Racing wheel controller.
+# Left Stick X reports the wheel rotation,
+# Right Trigger is the acceleration pedal,
+# and Left Trigger is the brake pedal.
+# Includes Directional Pad and most standard
+# buttons (A, B, X, Y, START, BACK, LB, RB).
+# LSB and RSB are optional.
 
-    XINPUT_DEVSUBTYPE_ARCADE_STICK = 0x03  # Arcade stick controller.
-    # Includes a Digital Stick that reports as
-    # a DPAD (up, down, left, right), and most
-    # standard buttons (A, B, X, Y, START, BACK).
-    # The Left and Right Triggers are implemented
-    # as digital buttons and report either 0 or 0xFF.
-    # LB, LSB, RB, and RSB are optional.
+XINPUT_DEVSUBTYPE_ARCADE_STICK = 0x03  # Arcade stick controller.
+# Includes a Digital Stick that reports as
+# a DPAD (up, down, left, right), and most
+# standard buttons (A, B, X, Y, START, BACK).
+# The Left and Right Triggers are implemented
+# as digital buttons and report either 0 or 0xFF.
+# LB, LSB, RB, and RSB are optional.
 
-    XINPUT_DEVSUBTYPE_FLIGHT_STICK = 0x04  # Flight stick controller.
-    # Includes a pitch and roll stick that reports
-    # as the Left Stick, a POV Hat which reports
-    # as the Right Stick, a rudder (handle twist
-    # or rocker) that reports as Left Trigger,
-    # and a throttle control as the Right Trigger.
-    # Includes support for a primary weapon (A),
-    # secondary weapon (B), and other standard
-    # buttons (X, Y, START, BACK). LB, LSB, RB,
-    # and RSB are optional.
+XINPUT_DEVSUBTYPE_FLIGHT_STICK = 0x04  # Flight stick controller.
+# Includes a pitch and roll stick that reports
+# as the Left Stick, a POV Hat which reports
+# as the Right Stick, a rudder (handle twist
+# or rocker) that reports as Left Trigger,
+# and a throttle control as the Right Trigger.
+# Includes support for a primary weapon (A),
+# secondary weapon (B), and other standard
+# buttons (X, Y, START, BACK). LB, LSB, RB,
+# and RSB are optional.
 
-    XINPUT_DEVSUBTYPE_DANCE_PAD = 0x05 	# Dance pad controller.
-    # Includes the Directional Pad and
-    # standard buttons (A, B, X, Y) on the pad,
-    # plus BACK and START.
+XINPUT_DEVSUBTYPE_DANCE_PAD = 0x05 	# Dance pad controller.
+# Includes the Directional Pad and
+# standard buttons (A, B, X, Y) on the pad,
+# plus BACK and START.
 
-    XINPUT_DEVSUBTYPE_GUITAR = 0x06    # Guitar controller.
-    # The strum bar maps to DPAD (up and down),
-    # and the frets are assigned to A (green),
-    # B (red), Y (yellow), X (blue), and LB (orange).
-    # Right Stick Y is associated with a vertical
-    # orientation sensor; Right Stick X is the
-    # whammy bar. Includes support for BACK, START,
-    # DPAD (left, right). Left Trigger
-    # (pickup selector), Right Trigger, RB, LSB
-    # (fret modifier), RSB are optional.
+XINPUT_DEVSUBTYPE_GUITAR = 0x06    # Guitar controller.
+# The strum bar maps to DPAD (up and down),
+# and the frets are assigned to A (green),
+# B (red), Y (yellow), X (blue), and LB (orange).
+# Right Stick Y is associated with a vertical
+# orientation sensor; Right Stick X is the
+# whammy bar. Includes support for BACK, START,
+# DPAD (left, right). Left Trigger
+# (pickup selector), Right Trigger, RB, LSB
+# (fret modifier), RSB are optional.
 
 # XINPUT_DEVSUBTYPE_GUITAR_BASS # Guitar Bass is identical to Guitar, with the
     # distinct subtype to simplify setup.
@@ -89,13 +71,13 @@ if XINPUT_USE_9_1_0 is False:
 # XINPUT_DEVSUBTYPE_GUITAR_ALTERNATE # Guitar Alt supports a larger range of
     # movement for the vertical orientation sensor.
 
-    XINPUT_DEVSUBTYPE_DRUM_KIT = 0.08  # Drum controller.
-    # The drum pads are assigned to buttons:
-    # A for green (Floor Tom), B for red (Snare Drum),
-    # X for blue (Low Tom), Y for yellow (High Tom),
-    # and LB for the pedal (Bass Drum).
-    # Includes Directional-Pad, BACK, and START.
-    # RB, LSB, and RSB are optional.
+XINPUT_DEVSUBTYPE_DRUM_KIT = 0.08  # Drum controller.
+# The drum pads are assigned to buttons:
+# A for green (Floor Tom), B for red (Snare Drum),
+# X for blue (Low Tom), Y for yellow (High Tom),
+# and LB for the pedal (Bass Drum).
+# Includes Directional-Pad, BACK, and START.
+# RB, LSB, and RSB are optional.
 
 # XINPUT_DEVSUBTYPE_ARCADE_PAD	 # Arcade pad controller.
     # Includes Directional Pad and most standard
@@ -158,92 +140,91 @@ XINPUT_GAMEPAD_TRIGGER_THRESHOLD = 30
 XINPUT_FLAG_GAMEPAD = 0x00000001
 
 
-if XINPUT_USE_9_1_0 is False:
-    #
-    # Devices that support batteries
-    #
-    BATTERY_DEVTYPE_GAMEPAD = 0x00
-    BATTERY_DEVTYPE_HEADSET = 0x01
+#
+# Devices that support batteries
+#
+BATTERY_DEVTYPE_GAMEPAD = 0x00
+BATTERY_DEVTYPE_HEADSET = 0x01
 
-    # BatteryTypes
-    BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected.
-    BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not
-    # have a battery.
-    # The device has an alkaline battery.
-    BATTERY_TYPE_ALKALINE = 0x02
-    # The device has a nickel metal hydride battery.
-    BATTERY_TYPE_NIMH = 0x03
-    # The device has an unknown battery type.
-    BATTERY_TYPE_UNKNOWN = 0xFF
+# BatteryTypes
+BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected.
+BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not
+# have a battery.
+# The device has an alkaline battery.
+BATTERY_TYPE_ALKALINE = 0x02
+# The device has a nickel metal hydride battery.
+BATTERY_TYPE_NIMH = 0x03
+# The device has an unknown battery type.
+BATTERY_TYPE_UNKNOWN = 0xFF
 
-    # BatteryLevels
-    BATTERY_LEVEL_EMPTY = 0x00
-    BATTERY_LEVEL_LOW = 0x01
-    BATTERY_LEVEL_MEDIUM = 0x02
-    BATTERY_LEVEL_FULL = 0x03
+# BatteryLevels
+BATTERY_LEVEL_EMPTY = 0x00
+BATTERY_LEVEL_LOW = 0x01
+BATTERY_LEVEL_MEDIUM = 0x02
+BATTERY_LEVEL_FULL = 0x03
 
-    #
-    # Multiple Controller Support
-    #
-    XINPUT_USER_0 = DWORD(0)
-    XINPUT_USER_1 = DWORD(1)
-    XINPUT_USER_2 = DWORD(2)
-    XINPUT_USER_3 = DWORD(3)
-    XUSER_MAX_COUNT = 4
-    XINPUT_USERS = (XINPUT_USER_0, XINPUT_USER_1, XINPUT_USER_2, XINPUT_USER_3)
-    XUSER_INDEX_ANY = 0x000000FF
+#
+# Multiple Controller Support
+#
+XINPUT_USER_0 = DWORD(0)
+XINPUT_USER_1 = DWORD(1)
+XINPUT_USER_2 = DWORD(2)
+XINPUT_USER_3 = DWORD(3)
+XUSER_MAX_COUNT = 4
+XINPUT_USERS = (XINPUT_USER_0, XINPUT_USER_1, XINPUT_USER_2, XINPUT_USER_3)
+XUSER_INDEX_ANY = 0x000000FF
 
-    XINPUT_GAMEPAD_TL_LIT = DWORD(0)
-    XINPUT_GAMEPAD_TR_LIT = DWORD(1)
-    XINPUT_GAMEPAD_BR_LIT = DWORD(2)
-    XINPUT_GAMEPAD_BL_LIT = DWORD(3)
+XINPUT_GAMEPAD_TL_LIT = DWORD(0)
+XINPUT_GAMEPAD_TR_LIT = DWORD(1)
+XINPUT_GAMEPAD_BR_LIT = DWORD(2)
+XINPUT_GAMEPAD_BL_LIT = DWORD(3)
 
-    #
-    # Codes returned for the gamepad keystroke
-    #
+#
+# Codes returned for the gamepad keystroke
+#
 
-    VK_PAD_A = 0x5800
-    VK_PAD_B = 0x5801
-    VK_PAD_X = 0x5802
-    VK_PAD_Y = 0x5803
-    VK_PAD_RSHOULDER = 0x5804
-    VK_PAD_LSHOULDER = 0x5805
-    VK_PAD_LTRIGGER = 0x5806
-    VK_PAD_RTRIGGER = 0x5807
+VK_PAD_A = 0x5800
+VK_PAD_B = 0x5801
+VK_PAD_X = 0x5802
+VK_PAD_Y = 0x5803
+VK_PAD_RSHOULDER = 0x5804
+VK_PAD_LSHOULDER = 0x5805
+VK_PAD_LTRIGGER = 0x5806
+VK_PAD_RTRIGGER = 0x5807
 
-    VK_PAD_DPAD_UP = 0x5810
-    VK_PAD_DPAD_DOWN = 0x5811
-    VK_PAD_DPAD_LEFT = 0x5812
-    VK_PAD_DPAD_RIGHT = 0x5813
-    VK_PAD_START = 0x5814
-    VK_PAD_BACK = 0x5815
-    VK_PAD_LTHUMB_PRESS = 0x5816
-    VK_PAD_RTHUMB_PRESS = 0x5817
+VK_PAD_DPAD_UP = 0x5810
+VK_PAD_DPAD_DOWN = 0x5811
+VK_PAD_DPAD_LEFT = 0x5812
+VK_PAD_DPAD_RIGHT = 0x5813
+VK_PAD_START = 0x5814
+VK_PAD_BACK = 0x5815
+VK_PAD_LTHUMB_PRESS = 0x5816
+VK_PAD_RTHUMB_PRESS = 0x5817
 
-    VK_PAD_LTHUMB_UP = 0x5820
-    VK_PAD_LTHUMB_DOWN = 0x5821
-    VK_PAD_LTHUMB_RIGHT = 0x5822
-    VK_PAD_LTHUMB_LEFT = 0x5823
-    VK_PAD_LTHUMB_UPLEFT = 0x5824
-    VK_PAD_LTHUMB_UPRIGHT = 0x5825
-    VK_PAD_LTHUMB_DOWNRIGHT = 0x5826
-    VK_PAD_LTHUMB_DOWNLEFT = 0x5827
+VK_PAD_LTHUMB_UP = 0x5820
+VK_PAD_LTHUMB_DOWN = 0x5821
+VK_PAD_LTHUMB_RIGHT = 0x5822
+VK_PAD_LTHUMB_LEFT = 0x5823
+VK_PAD_LTHUMB_UPLEFT = 0x5824
+VK_PAD_LTHUMB_UPRIGHT = 0x5825
+VK_PAD_LTHUMB_DOWNRIGHT = 0x5826
+VK_PAD_LTHUMB_DOWNLEFT = 0x5827
 
-    VK_PAD_RTHUMB_UP = 0x5830
-    VK_PAD_RTHUMB_DOWN = 0x5831
-    VK_PAD_RTHUMB_RIGHT = 0x5832
-    VK_PAD_RTHUMB_LEFT = 0x5833
-    VK_PAD_RTHUMB_UPLEFT = 0x5834
-    VK_PAD_RTHUMB_UPRIGHT = 0x5835
-    VK_PAD_RTHUMB_DOWNRIGHT = 0x5836
-    VK_PAD_RTHUMB_DOWNLEFT = 0x5837
+VK_PAD_RTHUMB_UP = 0x5830
+VK_PAD_RTHUMB_DOWN = 0x5831
+VK_PAD_RTHUMB_RIGHT = 0x5832
+VK_PAD_RTHUMB_LEFT = 0x5833
+VK_PAD_RTHUMB_UPLEFT = 0x5834
+VK_PAD_RTHUMB_UPRIGHT = 0x5835
+VK_PAD_RTHUMB_DOWNRIGHT = 0x5836
+VK_PAD_RTHUMB_DOWNLEFT = 0x5837
 
-    #
-    # Flags used in XINPUT_KEYSTROKE
-    #
-    XINPUT_KEYSTROKE_KEYDOWN = 0x0001       # The key was pressed.
-    XINPUT_KEYSTROKE_KEYUP = 0x0002         # The key was released.
-    XINPUT_KEYSTROKE_REPEAT = 0x0004         # A repeat of a held key.
+#
+# Flags used in XINPUT_KEYSTROKE
+#
+XINPUT_KEYSTROKE_KEYDOWN = 0x0001       # The key was pressed.
+XINPUT_KEYSTROKE_KEYUP = 0x0002         # The key was released.
+XINPUT_KEYSTROKE_REPEAT = 0x0004         # A repeat of a held key.
 
 #
 # Return Values
@@ -252,8 +233,7 @@ if XINPUT_USE_9_1_0 is False:
 ERROR_SUCCESS = 0
 ERROR_DEVICE_NOT_CONNECTED = 0x048F
 
-if XINPUT_USE_9_1_0 is False:
-    ERROR_EMPTY = 2  # made this up, need to confirm .... #
+ERROR_EMPTY = 2  # made this up, need to confirm .... #
 
 #
 # Structures
@@ -356,14 +336,11 @@ class XINPUT_CAPABILITIES(ctypes.Structure):
         ('Vibration', XINPUT_VIBRATION)
     ]
 
-
-if XINPUT_USE_9_1_0 is False:
-
-    class XINPUT_BATTERY_INFORMATION(ctypes.Structure):
-        _fields_ = [
-            ('BatteryType', c_ubyte),
-            ('BatteryLevel', c_ubyte),
-        ]
+class XINPUT_BATTERY_INFORMATION(ctypes.Structure):
+    _fields_ = [
+        ('BatteryType', c_ubyte),
+        ('BatteryLevel', c_ubyte),
+    ]
 
     #
     # XINPUT_KEYSTROKE
@@ -385,48 +362,3 @@ class GUID(ctypes.Structure):
         ('Data3', WORD),
         ('Data4', c_ubyte * 8)
     ]
-
-    #
-    # VirtualKey
-    #
-    # Virtual-key code of the key, button, or stick movement. See XInput.h for a
-    # list of valid virtual-key (VK_xxx) codes. Also, see Remarks.
-    #
-    # Unicode
-    # This member is unused and the value is zero.
-    #
-    #
-    # Flags
-    #
-    # Flags that indicate the keyboard state at the time of the input event. This member can be any combination of the following flags:
-    # Value	Description
-    #
-    #
-    # UserIndex
-    #
-    # Index of the signed-in gamer associated with the device. Can be a value in
-    # the range 0–3.
-    #
-    #
-    # HidCode
-    #
-    # HID code corresponding to the input. If there is no corresponding HID code,
-    # this value is zero.
-    #
-    # Remarks
-    #
-    # Future devices may return HID codes and virtual key values that are not
-    # supported on current devices, and are currently undefined. Applications
-    # should ignore these unexpected values.
-    # A virtual-key code is a byte value that represents a particular physical
-    # key on the keyboard, not the character or characters (possibly none)
-    # that the key can be mapped to based on keyboard state. The keyboard
-    # state at the time a virtual key is pressed modifies the character reported.
-    # For example, VK_4 might represent a "4" or a "$", depending on the state
-    # of the SHIFT key.
-    #
-
-
-#
-# Functions
-#

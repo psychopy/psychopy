@@ -10,98 +10,193 @@ from ..util import yload, yLoader
 
 
 def launchHubServer(**kwargs):
-    """The launchHubServer function is used to start the ioHub Process by the
-    main psychopy experiment script.
+    """
+    Starts the ioHub Server subprocess, and return a
+    :class:`psychopy.iohub.client.ioHubConnection` object that is used to
+    access enabled iohub device's events, get events, and control the
+    ioHub process during the experiment.
 
-    To use ioHub for keyboard and mouse event reporting only, simply use
-    the function in a way similar to the following::
+    By default (no kwargs specified), the ioHub server does not create an
+    ioHub HDF5 file, events are available to the experiment program at runtime.
+    The following Devices are enabled by default:
 
-        from psychopy.iohub.client import launchHubServer
+    - Keyboard: named 'keyboard', with runtime event reporting enabled.
+    - Mouse: named 'mouse', with runtime event reporting enabled.
+    - Monitor: named 'monitor'.
+    - Experiment: named 'experiment'.
 
-        # Start the ioHub process. 'io' can now be used during the experiment
-        # to access iohub devices and read iohub device events.
-        io=launchHubServer()
+    To customize how the ioHub Server is initialized when started, use
+    one or more of the following keyword arguments when calling the function:
 
-        # By default, ioHub will create Keyboard and Mouse devices and
-        # start monitoring for any events from these devices only.
-        keyboard=io.devices.keyboard
-        mouse=io.devices.mouse
+    +---------------------+-----------------+---------------+-----------------+
+    | kwarg Name          | Value Type      | Description                     |
+    +=====================+=================+===============+=================+
+    | experiment_code     | str, <= 24 char | If experiment_code is provided, |
+    |                     |                 | an ioHub HDF5 file will be      |
+    |                     |                 | created for the session.        |
+    +---------------------+-----------------+---------------+-----------------+
+    | session_code        | str, <= 24 char | When specified, used as the name|
+    |                     |                 | of the ioHub HDF5 file created  |
+    |                     |                 | for the session.                |
+    +---------------------+-----------------+---------------+-----------------+
+    | experiment_info     | dict            | Can be used to save the         |
+    |                     |                 | following experiment metadata   |
+    |                     |                 | fields:                         |
+    +---------------------+-----------------+---------------+-----------------+
+    |                                       | - code:         str, <= 24 char |
+    |                                       | - title:        str, <= 48 char |
+    |                                       | - description:  str, < 256 char |
+    |                                       | - version:      str, <= 6 char  |
+    +---------------------+-----------------+---------------+-----------------+
+    | session_info        | dict            | Can be used to save the         |
+    |                     |                 | following session metadata      |
+    |                     |                 | fields:                         |
+    +---------------------+-----------------+---------------+-----------------+
+    |                                       | - code:         str, <= 24 char |
+    |                                       | - name:         str, <= 48 char |
+    |                                       | - comments:     str, < 256 char |
+    |                                       | - user_variables:          dict |
+    +---------------------+-----------------+---------------+-----------------+
+    | datastore_name      | str             | Used to provide an ioHub HDF5   |
+    |                     |                 | file name different than the    |
+    |                     |                 | session_code.                   |
+    +---------------------+-----------------+---------------+-----------------+
+    |psychopy_monitor_name| str             | Provides the path of a          |
+    |                     |                 | PsychoPy Monitor Center config  |
+    |                     |                 | file. Information like display  |
+    |                     |                 | size is read and used to update |
+    |                     |                 | the ioHub Display Device config.|
+    +---------------------+-----------------+---------------+-----------------+
+    | iohub_config_name   | str             | Specifies the name of the       |
+    |                     |                 | iohub_config.yaml file that     |
+    |                     |                 | contains the ioHub Device       |
+    |                     |                 | list to be used by the ioHub    |
+    |                     |                 | Server. i.e. the 'device_list'  |
+    |                     |                 | section of the yaml file.       |
+    +---------------------+-----------------+---------------+-----------------+
+    | iohub.device.path   | dict            | Add an ioHub Device by using the|
+    |                     |                 | device class path as the key,   |
+    | Multiple Device's   |                 | and the device's configuration  |
+    | can be specified    |                 | in a dict value.                |
+    | using separate      |                 |                                 |
+    | kwarg entries.      |                 |                                 |
+    +---------------------+-----------------+---------------+-----------------+
 
-        print "Press any Key to Exit Example....."
+    Examples:
 
-        keys = keyboard.waitForKeys()
+        A. Wait for the 'q' key to be pressed::
 
-        print "Key press detected, exiting experiment."
+            from psychopy.iohub.client import launchHubServer
 
-    launchHubServer() accepts several kwarg inputs, which can be used to
-    define other devices to run and configure the iohub server in more detail.
-    Supported kwargs are:
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io=launchHubServer()
 
-    - experiment_code: str with max length of 24 chars.
-    - session_code: str with max length of 24 chars.
-    - experiment_info: dict with following keys:
-        - code = str with max length of 24 chars.
-        - title = str with max length of 48 chars.
-        - description  = str with max length of 256 chars.
-        - version = str with max length of 6 chars.
-    - session_info: dict with following keys:
-        - code = str with max length of 24 chars.
-        - name = str with max length of 48 chars.
-        - comments  = str with max length of 256 chars.
-        - user_variables = dict
-    - psychopy_monitor_name: name of Monitor config file being used.
-    - datastore_name: name of the hdf5 datastore file to create.
-    - iohub_config_name: name of an iohub_config.yaml file. The
-      'monitor_devices' field of the file is used to read the iohub device
-       to be created along with each device configuration information.
-    - any.iohub.device.class.path: value holds the device config dictionary.
+            print "Press any Key to Exit Example....."
+
+            # Wait until a keyboard event occurs
+            keys = io.devices.keyboard.waitForKeys(['q',])
+
+            print("Key press detected: {}".format(keys))
+            print("Exiting experiment....")
+
+            # Stop the ioHub Server
+            io.quit()
+
+        B. Use a XInput compliant game pad (e.g. Xbox 360 controller)::
+
+            from psychopy.iohub.client import launchHubServer
+
+            # Create an iohub_config kwargs dict and indicate that ioHub
+            # should connect to a XInput compliant game pad using the
+            # default devices settings.
+            iohub_config = dict()
+            iohub_config['xinput.Gamepad'] = dict()
+
+            # Start the ioHub Server Process and access the gamepad and
+            # keyboard devices.
+            io = launchHubServer(**iohub_config)
+            gamepad = io.getDevice('gamepad')
+            keyboard = io.devices.keyboard
+
+            if gamepad:
+                print("Press 'A' button on controller to make it rumble.")
+                print("To Exit the Demo, press any Keyboard key.....")
+
+                while not keyboard.getPresses():
+                    # Get any new events from the game pad
+                    for gp_evt in gamepad.getEvents():
+                        # Check if the gamepad button 'A' was pressed....
+                        if 'A' in gp_evt.buttons:
+                            # Rumble the game pad for 1 second:
+                            #   - low frequency motor @ 50%
+                            #   - high frequency motor @ 25%
+                            # setRumble() returns as soon as the
+                            # ioHub Server has started the requested action.
+                            rt, rd = gamepad.setRumble(50.0, 25.0, 1.0)
+                            print("Started Rumbling....")
+                            io.wait(0.01)
+            else:
+                print("XInput device connection failed.")
+            print("Exiting demo....")
+            # Stop the ioHub Server
+            io.quit()
 
     Please see the psychopy/demos/coder/iohub/launchHub.py demo for examples
     of different ways to use the launchHubServer function.
     """
-    exp_code = kwargs.get('experiment_code', None)
-    if exp_code:
+    experiment_code = kwargs.get('experiment_code', None)
+    if experiment_code:
         del kwargs['experiment_code']
-    experiment_info = dict(code=exp_code)
-    exp_info = kwargs.get('experiment_info', None)
-    if exp_info:
+    experiment_info = kwargs.get('experiment_info')
+    if experiment_info:
         del kwargs['experiment_info']
-
-        for k, v in exp_info.items():
+        for k, v in experiment_info.items():
             if k in ['code', 'title', 'description', 'version']:
                 experiment_info[k] = u"{}".format(v)
+        if experiment_info.get('code'):
+            experiment_code = experiment_info['code']
+        elif experiment_code:
+            experiment_info['code'] = experiment_code
+    elif experiment_code:
+        experiment_info = dict(code=experiment_code)
 
-    sess_code = kwargs.get('session_code', None)
-    if sess_code:
+    session_code = kwargs.get('session_code', None)
+    if session_code:
         del kwargs['session_code']
-    elif experiment_info.get('code'):
-        # this means we should auto_generate a session code
-        import datetime
-        sess_code = u"S_{0}".format(
-            datetime.datetime.now().strftime('%d_%m_%Y_%H_%M'))
-
-    session_info = dict(code=sess_code)
-    sess_info = kwargs.get('session_info', None)
-    if sess_info:
+    session_info = kwargs.get('session_info')
+    if session_info:
         del kwargs['session_info']
-
-        for k, v in sess_info.items():
+        for k, v in session_info.items():
             if k in ['code', 'name', 'comments']:
                 session_info[k] = u"{}".format(v)
             elif k == 'user_variables':
                 session_info[k] = v
+        if session_info.get('code'):
+            session_code = session_info['code']
+        elif session_code:
+            session_info['code'] = session_code
+    elif session_code:
+        session_info = dict(code=session_code)
 
-    monitor_name = kwargs.get('psychopy_monitor_name', None)
-    if monitor_name:
-        del kwargs['psychopy_monitor_name']
+
+    if experiment_code and not session_code:
+        # this means we should auto_generate a session code
+        import datetime
+        dtstr = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
+        session_info['code'] = session_code = u"S_{0}".format(dtstr)
 
     datastore_name = None
     if _DATA_STORE_AVAILABLE is True:
-        datastore_name = kwargs.get('datastore_name', None)
-        if datastore_name is not None:
+        datastore_name = kwargs.get('datastore_name')
+        if datastore_name:
             del kwargs['datastore_name']
-        else:
-            datastore_name = None
+        elif session_code:
+            datastore_name = session_code
+
+    monitor_name = kwargs.get('psychopy_monitor_name')
+    if monitor_name:
+        del kwargs['psychopy_monitor_name']
 
     monitor_devices_config = None
     iohub_conf_file_name = kwargs.get('iohub_config_name')
@@ -120,7 +215,6 @@ def launchHubServer(**kwargs):
         device_dict = kwargs
         device_list = []
 
-        # >>>> TODO: WTF is this for .... ?????
         def isFunction(func):
             import types
             return isinstance(func, types.FunctionType)
@@ -169,16 +263,15 @@ def launchHubServer(**kwargs):
         # Create an ioHub configuration dictionary.
         iohub_config = dict(monitor_devices=device_list)
 
-    if _DATA_STORE_AVAILABLE is True and experiment_info.get(
-            'code') and session_info.get('code'):
+    if _DATA_STORE_AVAILABLE and experiment_code and session_code:
         # If datastore_name kwarg or experiment code has been provided,
         # then enable saving of device events to the iohub datastore hdf5 file.
         # If datastore_name kwarg was provided, it is used for the hdf5 file
-        # name, otherwise the experiment code is used. This avoids different
-        # experiments running in the same directory from using the same
-        # hdf5 file name.
+        # name, otherwise the session code is used. This avoids different
+        # experiments / sessions running in the same directory from using
+        # the same hdf5 file name.
         if datastore_name is None:
-            datastore_name = experiment_info.get('code')
+            datastore_name = session_code
         iohub_config['data_store'] = dict(enable=True,
                                           filename=datastore_name,
                                           experiment_info=experiment_info,

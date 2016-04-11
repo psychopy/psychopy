@@ -24,24 +24,23 @@ class TestKeyboard(object):
         usually contains tests).
         """
 
-        iohub_config = {}
+        # iohub_config = {}
         # Uncomment config to use iosync keyboard to test
         # iohub keyboard device. An ioSync device must be connected to
         # a USB 2.0 port on the computer running the tests.
-        iohub_config = {}#'mcu.iosync.MCU': dict(serial_port='auto',
-                         #                      monitor_event_types=[]
-                         #                      )
-                        #}
+        iohub_config = {'mcu.iosync.MCU': dict(serial_port='auto',
+                                               monitor_event_types=[]
+                                               )
+                        }
 
         cls.io = startHubProcess(iohub_config)
         cls.keyboard = cls.io.devices.keyboard
-        cls.iosync = None
+        cls.iosync = cls.io.getDevice('mcu')
 
-        if 'mcu.iosync.MCU' in iohub_config.keys():
-            iosync = cls.io.getDevice('mcu')
-            assert iosync is not None, "iosync device requested but devvice is None."
-            assert iosync.isConnected(), "iosync device requested but isConnected() == False"
-            cls.iosync = iosync
+        if cls.iosync and not cls.iosync.isConnected():
+            #assert iosync is not None, "iosync device requested but devvice is None."
+            #assert iosync.isConnected(), "iosync device requested but isConnected() == False"
+            cls.iosync = None
 
     @classmethod
     def teardown_class(cls):

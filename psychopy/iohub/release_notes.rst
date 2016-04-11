@@ -34,6 +34,16 @@ iohub Package
 
     TODO: Full list of new import paths
 
+ioHubConnection Class
+~~~~~~~~~~~~~~~~~~~~~~
+
+Removed:
+    - enableHighPriority(). Use setPriority('high') instead.
+    - disableHighPriority().  Use setPriority('normal') instead.
+    - enableRealTimePriority(). Use setPriority('realtime') instead.
+    - disableRealTimePriority(). Use setPriority('normal') instead.
+
+
 Mouse Device
 ~~~~~~~~~~~~
 

@@ -516,14 +516,14 @@ class ioHubConnection(object):
             float: The actual duration of the delay in sec.msec format.
 
         """
-        stime = Computer.getTime()
+        stime = Computer.currentTime()
         targetEndTime = stime + delay
 
         if check_hub_interval < 0:
             check_hub_interval = 0
 
         if check_hub_interval > 0:
-            remainingSec = targetEndTime - Computer.getTime()
+            remainingSec = targetEndTime - Computer.currentTime()
             while remainingSec > check_hub_interval+0.025:
                 time.sleep(check_hub_interval)
                 events = self.getEvents()
@@ -532,14 +532,14 @@ class ioHubConnection(object):
                 # Call win32MessagePump so PsychoPy Windows do not become
                 # 'unresponsive' if delay is long.
                 win32MessagePump()
-                remainingSec = targetEndTime - Computer.getTime()
+                remainingSec = targetEndTime - Computer.currentTime()
 
-        time.sleep(max(0.0, targetEndTime - Computer.getTime() - 0.02))
+        time.sleep(max(0.0, targetEndTime - Computer.currentTime() - 0.02))
 
-        while (targetEndTime - Computer.getTime()) > 0.0:
+        while (targetEndTime - Computer.currentTime()) > 0.0:
             pass
 
-        return Computer.getTime() - stime
+        return Computer.currentTime() - stime
 
     def createTrialHandlerRecordTable(self, trials, cv_order=None):
         """
@@ -704,30 +704,6 @@ class ioHubConnection(object):
         """See Computer.getPriority documentation, where current process will
         be the iohub process."""
         return self._sendToHubServer(('RPC', 'getPriority'))[2]
-
-    def enableHighPriority(self, disable_gc=False):
-        """
-        **Deprecated Method:** Use setPriority('high', disable_gc) instead.
-        """
-        return self.setPriority('high', disable_gc)
-
-    def disableHighPriority(self):
-        """
-        **Deprecated Method:** Use setPriority('normal') instead.
-        """
-        return self.setPriority('normal')
-
-    def enableRealTimePriority(self, disable_gc=False):
-        """
-        **Deprecated Method:** Use setPriority('realtime', disable_gc) instead.
-        """
-        return self.setPriority('realtime', disable_gc)
-
-    def disableRealTimePriority(self):
-        """
-        **Deprecated Method:** Use setPriority('normal') instead.
-        """
-        return self.setPriority('normal')
 
     def getProcessAffinity(self):
         """

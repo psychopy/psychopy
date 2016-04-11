@@ -14,16 +14,22 @@ from .. import Computer
 # XInput Functions
 #
 
-global _xinput_dll
-
+_xinput_dll = None
 
 def loadDLL():
     global _xinput_dll
-    _xinput_dll = getattr(ctypes.windll, XINPUT_DLL)
+    try:
+        if _xinput_dll is None:
+            _xinput_dll = getattr(ctypes.windll, 'xinput1_3')
+    except Exception:
+        try:
+            if _xinput_dll is None:
+                _xinput_dll = getattr(ctypes.windll, 'Xinput9_1_0')
+        except Exception as e:
+            raise e
 
 
 def createXInputGamePadState(user_id):
-    global _xinput_dll
     gamepadState = XINPUT_STATE(DWORD(0), XINPUT_GAMEPAD(0, 0, 0, 0, 0, 0, 0))
     t1 = Computer.getTime()
     dwResult = _xinput_dll.XInputGetState(user_id, pointer(gamepadState))
