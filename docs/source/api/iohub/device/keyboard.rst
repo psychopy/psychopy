@@ -5,13 +5,18 @@
 Keyboard Device
 ===============
 
-The iohub Keyboard device provides methods to:
-  * Check for any new keyboard events that have occurred since the last time
-    keyboard events were checked or cleared.
-  * Wait until a keyboard event occurs.
-  * Clear the device of any unread events.
-  * Get a list of all currently pressed keys.
+Demo Script:
++++++++++++++
 
+ * psychopy\\demos\\coder\\iohub\\keyboard.py 
+
+Support Platforms:
++++++++++++++++++++
+
+ * Windows 7 +
+ * OS X 10.7 +
+ * Linux 2.6 +
+ 
 .. autoclass:: Keyboard
     :exclude-members: getDeviceInterface, getIOHubDeviceClass, getName
 	:members:
@@ -19,25 +24,25 @@ The iohub Keyboard device provides methods to:
     :member-order: bysource
 
 Keyboard Events
-================
+---------------
 
 The Keyboard device can return two types of events, which represent key press
 and key release actions on the keyboard.
 
 KeyboardPress Event
---------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: KeyboardPress
-    :exclude-members: id
+    :exclude-members: id, device, pressEventID
     :members:
     :inherited-members:
     :member-order: bysource
 
 KeyboardRelease Event
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: KeyboardRelease
-    :exclude-members: id
+    :exclude-members: id, device
 	:members:
     :inherited-members:
     :member-order: bysource

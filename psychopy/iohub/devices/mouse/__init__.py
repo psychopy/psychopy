@@ -28,18 +28,6 @@ class MouseDevice(Device):
     configuration file for the Display index specified. If the mouse is on a
     display other than the PsychoPy full screen window Display, then positional
     data is returned using the OS desktop pixel bounds for the given display.
-
-    ..note:: The Mouse device only supports multiple monitor computer setups
-            on Windows at this time. Other OS's are supported if only a single
-            monitor is attached to the computer, or if the primary monitor
-            (monitor index 0) is used for the Full Screen PsychoPy Window.
-
-            Essentially, the consideration of the monitor the mouse is
-            currently
-            over is assumed to be index 0 on Linux and OSX and the
-            logic for translating Mouse position information assumes that
-            only one monitor is present at this time.
-
     """
     EVENT_CLASS_NAMES = [
         'MouseInputEvent',
@@ -467,7 +455,7 @@ class MouseInputEvent(DeviceEvent):
 
     def __init__(self, *args, **kwargs):
         #: The id of the display that the mouse was over when the event
-        # occurred.
+        #: occurred.
         #: Only supported on Windows at this time. Always 0 on other OS's.
         self.display_id = None
 
@@ -483,11 +471,11 @@ class MouseInputEvent(DeviceEvent):
         self.pressed_buttons = None
 
         #: x position of the Mouse when the event occurred; in display
-        # coordinate space.
+        #: coordinate space.
         self.x_position = None
 
         #: y position of the Mouse when the event occurred; in display
-        # coordinate space.
+        #: coordinate space.
         self.y_position = None
 
         #: Horizontal scroll wheel position change when the event occurred.
@@ -505,7 +493,7 @@ class MouseInputEvent(DeviceEvent):
         self.scroll_y = None
 
         #: List of the modifiers that were active when the mouse event
-        # occurred,
+        #: occurred,
         #: provided in online events as a list of the modifier constant labels
         #: specified in iohub.ModifierConstants
         #: list: Empty if no modifiers are pressed, otherwise each elemnt is
@@ -513,7 +501,7 @@ class MouseInputEvent(DeviceEvent):
         self.modifiers = 0
 
         #: Window handle reference that the mouse was over when the event
-        # occurred
+        #: occurred
         #: (window does not need to have focus)
         self.window_id = None
 

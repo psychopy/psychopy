@@ -8,7 +8,8 @@ import ctypes
 
 from . import MouseDevice
 from ...constants import EventConstants, MouseConstants
-from .. import Keyboard, Computer, Device
+from .. import Computer, Device
+from ..keyboard import Keyboard
 from ...errors import print2err
 
 currentSec = Computer.getTime

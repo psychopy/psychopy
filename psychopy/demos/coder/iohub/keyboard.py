@@ -125,8 +125,8 @@ keyboard = io.devices.keyboard
 # create the psychopy window and text stim's
 win, text_stim = createPsychopyGraphicsWindow()
 
-# Clear all iohub events since script started...
-io.clearEvents()
+# Clear keyboard events since script started...
+keyboard.clearEvents()
 
 events = []
 flip_time = last_kb_evt_time = 0
