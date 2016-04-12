@@ -1,0 +1,42 @@
+wxPython_Phoenix --pre -f http://wxpython.org/Phoenix/snapshot-builds/ 
+numpy
+scipy
+matplotlib
+pandas
+hdf5
+pyglet
+pillow
+openpyxl
+configobj
+#for iohub
+pyyaml
+gevent
+msgpack-python
+psutil
+tables
+python-bidi
+cffi
+
+# for developers
+pytest 
+sphinx 
+cython
+
+# for ipython notebook
+ipython
+tornado
+pyzmq
+jinja2
+jsonschema
+
+#hardware
+pyxid
+ioLabs
+pylink
+pyserial
+parallel
+
+#useful stuff
+seaborn
+psychopy_ext
+rusocsci
