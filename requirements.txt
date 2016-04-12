@@ -1,4 +1,4 @@
-wxPython_Phoenix --pre -f http://wxpython.org/Phoenix/snapshot-builds/ 
+wxPython_Phoenix
 numpy
 scipy
 matplotlib
