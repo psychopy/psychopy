@@ -3,7 +3,6 @@ numpy
 scipy
 matplotlib
 pandas
-hdf5
 pyglet
 pillow
 openpyxl
@@ -21,22 +20,3 @@ cffi
 pytest 
 sphinx 
 cython
-
-# for ipython notebook
-ipython
-tornado
-pyzmq
-jinja2
-jsonschema
-
-#hardware
-pyxid
-ioLabs
-pylink
-pyserial
-parallel
-
-#useful stuff
-seaborn
-psychopy_ext
-rusocsci
