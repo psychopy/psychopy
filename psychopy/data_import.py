@@ -89,10 +89,10 @@ def importPickleFromFile(dataFile):
 
 
 def importCSVFromFile(dataFile):
-    trialsArr = numpy.recfromcsv(f, case_sensitive=True)
+    trialsArr = numpy.recfromcsv(dataFile, case_sensitive=True)
     fieldNames = trialsArr.dtype.names
-    _assertValidVarNames(fieldNames, fileName)
-    f.close()
+    _assertValidVarNames(fieldNames)
+    dataFile.close()
     #convert the record array into a list of dicts
     trialList = []
     for trialN, trialType in enumerate(trialsArr):
