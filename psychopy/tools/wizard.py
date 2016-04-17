@@ -138,8 +138,8 @@ class ConfigWizard(object):
                                    "tion checks in about 10 seconds. "))
             dlg.addText('')
             if firstrun:  # explain things more
-                dlg.addText(_translate('Note: The display will switch to " '
-                                       '"full-screen mode and will '))
+                dlg.addText(_translate('Note: The display will switch to '
+                                       'full-screen mode and will '))
                 dlg.addText(_translate("then switch back. You don't need "
                                        "to do anything."))
             dlg.addText(_translate('Optional: For best results, please quit'
