@@ -138,8 +138,8 @@ class ConfigWizard(object):
                                    "tion checks in about 10 seconds. "))
             dlg.addText('')
             if firstrun:  # explain things more
-                dlg.addText(_translate('Note: The display will switch to " '
-                                       '"full-screen mode and will '))
+                dlg.addText(_translate('Note: The display will switch to '
+                                       'full-screen mode and will '))
                 dlg.addText(_translate("then switch back. You don't need "
                                        "to do anything."))
             dlg.addText(_translate('Optional: For best results, please quit'
@@ -189,12 +189,13 @@ class ConfigWizard(object):
         if numWarn == 0:
             msg = _translate('All values seem reasonable (no warnings).')
         elif numWarn == 1:
-            txt = '1 suboptimal value was detected (%s)'
-            msg = _translate(txt) % self.warnings[0]
+            txt = _translate('1 suboptimal value was detected (%s)')
+            msg = txt % self.warnings[0]
         else:
-            txt = '%(num)i suboptimal values were detected (%(warn)s, ...)'
-            msg = _translate(txt) % {'num': len(self.warnings),
-                                     'warn': self.warnings[0]}
+            txt = _translate(
+                '%(num)i suboptimal values were detected (%(warn)s, ...)')
+            msg = txt % {'num': len(self.warnings),
+                         'warn': self.warnings[0]}
         dlg.addText(msg)
         for item in summary:
             dlg.addText(item[0], item[1])  # (key, color)
@@ -233,17 +234,20 @@ class ConfigWizard(object):
         if freeRAM == 'unknown':
             if totalRAM != 'unknown':
                 totalRAM = "%.1fG" % (totalRAM / 1024.)
-            txt = 'could not assess available physical RAM; total %s'
-            msg = _translate(txt) % totalRAM
+            txt = _translate(
+                'could not assess available physical RAM; total %s')
+            msg = txt % totalRAM
             report.append(('available memory', 'unknown', msg, warn))
         else:
-            txt = ('physical RAM available for configuration test '
-                   '(of %.1fG total)')
-            msg = _translate(txt) % (totalRAM / 1024.)
+            txt = _translate(
+                'physical RAM available for configuration test '
+                '(of %.1fG total)')
+            msg = txt % (totalRAM / 1024.)
             if freeRAM < 300:  # in M
-                txt = ('Warning: low available physical RAM for '
-                       'configuration test (of %.1fG total)')
-                msg = _translate(txt) % (totalRAM / 1024.)
+                txt = _translate(
+                    'Warning: low available physical RAM for '
+                    'configuration test (of %.1fG total)')
+                msg = txt % (totalRAM / 1024.)
                 warn = True
             report.append(('available memory', unicode(freeRAM) + 'M',
                            msg, warn))
@@ -254,10 +258,10 @@ class ConfigWizard(object):
         report.append(('psychopy', __version__,
                        _translate('avoid upgrading during an experiment'),
                        False))
-        txt = ('can be set in <a href="http://www.psychopy.org/general/'
-               'prefs.html#application-settings-app">Preferences -> App</a>')
-        report.append(('locale', items['systemLocale'],
-                       _translate(txt), False))
+        msg = _translate(
+            'can be set in <a href="http://www.psychopy.org/general/'
+            'prefs.html#application-settings-app">Preferences -> App</a>')
+        report.append(('locale', items['systemLocale'], msg, False))
         msg = ''
         if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
             msg = _translate('Warning: python 2.6 or 2.7 required; '
@@ -292,10 +296,10 @@ class ConfigWizard(object):
         # openGL settings:
         msg = ''
         if items['openGLVersion'] < '2.':
-            txt = ('Warning: <a href="http://www.psychopy.org/general/timing'
-                   '/reducingFrameDrops.html?highlight=OpenGL+2.0">OpenGL '
-                   '2.0 or higher is ideal</a>.')
-            msg = _translate(txt)
+            msg = _translate(
+                'Warning: <a href="http://www.psychopy.org/general/timing'
+                '/reducingFrameDrops.html?highlight=OpenGL+2.0">OpenGL '
+                '2.0 or higher is ideal</a>.')
             warn = True
         report.append(('openGL version', items['openGLVersion'], msg, warn))
         report.append(('openGL vendor', items['openGLVendor'], '', False))
@@ -307,31 +311,31 @@ class ConfigWizard(object):
         warn = False
         msg = ''
         if not items['windowHaveShaders']:
-            txt = ('Warning: <a href="http://www.psychopy.org/general/timing'
-                   '/reducingFrameDrops.html?highlight=shader">Rendering of'
-                   ' complex stimuli will be slow</a>.')
-            msg = _translate(txt)
+            msg = _translate(
+                'Warning: <a href="http://www.psychopy.org/general/timing'
+                '/reducingFrameDrops.html?highlight=shader">Rendering of'
+                ' complex stimuli will be slow</a>.')
             warn = True
         report.append(('have shaders', str(
             items['windowHaveShaders']), msg, warn))
 
         warn = False
-        txt = ('during the drifting <a href="http://www.psychopy.org/api/'
-               'visual/gratingstim.html">GratingStim</a>')
-        msg = _translate(txt)
+        msg = _translate(
+            'during the drifting <a href="http://www.psychopy.org/api/'
+            'visual/gratingstim.html">GratingStim</a>')
         if items['windowRefreshTimeMedian_ms'] < 3.3333333:
-            txt = ("Warning: too fast? visual sync'ing with the monitor"
-                   " seems unlikely at 300+ Hz")
-            msg = _translate(txt)
+            msg = _translate(
+                "Warning: too fast? visual sync'ing with the monitor"
+                " seems unlikely at 300+ Hz")
             warn = True
         report.append(('visual sync (refresh)', "%.2f ms/frame" %
                        items['windowRefreshTimeMedian_ms'], msg, warn))
         msg = _translate('SD &lt; 0.5 ms is ideal (want low variability)')
         warn = False
         if items['windowRefreshTimeSD_ms'] > .5:
-            txt = ('Warning: the refresh rate has high frame-to-frame '
-                   'variability (SD &gt; 0.5 ms)')
-            msg = _translate(txt)
+            msg = _translate(
+                'Warning: the refresh rate has high frame-to-frame '
+                'variability (SD &gt; 0.5 ms)')
             warn = True
         report.append(('refresh stability (SD)', "%.2f ms" %
                        items['windowRefreshTimeSD_ms'], msg, warn))
@@ -348,18 +352,18 @@ class ConfigWizard(object):
         for i in xrange(180):
             dots100.draw()
             win.flip()
-        txt = ('during <a href="http://www.psychopy.org/api/visual/'
-               'dotstim.html">DotStim</a> with 100 random dots')
-        msg = _translate(txt)
+        msg = _translate(
+            'during <a href="http://www.psychopy.org/api/visual/'
+            'dotstim.html">DotStim</a> with 100 random dots')
         warn = False
         intervalsMS = np.array(win.frameIntervals) * 1000
         nTotal = len(intervalsMS)
         nDropped = sum(intervalsMS > (1.5 * median))
         if nDropped:
-            txt = ('Warning: could not keep up during <a href="http://'
-                   'www.psychopy.org/api/visual/dotstim.html">DotStim</a>'
-                   ' with 100 random dots.')
-            msg = _translate(txt)
+            msg = _translate(
+                'Warning: could not keep up during <a href="http://'
+                'www.psychopy.org/api/visual/dotstim.html">DotStim</a>'
+                ' with 100 random dots.')
             warn = True
         report.append(('no dropped frames', '%i / %i' % (nDropped, nTotal),
                        msg, warn))
@@ -478,9 +482,8 @@ class ConfigWizard(object):
                             ver = 'import ok'
                     report.append((pkg, ver, '', False))
                 except (ImportError, AttributeError):
-                    txt = 'could not import package %s'
-                    report.append((pkg, '&nbsp;&nbsp;--',
-                                   _translate(txt) % pkg, False))
+                    msg = _translate('could not import package %s')
+                    report.append((pkg, '&nbsp;&nbsp;--', msg % pkg, False))
 
         # rewrite to avoid assumption of locale en_US:
         self.warnings = list(
