@@ -381,7 +381,7 @@ class Test_ExptComponents(object):
     def setup_class(cls):
         app = psychopyApp._app #this was created already
         app.newBuilderFrame()
-        cls.builder = app.builderFrames[-1] # the most recent builder frame created
+        cls.builder = app.getAllFrames("builder")[-1] # the most recent builder frame created
         cls.exp = cls.builder.exp
         cls.here = path.abspath(path.dirname(__file__))
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')

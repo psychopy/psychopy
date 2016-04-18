@@ -23,6 +23,7 @@ before_install:
   - travis_retry sudo -H pip install -qq pyglet
   - python -c 'import pyglet; print pyglet.version'
   - travis_retry sudo -H pip install -q pillow
+  - travis_retry sudo -H pip install -q pyosf
 #  - python -c 'import Image; print Image.PILLOW_VERSION'
   - travis_retry sudo -H pip install -qq gevent # Don't use apt-get (too old version of gevent)
   - travis_retry sudo apt-get install -qq python-yaml python-xlib
@@ -31,6 +32,7 @@ before_install:
   - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
   - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
   - travis_retry sudo apt-get install -qq python-pandas
+  - travis_retry sudo pip install -qq codecov
 install:
   - travis_retry sudo apt-get install -qq flac
   - flac -version
@@ -44,3 +46,4 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" coverage run --rcfile=.travis_coveragerc psychopy/tests/runPytest.py -v -s -m "not needs_sound"; else { echo "TODO while avoiding duplication"; exit 1; } fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - codecov

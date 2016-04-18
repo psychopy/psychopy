@@ -32,6 +32,7 @@ from psychopy import preferences, logging, __version__
 from . import connections
 import os
 import threading
+import weakref
 
 # knowing if the user has admin priv is generally a good idea for security.
 # not actually needed; psychopy should never need anything except normal user
@@ -127,6 +128,7 @@ class PsychoPyApp(wx.App):
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
         self.testMode = testMode
+        self.osf_session = None
 
         if showSplash:
             # show splash screen
@@ -243,9 +245,8 @@ class PsychoPyApp(wx.App):
         if splash:
             splash.SetText(_translate("  Creating frames..."))
         self.coder = None
-        self.builderFrames = []
         self.copiedRoutine = None
-        self.allFrames = []  # ordered; order updated with self.onNewTopWindow
+        self._allFrames = []  # ordered; order updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
@@ -414,8 +415,6 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(self.coder)
         self.coder.Raise()
         self.coder.setOutputWindow()  # takes control of sys.stdout
-        if self.coder not in self.allFrames:
-            self.allFrames.append(self.coder)
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
@@ -427,8 +426,6 @@ class PsychoPyApp(wx.App):
         thisFrame.Show(True)
         thisFrame.Raise()
         self.SetTopWindow(thisFrame)
-        self.builderFrames.append(thisFrame)
-        self.allFrames.append(thisFrame)
 
     def showBuilder(self, event=None, fileList=()):
         # have to reimport because it is ony local to __init__ so far
@@ -437,12 +434,10 @@ class PsychoPyApp(wx.App):
             if os.path.isfile(fileName):
                 self.newBuilderFrame(fileName=fileName)
         # create an empty Builder view if needed
-        if len(self.builderFrames) == 0:
+        if len(self.getAllFrames(frameType="builder")) == 0:
             self.newBuilderFrame()
         # loop through all frames, from the back bringing each forward
-        for thisFrame in self.allFrames:
-            if thisFrame.frameType != 'builder':
-                continue
+        for thisFrame in self.getAllFrames(frameType='builder'):
             thisFrame.Show(True)
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
@@ -563,7 +558,7 @@ class PsychoPyApp(wx.App):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
         # see whether any files need saving
-        for frame in self.allFrames:
+        for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere
                 ok = frame.checkSave()
             except Exception:
@@ -574,7 +569,7 @@ class PsychoPyApp(wx.App):
                 return  # user cancelled quit
 
         # save info about current frames for next run
-        if self.coder and len(self.builderFrames) == 0:
+        if self.coder and len(self.getAllFrames("builder")) == 0:
             self.prefs.appData['lastFrame'] = 'coder'
         elif self.coder is None:
             self.prefs.appData['lastFrame'] = 'builder'
@@ -587,7 +582,7 @@ class PsychoPyApp(wx.App):
         self.prefs.appData['builder']['prevFiles'] = []
         self.prefs.appData['coder']['prevFiles'] = []
 
-        for frame in list(self.allFrames):
+        for frame in self.getAllFrames():
             try:
                 frame.closeFrame(event=event, checkSave=False)
                 # must do this before destroying the frame?
@@ -641,10 +636,39 @@ class PsychoPyApp(wx.App):
         """Follow either an event id (= a key to an url defined in urls.py)
         or follow a complete url (a string beginning "http://")
         """
-        if event != None:
+        if event is not None:
             wx.LaunchDefaultBrowser(self.urls[event.GetId()])
-        elif url != None:
+        elif url is not None:
             wx.LaunchDefaultBrowser(url)
+
+    def getAllFrames(self, frameType=None):
+        """Get a list of frames, optionally filtered by a particular kind
+        (which can be "builder", "coder", "project")
+        """
+        frames = []
+        for frameRef in self._allFrames:
+            frame = frameRef()
+            if (not frame):
+                self._allFrames.remove(frameRef)  # has been deleted
+                continue
+            elif frameType and frame.frameType != frameType:
+                continue
+            frames.append(frame)
+        return frames
+
+    def trackFrame(self, frame):
+        """Keep track of an open frame (stores a weak reference to the frame
+        which will probably have a regular reference to the app)
+        """
+        self._allFrames.append(weakref.ref(frame))
+
+    def forgetFrame(self, frame):
+        """Keep track of an open frame (stores a weak reference to the frame
+        which will probably have a regular reference to the app)
+        """
+        for entry in self._allFrames:
+            if entry() == frame:  # is a weakref
+                self._allFrames.remove(entry)
 
 
 if __name__ == '__main__':

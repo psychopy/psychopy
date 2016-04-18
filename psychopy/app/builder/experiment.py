@@ -163,7 +163,7 @@ class Experiment(object):
         """Add a list of top-level psychopy libs that the experiment
         will need. e.g. [visual, event]
         """
-        if type(libs) != list:
+        if not isinstance(libs, list):
             libs = list(libs)
         for lib in libs:
             if lib not in self.psychopyLibs:
@@ -1351,7 +1351,7 @@ class Flow(list):
                     not isinstance(field.val, basestring)):
                 continue  # continue == no problem, no warning
             if not (field.allowedUpdates and
-                    type(field.allowedUpdates) == list and
+                    isinstance(field.allowedUpdates, list) and
                     len(field.allowedUpdates) and
                     field.updates == 'constant'):
                 continue
@@ -1381,7 +1381,7 @@ class Flow(list):
         constWarnings = []
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
-            if type(entry) != Routine:
+            if not isinstance(entry, Routine):
                 continue
             for component in entry:
                 # detect and strip trailing whitespace (can cause problems):
@@ -1392,7 +1392,7 @@ class Flow(list):
                     if (field.label.lower() == 'text' or
                             not field.valType in ('str', 'code')):
                         continue
-                    if (type(field.val) == basestring and
+                    if (isinstance(field.val, basestring) and
                             field.val != field.val.strip()):
                         trailingWhitespace.append(
                             (field.val, key, component, entry))
@@ -1914,7 +1914,7 @@ class NameSpace(object):
             return
         if sublist == 'default':
             sublist = self.user
-        if type(name) != list:
+        if not isinstance(name, list):
             sublist.append(name)
         else:
             sublist += name
@@ -1927,11 +1927,22 @@ class NameSpace(object):
             return
         if sublist == 'default':
             sublist = self.user
-        if type(name) != list:
+        if not isinstance(name, list):
             name = [name]
         for n in list(name):
             if n in sublist:
                 del sublist[sublist.index(n)]
+
+    def rename(self, name, newName, sublist='default'):
+        if name is None:
+            return
+        if sublist == 'default':
+            sublist = self.user
+        if not isinstance(name, list):
+            name = [name]
+        for n in list(name):
+            if n in sublist:
+                sublist[sublist.index(n)] = newName
 
     def makeValid(self, name, prefix='var'):
         """given a string, return a valid and unique variable name.

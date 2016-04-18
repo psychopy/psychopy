@@ -98,6 +98,7 @@ _localized = {
     'newRoutine': _translate('new Routine'),
     'copyRoutine': _translate('copy Routine'),
     'pasteRoutine': _translate('paste Routine'),
+    'renameRoutine': _translate('rename Routine'),
     'toggleOutputPanel': _translate('toggle output panel'),
     'switchToBuilder': _translate('switch to Builder'),
     'switchToCoder': _translate('switch to Coder'),

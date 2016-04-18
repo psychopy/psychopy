@@ -1,0 +1,22 @@
+
+numpy
+scipy
+matplotlib
+pandas
+pyglet
+pillow
+openpyxl
+configobj
+#for iohub
+pyyaml
+gevent
+msgpack-python
+psutil
+tables
+python-bidi
+cffi
+
+# for developers
+pytest 
+sphinx 
+cython
