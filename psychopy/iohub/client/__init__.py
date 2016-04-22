@@ -516,14 +516,14 @@ class ioHubConnection(object):
             float: The actual duration of the delay in sec.msec format.
 
         """
-        stime = Computer.currentTime()
+        stime = Computer.getTime()
         targetEndTime = stime + delay
 
         if check_hub_interval < 0:
             check_hub_interval = 0
 
         if check_hub_interval > 0:
-            remainingSec = targetEndTime - Computer.currentTime()
+            remainingSec = targetEndTime - Computer.getTime()
             while remainingSec > check_hub_interval+0.025:
                 time.sleep(check_hub_interval)
                 events = self.getEvents()
@@ -532,14 +532,14 @@ class ioHubConnection(object):
                 # Call win32MessagePump so PsychoPy Windows do not become
                 # 'unresponsive' if delay is long.
                 win32MessagePump()
-                remainingSec = targetEndTime - Computer.currentTime()
+                remainingSec = targetEndTime - Computer.getTime()
 
-        time.sleep(max(0.0, targetEndTime - Computer.currentTime() - 0.02))
+        time.sleep(max(0.0, targetEndTime - Computer.getTime() - 0.02))
 
-        while (targetEndTime - Computer.currentTime()) > 0.0:
+        while (targetEndTime - Computer.getTime()) > 0.0:
             pass
 
-        return Computer.currentTime() - stime
+        return Computer.getTime() - stime
 
     def createTrialHandlerRecordTable(self, trials, cv_order=None):
         """
