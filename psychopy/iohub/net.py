@@ -24,7 +24,7 @@ from .util import NumPyRingBuffer as RingBuffer
 MAX_PACKET_SIZE = 64 * 1024
 
 
-class SocketConnection(object):
+class SocketConnection(object): # pylint: disable=too-many-instance-attributes
     def __init__(
             self,
             local_host=None,
@@ -92,7 +92,7 @@ class SocketConnection(object):
                 result = self.unpack()
             return result, address
         except Exception: # pylint: disable=broad-except
-            printExceptionDetailsToStdErr()
+            pass # printExceptionDetailsToStdErr()
 
     def close(self):
         self.sock.close()

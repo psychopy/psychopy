@@ -7,6 +7,7 @@ import sys
 
 from .errors import print2err
 
+# pylint: disable=too-many-lines
 
 class Constants(object):
     UNDEFINED = 0

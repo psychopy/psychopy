@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 
 import gevent
 import psutil
@@ -51,17 +52,16 @@ def run(rootScriptPathDir, configFilePath):
         else:
             ioHubConfig = yload(file(configFilePath, 'r'), Loader=yLoader)
 
-        hub_defaults_config = yload(file(os.path.join(IOHUB_DIRECTORY,
-                                                      'default_config.yaml'),
-                                         'r'),
-                                    Loader=yLoader)
+        hub_config_path = os.path.join(IOHUB_DIRECTORY, 'default_config.yaml')
+
+        hub_defaults_config = yload(file(hub_config_path, 'r'), Loader=yLoader)
         updateDict(ioHubConfig, hub_defaults_config)
 
         s = ioServer(rootScriptPathDir, ioHubConfig)
         udp_port = s.config.get('udp_port', 9000)
         s.log("Receiving diagram's on: {}".format(udp_port))
         s.udpService.start()
-
+        s.setStatus("INITIALIZING")
         msgpump_interval = s.config.get('windows_msgpump_interval', 0.005)
         glets = []
 
@@ -78,8 +78,7 @@ def run(rootScriptPathDir, configFilePath):
             tlet = gevent.spawn(s.checkForPsychopyProcess, 0.5)
             glets.append(tlet)
 
-        sys.stdout.write('IOHUB_READY\n\r\n\r')
-        sys.stdout.flush()
+        s.setStatus("RUNNING")
 
         if hasattr(gevent, 'run'):
             gevent.run()
@@ -89,12 +88,13 @@ def run(rootScriptPathDir, configFilePath):
 
         lrtime = Computer.global_clock.getLastResetTime()
         s.log('Server END Time Offset: {0}'.format(lrtime), 'DEBUG')
+        return True
+
     except Exception: # pylint: disable=broad-except
         printExceptionDetailsToStdErr()
-        sys.stdout.write('IOHUB_FAILED\n\r\n\r')
-        sys.stdout.flush()
         if s:
             s.shutdown()
+        return False
 
 if __name__ == '__main__':
     psychopy_pid = None

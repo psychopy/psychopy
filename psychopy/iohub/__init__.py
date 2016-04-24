@@ -26,7 +26,7 @@ if IOHUB_DIRECTORY.find('psychopy') >= 0:
 
 _DATA_STORE_AVAILABLE = False
 try:
-    import tables # pylint: disable=wrong-import-position
+    import tables # pylint: disable=wrong-import-position, wrong-import-order
     _DATA_STORE_AVAILABLE = True
 except ImportError:
     print2err('WARNING: pytables package not found. ',

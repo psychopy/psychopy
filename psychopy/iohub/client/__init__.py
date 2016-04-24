@@ -953,18 +953,18 @@ class ioHubConnection(object):
                              ioHubConfigAbsPath,
                              str(Computer.current_process.pid)]
 
-        # If running coverage, add env var's needed to supprocess
+
+        # If running coverage, add env var's needed to subprocess
         # pytest coverage can then be called from cmdline like:
-        # C:\...\psychopy\psychopy>py.test --cov=psychopy.iohub .\tests\test_iohub
-        #envars = dict(os.environ)
-        #envars['COVERAGE_PROCESS_START'] = 'iohub.converagerc'
+        # psychopy\psychopy>py.test --cov=psychopy.iohub .\tests\test_iohub
+        #
+        # envars = dict(os.environ)
+        # envars['COVERAGE_PROCESS_START'] = 'iohub.converagerc'
         # self._server_process = subprocess.Popen( subprocessArgList,
-        #                                       stdout=subprocess.PIPE,
         #                                       env=envars,
         #                                       cwd=IOHUB_DIRECTORY)
 
-        self._server_process = subprocess.Popen(subprocessArgList,
-                                                stdout=subprocess.PIPE)
+        self._server_process = subprocess.Popen(subprocessArgList)
 
         # Get iohub server pid and psutil process object
         # for affinity and process priority setting.
@@ -975,41 +975,15 @@ class ioHubConnection(object):
 
         # >>>> Wait for iohub server ready signal ....
         hubonline = False
-        stdout_read_data = ''
-        if Computer.platform == 'win32':
-            # wait for server to send back 'IOHUB_READY' text over stdout,
-            # indicating it is running and ready to receive network packets
-            server_output = 'hi there'
-            ctime = Computer.global_clock.getTime
-
-            # timeout if ioServer does not reply in 30 seconds
-            timeout_duration = ioHubConfig.get('start_process_timeout', 30.0)
-            timeout_time = ctime() + timeout_duration
-            while server_output and ctime() < timeout_time:
-                isDataAvail = self._serverStdOutHasData()
-                if isDataAvail is True:
-                    server_output = self._readServerStdOutLine().next()
-                    if server_output.rstrip() == 'IOHUB_READY':
-                        hubonline = True
-                        break
-                    elif server_output.rstrip() == 'IOHUB_FAILED':
-                        raise RuntimeError('ioHub startup failed, '
-                                           'received IOHUB_FAILED')
-
-                else:
-                    time.sleep(0.001)
-        else:
-            r = 'hi'
-            while r:
-                r = self._server_process.stdout.readline()
-                if r and r.rstrip().strip() == 'IOHUB_READY':
-                    hubonline = True
-                    break
-                elif r and r.rstrip().strip() == 'IOHUB_FAILED':
-                    return 'ioHub startup failed, received IOHUB_FAILED'
-                else:
-                    stdout_read_data += 'startup_read: {0}\n'.format(r)
-        # <<<< Finished wait for iohub server ready signal ....
+        # timeout if ioServer does not reply in 30 seconds
+        timeout_duration = ioHubConfig.get('start_process_timeout', 30.0)
+        timeout_time = Computer.getTime() + timeout_duration
+        while hubonline is False and Computer.getTime() < timeout_time:
+            r = self._sendToHubServer(['GET_IOHUB_STATUS', ])
+            if r:
+                hubonline = r[1] == 'RUNNING'
+            time.sleep(0.1)
+        # # <<<< Finished wait for iohub server ready signal ....
 
         # If ioHub server did not respond correctly,
         # terminate process and exit the program.
@@ -1025,8 +999,9 @@ class ioHubConnection(object):
             window.IOHUB_ACTIVE = True
             if window.openWindows:
                 whs = []
+                # pylint: disable=protected-access
                 for w in window.openWindows:
-                    whs.append(w()._hw_handle) # pylint: disable=protected-access
+                    whs.append(w()._hw_handle)
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
@@ -1050,44 +1025,6 @@ class ioHubConnection(object):
         self._createDeviceList(ioHubConfig['monitor_devices'])
 
         return 'OK'
-
-    @staticmethod
-    def _get_maxsize(maxsize):
-        """Used by _startServer pipe reader code."""
-        if maxsize is None:
-            maxsize = 1024
-        elif maxsize < 1:
-            maxsize = 1
-        return maxsize
-
-    def _serverStdOutHasData(self, maxsize=256):
-        """Used by _startServer pipe reader code.
-           Allows for async check for data on pipe in windows.
-        """
-        if Computer.platform == 'win32':
-            import msvcrt
-            import win32pipe
-
-            maxsize = self._get_maxsize(maxsize)
-            conn = self._server_process.stdout
-            if conn is None:
-                return False
-
-            x = msvcrt.get_osfhandle(conn.fileno())
-            (_, nAvail, _) = win32pipe.PeekNamedPipe(x, 0)
-            if maxsize < nAvail:
-                nAvail = maxsize
-            if nAvail > 0:
-                return True
-        else:
-            return True
-
-    def _readServerStdOutLine(self):
-        """Used by _startServer pipe reader code.
-        Reads a line from the ioHub server stdout. This is blocking.
-        """
-        for line in iter(self._server_process.stdout.readline, ''):
-            yield line
 
     def _createDeviceList(self, monitor_devices_config):
         """Create client side iohub device views.

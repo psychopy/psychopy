@@ -39,6 +39,7 @@ MAX_PACKET_SIZE = 64 * 1024
 # pylint: disable=broad-except
 
 class udpServer(DatagramServer):
+    client_proc_init_req = None
     def __init__(self, ioHubServer, address):
         self.iohub = ioHubServer
         self.feed = None
@@ -55,9 +56,9 @@ class udpServer(DatagramServer):
     def handle(self, request, replyTo):
         if self._running is False:
             return False
-
         self.feed(request)
         request = self.unpack()
+        # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
         request_type = request.pop(0)
         if request_type == 'SYNC_REQ':
             self.sendResponse(['SYNC_REPLY', getTime()], replyTo)
@@ -118,6 +119,9 @@ class udpServer(DatagramServer):
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
                 return False
+        elif request_type == 'GET_IOHUB_STATUS':
+            self.sendResponse((request_type, self.iohub.getStatus()), replyTo)
+            return True
         elif request_type == 'STOP_IOHUB_SERVER':
             self.shutDown()
         else:
@@ -490,7 +494,7 @@ class ioServer(object):
     deviceDict = {}
     _logMessageBuffer = deque(maxlen=128)
     _pyglet_window_hnds = []
-
+    status = 'OFFLINE'
     def __init__(self, rootScriptPathDir, config=None):
         self._session_id = None
         self._experiment_id = None
@@ -900,6 +904,15 @@ class ioServer(object):
                     break
                 else:
                     gevent.sleep(sleep_interval)
+
+    @classmethod
+    def getStatus(cls):
+        return cls.status
+
+    @classmethod
+    def setStatus(cls, s):
+        cls.status = s
+        return s
 
     def shutdown(self):
         try:
