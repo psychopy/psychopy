@@ -3,7 +3,7 @@ Section: science
 Priority: optional
 Maintainer: Alex Khrabrov <alex@mroja.net>
 Build-Depends: cdbs, debhelper (>= 5.0.38),
-               python-support, python, python-setuptools,
+               dh-python, python, python-setuptools,
                help2man, imagemagick,
                python-configobj,
 Vcs-Git: https://github.com/BrainTech/psychopy.git
@@ -32,7 +32,6 @@ Recommends: python-pygame,
 Suggests: python-iolabs, python-pyxid
 Breaks: psychopy
 Provides: ${python:Provides}
-XB-Python-Version: ${python:Versions}
 Description: environment for creating psychology stimuli in Python
  PsychoPy provides an environment for creating psychology stimuli
  using Python scripting language.  It combines the graphical

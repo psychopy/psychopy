@@ -2,9 +2,9 @@
 # -*- mode: makefile; coding: utf-8 -*-
 
 include /usr/share/cdbs/1/rules/debhelper.mk
-DEB_PYTHON_SYSTEM = pysupport
 DEB_PYTHON_MODULE_PACKAGE = psychopy-openbci
 DEB_PYTHON_MODULE_PACKAGES = psychopy-openbci
+DEB_PYTHON2_MODULE_PACKAGES = psychopy-openbci
 include /usr/share/cdbs/1/class/python-distutils.mk
 
 debian/psychopy-openbci.1: debian/psychopy.sh
