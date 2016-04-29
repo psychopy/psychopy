@@ -21,6 +21,7 @@ from . import wxIDs
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
 from .localization import _translate
+import requests.exceptions
 
 # Projects FileHistory sub-menu
 global projHistory
@@ -101,8 +102,13 @@ class ProjectsMenu(wx.Menu):
                     "Search OSF\t{}".format(keys['projectFind']))
         wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
 
-        self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
-        wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
+        # new
+        self.Append(wxIDs.projsNew,
+                    "New...\t{}".format(keys['projectsNew']))
+        wx.EVT_MENU(parent, wxIDs.projsNew,  self.onNew)
+
+        # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
+        # wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
 
     def addToSubMenu(self, name, menu, function):
         thisId = wx.NewId()
@@ -130,15 +136,19 @@ class ProjectsMenu(wx.Menu):
         if user == self._user:
             return  # nothing to do here. Move along please.
         self._user = user
-        self.app.osf_session = pyosf.Session(user)
-
+        try:
+            self.app.osf_session = pyosf.Session(user)
+        except pyosf.AuthError:
+            print("failed to authenticate - probably need 2FA")
+        except requests.exceptions.ConnectionError:
+            logging.warn("Connection error trying to connect to pyosf")
         ProjectsMenu.appData['user'] = user
         if self.searchDlg is not None:
             self.searchDlg.updateUserProjs()
 
-    def onSync(self, event):
-        logging.info("")
-        pass  # TODO: project sync and enable/disable
+    # def onSync(self, event):
+    #    logging.info("")
+    #    pass  # TODO: create quick-sync from menu item
 
     def onSearch(self, event):
         ProjectsMenu.searchDlg = SearchFrame(app=self.parent.app)
@@ -157,6 +167,17 @@ class ProjectsMenu(wx.Menu):
                 # it wasn't there, but is now. Add to menu
                 self.addUserToSubMenu(username)
 
+    def onNew(self, event):
+        """Create a new project for OSF
+        """
+        if self.app.osf_session.user_id:
+            thisProj = ProjectEditor()
+        else:
+            infoDlg = dialogs.MessageDialog(parent=None, type='Info',
+                                            message="You need to log in"
+                                            " to create a project")
+            infoDlg.Show()
+
     def onOpenFile(self, event):
         """Open project file from dialog
         """
@@ -169,7 +190,7 @@ class ProjectsMenu(wx.Menu):
 
     def openProj(self, projFile):
         # create a sync frame to put that in
-        syncFrame = ProjectSyncFrame(parent=self.app, id=-1)
+        syncFrame = ProjectFrame(parent=self.app, id=-1)
         syncFrame.setProjFile(projFile)
         self.updateProjHist(projFile)
 
@@ -283,12 +304,18 @@ class LogInDlg(wx.Dialog):
 
 
 class BaseFrame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        wx.Frame.__init__(self, *args, **kwargs)
+        # set up menu bar
+        self.menuBar = wx.MenuBar()
+        self.fileMenu = self.makeFileMenu()
+        self.menuBar.Append(self.fileMenu, _translate('&File'))
+        self.SetMenuBar(self.menuBar)
+
     def makeFileMenu(self):
-        # ---_file---#000000#FFFFFF-------------------------------------------
         fileMenu = wx.Menu()
         app = wx.GetApp()
         keyCodes = app.keys
-
         # add items to file menu
         fileMenu.Append(wx.ID_CLOSE,
                         _translate("&Close View\t%s") % keyCodes['close'],
@@ -314,15 +341,9 @@ class SearchFrame(BaseFrame):
                  style=defaultStyle):
         title = "Search OSF (Open Science Framework)"
         self.frameType = 'OSFsearch'
-        wx.Frame.__init__(self, None, -1, title, pos, size, style)
+        BaseFrame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
         self.currentProject = None
-
-        # set up menu bar
-        menuBar = wx.MenuBar()
-        self.fileMenu = self.makeFileMenu()
-        menuBar.Append(self.fileMenu, _translate('&File'))
-        self.SetMenuBar(menuBar)
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
@@ -392,10 +413,10 @@ class SearchFrame(BaseFrame):
             raise AttributeError("User pressed the sync button with no "
                                  "searchDlg.currentProject existing. "
                                  "Ask them how they managed that!")
-        syncFrame = ProjectSyncFrame(parent=self.app, id=-1,
+        projFrame = ProjectFrame(parent=self.app, id=-1,
                                      title=self.currentProject.title)
-        syncFrame.setOSFproject(self.currentProject)
-        self.Close()  # we're going over to the sync window
+        projFrame.setOSFproject(self.currentProject)
+        self.Close()  # we're going over to the project window
 
     def updateUserProjs(self):
         if self.app.osf_session.user_id is None:
@@ -482,129 +503,105 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             self.parent.currentProject = None
 
 
-class DetailsPanel(richtext.RichTextCtrl):
+class DetailsPanel(scrlpanel.ScrolledPanel):
 
-    def __init__(self, parent, style=wx.VSCROLL | wx.NO_BORDER):
-        richtext.RichTextCtrl.__init__(self, parent, -1, style=style)
+    def __init__(self, parent, noTitle=False,
+                 style=wx.VSCROLL | wx.NO_BORDER):
+        scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
         self.app = self.parent.app
-        self.currentProjID = None
+        self.currentProj = None
+        self.noTitle = noTitle
 
-        try:
-            Style = richtext.TextAttrEx
-        except AttributeError:
-            Style = richtext.RichTextAttr
-
-        # style for urls in the text (and bind to method)
-        self.urlStyle = Style()
-        self.urlStyle.SetTextColour(wx.BLUE)
-        self.urlStyle.SetFontUnderlined(True)
-        self.Bind(wx.EVT_TEXT_URL, self.OnURL)
-
-        # style for headings
-        self.h1 = Style()
-        self.h1.SetFontSize(18)
-        self.h1.SetFontWeight(2)
+        if not noTitle:
+            self.title = wx.StaticText(parent=self, id=-1,
+                                       label="", style=wx.ALIGN_CENTER)
+            font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+            self.title.SetFont(font)
+        self.url = wx.HyperlinkCtrl(parent=self, id=-1,
+                                    label="https://osf.io",
+                                    style=wx.HL_ALIGN_LEFT,
+                                    )
+        self.description = wx.StaticText(parent=self, id=-1,
+                                         label="Select a project for details")
+        self.tags = wx.StaticText(parent=self, id=-1,
+                                  label="")
+        self.visibility = wx.StaticText(parent=self, id=-1,
+                                        label="")
+        # layout
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        if not noTitle:
+            self.sizer.Add(self.title, border=5,
+                           flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER)
+        self.sizer.Add(self.url, border=5, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
+                       flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.description, border=5, flag=wx.ALL | wx.EXPAND)
+        self.SetSizer(self.sizer)
+        self.SetupScrolling()
+        self.Bind(wx.EVT_SIZE, self.onResize)
 
     def setProject(self, project):
-        self.Clear()
-
         if project is None:
             return  # we're done
 
-        self.BeginStyle(self.h1)
-        self.WriteText(project.title)
-        self.EndStyle()
+        if not self.noTitle:
+            self.title.SetLabel(project.title)
+        self.url.SetLabel("https://osf.io/{}".format(project.id))
+        self.url.SetURL("https://osf.io/{}".format(project.id))
+        self.description.SetLabel(project.attributes['description'])
 
-        self.Newline()
-        self.BeginBold()
-        self.WriteText("URL: ")
-        self.EndBold()
-        self.BeginStyle(self.urlStyle)
-        self.BeginURL(url="https://osf.io/{}".format(project.id))
-        self.WriteText("https://osf.io/{}".format(project.id))
-        self.EndURL()
-        self.EndStyle()
-
-        self.Newline()
-        self.BeginBold()
-        self.WriteText("Tags: ")
-        self.EndBold()
-        self.WriteText(", ".join(project.attributes['tags']))
-
-        self.Newline()
-        self.BeginBold()
-        self.WriteText("Visibility: ")
-        self.EndBold()
         if project.attributes['public'] is True:
             visib = "Public"
         else:
             visib = "Private"
-        self.WriteText(visib)
-
-        # todo: could add various info here. Is this a fork? What are dates?
-        # more info in project.attributes
-        # Could also add authors, but that a session.request.get()
-
-        self.Newline()
-        self.Newline()
-
-        if project.attributes['description']:
-            self.WriteText(project.attributes['description'])
+        self.visibility.SetLabel("Visibility: {}".format(visib))
+        tags = project.attributes['tags']
+        while None in tags:
+            tags.remove(None)
+        self.tags.SetLabel("Tags: "+", ".join(tags))
 
         # store this ID to keep track of the current project
         self.currentProj = project
+        self.SendSizeEvent()
 
-    def OnURL(self, evt):
-        self.app.followLink(url=evt.GetString())
+    def onResize(self, evt=None):
+        if self.currentProj is None:
+            return
+        w, h = self.GetSize()
+        self.description.SetLabel(self.currentProj.attributes['description'])
+        self.description.Wrap(w-20)
+        if not self.noTitle:
+            self.title.SetLabel(self.currentProj.title)
+            self.title.Wrap(w-20)
+        self.Layout()
 
+class ProjectFrame(BaseFrame):
 
-class ProjectSyncFrame(BaseFrame):
-
-    def __init__(self, parent, id, size=(600, 300), *args, **kwargs):
-        wx.Frame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
+    def __init__(self, parent, id, size=(400, 300), *args, **kwargs):
+        BaseFrame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
         self.frameType = 'project'
         self.app = wx.GetApp()
-        self.OSFproject = None
+        self.OSFproject = None  # updates with loadProjectFile
+        self.project = None
         self.syncStatus = None
-
-        menuBar = wx.MenuBar()
-        self.fileMenu = self.makeFileMenu()
-        menuBar.Append(self.fileMenu, _translate('&File'))
-        self.SetMenuBar(menuBar)
 
         # title
         self.title = wx.StaticText(self, -1, "No project opened",
                                    style=wx.BOLD | wx.ALIGN_CENTER)
         font = wx.Font(18, family=wx.NORMAL, style=wx.NORMAL, weight=wx.BOLD)
         self.title.SetFont(font)
-        self.title.SetMinSize((400, -1))
-        self.title.Wrap(400)
-
-        # project definition
-        projFileSizer = wx.BoxSizer(wx.HORIZONTAL)
-        projFileLabel = wx.StaticText(self, -1, "Project file:")
-        self.projFilePath = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
-        projFileBrowseBtn = wx.Button(self, -1, "Browse...")
-        projFileBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseProjFile)
-        projFileSizer.Add(projFileLabel, flag=wx.ALL, border=5)
-        projFileSizer.Add(self.projFilePath,
-                          flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
-        projFileSizer.Add(projFileBrowseBtn, flag=wx.ALL, border=5)
-
-        # remote files
-        remoteSizer = wx.BoxSizer(wx.HORIZONTAL)
-        remoteLabel = wx.StaticText(self, -1, "Remote project:")
-        self.remoteURL = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
-        remoteSizer.Add(remoteLabel, flag=wx.ALL, border=5)
-        remoteSizer.Add(self.remoteURL,
-                        flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
+        self.title.SetMinSize((300, -1))
+        self.title.Wrap(300)
         # local files
         localSizer = wx.BoxSizer(wx.HORIZONTAL)
         localLabel = wx.StaticText(self, -1, "Local files:")
         self.localPath = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
         localBrowseBtn = wx.Button(self, -1, "Browse...")
         localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        # layout
         localSizer.Add(localLabel, flag=wx.ALL, border=5)
         localSizer.Add(self.localPath,
                        flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
@@ -613,25 +610,41 @@ class ProjectSyncFrame(BaseFrame):
         # sync controls
         self.syncButton = wx.Button(self, -1, "Sync Now")
         self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncBtn)
-        self.status = wx.StaticText(self, -1, "")
+        self.syncStatus = SyncStatusPanel(parent=self, id=-1,
+                                          project=self.project)
+        self.status = wx.StaticText(self, -1, "put status updates here")
 
+        self.projDetails = DetailsPanel(parent=self, noTitle=True)
+
+        # mainSizer with title, then two columns
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.title,
-                           flag=wx.EXPAND | wx.ALL, border=5)
-        self.mainSizer.Add(projFileSizer,
-                           flag=wx.EXPAND | wx.ALL, border=5)
-        self.mainSizer.Add(remoteSizer,
-                           flag=wx.EXPAND | wx.ALL, border=5)
-        self.mainSizer.Add(localSizer,
-                           flag=wx.EXPAND | wx.ALL, border=5)
-        # sync controls
+        self.mainSizer.Add(self.title, flag=wx.ALL | wx.EXPAND,
+                           proportion=1, border=5)
+        self.mainSizer.Add(wx.StaticLine(self, -1), flag=wx.ALL,
+                           proportion=1, border=20)
 
-        self.mainSizer.Add(wx.StaticLine(self, -1),
-                           flag=wx.EXPAND | wx.ALL, border=20)
-        self.mainSizer.Add(self.syncButton,
+        # set contents for left and right sizers
+        leftSizer = wx.BoxSizer(wx.VERTICAL)
+        leftSizer.Add(self.projDetails, flag=wx.EXPAND | wx.ALL,
+                      proportion=1, border=5)
+        rightSizer = wx.BoxSizer(wx.VERTICAL)
+        rightSizer.Add(localSizer, flag=wx.EXPAND | wx.ALL,
+                       proportion=1, border=5)
+        rightSizer.Add(self.syncButton, flag=wx.EXPAND | wx.ALL,
+                       proportion=1, border=5)
+        rightSizer.Add(self.syncStatus, flag=wx.EXPAND | wx.ALL,
+                       proportion=1, border=5)
+        rightSizer.Add(self.status, flag=wx.EXPAND | wx.ALL,
+                       proportion=1, border=5)
+
+        columnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        columnSizer.Add(leftSizer, border=5,
+                        flag=wx.EXPAND | wx.ALL, proportion=2)
+        columnSizer.Add(rightSizer, border=5,
+                        flag=wx.EXPAND | wx.ALL, proportion=1)
+        self.mainSizer.Add(columnSizer,
                            flag=wx.EXPAND | wx.ALL, border=5)
-        self.mainSizer.Add(self.status,
-                           flag=wx.EXPAND | wx.ALL, border=5)
+
         self.SetSizerAndFit(self.mainSizer)
         self.SetAutoLayout(True)
         self.update()
@@ -640,17 +653,17 @@ class ProjectSyncFrame(BaseFrame):
         self.Show()
 
     def loadProjectFile(self, filepath):
-        project = pyosf.Project(project_file=filepath)
-        self.localPath.SetValue(project.root_path)
-        if project.osf:
-            self.setOSFproject(project.osf)
+        self.project = pyosf.Project(project_file=filepath)
+        if self.project.osf:
+            self.setOSFproject(self.project.osf)
         self.project = project
         self.update()
 
-    def setOSFproject(self, OSFproject):
+    def setOSFproject(self, OSFproject, ):
         self.OSFproject = OSFproject
+        self.projFilePath = ''
         self.title.SetLabel(OSFproject.title)
-        self.remoteURL.SetValue("https://osf.io/{}".format(OSFproject.id))
+        self.projDetails.setProject(OSFproject)
         self.update()
 
     def onBrowseLocal(self, evt):
@@ -659,25 +672,12 @@ class ProjectSyncFrame(BaseFrame):
             self.localPath.SetValue(dlg.GetPath())
         self.update()
 
-    def onBrowseProjFile(self, evt):
-        dlg = wx.FileDialog(self,
-                            message=("File to store project info"),
-                            style=wx.FD_SAVE,
-                            wildcard="Project files (*.psyproj)|*.psyproj")
-        if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
-            if not newPath.endswith(".psyproj"):
-                newPath += ".psyproj"
-            self.projFilePath.SetValue(newPath)
-        # try to set this project file
-        self.setProjFile(newPath)
-
     def setProjFile(self, projFile):
         """Set the path of the project file. If this loads successfully
         then the project root and OSF project ID will also be updated
         """
         if os.path.isfile(projFile):
-            self.projFilePath.SetValue(projFile)
+            # self.projFilePath.SetValue(projFile)
             project = pyosf.Project(project_file=projFile)
             # check this is the same project!
             if self.OSFproject and project.osf.id != self.OSFproject.id:
@@ -690,19 +690,11 @@ class ProjectSyncFrame(BaseFrame):
         self.update()
 
     def onSyncBtn(self, evt):
-        self.project = pyosf.Project(project_file=self.projFilePath.GetValue(),
+        self.project = pyosf.Project(project_file=self.projFilePath,
                                      root_path=self.localPath.GetValue(),
                                      osf=self.OSFproject)
         # create or reset progress indicators
-        if self.syncStatus is None:
-            self.syncStatus = SyncStatusPanel(parent=self, id=-1,
-                                              project=self.project)
-            self.mainSizer.Add(self.syncStatus,
-                               flag=wx.ALIGN_CENTER | wx.EXPAND | wx.ALL,
-                               border=5)
-            self.mainSizer.Fit(self)
-        else:
-            self.syncStatus.reset()
+        self.syncStatus.reset()
 
         self.update(status="Checking for changes")
         wx.Yield()
@@ -741,6 +733,67 @@ class ProjectSyncFrame(BaseFrame):
         self.status.SetLabel("Status: " + status)
         self.Layout()
         self.Update()
+
+
+class ProjectEditor(BaseFrame):
+    def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
+        if projId:
+            # edit existing project
+            self.isNew = False
+        else:
+            self.isNew = True
+
+
+        BaseFrame.__init__(self, None, -1, *args, **kwargs)
+        panel = wx.Panel(self,-1,style=wx.TAB_TRAVERSAL)
+        # create the controls
+        titleLabel = wx.StaticText(panel, -1, "Title:")
+        self.titleBox = wx.TextCtrl(panel, -1, size=(400, -1))
+        descrLabel = wx.StaticText(panel, -1, "Description:")
+        self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
+                               style= wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+        tagsLabel = wx.StaticText(panel, -1, "Tags (comma separated):")
+        self.tagsBox = wx.TextCtrl(panel, -1, size=(400, 100),
+                               style= wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+        publicLabel = wx.StaticText(panel, -1, "Public:")
+        self.publicBox = wx.CheckBox(panel, -1)
+        # buttons
+        if self.isNew:
+            buttonMsg = "Create project on OSF"
+        else:
+            buttonMsg = "Submit changes to OSF"
+        updateBtn = wx.Button(panel, -1, buttonMsg)
+        updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
+
+        # do layout
+        mainSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        mainSizer.AddMany([(titleLabel, 0, wx.ALIGN_RIGHT), self.titleBox,
+                           (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
+                           (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
+                           (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
+                           (0,0), (updateBtn, 0, wx.ALIGN_RIGHT)])
+        border = wx.BoxSizer()
+        border.Add(mainSizer, 0, wx.ALL, 10)
+        panel.SetSizerAndFit(border)
+        self.Fit()
+        self.Show()
+
+    def submitChanges(self, evt=None):
+        session = wx.GetApp().osf_session
+        title = self.titleBox.GetValue()
+        descr = self.descrBox.GetValue()
+        public = self.publicBox.GetValue()
+        # tags need splitting and then
+        tagsList = self.tagsBox.GetValue().split(',')
+        tags = []
+        for thisTag in tagsList:
+            tags.append(thisTag.strip())
+        if self.isNew:
+            session.create_project(title=title, descr=descr,
+                                   tags=tags, public=public)
+        else:
+            session.update_project(id, title=title, descr=descr,
+                                   tags=tags, public=public)
 
 
 class SyncStatusPanel(wx.Panel):
