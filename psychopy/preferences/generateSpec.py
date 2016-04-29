@@ -3,6 +3,11 @@
 # generate .spec files for all OS's based on differences from baseNoArch.spec
 # copies & tweaks baseNoArch.spec -> write out as platform specific .spec file
 
+import os
+
+startPath = os.getcwd()
+os.chdir(os.path.split(__file__)[0])
+
 # load the base prefs common to all platforms as a single string:
 baseSpec = open('baseNoArch.spec').read()
 warning = '''\n\n# !! This file is auto-generated and will be overwritten!!
@@ -65,3 +70,5 @@ winSpec = winSpec.replace('Ctrl+Q',
 f = open('Windows.spec', 'wb')
 f.write(winSpec)
 f.close()
+
+os.chdir(startPath)
