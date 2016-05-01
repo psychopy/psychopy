@@ -53,9 +53,6 @@ class ProjectsMenu(wx.Menu):
         global usersList
         self.userList = usersList
 
-        if self.app.osf_session is None:
-            # create a default (anonymous) session with osf
-            self.app.osf_session = pyosf.Session()
 
         self.Append(wxIDs.projsAbout, "Tell me more...")
         wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
@@ -63,6 +60,10 @@ class ProjectsMenu(wx.Menu):
             self.Append(wx.NewId(), "Requires pyosf (not installed)")
             ProjectsMenu.knownUsers = {}
         else:
+            if self.app.osf_session is None:
+                # create a default (anonymous) session with osf
+                self.app.osf_session = pyosf.Session()
+
             ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
 
         # sub-menu to open previous or new projects
