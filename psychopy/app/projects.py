@@ -10,27 +10,70 @@ import wx
 import wx.lib.scrolledpanel as scrlpanel
 from wx import richtext
 
-try:
-    import pyosf
-    from pyosf import constants
-    constants.PROJECT_NAME = "PsychoPy"
-    havePyosf = True
-except ImportError:
-    havePyosf = False
 from . import wxIDs
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
 from .localization import _translate
 import requests.exceptions
 
-# Projects FileHistory sub-menu
-idBase = wx.NewId()
-projHistory = wx.FileHistory(maxFiles=10, idBase=idBase)
-projHistory.idBase = idBase
-for filename in prefs.appData['projects']['fileHistory']:
-    projHistory.AddFileToHistory(filename)
+try:
+    import pyosf
+    from pyosf import constants
+    constants.PROJECT_NAME = "PsychoPy"
+    havePyosf = True
+    if pyosf.__version__ < "1.0.3":
+        logging.warn("pyosf is version {} whereas PsychoPy expects 1.0.3+"
+                     .format(pyosf.__version__))
+except ImportError:
+    havePyosf = False
 
 usersList = wx.FileHistory(maxFiles=10, idBase=wx.NewId())
+
+
+class ProjectCatalog(dict):
+    """Handles info about known project files (either in project history or in
+    the ~/.psychopy/projects folder).
+    """
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.refresh()
+
+    def projFromId(self, id):
+        for key, item in self.items():
+            if item.id == id:
+                return key, item
+
+    def projFromName(self, name):
+        for key, item in self.items():
+            if item.name == name:
+                return key, item
+
+    def refresh(self):
+        """Search the locations and update the catalog
+        """
+        # prev used files
+        projFiles = set(prefs.appData['projects']['fileHistory'])
+        rootPath = os.path.join(prefs.paths['userPrefsDir'], 'projects')
+        projFiles.update(glob.glob(rootPath+"/*.proj"))  # like list extend
+        self.dict = {}
+        for filePath in projFiles:
+            thisProj = pyosf.Project(projFile)  # load proj file
+            if hasattr(thisProj, 'name'):
+                name = thisProj.name
+                key = "%s: %s" % (thisProj.id, thisProj.name)
+            else:
+                name = thisProj.id
+                key = "%s: n/a" % (thisProj.id)
+            self.dict[key] = thisProj
+
+projectCatalog = ProjectCatalog()
+
+# Projects FileHistory sub-menu
+idBase = wx.NewId()
+projHistory = wx.FileHistory(maxFiles=16, idBase=idBase)
+projHistory.idBase = idBase
+for key in projectCatalog:
+    projHistory.AddFileToHistory(key)
 
 
 class ProjectsMenu(wx.Menu):
@@ -120,7 +163,8 @@ class ProjectsMenu(wx.Menu):
     def onProjFromHistory(self, evt=None):
         # get the file based on the menu ID
         fileNum = evt.GetId() - self.projHistory.idBase
-        path = self.projHistory.GetHistoryFile(fileNum)
+        projName = self.projHistory.GetHistoryFile(fileNum)
+        projPath =
         self.openProj(path)
 
     def onAbout(self, event):
@@ -170,7 +214,14 @@ class ProjectsMenu(wx.Menu):
         """Create a new project for OSF
         """
         if self.app.osf_session.user_id:
-            thisProj = ProjectEditor()
+            projEditor = ProjectEditor()
+            projEditor.Show()
+            if projEditor.OSFproj:  # exists if all worked
+                projInfo = projEditor.projInfo
+                projFrame = ProjectFrame(parent=self.app, id=-1,
+                                         title=projInfo['title'])
+                projFrame.setOSFproject(projEditor.OSFproj)
+
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message="You need to log in"
@@ -189,8 +240,8 @@ class ProjectsMenu(wx.Menu):
 
     def openProj(self, projFile):
         # create a sync frame to put that in
-        syncFrame = ProjectFrame(parent=self.app, id=-1)
-        syncFrame.setProjFile(projFile)
+        projFrame = ProjectFrame(parent=self.app, id=-1)
+        projFrame.setProjFile(projFile)
         self.updateProjHist(projFile)
 
     def updateProjHist(self, projFile):
@@ -580,7 +631,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 class ProjectFrame(BaseFrame):
 
     def __init__(self, parent, id, size=(400, 300), *args, **kwargs):
-        BaseFrame.__init__(self, parent=None, id=id, size=size, *args, **kwargs)
+        BaseFrame.__init__(self, parent=None, id=id, size=size,
+                           *args, **kwargs)
         self.frameType = 'project'
         self.app = wx.GetApp()
         self.OSFproject = None  # updates with loadProjectFile
@@ -653,14 +705,17 @@ class ProjectFrame(BaseFrame):
 
     def loadProjectFile(self, filepath):
         self.project = pyosf.Project(project_file=filepath)
+        self.projFilePath = filepath
         if self.project.osf:
             self.setOSFproject(self.project.osf)
         self.project = project
         self.update()
 
-    def setOSFproject(self, OSFproject, ):
+    def setOSFproject(self, OSFproject):
+        """This is run when we get a project from the search dialog (rather
+        than from a previously loaded project file)
+        """
         self.OSFproject = OSFproject
-        self.projFilePath = ''
         self.title.SetLabel(OSFproject.title)
         self.projDetails.setProject(OSFproject)
         self.update()
@@ -676,9 +731,9 @@ class ProjectFrame(BaseFrame):
         then the project root and OSF project ID will also be updated
         """
         if os.path.isfile(projFile):
-            # self.projFilePath.SetValue(projFile)
+            self.projFilePath = projFile
             project = pyosf.Project(project_file=projFile)
-            # check this is the same project!
+            # check this is the same project !
             if self.OSFproject and project.osf.id != self.OSFproject.id:
                 raise IOError("The project file relates to a different"
                               "OSF project and cannot be used for this one")
@@ -689,6 +744,7 @@ class ProjectFrame(BaseFrame):
         self.update()
 
     def onSyncBtn(self, evt):
+        # not sure the next line is needed - won't we have this by now?
         self.project = pyosf.Project(project_file=self.projFilePath,
                                      root_path=self.localPath.GetValue(),
                                      osf=self.OSFproject)
@@ -736,18 +792,23 @@ class ProjectFrame(BaseFrame):
 
 class ProjectEditor(BaseFrame):
     def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
+        BaseFrame.__init__(self, None, -1, *args, **kwargs)
+        panel = wx.Panel(self,-1,style=wx.TAB_TRAVERSAL)
+        # when a project is succesffully created these will be populated
+        self.osfProj = None
+        self.projInfo = None
+
         if projId:
             # edit existing project
             self.isNew = False
         else:
             self.isNew = True
 
-
-        BaseFrame.__init__(self, None, -1, *args, **kwargs)
-        panel = wx.Panel(self,-1,style=wx.TAB_TRAVERSAL)
         # create the controls
         titleLabel = wx.StaticText(panel, -1, "Title:")
         self.titleBox = wx.TextCtrl(panel, -1, size=(400, -1))
+        nameLabel = wx.StaticText(panel, -1, "Name \n(for local id):")
+        self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         descrLabel = wx.StaticText(panel, -1, "Description:")
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
                                style= wx.TE_MULTILINE | wx.SUNKEN_BORDER)
@@ -765,8 +826,10 @@ class ProjectEditor(BaseFrame):
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
 
         # do layout
-        mainSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        mainSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
         mainSizer.AddMany([(titleLabel, 0, wx.ALIGN_RIGHT), self.titleBox,
+                           (nameLabel, 0, wx.ALIGN_RIGHT),
+                           (self.nameBox, 0 wx.EXPAND),
                            (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
                            (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
                            (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
@@ -775,24 +838,32 @@ class ProjectEditor(BaseFrame):
         border.Add(mainSizer, 0, wx.ALL, 10)
         panel.SetSizerAndFit(border)
         self.Fit()
-        self.Show()
 
     def submitChanges(self, evt=None):
         session = wx.GetApp().osf_session
-        title = self.titleBox.GetValue()
-        descr = self.descrBox.GetValue()
-        public = self.publicBox.GetValue()
+        d={}
+        d['title'] = self.titleBox.GetValue()
+        d['name'] = self.name
+        d['descr'] = self.descrBox.GetValue()
+        d['public'] = self.publicBox.GetValue()
         # tags need splitting and then
         tagsList = self.tagsBox.GetValue().split(',')
-        tags = []
+        d['tags'] = []
         for thisTag in tagsList:
-            tags.append(thisTag.strip())
+            d['tags'].append(thisTag.strip())
         if self.isNew:
-            session.create_project(title=title, descr=descr,
-                                   tags=tags, public=public)
-        else:
-            session.update_project(id, title=title, descr=descr,
-                                   tags=tags, public=public)
+            OSFproj = session.create_project(title=d['title'],
+                                             descr=d['descr'],
+                                             tags=d['tags'],
+                                             public=d['public'])
+        else:  # to be done
+            OSFproj = session.update_project(id, title=d['title'],
+                                             descr=d['descr'],
+                                             tags=d['tags'],
+                                             public=d['public'])
+        self.OSFproj = OSFproj
+        self.projInfo = d
+        self.Destroy()  # kill the dialog
 
 
 class SyncStatusPanel(wx.Panel):
