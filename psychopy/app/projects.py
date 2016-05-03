@@ -23,14 +23,12 @@ from psychopy.app import dialogs
 from .localization import _translate
 
 # Projects FileHistory sub-menu
-global projHistory
 idBase = wx.NewId()
 projHistory = wx.FileHistory(maxFiles=10, idBase=idBase)
 projHistory.idBase = idBase
 for filename in prefs.appData['projects']['fileHistory']:
     projHistory.AddFileToHistory(filename)
 
-global usersList
 usersList = wx.FileHistory(maxFiles=10, idBase=wx.NewId())
 
 
