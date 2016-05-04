@@ -971,25 +971,13 @@ class ioHubConnection(object):
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
 
-        # <<<<< Done starting iohub subprocess
-
-        # >>>> Wait for iohub server ready signal ....
-        hubonline = False
-        # timeout if ioServer does not reply in 30 seconds
-        timeout_duration = ioHubConfig.get('start_process_timeout', 30.0)
-        timeout_time = Computer.getTime() + timeout_duration
-        while hubonline is False and Computer.getTime() < timeout_time:
-            r = self._sendToHubServer(['GET_IOHUB_STATUS', ])
-            if r:
-                hubonline = r[1] == 'RUNNING'
-            time.sleep(0.1)
-        # # <<<< Finished wait for iohub server ready signal ....
-
         # If ioHub server did not respond correctly,
         # terminate process and exit the program.
-        if hubonline is False:
+        if self._waitForServerInit() is False:
             self._server_process.terminate()
             return "'ioHub startup failed."
+
+        # <<<<< Done starting iohub subprocess
 
         ioHubConnection.ACTIVE_CONNECTION = proxy(self)
 
@@ -1025,6 +1013,21 @@ class ioHubConnection(object):
         self._createDeviceList(ioHubConfig['monitor_devices'])
 
         return 'OK'
+
+    def _waitForServerInit(self):
+        # >>>> Wait for iohub server ready signal ....
+        hubonline = False
+        # timeout if ioServer does not reply in 30 seconds
+        timeout_duration = self._iohub_server_config.get('start_process_timeout', 30.0)
+        timeout_time = Computer.getTime() + timeout_duration
+        while hubonline is False and Computer.getTime() < timeout_time:
+            r = self._sendToHubServer(['GET_IOHUB_STATUS', ])
+            if r:
+                hubonline = r[1] == 'RUNNING'
+            time.sleep(0.1)
+        return hubonline
+
+        # # <<<< Finished wait for iohub server ready signal ....
 
     def _createDeviceList(self, monitor_devices_config):
         """Create client side iohub device views.

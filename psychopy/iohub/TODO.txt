@@ -68,6 +68,9 @@ TODO list for the isolver/psychopy lazyimport branch
         - communication of issues to client process.
         - reporting of issues by client process
     - Consistent device status reporting after client starts iohub process.
-    - How iohub subprocess starts and how client knows server is ready:
-        - remove use of pipe for this.
     - Create files in user writable folder (use OS specific standard folders)
+
+
+** Fixed / Completed **
+    - How iohub subprocess starts and how client knows server is ready:
+        -  remove use of pipe for this.
