@@ -363,6 +363,9 @@ class RatingScale(MinimalStim):
         self.reset()  # sets .status, among other things
         self.win.setUnits(self.savedWinUnits, log=False)
 
+        self.timedOut = False
+        self.beyondMinTime = False
+
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
         if autoLog:

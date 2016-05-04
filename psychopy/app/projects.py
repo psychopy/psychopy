@@ -23,14 +23,12 @@ from psychopy.app import dialogs
 from .localization import _translate
 
 # Projects FileHistory sub-menu
-global projHistory
 idBase = wx.NewId()
 projHistory = wx.FileHistory(maxFiles=10, idBase=idBase)
 projHistory.idBase = idBase
 for filename in prefs.appData['projects']['fileHistory']:
     projHistory.AddFileToHistory(filename)
 
-global usersList
 usersList = wx.FileHistory(maxFiles=10, idBase=wx.NewId())
 
 
@@ -53,9 +51,6 @@ class ProjectsMenu(wx.Menu):
         global usersList
         self.userList = usersList
 
-        if self.app.osf_session is None:
-            # create a default (anonymous) session with osf
-            self.app.osf_session = pyosf.Session()
 
         self.Append(wxIDs.projsAbout, "Tell me more...")
         wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
@@ -63,6 +58,10 @@ class ProjectsMenu(wx.Menu):
             self.Append(wx.NewId(), "Requires pyosf (not installed)")
             ProjectsMenu.knownUsers = {}
         else:
+            if self.app.osf_session is None:
+                # create a default (anonymous) session with osf
+                self.app.osf_session = pyosf.Session()
+
             ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
 
         # sub-menu to open previous or new projects
