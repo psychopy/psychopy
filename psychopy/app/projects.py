@@ -6,9 +6,9 @@ from __future__ import absolute_import
 
 import os
 import time
+import glob
 import wx
 import wx.lib.scrolledpanel as scrlpanel
-from wx import richtext
 
 from . import wxIDs
 from psychopy import logging, web, prefs
@@ -40,31 +40,30 @@ class ProjectCatalog(dict):
 
     def projFromId(self, id):
         for key, item in self.items():
-            if item.id == id:
+            if item.project_id == id:
                 return key, item
-
-    def projFromName(self, name):
-        for key, item in self.items():
-            if item.name == name:
-                return key, item
+        return (None, None)  # got here without finding anything
 
     def refresh(self):
         """Search the locations and update the catalog
         """
         # prev used files
-        projFiles = set(prefs.appData['projects']['fileHistory'])
+        projFileList = set(prefs.appData['projects']['fileHistory'])
         rootPath = os.path.join(prefs.paths['userPrefsDir'], 'projects')
-        projFiles.update(glob.glob(rootPath+"/*.proj"))  # like list extend
-        self.dict = {}
-        for filePath in projFiles:
-            thisProj = pyosf.Project(projFile)  # load proj file
-            if hasattr(thisProj, 'name'):
-                name = thisProj.name
-                key = "%s: %s" % (thisProj.id, thisProj.name)
-            else:
-                name = thisProj.id
-                key = "%s: n/a" % (thisProj.id)
-            self.dict[key] = thisProj
+        projFileList.update(glob.glob(rootPath+"/*.psyproj"))
+        self.clear()
+        for filePath in projFileList:
+            self.addFile(filePath)
+
+    def addFile(self, filePath):
+        thisProj = pyosf.Project(project_file=filePath)  # load proj file
+        if hasattr(thisProj, 'name'):
+            key = "%s: %s" % (thisProj.project_id, thisProj.name)
+        else:
+            key = "%s: n/a" % (thisProj.project_id)
+        if key not in self:
+            self[key] = thisProj
+        return key
 
 projectCatalog = ProjectCatalog()
 
@@ -94,7 +93,6 @@ class ProjectsMenu(wx.Menu):
         self.projHistory = projHistory  # so we can treat as local from here
         global usersList
         self.userList = usersList
-
 
         self.Append(wxIDs.projsAbout, "Tell me more...")
         wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
@@ -141,7 +139,7 @@ class ProjectsMenu(wx.Menu):
 
         # search
         self.Append(wxIDs.projsSearch,
-                    "Search OSF\t{}".format(keys['projectFind']))
+                    "Search OSF\t{}".format(keys['projectsFind']))
         wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
 
         # new
@@ -158,14 +156,16 @@ class ProjectsMenu(wx.Menu):
         wx.EVT_MENU(self.parent, thisId, function)
 
     def addFileToHistory(self, filename):
-        self.projHistory.AddFileToHistory(filename)
+        key = projectCatalog.addFile(filename)
+        self.projHistory.AddFileToHistory(key)
 
     def onProjFromHistory(self, evt=None):
         # get the file based on the menu ID
         fileNum = evt.GetId() - self.projHistory.idBase
-        projName = self.projHistory.GetHistoryFile(fileNum)
-        projPath =
-        self.openProj(path)
+        projString = self.projHistory.GetHistoryFile(fileNum)
+        projID, projName = projString.split(": ")
+        projString, project = projectCatalog.projFromId(projID)
+        self.openProj(project)
 
     def onAbout(self, event):
         logging.info("")
@@ -216,12 +216,12 @@ class ProjectsMenu(wx.Menu):
         if self.app.osf_session.user_id:
             projEditor = ProjectEditor()
             projEditor.Show()
-            if projEditor.OSFproj:  # exists if all worked
+            if projEditor.OSFproject:  # exists if all worked
                 projInfo = projEditor.projInfo
                 projFrame = ProjectFrame(parent=self.app, id=-1,
                                          title=projInfo['title'])
-                projFrame.setOSFproject(projEditor.OSFproj)
-
+                projFrame.setProject(projEditor.OSFproj, name=projInfo['name'])
+                projFrame.Show()
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message="You need to log in"
@@ -238,15 +238,18 @@ class ProjectsMenu(wx.Menu):
             projFile = dlg.GetPath()
             self.openProj(projFile)
 
-    def openProj(self, projFile):
+    def openProj(self, project):
         # create a sync frame to put that in
         projFrame = ProjectFrame(parent=self.app, id=-1)
-        projFrame.setProjFile(projFile)
-        self.updateProjHist(projFile)
+        projFrame.setProject(project)
+        # also update history with file path
+        projectFile = project.project_file
+        self.updateProjHist(projectFile)
 
     def updateProjHist(self, projFile):
         # add it back to the history so it will be moved up the list
-        self.projHistory.AddFileToHistory(projFile)  # the menu item
+        key = projectCatalog.addFile(projFile)
+        self.projHistory.AddFileToHistory(key)
         projList = ProjectsMenu.appData['fileHistory']  # the saved history
         if projFile not in projList:
             projList.insert(0, projFile)
@@ -393,7 +396,7 @@ class SearchFrame(BaseFrame):
         self.frameType = 'OSFsearch'
         BaseFrame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
-        self.currentProject = None
+        self.currentOSFProject = None
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
@@ -459,13 +462,13 @@ class SearchFrame(BaseFrame):
         self.updateUserProjs()  # update the info in myProjectsPanel
 
     def onSyncButton(self, event):
-        if self.currentProject is None:
+        if self.currentOSFProject is None:
             raise AttributeError("User pressed the sync button with no "
-                                 "searchDlg.currentProject existing. "
+                                 "searchDlg.currentOSFProject existing. "
                                  "Ask them how they managed that!")
         projFrame = ProjectFrame(parent=self.app, id=-1,
-                                     title=self.currentProject.title)
-        projFrame.setOSFproject(self.currentProject)
+                                 title=self.currentOSFProject.title)
+        projFrame.setProject(self.currentOSFProject)
         self.Close()  # we're going over to the project window
 
     def updateUserProjs(self):
@@ -547,10 +550,10 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
         self.parent.detailsPanel.setProject(proj)
         if 'write' in proj.attributes['current_user_permissions']:
             self.parent.syncButton.Enable(True)
-            self.parent.currentProject = proj
+            self.parent.currentOSFProject = proj
         else:
             self.parent.syncButton.Enable(False)
-            self.parent.currentProject = None
+            self.parent.currentOSFProject = None
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -628,6 +631,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.title.Wrap(w-20)
         self.Layout()
 
+
 class ProjectFrame(BaseFrame):
 
     def __init__(self, parent, id, size=(400, 300), *args, **kwargs):
@@ -635,7 +639,7 @@ class ProjectFrame(BaseFrame):
                            *args, **kwargs)
         self.frameType = 'project'
         self.app = wx.GetApp()
-        self.OSFproject = None  # updates with loadProjectFile
+        self.OSFproject = None
         self.project = None
         self.syncStatus = None
 
@@ -647,53 +651,65 @@ class ProjectFrame(BaseFrame):
         self.title.SetMinSize((300, -1))
         self.title.Wrap(300)
         # local files
-        localSizer = wx.BoxSizer(wx.HORIZONTAL)
-        localLabel = wx.StaticText(self, -1, "Local files:")
-        self.localPath = wx.TextCtrl(self, -1, "", style=wx.TE_READONLY)
         localBrowseBtn = wx.Button(self, -1, "Browse...")
         localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        self.localPath = wx.StaticText(self, -1, "")
         # layout
-        localSizer.Add(localLabel, flag=wx.ALL, border=5)
-        localSizer.Add(self.localPath,
-                       flag=wx.EXPAND | wx.ALL, proportion=1, border=5)
-        localSizer.Add(localBrowseBtn, flag=wx.ALL, border=5)
+        localsBox = wx.StaticBox(self, -1, "Local Info")
+        localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
+        nameLabel = wx.StaticText(self, -1, "Name:\n(for PsychoPy use)")
+        self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
+        nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        nameSizer.Add(nameLabel, flag=wx.ALIGN_RIGHT)
+        nameSizer.Add(self.nameCtrl, flag=wx.EXPAND)
+        localsSizer.Add(nameSizer)
+        filesSizer = wx.BoxSizer(wx.HORIZONTAL)
+        filesSizer.Add(wx.StaticText(self, -1, "Local files:"))
+        filesSizer.Add(localBrowseBtn, flag=wx.EXPAND | wx.ALL,
+                        proportion=1, border=5)
+        localsSizer.Add(filesSizer, flag=wx.LEFT | wx.RIGHT, border=5)
+        localsSizer.Add(self.localPath, flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
+                        proportion=1, border=5)
 
         # sync controls
+        syncBox = wx.StaticBox(self, -1, "Sync")
         self.syncButton = wx.Button(self, -1, "Sync Now")
         self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncBtn)
-        self.syncStatus = SyncStatusPanel(parent=self, id=-1,
+        self.syncStatus = SyncStatusPanel(self, id=-1,
                                           project=self.project)
         self.status = wx.StaticText(self, -1, "put status updates here")
+        syncSizer = wx.StaticBoxSizer(syncBox, wx.VERTICAL)
+        syncSizer.Add(self.syncButton, flag=wx.EXPAND | wx.ALL,
+                      proportion=1, border=5)
+        syncSizer.Add(self.syncStatus, flag=wx.EXPAND | wx.ALL,
+                      proportion=1, border=5)
+        syncSizer.Add(self.status, flag=wx.EXPAND | wx.ALL,
+                      proportion=1, border=5)
 
+        projBox = wx.StaticBox(self, -1, "Project Info")
+        projSizer = wx.StaticBoxSizer(projBox, wx.VERTICAL)
         self.projDetails = DetailsPanel(parent=self, noTitle=True)
-
+        projSizer.Add(self.projDetails, flag=wx.EXPAND | wx.ALL,
+                      proportion=1, border=5)
         # mainSizer with title, then two columns
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.title, flag=wx.ALL | wx.EXPAND,
-                           proportion=1, border=5)
-        self.mainSizer.Add(wx.StaticLine(self, -1), flag=wx.ALL,
-                           proportion=1, border=20)
+        self.mainSizer.Add(self.title,
+                           flag=wx.ALIGN_CENTER | wx.ALL, border=20)
 
         # set contents for left and right sizers
         leftSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer.Add(self.projDetails, flag=wx.EXPAND | wx.ALL,
+        leftSizer.Add(projSizer, flag=wx.EXPAND | wx.ALL,
                       proportion=1, border=5)
         rightSizer = wx.BoxSizer(wx.VERTICAL)
-        rightSizer.Add(localSizer, flag=wx.EXPAND | wx.ALL,
-                       proportion=1, border=5)
-        rightSizer.Add(self.syncButton, flag=wx.EXPAND | wx.ALL,
-                       proportion=1, border=5)
-        rightSizer.Add(self.syncStatus, flag=wx.EXPAND | wx.ALL,
-                       proportion=1, border=5)
-        rightSizer.Add(self.status, flag=wx.EXPAND | wx.ALL,
-                       proportion=1, border=5)
+        rightSizer.Add(localsSizer, flag=wx.ALL, border=5)
+        rightSizer.Add(syncSizer, flag=wx.ALL, border=5)
 
         columnSizer = wx.BoxSizer(wx.HORIZONTAL)
         columnSizer.Add(leftSizer, border=5,
-                        flag=wx.EXPAND | wx.ALL, proportion=2)
+                        flag=wx.EXPAND | wx.ALL, proportion=1)
         columnSizer.Add(rightSizer, border=5,
                         flag=wx.EXPAND | wx.ALL, proportion=1)
-        self.mainSizer.Add(columnSizer,
+        self.mainSizer.Add(columnSizer, proportion=1,
                            flag=wx.EXPAND | wx.ALL, border=5)
 
         self.SetSizerAndFit(self.mainSizer)
@@ -703,51 +719,68 @@ class ProjectFrame(BaseFrame):
         self.app.trackFrame(self)
         self.Show()
 
-    def loadProjectFile(self, filepath):
-        self.project = pyosf.Project(project_file=filepath)
-        self.projFilePath = filepath
-        if self.project.osf:
-            self.setOSFproject(self.project.osf)
-        self.project = project
+    def onBrowseLocal(self, evt):
+        dlg = wx.DirDialog(self, message=("Root folder of your local files"))
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            self.localPath.SetValue(newPath)
+            if self.project:
+                self.project.root_path = newPath
         self.update()
 
-    def setOSFproject(self, OSFproject):
+    def setProject(self, project, name=None):
+        """Sets the current pyosf.Project (which then sets OSF remote project)
+
+        :params:
+
+            - project can be a pysof.Project object or a filename to load
+
+        If this loads successfully then the project root and OSF project ID
+        will also be updated
+        """
+        if isinstance(project, pyosf.Project):
+            self._setLocalProject(project)
+            self._setOSFproject(project.osf)
+        elif isinstance(project, pyosf.remote.OSFProject):
+            self._setOSFproject(project)
+            projStr, localProj = projectCatalog.projFromId(project.id)
+            if localProj is None:  # create a project for it
+                localPath = "%s/%s.psyproj" % (prefs.paths['userPrefsDir'],
+                                               name)
+                localProj = pyosf.Project(project_file=localPath, osf=project)
+                localProj.save()
+                projectCatalog.addFile(localPath)
+            self._setLocalProject(localProj)
+        elif os.path.isfile(project):
+            self.projFilePath = project
+            project = pyosf.Project(project_file=project)
+            # check this is the same project !
+            if self.OSFproject and project.osf.id != self.OSFproject.id:
+                raise IOError("The project file relates to a different"
+                              "OSF project and cannot be used for this one")
+            self.project = project  # do this after checking that it's valid
+        self.update()
+
+    def _setOSFproject(self, OSFproject):
         """This is run when we get a project from the search dialog (rather
         than from a previously loaded project file)
         """
         self.OSFproject = OSFproject
         self.title.SetLabel(OSFproject.title)
-        self.projDetails.setProject(OSFproject)
+        self.projDetails.setProject(OSFproject)  # update the dialog box
         self.update()
 
-    def onBrowseLocal(self, evt):
-        dlg = wx.DirDialog(self, message=("Root folder of your local files"))
-        if dlg.ShowModal() == wx.ID_OK:
-            self.localPath.SetValue(dlg.GetPath())
-        self.update()
-
-    def setProjFile(self, projFile):
-        """Set the path of the project file. If this loads successfully
-        then the project root and OSF project ID will also be updated
-        """
-        if os.path.isfile(projFile):
-            self.projFilePath = projFile
-            project = pyosf.Project(project_file=projFile)
-            # check this is the same project !
-            if self.OSFproject and project.osf.id != self.OSFproject.id:
-                raise IOError("The project file relates to a different"
-                              "OSF project and cannot be used for this one")
-            self.localPath.SetValue(project.root_path)
-            if project.osf:
-                self.setOSFproject(project.osf)
-            self.project = project
-        self.update()
+    def _setLocalProject(self, project):
+        self.project = project
+        self.projFilePath = project.project_file
+        if self.project.root_path:
+            self.localPath.SetLabel(self.project.root_path)  # update the gui
+        if self.project.name:
+            self.SetTitle("{}: {}".format(project.project_id, project.name))
+        else:
+            self.SetTitle("{}".format(project.project_id))
 
     def onSyncBtn(self, evt):
-        # not sure the next line is needed - won't we have this by now?
-        self.project = pyosf.Project(project_file=self.projFilePath,
-                                     root_path=self.localPath.GetValue(),
-                                     osf=self.OSFproject)
         # create or reset progress indicators
         self.syncStatus.reset()
 
@@ -765,9 +798,6 @@ class ProjectFrame(BaseFrame):
                 self.update("Sync complete")
                 changes.finish_sync()
                 self.project.save()
-                # get rid of progress markers
-                self.syncStatus.Destroy()
-                self.syncStatus = None
                 break
             else:
                 self.syncStatus.setProgress(progress)
@@ -779,7 +809,7 @@ class ProjectFrame(BaseFrame):
             if not self.OSFproject:
                 status = "No remote project set"
                 self.syncButton.Enable(False)
-            elif not self.localPath or not self.localPath.GetValue():
+            elif not self.localPath or not self.localPath.GetLabel():
                 status = "No local folder to sync with"
                 self.syncButton.Enable(False)
             else:
@@ -793,9 +823,9 @@ class ProjectFrame(BaseFrame):
 class ProjectEditor(BaseFrame):
     def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
         BaseFrame.__init__(self, None, -1, *args, **kwargs)
-        panel = wx.Panel(self,-1,style=wx.TAB_TRAVERSAL)
+        panel = wx.Panel(self, -1, style=wx.TAB_TRAVERSAL)
         # when a project is succesffully created these will be populated
-        self.osfProj = None
+        self.OSFproject = None
         self.projInfo = None
 
         if projId:
@@ -811,10 +841,10 @@ class ProjectEditor(BaseFrame):
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         descrLabel = wx.StaticText(panel, -1, "Description:")
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
-                               style= wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+                                    style = wx.TE_MULTILINE | wx.SUNKEN_BORDER)
         tagsLabel = wx.StaticText(panel, -1, "Tags (comma separated):")
         self.tagsBox = wx.TextCtrl(panel, -1, size=(400, 100),
-                               style= wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+                                   style = wx.TE_MULTILINE | wx.SUNKEN_BORDER)
         publicLabel = wx.StaticText(panel, -1, "Public:")
         self.publicBox = wx.CheckBox(panel, -1)
         # buttons
@@ -829,11 +859,11 @@ class ProjectEditor(BaseFrame):
         mainSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
         mainSizer.AddMany([(titleLabel, 0, wx.ALIGN_RIGHT), self.titleBox,
                            (nameLabel, 0, wx.ALIGN_RIGHT),
-                           (self.nameBox, 0 wx.EXPAND),
+                           (self.nameBox, 0, wx.EXPAND),
                            (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
                            (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
                            (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
-                           (0,0), (updateBtn, 0, wx.ALIGN_RIGHT)])
+                           (0, 0), (updateBtn, 0, wx.ALIGN_RIGHT)])
         border = wx.BoxSizer()
         border.Add(mainSizer, 0, wx.ALL, 10)
         panel.SetSizerAndFit(border)
@@ -841,9 +871,9 @@ class ProjectEditor(BaseFrame):
 
     def submitChanges(self, evt=None):
         session = wx.GetApp().osf_session
-        d={}
+        d = {}
         d['title'] = self.titleBox.GetValue()
-        d['name'] = self.name
+        d['name'] = self.nameBox.GetValue()
         d['descr'] = self.descrBox.GetValue()
         d['public'] = self.publicBox.GetValue()
         # tags need splitting and then
@@ -852,16 +882,16 @@ class ProjectEditor(BaseFrame):
         for thisTag in tagsList:
             d['tags'].append(thisTag.strip())
         if self.isNew:
-            OSFproj = session.create_project(title=d['title'],
-                                             descr=d['descr'],
-                                             tags=d['tags'],
-                                             public=d['public'])
+            OSFproject = session.create_project(title=d['title'],
+                                                descr=d['descr'],
+                                                tags=d['tags'],
+                                                public=d['public'])
         else:  # to be done
-            OSFproj = session.update_project(id, title=d['title'],
-                                             descr=d['descr'],
-                                             tags=d['tags'],
-                                             public=d['public'])
-        self.OSFproj = OSFproj
+            OSFproject = session.update_project(id, title=d['title'],
+                                                descr=d['descr'],
+                                                tags=d['tags'],
+                                                public=d['public'])
+        self.OSFproject = OSFproject
         self.projInfo = d
         self.Destroy()  # kill the dialog
 
@@ -870,6 +900,7 @@ class SyncStatusPanel(wx.Panel):
     def __init__(self, parent, id, project, *args, **kwargs):
         wx.Panel.__init__(self, parent, id, *args, **kwargs)
         self.project = project
+
         self.sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         self.sizer.AddGrowableCol(1)
 
@@ -889,6 +920,7 @@ class SyncStatusPanel(wx.Panel):
 
     def setProgress(self, progress):
         upDone, upTot = progress['up']
+        print upDone, upTot
         downDone, downTot = progress['down']
         if upTot == 0:
             self.upProg.SetRange(1)
