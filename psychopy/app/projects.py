@@ -387,6 +387,11 @@ class BaseFrame(wx.Frame):
     def closeFrame(self, event=None, checkSave=True):
         self.Destroy()
 
+    def checkSave(self):
+        """If the app asks whether everything is safely saved
+        """
+        return True  # for OK
+
 
 class SearchFrame(BaseFrame):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
@@ -642,6 +647,7 @@ class ProjectFrame(BaseFrame):
                            *args, **kwargs)
         self.frameType = 'project'
         self.app = wx.GetApp()
+        self.app.trackFrame(self)
         self.OSFproject = None
         self.project = None
         self.syncStatus = None
@@ -653,35 +659,32 @@ class ProjectFrame(BaseFrame):
         self.title.SetFont(font)
         self.title.SetMinSize((300, -1))
         self.title.Wrap(300)
+        # name box
+        nameBox = wx.StaticBox(self, -1, "Name (for PsychoPy use):")
+        nameSizer = wx.StaticBoxSizer(nameBox, wx.VERTICAL)
+        self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
+        nameSizer.Add(self.nameCtrl, flag=wx.EXPAND | wx.ALL, border=5)
         # local files
+        localsBox = wx.StaticBox(self, -1, "Local Info")
+        localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
         localBrowseBtn = wx.Button(self, -1, "Browse...")
         localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         self.localPath = wx.StaticText(self, -1, "")
-        # layout
-        localsBox = wx.StaticBox(self, -1, "Local Info")
-        localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
-        nameLabel = wx.StaticText(self, -1, "Name:\n(for PsychoPy use)")
-        self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
-        nameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        nameSizer.Add(nameLabel, flag=wx.ALIGN_RIGHT)
-        nameSizer.Add(self.nameCtrl, flag=wx.EXPAND)
-        localsSizer.Add(nameSizer)
         filesSizer = wx.BoxSizer(wx.HORIZONTAL)
         filesSizer.Add(wx.StaticText(self, -1, "Local files:"))
-        filesSizer.Add(localBrowseBtn, flag=wx.EXPAND | wx.ALL,
-                       proportion=1, border=5)
-        localsSizer.Add(filesSizer, flag=wx.LEFT | wx.RIGHT, border=5)
+        filesSizer.Add(localBrowseBtn, flag=wx.ALL, border=5)
+        localsSizer.Add(filesSizer, flag=wx.ALL, border=5)
         localsSizer.Add(self.localPath, flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
                         proportion=1, border=5)
 
         # sync controls
         syncBox = wx.StaticBox(self, -1, "Sync")
+        syncSizer = wx.StaticBoxSizer(syncBox, wx.VERTICAL)
         self.syncButton = wx.Button(self, -1, "Sync Now")
         self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncBtn)
         self.syncStatus = SyncStatusPanel(self, id=-1,
                                           project=self.project)
         self.status = wx.StaticText(self, -1, "put status updates here")
-        syncSizer = wx.StaticBoxSizer(syncBox, wx.VERTICAL)
         syncSizer.Add(self.syncButton, flag=wx.EXPAND | wx.ALL,
                       proportion=1, border=5)
         syncSizer.Add(self.syncStatus, flag=wx.EXPAND | wx.ALL,
@@ -704,7 +707,10 @@ class ProjectFrame(BaseFrame):
         leftSizer.Add(projSizer, flag=wx.EXPAND | wx.ALL,
                       proportion=1, border=5)
         rightSizer = wx.BoxSizer(wx.VERTICAL)
-        rightSizer.Add(localsSizer, flag=wx.ALL, border=5)
+        rightSizer.Add(nameSizer, flag=wx.EXPAND | wx.ALL,
+                       proportion=0, border=5)
+        rightSizer.Add(localsSizer, flag=wx.EXPAND | wx.ALL,
+                       proportion=0, border=5)
         rightSizer.Add(syncSizer, flag=wx.ALL, border=5)
 
         columnSizer = wx.BoxSizer(wx.HORIZONTAL)
