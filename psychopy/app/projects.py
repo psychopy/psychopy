@@ -57,7 +57,8 @@ class ProjectCatalog(dict):
         # check for files that have gone (from prev files list)
         for filePath in projFileList:
             key = self.addFile(filePath)
-            if key is None:
+            if key is None and \
+                    (filePath in prefs.appData['projects']['fileHistory']):
                 prefs.appData['projects']['fileHistory'].remove(filePath)
 
     def addFile(self, filePath):
