@@ -56,13 +56,19 @@ class ProjectCatalog(dict):
             os.path.join(projectsFolder, "*.psyproj")))
         # check for files that have gone (from prev files list)
         for filePath in projFileList:
-            if os.path.isfile(filePath):
-                self.addFile(filePath)
-            else:
+            key = self.addFile(filePath)
+            if key is None:
                 prefs.appData['projects']['fileHistory'].remove(filePath)
 
     def addFile(self, filePath):
-        thisProj = pyosf.Project(project_file=filePath)  # load proj file
+        """Try to add the file and return a dict key (or None if non-existent)
+        """
+        if not os.path.isfile(filePath):
+            return None
+        try:
+            thisProj = pyosf.Project(project_file=filePath)  # load proj file
+        except pyosf.OSFDeleted:
+            return None
         if hasattr(thisProj, 'name'):
             key = "%s: %s" % (thisProj.project_id, thisProj.name)
         else:
