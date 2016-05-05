@@ -211,5 +211,6 @@
     # Projects: Log in
     projectsLogIn = string(default='Ctrl+Alt+I')
     projectsSync = string(default='Ctrl+Alt+Y')
-    projectFind = string(default='Ctrl+Alt+F')
+    projectsFind = string(default='Ctrl+Alt+F')
     projectsOpen = string(default='Ctrl+Alt+O')
+    projectsNew = string(default='Ctrl+Alt+N')
