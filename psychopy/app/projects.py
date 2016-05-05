@@ -182,8 +182,7 @@ class ProjectsMenu(wx.Menu):
         self.openProj(project)
 
     def onAbout(self, event):
-        logging.info("")
-        pass  # TODO: go to web page
+        wx.GetApp().followLink(event)
 
     def onSetUser(self, event):
         user = self.userMenu.GetLabelText(event.GetId())
