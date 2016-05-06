@@ -200,7 +200,7 @@ class ProjectsMenu(wx.Menu):
         except requests.exceptions.ConnectionError:
             logging.warn("Connection error trying to connect to pyosf")
         ProjectsMenu.appData['user'] = user
-        if self.searchDlg is not None:
+        if self.searchDlg:
             self.searchDlg.updateUserProjs()
 
     # def onSync(self, event):
@@ -847,7 +847,7 @@ class ProjectFrame(BaseFrame):
         self.project.username = self.OSFproject.session.username
         self.project.project_id = self.OSFproject.id
         key = projectCatalog.addFile(self.project.project_file)
-        self.projHistory.AddFileToHistory(key)
+        projHistory.AddFileToHistory(key)
 
 class ProjectEditor(BaseFrame):
     def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
