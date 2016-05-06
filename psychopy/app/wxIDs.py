@@ -25,6 +25,7 @@ remLoopFromFlow = wx.NewId()
 copyRoutine = wx.NewId()
 pasteRoutine = wx.NewId()
 renameRoutine = wx.NewId()
+fileExport = wx.NewId()
 
 # view menu
 openCoderView = wx.NewId()

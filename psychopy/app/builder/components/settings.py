@@ -33,6 +33,7 @@ _localized = {'expName': _translate("Experiment name"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version")}
 
+thisFolder = os.path.split(__file__)[0]
 
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
@@ -214,6 +215,82 @@ class SettingsComponent(object):
             val = repr(self.params['Use version'].val)
             buff.writeIndentedLines(code.format(val))
 
+    def writeInitCode(self, buff, version, localDateTime):
+
+        buff.write(
+            '#!/usr/bin/env python2\n'
+            '# -*- coding: utf-8 -*-\n'
+            '"""\nThis experiment was created using PsychoPy2 Experiment '
+            'Builder (v%s),\n'
+            '    on %s\n' % (version, localDateTime) +
+            'If you publish work using this script please cite the PsychoPy '
+            'publications:\n'
+            '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
+            'Python.\n'
+            '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
+            '    Peirce, JW (2009) Generating stimuli for neuroscience using '
+            'PsychoPy.\n'
+            '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
+            'neuro.11.010.2008\n"""\n'
+            "\nfrom __future__ import absolute_import, division\n")
+
+        self.writeUseVersion(buff)
+
+        buff.write(
+            "from psychopy import locale_setup, "
+            "%s\n" % ', '.join(self.exp.psychopyLibs) +
+            "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
+            " PAUSED,\n"
+            "                                STOPPED, FINISHED, PRESSED, "
+            "RELEASED, FOREVER)\n"
+            "import numpy as np  # whole numpy lib is available, "
+            "prepend 'np.'\n"
+            "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
+            "                   %s)\n" % ', '.join(_numpyImports[7:]) +
+            "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
+            "import os  # handy system and path functions\n" +
+            "import sys  # to get file system encoding\n"
+            "\n")
+
+    def writeInitCodeJS(self, buff, version, localDateTime):
+        headerFile = os.path.join(thisFolder, "settingsJsHeader.txt")
+        with open(headerFile, "r") as f:
+            headerTemplate = f.read()
+        header = headerTemplate.replace("{expName}", self.params['expName'].val)
+        buff.write(header)
+        buff.setIndentLevel(4, relative=False)
+        template ="""
+function setupExperiment() {{
+    debug = false;
+
+    expInfo['date'] = data.getDateStr();  // add a simple timestamp
+    expInfo['expName'] = {params[expName]};
+
+    filename = {params[Data filename]}; // XXX
+
+    // An ExperimentHandler isn't essential but helps with data saving
+    thisExp = new data.ExperimentHandler({{name:expName, version:'',
+        extraInfo:expInfo, runtimeInfo:undefined,
+        originPath:undefined,
+        savePickle:true, saveWideText:true,
+        /*dataFileName=filename*/}});
+
+    endExpNow = false; // flag for 'escape' or other condition => quit the exp
+
+    // store frame rate of monitor if we can measure it successfully
+    expInfo['frameRate']=win.getActualFrameRate();
+    if (expInfo['frameRate']!=undefined) {{
+        frameDur = 1.0/Math.round(expInfo['frameRate']);
+    }}
+    else {{
+        frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
+    }}
+
+    return NEXT;
+}}"""
+        code = template.format(params=self.params)
+        buff.writeIndentedLines(code)
+
     def writeStartCode(self, buff):
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
@@ -371,6 +448,25 @@ class SettingsComponent(object):
                 "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
         buff.writeIndentedLines(code)
 
+    def writeWindowCodeJS(self, buff):
+        template = """
+function setupWin() {{
+    // Start Code - component code to be run before the window creation
+    // Setup the Window
+    win = new visual.Window({{size:{params[Window size (pixels)]},
+        fullsc:{params[Full-screen window]}, screen:{params[Screen]},
+        allowGUI:false, allowStencil:false,
+        monitor:{params[Monitor]},
+        color:{params[color]}, colorSpace:{params[colorSpace]},
+        blendMode:{params[blendMode]},
+        units:{params[Units]}
+        }});
+    return NEXT;
+}}
+"""
+        code = template.format(params=self.params)
+        buff.writeIndentedLines(code)
+
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
@@ -387,3 +483,22 @@ class SettingsComponent(object):
                 "win.close()\n"
                 "core.quit()\n")
         buff.writeIndentedLines(code)
+
+    def writeEndCodeJS(self, buff):
+        quitFunc = """
+function quitPsychoJS() {
+    win.close()
+    core.quit();
+    return QUIT;
+}
+"""
+        footer = """
+          run();
+        }
+      });
+    </script>
+
+  </body>
+</html>"""
+        buff.writeIndentedLines(quitFunc)
+        buff.write(footer)

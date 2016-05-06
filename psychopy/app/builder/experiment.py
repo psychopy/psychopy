@@ -181,7 +181,7 @@ class Experiment(object):
         else:
             self.routines[routineName] = routine
 
-    def writeScript(self, expPath=None):
+    def writeScript(self, expPath=None, target="PsychoPy"):
         """Write a PsychoPy script for the experiment
         """
         self.flow._prescreenValues()
@@ -195,47 +195,26 @@ class Experiment(object):
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        script.write(
-            '#!/usr/bin/env python2\n'
-            '# -*- coding: utf-8 -*-\n'
-            '"""\nThis experiment was created using PsychoPy2 Experiment '
-            'Builder (v%s),\n'
-            '    on %s\n' % (self.psychopyVersion, localDateTime) +
-            'If you publish work using this script please cite the PsychoPy '
-            'publications:\n'
-            '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
-            'Python.\n'
-            '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
-            '    Peirce, JW (2009) Generating stimuli for neuroscience using '
-            'PsychoPy.\n'
-            '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
-            'neuro.11.010.2008\n"""\n'
-            "\nfrom __future__ import absolute_import, division\n")
+        if target == "PsychoPy":
+            self.settings.writeInitCode(script,
+                                        self.psychopyVersion, localDateTime)
+            self.settings.writeStartCode(script)  # present info, make logfile
+            # writes any components with a writeStartCode()
+            self.flow.writeStartCode(script)
+            self.settings.writeWindowCode(script)  # create our visual.Window()
+            # write the rest of the code for the components
+            self.flow.writeCode(script)
+            self.settings.writeEndCode(script)  # close log file
 
-        self.settings.writeUseVersion(script)
+        elif target == "PsychoJS":
+            script.oneIndent = "  "  # use 2 spaces rather than python 4
+            self.settings.writeInitCodeJS(script,
+                                          self.psychopyVersion, localDateTime)
+            self.settings.writeWindowCodeJS(script)
+            self.flow.writeResourcesCodeJS(script)
 
-        script.write(
-            "from psychopy import locale_setup, "
-            "%s\n" % ', '.join(self.psychopyLibs) +
-            "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
-            " PAUSED,\n"
-            "                                STOPPED, FINISHED, PRESSED, "
-            "RELEASED, FOREVER)\n"
-            "import numpy as np  # whole numpy lib is available, "
-            "prepend 'np.'\n"
-            "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
-            "                   %s)\n" % ', '.join(_numpyImports[7:]) +
-            "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
-            "import os  # handy system and path functions\n" +
-            "import sys  # to get file system encoding\n"
-            "\n")
-        self.settings.writeStartCode(script)  # present info dlg, make logfile
-        # writes any components with a writeStartCode()
-        self.flow.writeStartCode(script)
-        self.settings.writeWindowCode(script)  # create our visual.Window()
-        # write the rest of the code for the components
-        self.flow.writeCode(script)
-        self.settings.writeEndCode(script)  # close log file
+
+            self.settings.writeEndCodeJS(script)
 
         return script
 
@@ -853,6 +832,10 @@ class TrialHandler(object):
         # no longer needed - initialise the trial handler just before it runs
         pass
 
+    def writeResourcesCodeJS(self, buff):
+        buff.writeIndented("resourceManager.addResource({});"
+                           .format(self.params["conditionsFile"]))
+
     def writeLoopStartCode(self, buff):
         """Write the code to create and run a sequence of trials
         """
@@ -1038,6 +1021,9 @@ class StairHandler(object):
         # not needed - initialise the staircase only when needed
         pass
 
+    def writeResourcesCodeJS(self, buff):
+        pass  # no resources needed for staircase
+
     def writeLoopStartCode(self, buff):
         # create the staircase
         # also a 'thisName' for use in "for thisTrial in trials:"
@@ -1158,6 +1144,10 @@ class MultiStairHandler(object):
                             "a trial. It alters how data files are output"))
         pass  # don't initialise at start of exp, create when needed
 
+    def writeResourcesCodeJS(self, buff):
+        buff.writeIndented("resourceManager.addResource({});"
+                           .format(self.params["conditionsFile"]))
+
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
@@ -1224,6 +1214,9 @@ class LoopInitiator(object):
         self.exp = loop.exp
         loop.initiator = self
 
+    def writeResourcesCodeJS(self, buff):
+        self.loop.writeResourcesCodeJS(buff)
+
     def writeInitCode(self, buff):
         self.loop.writeInitCode(buff)
 
@@ -1250,6 +1243,9 @@ class LoopTerminator(object):
         loop.terminator = self
 
     def writeInitCode(self, buff):
+        pass
+
+    def writeResourcesCodeJS(self, buff):
         pass
 
     def writeMainCode(self, buff):
@@ -1437,6 +1433,22 @@ class Flow(list):
             if hasattr(entry, 'writeStartCode'):
                 entry.writeStartCode(script)
 
+    def writeResourcesCodeJS(self, script):
+        """For JS we need to create a function to fetch all resources needed
+        by each loop
+        """
+        startResources = """\nfunction setupResources() {{"""
+        script.writeIndentedLines(startResources.format())
+        # ask each Routine/Loop to insert what it needs
+        for entry in self:
+            entry.writeResourcesCodeJS(script)
+        #
+        endResources = """// finally add that scheduler to the resource manager
+    resourceManager.scheduleResources(resourceScheduler);
+    return NEXT;
+}}"""
+        script.writeIndentedLines(endResources.format())
+
     def writeCode(self, script):
         """Write the rest of the code
         """
@@ -1529,6 +1541,10 @@ class Routine(list):
         buff.writeIndented('continueRoutine = True\n')
         for thisCompon in self:
             thisCompon.writeInitCode(buff)
+
+    def writeResourcesCodeJS(self, buff):
+        buff.writeIndented("// <<maybe need to load images for {}?>>"
+                           .format(self.name))
 
     def writeMainCode(self, buff):
         """This defines the code for the frames of a single routine
