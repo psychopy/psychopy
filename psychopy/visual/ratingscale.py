@@ -5,21 +5,26 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import print_function
 
 import copy
 import sys
-import numpy
+import numpy as np
+import pandas as pd
 
 from psychopy import core, logging, event
 from psychopy.colors import isValidColor
 from psychopy.visual.circle import Circle
+from psychopy.visual.line import Line
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
 from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
 from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.monitorunittools import convertToPix, pix2cm, pix2deg
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
+from psychopy.tools.attributetools import attributeSetter
 
 
 class RatingScale(MinimalStim):
@@ -519,7 +524,7 @@ class RatingScale(MinimalStim):
         # Mouse-click-able 'accept' button pulsates (cycles its brightness
         # over frames):
         framesPerCycle = 100
-        self.pulseColor = [0.6 + 0.22 * float(numpy.cos(i / 15.65))
+        self.pulseColor = [0.6 + 0.22 * float(np.cos(i / 15.65))
                            for i in range(framesPerCycle)]
 
     def _initPosScale(self, pos, size, stretch, log=True):
@@ -687,7 +692,7 @@ class RatingScale(MinimalStim):
         self.autoRescaleFactor = 1
 
         if tickMarkValues:
-            tickTmp = numpy.asarray(tickMarkValues, dtype=numpy.float32)
+            tickTmp = np.asarray(tickMarkValues, dtype=np.float32)
             tickMarkPositions = (tickTmp - self.low) / self.tickMarks
         else:
             # visually remap 10 ticks onto 1 tick in some conditions (=
@@ -697,7 +702,7 @@ class RatingScale(MinimalStim):
                     int(self.tickMarks) % 10 == 0):
                 self.autoRescaleFactor = 10
                 self.tickMarks /= self.autoRescaleFactor
-            tickMarkPositions = numpy.linspace(0, 1, self.tickMarks + 1)
+            tickMarkPositions = np.linspace(0, 1, self.tickMarks + 1)
         self.scaledPrecision = float(self.precision * self.autoRescaleFactor)
 
         # how far a left or right key will move the marker, in tick units:
@@ -1377,3 +1382,823 @@ class RatingScale(MinimalStim):
         choices are stored automatically in the history.
         """
         return self.history
+
+
+class SimpleRatingScale(MinimalStim):
+    def __init__(self, win, ori='horiz', limits=(0, 100), precision=None,
+                 ticks=None, tickLabels=None, tickLoc='both',
+                 labelLoc=None, color='black', markerColor='red',
+                 colorSpace=None, pos=(0, 0), size=1, tickSize=None,
+                 mousePos=None, units=None, lineWidth=3, labelPadding=None,
+                 maxTime=10, finishOnResponse=True, resetOnFirstFlip=True,
+                 iohub=False, name=None, autoLog=True):
+        """
+        A simple and minimalistic, yet flexible continuous rating scale that
+        supports both horizontal and vertical alignment.
+
+        Parameters
+        ----------
+        win : :class:`visual.Window`
+            The window the rating scale should be attached to.
+
+        ori : {'horiz', 'horizontal', 'vert', 'vertical'}
+            The orientation of the scale.
+
+        limits : array-like of length 2
+            An iterable of length 2 containing the minimum and maximum
+            values of the rating scale.
+
+        precision : float, or `None
+            The granularity, or step width between values the scale can
+            differentiate. The scale will be internally divided into
+            1/precision sections of equal length (e.g., 100 sections for
+            `precision=100). The value range
+            (`max - min`) of the scale must be divisable
+            by `precision` (i.e., `(max - min) % precision == 0`).
+
+            If `None`, will automatidally divide the scale into 100 sections
+            of equal length.
+
+        ticks : array-like, or `None`
+            The positions (in scale values) of the tick marks on the scale.
+
+        tickLabels : array-like, or `None`
+            The labels corresponding to the tick marks specified as `ticks`.
+
+        tickLoc : {'left', 'right', 'top', 'bottom', 'both'}
+            The direction in which the tick labels expand. Please note that for
+            a horizontal orientation of the scale, only the values `top`,
+            `bottom`, and `both` are accepted; for a vertical scale, `left`,
+            `right`, and `both` are valued options. The labels are
+            automatically placed bases on this parameter. This can be
+            overridden by specifying `labelLoc`.
+
+        labelLoc : {'left', 'right', 'top', 'bottom', 'both'}
+            The location of the tick labels, relative to the scale. The
+            same restrictions as with `tickLoc` apply.
+
+        color : string, or array-like
+            The color of the scale. The color space can be specified using the
+            `colorSpace` parameter.
+
+        markerColor : string, or array-like
+            The color of the marker, which appears when clicking on the scale.
+            The color space can be specified using the `colorSpace` parameter.
+
+        colorSpace : string, or None
+            The color space used to interpret color specifications. If `None`
+            specified, the default color space of the window is used.
+
+        pos : array-like
+            The center position of the scale on the screen. The units can be
+            specified via the `units` parameter; otherwise, the window's
+            default units are used.
+
+        size : float
+            The size of the scale on the screen. The units can be
+            specified via the `units` parameter; otherwise, the window's
+            default units are used.
+
+        tickSize : float, or `None`
+            The size (width or height, respectively) of the tick marks.
+            The units can be specified via the `units` parameter; otherwise,
+            the window's default units are used. If `None`, a sane default
+            value is chosen.
+
+        mousePos : array-like, or `None`
+            An iterable of length 2 containing `x` and `y` coordinates.
+            This parameter can be used to set the mouse cursor to a specific
+            position when the scale is first displayed. The units can be
+            specified via the `units` parameter; otherwise, the window's
+            default units are used. If `None`, the mouse cursor position
+            is not changed when the scale appears.
+
+        units : {'norm', 'height', 'pix', 'pixels', 'deg', 'degs', 'degFlat',
+                 'degFlatPos'}, or `None`
+            The units in which all size- and position-related parameters are
+            specified. If `None, the window's default units are used.
+
+        lineWidth : float
+            The width of the lines used to draw the scale, tick marks, and
+            marker. The parameter is passed to :class:`visual.line.Line`.
+
+        labelPadding : float, or None
+            The padding between the scale and the tick labels.
+            The units can be specified via the `units` parameter; otherwise,
+            the window's default units are used. If `None`, a sane default
+            value is chosen.
+
+        maxTime : float
+            The maximum time the participant is allowed to make a response.
+
+        finishOnResponse : bool
+            If `True`, :class:`visual.ratingscale.SimpleRatingScale`'s `status`
+            is set to `FINISHED` once a response is collected. If `False`, will
+            always wait until `maxTime` before finishing, even if a response
+            was collected earlier alreay.
+
+        resetOnFirstFlip : bool
+            Whether to reset the scale, including the response timer, the
+            first time the window is flipped after calling
+            :fuc:~`visual.ratingscale.SimpleRatingScale.draw`.
+
+        iohub : bool
+            Whether to acquire respone times via the ioHub mouse device. Will
+            try to automatically connect to a running ioHub server process.
+
+        name : string, or `None`
+            The name to associate with this stimulus. Will appear in the log
+            files.
+
+        autoLog : bool
+            Whether or not to enable automatic logging of noteworthy events.
+
+        Attributes
+        ----------
+        All properties set via keyword parameters are available as attributes
+        with the names. Additionally, the following attributes are exposed to
+        allow access to the recorded response:
+
+        rt : float
+            The measured response time, im seconds.
+
+        response : float
+            The acquired rating.
+
+        The following attributes can be changed after instantiation:
+
+            - `mousePos`
+            - `maxTime`
+            - `finishOnResponse`
+            - `resetOnFirstFlip`
+            - `autoLog`
+
+        Raises
+        ------
+        ValueError
+            When incompatible parameter combinations are supplied
+
+        ImportError
+            If usage of ioHub is requested, but the ioHub package cannot be
+            imported.
+
+        RuntimeError
+            When something unexpected happens (i.e., a bug).
+
+        Notes
+        -----
+        We maintain a complete lookup table of the positions of all visual
+        elements and their corresponding values on the rating scale in
+        `self._coords`. All coordinate unites correspond to the units specified
+        via the `units` keyword argument, or to the window's units if
+        `units=None`.
+
+        When setting `iohub=True`, iohub will be used for determination of the
+        response time only, immediately after
+        :fuc:~`event.Mouse.isPressedIn` notifies us of a click inside the
+        ratingscale's bounding box. We will then query the latest button press
+        event (and corresponding event time) from ioHub's event buffer.
+
+        Examples
+        --------
+        See the code examples folder for demonstrations how to use the
+        `SimpleRatingScale`.
+
+        """
+        self._initParams = dir()
+
+        self._check_args(ticks, tickLabels, tickLoc, labelLoc, limits,
+                         precision, ori, units)
+
+        super(SimpleRatingScale, self).__init__(name=name, autoLog=False)
+
+        self._win = win
+        self._ori = ori
+        self._limits = limits
+        self._min = np.float(limits[0])
+        self._max = np.float(limits[1])
+
+        if precision is not None:
+            self._precision = np.float(precision)
+        else:
+            self._precision = (self._max - self._min) / 100
+
+        self._pos = pos
+        self._size = np.float(size)
+        self._units = units if units is not None else win.units
+        self._color = color
+        self._marker_color = markerColor
+        self._color_space = (colorSpace if colorSpace is not None
+                             else win.colorSpace)
+        self._line_width = lineWidth
+
+        if self._ori in ['horiz', 'horizontal']:
+            self._scale_dim = 0  # Scale expands horizontally.
+            self._tick_dim = 1   # Ticks expand vertically.
+        else:
+            self._scale_dim = 1  # Scale expands vertically.
+            self._tick_dim = 0   # Ticks expand horizontally.
+
+        self._tick_size = (tickSize if tickSize is not None
+                           else self._gen_default_size(0.05, self._tick_dim))
+
+        if ticks is not None:
+            self._ticks = np.array(ticks)
+        else:
+            self._ticks = np.array([self._min, self._max])
+
+        if tickLabels is not None:
+            self._tick_labels = tickLabels
+        else:
+            self._tick_labels = ['low', 'high']
+
+        self._label_padding = (labelPadding if labelPadding is not None
+                               else self._gen_default_size(0.07,
+                                                           self._tick_dim))
+
+        self._tick_loc = tickLoc
+
+        self._label_loc = (labelLoc if labelLoc is not None
+                           else self._gen_default_label_loc())
+
+        (self._tick_label_halign,
+         self._tick_label_valign) = self._gen_default_tick_label_alignments()
+
+        self._iohub = iohub
+        self._mouse, self._io, self._io_mouse = self._init_mouse()
+
+        self._coords = self._gen_coords()
+        self._visual_elements = self._gen_visual_elements()
+        self._bounding_box = self._gen_bounding_box()
+        self._timer = core.CountdownTimer()
+        self._response = None
+        self._rt = None
+        self._time_start = None
+        self._orig_units = win.units
+        self._status = NOT_STARTED
+        self._first_flip = True
+
+        # User-settable attributes.
+        self.__dict__['mousePos'] = mousePos
+        self.__dict__['maxTime'] = maxTime
+        self.__dict__['finishOnResponse'] = finishOnResponse
+        self.__dict__['resetOnFirstFlip'] = resetOnFirstFlip
+
+        self.autoLog = autoLog
+        if self.autoLog:
+            logging.exp('Created %s = %s' % (self.name, repr(self)))
+
+    def __repr__(self, complete=False):
+        return self.__str__(complete=complete)
+
+    # User-settable attributes.
+    # NB: self.autoLog not listed here, inherited from base class.
+    @attributeSetter
+    def mousePos(self, pos):
+        self.__dict__['mousePos'] = pos
+
+    @attributeSetter
+    def maxTime(self, t):
+        self.__dict__['maxTime'] = t
+
+    @attributeSetter
+    def finishOnResponse(self, finish_on_response):
+        self.__dict__['finishOnResponse'] = finish_on_response
+
+    @attributeSetter
+    def resetOnFirstFlip(self, reset_on_first_flip):
+        self.__dict__['resetOnFirstFlip'] = reset_on_first_flip
+
+    # Read-only attributes.
+    @property
+    def win(self):
+        return self._win
+
+    @property
+    def ori(self):
+        return self._ori
+
+    @property
+    def limits(self):
+        return self._limits
+
+    @property
+    def precision(self):
+        return self._precision
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def units(self):
+        return self._units
+
+    @property
+    def color(self):
+        return self._color
+
+    @property
+    def markerColor(self):
+        return self._marker_color
+
+    @property
+    def colorSpace(self):
+        return self._color_space
+
+    @property
+    def lineWidth(self):
+        return self._line_width
+
+    @property
+    def tickSize(self):
+        return self._tick_size
+
+    @property
+    def ticks(self):
+        return self._ticks
+
+    @property
+    def tickLabels(self):
+        return self._tick_labels
+
+    @property
+    def tickLoc(self):
+        return self._tick_loc
+
+    @property
+    def labelLoc(self):
+        return self._label_loc
+
+    @property
+    def labelPadding(self):
+        return self._label_padding
+
+    @property
+    def iohub(self):
+        return self._iohub
+
+    @property
+    def rt(self):
+        return self._rt
+
+    @property
+    def response(self):
+        return self._response
+
+    @staticmethod
+    def _check_args(ticks, tickLabels, tickLoc, labelLoc, limits,
+                    precision, ori, units):
+        if (ticks is not None) and (tickLabels is None):
+            msg = 'You specified `ticks`, but no corresponding `tickLabels`.'
+            raise ValueError(msg)
+        elif (ticks is None) and (tickLabels is not None):
+            msg = 'You specified `tickLabels`, but no corresponding `ticks`.'
+            raise ValueError(msg)
+        elif (ticks is not None) and (tickLabels is not None):
+            if len(ticks) != len(tickLabels):
+                msg = ('`ticks` and `tickLabels` must contain the same number '
+                       'of elements!')
+                raise ValueError(msg)
+
+            if (any(np.array(ticks) < limits[0]) or
+                    any(np.array(ticks) > limits[1])):
+                msg = 'Tick values must lie in the interval [minVal, maxVal].'
+                raise ValueError(msg)
+
+        if tickLoc not in [None, 'top', 'bottom', 'left', 'right', 'both']:
+            msg = '`tickLoc` must be one of: top, bottom, left, right, both'
+            raise ValueError(msg)
+
+        if labelLoc not in [None, 'top', 'bottom', 'left', 'right']:
+            msg = '`labelLoc` must be one of: top, bottom, left, right'
+            raise ValueError(msg)
+
+        if ori not in [None, 'horiz', 'horizontal', 'vert', 'vertical']:
+            msg = '`ori` must be one of: horiz, horizontal, vert, vertical'
+            raise ValueError(msg)
+
+        if (ori in ['horiz', 'horizontal'] and
+                    tickLoc not in ['top', 'bottom', 'both']):
+            msg = ('Invalid combination of `ori` and `tickLoc`: %s, %s' %
+                   (ori, tickLoc))
+            raise ValueError(msg)
+
+        if (ori in ['vert', 'vertical'] and
+                    tickLoc not in ['left', 'right', 'both']):
+            msg = ('Invalid combination of `ori` and `tickLoc`: %s, %s' %
+                   (ori, tickLoc))
+            raise ValueError(msg)
+
+        if (ori in ['horiz', 'horizontal'] and
+                    labelLoc not in [None, 'top', 'bottom']):
+            msg = ('Invalid combination of `ori` and `labelLoc`: %s, %s' %
+                   (ori, labelLoc))
+            raise ValueError(msg)
+
+        if (ori in ['vert', 'vertical'] and
+                    labelLoc not in [None, 'left', 'right']):
+            msg = ('Invalid combination of `ori` and `labelLoc`: %s, %s' %
+                   (ori, labelLoc))
+            raise ValueError(msg)
+
+        if ((precision is not None) and
+                not np.isclose((limits[1] - limits[0]) % precision, 0)):
+            msg = '`max - min` must be a multiple of `precision`.'
+            raise ValueError(msg)
+
+        if units not in [None, 'norm', 'height', 'pix', 'pixels', 'cm', 'deg',
+                         'degs', 'degFlat', 'degFlatPos']:
+            msg = 'Unsupported screen units requested: %s' % units
+            raise ValueError(msg)
+
+    def _init_mouse(self):
+        if self.iohub:
+            from psychopy import iohub
+            self._iohub_package = iohub
+
+            io = self._iohub_package.client.ioHubConnection.ACTIVE_CONNECTION
+            if io is None:
+                msg = ('Cannot find active ioHub connection! Please ensure '
+                       'that ioHub is running.')
+                raise RuntimeError(msg)
+
+            io_mouse = io.devices.mouse
+            mouse = event.Mouse(win=self.win)
+        else:
+            io = None
+            io_mouse = None
+            mouse = event.Mouse(win=self.win)
+
+        return mouse, io, io_mouse
+
+    def _gen_default_label_loc(self):
+        if self.tickLoc == 'top':
+            label_loc = 'bottom'
+        elif self.tickLoc == 'bottom':
+            label_loc = 'top'
+        elif self.tickLoc == 'left':
+            label_loc = 'right'
+        elif self.tickLoc == 'right':
+            label_loc = 'left'
+        elif self.tickLoc == 'both' and self.ori == 'vert':
+            label_loc = 'right'
+        elif self.tickLoc == 'both' and self.ori == 'horiz':
+            label_loc = 'bottom'
+        else:
+            msg = ('You have encountered a bug. Please contact the '
+                   'developers.')
+            raise RuntimeError(msg)
+
+        return label_loc
+
+    def _gen_default_tick_label_alignments(self):
+        if self.labelLoc == 'top':
+            halign = 'center'
+            valign = 'bottom'
+        elif self.labelLoc == 'bottom':
+            halign = 'center'
+            valign = 'top'
+        elif self.labelLoc == 'left':
+            halign = 'right'
+            valign = 'center'
+        elif self.labelLoc == 'right':
+            halign = 'left'
+            valign = 'center'
+        else:
+            msg = 'You have encountered a bug. Please contact the developers.'
+            raise RuntimeError(msg)
+
+        return halign, valign
+
+    def _gen_default_size(self, size_norm, dim):
+        # We first convert the size to pixels, because pixels can be
+        # conveniently transformed to all other required units.
+        size_vertex_norm = np.zeros(2)
+        size_vertex_norm[dim] = size_norm
+        size_vertex_pix = convertToPix(size_vertex_norm, (0, 0), 'norm',
+                                       self.win)
+
+        size_pix = size_vertex_pix[dim]
+
+        if self.units == 'norm':
+            size = size_norm
+        elif self.units == 'height':
+            if dim == 1:  # Vertical dimension.
+                size = size_norm
+            else:  # Horizontal dimension.
+                size = size_norm * (self.win.size[0] / self.win.size[1])
+        elif self.units in ['pix', 'pixels']:
+            size = size_pix
+        elif self.units == 'cm':
+            size = pix2cm(size_pix, self.win.monitor)
+        elif self.units in ['deg', 'degs', 'degFlat', 'degFlatPos']:
+            size = pix2deg(size_pix, self.win.monitor)
+        else:
+            msg = 'You have encountered a bug. Please contact the developers.'
+            raise RuntimeError(msg)
+
+        return size
+
+    def _gen_coords(self):
+        scale_values = np.linspace(self._min, self._max,
+                                   (self._max - self._min)/self.precision + 1)
+
+        pos_scale_axis = [(self.pos[self._scale_dim] - self.size / 2.0 +
+                           (i * self.precision / (self._max - self._min) *
+                            self.size))
+                          for i, _ in enumerate(scale_values)]
+
+        pos_tick_axis = [self.pos[self._tick_dim]] * len(pos_scale_axis)
+
+        coords = pd.DataFrame(
+            {'pos_scale_axis': pos_scale_axis,
+             'pos_tick_axis': pos_tick_axis,
+             'has_tickmark': [False],
+             'label': [None]},
+            index=pd.Index(scale_values, name='value')
+        )
+
+        coords.loc[self.ticks, 'has_tickmark'] = True
+        coords.loc[self.ticks, 'label'] = self.tickLabels
+        return coords
+
+    def _gen_visual_elements(self):
+        line_kwargs = dict(lineWidth=self.lineWidth, lineColor=self.color,
+                           lineColorSpace=self.colorSpace, units=self.units,
+                           autoLog=False)
+        text_kwargs = dict(color=self.color, colorSpace=self.colorSpace,
+                           units=self.units,
+                           alignHoriz=self._tick_label_halign,
+                           alignVert=self._tick_label_valign, autoLog=False)
+        marker_kwargs = dict(lineWidth=self.lineWidth,
+                             lineColor=self.markerColor,
+                             lineColorSpace=self.colorSpace, units=self.units,
+                             autoLog=False)
+
+        visual_elements = []
+        visual_elements.append(self._gen_scale(**line_kwargs))
+        visual_elements.extend(self._gen_tick_marks(**line_kwargs))
+        visual_elements.extend(self._gen_tick_labels(**text_kwargs))
+        visual_elements.append(self._gen_selection_marker(**marker_kwargs))
+        return visual_elements
+
+    def _gen_scale(self, **line_kwargs):
+        """
+        The scale itself, without ticks or labels.
+        """
+        coords = self._coords
+
+        if self.ori == 'horiz':
+            start = np.array(
+                [coords['pos_scale_axis'].iloc[0],
+                 coords['pos_tick_axis'].iloc[0]])
+            end = np.array(
+                [coords['pos_scale_axis'].iloc[-1],
+                 coords['pos_tick_axis'].iloc[-1]])
+        else:
+            start = np.array(
+                [coords['pos_tick_axis'].iloc[0],
+                 coords['pos_scale_axis'].iloc[0]])
+            end = np.array(
+                [coords['pos_tick_axis'].iloc[-1],
+                 coords['pos_scale_axis'].iloc[-1]])
+
+        scale = Line(self.win, start=start, end=end, **line_kwargs)
+        return scale
+
+    def _gen_tick_marks(self, **line_kwargs):
+        coords = self._coords
+        tick_marks = []
+
+        for _, tick in coords.loc[self.ticks].iterrows():
+            start = np.empty(2)
+            end = np.empty(2)
+
+            if self.tickLoc in ['top', 'right']:
+                start[self._tick_dim] = tick['pos_tick_axis']
+                start[self._scale_dim] = tick['pos_scale_axis']
+                end[self._tick_dim] = tick['pos_tick_axis'] + self.tickSize
+                end[self._scale_dim] = tick['pos_scale_axis']
+            elif self.tickLoc in ['bottom', 'left']:
+                start[self._tick_dim] = tick['pos_tick_axis']
+                start[self._scale_dim] = tick['pos_scale_axis']
+                end[self._tick_dim] = tick['pos_tick_axis'] - self.tickSize
+                end[self._scale_dim] = tick['pos_scale_axis']
+            else:
+                start[self._tick_dim] = tick['pos_tick_axis'] - self.tickSize
+                start[self._scale_dim] = tick['pos_scale_axis']
+                end[self._tick_dim] = tick['pos_tick_axis'] + self.tickSize
+                end[self._scale_dim] = tick['pos_scale_axis']
+
+            tick_mark = Line(self.win, start=start, end=end, **line_kwargs)
+            tick_marks.append(tick_mark)
+
+        return tick_marks
+
+    def _gen_tick_labels(self, **text_kwargs):
+        coords = self._coords
+        tick_labels = []
+
+        for _, tick in coords.loc[self.ticks].iterrows():
+            label_text = tick['label']
+            pos = np.empty(2)
+
+            if self.labelLoc in ['top', 'right']:
+                pos[self._tick_dim] = tick['pos_tick_axis'] + self.labelPadding
+                pos[self._scale_dim] = tick['pos_scale_axis']
+            else:
+                pos[self._tick_dim] = tick['pos_tick_axis'] - self.labelPadding
+                pos[self._scale_dim] = tick['pos_scale_axis']
+
+            tick_label = TextStim(self.win, text=label_text, pos=pos,
+                                  **text_kwargs)
+            tick_labels.append(tick_label)
+
+        return tick_labels
+
+    def _gen_selection_marker(self, **line_kwargs):
+        """
+        The participant-placed marker. It won't be drawn until a rating has
+        been recorded. Initially, it will be created at an arbitrary position.
+        """
+        start = np.zeros(2)
+        start[self._tick_dim] = -self.tickSize
+
+        end = np.zeros(2)
+        end[self._tick_dim] = self.tickSize
+
+        marker = Line(self.win, start=start, end=end, **line_kwargs)
+        return marker
+
+    def _gen_bounding_box(self):
+        """
+        The bounding box in which mouse clicks are accepted as responses.
+        """
+        pos_scale_axis = self._coords['pos_scale_axis']
+        pos_tick_axis = self._coords['pos_tick_axis']
+
+        # Vertices.
+        v0 = np.empty(2)
+        v1 = np.empty(2)
+        v2 = np.empty(2)
+        v3 = np.empty(2)
+
+        v0[self._scale_dim] = pos_scale_axis.iloc[0] - self.tickSize
+        v0[self._tick_dim] = pos_tick_axis.iloc[0] - self.tickSize
+
+        v1[self._scale_dim] = pos_scale_axis.iloc[0] - self.tickSize
+        v1[self._tick_dim] = pos_tick_axis.iloc[0] + self.tickSize
+
+        v2[self._scale_dim] = pos_scale_axis.iloc[-1] + self.tickSize
+        v2[self._tick_dim] = pos_tick_axis.iloc[-1] + self.tickSize
+
+        v3[self._scale_dim] = pos_scale_axis.iloc[-1] + self.tickSize
+        v3[self._tick_dim] = pos_tick_axis.iloc[-1] - self.tickSize
+
+        vertices = [v0, v1, v2, v3]
+        return ShapeStim(self.win, units=self.units, vertices=vertices,
+                         autoLog=False)
+
+    def _check_for_response(self, finish_on_response):
+        coords = self._coords
+
+        if self._mouse.isPressedIn(self._bounding_box, buttons=[0]):
+            # We got a response!
+
+            self.win.units = self.units
+            mouse_pos = self._mouse.getPos()
+            self.win.units = self._orig_units
+
+            if self.iohub:
+                # Get the LAST registered button press. It has to be the
+                # last one (and not the first) so we don't accidentally fetch
+                # click on the screen area outside the scale that may have
+                # occurred previously.
+                press_event = self._io_mouse.getEvents(
+                    event_type=(self._iohub_package
+                                .EventConstants.MOUSE_BUTTON_PRESS))[-1]
+                rt = press_event.time - self._time_start
+            else:
+                _, rt = self._mouse.getPressed(getTime=True)
+                rt = rt[0]  # Only get response from left mouse button.
+
+            # Which rating was closest to the mouse click position?
+            _diff = (coords['pos_scale_axis'] -
+                     mouse_pos[self._scale_dim])
+            response = _diff.abs().sort_values().index[0]
+
+            self._rt = rt
+            self._response = response
+
+            marker_pos = np.empty(2)
+            marker_pos[self._tick_dim] = (coords.
+                                          loc[response, 'pos_tick_axis'])
+            marker_pos[self._scale_dim] = (coords
+                                           .loc[response, 'pos_scale_axis'])
+            self._visual_elements[-1].pos = marker_pos
+
+            if self.autoLog:
+                msg = ('SimpleRatingScale %s: got response %.2f after '
+                       '%.3f s.' % (self.name, self._response, self._rt))
+                logging.exp(msg)
+
+            if finish_on_response:
+                self.status = FINISHED
+                if self.autoLog:
+                    logging.exp('SimpleRatingScale %s: finished.' % self.name)
+
+    def _check_if_finished(self, finish_on_response=None):
+        if finish_on_response is None:
+            finish_on_response = self.finishOnResponse
+
+        if self._timer.getTime() < 0:
+            self.status = FINISHED
+            if self.autoLog:
+                msg = ('SimpleRatingScale %s: maxTime exceeded, '
+                       'finishing.' % self.name)
+                logging.exp(msg)
+        elif self.response is None:
+            self._check_for_response(finish_on_response=finish_on_response)
+        elif not finish_on_response:
+            msg = ('SimpleRatingScale %s: waiting for maxTime to expire.'
+                   % self.name)
+            logging.exp(msg)
+        else:
+            msg = ('You have encountered a bug. Please contact the '
+                   'developers.')
+            raise RuntimeError(msg)
+
+    def _set_mouse_pos(self, pos):
+        self.win.units = self.units
+        self._mouse.setPos(pos)
+        self.win.units = self._orig_units
+
+    def draw(self):
+        """
+        Draw the visual elements to the back buffer and check for responses.
+
+        """
+        if self.autoLog:
+            logging.exp('SimpleRatingScale %s: draw().' % self.name)
+
+        # This line is left here for debugging reasons.
+        # self._bounding_box.draw()
+        if self.response is None:
+            [element.draw() for element in self._visual_elements[:-1]]
+        else:
+            [element.draw() for element in self._visual_elements]
+
+        if self._first_flip:
+            if self.resetOnFirstFlip:
+                # We set self._first_flip to False immediately after calling
+                # self.reset(), otherwise we would end up in an infinite loop:
+                # self.reset() itself sets self._first_flip to True!
+                self.win.callOnFlip(self.reset)
+                self.win.callOnFlip(setattr, self, '_first_flip', False)
+
+            if self.mousePos is not None:
+                self.win.callOnFlip(self._set_mouse_pos, self.mousePos)
+
+            self.status = STARTED
+        elif self.status != FINISHED:
+            self._check_if_finished()
+        else:
+            pass  # We're finished.
+
+    def waitForResponse(self):
+        """
+        Wait until a response is collected or `maxTime` is exceeded.
+
+        Notes
+        -----
+        Will ignore the `finishOnResponse` attribute and always finish once a
+        response is collected.
+
+        """
+        while self.status != FINISHED:
+            self._check_if_finished(finish_on_response=True)
+
+    def reset(self):
+        """
+        Remove any previously recorded response and reset the response timer.
+
+        """
+        if self.autoLog:
+            logging.exp('SimpleRatingScale %s: reset().' % self.name)
+
+        if self.iohub:
+            self._io_mouse.clearEvents()
+
+        self._mouse.clickReset()
+
+        self._rt = None
+        self._response = None
+        self.status = NOT_STARTED
+        self._first_flip = True
+        self._time_start = core.getTime()
+        self._timer.reset(t=self.maxTime)

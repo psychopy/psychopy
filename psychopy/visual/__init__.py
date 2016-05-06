@@ -42,6 +42,7 @@ from psychopy.visual.aperture import Aperture  # uses BaseShapeStim, ImageStim
 from psychopy.visual.custommouse import CustomMouse
 from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.ratingscale import RatingScale
+from psychopy.visual.ratingscale import SimpleRatingScale
 from psychopy.visual.simpleimage import SimpleImageStim
 
 # stimuli derived from BaseVisualStim
