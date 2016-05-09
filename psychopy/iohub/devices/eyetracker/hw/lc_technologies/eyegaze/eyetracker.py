@@ -394,7 +394,7 @@ class EyeTracker(EyeTrackerDevice):
 
                 if self._camera_count == 1:  # monocular
                     event_type = EventConstants.MONOCULAR_EYE_SAMPLE
-                    eye = EyeTrackerConstants.UNKNOWN_MONOCULAR
+                    eye = EyeTrackerConstants.MONOCULAR
                     gaze_x, gaze_y = sample_data0.iIGaze, sample_data0.iJGaze
                     pupil_measure1 = sample_data0.fPupilRadiusMm
                     status = 0

@@ -152,11 +152,10 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
     def __init__(self, *args, **kwargs):
         #: The eye type that the sample is from. Valid values are:
         #:
-        #: * EyeTrackerConstants.LEFT_EYE
-        #: * EyeTrackerConstants.RIGHT_EYE
-        #: * EyeTrackerConstants.BINOCULAR_AVERAGED
-        #: * EyeTrackerConstants.UNKNOWN_MONOCULAR
-        #: * EyeTrackerConstants.SIMULATED_MONOCULAR
+        #: EventConstants.LEFT_EYE
+        #: EventConstants.RIGHT_EYE
+        #: EventConstants.SIMULATED_MONOCULAR
+        #: EventConstants.MONOCULAR
         self.eye = None
 
         #: The calibrated horizontal eye position on the calibration plane.
@@ -754,7 +753,7 @@ class FixationStartEvent(EyeTrackerEvent):
         #: The eye type that the event is from. Valid values are:
         #: EyeTrackerConstants.LEFT_EYE
         #: EyeTrackerConstants.RIGHT_EYE
-        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.MONOCULAR
         #: EyeTrackerConstants.SIMULATED_MONOCULAR
         self.eye = None
 
@@ -926,10 +925,12 @@ class FixationEndEvent(EyeTrackerEvent):
     def __init__(self, *args, **kwargs):
 
         #: The eye type that the event is from. Valid values are:
-        #: EyeTrackerConstants.LEFT_EYE
-        #: EyeTrackerConstants.RIGHT_EYE
-        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
-        #: EyeTrackerConstants.SIMULATED_MONOCULAR
+        #: The eye type that the sample is from. Valid values are:
+        #:
+        #: EventConstants.LEFT_EYE
+        #: EventConstants.RIGHT_EYE
+        #: EventConstants.SIMULATED_MONOCULAR
+        #: EventConstants.MONOCULAR
         self.eye = None
 
         #: The calculated duration of the Eye event in sec.msec-usec
@@ -1294,7 +1295,7 @@ class SaccadeEndEvent(EyeTrackerEvent):
         #: The eye type that the event is from. Valid values are:
         #: EyeTrackerConstants.LEFT_EYE
         #: EyeTrackerConstants.RIGHT_EYE
-        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.MONOCULAR
         #: EyeTrackerConstants.SIMULATED_MONOCULAR
         self.eye = None
 
@@ -1554,7 +1555,7 @@ class BlinkStartEvent(EyeTrackerEvent):
         #: The eye type that the event is from. Valid values are:
         #: EyeTrackerConstants.LEFT_EYE
         #: EyeTrackerConstants.RIGHT_EYE
-        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.MONOCULAR
         #: EyeTrackerConstants.SIMULATED_MONOCULAR
         self.eye = None
 
@@ -1593,7 +1594,7 @@ class BlinkEndEvent(EyeTrackerEvent):
         #: The eye type that the event is from. Valid values are:
         #: EyeTrackerConstants.LEFT_EYE
         #: EyeTrackerConstants.RIGHT_EYE
-        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.MONOCULAR
         #: EyeTrackerConstants.SIMULATED_MONOCULAR
         self.eye = None
 
