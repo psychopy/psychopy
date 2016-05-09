@@ -98,10 +98,7 @@ try:
 except Exception:
     pass
 
-global DEBUG
 DEBUG = False
-
-global IOHUB_ACTIVE
 IOHUB_ACTIVE = False
 
 

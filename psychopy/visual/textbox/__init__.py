@@ -41,7 +41,6 @@ def is_sequence(arg):
         hasattr(arg, "__getitem__") or
         hasattr(arg, "__iter__"))
 
-global _system_font_manager
 _system_font_manager = None
 
 

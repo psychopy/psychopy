@@ -74,6 +74,7 @@ projsSearch = wx.NewId()
 projsSync = wx.NewId()
 projsLogin = wx.NewId()
 projsNewUser = wx.NewId()
+projsNew = wx.NewId()
 
 # toolbar IDs
 tbFileNew = 10

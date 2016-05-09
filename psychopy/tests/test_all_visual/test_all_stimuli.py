@@ -480,7 +480,7 @@ class _baseVisualTest(object):
                         marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
         str(rs) #check that str(xxx) is working
         rs.draw()
-        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
+        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
     def test_refresh_rate(self):
         if self.win.winType=='pygame':

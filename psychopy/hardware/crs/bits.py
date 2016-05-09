@@ -29,7 +29,6 @@ from .. import serialdevice
 __docformat__ = "restructuredtext en"
 
 DEBUG = True
-global GL, visual  # will be imported
 
 plotResults = False
 if plotResults:
