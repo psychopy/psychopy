@@ -53,8 +53,6 @@ if platform == 'win32':
 else:
     mediaLocation = ""
 
-global audioLib, audioDriver, Sound, init
-global pyoSndServer
 pyoSndServer = None
 Sound = None
 audioLib = None

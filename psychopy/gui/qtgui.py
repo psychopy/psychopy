@@ -462,6 +462,8 @@ def fileOpenDlg(tryFilePath="",
                                                          caption=prompt,
                                                          directory=fdir,
                                                          filter=allowed)
+    if type(filesToOpen) == tuple:  # some versions(?) of PyQt return (files, filter)
+        filesToOpen = filesToOpen[0]
 
     filesToOpen = [unicode(fpath) for fpath in filesToOpen
                    if os.path.exists(fpath)]
