@@ -1,10 +1,11 @@
 import os
 import wx
 import copy
-from ._base import BaseComponent, Param, _translate
+from .._base import BaseComponent, Param, _translate
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 
+from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel

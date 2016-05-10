@@ -3,8 +3,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from .keyboard import KeyboardComponent, Param, _translate
-from ..experiment import CodeGenerationException, _valid_var_re
+from ..keyboard import KeyboardComponent, Param, _translate
+from ...experiment import CodeGenerationException, _valid_var_re
 
 __author__ = 'Jon Peirce'
 
