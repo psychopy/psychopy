@@ -13,7 +13,10 @@ using wxPython if PyQt is not found.
 
 from __future__ import absolute_import
 
+haveQt = False  # until we find otherwise
+
 import wx
+
 if wx.GetApp() is None:  # i.e. don't try this if wx is already running
     try:
         import PyQt4
@@ -25,11 +28,11 @@ if wx.GetApp() is None:  # i.e. don't try this if wx is already running
         except ImportError:
             haveQt = False
 
-    if haveQt:
-        from .qtgui import *
-    else:
-        try:
-            from .wxgui import *
-        except ImportError:
-            print("Neither wxPython nor PyQt could be imported "
-                  "so gui is not available")
+if haveQt:
+    from .qtgui import *
+else:
+    try:
+        from .wxgui import *
+    except ImportError:
+        print("Neither wxPython nor PyQt could be imported "
+              "so gui is not available")
