@@ -15,7 +15,7 @@ from PIL import Image
 from os.path import join, dirname, abspath
 from importlib import import_module  # helps python 2.7 -> 3.x migration
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # these are templates, not for use
+excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
 
 
@@ -48,7 +48,8 @@ def getIcons(filename=None):
     # add the plus sign
     add = Image.open(join(dirname(abspath(__file__)), 'add.png'))
     im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
-    #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
+    # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
+    #               im.size[0], im.size[1]], mask=add)
     icons['48add'] = pilToBitmap(im)
     icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
 

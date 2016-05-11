@@ -7,6 +7,12 @@ from psychopy.tools.versionchooser import versionOptions, availableVersions
 
 from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
 
+def readTextFile(relPath):
+    fullPath = os.path.join(thisFolder, relPath)
+    with open(fullPath, "r") as f:
+        txt = f.read()
+    return txt
+
 # this is not a standard component - it will appear on toolbar not in
 # components panel
 
@@ -254,41 +260,13 @@ class SettingsComponent(object):
             "\n")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
-        headerFile = os.path.join(thisFolder, "settingsJsHeader.txt")
-        with open(headerFile, "r") as f:
-            headerTemplate = f.read()
-        header = headerTemplate.replace("{expName}", self.params['expName'].val)
+        # header
+        template = readTextFile("JS_htmlHeader.txt")
+        header = template.format(params = self.params)
         buff.write(header)
+        # write the code to set up experiment
         buff.setIndentLevel(4, relative=False)
-        template ="""
-function setupExperiment() {{
-    debug = false;
-
-    expInfo['date'] = data.getDateStr();  // add a simple timestamp
-    expInfo['expName'] = {params[expName]};
-
-    filename = {params[Data filename]}; // XXX
-
-    // An ExperimentHandler isn't essential but helps with data saving
-    thisExp = new data.ExperimentHandler({{name:expName, version:'',
-        extraInfo:expInfo, runtimeInfo:undefined,
-        originPath:undefined,
-        savePickle:true, saveWideText:true,
-        /*dataFileName=filename*/}});
-
-    endExpNow = false; // flag for 'escape' or other condition => quit the exp
-
-    // store frame rate of monitor if we can measure it successfully
-    expInfo['frameRate']=win.getActualFrameRate();
-    if (expInfo['frameRate']!=undefined) {{
-        frameDur = 1.0/Math.round(expInfo['frameRate']);
-    }}
-    else {{
-        frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
-    }}
-
-    return NEXT;
-}}"""
+        template = readTextFile("JS_setupExp.txt")
         code = template.format(params=self.params)
         buff.writeIndentedLines(code)
 
@@ -450,21 +428,7 @@ function setupExperiment() {{
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
-        template = """
-function setupWin() {{
-    // Start Code - component code to be run before the window creation
-    // Setup the Window
-    win = new visual.Window({{size:{params[Window size (pixels)]},
-        fullsc:{params[Full-screen window]}, screen:{params[Screen]},
-        allowGUI:false, allowStencil:false,
-        monitor:{params[Monitor]},
-        color:{params[color]}, colorSpace:{params[colorSpace]},
-        blendMode:{params[blendMode]},
-        units:{params[Units]}
-        }});
-    return NEXT;
-}}
-"""
+        template = readTextFile("JS_winInit.txt")
         code = template.format(params=self.params)
         buff.writeIndentedLines(code)
 
@@ -486,20 +450,17 @@ function setupWin() {{
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-        quitFunc = """
-function quitPsychoJS() {
-    win.close()
-    core.quit();
-    return QUIT;
-}
-"""
-        footer = """
-          run();
-        }
-      });
-    </script>
-
-  </body>
-</html>"""
+        quitFunc = ("\nfunction quitPsychoJS() {\n"
+                    "    win.close()\n"
+                    "    core.quit();\n"
+                    "    return QUIT;\n"
+                    "}")
+        footer = ("\n"
+                  "        run();\n"
+                  "        }\n"
+                  "      });\n"
+                  "    </script>\n\n"
+                  "  </body>\n"
+                  "</html>")
         buff.writeIndentedLines(quitFunc)
         buff.write(footer)

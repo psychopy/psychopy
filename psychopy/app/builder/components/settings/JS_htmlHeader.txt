@@ -3,18 +3,18 @@
 
 <html>
     <head>
-        <title>{expName} [PsychoPy]</title>
+        <title>{params[expName]} [PsychoPy]</title>
         <meta content="">
         <link href="js/vendors//jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
 
         <style>
             /* project and resource dialogs */
-            label, input { display:block; padding-bottom: .5em; }
-            input.text { margin-bottom:1em; width:95%; padding: .5em; }
-            fieldset { padding:0; border:0; margin-top:25px; }
+            label, input {{ display:block; padding-bottom: .5em; }}
+            input.text {{ margin-bottom:1em; width:95%; padding: .5em; }}
+            fieldset {{ padding:0; border:0; margin-top:25px; }}
 
             /* don't display close button in the top right corner of the box */
-            .no-close .ui-dialog-titlebar-close { display: none; }
+            .no-close .ui-dialog-titlebar-close {{ display: none; }}
         </style>
     </head>
 
@@ -44,6 +44,5 @@
 
         <script type='text/javascript'>
             // wait until document is ready:
-            $(document).ready(function() {
-                with (PsychoJs) {
-
+            $(document).ready(function() {{
+                with (PsychoJs) {{

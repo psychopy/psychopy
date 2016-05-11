@@ -117,3 +117,7 @@ class TextComponent(BaseVisualComponent):
             flipStr = ''
         depth = -self.getPosInRoutine()
         buff.writeIndented('    ' + flipStr + 'depth=%.1f)\n' % depth)
+
+    def writeInitCodeJS(self, buff):
+        self.writeInitCode(buff)  # for now just use the python code
+        print('did init of text')
