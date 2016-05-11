@@ -121,6 +121,9 @@ class BaseComponent(object):
         """
         self.writeParamUpdates(buff, 'set every repeat')
 
+    def writeRoutineStartCodeJS(self, buff):
+        self.writeParamUpdates(buff, 'set every repeat')
+
     def writeRoutineEndCode(self, buff):
         """Write the code that will be called at the end of
         a routine (e.g. to save data)
@@ -158,11 +161,14 @@ class BaseComponent(object):
             if (isinstance(self.params['startVal'].val, basestring) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
-            code = "if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n"
+            code = ("if t >= %(startVal)s "
+                    "and %(name)s.status == NOT_STARTED:\n")
         elif self.params['startType'].val == 'frame N':
-            code = "if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n"
+            code = ("if frameN >= %(startVal)s "
+                    "and %(name)s.status == NOT_STARTED:\n")
         elif self.params['startType'].val == 'condition':
-            code = "if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n"
+            code = ("if (%(startVal)s) "
+                    "and %(name)s.status == NOT_STARTED:\n")
         else:
             msg = "Not a known startType (%(startType)s) for %(name)s"
             raise CodeGenerationException(msg % self.params)
@@ -171,7 +177,7 @@ class BaseComponent(object):
 
         buff.setIndentLevel(+1, relative=True)
         code = ("# keep track of start time/frame for later\n"
-                "%(name)s.tStart = t  # underestimates by a little under one frame\n"
+                "%(name)s.tStart = t\n"
                 "%(name)s.frameNStart = frameN  # exact frame index\n")
         buff.writeIndentedLines(code % self.params)
 
@@ -199,7 +205,7 @@ class BaseComponent(object):
 
         buff.setIndentLevel(+1, relative=True)
         code = ("# keep track of start time/frame for later\n"
-                "%(name)s.tStart = t  # underestimates by a little under one frame\n"
+                "%(name)s.tStart = t  # (not accounting for frame time here)\n"
                 "%(name)s.frameNStart = frameN  # exact frame index\n")
         buff.writeIndentedLines(code % self.params)
 
@@ -207,13 +213,15 @@ class BaseComponent(object):
         """Test whether we need to stop
         """
         if self.params['stopType'].val == 'time (s)':
-            code = ("frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75"
+            code = ("frameRemains = %(stopVal)s "
+                    "- win.monitorFramePeriod * 0.75"
                     "  # most of one frame period left\n"
                     "if %(name)s.status == STARTED and t >= frameRemains:\n")
         # duration in time (s)
         elif (self.params['stopType'].val == 'duration (s)' and
                 self.params['startType'].val == 'time (s)'):
-            code = ("frameRemains = %(startVal)s + %(stopVal)s - win.monitorFramePeriod * 0.75"
+            code = ("frameRemains = %(startVal)s + %(stopVal)s"
+                    "- win.monitorFramePeriod * 0.75"
                     "  # most of one frame period left\n"
                     "if %(name)s.status == STARTED and t >= frameRemains:\n")
         # start at frame and end with duratio (need to use approximate)
@@ -239,7 +247,8 @@ class BaseComponent(object):
         """Test whether we need to stop
         """
         if self.params['stopType'].val == 'time (s)':
-            code = ("frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75"
+            code = ("frameRemains = %(stopVal)s "
+                    "- win.monitorFramePeriod * 0.75"
                     "  # most of one frame period left\n"
                     "if (%(name)s.status == STARTED "
                     "&& t >= frameRemains) {\n")
@@ -272,7 +281,8 @@ class BaseComponent(object):
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(+1, relative=True)
 
-    def writeParamUpdates(self, buff, updateType, paramNames=None):
+    def writeParamUpdates(self, buff, updateType, paramNames=None,
+                          target="PsychoPy"):
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
         """
@@ -285,10 +295,16 @@ class BaseComponent(object):
             if thisParam.updates == updateType:
                 self.writeParamUpdate(
                     buff, self.params['name'],
-                    thisParamName, thisParam, thisParam.updates)
+                    thisParamName, thisParam, thisParam.updates,
+                    target=target)
+
+    def writeParamUpdatesJS(self, buff, updateType, paramNames=None):
+        # pass this to the standard writeParamUpdates but with new 'target'
+        self.writeParamUpdates(self, buff, updateType, paramNames,
+                               target="PsychoJS")
 
     def writeParamUpdate(self, buff, compName, paramName, val, updateType,
-                         params=None):
+                         params=None, target="PsychoPy"):
         """Writes an update string for a single parameter.
         This should not need overriding for different components - try to keep
         constant
@@ -312,7 +328,7 @@ class BaseComponent(object):
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
         # then write the line
-        if updateType == 'set every frame':
+        if updateType == 'set every frame' and target == 'PsychoPy':
             loggingStr = ', log=False'
         else:
             loggingStr = ''
@@ -508,7 +524,7 @@ class BaseVisualComponent(BaseComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            code = "if %(name)s.status == STARTED:  # only update if being drawn\n"
+            code = "if %(name)s.status == STARTED:  # only update if drawing\n"
             buff.writeIndented(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
@@ -549,6 +565,7 @@ class BaseVisualComponent(BaseComponent):
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")
+
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float

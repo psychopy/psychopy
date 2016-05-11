@@ -1481,13 +1481,32 @@ class Flow(list):
         # initialise the components for all Routines in a single function
         script.writeIndentedLines("\nfunction experimentInit() {")
         script.setIndentLevel(1, relative=True)
+        code = ("// Initialize resource loading component\n"
+                "resourceManagerClock = new core.Clock();\n"
+                "resourceManager = new io.ResourceManager("
+                " {win:win, target:'OSF', projectName:'stroop', "
+                " projectContributor:'Alain Pitiot', projectStatus:'PUBLIC',"
+                " clock:resourceManagerClock});\n")
+        script.writeIndentedLines(code)
+
+        # routine init sections
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             if hasattr(entry, 'writeInitCodeJS'):
                 entry.writeInitCodeJS(script)
+
+        # create globalClock etc
+        code = ("\n// Create some handy timers\n"
+                "globalClock = new core.Clock();"
+                "  // to track the time since experiment started\n"
+                "routineTimer = new core.CountdownTimer();"
+                "  // to track time remaining of each (non-slip) routine\n"
+                "\nreturn NEXT;"
+                )
+        script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
-        script.writeIndentedLines("\n}")
+        script.writeIndentedLines("}")
 
         # then for each Routine write the Begin, EachFrame and End functions
         for thisRoutine in self:
@@ -1576,6 +1595,8 @@ class Routine(list):
     def writeInitCodeJS(self, buff):
         code = '\n// Initialize components for Routine "%s"\n'
         buff.writeIndentedLines(code % self.name)
+        self._clockName = self.name + "Clock"
+        buff.writeIndented('%s = new core.Clock();\n' % self._clockName)
         for thisCompon in self:
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
@@ -1711,17 +1732,18 @@ class Routine(list):
         buff.writeIndentedLines(code)
         # This is the beginning of the routine, before the loop starts
         for thisCompon in self:
-            thisCompon.writeRoutineStartCode(buff)
+            if "PsychoJS" in thisCompon.targets:
+                thisCompon.writeRoutineStartCodeJS(buff)
 
         code = ("// keep track of which components have finished\n"
                 "{0}Components = [];\n").format(self.name)
         buff.writeIndentedLines(code)
         for thisCompon in self:
-            if 'startType' not in thisCompon.params:
-                continue
-            code = "{}Components.push({});\n".format(self.name,
-                                                     thisCompon.params['name'])
-            buff.writeIndentedLines(code)
+            if ('startType' in thisCompon.params
+                    and "PsychoJS" in thisCompon.targets):
+                code = "{}Components.push({});\n".format(
+                    self.name, thisCompon.params['name'])
+                buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
