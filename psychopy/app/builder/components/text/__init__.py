@@ -22,6 +22,7 @@ class TextComponent(BaseVisualComponent):
     """An event class for presenting text-based stimuli
     """
     categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
 
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
@@ -120,4 +121,3 @@ class TextComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         self.writeInitCode(buff)  # for now just use the python code
-        print('did init of text')

@@ -36,6 +36,7 @@ class BaseComponent(object):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -126,6 +127,9 @@ class BaseComponent(object):
         """
         pass
 
+    def writeRoutineEndCodeJS(self, buff):
+        pass
+
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
         an experiment (e.g. save log files or reset hardware)
@@ -171,6 +175,34 @@ class BaseComponent(object):
                 "%(name)s.frameNStart = frameN  # exact frame index\n")
         buff.writeIndentedLines(code % self.params)
 
+    def writeStartTestCodeJS(self, buff):
+        """Test whether we need to start
+        """
+        if self.params['startType'].val == 'time (s)':
+            # if startVal is an empty string then set to be 0.0
+            if (isinstance(self.params['startVal'].val, basestring) and
+                    not self.params['startVal'].val.strip()):
+                self.params['startVal'].val = '0.0'
+            code = ("if (t >= %(startVal)s "
+                    "&& %(name)s.status == NOT_STARTED) {:\n")
+        elif self.params['startType'].val == 'frame N':
+            code = ("if (frameN >= %(startVal)s "
+                    "&& %(name)s.status == NOT_STARTED) {:\n")
+        elif self.params['startType'].val == 'condition':
+            code = ("if (%(startVal)s) "
+                    "&& %(name)s.status == NOT_STARTED) {:\n")
+        else:
+            msg = "Not a known startType (%(startType)s) for %(name)s"
+            raise CodeGenerationException(msg % self.params)
+
+        buff.writeIndented(code % self.params)
+
+        buff.setIndentLevel(+1, relative=True)
+        code = ("# keep track of start time/frame for later\n"
+                "%(name)s.tStart = t  # underestimates by a little under one frame\n"
+                "%(name)s.frameNStart = frameN  # exact frame index\n")
+        buff.writeIndentedLines(code % self.params)
+
     def writeStopTestCode(self, buff):
         """Test whether we need to stop
         """
@@ -195,6 +227,43 @@ class BaseComponent(object):
             code = "if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n"
         elif self.params['stopType'].val == 'condition':
             code = "if %(name)s.status == STARTED and bool(%(stopVal)s):\n"
+        else:
+            msg = ("Didn't write any stop line for startType=%(startType)s, "
+                   "stopType=%(stopType)s")
+            raise CodeGenerationException(msg % self.params)
+
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(+1, relative=True)
+
+    def writeStopTestCodeJS(self, buff):
+        """Test whether we need to stop
+        """
+        if self.params['stopType'].val == 'time (s)':
+            code = ("frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75"
+                    "  # most of one frame period left\n"
+                    "if (%(name)s.status == STARTED "
+                    "&& t >= frameRemains) {\n")
+        # duration in time (s)
+        elif (self.params['stopType'].val == 'duration (s)' and
+                self.params['startType'].val == 'time (s)'):
+            code = ("frameRemains = %(startVal)s + %(stopVal)s"
+                    " - win.monitorFramePeriod * 0.75"
+                    "  # most of one frame period left\n"
+                    "if (%(name)s.status == STARTED "
+                    "&& t >= frameRemains) {\n")
+        # start at frame and end with duratio (need to use approximate)
+        elif self.params['stopType'].val == 'duration (s)':
+            code = ("if (%(name)s.status == STARTED "
+                    "&& t >= (%(name)s.tStart + %(stopVal)s)) {\n")
+        elif self.params['stopType'].val == 'duration (frames)':
+            code = ("if (%(name)s.status == STARTED "
+                    "&& frameN >= (%(name)s.frameNStart + %(stopVal)s)) {\n")
+        elif self.params['stopType'].val == 'frame N':
+            code = ("if (%(name)s.status == STARTED "
+                    "&& frameN >= %(stopVal)s) {\n")
+        elif self.params['stopType'].val == 'condition':
+            code = ("if (%(name)s.status == STARTED "
+                    "&& bool(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType=%(startType)s, "
                    "stopType=%(stopType)s")
@@ -445,6 +514,41 @@ class BaseVisualComponent(BaseComponent):
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
 
+    def writeFrameCodeJS(self, buff):
+        """Write the code that will be called every frame
+        """
+        if "PsychoJS" not in self.targets:
+            buff.writeIndented("# *%s* not supported by PsychoJS\n"
+                               % self.params['name'])
+            return
+
+        buff.writeIndentedLines("\n// *%s* updates\n" % self.params['name'])
+        # writes an if statement to determine whether to draw etc
+        self.writeStartTestCodeJS(buff)
+        buff.writeIndented("%(name)s.setAutoDraw(true)\n" % self.params)
+        # to get out of the if statement
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented("}\n")
+
+        # test for stop (only if there was some setting for duration or stop)
+        if self.params['stopVal'].val not in ('', None, -1, 'None'):
+            # writes an if statement to determine whether to draw etc
+            self.writeStopTestCodeJS(buff)
+            buff.writeIndented("%(name)s.setAutoDraw(false)\n" % self.params)
+            # to get out of the if statement
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented("}\n")
+
+        # set parameters that need updating every frame
+        # do any params need updating? (this method inherited from _base)
+        if self.checkNeedToUpdate('set every frame'):
+            code = ("if (%(name)s.status == STARTED){ "
+                    "// only update if being drawn\n")
+            buff.writeIndented(code % self.params)
+            buff.setIndentLevel(+1, relative=True)  # to enter the if block
+            self.writeParamUpdates(buff, 'set every frame')
+            buff.setIndentLevel(-1, relative=True)  # to exit the if block
+            buff.writeIndented("}\n")
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float
