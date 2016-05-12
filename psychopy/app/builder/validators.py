@@ -81,7 +81,7 @@ class NameValidator(BaseValidator):
             sameAsOldName = bool(newName == parent.params['name'].val)
             if used and not sameAsOldName:
                 msg = _translate(
-                    "That name is in use (it's a %s). Try another name.")
+                    "That name is in use (by %s). Try another name.")
                 return msg % used, False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
