@@ -1,27 +1,24 @@
 .. _labjack:
 
-labjack (USB I/O devices)
+labjacks (USB I/O devices)
 =============================================
-	
-The labjack package is included in the Standalone PsychoPy distributions. 
-It differs slightly from the standard version distributed by labjack 
-(www.labjack.com) in the import. For the custom distribution use::
 
-	from labjack import u3
-	
-NOT::
-	
-	import u3
-	
-In all other respects the library is the same and instructions on how to 
-use it can be found here:
+PsychoPy provides an interface to the labjack U3 class with a couple of minor
+additions.
+
+This is accessible by::
+
+	from psychopy.hardware.labjacks import U3
+
+Except for the additional `setdata` function the U3 class operates exactly as
+that in the U3 library that labjack provides, documented here:
 
 http://labjack.com/support/labjackpython
 
 .. note::
 
-	To use labjack devices you do need also to install the driver software 
+	To use labjack devices you do need also to install the driver software
 	described on the page above
-	
-.. autoclass:: labjack.u3.U3
-    :members:
+
+.. autoclass:: psychopy.hardware.labjacks.U3
+    :members: setData
