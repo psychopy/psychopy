@@ -327,6 +327,11 @@ class BaseComponent(object):
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
+        if target == 'PsychoJS':
+            endStr = ';'
+        else:
+            endStr = ''
+
         # then write the line
         if updateType == 'set every frame' and target == 'PsychoPy':
             loggingStr = ', log=False'
@@ -337,16 +342,16 @@ class BaseComponent(object):
             buff.writeIndented("%s.setColor(%s, colorSpace=%s" %
                                (compName, params['color'],
                                 params['colorSpace']))
-            buff.write("%s)\n" % loggingStr)
+            buff.write("%s)%s\n" % (loggingStr, endStr)
         elif paramName == 'sound':
             stopVal = params['stopVal'].val
             if stopVal in ['', None, -1, 'None']:
                 stopVal = '-1'
-            buff.writeIndented("%s.setSound(%s, secs=%s)\n" %
-                               (compName, params['sound'], stopVal))
+            buff.writeIndented("%s.setSound(%s, secs=%s)%s\n" %
+                               (compName, params['sound'], stopVal, endStr))
         else:
-            buff.writeIndented("%s.set%s(%s%s)\n" %
-                               (compName, paramCaps, val, loggingStr))
+            buff.writeIndented("%s.set%s(%s%s)%s\n" %
+                               (compName, paramCaps, val, loggingStr, endStr))
 
     def checkNeedToUpdate(self, updateType):
         """Determine whether this component has any parameters set to repeat
@@ -541,7 +546,7 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndentedLines("\n// *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
-        buff.writeIndented("%(name)s.setAutoDraw(true)\n" % self.params)
+        buff.writeIndented("%(name)s.setAutoDraw(true);\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n")
@@ -550,7 +555,7 @@ class BaseVisualComponent(BaseComponent):
         if self.params['stopVal'].val not in ('', None, -1, 'None'):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
-            buff.writeIndented("%(name)s.setAutoDraw(false)\n" % self.params)
+            buff.writeIndented("%(name)s.setAutoDraw(false);\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented("}\n")

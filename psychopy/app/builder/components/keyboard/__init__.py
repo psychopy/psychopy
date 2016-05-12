@@ -126,7 +126,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = event.BuilderKeyResponseXX()\n"
+        code = "%(name)s = event.BuilderKeyResponse();\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -280,7 +280,7 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
+        buff.writeIndented("%(name)s.status = STARTED;\n" % self.params)
 
         allowedKeysIsVar = (_valid_var_re.match(str(allowedKeys)) and not
                             allowedKeys == 'None')
@@ -331,7 +331,7 @@ class KeyboardComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = STOPPED;\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
@@ -355,12 +355,12 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "{keyList=%s}" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("theseKeys = event.getKeys(%s)\n" % keyListStr)
+        buff.writeIndented("theseKeys = event.getKeys(%s);\n" % keyListStr)
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n// check for quit:\n'
                     'if ("escape" in theseKeys) {\n'
-                    '    endExpNow = true\n'
+                    '    endExpNow = true;\n'
                     '}\n')
             buff.writeIndentedLines(code)
 
@@ -391,7 +391,7 @@ class KeyboardComponent(BaseComponent):
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            code = ("%(name)s.keys = concat(%(name)s.keys, theseKeys)  // storing all keys\n"
+            code = ("%(name)s.keys = concat(%(name)s.keys, theseKeys);  // storing all keys\n"
                     "%(name)s.rt = concat(%(name)s.rt, %(name)s.clock.getTime());\n")
             buff.writeIndentedLines(code % self.params)
 
@@ -407,7 +407,7 @@ class KeyboardComponent(BaseComponent):
 
         if forceEnd == True:
             code = ("// a response ends the routine\n"
-                    "continueRoutine = False\n")
+                    "continueRoutine = False;\n")
             buff.writeIndentedLines(code % self.params)
 
         for dedents in range(dedentAtEnd):
