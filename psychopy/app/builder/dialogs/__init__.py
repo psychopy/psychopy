@@ -1091,7 +1091,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.paramCtrls.update(self.constantsCtrls)
         self.paramCtrls.update(self.staircaseCtrls)
         self.paramCtrls.update(self.multiStairCtrls)
-        print("nameIs {}".format(self.params['name']))
+
         # show dialog and get most of the data
         self.show()
         if self.OK:
