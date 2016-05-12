@@ -383,25 +383,25 @@ class KeyboardComponent(BaseComponent):
 
             code = ("%(name)s.keys = theseKeys[0]"
                     "  // just the first key pressed\n"
-                    "%(name)s.rt = %(name)s.clock.getTime()\n")
+                    "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'last key':
             code = ("%(name)s.keys = theseKeys[theseKeys.length-1]"
                     "  // just the last key pressed\n"
-                    "%(name)s.rt = %(name)s.clock.getTime()\n")
+                    "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            code = ("%(name)s.keys.extend(theseKeys)  // storing all keys\n"
-                    "%(name)s.rt.append(%(name)s.clock.getTime())\n")
+            code = ("%(name)s.keys = concat(%(name)s.keys, theseKeys)  // storing all keys\n"
+                    "%(name)s.rt = concat(%(name)s.rt, %(name)s.clock.getTime());\n")
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
             code = ("# was this 'correct'?\n"
                     "if (%(name)s.keys == str(%(correctAns)s))"
                     " || (%(name)s.keys == %(correctAns)s) {\n"
-                    "    %(name)s.corr = 1\n"
+                    "    %(name)s.corr = 1;\n"
                     "} else {\n"
-                    "    %(name)s.corr = 0\n"
+                    "    %(name)s.corr = 0;\n"
                     "}\n")
             buff.writeIndentedLines(code % self.params)
 
