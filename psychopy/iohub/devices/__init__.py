@@ -199,8 +199,14 @@ class Computer(object):
     #:      * processing_unit_count = num_cpus*num_cores_per_cpu*num_hyperthreads.
     #:      * For single core CPU's,  num_cores_per_cpu = 1.
     #:      * For CPU's that do not support hyperthreading,  num_hyperthreads = 1, otherwise num_hyperthreads = 2.
-    processing_unit_count = psutil.cpu_count()
-    core_count = psutil.cpu_count(False) #hyperthreads not included
+    try:
+        processing_unit_count = psutil.cpu_count()
+        core_count = psutil.cpu_count(False) #hyperthreads not included
+    except AttributeError:
+        # psutil might be too old (cpu_count added in 2.0)
+        import multiprocessing
+        processing_unit_count = multiprocessing.cpu_count()
+        core_count = None  # but not used anyway
 
     #: Access to the psutil.Process class for the current system Process.
     current_process = psutil.Process()
@@ -211,7 +217,11 @@ class Computer(object):
     #: The psutil Process object for the ioHub Process.
     iohub_process=None
 
-    _process_original_nice_value=psutil.Process().nice() # used on linux.
+    try:
+        _process_original_nice_value=psutil.Process().nice() # used on linux.
+    except TypeError:
+        # on older versions of psutil (in ubuntu 14.04) nice is attr not call
+        _process_original_nice_value=psutil.Process().nice
 
     def __init__(self):
         print2err("WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
