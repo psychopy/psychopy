@@ -62,7 +62,14 @@ _localized = {
     'Custom': _translate('Custom'),
     'I/O': _translate('I/O'),
     'Add to favorites': _translate('Add to favorites'),
-    'Remove from favorites': _translate('Remove from favorites')}
+    'Remove from favorites': _translate('Remove from favorites'), 
+    #contextMenuLabels
+    'edit': _translate('edit'),
+    'remove': _translate('remove'),
+    'move to top': _translate('move to top'),
+    'move up': _translate('move up'),
+    'move down': _translate('move down'),
+    'move to bottom': _translate('move to bottom')}
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -117,7 +124,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.contextMenuItems = ['edit', 'remove', 'move to top', 'move up',
                                  'move down', 'move to bottom']
         # labels are only for display, and allow localization
-        self.contextMenuLabels = {k: _translate(k)
+        self.contextMenuLabels = {k: _localized[k]
                                   for k in self.contextMenuItems}
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
@@ -1349,7 +1356,7 @@ class BuilderFrame(wx.Frame):
 
         # ---_projects---#000000#FFFFFF-------------------------------------------
         self.projectsMenu = projects.ProjectsMenu(parent=self)
-        menuBar.Append(self.projectsMenu, "P&rojects")
+        menuBar.Append(self.projectsMenu, _translate("P&rojects"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

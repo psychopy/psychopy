@@ -15,7 +15,7 @@ from numpy import ubyte
 from psychopy import core, event, logging
 try:
     import ioLabs
-    from ioLabs import REPORT, COMMAND
+    from ioLabs import USBBox, REPORT, COMMAND
 except ImportError:
     err = """Failed to import the ioLabs library. If you're using your own
         copy of python (not the Standalone distribution of PsychoPy) then
@@ -27,8 +27,12 @@ from psychopy.constants import PRESSED, RELEASED
 btn2str = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7',
            64: 'voice'}
 
+# hack to fake a USBBox on ubuntu during documentation
+import sys
+if 'sphinx' in sys.modules:
+    USBBox = object
 
-class ButtonBox(ioLabs.USBBox):
+class ButtonBox(USBBox):
     """PsychoPy's interface to ioLabs.USBBox. Voice key completely untested.
 
     Original author: Jonathan Roberts

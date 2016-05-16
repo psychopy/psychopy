@@ -46,7 +46,9 @@ class Dlg(QtWidgets.QDialog):
 
     see also the function *dlgFromDict* for an **even simpler** version
 
-    **Example:**    ::
+    **Example**
+
+    .. code-block:: python
 
         from psychopy import gui
 
@@ -62,6 +64,7 @@ class Dlg(QtWidgets.QDialog):
             print(ok_data)
         else:
             print('user cancelled')
+
     """
 
     def __init__(self, title=_translate('PsychoPy Dialog'),
@@ -399,7 +402,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
             can be set to custom prompts
         allowed: string
             a string to specify file filters.
-            e.g. "Text files (*.txt) ;; Image files (*.bmp *.gif)"
+            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getSaveFileName
             for further details
@@ -430,15 +433,19 @@ def fileOpenDlg(tryFilePath="",
     """A simple dialogue allowing read access to the file system.
 
     :parameters:
+
         tryFilePath: string
             default file path on which to open the dialog
+
         tryFileName: string
             default file name, as suggested file
+
         prompt: string (default "Select file to open")
             can be set to custom prompts
+
         allowed: string (available since v1.62.01)
             a string to specify file filters.
-            e.g. "Text files (*.txt) ;; Image files (*.bmp *.gif)"
+            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getOpenFileNames
             for further details
