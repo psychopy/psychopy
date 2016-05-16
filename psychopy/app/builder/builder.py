@@ -1356,7 +1356,7 @@ class BuilderFrame(wx.Frame):
 
         # ---_projects---#000000#FFFFFF-------------------------------------------
         self.projectsMenu = projects.ProjectsMenu(parent=self)
-        menuBar.Append(self.projectsMenu, "P&rojects")
+        menuBar.Append(self.projectsMenu, _translate("P&rojects"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

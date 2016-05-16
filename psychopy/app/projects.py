@@ -108,10 +108,11 @@ class ProjectsMenu(wx.Menu):
         global usersList
         self.userList = usersList
 
-        self.Append(wxIDs.projsAbout, "Tell me more...")
+        self.Append(wxIDs.projsAbout, _translate("Tell me more..."))
         wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
         if not havePyosf:
-            self.Append(wx.NewId(), "Requires pyosf (not installed)")
+            self.Append(wx.NewId(),
+                        _translate("Requires pyosf (not installed)"))
             ProjectsMenu.knownUsers = {}
         else:
             if self.app.osf_session is None:
@@ -123,7 +124,7 @@ class ProjectsMenu(wx.Menu):
         # sub-menu to open previous or new projects
         self.projsSubMenu = wx.Menu()
         self.projsSubMenu.Append(wxIDs.projsOpen,
-                                 "From file...\t{}"
+                                 _translate("From file...\t{}")
                                  .format(keys['projectsOpen']))
         wx.EVT_MENU(parent, wxIDs.projsOpen,  self.onOpenFile)
         self.projsSubMenu.AppendSeparator()
@@ -135,7 +136,7 @@ class ProjectsMenu(wx.Menu):
         parent.Bind(wx.EVT_MENU_RANGE, self.onProjFromHistory,
                     id=self.projHistory.idBase,
                     id2=self.projHistory.idBase+9)
-        self.AppendSubMenu(self.projsSubMenu, "Open")
+        self.AppendSubMenu(self.projsSubMenu, _translate("Open"))
 
         # sub-menu for usernames and login
         self.userMenu = wx.Menu()
@@ -147,18 +148,20 @@ class ProjectsMenu(wx.Menu):
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
         self.userMenu.Append(wxIDs.projsNewUser,
-                             "Log in...\t{}".format(keys['projectsLogIn']))
+                             _translate("Log in...\t{}")
+                             .format(keys['projectsLogIn']))
         wx.EVT_MENU(parent, wxIDs.projsNewUser,  self.onLogIn)
-        self.AppendSubMenu(self.userMenu, "User")
+        self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
         self.Append(wxIDs.projsSearch,
-                    "Search OSF\t{}".format(keys['projectsFind']))
+                    _translate("Search OSF\t{}")
+                    .format(keys['projectsFind']))
         wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
 
         # new
         self.Append(wxIDs.projsNew,
-                    "New...\t{}".format(keys['projectsNew']))
+                    _translate("New...\t{}").format(keys['projectsNew']))
         wx.EVT_MENU(parent, wxIDs.projsNew,  self.onNew)
 
         # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
@@ -231,16 +234,19 @@ class ProjectsMenu(wx.Menu):
             projEditor.Show()
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
-                                            message="You need to log in"
-                                            " to create a project")
+                                            message=_translate(
+                                            "You need to log in"
+                                            " to create a project"))
             infoDlg.Show()
 
     def onOpenFile(self, event):
         """Open project file from dialog
         """
-        dlg = wx.FileDialog(parent=None, message=("Open local project file"),
+        dlg = wx.FileDialog(parent=None,
+                            message=_translate("Open local project file"),
                             style=wx.FD_OPEN,
-                            wildcard="Project files (*.psyproj)|*.psyproj")
+                            wildcard=_translate(
+                            "Project files (*.psyproj)|*.psyproj"))
         if dlg.ShowModal() == wx.ID_OK:
             projFile = dlg.GetPath()
             self.openProj(projFile)
@@ -271,54 +277,58 @@ class LogInDlg(wx.Dialog):
     def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
         wx.Dialog.__init__(self, None,
-                           title="Log in to Open Science Framework")
+                           title=_translate(
+                           "Log in to Open Science Framework"))
         self.session = app.osf_session
         self.app = app
 
         self.fieldsSizer = wx.GridBagSizer(vgap=5, hgap=5)
 
         if web.haveInternetAccess():
-            self.status = wx.StaticText(self, label="Status: Ready")
+            self.status = wx.StaticText(self,
+                                        label=_translate("Status: Ready"))
         else:
-            self.status = wx.StaticText(self, label="No internet access")
+            self.status = wx.StaticText(self,
+                                        label=_translate("No internet access"))
         self.fieldsSizer.Add(self.status,
                              pos=(0, 0), span=(1, 2),
                              flag=wx.ALIGN_CENTER, border=10)
 
         # user info
-        self.fieldsSizer.Add(wx.StaticText(self, label="OSF Username (email)"),
+        self.fieldsSizer.Add(wx.StaticText(self,
+                                           label=_translate("OSF Username (email)")),
                              pos=(1, 0), flag=wx.ALIGN_RIGHT)
         self.username = wx.TextCtrl(self)
-        self.username.SetToolTipString("Your username on OSF "
-                                       "(the email address you used)")
+        self.username.SetToolTipString(_translate("Your username on OSF "
+                                       "(the email address you used)"))
         self.fieldsSizer.Add(self.username,
                              pos=(1, 1), flag=wx.ALIGN_LEFT)
         # pass info
-        self.fieldsSizer.Add(wx.StaticText(self, label="Password"),
+        self.fieldsSizer.Add(wx.StaticText(self, label=_translate("Password")),
                              pos=(2, 0), flag=wx.ALIGN_RIGHT)
         self.password = wx.TextCtrl(self,
                                     style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-        self.password.SetToolTipString("Your password on OSF "
-                                       "(will be checked securely with https)")
+        self.password.SetToolTipString(_translate("Your password on OSF "
+                                       "(will be checked securely with https)"))
         self.fieldsSizer.Add(self.password,
                              pos=(2, 1), flag=wx.ALIGN_LEFT)
         # remember me
-        self.fieldsSizer.Add(wx.StaticText(self, label="Remember me"),
+        self.fieldsSizer.Add(wx.StaticText(self, label=_translate("Remember me")),
                              pos=(3, 0), flag=wx.ALIGN_RIGHT)
         self.rememberMe = wx.CheckBox(self, True)
-        self.rememberMe.SetToolTipString("We won't store your password - "
-                                         "just an authorisation token")
+        self.rememberMe.SetToolTipString(_translate("We won't store your password - "
+                                         "just an authorisation token"))
         self.fieldsSizer.Add(self.rememberMe,
                              pos=(3, 1), flag=wx.ALIGN_LEFT)
 
         # buttons (Log in, Cancel)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.cancelBtn = wx.Button(
-            self, wx.ID_CANCEL, 'Cancel')
+            self, wx.ID_CANCEL, _translate('Cancel'))
         self.Bind(wx.EVT_BUTTON, self.onCancel, id=wx.ID_CANCEL)
         btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
 
-        self.okBtn = wx.Button(self, wx.ID_OK, "Login")
+        self.okBtn = wx.Button(self, wx.ID_OK, _translate("Login"))
         self.okBtn.SetDefault()
         self.Bind(wx.EVT_BUTTON, self.onLogin, id=wx.ID_OK)
         btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
@@ -334,9 +344,9 @@ class LogInDlg(wx.Dialog):
         """
         if not havePyosf:
             dialogs.MessageDialog(parent=self.parent, type='Warning',
-                                  title="pyosf not found",
-                                  message="You need pyosf to log in to "
-                                          "Open Science Framework",
+                                  title=_translate("pyosf not found"),
+                                  message=_translate("You need pyosf to "
+                                          "log in to Open Science Framework"),
                                   )
             return None
         username = self.username.GetValue()
@@ -346,12 +356,13 @@ class LogInDlg(wx.Dialog):
             session = pyosf.Session(username=username,
                                     password=pword, remember_me=rememberMe)
             self.app.osf_session = session
-            self.updateStatus("Successful authentication", color=(0, 170, 0))
+            self.updateStatus(_translate("Successful authentication"),
+                              color=(0, 170, 0))
             time.sleep(0.5)
             self.Destroy()
         except pyosf.AuthError:
-            self.updateStatus("Failed to Authenticate. "
-                              "Check username/password", color=(255, 0, 0))
+            self.updateStatus(_translate("Failed to Authenticate. "
+                              "Check username/password"), color=(255, 0, 0))
 
     def onCancel(self, event):
         self.Destroy()
@@ -400,7 +411,7 @@ class SearchFrame(BaseFrame):
 
     def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
-        title = "Search OSF (Open Science Framework)"
+        title = _translate("Search OSF (Open Science Framework)")
         self.frameType = 'OSFsearch'
         BaseFrame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
@@ -418,21 +429,21 @@ class SearchFrame(BaseFrame):
 
         # sizers: on the left we have search boxes
         leftSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer.Add(wx.StaticText(self, -1, "My Projects"),
+        leftSizer.Add(wx.StaticText(self, -1, _translate("My Projects")),
                       flag=wx.EXPAND | wx.ALL, border=5)
         leftSizer.Add(self.myProjectsPanel,
                       proportion=1,
                       flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
                       border=10)
         searchSizer = wx.BoxSizer(wx.HORIZONTAL)
-        searchSizer.Add(wx.StaticText(self, -1, "Search Public:"))
+        searchSizer.Add(wx.StaticText(self, -1, _translate("Search Public:")))
         self.searchTextCtrl = wx.TextCtrl(self, -1, "",
                                           style=wx.TE_PROCESS_ENTER)
         self.searchTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
         searchSizer.Add(self.searchTextCtrl, flag=wx.EXPAND)
         leftSizer.Add(searchSizer)
         tagsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        tagsSizer.Add(wx.StaticText(self, -1, "Tags:"))
+        tagsSizer.Add(wx.StaticText(self, -1, _translate("Tags:")))
         self.tagsTextCtrl = wx.TextCtrl(self, -1, "psychopy,",
                                         style=wx.TE_PROCESS_ENTER)
         self.tagsTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
@@ -445,10 +456,10 @@ class SearchFrame(BaseFrame):
 
         # sizers: on the right we have detail
         rightSizer = wx.BoxSizer(wx.VERTICAL)
-        rightSizer.Add(wx.StaticText(self, -1, "Project Info"),
+        rightSizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
                        flag=wx.ALL,
                        border=5)
-        self.syncButton = wx.Button(self, -1, "Sync...")
+        self.syncButton = wx.Button(self, -1, _translate("Sync..."))
         self.syncButton.Enable(False)
         rightSizer.Add(self.syncButton,
                        flag=wx.ALL, border=5)
@@ -482,11 +493,11 @@ class SearchFrame(BaseFrame):
     def updateUserProjs(self):
         if self.app.osf_session.user_id is None:
             self.myProjectsPanel.setContents(
-                "No user logged in. \n\n"
-                "Go to menu item Projects>Users>")
+                _translate("No user logged in. \n\n"
+                "Go to menu item Projects>Users>"))
         else:
             self.myProjectsPanel.setContents(
-                "Searching projects for user {} ..."
+                _translate("Searching projects for user {} ...")
                 .format(self.app.osf_session.username))
             self.Update()
             wx.Yield()
@@ -497,7 +508,7 @@ class SearchFrame(BaseFrame):
         searchStr = self.searchTextCtrl.GetValue()
         tagsStr = self.tagsTextCtrl.GetValue()
         session = self.app.osf_session
-        self.publicProjectsPanel.setContents("searching...")
+        self.publicProjectsPanel.setContents(_translate("searching..."))
         self.publicProjectsPanel.Update()
         wx.Yield()
         projs = session.find_projects(search_str=searchStr, tags=tagsStr)
@@ -585,7 +596,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                                     style=wx.HL_ALIGN_LEFT,
                                     )
         self.description = wx.StaticText(parent=self, id=-1,
-                                         label="Select a project for details")
+                                         label=_translate(
+                                         "Select a project for details"))
         self.tags = wx.StaticText(parent=self, id=-1,
                                   label="")
         self.visibility = wx.StaticText(parent=self, id=-1,
@@ -619,11 +631,11 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             visib = "Public"
         else:
             visib = "Private"
-        self.visibility.SetLabel("Visibility: {}".format(visib))
+        self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
         tags = project.attributes['tags']
         while None in tags:
             tags.remove(None)
-        self.tags.SetLabel("Tags: "+", ".join(tags))
+        self.tags.SetLabel(_translate("Tags:")+" "+", ".join(tags))
 
         # store this ID to keep track of the current project
         self.currentProj = project
@@ -653,27 +665,27 @@ class ProjectFrame(BaseFrame):
         self.syncStatus = None
 
         # title
-        self.title = wx.StaticText(self, -1, "No project opened",
+        self.title = wx.StaticText(self, -1, _translate("No project opened"),
                                    style=wx.BOLD | wx.ALIGN_CENTER)
         font = wx.Font(18, family=wx.NORMAL, style=wx.NORMAL, weight=wx.BOLD)
         self.title.SetFont(font)
         self.title.SetMinSize((300, -1))
         self.title.Wrap(300)
         # local files
-        localBrowseBtn = wx.Button(self, -1, "Browse...")
+        localBrowseBtn = wx.Button(self, -1, _translate("Browse..."))
         localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         self.localPath = wx.StaticText(self, -1, "")
         # layout
-        localsBox = wx.StaticBox(self, -1, "Local Info")
+        localsBox = wx.StaticBox(self, -1, _translate("Local Info"))
         localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
-        nameLabel = wx.StaticText(self, -1, "Name:\n(for PsychoPy use)")
+        nameLabel = wx.StaticText(self, -1, _translate("Name:\n(for PsychoPy use)"))
         self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         nameSizer.Add(nameLabel, flag=wx.ALIGN_RIGHT)
         nameSizer.Add(self.nameCtrl, flag=wx.EXPAND)
         localsSizer.Add(nameSizer)
         filesSizer = wx.BoxSizer(wx.HORIZONTAL)
-        filesSizer.Add(wx.StaticText(self, -1, "Local files:"))
+        filesSizer.Add(wx.StaticText(self, -1, _translate("Local files:")))
         filesSizer.Add(localBrowseBtn, flag=wx.EXPAND | wx.ALL,
                        proportion=1, border=5)
         localsSizer.Add(filesSizer, flag=wx.LEFT | wx.RIGHT, border=5)
@@ -681,8 +693,8 @@ class ProjectFrame(BaseFrame):
                         proportion=1, border=5)
 
         # sync controls
-        syncBox = wx.StaticBox(self, -1, "Sync")
-        self.syncButton = wx.Button(self, -1, "Sync Now")
+        syncBox = wx.StaticBox(self, -1, _translate("Sync"))
+        self.syncButton = wx.Button(self, -1, _translate("Sync Now"))
         self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncBtn)
         self.syncStatus = SyncStatusPanel(self, id=-1,
                                           project=self.project)
@@ -695,7 +707,7 @@ class ProjectFrame(BaseFrame):
         syncSizer.Add(self.status, flag=wx.EXPAND | wx.ALL,
                       proportion=1, border=5)
 
-        projBox = wx.StaticBox(self, -1, "Project Info")
+        projBox = wx.StaticBox(self, -1, _translate("Project Info"))
         projSizer = wx.StaticBoxSizer(projBox, wx.VERTICAL)
         self.projDetails = DetailsPanel(parent=self, noTitle=True)
         projSizer.Add(self.projDetails, flag=wx.EXPAND | wx.ALL,
@@ -729,7 +741,8 @@ class ProjectFrame(BaseFrame):
         self.Show()
 
     def onBrowseLocal(self, evt):
-        dlg = wx.DirDialog(self, message=("Root folder of your local files"))
+        dlg = wx.DirDialog(self,
+                           message=_translate("Root folder of your local files"))
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.localPath.SetLabel(newPath)
@@ -798,10 +811,10 @@ class ProjectFrame(BaseFrame):
         self.updateProjectFields()
         # create or reset progress indicators
         self.syncStatus.reset()
-        self.update(status="Checking for changes")
+        self.update(status=_translate("Checking for changes"))
         wx.Yield()
         changes = self.project.get_changes()
-        self.update(status="Applying changes")
+        self.update(status=_translate("Applying changes"))
         wx.Yield()  # give wx a moment to breath
         # start the threads up/downloading
         changes.apply(threaded=True)
@@ -809,7 +822,7 @@ class ProjectFrame(BaseFrame):
         while True:
             progress = changes.progress
             if progress == 1:
-                self.update("Sync complete")
+                self.update(_translate("Sync complete"))
                 changes.finish_sync()
                 self.project.save()
                 break
@@ -821,15 +834,15 @@ class ProjectFrame(BaseFrame):
         """
         if status is None:
             if not self.OSFproject:
-                status = "No remote project set"
+                status = _translate("No remote project set")
                 self.syncButton.Enable(False)
             elif not self.localPath or not self.localPath.GetLabel():
-                status = "No local folder to sync with"
+                status = _translate("No local folder to sync with")
                 self.syncButton.Enable(False)
             else:
-                status = "Ready"
+                status = _translate("Ready")
                 self.syncButton.Enable(True)
-        self.status.SetLabel("Status: " + status)
+        self.status.SetLabel(_translate("Status: ") + status)
         self.Layout()
         self.Update()
 
@@ -857,24 +870,26 @@ class ProjectEditor(BaseFrame):
             self.isNew = True
 
         # create the controls
-        titleLabel = wx.StaticText(panel, -1, "Title:")
+        titleLabel = wx.StaticText(panel, -1, _translate("Title:"))
         self.titleBox = wx.TextCtrl(panel, -1, size=(400, -1))
-        nameLabel = wx.StaticText(panel, -1, "Name \n(for local id):")
+        nameLabel = wx.StaticText(panel, -1,
+                                  _translate("Name \n(for local id):"))
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
-        descrLabel = wx.StaticText(panel, -1, "Description:")
+        descrLabel = wx.StaticText(panel, -1, _translate("Description:"))
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
                                     style = wx.TE_MULTILINE | wx.SUNKEN_BORDER)
-        tagsLabel = wx.StaticText(panel, -1, "Tags (comma separated):")
+        tagsLabel = wx.StaticText(panel, -1,
+                                  _translate("Tags (comma separated):"))
         self.tagsBox = wx.TextCtrl(panel, -1, size=(400, 100),
                                    value="PsychoPy, Builder, Coder",
                                    style = wx.TE_MULTILINE | wx.SUNKEN_BORDER)
-        publicLabel = wx.StaticText(panel, -1, "Public:")
+        publicLabel = wx.StaticText(panel, -1, _translate("Public:"))
         self.publicBox = wx.CheckBox(panel, -1)
         # buttons
         if self.isNew:
-            buttonMsg = "Create project on OSF"
+            buttonMsg = _translate("Create project on OSF")
         else:
-            buttonMsg = "Submit changes to OSF"
+            buttonMsg = _translate("Submit changes to OSF")
         updateBtn = wx.Button(panel, -1, buttonMsg)
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
 
@@ -933,9 +948,9 @@ class SyncStatusPanel(wx.Panel):
         self.sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         self.sizer.AddGrowableCol(1)
 
-        upLabel = wx.StaticText(self, -1, "Uploading:")
+        upLabel = wx.StaticText(self, -1, _translate("Uploading:"))
         self.upProg = wx.Gauge(self, -1, range=1, size=(200, -1))
-        downLabel = wx.StaticText(self, -1, "Downloading:")
+        downLabel = wx.StaticText(self, -1, _translate("Downloading:"))
         self.downProg = wx.Gauge(self, -1, range=1, size=(200, -1))
         self.sizer.AddMany([upLabel, self.upProg,
                             downLabel, self.downProg])
