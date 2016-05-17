@@ -62,26 +62,36 @@ class Computer(object):
     #: Python 32 bit runtime is used a 64 bit OS sysbits will equal 32.
     pybits = 32 + int(sys.maxsize > 2 ** 32) * 32
 
-    #: Attribute representing the number of *processing units* available on
-    #: the current computer. This includes cpu's, cpu cores, and hyperthreads.
-    #:
-    #: processing_unit_count = num_cpus * cores_per_cpu * num_hyperthreads
-    #:
-    #: where:
-    #:      * num_cpus: Number of CPU chips on the motherboard
-    #:        (usually 1 now).
-    #:      * cores_per_cpu: Number of processing cores per CPU (2,4 is common)
-    #:      * num_hyperthreads: Hyper-threaded cores = 2, otherwise 1.
-    processing_unit_count = psutil.cpu_count()
+    try:
+        #: Attribute representing the number of *processing units* available on
+        #: the current computer. This includes cpu's, cpu cores, and hyperthreads.
+        #:
+        #: processing_unit_count = num_cpus * cores_per_cpu * num_hyperthreads
+        #:
+        #: where:
+        #:      * num_cpus: Number of CPU chips on the motherboard
+        #:        (usually 1 now).
+        #:      * cores_per_cpu: Number of processing cores per CPU (2,4 is common)
+        #:      * num_hyperthreads: Hyper-threaded cores = 2, otherwise 1.
+        processing_unit_count = psutil.cpu_count()
 
-    #: The number of cpu cores available on the computer.
-    #: Hyperthreads are NOT included.
-    core_count = psutil.cpu_count(False)
+        #: The number of cpu cores available on the computer.
+        #: Hyperthreads are NOT included.
+        core_count = psutil.cpu_count(False) #hyperthreads not included
+    except AttributeError:
+        # psutil might be too old (cpu_count added in 2.0)
+        import multiprocessing
+        processing_unit_count = multiprocessing.cpu_count()
+        core_count = None  # but not used anyway
 
-    #: Process priority when first started. If process is set to
-    #: high priority, this value is used when the process is set back to
-    #: normal priority.
-    _process_original_nice_value = psutil.Process().nice()  # used on linux.
+    try:
+        #: Process priority when first started. If process is set to
+        #: high priority, this value is used when the process is set back to
+        #: normal priority.
+        _process_original_nice_value=psutil.Process().nice() # used on linux.
+    except TypeError:
+        # on older versions of psutil (in ubuntu 14.04) nice is attr not call
+        _process_original_nice_value=psutil.Process().nice
 
     #: True if the current process is currently in high or real-time
     #: priority mode (enabled by calling Computer.setPriority()).

@@ -222,7 +222,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.psychoWindow.close()
 
         # disable high priority in both processes
-        Computer.disableHighPriority()
+        Computer.setPriority('normal')
 
     def plotResults(self):
         # calculate stats on collected data and draw some plots
