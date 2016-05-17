@@ -202,7 +202,7 @@ class ProjectsMenu(wx.Menu):
         except requests.exceptions.ConnectionError:
             logging.warn("Connection error trying to connect to pyosf")
         ProjectsMenu.appData['user'] = user
-        if self.searchDlg is not None:
+        if self.searchDlg:
             self.searchDlg.updateUserProjs()
 
     # def onSync(self, event):
@@ -403,6 +403,11 @@ class BaseFrame(wx.Frame):
 
     def closeFrame(self, event=None, checkSave=True):
         self.Destroy()
+
+    def checkSave(self):
+        """If the app asks whether everything is safely saved
+        """
+        return True  # for OK
 
 
 class SearchFrame(BaseFrame):
@@ -660,6 +665,7 @@ class ProjectFrame(BaseFrame):
                            *args, **kwargs)
         self.frameType = 'project'
         self.app = wx.GetApp()
+        self.app.trackFrame(self)
         self.OSFproject = None
         self.project = None
         self.syncStatus = None
@@ -671,24 +677,21 @@ class ProjectFrame(BaseFrame):
         self.title.SetFont(font)
         self.title.SetMinSize((300, -1))
         self.title.Wrap(300)
+        # name box
+        nameBox = wx.StaticBox(self, -1, _translate("Name (for PsychoPy use):"))
+        nameSizer = wx.StaticBoxSizer(nameBox, wx.VERTICAL)
+        self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
+        nameSizer.Add(self.nameCtrl, flag=wx.EXPAND | wx.ALL, border=5)
         # local files
+        localsBox = wx.StaticBox(self, -1, _translate("Local Info"))
+        localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
         localBrowseBtn = wx.Button(self, -1, _translate("Browse..."))
         localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         self.localPath = wx.StaticText(self, -1, "")
-        # layout
-        localsBox = wx.StaticBox(self, -1, _translate("Local Info"))
-        localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
-        nameLabel = wx.StaticText(self, -1, _translate("Name:\n(for PsychoPy use)"))
-        self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
-        nameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        nameSizer.Add(nameLabel, flag=wx.ALIGN_RIGHT)
-        nameSizer.Add(self.nameCtrl, flag=wx.EXPAND)
-        localsSizer.Add(nameSizer)
         filesSizer = wx.BoxSizer(wx.HORIZONTAL)
         filesSizer.Add(wx.StaticText(self, -1, _translate("Local files:")))
-        filesSizer.Add(localBrowseBtn, flag=wx.EXPAND | wx.ALL,
-                       proportion=1, border=5)
-        localsSizer.Add(filesSizer, flag=wx.LEFT | wx.RIGHT, border=5)
+        filesSizer.Add(localBrowseBtn, flag=wx.ALL, border=5)
+        localsSizer.Add(filesSizer, flag=wx.ALL, border=5)
         localsSizer.Add(self.localPath, flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
                         proportion=1, border=5)
 
@@ -722,7 +725,10 @@ class ProjectFrame(BaseFrame):
         leftSizer.Add(projSizer, flag=wx.EXPAND | wx.ALL,
                       proportion=1, border=5)
         rightSizer = wx.BoxSizer(wx.VERTICAL)
-        rightSizer.Add(localsSizer, flag=wx.ALL, border=5)
+        rightSizer.Add(nameSizer, flag=wx.EXPAND | wx.ALL,
+                       proportion=0, border=5)
+        rightSizer.Add(localsSizer, flag=wx.EXPAND | wx.ALL,
+                       proportion=0, border=5)
         rightSizer.Add(syncSizer, flag=wx.ALL, border=5)
 
         columnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -853,7 +859,7 @@ class ProjectFrame(BaseFrame):
         self.project.username = self.OSFproject.session.username
         self.project.project_id = self.OSFproject.id
         key = projectCatalog.addFile(self.project.project_file)
-        self.projHistory.AddFileToHistory(key)
+        projHistory.AddFileToHistory(key)
 
 class ProjectEditor(BaseFrame):
     def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):

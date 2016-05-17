@@ -1021,24 +1021,23 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditions = None
         self.conditionsFile = None
         # create a valid new name; save old name in case we need to revert
-        defaultName = 'trials'
+        namespace = frame.exp.namespace
+        defaultName = namespace.makeValid('trials')
         oldLoopName = defaultName
         if loop:
             oldLoopName = loop.params['name'].val
-        namespace = frame.exp.namespace
-        newName = namespace.makeValid(oldLoopName)
 
         # create default instances of the diff loop types
         # for 'random','sequential', 'fullRandom'
         self.trialHandler = experiment.TrialHandler(
-            exp=self.exp, name=newName, loopType='random',
+            exp=self.exp, name=oldLoopName, loopType='random',
             nReps=5, conditions=[])
         # for staircases:
         self.stairHandler = experiment.StairHandler(
-            exp=self.exp, name=newName, nReps=50, nReversals='',
+            exp=self.exp, name=oldLoopName, nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5)
         self.multiStairHandler = experiment.MultiStairHandler(
-            exp=self.exp, name=newName, nReps=50, stairType='simple',
+            exp=self.exp, name=oldLoopName, nReps=50, stairType='simple',
             switchStairs='random', conditions=[], conditionsFile='')
 
         # replace defaults with the loop we were given
@@ -1082,6 +1081,16 @@ class DlgLoopProperties(_BaseParamsDlg):
         # through
         self.panels = [self.globalPanel, self.stairPanel,
                        self.constantsPanel, self.multiStairPanel]
+
+        self.params = {}
+        self.params.update(self.trialHandler.params)
+        self.params.update(self.stairHandler.params)
+        self.params.update(self.multiStairHandler.params)
+        self.paramCtrls = {}
+        self.paramCtrls.update(self.globalCtrls)
+        self.paramCtrls.update(self.constantsCtrls)
+        self.paramCtrls.update(self.staircaseCtrls)
+        self.paramCtrls.update(self.multiStairCtrls)
 
         # show dialog and get most of the data
         self.show()

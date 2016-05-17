@@ -689,14 +689,14 @@ Tweaks and fixes:
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
-* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server `contrib/http/*`
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
 * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
 * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
 * ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy, Hiroku Sogo)
 * ADDED: 'enable escape' option in experiment settings, default is 'enabled'
 * ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
-* CHANGED: removed python 2.4's version of sha1 digest from :class:`~psychopy.info.RunTimeInfo`
+* CHANGED: removed python 2.4 version of sha1 digest from :class:`~psychopy.info.RunTimeInfo`
 * CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
 * FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
 * FIXED: Builder Flow is smarter about Loops and now stops you creating 'broken' ones (e.g. Loops around nothing)
@@ -787,11 +787,9 @@ PsychoPy 1.72.00
 
 (rc1 released Nov 2011)
 
-* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
-to a choice control if this is used (thanks Manuel Ebert)
+* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)
     - for gui.Dlg the `.addField()` method now has `choices` attribute
-    - for gui.dlgFromDict if one of the values in the dict is a list it will be
-    interpreted as a set of choices (NB this potentially breaks old code)
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
     - for info see API docs for psychopy.gui
 
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
