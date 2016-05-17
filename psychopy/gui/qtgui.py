@@ -46,7 +46,9 @@ class Dlg(QtWidgets.QDialog):
 
     see also the function *dlgFromDict* for an **even simpler** version
 
-    **Example:**    ::
+    **Example**
+
+    .. code-block:: python
 
         from psychopy import gui
 
@@ -62,6 +64,7 @@ class Dlg(QtWidgets.QDialog):
             print(ok_data)
         else:
             print('user cancelled')
+
     """
 
     def __init__(self, title=_translate('PsychoPy Dialog'),
@@ -276,16 +279,7 @@ class Dlg(QtWidgets.QDialog):
         return self.exec_()
 
     def show(self):
-        """Show.
-
-        ** QDialog already has a show() method. So this method calls
-           QDialog.show() and then exec_(). This seems to not cause issues,
-           however we need to keep an eye out for any issues.
-
-        ** Deprecated: Use dlg.display() instead. This method will be removed
-           in a future version of psychopy.
-
-        Presents the dialog and waits for the user to press OK or CANCEL.
+        """Presents the dialog and waits for the user to press OK or CANCEL.
 
         If user presses OK button, function returns a list containing the
         updated values coming from each of the input fields created.
@@ -293,6 +287,11 @@ class Dlg(QtWidgets.QDialog):
 
         :return: self.data
         """
+        #    NB
+        #
+        #    ** QDialog already has a show() method. So this method calls
+        #       QDialog.show() and then exec_(). This seems to not cause issues
+        #       but we need to keep an eye out for any in future.
         return self.display()
 
     def exec_(self):
@@ -399,7 +398,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
             can be set to custom prompts
         allowed: string
             a string to specify file filters.
-            e.g. "Text files (*.txt) ;; Image files (*.bmp *.gif)"
+            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getSaveFileName
             for further details
@@ -430,15 +429,19 @@ def fileOpenDlg(tryFilePath="",
     """A simple dialogue allowing read access to the file system.
 
     :parameters:
+
         tryFilePath: string
             default file path on which to open the dialog
+
         tryFileName: string
             default file name, as suggested file
+
         prompt: string (default "Select file to open")
             can be set to custom prompts
+
         allowed: string (available since v1.62.01)
             a string to specify file filters.
-            e.g. "Text files (*.txt) ;; Image files (*.bmp *.gif)"
+            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getOpenFileNames
             for further details
