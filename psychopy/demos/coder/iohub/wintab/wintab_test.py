@@ -7,6 +7,7 @@ import psychopy
 from psychopy import core, visual
 from psychopy.gui import fileSaveDlg
 from psychopy.iohub.client import launchHubServer
+import wintabgraphics
 
 draw_pen_traces = True
 
@@ -80,8 +81,8 @@ def createPsychopyGraphics():
         "Press 'q' to exit."
     instruct_text.text = instruct_text._start_rec_txt
 
-    pen_trace = psychopy.iohub.client.wintabtablet.PenTracesStim(myWin)
-    pen_pos = psychopy.iohub.client.wintabtablet.PenPositionStim(myWin)
+    pen_trace = wintabgraphics.PenTracesStim(myWin)
+    pen_pos = wintabgraphics.PenPositionStim(myWin)
     return myWin, (evt_text, instruct_text, pen_trace, pen_pos)
 
 
