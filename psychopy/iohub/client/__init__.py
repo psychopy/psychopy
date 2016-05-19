@@ -48,7 +48,7 @@ class DeviceRPC(object):
         self.sendToHub = sendToHub
 
     @staticmethod
-    def _returnarg(a):
+    def _returnarg(a): # pragma: no cover
         return a
 
     def __call__(self, *args, **kwargs):
@@ -953,18 +953,30 @@ class ioHubConnection(object):
                              ioHubConfigAbsPath,
                              str(Computer.current_process.pid)]
 
-
-        # If running coverage, add env var's needed to subprocess
-        # pytest coverage can then be called from cmdline like:
-        # psychopy\psychopy>py.test --cov=psychopy.iohub .\tests\test_iohub
+        # To enable coverage in the iohub process, set the iohub\default_config
+        # setting 'coverage_env_var' to the name of the coverage
+        # config file that exists in the psychopy\iohub site-packages folder.
+        # For example:
+        #   coverage_env_var: .coveragerc
         #
-        # envars = dict(os.environ)
-        # envars['COVERAGE_PROCESS_START'] = 'iohub.converagerc'
-        # self._server_process = subprocess.Popen( subprocessArgList,
-        #                                       env=envars,
-        #                                       cwd=IOHUB_DIRECTORY)
+        # If coverage_env_var is None or the file is not found,
+        # coverage of ioHub Server process is disabled.
+        coverage_env_var = self._iohub_server_config.get('coverage_env_var')
 
-        self._server_process = subprocess.Popen(subprocessArgList)
+        envars = dict(os.environ)
+        if coverage_env_var:
+            coverage_env_var = str(coverage_env_var)
+            cov_config_path = os.path.join(IOHUB_DIRECTORY, coverage_env_var)
+            if os.path.exists(cov_config_path):
+                print("Coverage enabled for ioHub Server Process.")
+            else:
+                print("ioHub Process Coverage conf file not found: %s",
+                      cov_config_path)
+            envars['COVERAGE_PROCESS_START'] = coverage_env_var
+
+        self._server_process = subprocess.Popen(subprocessArgList,
+                                                env=envars,
+                                                cwd=IOHUB_DIRECTORY)
 
         # Get iohub server pid and psutil process object
         # for affinity and process priority setting.
