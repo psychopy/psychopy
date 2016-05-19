@@ -30,16 +30,13 @@ def openHubFile(filepath, filename, mode):
 def displayDataFileSelectionDialog(starting_dir=None):
     """Shows a FileDialog and lets you select a .hdf5 file to open for
     processing."""
-    from ..util.dialogs import FileDialog
-    fdlg = FileDialog(
-        message='Select a ioHub DataStore File',
-        defaultDir=starting_dir,
-        fileTypes=FileDialog.IODATA_FILES,
-        display_index=0)
+    from psychopy.gui.qtgui import fileOpenDlg
 
-    status, filePathList = fdlg.show()
+    filePathList = fileOpenDlg(starting_dir,
+                               prompt=_translate("Select file to open"),
+                               allowed="Text files (\*.hdf5)")
 
-    if status != FileDialog.OK_RESULT:
+    if filePathList is None:
         print ' Data File Selection Cancelled.'
         return None
 

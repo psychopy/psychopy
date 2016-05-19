@@ -4,8 +4,8 @@
 EventPublisher / RemoteEventSubscriber Devices usage Demo.
 
 For simplicity, both the EventPublisher and RemoteEventSubscriber run on the
-local computer. The EventPublisher publishes all keyboard event types, and the
-RemoteEventSubscriber subscribes to only KeyboardPressEvents, and KeyboardCharEvents.
+local computer. The EventPublisher publishes keyboard events, and the
+RemoteEventSubscriber subscribes to keyboard events.
 
 ** IMPORTANT: The Python package 'pyzmq' must be available in your python
     environment to be able to use the EventPublisher and / or RemoteEventSubscriber
@@ -17,7 +17,7 @@ Inital Version: July 17th, 2013, Sol Simpson
 
 from psychopy.iohub.client import ioHubExperimentRuntime
 from psychopy.iohub.devices import Computer
-from psychopy.iohub.util.dialogs import MessageDialog
+from psychopy.gui.qtgui import infoDlg
 
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -41,31 +41,30 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # keyboard event info. received from the local keyboard device and keyboard
         # events received from the RemoteEventSubscriber device. Inform the user of this...
         #
-        msg_dialog = MessageDialog(
-            "This demo does not create a PsychoPy window.\nInstead local and subscribed keyboard event info is simply printed to stdout.\n\nOnce the demo has started, press 'ESCAPE' to quit.\n\nPress OK to continue or Cancel to abort the demo.",
-            title='PsychoPy.ioHub PUB - SUB Event Demo',
-            dialogType=MessageDialog.IMPORTANT_DIALOG,
-            display_index=0)
+        infoDlg('PsychoPy.ioHub PUB - SUB Event Demo',
+                "This demo does not create a PsychoPy window.\n"
+                "Instead local and subscribed keyboard event info is "
+                "simply printed to stdout.\n\nOnce the demo has started, "
+                "press 'ESCAPE' to quit.")
 
-        if msg_dialog.show() == MessageDialog.OK_RESULT:
-            # wait until 'ESCAPE' is pressed, or quit after 15 seconds of no kb
-            # events.
-            self.hub.clearEvents()
-            last_event_time = Computer.getTime()
-            while run_demo is True and Computer.getTime() - last_event_time < 15.0:
-                local_kb_events = kb.getEvents()
-                for event in local_kb_events:
-                    print '* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time, ekey=event.key, edelay=event.delay)
-                    last_event_time = event.time
-                    if event.key == u'ESCAPE':
-                        run_demo = False
-                        break
-                subscribed_kb_events = evt_sub.getEvents()
-                for event in subscribed_kb_events:
-                    print '# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time, ekey=event.key, edelay=event.delay)
-                self.hub.wait(0.1)
+        # wait until 'ESCAPE' is pressed, or quit after 15 seconds of no kb
+        # events.
+        self.hub.clearEvents()
+        last_event_time = Computer.getTime()
+        while run_demo is True and Computer.getTime() - last_event_time < 15.0:
+            local_kb_events = kb.getEvents()
+            for event in local_kb_events:
+                print '* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
+                    etime=event.time, ekey=event.key, edelay=event.delay)
+                last_event_time = event.time
+                if event.key == 'escape':
+                    run_demo = False
+                    break
+            subscribed_kb_events = evt_sub.getEvents()
+            for event in subscribed_kb_events:
+                print '# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
+                    etime=event.time, ekey=event.key, edelay=event.delay)
+            self.hub.wait(0.1)
 
         # End of experiment logic
 

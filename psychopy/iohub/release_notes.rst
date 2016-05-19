@@ -15,6 +15,7 @@ Bugs Fixed
 - mouse.setPosition was not correctly setting y position
 - fixed bug in iohubdelaytest demo that was stopping it from running.
 - Analog Input implementation for Measurement Computing works on python 64bit
+- coder\iohub\network demo was referencing non-existant KeyboardChar event type.
 
 User API Backwards Incompatibles
 --------------------------------
@@ -34,6 +35,18 @@ iohub Package
 
     TODO: Full list of new import paths
 
+
+- Created iohub.removed module that will hold any modules completely removed
+  from psychopy.iohub. This allows user scripts that rely on this
+  code to just change import for the short term. User scripts must switch to 
+  using alternatives ASAP since iohub.removed will be deleted in a
+  future release.
+
+- Removed psychopy.iohub.util.dialogs module. ioHub demo's and internal code
+  now use psychopy.gui equivelents instead.
+  (psychopy.iohub.util.dialogs -> psychopy.iohub.removed.util.dialogs)
+
+
 ioHubConnection Class
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -42,6 +55,10 @@ Removed:
     - disableHighPriority().  Use setPriority('normal') instead.
     - enableRealTimePriority(). Use setPriority('realtime') instead.
     - disableRealTimePriority(). Use setPriority('normal') instead.
+    - removed initializeConditionVariableTable(). Use
+      createTrialHandlerRecordTable() instead.
+    - removed addRowToConditionVariableTable(). Use addTrialHandlerRecord()
+      instead.
 
 
 Mouse Device

@@ -8,10 +8,8 @@ from .. import Device, Computer
 from ... import _ispkg
 from ...constants import DeviceConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
-from ...util.dialogs import ioHubDialog
 
 currentSec = Computer.getTime
-
 
 class Display(Device):
     """The ioHub Display Device represents a 2D visual stimulus presentation

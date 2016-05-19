@@ -11,7 +11,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 ------------------------------------------------------------------------------------------------------------------------
 
 """
-
 import os
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
@@ -53,14 +52,13 @@ class ioHubDialog(object):
 # ProgressBar
 #
 
-
 class ProgressBarDialog(ioHubDialog):
     """wx based progress bar interface."""
 
     def __init__(
             self,
             dialogTitle='Progress Dialog',
-            dialogText='Percent Complete',
+           dialogText='Percent Complete',
             maxValue=100.0,
             display_index=0):
         ioHubDialog.__init__(self, display_index)
@@ -69,7 +67,8 @@ class ProgressBarDialog(ioHubDialog):
             dialogText,
             maxValue,
             None,
-            wx.PD_AUTO_HIDE | wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
+            wx.PD_AUTO_HIDE | wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME |
+            wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
 
         self.set_frame_display()
 

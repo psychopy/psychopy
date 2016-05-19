@@ -10,13 +10,13 @@ from collections import deque
 
 try:
     import psychopy.logging as psycho_logging
+    from psychopy.gui.qtgui import warnDlg
 except ImportError:
     psycho_logging = None
 
 from . import ioHubConnection
 from ..util import yload, ydump, yLoader, yDumper
 from ..errors import printExceptionDetailsToStdErr
-from ..util.dialogs import MessageDialog
 from ..devices import Computer
 
 
@@ -468,13 +468,11 @@ class ioHubExperimentRuntime(object):
                         display_id = 0
                         if display_device:
                             display_id = display_device.getIndex()
-                        msg_dialog = MessageDialog(
-                            'Session Code {0} is already in use by the experiment.\nPlease enter a new Session Code'.format(
-                                tempdict['code']),
-                            'Session Code In Use',
-                            dialogType=MessageDialog.ERROR_DIALOG,
-                            allowCancel=False,
-                            display_index=display_id)
+                        msg_dialog = warnDlg('Session Code In Use',
+                                             'Session Code {0} is already in '
+                                             'use by the experiment.\nPlease '
+                                             'enter a new Session '
+                                             'Code'.format(tempdict['code']))
                         msg_dialog.show()
             else:
                 tempdict = allSessionDialogVariables

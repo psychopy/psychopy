@@ -102,7 +102,7 @@ class EventPublisher(Device):
 
     def _close(self):
         if self._pub_socket is not None:
-            self._pub_socket.send_multipart([u'EXIT', ''])
+            self._pub_socket.send_multipart(['EXIT', ''])
             self._pub_socket.close()
             self._pub_socket = None
             Device._close(self)

@@ -116,7 +116,7 @@ for t, trial in enumerate(trials):
         category='EXP',
         text='TRIAL_END',
         sec_time=tend_flip_time)
-    io.addRowToConditionVariableTable(trial.values())
+    io.addTrialHandlerRecord(trial.values())
 
 win.close()
 io.quit()

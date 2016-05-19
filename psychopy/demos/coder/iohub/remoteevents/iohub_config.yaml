@@ -26,7 +26,7 @@ monitor_devices:
         # locally generated events of the same type.
         # 
         device_number: 1
-        monitor_event_types: [KeyboardPressEvent,KeyboardReleaseEvent,KeyboardCharEvent]
+        monitor_event_types: [KeyboardPressEvent, KeyboardReleaseEvent]
         publishing_protocal: tcp://127.0.0.1:5555
     - network.RemoteEventSubscriber:
         name: evt_sub
@@ -35,7 +35,7 @@ monitor_devices:
         # event publisher.
         #
         subscription_protocal: tcp://127.0.0.1:5555
-        monitor_event_types: [KeyboardPressEvent,KeyboardCharEvent]
+        monitor_event_types: [KeyboardPressEvent, KeyboardReleaseEvent]
         # remote_iohub_address specifies the ioHub server ip and standard UDP port
         #   for the 'remote' ioHub Server instance that is running the EventPublisher.
         #   This is used by the time syncronization manager so offset and drift

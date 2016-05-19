@@ -587,7 +587,7 @@ class ioHubConnection(object):
         if cv_order is None:
             self._cv_order = trial.keys()
 
-        numpy_trial_condition_types = []
+        trial_condition_types = []
 
         for cond_name in self._cv_order:
             cond_val = trial[cond_name]
@@ -601,33 +601,12 @@ class ioHubConnection(object):
                 numpy_dtype = (cond_name, 'f8')
             else:
                 numpy_dtype = (cond_name, 'S', 256)
-            numpy_trial_condition_types.append(numpy_dtype)
+            trial_condition_types.append(numpy_dtype)
 
-            class ConditionVariableDescription(object):
-                def __init__(self):
-                    pass
-                _numpyConditionVariableDescriptor = numpy_trial_condition_types
-
-        self.initializeConditionVariableTable(ConditionVariableDescription)
-
-    def initializeConditionVariableTable(self, cv_provider):
-        """Create a condition variable table in the ioDataStore for the
-        experiment session. The table is created with a column set matching
-        the experiment condition names and data types defined in
-        cv_provider (a ExperimentVariableProvider instance).
-
-        Args:
-            cv_provider: The ExperimentVariableProvider instance being used
-                         in the experiment.
-
-        Returns:
-            None
-        """
         # pylint: disable=protected-access
         cvt_rpc = ('RPC', 'initConditionVariableTable',
                    (self.experimentID, self.experimentSessionID,
-                    cv_provider._numpyConditionVariableDescriptor)
-                  )
+                    trial_condition_types))
         r = self._sendToHubServer(cvt_rpc)
         return r[2]
 
@@ -639,32 +618,19 @@ class ioHubConnection(object):
         :return: None
 
         """
-        val_list = []
-        if self._cv_order:
+        data = []        
+        if isinstance(cv_row, (list, tuple)):
+            data = list(cv_row)            
+        elif self._cv_order:
             for cv_name in self._cv_order:
-                val_list.append(cv_row[cv_name])
+                data.append(cv_row[cv_name])
         else:
-            val_list = cv_row
-        self.addRowToConditionVariableTable(val_list)
+            data = list(cv_row.values())
 
-    def addRowToConditionVariableTable(self, data):
-        """Add a row to the condition variable table for the current experiment
-        (created by calling the initializeConditionVariableTable() method) when
-        using iohub.util.ExperimentVariableProvider class in the experiment
-        handling script. Each row in a condition variable table contains the
-        state of all the Dependent and Independent Variables that were defined
-        for the ExperimentVariableProvider.
-
-        Args:
-            data: A Condition Variable Set object, as received from the
-                  ExperimentVariableProvider.getNextConditionSet() method.
-        Returns:
-            None
-
-        """
         for i, d in enumerate(data):
             if isinstance(d, unicode):
                 data[i] = d.encode('utf-8')
+                
         cvt_rpc = ('RPC', 'extendConditionVariableTable',
                    (self.experimentID, self.experimentSessionID, data))
         r = self._sendToHubServer(cvt_rpc)

@@ -26,9 +26,8 @@ class ioHubKeyboardDevice(Device):
 
     EVENT_CLASS_NAMES = [
         'KeyboardInputEvent',
-#        'KeyboardKeyEvent',
         'KeyboardPressEvent',
-        'KeyboardReleaseEvent']  # ,'KeyboardCharEvent']
+        'KeyboardReleaseEvent'] 
 
     DEVICE_TYPE_ID = DeviceConstants.KEYBOARD
     DEVICE_TYPE_STRING = 'KEYBOARD'

@@ -66,16 +66,11 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             tracker = self.hub.devices.tracker
         except Exception:
             # No eye tracker config found in iohub_config.yaml
-            from psychopy.iohub.util.dialogs import MessageDialog
-            md = MessageDialog(title='No Eye Tracker Configuration Found',
-                               msg='Update the iohub_config.yaml file by '
-                               'uncommenting\nthe appropriate eye tracker '
-                               'config lines.\n\nPress OK to exit demo.',
-                               showButtons=MessageDialog.OK_BUTTON,
-                               dialogType=MessageDialog.ERROR_DIALOG,
-                               allowCancel=False,
-                               display_index=0)
-            md.show()
+            from psychopy.gui.qtgui import criticalDlg
+            md = criticalDlg('No Eye Tracker Configuration Found',
+                             'Update the iohub_config.yaml file by '
+                             'uncommenting\nthe appropriate eye tracker '
+                             'config lines.\n\nPress OK to exit demo.')
             return 1
 
         display = self.hub.devices.display
@@ -290,7 +285,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the experiment condition variable values for this
             # trial to the ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(trial.values())
+            self.hub.addTrialHandlerRecord(trial.values())
 
             # Clear all event buffers
             #
