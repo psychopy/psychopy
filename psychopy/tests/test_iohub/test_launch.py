@@ -3,12 +3,19 @@
 import pytest
 from psychopy.tests.utils import skip_under_travis
 from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess, getTime
+from psychopy.iohub.client import ioHubConnection
+
+def setup():
+    startHubProcess()
+
+def teardown():
+    stopHubProcess()
 
 @skip_under_travis
 def testServerConnectionInstance():
     """
     """
-    io = startHubProcess()
+    io = ioHubConnection.getActiveConnection()
 
     # check that a kb and mouse have been created
     keyboard = io.devices.keyboard
@@ -25,14 +32,12 @@ def testServerConnectionInstance():
     assert io.getSessionMetaData() is None
 
     assert isinstance(io.getHubServerConfig(), dict)
-    stopHubProcess()
-
 
 @skip_under_travis
 def testKeyboardDeviceInstance():
     """
     """
-    io = startHubProcess()
+    io = ioHubConnection.getActiveConnection()
 
     # check that a kb 
     keyboard=io.devices.keyboard
@@ -48,8 +53,3 @@ def testKeyboardDeviceInstance():
     kb_iohub_methods = keyboard.getDeviceInterface()
     assert len(kb_iohub_methods) > 0
     assert 'getEvents' in kb_iohub_methods
-    
-    stopHubProcess()
-
-
-
