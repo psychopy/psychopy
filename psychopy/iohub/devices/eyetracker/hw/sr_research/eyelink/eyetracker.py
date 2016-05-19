@@ -557,6 +557,7 @@ class EyeTracker(EyeTrackerDevice):
                     if ne.isBinocular():
                         # binocular sample
                         status = 0
+                        lastgaze = None
                         event_type = EventConstants.BINOCULAR_EYE_SAMPLE
                         myeye = EyeTrackerConstants.BINOCULAR
                         leftData = ne.getLeftEye()
@@ -579,7 +580,8 @@ class EyeTracker(EyeTrackerDevice):
                         else:
                             leftGaze = self._eyeTrackerToDisplayCoords(
                                 (gx, gy))
-
+                            lastgaze = leftGaze
+                            
                         rightPupilSize = rightData.getPupilSize()
                         rightRawPupil = rightData.getRawPupil()
                         rightHref = rightData.getHREF()
@@ -596,26 +598,13 @@ class EyeTracker(EyeTrackerDevice):
                             rightGaze = self._eyeTrackerToDisplayCoords(
                                 (gx, gy))
 
-                        if status == 0:
-                            g = [pylink.MISSING_DATA, pylink.MISSING_DATA]
-                            for i in range(2):
-                                ic = 0
-                                if leftGaze[i] != pylink.MISSING_DATA:
-                                    g[i] += leftGaze[i]
-                                    ic += 1
-                                if rightGaze[i] != pylink.MISSING_DATA:
-                                    g[i] += rightGaze[i]
-                                    ic += 1
-
-                                # Missing data fix provided by Chencan QIAN
-                                if ic == 2:
-                                    g[i] = g[i] / 2.0
-                                elif ic == 0:
-                                    g[i] = 0  # pylink.MISSING_DATA
-
-                            self._latest_gaze_position = g
-                        else:
-                            self._latest_gaze_position = None
+                            if lastgaze is None:
+                                lastgaze = rightGaze
+                            else:
+                                lastgaze = [lastgaze[0]+rightGaze[0], lastgaze[1]+rightGaze[1]]
+                                lastgaze = lastgaze[0]/2.0, lastgaze[1]/2.0
+                                 
+                        self._latest_gaze_position=lastgaze
 
                         # TO DO: EyeLink pyLink does not expose sample velocity
                         # fields. Patch and fix.
@@ -1217,13 +1206,13 @@ class EyeTracker(EyeTrackerDevice):
                                     'ERROR: setEyesToTrack: Failed to get supported modes. ')
                                 return EyeTrackerConstants.EYETRACKER_ERROR
                             modes = modes.strip().split()
-                            print2err('EL Modes: ', modes)
+                            #print2err('EL Modes: ', modes)
                             for x in modes:
                                 if x[-1] == 'B':
                                     x = int(x.replace('B', ' ').strip())
                                     rts.append(x)
-                            print2err('EL srate: ', srate)
-                            print2err('EL rts: ', rts)
+                            #print2err('EL srate: ', srate)
+                            #print2err('EL rts: ', rts)
                             if srate in rts:
                                 self._eyelink.sendCommand(
                                     'binocular_enabled = YES')
@@ -1429,7 +1418,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
             return EyeTrackerConstants.EYETRACKER_ERROR
 
-    def _readResultFromTracker(self, cmd, timeout=2):
+    def _readResultFromTracker(self, cmd, timeout=5):
         try:
             self._eyelink.readRequest(cmd)
 
@@ -1499,7 +1488,11 @@ class EyeTracker(EyeTrackerDevice):
         """"""
         try:
             if self.isConnected():
-                return self._eyelink.getSampleRate()
+                srate = self._eyelink.getSampleRate()
+                if srate is None or srate < 0:
+                    srate = self._readResultFromTracker('sample_rate',5)    
+                if srate:                
+                    return int(srate)
             return EyeTrackerConstants.EYETRACKER_ERROR
         except Exception:
             print2err('EYELINK Error during _getSamplingRate:')
