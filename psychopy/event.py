@@ -384,11 +384,10 @@ class Mouse(object):
             self.win = win
         else:
             try:
-                # to avoid circular imports, visualOpenWindows is defined
-                # by visual.py to be the same object as visual.openWindows
-                # and is added by visual.py into event's namespace;
+                # to avoid circular imports, core.openWindows is defined
+                # by visual.py and updated in core namespace;
                 # it's circular to "import visual" here in event
-                self.win = visualOpenWindows[0]()
+                self.win = core.openWindows[0]()
                 logging.info('Mouse: using default window')
             except NameError, IndexError:
                 logging.error('Mouse: failed to get a default visual.Window'

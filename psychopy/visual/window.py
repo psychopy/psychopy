@@ -114,10 +114,7 @@ class OpenWinList(list):
             obj = ref()
             if obj is None or item == obj:
                 list.remove(self, ref)
-openWindows = OpenWinList()
-
-# can provide a default window for mouse
-psychopy.event.visualOpenWindows = openWindows
+openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 
 class Window(object):
