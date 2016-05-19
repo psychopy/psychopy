@@ -387,11 +387,12 @@ class Mouse(object):
                 # to avoid circular imports, core.openWindows is defined
                 # by visual.py and updated in core namespace;
                 # it's circular to "import visual" here in event
-                self.win = core.openWindows[0]()
+                self.win = psychopy.core.openWindows[0]()
                 logging.info('Mouse: using default window')
             except NameError, IndexError:
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
+                self.win = None
         # for builder: set status to STARTED, NOT_STARTED etc
         self.status = None
         self.mouseClock = psychopy.core.Clock()
