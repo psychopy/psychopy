@@ -28,6 +28,18 @@ def ensureWxApp():
             return wx.App(False)
 
 
+def centerDialogOnDisplayIndex(dlg, display_index=0):
+    """Centers a wx window on the given Display index."""
+    num_displays = wx.Display.GetCount()
+    if display_index < 0:
+        display_index = 0
+    if display_index >= num_displays:
+        display_index = num_displays-1
+    x, y, w, h = wx.Display(display_index).GetGeometry()
+    dlg.SetPosition((x, y))
+    dlg.Center()
+
+
 class Dlg(wx.Dialog):
     """A simple dialogue box. You can add text or input boxes
     (sequentially) and then retrieve the values.
@@ -216,6 +228,7 @@ class Dlg(wx.Dialog):
         """
         return self.display()
 
+
 class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.
     Any values changed by the user are change (in-place) by this
@@ -271,6 +284,55 @@ class DlgFromDict(Dlg):
         if self.OK:
             for n, thisKey in enumerate(keys):
                 self.dictionary[thisKey] = self.data[n]
+
+
+class ProgressBarDialog(wx.ProgressDialog):
+    """wx based progress bar dialog."""
+    def __init__(self, dialogTitle='Progress Dialog',
+                 dialogText='Percent Complete', maxValue=100.0,
+                 display_index=0):
+
+        global app  # avoid recreating for every gui
+        app = ensureWxApp()
+
+        super(ProgressBarDialog, self).__init__(dialogTitle, dialogText,
+                                                maxValue, None,
+                                                (wx.PD_AUTO_HIDE |
+                                                 wx.PD_APP_MODAL |
+                                                 wx.PD_ELAPSED_TIME |
+                                                 wx.PD_ESTIMATED_TIME |
+                                                 wx.PD_REMAINING_TIME))
+
+        centerDialogOnDisplayIndex(self, display_index)
+
+        self.minimumValue = 0.0
+        self.maximumValue = maxValue
+        self.currentValue = self.minimumValue
+
+    def updateStatus(self, value):
+        """
+        Deprecated: Set self.value to update progress bar.
+        """
+        self.value = value
+
+    def getCurrentStatus(self):
+        """
+        Deprecated: Use self.value instead.
+        """
+        return self.currentValue
+
+    @property
+    def value(self):
+        return self.currentValue
+
+    @value.setter
+    def value(self, v):
+        self.Update(v)
+        self.currentValue = v
+
+    def close(self):
+        self.value = self.maximumValue
+        self.Destroy()
 
 
 def fileSaveDlg(initFilePath="", initFileName="",

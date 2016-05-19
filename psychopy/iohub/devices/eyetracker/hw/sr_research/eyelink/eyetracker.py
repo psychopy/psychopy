@@ -6,10 +6,9 @@
 import os
 import numpy as np
 import pylink
-
+from psychopy.gui.wxgui import ProgressBarDialog
 from ......constants import EventConstants, EyeTrackerConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......util.dialogs import ProgressBarDialog
 from ..... import Computer, Device
 from .... import EyeTrackerDevice
 from ....eye_events import *
