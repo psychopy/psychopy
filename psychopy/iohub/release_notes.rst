@@ -61,6 +61,14 @@ Removed:
       instead.
 
 
+ioHubDeviceView Class
+~~~~~~~~~~~~~~~~~~~~~~
+
+Removed:
+    - setPreRemoteMethodCallFunction(). No replacement.
+    - setPostRemoteMethodCallFunction(). No replacement.
+
+
 Mouse Device
 ~~~~~~~~~~~~
 

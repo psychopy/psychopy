@@ -118,8 +118,8 @@ class ioHubDeviceView(object):
         self.hubClient = hubClient
         self.name = device_config.get('name', device_class_name.lower())
         self.device_class = device_class_name
-        self._preRemoteMethodCallFunctions = dict()
-        self._postRemoteMethodCallFunctions = dict()
+        #self._preRemoteMethodCallFunctions = dict()
+        #self._postRemoteMethodCallFunctions = dict()
 
         rpc_request = ('EXP_DEVICE', 'GET_DEV_INTERFACE', device_class_name)
         r = self.hubClient._sendToHubServer(rpc_request)
@@ -127,22 +127,22 @@ class ioHubDeviceView(object):
 
     def __getattr__(self, name):
         if name in self._methods:
-            if name in self._preRemoteMethodCallFunctions:
-                f, ka = self._preRemoteMethodCallFunctions[name]
-                f(ka)
+            #if name in self._preRemoteMethodCallFunctions:
+            #    f, ka = self._preRemoteMethodCallFunctions[name]
+            #    f(ka)
             r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class,
                           name)
-            if name in self._postRemoteMethodCallFunctions:
-                f, ka = self._postRemoteMethodCallFunctions[name]
-                f(ka)
+            #if name in self._postRemoteMethodCallFunctions:
+            #    f, ka = self._postRemoteMethodCallFunctions[name]
+            #    f(ka)
             return r
         raise AttributeError(self, name)
 
-    def setPreRemoteMethodCallFunction(self, methodName, funcCall, **kwargs):
-        self._preRemoteMethodCallFunctions[methodName] = (funcCall, kwargs)
+#    def setPreRemoteMethodCallFunction(self, methodName, funcCall, **kwargs):
+#        self._preRemoteMethodCallFunctions[methodName] = (funcCall, kwargs)
 
-    def setPostRemoteMethodCallFunction(self, methodName, func_call, **kwargs):
-        self._postRemoteMethodCallFunctions[methodName] = (func_call, kwargs)
+#    def setPostRemoteMethodCallFunction(self, methodName, func_call, **kwargs):
+#        self._postRemoteMethodCallFunctions[methodName] = (func_call, kwargs)
 
     def getName(self):
         """
@@ -330,7 +330,7 @@ class ioHubConnection(object):
         the following str values:
 
                 * 'list': Each event is a list of ordered attributes.
-                * 'astuple': Each event is converted to a namedtuple object.
+                * 'namedtuple': Each event is converted to a namedtuple object.
                 * 'dict': Each event converted to a dict object.
                 * 'object': Each event is converted to a DeviceEvent subclass
                             based on the event's type.
