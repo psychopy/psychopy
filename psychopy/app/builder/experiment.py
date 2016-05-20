@@ -1708,7 +1708,6 @@ class Routine(list):
             buff.writeIndentedLines(code % self.name)
 
 
-
     def writeMainCodeJS(self, buff):
         """This defines the code for the frames of a single routine
         """
