@@ -62,7 +62,7 @@ _localized = {
     'Custom': _translate('Custom'),
     'I/O': _translate('I/O'),
     'Add to favorites': _translate('Add to favorites'),
-    'Remove from favorites': _translate('Remove from favorites'), 
+    'Remove from favorites': _translate('Remove from favorites'),
     #contextMenuLabels
     'edit': _translate('edit'),
     'remove': _translate('remove'),
@@ -1560,7 +1560,7 @@ class BuilderFrame(wx.Frame):
     def fileExport(self, event=None):
         """Exports the script as an HTML file (PsychoJS library)
         """
-        experimentPath = os.path.splitext(self.filename)[0] + ".py"
+        experimentPath = os.path.splitext(self.filename)[0] + ".html"
         script = self.generateScript(experimentPath=experimentPath,
                                      target="PsychoJS")
         print(script.getvalue())
