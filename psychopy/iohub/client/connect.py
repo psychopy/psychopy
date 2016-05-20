@@ -178,7 +178,8 @@ def launchHubServer(**kwargs):
             session_info['code'] = session_code
     elif session_code:
         session_info = dict(code=session_code)
-
+    else:        
+        session_info = {}
 
     if experiment_code and not session_code:
         # this means we should auto_generate a session code

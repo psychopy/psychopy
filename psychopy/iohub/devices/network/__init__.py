@@ -133,12 +133,13 @@ class RemoteEventSubscriber(Device):
     subscribed to Keyboard events published by an EventPublisher device, those
     events can be received as follows::
 
-        # Assuming the ioHubExperimentRuntime utility class is being used
-        # and we are in the run() method of the class which defines the main
-        # experiment runtime script
-        self.subscriber=self.devices.evt_sub
+        # Assuming ioHub has been started using:
+        # 
+        # io = psychopy.iohub.client.launchHubServer(...)
+        
+        subscriber = io.devices.evt_sub
 
-        remote_events_received=self.subscriber.getEvents()
+        remote_events_received=subscriber.getEvents()
 
         for event in remote_events_received:
             print "Received remote evt {evt_type}; with an event time of {evt_time},\\

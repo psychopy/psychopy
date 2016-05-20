@@ -302,21 +302,19 @@ class Device(ioObject):
 
     def getConfiguration(self):
         """Retrieve the configuration settings information used to create the
-        device instance. This will be a combination of the default settings for
-        the device (found in
-        iohub.devices.<device_name>.default_,defice_name>.yaml, plus any device
-        settings specified by the experiment author within an iohub_config.yaml
-        file if the ioHubExperimentRuntime is being used to define the
-        experiment logic, or if using the iohub.launchHubProcess() function in
-        the experriment script, as device settings in dictionary form.
+        device instance. This will the default settings for the device, found
+        in iohub.devices.<device_name>.default_<device_name>.yaml, updated
+        with any device settings provided via launchHubServer(...).
 
-        Changing any values in the returned dictionary has no effect on the device state.
+        Changing any values in the returned dictionary has no effect
+        on the device state.
 
         Args:
             None
 
         Returns:
-            (dict): The dictionary of the device configuration settings used to create the device.
+            (dict): The dictionary of the device configuration settings used 
+            to create the device.
 
         """
         return self._configuration
