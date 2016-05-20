@@ -550,8 +550,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetMarginSensitive(2, True)
         self.SetMarginWidth(2, 12)
 
-        self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
-
         # Like a flattened tree control using square headers
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
                           wx.stc.STC_MARK_BOXMINUS,
@@ -1229,6 +1227,14 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetLexer(lex)
         if lexer == 'python':
             self.SetKeyWords(0, " ".join(keyword.kwlist))
+            self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
+            self.SetStyleBits(5)  # in case we had html before
+        elif lexer.lower() == 'html':
+            self.SetStyleBits(7)  # apprently!
+        else:
+            self.SetIndentationGuides(0)
+            self.SetProperty("tab.timmy.whinge.level", "0")
+
         self.Colourise(0, -1)
 
     def onModified(self, event):
