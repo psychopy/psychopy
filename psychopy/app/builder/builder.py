@@ -970,9 +970,6 @@ class BuilderFrame(wx.Frame):
         if self.frameData['winH'] == 0 or self.frameData['winW'] == 0:
 
             self.frameData['winX'], self.frameData['winY'] = (0, 0)
-            usingDefaultSize = True
-        else:
-            usingDefaultSize = False
         if self.frameData['winY'] < 20:
             self.frameData['winY'] = 20
         wx.Frame.__init__(self, parent=parent, id=id, title=title,
@@ -1180,29 +1177,41 @@ class BuilderFrame(wx.Frame):
                   id=wx.ID_FILE1, id2=wx.ID_FILE9)
         keys = self.app.keys
         menu = self.fileMenu
-        menu.Append(wx.ID_NEW,
-                    _translate("&New\t%s") % keys['new'])
-        menu.Append(wx.ID_OPEN,
-                    _translate("&Open...\t%s") % keys['open'])
-        menu.AppendSubMenu(self.recentFilesMenu,
-                           _translate("Open &Recent"))
-        menu.Append(wx.ID_SAVE,
-                    _translate("&Save\t%s") % keys['save'],
-                    _translate("Save current experiment file"))
-        menu.Append(wx.ID_SAVEAS,
-                    _translate("Save &as...\t%s") % keys['saveAs'],
-                    _translate("Save current experiment file as..."))
-        menu.Append(wx.ID_CLOSE,
-                    _translate("&Close file\t%s") % keys['close'],
-                    _translate("Close current experiment"))
+        menu.Append(
+            wx.ID_NEW,
+            _translate("&New\t%s") % keys['new'])
+        menu.Append(
+            wx.ID_OPEN,
+            _translate("&Open...\t%s") % keys['open'])
+        menu.AppendSubMenu(
+            self.recentFilesMenu,
+            _translate("Open &Recent"))
+        menu.Append(
+            wx.ID_SAVE,
+            _translate("&Save\t%s") % keys['save'],
+            _translate("Save current experiment file"))
+        menu.Append(
+            wx.ID_SAVEAS,
+            _translate("Save &as...\t%s") % keys['saveAs'],
+            _translate("Save current experiment file as..."))
+        menu.Append(
+            self.IDs.fileExport,
+            _translate("Export HTML..."),
+            _translate("Export experiment to html/javascript file"))
+        menu.Append(
+            wx.ID_CLOSE,
+            _translate("&Close file\t%s") % keys['close'],
+            _translate("Close current experiment"))
         wx.EVT_MENU(self, wx.ID_NEW, self.app.newBuilderFrame)
-        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
+        wx.EVT_MENU(self, self.IDs.fileExport, self.fileExport)
         wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
         menu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.fileSaveAs)
+        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
         wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
-        item = menu.Append(wx.ID_PREFERENCES,
-                           text=_translate("&Preferences\t%s") % keys['preferences'])
+        item = menu.Append(
+            wx.ID_PREFERENCES,
+            text=_translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
 
         self.fileMenu.AppendSeparator()
@@ -1547,6 +1556,14 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+
+    def fileExport(self, event=None):
+        """Exports the script as an HTML file (PsychoJS library)
+        """
+        experimentPath = os.path.splitext(self.filename)[0] + ".py"
+        script = self.generateScript(experimentPath=experimentPath,
+                                     target="PsychoJS")
+        print(script.getvalue())
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -1990,16 +2007,6 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()
         self.app.coder.gotoLine(filename, lineNumber)
 
-    def compileScript(self, event=None):
-        script = self.generateScript(None)  # leave the experiment path blank
-        if not script:
-            return
-        # remove .psyexp and add .py
-        name = os.path.splitext(self.filename)[0] + ".py"
-        self.app.showCoder()  # make sure coder is visible
-        self.app.coder.fileNew(filepath=name)
-        self.app.coder.currentDoc.SetText(script.getvalue())
-
     def setExperimentSettings(self, event=None):
         component = self.exp.settings
         # does this component have a help page?
@@ -2047,13 +2054,27 @@ class BuilderFrame(wx.Frame):
                 dlg.Destroy()
                 self.flowPanel.draw()
 
-    def generateScript(self, experimentPath):
+    def compileScript(self, event=None):
+        script = self.generateScript(None)  # leave the experiment path blank
+        if not script:
+            return
+        # remove .psyexp and add .py
+        name = os.path.splitext(self.filename)[0] + ".py"
+        self.app.showCoder()  # make sure coder is visible
+        self.app.coder.fileNew(filepath=name)
+        self.app.coder.currentDoc.SetText(script.getvalue())
+
+    def generateScript(self, experimentPath, target="PsychoPy"):
         self.app.prefs.app['debugMode'] = "debugMode"
         if self.app.prefs.app['debugMode']:
-            return self.exp.writeScript(expPath=experimentPath)
-            # getting the track-back is very helpful when debugging the app
+            return self.exp.writeScript(
+                expPath=experimentPath,
+                target=target)
+            # getting the trace-back is very helpful when debugging the app
         try:
-            script = self.exp.writeScript(expPath=experimentPath)
+            script = self.exp.writeScript(
+                expPath=experimentPath,
+                target=target)
         except Exception as e:
             try:
                 self.stdoutFrame.getText()

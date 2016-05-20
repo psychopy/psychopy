@@ -1,10 +1,17 @@
 import os
 import wx
 import copy
-from ._base import BaseComponent, Param, _translate
+from .._base import BaseComponent, Param, _translate
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 
+from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
+
+def readTextFile(relPath):
+    fullPath = os.path.join(thisFolder, relPath)
+    with open(fullPath, "r") as f:
+        txt = f.read()
+    return txt
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
@@ -33,6 +40,7 @@ _localized = {'expName': _translate("Experiment name"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version")}
 
+thisFolder = os.path.split(__file__)[0]
 
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
@@ -214,6 +222,54 @@ class SettingsComponent(object):
             val = repr(self.params['Use version'].val)
             buff.writeIndentedLines(code.format(val))
 
+    def writeInitCode(self, buff, version, localDateTime):
+
+        buff.write(
+            '#!/usr/bin/env python2\n'
+            '# -*- coding: utf-8 -*-\n'
+            '"""\nThis experiment was created using PsychoPy2 Experiment '
+            'Builder (v%s),\n'
+            '    on %s\n' % (version, localDateTime) +
+            'If you publish work using this script please cite the PsychoPy '
+            'publications:\n'
+            '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
+            'Python.\n'
+            '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
+            '    Peirce, JW (2009) Generating stimuli for neuroscience using '
+            'PsychoPy.\n'
+            '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
+            'neuro.11.010.2008\n"""\n'
+            "\nfrom __future__ import absolute_import, division\n")
+
+        self.writeUseVersion(buff)
+
+        buff.write(
+            "from psychopy import locale_setup, "
+            "%s\n" % ', '.join(self.exp.psychopyLibs) +
+            "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
+            " PAUSED,\n"
+            "                                STOPPED, FINISHED, PRESSED, "
+            "RELEASED, FOREVER)\n"
+            "import numpy as np  # whole numpy lib is available, "
+            "prepend 'np.'\n"
+            "from numpy import (%s,\n" % ', '.join(_numpyImports[:7]) +
+            "                   %s)\n" % ', '.join(_numpyImports[7:]) +
+            "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
+            "import os  # handy system and path functions\n" +
+            "import sys  # to get file system encoding\n"
+            "\n")
+
+    def writeInitCodeJS(self, buff, version, localDateTime):
+        # header
+        template = readTextFile("JS_htmlHeader.txt")
+        header = template.format(params = self.params)
+        buff.write(header)
+        # write the code to set up experiment
+        buff.setIndentLevel(4, relative=False)
+        template = readTextFile("JS_setupExp.txt")
+        code = template.format(params=self.params)
+        buff.writeIndentedLines(code)
+
     def writeStartCode(self, buff):
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
@@ -371,6 +427,11 @@ class SettingsComponent(object):
                 "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
         buff.writeIndentedLines(code)
 
+    def writeWindowCodeJS(self, buff):
+        template = readTextFile("JS_winInit.txt")
+        code = template.format(params=self.params)
+        buff.writeIndentedLines(code)
+
     def writeEndCode(self, buff):
         """Write code for end of experiment (e.g. close log file).
         """
@@ -387,3 +448,19 @@ class SettingsComponent(object):
                 "win.close()\n"
                 "core.quit()\n")
         buff.writeIndentedLines(code)
+
+    def writeEndCodeJS(self, buff):
+        quitFunc = ("\nfunction quitPsychoJS() {\n"
+                    "    win.close()\n"
+                    "    core.quit();\n"
+                    "    return QUIT;\n"
+                    "}")
+        footer = ("\n"
+                  "        run();\n"
+                  "        }\n"
+                  "      });\n"
+                  "    </script>\n\n"
+                  "  </body>\n"
+                  "</html>")
+        buff.writeIndentedLines(quitFunc)
+        buff.write(footer)

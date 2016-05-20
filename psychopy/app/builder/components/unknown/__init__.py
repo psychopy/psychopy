@@ -1,10 +1,10 @@
 
 from os import path
-from ._base import BaseComponent, Param, _translate
+from .._base import BaseComponent, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'base.png')
+iconFile = path.join(thisFolder, '../base.png')
 tooltip = _translate('Unknown: A component that is not known by the current '
                      'installed version of PsychoPy\n(most likely from the '
                      'future)')
