@@ -949,6 +949,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType = 'builder'
         self.filename = fileName
+        self.htmlPath = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
@@ -1484,6 +1485,7 @@ class BuilderFrame(wx.Frame):
             self.updateAllViews()  # if frozen effect will be visible on thaw
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
+        self.htmlPath = None  # so we won't accidentally save to other html exp
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -1497,6 +1499,9 @@ class BuilderFrame(wx.Frame):
             filename = self.exp.saveToXML(filename)
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
+        # if export on save then we should have an html file to update
+        if self.htmlPath:
+            self.fileExport(filePath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1557,13 +1562,27 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None):
+    def fileExport(self, event=None, htmlPath=""):
         """Exports the script as an HTML file (PsychoJS library)
         """
-        experimentPath = os.path.splitext(self.filename)[0] + ".html"
-        script = self.generateScript(experimentPath=experimentPath,
+        # get path if not given one
+        if htmlPath == "":
+            htmlPath = os.path.splitext(self.filename)[0] + ".html"
+            dlg = ExportFileDialog(self, -1, title="Export HTML file",
+                                   filePath=htmlPath)
+            retVal = dlg.ShowModal()
+            if retVal == wx.ID_OK:
+                htmlPath = dlg.filePath.GetValue()
+                if dlg.exportOnSave.GetValue():
+                    self.htmlPath = htmlPath  # this will be checked and used
+            else:
+                return  # nothing more to do here, move along
+        # then save the actual script
+        script = self.generateScript(experimentPath=htmlPath,
                                      target="PsychoJS")
-        print(script.getvalue())
+        f = codecs.open(htmlPath, 'wb', 'utf-8')
+        f.write(script.getvalue())
+        f.close()
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2183,3 +2202,66 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
+
+
+class ExportFileDialog(wx.Dialog):
+    def __init__(
+            self, parent, ID, title, size=wx.DefaultSize,
+            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, filePath=""
+            ):
+
+        wx.Dialog.__init__(self, parent, ID, title,
+                           size=size, pos=pos, style=style)
+        # Now continue with the normal construction of the dialog
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        warning = wx.StaticText(
+            self, -1,
+            "Warning, HTML outputs are under development.\n"
+            "They are here purely for testing at the moment.")
+        warning.SetForegroundColour((200, 0, 0))
+        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        label = wx.StaticText(self, -1, "Filepath:")
+        box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+        self.filePath = wx.TextCtrl(self, -1, filePath, size=(200, -1))
+        self.filePath.SetHelpText("The path to store the HTML file")
+        box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.exportOnSave = wx.CheckBox(self, -1,
+                                        label="Continuously export on save")
+        self.exportOnSave.SetHelpText(
+            "Tick this if you want the HTML file to export"
+            " (and overwrite) on every save of the experiment."
+            " Only works for THIS SESSION.")
+        box.Add(self.exportOnSave, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        line = wx.StaticLine(self, -1, size=(20, -1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0,
+                  wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+
+        btnsizer = wx.StdDialogButtonSizer()
+
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("The OK button completes the dialog")
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
+
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)

@@ -95,7 +95,7 @@ class TextComponent(BaseVisualComponent):
         inits = getInitVals(self.params)
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
-        code = ("%(name)s = visual.TextStim({win=win, "
+        code = ("%(name)s = visual.TextStim(win=win, "
                 "name='%(name)s',\n"
                 "    text=%(text)s,\n"
                 "    font=%(font)s,\n"
@@ -117,7 +117,7 @@ class TextComponent(BaseVisualComponent):
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        buff.writeIndented('    ' + flipStr + 'depth=%.1f});\n' % depth)
+        buff.writeIndented('    ' + flipStr + 'depth=%.1f);\n' % depth)
 
     def writeInitCodeJS(self, buff):
         self.writeInitCode(buff)  # for now just use the python code
