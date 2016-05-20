@@ -207,13 +207,6 @@ class ExperimentHandler(object):
                         self._paramNamesSoFar.append(attr)
                     names.append(attr)
                     vals.append(val)
-            # we haven't had 1st trial yet? Not actually sure why this
-            # occasionally happens (JWP)
-            elif trial == []:
-                pass
-            else:
-                names.append(name + '.thisTrial')
-                vals.append(trial)
         # single StairHandler
         elif hasattr(loop, 'intensities'):
             names.append(name + '.intensity')
