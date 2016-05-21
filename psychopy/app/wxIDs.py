@@ -25,6 +25,7 @@ remLoopFromFlow = wx.NewId()
 copyRoutine = wx.NewId()
 pasteRoutine = wx.NewId()
 renameRoutine = wx.NewId()
+fileExport = wx.NewId()
 
 # view menu
 openCoderView = wx.NewId()
@@ -74,6 +75,7 @@ projsSearch = wx.NewId()
 projsSync = wx.NewId()
 projsLogin = wx.NewId()
 projsNewUser = wx.NewId()
+projsNew = wx.NewId()
 
 # toolbar IDs
 tbFileNew = 10

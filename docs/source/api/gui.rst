@@ -4,23 +4,20 @@
 :class:`~psychopy.gui.DlgFromDict`
 ------------------------------------
 .. autoclass:: psychopy.gui.DlgFromDict
-    :members: 
-    :undoc-members: 
-    
+    :members:
+    :undoc-members:
+
 :class:`~psychopy.gui.Dlg`
 ------------------------------------
 .. autoclass:: psychopy.gui.Dlg
-    :members: 
-    :undoc-members: 
-    
-:class:`~psychopy.gui.fileOpenDlg`
+    :members:
+    :exclude-members: display, exec_
+
+:func:`~psychopy.gui.fileOpenDlg`
 ------------------------------------
-.. autoclass:: psychopy.gui.fileOpenDlg
-    :members: 
-    :undoc-members: 
-    
-:class:`~psychopy.gui.fileSaveDlg`
+.. autofunction:: psychopy.gui.fileOpenDlg
+
+
+:func:`~psychopy.gui.fileSaveDlg`
 ------------------------------------
-.. autoclass:: psychopy.gui.fileSaveDlg
-    :members: 
-    :undoc-members: 
+.. autofunction:: psychopy.gui.fileSaveDlg

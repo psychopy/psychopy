@@ -29,6 +29,13 @@ from psychopy.visual import filters
 
 # need absolute imports within lazyImports
 
+# A newer alternative lib is apipkg but then we have to specify all the vars
+# that will be included, not just the lazy ones? Syntax is:
+# import apipkg
+# apipkg.initpkg(__name__, {
+#        'GratingStim': "psychopy.visual.grating:GratingStim",
+# })
+
 lazyImports = """
 # stimuli derived from object or MinimalStim
 from psychopy.visual.aperture import Aperture  # uses BaseShapeStim, ImageStim

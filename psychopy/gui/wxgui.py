@@ -155,16 +155,14 @@ class Dlg(wx.Dialog):
         thisField.Disable()
         return thisField
 
-    def show(self):
-        """Presents the dialog and waits for the user to press either
-        OK or CANCEL.
+    def display(self):
+        """Presents the dialog and waits for the user to press OK or CANCEL.
 
-        This function returns nothing.
+        If user presses OK button, function returns a list containing the
+        updated values coming from each of the input fields created.
+        Otherwise, None is returned.
 
-        When they do, dlg.OK will be set to True or False (according to
-        which button they pressed. If OK==True then dlg.data will be
-        populated with a list of values coming from each of the input
-        fields created.
+        :return: self.data
         """
         # add buttons for OK and Cancel
         buttons = wx.BoxSizer(wx.HORIZONTAL)
@@ -204,9 +202,19 @@ class Dlg(wx.Dialog):
         else:
             self.OK = False
         self.Destroy()
-        #    global app
-        # self.myApp.Exit()
+        if self.OK:
+            return self.data
 
+    def show(self):
+        """Presents the dialog and waits for the user to press either
+        OK or CANCEL.
+
+        When they do, dlg.OK will be set to True or False (according to
+        which button they pressed. If OK==True then dlg.data will be
+        populated with a list of values coming from each of the input
+        fields created.
+        """
+        return self.display()
 
 class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.

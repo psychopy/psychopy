@@ -14,7 +14,6 @@
 
 from __future__ import absolute_import
 
-__docformat__ = "restructuredtext en"
 
 import sys
 try:
@@ -22,6 +21,8 @@ try:
 except Exception:
     serial = False
 import numpy
+
+__docformat__ = "restructuredtext en"
 
 # try to use psychopy logging but revert to system logging
 try:
@@ -95,7 +96,10 @@ class ColorCAL(object):
         # setup the params for serial port
         if self.OK:
             self.com.close()  # not sure why this helps but on win32 it does!!
-            self.com.setBaudrate(115200)  # actually, any baudrate seems fine
+            try:
+                self.com.setBaudrate(115200)  # actually, any baudrate is fine?
+            except:
+                self.com.baudrate = 115200  # setBaudrate() remov pyserial v3.0
             try:
                 if not self.com.isOpen():
                     self.com.open()

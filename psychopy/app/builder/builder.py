@@ -62,7 +62,14 @@ _localized = {
     'Custom': _translate('Custom'),
     'I/O': _translate('I/O'),
     'Add to favorites': _translate('Add to favorites'),
-    'Remove from favorites': _translate('Remove from favorites')}
+    'Remove from favorites': _translate('Remove from favorites'),
+    #contextMenuLabels
+    'edit': _translate('edit'),
+    'remove': _translate('remove'),
+    'move to top': _translate('move to top'),
+    'move up': _translate('move up'),
+    'move down': _translate('move down'),
+    'move to bottom': _translate('move to bottom')}
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -117,7 +124,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.contextMenuItems = ['edit', 'remove', 'move to top', 'move up',
                                  'move down', 'move to bottom']
         # labels are only for display, and allow localization
-        self.contextMenuLabels = {k: _translate(k)
+        self.contextMenuLabels = {k: _localized[k]
                                   for k in self.contextMenuItems}
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
@@ -942,6 +949,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType = 'builder'
         self.filename = fileName
+        self.htmlPath = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
@@ -963,9 +971,6 @@ class BuilderFrame(wx.Frame):
         if self.frameData['winH'] == 0 or self.frameData['winW'] == 0:
 
             self.frameData['winX'], self.frameData['winY'] = (0, 0)
-            usingDefaultSize = True
-        else:
-            usingDefaultSize = False
         if self.frameData['winY'] < 20:
             self.frameData['winY'] = 20
         wx.Frame.__init__(self, parent=parent, id=id, title=title,
@@ -1173,29 +1178,41 @@ class BuilderFrame(wx.Frame):
                   id=wx.ID_FILE1, id2=wx.ID_FILE9)
         keys = self.app.keys
         menu = self.fileMenu
-        menu.Append(wx.ID_NEW,
-                    _translate("&New\t%s") % keys['new'])
-        menu.Append(wx.ID_OPEN,
-                    _translate("&Open...\t%s") % keys['open'])
-        menu.AppendSubMenu(self.recentFilesMenu,
-                           _translate("Open &Recent"))
-        menu.Append(wx.ID_SAVE,
-                    _translate("&Save\t%s") % keys['save'],
-                    _translate("Save current experiment file"))
-        menu.Append(wx.ID_SAVEAS,
-                    _translate("Save &as...\t%s") % keys['saveAs'],
-                    _translate("Save current experiment file as..."))
-        menu.Append(wx.ID_CLOSE,
-                    _translate("&Close file\t%s") % keys['close'],
-                    _translate("Close current experiment"))
+        menu.Append(
+            wx.ID_NEW,
+            _translate("&New\t%s") % keys['new'])
+        menu.Append(
+            wx.ID_OPEN,
+            _translate("&Open...\t%s") % keys['open'])
+        menu.AppendSubMenu(
+            self.recentFilesMenu,
+            _translate("Open &Recent"))
+        menu.Append(
+            wx.ID_SAVE,
+            _translate("&Save\t%s") % keys['save'],
+            _translate("Save current experiment file"))
+        menu.Append(
+            wx.ID_SAVEAS,
+            _translate("Save &as...\t%s") % keys['saveAs'],
+            _translate("Save current experiment file as..."))
+        menu.Append(
+            self.IDs.fileExport,
+            _translate("Export HTML..."),
+            _translate("Export experiment to html/javascript file"))
+        menu.Append(
+            wx.ID_CLOSE,
+            _translate("&Close file\t%s") % keys['close'],
+            _translate("Close current experiment"))
         wx.EVT_MENU(self, wx.ID_NEW, self.app.newBuilderFrame)
-        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
+        wx.EVT_MENU(self, self.IDs.fileExport, self.fileExport)
         wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
         menu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.fileSaveAs)
+        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
         wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
-        item = menu.Append(wx.ID_PREFERENCES,
-                           text=_translate("&Preferences\t%s") % keys['preferences'])
+        item = menu.Append(
+            wx.ID_PREFERENCES,
+            text=_translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
 
         self.fileMenu.AppendSeparator()
@@ -1349,7 +1366,7 @@ class BuilderFrame(wx.Frame):
 
         # ---_projects---#000000#FFFFFF-------------------------------------------
         self.projectsMenu = projects.ProjectsMenu(parent=self)
-        menuBar.Append(self.projectsMenu, "P&rojects")
+        menuBar.Append(self.projectsMenu, _translate("P&rojects"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
@@ -1468,6 +1485,7 @@ class BuilderFrame(wx.Frame):
             self.updateAllViews()  # if frozen effect will be visible on thaw
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
+        self.htmlPath = None  # so we won't accidentally save to other html exp
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -1481,6 +1499,9 @@ class BuilderFrame(wx.Frame):
             filename = self.exp.saveToXML(filename)
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
+        # if export on save then we should have an html file to update
+        if self.htmlPath:
+            self.fileExport(filePath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1540,6 +1561,28 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+
+    def fileExport(self, event=None, htmlPath=""):
+        """Exports the script as an HTML file (PsychoJS library)
+        """
+        # get path if not given one
+        if htmlPath == "":
+            htmlPath = os.path.splitext(self.filename)[0] + ".html"
+            dlg = ExportFileDialog(self, -1, title="Export HTML file",
+                                   filePath=htmlPath)
+            retVal = dlg.ShowModal()
+            if retVal == wx.ID_OK:
+                htmlPath = dlg.filePath.GetValue()
+                if dlg.exportOnSave.GetValue():
+                    self.htmlPath = htmlPath  # this will be checked and used
+            else:
+                return  # nothing more to do here, move along
+        # then save the actual script
+        script = self.generateScript(experimentPath=htmlPath,
+                                     target="PsychoJS")
+        f = codecs.open(htmlPath, 'wb', 'utf-8')
+        f.write(script.getvalue())
+        f.close()
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -1983,16 +2026,6 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()
         self.app.coder.gotoLine(filename, lineNumber)
 
-    def compileScript(self, event=None):
-        script = self.generateScript(None)  # leave the experiment path blank
-        if not script:
-            return
-        # remove .psyexp and add .py
-        name = os.path.splitext(self.filename)[0] + ".py"
-        self.app.showCoder()  # make sure coder is visible
-        self.app.coder.fileNew(filepath=name)
-        self.app.coder.currentDoc.SetText(script.getvalue())
-
     def setExperimentSettings(self, event=None):
         component = self.exp.settings
         # does this component have a help page?
@@ -2040,13 +2073,27 @@ class BuilderFrame(wx.Frame):
                 dlg.Destroy()
                 self.flowPanel.draw()
 
-    def generateScript(self, experimentPath):
+    def compileScript(self, event=None):
+        script = self.generateScript(None)  # leave the experiment path blank
+        if not script:
+            return
+        # remove .psyexp and add .py
+        name = os.path.splitext(self.filename)[0] + ".py"
+        self.app.showCoder()  # make sure coder is visible
+        self.app.coder.fileNew(filepath=name)
+        self.app.coder.currentDoc.SetText(script.getvalue())
+
+    def generateScript(self, experimentPath, target="PsychoPy"):
         self.app.prefs.app['debugMode'] = "debugMode"
         if self.app.prefs.app['debugMode']:
-            return self.exp.writeScript(expPath=experimentPath)
-            # getting the track-back is very helpful when debugging the app
+            return self.exp.writeScript(
+                expPath=experimentPath,
+                target=target)
+            # getting the trace-back is very helpful when debugging the app
         try:
-            script = self.exp.writeScript(expPath=experimentPath)
+            script = self.exp.writeScript(
+                expPath=experimentPath,
+                target=target)
         except Exception as e:
             try:
                 self.stdoutFrame.getText()
@@ -2155,3 +2202,66 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
+
+
+class ExportFileDialog(wx.Dialog):
+    def __init__(
+            self, parent, ID, title, size=wx.DefaultSize,
+            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, filePath=""
+            ):
+
+        wx.Dialog.__init__(self, parent, ID, title,
+                           size=size, pos=pos, style=style)
+        # Now continue with the normal construction of the dialog
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        warning = wx.StaticText(
+            self, -1,
+            "Warning, HTML outputs are under development.\n"
+            "They are here purely for testing at the moment.")
+        warning.SetForegroundColour((200, 0, 0))
+        sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        label = wx.StaticText(self, -1, "Filepath:")
+        box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
+        self.filePath = wx.TextCtrl(self, -1, filePath, size=(200, -1))
+        self.filePath.SetHelpText("The path to store the HTML file")
+        box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.exportOnSave = wx.CheckBox(self, -1,
+                                        label="Continuously export on save")
+        self.exportOnSave.SetHelpText(
+            "Tick this if you want the HTML file to export"
+            " (and overwrite) on every save of the experiment."
+            " Only works for THIS SESSION.")
+        box.Add(self.exportOnSave, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        line = wx.StaticLine(self, -1, size=(20, -1), style=wx.LI_HORIZONTAL)
+        sizer.Add(line, 0,
+                  wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.TOP, 5)
+
+        btnsizer = wx.StdDialogButtonSizer()
+
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("The OK button completes the dialog")
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
+
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+        btnsizer.AddButton(btn)
+        btnsizer.Realize()
+
+        sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
