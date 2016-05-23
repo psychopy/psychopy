@@ -21,7 +21,6 @@ try:
 except ImportError:
     pass  # pyglet is not installed
 
-
 # set the default timing mechanism
 getTime = None
 
@@ -193,7 +192,7 @@ def wait(secs, hogCPUperiod=0.2):
 
     This will preserve terminal-window focus during command line usage.
     """
-    import core
+    from . import core
 
     # initial relaxed period, using sleep (better for system resources etc)
     if secs > hogCPUperiod:
@@ -217,12 +216,11 @@ def wait(secs, hogCPUperiod=0.2):
             # on the default clock automatically. Applications should not call
             # pyglet.media.dispatch_events().
             pass
-        try:
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins:
-                win.dispatch_events()  # pump events on pyglet windows
-        except Exception:
-            pass  # presumably not pyglet
+        for winWeakRef in core.openWindows:
+            win = winWeakRef()
+            if (win.winType == "pyglet" and
+                    hasattr(win.winHandle, "dispatch_events")):
+                win.winHandle.dispatch_events()  # pump events
 
 
 def getAbsTime():

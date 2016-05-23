@@ -525,9 +525,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL |
                          wx.stc.STC_SCMOD_SHIFT)
 
-        self.SetLexer(wx.stc.STC_LEX_PYTHON)
-        self.SetKeyWords(0, " ".join(keyword.kwlist))
-
         self.SetProperty("fold", "1")
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetProperty("tab.timmy.whinge.level", "4")
@@ -552,8 +549,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
         self.SetMarginSensitive(2, True)
         self.SetMarginWidth(2, 12)
-
-        self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
 
         # Like a flattened tree control using square headers
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
@@ -588,6 +583,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         if not readonly:
             self.setFonts()
         self.SetDropTarget(FileDropTarget(coder=self.coder))
+
+        # set to python syntax code coloring
+        self.setLexer('python')
 
     def setFonts(self):
         """Make some styles,  The lexer defines what each style is used for,
@@ -1214,6 +1212,30 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 self.autoCompleteDict[thisKey] = {
                     'is': thisIs, 'type': thisType,
                     'attrs': thisAttrs, 'help': thisHelp}
+
+    def setLexer(self, lexer=None):
+        """Lexer is a simple string (e.g. 'python', 'html')
+        that will be converted to use the right STC_LEXER_XXXX value
+        """
+        try:
+            lex = getattr(wx.stc, "STC_LEX_%s" %(lexer.upper()))
+        except AttributeError:
+            logging.warn("Unknown lexer %r. Using 'python' instead" %lexer)
+            lex = wx.stc.STC_LEX_PYTHON
+            lexer = 'python'
+        # then actually set it
+        self.SetLexer(lex)
+        if lexer == 'python':
+            self.SetKeyWords(0, " ".join(keyword.kwlist))
+            self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
+            self.SetStyleBits(5)  # in case we had html before
+        elif lexer.lower() == 'html':
+            self.SetStyleBits(7)  # apprently!
+        else:
+            self.SetIndentationGuides(0)
+            self.SetProperty("tab.timmy.whinge.level", "0")
+
+        self.Colourise(0, -1)
 
     def onModified(self, event):
         # update the UNSAVED flag and the save icons
@@ -2152,7 +2174,22 @@ class CoderFrame(wx.Frame):
             else:
                 self.currentDoc.SetText("")
             self.currentDoc.EmptyUndoBuffer()
-            self.currentDoc.Colourise(0, -1)
+            if filename.endswith('.py'):
+                self.currentDoc.setLexer('python')
+            elif filename.endswith('.m'):
+                self.currentDoc.setLexer('matlab')
+            elif filename.endswith('.sh'):
+                self.currentDoc.setLexer('bash')
+            elif filename.endswith('.c'):
+                self.currentDoc.setLexer('c')
+            elif filename.endswith('.html'):
+                self.currentDoc.setLexer('html')
+            elif filename.endswith('.R'):
+                self.currentDoc.setLexer('r')
+            elif filename.endswith('.xml'):
+                self.currentDoc.setLexer('xml')
+            elif filename.endswith('.yaml'):
+                self.currentDoc.setLexer('yaml')
 
             # line numbers in the margin
             self.currentDoc.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
