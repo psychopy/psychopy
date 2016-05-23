@@ -245,10 +245,9 @@ class ioHubTimeGreenSyncManager(Greenlet):
                     l = sync_state_target.L_times[-1]
                     r = sync_state_target.R_times[-1]
                     self.sync_state_target.offsets = (r - l)
-                return True
         except Exception: # pylint: disable=broad-except
             return False
-        return False
+        return True
 
     def _close(self):
         if self._sync_socket:
