@@ -168,27 +168,60 @@ class ExperimentSettings(object):
         }
 
         if self.amp_config["save_etr"]:
-            etr_saver = {
-                # ---------------- TODO ---------------
-                #'config': {
-                #    'config_sources': {'amplifier': ''},
-                #    'external_params': {},
-                #    'launch_dependencies': {'amplifier': ''},
-                #    'local_params': {
-                #        'save_file_name': self.amp_config["data_file_name"],
-                #        'save_file_path': self.amp_config["obci_data_dir"],
-                #        "console_log_level": "info",
-                #        "file_log_level": "debug",
-                #        "mx_log_level": "info",
-                #        "log_dir": "~/.obci/logs"
-                #    }
-                #},
-                #'config_sources': {'amplifier': 'amplifier'},
-                #'launch_dependencies': {'amplifier': 'amplifier'},
-
-                'path': 'acquisition/etr_saver_peer.py'
+            etr_amplifier = {
+                'config': {
+                    'local_params': {
+                        'message_type': 'samplevector'
+                    },
+                    'external_params': {},
+                    'config_sources': {},
+                    'launch_dependencies': {}
+                },
+                'path': 'drivers/etr/etr_amplifier_ws_peer.py'
             }
-            peers['etr_saver'] = etr_saver
+            etr_signal_saver = {
+                'config': {
+                    'local_params': {
+                        'save_file_name': self.amp_config["data_file_name"]+'.etr',
+                        'save_file_path': self.amp_config["obci_data_dir"]
+                    },
+                    'external_params': {},
+                    'config_sources': {'amplifier': ''},
+                    'launch_dependencies': {'amplifier': ''}
+                },
+                'config_sources': {},
+                'launch_dependencies': {'amplifier': 'etr_amplifier'},
+                'path': 'acquisition/etr_ws_saver_peer.py'
+            }
+            etr_tag_saver = {
+                'config': {
+                    "local_params": {},
+                    'external_params': {},
+                    'config_sources': {'signal_saver': ''},
+                    'launch_dependencies': {'signal_saver': ''}
+                },
+                'config_sources': {},
+                'launch_dependencies': {'signal_saver': 'etr_signal_saver'},
+                'path': 'acquisition/etr_ws_tag_saver_peer.py'
+            }
+            etr_info_saver = {
+                'config': {
+                    "local_params": {},
+                    'external_params': {},
+                    'config_sources': {'amplifier': '', 'signal_saver': ''},
+                    'launch_dependencies': {'amplifier': '', 'signal_saver': ''}
+                },
+                'config_sources': {},
+                'launch_dependencies': {'amplifier': 'etr_amplifier', 'signal_saver': 'etr_signal_saver'},
+                'path': 'acquisition/etr_ws_info_saver_peer.py'
+            }
+            for p in [etr_amplifier, etr_signal_saver, etr_info_saver, etr_tag_saver]:
+                p['config']['local_params'].update(local_log_params)
+
+            peers['etr_amplifier'] = etr_amplifier
+            peers['etr_tag_saver'] = etr_tag_saver
+            peers['etr_info_saver'] = etr_info_saver
+            peers['etr_signal_saver'] = etr_signal_saver
 
         if self.amp_config["save_signal"]:
             tag_saver = {
