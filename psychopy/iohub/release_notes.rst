@@ -46,6 +46,11 @@ iohub Package
   now use psychopy.gui equivelents instead.
   (psychopy.iohub.util.dialogs -> psychopy.iohub.removed.util.dialogs)
 
+- ioHubExperimentRuntime class is no longer supported. Use
+  psychopy.iohub.client.launchHubServer() instead.
+
+- Removed psychopy.iohub.client.expruntime module. 
+ (psychopy.iohub.client.expruntime -> psychopy.iohub.removed.client.expruntime)
 
 ioHubConnection Class
 ~~~~~~~~~~~~~~~~~~~~~~

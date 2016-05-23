@@ -1,7 +1,9 @@
-""" Test starting and stopping iohub server
+""" Test ioHub Keyboard Device & Events
 """
+from copy import copy
+
 from psychopy.tests.utils import skip_under_travis
-from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess
+from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess, getTime
 import logging
 
 @skip_under_travis
@@ -36,7 +38,7 @@ class TestKeyboard(object):
         cls.io = startHubProcess(iohub_config)
         cls.keyboard = cls.io.devices.keyboard
         cls.iosync = cls.io.getDevice('mcu')
-
+        assert cls.iosync is not None
         if cls.iosync and not cls.iosync.isConnected():
             #assert iosync is not None, "iosync device requested but devvice is None."
             #assert iosync.isConnected(), "iosync device requested but isConnected() == False"
@@ -52,6 +54,55 @@ class TestKeyboard(object):
         cls.keyboard = None
         cls.iosync = None
 
+    def get_kb_events(self, kb_get_method, loop_dur, **kbkwargs):
+        stime = getTime()
+        kb_events = []
+        while getTime() - stime < loop_dur:
+            kbes = kb_get_method(**kbkwargs)
+            if kbes:
+                kb_events.extend(kbes)
+        return kb_events
+
+    def validate_kb_event(self, kbe, is_press, ekey, echar, emods=[],
+                          edur=None, kbpress=None):
+        emods = copy(emods)
+
+        if is_press:
+            assert kbe.type == 'KEYBOARD_PRESS'
+        else:
+            assert kbe.type == 'KEYBOARD_RELEASE'
+
+        assert kbe.key == ekey
+        assert kbe.char == echar
+        assert kbe == ekey and kbe == echar
+
+        kbe_mods = copy(kbe.modifiers)
+        if kbe_mods:
+            numlock_active = len(kbe_mods) == 1 and kbe_mods[0] == 'numlock'
+            if numlock_active and 'numlock' not in emods:
+                emods.append('numlock')
+        for m in kbe.modifiers:
+            try:
+                kbe_mods.remove(m)
+            except:
+                pass
+        fail_str_ = "Unexpected modifiers found: {}. KeyboardEvent: {}"
+        assert len(kbe_mods) == 0, fail_str_.format(kbe_mods, kbe)
+
+        if kbe.type == 'KEYBOARD_RELEASE':
+            dt = None
+            if kbpress:
+                assert kbpress.id == kbe.pressEventID
+                assert kbpress.time < kbe.time
+                dt = kbe.time - kbpress.time
+                assert dt - kbe.duration == 0.0
+            if edur is not None:
+                mindur = edur-0.005
+                maxdur = edur+0.005
+                if dt:
+                    assert mindur < dt < maxdur
+                assert mindur < kbe.duration < maxdur
+
     def test_getEvents(self):
         evts = self.keyboard.getEvents()
         assert isinstance(evts, (list, tuple))
@@ -62,26 +113,17 @@ class TestKeyboard(object):
         if self.iosync:
             self.io.clearEvents()
             self.iosync.generateKeyboardEvent('a', [], 0.2)
-            self.io.wait(0.3)
-            kb_events = self.keyboard.getKeys()
 
-            assert len(kb_events)==2
-            assert kb_events[0].type == 'KEYBOARD_PRESS'
-            assert kb_events[1].type == 'KEYBOARD_RELEASE'
+            kb_events = self.get_kb_events(self.keyboard.getKeys, 0.3)
 
+            assert len(kb_events) == 2
             kp = kb_events[0]
             kr = kb_events[1]
 
-            assert kp.key == 'a'
-            assert kr.key == 'a'
-            assert kp.char == u'a'
-            assert kr.char == u'a'
-            assert kp.time < kr.time
+            self.validate_kb_event(kp, is_press=True, ekey='a', echar=u'a')
+            self.validate_kb_event(kr, is_press=False, ekey='a', echar=u'a', edur=0.2, kbpress=kp)
 
-            dt = kr.time - kp.time
-            assert 0.195 < dt < 0.205
-            assert 0.195 < kr.duration < 0.205
-            assert dt - kr.duration == 0.0
+
 
         else:
             evts = self.keyboard.getKeys()
