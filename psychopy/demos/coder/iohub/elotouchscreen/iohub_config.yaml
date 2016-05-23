@@ -20,7 +20,7 @@ monitor_devices:
         save_events: True
         stream_events: True
     - Experiment:
-        name: experimentRuntime
+        name: experiment
         save_events: True
         stream_events: True
     - touch.hw.elo.Touch:
@@ -32,6 +32,3 @@ monitor_devices:
             port: 9
         device_timer:
             interval: 0.001
-            
-data_store:
-    enable: True
