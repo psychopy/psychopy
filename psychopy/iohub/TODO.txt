@@ -24,7 +24,9 @@ TODO list for the isolver/psychopy lazyimport branch
 
 - Remove following sections of iohub:
     - As much of iohub.utils.* as possible.
-    - Complete removal of iohub.client.expruntime.py
+        Removed so far:
+            - iohub.util.dialogs module
+    - [Done] Complete removal of iohub.client.expruntime.py
     - iohub.datastore.util.py
     - iohub.datastore.pandas.*
   + Move code to 'unsupported' external modules if / when needed.
@@ -55,13 +57,11 @@ TODO list for the isolver/psychopy lazyimport branch
             - reading data / doing analysis from hdf5 files
 
 - Review, update, simplify iohub examples in Coder and Builder.
-  a) Always use launchHubServer
+  a) [Done] Always use launchHubServer
   b) Make each as simple as possible
   c) Remove any unnecessary demos
 
 - Python 3.4+ support
-
-- Keep ioHub Release Notes release_notes.rst updated.
 
 - Some bigger issues that would be good to address:
     - Consistent iohub Error / exception reporting framework:
@@ -69,8 +69,7 @@ TODO list for the isolver/psychopy lazyimport branch
         - reporting of issues by client process
     - Consistent device status reporting after client starts iohub process.
     - Create files in user writable folder (use OS specific standard folders)
-
-
-** Fixed / Completed **
-    - How iohub subprocess starts and how client knows server is ready:
+    - [Done] How iohub subprocess starts and how client knows server is ready:
         -  remove use of pipe for this.
+
+- Keep ioHub Release Notes release_notes.rst updated.
