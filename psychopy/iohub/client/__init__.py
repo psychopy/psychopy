@@ -1346,9 +1346,6 @@ class ioEvent(object):
                                                  self.type,
                                                  self.id)
 
-
-from .expruntime import ioHubExperimentRuntime
-
 _lazyImports = """
 from {pkgroot}.client.connect import launchHubServer
 
