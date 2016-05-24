@@ -22,7 +22,7 @@ def createPsychopyGraphicsWindow():
     dh = WINDOW_SIZE[1] / 2
     unit_type = 'pix'
     win = visual.Window(WINDOW_SIZE, units=unit_type, color=[128, 128, 128],
-                         colorSpace='rgb255')
+                        colorSpace='rgb255')
 
     # constants for text element spacing:
     ROW_COUNT = 10

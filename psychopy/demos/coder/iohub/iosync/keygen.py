@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """
 A simple example of how to use ioSync as a USB keyboard (iosync keyboard).
 Using the iosync.generateKeyboardEvent(key, mod_list, duration) method,
@@ -22,8 +23,6 @@ Limitations of iosync keyboard:
 3. Actual key press duration is quantized to 100 msec intervals.
    i.e. actual_msec_dur = int(requested_sec_dur * 10)
 """
-from __future__ import division, print_function
-
 import sys
 from psychopy import core
 from psychopy.iohub.client import launchHubServer

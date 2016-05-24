@@ -14,6 +14,7 @@ from __future__ import division, print_function, absolute_import
 
 from psychopy.iohub.errors import print2err
 
+
 def checkForSerialEvents(read_time, rx_data, parser_state, **kwargs):
     """
     Must have the following signature:

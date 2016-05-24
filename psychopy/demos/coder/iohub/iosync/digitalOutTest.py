@@ -1,4 +1,6 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """This demo requires that an ioSync device is correctly connected to the
 computer running this script.
 
@@ -45,8 +47,8 @@ try:
     core.wait(0.5)
     mcu.enableEventReporting(True)
 
-    print 'Running Test. Please wait.'
-    print
+    print('Running Test. Please wait.')
+    print()
 
     mcu.setDigitalOutputByte(0)
     old_stuff = mcu.getRequestResponse()

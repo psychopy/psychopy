@@ -136,7 +136,6 @@ if __name__ == '__main__':
         flip_time = win.flip()
 
 io.quit()
-win.close()
 core.quit()
 
 # The contents of this file are in the public domain.

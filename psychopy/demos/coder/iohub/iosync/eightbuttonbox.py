@@ -1,4 +1,6 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """Test program for using ioSync with a modified SNES gamepad to create a msec
 accurate 8 button response box. The A, B, X, Y, and four directions of the left
 thumb pad generate digital input events.
@@ -100,10 +102,10 @@ try:
         for mcu_evt in mcu_events:
             bbox.setDigitalInputEvent(mcu_evt)
             if bbox.pressed or bbox.released:
-                print '>>'
-                print 'Pressed:', bbox.pressed
-                print 'Released:', bbox.released
-                print '<<'
+                print('>>')
+                print('Pressed:', bbox.pressed)
+                print('Released:', bbox.released)
+                print('<<')
         core.wait(0.002, 0)
     io.clearEvents()
 except Exception:

@@ -5,8 +5,8 @@
 The parseserial.py file is also required for this demo, as it contains the
 custom parser function that the ioHub Serial device uses during runtime.
 
-** This demo assumes that whatever is written out to the serial port is what the
-serial device receives back as rx data. **
+** This demo assumes that whatever is written out to the serial port is what
+   the serial device receives back as rx data. **
 
 """
 from __future__ import division, print_function, absolute_import
@@ -61,8 +61,8 @@ serial_device.enableEventReporting(True)
 win = visual.Window((1024, 768), units='pix')
 
 # Instruction text.
-instruction = visual.TextStim(
-    win, text='Monitoring for serial input events....\n\nPress any key to exit.')
+inst_txt = 'Monitoring for serial input events....\n\nPress any key to exit.'
+instruction = visual.TextStim(win, text=inst_txt)
 # Display instruction.
 instruction.draw()
 win.flip()

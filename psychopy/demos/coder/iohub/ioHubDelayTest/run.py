@@ -37,76 +37,73 @@ flipTime = 0.0
 lastFlipTime = 0.0
 results = None
 
+
 def createPsychoGraphicsWindow():
     # create a window
     global win
-    win = visual.Window(
-        io.devices.display.getPixelResolution(),
-        monitor=io.devices.display.getPsychopyMonitorName(),
-        units=io.devices.display.getCoordinateType(),
-        color=[
-            128,
-            128,
-            128],
-        colorSpace='rgb255',
-        fullscr=True,
-        allowGUI=False,
-        screen=io.devices.display.getIndex())
+    win = visual.Window(io.devices.display.getPixelResolution(),
+                        monitor=io.devices.display.getPsychopyMonitorName(),
+                        units=io.devices.display.getCoordinateType(),
+                        color=[
+                            128,
+                            128,
+                            128],
+                        colorSpace='rgb255',
+                        fullscr=True,
+                        allowGUI=False,
+                        screen=io.devices.display.getIndex())
 
-    currentPosition = io.devices.mouse.setPosition((0, 0))
+    cur_pos = io.devices.mouse.setPosition((0, 0))
 
-    fixation = visual.PatchStim(win, size=25, pos=[0, 0],
-                                sf=0, color=[-1, -1, -1], colorSpace='rgb')
-    title = visual.TextStim(win=win,
-                            text='ioHub getEvents Delay Test',
+    fixation = visual.PatchStim(win, size=25, pos=[0, 0], sf=0,
+                                color=[-1, -1, -1], colorSpace='rgb')
+    title = visual.TextStim(win=win, text='ioHub getEvents Delay Test',
                             pos=[0, 125], height=36, color=[1, .5, 0],
                             colorSpace='rgb', alignHoriz='center',
                             wrapWidth=800.0)
 
     instxt = 'Move the mouse around, press keyboard keys and mouse buttons'
-    instr = visual.TextStim(win=win, text=instxt,
-                            pos=[0, -125], height=32, color=[-1, -1, -1],
-                            colorSpace='rgb', alignHoriz='center',
-                            wrapWidth=800.0)
+    instr = visual.TextStim(win=win, text=instxt, pos=[0, -125], height=32,
+                            color=[-1, -1, -1], colorSpace='rgb',
+                            alignHoriz='center', wrapWidth=800.0)
 
-    psychoStim['static'] = visual.BufferImageStim(win,
-                                                       stim=(fixation,
-                                                             title, instr))
-    psychoStim['grating'] = visual.PatchStim(win,
-                                                  mask='circle', size=75,
-                                                  pos=[-100, 0], sf=.075)
-    psychoStim['keytext'] = visual.TextStim(win,
-                                                 text='key',
-                                                 pos=[0, 300],
-                                                 height=48,
-                                                 color=[-1, -1, -1],
-                                                 colorSpace='rgb',
-                                                 alignHoriz='left',
-                                                 wrapWidth=800.0)
-    psychoStim['mouseDot'] = visual.GratingStim(win,
-                                                     tex=None,
-                                                     mask='gauss',
-                                                     pos=currentPosition,
-                                                     size=(50, 50),
-                                                     color='purple')
-    psychoStim['progress'] = visual.ShapeStim(win,
-                                                   vertices=[(0, 0),
-                                                             (0, 0),
-                                                             (0, 0),
-                                                             (0, 0)],
-                                                   pos=(400, -300))
+    psychoStim['static'] = visual.BufferImageStim(win, stim=(fixation,
+                                                             title,
+                                                             instr))
+    psychoStim['grating'] = visual.PatchStim(win, mask='circle', size=75,
+                                             pos=[-100, 0], sf=.075)
+
+    psychoStim['keytext'] = visual.TextStim(win, text='key', pos=[0, 300],
+                                            height=48, color=[-1, -1, -1],
+                                            colorSpace='rgb',
+                                            alignHoriz='left',
+                                            wrapWidth=800.0)
+
+    psychoStim['mouseDot'] = visual.GratingStim(win, tex=None, mask='gauss',
+                                                pos=cur_pos,
+                                                size=(50, 50),
+                                                color='purple')
+
+    psychoStim['progress'] = visual.ShapeStim(win, vertices=[(0, 0), (0, 0),
+                                                             (0, 0), (0, 0)],
+                                              pos=(400, -300))
+
 
 def drawAndFlipPsychoWindow():
     global flipTime, lastFlipTime, events
+
+    mouse = io.devices.mouse
+    display = io.devices.display
+    keyboard = io.devices.keyboard
+
     # advance phase by 0.05 of a cycle
     psychoStim['grating'].setPhase(0.05, '+')
-    currentPosition, currentDisplayIndex = io.devices.mouse.getPosition(
-        return_display_index=True)
 
-    if currentDisplayIndex == io.devices.display.getIndex():
-        currentPosition = (float(currentPosition[0]),
-                           float(currentPosition[1]))
-        psychoStim['mouseDot'].setPos(currentPosition)
+    cur_pos, cur_disp_ix = mouse.getPosition(return_display_index=True)
+
+    if cur_disp_ix == display.getIndex():
+        cur_pos = (float(cur_pos[0]), float(cur_pos[1]))
+        psychoStim['mouseDot'].setPos(cur_pos)
 
     if events:
         diff = totalEventRequestsForTest - numEventRequests
@@ -115,7 +112,7 @@ def drawAndFlipPsychoWindow():
         vert = [[0, 0], [0, v], [2, v], [2, 0]]
         psychoStim['progress'].setVertices(vert)
 
-        kb_presses = io.devices.keyboard.getPresses()
+        kb_presses = keyboard.getPresses()
         for r in kb_presses:
             psychoStim['keytext'].setText(r.key)
         events = None
@@ -126,6 +123,7 @@ def drawAndFlipPsychoWindow():
     d = flipTime - lastFlipTime
     lastFlipTime = flipTime
     return d
+
 
 def checkForEvents():
     # get the time we request events from the ioHub
@@ -138,6 +136,7 @@ def checkForEvents():
         dur = etime - stime
         return r, dur * 1000.0
     return None, None
+
 
 def initStats():
     global numEventRequests, flipTime, lastFlipTime, results, events
@@ -155,6 +154,7 @@ def initStats():
     # clear the ioHub event Buffer before starting the test.
     io.clearEvents()
 
+
 def updateStats(new_events, duration, ifi):
     global numEventRequests
     # ctime it took to get events from ioHub
@@ -166,6 +166,7 @@ def updateStats(new_events, duration, ifi):
     # incrementing tally counter
     numEventRequests += 1
 
+
 def spinDownTest():
     # OK, we have collected the number of requested getEvents,
     # that have returned >0 events so _close psychopy window
@@ -173,6 +174,7 @@ def spinDownTest():
 
     # disable high priority in both processes
     Computer.setPriority('normal')
+
 
 def plotResults():
     # calculate stats on collected data and draw some plots
@@ -201,9 +203,9 @@ def plotResults():
     plot(bins, y, 'r--', linewidth=1)
     xlabel('ioHub getEvents Delay')
     ylabel('Percentage')
-    title('ioHub Event Delay Histogram (msec.usec):\n' +
-          r'$\ \min={0:.3f},\ \max={1:.3f},\ \mu={2:.3f},\ \sigma={3:.3f}$'.format(
-          dmin, dmax, dmean, dstd))
+    ttxt_ = r'ioHub Event Delay Histogram (msec.usec):\n'
+    ttxt_ += r'$\ \min={0:.3f},\ \max={1:.3f},\ \mu={2:.3f},\ \sigma={3:.3f}$'
+    title(ttxt_.format(dmin, dmax, dmean, dstd))
     axis([0, dmax + 1.0, 0, 25.0])
     grid(True)
 
@@ -216,10 +218,8 @@ def plotResults():
     distString = dstr_proto.format(m, sd, m - 3 * sd, m + 3 * sd)
     nTotal = len(intervalsMS)
     nDropped = sum(intervalsMS > (1.5 * m))
-    droppedString = 'Dropped/Frames = {0:d}/{1:d} = {2}%'.format(
-                                            nDropped,
-                                            nTotal,
-                                            int(nDropped) / float(nTotal))
+    ttxt_ = 'Dropped/Frames = {0:d}/{1:d} = {2}%'
+    droppedString = ttxt_.format(nDropped, nTotal, nDropped / nTotal)
 
     pylab.subplot(1, 3, 2)
     # plot the frameintervals
@@ -239,9 +239,9 @@ def plotResults():
 if __name__ == '__main__':
     global io, events
     # Start the ioHub Server process. Since an experiment_code is provided,
-    # data will be saved to an hdf5 file with an autogenerated name. 
+    # data will be saved to an hdf5 file with an autogenerated name.
     io = launchHubServer(experiment_code='gevt_test')
-    
+
     # create fullscreen pyglet window at current resolution, as well as
     # required resources / drawings
     createPsychoGraphicsWindow()

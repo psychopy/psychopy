@@ -1,17 +1,21 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 This demo requires that an ioSync device is correctly connected to the
 computer running this script. Script can be used to test the accuracy 
 of the conversion from ioSync time stamps to iohub the time base.
 """
-
-repetitions = 1000
+from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import time
+
 from psychopy import core
 from psychopy.iohub.client import launchHubServer
+
 getTime = core.getTime
+
+repetitions = 1000
 
 results = np.zeros((repetitions, 3), dtype=np.float64)
 
@@ -32,7 +36,7 @@ for i in range(repetitions):
         response = mcu.getRequestResponse(request['id'])
         if response:
             if response['id'] != request['id']:
-                print 'ERROR: Got REsponse %d; looking for %d' % (response['id'], request['id'])
+                print('ERROR: Got REsponse %d; looking for %d' % (response['id'], request['id']))
                 response = None
             results[i][0] = response['tx_time'] * 1000.0
             results[i][1] = response.get(

@@ -7,7 +7,8 @@ from __future__ import division, print_function, absolute_import
 import sys
 
 from psychopy import visual, core
-from psychopy.iohub.client import launchHubServer #pylint: disable=no-name-in-module
+#pylint: disable=no-name-in-module
+from psychopy.iohub.client import launchHubServer
 
 # create the process that will run in the background polling devices
 io = launchHubServer()
@@ -36,28 +37,23 @@ grating = visual.GratingStim(win, pos=(300, 0),
                              color=[1.0, 0.5, -1.0],
                              size=(150.0, 150.0), sf=(0.01, 0.0),
                              autoLog=False)
-message = visual.TextStim(win,
-                          pos=(0.0,
-                               -(display_resolution[1] / 3)),
-                          alignHoriz='center',
-                          alignVert='center',
-                          height=40,
+message = visual.TextStim(win, pos=(0.0, -(display_resolution[1] / 3)),
+                          alignHoriz='center', alignVert='center', height=40,
                           text='move=mv-spot, left-drag=SF, '
                                'right-drag=mv-grating, scroll=ori',
-                          autoLog=False,
-                          wrapWidth=display_resolution[0] * .9)
+                          autoLog=False, wrapWidth=display_resolution[0] * .9)
 message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1] / 4)),
                            alignHoriz='center', alignVert='center', height=40,
-                           text='Press Any Key to Quit.',
-                           autoLog=False, wrapWidth=display_resolution[0] * .9)
+                           text='Press Any Key to Quit.', autoLog=False,
+                           wrapWidth=display_resolution[0] * .9)
 
 last_wheelPosY = 0
 
 io.clearEvents()
 
+# Run the example until a keyboard event is received
+# or timeout duration is passed.
 demo_timeout_start = core.getTime()
-# Run the example until a keyboard event is received.
-
 kb_events = None
 while not kb_events:
     # Get the current mouse position
@@ -66,25 +62,22 @@ while not kb_events:
     mouse_dX, mouse_dY = posDelta
     display_ix_match = display_index == mouse_display_index
     # Get the current state of each of the Mouse Buttons
-    left_button, middle_button, right_button = mouse.getCurrentButtonStates()
+    left_but, middle_but, right_but = mouse.getCurrentButtonStates()
 
     # If the left button is pressed, change the grating's spatial frequency
-    if left_button:
+    if left_but:
         grating.setSF(mouse_dX / 5000.0, '+')
-    elif display_ix_match and right_button:
+    elif display_ix_match and right_but:
         grating.setPos(position)
 
     # If no buttons are pressed on the Mouse, move the position of the mouse
     # cursor.
-    if display_ix_match and True not in (left_button,
-                                         middle_button,
-                                         right_button):
+    if display_ix_match and True not in (left_but, middle_but, right_but):
         fixSpot.setPos(position)
 
     if sys.platform == 'darwin':
         # On OS X, both x and y mouse wheel events can be detected, assuming
-        #  the mouse being used
-        # supported 2D mouse wheel motion.
+        # the mouse being used supported 2D mouse wheel motion.
         wheelPosX, wheelPosY = mouse.getScroll()
     else:
         # On Windows and Linux, only vertical (Y) wheel position is supported.
@@ -108,9 +101,8 @@ while not kb_events:
     message2.draw()
     flip_time = win.flip()  # redraw the buffer
 
-    # Check for keyboard orand mouse events.
-    # If 15 seconds passes without receiving any kb or mouse event,
-    # then exit the demo
+    # Check for keyboard orand mouse events. If 15 seconds passes without
+    # receiving any kb or mouse event, then exit the demo
     kb_events = keyboard.getEvents()
     mouse_events = mouse.getEvents()
     if mouse_events:
@@ -121,6 +113,7 @@ while not kb_events:
         break
 
 # End of Example
+io.quit()
 core.quit()
 
 # The contents of this file are in the public domain.

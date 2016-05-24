@@ -79,7 +79,8 @@ while run_demo is True and getTime() - last_event_time < 15.0:
     local_kb_events = kb.getEvents()
     for event in local_kb_events:
         etype_str = EventConstants.getName(event.type)
-        print('>> Keyboard:\t%s\t%.3f\t%s' % (etype_str, event.time, event.key))
+        kbstr = 'Keyboard:\t%s\t%.3f\t%s' % (etype_str, event.time, event.key)
+        print('>>', kbstr)
         last_event_time = event.time
         if event.key == 'escape':
             run_demo = False
@@ -90,7 +91,7 @@ while run_demo is True and getTime() - last_event_time < 15.0:
         estr = EventConstants.getName(e.type)
         print('<< EventSubscriber:\t%s\t%.3f\t%s' % (estr, e.time, e.key))
     if subscribed_kb_events:
-        print('')
+        print()
 
 # End of demo
 io.quit()

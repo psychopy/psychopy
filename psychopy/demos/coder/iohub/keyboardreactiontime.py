@@ -10,16 +10,14 @@ from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 from math import fabs
 
-psychopy_monitor_file = 'default'
+psychopy_mon_file = 'default'
 
-io = launchHubServer(psychopy_monitor_name=psychopy_monitor_file)
+io = launchHubServer(psychopy_monitor_name=psychopy_mon_file)
 display = io.devices.display
-win = visual.Window(display.getPixelResolution(),
-                    monitor=psychopy_monitor_file, units='pix', fullscr=True,
-                    allowGUI=False)
-
-# save some 'dots' during the trial loop
 keyboard = io.devices.keyboard
+
+win = visual.Window(display.getPixelResolution(), monitor=psychopy_mon_file,
+                    units='pix', fullscr=True, allowGUI=False)
 
 # constants for use in example
 line_size_match_delay = 5 + int(core.getTime() * 1000) % 5

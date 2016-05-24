@@ -1,4 +1,6 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """This demo requires that an ioSync device is correctly connected to the
 computer running this script. Some switches or buttons also need to be
 connected to at least one of the digital input lines of the ioSync so they can

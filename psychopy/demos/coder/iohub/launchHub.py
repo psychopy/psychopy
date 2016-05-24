@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """Testing the iohub.launchHubServer function illustrating different ways
 it can be used.
 
 No PsychoPy Window is created for this demo; results are printed to stdout.
 """
-from __future__ import division, print_function, absolute_import
 
 import time
 from pprint import pprint
@@ -13,38 +13,31 @@ from pprint import pprint
 from psychopy.iohub.client import launchHubServer
 
 
-def testWithNoKwargs():
+def launchWithNoKwargs():
     """
-    testWithNoKwargs illustrates using the launchHubServer function with no
+    launchWithNoKwargs illustrates using the launchHubServer function with no
     parameters at all. Considerations:
         * Default Keyboard, Mouse, Monitor, and Experiment devices are created.
         * ioHub DataStore is not enabled.
     """
     io = launchHubServer()
-
-    # Get the default keyboard device created.
     keyboard = io.devices.keyboard
 
+    keyboard.clearEvents()
+    
     print()
     print(' ** PRESS A KEY TO CONTINUE.....')
 
-    # Check for new events every 1/4 second.
-    # By using the io.wait() fucntion, the ioHub Process is checked for
-    # events every 50 msec or so, and they are cached in the PsychoPy process
-    # until the next getEvents() call is made. On Windows, messagePump() is
-    # also called periodically so that any Window you have created does not
-    # lock up.
-    while not keyboard.getEvents():
-        io.wait(0.25)
+    keyboard.waitForPresses()
 
     print('A Keyboard Event was Detected; exiting Test.')
 
     io.quit()
 
 
-def testUsingPsychoPyMonitorConfig():
+def launchUsingPsychoPyMonitorConfig():
     """
-    testUsingPsychoPyMonitorConfig illustrates providing a PsychoPy monitor
+    launchUsingPsychoPyMonitorConfig illustrates providing a PsychoPy monitor
     configuration file name to the launchHubServer function.
     Considerations:
         * Default Keyboard, Mouse, Monitor, and Experiment devices are created.
@@ -66,9 +59,9 @@ def testUsingPsychoPyMonitorConfig():
     io.quit()
 
 
-def testEnabledDataStore():
+def launchEnabledDataStore():
     """
-    testEnabledDataStore illustrates that by adding an experiment_code
+    launchEnabledDataStore illustrates that by adding an experiment_code
     kwarg to launchHubServer(....), an ioHub HDF5 file is created by the
     ioHub Server which saves all the device events.
 
@@ -90,9 +83,9 @@ def testEnabledDataStore():
     io.quit()
 
 
-def testEnabledDataStoreAutoSessionCode():
+def launchAutoSessionCode():
     """
-    testEnabledDataStoreAutoSessionCode is the same as testEnabledDataStore
+    launchAutoSessionCode is the same as launchEnabledDataStore
     above, but session_code is provided by the script instead of being
     auto-generated. The ioHub DataStore will be enabled, using the
     experiment and session_code provided each time it is run. Experiment
@@ -119,16 +112,10 @@ def testEnabledDataStoreAutoSessionCode():
 
 
 if __name__ == '__main__':
-    test_list = ['testWithNoKwargs', 'testUsingPsychoPyMonitorConfig',
-                 'testEnabledDataStore', 'testEnabledDataStoreAutoSessionCode']
-    for test in test_list:
+    demo_list = [launchWithNoKwargs, launchUsingPsychoPyMonitorConfig,
+                 launchEnabledDataStore, launchAutoSessionCode]
+    for demo in demo_list:
         print('\n------------------------------------\n')
-        print('Running %s Test:' % (test))
+        print('Running %s Example:' % (demo.__name__))
+        demo()
 
-        for namespace in (locals(), globals()):
-            if test in namespace:
-                result = namespace[test]()
-                print('Test Result: ', result)
-                break
-
-# The contents of this file are in the public domain.

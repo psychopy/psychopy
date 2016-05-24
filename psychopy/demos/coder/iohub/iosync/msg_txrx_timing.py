@@ -1,4 +1,6 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """This demo requires that an ioSync device is correctly connected to the
 computer running this script.
 
@@ -51,8 +53,8 @@ for i in range(repetitions):
         if response:
             if response['id'] != request['id']:
                 # This should never happen. ;)
-                print 'ERROR: Got Response %d; looking for %d' % (response['id'],
-                                                                  request['id'])
+                print('ERROR: Got Response %d; looking for %d' % (response['id'],
+                                                                  request['id']))
                 response = None
 
             # Collect time request was sent (tx_time) and time response was
