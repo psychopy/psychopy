@@ -1,5 +1,5 @@
-ioHub Release Notes DRAFT
-=========================
+ioHub vx.x Release Notes
+========================
 
 Enhancements
 -------------
@@ -8,9 +8,9 @@ Enhancements
 - ioSync Device now supports generating keyboard events using
   iosync.generateKeyboardEvent() device method. Limitations exist.....
 - launchHubServer() should now be able to replace iohubExpRuntime class
-- launchHubServer supports updating psychopy/iohub/default_config.yaml
-  settings other than 'data_store' by adding kwargs that match the files keys.
-  For example, to set the iohub Server UDP port to a custom value:
+- other than 'data_store', launchHubServer supports updating 
+  psychopy/iohub/default_config.yaml settings by adding kwargs that match the
+  files keys. For example, to set the iohub Server UDP port to a custom value:
      io = launchHubServer(udp_port=1234) 
 - launchHubServer builds the monitor_devices list by combining 
   devices found using the 'iohub_config_name' kwarg with any devices defined

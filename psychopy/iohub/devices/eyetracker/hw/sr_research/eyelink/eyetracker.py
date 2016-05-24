@@ -8,6 +8,7 @@ import numpy as np
 import pylink
 from psychopy.gui.wxgui import ProgressBarDialog
 from ......constants import EventConstants, EyeTrackerConstants
+from ...... import EXP_SCRIPT_DIRECTORY
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ..... import Computer, Device
 from .... import EyeTrackerDevice
@@ -97,7 +98,7 @@ class EyeTracker(EyeTrackerDevice):
 
             # Sets up the file names / paths to be used for the native EyeLink
             # EDF file.
-            EyeTracker._local_edf_dir = os.path.abspath('.')
+            EyeTracker._local_edf_dir = EXP_SCRIPT_DIRECTORY
 
             # Sets the 'runtime' configuration section of the eyetracker
             # settings, including eye to track, sample filtering level, etc.
