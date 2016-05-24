@@ -10,14 +10,18 @@ import warnings
 import numpy
 import collections
 
+from ..errors import print2err
+
+########################
+#
+# .yaml read / write
+
 try:
     from yaml import load as yload
     from yaml import dump as ydump
     from yaml import CLoader as yLoader, CDumper as yDumper
 except ImportError:
     from yaml import Loader as yLoader, Dumper as yDumper
-
-from ..errors import print2err
 
 # Only turn on converting all strings to unicode by the YAML loader
 # if running Python 2.7 or higher. 2.6 does not seem to like unicode dict keys.
@@ -27,6 +31,18 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
     def construct_yaml_unistr(self, node):
         return self.construct_scalar(node)
     yLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_unistr)
+
+
+def saveConfig(config, dst_path):
+    ydump(config, file(dst_path, 'w'), Dumper=yDumper)
+    return os.path.exists(dst_path)
+
+
+def readConfig(scr_path):
+    return yload(file(scr_path, 'r'), Loader=yLoader)
+
+########################
+
 
 def normjoin(*path_parts):
     """
@@ -135,6 +151,7 @@ def convertCamelToSnake(name, lower_snake=True):
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
 
+########################
 
 class NumPyRingBuffer(object):
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional

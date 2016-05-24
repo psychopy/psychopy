@@ -4,9 +4,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
-from .. import _DATA_STORE_AVAILABLE
+import os
+ 
+from .. import _DATA_STORE_AVAILABLE, IOHUB_DIRECTORY
 from . import ioHubConnection
-from ..util import yload, yLoader
+from ..util import yload, yLoader, readConfig
 
 
 def launchHubServer(**kwargs):
@@ -210,59 +212,73 @@ def launchHubServer(**kwargs):
             del kwargs['iohub_config_name']
 
     iohub_config = None
+    device_dict = {}
     if monitor_devices_config:
-        iohub_config = dict(monitor_devices=monitor_devices_config)
-    else:
-        device_dict = kwargs
-        device_list = []
+        device_dict = monitor_devices_config
+    #    iohub_config = dict(monitor_devices=monitor_devices_config)
+    
+    if isinstance(device_dict,(list,tuple)):
+        tempdict_ = {}
+        for ddict in device_dict:
+            tempdict_[ddict.keys()[0]] = ddict.values()[0]
+        device_dict = tempdict_
+        
+    device_dict.update(kwargs)
+    device_list = []
 
-        def isFunction(func):
-            import types
-            return isinstance(func, types.FunctionType)
+    def isFunction(func):
+        import types
+        return isinstance(func, types.FunctionType)
 
-        def func2str(func):
-            return '%s.%s' % (func.__module__, func.__name__)
+    def func2str(func):
+        return '%s.%s' % (func.__module__, func.__name__)
 
-        def configfuncs2str(config):
-            for k, v in config.items():
-                if isinstance(v, dict):
-                    configfuncs2str(v)
-                if isFunction(v):
-                    config[k] = func2str(v)
+    def configfuncs2str(config):
+        for k, v in config.items():
+            if isinstance(v, dict):
+                configfuncs2str(v)
+            if isFunction(v):
+                config[k] = func2str(v)
 
-        configfuncs2str(device_dict)
-        # <<< WTF is this for .... ?????
+    configfuncs2str(device_dict)
+    # <<< WTF is this for .... ?????
 
-        # Ensure a Display Device has been defined. If not, create one.
-        # Insert Display device as first device in dev. list.
-        if 'Display' not in device_dict:
-            if monitor_name:
-                display_config = {'psychopy_monitor_name': monitor_name,
-                                  'override_using_psycho_settings': True}
-            else:
-                display_config = {'override_using_psycho_settings': False}
-            device_list.append(dict(Display=display_config))
+    # Ensure a Display Device has been defined. If not, create one.
+    # Insert Display device as first device in dev. list.
+    if 'Display' not in device_dict:
+        if monitor_name:
+            display_config = {'psychopy_monitor_name': monitor_name,
+                              'override_using_psycho_settings': True}
         else:
-            device_list.append(dict(Display=device_dict['Display']))
-            del device_dict['Display']
+            display_config = {'override_using_psycho_settings': False}
+        device_list.append(dict(Display=display_config))
+    else:
+        device_list.append(dict(Display=device_dict['Display']))
+        del device_dict['Display']
 
-        # Ensure a Experiment, Keyboard, and Mouse Devices have been defined.
-        # If not, create them.
-        check_for_devs = ['Experiment', 'Keyboard', 'Mouse']
-        for adev_name in check_for_devs:
-            if adev_name not in device_dict:
-                device_list.append({adev_name : {}})
-            else:
-                device_list.append({adev_name : device_dict[adev_name]})
-                del device_dict[adev_name]
-
-        # Add remaining defined devices to the device list.
-        for class_name, device_config in device_dict.iteritems():
+    # Ensure a Experiment, Keyboard, and Mouse Devices have been defined.
+    # If not, create them.
+    check_for_devs = ['Experiment', 'Keyboard', 'Mouse']
+    for adev_name in check_for_devs:
+        if adev_name not in device_dict:
+            device_list.append({adev_name : {}})
+        else:
+            device_list.append({adev_name : device_dict[adev_name]})
+            del device_dict[adev_name]
+    
+    iohub_config = dict()
+    def_ioconf = readConfig(os.path.join(IOHUB_DIRECTORY,u'default_config.yaml'))
+    # Add remaining defined devices to the device list.
+    for class_name, device_config in device_dict.iteritems():
+        if class_name in def_ioconf.keys():
+            # not a device, a top level iohub config param
+            iohub_config[class_name] = device_config
+        else:
             #TODO: Check that class_name is valid before adding to list
             device_list.append({class_name: device_config})
-
-        # Create an ioHub configuration dictionary.
-        iohub_config = dict(monitor_devices=device_list)
+            
+    # Create an ioHub configuration dictionary.
+    iohub_config['monitor_devices'] = device_list
 
     if _DATA_STORE_AVAILABLE and experiment_code and session_code:
         # If datastore_name kwarg or experiment code has been provided,
@@ -278,4 +294,8 @@ def launchHubServer(**kwargs):
                                           experiment_info=experiment_info,
                                           session_info=session_info)
 
+    #import pprint
+    #print()
+    #print('ioHubConnection(iohub_config):')
+    #pprint.pprint(iohub_config)
     return ioHubConnection(iohub_config)

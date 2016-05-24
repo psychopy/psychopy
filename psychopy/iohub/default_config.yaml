@@ -14,4 +14,4 @@ log_raw_kb_mouse_events: False
 # Provides name of coverage config file for use when starting ioHub Process.
 # File name must exist in the psychopy\iohub folder of the PsychoPy package.
 # If None, or file does not exist, coverage env var is not set.
-coverage_env_var: iohub.coveragerc
+coverage_env_var: None #iohub.coveragerc

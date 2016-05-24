@@ -930,7 +930,7 @@ class ioHubConnection(object):
         coverage_env_var = self._iohub_server_config.get('coverage_env_var')
 
         envars = dict(os.environ)
-        if coverage_env_var:
+        if coverage_env_var not in [None, 'None']:
             coverage_env_var = str(coverage_env_var)
             cov_config_path = os.path.join(IOHUB_DIRECTORY, coverage_env_var)
             if os.path.exists(cov_config_path):
