@@ -1,3 +1,6 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 """Demo using the ioHub Serial device, a generic interface to a serial port.
 
 This demo is setup to read the serial output from the
@@ -37,8 +40,8 @@ providing a float value for the roll, pitch, yaw reading sent.
 
 Demo Created: April 16th, 2014.
 By: Sol Simpson
-
 """
+
 import time
 from psychopy import core
 from psychopy.iohub.client import launchHubServer
@@ -59,19 +62,19 @@ ser = io.devices.serial
 event_count = 0
 
 io.clearEvents()
-print 'Saving Serial Port Events. Press any key to exit.'
+print('Saving Serial Port Events. Press any key to exit.')
 ser.enableEventReporting(True)
 stime = core.getTime()
 
 while not kb.getEvents():
     event_count += len(ser.getEvents())
-    print 'Serial Event Count:', event_count, '\r',
+    print('Serial Event Count:', event_count, end='\r')
     core.wait(0.01, 0.0)
 
 etime = core.getTime()
 ser.enableEventReporting(False)
-print
-print 'Received approx. %.2f events / second.' % (event_count / (etime - stime))
+print()
+print('Received approx. %.2f events / second.' % (event_count / (etime - stime)))
 io.quit()
 # EOD
 

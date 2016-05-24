@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """Demo of using iohub XInput gamepad support.
 
-Important: An XInput compatible gamepad must be connected to a Windows PC
+Important: A XInput compatible gamepad must be connected to a Windows PC
     when this demo is run. As far as I know, OS X and Linux do not support
     XInput. Compatible gamepads include the XBox 360 gamepad for PCs, and the
     Logitech F310 and F710. The XBOX360 and F710 gamepads are wireless and
     also support the * rumble * fucntionality of the XInput API. For wireless
     gamepads, ensure the gamepad is turned on before you try to start the demo.
 """
-from __future__ import division
+from __future__ import division, print_function, absolute_import
 
 from pprint import pprint
 
@@ -17,13 +17,11 @@ from psychopy import visual, core
 from psychopy.iohub.constants import EventConstants
 from psychopy.iohub.client import launchHubServer
 
-def normalizedValue2Coord(
-        normed_position,
-        normed_magnitude,
-        display_coord_area):
-    x = normed_position[0] * normed_magnitude
-    y = normed_position[1] * normed_magnitude
-    w, h = display_coord_area
+
+def normalizedValue2Coord(norm_pos, norm_mag, display_coords):
+    x = norm_pos[0] * norm_mag
+    y = norm_pos[1] * norm_mag
+    w, h = display_coords
     return x * (w / 2.0), y * (h / 2.0)
 
 if __name__ == '__main__':
@@ -47,18 +45,10 @@ if __name__ == '__main__':
     dl, dt, dr, db = display.getCoordBounds()
     coord_size = dr - dl, dt - db
 
-    win = visual.Window(
-        display_resolution,
-        monitor=psychopy_monitor,
-        units=unit_type,
-        color=[
-            128,
-            128,
-            128],
-        colorSpace='rgb255',
-        fullscr=True,
-        allowGUI=False,
-        screen=screen_index)
+    win = visual.Window(display_resolution, monitor=psychopy_monitor,
+                        units=unit_type, color=[128, 128, 128],
+                        colorSpace='rgb255', fullscr=True, allowGUI=False,
+                        screen=screen_index)
 
     gamepad.updateBatteryInformation()
     bat = gamepad.getLastReadBatteryInfo()
@@ -148,7 +138,5 @@ if __name__ == '__main__':
 io.quit()
 win.close()
 core.quit()
-
-# End of run.py Script #
 
 # The contents of this file are in the public domain.

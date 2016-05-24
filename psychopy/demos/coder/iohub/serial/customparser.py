@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 """Demo using a custom serial rx parser to generate ioHub Serial Device events.
 
 The parseserial.py file is also required for this demo, as it contains the
@@ -7,8 +9,10 @@ custom parser function that the ioHub Serial device uses during runtime.
 serial device receives back as rx data. **
 
 """
-from __future__ import print_function
+from __future__ import division, print_function, absolute_import
+
 import time
+
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 

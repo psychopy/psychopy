@@ -1,15 +1,14 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """Demo using the iohub Pstbox device."""
-from __future__ import print_function
+from __future__ import division, print_function, absolute_import
 
 import time
 import numpy as np
+
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 from psychopy.iohub.devices import Computer
-
-#####################################################################
 
 #
 # Device setup

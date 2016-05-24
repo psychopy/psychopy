@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """EloTouchScreenDemo illustrates how to use the Elo Serial Touch Screen
     implementation of the ioHub Touch Device. If calibrate_elo is True,
-    the demo will first perform a calibration / validation routine for the 
+    the demo will first perform a calibration / validation routine for the
     Touch Device. If calibrate_elo is False, the last Touch device
     calibration done will be used.
 
@@ -11,7 +11,7 @@
     The demo ends when any keyboard is detected.
 """
 #TODO: TEST DEMO WITH ELO DEVICE!!!!
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from psychopy import visual
 from psychopy.iohub.client import launchHubServer
@@ -19,16 +19,14 @@ from psychopy.iohub.constants import EventConstants
 import math
 import numpy as np
 import time
+from collections import OrderedDict
 
 calibrate_elo = True
 validate_elo = True
 
-io = None
-window = None
-demo_stim = {}
-min_touch_stim_radius = 15
-max_touch_stim_radius = 40
-    
+min_touch_radius = 15
+max_touch_radius = 40
+
 def getTouchPoint(x, y):
     # Displays a target stim for calibration or validation. Returns
     # the location of the first Touch Release event received.
@@ -48,6 +46,7 @@ def getTouchPoint(x, y):
         time.sleep(0.05)
     io.clearEvents()
 
+
 def run_elo_calibration():
     """Performs the Touch device Calibration routine.
 
@@ -57,11 +56,11 @@ def run_elo_calibration():
     """
     io.devices.touch.initCalibration()
 
-    display_resolution = io.devices.display.getPixelResolution()
+    display_res = io.devices.display.getPixelResolution()
     xmin = 0
     ymin = 0
-    xmax = display_resolution[0]
-    ymax = display_resolution[1]
+    xmax = display_res[0]
+    ymax = display_res[1]
     dwidth = xmax
     dheight = ymax
 
@@ -73,14 +72,13 @@ def run_elo_calibration():
     rightx = xmax - horz_margin
     lowery = ymax - vert_margin
 
-    demo_stim['cal_instruct_stim'].setText('Elo Touch Screen Calibration.\n \
-Touch each Point when it is Presented.')
+    cis_txt_ = 'Elo Touch Screen Calibration.\n'
+    cis_txt_ += 'Touch each Point when it is Presented.'
+    demo_stim['cal_instruct_stim'].setText(cis_txt_)
 
-    cal_points = [
-        (leftx - dwidth / 2, -(uppery - dheight / 2)),
-        (rightx - dwidth / 2, -(lowery - dheight / 2)),
-        (rightx - dwidth / 2, -(uppery - dheight / 2))
-    ]
+    cal_points = [(leftx - dwidth / 2, -(uppery - dheight / 2)),
+                  (rightx - dwidth / 2, -(lowery - dheight / 2)),
+                  (rightx - dwidth / 2, -(uppery - dheight / 2))]
 
     ts_points = []
 
@@ -90,11 +88,11 @@ Touch each Point when it is Presented.')
     (x1, y1), (x2, y2), (sx, sy) = ts_points
 
     io.devices.touch.applyCalibrationData(xmin, xmax, ymin, ymax,
-                                    x1, y1, x2, y2, sx, sy,
-                                    leftx, uppery, rightx, lowery)
-
-    demo_stim['cal_instruct_stim'].setText(
-        'CALIBRATION COMPLETE.\nPRESS ANY KEY TO CONTINUE.')
+                                          x1, y1, x2, y2, sx, sy,
+                                          leftx, uppery, rightx, lowery)
+                                          
+    cis_txt_ = 'CALIBRATION COMPLETE.\nPRESS ANY KEY TO CONTINUE.'
+    demo_stim['cal_instruct_stim'].setText(cis_txt_)
     demo_stim['cal_instruct_stim'].setPos((0, 0))
     demo_stim['cal_instruct_stim'].draw()
     window.flip()
@@ -103,28 +101,25 @@ Touch each Point when it is Presented.')
         time.sleep(0.05)
     io.clearEvents()
 
+
 def run_elo_validation():
     """Performs the Touch device Validation routine.
-
     Note that this method will be integrated into the ioHub module
     itself at some point.
-
     """
-    display_resolution = io.devices.display.getPixelResolution()
-    dwidth = display_resolution[0]
-    dheight = display_resolution[1]
+    display_res = io.devices.display.getPixelResolution()
+    dwidth = display_res[0]
+    dheight = display_res[1]
 
-    demo_stim['cal_instruct_stim'].setText('Elo Touch Screen Validation.\n\
-Touch each Point when it is Presented.')
-    demo_stim['cal_instruct_stim'].setPos((0, -display_resolution[1] / 2 * 0.8))
+    cis_txt_ = 'Elo Touch Screen Validation.\n'
+    cis_txt_ += 'Touch each Point when it is Presented.'
+    demo_stim['cal_instruct_stim'].setText(cis_txt_)
+    demo_stim['cal_instruct_stim'].setPos((0, -display_res[1] / 2 * 0.8))
 
-    val_points = (
-        (0, 0),
-        (-dwidth / 2 * .8, dheight / 2 * .8),
-        (dwidth / 2 * .8, dheight / 2 * .8),
-        (-dwidth / 2 * .8, -dheight / 2 * .8),
-        (dwidth / 2 * .8, -dheight / 2 * .8)
-    )
+    val_points = ((0, 0), (-dwidth / 2 * .8, dheight / 2 * .8),
+                  (dwidth / 2 * .8, dheight / 2 * .8), 
+                  (-dwidth / 2 * .8, -dheight / 2 * .8),
+                  (dwidth / 2 * .8, -dheight / 2 * .8))
 
     diffs = []
     t_points = []
@@ -137,7 +132,8 @@ Touch each Point when it is Presented.')
     for i, (dx, dy) in enumerate(diffs):
         vec_diffs[i] = np.sqrt(dx * dx + dy * dy)
 
-    txt = 'Validation Results (units error): Min {0}, Max {1}, Average {2}\nPress Any Key to Continue.'.format(
+    txt = 'Validation Results (units error): Min {0}, Max {1}, Average {2}\n'
+    txt += 'Press Any Key to Continue.'.format(
         vec_diffs.min(), vec_diffs.max(), vec_diffs.mean())
 
     val_passed = True
@@ -159,13 +155,14 @@ Touch each Point when it is Presented.')
 
 if __name__ == '__main__':
     global io, window, demo_stim
+    
     # Start the ioHub Server process. Since an experiment_code is provided,
-    # data will be saved to an hdf5 file with an autogenerated name. 
+    # data will be saved to an hdf5 file with an autogenerated name.
     io = launchHubServer(iohub_config_name='iohub_config.yaml')
 
     # Issue a query on the ID settings and get the reply as a dict of
-    # parsed values. See the elo_serial.py in psychopy/iohub/devices/touch/hw/elo
-    # to see what are valid query names. In the elo_serial.py a subset of
+    # parsed values. See psychopy/iohub/devices/touch/hw/elo/elo_serial.py
+    # for valid query names. In the elo_serial.py a subset of
     # the classes are named Query*, where * is the query name. The query
     # associated with any Query* class can be issued from a psychopy script
     # by calling the following method of the touch device with the * part
@@ -175,7 +172,7 @@ if __name__ == '__main__':
     #   query_reply=touch.queryDevice('ID')
     #
     id_dict = io.devices.touch.queryDevice('ID')
-    print("queryDevice('ID'):" + str(id_dict))
+    print("queryDevice('ID'): ", str(id_dict))
     print()
 
     # getHardwareConfiguration returns the results from the following
@@ -193,77 +190,57 @@ if __name__ == '__main__':
     pprint.pprint(hw_conf_dict)
     print()
 
-    display_resolution = display.getPixelResolution()
+    dw, dh = display_res = display.getPixelResolution()
     psychopy_monitor = display.getPsychopyMonitorName()
     unit_type = display.getCoordinateType()
     screen_index = display.getIndex()
 
     # Create PsychoPy Window and Stim.
     #
-    window = visual.Window(
-        display_resolution,
-        monitor=psychopy_monitor,
-        units=unit_type,
-        color=[
-            128,
-            128,
-            128],
-        colorSpace='rgb255',
-        fullscr=True,
-        allowGUI=False,
-        screen=screen_index)
+    window = visual.Window(display_res, monitor=psychopy_monitor,
+                           units=unit_type, color=[128, 128, 128],
+                           colorSpace='rgb255', fullscr=True, allowGUI=False,
+                           screen=screen_index)
 
-    demo_stim['cal_instruct_stim'] = visual.TextStim(
-        window,
-        text='',
-        pos=(
-            0,
-            -display_resolution[1] / 2 * 0.8),
-        color=[
-            255,
-            255,
-            255],
-        colorSpace='rgb255',
-        alignHoriz='center',
-        alignVert='center',
-        units='pix',
-        wrapWidth=display_resolution[0] * 0.9)
+    cis_pos_ = (0, -display_res[1] / 2 * 0.8)
+    
+    demo_stim = OrderedDict()
 
-    touch_point_stim = visual.Circle(window, pos=(0, 0),
-                                          lineWidth=1,
-                                          radius=10,
-                                          name='touch_point_stim',
-                                          fillColor=[255, 0, 0],
-                                          lineColor=[255, 255, 0],
-                                          fillColorSpace='rgb255',
-                                          lineColorSpace='rgb255',
-                                          opacity=1.0,
-                                          interpolate=False,
-                                          edges=64,
-                                          units=unit_type)
+    demo_stim['cal_instruct_stim'] = visual.TextStim(window, text='',
+                                                     pos=cis_pos_,
+                                                     color=[255, 255, 255],
+                                                     colorSpace='rgb255',
+                                                     alignHoriz='center',
+                                                     alignVert='center',
+                                                     units='pix',
+                                                     wrapWidth=dw * 0.9)
+    
+    demo_stim['touch_point_stim'] = visual.Circle(window, pos=(0, 0),
+                                                  lineWidth=1,
+                                                  radius=10,
+                                                  name='touch_point_stim',
+                                                  fillColor=[255, 0, 0],
+                                                  lineColor=[255, 255, 0],
+                                                  fillColorSpace='rgb255',
+                                                  lineColorSpace='rgb255',
+                                                  opacity=1.0,
+                                                  interpolate=False,
+                                                  edges=64,
+                                                  units=unit_type)
 
-    demo_stim['touch_contingent_stim'] = visual.Circle(
-        window,
-        pos=(
-            0,
-            0),
-        lineWidth=3,
-        radius=min_touch_stim_radius,
-        name='touch_point_stim',
-        fillColor=[
-            0,
-            255,
-            0],
-        lineColor=[
-            255,
-            0,
-            255],
-        fillColorSpace='rgb255',
-        lineColorSpace='rgb255',
-        opacity=.7,
-        interpolate=False,
-        edges=64,
-        units=unit_type)
+    demo_stim['touch_contingent_stim'] = visual.Circle(window,
+                                                       pos=(0, 0),
+                                                       lineWidth=3,
+                                                       radius=min_touch_radius,
+                                                       name='touch_point_stim',
+                                                       fillColor=[0, 255, 0],
+                                                       lineColor=[255, 0, 255],
+                                                       fillColorSpace='rgb255',
+                                                       lineColorSpace='rgb255',
+                                                       opacity=.7,
+                                                       interpolate=False,
+                                                       edges=64,
+                                                       units=unit_type)
 
     # Clear all events from the global and device level event buffers.
     io.clearEvents()
@@ -292,8 +269,8 @@ if __name__ == '__main__':
 
     io.clearEvents()
 
-    demo_stim['cal_instruct_stim'].setText(
-        'Move the dot with your finger.\nPess any key to exit.')
+    cis_txt_ = 'Move the dot with your finger.\nPess any key to exit.'
+    demo_stim['cal_instruct_stim'].setText(cis_txt_)
     demo_stim['cal_instruct_stim'].setPos((0, 0))
     demo_stim['cal_instruct_stim'].draw()
     demo_stim['touch_contingent_stim'].draw()
@@ -307,11 +284,11 @@ if __name__ == '__main__':
         touch_events = io.devices.touch.getEvents()
         if touch_events:
             te = touch_events[-1]
-            rad_range = max_touch_stim_radius - min_touch_stim_radius
-            touch_stim_radius = min_touch_stim_radius + \
-                (te.pressure / 255.0) * rad_range
-            demo_stim['touch_contingent_stim'].pos = (te.x_position, te.y_position)
-            demo_stim['touch_contingent_stim'].radius = touch_stim_radius
+            rad_range = max_touch_radius - min_touch_radius
+            demo_stim['touch_contingent_stim'].pos = (te.x_position,
+                                                      te.y_position)
+            touch_radius = min_touch_radius + (te.pressure / 255.0) * rad_range
+            demo_stim['touch_contingent_stim'].radius = touch_radius
             demo_stim['cal_instruct_stim'].draw()
             demo_stim['touch_contingent_stim'].draw()
             window.flip()
@@ -319,4 +296,3 @@ if __name__ == '__main__':
             run_demo = False
 
     # DONE EXP
-    

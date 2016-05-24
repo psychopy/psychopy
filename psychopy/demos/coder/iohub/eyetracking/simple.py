@@ -1,9 +1,14 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
+
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 
 TRIAL_COUNT = 2
 
-# Start ioHub event monitoring process, using the eyelink eyetracker
+# Start ioHub event monitoring process, in this demo using the
+# eyelink eyetracker.
 # Note: No iohub config .yaml files are needed in this demo
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
@@ -72,8 +77,9 @@ while t < TRIAL_COUNT:
         else:
             # Otherwise just draw the background image.
             #
-            text_stim.text = 'Eye Position: MISSING. In Region: No\nPress space key to start next trial.'
-
+            ttxt_ = 'Eye Position: MISSING. In Region: No\n'
+            ttxt_ += 'Press space key to start next trial.'
+            text_stim.text = ttxt_
         # Redraw stim
         gaze_ok_region.draw()
         text_stim.draw()

@@ -3,9 +3,23 @@
 """
 Demonstrates the ioHub Common EyeTracking Interface by displaying a gaze cursor
 at the currently reported gaze position on an image background.
-Any currently supported Eye Tracker can be used during the demo by selecting
-the eye tracker name the start of the demo. The demo script is used regardless
-of the Eye Tracker hardware selected.
+
+The eye tracker type to be used is selected at the start of the demo. 
+Based on the eye tracker selection, the associated config
+file for the eye tracker is read from ./eyetracker_configs/.
+For example, selecting "LC Technologies EyeGaze" will use the 
+'./eyetracker_configs/eyegaze_config.yaml' file as the tracker config.
+You may need to change this config file so that it provides 
+correct information for the specific model you are using from the selected
+eye tracker manufacturer.
+
+The same python script is used regardless of the Eye Tracker hardware selected.
+
+If an eye tracker device that is supported by iohub is not listed, then it has
+not yet been added as an option for the demo. To do so:
+    1. Add a configuration file for the eye tracker to ./eyetracker_configs/
+    2. Add an entry to the eye_tracker_config_files lookup dict below.
+    3. Please submit a pull request with the updated demo files.
 """
 from __future__ import division, print_function, absolute_import
 

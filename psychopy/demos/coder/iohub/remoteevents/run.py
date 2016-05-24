@@ -14,7 +14,7 @@ RemoteEventSubscriber subscribes to Keyboard Press and Release events.
    The pyzmq website is https://github.com/zeromq/pyzmq
 """
 
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from psychopy.core import getTime
 from psychopy.gui.qtgui import infoDlg

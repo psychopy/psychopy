@@ -19,7 +19,7 @@ PsychoPy code is taken from an example psychopy script in the coder
 documentation.
 """
 
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from numpy import zeros
 from collections import OrderedDict
@@ -29,13 +29,12 @@ from psychopy.iohub.client import launchHubServer
 
 totalEventRequestsForTest = 1000
 
-io = None
+
 win = None
 psychoStim = OrderedDict()
 numEventRequests = 0
 flipTime = 0.0
 lastFlipTime = 0.0
-events = None
 results = None
 
 def createPsychoGraphicsWindow():
@@ -141,7 +140,7 @@ def checkForEvents():
     return None, None
 
 def initStats():
-    global numEventRequests, flipTime, lastFlipTime, results
+    global numEventRequests, flipTime, lastFlipTime, results, events
     if io is None:
         print("Error: ioHub must be enabled to run "
               "the testEventRetrievalTiming test.")
@@ -152,7 +151,7 @@ def initStats():
     numEventRequests = 0
     flipTime = 0.0
     lastFlipTime = 0.0
-
+    events = None
     # clear the ioHub event Buffer before starting the test.
     io.clearEvents()
 

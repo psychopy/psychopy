@@ -62,7 +62,7 @@ kb_events = None
 while not kb_events:
     # Get the current mouse position
     # posDelta is the change in position * since the last call *
-    position, posDelta,mouse_display_index = mouse.getPositionAndDelta(True)
+    position, posDelta, mouse_display_index = mouse.getPositionAndDelta(True)
     mouse_dX, mouse_dY = posDelta
     display_ix_match = display_index == mouse_display_index
     # Get the current state of each of the Mouse Buttons
@@ -76,7 +76,9 @@ while not kb_events:
 
     # If no buttons are pressed on the Mouse, move the position of the mouse
     # cursor.
-    if display_ix_match and True not in (left_button, middle_button, right_button):
+    if display_ix_match and True not in (left_button,
+                                         middle_button,
+                                         right_button):
         fixSpot.setPos(position)
 
     if sys.platform == 'darwin':
@@ -119,8 +121,6 @@ while not kb_events:
         break
 
 # End of Example
-
-win.close()
 core.quit()
 
 # The contents of this file are in the public domain.

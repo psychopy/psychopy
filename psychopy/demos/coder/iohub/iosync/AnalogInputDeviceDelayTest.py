@@ -71,6 +71,8 @@ analog_input_channels = [0,1] and repetitions = 10, then 2x10 = 20 state
 changes will occur and will be used for the delay error correction calculation.
 
 """
+from __future__ import division, print_function, absolute_import
+
 analog_input_channels = [0, 1]
 repetitions = 5
 
@@ -111,10 +113,10 @@ try:
     ain.enableEventReporting(True)
     delay_offset = ain.getDelayOffset()
 
-    print
-    print '>> Running test using a delay_offset of', delay_offset
-    print '>> Please wait.'
-    print
+    print('')
+    print('>> Running test using a delay_offset of ', delay_offset)
+    print('>> Please wait.')
+    print('')
     core.wait(1.0)
     mcu.getRequestResponse()
     io.clearEvents()
@@ -152,14 +154,14 @@ try:
             if found_analog_trigger and found_dout_response:
                 dtime = ai_event_results[i, 1]
                 atime = ai_event_results[i, 4]
-                print 'Hit:', i, v, dtime, atime, atime - dtime
+                print('Hit:', i, v, dtime, atime, atime - dtime)
                 io.sendMessageEvent(
                     '%d %d %.6f %.6f %.6f' %
                     (i, v, dtime, atime, atime - dtime), 'DOUT')
                 break
 
         if found_analog_trigger is False or found_dout_response is False:
-            print '*******\nTIMEOUT WAITING FOR REQUIRED INPUTS\n**********'
+            print('*******\nTIMEOUT WAITING FOR REQUIRED INPUTS\n**********')
             io.sendMessageEvent('%d %d NO_RESPONSE' % (i, v), 'DOUT')
 
         core.wait(0.2, .1)
@@ -179,19 +181,19 @@ try:
     ai_event_results[:, 4] = ai_event_results[:, 4] + avg_timing_error
     coorrected_timing_errors = ai_event_results[:, 1] - ai_event_results[:, 4]
 
-    print '--------------------\n'
-    print 'Calculated Delay error (in msec):\n\tMin: %.6f\n\tMax: %.6f\n\tMean: %.6f' % (analog_timing_errors.min() * 1000.0,
+    print('--------------------\n')
+    print('Calculated Delay error (in msec):\n\tMin: %.6f\n\tMax: %.6f\n\tMean: %.6f' % (analog_timing_errors.min() * 1000.0,
                                                                                          analog_timing_errors.max() * 1000.0,
-                                                                                         avg_timing_error * 1000.0)
+                                                                                         avg_timing_error * 1000.0))
     if delay_offset == 0.0:
-        print
-        print 'To correct for this AnalogInput Delay Error,\nset the "delay_offset" device configuration setting to', avg_timing_error
-        print
-        print 'Corrected delay error (in msec):\n\tMin: %.6f\n\tMax: %.6f\n\tMean: %.6f' % (coorrected_timing_errors.min() * 1000.0,
+        print('')
+        print('To correct for this AnalogInput Delay Error,\nset the "delay_offset" device configuration setting to', avg_timing_error)
+        print('')
+        print('Corrected delay error (in msec):\n\tMin: %.6f\n\tMax: %.6f\n\tMean: %.6f' % (coorrected_timing_errors.min() * 1000.0,
                                                                                             coorrected_timing_errors.max() * 1000.0,
-                                                                                            coorrected_timing_errors.mean() * 1000.0)
-    print
-    print '--------------------'
+                                                                                            coorrected_timing_errors.mean() * 1000.0))
+    print('')
+    print('--------------------')
 except Exception:
     import traceback
     traceback.print_exc()

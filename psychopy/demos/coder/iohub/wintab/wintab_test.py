@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
-from __future__ import division
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
 
 # TODO: Retest because of changes
 
@@ -97,8 +98,8 @@ if __name__ == '__main__':
 
     # Check that the tablet device was created without any errors
     if tablet.getInterfaceStatus() != 'HW_OK':
-        print 'Error creating Wintab device:', tablet.getInterfaceStatus()
-        print 'TABLET INIT ERROR:', tablet.getLastInterfaceErrorString()
+        print('Error creating Wintab device:', tablet.getInterfaceStatus())
+        print('TABLET INIT ERROR:', tablet.getLastInterfaceErrorString())
 
     else:
         # Wintab device is a go, so setup and run test runtime....
@@ -173,4 +174,4 @@ if __name__ == '__main__':
 
         io.quit()
         if testTimeOutClock.getTime() >= test_timeout_sec:
-            print 'Test Time Out Occurred.'
+            print('Test Time Out Occurred.')

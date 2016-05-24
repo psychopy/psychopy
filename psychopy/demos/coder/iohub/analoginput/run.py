@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Displays values from 8 channels ( 0 - 7 ) from the AnalogInput Device as
-configured in the iohub.config.yaml file in this directory.
-
-@author: Sol
+configured in the iohub_config.yaml file in this directory.
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from collections import OrderedDict
 

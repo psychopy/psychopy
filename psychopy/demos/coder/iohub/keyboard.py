@@ -3,11 +3,12 @@
 """Demo for iohub keyboard.
 Displays information from ioHub Keyboard Events and psychopy.event.geKeys().
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 
 from psychopy import core, visual, event
 #pylint: disable=no-name-in-module
 from psychopy.iohub.client import launchHubServer
+
 
 def createPsychopyGraphicsWindow():
     """
@@ -20,8 +21,8 @@ def createPsychopyGraphicsWindow():
     dw = WINDOW_SIZE[0] / 2
     dh = WINDOW_SIZE[1] / 2
     unit_type = 'pix'
-    win_ = visual.Window(WINDOW_SIZE, units=unit_type,
-                         color=[128, 128, 128], colorSpace='rgb255')
+    win = visual.Window(WINDOW_SIZE, units=unit_type, color=[128, 128, 128],
+                         colorSpace='rgb255')
 
     # constants for text element spacing:
     ROW_COUNT = 10
@@ -45,14 +46,14 @@ def createPsychopyGraphicsWindow():
                            height=TEXT_STIM_HEIGHT,
                            color='black',
                            wrapWidth=dw * 2)
-    text_stims['title_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['title_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'Press "Q" Key to Exit Demo'
     txt_stim_kwargs['pos'] = [0, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT]
     txt_stim_kwargs['color'] = [0.25, 0.2, 1]
     txt_stim_kwargs['alignHoriz'] = 'center'
     txt_stim_kwargs['alignVert'] = 'top'
-    text_stims['title2_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['title2_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'event.key:'
     txt_stim_kwargs['pos'][0] = LABEL_COLUMN_X
@@ -62,58 +63,58 @@ def createPsychopyGraphicsWindow():
     txt_stim_kwargs['height'] = TEXT_STIM_HEIGHT
     txt_stim_kwargs['wrapWidth'] = LABEL_WRAP_LENGTH
     del txt_stim_kwargs['alignVert']
-    text_stims['key_text_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['key_text_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'event.char:'
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['char_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['char_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'event.modifiers'
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['modifiers_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['modifiers_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'Last Pressed Duration:'
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['duration_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['duration_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'All Pressed Keys:'
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['all_pressed_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['all_pressed_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'Last Event Type:'
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['event_type_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['event_type_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['text'] = u'event.getKeys():'
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['event_key_label'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['event_key_label'] = visual.TextStim(win, **txt_stim_kwargs)
 
     # Dynamic stim:
     txt_stim_kwargs['text'] = u''
     txt_stim_kwargs['pos'][0] = VALUE_COLUMN_X
     txt_stim_kwargs['wrapWidth'] = VALUE_WRAP_LENGTH
     txt_stim_kwargs['pos'][1] = TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 2
-    text_stims['key_text'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['key_text'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['key_char'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['key_char'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['modifiers'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['modifiers'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['duration'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['duration'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['all_pressed'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['all_pressed'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['event_type'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['event_type'] = visual.TextStim(win, **txt_stim_kwargs)
 
     txt_stim_kwargs['pos'][1] -= TEXT_ROW_HEIGHT
-    text_stims['event_key'] = visual.TextStim(win_, **txt_stim_kwargs)
+    text_stims['event_key'] = visual.TextStim(win, **txt_stim_kwargs)
 
-    return win_, text_stims
+    return win, text_stims
     # end of createPsychopyGraphicsWindow function
 
 # Demo code ...

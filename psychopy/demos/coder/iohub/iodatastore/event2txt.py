@@ -1,15 +1,16 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """This script demonstrates how to load a ioHub DataStore HDF5 file, read the
 session variable data collected via the Experiment Session Variable Dialog at
 the start of each experiment run ( if you did so, otherwise that is ignored)
 and combine it with columns from a Device Event Table, saving the output as a
 tab delimited file.
-
-@author: Sol
-
 """
+from __future__ import division, print_function, absolute_import
+
 import sys
 import os
+
 import psychopy
 from psychopy.core import getTime
 import psychopy.iohub
@@ -61,8 +62,8 @@ if __name__ == '__main__':
         print('File Selection Cancelled, exiting...')
         sys.exit(0)
     dpath, dfile = os.path.split(data_file_path)
-    print 'data_file_path:', data_file_path, type(data_file_path)
-    print 'dpath,dfile', dpath, dfile
+    print('data_file_path:', data_file_path, type(data_file_path))
+    print('dpath,dfile', dpath, dfile)
     # Lets time how long processing takes
     #
     start_time = getTime()
