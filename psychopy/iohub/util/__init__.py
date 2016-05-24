@@ -34,11 +34,18 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
 
 
 def saveConfig(config, dst_path):
+    '''
+    Saves a config dict to dst_path in YAML format.
+    '''
     ydump(config, file(dst_path, 'w'), Dumper=yDumper)
     return os.path.exists(dst_path)
 
 
 def readConfig(scr_path):
+    '''
+    Returns the config dict loaded from scr_path, which must be the path to
+    a YAML file.
+    '''
     return yload(file(scr_path, 'r'), Loader=yLoader)
 
 ########################

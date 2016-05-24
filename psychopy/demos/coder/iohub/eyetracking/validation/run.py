@@ -1,6 +1,14 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-# TODO: Retest because of changes
+"""
+Example of performing an eye tracker accuracy validation using ioHub
+and the ValidationProcedure utility class.
+
+* Change the et_interface_name variable below to specify the iohub eye tracker
+  interface be used. 
+* Change the eye tracker configuration by updating the 
+  iohub_config[et_interface_name] dict. 
+"""
 from __future__ import division, print_function, absolute_import
 
 import time
@@ -8,10 +16,10 @@ import time
 from psychopy import visual
 from psychopy.iohub.client import launchHubServer
 from psychopy.iohub.constants import EventConstants
-from psychopy.iohub.util.visualUtil import TimeTrigger, DeviceEventTrigger
-from psychopy.iohub.util.targetpositionsequence import TargetStim
-from psychopy.iohub.util.targetpositionsequence import PositionGrid
-from psychopy.iohub.util.targetpositionsequence import ValidationProcedure
+from visualUtil import TimeTrigger, DeviceEventTrigger
+from targetpositionsequence import TargetStim
+from targetpositionsequence import PositionGrid
+from targetpositionsequence import ValidationProcedure
 
 exp_code = 'targetdisplay'
 sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
@@ -43,7 +51,8 @@ tracker = io.devices.tracker
 experiment = io.devices.experiment
 
 # Create a default PsychoPy Window
-win = visual.Window((1280, 1024))
+win = visual.Window(io.devices.display.getPixelResolution(), fullscr=True,
+                    allowGUI=False)
 
 # Create a TargetStim instance
 target = TargetStim(win,
@@ -113,7 +122,7 @@ vin_txt = 'Validation procedure is now going to be performed.'
 validation_proc = ValidationProcedure(win, target, positions,
                                       target_animation_params=targ_anim_param,
                                       background=None,
-                                      triggers=multi_trigger,
+                                      triggers=kb_trigger,#multi_trigger,
                                       storeeventsfor=None,
                                       accuracy_period_start=0.550,
                                       accuracy_period_stop=.150,

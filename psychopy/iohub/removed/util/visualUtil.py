@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
-"""ioHub.
+from __future__ import division, print_function, absolute_import
 
-.. file: iohub/util/visualUtil.py
-
-Copyright (C) 2012-2014 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com>
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
-"""
-from __future__ import division
 
 import time
 import weakref
 import numpy
+
 from psychopy import visual, core
-from . import win32MessagePump
+from psychopy.iohub.util import win32MessagePump
 
 getTime = core.getTime
+
 ###########################################
 #
 # ScreenState Class------------------------------------------------------------
@@ -232,11 +224,11 @@ class ScreenState(object):
                     mtext, tracker.trackerSec())
                 tracker.sendMessage(mtext)
             else:
-                print '----------------------'
-                print 'Warning: eyetracker is not connected.'
-                print 'Msg not sent to eyetracker datafile: '
-                print mtext
-                print '----------------------'
+                print('----------------------')
+                print('Warning: eyetracker is not connected.')
+                print('Msg not sent to eyetracker datafile: ')
+                print(mtext)
+                print('----------------------')
         except Exception:
             pass
         self.experimentRuntime().hub.sendMessageEvent(mtext, sec_time=mtime)

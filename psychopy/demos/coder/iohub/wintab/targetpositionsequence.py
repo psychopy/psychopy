@@ -1,15 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
 """
-ioHub
-.. file: iohub/util/targetpositionsequence.py
-
-Copyright (C) 2012-2014 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com>
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
 This module contains functionality useful for displaying an eye tracker
 independent validation process that tests the accuracy of the eye tracker
 being used. The functionality could also be used to drive calibration graphics
@@ -28,11 +18,8 @@ To use this module, the following high level steps are generally preformed:
   position displayed and the events collected during the display duration for
   each position.
 """
-from ... import visual, core
-from . import win32MessagePump, normjoin
-from .visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
-from ..constants import EventConstants
-from ..client import ioHubConnection
+from __future__ import division, print_function, absolute_import
+
 from weakref import proxy
 import numpy as np
 from time import sleep
@@ -40,6 +27,13 @@ import os
 import sys
 from PIL import Image
 from collections import OrderedDict
+
+from psychopy import visual, core
+from psychopy.iohub.util import win32MessagePump, normjoin
+from psychopy.iohub.constants import EventConstants
+from psychopy.iohub.client import ioHubConnection
+
+from visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
 
 getTime = core.getTime
 
@@ -1589,10 +1583,10 @@ class ValidationProcedure(object):
                 (fig_name), 'VALIDATION')
             return fig, fig_name
         except Exception:
-            print '\nError While Calculating Accuracy Stats:'
+            print('\nError While Calculating Accuracy Stats:')
             import traceback
             traceback.print_exc()
-            print
+            print()
 
         self.io.sendMessageEvent('Validation Report Complete', 'VALIDATION')
 
@@ -1688,4 +1682,4 @@ class ValidationProcedure(object):
         self.textstim.draw()
         return self.win.flip()
 
-from visualangle import VisualAngleCalc
+from psychopy.iohub.util.visualangle import VisualAngleCalc

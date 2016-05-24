@@ -295,7 +295,7 @@ class ScreenPositionValidation(object):
         :return:
         """
 
-        from psychopy.iohub.util.targetpositionsequence import TargetStim, PositionGrid
+        from targetpositionsequence import TargetStim, PositionGrid
 
         self.win = win
         self.io = io

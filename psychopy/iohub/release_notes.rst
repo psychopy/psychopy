@@ -43,15 +43,27 @@ iohub Package
     TODO: Full list of new import paths
 
 
-- Created iohub.removed module that will hold any modules completely removed
+- Created iohub.removed module that holds any modules completely removed
   from psychopy.iohub. This allows user scripts that rely on this
   code to just change import for the short term. User scripts must switch to 
   using alternatives ASAP since iohub.removed will be deleted in a
   future release.
 
-- Removed psychopy.iohub.util.dialogs module. ioHub demo's and internal code
-  now use psychopy.gui equivelents instead.
-  (psychopy.iohub.util.dialogs -> psychopy.iohub.removed.util.dialogs)
+- Added to psychopy.iohub.util:
+    - saveConfig(...): Save python dict / list to a YAML file.
+    - readConfig(...): Load a config dict from a YAML file path.
+
+- Removed following modules from psychopy.iohub.util. All have been
+  temporarily moved to psychopy.iohub.removed.xxxxxx:
+    - dialogs module. ioHub demo's and internal code now use psychopy.gui
+      equivelents instead.
+    - images module. Was only used by util.dialogs.
+    - visualUtil module. While useful functionality, out of scope for
+      psychopy.iohub. If needed, file can be copied to same folder as user
+      script and used.
+    - targetpositionsequence module. While useful functionality, out of scope
+      for psychopy.iohub. If needed, file can be copied to same folder as user
+      script and used.
 
 - ioHubExperimentRuntime class is no longer supported. Use
   psychopy.iohub.client.launchHubServer() instead.
@@ -112,5 +124,10 @@ Internal API Changes
 - When adding new Device and/or Event types, iohub.datastore module does not
   need to be changed. Adding new Device or Event types to iohub.constants.py
   is still required.
+
+demos.coder.iohub Changes
+-------------------------
+
+- Moved eyetracker/validation.py to eyetracker/validation/run.py
 
 
