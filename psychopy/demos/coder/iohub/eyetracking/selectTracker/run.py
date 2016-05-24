@@ -281,3 +281,6 @@ if __name__ == '__main__':
     #
     io.sendMessageEvent(text='EXPERIMENT_COMPLETE')
     # End of experiment logic
+
+    io.quit()
+    core.quit()
