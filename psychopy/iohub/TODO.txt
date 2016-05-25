@@ -23,9 +23,7 @@ TODO list for the isolver/psychopy lazyimport branch
     - iohub/datastore/__init__.py
 
 - Remove following sections of iohub:
-    - As much of iohub.utils.* as possible.
-        Removed so far:
-            - iohub.util.dialogs module
+    - [Done] As much of iohub.utils.* as possible.
     - [Done] Complete removal of iohub.client.expruntime.py
     - iohub.datastore.util.py
     - iohub.datastore.pandas.*

@@ -33,8 +33,8 @@ with the following define setting:
 
 
 If the define is set to INPUT, then a DIN line is high when the line is closed.
-In this case, you will need to provide a resistor between the ground pin 
-and the digital input ground wire, otherwise when a DIN line is open it is 
+In this case, you will need to provide a resistor between the ground pin
+and the digital input ground wire, otherwise when a DIN line is open it is
 floating and will randomly change state causing false events.
 
 IMPORTANT: Input voltage to a digital input pin must be between 0.0 V and 3.3 V
@@ -82,8 +82,8 @@ try:
     while not kb.getEvents():
         mcu_events = mcu.getEvents()
         for mcu_evt in mcu_events:
-            print'{:.3f}\t{}'.format(mcu_evt.time,
-                                     getDigitalInPins(mcu_evt.state))
+            print('{:.3f}\t{}'.format(mcu_evt.time,
+                                      getDigitalInPins(mcu_evt.state)))
         core.wait(0.002, 0)
     io.clearEvents()
 except Exception:
