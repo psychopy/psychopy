@@ -57,6 +57,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
                  useVersion='latest',
+                 useIoHub=False,  # but set this to True anytime as new default
                  filename=None):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -199,6 +200,13 @@ class SettingsComponent(object):
                             "('error' is fewest messages, 'debug' is most)"),
             label=_localized["logging level"], categ='Data')
 
+        #  iohub params
+        self.params['useIoHub'] = Param(
+            useIoHub, valType='bool',
+            allowedVals=[True, False],
+            hint=_translate("Start ioHub for advanced hardware polling"),
+            label=_translate('Use ioHub'), categ='iohub')
+
     def getType(self):
         return self.__class__.__name__
 
@@ -258,6 +266,9 @@ class SettingsComponent(object):
             "import os  # handy system and path functions\n" +
             "import sys  # to get file system encoding\n"
             "\n")
+
+        if self.params['useIoHub'].val:
+            buff.write("from psychopy.iohub import launchHubServer")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # header
@@ -363,6 +374,11 @@ class SettingsComponent(object):
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape'"
                                     " or other condition => quit the exp\n")
+
+        if self.params['useIoHub'].val:
+            buff.writeIndentedLines(
+                "\n# create the process (separate core) for polling devices\n"
+                "io = launchHubServer()\n")
 
     def writeWindowCode(self, buff):
         """Setup the window code.
