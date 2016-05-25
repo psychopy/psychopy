@@ -392,11 +392,14 @@ class SettingsComponent(object):
                 "\n# create the process (separate core) for polling devices\n"
                 "io = launchHubServer()\n")
         if self.params['useIoHub'].val and self.params['ioHubConfigFile'].val:
+            # if ioHubConfigFile was blank string then do nothing?
             buff.writeIndentedLines(
-                "# add code to load the iohub config.yaml\n")
-        if self.params['useIoHub'].val and self.params['hdf5'].val:
+                "# add code to load the iohub config: %s \n"
+                .format(self.params['ioHubConfigFile']))
+        if self.params['useIoHub'].val and self.params['useHDF5'].val:
             buff.writeIndentedLines(
-                "# add code to turn on writing of HDF5 files\n")
+                "# add code to turn on writing of HDF5 files\n"
+                "#     using filename+'.hdf5'\n")
 
 
     def writeWindowCode(self, buff):
