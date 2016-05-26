@@ -66,7 +66,7 @@ PsychoPy comes with all the source code included. You may not think you're much 
 To have a look at the source code do one of the following:
     - when you get an error message in the :ref:`coder` click on the hyperlinked error lines to see the relevant code
     - on Windows
-        - go to `Program Files\PsychoPy2\Lib\site-packages\Psychopy`
+        - go to `Program Files\\PsychoPy2\\Lib\\site-packages\\Psychopy`
         - have a look at some of the files there
     - on Mac
         - right click the PsychoPy app and select `Show Package Contents`
