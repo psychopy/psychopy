@@ -208,16 +208,16 @@ class SettingsComponent(object):
             useIoHub, valType='bool',
             allowedVals=[True, False],
             hint=_translate("Start ioHub for advanced hardware polling"),
-            label=_translate('Use ioHub'), categ='iohub')
+            label=_translate('Use ioHub'), categ='ioHub')
         self.params['useHDF5'] = Param(
             useHDF5, valType='bool',
             allowedVals=[True, False],
             hint=_translate("Save data from ioHub using std file name"),
-            label=_translate('Save HDF5 file'), categ='iohub')
+            label=_translate('Save HDF5 file'), categ='ioHub')
         self.params['ioHubConfigFile'] = Param(
             ioHubConfigFile, valType='str',
             hint=_translate("Config files contain info about your set up"),
-            label=_translate('Config file (yaml)'), categ='iohub')
+            label=_translate('Config file (yaml)'), categ='ioHub')
 
     def getType(self):
         return self.__class__.__name__
@@ -279,7 +279,7 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
-        if self.params['useIoHub'].val:
+        if "iohub" in self.exp.psychopyLibs:
             buff.write("from psychopy.iohub import launchHubServer")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
@@ -387,16 +387,19 @@ class SettingsComponent(object):
             buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape'"
                                     " or other condition => quit the exp\n")
 
-        if self.params['useIoHub'].val:
+        if 'iohub' in self.exp.psychopyLibs:  # something requested iohub
             buff.writeIndentedLines(
                 "\n# create the process (separate core) for polling devices\n"
-                "io = launchHubServer()\n")
+                "ioHub = launchHubServer()\n")
         if self.params['useIoHub'].val and self.params['ioHubConfigFile'].val:
+            # if ioHubConfigFile was blank string then do nothing?
             buff.writeIndentedLines(
-                "# add code to load the iohub config.yaml\n")
-        if self.params['useIoHub'].val and self.params['hdf5'].val:
+                "# add code to load the iohub config: %s \n"
+                .format(self.params['ioHubConfigFile']))
+        if self.params['useIoHub'].val and self.params['useHDF5'].val:
             buff.writeIndentedLines(
-                "# add code to turn on writing of HDF5 files\n")
+                "# add code to turn on writing of HDF5 files\n"
+                "#     using filename+'.hdf5'\n")
 
 
     def writeWindowCode(self, buff):
