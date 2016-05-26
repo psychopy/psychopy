@@ -3029,7 +3029,7 @@ RatingScaleComponent.singleClick.hint:Should clicking the line accept that ratin
 RatingScaleComponent.singleClick.allowedUpdates:[]
 RatingScaleComponent.singleClick.__class__:<class 'psychopy.app.builder.experiment.Param'>
 RatingScaleComponent.singleClick.label:Single click
-SettingsComponent.order:['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units']
+SettingsComponent.order:['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units', 'useIoHub', 'useHDF5', 'ioHubConfigFile']
 SettingsComponent.Monitor.default:'testMonitor'
 SettingsComponent.Monitor.categ:Screen
 SettingsComponent.Monitor.allowedVals:[]
@@ -3105,6 +3105,21 @@ SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. 
 SettingsComponent.Units.allowedUpdates:None
 SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Units.label:Units
+SettingsComponent.ioHubConfigFile.default:'iohub_config.yaml'
+SettingsComponent.ioHubConfigFile.categ:iohub
+SettingsComponent.ioHubConfigFile.allowedVals:[]
+SettingsComponent.ioHubConfigFile.readOnly:False
+SettingsComponent.ioHubConfigFile.updates:None
+SettingsComponent.ioHubConfigFile.__dict__:{'staticUpdater': None, 'categ': 'iohub', 'val': 'iohub_config.yaml', 'hint': u'Config files contain info about your set up', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Config file (yaml)', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.ioHubConfigFile.__weakref__:None
+SettingsComponent.ioHubConfigFile.valType:str
+SettingsComponent.ioHubConfigFile.staticUpdater:None
+SettingsComponent.ioHubConfigFile.val:iohub_config.yaml
+SettingsComponent.ioHubConfigFile.allowedTypes:[]
+SettingsComponent.ioHubConfigFile.hint:Config files contain info about your set up
+SettingsComponent.ioHubConfigFile.allowedUpdates:None
+SettingsComponent.ioHubConfigFile.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.ioHubConfigFile.label:Config file (yaml)
 SettingsComponent.Save excel file.default:False
 SettingsComponent.Save excel file.categ:Data
 SettingsComponent.Save excel file.allowedVals:[]
@@ -3345,6 +3360,21 @@ SettingsComponent.logging level.hint:How much output do you want in the log file
 SettingsComponent.logging level.allowedUpdates:None
 SettingsComponent.logging level.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.logging level.label:Logging level
+SettingsComponent.useHDF5.default:False
+SettingsComponent.useHDF5.categ:iohub
+SettingsComponent.useHDF5.allowedVals:[True, False]
+SettingsComponent.useHDF5.readOnly:False
+SettingsComponent.useHDF5.updates:None
+SettingsComponent.useHDF5.__dict__:{'staticUpdater': None, 'categ': 'iohub', 'val': False, 'hint': u'Save data from ioHub using std file name', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True, False], 'label': u'Save HDF5 file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.useHDF5.__weakref__:None
+SettingsComponent.useHDF5.valType:bool
+SettingsComponent.useHDF5.staticUpdater:None
+SettingsComponent.useHDF5.val:False
+SettingsComponent.useHDF5.allowedTypes:[]
+SettingsComponent.useHDF5.hint:Save data from ioHub using std file name
+SettingsComponent.useHDF5.allowedUpdates:None
+SettingsComponent.useHDF5.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.useHDF5.label:Save HDF5 file
 SettingsComponent.Screen.default:1.0
 SettingsComponent.Screen.categ:Screen
 SettingsComponent.Screen.allowedVals:[]
