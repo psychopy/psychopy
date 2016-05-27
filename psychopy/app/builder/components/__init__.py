@@ -15,8 +15,7 @@ from PIL import Image
 from os.path import join, dirname, abspath
 from importlib import import_module  # helps python 2.7 -> 3.x migration
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
-                     'EyetrackerComponent']  # this one isn't ready yet
+excludeComponents = ['BaseComponent', 'BaseVisualComponent']  # this one isn't ready yet
 
 
 def pilToBitmap(pil, scaleFactor=1.0):

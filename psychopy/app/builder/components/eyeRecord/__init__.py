@@ -7,28 +7,83 @@ from .._base import BaseComponent, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'eyetracker.png')
-tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
-                     'gaze')
+iconFile = path.join(thisFolder, 'eyeRecord.png')
+tooltip = _translate('EyeTrackerRecord: Start / Stop eye tracker recording.')
 
 
-class EyetrackerComponent(BaseComponent):
-    """A class for using one of several eyetrackers to follow gaze"""
+class EyeRecordComponent(BaseComponent):
+    """A class used to start / stop recording on an ioHub supported
+    Eye Tracker."""
     categories = ['Responses']
 
     def __init__(self, exp, parentName, name='eyes',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 save='final', configFile='myTracker.yaml'):
-        self.type = 'Eyetracker'
-        self.url = "http://www.psychopy.org/builder/components/eyetracker.html"
+                 save='final'):
+        self.type = 'EyeRecord'
+        self.url = "http://www.psychopy.org/builder/components/eyeRecord.html"
         self.parentName = parentName
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['iohub'])
         # params
         self.params = {}
-        self.order = ['Config file']  # first param after the name
+        self.order = []  # first param after the name
+
+        # TODO: Determine proper params for EyeRecord component.
+        # Thoughts on eye record specific params, input on how any of these
+        # could be merged into more standard Builder component params is welcome:
+        #
+        # * Start Record: Specify if and when the component should start eyetracker recording.
+        #       - No
+        #       - Start of Routine
+        #       - Based on some condition
+        #
+        # * Stop Record: Specify if and when the component should stop eyetracker recording.
+        #       - No
+        #       - End of Routine
+        #       - Based on some condition
+        #
+        # * startType & startVal: When should eye samples start to be used. See below.
+        #       Note: These are different fields than 'Start Record'. For example:
+        #             a component could start recording when routine starts but only
+        #             start using sample data when some stim has been shown.
+        #
+        #  * stopType & stopVal: When should eye samples stop being used. See below.
+        #       Note: These are different fields than 'Stop Record'. For example:
+        #             a component may never want to stop recording, but may stop
+        #             using sample data after some condition has occurred.
+        #
+        # * Force End Routine: What eye state conditions should force the
+        #   routine to end?
+        #       - Gaze position:
+        #            - enters an area of the screen
+        #            - exits an area of the screen
+        #         where the 'area' could be specified using:
+        #           - stim component name (to use stim.contains())
+        #           - screen coords:
+        #               - rect: left, top, right, bottom
+        #               - circle: center, radius
+        #       - Pupil Size:
+        #           - > some value
+        #           - < some value
+        #       - Sample Status:
+        #           - OK vs. Missing
+        #       - Duration: How long should these Force End Routine conditions
+        #                   be true before ending the routine. Specified in
+        #                   # consecutive samples or time duration.
+
+        # Issues / Considerations:
+            # 1. Binocular vs. Monocular recording: Should binoc data be combined / averaged
+            #    so EyeRecord Component only ever needs to deal with a single
+            #    gaze pos, pupil size, & status.
+            # 2. Eye Event Types: I assume EyeRecord only ever uses eye sample
+            #    events. Other events, like fixations, saccades, blinks, are ignored.
+            # 3. How will gaze contingent stim be supported? Is something needed
+            #    in this component type, or will the stim component that is to
+            #    move with gaze position have it's position param set to some equation that uses
+            #    the eyetracker.getLastGazePosition() method.
+
 
         # standard params (can ignore)
         msg = _translate(
@@ -70,11 +125,17 @@ class EyetrackerComponent(BaseComponent):
             durationEstim, valType='code', allowedTypes=[],
             hint=msg)
 
+        # Eye tracker config will be set in the ioHub Config file
+        # specified in the Experiment settings dialog -> ioHub tab.
+        # So no config file needs to be specified here.
         # useful params for the eyetracker - keep to a minimum if possible! ;-)
-        self.params['Config file'] = Param(
-            configFile, valType='str',
-            hint=_translate("How do you want to define your start point?"))
+        #self.params['Config file'] = Param(
+        #    configFile, valType='str',
+        #    hint=_translate("How do you want to define your start point?"))
 
+        # This controls saving of some eye sample data to PsychoPy output files
+        # only. All eye tracker events collected while the device is recording
+        # are saved to the ioHub HDF5 file.
         msg = _translate(
             "How often should the eyetracker state (x,y,"
             "pupilsize...) be stored? On every video frame, every click "

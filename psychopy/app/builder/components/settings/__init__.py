@@ -276,11 +276,15 @@ class SettingsComponent(object):
             "                   %s)\n" % ', '.join(_numpyImports[7:]) +
             "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
             "import os  # handy system and path functions\n" +
-            "import sys  # to get file system encoding\n"
-            "\n")
+            "import sys  # to get file system encoding\n")
 
-        if "iohub" in self.exp.psychopyLibs:
-            buff.write("from psychopy.iohub import launchHubServer")
+        # This does not seem to work:
+        #     if "iohub" in self.exp.psychopyLibs:
+        # so using this instead for now:
+        if self.params['useIoHub'].val:
+             buff.write("\n# include ioHub imports\n"
+                        "from psychopy.iohub.client import launchHubServer\n"
+                        "\n")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # header
@@ -383,24 +387,95 @@ class SettingsComponent(object):
         buff.writeIndented("logging.console.setLevel(logging.WARNING)  "
                            "# this outputs to the screen, not a file\n")
 
+        # >> ioHub Code written at start of experiment....
+        # Create launchHubServer kwargs dict based on experiment settings...
+
+        # Remaining TODO:
+        #  If HDF5 saving is enabled:
+        #  * For experiment info entries:
+        #
+        #          * [TODO] Field names matching exp_[field] would map to associated
+        #            launchHubServer experiment_info dict[field] kwarg value
+        #            when [field] is one of:
+        #                 - title
+        #                 - description
+        #                 - version
+        #
+        #          * [TODO] Field names matching sess_[field] would map to associated launchHubServer
+        #            session_info dict[field] kwarg value when [field] is one of:
+        #                  - name
+        #                  - comments
+        #
+        #         * [TODO] Any remaining experiment info fields would be added as key:value pairs to the
+        #           optional session_info dict['user_variables'] entry.
+
+        #  If requested, enable iohub for experiment
+        use_iohub = self.params['useIoHub'].val
+        if use_iohub:
+            iohub_config_ = dict()
+            save_hdf5_file = self.params['useHDF5'].val
+
+            if self.params['ioHubConfigFile'].val:
+                iohub_config_file = self.params['ioHubConfigFile'].val
+                if os.path.isabs(iohub_config_file):
+                    if os.path.exists(iohub_config_file):
+                        iohub_config_['iohub_config_name'] = 'u"%s"' % iohub_config_file
+                    else:
+                        # TODO: Replace with proper way to show a buildtime error.
+                        print("Builder ERROR: ioHub Config File Does not Exist:",iohub_config_file)
+                else:
+                    # Relative file path given, so assume that at runtime
+                    # os.join(os.cwd(), iohub_config_name) is a valid file path
+                    iohub_config_['iohub_config_name'] = 'u"%s"' % iohub_config_file
+
+            # Display device related kwargs
+            # TODO: Make screen index validation code in .writeWindowCode
+            #       a reusable function and use it here too.
+            screen_index_ = int(self.params['Screen'].val)
+            coord_unit_type_ = self.params['Units'].val
+            if coord_unit_type_ == 'use prefs':
+                # TODO: Look into how to get actual unit type when 'use prefs'
+                # for now, default to 'pix'
+                coord_unit_type_ = 'pix'
+            coord_unit_type_ = "'%s'"%coord_unit_type_
+            iohub_config_['Display'] = dict(device_number=screen_index_,
+                                            reporting_unit_type=coord_unit_type_)
+
+            psycho_monitor_file_ = self.params['Monitor'].val
+            if psycho_monitor_file_:
+                #TODO: Check that file exists and give build error if not
+                iohub_config_['psychopy_monitor_name'] = '"%s"'%psycho_monitor_file_
+
+            if save_hdf5_file:
+                # These kwargs are only added if the hdf5 file is being saved
+                iohub_config_['experiment_info'] = experiment_info_ = dict()
+                experiment_info_['code'] = 'expName'
+
+                if u'session' in expInfoDict.keys():
+                    iohub_config_['session_info'] = session_info_ = dict()
+                    session_info_['code'] = "expInfo.get(u'session')"
+
+                iohub_config_['datastore_name'] = u'filename'
+
+            kwargs_str = u""
+            for lkey, lval in iohub_config_.items():
+                if isinstance(lval, dict):
+                    sval = u""
+                    for sk, sv, in lval.items():
+                        sval += u"%s=%s, "%(sk, sv)
+                    lval = u"dict(%s)"%sval[:-2]
+                kwargs_str+=u"{}={},\n    ".format(lkey, lval)
+
+            # Remove the ending ",\n    " 6 chars from code txt
+            kwargs_str = kwargs_str[:-6]
+            buff.writeIndentedLines(u"\n# >> Begin Launch ioHub Server Code\n"
+                                   u"\n# start the ioHub Server\n"
+                                   u"iohub_server = launchHubServer(%s)\n"
+                                   u"\n# << End Launch ioHub Server Code\n"%kwargs_str)
+
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape'"
                                     " or other condition => quit the exp\n")
-
-        if 'iohub' in self.exp.psychopyLibs:  # something requested iohub
-            buff.writeIndentedLines(
-                "\n# create the process (separate core) for polling devices\n"
-                "ioHub = launchHubServer()\n")
-        if self.params['useIoHub'].val and self.params['ioHubConfigFile'].val:
-            # if ioHubConfigFile was blank string then do nothing?
-            buff.writeIndentedLines(
-                "# add code to load the iohub config: %s \n"
-                .format(self.params['ioHubConfigFile']))
-        if self.params['useIoHub'].val and self.params['useHDF5'].val:
-            buff.writeIndentedLines(
-                "# add code to turn on writing of HDF5 files\n"
-                "#     using filename+'.hdf5'\n")
-
 
     def writeWindowCode(self, buff):
         """Setup the window code.
@@ -483,8 +558,10 @@ class SettingsComponent(object):
             buff.writeIndented("logging.flush()\n")
         code = ("# make sure everything is closed down\n"
                 "thisExp.abort()  # or data files will save again on exit\n"
-                "win.close()\n"
-                "core.quit()\n")
+                "win.close()\n")
+        if self.params['useIoHub'].val:
+            code += 'iohub_server.quit()\n'
+        code += "core.quit()\n"
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
