@@ -1,0 +1,138 @@
+﻿Merge branch 'master' of git://github.com/psychopy/psychopy
+
+# Conflicts:
+#	psychopy/__init__.py
+#
+# It looks like you may be committing a merge.
+# If this is not correct, please remove the file
+#	.git/MERGE_HEAD
+# and try again.
+
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# All conflicts fixed but you are still merging.
+#
+# Changes to be committed:
+#	modified:   createInitFile.py
+#	modified:   docs/source/resources/resources.rst
+#	modified:   psychopy/CHANGELOG.txt
+#	modified:   psychopy/__init__.py
+#	modified:   psychopy/app/_psychopyApp.py
+#	modified:   psychopy/app/builder/builder.py
+#	modified:   psychopy/app/builder/components/__init__.py
+#	modified:   psychopy/app/builder/components/_base.py
+#	modified:   psychopy/app/builder/components/aperture.py
+#	modified:   psychopy/app/builder/components/cedrusBox.py
+#	modified:   psychopy/app/builder/components/code.py
+#	modified:   psychopy/app/builder/components/dots.py
+#	modified:   psychopy/app/builder/components/eyetracker.py
+#	modified:   psychopy/app/builder/components/grating.py
+#	modified:   psychopy/app/builder/components/image.py
+#	modified:   psychopy/app/builder/components/ioLabs.py
+#	modified:   psychopy/app/builder/components/keyboard.py
+#	modified:   psychopy/app/builder/components/microphone.py
+#	modified:   psychopy/app/builder/components/mouse.py
+#	modified:   psychopy/app/builder/components/movie.py
+#	modified:   psychopy/app/builder/components/parallelOut.py
+#	modified:   psychopy/app/builder/components/patch.py
+#	modified:   psychopy/app/builder/components/polygon.py
+#	modified:   psychopy/app/builder/components/ratingscale.py
+#	modified:   psychopy/app/builder/components/settings.py
+#	modified:   psychopy/app/builder/components/sound.py
+#	modified:   psychopy/app/builder/components/static.py
+#	modified:   psychopy/app/builder/components/text.py
+#	modified:   psychopy/app/builder/components/unknown.py
+#	modified:   psychopy/app/builder/dialogs/__init__.py
+#	modified:   psychopy/app/builder/dialogs/dlgsCode.py
+#	modified:   psychopy/app/builder/dialogs/dlgsConditions.py
+#	modified:   psychopy/app/builder/experiment.py
+#	modified:   psychopy/app/builder/flow.py
+#	new file:   psychopy/app/builder/localizedStrings.py
+#	modified:   psychopy/app/builder/utils.py
+#	modified:   psychopy/app/builder/validators.py
+#	modified:   psychopy/app/coder/coder.py
+#	deleted:    psychopy/app/coder/debugger.py
+#	modified:   psychopy/app/coder/introspect.py
+#	modified:   psychopy/app/coder/psychoParser.py
+#	modified:   psychopy/app/connections.py
+#	modified:   psychopy/app/dialogs.py
+#	modified:   psychopy/app/localization/__init__.py
+#	modified:   psychopy/app/localization/readme.txt
+#	modified:   psychopy/app/preferencesDlg.py
+#	modified:   psychopy/app/stdOutRich.py
+#	modified:   psychopy/clock.py
+#	modified:   psychopy/compatibility.py
+#	modified:   psychopy/core.py
+#	modified:   psychopy/data.py
+#	modified:   psychopy/event.py
+#	modified:   psychopy/gui/qtgui.py
+#	modified:   psychopy/gui/wxgui.py
+#	modified:   psychopy/hardware/bbtk/__init__.py
+#	modified:   psychopy/hardware/cedrus.py
+#	modified:   psychopy/hardware/crs/bits.py
+#	modified:   psychopy/hardware/crs/colorcal.py
+#	modified:   psychopy/hardware/egi.py
+#	modified:   psychopy/hardware/iolab.py
+#	modified:   psychopy/hardware/joystick/__init__.py
+#	modified:   psychopy/hardware/pr.py
+#	modified:   psychopy/info.py
+#	modified:   psychopy/locale_setup.py
+#	modified:   psychopy/logging.py
+#	modified:   psychopy/monitors/MonitorCenter.py
+#	modified:   psychopy/monitors/calibTools.py
+#	modified:   psychopy/monitors/getLumSeries.py
+#	modified:   psychopy/parallel/__init__.py
+#	modified:   psychopy/parallel/_dlportio.py
+#	modified:   psychopy/parallel/_inpout32.py
+#	modified:   psychopy/parallel/_linux.py
+#	modified:   psychopy/preferences/generateHints.py
+#	modified:   psychopy/preferences/hints.py
+#	modified:   psychopy/preferences/preferences.py
+#	modified:   psychopy/pylintrc
+#	modified:   psychopy/tests/test_app/test_builder/componsTemplate.txt
+#	modified:   psychopy/tests/test_app/test_builder/test_components.py
+#	modified:   psychopy/tests/test_misc/test_locale.py
+#	modified:   psychopy/tools/arraytools.py
+#	modified:   psychopy/tools/attributetools.py
+#	modified:   psychopy/tools/colorspacetools.py
+#	modified:   psychopy/tools/monitorunittools.py
+#	modified:   psychopy/tools/versionchooser.py
+#	modified:   psychopy/tools/wizard.py
+#	modified:   psychopy/visual/basevisual.py
+#	modified:   psychopy/visual/custommouse.py
+#	modified:   psychopy/visual/elementarray.py
+#	modified:   psychopy/visual/filters.py
+#	modified:   psychopy/visual/gamma.py
+#	renamed:    psychopy/visual/glob_vars.py -> psychopy/visual/globalVars.py
+#	modified:   psychopy/visual/grating.py
+#	modified:   psychopy/visual/helpers.py
+#	modified:   psychopy/visual/movie.py
+#	modified:   psychopy/visual/movie2.py
+#	modified:   psychopy/visual/movie3.py
+#	modified:   psychopy/visual/radial.py
+#	modified:   psychopy/visual/ratingscale.py
+#	modified:   psychopy/visual/rect.py
+#	modified:   psychopy/visual/secondorder.py
+#	modified:   psychopy/visual/shape.py
+#	modified:   psychopy/visual/simpleimage.py
+#	modified:   psychopy/visual/text.py
+#	modified:   psychopy/visual/textbox/fontmanager.py
+#	modified:   psychopy/visual/textbox/parsedtext.py
+#	modified:   psychopy/visual/textbox/textgrid.py
+#	modified:   psychopy/visual/textbox/textureatlas.py
+#	modified:   psychopy/visual/window.py
+#	modified:   psychopy/visual/windowwarp.py
+#	modified:   psychopy/voicekey/__init__.py
+#	modified:   psychopy/voicekey/signal.py
+#	modified:   psychopy/voicekey/vk_tools.py
+#	modified:   psychopy/web.py
+#
+# Untracked files:
+#	docs/source/api/iohub/developer.rst
+#	psychopy/iohub/lazy_import.py
+#
+

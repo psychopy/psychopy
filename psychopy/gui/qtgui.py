@@ -238,12 +238,12 @@ class Dlg(QtWidgets.QDialog):
                 ix = self.inputFields.index(inputBox)
                 try:
                     self.data[ix] = inputBox.itemData(new_index).toPyObject()[0]
-                except AttributeError:
+                except:
                     self.data[ix] = inputBox.itemData(new_index)[0]
-                msg = ("handleCurrentIndexChanged: inputFieldName={0}, "
-                       "selected={1}, type: {2}")
-                logging.debug(msg.format(label, self.data[ix],
-                                         type(self.data[ix])))
+                logging.debug(
+                    "handleCurrentIndexChanged: inputFieldName={0}, "
+                    "selected={1}, type: {2}".format(
+                        label, self.data[ix], type(self.data[ix])))
 
             inputBox.currentIndexChanged.connect(handleCurrentIndexChanged)
 
@@ -606,7 +606,8 @@ if __name__ == '__main__':
              u"<br>"
              u"Written by: Dr. John Doe"
              u"<br>"
-             u"Created using <b>PsychoPy</b> © Copyright 2015, Jonathan Peirce")
+             u"Created using <b>PsychoPy</b>"
+             u"© Copyright 2015, Jonathan Peirce")
 
     # Restore full screen psychopy window
     # showWindow(win)

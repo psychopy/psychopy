@@ -19,6 +19,7 @@ other configuration settings:
 """
 
 from __future__ import division
+from collections import OrderedDict
 
 #   Test Config.
 
@@ -220,10 +221,6 @@ def initProcessStats():
         pass
 
 def getSysInfo(win): 
-    try: 
-        from collections import OrderedDict
-    except Exception: 
-        from psychopy.iohub import OrderedDict
     # based on sysInfo.py
     from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
     import sys, platform
@@ -324,10 +321,6 @@ def getSysInfo(win):
     return sys_info
 
 def formattedDictStr(d, indent=1, rstr=''):
-    try: 
-        from collections import OrderedDict
-    except ImportError: 
-        from psychopy.iohub import OrderedDict
     for key, value in d.items(): 
         if isinstance(value, (dict, OrderedDict)): 
             rstr = "{rstr}{numtabs}{key}:\n".format(numtabs='\t' * indent, key=key, rstr=rstr)

@@ -1,59 +1,48 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
+"""Testing the iohub.launchHubServer function illustrating different ways
+it can be used.
 
-"""
-Testing the iohub.launchHubServer function
-illustrating the different ways it can be used.
-
-No PsychoPy Window is created for this demo; results are
-printed to stdout.
-
-Inital Version: May 6th, 2013, Sol Simpson
+No PsychoPy Window is created for this demo; results are printed to stdout.
 """
 
-from __future__ import division
+import time
+from pprint import pprint
 
-from __future__ import print_function  # for compatibility with python3
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
-def testWithNoKwargs():
+
+def launchWithNoKwargs():
     """
-    testWithNoKwargs illustrates using the launchHubServer function with no
+    launchWithNoKwargs illustrates using the launchHubServer function with no
     parameters at all. Considerations:
-        * A Keyboard, Mouse, Monitor, and Experiment device are created by default.
-        * All devices use their default parameter settings. Therefore,
-          not very useful in real studies.
+        * Default Keyboard, Mouse, Monitor, and Experiment devices are created.
         * ioHub DataStore is not enabled.
     """
     io = launchHubServer()
-
-    # Get the default keyboard device created.
     keyboard = io.devices.keyboard
 
+    keyboard.clearEvents()
+    
     print()
-    print(" ** PRESS A KEY TO CONTINUE.....")
+    print(' ** PRESS A KEY TO CONTINUE.....')
 
-    # Check for new events every 1/4 second.
-    # By using the io.wait() fucntion, the ioHub Process is checked for
-    # events every 50 msec or so, and they are cached in the PsychoPy process
-    # until the next getEvents() call is made. On Windows, messagePump() is also
-    # called periodically so that any Window you have created does not lock up.
-    #
-    while not keyboard.getEvents():
-        io.wait(0.25)
+    keyboard.waitForPresses()
 
-    print("A Keyboard Event was Detected; exiting Test.")
+    print('A Keyboard Event was Detected; exiting Test.')
 
     io.quit()
 
-def testUsingPsychoPyMonitorConfig():
+
+def launchUsingPsychoPyMonitorConfig():
     """
-    testUsingPsychoPyMonitorConfig illustrates using the launchHubServer function
-    and providing a PsychoPy monitor configuration file name.
+    launchUsingPsychoPyMonitorConfig illustrates providing a PsychoPy monitor
+    configuration file name to the launchHubServer function.
     Considerations:
-        * A Keyboard, Mouse, Monitor, and Experiment device are created by default.
-        * If the psychopy_monitor_name is valid, the ioHub Display is updated to
-          use the display size and viewing distance specified in the psychopy monitor config.
+        * Default Keyboard, Mouse, Monitor, and Experiment devices are created.
+        * If the psychopy_monitor_name is valid, the ioHub Display size and
+          viewing distance are updated using the psychopy monitor config.
         * ioHub DataStore is not enabled.
     """
 
@@ -62,8 +51,6 @@ def testUsingPsychoPyMonitorConfig():
     # Get the default display device created.
     display = io.devices.display
 
-    # print(the display's physical characteristics, showing they have
-    # been updated based on the settings in the PsychoPy monitor config.
     print('Display Psychopy Monitor Name: ', display.getPsychopyMonitorName())
     print('Display Default Eye Distance: ', display.getDefaultEyeDistance())
     print('Display Physical Dimensions: ', display.getPhysicalDimensions())
@@ -71,93 +58,64 @@ def testUsingPsychoPyMonitorConfig():
     # That's it, shut down the ioHub Proicess and exit. ;)
     io.quit()
 
-def testEnabledDataStore():
-        """
-        testEnabledDataStore is the same as testUsingPsychoPyMonitorConfig above,
-        but by adding an experiment_code parameter the ioHub DataStore will
-        be enabled, using a auto generated session_code each time it is run.
-        Experiment and session metadata is printed at the end of the demo.
-        Considerations:
-            * A Keyboard, Mouse, Monitor, and Experiment device are created by default.
-            * If the psychopy_monitor_name is valid, the ioHub Display is updated to
-              use the display size and viewing distance specified in the psychopy monitor config.
-            * ioHub DataStore is enabled because experiment_code is provided.
-              session_code will be auto generated using the current time.
-        """
-        psychopy_mon_name = 'testMonitor'
-        exp_code = 'gap_endo_que'
-        io = launchHubServer(psychopy_monitor_name=psychopy_mon_name,
-                             experiment_code=exp_code)
 
-        display = io.devices.display
+def launchEnabledDataStore():
+    """
+    launchEnabledDataStore illustrates that by adding an experiment_code
+    kwarg to launchHubServer(....), an ioHub HDF5 file is created by the
+    ioHub Server which saves all the device events.
 
-        print('Display Psychopy Monitor Name: ', display.getPsychopyMonitorName())
-        print('Display Default Eye Distance: ', display.getDefaultEyeDistance())
-        print('Display Physical Dimensions: ', display.getPhysicalDimensions())
+    Experiment and session metadata is printed at the end of the demo.
+    Considerations:
+        * Default Keyboard, Mouse, Monitor, and Experiment devices are created.
+        * ioHub DataStore is enabled: ioHub Server saves events to a HDF5 file.
+        * session_code is autogenerated based on the current date/time.
+        * session_code is used to name the saved HDF5 file.
+    """
+    exp_code = 'gap_endo_que'
+    io = launchHubServer(experiment_code=exp_code)
 
-        from pprint import pprint
+    print('Experiment Metadata: ')
+    pprint(io.getExperimentMetaData())
+    print('\nSession Metadata: ')
+    pprint(io.getSessionMetaData())
 
-        print('Experiment Metadata: ')
-        pprint(io.getExperimentMetaData())
-        print('\nSession Metadata: ')
-        pprint(io.getSessionMetaData())
+    io.quit()
 
-        io.quit()
 
-def testEnabledDataStoreAutoSessionCode():
-        """
-        testEnabledDataStoreAutoSessionCode is the same as testEnabledDataStore
-        above, but session_code is provided by the script instead of being
-        auto-generated. The ioHub DataStore will be enabled, using the
-        experiment and session_code provided each time it is run. Experiment
-        and session metadata is printed at the end of the demo.
+def launchAutoSessionCode():
+    """
+    launchAutoSessionCode is the same as launchEnabledDataStore
+    above, but session_code is provided by the script instead of being
+    auto-generated. The ioHub DataStore will be enabled, using the
+    experiment and session_code provided each time it is run. Experiment
+    and session metadata is printed at the end of the demo.
 
-        Considerations:
-            * A Keyboard, Mouse, Monitor, and Experiment device are created by
-              default.
-            * If the psychopy_monitor_name is valid, the ioHub Display is
-              updated to use the display size and viewing distance specified
-              in the psychopy monitor config.
-            * ioHub DataStore is enabled because experiment_code and
-              session_code are provided.
-        """
-        import time
-        from pprint import pprint
+    Considerations:
+        * Default Keyboard, Mouse, Monitor, and Experiment devices are created.
+        * ioHub DataStore is enabled: ioHub Server saves events to a HDF5 file.
+        * session_code is used to name the saved HDF5 file.
+    """
+    exp_code = 'gap_endo_que'
+    sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+    print('Current Session Code will be: ', sess_code)
 
-        psychopy_mon_name = 'testMonitor'
-        exp_code = 'gap_endo_que'
-        sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
-        print('Current Session Code will be: ', sess_code)
+    io = launchHubServer(experiment_code=exp_code,
+                         session_code=sess_code)
 
-        io = launchHubServer(psychopy_monitor_name=psychopy_mon_name,
-                             experiment_code=exp_code,
-                             session_code=sess_code)
+    print('Experiment Metadata: ')
+    pprint(io.getExperimentMetaData())
+    print('\nSession Metadata: ')
+    pprint(io.getSessionMetaData())
 
-        display = io.devices.display
+    io.quit()
 
-        print('Display Psychopy Monitor Name: ', display.getPsychopyMonitorName())
-        print('Display Default Eye Distance: ', display.getDefaultEyeDistance())
-        print('Display Physical Dimensions: ', display.getPhysicalDimensions())
-
-        print('Experiment Metadata: ')
-        pprint(io.getExperimentMetaData())
-        print('\nSession Metadata: ')
-        pprint(io.getSessionMetaData())
-
-        io.quit()
-
-test_list = ['testWithNoKwargs', 'testUsingPsychoPyMonitorConfig',
-             'testEnabledDataStore', 'testEnabledDataStoreAutoSessionCode']
 
 if __name__ == '__main__':
-    for test in test_list:
+    demo_list = [launchWithNoKwargs, launchUsingPsychoPyMonitorConfig,
+                 launchEnabledDataStore, launchAutoSessionCode]
+    for demo in demo_list:
         print('\n------------------------------------\n')
-        print('Running %s Test:'%(test))
+        print('Running %s Example:' % (demo.__name__))
+        demo()
 
-        for namespace in (locals(), globals()):
-            if test in namespace:
-               result = namespace[test]()
-               print('Test Result: ', result)
-               break
-
-# The contents of this file are in the public domain.

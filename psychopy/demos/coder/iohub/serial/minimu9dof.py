@@ -1,5 +1,7 @@
-"""
-Demo using the ioHub Serial device, a generic interface to a serial port.
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
+"""Demo using the ioHub Serial device, a generic interface to a serial port.
 
 This demo is setup to read the serial output from the
 MinIMU-9 v3 breakout board ( http://www.pololu.com/product/2468 )
@@ -39,41 +41,42 @@ providing a float value for the roll, pitch, yaw reading sent.
 Demo Created: April 16th, 2014.
 By: Sol Simpson
 """
+
 import time
 from psychopy import core
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 psychopy_mon_name = 'testMonitor'
 exp_code = '9dof'
 sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
-iohubkwargs = {'psychopy_monitor_name':psychopy_mon_name,
-                'experiment_code': exp_code,
-                'session_code': sess_code,
-                'serial.Serial': dict(name='serial', port='COM6', baud=115200,
-                                   event_parser=dict(prefix='!ANG:',
-                                                     delimiter='\r\n'))
+iohubkwargs = {'psychopy_monitor_name': psychopy_mon_name,
+               'experiment_code': exp_code,
+               'session_code': sess_code,
+               'serial.Serial': dict(name='serial', port='COM6', baud=115200,
+                                     event_parser=dict(prefix='!ANG:',
+                                                       delimiter='\r\n'))
                }
 io = launchHubServer(**iohubkwargs)
 kb = io.devices.keyboard
 ser = io.devices.serial
 event_count = 0
 
-io.clearEvents('all')
-print "Saving Serial Port Events. Press any key to exit."
+io.clearEvents()
+print('Saving Serial Port Events. Press any key to exit.')
 ser.enableEventReporting(True)
 stime = core.getTime()
 
 while not kb.getEvents():
     event_count += len(ser.getEvents())
-    print 'Serial Event Count:', event_count, '\r',
+    print('Serial Event Count:', event_count, end='\r')
     core.wait(0.01, 0.0)
 
 etime = core.getTime()
 ser.enableEventReporting(False)
-print
-print "Received approx. %.2f events / second."%(event_count/(etime-stime))
+print()
+print('Received approx. %.2f events / second.' % (event_count / (etime - stime)))
 io.quit()
-## EOD
+# EOD
 
 # Below code is from original 9DOF board demo, may be of interest for further
 # conversion of angle data saved.
@@ -101,5 +104,5 @@ io.quit()
 #            cil_pitch.axis=(0.2*cos(pitch),0.2*sin(pitch),0)
 #            cil_pitch2.axis=(-0.2*cos(pitch),-0.2*sin(pitch),0)
 #            arrow_course.axis=(0.2*sin(yaw),0.2*cos(yaw),0)
-#ser.close()
-#f.close()
+# ser.close()
+# f.close()

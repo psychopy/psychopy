@@ -34,5 +34,3 @@ monitor_devices:
 #        device_number: 0
 #        channel_sampling_rate: 1000
 #        model_name: USB-1208FS
-data_store:
-    enable: True

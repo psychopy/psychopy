@@ -2671,6 +2671,13 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         fieldNames = []
         for colN in range(nCols):
             fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
+            if fieldName is None:
+                # .xlsx files saved by LibreOffice cause ws.get_highest_column()
+                # to return 1024, with Nones padding all the unfilled columns.
+                # So we check for a None header row cell value, and reset nCols
+                # to be usable number of columns.
+                nCols = colN
+                break
             fieldNames.append(fieldName)
         _assertValidVarNames(fieldNames, fileName)
 

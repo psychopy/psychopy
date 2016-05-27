@@ -1,32 +1,41 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-This demo requires that an ioSync device is correctly connected to the computer 
-running this script.
+from __future__ import division, print_function, absolute_import
+"""This demo requires that an ioSync device is correctly connected to the
+computer running this script.
 
-This demo displays the ioSync digital and analog input values in real time. 
-The GUI can also be used to toggle the state of any of the digital output lines.
-"""
+This demo displays the ioSync digital and analog input values in real
+time. The GUI can also be used to toggle the state of any of the digital
+output lines.
 
+"""
 LUX_AIN = 0
 
 import sys
 from psychopy import core, visual, event
 from _statusPanelStim import AnalogMeter, DigitalLineStateButton
-from psychopy.iohub import EventConstants, launchHubServer, MouseConstants
+from psychopy.iohub.constants import EventConstants, MouseConstants
+from psychopy.iohub.client import launchHubServer
+
 getTime = core.getTime
 
+
 def main():
-    """
-    Main demo logic. Called at the end of the script so locally defined
-    functions and globals are loaded prior to demo starting.
+    """Main demo logic.
+
+    Called at the end of the script so locally defined functions and
+    globals are loaded prior to demo starting.
+
     """
     mcu = None
     io = None
     kb = None
-    iomouse=None
-    digital_input_state=0
-    digital_output_state=0
-    last_analog_in_event=None
+    iomouse = None
+    # digital inputs use pullup resistor, so high = off (0),
+    # low = on (1)
+    digital_input_state = 255
+    digital_output_state = 0
+    last_analog_in_event = None
     try:
         # create display graphics
         #
@@ -36,19 +45,29 @@ def main():
 
         # Various text stim used on the status panel.
         #
-        demo_title = visual.TextStim(win, color='#FFFFFF',height=24, wrapWidth=w,
-                            text = u"ioSync Demo Initializing, Please Wait.",
-                            pos=[0, 300], alignHoriz='center',alignVert='top')
-        analog_in_txt = visual.TextStim(win, color='#FFFFFF',height=18,
-                            text = u"Analog Input Levels", wrapWidth=w,
-                            pos=[-375, 230], alignHoriz='left',alignVert='center')
-        digital_in_txt = visual.TextStim(win, color='#FFFFFF',height=18,
-                            text = u"Digital Input States", wrapWidth=w,
-                            pos=[-375, -50], alignHoriz='left',alignVert='center')
-        digital_out_txt = visual.TextStim(win, color='#FFFFFF',height=18, wrapWidth=w,
-                            text = u"Digital Output States (Click button to toggle state)",
-                            pos=[-375, -175], alignHoriz='left',alignVert='center')
-        static_text_stim=[demo_title,analog_in_txt,digital_in_txt,digital_out_txt]
+        demo_title = visual.TextStim(win, color='#FFFFFF', height=24,
+                                     wrapWidth=w, text=u"Demo Initializing...",
+                                     pos=[0, 300], alignHoriz='center',
+                                     alignVert='top')
+
+        analog_in_txt = visual.TextStim(win, color='#FFFFFF', height=18,
+                                        text=u"Analog Input Levels",
+                                        wrapWidth=w,  pos=[-375, 230],
+                                        alignHoriz='left', alignVert='center')
+
+        digital_in_txt = visual.TextStim(win, color='#FFFFFF', height=18,
+                                         text=u"Digital Input States",
+                                         wrapWidth=w, pos=[-375, -50],
+                                         alignHoriz='left', alignVert='center')
+
+        dout_txt = u"Digital Output States (Click button to toggle state)"
+        digital_out_txt = visual.TextStim(win, color='#FFFFFF', height=18,
+                                          wrapWidth=w, text=dout_txt,
+                                          pos=[-375, -175], alignHoriz='left',
+                                          alignVert='center')
+
+        static_text_stim = [demo_title, analog_in_txt, digital_in_txt,
+                            digital_out_txt]
 
         # Draw some text indicating the demo is loading. It can take a couple
         # seconds to initialize and fire everything up. ;)
@@ -60,12 +79,11 @@ def main():
         # Create the 8 analog input gauges.
         ain_gauges = []
         for i in range(8):
-            ain_name = "AI_%d" % (i)
+            ain_name = 'AI_%d' % (i)
+            ain_pos = -0.75 + (i % 4) * .5, 0.025 + .4 * (1 - int(i / 4))
             meter = AnalogMeter(win, dial_color=[1, 1, 1],
                                 arrow_color=[-0.8, -0.8, -0.8],
-                                size=0.2, pos=(
-                    -0.75 + (i % 4) * .5, 0.025 + .4 * (1 - int(i / 4))),
-                                title=ain_name)
+                                size=0.2, pos=ain_pos, title=ain_name)
             meter.ain_name = ain_name
             ain_gauges.append(meter)
 
@@ -74,29 +92,36 @@ def main():
         core.wait(0.05)
 
         # Create digital input state buttons and digital output control buttons
-        digital_in_lines=[]
-        digital_out_lines=[]
+        digital_in_lines = []
+        digital_out_lines = []
         for i in range(8):
-            din_name = "DI_%d" % (i)
+            din_name = 'DI_%d' % (i)
             # digital inputs are set to use pull ups by default,
             # so 'off' is high and 'on' is when the line goes low.
-            din_state_button = DigitalLineStateButton(win, i, './off.png', './on.png',
-                     pos=(-350+i*100,-100),size=(50,50), title=din_name, initial_state = True)
+            din_state_button = DigitalLineStateButton(win, i, './off.png',
+                                                      './on.png',
+                                                      pos=(-350+i*100, -100),
+                                                      size=(50, 50),
+                                                      title=din_name,
+                                                      initial_state=False)
             digital_in_lines.append(din_state_button)
 
-            dout_name = "DO_%d" % (i)
-
-            dout_state_button = DigitalLineStateButton(win, i, './on.png', './off.png',
-                     pos=(-350+i*100,-225),size=(50,50), title=dout_name)
+            dout_name = 'DO_%d' % (i)
+            dout_state_button = DigitalLineStateButton(win, i, './on.png',
+                                                       './off.png',
+                                                       pos=(-350+i*100, -225),
+                                                       size=(50, 50),
+                                                       title=dout_name)
             digital_out_lines.append(dout_state_button)
 
         # forces pyglet to get events from the windows event queue
         core.wait(0.05)
 
-        pymouse=event.Mouse()
+        pymouse = event.Mouse()
 
         # Try to start up the ioHub and connect to an ioSync device.
-        # If something goes wrong (like an ioSync is not present), give an error
+        # If something goes wrong (like an ioSync is not present), give an
+        # error
         try:
             io = startIOHub()
             mcu = io.devices.mcu
@@ -106,17 +131,21 @@ def main():
             # forces pyglet to get events from the windows event queue
             core.wait(0.05)
             mcu.enableEventReporting(True)
-            io.clearEvents('all')
+            io.clearEvents()
         except Exception:
             import traceback
             traceback.print_exc()
-            demo_title.setText('Error Starting ioHub.\n1) Is ioSync connected to the PC\n2) Has the correct serial port been provided?\n\nExiting in 5 seconds.')
-            demo_title.pos=0,0
+            err_txt = 'Error Starting ioHub.\n1) Is ioSync connected to the PC'
+            err_txt += '\n2) Has the correct serial port been provided?\n\n'
+            err_txt += 'Exiting in 5 seconds.'
+            demo_title.setText(err_txt)
+            demo_title.pos = 0, 0
             demo_title.draw()
             win.flip()
             core.wait(5.0)
             win.close()
-            sys.exit(0)
+            io.quit()
+            core.quit()
 
         # Main demo loop, reads ioSync digital and analog inputs,
         # displays current input values, and provides buttons to control
@@ -133,7 +162,7 @@ def main():
             for mcue in mcu_events:
                 if mcue.type == EventConstants.DIGITAL_INPUT:
                     digital_input_state = mcue.state
-                elif mcue.type ==  EventConstants.ANALOG_INPUT:
+                elif mcue.type == EventConstants.ANALOG_INPUT:
                     last_analog_in_event = mcue
 
             if last_analog_in_event:
@@ -142,7 +171,7 @@ def main():
                     raw_ratio = vraw / MAX_RAW
                     vstr = '%.3fV' % (toVolts(vraw))
                     if LUX_AIN == c:
-                        vstr = '%d Lux' % (int(tolux(vraw)))
+                        vstr = '%.3f Lux' % (tolux(vraw))
                     m.update_gauge(raw_ratio, vstr)
                 last_analog_in_event = None
             else:
@@ -150,15 +179,15 @@ def main():
 
             mouse_clicked = False
             if [me.button_id for me in iomouse.getEvents(
-                            event_type_id = EventConstants.MOUSE_BUTTON_RELEASE)
-                            if me.button_id == MouseConstants.MOUSE_BUTTON_LEFT]:
+                    event_type_id=EventConstants.MOUSE_BUTTON_RELEASE)
+                    if me.button_id == MouseConstants.MOUSE_BUTTON_LEFT]:
                 mouse_clicked = True
 
             for dpin in range(8):
                 digital_in_lines[dpin].enable(digital_input_state)
 
                 if mouse_clicked and digital_out_lines[dpin].contains(pymouse):
-                    mouse_clicked=False
+                    mouse_clicked = False
                     if digital_out_lines[dpin].state:
                         digital_output_state -= 2**dpin
                         mcu.setDigitalOutputPin(dpin, False)
@@ -171,66 +200,66 @@ def main():
             win.flip()
             core.wait(0.033, 0.0)
 
-        # turn off ioSync Recording
-        # and do misc. cleanup
-        mcu.setDigitalOutputByte(0)
-        mcu.enableEventReporting(False)
-        win.close()
-
     except Exception:
         import traceback
         traceback.print_exc()
     finally:
         if mcu:
+            # turn off ioSync Recording
+            # and do misc. cleanup
+            mcu.setDigitalOutputByte(0)
             mcu.enableEventReporting(False)
+            mcu.setConnectionState(False)
+            mcu = None
+        if win:
+            win.close()
+            win = None
         if io:
-            io.clearEvents('all')
             io.quit()
+            io = None
 
 # Misc. constaints for ioSync
-MAX_RAW = 2.0 ** 16
-MAX_LUX = 15.0 # in k lux
-MAX_AIN_V = 3.3
+MAX_RAW = 65535.0 # 16 bit
+MAX_LUX = 5.0  # in k lux
+MAX_AIN_V = 3.266
 LOG_LUX_RANGE = MAX_AIN_V
-LOG_LUX_RATIO = LOG_LUX_RANGE/MAX_RAW
+LOG_LUX_RATIO = LOG_LUX_RANGE / MAX_RAW
 DIGITAL_ANALOG_16_STEP = MAX_AIN_V / MAX_RAW
 
+
 def toVolts(raw):
-    """
-    Convert raw ioSync analog input value to voltage value.
-    """
+    """Convert raw ioSync analog input value to voltage value."""
     return DIGITAL_ANALOG_16_STEP * raw
 
+
 def tolux(raw):
-    """
-    Used if LUX_AIN is set to between 0 and 7; indicating that the ioSync
+    """Used if LUX_AIN is set to between 0 and 7; indicating that the ioSync
     light meter peripheral is attached to that analog input line.
 
     Convert raw ioSync analog input value to lux value.
+
     """
     return pow(10, raw * LOG_LUX_RATIO)
 
+
 def startIOHub():
-    """
-    Starts the ioHub process, saving events to events.hdf5, recording data from
-    all standard devices as well as the ioSync MCU device.
-    """
-    global io
+    """Starts the ioHub process, saving events to events.hdf5, recording data
+    from all standard devices as well as the ioSync MCU device."""
     import time
     psychopy_mon_name = 'testMonitor'
     exp_code = 'events'
     sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
     iohub_config = {
-        "psychopy_monitor_name": psychopy_mon_name,
-        "mcu.iosync.MCU": dict(serial_port='auto',
+        'psychopy_monitor_name': psychopy_mon_name,
+        'mcu.iosync.MCU': dict(serial_port='auto',
                                monitor_event_types=['AnalogInputEvent',
                                                     'DigitalInputEvent']),
-        "experiment_code": exp_code,
-        "session_code": sess_code
+        'experiment_code': exp_code,
+        'session_code': sess_code
     }
     return launchHubServer(**iohub_config)
 
 #
-## Start main demo logic
+# Start main demo logic
 #
 main()

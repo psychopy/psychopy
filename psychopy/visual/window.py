@@ -1049,9 +1049,8 @@ class Window(object):
             # course)
             try:
                 if IOHUB_ACTIVE and _hw_handle:
-                    from psychopy.iohub.client import ioHubConnection
-                    conn = ioHubConnection.ACTIVE_CONNECTION
-                    conn.unregisterPygletWindowHandles(_hw_handle)
+                    conn = psychopy.iohub.client.ioHubConnection.ACTIVE_CONNECTION
+                    conn.unregisterWindowHandles(_hw_handle)
             except Exception:
                 pass
         else:
@@ -1425,15 +1424,14 @@ class Window(object):
         # iohub was active, also send them to iohub.
         #
         if IOHUB_ACTIVE:
-            from psychopy.iohub.client import ioHubConnection
-            if ioHubConnection.ACTIVE_CONNECTION:
+            conn = psychopy.iohub.client.ioHubConnection.ACTIVE_CONNECTION
+            if conn:
                 winhwnds = []
                 for w in openWindows:
                     winhwnds.append(w()._hw_handle)
                 if self._hw_handle not in winhwnds:
                     winhwnds.append(self._hw_handle)
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.registerPygletWindowHandles(*winhwnds)
+                conn.registerWindowHandles(*winhwnds)
 
     def _setupPygame(self):
         # we have to do an explicit import of pyglet.gl from pyglet

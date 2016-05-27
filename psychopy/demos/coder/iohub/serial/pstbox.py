@@ -1,12 +1,14 @@
-from __future__ import print_function
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""Demo using the iohub Pstbox device."""
+from __future__ import division, print_function, absolute_import
 
 import time
 import numpy as np
-from psychopy import core, visual
-from psychopy.iohub import launchHubServer
-from psychopy.iohub.devices import Computer
 
-#####################################################################
+from psychopy import core, visual
+from psychopy.iohub.client import launchHubServer
+from psychopy.iohub.devices import Computer
 
 #
 # Device setup
@@ -111,9 +113,9 @@ for i in range(nreps):
     fixSpot.draw()
     win.flip()
 
-    # Clear the PST box event buffers immediately after the
+    # Clear the event buffers immediately after the
     # fixation is displayed.
-    pstbox.clearEvents()
+    io.clearEvents()
 
     # Wait a variable time until the stimulus is being presented.
     io.wait(1 + np.random.rand())

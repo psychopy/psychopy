@@ -1,83 +1,97 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-pub_sub_device/run.py
+"""ioHub Network EventPublisher / RemoteEventSubscriber Device Demo.
 
-EventPublisher / RemoteEventSubscriber Devices usage Demo. 
+In real use cases, the network EventPublisher and RemoteEventSubscriber
+iohub devices would be running on different computers. For simplicity,
+in this demo, both of these devices run locally on the same ioHub Server.
 
-For simplicity, both the EventPublisher and RemoteEventSubscriber run on the
-local computer. The EventPublisher publishes all keyboard event types, and the 
-RemoteEventSubscriber subscribes to only KeyboardPressEvents, and KeyboardCharEvents.
+The EventPublisher publishes Keyboard Press and Release events, while the
+RemoteEventSubscriber subscribes to Keyboard Press and Release events.
 
-** IMPORTANT: The Python package 'pyzmq' must be available in your python
-    environment to be able to use the EventPublisher and / or RemoteEventSubscriber
-    devices. The pyzmq website is https://github.com/zeromq/pyzmq
-    
-Inital Version: July 17th, 2013, Sol Simpson
+** IMPORTANT: The Python package 'pyzmq' must be installed to be able to use
+   the EventPublisher and / or RemoteEventSubscriber devices.
+   The pyzmq website is https://github.com/zeromq/pyzmq
 """
 
-from psychopy.iohub import (ioHubExperimentRuntime, MessageDialog,
-                            module_directory,Computer)
+from __future__ import division, print_function, absolute_import
 
-class ExperimentRuntime(ioHubExperimentRuntime):
-    """
-    Create an experiment using psychopy and the ioHub framework by extending the 
-    ioHubExperimentRuntime class.
-    """
-    def run(self,*args):
-        """
-        The run method contains your experiment logic. It is equal to what 
-        would be in your main psychopy experiment script.py file in a standard 
-        psychopy experiment setup. That is all there is too it really.
-        """
-        run_demo=True
-     
-        kb=self.hub.devices.kb
-        evt_sub=self.hub.devices.evt_sub
-            
-        # This demo does not display a PsychoPy window, instead it just prints
-        # keyboard event info. received from the local keyboard device and keyboard
-        # events received from the RemoteEventSubscriber device. Inform the user of this...
-        # 
-        msg_dialog=MessageDialog("This demo does not create a PsychoPy window.\nInstead local and subscribed keyboard event info is simply printed to stdout.\n\nOnce the demo has started, press 'ESCAPE' to quit.\n\nPress OK to continue or Cancel to abort the demo.",
-                     title="PsychoPy.ioHub PUB - SUB Event Demo", 
-                     dialogType=MessageDialog.IMPORTANT_DIALOG,display_index=0)
+from psychopy.core import getTime
+from psychopy.gui.qtgui import infoDlg
+from psychopy.iohub.client import launchHubServer
+from psychopy.iohub.constants import EventConstants
 
-        if msg_dialog.show() == MessageDialog.OK_RESULT:
-            # wait until 'ESCAPE' is pressed, or quit after 15 seconds of no kb events.
-            self.hub.clearEvents('all')
-            last_event_time=Computer.getTime()
-            while run_demo is True and Computer.getTime()-last_event_time<15.0:
-                local_kb_events=kb.getEvents()
-                for event in local_kb_events:
-                    print '* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time,ekey=event.key,edelay=event.delay)
-                    last_event_time=event.time
-                    if event.key == u'ESCAPE':
-                        run_demo=False
-                        break
-                subscribed_kb_events=evt_sub.getEvents()
-                for event in subscribed_kb_events:
-                    print '# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time, ekey=event.key,edelay=event.delay)
-                self.hub.wait(0.1)
+# Configure the ioHub Server using an 'iohub_config' dict variable instead of
+# an iohub_config.yaml file. The dict includes entries defining the
+# ioHub EventPublisher and EventSubscriber devices used in the demo.
+# The dict is passed as the kwargs to the launchHubServer function that
+# starts the ioHub Server Process.
+iohub_config = dict()
 
-        ### End of experiment logic
+# ** Add the EventPublisher config settings.....
+pubdev = iohub_config['network.EventPublisher'] = dict()
+pubdev['name'] = 'evt_pub'
+pubdev['event_buffer_length'] = 128
+# Use a non zero device number when creating an event publisher.
+# All events received by subscribing computer will be tagged with this
+# device number, allowing them to be seperated / distinguished from
+# locally generated events of the same type.
+pubdev['device_number'] = 1
+pubdev['monitor_event_types'] = ['KeyboardPressEvent',
+                                 'KeyboardReleaseEvent']
+pubdev['publishing_protocal'] = 'tcp://127.0.0.1:5555'
 
-####### Main Script Launching Code Below #######
+# ** Add the EventSubscriber config settings.....
+subdev = iohub_config['network.RemoteEventSubscriber'] = dict()
+subdev['name'] = 'evt_sub'
+subdev['event_buffer_length'] = 128
+subdev['monitor_event_types'] = ['KeyboardPressEvent',
+                                 'KeyboardReleaseEvent']
+subdev['subscription_protocal'] = 'tcp://127.0.0.1:5555'
+# remote_iohub_address specifies the ioHub server ip and standard UDP port
+# for the 'remote' ioHub Server instance that is running the EventPublisher.
+# Port 9034 is the default ioHub server UDP port, so unless it has been
+# reconfigured, it is a good bet. ;)
+subdev['remote_iohub_address'] = ['127.0.0.1', 9034]
 
-if __name__ == "__main__":
-    def main(configurationDirectory):
-        """
-        Creates an instance of the ExperimentRuntime class, launches the experiment logic.
-        """        
-        runtime=ExperimentRuntime(configurationDirectory, "experiment_config.yaml")    
-        runtime.start(configurationDirectory)
+# ** To enable hdf5 event storage, at minimum specify an experiment_code....
+iohub_config['experiment_code'] = 'pubsub_demo'
 
-    # Get the current directory, using a method that does not rely on __FILE__
-    # or the accuracy of the value of __FILE__.
-    #
-    configurationDirectory=module_directory(main)
+# Start iohub ...
+io = launchHubServer(**iohub_config)
 
-    # Run the main function, which starts the experiment runtime
-    #
-    main(configurationDirectory)
+kb = io.devices.keyboard
+evt_sub = io.devices.evt_sub
+
+# Display a demo info dialog....
+infoDlg('psychopy.iohub PUB - SUB Event Demo',
+        "This demo does not create a PsychoPy Window.\n\n"
+        "Once this dialog is closed events generated by the Keyboard, "
+        "or received by the network.RemoteEventSubscriber device, are printed "
+        "to stdout.\n\nPressing 'ESCAPE' will quit the demo.")
+
+# Wait for kb event.key=='escape', or quit after 15 seconds of no kb events.
+last_event_time = getTime()
+io.clearEvents()
+run_demo = True
+while run_demo is True and getTime() - last_event_time < 15.0:
+    # Get and print any local keyboard device events...
+    local_kb_events = kb.getEvents()
+    for event in local_kb_events:
+        etype_str = EventConstants.getName(event.type)
+        kbstr = 'Keyboard:\t%s\t%.3f\t%s' % (etype_str, event.time, event.key)
+        print('>>', kbstr)
+        last_event_time = event.time
+        if event.key == 'escape':
+            run_demo = False
+
+    # Get and print any events received by the network subscriber device...
+    subscribed_kb_events = evt_sub.getEvents()
+    for e in subscribed_kb_events:
+        estr = EventConstants.getName(e.type)
+        print('<< EventSubscriber:\t%s\t%.3f\t%s' % (estr, e.time, e.key))
+    if subscribed_kb_events:
+        print()
+
+# End of demo
+io.quit()

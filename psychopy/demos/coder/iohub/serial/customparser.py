@@ -1,17 +1,20 @@
-"""
-Demo using a custom serial rx parser to generate ioHub Serial Device events.
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""Demo using a custom serial rx parser to generate ioHub Serial Device events.
 
 The parseserial.py file is also required for this demo, as it contains the
 custom parser function that the ioHub Serial device uses during runtime.
 
-** This demo assumes that whatever is written out to the serial port is what the
-serial device receives back as rx data. **
+** This demo assumes that whatever is written out to the serial port is what
+   the serial device receives back as rx data. **
 
 """
-from __future__ import print_function
+from __future__ import division, print_function, absolute_import
+
 import time
+
 from psychopy import core, visual
-from psychopy.iohub import launchHubServer
+from psychopy.iohub.client import launchHubServer
 
 # Settings for serial port communication.
 SERIAL_PORT = 'COM16'
@@ -32,7 +35,7 @@ BAUDRATE = 19200
 #            if __name__ == '__main__':
 #        condition so it is not run when the file is only imported.
 
-event_parser_info = dict(parser_function="parseserial.checkForSerialEvents",
+event_parser_info = dict(parser_function='parseserial.checkForSerialEvents',
                          parser_kwargs=dict(var1='not used', var2=1234))
 # configure iohub
 exp_code = 'serial_demo'
@@ -58,18 +61,19 @@ serial_device.enableEventReporting(True)
 win = visual.Window((1024, 768), units='pix')
 
 # Instruction text.
-instruction = visual.TextStim(win, text='Monitoring for serial input events....\n\nPress any key to exit.')
+inst_txt = 'Monitoring for serial input events....\n\nPress any key to exit.'
+instruction = visual.TextStim(win, text=inst_txt)
 # Display instruction.
 instruction.draw()
 win.flip()
-io.clearEvents('all')
+io.clearEvents()
 
 # Check for keyboard and serial events.
 # Exit on keyboard press event.
 # Print any serial events.
 #
 while not keyboard.getPresses():
-    serial_device.write("TEST")
+    serial_device.write('TEST')
     for serevt in serial_device.getEvents():
         print(serevt)
     io.wait(.500)

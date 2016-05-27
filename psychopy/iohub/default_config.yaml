@@ -11,3 +11,7 @@ data_store:
 # File is saved to experiment script folder, with name x11_events_{0}.log, 
 # where {0} = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
 log_raw_kb_mouse_events: False
+# Provides name of coverage config file for use when starting ioHub Process.
+# File name must exist in the psychopy\iohub folder of the PsychoPy package.
+# If None, or file does not exist, coverage env var is not set.
+coverage_env_var: None #iohub.coveragerc

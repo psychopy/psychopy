@@ -1,3 +1,7 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
+
 # Contains the custom serial parsing function that is used by
 # the customparser.py demo script.
 
@@ -7,7 +11,9 @@
 # to the experiment process stderr by using the iohub 'print2err' function.
 # Do not use the standard 'print' call, as it will do nothing except maybe make
 # the iohub server not start.
-from psychopy.iohub import print2err
+
+from psychopy.iohub.errors import print2err
+
 
 def checkForSerialEvents(read_time, rx_data, parser_state, **kwargs):
     """
@@ -45,7 +51,8 @@ def checkForSerialEvents(read_time, rx_data, parser_state, **kwargs):
     :return: list of ioHub serial device events found. None == [] here.
     """
 
-    print2err("checkForSerialEvents called: ", (read_time, rx_data, parser_state, kwargs))
+    print2err('checkForSerialEvents called: ',
+              (read_time, rx_data, parser_state, kwargs))
     parser_state['last_time'] = read_time
 
     serial_events = []

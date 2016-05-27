@@ -1,26 +1,27 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+"""Demo of using iohub XInput gamepad support.
 
-"""
-Demo of using XInput gamepad support from ioHub in PsychoPy.
-
-Important: An XInput compatible gamepad must be connected to the Windows PC
+Important: A XInput compatible gamepad must be connected to a Windows PC
     when this demo is run. As far as I know, OS X and Linux do not support
     XInput. Compatible gamepads include the XBox 360 gamepad for PCs, and the
     Logitech F310 and F710. The XBOX360 and F710 gamepads are wireless and
     also support the * rumble * fucntionality of the XInput API. For wireless
     gamepads, ensure the gamepad is turned on before you try to start the demo.
 """
+from __future__ import division, print_function, absolute_import
 
-from __future__ import division
+from pprint import pprint
 
 from psychopy import visual, core
-from psychopy.iohub import launchHubServer, EventConstants
+from psychopy.iohub.constants import EventConstants
+from psychopy.iohub.client import launchHubServer
 
-def normalizedValue2Coord(normed_position, normed_magnitude, display_coord_area):
-    x = normed_position[0] * normed_magnitude
-    y = normed_position[1] * normed_magnitude
-    w, h = display_coord_area
+
+def normalizedValue2Coord(norm_pos, norm_mag, display_coords):
+    x = norm_pos[0] * norm_mag
+    y = norm_pos[1] * norm_mag
+    w, h = display_coords
     return x * (w / 2.0), y * (h / 2.0)
 
 if __name__ == '__main__':
@@ -28,8 +29,8 @@ if __name__ == '__main__':
     #   created along with the default devices. Since the configuration dict
     #   for the Gamepad is empty, all default values will be used.
     #
-    kwargs = {'psychopy_monitor_name':'default', 'xinput.Gamepad':{}}
-    io = launchHubServer( ** kwargs)
+    kwargs = {'psychopy_monitor_name': 'default', 'xinput.Gamepad': {}}
+    io = launchHubServer(** kwargs)
 
     display = io.devices.display
     mouse = io.devices.mouse
@@ -37,46 +38,56 @@ if __name__ == '__main__':
     keyboard = io.devices.keyboard
     gamepad = io.devices.gamepad
 
-    display_resolution=display.getPixelResolution()
-    psychopy_monitor=display.getPsychopyMonitorName()
-    unit_type=display.getCoordinateType()
-    screen_index=display.getIndex()
-    dl, dt, dr, db=display.getCoordBounds()
-    coord_size=dr-dl, dt-db
+    display_resolution = display.getPixelResolution()
+    psychopy_monitor = display.getPsychopyMonitorName()
+    unit_type = display.getCoordinateType()
+    screen_index = display.getIndex()
+    dl, dt, dr, db = display.getCoordBounds()
+    coord_size = dr - dl, dt - db
 
     win = visual.Window(display_resolution, monitor=psychopy_monitor,
-        units=unit_type, color=[128, 128, 128], colorSpace='rgb255',
-        fullscr=True, allowGUI=False, screen=screen_index)
-
-    # Hide the 'system mouse cursor'
-    mouse.setSystemCursorVisibility(False)
+                        units=unit_type, color=[128, 128, 128],
+                        colorSpace='rgb255', fullscr=True, allowGUI=False,
+                        screen=screen_index)
 
     gamepad.updateBatteryInformation()
     bat = gamepad.getLastReadBatteryInfo()
-    print("Battery Info: ")
-    print(bat)
-    print()
-
+    print('Battery Info: ', bat)
     gamepad.updateCapabilitiesInformation()
     caps = gamepad.getLastReadCapabilitiesInfo()
-    print("Capabilities: " + str(caps))
+    print('Capabilities: ')
+    pprint(caps)
 
     unit_type = display.getCoordinateType()
 
-    fixSpot = visual.GratingStim(win, tex="none", mask="gauss", pos=(0, 0),
-        size=(30, 30), color='black', units=unit_type)
+    fixSpot = visual.GratingStim(win, tex='none', mask='gauss', pos=(0, 0),
+                                 size=(30, 30), color='purple',
+                                 units=unit_type)
 
-    grating = visual.GratingStim(win, pos=(0, 0), tex="sin", mask="gauss",
-        color='white', size=(200, 200), sf=(0.01, 0), units=unit_type)
+    grating = visual.GratingStim(win, pos=(0, 0), tex='sin', mask='gauss',
+                                 color='white', size=(200, 200), sf=(0.01, 0),
+                                 units=unit_type)
+
+    button_state_str = 'Pressed Buttons: {}'
+    button_state_txt = visual.TextStim(win, pos=(0, -200),
+                                       text=button_state_str.format([]),
+                                       units=unit_type,
+                                       alignHoriz='center',
+                                       alignVert='center',
+                                       height=24,
+                                       wrapWidth=display_resolution[0] * .9)
 
     msgText = ('Left Stick: Spot Pos; Right Stick: Grating Pos; '
-        'Left Trig: SF; Right Trig: Ori; "A" Button: Rumble; "q" key: Quit')
-    message = visual.TextStim(win, pos=(0, -200),
-        text=msgText, units=unit_type,
-        alignHoriz='center', alignVert='center', height=24,
-        wrapWidth=display_resolution[0] * .9)
+               'Left Trig: SF; Right Trig: Ori; "A" Button: Rumble; '
+               '"q" key: Quit')
+    message = visual.TextStim(win, pos=(0, -350), text=msgText, color='Red',
+                              units=unit_type, alignHoriz='center',
+                              alignVert='center', height=32,
+                              wrapWidth=display_resolution[0] * .9)
+
     key_presses = []
-    while not u'q' in key_presses:
+    last_buttons = []
+    while not 'q' in keyboard.getPresses():
         # Update stim from gamepad.
         # Sticks are 3 item lists (x, y, magnitude).
         #
@@ -84,8 +95,8 @@ if __name__ == '__main__':
         xx, yy = normalizedValue2Coord((x, y), mag, coord_size)
         grating.setPos((xx, yy))
 
-        x, y, mag=gamepad.getThumbSticks()['left_stick']
-        xx, yy=normalizedValue2Coord((x, y), mag, coord_size)
+        x, y, mag = gamepad.getThumbSticks()['left_stick']
+        xx, yy = normalizedValue2Coord((x, y), mag, coord_size)
         fixSpot.setPos((xx, yy))
 
         # Change sf.
@@ -98,11 +109,14 @@ if __name__ == '__main__':
 
         # If any button is pressed then make the grating stimulus colored.
         pressed_buttons = gamepad.getPressedButtonList()
+        if pressed_buttons != last_buttons:
+            button_state_txt.text = button_state_str.format(pressed_buttons)
 
         if pressed_buttons:
             grating.setColor('red')
         else:
             grating.setColor('white')
+        last_buttons = pressed_buttons
 
         if 'A' in pressed_buttons:
             # Rumble the pad, 50% low frequency motor, 25% high frequency
@@ -113,25 +127,15 @@ if __name__ == '__main__':
             rumble_command_time, rumble_command_duration = rt, rd
 
         # Drift the grating
-        t = core.getTime()
-        grating.setPhase(t * 2)
+        grating.setPhase(core.getTime() * 2)
 
+        message.draw()
+        button_state_txt.draw()
         grating.draw()
         fixSpot.draw()
-        message.draw()
         flip_time = win.flip()
 
-        _kbe = keyboard.getEvents(EventConstants.KEYBOARD_PRESS)
-        key_presses = [event.key for event in _kbe]
-
-        # Do this each frame to avoid keyboard event buffer
-        #   filling with non-press event types.
-        io.clearEvents('all')
-
 io.quit()
-win.close()
 core.quit()
-
-# End of run.py Script #
 
 # The contents of this file are in the public domain.
