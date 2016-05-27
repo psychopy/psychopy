@@ -14,14 +14,14 @@ There are several reasons you may want to do this:
 Sharing with collaborators
 ------------------------------
 
-You may find it simple to share files with your collaborators using dropbox but that means your data are stored by a commercial company over which you have no control and with no interest in scientific integrity. Check with your ethics committee how they feel about your data (e.g. personal details of participants?) being stored on dropbox. OSF, by comparison, is designed for scientists to stored their data securely and forever
+You may find it simple to share files with your collaborators using dropbox but that means your data are stored by a commercial company over which you have no control and with no interest in scientific integrity. Check with your ethics committee how they feel about your data (e.g. personal details of participants?) being stored on dropbox. OSF, by comparison, is designed for scientists to stored their data securely and forever.
 
 Once you've created a project on OSF you can add other contributors to it and when they log in via PsychoPy they will see the projects they share with you (as well as the project they have created themselves). Then they can sync with that project just like any other.
 
 Sharing files/projects with others
 --------------------------------------------------
 
-Optionally, you can make your project (or subsets of it) publiclay accessible so that others can view the files. This has various advantages, to the scientific field but also to you as a scientist.
+Optionally, you can make your project (or subsets of it) publicly accessible so that others can view the files. This has various advantages, to the scientific field but also to you as a scientist.
 
 Good for open science:
   * Sharing your work allows scientists to work out why one experiment gave a different result to another; there are often subtleties in the exact construction of a study that didn't get described fully in the methods section. By sharing the actual experiment, rather than just a description of it, we can reduce the failings of replications
@@ -40,7 +40,7 @@ Maintaining a validated history of your work
 --------------------------------------------------
 
 In many areas of science researchers are very careful about maintaining a full documented history of what their work; what they discovered, the data they collected and what they predicted for the next experiment. In the behavioural and social sciences we haven't been very good at that. With OSF:
-  * you can "preregister" your plans for the next experiment (so that people can't later acuse you of "p-hacking").
+  * you can "preregister" your plans for the next experiment (so that people can't later accuse you of "p-hacking").
   * all your files are timestamped so you can prove to others that they were collected on/by a certain date, removing any potential doubts about who collected data first
   * your projects (and individual files) have a unique URL on OSF so you can cite/reference resources.
   Additionally, "Registrations" (snapshots of your project at a fixed point in time) can be given a DOI, which guarantees they will exist permanently
@@ -55,7 +55,7 @@ PsychoPy doesn't currently have the facility to *create* user profiles or projec
 Login to OSF
 ~~~~~~~~~~~~~~~
 
-From the `Projects` menu you can log in to OSF with your username and password (this is never stored; see :ref:`OSFsecurity`). This user will stay logged in while the PsychoPy application remains open, or until you switch to a different user. If you selec "Remember me" then your login will be stored and you can log in again without typing your password each time.
+From the `Projects` menu you can log in to OSF with your username and password (this is never stored; see :ref:`OSFsecurity`). This user will stay logged in while the PsychoPy application remains open, or until you switch to a different user. If you select "Remember me" then your login will be stored and you can log in again without typing your password each time.
 
 Projects that you have previously synchronised will try to use the stored details of the known users if possible and will revert to username and password if not. Project files (defining the details of the project to sync) can be stored wherever you choose; either in a private or shared location. User details are stored in the home space of the user currently logged in to the operating system so are not shared with other users by default.
 
@@ -96,10 +96,10 @@ The sync process and rules:
   - on the first synchronisation all the files/folders will be merged:
     - the contents of the local folder will be uploaded to the server and vice versa
     - files that have the same name but different contents (irrespective of dates) will be flagged as conflicting (see below) and both copies kept
-  - on subsequent sync operations a two-way sync will be perfomed taking into account the previous state. **If you delete the files locally and then sync then they will be deleted remotely as well**
+  - on subsequent sync operations a two-way sync will be performed taking into account the previous state. **If you delete the files locally and then sync then they will be deleted remotely as well**
   - files that are the same (according to an md5 checksum) and have the same location will be left as they are
   - if a file is in conflict (it has been changed in both locations since the last sync) then both versions will be kept and will be tagged as conflicting
-  - if a file is deleted in one location but is also changed in the other (since the last sync) then it
+  - if a file is deleted in one location but is also changed in the other (since the last sync) then it will be recreated on the side where it was deleted with the state of the side where is was not deleted.
 
 Conflicting files will be labelled with their original filename plus the string "_CONFLICT<datetimestamp>"
 Deletion conflicts will be labelled with their original filename plus the string "_DELETED"
