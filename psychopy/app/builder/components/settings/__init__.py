@@ -408,31 +408,11 @@ class SettingsComponent(object):
         buff.writeIndented("logging.console.setLevel(logging.WARNING)  "
                            "# this outputs to the screen, not a file\n")
 
-        # >> ioHub Code written at start of experiment....
-        # Create launchHubServer kwargs dict based on experiment settings...
 
-        # Remaining TODO:
-        #  If HDF5 saving is enabled:
-        #  * For experiment info entries:
-        #
-        #          * [TODO] Field names matching exp_[field] would map to associated
-        #            launchHubServer experiment_info dict[field] kwarg value
-        #            when [field] is one of:
-        #                 - title
-        #                 - description
-        #                 - version
-        #
-        #          * [TODO] Field names matching sess_[field] would map to associated launchHubServer
-        #            session_info dict[field] kwarg value when [field] is one of:
-        #                  - name
-        #                  - comments
-        #
-        #         * [TODO] Any remaining experiment info fields would be added as key:value pairs to the
-        #           optional session_info dict['user_variables'] entry.
-
-        #  If requested, enable iohub for experiment
         use_iohub = self.params['useIoHub'].val
         if use_iohub:
+            # Create launchHubServer kwargs dict based on experiment
+            # settings...
             iohub_config_ = dict()
             save_hdf5_file = self.params['useHDF5'].val
 
@@ -470,9 +450,27 @@ class SettingsComponent(object):
                 iohub_config_['experiment_info'] = experiment_info_ = dict()
                 experiment_info_['code'] = 'expName'
 
-                if u'session' in expInfoDict.keys():
-                    iohub_config_['session_info'] = session_info_ = dict()
-                    session_info_['code'] = "expInfo.get(u'session')"
+                session_info_ = dict()
+                user_variables_ = list()
+                for k in expInfoDict.keys():
+                    if k == 'session':
+                        session_info_['code'] = "expInfo.get(u'session')"
+                    elif k in ['sess_code', 'sess_name', 'sess_comments']:
+                        sv = k[5:]
+                        session_info_[sv] = "expInfo.get('%s')"%k
+                    elif k in ['exp_title', 'exp_description', 'exp_version']:
+                        ev = k[4:]
+                        experiment_info_[ev] = "expInfo.get('%s')"%k
+                    else:
+                        user_variables_.append(k)
+
+                if len(session_info_):
+                    iohub_config_['session_info'] = session_info_
+                    if len(user_variables_):
+                        session_info_['user_variables']="dict("
+                        for uk in user_variables_:
+                            session_info_['user_variables'] += "%s=expInfo.get('%s'), "%(uk,uk)
+                        session_info_['user_variables'] += ")"
 
                 iohub_config_['datastore_name'] = u'filename'
 
