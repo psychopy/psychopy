@@ -16,7 +16,7 @@ class EyeRecordComponent(BaseComponent):
     Eye Tracker."""
     categories = ['Responses']
 
-    def __init__(self, exp, parentName, name='eyes',
+    def __init__(self, exp, parentName, name='eye_record',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -147,19 +147,39 @@ class EyeRecordComponent(BaseComponent):
             label="Save eyetracker state")
 
     def writePreWindowCode(self, buff):
-        buff.writeIndented("#%(name)s: do calibration\n" % self.params)
+        # SS: Why does this pre window code nevver get added to script ??
+        #     Is the .writePreWindowCode() ever being called by the script builder?
+
+        buff.writeIndented("#%(name)s: eye tracker recording / gaze data\n" % self.params)
 
         # these might move to a more general place later, when we're always
         # planning on having iohub running
-        code = ("io_config = iohub.load(file(%('Config file')s,'r'), "
-                "Loader=iohub.Loader)\n"
-                "io = iohub.client.launchHubServer(io_config)\n"
-                "eyetracker = io.getDevice('tracker')\n"
-                "eyetracker.runSetupProcedure()\n")
+        code = ("if 'iohub_eyetracker' not in locals():\n"
+                "    try:\n"
+                "        iohub_eyetracker = iohub_server.devices.tracker\n"
+                "    except Exception:\n"
+                "        # No eye tracker config found in iohub_config.yaml\n"
+                "        from psychopy.gui.qtgui import criticalDlg, hideWindow\n"
+                "        hideWindow(win)\n"
+                "        dlg_ = criticalDlg('ioHub Eye Tracker Not Configured',\n"
+                "                    'No Eye Tracker config found in the the '\n"
+                "                    'ioHub settings file:\\n'\n"
+                "                    %(ioHubConfigFile)s\n"
+                "                    '\\n\\n'"
+                "                    'Update the ioHub settings file with an '\n"
+                "                    'eye tracker configuration\\nor remove '\n"
+                "                    'all Eye Tracker Components from your project.'\n"
+                "                    '\\n\\nPress OK to exit demo.')\n"
+                "        iohub_server.quit()\n"
+                "        core.quit()\n"%self.exp.settings.params)
+        buff.writeIndentedLines(code)
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCode(self, buff):
-        pass  # do we need anything after window creation but before run starts?
+        code = ("# TODO Init some type of eye_record obj that can track data\n"
+                "# and have attributes added to it by other parts of the code\n"
+                "%(name)s=object()\n" % self.params)
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine
@@ -170,11 +190,17 @@ class EyeRecordComponent(BaseComponent):
         buff.writeIndented(code)
         # a list of vals for each val, rather than a scalar
         if self.params['saveState'].val in ['every frame', 'on click']:
-            code = ("%(name)s.x = []\n"
+            code = ("%(name)s.time = []\n"
+                    "%(name)s.x = []\n"
                     "%(name)s.y = []\n"
-                    # is this common or is Jon making it up?!
-                    "%(name)s.pupil = []\n")
+                    "%(name)s.pupil = []\n"
+                    "%(name)s.status = []\n")
             buff.writeIndentedLines(code % self.params)
+
+        buff.writeIndentedLines("# Start eye tracker recording\n"
+                                "# TODO: User should be able to decide if"
+                                "recording should start or not.\n")
+        buff.writeIndentedLines("iohub_eyetracker.setRecordingState(True)\n")
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -185,9 +211,9 @@ class EyeRecordComponent(BaseComponent):
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         code = ("%(name)s.status = STARTED\n"
-                "# clear events and start tracking\n"
-                "io.clearEvents('all')\n"
-                "%(name)s.setRecordingState(True)\n")
+                "# clear events, TODO: Make this optional\n"
+                "iohub_eyetracker.clearEvents()\n"
+                "#%(name)s.setRecordingState(True)\n")
         buff.writeIndentedLines(code % self.params)
 
         # to get out of the if statement
@@ -199,7 +225,7 @@ class EyeRecordComponent(BaseComponent):
             self.writeStopTestCode(buff)
 
             code = ("%(name)s.status = STOPPED\n"
-                    "%(name)s.setRecordingState(False)\n")
+                    "#%(name)s.setRecordingState(False)\n")
             buff.writeIndentedLines(code % self.params)
 
             # to get out of the if statement
@@ -212,16 +238,17 @@ class EyeRecordComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
 
-        code = ("%(name)s.x, %(name)s.y = eyetracker.getPosition()\n"
-                "%(name)s.pupil = eyetracker.getPupilSize()\n")
+        code = ("#%(name)s.x, %(name)s.y = eyetracker.getPosition()\n"
+                "#%(name)s.pupil = eyetracker.getPupilSize()\n"
+                "pass\n")
         buff.writeIndentedLines(code % self.params)
 
         # actual each-frame checks
         if self.params['saveState'].val in ['every frame']:
-            code = ("x, y = eyetracker.getPosition()\n"
-                    "%(name)s.x.append(x)\n"
-                    "%(name)s.y.append(y)\n"
-                    "%(name)s.pupil.append(eyetracker.getPupilSize())\n")
+            code = ("#x, y = eyetracker.getPosition()\n"
+                    "#%(name)s.x.append(x)\n"
+                    "#%(name)s.y.append(y)\n"
+                    "#%(name)s.pupil.append(eyetracker.getPupilSize())\n")
             buff.writeIndented(code % self.params)
 
         # dedent
@@ -242,9 +269,9 @@ class EyeRecordComponent(BaseComponent):
         # if store=='final' then update value
         if store == 'final' and currLoop != None:
             code = ("# get info about the %(name)s\n"
-                    "%(name)s.x, %(name)s.y = eyetracker.getPosition()\n"
-                    "x, y = %(name)s.getPos()\n"
-                    "%(name)s.pupil = eyetracker.getPupilSize()\n")
+                    "# %(name)s.x, %(name)s.y = eyetracker.getPosition()\n"
+                    "# x, y = %(name)s.getPos()\n"
+                    "# %(name)s.pupil = eyetracker.getPupilSize()\n")
             buff.writeIndentedLines(code % self.params)
 
         # then push to psychopy data file if store='final','every frame'
@@ -252,14 +279,16 @@ class EyeRecordComponent(BaseComponent):
             buff.writeIndented("# save %(name)s data\n" % self.params)
             for property in ['x', 'y', 'pupil']:
                 buff.writeIndented(
-                    "%s.addData('%s.%s', %s.%s)\n" %
+                    "# %s.addData('%s.%s', %s.%s)\n" %
                     (currLoop.params['name'], name, property, name, property))
 
         # make sure eyetracking stops recording (in case it hsn't stopped
         # already)
-        buff.writeIndented("eyetracker.setRecordingState(False)\n")
+        buff.writeIndentedLines("# Stop eye tracker recording\n"
+                                "# TODO: User should be able to "
+                                "decide if recording should stop or not.\n")
+
+        buff.writeIndentedLines("iohub_eyetracker.setRecordingState(False)\n")
 
     def writeExperimentEndCode(self, buff):
-        buff.writeIndented("eyetracker.setConnectionState(False)\n")
-        # in future this should be done generally, not by the eyetracker
-        buff.writeIndented("io.quit()\n")
+        pass

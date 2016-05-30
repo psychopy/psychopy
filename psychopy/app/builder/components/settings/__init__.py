@@ -13,6 +13,27 @@ def readTextFile(relPath):
         txt = f.read()
     return txt
 
+
+def getScreenIndex(requestedScreenNumber):
+    """
+    Returns valid screen index for use in Window() creation.
+    :param requestedScreenNumber: Screen number entered in Screen settings.
+    :return:
+    """
+    try:
+        nScreens = wx.Display.GetCount()
+    except Exception:
+        # will fail if application hasn't been created (e.g. in test
+        # environments)
+        nScreens = 10
+    if requestedScreenNumber > nScreens:
+        logging.warn("Requested screen can't be found. Writing script "
+                     "using first available screen.")
+        return 0
+    else:
+        # computer has 1 as first screen
+        return requestedScreenNumber - 1
+
 # this is not a standard component - it will appear on toolbar not in
 # components panel
 
@@ -429,9 +450,7 @@ class SettingsComponent(object):
                     iohub_config_['iohub_config_name'] = 'u"%s"' % iohub_config_file
 
             # Display device related kwargs
-            # TODO: Make screen index validation code in .writeWindowCode
-            #       a reusable function and use it here too.
-            screen_index_ = int(self.params['Screen'].val)
+            screen_index_ = getScreenIndex(int(self.params['Screen'].val))
             coord_unit_type_ = self.params['Units'].val
             if coord_unit_type_ == 'use prefs':
                 # TODO: Look into how to get actual unit type when 'use prefs'
@@ -495,20 +514,7 @@ class SettingsComponent(object):
                 if thisComp.type == 'RatingScale':
                     allowGUI = True  # to have a mouse
 
-        requestedScreenNumber = int(self.params['Screen'].val)
-        try:
-            nScreens = wx.Display.GetCount()
-        except Exception:
-            # will fail if application hasn't been created (e.g. in test
-            # environments)
-            nScreens = 10
-        if requestedScreenNumber > nScreens:
-            logging.warn("Requested screen can't be found. Writing script "
-                         "using first available screen.")
-            screenNumber = 0
-        else:
-            # computer has 1 as first screen
-            screenNumber = requestedScreenNumber - 1
+        screenNumber = getScreenIndex(int(self.params['Screen'].val))
 
         if fullScr:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
