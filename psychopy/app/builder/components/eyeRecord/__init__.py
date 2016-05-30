@@ -178,7 +178,10 @@ class EyeRecordComponent(BaseComponent):
     def writeInitCode(self, buff):
         code = ("# TODO Init some type of eye_record obj that can track data\n"
                 "# and have attributes added to it by other parts of the code\n"
-                "%(name)s=object()\n" % self.params)
+                "class EyeRecordRuntime:\n"
+                "    pass\n"
+                "%(name)s = EyeRecordRuntime()\n"
+                "%(name)s.status=NOT_STARTED\n\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
@@ -212,8 +215,7 @@ class EyeRecordComponent(BaseComponent):
         self.writeStartTestCode(buff)
         code = ("%(name)s.status = STARTED\n"
                 "# clear events, TODO: Make this optional\n"
-                "iohub_eyetracker.clearEvents()\n"
-                "#%(name)s.setRecordingState(True)\n")
+                "iohub_eyetracker.clearEvents()\n")
         buff.writeIndentedLines(code % self.params)
 
         # to get out of the if statement
@@ -224,8 +226,7 @@ class EyeRecordComponent(BaseComponent):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
 
-            code = ("%(name)s.status = STOPPED\n"
-                    "#%(name)s.setRecordingState(False)\n")
+            code = ("%(name)s.status = STOPPED\n")
             buff.writeIndentedLines(code % self.params)
 
             # to get out of the if statement
