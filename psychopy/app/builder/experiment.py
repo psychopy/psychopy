@@ -1633,7 +1633,8 @@ class Routine(list):
         code = ("for thisComponent in %sComponents:\n"
                 "    if hasattr(thisComponent, 'status'):\n"
                 "        thisComponent.status = NOT_STARTED\n"
-                '\n# -------Start Routine "%s"-------\n')
+                '\n# -------Start Routine "%s"-------\n'
+                'continueRoutine = True\n')
         buff.writeIndentedLines(code % (self.name, self.name))
         if useNonSlip:
             code = 'while continueRoutine and routineTimer.getTime() > 0:\n'
