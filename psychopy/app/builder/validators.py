@@ -156,13 +156,14 @@ class CodeSnippetValidator(BaseValidator):
                 # parent.params['name'].val is not in namespace for new params
                 # and is not fixed as .val until dialog closes. Use getvalue()
                 # to handle dynamic changes to Name field:
-                parentName = parent.paramCtrls['name'].getValue()
-                for name in names:
-                    # `name` means a var name within a compiled code snippet
-                    if name == parentName:
-                        msg = _translate(
-                            'Python var `{}` in `{}` is same as Name')
-                        return msg.format(name, self.displayName), False
+                if 'name' in parent.paramCtrls:  # some components don't have names
+                    parentName = parent.paramCtrls['name'].getValue()
+                    for name in names:
+                        # `name` means a var name within a compiled code snippet
+                        if name == parentName:
+                            msg = _translate(
+                                'Python var `{}` in `{}` is same as Name')
+                            return msg.format(name, self.displayName), False
         return '', True
 
     def setMessage(self, parent, message):
@@ -177,5 +178,6 @@ class CodeSnippetValidator(BaseValidator):
         """
         self.clsWarnings[self.fieldName] = message
         warnings = [w for w in self.clsWarnings.values() if w] or ['']
-        parent.nameOKlabel.SetLabel(warnings[0])
+        if parent.nameOKlabel:
+            parent.nameOKlabel.SetLabel(warnings[0])
 
