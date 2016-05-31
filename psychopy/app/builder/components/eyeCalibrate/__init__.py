@@ -35,7 +35,7 @@ class EyeCalibrateComponent(BaseComponent):
             hint=msg,
             label="Name")
 
-        # SS: I am getting following error when tryuing to add component
+        # SS: I am getting following error when trying to add component
         # to a routine when I have the following component param code
         # so for now, just not having any params for this component.
         #
@@ -50,33 +50,35 @@ class EyeCalibrateComponent(BaseComponent):
         #    durationEstim, valType='code', allowedTypes=[],
         #    hint=msg)
 
-    def writePreWindowCode(self, buff):
-        # SS: If I try an write the code in writeInitCode() here instead,
-        # it is not output to script. Really should be in here, prior to win
-        # being created.
-        pass
+    def writeStartCode(self, buff):
+        if self.exp.iohub_codegen is None:
+            print("ioHub must be enabled to use this component type.")
+        elif not self.exp.iohub_codegen.get('eyetracker'):
+            self.exp.iohub_codegen['eyetracker'] = True
+            buff.writeIndented("# Create iohub_eyetracker device variable\n")
+            code = (
+                    "try:\n"
+                    "    iohub_eyetracker = iohub_server.devices.tracker\n"
+                    "except Exception:\n"
+                    "    # No eye tracker config found in iohub_config.yaml\n"
+                    "    from psychopy.gui.qtgui import criticalDlg\n"
+                    "    dlg_ = criticalDlg('ioHub Eye Tracker Not Configured',\n"
+                    "                'No Eye Tracker config found in the the '\n"
+                    "                'ioHub settings file:\\n'\n"
+                    "                %(ioHubConfigFile)s\n"
+                    "                '\\n\\n'\n"
+                    "                'Update the ioHub settings file with an '\n"
+                    "                'eye tracker configuration\\nor remove '\n"
+                    "                'all Eye Tracker Components from your project.'\n"
+                    "                '\\n\\nPress OK to exit demo.')\n"
+                    "    iohub_server.quit()\n"
+                    "    core.quit()\n"%self.exp.settings.params)
+            buff.writeIndentedLines(code)
+
+
 
     def writeInitCode(self, buff):
-        code = ("if 'iohub_eyetracker' not in locals():\n"
-                "    try:\n"
-                "        iohub_eyetracker = iohub_server.devices.tracker\n"
-                "    except Exception:\n"
-                "        # No eye tracker config found in iohub_config.yaml\n"
-                "        from psychopy.gui.qtgui import criticalDlg, hideWindow\n"
-                "        hideWindow(win)\n"
-                "        dlg_ = criticalDlg('ioHub Eye Tracker Not Configured',\n"
-                "                    'No Eye Tracker config found in the the '\n"
-                "                    'ioHub settings file:\\n'\n"
-                "                    %(ioHubConfigFile)s\n"
-                "                    '\\n\\n'\n"
-                "                    'Update the ioHub settings file with an '\n"
-                "                    'eye tracker configuration\\nor remove '\n"
-                "                    'all Eye Tracker Components from your project.'\n"
-                "                    '\\n\\nPress OK to exit demo.')\n"
-                "        iohub_server.quit()\n"
-                "        core.quit()\n"%self.exp.settings.params)
-        buff.writeIndentedLines(code)
-
+        pass
 
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine

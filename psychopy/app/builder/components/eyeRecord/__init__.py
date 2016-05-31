@@ -146,40 +146,47 @@ class EyeRecordComponent(BaseComponent):
             hint=msg,
             label="Save eyetracker state")
 
-    def writePreWindowCode(self, buff):
-        # SS: Why does this pre window code nevver get added to script ??
-        #     Is the .writePreWindowCode() ever being called by the script builder?
+    def writeStartCode(self, buff):
+        if self.exp.iohub_codegen is None:
+            print("ioHub must be enabled to use this component type.")
+        else:
+            if not self.exp.iohub_codegen.get('eyetracker'):
+                self.exp.iohub_codegen['eyetracker'] = True
+                buff.writeIndented("# Create iohub_eyetracker device variable\n")
+                code = (
+                        "try:\n"
+                        "    iohub_eyetracker = iohub_server.devices.tracker\n"
+                        "except Exception:\n"
+                        "    # No eye tracker config found in iohub_config.yaml\n"
+                        "    from psychopy.gui.qtgui import criticalDlg, hideWindow\n"
+                        "    hideWindow(win)\n"
+                        "    dlg_ = criticalDlg('ioHub Eye Tracker Not Configured',\n"
+                        "                'No Eye Tracker config found in the the '\n"
+                        "                'ioHub settings file:\\n'\n"
+                        "                %(ioHubConfigFile)s\n"
+                        "                '\\n\\n'\n"
+                        "                'Update the ioHub settings file with an '\n"
+                        "                'eye tracker configuration\\nor remove '\n"
+                        "                'all Eye Tracker Components from your project.'\n"
+                        "                '\\n\\nPress OK to exit demo.')\n"
+                        "    iohub_server.quit()\n"
+                        "    core.quit()\n"%self.exp.settings.params)
+                buff.writeIndentedLines(code)
 
-        buff.writeIndented("#%(name)s: eye tracker recording / gaze data\n" % self.params)
-
-        # these might move to a more general place later, when we're always
-        # planning on having iohub running
-        code = ("if 'iohub_eyetracker' not in locals():\n"
-                "    try:\n"
-                "        iohub_eyetracker = iohub_server.devices.tracker\n"
-                "    except Exception:\n"
-                "        # No eye tracker config found in iohub_config.yaml\n"
-                "        from psychopy.gui.qtgui import criticalDlg, hideWindow\n"
-                "        hideWindow(win)\n"
-                "        dlg_ = criticalDlg('ioHub Eye Tracker Not Configured',\n"
-                "                    'No Eye Tracker config found in the the '\n"
-                "                    'ioHub settings file:\\n'\n"
-                "                    %(ioHubConfigFile)s\n"
-                "                    '\\n\\n'"
-                "                    'Update the ioHub settings file with an '\n"
-                "                    'eye tracker configuration\\nor remove '\n"
-                "                    'all Eye Tracker Components from your project.'\n"
-                "                    '\\n\\nPress OK to exit demo.')\n"
-                "        iohub_server.quit()\n"
-                "        core.quit()\n"%self.exp.settings.params)
-        buff.writeIndentedLines(code)
-        buff.writeIndentedLines(code % self.params)
+            if not self.exp.iohub_codegen.get('eyerecord'):
+                self.exp.iohub_codegen['eyerecord'] = True
+                code = ("\n\n"
+                         "# Create an 'EyeRecordRuntime' class for the EyeRecord\n"
+                         "# Component type. Each instance of an EyeRecord\n"
+                         "# component in the experiment will create an instance \n"
+                         "# of this class.\n"
+                         "class EyeRecordRuntime:\n"
+                         "    pass\n")
+                buff.writeIndentedLines(code)
 
     def writeInitCode(self, buff):
-        code = ("# TODO Init some type of eye_record obj that can track data\n"
-                "# and have attributes added to it by other parts of the code\n"
-                "class EyeRecordRuntime:\n"
-                "    pass\n"
+        code = ("# (name)s: Create EyeRecordRuntime instance to track data\n"
+                "# and have attributes added to it by other parts of the code.\n"
                 "%(name)s = EyeRecordRuntime()\n"
                 "%(name)s.status=NOT_STARTED\n\n")
         buff.writeIndentedLines(code % self.params)

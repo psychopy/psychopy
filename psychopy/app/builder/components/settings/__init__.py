@@ -408,9 +408,10 @@ class SettingsComponent(object):
         buff.writeIndented("logging.console.setLevel(logging.WARNING)  "
                            "# this outputs to the screen, not a file\n")
 
-
+        self.exp.iohub_codegen = None
         use_iohub = self.params['useIoHub'].val
         if use_iohub:
+            self.exp.iohub_codegen = dict()
             # Create launchHubServer kwargs dict based on experiment
             # settings...
             iohub_config_ = dict()
