@@ -202,7 +202,20 @@ class ioHubDevices(object):
 
     def __init__(self, hubClient):
         self.hubClient = hubClient
+        self._devicesByName = dict()
 
+    def addDevice(self, name, d):
+        setattr(self, name, d)
+        self._devicesByName[name] = d
+
+    def getDevice(self, name):
+        self._devicesByName.get(name)
+
+    def getAll(self):
+        return self._devicesByName.values()
+
+    def getNames(self):
+        return self._devicesByName.keys()
 
 class ioHubConnection(object):
     """ioHubConnection is responsible for creating, sending requests to, and
@@ -212,8 +225,9 @@ class ioHubConnection(object):
     The ioHubConnection class is also used as the interface to any ioHub Device
     instances that have been created so that events from the device can be
     monitored. These device objects can be accessed via the ioHubConnection
-    .devices attribute, providing 'dot name' attribute access, or by using the
-    .deviceByLabel dictionary attribute; which stores the device names as keys.
+    .devices attribute, providing 'dot name' access to enabled devices.
+    Alternatively, the .getDevice(name) method can be used and will return
+    None if the device name specified does not exist.
 
     Using the .devices attribute is handy if you know the name of the device
     to be accessed and you are sure it is actually enabled on the ioHub
@@ -253,11 +267,6 @@ class ioHubConnection(object):
         # each device registed for monitoring with the ioHub server so
         # that devices can be accessed experiment process side by device name.
         self.devices = ioHubDevices(self)
-
-        # a dictionary that holds the same devices represented in .devices,
-        # but stored in a dictionary using the device
-        # name as the dictionary key
-        self.deviceByLabel = dict()
 
         # A circular buffer used to hold events retrieved from self.getEvents()
         # during self.wait() periods.
@@ -307,7 +316,7 @@ class ioHubConnection(object):
         Returns:
             The ioHubDeviceView instance for deviceName.
         """
-        return self.deviceByLabel.get(deviceName, None)
+        return self.devices.getDevice(deviceName)
 
     def getEvents(self, device_label=None, as_type='namedtuple'):
         """Retrieve any events that have been collected by the ioHub Process
@@ -355,7 +364,7 @@ class ioHubConnection(object):
                 r = self.allEvents
             self.allEvents = []
         else:
-            r = self.deviceByLabel[device_label].getEvents()
+            r = self.devices.getDevice(device_label).getEvents()
 
         if r:
             if as_type == 'list':
@@ -405,7 +414,7 @@ class ioHubConnection(object):
             self.allEvents = []
             self._sendToHubServer(('RPC', 'clearEventBuffer', [True, ]))
         else:
-            d = self.deviceByLabel.get(device_label, None)
+            d = self.devices.getDevice(device_label)
             if d:
                 d.clearEvents()
 
@@ -618,9 +627,9 @@ class ioHubConnection(object):
         :return: None
 
         """
-        data = []        
+        data = []
         if isinstance(cv_row, (list, tuple)):
-            data = list(cv_row)            
+            data = list(cv_row)
         elif self._cv_order:
             for cv_name in self._cv_order:
                 data.append(cv_row[cv_name])
@@ -630,7 +639,7 @@ class ioHubConnection(object):
         for i, d in enumerate(data):
             if isinstance(d, unicode):
                 data[i] = d.encode('utf-8')
-                
+
         cvt_rpc = ('RPC', 'extendConditionVariableTable',
                    (self.experimentID, self.experimentSessionID, data))
         r = self._sendToHubServer(cvt_rpc)
@@ -1022,8 +1031,7 @@ class ioHubConnection(object):
                     printExceptionDetailsToStdErr()
 
     def _addDeviceView(self, dev_cls_name, dev_config):
-        """Add an iohub device view to self.devices and
-        self.deviceByLabel[name]"""
+        """Add an iohub device view to self.devices"""
         try:
             name = dev_config.get('name', dev_cls_name.lower())
             dev_cls_name = str(dev_cls_name)
@@ -1068,8 +1076,7 @@ class ioHubConnection(object):
             else:
                 d = ioHubDeviceView(self, dev_cls_name, dev_config)
 
-            setattr(self.devices, name, d)
-            self.deviceByLabel[name] = d
+            self.devices.addDevice(name, d)
             return d
         except Exception: # pylint: disable=broad-except
             print2err('_addDeviceView: Error adding class. ')

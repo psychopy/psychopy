@@ -8,11 +8,11 @@ Enhancements
 - ioSync Device now supports generating keyboard events using
   iosync.generateKeyboardEvent() device method. Limitations exist.....
 - launchHubServer() should now be able to replace iohubExpRuntime class
-- other than 'data_store', launchHubServer supports updating 
+- other than 'data_store', launchHubServer supports updating
   psychopy/iohub/default_config.yaml settings by adding kwargs that match the
   files keys. For example, to set the iohub Server UDP port to a custom value:
-     io = launchHubServer(udp_port=1234) 
-- launchHubServer builds the monitor_devices list by combining 
+     io = launchHubServer(udp_port=1234)
+- launchHubServer builds the monitor_devices list by combining
   devices found using the 'iohub_config_name' kwarg with any devices defined
   in the function's kwarg dict itself.
 
@@ -45,7 +45,7 @@ iohub Package
 
 - Created iohub.removed module that holds any modules completely removed
   from psychopy.iohub. This allows user scripts that rely on this
-  code to just change import for the short term. User scripts must switch to 
+  code to just change import for the short term. User scripts must switch to
   using alternatives ASAP since iohub.removed will be deleted in a
   future release.
 
@@ -68,7 +68,7 @@ iohub Package
 - ioHubExperimentRuntime class is no longer supported. Use
   psychopy.iohub.client.launchHubServer() instead.
 
-- Removed psychopy.iohub.client.expruntime module. 
+- Removed psychopy.iohub.client.expruntime module.
  (psychopy.iohub.client.expruntime -> psychopy.iohub.removed.client.expruntime)
 
 ioHubConnection Class
@@ -83,7 +83,16 @@ Removed:
       createTrialHandlerRecordTable() instead.
     - removed addRowToConditionVariableTable(). Use addTrialHandlerRecord()
       instead.
+    - removed .deviceByLabel[dev_name] dict. Use .getDevice(dev_name).
 
+ioHubDevices Class
+~~~~~~~~~~~~~~~~~~~
+
+Added:
+    - getAll(): returns a list of all enabled iohub devices
+    - getNames(): returns a list with the name of each enabled iohub device
+    - getDevice(name): returns the iohub device identified by 'name'. If no
+      device with that name exists, None is returned.
 
 ioHubDeviceView Class
 ~~~~~~~~~~~~~~~~~~~~~~
