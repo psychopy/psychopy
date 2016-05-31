@@ -8,7 +8,7 @@ from .._base import BaseComponent, Param, _translate
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'eyeRecord.png')
-tooltip = _translate('EyeTrackerRecord: Start / Stop eye tracker recording.')
+tooltip = _translate('EyeRecord: Start / Stop eye tracker recording.')
 
 
 class EyeRecordComponent(BaseComponent):
@@ -21,6 +21,14 @@ class EyeRecordComponent(BaseComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  save='final'):
+        super(EyeRecordComponent, self).__init__(exp, parentName, name,
+                                                    startType=startType,
+                                                    startVal=startVal,
+                                                    stopType=stopType,
+                                                    stopVal=stopVal,
+                                                    startEstim=startEstim,
+                                                    durationEstim=durationEstim
+                                                    )
         self.type = 'EyeRecord'
         self.url = "http://www.psychopy.org/builder/components/eyeRecord.html"
         self.parentName = parentName
@@ -28,7 +36,7 @@ class EyeRecordComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['iohub'])
         # params
         self.params = {}
-        self.order = []  # first param after the name
+        self.order += []  # first param after the name
 
         # TODO: Determine proper params for EyeRecord component.
         #       Sent email with thoughts on this to Jon May 31st

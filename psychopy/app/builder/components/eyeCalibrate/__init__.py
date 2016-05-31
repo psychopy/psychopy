@@ -18,6 +18,7 @@ class EyeCalibrateComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='eye_calibrate'):#,
         #         startEstim='0', durationEstim='30'):
+        super(EyeCalibrateComponent, self).__init__(exp, parentName, name)
         self.type = 'EyeCalibrate'
         self.url = "http://www.psychopy.org/builder/components/eyeCalibrate.html"
         self.parentName = parentName
@@ -25,7 +26,7 @@ class EyeCalibrateComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['iohub'])
         # params
         self.params = {}
-        self.order = []  # first param after the name
+        self.order += []  # first param after the name
 
         # standard params (can ignore)
         msg = _translate(
