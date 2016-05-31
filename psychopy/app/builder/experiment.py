@@ -1572,6 +1572,8 @@ class Routine(list):
         return statics
 
     def writeStartCode(self, buff):
+        """This is start of the *experiment* (before window is created)
+        """
         # few components will have this
         for thisCompon in self:
             # check just in case; try to ensure backwards compatibility _base
@@ -1579,6 +1581,8 @@ class Routine(list):
                 thisCompon.writeStartCode(buff)
 
     def writeStartCodeJS(self, buff):
+        """This is start of the *experiment*
+        """
         # few components will have this
         for thisCompon in self:
             # check just in case; try to ensure backwards compatibility _base
@@ -1590,7 +1594,6 @@ class Routine(list):
         buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
         buff.writeIndented('%s = core.Clock()\n' % self._clockName)
-        buff.writeIndented('continueRoutine = True\n')
         for thisCompon in self:
             thisCompon.writeInitCode(buff)
 
@@ -1614,7 +1617,8 @@ class Routine(list):
         code = ('\n# ------Prepare to start Routine "%s"-------\n'
                 't = 0\n'
                 '%s.reset()  # clock\n'
-                'frameN = -1\n')
+                'frameN = -1\n'
+                'continueRoutine = True\n')
         buff.writeIndentedLines(code % (self.name, self._clockName))
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
