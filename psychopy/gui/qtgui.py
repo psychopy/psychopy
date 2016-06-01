@@ -279,16 +279,7 @@ class Dlg(QtWidgets.QDialog):
         return self.exec_()
 
     def show(self):
-        """Show.
-
-        ** QDialog already has a show() method. So this method calls
-           QDialog.show() and then exec_(). This seems to not cause issues,
-           however we need to keep an eye out for any issues.
-
-        ** Deprecated: Use dlg.display() instead. This method will be removed
-           in a future version of psychopy.
-
-        Presents the dialog and waits for the user to press OK or CANCEL.
+        """Presents the dialog and waits for the user to press OK or CANCEL.
 
         If user presses OK button, function returns a list containing the
         updated values coming from each of the input fields created.
@@ -296,6 +287,11 @@ class Dlg(QtWidgets.QDialog):
 
         :return: self.data
         """
+        #    NB
+        #
+        #    ** QDialog already has a show() method. So this method calls
+        #       QDialog.show() and then exec_(). This seems to not cause issues
+        #       but we need to keep an eye out for any in future.
         return self.display()
 
     def exec_(self):

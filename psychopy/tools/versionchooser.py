@@ -142,7 +142,7 @@ def _switchToVersion(requestedVersion):
             _checkout(requestedVersion)
         else:
             _clone(requestedVersion)
-    except CalledProcessError as e:
+    except (CalledProcessError, OSError) as e:
         if 'did not match any file(s) known to git' in e.output:
             msg = _translate("'{}' is not a valid PsychoPy version.")
             logging.error(msg.format(requestedVersion))
@@ -193,7 +193,7 @@ def _remoteVersions(forceCheck=False):
             cmd = 'git ls-remote --tags https://github.com/psychopy/versions'
             tagInfo = subprocess.check_output(cmd.split(),
                                               stderr=subprocess.PIPE)
-        except CalledProcessError:
+        except (CalledProcessError, OSError):
             pass
         else:
             allTags = [line.split('refs/tags/')[1]
@@ -299,7 +299,7 @@ def _gitPresent():
     try:
         gitvers = subprocess.check_output('git --version'.split(),
                                           stderr=subprocess.PIPE)
-    except OSError:
+    except (CalledProcessError, OSError):
         gitvers = ''
     return bool(gitvers.startswith('git version'))
 

@@ -1,0 +1,48 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+    <head>
+        <title>{params[expName]} [PsychoPy]</title>
+        <meta content="">
+        <link href="js/vendors//jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
+
+        <style>
+            /* project and resource dialogs */
+            label, input {{ display:block; padding-bottom: .5em; }}
+            input.text {{ margin-bottom:1em; width:95%; padding: .5em; }}
+            fieldset {{ padding:0; border:0; margin-top:25px; }}
+
+            /* don't display close button in the top right corner of the box */
+            .no-close .ui-dialog-titlebar-close {{ display: none; }}
+        </style>
+    </head>
+
+    <body>
+
+        <!-- dialog place holder -->
+        <div id="dialogDiv"/>
+
+        <script type="text/javascript" src="js/vendors/Math2.js"></script>
+        <script type="text/javascript" src="js/vendors/jquery-2.2.0.min.js"></script>
+        <script type="text/javascript" src="js/vendors/jquery-ui-1.11.4.base/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="js/vendors/jquery.blockUI.js" ></script>
+        <script type="text/javascript" src="js/vendors/stats.min.js"></script>
+        <script type="text/javascript" src="js/vendors/pixi.min.js"></script>
+        <script type="text/javascript" src="js/vendors/papaparse.min.js"></script>
+
+        <script type="text/javascript" src="js/psychojs/main.js"></script>
+        <script type="text/javascript" src="js/psychojs/core.js"></script>
+        <script type="text/javascript" src="js/psychojs/data.js"></script>
+        <script type="text/javascript" src="js/psychojs/events.js"></script>
+        <script type="text/javascript" src="js/psychojs/gui.js"></script>
+        <script type="text/javascript" src="js/psychojs/util.js"></script>
+        <script type="text/javascript" src="js/psychojs/scheduler.js"></script>
+        <script type="text/javascript" src="js/psychojs/visual.js"></script>
+        <script type="text/javascript" src="js/psychojs/io.js"></script>
+        <script type="text/javascript" src="js/psychojs/colors.js"></script>
+
+        <script type='text/javascript'>
+            // wait until document is ready:
+            $(document).ready(function() {{
+                with (PsychoJs) {{

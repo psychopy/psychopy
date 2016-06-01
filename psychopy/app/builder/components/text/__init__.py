@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from ._base import BaseVisualComponent, Param, getInitVals, _translate
+from .._base import BaseVisualComponent, Param, getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -22,6 +22,7 @@ class TextComponent(BaseVisualComponent):
     """An event class for presenting text-based stimuli
     """
     categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
 
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
@@ -116,4 +117,7 @@ class TextComponent(BaseVisualComponent):
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        buff.writeIndented('    ' + flipStr + 'depth=%.1f)\n' % depth)
+        buff.writeIndented('    ' + flipStr + 'depth=%.1f);\n' % depth)
+
+    def writeInitCodeJS(self, buff):
+        self.writeInitCode(buff)  # for now just use the python code

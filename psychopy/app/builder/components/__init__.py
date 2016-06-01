@@ -15,7 +15,7 @@ from PIL import Image
 from os.path import join, dirname, abspath
 from importlib import import_module  # helps python 2.7 -> 3.x migration
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # these are templates, not for use
+excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
 
 
@@ -48,7 +48,8 @@ def getIcons(filename=None):
     # add the plus sign
     add = Image.open(join(dirname(abspath(__file__)), 'add.png'))
     im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
-    #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
+    # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
+    #               im.size[0], im.size[1]], mask=add)
     icons['48add'] = pilToBitmap(im)
     icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
 
@@ -122,8 +123,11 @@ def getComponents(folder=None, fetchIcons=True):
         icons['default'] = getIcons(filename=None)
 
     # go through components in directory
-    filexp = os.path.join(folder, '*.py')
-    for cmpfile in glob.glob(filexp):
+    cfiles = glob.glob(os.path.join(folder, '*.py'))  # old-style: just comp.py
+    # new-style: directories w/ __init__.py
+    dfiles = [d for d in os.listdir(folder)
+              if os.path.isdir(os.path.join(folder, d))]
+    for cmpfile in cfiles + dfiles:
         cmpfile = os.path.split(cmpfile)[1]
         if cmpfile[0] in '_0123456789':  # __init__.py, _base.py, leading digit
             continue
@@ -133,7 +137,10 @@ def getComponents(folder=None, fetchIcons=True):
         # exec('import %s as module' % file[:-3])
 
         # importlib.import_module eases 2.7 -> 3.x migration
-        explicit_rel_path = '.' + cmpfile[:-3]
+        if cmpfile.endswith('.py'):
+            explicit_rel_path = '.' + cmpfile[:-3]
+        else:
+            explicit_rel_path = '.' + cmpfile
         module = import_module(explicit_rel_path, package=pkg)
 
         if not hasattr(module, 'categories'):

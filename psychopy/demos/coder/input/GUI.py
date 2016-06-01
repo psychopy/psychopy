@@ -7,7 +7,10 @@ Demo to illustrate Dialog (Dlg) classes and usage.
 
 from __future__ import division
 
-from psychopy import gui
+#from psychopy import gui  #fetch default gui handler (qt if available)
+## you can explicitly choose one of the qt/wx backends like this:
+from psychopy.gui import wxgui as gui
+## from psychopy.gui import qtgui as gui
 
 # create a DlgFromDict
 info = {'Observer':'jwp', 'gender':['male', 'female'],
@@ -30,11 +33,10 @@ dlg.addField('Age:', 21)
 dlg.addText('Experiment Info', color='Blue')
 dlg.addField('', 45)
 
-dlg.show()  # you have to call show() for a Dlg (automatic with a DlgFromDict)
+thisInfo = dlg.show()  # you have to call show() for a Dlg (automatic with a DlgFromDict)    
 if dlg.OK:
-    thisInfo = dlg.data  # this will be a list of data returned from each field
     print(thisInfo)
 else:
-    print('user cancelled')
+    print('User cancelled')
 
 # The contents of this file are in the public domain.

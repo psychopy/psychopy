@@ -17,7 +17,7 @@ Multiple `targets` can also be created to receive log messages. Each target has 
     #overwrite (filemode='w') a detailed log of the last run in this dir
     lastLog=logging.LogFile("lastRun.log", level=logging.INFO, filemode='w')
     #also append warnings to a central log file
-    centralLog=logging.LogFile("c:/psychopyExps.log", level=logging.WARNING, filemode='a')
+    centralLog=logging.LogFile("C:\\psychopyExps.log", level=logging.WARNING, filemode='a')
 
 Updating the logs
 ~~~~~~~~~~~~~~~~~~~~~

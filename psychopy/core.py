@@ -31,6 +31,7 @@ except ImportError:
 
 
 runningThreads = []  # just for backwards compatibility?
+openWindows = []  # visual.Window updates this, event.py and clock.py use it
 
 # Set getTime in core to == the monotonicClock instance created in the
 # clockModule.

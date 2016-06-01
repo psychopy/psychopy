@@ -52,7 +52,7 @@ setup(
             packages=['wx', 'pyglet', 'pygame', 'OpenGL', 'psychopy', 'pytz',
                       'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
                       'moviepy', 'imageio',
-                      'PyQt5',
+                      'PyQt4',
                       'PIL',  # 'Image',
                       'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
                       'Foundation', 'CoreFoundation',

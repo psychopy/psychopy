@@ -536,6 +536,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.frame.exp.namespace.remove(component.params['name'].val)
         # perform the actual removal
         flow.removeComponent(component, id=compID)
+        self.redraw()
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real

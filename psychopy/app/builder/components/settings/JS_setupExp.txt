@@ -1,0 +1,29 @@
+
+function setupExperiment() {{
+    debug = false;
+
+    expInfo['date'] = data.getDateStr();  // add a simple timestamp
+    expInfo['expName'] = {params[expName]};
+
+    filename = {params[Data filename]}; // XXX
+
+    // An ExperimentHandler isn't essential but helps with data saving
+    thisExp = new data.ExperimentHandler({{name:expName, version:'',
+        extraInfo:expInfo, runtimeInfo:undefined,
+        originPath:undefined,
+        savePickle:true, saveWideText:true,
+        /*dataFileName=filename*/}});
+
+    endExpNow = false; // flag for 'escape' or other condition => quit the exp
+
+    // store frame rate of monitor if we can measure it successfully
+    expInfo['frameRate']=win.getActualFrameRate();
+    if (expInfo['frameRate']!=undefined) {{
+        frameDur = 1.0/Math.round(expInfo['frameRate']);
+    }}
+    else {{
+        frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
+    }}
+
+    return NEXT;
+}}
