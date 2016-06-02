@@ -13,7 +13,8 @@
 Commonly used:
 
 	* :class:`.ImageStim` to show images
-	* :class:`.TextStim` to show texts
+	* :class:`.TextStim` to show text
+	* :class:`.TextBox` rewrite of TextStim (faster/better but only monospace fonts)
 
 Shapes (all special classes of :class:`ShapeStim`):
 
@@ -47,4 +48,3 @@ General purpose (applies to other stimuli):
 	* :class:`.Aperture` to restrict visibility area of other stimuli
 
 See also :ref:`visualhelperfunctions`
-
