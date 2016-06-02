@@ -568,6 +568,141 @@ DotsComponent.dir.hint:Direction of motion for the signal dots (degrees)
 DotsComponent.dir.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 DotsComponent.dir.__class__:<class 'psychopy.app.builder.experiment.Param'>
 DotsComponent.dir.label:Direction
+EyeCalibrateComponent.order:['name']
+EyeCalibrateComponent.name.default:eye_calibrate
+EyeCalibrateComponent.name.categ:Basic
+EyeCalibrateComponent.name.allowedVals:[]
+EyeCalibrateComponent.name.readOnly:False
+EyeCalibrateComponent.name.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'eye_calibrate', 'hint': u'Name of this component (alpha-numeric or _, no spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Name', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EyeCalibrateComponent.name.__weakref__:None
+EyeCalibrateComponent.name.valType:code
+EyeCalibrateComponent.name.staticUpdater:None
+EyeCalibrateComponent.name.val:eye_calibrate
+EyeCalibrateComponent.name.allowedTypes:[]
+EyeCalibrateComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EyeCalibrateComponent.name.allowedUpdates:None
+EyeCalibrateComponent.name.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeCalibrateComponent.name.label:Name
+EyeRecordComponent.order:['name']
+EyeRecordComponent.saveState.default:'final'
+EyeRecordComponent.saveState.categ:Basic
+EyeRecordComponent.saveState.allowedVals:['final', 'every frame', 'never']
+EyeRecordComponent.saveState.readOnly:False
+EyeRecordComponent.saveState.updates:None
+EyeRecordComponent.saveState.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'final', 'hint': u'How often should the eyetracker state (x,y,pupilsize...) be stored? On every video frame, every click or just at the end of the Routine?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['final', 'every frame', 'never'], 'label': 'Save eyetracker state', 'readOnly': False, 'updates': None, 'valType': 'str'}
+EyeRecordComponent.saveState.__weakref__:None
+EyeRecordComponent.saveState.valType:str
+EyeRecordComponent.saveState.staticUpdater:None
+EyeRecordComponent.saveState.val:final
+EyeRecordComponent.saveState.allowedTypes:[]
+EyeRecordComponent.saveState.hint:How often should the eyetracker state (x,y,pupilsize...) be stored? On every video frame, every click or just at the end of the Routine?
+EyeRecordComponent.saveState.allowedUpdates:None
+EyeRecordComponent.saveState.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.saveState.label:Save eyetracker state
+EyeRecordComponent.name.default:eye_record
+EyeRecordComponent.name.categ:Basic
+EyeRecordComponent.name.allowedVals:[]
+EyeRecordComponent.name.readOnly:False
+EyeRecordComponent.name.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'eye_record', 'hint': u'Name of this component (alpha-numeric or _, no spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Name', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EyeRecordComponent.name.__weakref__:None
+EyeRecordComponent.name.valType:code
+EyeRecordComponent.name.staticUpdater:None
+EyeRecordComponent.name.val:eye_record
+EyeRecordComponent.name.allowedTypes:[]
+EyeRecordComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EyeRecordComponent.name.allowedUpdates:None
+EyeRecordComponent.name.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.name.label:Name
+EyeRecordComponent.stopVal.default:1.0
+EyeRecordComponent.stopVal.categ:Basic
+EyeRecordComponent.stopVal.allowedVals:[]
+EyeRecordComponent.stopVal.readOnly:False
+EyeRecordComponent.stopVal.updates:constant
+EyeRecordComponent.stopVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 1.0, 'hint': u'When does the component end? (blank is endless)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': '', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EyeRecordComponent.stopVal.__weakref__:None
+EyeRecordComponent.stopVal.valType:code
+EyeRecordComponent.stopVal.staticUpdater:None
+EyeRecordComponent.stopVal.val:1.0
+EyeRecordComponent.stopVal.allowedTypes:[]
+EyeRecordComponent.stopVal.hint:When does the component end? (blank is endless)
+EyeRecordComponent.stopVal.allowedUpdates:[]
+EyeRecordComponent.stopVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.stopVal.label:
+EyeRecordComponent.durationEstim.default:
+EyeRecordComponent.durationEstim.categ:Basic
+EyeRecordComponent.durationEstim.allowedVals:[]
+EyeRecordComponent.durationEstim.readOnly:False
+EyeRecordComponent.durationEstim.updates:None
+EyeRecordComponent.durationEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected duration (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': '', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EyeRecordComponent.durationEstim.__weakref__:None
+EyeRecordComponent.durationEstim.valType:code
+EyeRecordComponent.durationEstim.staticUpdater:None
+EyeRecordComponent.durationEstim.val:
+EyeRecordComponent.durationEstim.allowedTypes:[]
+EyeRecordComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+EyeRecordComponent.durationEstim.allowedUpdates:None
+EyeRecordComponent.durationEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.durationEstim.label:
+EyeRecordComponent.startEstim.default:
+EyeRecordComponent.startEstim.categ:Basic
+EyeRecordComponent.startEstim.allowedVals:[]
+EyeRecordComponent.startEstim.readOnly:False
+EyeRecordComponent.startEstim.updates:None
+EyeRecordComponent.startEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected start (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': '', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EyeRecordComponent.startEstim.__weakref__:None
+EyeRecordComponent.startEstim.valType:code
+EyeRecordComponent.startEstim.staticUpdater:None
+EyeRecordComponent.startEstim.val:
+EyeRecordComponent.startEstim.allowedTypes:[]
+EyeRecordComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+EyeRecordComponent.startEstim.allowedUpdates:None
+EyeRecordComponent.startEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.startEstim.label:
+EyeRecordComponent.startType.default:'time (s)'
+EyeRecordComponent.startType.categ:Basic
+EyeRecordComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+EyeRecordComponent.startType.readOnly:False
+EyeRecordComponent.startType.updates:None
+EyeRecordComponent.startType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'time (s)', 'hint': u'How do you want to define your start point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['time (s)', 'frame N', 'condition'], 'label': '', 'readOnly': False, 'updates': None, 'valType': 'str'}
+EyeRecordComponent.startType.__weakref__:None
+EyeRecordComponent.startType.valType:str
+EyeRecordComponent.startType.staticUpdater:None
+EyeRecordComponent.startType.val:time (s)
+EyeRecordComponent.startType.allowedTypes:[]
+EyeRecordComponent.startType.hint:How do you want to define your start point?
+EyeRecordComponent.startType.allowedUpdates:None
+EyeRecordComponent.startType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.startType.label:
+EyeRecordComponent.stopType.default:'duration (s)'
+EyeRecordComponent.stopType.categ:Basic
+EyeRecordComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+EyeRecordComponent.stopType.readOnly:False
+EyeRecordComponent.stopType.updates:None
+EyeRecordComponent.stopType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'duration (s)', 'hint': u'How do you want to define your end point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'], 'label': '', 'readOnly': False, 'updates': None, 'valType': 'str'}
+EyeRecordComponent.stopType.__weakref__:None
+EyeRecordComponent.stopType.valType:str
+EyeRecordComponent.stopType.staticUpdater:None
+EyeRecordComponent.stopType.val:duration (s)
+EyeRecordComponent.stopType.allowedTypes:[]
+EyeRecordComponent.stopType.hint:How do you want to define your end point?
+EyeRecordComponent.stopType.allowedUpdates:None
+EyeRecordComponent.stopType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.stopType.label:
+EyeRecordComponent.startVal.default:0.0
+EyeRecordComponent.startVal.categ:Basic
+EyeRecordComponent.startVal.allowedVals:[]
+EyeRecordComponent.startVal.readOnly:False
+EyeRecordComponent.startVal.updates:None
+EyeRecordComponent.startVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 0.0, 'hint': u'When does the component start?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': '', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EyeRecordComponent.startVal.__weakref__:None
+EyeRecordComponent.startVal.valType:code
+EyeRecordComponent.startVal.staticUpdater:None
+EyeRecordComponent.startVal.val:0.0
+EyeRecordComponent.startVal.allowedTypes:[]
+EyeRecordComponent.startVal.hint:When does the component start?
+EyeRecordComponent.startVal.allowedUpdates:None
+EyeRecordComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EyeRecordComponent.startVal.label:
 GratingComponent.order:['tex', 'mask']
 GratingComponent.opacity.default:1
 GratingComponent.opacity.categ:Basic
@@ -914,21 +1049,6 @@ ImageComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, lm
 ImageComponent.colorSpace.allowedUpdates:None
 ImageComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.colorSpace.label:Color space
-ImageComponent.flipHoriz.default:False
-ImageComponent.flipHoriz.categ:Advanced
-ImageComponent.flipHoriz.allowedVals:[]
-ImageComponent.flipHoriz.readOnly:False
-ImageComponent.flipHoriz.updates:constant
-ImageComponent.flipHoriz.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': False, 'hint': u'Should the image be flipped horizontally (left to right)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Flip horizontally', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
-ImageComponent.flipHoriz.__weakref__:None
-ImageComponent.flipHoriz.valType:bool
-ImageComponent.flipHoriz.staticUpdater:None
-ImageComponent.flipHoriz.val:False
-ImageComponent.flipHoriz.allowedTypes:[]
-ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
-ImageComponent.flipHoriz.allowedUpdates:[]
-ImageComponent.flipHoriz.__class__:<class 'psychopy.app.builder.experiment.Param'>
-ImageComponent.flipHoriz.label:Flip horizontally
 ImageComponent.name.default:image
 ImageComponent.name.categ:Basic
 ImageComponent.name.allowedVals:[]
@@ -1153,6 +1273,21 @@ ImageComponent.image.hint:The image to be displayed - a filename, including path
 ImageComponent.image.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 ImageComponent.image.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.image.label:Image
+ImageComponent.flipHoriz.default:False
+ImageComponent.flipHoriz.categ:Advanced
+ImageComponent.flipHoriz.allowedVals:[]
+ImageComponent.flipHoriz.readOnly:False
+ImageComponent.flipHoriz.updates:constant
+ImageComponent.flipHoriz.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': False, 'hint': u'Should the image be flipped horizontally (left to right)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Flip horizontally', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+ImageComponent.flipHoriz.__weakref__:None
+ImageComponent.flipHoriz.valType:bool
+ImageComponent.flipHoriz.staticUpdater:None
+ImageComponent.flipHoriz.val:False
+ImageComponent.flipHoriz.allowedTypes:[]
+ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
+ImageComponent.flipHoriz.allowedUpdates:[]
+ImageComponent.flipHoriz.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ImageComponent.flipHoriz.label:Flip horizontally
 ImageComponent.size.default:(0.5, 0.5)
 ImageComponent.size.categ:Basic
 ImageComponent.size.allowedVals:[]
@@ -1168,6 +1303,216 @@ ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pai
 ImageComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 ImageComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.size.label:Size [w,h]
+IoHubKeyboardComponent.order:['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns']
+IoHubKeyboardComponent.correctAns.default:''
+IoHubKeyboardComponent.correctAns.categ:Basic
+IoHubKeyboardComponent.correctAns.allowedVals:[]
+IoHubKeyboardComponent.correctAns.readOnly:False
+IoHubKeyboardComponent.correctAns.updates:constant
+IoHubKeyboardComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u"What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press.", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+IoHubKeyboardComponent.correctAns.__weakref__:None
+IoHubKeyboardComponent.correctAns.valType:str
+IoHubKeyboardComponent.correctAns.staticUpdater:None
+IoHubKeyboardComponent.correctAns.val:
+IoHubKeyboardComponent.correctAns.allowedTypes:[]
+IoHubKeyboardComponent.correctAns.hint:What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press.
+IoHubKeyboardComponent.correctAns.allowedUpdates:[]
+IoHubKeyboardComponent.correctAns.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.correctAns.label:Correct answer
+IoHubKeyboardComponent.storeCorrect.default:False
+IoHubKeyboardComponent.storeCorrect.categ:Basic
+IoHubKeyboardComponent.storeCorrect.allowedVals:[]
+IoHubKeyboardComponent.storeCorrect.readOnly:False
+IoHubKeyboardComponent.storeCorrect.updates:constant
+IoHubKeyboardComponent.storeCorrect.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': False, 'hint': u'Do you want to save the response as correct/incorrect?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Store correct', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+IoHubKeyboardComponent.storeCorrect.__weakref__:None
+IoHubKeyboardComponent.storeCorrect.valType:bool
+IoHubKeyboardComponent.storeCorrect.staticUpdater:None
+IoHubKeyboardComponent.storeCorrect.val:False
+IoHubKeyboardComponent.storeCorrect.allowedTypes:[]
+IoHubKeyboardComponent.storeCorrect.hint:Do you want to save the response as correct/incorrect?
+IoHubKeyboardComponent.storeCorrect.allowedUpdates:[]
+IoHubKeyboardComponent.storeCorrect.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.storeCorrect.label:Store correct
+IoHubKeyboardComponent.name.default:key_resp
+IoHubKeyboardComponent.name.categ:Basic
+IoHubKeyboardComponent.name.allowedVals:[]
+IoHubKeyboardComponent.name.readOnly:False
+IoHubKeyboardComponent.name.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'key_resp', 'hint': u'Name of this component (alpha-numeric or _, no spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Name', 'readOnly': False, 'updates': None, 'valType': 'code'}
+IoHubKeyboardComponent.name.__weakref__:None
+IoHubKeyboardComponent.name.valType:code
+IoHubKeyboardComponent.name.staticUpdater:None
+IoHubKeyboardComponent.name.val:key_resp
+IoHubKeyboardComponent.name.allowedTypes:[]
+IoHubKeyboardComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+IoHubKeyboardComponent.name.allowedUpdates:None
+IoHubKeyboardComponent.name.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.name.label:Name
+IoHubKeyboardComponent.stopVal.default:
+IoHubKeyboardComponent.stopVal.categ:Basic
+IoHubKeyboardComponent.stopVal.allowedVals:[]
+IoHubKeyboardComponent.stopVal.readOnly:False
+IoHubKeyboardComponent.stopVal.updates:constant
+IoHubKeyboardComponent.stopVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'When does the component end? (blank is endless)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Stop', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+IoHubKeyboardComponent.stopVal.__weakref__:None
+IoHubKeyboardComponent.stopVal.valType:code
+IoHubKeyboardComponent.stopVal.staticUpdater:None
+IoHubKeyboardComponent.stopVal.val:
+IoHubKeyboardComponent.stopVal.allowedTypes:[]
+IoHubKeyboardComponent.stopVal.hint:When does the component end? (blank is endless)
+IoHubKeyboardComponent.stopVal.allowedUpdates:[]
+IoHubKeyboardComponent.stopVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.stopVal.label:Stop
+IoHubKeyboardComponent.durationEstim.default:
+IoHubKeyboardComponent.durationEstim.categ:Basic
+IoHubKeyboardComponent.durationEstim.allowedVals:[]
+IoHubKeyboardComponent.durationEstim.readOnly:False
+IoHubKeyboardComponent.durationEstim.updates:None
+IoHubKeyboardComponent.durationEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected duration (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected duration (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+IoHubKeyboardComponent.durationEstim.__weakref__:None
+IoHubKeyboardComponent.durationEstim.valType:code
+IoHubKeyboardComponent.durationEstim.staticUpdater:None
+IoHubKeyboardComponent.durationEstim.val:
+IoHubKeyboardComponent.durationEstim.allowedTypes:[]
+IoHubKeyboardComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+IoHubKeyboardComponent.durationEstim.allowedUpdates:None
+IoHubKeyboardComponent.durationEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.durationEstim.label:Expected duration (s)
+IoHubKeyboardComponent.forceEndRoutine.default:True
+IoHubKeyboardComponent.forceEndRoutine.categ:Basic
+IoHubKeyboardComponent.forceEndRoutine.allowedVals:[]
+IoHubKeyboardComponent.forceEndRoutine.readOnly:False
+IoHubKeyboardComponent.forceEndRoutine.updates:constant
+IoHubKeyboardComponent.forceEndRoutine.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Should a response force the end of the Routine (e.g end the trial)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Force end of Routine', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+IoHubKeyboardComponent.forceEndRoutine.__weakref__:None
+IoHubKeyboardComponent.forceEndRoutine.valType:bool
+IoHubKeyboardComponent.forceEndRoutine.staticUpdater:None
+IoHubKeyboardComponent.forceEndRoutine.val:True
+IoHubKeyboardComponent.forceEndRoutine.allowedTypes:[]
+IoHubKeyboardComponent.forceEndRoutine.hint:Should a response force the end of the Routine (e.g end the trial)?
+IoHubKeyboardComponent.forceEndRoutine.allowedUpdates:[]
+IoHubKeyboardComponent.forceEndRoutine.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.forceEndRoutine.label:Force end of Routine
+IoHubKeyboardComponent.startEstim.default:
+IoHubKeyboardComponent.startEstim.categ:Basic
+IoHubKeyboardComponent.startEstim.allowedVals:[]
+IoHubKeyboardComponent.startEstim.readOnly:False
+IoHubKeyboardComponent.startEstim.updates:None
+IoHubKeyboardComponent.startEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected start (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected start (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+IoHubKeyboardComponent.startEstim.__weakref__:None
+IoHubKeyboardComponent.startEstim.valType:code
+IoHubKeyboardComponent.startEstim.staticUpdater:None
+IoHubKeyboardComponent.startEstim.val:
+IoHubKeyboardComponent.startEstim.allowedTypes:[]
+IoHubKeyboardComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+IoHubKeyboardComponent.startEstim.allowedUpdates:None
+IoHubKeyboardComponent.startEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.startEstim.label:Expected start (s)
+IoHubKeyboardComponent.discard previous.default:True
+IoHubKeyboardComponent.discard previous.categ:Basic
+IoHubKeyboardComponent.discard previous.allowedVals:[]
+IoHubKeyboardComponent.discard previous.readOnly:False
+IoHubKeyboardComponent.discard previous.updates:constant
+IoHubKeyboardComponent.discard previous.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Do you want to discard all responses occuring before the onset of this component?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Discard previous', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+IoHubKeyboardComponent.discard previous.__weakref__:None
+IoHubKeyboardComponent.discard previous.valType:bool
+IoHubKeyboardComponent.discard previous.staticUpdater:None
+IoHubKeyboardComponent.discard previous.val:True
+IoHubKeyboardComponent.discard previous.allowedTypes:[]
+IoHubKeyboardComponent.discard previous.hint:Do you want to discard all responses occuring before the onset of this component?
+IoHubKeyboardComponent.discard previous.allowedUpdates:[]
+IoHubKeyboardComponent.discard previous.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.discard previous.label:Discard previous
+IoHubKeyboardComponent.startType.default:'time (s)'
+IoHubKeyboardComponent.startType.categ:Basic
+IoHubKeyboardComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+IoHubKeyboardComponent.startType.readOnly:False
+IoHubKeyboardComponent.startType.updates:None
+IoHubKeyboardComponent.startType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'time (s)', 'hint': u'How do you want to define your start point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['time (s)', 'frame N', 'condition'], 'label': u'start type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+IoHubKeyboardComponent.startType.__weakref__:None
+IoHubKeyboardComponent.startType.valType:str
+IoHubKeyboardComponent.startType.staticUpdater:None
+IoHubKeyboardComponent.startType.val:time (s)
+IoHubKeyboardComponent.startType.allowedTypes:[]
+IoHubKeyboardComponent.startType.hint:How do you want to define your start point?
+IoHubKeyboardComponent.startType.allowedUpdates:None
+IoHubKeyboardComponent.startType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.startType.label:start type
+IoHubKeyboardComponent.allowedKeys.default:'y','n','left','right','space'
+IoHubKeyboardComponent.allowedKeys.categ:Basic
+IoHubKeyboardComponent.allowedKeys.allowedVals:[]
+IoHubKeyboardComponent.allowedKeys.readOnly:False
+IoHubKeyboardComponent.allowedKeys.updates:constant
+IoHubKeyboardComponent.allowedKeys.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': "'y','n','left','right','space'", 'hint': u"A comma-separated list of keys (with quotes), such as 'q','right','space','left'", 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat'], 'allowedVals': [], 'label': u'Allowed keys', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+IoHubKeyboardComponent.allowedKeys.__weakref__:None
+IoHubKeyboardComponent.allowedKeys.valType:code
+IoHubKeyboardComponent.allowedKeys.staticUpdater:None
+IoHubKeyboardComponent.allowedKeys.val:'y','n','left','right','space'
+IoHubKeyboardComponent.allowedKeys.allowedTypes:[]
+IoHubKeyboardComponent.allowedKeys.hint:A comma-separated list of keys (with quotes), such as 'q','right','space','left'
+IoHubKeyboardComponent.allowedKeys.allowedUpdates:['constant', 'set every repeat']
+IoHubKeyboardComponent.allowedKeys.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.allowedKeys.label:Allowed keys
+IoHubKeyboardComponent.stopType.default:'duration (s)'
+IoHubKeyboardComponent.stopType.categ:Basic
+IoHubKeyboardComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+IoHubKeyboardComponent.stopType.readOnly:False
+IoHubKeyboardComponent.stopType.updates:None
+IoHubKeyboardComponent.stopType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'duration (s)', 'hint': u'How do you want to define your end point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'], 'label': u'stop type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+IoHubKeyboardComponent.stopType.__weakref__:None
+IoHubKeyboardComponent.stopType.valType:str
+IoHubKeyboardComponent.stopType.staticUpdater:None
+IoHubKeyboardComponent.stopType.val:duration (s)
+IoHubKeyboardComponent.stopType.allowedTypes:[]
+IoHubKeyboardComponent.stopType.hint:How do you want to define your end point?
+IoHubKeyboardComponent.stopType.allowedUpdates:None
+IoHubKeyboardComponent.stopType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.stopType.label:stop type
+IoHubKeyboardComponent.startVal.default:0.0
+IoHubKeyboardComponent.startVal.categ:Basic
+IoHubKeyboardComponent.startVal.allowedVals:[]
+IoHubKeyboardComponent.startVal.readOnly:False
+IoHubKeyboardComponent.startVal.updates:None
+IoHubKeyboardComponent.startVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 0.0, 'hint': u'When does the component start?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Start', 'readOnly': False, 'updates': None, 'valType': 'code'}
+IoHubKeyboardComponent.startVal.__weakref__:None
+IoHubKeyboardComponent.startVal.valType:code
+IoHubKeyboardComponent.startVal.staticUpdater:None
+IoHubKeyboardComponent.startVal.val:0.0
+IoHubKeyboardComponent.startVal.allowedTypes:[]
+IoHubKeyboardComponent.startVal.hint:When does the component start?
+IoHubKeyboardComponent.startVal.allowedUpdates:None
+IoHubKeyboardComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.startVal.label:Start
+IoHubKeyboardComponent.store.default:'last key'
+IoHubKeyboardComponent.store.categ:Basic
+IoHubKeyboardComponent.store.allowedVals:['last key', 'first key', 'all keys', 'nothing']
+IoHubKeyboardComponent.store.readOnly:False
+IoHubKeyboardComponent.store.updates:constant
+IoHubKeyboardComponent.store.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'last key', 'hint': u'Choose which (if any) responses to store at the end of a trial', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['last key', 'first key', 'all keys', 'nothing'], 'label': u'Store', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+IoHubKeyboardComponent.store.__weakref__:None
+IoHubKeyboardComponent.store.valType:str
+IoHubKeyboardComponent.store.staticUpdater:None
+IoHubKeyboardComponent.store.val:last key
+IoHubKeyboardComponent.store.allowedTypes:[]
+IoHubKeyboardComponent.store.hint:Choose which (if any) responses to store at the end of a trial
+IoHubKeyboardComponent.store.allowedUpdates:[]
+IoHubKeyboardComponent.store.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.store.label:Store
+IoHubKeyboardComponent.syncScreenRefresh.default:True
+IoHubKeyboardComponent.syncScreenRefresh.categ:Basic
+IoHubKeyboardComponent.syncScreenRefresh.allowedVals:[]
+IoHubKeyboardComponent.syncScreenRefresh.readOnly:False
+IoHubKeyboardComponent.syncScreenRefresh.updates:constant
+IoHubKeyboardComponent.syncScreenRefresh.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'A reaction time to a visual stimulus should be based on when the screen flipped', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'sync RT with screen', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+IoHubKeyboardComponent.syncScreenRefresh.__weakref__:None
+IoHubKeyboardComponent.syncScreenRefresh.valType:bool
+IoHubKeyboardComponent.syncScreenRefresh.staticUpdater:None
+IoHubKeyboardComponent.syncScreenRefresh.val:True
+IoHubKeyboardComponent.syncScreenRefresh.allowedTypes:[]
+IoHubKeyboardComponent.syncScreenRefresh.hint:A reaction time to a visual stimulus should be based on when the screen flipped
+IoHubKeyboardComponent.syncScreenRefresh.allowedUpdates:[]
+IoHubKeyboardComponent.syncScreenRefresh.__class__:<class 'psychopy.app.builder.experiment.Param'>
+IoHubKeyboardComponent.syncScreenRefresh.label:sync RT with screen
 KeyboardComponent.order:['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns']
 KeyboardComponent.correctAns.default:''
 KeyboardComponent.correctAns.categ:Basic
@@ -1995,10 +2340,10 @@ ParallelOutComponent.startType.__class__:<class 'psychopy.app.builder.experiment
 ParallelOutComponent.startType.label:start type
 ParallelOutComponent.address.default:u'0x0378'
 ParallelOutComponent.address.categ:Basic
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'LabJack U3']
 ParallelOutComponent.address.readOnly:False
 ParallelOutComponent.address.updates:None
-ParallelOutComponent.address.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': u'0x0378', 'hint': u'Parallel port to be used (you can change these options in preferences>general)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3'], 'label': u'Port address', 'readOnly': False, 'updates': None, 'valType': 'str'}
+ParallelOutComponent.address.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': u'0x0378', 'hint': u'Parallel port to be used (you can change these options in preferences>general)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [u'0x0378', u'0x03BC', u'LabJack U3'], 'label': u'Port address', 'readOnly': False, 'updates': None, 'valType': 'str'}
 ParallelOutComponent.address.__weakref__:None
 ParallelOutComponent.address.valType:str
 ParallelOutComponent.address.staticUpdater:None
@@ -3106,11 +3451,11 @@ SettingsComponent.Units.allowedUpdates:None
 SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Units.label:Units
 SettingsComponent.ioHubConfigFile.default:'iohub_config.yaml'
-SettingsComponent.ioHubConfigFile.categ:iohub
+SettingsComponent.ioHubConfigFile.categ:ioHub
 SettingsComponent.ioHubConfigFile.allowedVals:[]
 SettingsComponent.ioHubConfigFile.readOnly:False
 SettingsComponent.ioHubConfigFile.updates:None
-SettingsComponent.ioHubConfigFile.__dict__:{'staticUpdater': None, 'categ': 'iohub', 'val': 'iohub_config.yaml', 'hint': u'Config files contain info about your set up', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Config file (yaml)', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.ioHubConfigFile.__dict__:{'staticUpdater': None, 'categ': 'ioHub', 'val': 'iohub_config.yaml', 'hint': u'Config files contain info about your set up', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Config file (yaml)', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.ioHubConfigFile.__weakref__:None
 SettingsComponent.ioHubConfigFile.valType:str
 SettingsComponent.ioHubConfigFile.staticUpdater:None
@@ -3136,11 +3481,11 @@ SettingsComponent.Save excel file.allowedUpdates:None
 SettingsComponent.Save excel file.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Save excel file.label:Save excel file
 SettingsComponent.useIoHub.default:False
-SettingsComponent.useIoHub.categ:iohub
+SettingsComponent.useIoHub.categ:ioHub
 SettingsComponent.useIoHub.allowedVals:[True, False]
 SettingsComponent.useIoHub.readOnly:False
 SettingsComponent.useIoHub.updates:None
-SettingsComponent.useIoHub.__dict__:{'staticUpdater': None, 'categ': 'iohub', 'val': False, 'hint': u'Start ioHub for advanced hardware polling', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True, False], 'label': u'Use ioHub', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.useIoHub.__dict__:{'staticUpdater': None, 'categ': 'ioHub', 'val': False, 'hint': u'Start ioHub for advanced hardware polling', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True, False], 'label': u'Use ioHub', 'readOnly': False, 'updates': None, 'valType': 'bool'}
 SettingsComponent.useIoHub.__weakref__:None
 SettingsComponent.useIoHub.valType:bool
 SettingsComponent.useIoHub.staticUpdater:None
@@ -3361,11 +3706,11 @@ SettingsComponent.logging level.allowedUpdates:None
 SettingsComponent.logging level.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.logging level.label:Logging level
 SettingsComponent.useHDF5.default:False
-SettingsComponent.useHDF5.categ:iohub
+SettingsComponent.useHDF5.categ:ioHub
 SettingsComponent.useHDF5.allowedVals:[True, False]
 SettingsComponent.useHDF5.readOnly:False
 SettingsComponent.useHDF5.updates:None
-SettingsComponent.useHDF5.__dict__:{'staticUpdater': None, 'categ': 'iohub', 'val': False, 'hint': u'Save data from ioHub using std file name', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True, False], 'label': u'Save HDF5 file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.useHDF5.__dict__:{'staticUpdater': None, 'categ': 'ioHub', 'val': False, 'hint': u'Save data from ioHub using std file name', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True, False], 'label': u'Save HDF5 file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
 SettingsComponent.useHDF5.__weakref__:None
 SettingsComponent.useHDF5.valType:bool
 SettingsComponent.useHDF5.staticUpdater:None
@@ -4172,6 +4517,156 @@ cedrusButtonBoxComponent.syncScreenRefresh.hint:A reaction time to a visual stim
 cedrusButtonBoxComponent.syncScreenRefresh.allowedUpdates:[]
 cedrusButtonBoxComponent.syncScreenRefresh.__class__:<class 'psychopy.app.builder.experiment.Param'>
 cedrusButtonBoxComponent.syncScreenRefresh.label:sync RT with screen
+ioHubMouseComponent.order:['name']
+ioHubMouseComponent.name.default:mouse
+ioHubMouseComponent.name.categ:Basic
+ioHubMouseComponent.name.allowedVals:[]
+ioHubMouseComponent.name.readOnly:False
+ioHubMouseComponent.name.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'mouse', 'hint': u'Name of this component (alpha-numeric or _, no spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Name', 'readOnly': False, 'updates': None, 'valType': 'code'}
+ioHubMouseComponent.name.__weakref__:None
+ioHubMouseComponent.name.valType:code
+ioHubMouseComponent.name.staticUpdater:None
+ioHubMouseComponent.name.val:mouse
+ioHubMouseComponent.name.allowedTypes:[]
+ioHubMouseComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+ioHubMouseComponent.name.allowedUpdates:None
+ioHubMouseComponent.name.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.name.label:Name
+ioHubMouseComponent.timeRelativeTo.default:'routine'
+ioHubMouseComponent.timeRelativeTo.categ:Basic
+ioHubMouseComponent.timeRelativeTo.allowedVals:['experiment', 'routine']
+ioHubMouseComponent.timeRelativeTo.readOnly:False
+ioHubMouseComponent.timeRelativeTo.updates:constant
+ioHubMouseComponent.timeRelativeTo.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'routine', 'hint': u'What should the values of mouse.time should be relative to?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['experiment', 'routine'], 'label': u'Time relative to', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+ioHubMouseComponent.timeRelativeTo.__weakref__:None
+ioHubMouseComponent.timeRelativeTo.valType:str
+ioHubMouseComponent.timeRelativeTo.staticUpdater:None
+ioHubMouseComponent.timeRelativeTo.val:routine
+ioHubMouseComponent.timeRelativeTo.allowedTypes:[]
+ioHubMouseComponent.timeRelativeTo.hint:What should the values of mouse.time should be relative to?
+ioHubMouseComponent.timeRelativeTo.allowedUpdates:[]
+ioHubMouseComponent.timeRelativeTo.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.timeRelativeTo.label:Time relative to
+ioHubMouseComponent.stopVal.default:1.0
+ioHubMouseComponent.stopVal.categ:Basic
+ioHubMouseComponent.stopVal.allowedVals:[]
+ioHubMouseComponent.stopVal.readOnly:False
+ioHubMouseComponent.stopVal.updates:constant
+ioHubMouseComponent.stopVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 1.0, 'hint': u'When does the component end? (blank is endless)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Stop', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+ioHubMouseComponent.stopVal.__weakref__:None
+ioHubMouseComponent.stopVal.valType:code
+ioHubMouseComponent.stopVal.staticUpdater:None
+ioHubMouseComponent.stopVal.val:1.0
+ioHubMouseComponent.stopVal.allowedTypes:[]
+ioHubMouseComponent.stopVal.hint:When does the component end? (blank is endless)
+ioHubMouseComponent.stopVal.allowedUpdates:[]
+ioHubMouseComponent.stopVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.stopVal.label:Stop
+ioHubMouseComponent.durationEstim.default:
+ioHubMouseComponent.durationEstim.categ:Basic
+ioHubMouseComponent.durationEstim.allowedVals:[]
+ioHubMouseComponent.durationEstim.readOnly:False
+ioHubMouseComponent.durationEstim.updates:None
+ioHubMouseComponent.durationEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected duration (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected duration (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+ioHubMouseComponent.durationEstim.__weakref__:None
+ioHubMouseComponent.durationEstim.valType:code
+ioHubMouseComponent.durationEstim.staticUpdater:None
+ioHubMouseComponent.durationEstim.val:
+ioHubMouseComponent.durationEstim.allowedTypes:[]
+ioHubMouseComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+ioHubMouseComponent.durationEstim.allowedUpdates:None
+ioHubMouseComponent.durationEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.durationEstim.label:Expected duration (s)
+ioHubMouseComponent.forceEndRoutineOnPress.default:True
+ioHubMouseComponent.forceEndRoutineOnPress.categ:Basic
+ioHubMouseComponent.forceEndRoutineOnPress.allowedVals:[]
+ioHubMouseComponent.forceEndRoutineOnPress.readOnly:False
+ioHubMouseComponent.forceEndRoutineOnPress.updates:constant
+ioHubMouseComponent.forceEndRoutineOnPress.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Should a button press force the end of the routine (e.g end the trial)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'End Routine on press', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+ioHubMouseComponent.forceEndRoutineOnPress.__weakref__:None
+ioHubMouseComponent.forceEndRoutineOnPress.valType:bool
+ioHubMouseComponent.forceEndRoutineOnPress.staticUpdater:None
+ioHubMouseComponent.forceEndRoutineOnPress.val:True
+ioHubMouseComponent.forceEndRoutineOnPress.allowedTypes:[]
+ioHubMouseComponent.forceEndRoutineOnPress.hint:Should a button press force the end of the routine (e.g end the trial)?
+ioHubMouseComponent.forceEndRoutineOnPress.allowedUpdates:[]
+ioHubMouseComponent.forceEndRoutineOnPress.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.forceEndRoutineOnPress.label:End Routine on press
+ioHubMouseComponent.startEstim.default:
+ioHubMouseComponent.startEstim.categ:Basic
+ioHubMouseComponent.startEstim.allowedVals:[]
+ioHubMouseComponent.startEstim.readOnly:False
+ioHubMouseComponent.startEstim.updates:None
+ioHubMouseComponent.startEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected start (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected start (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+ioHubMouseComponent.startEstim.__weakref__:None
+ioHubMouseComponent.startEstim.valType:code
+ioHubMouseComponent.startEstim.staticUpdater:None
+ioHubMouseComponent.startEstim.val:
+ioHubMouseComponent.startEstim.allowedTypes:[]
+ioHubMouseComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+ioHubMouseComponent.startEstim.allowedUpdates:None
+ioHubMouseComponent.startEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.startEstim.label:Expected start (s)
+ioHubMouseComponent.startType.default:'time (s)'
+ioHubMouseComponent.startType.categ:Basic
+ioHubMouseComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+ioHubMouseComponent.startType.readOnly:False
+ioHubMouseComponent.startType.updates:None
+ioHubMouseComponent.startType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'time (s)', 'hint': u'How do you want to define your start point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['time (s)', 'frame N', 'condition'], 'label': u'start type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+ioHubMouseComponent.startType.__weakref__:None
+ioHubMouseComponent.startType.valType:str
+ioHubMouseComponent.startType.staticUpdater:None
+ioHubMouseComponent.startType.val:time (s)
+ioHubMouseComponent.startType.allowedTypes:[]
+ioHubMouseComponent.startType.hint:How do you want to define your start point?
+ioHubMouseComponent.startType.allowedUpdates:None
+ioHubMouseComponent.startType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.startType.label:start type
+ioHubMouseComponent.stopType.default:'duration (s)'
+ioHubMouseComponent.stopType.categ:Basic
+ioHubMouseComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+ioHubMouseComponent.stopType.readOnly:False
+ioHubMouseComponent.stopType.updates:None
+ioHubMouseComponent.stopType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'duration (s)', 'hint': u'How do you want to define your end point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'], 'label': u'stop type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+ioHubMouseComponent.stopType.__weakref__:None
+ioHubMouseComponent.stopType.valType:str
+ioHubMouseComponent.stopType.staticUpdater:None
+ioHubMouseComponent.stopType.val:duration (s)
+ioHubMouseComponent.stopType.allowedTypes:[]
+ioHubMouseComponent.stopType.hint:How do you want to define your end point?
+ioHubMouseComponent.stopType.allowedUpdates:None
+ioHubMouseComponent.stopType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.stopType.label:stop type
+ioHubMouseComponent.startVal.default:0.0
+ioHubMouseComponent.startVal.categ:Basic
+ioHubMouseComponent.startVal.allowedVals:[]
+ioHubMouseComponent.startVal.readOnly:False
+ioHubMouseComponent.startVal.updates:None
+ioHubMouseComponent.startVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 0.0, 'hint': u'When does the component start?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Start', 'readOnly': False, 'updates': None, 'valType': 'code'}
+ioHubMouseComponent.startVal.__weakref__:None
+ioHubMouseComponent.startVal.valType:code
+ioHubMouseComponent.startVal.staticUpdater:None
+ioHubMouseComponent.startVal.val:0.0
+ioHubMouseComponent.startVal.allowedTypes:[]
+ioHubMouseComponent.startVal.hint:When does the component start?
+ioHubMouseComponent.startVal.allowedUpdates:None
+ioHubMouseComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.startVal.label:Start
+ioHubMouseComponent.saveMouseState.default:'final'
+ioHubMouseComponent.saveMouseState.categ:Basic
+ioHubMouseComponent.saveMouseState.allowedVals:['final', 'on click', 'every frame', 'never']
+ioHubMouseComponent.saveMouseState.readOnly:False
+ioHubMouseComponent.saveMouseState.updates:None
+ioHubMouseComponent.saveMouseState.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'final', 'hint': u'How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['final', 'on click', 'every frame', 'never'], 'label': u'Save mouse state', 'readOnly': False, 'updates': None, 'valType': 'str'}
+ioHubMouseComponent.saveMouseState.__weakref__:None
+ioHubMouseComponent.saveMouseState.valType:str
+ioHubMouseComponent.saveMouseState.staticUpdater:None
+ioHubMouseComponent.saveMouseState.val:final
+ioHubMouseComponent.saveMouseState.allowedTypes:[]
+ioHubMouseComponent.saveMouseState.hint:How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
+ioHubMouseComponent.saveMouseState.allowedUpdates:None
+ioHubMouseComponent.saveMouseState.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ioHubMouseComponent.saveMouseState.label:Save mouse state
 ioLabsButtonBoxComponent.order:['forceEndRoutine', 'active', 'lights', 'store', 'storeCorrect', 'correctAns']
 ioLabsButtonBoxComponent.correctAns.default:'0'
 ioLabsButtonBoxComponent.correctAns.categ:Basic
