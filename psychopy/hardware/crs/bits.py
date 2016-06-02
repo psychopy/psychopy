@@ -750,7 +750,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """
         if self.noComms:
             return
-        self.com.setTimeout(timeout)
+        self.com.timeout = timeout
         nChars = self.com.inWaiting()
         raw = self.com.read(nChars)
         if raw:

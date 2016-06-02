@@ -20,9 +20,7 @@ PsychoPy 1.84.0
 * ADDED: Movies in Builder can now avoid loading audio (i.e. mute). As well as meaning your movie is genuinely silent this saves pocessing for the computer, so do it unless you need the sound!
 * ADDED: menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
 * ADDED: Builder experiments force a save before the end of the study so pressing the red stop button is less likely to lose data for you
-* IMPROVED: ShapeStim can properly fill arbitrary shapes (using tesselation); see new shapes.py Coder demo for examples.
 * CHANGED: setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
-* CHANGED: minor: Aperture, Polygon, and Rect now depend on BaseShapeStim (i.e., their base class has a new name, no change in function)
 * FIXED: window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text)
 * CHANGED: Some file names and locations have changed. To update, replace OLD form in your scripts with NEW form:
     OLD form --> NEW form
@@ -37,11 +35,15 @@ PsychoPy 1.84.0
     API change (only affects people who write their own Builder components):
     `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
 * CHANGED: PyQt is now default over wx for dialog boxes (if either PyQt4 or PyQt5 are installed). Also fixed bug to support PyQt5
-* FIXED: Builder experiments can't be saved without their extension (to stop people overwriting them with the python script of the same experiment)
+* IMPROVED: ShapeStim can properly fill arbitrary shapes (using tesselation); see new shapes.py Coder demo for examples.
+* FIXED: Builder experiments will always add their extension (to stop people overwriting them with the python script of the same experiment)
 * FIXED: faster writing of multiple lines (bits) to the LabJack
 * FIXED: sampling rate when using binocular mode in eyelink 1000 #1146
 * FIXED: Aperture now supports infinite durations in Builder #1122
 * MAJOR REFACTOR: A lot of code has been refactored to be more in line with a thing called PEP8. If that doesn't mean anything to you don't worry, it shouldn't affect you. If you like that sort of thing, sorry we didn't got further and get rid of camelCase. ;-)
+* FIXED: ColorCal II now supports newer pyserial version #1138
+f
+
 
 PsychoPy 1.83
 ------------------------------
