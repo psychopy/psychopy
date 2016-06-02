@@ -168,7 +168,7 @@ class SerialDevice(object):
                 there
         """
         # get reply (within timeout limit)
-        self.com.setTimeout(timeout)
+        self.com.timeout = timeout
         if length == 1:
             retVal = self.com.readline()
         elif length > 1:

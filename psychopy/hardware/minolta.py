@@ -227,7 +227,7 @@ class LS100(object):
             self.com.flush()
             time.sleep(0.1)
             # get reply (within timeout limit)
-            self.com.setTimeout(timeout)
+            self.com.timeout = timeout
             # send complete message
             logging.debug('Sent command:' + message[:-2])
             retVal = self.com.readline()

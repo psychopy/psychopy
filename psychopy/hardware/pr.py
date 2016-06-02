@@ -142,7 +142,7 @@ class PR650(object):
         # time.sleep(0.1)  # PR650 gets upset if hurried!
 
         # get feedback (within timeout limit)
-        self.com.setTimeout(timeout)
+        self.com.timeout = timeout
         logging.debug(message)  # send complete message
         if message in ('d5', 'd5\n'):
             # we need a spectrum which will have multiple lines
@@ -327,7 +327,7 @@ class PR655(PR650):
                        "open that port")
                 self._error(msg % self.portString)
             # this should be large when making measurements
-            self.com.setTimeout(0.1)
+            self.com.timeout = 0.1
             self.startRemoteMode()
             self.type = self.getDeviceType()
             if self.type:
@@ -386,7 +386,7 @@ class PR655(PR650):
         time.sleep(0.2)  # PR655 can get cranky if rushed
 
         # get feedback (within timeout)
-        self.com.setTimeout(timeout)
+        self.com.timeout = timeout
         if message in ('d5\n', 'D5\n'):
             # we need a spectrum which will have multiple lines
             return self.com.readlines()
