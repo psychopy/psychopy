@@ -614,6 +614,8 @@ def sendUsageStats():
             'Linux',
             ':'.join([x for x in platform.dist() if x != '']),
             platform.release())
+        if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
+            systemInfo = systemInfo[0:30]
     elif sys.platform == 'win32':
         ver = sys.getwindowsversion()
         if len(ver[4]) > 0:
