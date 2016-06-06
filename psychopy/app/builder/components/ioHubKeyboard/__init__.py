@@ -5,6 +5,19 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""
+Comments / TODO's from discussion with Jon on June 6, 2016:
+------------------------------------------------------------
+
+- As a first step, iohubKeyboard will reproduce exact functionality provided
+  by standard Keyboard component, but use iohub.getKeyPresses() instead of
+  event.getKeys().
+- each  iohub keypress event -> (keytime, key) tuple/list
+- Since iohub keypress event timestamps are always based on core.getTime()
+  clock, keypress times will need to be adjusted based on the routine Clock
+  being used by component. Other factors, like sync to frame, may also
+  need to be considered when converting times.
+"""
 from os import path
 
 from .._base import BaseComponent, Param, _translate

@@ -2,6 +2,38 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""
+Comments / TODO's from discussion with Jon on June 6, 2016:
+------------------------------------------------------------
+
+- As first step, we will keep this component as simple as possible.
+- Always starts recording in writeRoutineStartCode() method
+- Always end recording in writeRoutineEndCode() method
+- clear old eye events (component and iohub buffers) when first frame
+  flip occurs.
+- Only use eye sample event type, creating simplified eye data structure
+  for use within builder:
+     a) Track per frame eye data, used if / when saving any eye data
+        to psychopy data files:
+           - uses lastEyeSample
+           - if binocular recording, average to a /monocular' data entry
+           - stores gaze x,y pos, pupil_size, status fields
+     b) Also track last X eye samples events, which can
+        be used at runtime via custom code:
+           - uses tracker.getEvents() to get iohub data.
+           - for each event store time, gaze_x, gaze_y, pupil_size, status
+           - maintains binocular data if present, in which case gaze_x,
+             gaze_y, and pupil_size field will contain a
+             (left_eye, right_eye) tuple for each field instead of a
+             single value.
+           - not used to store eye data in psychopy data files.
+           - have field in components data struct to indicate
+             whether mono or binoc data will be in this per sample data.
+- Only need to have the /common/ startType, endType, startVal, endVal
+  fields plus /common/ field indicating what data to save (every frame,
+  routine end only, ...)
+"""
+
 from os import path
 from .._base import BaseComponent, Param, _translate
 

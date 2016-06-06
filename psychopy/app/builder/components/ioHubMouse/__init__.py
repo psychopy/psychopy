@@ -5,6 +5,15 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""
+Comments / TODO's from discussion with Jon on June 6, 2016:
+------------------------------------------------------------
+
+- Put ioHubMouse component on hold for now. Work on after iohub eyetracker and
+  keyboard components are implemented.
+- Should probably hide this components from Builder view for now then.
+"""
+
 from os import path
 from .._base import BaseComponent, Param, _translate
 
