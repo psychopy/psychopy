@@ -449,7 +449,6 @@ class FlowPanel(wx.ScrolledWindow):
         flow = self.frame.exp.flow
         component = flow[compID]
         compType = component.getType()
-        print (compType)
         if compType == 'Routine':
             for item in (self.contextMenuItems):
                 id = self.contextIDFromItem[item]
