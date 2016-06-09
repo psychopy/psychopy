@@ -134,7 +134,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         # we aren't in a time-critical period so flush messages
         logging.flush()
         # now wait until we get told 'DONE'
-        self.com.setTimeout(20)
+        self.com.timeout = 20
         retVal = self.com.readline()
         if retVal.startswith("DONE"):
             logging.info("BBTK.clearMemory(): completed")
@@ -214,7 +214,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         lastState = None
         # try to read from port
         self.pause()
-        self.com.setTimeout(2.0)
+        self.com.timeout = 2.0
         nEvents = int(self.com.readline()[:-2])  # last two chars are ;\n
         self.com.readline()[:-2]  # microseconds recorded (ignore)
         self.com.readline()[:-2]  # samples recorded (ignore)

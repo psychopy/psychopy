@@ -30,6 +30,7 @@ from .localization import _translate
 # needed by splash screen for the path to resources/psychopySplash.png
 from psychopy import preferences, logging, __version__
 from . import connections
+from . import projects
 import os
 import threading
 import weakref
@@ -557,6 +558,7 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
+        projects.projectCatalog = None  # garbage collect the projects before sys.exit
         # see whether any files need saving
         for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere

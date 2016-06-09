@@ -2664,8 +2664,14 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         except Exception:  # InvalidFileException(unicode(e)): # this fails
             raise ImportError('Could not open %s as conditions' % fileName)
         ws = wb.worksheets[0]
-        nCols = ws.get_highest_column()
-        nRows = ws.get_highest_row()
+        try:
+            # in new openpyxl (2.3.4+) get_highest_xx is deprecated
+            nCols = wx.max_column
+            nRows = wx.max_row
+        except:
+            # version openpyxl 1.5.8 (in Standalone 1.80) needs this
+            nCols = ws.get_highest_column()
+            nRows = ws.get_highest_row()
 
         # get parameter names from the first row header
         fieldNames = []

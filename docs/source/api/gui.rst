@@ -7,11 +7,13 @@
     :members:
     :undoc-members:
 
+
 :class:`~psychopy.gui.Dlg`
 ------------------------------------
 .. autoclass:: psychopy.gui.Dlg
     :members:
     :exclude-members: display, exec_
+
 
 :func:`~psychopy.gui.fileOpenDlg`
 ------------------------------------
@@ -21,3 +23,4 @@
 :func:`~psychopy.gui.fileSaveDlg`
 ------------------------------------
 .. autofunction:: psychopy.gui.fileSaveDlg
+ 

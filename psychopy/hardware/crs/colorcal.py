@@ -132,7 +132,7 @@ class ColorCAL(object):
         self.com.write(message)
         self.com.flush()
         # get reply (within timeout limit)
-        self.com.setTimeout(timeout)
+        self.com.timeout = timeout
         logging.debug('Sent command:%s' % (message[:-1]))  # send complete msg
 
         # get output lines using self.readline, not self.com.readline

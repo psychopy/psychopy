@@ -458,8 +458,8 @@ class RunTimeInfo(dict):
             a, s, m = visual.getMsPerFrame(win, nFrames=120,
                                            showVisual=wantVisual)
             self['windowRefreshTimeAvg_ms'] = a
-            self['windowRefreshTimeMedian_ms'] = s
-            self['windowRefreshTimeSD_ms'] = m
+            self['windowRefreshTimeMedian_ms'] = m
+            self['windowRefreshTimeSD_ms'] = s
         if usingTempWin:
             return
 
