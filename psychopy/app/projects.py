@@ -492,7 +492,8 @@ class SearchFrame(BaseFrame):
                                  "Ask them how they managed that!")
         projFrame = ProjectFrame(parent=self.app, id=-1,
                                  title=self.currentOSFProject.title)
-        projFrame.setProject(self.currentOSFProject)
+        projFrame.setProject(self.currentOSFProject,
+                             name=self.currentOSFProject.id)
         self.Close()  # we're going over to the project window
 
     def updateUserProjs(self):
@@ -778,10 +779,8 @@ class ProjectFrame(BaseFrame):
             projStr, localProj = projectCatalog.projFromId(project.id)
             if localProj is None:  # create a project for it
                 projPath = "%s/%s.psyproj" % (projectsFolder, name)
-                localProj = pyosf.Project(project_file=projPath, osf=project)
-                localProj.save()
-                key = projectCatalog.addFile(projPath)
-                projHistory.AddFileToHistory(key)
+                localProj = pyosf.Project(project_file=projPath, osf=project,
+                                          autosave=False)
             self._setLocalProject(localProj)
         elif os.path.isfile(project):
             self.projFilePath = project
@@ -855,9 +854,17 @@ class ProjectFrame(BaseFrame):
     def updateProjectFields(self):
         if not self.project:
             self.project = pyosf.Project(osf = self.OSFproject)
-        self.project.name = self.nameCtrl.GetValue()
+        name = self.nameCtrl.GetValue()
+        if name != '':
+            self.project.name = name
+        else:
+            self.project.name = self.OSFproject.id
         self.project.username = self.OSFproject.session.username
         self.project.project_id = self.OSFproject.id
+        projPath = "%s/%s.psyproj" % (projectsFolder, self.project.name)
+        self.project.project_file = projPath
+        self.project.autosave=True
+        self.project.save()
         key = projectCatalog.addFile(self.project.project_file)
         projHistory.AddFileToHistory(key)
 
