@@ -156,6 +156,7 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
+                 useRetina = False,
                  autoLog=True):
         """
         These attributes can only be set at initialization. See further down
@@ -214,6 +215,13 @@ class Window(object):
                 this will be enabled.
                 You can switch between left and right-eye scenes for drawing
                 operations using :func:`~psychopy.visual.Window.setBuffer`
+            useRetina : True or *False*
+                Try to use the full resolution of the Retina display (only on
+                certain Macs). By default the display's reduced resolution will
+                be used. NB when you use Retina display the initial win size
+                request will be in the larger pixels but subsequent use of
+                units='pix' should refer to the tiny Retina pixels. Window.size
+                will give the actual size of the screen in Retina pixels
 
             :note: Preferences. Some parameters (e.g. units) can now be given
                 default values in the user/site preferences and these will be
@@ -240,6 +248,7 @@ class Window(object):
         # this will get overridden once the window is created
         self.winHandle = None
         self.useFBO = useFBO
+        self.useRetina = useRetina
 
         self._toLog = []
         self._toCall = []
@@ -1313,6 +1322,7 @@ class Window(object):
             self.size = numpy.array(actual)
 
     def _setupPyglet(self):
+
         self.winType = "pyglet"
         if self.allowStencil:
             stencil_size = 8
@@ -1323,6 +1333,37 @@ class Window(object):
         config = GL.Config(depth_size=8, double_buffer=True,
                            stencil_size=stencil_size, stereo=self.stereo,
                            vsync=vsync)
+
+        # monkey patches for retina display if needed
+        def retinaAttach(self, canvas):
+            """Replaces pyglet.gl.cocoa.CocoaContext.attach method
+            """
+            super(CocoaContext, self).attach(canvas)
+            self._nscontext.setView_(canvas.nsview)
+            try:
+                self._nscontext.view().setWantsBestResolutionOpenGLSurface_(1)
+            except AttributeError:
+                pass
+            self.set_current()
+
+        def retina_on_resize(self, width, height):
+            """Insert as method """
+            view = self.context._nscontext.view()
+            bounds = view.convertRectToBacking_(view.bounds()).size
+            back_width, back_height = (int(bounds.width), int(bounds.height))
+
+            GL.glViewport(0, 0, back_width, back_height)
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            GL.glOrtho(0, width, 0, height, -1, 1)
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+
+        if self.useRetina and sys.platform=='darwin':
+            from pyglet.gl.cocoa import CocoaContext
+            CocoaContext.attach = retinaAttach
+            from pyglet.window.cocoa import CocoaWindow
+            CocoaWindow.on_resize = retina_on_resize
+
         defDisp = pyglet.window.get_platform().get_default_display()
         allScrs = defDisp.get_screens()
         # Screen (from Exp Settings) is 1-indexed,
@@ -1367,6 +1408,10 @@ class Window(object):
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 self._hw_handle = self.winHandle._nswindow.windowNumber()
+            if self.useRetina:
+                view = self.context._nscontext.view()
+                bounds = view.convertRectToBacking_(view.bounds()).size
+                self.size = (int(bounds.width), int(bounds.height))
         elif sys.platform == 'linux2':
             self._hw_handle = self.winHandle._window
 
@@ -1580,6 +1625,7 @@ class Window(object):
             _shaders.vertSimple, _shaders.fragImageStim_adding)
 
     def _setupFrameBuffer(self):
+
         # Setup framebuffer
         self.frameBuffer = GL.GLuint()
         GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
