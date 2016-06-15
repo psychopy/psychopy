@@ -140,6 +140,7 @@ class ParamCtrls(object):
         elif param.valType == 'bool':
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(parent,
+                                         name=fieldName,
                                          size=wx.Size(self.valueWidth, -1))
             self.valueCtrl.SetValue(param.val)
         elif len(param.allowedVals) > 1:
@@ -153,6 +154,7 @@ class ParamCtrls(object):
                 except KeyError:
                     choiceLabels.append(val)
             self.valueCtrl = wx.Choice(parent, choices=choiceLabels,
+                                       name=fieldName,
                                        size=wx.Size(self.valueWidth, -1))
             # stash original non-localized choices:
             self.valueCtrl._choices = copy.copy(param.allowedVals)
@@ -174,7 +176,7 @@ class ParamCtrls(object):
         else:
             # create the full set of ctrls
             val = unicode(param.val)
-            self.valueCtrl = wx.TextCtrl(parent, -1, val,
+            self.valueCtrl = wx.TextCtrl(parent, -1, val, name=fieldName,
                                          size=wx.Size(self.valueWidth, -1))
             # set focus for these fields; seems to get reset elsewhere (?)
             focusFields = ('allowedKeys', 'image', 'movie', 'sound',
@@ -693,12 +695,13 @@ class _BaseParamsDlg(wx.Dialog):
     def launchColorPicker(self, event):
         # bring up a colorPicker
         rgb = self.app.colorPicker(None)  # str, remapped to -1..+1
-        self.paramCtrls['color'].valueCtrl.SetFocus()
-        self.paramCtrls['color'].valueCtrl.Clear()
-        self.paramCtrls['color'].valueCtrl.WriteText(
-            '$' + rgb)  # $ flag as code
-        ii = self.paramCtrls['colorSpace'].valueCtrl.FindString('rgb')
-        self.paramCtrls['colorSpace'].valueCtrl.SetSelection(ii)
+        # apply to color ctrl
+        ctrlName = event.GetEventObject().GetName()
+        thisParam = self.paramCtrls[ctrlName]
+        thisParam.valueCtrl.SetValue('$' + rgb)  # $ flag as code
+        # make sure we set colorspace to rgb
+        colorSpace = self.paramCtrls[ctrlName + 'Space']
+        colorSpace.valueCtrl.SetStringSelection('rgb')
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed

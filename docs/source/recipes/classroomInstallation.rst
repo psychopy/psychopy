@@ -55,7 +55,7 @@ If psychopy is not found on the path then there will be an import error. Try adj
 
 The shortcut in the Windows Start Menu will still be pointing to the local (now non-existent) PsychoPy library. Right-click it to change properties and set the shortcut to point to something like::
 
-    "C:\Program Files\PsychoPy2\pythonw.exe" "<NETWORK_LOC>\psychopyLib\psychopy\\app\psychopyApp.py"
+    "C:\Program Files\PsychoPy2\pythonw.exe" "<NETWORK_LOC>\psychopyLib\psychopy\app\psychopyApp.py"
     
 You probably spotted from this that the PsychoPy app is simply a Python script. You may want to update the file associations too, so that `.psyexp` and `.py` are opened with::
 

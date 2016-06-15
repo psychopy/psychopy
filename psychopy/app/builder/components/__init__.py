@@ -12,12 +12,19 @@ import copy
 import shutil
 import wx
 from PIL import Image
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
 
+# try to remove old pyc files in case they're detected as components
+pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
+print(pycFiles)
+for filename in pycFiles:
+    # check for matching py file
+    if not os.path.isfile(filename[:-2]):
+        os.remove(filename)
 
 def pilToBitmap(pil, scaleFactor=1.0):
     image = wx.EmptyImage(pil.size[0], pil.size[1])
@@ -142,9 +149,14 @@ def getComponents(folder=None, fetchIcons=True):
         else:
             explicit_rel_path = '.' + cmpfile
         module = import_module(explicit_rel_path, package=pkg)
-
+        # check for orphaned pyc files (__file__ is not a .py file)
+        if module.__file__.endswith('.pyc'):
+            if not os.path.isfile(module.__file__[:-1]):
+                continue  # looks like an orphaned pyc file
+        # give a default category
         if not hasattr(module, 'categories'):
             module.categories = ['Custom']
+        # check if module contains a component
         for attrib in dir(module):
             name = None
             # fetch the attribs that end with 'Component'
