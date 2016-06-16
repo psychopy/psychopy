@@ -95,16 +95,16 @@ except Exception:
           " is not installed?")
 try:
     import vlc
-except OSError, msg:
-    print("WARNING: MovieStim2 is not available. Is the VLC application "
-          "installed?")
-except Exception:
+except Exception as err:
     if sys.maxint == 9223372036854775807:
         bits = 64
     else:
         bits = 32
-    print("WARNING: MovieStim2 not available. Failed to import vlc module.\n"
+    if "wrong architecture" in err.message:
+        raise OSError "Failed to import vlc module for MovieStim2.\n"
           "You're using %i-bit python. Is your VLC install the same?" % bits)
+    else:
+        print("WARNING: vlc could not be loaded. Is it installed?")
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 

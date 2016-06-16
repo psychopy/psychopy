@@ -12,7 +12,8 @@ Movie2 does require:
         http: //www.lfd.uci.edu/~gohlke/pythonlibs/  # opencv
     * For Linux, it is available via whatever package manager you use.
     * For OSX, ..... ?
-2. VLC application. Just install the standard VLC (32bit) for your OS.
+2. VLC application. The architeceture of this needs to match your psychopy/python installation 64/32 bit
+    whether or not your *operating system* is 64/32 bit
     http: //www.videolan.org/vlc/index.html
 """
 
