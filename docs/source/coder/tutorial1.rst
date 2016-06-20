@@ -67,7 +67,8 @@ Then, within the loop (make sure it has the same indentation as the other lines)
 
 the first line counts how many keys have been pressed since the last frame. If more than zero are found then we break out of the never-ending loop. The second line clears the event buffer and should always be called after you've collected the events you want (otherwise it gets full of events that we don't care about like the mouse moving around etc...).
 
-Your :download:`finished script <tutorial1.py>` should look something like this:
+Your `finished script <https://raw.githubusercontent.com/psychopy/psychopy/master/docs/source/coder/tutorial1.py>`_
+ should look something like this:
 
 .. literalinclude:: tutorial1.py
     :linenos:
