@@ -1825,7 +1825,7 @@ class Routine(list):
         buff.writeIndentedLines(code.format(self.params['name']))
         # add the EndRoutine code for each component
         for compon in self:
-            if "PsychoJS" in comp.targets:
+            if "PsychoJS" in compon.targets:
                 compon.writeRoutineEndCodeJS(buff)
 #
 #        # reset routineTimer at the *very end* of all non-nonSlip routines
