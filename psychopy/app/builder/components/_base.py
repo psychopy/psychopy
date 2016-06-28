@@ -190,13 +190,13 @@ class BaseComponent(object):
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = ("if (t >= %(startVal)s "
-                    "&& %(name)s.status == NOT_STARTED) {:\n")
+                    "&& %(name)s.status == NOT_STARTED) {\n")
         elif self.params['startType'].val == 'frame N':
             code = ("if (frameN >= %(startVal)s "
-                    "&& %(name)s.status == NOT_STARTED) {:\n")
+                    "&& %(name)s.status == NOT_STARTED) {\n")
         elif self.params['startType'].val == 'condition':
-            code = ("if (%(startVal)s) "
-                    "&& %(name)s.status == NOT_STARTED) {:\n")
+            code = ("if ((%(startVal)s) "
+                    "&& %(name)s.status == NOT_STARTED) {\n")
         else:
             msg = "Not a known startType (%(startType)s) for %(name)s"
             raise CodeGenerationException(msg % self.params)
@@ -204,9 +204,9 @@ class BaseComponent(object):
         buff.writeIndented(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("# keep track of start time/frame for later\n"
-                "%(name)s.tStart = t  # (not accounting for frame time here)\n"
-                "%(name)s.frameNStart = frameN  # exact frame index\n")
+        code = ("// keep track of start time/frame for later\n"
+                "%(name)s.tStart = t  // (not accounting for frame time here)\n"
+                "%(name)s.frameNStart = frameN  // exact frame index\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCode(self, buff):
@@ -257,7 +257,7 @@ class BaseComponent(object):
                 self.params['startType'].val == 'time (s)'):
             code = ("frameRemains = %(startVal)s + %(stopVal)s"
                     " - win.monitorFramePeriod * 0.75"
-                    "  # most of one frame period left\n"
+                    "  // most of one frame period left\n"
                     "if (%(name)s.status == STARTED "
                     "&& t >= frameRemains) {\n")
         # start at frame and end with duratio (need to use approximate)

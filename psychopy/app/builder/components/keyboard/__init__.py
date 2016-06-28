@@ -277,7 +277,7 @@ class KeyboardComponent(BaseComponent):
         allowedKeys = self.params['allowedKeys'].val.strip()
 
         buff.writeIndented("\n")
-        buff.writeIndented("# *%s* updates\n" % self.params['name'])
+        buff.writeIndented("// *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
         buff.writeIndented("%(name)s.status = STARTED;\n" % self.params)
@@ -352,7 +352,7 @@ class KeyboardComponent(BaseComponent):
                 keyList = list(keyList)
             elif isinstance(keyList, basestring):  # a single string/key
                 keyList = [keyList]
-            keyListStr = "{keyList=%s}" % repr(keyList)
+            keyListStr = "{keyList:%s}" % repr(keyList)
 
         # check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s);\n" % keyListStr)
@@ -374,7 +374,7 @@ class KeyboardComponent(BaseComponent):
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            code = ("if %(name)s.keys == []:"
+            code = ("if (%(name)s.keys == []) {"
                     "  // then this was the first keypress\n") % self.params
             buff.writeIndented(code)
 
@@ -396,9 +396,9 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
-            code = ("# was this 'correct'?\n"
-                    "if (%(name)s.keys == str(%(correctAns)s))"
-                    " || (%(name)s.keys == %(correctAns)s) {\n"
+            code = ("// was this 'correct'?\n"
+                    "if ((%(name)s.keys == str(%(correctAns)s))"
+                    " || (%(name)s.keys == %(correctAns)s)) {\n"
                     "    %(name)s.corr = 1;\n"
                     "} else {\n"
                     "    %(name)s.corr = 0;\n"
@@ -484,7 +484,7 @@ class KeyboardComponent(BaseComponent):
 
         # write the actual code
         code = ("// check responses\n"
-                "if (%(name)s.keys in ['', [], None]) {:"
+                "if (%(name)s.keys in ['', [], None]) {"
                 "    // No response was made\n"
                 "    %(name)s.keys=None\n"
                 "}\n")
@@ -492,14 +492,14 @@ class KeyboardComponent(BaseComponent):
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
-                    "if str(%(correctAns)s).lower() == 'none':\n"
+                    "if (str(%(correctAns)s).lower() == 'none') {\n"
                     "   %(name)s.corr = 1  // correct non-response\n"
                     "} else {\n"
                     "   %(name)s.corr = 0  // failed to respond (incorrectly)\n"
                     "}\n"
                     % self.params)
 
-            code += ("# store data for %s (%s)\n" %
+            code += ("// store data for %s (%s)\n" %
                      (currLoop.params['name'], currLoop.type))
 
             buff.writeIndentedLines(code % self.params)
@@ -519,7 +519,7 @@ class KeyboardComponent(BaseComponent):
             # only add an RT if we had a response
             code = ("if (resp.keys != undefined) {  // we had a response\n" %
                     self.params +
-                    "    %s.addData('%s.rt', %s.rt)\n" %
+                    "    %s.addData('%s.rt', %s.rt)\n}\n" %
                     (currLoop.params['name'], name, name))
             buff.writeIndentedLines(code)
 
