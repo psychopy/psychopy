@@ -56,7 +56,8 @@ _localized = {
     'auto proxy': _translate('auto proxy'),
     'proxy setting': _translate('proxy setting'),
     'background processes': _translate('background processes'),
-    'CPU speed test': _translate('CPU speed test')}
+    'CPU speed test': _translate('CPU speed test'),
+    'visual sync (refresh)': _translate('visual sync (refresh)')}
 # can't just do the following, or messes up poedit autodiscovery:
 # _localized = {k: _translate(k) for k in _loKeys}
 
