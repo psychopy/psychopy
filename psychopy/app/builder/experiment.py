@@ -1764,7 +1764,7 @@ class Routine(list):
                 )
         buff.writeIndentedLines(code.format(self.name))
         # write the code for each component during frame
-        buff.writeIndentedLines('# update/draw components on each frame\n')
+        buff.writeIndentedLines('// update/draw components on each frame\n')
         # just 'normal' components
         for comp in self:
             if ("PsychoJS" in comp.targets and comp.type != 'Static'):
@@ -1820,11 +1820,12 @@ class Routine(list):
                 "for (var i = 0; i < instructComponents.length; ++i) {{\n"
                 '  if ("setAutoDraw" in thisComponent) {{\n'
                 "    thisComponent.setAutoDraw(false);\n"
+                '  }}\n'
                 "}}\n")
         buff.writeIndentedLines(code.format(self.params['name']))
         # add the EndRoutine code for each component
         for compon in self:
-            if "PsychoJS" in comp.targets:
+            if "PsychoJS" in compon.targets:
                 compon.writeRoutineEndCodeJS(buff)
 #
 #        # reset routineTimer at the *very end* of all non-nonSlip routines
