@@ -9,9 +9,14 @@ class HapticEngine(object):
         if HapticEngine.stimulator is None:
             HapticEngine.stimulator = HapticStimulator()
         self.status = None
+        self.channel = None
 
-    def stimulate(self, chnl, time):
-        HapticEngine.stimulator.stimulate(chnl, time)
+    def setChannel(self, chnl):
+        self.channel = int(chnl)
+
+    def stimulate(self, time):
+        if self.channel is not None:
+            HapticEngine.stimulator.stimulate(self.channel, time)
 
     def close(self):
         if HapticEngine.stimulator is not None:

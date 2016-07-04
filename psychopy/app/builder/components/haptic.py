@@ -35,10 +35,9 @@ class HapticComponent(BaseComponent):
         codeEntries = {
             "name": self.params["name"].val,
             "duration": self.getStartAndDuration()[1],
-            "channel": self.params["channel"].val,
         }
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.stimulate(%(channel)s, %(duration)s)\n" % codeEntries)
+        buff.writeIndented("%(name)s.stimulate(%(duration)s)\n" % codeEntries)
         buff.writeIndented("%(name)s.status = STARTED\n" % codeEntries)
         buff.setIndentLevel(-1, relative = True)
         self.writeStopTestCode(buff)
