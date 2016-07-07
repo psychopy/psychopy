@@ -20,7 +20,7 @@ excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
 
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
-print(pycFiles)
+
 for filename in pycFiles:
     # check for matching py file
     if not os.path.isfile(filename[:-2]):
