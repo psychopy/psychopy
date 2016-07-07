@@ -1100,7 +1100,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             except:
                 # if not then wx conversion broek so get raw data instead
                 txt = dataObj.GetDataHere()
-            self.AddText(txt)
+            self.ReplaceSelection(txt)
 
     def _GetSelectedLineNumbers(self):
         # used for the comment/uncomment machinery from ActiveGrid
