@@ -583,11 +583,9 @@ class MainFrame(wx.Frame):
         _width = self.currentMon.getWidth() or 0
         self.ctrlScrWidth.SetValue(locale.str(_width))
 
-        _pix = self.currentMon.currentCalib['sizePix'][0] or 0
-        self.ctrlScrPixHoriz.SetValue(locale.str(_pix))
-
-        _size = self.currentMon.currentCalib['sizePix'][1] or 0
-        self.ctrlScrPixVert.SetValue(locale.str(_size))
+        _sizePix = self.currentMon.getSizePix() or [0, 0]
+        self.ctrlScrPixHoriz.SetValue(locale.str(_sizePix[0]))
+        self.ctrlScrPixVert.SetValue(locale.str(_sizePix[0]))
 
         # self.ctrlScrGamma.SetValue(str(self.currentMon.getGamma()))
         self.ctrlCalibNotes.SetValue(self.currentMon.getNotes() or '')
@@ -741,11 +739,15 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor = True
 
     def onChangeScrPixHoriz(self, event):
+        if self.currentMon.getSizePix() is None:
+            self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixHoriz.GetValue())
         self.currentMon.currentCalib['sizePix'][0] = newVal
         self.unSavedMonitor = True
 
     def onChangeScrPixVert(self, event):
+        if self.currentMon.getSizePix() is None:
+            self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixVert.GetValue())
         self.currentMon.currentCalib['sizePix'][1] = newVal
         self.unSavedMonitor = True
