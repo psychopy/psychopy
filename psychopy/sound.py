@@ -5,10 +5,8 @@ sound reproduction but you can alter the order in
 preferences > general > audioLib:
     ['pygame', 'pyo']
 If the lib is `pyo` then there is also a choice of the underlying sound
-driver. Under OSX this is currently set to use coreaudio (rather than
-portaudio) and on windows it will attempt to use an ASIO-based driver if
-found and fall back to DirectSound if not. These settings are not currently
-configurable but let the team know if you need that.
+driver. You can also configure the driver being used (e.g. ASIO, CoreAudio etc).
+You can find out what drivers 
 
 The sound lib and driver (if lib==pyo) being used will be stored as::
     `psychopy.sound.audioLib`
@@ -866,18 +864,22 @@ def _bestDriver(devNames, devIDs):
     audioDriver = None
     osEncoding = sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
+        logging.info('Looking for {}'.format(prefDriver))
         if prefDriver.lower() == 'directsound':
             prefDriver = u'Primary Sound'
         # look for that driver in available devices
         for devN, devString in enumerate(devNames):
+            logging.info('Examining for {}'.format(devString))
             try:
                 ds = devString.decode(osEncoding).encode('utf-8').lower()
                 if prefDriver.encode('utf-8').lower() in ds:
                     audioDriver = devString.decode(osEncoding).encode('utf-8')
                     outputID = devIDs[devN]
+                    logging.info('Success: {}'.format(devString))
                     # we found a driver don't look for others
                     return audioDriver, outputID
             except (UnicodeDecodeError, UnicodeEncodeError):
+                logging.info('Failed: {}'.format(devString))
                 logging.warn('find best sound driver - could not '
                              'interpret unicode in driver name')
     else:
