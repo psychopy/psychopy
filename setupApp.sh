@@ -26,11 +26,11 @@ mv dist/PsychoPy2.app ../dist/PsychoPy2_fat.app
 
 # mount the disk image to put the app in
 echo "Opening disk image for app"
-hdiutil detach "/Volumes/PsychoPy" - quiet
-hdiutil attach "../ppDist/StandalonePsychoPy--OSX_64bit.dmg"
+hdiutil detach "/Volumes/PsychoPy" -quiet
+hdiutil attach "../dist/StandalonePsychoPy--64bit.dmg"
 sudo rm -R "/Volumes/PsychoPy/PsychoPy2.app"
 echo "cp -R ../dist/PsychoPy2.app /Volumes/PsychoPy"
 cp -R "../dist/PsychoPy2.app" "/Volumes/PsychoPy"
 hdiutil detach "/Volumes/PsychoPy"
 echo "creating zlib-compressed dmg"
-hdiutil convert "../ppDist/StandalonePsychoPy--OSX_64bit.dmg" -format UDZO -o  "../ppDist/StandalonePsychoPy-$version-OSX_64bit.dmg"
+hdiutil convert "../dist/StandalonePsychoPy--64bit.dmg" -format UDZO -o  "../dist/StandalonePsychoPy-$version-OSX_64bit.dmg"

@@ -56,6 +56,7 @@ setup(
                       'PIL',  # 'Image',
                       'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
                       'Foundation', 'CoreFoundation',
+                      'pkg_resources', #needed for objc
                       'pyolib',
                       'requests',  # for efficient uploading to servers
                       'pyosf',
