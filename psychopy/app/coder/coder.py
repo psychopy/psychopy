@@ -1087,12 +1087,11 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self._ReplaceSelectedLines(newText)
 
     def Paste(self, event=None):
-        print('pasting')
         dataObj = wx.TextDataObject()
-
         clip = wx.Clipboard().Get()
         clip.Open()
         success = clip.GetData(dataObj)
+        clip.Close()
         if success:
             txt = dataObj.GetText()
             try:
