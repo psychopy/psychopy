@@ -137,8 +137,12 @@ class DlgCodeComponentProperties(wx.Dialog):
                 asizer.Add(paramGuiDict.get(
                     guikey + '_codebox'), 1, wx.EXPAND, 0)
                 paramGuiDict.get(guikey + '_panel').SetSizer(asizer)
+                tabLabel = _translate(paramName)
+                # Add a visual indicator when tab contains code
+                if self.params.get(guikey.replace('_',' ')).val:
+                    tabLabel += ' *'
                 self.codeSections.AddPage(paramGuiDict.get(
-                    guikey + '_panel'), _translate(paramName))
+                    guikey + '_panel'), tabLabel)
 
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         nameSizer.Add(self.nameLabel, 0, wx.ALL, 10)
