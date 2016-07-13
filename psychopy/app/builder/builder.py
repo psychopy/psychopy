@@ -4562,7 +4562,7 @@ class BuilderFrame(wx.Frame):
         expInfo['date'] = data.getDateStr()
         expInfoString = json.dumps(expInfo)
         
-        data_file_name = '%s_%s' % (expInfo['participant'], expInfo['date']) # file name base fpr ex[eriment output
+        data_file_name = '%s_%s_%s' % (expInfo['participant'], self.exp.settings.params['expName'].val, expInfo['date']) # file name base for experiment output
         runAmpDialog = amp_launcher.AmpLauncherDialog(self, data_file_name=data_file_name)
         retval = runAmpDialog.ShowModal()
         if retval == wx.ID_OK:
