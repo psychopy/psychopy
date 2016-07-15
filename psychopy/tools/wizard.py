@@ -635,7 +635,8 @@ class BenchmarkWizard(ConfigWizard):
     """
 
     def __init__(self, fullscr=True, interactive=True, log=True):
-        super(BenchmarkWizard, self).__init__(interactive=interactive)
+        # Don't call parent's __init__() to avoid starting
+        # Configuration Wizard.
         self.firstrun = False
         self.prefs = prefs
         self.appName = 'PsychoPy2'
