@@ -56,11 +56,9 @@ def getIcons(filename=None):
     icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
     # try to find a 128x128 version
     filename128 = filename[:-4]+'128.png'
-    if os.path.isfile(filename128):
-        print("Using %s" %(filename128))
+    if False: # TURN OFF FOR NOW os.path.isfile(filename128):
         im = Image.open(filename128)
     else:
-        print("couldnt find %s but did find %s" %(filename128, filename))
         im = Image.open(filename)
     icons['48'] = pilToBitmap(im)
     # add the plus sign
