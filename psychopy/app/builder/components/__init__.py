@@ -49,16 +49,24 @@ def getIcons(filename=None):
     icons = {}
     if filename is None:
         filename = join(dirname(abspath(__file__)), 'base.png')
+        
+    # get the low-res version first
     im = Image.open(filename)
-    icons['48'] = pilToBitmap(im)
     icons['24'] = pilToBitmap(im, scaleFactor=0.5)
+    icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
+    # try to find a 128x128 version
+    filename128 = filename[:-4]+'128.png'
+    if False: # TURN OFF FOR NOW os.path.isfile(filename128):
+        im = Image.open(filename128)
+    else:
+        im = Image.open(filename)
+    icons['48'] = pilToBitmap(im)
     # add the plus sign
     add = Image.open(join(dirname(abspath(__file__)), 'add.png'))
     im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
     # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
     #               im.size[0], im.size[1]], mask=add)
     icons['48add'] = pilToBitmap(im)
-    icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
 
     return icons
 

@@ -7,9 +7,9 @@ Demo to illustrate Dialog (Dlg) classes and usage.
 
 from __future__ import division
 
-#from psychopy import gui  #fetch default gui handler (qt if available)
+from psychopy import gui  #fetch default gui handler (qt if available)
 ## you can explicitly choose one of the qt/wx backends like this:
-from psychopy.gui import wxgui as gui
+## from psychopy.gui import wxgui as gui
 ## from psychopy.gui import qtgui as gui
 
 # create a DlgFromDict
