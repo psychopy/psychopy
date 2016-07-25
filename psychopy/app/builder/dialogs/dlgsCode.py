@@ -226,7 +226,7 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.SetTabWidth(4)
         self.SetIndent(4)
         self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
-        # self.SetBufferedDraw(False)
+        self.SetBufferedDraw(False)
         self.SetViewEOL(False)
         self.SetEOLMode(wx.stc.STC_EOL_LF)
         self.SetUseAntiAliasing(True)
