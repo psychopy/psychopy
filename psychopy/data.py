@@ -2631,6 +2631,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
+                #if it is a numpy.nan, convert to None
+                if numpy.isnan(val): val = None
                 if type(val) == numpy.string_:
                     val = unicode(val.decode('utf-8'))
                     # if it looks like a list, convert it:
