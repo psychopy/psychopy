@@ -2666,8 +2666,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         ws = wb.worksheets[0]
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
-            nCols = wx.max_column
-            nRows = wx.max_row
+            nCols = ws.max_column
+            nRows = ws.max_row
         except:
             # version openpyxl 1.5.8 (in Standalone 1.80) needs this
             nCols = ws.get_highest_column()
