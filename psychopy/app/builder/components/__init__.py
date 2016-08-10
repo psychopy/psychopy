@@ -20,12 +20,14 @@ excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
 
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
-
 for filename in pycFiles:
     # check for matching py file
     if not os.path.isfile(filename[:-2]):
-        os.remove(filename)
-
+        try:
+            os.remove(filename)
+        except:
+            pass  # may not have sufficient privs
+        
 def pilToBitmap(pil, scaleFactor=1.0):
     image = wx.EmptyImage(pil.size[0], pil.size[1])
 
