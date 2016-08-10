@@ -1,5 +1,5 @@
 rem build simple distributions
-rem python setup.py bdist_egg
+python setup.py bdist_egg
 rem python setup.py sdist --formats=zip
 rem python setup.py bdist_wininst --install-script=psychopy_post_inst.py
 
@@ -9,8 +9,10 @@ python setup.py install
 del C:\Python27\Lib\site-packages\psychopy.pth
 xcopy /I /Y psychopy\*.txt C:\Python27
 copy /Y C:\Windows\System32\avbin.dll avbin.dll
+xcopy /Y C:\Windows\System32\py*27.dll C:\Python27
 rem build the installer
 makensis.exe /v3 buildCompleteInstaller.nsi
+rem "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
 
 rem moving files to ..\dist
 move /Y "StandalonePsychoPy*.exe" ..\dist\

@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "PsychoPy2"
-!define PRODUCT_VERSION "1.84.04rc5"
+!define PRODUCT_VERSION "1.84.0rc6"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
@@ -66,7 +66,9 @@ Function .onInit
   IfSilent +3
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
   "A version of PsychoPy2 is already installed. $\n$\nClick `OK` to remove the \
-  previous version or `Cancel` to cancel this upgrade." \
+  previous version or `Cancel` to cancel this upgrade. \
+  \
+  WAIT UNTIL UNINSTALL COMPLETES BEFORE CONTINUING" \
   IDOK uninst
   Abort
 
