@@ -11,7 +11,7 @@ import numbers
 from weakref import proxy
 import time
 import numpy as np
-from psychopy import core, misc, colors
+from psychopy import core, misc, colors, logging
 import psychopy.tools.colorspacetools as colortools
 import psychopy.tools.arraytools as arraytools
 import pyglet
