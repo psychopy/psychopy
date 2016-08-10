@@ -533,7 +533,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetTabWidth(4)
         self.SetIndent(4)
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
-        # self.SetBufferedDraw(False)
+        self.SetBufferedDraw(False)
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.SetEOLMode(wx.stc.STC_EOL_LF)
         self.SetUseAntiAliasing(True)
@@ -1827,7 +1827,7 @@ class CoderFrame(wx.Frame):
                 toolbarSize = 16
         else:
             # mac: 16 either doesn't work, or looks really bad with wx3
-            toolbarSize = 32
+            toolbarSize = 128
 
         self.toolbar.SetToolBitmapSize((toolbarSize, toolbarSize))
         rc = self.paths['resources']

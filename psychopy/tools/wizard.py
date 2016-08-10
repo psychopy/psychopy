@@ -61,156 +61,11 @@ _localized = {
 # can't just do the following, or messes up poedit autodiscovery:
 # _localized = {k: _translate(k) for k in _loKeys}
 
-
-class ConfigWizard(object):
-    """Walk through configuration diagnostics & generate report.
+class BaseWizard(object):
+    """Base class of ConfigWizard and BenchmarkWizard.
     """
-
-    def __init__(self, firstrun=False, interactive=True, log=True):
-        """Check drivers, show GUIs, run diagnostics, show report.
-        """
-        super(ConfigWizard, self).__init__()
-        self.firstrun = firstrun
-        self.prefs = prefs
-        self.appName = 'PsychoPy2'
-        self.name = self.appName + _translate(' Configuration Wizard')
-        self.reportPath = os.path.join(
-            self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
-        # self.iconfile = os.path.join(self.prefs.paths['resources'],
-        #       'psychopy.png')
-        # dlg.SetIcon(wx.Icon(self.iconfile, wx.BITMAP_TYPE_PNG)) # no error
-        # but no effect
-
-        dlg = gui.Dlg(title=self.name)
-        dlg.addText('')
-        if firstrun:
-            dlg.addText(_translate("Welcome to PsychoPy2!"), color='blue')
-            dlg.addText('')
-            dlg.addText(_translate("It looks like you are running PsychoPy "
-                                   "for the first time."))
-            dlg.addText(_translate("This wizard will help you get started "
-                                   "quickly and smoothly."))
-        else:
-            dlg.addText(_translate("Welcome to the configuration wizard."))
-
-        # test for fatal configuration errors:
-        fatalItemsList = []
-        cardInfo = gl_info.get_renderer().replace('OpenGL Engine', '').strip()
-        if not driversOkay():
-            dlg.addText('')
-            dlg.addText(_translate("The first configuration check is your "
-                                   "video card's drivers. The current"),
-                        color='red')
-            dlg.addText(_translate("drivers cannot support PsychoPy, so "
-                                   "you'll need to update the drivers."),
-                        color='red')
-            msg = _translate("""<p>Critical issue:\n</p><p>Your video card (%(card)s) has drivers
-                that cannot support the high-performance features that PsychoPy depends on.
-                Fortunately, it's typically free and straightforward to get new drivers
-                directly from the manufacturer.</p>
-                <p><strong>To update the drivers:</strong>
-                <li> You'll need administrator privileges.
-                <li> On Windows, don't use the windows option to check for updates
-                  - it can report that there are no updates available.
-                <li> If your card is made by NVIDIA, go to
-                  <a href="http://www.nvidia.com/Drivers">the NVIDIA website</a>
-                  and use the 'auto detect' option. Try here for
-                  <a href="http://support.amd.com/">ATI / Radeon drivers</a>. Or try
-                  <a href="http://www.google.com/search?q=download+drivers+%(card2)s">
-                  this google search</a> [google.com].
-                <li> Download and install the driver.
-                <li> Reboot the computer.
-                <li> Restart PsychoPy.</p>
-                <p>If you updated the drivers and still get this message, you'll
-                  need a different video card to use PsychoPy. Click
-                <a href="http://www.psychopy.org/installation.html#recommended-hardware">here
-                for more information</a> [psychopy.org].</p>
-            """)
-            fatalItemsList.append(msg % {'card': cardInfo,
-                                         'card2': cardInfo.replace(' ', '+')})
-        if not cardOkay():
-            msg = _translate("""<p>Critical issue:\n</p>""")
-            msg += cardInfo
-            fatalItemsList.append(msg)
-            pass
-        # other fatal conditions? append a 'Critical issue' msg to itemsList
-        if not fatalItemsList:
-            dlg.addText(_translate("We'll go through a series of configura"
-                                   "tion checks in about 10 seconds. "))
-            dlg.addText('')
-            if firstrun:  # explain things more
-                dlg.addText(_translate('Note: The display will switch to '
-                                       'full-screen mode and will '))
-                dlg.addText(_translate("then switch back. You don't need "
-                                       "to do anything."))
-            dlg.addText(_translate('Optional: For best results, please quit'
-                                   ' all email programs, web-browsers, '))
-            dlg.addText(_translate(
-                'Dropbox, backup or sync services, and others.'))
-            dlg.addText('')
-            dlg.addText(_translate('Click OK to start, or Cancel to skip.'))
-            if not self.firstrun:
-                dlg.addField(label=_translate('Full details'),
-                             initial=self.prefs.app['debugMode'])
-        else:
-            dlg.addText('')
-            dlg.addText(_translate(
-                'Click OK for more information, or Cancel to skip.'))
-
-        # show the first dialog:
-        dlg.addText('')
-        if interactive:
-            dlg.show()
-        if fatalItemsList:
-            self.htmlReport(fatal=fatalItemsList)
-            self.save()
-            # user ends up in browser:
-            url = 'file://' + self.reportPath
-            if interactive:
-                wx.LaunchDefaultBrowser(url)
-            return
-        if interactive and not dlg.OK:
-            return  # no configuration tests run
-
-        # run the diagnostics:
-        verbose = interactive and not self.firstrun and dlg.data[0]
-        win = visual.Window(fullscr=interactive, allowGUI=False,
-                            monitor='testMonitor', autoLog=log)
-        itemsList = self.runDiagnostics(win, verbose)  # sets self.warnings
-        win.close()
-        self.htmlReport(itemsList)
-        self.save()
-
-        # display summary & options:
-        dlg = gui.Dlg(title=self.name)
-        dlg.addText('')
-        dlg.addText(_translate('Configuration testing complete!'))
-        summary = self.summary(items=itemsList)
-        numWarn = len(self.warnings)
-        if numWarn == 0:
-            msg = _translate('All values seem reasonable (no warnings).')
-        elif numWarn == 1:
-            txt = _translate('1 suboptimal value was detected (%s)')
-            msg = txt % self.warnings[0]
-        else:
-            txt = _translate(
-                '%(num)i suboptimal values were detected (%(warn)s, ...)')
-            msg = txt % {'num': len(self.warnings),
-                         'warn': self.warnings[0]}
-        dlg.addText(msg)
-        for item in summary:
-            dlg.addText(item[0], item[1])  # (key, color)
-        dlg.addText('')
-        dlg.addText(_translate(
-            'Click OK for full details (will open in a web-browser),'))
-        dlg.addText(_translate('or Cancel to stay in PsychoPy.'))
-        dlg.addText('')
-        if interactive:
-            dlg.show()
-            if dlg.OK:
-                url = 'file://' + self.reportPath
-                wx.LaunchDefaultBrowser(url)
-        return
+    def __init__(self):
+        super(BaseWizard, self).__init__()
 
     def runDiagnostics(self, win, verbose=False):
         """Return list of (key, val, msg, warn) tuple, set self.warnings
@@ -629,13 +484,163 @@ class ConfigWizard(object):
         f.write(self.reportText)
         f.close()
 
+class ConfigWizard(BaseWizard):
+    """Walk through configuration diagnostics & generate report.
+    """
 
-class BenchmarkWizard(ConfigWizard):
+    def __init__(self, firstrun=False, interactive=True, log=True):
+        """Check drivers, show GUIs, run diagnostics, show report.
+        """
+        super(ConfigWizard, self).__init__()
+        self.firstrun = firstrun
+        self.prefs = prefs
+        self.appName = 'PsychoPy2'
+        self.name = self.appName + _translate(' Configuration Wizard')
+        self.reportPath = os.path.join(
+            self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
+        # self.iconfile = os.path.join(self.prefs.paths['resources'],
+        #       'psychopy.png')
+        # dlg.SetIcon(wx.Icon(self.iconfile, wx.BITMAP_TYPE_PNG)) # no error
+        # but no effect
+
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        if firstrun:
+            dlg.addText(_translate("Welcome to PsychoPy2!"), color='blue')
+            dlg.addText('')
+            dlg.addText(_translate("It looks like you are running PsychoPy "
+                                   "for the first time."))
+            dlg.addText(_translate("This wizard will help you get started "
+                                   "quickly and smoothly."))
+        else:
+            dlg.addText(_translate("Welcome to the configuration wizard."))
+
+        # test for fatal configuration errors:
+        fatalItemsList = []
+        cardInfo = gl_info.get_renderer().replace('OpenGL Engine', '').strip()
+        if not driversOkay():
+            dlg.addText('')
+            dlg.addText(_translate("The first configuration check is your "
+                                   "video card's drivers. The current"),
+                        color='red')
+            dlg.addText(_translate("drivers cannot support PsychoPy, so "
+                                   "you'll need to update the drivers."),
+                        color='red')
+            msg = _translate("""<p>Critical issue:\n</p><p>Your video card (%(card)s) has drivers
+                that cannot support the high-performance features that PsychoPy depends on.
+                Fortunately, it's typically free and straightforward to get new drivers
+                directly from the manufacturer.</p>
+                <p><strong>To update the drivers:</strong>
+                <li> You'll need administrator privileges.
+                <li> On Windows, don't use the windows option to check for updates
+                  - it can report that there are no updates available.
+                <li> If your card is made by NVIDIA, go to
+                  <a href="http://www.nvidia.com/Drivers">the NVIDIA website</a>
+                  and use the 'auto detect' option. Try here for
+                  <a href="http://support.amd.com/">ATI / Radeon drivers</a>. Or try
+                  <a href="http://www.google.com/search?q=download+drivers+%(card2)s">
+                  this google search</a> [google.com].
+                <li> Download and install the driver.
+                <li> Reboot the computer.
+                <li> Restart PsychoPy.</p>
+                <p>If you updated the drivers and still get this message, you'll
+                  need a different video card to use PsychoPy. Click
+                <a href="http://www.psychopy.org/installation.html#recommended-hardware">here
+                for more information</a> [psychopy.org].</p>
+            """)
+            fatalItemsList.append(msg % {'card': cardInfo,
+                                         'card2': cardInfo.replace(' ', '+')})
+        if not cardOkay():
+            msg = _translate("""<p>Critical issue:\n</p>""")
+            msg += cardInfo
+            fatalItemsList.append(msg)
+            pass
+        # other fatal conditions? append a 'Critical issue' msg to itemsList
+        if not fatalItemsList:
+            dlg.addText(_translate("We'll go through a series of configura"
+                                   "tion checks in about 10 seconds. "))
+            dlg.addText('')
+            if firstrun:  # explain things more
+                dlg.addText(_translate('Note: The display will switch to '
+                                       'full-screen mode and will '))
+                dlg.addText(_translate("then switch back. You don't need "
+                                       "to do anything."))
+            dlg.addText(_translate('Optional: For best results, please quit'
+                                   ' all email programs, web-browsers, '))
+            dlg.addText(_translate(
+                'Dropbox, backup or sync services, and others.'))
+            dlg.addText('')
+            dlg.addText(_translate('Click OK to start, or Cancel to skip.'))
+            if not self.firstrun:
+                dlg.addField(label=_translate('Full details'),
+                             initial=self.prefs.app['debugMode'])
+        else:
+            dlg.addText('')
+            dlg.addText(_translate(
+                'Click OK for more information, or Cancel to skip.'))
+
+        # show the first dialog:
+        dlg.addText('')
+        if interactive:
+            dlg.show()
+        if fatalItemsList:
+            self.htmlReport(fatal=fatalItemsList)
+            self.save()
+            # user ends up in browser:
+            url = 'file://' + self.reportPath
+            if interactive:
+                wx.LaunchDefaultBrowser(url)
+            return
+        if interactive and not dlg.OK:
+            return  # no configuration tests run
+
+        # run the diagnostics:
+        verbose = interactive and not self.firstrun and dlg.data[0]
+        win = visual.Window(fullscr=interactive, allowGUI=False,
+                            monitor='testMonitor', autoLog=log)
+        itemsList = self.runDiagnostics(win, verbose)  # sets self.warnings
+        win.close()
+        self.htmlReport(itemsList)
+        self.save()
+
+        # display summary & options:
+        dlg = gui.Dlg(title=self.name)
+        dlg.addText('')
+        dlg.addText(_translate('Configuration testing complete!'))
+        summary = self.summary(items=itemsList)
+        numWarn = len(self.warnings)
+        if numWarn == 0:
+            msg = _translate('All values seem reasonable (no warnings).')
+        elif numWarn == 1:
+            txt = _translate('1 suboptimal value was detected (%s)')
+            msg = txt % self.warnings[0]
+        else:
+            txt = _translate(
+                '%(num)i suboptimal values were detected (%(warn)s, ...)')
+            msg = txt % {'num': len(self.warnings),
+                         'warn': self.warnings[0]}
+        dlg.addText(msg)
+        for item in summary:
+            dlg.addText(item[0], item[1])  # (key, color)
+        dlg.addText('')
+        dlg.addText(_translate(
+            'Click OK for full details (will open in a web-browser),'))
+        dlg.addText(_translate('or Cancel to stay in PsychoPy.'))
+        dlg.addText('')
+        if interactive:
+            dlg.show()
+            if dlg.OK:
+                url = 'file://' + self.reportPath
+                wx.LaunchDefaultBrowser(url)
+        return
+
+
+class BenchmarkWizard(BaseWizard):
     """Class to get system info, run benchmarks
     """
 
     def __init__(self, fullscr=True, interactive=True, log=True):
-        super(BenchmarkWizard, self).__init__(interactive=interactive)
+        super(BenchmarkWizard, self).__init__()
         self.firstrun = False
         self.prefs = prefs
         self.appName = 'PsychoPy2'
