@@ -617,12 +617,7 @@ def sendUsageStats():
         if len(systemInfo) > 30:  # if it's too long PHP/SQL fails to store!?
             systemInfo = systemInfo[0:30]
     elif sys.platform == 'win32':
-        ver = sys.getwindowsversion()
-        if len(ver[4]) > 0:
-            systemInfo = ("win32_v%i.%i.%i_%s" %
-                          (ver[0], ver[1], ver[2], ver[4])).replace(' ', '')
-        else:
-            systemInfo = "win32_v%i.%i.%i" % (ver[0], ver[1], ver[2])
+        systemInfo = "win32_v" + platform.version()
     else:
         systemInfo = platform.system() + platform.release()
     u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"

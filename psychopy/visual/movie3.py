@@ -169,9 +169,18 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
             if (not self.noAudio) and (self._mov.audio is not None):
-                self._audioStream = sound.Sound(
-                    self._mov.audio.to_soundarray(),
-                    sampleRate=self._mov.audio.fps)
+                try:
+                    self._audioStream = sound.Sound(
+                        self._mov.audio.to_soundarray(),
+                        sampleRate=self._mov.audio.fps)
+                except:
+                    # JWE added this as a patch for a moviepy oddity where the duration is inflated in the saved file
+                    # causes the audioclip to be the wrong length, so round down and it should work
+                    jwe_tmp = self._mov.subclip(0,round(self._mov.duration))
+                    self._audioStream = sound.Sound(
+                        jwe_tmp.audio.to_soundarray(),
+                        sampleRate=self._mov.audio.fps)
+                    del(jwe_tmp)
             else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
         else:
