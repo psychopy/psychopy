@@ -3300,16 +3300,16 @@ SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. 
 SettingsComponent.Units.allowedUpdates:None
 SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Units.label:Units
-SettingsComponent.Use version.default:'latest'
+SettingsComponent.Use version.default:''
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.allowedVals:['latest', '1', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00']
 SettingsComponent.Use version.readOnly:False
 SettingsComponent.Use version.updates:None
-SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'latest', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.Use version.__weakref__:None
 SettingsComponent.Use version.valType:str
 SettingsComponent.Use version.staticUpdater:None
-SettingsComponent.Use version.val:latest
+SettingsComponent.Use version.val:
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.allowedUpdates:None

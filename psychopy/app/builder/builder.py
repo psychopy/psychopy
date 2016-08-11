@@ -1436,13 +1436,13 @@ class BuilderFrame(wx.Frame):
         # add it to user's namespace
         self.exp.namespace.add(defaultName, self.exp.namespace.user)
         routine = self.exp.routines[defaultName]
-        # add an ISI component by default
-        components = self.componentButtons.components
-        Static = components['StaticComponent']
-        ISI = Static(self.exp, parentName=defaultName, name='ISI',
-                     startType='time (s)', startVal=0.0,
-                     stopType='duration (s)', stopVal=0.5)
-        routine.addComponent(ISI)
+        ## add an ISI component by default
+        # components = self.componentButtons.components
+        # Static = components['StaticComponent']
+        # ISI = Static(self.exp, parentName=defaultName, name='ISI',
+        #             startType='time (s)', startVal=0.0,
+        #             stopType='duration (s)', stopVal=0.5)
+        #routine.addComponent(ISI)
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
