@@ -56,7 +56,7 @@ class SettingsComponent(object):
                  saveXLSXFile=False, saveCSVFile=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
-                 useVersion='latest',
+                 useVersion='',
                  filename=None):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
