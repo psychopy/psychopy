@@ -2631,14 +2631,19 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
-                #if it is a numpy.nan, convert to None
-                if numpy.isnan(val): val = None
-                if type(val) == numpy.string_:
+                
+                if type(val) in [unicode, str]:
+                    if val.startswith('[') and val.endswith(']'):
+                        # val = eval('%s' %unicode(val.decode('utf8')))
+                        val = eval(val)
+                elif type(val) == numpy.string_:
                     val = unicode(val.decode('utf-8'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
+                elif numpy.isnan(val): #if it is a numpy.nan, convert to None
+                        val = None
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
     elif fileName.endswith('.pkl'):
