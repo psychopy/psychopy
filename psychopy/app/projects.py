@@ -56,7 +56,10 @@ class ProjectCatalog(dict):
             os.path.join(projectsFolder, "*.psyproj")))
         # check for files that have gone (from prev files list)
         for filePath in projFileList:
-            key = self.addFile(filePath)
+            try:
+                key = self.addFile(filePath)
+            except:
+                key = None
             if key is None and \
                     (filePath in prefs.appData['projects']['fileHistory']):
                 prefs.appData['projects']['fileHistory'].remove(filePath)
