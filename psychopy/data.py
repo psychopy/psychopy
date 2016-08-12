@@ -4497,7 +4497,7 @@ class DataHandler(dict):
                  (type(value) not in [float, int]))):
             self._convertToObjectArray(thisType)
         # insert the value
-        self[thisType][position[0], position[1]] = value
+        self[thisType][position[0], int(position[1])] = value
 
     def _convertToObjectArray(self, thisType):
         """Convert this datatype from masked numeric array to unmasked
