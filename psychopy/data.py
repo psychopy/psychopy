@@ -2631,14 +2631,19 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
-                #if it is a numpy.nan, convert to None
-                if numpy.isnan(val): val = None
-                if type(val) == numpy.string_:
+                
+                if type(val) in [unicode, str]:
+                    if val.startswith('[') and val.endswith(']'):
+                        # val = eval('%s' %unicode(val.decode('utf8')))
+                        val = eval(val)
+                elif type(val) == numpy.string_:
                     val = unicode(val.decode('utf-8'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
+                elif numpy.isnan(val): #if it is a numpy.nan, convert to None
+                        val = None
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
     elif fileName.endswith('.pkl'):
@@ -4497,7 +4502,7 @@ class DataHandler(dict):
                  (type(value) not in [float, int]))):
             self._convertToObjectArray(thisType)
         # insert the value
-        self[thisType][position[0], position[1]] = value
+        self[thisType][position[0], int(position[1])] = value
 
     def _convertToObjectArray(self, thisType):
         """Convert this datatype from masked numeric array to unmasked
