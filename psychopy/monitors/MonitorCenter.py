@@ -585,7 +585,7 @@ class MainFrame(wx.Frame):
 
         _sizePix = self.currentMon.getSizePix() or [0, 0]
         self.ctrlScrPixHoriz.SetValue(locale.str(_sizePix[0]))
-        self.ctrlScrPixVert.SetValue(locale.str(_sizePix[0]))
+        self.ctrlScrPixVert.SetValue(locale.str(_sizePix[1]))
 
         # self.ctrlScrGamma.SetValue(str(self.currentMon.getGamma()))
         self.ctrlCalibNotes.SetValue(self.currentMon.getNotes() or '')
