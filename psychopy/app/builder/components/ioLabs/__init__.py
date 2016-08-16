@@ -2,10 +2,11 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
 from os import path
 
-from ..keyboard import KeyboardComponent, Param, _translate
-from ...experiment import _valid_var_re
+from psychopy.app.builder.components.keyboard import KeyboardComponent, Param, _translate
+from psychopy.app.builder.experiment import _valid_var_re
 
 __author__ = 'Jeremy Gray'
 

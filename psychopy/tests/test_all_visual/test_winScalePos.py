@@ -48,4 +48,4 @@ class Test_Win_Scale_Pos_Ori(object):
                     scalestr = str(scale[0]) + ',' + str(scale[1])
                     posstr = str(offset[0]) + ',' + str(offset[1])
                     filename = 'winScalePos_ori%s_scale%s_pos%s.png' % (oristr, scalestr, posstr)
-                    utils.compareScreenshot(filename, self.win, crit=8)
+                    utils.compareScreenshot(filename, self.win, crit=15)
