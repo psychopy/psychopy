@@ -486,15 +486,16 @@ class ContainerMixin(object):
         """
         # check whether stimulus needs flipping in either direction
         flip = numpy.array([1, 1])
-        if hasattr(self, 'flipHoriz'):
-            flip[0] = self.flipHoriz * (-2) + 1  # True=(-1), False->(+1)
-        if hasattr(self, 'flipVert'):
-            flip[1] = self.flipVert * (-2) + 1  # True=(-1), False->(+1)
+        if hasattr(self, 'flipHoriz') and self.flipHoriz:
+            flip[0] = -1 # True=(-1), False->(+1)
+        if hasattr(self, 'flipVert') and self.flipVert:
+            flip[1] = -1 # True=(-1), False->(+1)
 
         if hasattr(self, 'vertices'):
             verts = self.vertices
         else:
             verts = self._verticesBase
+
         # set size and orientation, combine with position and convert to pix:
         verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
         verts = convertToPix(vertices=verts, pos=self.pos,

@@ -255,14 +255,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
+        self._needVertexUpdate = True
 
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the movie will be flipped vertically
         (top-to-bottom). Note that this is relative to the original,
         not relative to the current state.
         """
-        self.flipVert = not newVal
+        self.flipVert = newVal
         logAttrib(self, log, 'flipVert')
+        self._needVertexUpdate = True
 
     def getFPS(self):
         """
