@@ -47,8 +47,6 @@ def test_TrialTypeImport():
         trialXLSX = fromXLSX[trialN]
         assert trialXLSX.keys()==trialCSV.keys()
         for header in trialCSV.keys():
-            if trialXLSX[header] is None and numpy.isnan(trialCSV[header]):
-                trialCSV[header]=None#this is ok
             if trialXLSX[header] != trialCSV[header]:
                 print(header, trialCSV[header], trialXLSX[header])
             assert trialXLSX[header] == trialCSV[header]
