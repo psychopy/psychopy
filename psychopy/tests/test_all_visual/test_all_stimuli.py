@@ -263,7 +263,7 @@ class _baseVisualTest(object):
             raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
-        mov = visual.MovieStim(win, fileName, pos=pos)
+        mov = visual.MovieStim3(win, fileName, pos=pos)
         mov.setFlipVert(True)
         mov.setFlipHoriz(True)
         for frameN in range(10):
