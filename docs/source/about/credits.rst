@@ -4,12 +4,12 @@
 Credits
 =====================================
 
-PsychoPy is developed almost entirely by volunteers. If you see those contributors at a conference do pat them no the back and say thanks. And if you need a (paid) consultant on your project then the people listed on this page would be good candidates!
+PsychoPy is developed almost entirely by volunteers. If you see those contributors at a conference do pat them on the back and say thanks. And if you need a (paid) consultant on your project then the people listed on this page would be good candidates!
 
 Developers
 ---------------
 
-PsychoPy was initially created and maintained by `Jon Peirce`_ but has many contributors to the code. For a full list you can see the contributions on `opendhub.net <https://www.openhub.net/p/PsychoPy/contributors>`_ but some notable contributors are:
+PsychoPy was initially created and maintained by `Jon Peirce`_ but has many contributors to the code. For a full list you can see the contributions on `openhub.net <https://www.openhub.net/p/PsychoPy/contributors>`_ but some notable contributors are:
 
     **Jeremy Gray**, **Sol Simpson**, Mike MacAskill, Jonas Lindeløv, Richard Höchenberger, Hiroyuki Sogo, Yaroslav Halchenko, Erik Kastman, William Hogman, Ilixa Ltd., Gary Strangman
 
