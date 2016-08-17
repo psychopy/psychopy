@@ -263,7 +263,7 @@ class _baseVisualTest(object):
             raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
-        mov = visual.MovieStim(win, fileName, pos=pos)
+        mov = visual.MovieStim3(win, fileName, pos=pos)
         mov.setFlipVert(True)
         mov.setFlipHoriz(True)
         for frameN in range(10):
@@ -578,23 +578,23 @@ class TestPygletDegFlatPos(_baseVisualTest):
             units='degFlatPos', autoLog=False)
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
-class TestPygameNorm(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
-        self.contextName='norm'
-        self.scaleFactor=1#applied to size/pos values
-class TestPygamePix(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        mon = monitors.Monitor('testMonitor')
-        mon.setDistance(57.0)
-        mon.setWidth(40.0)
-        mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
-            units='pix', autoLog=False)
-        self.contextName='pix'
-        self.scaleFactor=60#applied to size/pos values
+#class TestPygameNorm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
+#        self.contextName='norm'
+#        self.scaleFactor=1#applied to size/pos values
+#class TestPygamePix(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        mon = monitors.Monitor('testMonitor')
+#        mon.setDistance(57.0)
+#        mon.setWidth(40.0)
+#        mon.setSizePix([1024,768])
+#        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+#            units='pix', autoLog=False)
+#        self.contextName='pix'
+#        self.scaleFactor=60#applied to size/pos values
 #class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):

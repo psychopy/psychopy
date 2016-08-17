@@ -34,6 +34,21 @@ frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
 
+
+import macholib
+#print("~"*60 + "macholib verion: "+macholib.__version__)
+if macholib.__version__ <= "1.7":
+    print("Applying macholib patch...")
+    import macholib.dyld
+    import macholib.MachOGraph
+    dyld_find_1_7 = macholib.dyld.dyld_find
+    def dyld_find(name, loader=None, **kwargs):
+        #print("~"*60 + "calling alternate dyld_find")
+        if loader is not None:
+            kwargs['loader_path'] = loader
+        return dyld_find_1_7(name, **kwargs)
+    macholib.MachOGraph.dyld_find = dyld_find
+    
 setup(
     app=['psychopy/app/psychopyApp.py'],
     options=dict(py2app=dict(
@@ -63,7 +78,7 @@ setup(
                       # for unit testing
                       'coverage',
                       # handy external science libs
-                      'serial', 'IPython',
+                      'serial', 
                       'egi', 'labjack', 'pylink',
                       'pyxid',
                       'pandas', 'tables',  # 'cython',
@@ -72,7 +87,11 @@ setup(
                       'psychopy_ext', 'pyfilesec', 'rusocsci',
                       'bidi',  # for right-left language conversions
                       ],
-            excludes=['bsddb'],  # anything we need to forcibly exclude?
+            excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
+                      'OpenGL','OpenGL.WGL','OpenGL.raw.WGL.*',
+                      # 'stringprep',
+                      'functools32',
+                      ],  # anything we need to forcibly exclude?
             resources=resources,
             argv_emulation=True,
             site_packages=True,
