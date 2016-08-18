@@ -88,11 +88,18 @@ from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 import ctypes
 import numpy
-try:
-    import cv2
-except Exception:
-    print("WARNING: MovieStim2 is not available. Python opencv library (cv2)"
-          " is not installed?")
+import cv2
+if hasattr(cv2, 'cv'):
+    # as of version 3 these ar in cv2 not cv2.cv
+    cv2.CAP_PROP_FRAME_COUNT = cv2.cv.CV_CAP_PROP_FRAME_COUNT
+    cv2.CAP_PROP_FRAME_WIDTH = cv2.cv.CV_CAP_PROP_FRAME_WIDTH
+    cv2.CAP_PROP_FRAME_HEIGHT = cv2.cv.CV_CAP_PROP_FRAME_HEIGHT
+    cv2.CAP_PROP_FORMAT = cv2.cv.CV_CAP_PROP_FORMAT
+    cv2.CAP_PROP_FPS = cv2.cv.CV_CAP_PROP_FPS
+    cv2.CAP_PROP_POS_MSEC = cv2.cv.CV_CAP_PROP_POS_MSEC
+    cv2.CAP_PROP_POS_FRAMES = cv2.cv.CV_CAP_PROP_POS_FRAMES
+    cv2.CAP_PROP_POS_AVI_RATIO = cv2.cv.CV_CAP_PROP_POS_AVI_RATIO
+
 try:
     import vlc
 except Exception as err:
@@ -321,17 +328,17 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             raise RuntimeError("Error when reading image file")
 
         self._total_frame_count = self._video_stream.get(
-            cv2.cv.CV_CAP_PROP_FRAME_COUNT)
+            cv2.CAP_PROP_FRAME_COUNT)
         self._video_width = self._video_stream.get(
-            cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+            cv2.CAP_PROP_FRAME_WIDTH)
         self._video_height = self._video_stream.get(
-            cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+            cv2.CAP_PROP_FRAME_HEIGHT)
         self._format = self._video_stream.get(
-            cv2.cv.CV_CAP_PROP_FORMAT)
+            cv2.CAP_PROP_FORMAT)
         # TODO: Read depth from video source
         self._video_frame_depth = 3
 
-        cv_fps = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+        cv_fps = self._video_stream.get(cv2.CAP_PROP_FPS)
 
         self._video_frame_rate = cv_fps
 
@@ -476,8 +483,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                     player.set_time(int(timestamp * 1000.0))
                     self._audio_stream_clock.reset(-timestamp)
 
-                MSEC = cv2.cv.CV_CAP_PROP_POS_MSEC
-                FRAMES = cv2.cv.CV_CAP_PROP_POS_FRAMES
+                MSEC = cv2.CAP_PROP_POS_MSEC
+                FRAMES = cv2.CAP_PROP_POS_FRAMES
                 self._video_stream.set(MSEC, timestamp * 1000.0)
                 self._video_track_clock.reset(-timestamp)
                 self._next_frame_index = self._video_stream.get(FRAMES)
@@ -588,11 +595,11 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 self._prev_frame_index = self._next_frame_index
                 self._prev_frame_sec = self._next_frame_sec
                 self._next_frame_index = self._video_stream.get(
-                    cv2.cv.CV_CAP_PROP_POS_FRAMES)
+                    cv2.CAP_PROP_POS_FRAMES)
                 self._next_frame_sec = self._video_stream.get(
-                    cv2.cv.CV_CAP_PROP_POS_MSEC) / 1000.0
+                    cv2.CAP_PROP_POS_MSEC) / 1000.0
                 self._video_perc_done = self._video_stream.get(
-                    cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
+                    cv2.CAP_PROP_POS_AVI_RATIO)
                 self._next_frame_displayed = False
                 halfInterval = self._inter_frame_interval / 2.0
                 if self.getTimeToNextFrameDraw() > -halfInterval:
