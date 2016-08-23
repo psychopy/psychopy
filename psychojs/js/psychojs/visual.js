@@ -2,7 +2,7 @@
  * Visual component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -41,12 +41,12 @@ psychoJS.attributeSet = function(obj, attrib, value, log, stealth) {
  * Used to set up a context in which to draw objects.
  * @constructor
  */
-psychoJS.visual.Window = function(dim, units, fullScreen) {
-	this.dim = dim;
-	this._units = units || 'norm';
-	this.fullScreen = fullScreen;
+psychoJS.visual.Window = function(attribs) {
+	this.dim = psychoJS.getAttrib(attribs, 'dim');
+	this._units = psychoJS.getAttrib(attribs, 'units', 'norm');
+	this._fullscr = psychoJS.getAttrib(attribs, 'fullscr');
+	
 	this._renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor:0x00000});
-	//this._renderer.context.imageSmoothingEnabled = (this._renderer instanceof PIXI.WebGLRenderer) ? true : false;
 	
 	this._renderer.view.style["transform"] = "translatez(0)"; // what does this do?
 	document.body.appendChild(this._renderer.view);
@@ -54,12 +54,14 @@ psychoJS.visual.Window = function(dim, units, fullScreen) {
 	this._container = new PIXI.Container();
 	//psychoJS.onResize(this._renderer, this.stats, this._container);
 	
-	this.stats = new Stats();
-	document.body.appendChild(this.stats.domElement);
-	this.stats.domElement.style.position = "absolute";
-	this.stats.domElement.style.top = "0px";
+	if (psychoJS.debug) {
+		this.stats = new Stats();
+		document.body.appendChild(this.stats.domElement);
+		this.stats.domElement.style.position = "absolute";
+		this.stats.domElement.style.top = "0px";
+	}
 	
-	this._drawList = []; // list of all elements currently drawn in order
+	this._drawList = []; // list of all elements, in the order they are currently drawn
 	
 	this._logMessagesOnFlip = [];
 	
@@ -79,10 +81,10 @@ psychoJS.visual.Window = function(dim, units, fullScreen) {
 
 	psychoJS.core.openWindows.push(this);
 	
-	this._renderer.view.addEventListener("mousedown", psychoJS.event.onMouseDown, false);
-	this._renderer.view.addEventListener("mouseup", psychoJS.event.onMouseUp, false);
-	this._renderer.view.addEventListener("mousemove", psychoJS.event.onMouseMove, false);
-	this._renderer.view.addEventListener("mousewheel", psychoJS.event.onMouseWheel, false);
+	this._renderer.view.addEventListener("mousedown", psychoJS.event._onMouseDown, false);
+	this._renderer.view.addEventListener("mouseup", psychoJS.event._onMouseUp, false);
+	this._renderer.view.addEventListener("mousemove", psychoJS.event._onMouseMove, false);
+	this._renderer.view.addEventListener("mousewheel", psychoJS.event._onMouseWheel, false);
 }
 
 
@@ -129,7 +131,7 @@ psychoJS.visual.Window.prototype.getActualFrameRate = function() {
 
 /**
  * Send a log message that should be time-stamped at the next requestAnimationFrame call.
- * @param {string} msg the message to be logged
+ * @param {String} msg the message to be logged
  * @param {number} level the level of importance for the message
  * @param {object} obj (optional) the object that might be associated with this message if desired
  */
@@ -152,16 +154,16 @@ psychoJS.visual.Window.prototype._writeLogOnFlip = function() {
  * Includes: name, autoDraw, autoLog.
  * @constructor
  * @param {Object} attribs Associative array used to store the following parameters:
- * @param {string} attribs.name String or undefined. The name of the object to be using during logged messages about this stim. If you have multiple stimuli in your experiment this really helps to make sense of log files!
- * @param {string} attribs.autoDraw Determines whether the stimulus should be automatically drawn on every frame flip.
+ * @param {String} attribs.name String or undefined. The name of the object to be using during logged messages about this stim. If you have multiple stimuli in your experiment this really helps to make sense of log files!
+ * @param {String} attribs.autoDraw Determines whether the stimulus should be automatically drawn on every frame flip.
  * @param {boolean} attribs.autoLog Whether every change in this stimulus should be auto logged.
  */
 psychoJS.visual.MinimalStim = function(attribs) {
 	console.log("MinimalStim created");
 	
-	this._name = getAttrib(attribs, 'name', "");
-	this._autoDraw = getAttrib(attribs, 'autoDraw', false);
-	this._autoLog = getAttrib(attribs, 'autoLog', false);
+	this._name = psychoJS.getAttrib(attribs, 'name', "");
+	this._autoDraw = psychoJS.getAttrib(attribs, 'autoDraw', false);
+	this._autoLog = psychoJS.getAttrib(attribs, 'autoLog', false);
 
 	Object.defineProperty(this, 'name', {
 		get : function() { return this._name; },
@@ -251,14 +253,14 @@ psychoJS.visual.BaseVisualStim = function(attribs) {
 	console.log("BaseVisualStim created");
 	
 	this.autoLog = false;
-	this.win = getAttrib(attribs, 'win');
+	this.win = psychoJS.getAttrib(attribs, 'win');
 
 	// units?
 	this._rotationMatrix = [[1, 0], [0, 1]];
-	this._size = getAttrib(attribs, 'size');
-	this._ori = getAttrib(attribs, 'ori', 0);
-	this._opacity = getAttrib(attribs, 'opacity', 1.0);
-	this._pos = getAttrib(attribs, 'pos', [0, 0]);
+	this._size = psychoJS.getAttrib(attribs, 'size');
+	this._ori = psychoJS.getAttrib(attribs, 'ori', 0);
+	this._opacity = psychoJS.getAttrib(attribs, 'opacity', 1.0);
+	this._pos = psychoJS.getAttrib(attribs, 'pos', [0, 0]);
 
 	psychoJS.visual.MinimalStim.call(this, attribs);	
 	
@@ -343,7 +345,7 @@ psychoJS.visual.BaseVisualStim.prototype.setOpacity = function(value, log) {
 /**
  * Utility function. Converts a color in colorSpace to a RGB triplet.
  * @param {object} color the color as a string, array or integer.
- * @param {string} colorSpace the color space
+ * @param {String} colorSpace the color space
  * @return the RGB value as a triplet of components with value ranging from -1 to 1.
  */
 psychoJS.visual.getRGB = function(color, colorSpace) {
@@ -574,16 +576,16 @@ psychoJS.visual.Circle = function(attribs) {
 	psychoJS.visual.asColor.call(this);
 	psychoJS.visual.asWindowRelated.call(this);
 	
-	this.win = getAttrib(attribs ,'win', undefined);
-// 	this._color = getAttrib(attribs ,'color', 0xFFFFFF);
+	this.win = psychoJS.getAttrib(attribs ,'win', undefined);
+// 	this._color = psychoJS.getAttrib(attribs ,'color', 0xFFFFFF);
 	this._lineRGB = [1, 1, 1];
 	this._fillRGB = [0, 0, 0];
-	this._lineColorSpace = getAttrib(attribs, 'lineColorSpace', 'rgb');
-	this._fillColorSpace = getAttrib(attribs, 'fillColorSpace', 'rgb');
-	this._contrast = getAttrib(attribs, 'contrast', 1);
-	this._lineColor = getAttrib(attribs ,'lineColor', 'white');
-	this._fillColor = getAttrib(attribs ,'fillColor', 'black');
-	this._lineWidth = getAttrib(attribs ,'lineWidth', 1);
+	this._lineColorSpace = psychoJS.getAttrib(attribs, 'lineColorSpace', 'rgb');
+	this._fillColorSpace = psychoJS.getAttrib(attribs, 'fillColorSpace', 'rgb');
+	this._contrast = psychoJS.getAttrib(attribs, 'contrast', 1);
+	this._lineColor = psychoJS.getAttrib(attribs ,'lineColor', 'white');
+	this._fillColor = psychoJS.getAttrib(attribs ,'fillColor', 'black');
+	this._lineWidth = psychoJS.getAttrib(attribs ,'lineWidth', 1);
 	
 	Object.defineProperty(this, 'lineColor', {
 		get : function() { return this._lineColor; },
@@ -659,17 +661,17 @@ psychoJS.visual.Circle.prototype.setLineWidth = function(value, log) {
  * @constructor
  * @param {Object} attribs Associative array used to store the following parameters:
  * @param {Object} attribs.win the Window that should display this TextStim.
- * @param {string} attribs.name Name of this TextStim.
+ * @param {String} attribs.name Name of this TextStim.
  * @param {Array} attribs.size Size of the stimulus.
  * @param {number} attribs.opacity Determines how visible the stimulus is relative to background.
  * @param {Array} attribs.pos Position of the stimulus in the Window.
  * @param {number} attribs.contrast Contrast of this TextStim.
  * @param {Object} attribs.color Color of this TextStim.
- * @param {string} attribs.colorSpace ColorSpace of this ImageStim.
- * @param {string} attribs.text Text of this TextStim.
- * @param {string} attribs.font Font of this TextStim.
- * @param {string} attribs.alignHoriz Horizontal alignment of this TextStim.
- * @param {string} attribs.alignVert Vertical alignment of this TextStim.
+ * @param {String} attribs.colorSpace ColorSpace of this ImageStim.
+ * @param {String} attribs.text Text of this TextStim.
+ * @param {String} attribs.font Font of this TextStim.
+ * @param {String} attribs.alignHoriz Horizontal alignment of this TextStim.
+ * @param {String} attribs.alignVert Vertical alignment of this TextStim.
  * @param {number} attribs.height Height of this TextStim.
  * @param {number} attribs.wrapWidth Wrap width of this TextStim.
  * @param {boolean} attribs.italic Text will be italicized if true.
@@ -682,27 +684,27 @@ psychoJS.visual.TextStim = function(attribs) {
 	psychoJS.visual.asColor.call(this);
 	psychoJS.visual.asWindowRelated.call(this);
 
-	this.win = getAttrib(attribs ,'win', undefined);
-	this.name = getAttrib(attribs ,'name', undefined);
-	//this.depth = getAttrib(attribs, 'depth', 0); // deprecated attribute, just drop it?
+	this.win = psychoJS.getAttrib(attribs ,'win', undefined);
+	this.name = psychoJS.getAttrib(attribs ,'name', undefined);
+	//this.depth = psychoJS.getAttrib(attribs, 'depth', 0); // deprecated attribute, just drop it?
 	this.status = undefined;
 	
-// 	this._color = getAttrib(attribs ,'color', 0xFFFFFF);
-// 	this._colorSpace = getAttrib(attribs, 'colorSpace', 'rgb');
-	this._contrast = getAttrib(attribs, 'contrast', 1);
-	this.setColor(getAttrib(attribs ,'color', 0xFFFFFF), getAttrib(attribs, 'colorSpace', 'rgb'));
+// 	this._color = psychoJS.getAttrib(attribs ,'color', 0xFFFFFF);
+// 	this._colorSpace = psychoJS.getAttrib(attribs, 'colorSpace', 'rgb');
+	this._contrast = psychoJS.getAttrib(attribs, 'contrast', 1);
+	this.setColor(psychoJS.getAttrib(attribs ,'color', 0xFFFFFF), psychoJS.getAttrib(attribs, 'colorSpace', 'rgb'));
 	
-	this._text = getAttrib(attribs, 'text', '');
+	this._text = psychoJS.getAttrib(attribs, 'text', '');
 	
-	this._font = getAttrib(attribs, 'font', 'Arial');
-	this._alignHoriz = getAttrib(attribs, 'alignHoriz', 'center');
-	this._alignVert = getAttrib(attribs, 'alignVert', 'center');
-	this._height = getAttrib(attribs, 'height', undefined);
-	this._wrapWidth = getAttrib(attribs, 'wrapWidth', undefined);
-	this._italic = getAttrib(attribs, 'italic', false);
-	this._bold = getAttrib(attribs, 'bold', false);
-	this._flipVert = getAttrib(attribs, 'flipVert', false);
-	this._flipHoriz = getAttrib(attribs, 'flipHoriz', false);
+	this._font = psychoJS.getAttrib(attribs, 'font', 'Arial');
+	this._alignHoriz = psychoJS.getAttrib(attribs, 'alignHoriz', 'center');
+	this._alignVert = psychoJS.getAttrib(attribs, 'alignVert', 'center');
+	this._height = psychoJS.getAttrib(attribs, 'height', undefined);
+	this._wrapWidth = psychoJS.getAttrib(attribs, 'wrapWidth', undefined);
+	this._italic = psychoJS.getAttrib(attribs, 'italic', false);
+	this._bold = psychoJS.getAttrib(attribs, 'bold', false);
+	this._flipVert = psychoJS.getAttrib(attribs, 'flipVert', false);
+	this._flipHoriz = psychoJS.getAttrib(attribs, 'flipHoriz', false);
 	
 
 	Object.defineProperty(this, 'text', {
@@ -811,7 +813,7 @@ psychoJS.visual.TextStim.prototype._updateIfNeeded = function() {
 
 /**
  * Sets the text of this TextStim
- * @param {string} text value of this TextStim.
+ * @param {String} text value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setText = function(text, log) {
@@ -828,7 +830,7 @@ psychoJS.visual.TextStim.prototype.setText = function(text, log) {
 
 /**
  * Sets the alignHoriz property of this TextStim
- * @param {string} value alignHoriz value of this TextStim.
+ * @param {String} value alignHoriz value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setAlignHoriz = function(value, log) {
@@ -841,7 +843,7 @@ psychoJS.visual.TextStim.prototype.setAlignHoriz = function(value, log) {
 
 /**
  * Sets the wrapWidth property of this TextStim
- * @param {string} value wrapWidth value of this TextStim.
+ * @param {String} value wrapWidth value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setWrapWidth = function(value, log) {
@@ -853,7 +855,7 @@ psychoJS.visual.TextStim.prototype.setWrapWidth = function(value, log) {
 
 /**
  * Sets the height of the text.
- * @param {string} value height value of this TextStim.
+ * @param {String} value height value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setHeight = function(value, log) {
@@ -865,7 +867,7 @@ psychoJS.visual.TextStim.prototype.setHeight = function(value, log) {
 
 /**
  * Sets the height of the text.
- * @param {string} value height value of this TextStim.
+ * @param {String} value height value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setItalic = function(value, log) {
@@ -877,7 +879,7 @@ psychoJS.visual.TextStim.prototype.setItalic = function(value, log) {
 
 /**
  * Sets the bold value of the text.
- * @param {string} value bold value of this TextStim.
+ * @param {String} value bold value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setBold = function(value, log) {
@@ -889,7 +891,7 @@ psychoJS.visual.TextStim.prototype.setBold = function(value, log) {
 
 /**
  * Sets the flipVert of the text.
- * @param {string} value flipVert value of this TextStim.
+ * @param {String} value flipVert value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setFlipVert = function(value, log) {
@@ -901,7 +903,7 @@ psychoJS.visual.TextStim.prototype.setFlipVert = function(value, log) {
 
 /**
  * Sets the flipHoriz of the text.
- * @param {string} value flipHoriz value of this TextStim.
+ * @param {String} value flipHoriz value of this TextStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.TextStim.prototype.setFlipHoriz = function(value, log) {
@@ -918,14 +920,14 @@ psychoJS.visual.TextStim.prototype.setFlipHoriz = function(value, log) {
  * @constructor
  * @param {Object} attribs Associative array used to store the following parameters:
  * @param {Object} attribs.win the Window that should display this ImageStim.
- * @param {string} attribs.name Name of this ImageStim.
+ * @param {String} attribs.name Name of this ImageStim.
  * @param {Array} attribs.size Size of the stimulus.
  * @param {number} attribs.opacity Determines how visible the stimulus is relative to background.
  * @param {Array} attribs.pos Position of the stimulus in the Window.
- * @param {string} attribs.image Path to the source image to be displayed in this ImageStim.
+ * @param {String} attribs.image Path to the source image to be displayed in this ImageStim.
  * @param {number} attribs.mask Path to the mask image to be used in this ImageStim.
  * @param {Object} attribs.color Color of this ImageStim.
- * @param {string} attribs.colorSpace ColorSpace of this ImageStim.
+ * @param {String} attribs.colorSpace ColorSpace of this ImageStim.
  * @param {boolean} attribs.flipVert Flips the text vertically if true.
  * @param {boolean} attribs.flipHoriz Flips the text horizontally if true.
  */
@@ -934,20 +936,20 @@ psychoJS.visual.ImageStim = function(attribs) {
 	psychoJS.visual.asColor.call(this);
 	psychoJS.visual.asWindowRelated.call(this);
 
-	this.win = getAttrib(attribs ,'win', undefined);
-	this.name = getAttrib(attribs ,'name', undefined);
+	this.win = psychoJS.getAttrib(attribs ,'win', undefined);
+	this.name = psychoJS.getAttrib(attribs ,'name', undefined);
 	this.status = undefined;
 	
-	this._image = getAttrib(attribs ,'image', undefined);
-	this._mask = getAttrib(attribs ,'mask', undefined);
+	this._image = psychoJS.getAttrib(attribs ,'image', undefined);
+	this._mask = psychoJS.getAttrib(attribs ,'mask', undefined);
 	
-	this._color = getAttrib(attribs ,'color', 0xFFFFFF);
+	this._color = psychoJS.getAttrib(attribs ,'color', 0xFFFFFF);
 	this._rgb = [1, 1, 1];
-	this._colorSpace = getAttrib(attribs, 'colorSpace', 'rgb');
-	this._contrast = getAttrib(attribs, 'contrast', 1);
+	this._colorSpace = psychoJS.getAttrib(attribs, 'colorSpace', 'rgb');
+	this._contrast = psychoJS.getAttrib(attribs, 'contrast', 1);
 	
-	this._flipVert = getAttrib(attribs, 'flipVert', false);
-	this._flipHoriz = getAttrib(attribs, 'flipHoriz', false);
+	this._flipVert = psychoJS.getAttrib(attribs, 'flipVert', false);
+	this._flipHoriz = psychoJS.getAttrib(attribs, 'flipHoriz', false);
 	
 
 	Object.defineProperty(this, 'image', {
@@ -1020,7 +1022,7 @@ psychoJS.visual.ImageStim.prototype._updateIfNeeded = function() {
 
 /**
  * Sets the flipVert property of the ImageStim.
- * @param {string} value flipVert value of this ImageStim.
+ * @param {String} value flipVert value of this ImageStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.ImageStim.prototype.setFlipVert = function(value, log) {
@@ -1032,7 +1034,7 @@ psychoJS.visual.ImageStim.prototype.setFlipVert = function(value, log) {
 
 /**
  * Sets the flipHoriz of the ImageStim.
- * @param {string} value flipHoriz value of this ImageStim.
+ * @param {String} value flipHoriz value of this ImageStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.ImageStim.prototype.setFlipHoriz = function(value, log) {
@@ -1045,7 +1047,7 @@ psychoJS.visual.ImageStim.prototype.setFlipHoriz = function(value, log) {
 
 /**
  * Sets the image in the ImageStim.
- * @param {string} value Path to the source image to be displayed in this ImageStim.
+ * @param {String} value Path to the source image to be displayed in this ImageStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.ImageStim.prototype.setImage = function(value, log) {
@@ -1058,7 +1060,7 @@ psychoJS.visual.ImageStim.prototype.setImage = function(value, log) {
 
 /**
  * Sets the mask in the ImageStim.
- * @param {string} value Path to the mask image to be used in this ImageStim.
+ * @param {String} value Path to the mask image to be used in this ImageStim.
  * @param {boolean} log true to log a message, false otherwise
  */
 psychoJS.visual.ImageStim.prototype.setMask = function(value, log) {	

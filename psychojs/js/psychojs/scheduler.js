@@ -2,15 +2,13 @@
  * Scheduler component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
  */
 
 
-/**
- */
 psychoJS.NEXT = "NEXT";
 psychoJS.FLIP_REPEAT = "FLIP_REPEAT";
 psychoJS.FLIP_NEXT = "FLIP_NEXT";
@@ -50,7 +48,7 @@ psychoJS.Scheduler = function() {
 /**
  * Schedule a task.
  * 
- * @param task the task to be scheduled
+ * @param task - the task to be scheduled
  */
 psychoJS.Scheduler.prototype.add = function(task) {
 	this.taskList.push(task);
@@ -62,9 +60,9 @@ psychoJS.Scheduler.prototype.add = function(task) {
  * 
  * <p> The branches are [sub-schedulers]{@link psychoJS.Scheduler}.</p>
  * 
- * @param condition the condition
- * @param {psychoJS.Scheduler} thenScheduler the [Scheduler]{@link psychoJS.Scheduler} to be run if the condition is satisfied
- * @param {psychoJS.Scheduler} elseScheduler the [Scheduler]{@link psychoJS.Scheduler} to be run if the condition is not satisfied
+ * @param condition - the condition
+ * @param {psychoJS.Scheduler} thenScheduler - the [Scheduler]{@link psychoJS.Scheduler} to be run if the condition is satisfied
+ * @param {psychoJS.Scheduler} elseScheduler - the [Scheduler]{@link psychoJS.Scheduler} to be run if the condition is not satisfied
  */
 psychoJS.Scheduler.prototype.addConditionalBranches = function(condition, thenScheduler, elseScheduler) {
 	var self = this;
@@ -122,11 +120,11 @@ psychoJS.Scheduler.prototype.run = function() {
  * 
  * <p> Tasks are run after each animation frame.</p>
  * 
- * @param {psychoJS.visual.Window} win the psychoJS [Window]{@link psychoJS.visual.Window}
+ * @param {psychoJS.visual.Window} win - the psychoJS [Window]{@link psychoJS.visual.Window}
  */
 psychoJS.Scheduler.prototype.start = function(win) {
 	
-	// we call psychoJS.onResize to resize the canvas:
+	// resize the canvas:
 	psychoJS.onResize();
 	
 	var self = this;
@@ -134,9 +132,10 @@ psychoJS.Scheduler.prototype.start = function(win) {
 		if (psychoJS.finished) return;
 
 		++psychoJS.frameCount;
-//if (psychoJS.debug) console.log("frame " + psychoJS.debug);
 		
-		win.stats.begin();
+		if (win.stats) {
+			win.stats.begin();
+		}
 		win._writeLogOnFlip();
 			
 		var state = self.run();
@@ -147,7 +146,9 @@ psychoJS.Scheduler.prototype.start = function(win) {
 		win._renderer.render(win._container);
 		win._refresh();
 		requestAnimationFrame(update);
-		win.stats.end();
+		if (win.stats) {
+			win.stats.end();
+		}
 	}
 		
 	requestAnimationFrame(update);

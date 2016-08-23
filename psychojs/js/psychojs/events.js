@@ -2,7 +2,7 @@
  * Event component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -16,7 +16,7 @@ psychoJS.event = {}
 psychoJS._keyBuffer = []
 
 
-function keyDownHandler(e) {
+psychoJS.event._keyDownHandler = function(e) {
 	//console.log("key press: keyCode=" + e.keyCode + " code=" + e.code + " identifier=" + e.keyIdentifier);
 	psychoJS._keyBuffer.push({
 		keyCode: e.keyCode,
@@ -27,53 +27,31 @@ function keyDownHandler(e) {
 //	console.log("keys pressed : " + JSON.stringify(psychoJS._keyBuffer));
 }
 
-function clearKeys() {
+psychoJS.event.clearKeys = function() {
 	psychoJS._keyBuffer = [];
 }
 
-keyMap = { 
+psychoJS.event._keyMap = { 
 	left : 37,
 	up: 38,
 	right : 39,
 	down: 40,
 	escape : 27
 };
-reverseKeyMap = {};
-for(keyName in keyMap) {
-	reverseKeyMap[keyMap[keyName]] = keyName;
+psychoJS.event._reverseKeyMap = {};
+for(keyName in psychoJS.event._keyMap) {
+	psychoJS.event._reverseKeyMap[psychoJS.event._keyMap[keyName]] = keyName;
 }
 
-/*
-psychoJS.keyList = [];
-psychoJS.event.waitKeys = function(list) {
-	if (psychoJS.debug) console.log("waitKeys");
-	psychoJS.keyList = list;
-	clearKeys();
-}
-
-psychoJS.event.keyPressed = function() {
-	if (psychoJS.debug) console.log("keyPressed " + JSON.stringify(psychoJS._keyBuffer) + " vs " + JSON.stringify(psychoJS.keyList));
-	for(var i = 0; i<psychoJS.keyList.length; ++i) {
-			var k = psychoJS.keyList[i];
-			var mapped = keyMap[k];
-			if (psychoJS._keyBuffer.indexOf(k) >= 0 || psychoJS._keyBuffer.indexOf(mapped) >= 0) {
-				if (psychoJS.debug) console.log("keyPressed returns true: " + k);
-				return true;
-			}
-	}
-	if (psychoJS.debug) console.log("keyPressed returns false");
-	return false;
-}*/
-
-/*
- * TODO
- * - timestamp key events
- * - getKeys timeStamped param
- * - remove keys from keyBuffer when getKeys is called
+/**
+ * Get the list keys that were pressed.
+ * @param keyList - undefined or []. Allows the user to specify a set of keys to check for. Only keypresses from this set of keys will be removed from the keyboard buffer. If the keyList is None all keys will be checked and the key buffer will be cleared completely.
+ * @param {boolean} timeStamped - If true will return a list of tuples instead of a list of keynames. Each tuple has (keyname, time).
+ * @return the list of keys that were pressed.
  */
 psychoJS.event.getKeys = function(attribs) {
-	var keyList = getAttrib(attribs, "keyList", undefined);
-	var timeStamped = getAttrib(attribs, "timeStamped", false);
+	var keyList = psychoJS.getAttrib(attribs, "keyList", undefined);
+	var timeStamped = psychoJS.getAttrib(attribs, "timeStamped", false);
 	
 	var newBuffer = [];
 	var keys = [];
@@ -85,7 +63,7 @@ psychoJS.event.getKeys = function(attribs) {
 		if (keyList) {
 			var index= keyList.indexOf(key.keyCode);
 			if (index < 0) {
-				index = keyList.indexOf(reverseKeyMap[key.keyCode]);
+				index = keyList.indexOf(psychoJS.event._reverseKeyMap[key.keyCode]);
 			}
 			if (index < 0) {
 				index = keyList.indexOf(key.code);
@@ -118,12 +96,17 @@ psychoJS.event.getKeys = function(attribs) {
 	return keys;
 }
 
+/**
+ * Clears all events currently in the event buffer.
+ */
 psychoJS.event.clearEvents = function(attribs) { 
 	// TODO : handle attribs
-	clearKeys();
+	psychoJS.event.clearKeys();
 }
 
-
+/**
+ * Used in scripts created by the builder to keep track of a clock and the current status (whether or not we are currently checking the keyboard)
+ */
 psychoJS.event.BuilderKeyResponse = function() {
 	this.status = psychoJS.NOT_STARTED;
 	this.keys = []; // the key(s) pressed
@@ -135,19 +118,20 @@ psychoJS.event.BuilderKeyResponse = function() {
 
 
 
-//from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
-
 psychoJS.event.mousePos = [0, 0];
 
 psychoJS.event.mouseButtons = [0, 0, 0];
 
 psychoJS.event.mouseWheelRel = [0.0, 0.0];
 
-// list of 3 clocks that are reset on mouse button presses
+/**
+ * list of 3 clocks that are reset on mouse button presses
+ */
 psychoJS.event.mouseClick = [new psychoJS.core.Clock(), new psychoJS.core.Clock(), new psychoJS.core.Clock()];
 
-// container for time elapsed from last reset of mouseClick[n] for any
-// button pressed
+/**
+ * container for time elapsed from last reset of mouseClick[n] for any button pressed
+ */
 psychoJS.event.mouseTimes = [0.0, 0.0, 0.0];
 
 
@@ -174,7 +158,7 @@ psychoJS.event.resetMoveClock = function() {
 	}
 }
 
-psychoJS.event.onMouseDown = function(ev) {
+psychoJS.event._onMouseDown = function(ev) {
 	var now = psychoJS.clock.getTime();
 	var label = '';
 	
@@ -198,7 +182,7 @@ psychoJS.event.onMouseDown = function(ev) {
 	psychoJS.logging.data("Mouse: " + label + " button down, pos=(" + x + "," + y + ")");
 }
 
-psychoJS.event.onMouseUp = function(ev) {
+psychoJS.event._onMouseUp = function(ev) {
 	var now = psychoJS.clock.getTime();
 	var label = '';
 	
@@ -219,7 +203,7 @@ psychoJS.event.onMouseUp = function(ev) {
 	psychoJS.logging.data("Mouse: " + label + " button up, pos=(" + x + "," + y + ")");
 }
 
-psychoJS.event.onMouseMove = function(ev) {
+psychoJS.event._onMouseMove = function(ev) {
 	var x = ev.offsetX;
 	var y = ev.offsetY;
 	psychoJS.event.mousePos = [x, y];
@@ -229,7 +213,7 @@ psychoJS.event.onMouseMove = function(ev) {
 	}	
 }
 
-psychoJS.event.onMouseWheel = function(ev) {
+psychoJS.event._onMouseWheel = function(ev) {
     psychoJS.event.mouseWheelRel = [psychoJS.event.mouseWheelRel[0] + ev.deltaX, psychoJS.event.mouseWheelRel[1] + ev.deltaY];
 	var x = ev.offsetX;
 	var y = ev.offsetY;
@@ -310,8 +294,8 @@ psychoJS.event.Mouse.prototype.getPos = function() {
  * last time mouseMoved was called.
  */
 psychoJS.event.Mouse.prototype.mouseMoved = function(attribs) {
-	distance = getAttrib(attribs, 'distance', undefined);
-	reset = getAttrib(attribs, 'reset', false);
+	distance = psychoJS.getAttrib(attribs, 'distance', undefined);
+	reset = psychoJS.getAttrib(attribs, 'reset', false);
 	
 	
 	if (this.lastPos === undefined) this.getPos(); // this differs from PsychoPy implementation and may be unwarranted, but otherwise we start with lastPos == undefined

@@ -2,7 +2,7 @@
  * String component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -36,7 +36,7 @@ if (!String.prototype.format) {
  * @param {string} name the key.
  * @param def the default value.
  */
-getAttrib = function(attribs, name, def) {
+psychoJS.getAttrib = function(attribs, name, def) {
 	if (!attribs) return def;
 	
 	var val = attribs[name];
@@ -62,7 +62,7 @@ psychoJS.val2array = function(value) {
 /**
  * Converts a value to a string representation.
  */
-str = JSON.stringify;
+psychoJS.str = JSON.stringify;
 
 
 /**
@@ -70,7 +70,7 @@ str = JSON.stringify;
  * @param x the value to test
  * @return true if x one of the following: undefined, [], [undefined]
  */
-isEmpty = function(x) {
+psychoJS.isEmpty = function(x) {
 	if (x === undefined) return true;
 	if (! (x instanceof Array)) return false;
 	if (x.length == 0) return true;
@@ -79,7 +79,7 @@ isEmpty = function(x) {
 }
 
 
-createHtml = function(htmlCode) {
+psychoJS.createHtml = function(htmlCode) {
 	var fragment = document.createDocumentFragment();
 	var element = document.createElement('div');
 	element.innerHTML = htmlCode;

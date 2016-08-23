@@ -2,7 +2,7 @@
  * I/O component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -18,14 +18,13 @@ psychoJS.io = {}
  * Create a new resource manager.
  * 
  * <p>The resource manager synchronously or asynchronously uploads resources
- * to and from a local or distant data repository, possibly via a local 
- * experiment server.</p>
+ * to and from a local or distant data repository, possibly via an experiment server.</p>
  * <p>Note: The parameters are set in the [set function]{@link psychoJS.io.ResourceManager#set}.</p>
  * 
  * @constructor
  */
 psychoJS.io.ResourceManager = function() {
-	if (psychoJS.debug) console.log("OSF ResourceManager created");
+	if (psychoJS.debug) console.log("ResourceManager created");
 	
 	psychoJS.visual.MinimalStim.call(this, {'name' : 'resourceManager', 'autoLog' : false});
 }
@@ -34,37 +33,49 @@ psychoJS.io.ResourceManager.prototype = Object.create(psychoJS.visual.MinimalSti
 
 /**
  * Set the parameters of the resource manager.
- * 
- * 
+ * 	
  * @param {Object} attribs - associative array used to store the following parameters:
  * @param {psychoJS.visual.Window} attribs.win - the psychoJS [Window]{@link psychoJS.visual.Window}
- * @param {('OSF'|'EXPERIMENT_SERVER')} attribs.repository - type of resource repository
+ * @param {('OSF'|'EXPERIMENT_SERVER')} attribs.downloadFrom - type of repository from which the data is downloaded
  * @param {String} attribs.projectId - ID of the project on OSF
- * @param {String} attribs.projectName - name of the project on OSF
  * @param {('PUBLIC'|'PRIVATE')} attribs.projectStatus - status of the project
- * 
+ * @param {psychoJS.core.Clock} attribs.clock - clock
+ * @param {String} [attribs.projectName] - name of the project on OSF
+ * @param {String} [attribs.projectContributor] - name of the project contributor on OSF
+ * @param {String} [attribs.username] - username of the project contributor on OSF
+ * @param {String} [attribs.password] - password of the project contributor on OSF
  */
 psychoJS.io.ResourceManager.prototype.set = function(attribs) {
-	this.win = getAttrib(attribs, 'win');
-	this.repository = getAttrib(attribs, 'repository');
-	this.projectName = getAttrib(attribs, 'projectName');
-	this.projectId = getAttrib(attribs, 'projectId');
-	this.projectContributor = getAttrib(attribs, 'contributor');
-	this.projectStatus = getAttrib(attribs, 'projectStatus');
-	this.username = getAttrib(attribs, 'username');
-	this.password = getAttrib(attribs, 'password');
-	this.clock = getAttrib(attribs, 'clock');
+	var errorPrefix = '{ "function" : "io.ResourceManager.set", "context" : "when setting the parameters of the resource manager", '
+		+ '"error" : ';
+		
+	this.win = psychoJS.getAttrib(attribs, 'win');
+	this.downloadFrom = psychoJS.getAttrib(attribs, 'downloadFrom');
+	this.projectName = psychoJS.getAttrib(attribs, 'projectName');
+	this.projectId = psychoJS.getAttrib(attribs, 'projectId');
+	this.projectContributor = psychoJS.getAttrib(attribs, 'contributor');
+	this.projectStatus = psychoJS.getAttrib(attribs, 'projectStatus');
+	this.username = psychoJS.getAttrib(attribs, 'username');
+	this.password = psychoJS.getAttrib(attribs, 'password');
+	this.clock = psychoJS.getAttrib(attribs, 'clock');
+	
+	// check arguments:
+	if (['PUBLIC', 'PRIVATE'].indexOf(this.projectStatus) == -1) {
+		throw errorPrefix + '"unknown project status: ' + this.projectStatus + '" }';
+	}
+	if (['OSF', 'EXPERIMENT_SERVER'].indexOf(this.downloadFrom) == -1) {
+		throw errorPrefix + '"unknown type of repository: ' + this.downloadFrom + '" }';
+	}
 
 	// status of the resource manager ('READY'|'REGISTERING'|'BUSY'|'ERROR'):
 	this._status = 'READY';
 	this._statusCallback = undefined;
 	
-	// default callback function does nothing
-	this._callbackFunction = function(message) {};
+	// default resource callback function does nothing
+	this._resourceCallback = function(message) {};
 	
 	// resources:
-	this._resourceNames = [];
-	this._resourceValues = [];
+	this._resources = {};
 
 	// OSF specific:
 	this._OsfUrl = 'https://api.osf.io/v2/';
@@ -74,7 +85,7 @@ psychoJS.io.ResourceManager.prototype.set = function(attribs) {
 
 
 /**
- * Get the resource manager status
+ * Get the resource manager status.
  * 
  * @return {('READY'|'REGISTERING'|'BUSY'|'ERROR')} status
  */
@@ -84,21 +95,30 @@ psychoJS.io.ResourceManager.prototype.getStatus = function() {
 
 
 /**
- * Set the resource manager status
- * 
- * @return {('READY'|'REGISTERING'|'BUSY'|'ERROR')} the new status
+ * Set the resource manager status.
+ *
+ * <p> Note: the status callback function is called, if it has been previously set with
+ * [setStatusCallback]{@link psychoJS.io.ResourceManager#setStatusCallback}.</p>
+ * @param {('READY'|'REGISTERING'|'BUSY'|'ERROR')} newStatus - the new status
  */
 psychoJS.io.ResourceManager.prototype.setStatus = function(newStatus) {
+	var errorPrefix = '{ "function" : "io.ResourceManager.setStatus", "context" : "when changing the status of the resource manager", '
+		+ '"error" : ';
+	if (['READY', 'REGISTERING', 'BUSY', 'ERROR'].indexOf(newStatus) == -1) {
+		throw errorPrefix + '"unknown status: ' + newStatus + '" }';
+	}
+	
 	this._status = newStatus;
+	
 	if (undefined !== this._statusCallback)
-		this._statusCallback(newStatus);
+		this._statusCallback(this._status);
 }
 
 
 /**
- * Set the status change call back function
+ * Set the status change call back function.
  * 
- * @param {Object} callback the function called whenever the resource manager's status changes
+ * @param {Object} callback - the function called whenever the resource manager's status changes
  */
 psychoJS.io.ResourceManager.prototype.setStatusCallback = function(callback) {
 	this._statusCallback = callback;
@@ -106,11 +126,12 @@ psychoJS.io.ResourceManager.prototype.setStatusCallback = function(callback) {
 
 
 /**
- * Reset the resource manager status to 'READY'
+ * Reset the resource manager status to 'READY'.
  * 
  * @return {'READY'} the new status
  */
 psychoJS.io.ResourceManager.prototype.resetStatus = function() {
+	this.setStatus('READY');
 	return this._status;
 }
 
@@ -118,14 +139,13 @@ psychoJS.io.ResourceManager.prototype.resetStatus = function() {
 /**
  * Set the callback function for all resource registration and download events.
  * 
- * <p>Note: the callback function is passed a stringified json message</p>
+ * <p>Note: the callback function is passed a stringified json message.</p>
  * 
- * @param {Object} callbackFunction the function called each time
+ * @param {Object} callbackFunction - the function called each time
  * a resource registration or download event is fired
- * 
  */
-psychoJS.io.ResourceManager.prototype.setCallback = function(callbackFunction) {
-	this._callbackFunction = callbackFunction;
+psychoJS.io.ResourceManager.prototype.setResourceCallback = function(callbackFunction) {
+	this._resourceCallback = callbackFunction;
 }
 
 
@@ -134,7 +154,7 @@ psychoJS.io.ResourceManager.prototype.setCallback = function(callbackFunction) {
  * 
  * <p>Note: The scheduler will wait for the registration to complete before moving onto the next task.</p>
  * 
- * @param {psychoJS.Scheduler} scheduler the registration [scheduler] {@link psychoJS.Scheduler}
+ * @param {psychoJS.Scheduler} scheduler - the registration [scheduler] {@link psychoJS.Scheduler}
  */
 psychoJS.io.ResourceManager.prototype.scheduleRegistration = function(scheduler) {
 	this._RegistrationComponent = [];
@@ -149,7 +169,7 @@ psychoJS.io.ResourceManager.prototype.scheduleRegistration = function(scheduler)
  * the OSF server or the experiment server, before registering each of them
  * with this resource manager.</p>
  * 
- * <p>Note: We assume that the server.php file is in the same directory on the PHP
+ * <p>Note: We assume that the server.php file is in the same directory on the 
  * experiment server as the experiment html file itself.</p>
  * 
  * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
@@ -160,42 +180,55 @@ psychoJS.io.ResourceManager.prototype.scheduleRegistration = function(scheduler)
  * @throws {String} Throws a JSON string exception if the registration failed.
  */
 psychoJS.io.ResourceManager.prototype.registerAvailableResources = function(resourceManager, component, arg) {
-	resourceManager._callbackFunction('{ "message" : "resource registration started" }');
+	var errorPrefix = '{ "function" : "io.ResourceManager.registerAvailableResources", "context" : "when registering all available resources", '
+		+ '"error" : ';
+	resourceManager._resourceCallback('{ "message" : "resource registration started" }');
 	resourceManager.setStatus('REGISTERING');
 	
 	// query the list of resources directly from the OSF server:
-	if (resourceManager.repository === 'OSF') {
+	if (resourceManager.downloadFrom === 'OSF') {
 		// TODO
 	}
-	
-	// query the list of resources from the PHP experiment server:
-	else if (resourceManager.repository === 'EXPERIMENT_SERVER') {
+		
+	// query the list of resources from the experiment server:
+	else if (resourceManager.downloadFrom === 'EXPERIMENT_SERVER') {
 		$.post('./server.php',
 			{'command' : 'LIST_RESOURCES'})
 		.then(
 			function (result) {
-				var json = JSON.parse(result);
-				
+				try {
+					var json = JSON.parse(result);
+				} catch (exception) {
+					resourceManager.setStatus('ERROR');
+					// JSON.parse will throw a SyntaxError if result is not a JSON string
+					// this might happens if php is not available on the server running server.php,
+					// in which case an HTTP POST request to server.php returns the code of server.php
+					throw errorPrefix + '"unexpected answer from the experiment server" }';
+				}
+					
 				if ('resources' in json) {
 					var nbResource = json.resources.length;
 					for (var i = 0; i < nbResource; i++) {
 						resourceManager.registerResource(json.resources[i]);
 					}
-					resourceManager._callbackFunction('{ "message" : "all resources registered", "number" : ' + nbResource.toString() + ' }');
+					resourceManager._resourceCallback('{ "message" : "all resources registered", "number" : ' + nbResource.toString() + ' }');
 					resourceManager.setStatus('READY');
-					
+						
 					if (component !== undefined) {
 						// leave the generic loop:
 						component.status = psychoJS.FINISHED;
 					}
 				} else {
 					resourceManager.setStatus('ERROR');
-					throw '{ "function" : "io.ResourceManager.registerAvailableResources", "context" : "when registering all available resources", "error" : ' + $.trim(result) + ' }';
+					throw errorPrefix + $.trim(result) + ' }';
 				}
 			}, 
 			function (error){
 				resourceManager.setStatus('ERROR');
-				throw '{ "function" : "io.ResourceManager.registerAvailableResources", "context" : "when registering all available resources", "error" : "' + $.trim(error) + '" }';
+				if ('statusText' in error)
+					throw errorPrefix + '"' + $.trim(error.statusText) + '" }';
+				else
+					throw errorPrefix + error + ' }';
 			}
 		);
 	}
@@ -205,14 +238,14 @@ psychoJS.io.ResourceManager.prototype.registerAvailableResources = function(reso
 /**
  * Register a resource.
  * 
- * <p>Note: the [callback function]{@link psychoJS.io.ResourceManager#setCallback} is called with
+ * <p>Note: the [callback function]{@link psychoJS.io.ResourceManager#setResourceCallback} is called with
  * the following stringified json object: <blockquote>{"message" : "resource registered", "resource" : "&lt;resource name&gt;"}</blockquote></p>
  * 
- * @param {string} resourceName name of the resource to be registered
+ * @param {string} resourceName - name of the resource to be registered
  */
 psychoJS.io.ResourceManager.prototype.registerResource = function(resourceName) {
-	this._resourceNames.push(resourceName);
-	this._callbackFunction('{ "message" : "resource registered", "resource" : "' + resourceName + '" }');
+	this._resources[resourceName] = undefined;
+	this._resourceCallback('{ "message" : "resource registered", "resource" : "' + resourceName + '" }');
 }
 
 
@@ -223,11 +256,12 @@ psychoJS.io.ResourceManager.prototype.registerResource = function(resourceName) 
  * @return {Object} value of the resource or exception if resource is unknown
  */
 psychoJS.io.ResourceManager.prototype.getResource = function(resourceName) {
-	if (this._resourceNames.indexOf(resourceName) == -1) {
-		throw '{ "function" : "io.ResourceManager.getResource", "context" : "when getting resource: ' + resourceName + '", "error" : "unknown resource" }';
+	var errorPrefix = '{ "function" : "io.ResourceManager.getResource", "context" : "when getting resource", "error" : ';
+	if (!this._resources.hasOwnProperty(resourceName)) {
+		throw errorPrefix + '"unknown resource: ' + resourceName + '" }';
 	}
 	
-	return this._resourceValues[resourceName];
+	return this._resources[resourceName];
 }
 
 
@@ -237,12 +271,11 @@ psychoJS.io.ResourceManager.prototype.getResource = function(resourceName) {
  * <p>Note: The scheduler will wait for the download of all registered
  * resources to complete before moving onto the next task.</p>
  * 
- * @param {Object} scheduler the [resource scheduler]{@link psychoJS.Scheduler}
- * 
+ * @param {Object} scheduler - the [resource scheduler]{@link psychoJS.Scheduler}
  **/
 psychoJS.io.ResourceManager.prototype.scheduleDownload = function(resourceScheduler) {
 	// download resources from OSF:
-	if (this.repository === 'OSF') {
+	if (this.downloadFrom === 'OSF') {
 		
 		// if project is private, we need to authenticate:
 		if (this.projectStatus === 'PRIVATE') {
@@ -269,14 +302,15 @@ psychoJS.io.ResourceManager.prototype.scheduleDownload = function(resourceSchedu
 		resourceScheduler.add(this.Loop(this, this._DowloadLinkComponent, psychoJS.io.ResourceManager.prototype.OSFDownloadLink));
 		
 		// schedule download of resources:
-		this._DowloadResourceComponents = [];
-		for (var i = 0; i < this._resourceNames.length; ++i) {
-			this._DowloadResourceComponents[i] = [];
-				resourceScheduler.add(this.Loop(this, this._DowloadResourceComponents[i], psychoJS.io.ResourceManager.prototype.OSFDownloadResource, [i]));
-		}
+		this._DowloadResourceComponents = {};
+		for (resourceName in this._resources)
+			if (this._resources.hasOwnProperty(resourceName)) {
+				this._DowloadResourceComponents[resourceName] = [];
+				resourceScheduler.add(this.Loop(this, this._DowloadResourceComponents[resourceName], psychoJS.io.ResourceManager.prototype.OSFDownloadResource, resourceName));
+			}
 	}
-	// download resources from the PHP experiment server:
-	else if (this.repository === 'EXPERIMENT_SERVER') {
+	// download resources from experiment server:
+	else if (this.downloadFrom === 'EXPERIMENT_SERVER') {
 		// schedule download of resources:
 		this._DowloadResourceComponents = [];
 		resourceScheduler.add(this.Loop(this, this._DowloadResourceComponents, psychoJS.io.ResourceManager.prototype.EXPDownloadResources));
@@ -286,6 +320,12 @@ psychoJS.io.ResourceManager.prototype.scheduleDownload = function(resourceSchedu
 
 /**
  * Generic loop waiting for an asynchronous resource operation to finish
+ *
+ * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
+ * @param {Object} component - dummy component used to block a scheduler, e.g. one passed to
+ * [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration}, until 'resourceFunction' has completed
+ * @param {Object} resourceFunction - the potentially asynchronous function, the end of which Loop is waiting for
+ * @param {Object} [arg] - argument passed to 'resourceFunction'
  **/
 psychoJS.io.ResourceManager.prototype.Loop = function(resourceManager, component, resourceFunction, arg) {
 	component.status = psychoJS.NOT_STARTED;
@@ -305,7 +345,8 @@ psychoJS.io.ResourceManager.prototype.Loop = function(resourceManager, component
 
 		// check for quit (the Esc key)
 		if (endExpNow || psychoJS.event.getKeys({keyList:["escape"]}).length > 0) {
-			core.quit();
+			resourceManager.resetStatus();
+			psychoJS.core.quit('The "Escape" key was pressed. Goodbye!');
 		}
 
 		// the loop will return until the authentication is completed
@@ -319,9 +360,19 @@ psychoJS.io.ResourceManager.prototype.Loop = function(resourceManager, component
 }
 
 
+/**
+ * Get the experimenter's authentication token for the project on OSF
+ * 
+ * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
+ * @param {Object} component - dummy component used by the [Loop function]{@link psychoJS.io.ResourceManager#Loop} to block
+ * the scheduler passed to [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration} until the download has completed
+ * @param {Object} [arg] - argument (currently unused)
+ */
 psychoJS.io.ResourceManager.prototype.OSFAuthenticate = function(resourceManager, component, arg) {
-	resourceManager._callbackFunction('{ "message" : "getting OSF authentication token" }');
+	resourceManager._resourceCallback('{ "message" : "getting OSF authentication token" }');
 	resourceManager.setStatus('BUSY');
+	var errorPrefix = '{ "function" : "io.ResourceManager.OSFAuthenticate", "context" : "when getting authentication token from OSF", "error" : ';
+
 	
 	$.ajax({
 		type: "POST",
@@ -350,14 +401,24 @@ psychoJS.io.ResourceManager.prototype.OSFAuthenticate = function(resourceManager
 		},
 		function (error) {
 			resourceManager.setStatus('ERROR');
-			throw '{ "function" : "io.ResourceManager.OSFAuthenticate", "context" : "when getting token from OSF", "error" : "' + error + '" }';
+			throw errorPrefix + '"' + error + '" }';
 		}
 	);
 }
 
+
+/**
+ * Get the ID of the project on OSF
+ * 
+ * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
+ * @param {Object} component - dummy component used by the [Loop function]{@link psychoJS.io.ResourceManager#Loop} to block
+ * the scheduler passed to [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration} until the download has completed
+ * @param {Object} [arg] - argument (currently unused)
+ */
 psychoJS.io.ResourceManager.prototype.OSFProjectID = function(resourceManager, component, arg) {
-	resourceManager._callbackFunction('{ "message" : "getting OSF project ID" }');
+	resourceManager._resourceCallback('{ "message" : "getting OSF project ID" }');
 	resourceManager.setStatus('BUSY');
+	var errorPrefix = '{ "function" : "io.ResourceManager.OSFProjectID", "context" : "when getting project ID from OSF", "error" : ';
 	
 	resourceManager._OsfAjaxSettings.url = resourceManager._CorsProxyUrl + resourceManager._OsfUrl + 'nodes/?filter[title]=' + resourceManager.projectName;
 	$.ajax(resourceManager._OsfAjaxSettings)
@@ -365,7 +426,7 @@ psychoJS.io.ResourceManager.prototype.OSFProjectID = function(resourceManager, c
 		function (result) {
 			resourceManager._projectId = result.data[1].id;
 			if (psychoJS.debug) console.log("\tgot project ID: " + resourceManager._projectId);
-			this._callbackFunction('{ "message" : "got OSF project ID", "projectID" : "' + resourceManager._projectId + '" }');
+			this._resourceCallback('{ "message" : "got OSF project ID", "projectID" : "' + resourceManager._projectId + '" }');
 			resourceManager.setStatus('READY');
 			
 			// leave the generic loop:
@@ -373,15 +434,24 @@ psychoJS.io.ResourceManager.prototype.OSFProjectID = function(resourceManager, c
 		}, 
 		function (error) {
 			resourceManager.setStatus('ERROR');
-			throw '{ "function" : "io.ResourceManager.OSFProjectID", "context" : "when getting project ID from OSF", "error" : "' + error + '" }';
+			throw errorPrefix + '"' + error + '" }';
 		}
 	);
 }
 
 
-psychoJS.io.ResourceManager.prototype.OSFStorageProvider = function(resourceManager, component, arg) {
-	resourceManager._callbackFunction('{ "message" : "getting OSF storage provider" }');
+/**
+ * Get the storage provider of the project on OSF
+ * 
+ * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
+ * @param {Object} component - dummy component used by the [Loop function]{@link psychoJS.io.ResourceManager#Loop} to block
+ * the scheduler passed to [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration} until the download has completed
+ * @param {Object} [arg] - argument (currently unused)
+ */
+ psychoJS.io.ResourceManager.prototype.OSFStorageProvider = function(resourceManager, component, arg) {
+	resourceManager._resourceCallback('{ "message" : "getting OSF storage provider" }');
 	resourceManager.setStatus('BUSY');
+	var errorPrefix = '{ "function" : "io.ResourceManager.OSFStorageProvider", "context" : "when getting storage provider from OSF", "error" : ';
 	
 	resourceManager._OsfAjaxSettings.url = resourceManager._CorsProxyUrl + resourceManager._OsfUrl + 'nodes/' + resourceManager.projectId + '/files/';
 	$.ajax(resourceManager._OsfAjaxSettings)
@@ -396,15 +466,25 @@ psychoJS.io.ResourceManager.prototype.OSFStorageProvider = function(resourceMana
 		},
 		function (error){
 			resourceManager.setStatus('ERROR');
-			throw '{ "function" : "io.ResourceManager.OSFStorageProvider", "context" : "when getting storage provider from OSF", "error" : "' + error + '" }';
+			throw errorPrefix + '"' + error + '" }';
 		}
   	);
 }
 
 
-psychoJS.io.ResourceManager.prototype.OSFDownloadLink = function(resourceManager, component, arg) {
-	resourceManager._callbackFunction('{ "message" : "getting OSF download links" }');
+/**
+ * Get the download links for the registered resources directly from OSF
+ * (without going through the experiment server).
+ * 
+ * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
+ * @param {Object} component - dummy component used by the [Loop function]{@link psychoJS.io.ResourceManager#Loop} to block
+ * the scheduler passed to [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration} until the download has completed
+ * @param {Object} [arg] - argument (currently unused)
+ */
+ psychoJS.io.ResourceManager.prototype.OSFDownloadLink = function(resourceManager, component, arg) {
+	resourceManager._resourceCallback('{ "message" : "getting OSF download links" }');
 	resourceManager.setStatus('BUSY');
+	var errorPrefix = '{ "function" : "io.ResourceManager.OSFDownloadLink", "context" : "when getting download links from OSF", "error" : ';
 	
 	resourceManager._OsfAjaxSettings.url = resourceManager._CorsProxyUrl + resourceManager._storageProviderURL;
 	$.ajax(resourceManager._OsfAjaxSettings)
@@ -416,22 +496,33 @@ psychoJS.io.ResourceManager.prototype.OSFDownloadLink = function(resourceManager
 				if (psychoJS.debug) console.log("\tgot download link for resource '" + name + "' : " + resourceManager._downloadLinkDictionary[name]);
 			}
 			
-			// leave the generic loop:
 			resourceManager.setStatus('READY');
+			
+			// leave the generic loop:
 			component.status = psychoJS.FINISHED;
 		},
 		function (error){
 			resourceManager.setStatus('ERROR');
-			throw '{ "function" : "io.ResourceManager.OSFStorageProvider", "context" : "when getting download links from OSF", "error" : "' + error + '" }';
+			throw errorPrefix + '"' + error + '" }';
 		}
   	);
 }
 
 
-
+/**
+ * Download resources directly from OSF (without going through the experiment server).
+ * 
+ * <p>Note: we assume that the experiment server's resources subdirectory is in the same directory as
+ * the experiment html file.</p>
+ * 
+ * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
+ * @param {Object} component - dummy component used by the [Loop function]{@link psychoJS.io.ResourceManager#Loop} to block
+ * the scheduler passed to [scheduleDownload]{@link psychoJS.io.ResourceManager#scheduleDownload} until the download has completed
+ * @param {Object} arg - index of the resource in the resource name array
+ */
 psychoJS.io.ResourceManager.prototype.OSFDownloadResource = function(resourceManager, component, arg) {
-	var resourceName = resourceManager._resourceNames[arg[0]];
-	resourceManager._callbackFunction('{ "message" : "downloading resource", "resource" : "' + resourceName + '" }');
+	var resourceName = arg;
+	resourceManager._resourceCallback('{ "message" : "downloading resource", "resource" : "' + resourceName + '" }');
 	resourceManager.setStatus('BUSY');
 	
 	resourceManager._OsfAjaxSettings.url = resourceManager._CorsProxyUrl + resourceManager._downloadLinkDictionary[resourceName];
@@ -442,12 +533,12 @@ psychoJS.io.ResourceManager.prototype.OSFDownloadResource = function(resourceMan
 		},
 		// we get a parser error with cors-anywhere, but we still get the file in error.responseText
 		function (error){
-			resourceManager._resourceValues[resourceName] = error.responseText;
-			resourceManager._callbackFunction('{ "message" : "resource downloaded", "resource" : "' + resourceName + '" }');
+			resourceManager._resources[resourceName] = error.responseText;
+			resourceManager._resourceCallback('{ "message" : "resource downloaded", "resource" : "' + resourceName + '" }');
 			resourceManager.setStatus('READY');
 			if (psychoJS.debug) {
 				console.log('\tgot file:');
-				console.log(resourceManager._resourceValues[resourceName]);
+				console.log(resourceManager._resources[resourceName]);
 			}
 			
 			// leave the generic loop:
@@ -465,7 +556,7 @@ psychoJS.io.ResourceManager.prototype.OSFDownloadResource = function(resourceMan
  * 
  * @param {psychoJS.io.ResourceManager} resourceManager - the [resource manager]{@link psychoJS.io.ResourceManager}
  * @param {Object} component - dummy component used by the [Loop function]{@link psychoJS.io.ResourceManager#Loop} to block
- * the scheduler passed to [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration} until the download has completed
+ * the scheduler passed to [scheduleRegistration]{@link psychoJS.io.ResourceManager#scheduleRegistration} until the registration has completed
  * @param {Object} [arg] - argument (currently unused)
  */
 psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceManager, component, arg) {
@@ -476,7 +567,7 @@ psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceMa
 	resourceManager.resourceQueue = new createjs.LoadQueue(true);
 	
 	resourceManager.resourceQueue.addEventListener("filestart", function(event) {
-		resourceManager._callbackFunction('{ "message" : "downloading resource", "resource" : "' + event.item.id + '" }');
+		resourceManager._resourceCallback('{ "message" : "downloading resource", "resource" : "' + event.item.id + '" }');
 	});
 
 	// note: strangely, possibly because of timing, the value of the resource
@@ -484,20 +575,20 @@ psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceMa
 	// get it upon the firing of "complete", instead.
 	resourceManager.resourceQueue.addEventListener("fileload", function(event) {
 		++resourceManager._nbLoadedResources;
-		resourceManager._callbackFunction('{ "message" : "resource downloaded", "resource" : "' + event.item.id + '" }');
+		resourceManager._resourceCallback('{ "message" : "resource downloaded", "resource" : "' + event.item.id + '" }');
 	});
 	
 	// loading completed: we get the value of the resources and exit the generic Loop
 	resourceManager.resourceQueue.addEventListener("complete", function(event) {
 		
 		// get the values of all resources:
-		for (var i = 0; i < resourceManager._resourceNames.length; ++i) {
-			var resourceName = resourceManager._resourceNames[i];
-			resourceManager._resourceValues[resourceName] = resourceManager.resourceQueue.getResult(resourceName, false); // true: load raw result
-		}
+		for (resourceName in resourceManager._resources)
+			if (resourceManager._resources.hasOwnProperty(resourceName)) {
+				resourceManager._resources[resourceName] = resourceManager.resourceQueue.getResult(resourceName, false); // true: load raw result
+			}
 
 		// clean house and leave Loop:
-		resourceManager._callbackFunction('{ "message" : "all resources downloaded", "number" : ' + resourceManager._nbLoadedResources.toString() + ' }');
+		resourceManager._resourceCallback('{ "message" : "all resources downloaded", "number" : ' + resourceManager._nbLoadedResources.toString() + ' }');
 		resourceManager.resourceQueue.destroy();
 		
 		resourceManager.setStatus('READY');
@@ -511,10 +602,11 @@ psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceMa
 	});
 	
 	// queue the resources:
-	for (var i = 0; i < resourceManager._resourceNames.length; ++i) {
-		var resourceURL = "resources/" + resourceManager._resourceNames[i];
-		resourceManager.resourceQueue.loadFile({id : resourceManager._resourceNames[i], src : resourceURL}, false);
-	}
+	for (resourceName in resourceManager._resources)
+			if (resourceManager._resources.hasOwnProperty(resourceName)) {
+				var resourceURL = "resources/" + resourceName;
+				resourceManager.resourceQueue.loadFile({id : resourceName, src : resourceURL}, false);
+			}
 	
 	// start loading:
 	resourceManager.resourceQueue.load();
@@ -530,34 +622,116 @@ psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceMa
  * <p>Note: we assume that the server.php file is in the same directory on the
  * experiment server as the experiment html file itself.</p>
  * 
- * @param {Object} experimentServerUrl - URL of the experiment server
  * @param {Object} session - session information (e.g. experiment name, participant name, etc.)
+ * @param {{('RESULT'|'LOG')}} dataType - type of the data to be saved
  * @param {Object} data - data to be saved (e.g. a .csv string)
  * @return {Object} JSON string OSF representation of the file to which the data was saved
  */
-psychoJS.io.ResourceManager.prototype.OSFEXPUploadData = function(experimentServerUrl, session, data) {
+psychoJS.io.ResourceManager.prototype.OSFEXPUploadData = function(session, dataType, data) {
+	var errorPrefix = '{ "function" : "io.ResourceManager.OSFEXPUploadData", "context" : "when uploading data to OSF via the experiment server", '
+		+ '"error" : ';
 	this.setStatus('BUSY');
 	
+	if (['RESULT', 'LOG'].indexOf(dataType) == -1) {
+		this.setStatus('ERROR');
+		throw errorPrefix + '"unknown data type: ' + dataType + '" }';
+	}
+		
 	var self = this;
 	$.post('./server.php',
 			{'command' : 'OSF_UPLOAD',
 			'session' : JSON.stringify(session),
+			'dataType' : dataType,
 			'data' : data})
 	.then(
 		function (result) {
-			json = JSON.parse(result);
+			try {
+				var json = JSON.parse(result);
+			} catch (exception) {
+				self.setStatus('ERROR');
+				// JSON.parse will throw a SyntaxError if result is not a JSON string
+				// this might happens if php is not available on the server running server.php,
+				// in which case an HTTP POST request to server.php returns the code of server.php
+				// or if the experiment server ran into an error.
+				if (psychoJS.debug) console.log(result);
+				throw errorPrefix + '"unexpected answer from the experiment server" }';
+			}
 
 			if ('representation' in json) {
 				self.setStatus('READY');
 				return result;
 			} else {
 				self.setStatus('ERROR');
-				throw '{ "function" : "io.ResourceManager.OSFEXPUploadData", "context" : "when uploading data to OSF via the experiment server", "error" : ' + $.trim(result) + ' }';
+				throw errorPrefix + $.trim(result) + ' }';
 			}
 		}, 
 		function (error) {
 			self.setStatus('ERROR');
-			throw '{ "function" : "io.ResourceManager.OSFEXPUploadData", "context" : "when uploading data to OSF via the experiment server", "error" : ' + $.trim(error) + ' }';
+			if ('statusText' in error)
+				throw errorPrefix + '"' + $.trim(error.statusText) + '" }';
+			else
+				throw errorPrefix + error + ' }';
+		}
+	);
+}
+
+
+/**
+ * Upload session information and experiment data to the experiment server.
+ * 
+ * <p>Sends the session information and experiment data to the experiment server using a POST
+ *  request.</p>
+ * 
+ * <p>Note: we assume that the server.php file is in the same directory on the
+ * experiment server as the experiment html file itself.</p>
+ * 
+ * @param {Object} session - session information (e.g. experiment name, participant name, etc.)
+ * @param {{('RESULT'|'LOG')}} dataType - type of the data to be saved
+ * @param {Object} data - data to be saved (e.g. a .csv string)
+ * @return {Object} JSON string representation of the file to which the data was saved
+ */
+psychoJS.io.ResourceManager.prototype.EXPUploadData = function(session, dataType, data) {
+	var errorPrefix = '{ "function" : "io.ResourceManager.EXPUploadData", "context" : "when uploading data to OSF via the experiment server", '
+		+ '"error" : ';
+	this.setStatus('BUSY');
+	
+	if (['RESULT', 'LOG'].indexOf(dataType) == -1) {
+		this.setStatus('ERROR');
+         		throw errorPrefix + '"unknown data type: ' + dataType + '" }';
+	}
+		
+	var self = this;
+	$.post('./server.php',
+			{'command' : 'EXP_UPLOAD',
+			'session' : JSON.stringify(session),
+			'dataType' : dataType,
+			'data' : data})
+	.then(
+		function (result) {
+			try {
+				var json = JSON.parse(result);
+			} catch (exception) {
+				self.setStatus('ERROR');
+				// JSON.parse will throw a SyntaxError if result is not a JSON string
+				// this might happens if php is not available on the server running server.php,
+				// in which case an HTTP POST request to server.php returns the code of server.php
+				throw errorPrefix + '"unexpected answer from the experiment server" }';
+			}
+
+			if ('representation' in json) {
+				self.setStatus('READY');
+				return result;
+			} else {
+				self.setStatus('ERROR');
+				throw errorPrefix + $.trim(result) + ' }';
+			}
+		}, 
+		function (error) {
+			self.setStatus('ERROR');
+			if ('statusText' in error)
+				throw errorPrefix + '"' + $.trim(error.statusText) + '" }';
+			else
+				throw errorPrefix + error + ' }';
 		}
 	);
 }
