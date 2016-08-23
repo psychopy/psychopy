@@ -2,7 +2,7 @@
  * Main component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -34,10 +34,8 @@ psychoJS.init = function(window) {
 
 	// debugging:
 	psychoJS.debug = true;
-	if (psychoJS.debug) {
-		console.log("init psychoJS");
-	}
-
+	if (psychoJS.debug) console.log("init PsychoJS");
+	
 	psychoJS.frameCount = 0;
 	
 	// note: we create the resource manager here, but its parameters
@@ -45,6 +43,40 @@ psychoJS.init = function(window) {
 	psychoJS.resourceManager = new psychoJS.io.ResourceManager();
 	
 	psychoJS.window = window;
+	
+		
+	// get IP info of participant
+	// note: since we make a GET call to http://ipinfo.io to get IP info,
+	// these will most certainly not be available immediately after the call
+	// to psychoJS.init. 
+	psychoJS._IP = {};
+	psychoJS.getParticipantIPInfo();
+}
+
+
+/**
+ * Get the IP information of the participant, asynchronously.
+ * 
+ * <p>Note: we use http://ipinfo.io</p>
+ */
+psychoJS.getParticipantIPInfo = function() {
+	$.ajax({
+		type: "GET",
+		url: 'http://ipinfo.io',
+		dataType: 'json',
+	}).then(
+		function (response) {
+			psychoJS._IP['IP'] = response.ip;
+			psychoJS._IP['hostname'] = response.hostname;
+			psychoJS._IP['city'] = response.city;
+			psychoJS._IP['region'] = response.region;
+			psychoJS._IP['country'] = response.country;
+			psychoJS._IP['location'] = response.loc;
+		},
+		function (error) {
+			throw '{ "function" : "psychoJS.getParticipantIPInfo", "context" : "when getting the IP information of the participant", "error" : "' + error + '" }';
+		}
+	);
 }
 
 
@@ -53,7 +85,7 @@ psychoJS.init = function(window) {
  */
 psychoJS.setupCallbacks = function() {
 	// key events:
-	document.addEventListener("keydown", keyDownHandler, false);
+	document.addEventListener("keydown", psychoJS.event._keyDownHandler, false);
 	
 	// resize events:
 	$(window).on("resize", psychoJS.onResize);

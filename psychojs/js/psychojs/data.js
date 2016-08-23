@@ -24,7 +24,6 @@ psychoJS.data = {}
  * If `fileName` ends with:
  *    - .csv:  import as a comma-separated-value file (header + row x col)
  *    - .xlsx: import as Excel 2007 (xlsx) files. Sorry no support for older (.xls) is planned.
- *    - .pkl:  import from a pickle file as list of lists (header + row x col)
  *
  * The file should contain one row per type of trial needed and one column
  * for each parameter that defines the trial type. The first row should give
@@ -45,26 +44,57 @@ psychoJS.data = {}
  *    slice(-10,2,None) #the same as above
  *    random(5)*8 #5 random vals 0-8</p>
  * 
- * @param {psychoJS.io.ResourceManager} resourceManager the [resource manager]{@link psychoJS.io.ResourceManager}
- * @param {String} resourceName the name of the resource, registered with
- * the resource manager, containing the list of conditions
+ * @param {String} resourceName - the name of the resource containing the list of conditions
+ * It must be registered with the resource manager.
+ * @param {Object} [selection] - the selection
  * @return {Object} the parsed list of conditions
  * 
  * @throws {String} Throws a JSON string exception if importing the conditions failed.
  */
-psychoJS.data.importConditions = function(resourceManager, resourceName) {
+psychoJS.data.importConditions = function(resourceName, selection) {
 	try {
-		var resourceValue = resourceManager.getResource(resourceName);
+		var resourceValue = psychoJS.resourceManager.getResource(resourceName);
 		
-		console.log("got resource value:");
-		console.log(resourceValue);
+		if (psychoJS.debug) {
+			console.log("data.importConditions: got resource:");
+			console.log(resourceValue);
+		}
+		
+		// parse the selection:
+		if (undefined !== selection) {
+			// TODO
+			throw 'selection currently not supported.';
+		}
 	
 		// decode resource value based on resourceName extension:
-		var parsingResult = Papa.parse(resourceValue, {header: true, dynamicsTyping: true});
-		return parsingResult.data;
+		var resourceExtension = resourceName.split('.').pop();
+		
+		// comma separated file .csv:
+		if (resourceExtension === 'csv') {
+			// remove potential trailing line break:
+			resourceValue = resourceValue.replace(/\n$/, "");
+			
+			// parse csv:
+			var parsingResult = Papa.parse(resourceValue, {header: true, dynamicsTyping: true});
+			
+			// select the parsed results:
+			// TODO
+			
+			return parsingResult.data;			
+		}
+		
+		/*
+		// Excel spreadsheet .xls or .xlsx:
+		// TODO:
+		else if (resourceExtension === 'xls' || resourceExtension === 'xlsx') {
+		}*/
+		
+		else {
+			throw 'extension: ' + resourceExtension + ' currently not supported.';
+		}
 	}
 	catch (exception) {
-		throw '{ "function" : "data.importConditions", "context" : "when attempting to import condition: ' + resourceName + '", "error" : ' + exception + ' }';
+		throw '{ "function" : "data.importConditions", "context" : "when importing condition: ' + resourceName + '", "error" : ' + exception + ' }';
 	}
 }
 
@@ -73,34 +103,41 @@ psychoJS.data.importConditions = function(resourceManager, resourceName) {
  * 
  */
 psychoJS.data.TrialHandler = function(attribs) {
-	this.name = getAttrib(attribs, 'name', []);
-	this.trialList = getAttrib(attribs, 'trialList', []);
-	this.nReps = getAttrib(attribs, 'nReps', []);
+	this.name = psychoJS.getAttrib(attribs, 'name', []);
+	this.trialList = psychoJS.getAttrib(attribs, 'trialList', []);
+	this.nReps = psychoJS.getAttrib(attribs, 'nReps', []);
 	this.nTotal = this.nReps * this.trialList.length;
 	this.nRemaining = this.nTotal // subtract 1 each trial
-	this.method = getAttrib(attribs, 'method', 'random');
+	this.method = psychoJS.getAttrib(attribs, 'method', 'random');
 	this.thisRepN = 0;        // records which repetition or pass we are on
 	this.thisTrialN = -1;    // records which trial number within this repetition
 	this.thisN = -1;
 	this.thisIndex = 0;        // the index of the current trial in the conditions list
 	this.thisTrial = [];
 	this.finished = false;
-	this.extraInfo = getAttrib(attribs, 'extraInfo', []);
+	this.extraInfo = psychoJS.getAttrib(attribs, 'extraInfo', []);
 	this._warnUseOfNext = true;
-	this.seed = getAttrib(attribs, 'seed', []);
+	this.seed = psychoJS.getAttrib(attribs, 'seed', []);
 
 	this.finished = false;
 	this._experimentHandler = null;
 }
 
 
+/**
+ * Set the experiment handler.
+ *
+ * @param{} experimentHandler - the [experiment handler]{@link psychoJS.data.ExperimentHandler}
+ */
 psychoJS.data.TrialHandler.prototype.setExperimentHandler = function(experimentHandler) {
 	this._experimentHandler = experimentHandler;
 }
 
+
 psychoJS.data.TrialHandler.prototype.addData = function(key, value) {
 	this._experimentHandler.addData(key, value);
 }
+
 
 psychoJS.data.TrialHandler.prototype.updateAttributesAtBegin = function() {
 	this.thisTrialN ++; 	// number of trial this pass
@@ -125,15 +162,6 @@ psychoJS.data.TrialHandler.prototype.updateAttributesAtBegin = function() {
 	*/
 }
 
-/*
-psychoJS.data.TrialHandler.prototype.saveAsExcel = function(attribs) {
-}
-
-psychoJS.data.TrialHandler.prototype.saveData = function(resourceManager, expInfo) {
-	resourceManager.OSFUploadData(expInfo, this.data);
-}
-*/
-
 
 /**
  * Create a new experiment handler.
@@ -150,32 +178,31 @@ psychoJS.data.TrialHandler.prototype.saveData = function(resourceManager, expInf
  * @constructor
  * 
  * @param {Object} attribs associative array used to store the following parameters:
- * @param {('LOCAL_EXCEL'|'OSF'|'OSF_VIA_EXPERIMENT_SERVER'|'EXPERIMENT_SERVER')} attribs.repository destination for long term data storage
+ * @param {string} attribs.name - name of the experiment
+ * @param {('LOCAL_EXCEL'|'OSF'|'OSF_VIA_EXPERIMENT_SERVER'|'EXPERIMENT_SERVER')}
+ * attribs.saveTo - repository to which the data is saved
  * 
  */
 psychoJS.data.ExperimentHandler = function(attribs) {
-	this.name = getAttrib(attribs, 'name', 'experiment');
-	this.repository = getAttrib(attribs, 'repository', 'LOCAL_EXCEL');
-	this.version = getAttrib(attribs, 'version', '1.0');
-	this.extraInfo = getAttrib(attribs, 'extraInfo', undefined);
-	this.dataFileName = getAttrib(attribs, 'dataFileName', 'defaultDataFile');
-	this.experimentServerUrl = getAttrib(attribs, 'experimentServerUrl');
+	var errorPrefix = '{ "function" : "data.ExperimentHandler", "context" : "when creating ExperimentHandler", "error" : ';
+
+	this.name = psychoJS.getAttrib(attribs, 'name', 'experiment');
+	this.saveTo = psychoJS.getAttrib(attribs, 'saveTo', 'LOCAL_EXCEL');
+	if (['LOCAL_EXCEL', 'OSF', 'OSF_VIA_EXPERIMENT_SERVER', 'EXPERIMENT_SERVER'].indexOf(this.saveTo) == -1) {
+		throw errorPrefix + '"unknown repository: ' + saveTo + '" }';
+	}
+	this.version = psychoJS.getAttrib(attribs, 'version', '1.0');
+	this.extraInfo = psychoJS.getAttrib(attribs, 'extraInfo', undefined);
+	this.dataFileName = psychoJS.getAttrib(attribs, 'dataFileName', 'defaultDataFile');
 
 	// loop handlers:
 	this._loops = [];
 	this._unfinishedLoops = [];
-	// session information (e.g. participant name, participant IP, experiment name)
-	this._session = {};
+	
 	// data dictionaries (one per trial) and current data dictionary:
 	this._trialsKeys = [];
 	this._trialsData = [];
 	this._currentTrialData = {};
-	
-	// get IP info of participant
-	// note: since we make a GET call to http://ipinfo.io to get IP info,
-	// these will most certainly not be available immediately after the call
-	// to the ExperimentHandler constructor. 
-	this.getParticipantIPInfo();
 }
 
 
@@ -188,6 +215,7 @@ psychoJS.data.ExperimentHandler.prototype.addLoop = function(loop) {
 	this._unfinishedLoops.push(loop);
 	loop.setExperimentHandler(this);
 }
+
 
 /**
  * Informs the experiment handler that the loop is finished and not to
@@ -258,14 +286,21 @@ psychoJS.data.ExperimentHandler.prototype.nextEntry = function() {
 	this._currentTrialData = {};
 }
 
-psychoJS.data.ExperimentHandler.prototype.save = function(attribs) {
-	
-	// collect session information:
-	this._session['experimentName'] = expInfo['expName'];
-	this._session['participantName'] = expInfo['participant'];
-	this._session['sessionName'] = expInfo['session'];
-	this._session['sessionDate'] = expInfo['date'];
 
+/**
+ *
+ */
+psychoJS.data.ExperimentHandler.prototype.save = function(attribs) {
+	// prepare session information:
+	var session = {};
+	session['experimentName'] = this.extraInfo['expName'];
+	session['participantName'] = this.extraInfo['participant'];
+	session['sessionName'] = this.extraInfo['session'];
+	session['sessionDate'] = this.extraInfo['date'];
+	for (property in psychoJS._IP)
+		if (psychoJS._IP.hasOwnProperty(property)) {
+			session[property] = psychoJS._IP[property];
+		}
 
 	// prepare the csv file:
 	var csv = "";
@@ -302,42 +337,19 @@ psychoJS.data.ExperimentHandler.prototype.save = function(attribs) {
 		csv = csv + '\n';
 	}
 
+
+	// upload data to the experiment server:
+	if (this.saveTo === 'EXPERIMENT_SERVER') {
+		psychoJS.resourceManager.EXPUploadData(session, 'RESULT', csv);
+	}	
 	// upload data to OSF via the experiment server:
-	if (this.repository === 'OSF_VIA_EXPERIMENT_SERVER') {
-		psychoJS.resourceManager.OSFEXPUploadData(this.experimentServerUrl, this._session, csv);
+	else if (this.saveTo === 'OSF_VIA_EXPERIMENT_SERVER') {
+		psychoJS.resourceManager.OSFEXPUploadData(session, 'RESULT', csv);
 	}
 	// save data to a local excel file:
-	else if (this.repository === 'LOCAL_EXCEL') {
+	else if (this.saveTo === 'LOCAL_EXCEL') {
 		// TODO
 	}
-}
-
-
-/**
- * Get the IP information of the participant
- * 
- * <p>Note: we use http://ipinfo.io</p>
- */
-psychoJS.data.ExperimentHandler.prototype.getParticipantIPInfo = function() {
-	var self = this;
-	$.ajax({
-		type: "GET",
-		url: 'http://ipinfo.io',
-		dataType: 'json',
-	}).then(
-		function (response) {
-			self._session['IP'] = response.ip;
-			self._session['hostname'] = response.hostname;
-			self._session['city'] = response.city;
-			self._session['region'] = response.region;
-			self._session['country'] = response.country;
-			self._session['location'] = response.loc;
-		},
-		function (error){
-			console.log('Error obtaining IP info of participant:');
-			console.log(error);
-		}
-	);
 }
 
 
@@ -346,7 +358,7 @@ psychoJS.data.ExperimentHandler.prototype.getParticipantIPInfo = function() {
  * Does not return data inputs from the subject, only info relating to the trial
  * execution.
  * 
- * @param {Object} loop 
+ * @param {Object} loop - the loop
  */
 psychoJS.data.ExperimentHandler.prototype.getLoopAttributes = function(loop) {
 	var attributes = {};
