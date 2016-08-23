@@ -2,7 +2,7 @@
  * GUI component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -20,7 +20,7 @@ psychoJS.gui = {}
  * experimental values (i.e. the session name), (b) shows progress of resource
  * download, and (c) enables the partipant to run or cancel the experiment.
  * 
- * <h3>(a) Setting experiment values</h3>
+ * <b>(a) Setting experiment values</b>
  * <p>DlgFromDict displays an input field for all values in the info.dictionary argument.
  * It is possible to specify default values e.g.:</p>
  * <code>expName = 'stroop';<br>
@@ -28,7 +28,7 @@ psychoJS.gui = {}
  * scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));</code>
  * <p>If the participant cancels (by pressing Cancel or by closing the dialog box), then
  * the dictionary remains unchanged.</p>
- * <h3>(b) Progress of resource download</h3>
+ * <b>(b) Progress of resource download</b>
  * <p>The download of the experiment's resources is typically scheduled before this
  * dialog box, in a sub-scheduler. Progress is visualised in a progress bar at the bottom
  * of this dialog box:</p>
@@ -39,7 +39,7 @@ psychoJS.gui = {}
  * resourceScheduler.add(downloadResources);<br>
  * scheduler.add(function() { resourceScheduler.start(win); });<br>
  * scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));</code>
- * <h3>(c) Running or cancelling the experiment</h3>
+ * <b>(c) Running or cancelling the experiment</b>
  * <p>The flow of the experiment can be controlled by using
  * [addConditionalBranches]{@link psychoJS.Scheduler.addConditionalBranches} and the psychoJS.gui.dialogComponent.button
  * variable, e.g.:</p>
@@ -69,15 +69,13 @@ psychoJS.gui.DlgFromDict = function(info) {
 			psychoJS.gui._progressBarCurrentIncrement = undefined;
 
 			// get notified of registration and download events:
-			psychoJS.resourceManager.setCallback(psychoJS.gui.resourceCallback);
+			psychoJS.resourceManager.setResourceCallback(psychoJS.gui.resourceCallback);
 			
 			// prepare jquery UI dialog box:
 			var keys = Object.keys(info.dictionary);
 			var htmlCode = 
 				'<div id="expDialog" title="' + info.title + '">' + 
-				'<p class="validateTips">Fields marked with an asterisk (*) are required.</p>' +
-				'<form>' +
-				'<fieldset>';
+				'<p class="validateTips">Fields marked with an asterisk (*) are required.</p>';
 			for (var i = 0; i < keys.length; i++) {
 				key = keys[i];
 				value = info.dictionary[key];
@@ -85,13 +83,8 @@ psychoJS.gui.DlgFromDict = function(info) {
 				'<label for="' + key + '">' + key + '</label>' +
 				'<input type="text" name="' + key + '" id="' + key + '_id" value="' + value + '" class="text ui-widget-content ui-corner-all">';
 			}
-			htmlCode = htmlCode + '<hr><div id="progressmsg">&nbsp;</div>';
-			htmlCode = htmlCode + '<div id="progressbar"></div>';
-			htmlCode = htmlCode + 
-				'<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">' +
-				'</fieldset>' +
-				'</form>' +
-				'</div>';
+			htmlCode = htmlCode + '<hr><div id="progressMsg">&nbsp;</div>';
+			htmlCode = htmlCode + '<div id="progressbar"></div></div>';
 			var dialogElement = document.getElementById('dialogDiv');
 			dialogElement.innerHTML = htmlCode;
 			
@@ -100,6 +93,7 @@ psychoJS.gui.DlgFromDict = function(info) {
 			$("#expDialog").dialog({
 				width: 400,
 				modal: true,
+				closeOnEscape: false,
 				buttons: [
 					{
 						id: "buttonOk",
@@ -131,7 +125,9 @@ psychoJS.gui.DlgFromDict = function(info) {
 					//$.unblockUI();
 					psychoJS.gui.dialogComponent.status = psychoJS.FINISHED;
 				}
-			});
+			})
+			// change colour of title bar
+			.prev(".ui-dialog-titlebar").css("background", "green");
 
 			// block UI until user has pressed dialog button:
 			// note: block UI does not allow for text to be entered in the dialog form boxes, alas!
@@ -168,7 +164,7 @@ psychoJS.gui.resourceCallback = function(message) {
 	for (var field in json)
 		if (field !== "message")
 			progressMsg = progressMsg + ": " + json[field];
-	$("#progressmsg").text(progressMsg);
+	$("#progressMsg").text(progressMsg);
 	
 	// once all the resources have been registered, we can start the
 	// progress bar:
@@ -203,7 +199,7 @@ psychoJS.gui.resourceCallback = function(message) {
 
 
 /**
- * Destroy the resource or message dialog boxes if they are open
+ * Destroy the resource or message dialog boxes if they are open.
  */
 psychoJS.gui.destroyDialog = function() {
 	if ($("#expDialog").length) {
@@ -216,18 +212,23 @@ psychoJS.gui.destroyDialog = function() {
 
 
 /**
- * Show a message to the participant in a dialog box
+ * Show a message to the participant in a dialog box.
  * 
  * <p>This function can be used to display either a multi-level exception,
  * such as those thrown by the functions of io.js, or a warning message.</p>
  * 
  * @param {Object} info - associative array used to store the following parameters:
  * @param {string} info.error - a JSON string exception of the format: {"function" : &lt;function name&gt;, "context" : &lt;context&gt;, "error" : &lt;error&gt;}
+ * @param {string} info.message - any kind of message
  * @param {string} info.warning - a warning message
  * @param {boolean} [info.showOK=true] - specifies whether to show the OK button
+ * @param {boolean} [info.onOK] - function called when the participant presses the OK button
  * 
  */
 psychoJS.gui.dialog = function(info) {
+	var errorPrefix = '{ "function" : "psychoJS.gui.dialog", "context" : "when showing a dialog box", "error" :';
+	
+	// destroy previous dialog box:
 	psychoJS.gui.destroyDialog();
 
 	// we are displaying an error:
@@ -251,24 +252,28 @@ psychoJS.gui.dialog = function(info) {
 		htmlCode = htmlCode + '<p>Please try to run the experiment again. An email has been sent to the experimenter.</p>';
 		var titleColour = 'red';
 	}
+	// we are displaying a message:
+	else if (info.hasOwnProperty('message')) {
+		htmlCode = '<div id="msgDialog" title="Message">'
+			+ '<p class="validateTips">' + info['message'] + '</p>';
+		titleColour = 'green';
+	}
 	// we are displaying a warning:
 	else if (info.hasOwnProperty('warning')) {
 		htmlCode = '<div id="msgDialog" title="Warning">'
 			+ '<p class="validateTips">' + info['warning'] + '</p>';
 		titleColour = 'orange';
 	}
-	
-	htmlCode = htmlCode + '<form><fieldset>';
-	htmlCode = htmlCode + 
-		'<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">' +
-		'</fieldset>' +
-		'</form>' +
-		'</div>';
+	// error:
+	else {
+		throw errorPrefix + '"unexpected argument: ' + JSON.stringify(info) + '" }';
+	}
+	htmlCode = htmlCode + '</div>';
 	var dialogElement = document.getElementById('dialogDiv');
 	dialogElement.innerHTML = htmlCode;
 	
 	// init dialog box:
-	$("#msgDialog").dialog({dialogClass: 'no-close', width: 400, modal: true})
+	$("#msgDialog").dialog({dialogClass: 'no-close', width: 400, modal: true, closeOnEscape: false})
 	// change colour of title bar
 	.prev(".ui-dialog-titlebar").css("background", titleColour);
 	
@@ -284,6 +289,11 @@ psychoJS.gui.dialog = function(info) {
 				text: "Ok",
 				click: function() {
 					$(this).dialog("close");
+					
+					// execute callback function:
+					if (info.hasOwnProperty('onOK')) {
+						info['onOK']();
+					}
 				}
 			}]);
 	}

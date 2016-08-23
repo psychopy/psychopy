@@ -2,7 +2,7 @@
  * Core component of psychoJS
  * 
  * 
- * This file is part of the psychoJS javascript engine of PsychoPy.
+ * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
  * 
  * Distributed under the terms of the GNU General Public License (GPL).
@@ -21,40 +21,61 @@ psychoJS.clock = {}
  * 
  * <p>Note: if the resource manager is busy, we inform the participant
  * that he or she needs to wait for a bit.</p>
+ *
+ * @param{string} [message] - optional message to be displayed in a dialog box before quitting
+ *
  */
-psychoJS.core.quit = function() {
+psychoJS.core.quit = function(message) {
 	
 	// actual quit callback:
 	var doQuit = function() {
-		// we only actually quit if the resource manager is ready:
-		if (psychoJS.resourceManager.getStatus() !== 'READY') return;
-
 		// destroy dialog boxes:
 		psychoJS.gui.destroyDialog();
 
 		// close everything:
-		if (psychoJS.debug) console.log("exiting psychoJS");
-		var children = document.body.children;
-		for(var i = 0; i < children.length; ++i) {
-			document.body.removeChild(children[i]);
+		if (psychoJS.debug) console.log("exiting PsychoJS");
+		while (document.body.hasChildNodes()) {
+			document.body.removeChild(document.body.lastChild);
 		}
 		
-		// flush logs and finish:
-		psychoJS.logging.flush();
 		psychoJS.finished = true;
-		if (psychoJS.debug) console.log("Quit");
+		if (psychoJS.debug) console.log("quit");
 	}
+	
+	// say goodbye to the participant before actually quitting:
+	var sayGoodbye = function() {
+		psychoJS.resourceManager.setStatusCallback(undefined);
+		
+		var text = 'Thank you for your patience. The data have been saved.<br/><br/>';
+		if (undefined !== message)
+			text = text + message;
+		else
+			text = text + 'Goodbye!';
+		psychoJS.gui.dialog({'message' : text, 'onOK' : doQuit});
+	}
+
+
+	// flush logs:
+	psychoJS.logging.flush();
 	
 	// if the resource manager is not ready, we inform
 	// the participant that he or she needs to wait:
 	if (psychoJS.resourceManager.getStatus() !== 'READY') {
-		psychoJS.resourceManager.setStatusCallback(doQuit);
-		psychoJS.gui.dialog({'warning' : 'The resource manager is busy. Please wait a few moments.', 'showOK' : false});
-	} else
-		doQuit();
+		psychoJS.resourceManager.setStatusCallback(sayGoodbye);
+		psychoJS.gui.dialog({'warning' : 'The resource manager is busy saving data. Please wait a few moments.', 'showOK' : false});
+	} else 
+	{
+		if (undefined !== message)
+			psychoJS.gui.dialog({'message' : message, 'onOK' : doQuit});
+		else
+			doQuit();
+	}
 }
 
 
+/**
+ *
+ */
 psychoJS.core._coreLoadTime = new Date().getTime(); 
 
 
@@ -75,6 +96,12 @@ psychoJS.core.getTime = function () {
 	}
 }
 
+/**
+ * Get the current time since the start of the context (if performance.now() is used)
+ * or since psychoJS.core was loaded (if new Date().getTime() is used).
+ * 
+ * @return Time - elapsed in seconds.
+ */
 psychoJS.clock.getTime = psychoJS.core.getTime;
 
 
@@ -146,8 +173,12 @@ psychoJS.core.Clock.prototype.add = function(t) {
 
 
 /**
+ * @constructor
+ * 
  * Similar to a class `psychoJS.core.Clock` except that time counts down
  * from the time of last reset.
+ * 
+ * @param startTime - the amount of time to countdown from.    
  */
 psychoJS.core.CountdownTimer = function(startTime) {
 	startTime = startTime || 0;

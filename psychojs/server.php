@@ -4,7 +4,7 @@
 	 * PHP experiment server
 	 * 
 	 * 
-	 * This file is part of the psychoJS javascript engine of PsychoPy.
+	 * This file is part of the PsychoJS javascript engine of PsychoPy.
 	 * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
 	 * 
 	 * Distributed under the terms of the GNU General Public License (GPL).
@@ -13,6 +13,9 @@
 
 	/**
 	 * Create a new Experiment Server
+	 *
+	 * <p>Note: The server requires the cURL PHP library to be installed.
+	 * Under linux, that can usually be done using: <code>sudo apt-get install curl libcurl3 libcurl3-dev php5-curl</code></p>
 	 * @class
 	 */
 	class ExperimentServer {
@@ -22,7 +25,7 @@
 		 */
 		function __construct() {
 			// load the data.php, which contains the project ID, the user's project's OSF token, etc.
-			include 'data.php';
+			include 'data.php';			
 		}
 
 
@@ -43,7 +46,13 @@
 		 * </ul></p>
 		 */
 		public function processPOST() {
+
 			try {
+				// check whether cURL is installed:
+				if (!extension_loaded('curl') || !is_callable('curl_init')) {
+						throw new Exception("The experiment server requires the cURL PHP library to be installed.");
+				}
+
 				// no command - show synchronisation GUI:
 				if (!isset($_POST['command'])) {
 					$serverResponse = $this->showSynchronisationGUI();
@@ -403,7 +412,7 @@
 			. "for (var i = 0; i < json.length; i++) { html = html + '<li>successfully downloaded: ' + json[i] + '</li>'; }"
 			. "html = html + '</ul></b></p>';"
 			. "document.getElementById('result').innerHTML = html; },"
-			. "function (error){ document.getElementById('result').innerHTML = '<p>Error: ' + error + '</p>'; }"
+			. "function (error){ document.getElementById('result').innerHTML = '<p>Error: ' + JSON.stringify(error) + '</p>'; }"
 			. ");"
 			. "} );"
 			. "</script>";
@@ -526,8 +535,13 @@
 		 */
 		private function OsfUpload() {
 			try {
+				if (!isset($_POST['session']) || !isset($_POST['data']) || !isset($_POST['dataType'])) {
+					throw new Exception('"malformed HTTP POST request: missing session, data or dataType."');
+				}
+				
 				$session = json_decode($_POST['session']);
-				$postData = $_POST['data']; //json_decode($_POST['data']);
+				$postData = $_POST['data'];
+				$postDataType = $_POST['dataType'];
 				
 				// create data directory if need be:
 				set_error_handler(function($errno, $errstr) {}, E_WARNING); // suppress warnings
@@ -543,14 +557,20 @@
 				. "_" . $this->cleanString($session->sessionName)
 				. "_" . $this->cleanString($session->sessionDate)
 				. "_" . $this->cleanString($session->IP);
-				$localFileName = $dataDirectory . "/" . $fileID . ".csv";
-				$OSFFileName = $fileID . ".csv";
+				if (0 === strcmp('RESULT', $postDataType)) {
+					$extension = '.csv';
+				}
+				else {
+					$extension = '.log';
+				}
+				$localFileName = $dataDirectory . "/" . $fileID . $extension;
+				$OSFFileName = $fileID . $extension;
 				
 				$handle = fopen($localFileName, "w");
 				if (FALSE === $handle) {
 					throw new Exception('"Unabled to open local file: ' . $localFileName . '"');
 				}
-				$return = fwrite($handle, $postData); //print_r($data, true));
+				$return = fwrite($handle, $postData);
 				if (FALSE === $return) {
 					throw new Exception('"Unabled to write to local file: ' . $localFileName . '"');
 				}
@@ -568,7 +588,26 @@
 			}
 		}
 
+		
+		/**
+		 * Send email to experimenter.
+		 *
+		 * @param {String} $subject - subject of the email
+		 * @param {String} $message - email message
+		 *
+		 */
+		private function sendEmail($subject, $message) {
+			$headers   = array();
+			$headers[] = "MIME-Version: 1.0";
+			$headers[] = "Content-type: text/plain; charset=iso-8859-1";
+			$headers[] = "From: " . $this->data['projectId'] . " experiment server";
+			$headers[] = "Subject: " . $subject;
+			$headers[] = "X-Mailer: PHP/" . phpversion();
 
+			mail($this->data["experimenterEmail"] , $subject, $message, implode("\r\n", $headers));
+		}
+
+		
 		/**
 		* Clean strings by removing all characters except A-Z, a-z, 0-9, dots, hyphens and spaces
 		* and replacing sequences of spaces with underscore
@@ -588,5 +627,6 @@
 	// process the HTTP POST request and return the server response:
 	$experimentServer = new ExperimentServer();
 	$experimentServer->processPOST();
+	//echo $experimentServer->OsfSync();
 ?>
 
