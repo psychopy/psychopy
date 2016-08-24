@@ -12,6 +12,9 @@ News
 
 **Latest version**: 1.84.0 was released Aug 2016. See the full :doc:`changelog` with new Projects menu for syncing with http://osf.io. Also various bug fixes and updated standalone packages
 
+**We've got a new forum**: To discuss anything PsychoPy (features, bugs, tips or
+announcements) go to the new `PsychoPy forum <http://discourse.psychopy.org>`_
+
 .. title:: Home
 
 Contents
