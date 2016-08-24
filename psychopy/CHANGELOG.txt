@@ -16,24 +16,26 @@ PsychoPy 1.84.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ADDED: :ref:`Projects menu <projects>`, which can sync files with Open Science Framework
-* ADDED: a Builder experiment setting to specify the version of PsychoPy to be used when running the experiment #1137
 * ADDED: Movies in Builder can now avoid loading audio (i.e. mute). As well as meaning your movie is genuinely silent this saves processing for the computer, so do it unless you need the sound!
 * ADDED: menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
 * ADDED: Builder experiments force a save before the end of the study so pressing the red stop button is less likely to lose data for you
 * ADDED: You can now **rename a Routine** #1136
+* ADDED: a Builder experiment setting to specify the version of PsychoPy to be used when running the experiment #1137
 * CHANGED: setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
 * CHANGED: Some file names and locations have changed. To update, replace OLD form in your scripts with NEW form:
-    OLD form --> NEW form
-    Deprecated since 2012, must now update:
-    `from psychopy import calib` --> `from psychopy import monitors as calib` (or just use `monitors`)
-    `from psychopy import bits` --> `from psychopy.hardware.crs import bits`
-    `from psychopy import log` --> `from psychopy import logging`
-    Newly deprecated (the old way still works but logs a warning):
-    `from psychopy import _shadersPyglet` --> `from psychopy.visual import shaders`
-    `from psychopy import gamma` --> `from psychopy.visual import gamma`
-    `from psychopy import filters` --> `from psychopy.visual import filters`
-    API change (only affects people who write their own Builder components):
-    `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
+
+    * OLD form --> NEW form
+    * Deprecated since 2012, must now update:
+    	* `from psychopy import calib` --> `from psychopy import monitors as calib` (or just use `monitors`)
+    	* `from psychopy import bits` --> `from psychopy.hardware.crs import bits`
+    	* `from psychopy import log` --> `from psychopy import logging`
+    * Newly deprecated (the old way still works but logs a warning):
+    	* `from psychopy import _shadersPyglet` --> `from psychopy.visual import shaders`
+    	* `from psychopy import gamma` --> `from psychopy.visual import gamma`
+    	* `from psychopy import filters` --> `from psychopy.visual import filters`
+    * API change (only affects people who write their own Builder components):
+    	* `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
+
 * CHANGED: PyQt is now default over wx for dialog boxes (if either PyQt4 or PyQt5 are installed). Also fixed bug to support PyQt5
 * CHANGED: No Static Components are created by default (e.g. ISI). Have to add them manually
 * IMPROVED: ShapeStim can properly fill arbitrary shapes (using tessellation); see new shapes.py Coder demo for examples.
