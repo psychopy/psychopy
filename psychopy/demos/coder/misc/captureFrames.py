@@ -7,7 +7,8 @@ Demo of how to copy pixels from the frame buffer
 
 from __future__ import division
 
-from psychopy import visual, core
+from psychopy import visual, core, logging
+logging.console.setLevel(logging.INFO)
 
 win = visual.Window([200, 200])
 myStim = visual.GratingStim(win, pos=[-0.5, -0.5],
@@ -25,11 +26,10 @@ for frameN in range(n):
     win.flip()
 
 # save the movie in the format of your choice
-win.saveMovieFrames('frame.png')
-# win.saveMovieFrames('frame.tif') # much like png files (but used more on win32)
-# win.saveMovieFrames('frame.jpg') # lossy, but highly compressed images
-# win.saveMovieFrames('myMovie.gif')# for better results, make your gif in gimp
-# win.saveMovieFrames('myMovie.mpg')# only on win32 so far (requires pymedia)
+win.saveMovieFrames('frame.png', clearFrames=False)
+win.saveMovieFrames('myMovie.gif', clearFrames=False)
+win.saveMovieFrames('myMovie.mp4', clearFrames=False)
+win.saveMovieFrames('myMovie.mov', clearFrames=False)
 
 win.close()
 core.quit()

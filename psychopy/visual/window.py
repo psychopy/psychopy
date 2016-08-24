@@ -61,7 +61,6 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
-from psychopy import makeMovies
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -887,7 +886,7 @@ class Window(object):
 
         return im
 
-    def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
+    def saveMovieFrames(self, fileName, codec='libx264',
                         fps=30, clearFrames=True):
         """Writes any captured frames to disk.
 
@@ -911,8 +910,11 @@ class Window(object):
                 achieved by saving as individual .png frames and then
                 combining them into a movie using software like ffmpeg.
 
-            mpgCodec: the code to be used **by pymedia** if the filename ends
-                in .mpg
+            codec: the codec to be used **by moviepy** for mp4/mpg/mov files.
+                If None then the default will depend on file extension.
+                Can be one of 'libx264','mpeg4' for mp4/mov files.
+                Can be 'rawvideo','png' for avi files (not recommended).
+                Can be 'libvorbis' for ogv files.
 
             fps: the frame rate to be used throughout the movie
                 **only for quicktime (.mov) movies**
@@ -925,38 +927,37 @@ class Window(object):
             # writes a series of static frames as frame001.tif,
             # frame002.tif etc...
             myWin.saveMovieFrames('frame.tif')
-
-            # on OS X only
-            myWin.saveMovieFrames('stimuli.mov', fps=25)
-
-            # not great quality animated gif
+            
+            #as of PsychoPy 1.84.1 the following are written with moviepy
+            myWin.saveMovieFrames('stimuli.mp4') # codec = 'libx264' or 'mpeg4'
+            myWin.saveMovieFrames('stimuli.mov')
             myWin.saveMovieFrames('stimuli.gif')
-
-            # not on OS X
-            myWin.saveMovieFrames('stimuli.mpg')
 
         """
         fileRoot, fileExt = os.path.splitext(fileName)
+        fileExt = fileExt.lower()  # easier than testing both later
         if len(self.movieFrames) == 0:
             logging.error('no frames to write - did you forget to update '
-                          'your window?')
+                          'your window or call win.getMovieFrame()?')
             return
         else:
-            logging.info('writing %i frames' % len(self.movieFrames))
-        if fileExt == '.gif':
-            makeMovies.makeAnimatedGIF(fileName, self.movieFrames)
-        elif fileExt in ['.mpg', '.mpeg']:
-            if sys.platform == 'darwin':
-                raise IOError('Mpeg movies are not currently available under '
-                              'OSX. You can use quicktime movies (.mov) '
-                              'instead though.')
-            makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
-        elif fileExt in ['.mov', '.MOV']:
-            msg = ("Support for Quicktime movies has been removed (at least "
-                   "for now). You need to export your frames as images (e.g. "
-                   "png files) and combine them yourself (e.g. with ffmpeg)")
-            raise NotImplementedError(msg)
+            logging.info('Writing %i frames to %s' % (len(self.movieFrames),
+                                                      fileName))
+
+        if fileExt in ['.gif', '.mpg', '.mpeg', '.mp4', '.mov']:
+            # lazy loading of moviepy.editor (rarely needed)
+            from moviepy.editor import ImageSequenceClip 
+            # save variety of movies with moviepy
+            numpyFrames = []
+            for frame in self.movieFrames:
+                numpyFrames.append(numpy.array(frame))
+            clip = ImageSequenceClip(numpyFrames, fps=fps)
+            if fileExt == '.gif':
+                clip.write_gif(fileName,fps=15)
+            else:
+                clip.write_videofile(fileName, codec=codec)
         elif len(self.movieFrames) == 1:
+            # save an image using pillow
             self.movieFrames[0].save(fileName)
         else:
             frmc = numpy.ceil(numpy.log10(len(self.movieFrames) + 1))
