@@ -10,11 +10,10 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**: 1.83.04 was released Feb 2016. See the full :doc:`changelog`
+**Latest version**: 1.84.0 was released Aug 2016. See the full :doc:`changelog` with new Projects menu for syncing with http://osf.io. Also various bug fixes and updated standalone packages
 
-We've got a new Movie engine!! Rejoice! MovieStim3 (built on the `moviepy <zulko.github.io/moviepy/>`_
-package) seems more robust and doesn't require `avbin` or `vlc` to be installed separately.
-In fact, if you don't have the necessary libs it should go and fetch the right one for you!
+**We've got a new forum**: To discuss anything PsychoPy (features, bugs, tips or
+announcements) go to the new `PsychoPy forum <http://discourse.psychopy.org>`_
 
 .. title:: Home
 

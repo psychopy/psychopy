@@ -42,9 +42,15 @@ Other stimuli:
 	* :class:`.RatingScale` to collect ratings
 	* :class:`.CustomMouse` to change the cursor in windows with GUI. OBS: will be deprecated soon
 
-General purpose (applies to other stimuli):
+Meta stimuli (stimuli that operate on other stimuli):
 
 	* :class:`.BufferImageStim` to make a faster-to-show "screenshot" of other stimuli
 	* :class:`.Aperture` to restrict visibility area of other stimuli
 
-See also :ref:`visualhelperfunctions`
+Helper functions:
+
+  * :ref:`psychopy.visual.filters` for creating grating textures and Gaussian masks etc.
+  * :ref:`visualhelperfunctions` for tests about whether one stimulus contains another
+  * :mod:`~psychopy.tools.unittools` to convert deg<->radians
+  * :mod:`~psychopy.tools.monitorunittools` to convert cm<->pix<->deg etc.
+  * :mod:`psychopy.tools.colorspacetools` to convert between supported color spaces
