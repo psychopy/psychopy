@@ -432,11 +432,11 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
-            code = ("# was no response the correct answer?!\n"
-                    "if str(%(correctAns)s).lower() == 'none':\n"
-                    "   %(name)s.corr = 1  # correct non-response\n"
-                    "else:\n"
-                    "   %(name)s.corr = 0  # failed to respond (incorrectly)\n"
+            code = ("    # was no response the correct answer?!\n"
+                    "    if str(%(correctAns)s).lower() == 'none':\n"
+                    "       %(name)s.corr = 1  # correct non-response\n"
+                    "    else:\n"
+                    "       %(name)s.corr = 0  # failed to respond (incorrectly)\n"
                     % self.params)
 
             code += ("# store data for %s (%s)\n" %
