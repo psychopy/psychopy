@@ -12,6 +12,14 @@ Changelog
 PsychoPy 1.84
 ------------------------------
 
+PsychoPy 1.84.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: Builder Keyboard component was treating non-response as correct answer. #1230 Thanks Jarrod
+* FIXED: MovieStim2 (opencv) now compatible with newer versions of opencv (v3.x) #1223
+* FIXED: SSL certificates for OSX causing failure to connect to osf.io for projects
+* ADDED: Movie *outputs* in gif, mp4, mov formats automatically, using moviepy #1228
+
 PsychoPy 1.84.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

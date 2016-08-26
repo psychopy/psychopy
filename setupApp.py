@@ -48,7 +48,7 @@ if macholib.__version__ <= "1.7":
             kwargs['loader_path'] = loader
         return dyld_find_1_7(name, **kwargs)
     macholib.MachOGraph.dyld_find = dyld_find
-    
+
 setup(
     app=['psychopy/app/psychopyApp.py'],
     options=dict(py2app=dict(
@@ -73,12 +73,12 @@ setup(
                       'Foundation', 'CoreFoundation',
                       'pkg_resources', #needed for objc
                       'pyolib',
-                      'requests',  # for efficient uploading to servers
+                      'requests', 'certifi',  # for up/downloading to servers
                       'pyosf',
                       # for unit testing
                       'coverage',
                       # handy external science libs
-                      'serial', 
+                      'serial',
                       'egi', 'labjack', 'pylink',
                       'pyxid',
                       'pandas', 'tables',  # 'cython',

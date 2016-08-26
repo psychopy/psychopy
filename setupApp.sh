@@ -4,6 +4,7 @@ echo "DID YOU UPDATE THE CHANGELOG?"
 printf "Version (e.g. 1.84.0) : " # no new line
 read version
 
+dmgName="../dist/StandalonePsychoPy-$version-OSX_64bit.dmg"
 sudo rm -r build
 
 python setup.py sdist --format=zip
@@ -32,5 +33,7 @@ sudo rm -R "/Volumes/PsychoPy/PsychoPy2.app"
 echo "cp -R ../dist/PsychoPy2.app /Volumes/PsychoPy"
 cp -R "../dist/PsychoPy2.app" "/Volumes/PsychoPy"
 hdiutil detach "/Volumes/PsychoPy"
-echo "creating zlib-compressed dmg"
-hdiutil convert "../dist/StandalonePsychoPy--64bit.dmg" -format UDZO -o  "../dist/StandalonePsychoPy-$version-OSX_64bit.dmg"
+echo "removing prev dmg (although may not exist)"
+rm $dmgName
+echo "creating zlib-compressed dmg: $dmgName"
+hdiutil convert "../dist/StandalonePsychoPy--64bit.dmg" -format UDZO -o $dmgName
