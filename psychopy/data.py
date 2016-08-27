@@ -2667,7 +2667,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             raise ImportError('openpyxl is required for loading excel '
                               'format files, but it was not found.')
         try:
-            wb = load_workbook(filename=fileName)
+            wb = load_workbook(filename=fileName, data_only=True)
         except Exception:  # InvalidFileException(unicode(e)): # this fails
             raise ImportError('Could not open %s as conditions' % fileName)
         ws = wb.worksheets[0]
