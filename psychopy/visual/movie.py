@@ -45,7 +45,6 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
-from psychopy import makeMovies
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 if sys.platform == 'win32' and not haveAvbin:
