@@ -11,6 +11,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 from __future__ import absolute_import
 
+import sys
 import copy
 import numpy
 
@@ -41,6 +42,18 @@ from psychopy.constants import NOT_STARTED
 if havePyglet:
     # importing from mouse takes ~250ms, so do it now
     from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
+    from pyglet.window.key import (
+        MOD_SHIFT,
+        MOD_CTRL,
+        MOD_ALT,
+        MOD_CAPSLOCK,
+        MOD_NUMLOCK,
+        MOD_WINDOWS,
+        MOD_COMMAND,
+        MOD_OPTION,
+        MOD_SCROLLLOCK
+    )
+
     global _keyBuffer
     _keyBuffer = []
     global mouseButtons
@@ -226,18 +239,19 @@ def resetMoveClock():
 #    def waitKeys(maxWait = None, keyList=None):
 #        return def waitKeys(maxWait = maxWait, keyList=keyList)
 
-MOD_SHIFT = 0x0001
-MOD_CTRL  = 0x0002
-MOD_ALT   = 0x0004
-MOD_FN    = 0x0200
 
-def _mod_dict(modifiers):
-    return {
-        'shift': modifiers & MOD_SHIFT > 0,
-        'ctrl': modifiers & MOD_CTRL > 0,
-        'alt': modifiers & MOD_ALT > 0,
-        'fn': modifiers & MOD_FN > 0
-    }
+def modifiers_dict(modifiers):
+    return {(mod[4:].lower()): modifiers & getattr(sys.modules[__name__], mod) > 0 for mod in [
+        'MOD_SHIFT',
+        'MOD_CTRL',
+        'MOD_ALT',
+        'MOD_CAPSLOCK',
+        'MOD_NUMLOCK',
+        'MOD_WINDOWS',
+        'MOD_COMMAND',
+        'MOD_OPTION',
+        'MOD_SCROLLLOCK'        
+    ]}
 
 def getKeys(keyList=None, modifiers=False, timeStamped=False):
     """Returns a list of keys that were pressed.
@@ -306,7 +320,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         keyNames = [k[0] for k in targets]
         return keyNames
     elif timeStamped == False:
-        keyNames = [(k[0], _mod_dict(k[1])) for k in targets]
+        keyNames = [(k[0], modifiers_dict(k[1])) for k in targets]
         return keyNames
     elif hasattr(timeStamped, 'getLastResetTime'):
         # keys were originally time-stamped with
@@ -316,12 +330,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [(k[0], _mod_dict(k[1]), k[2] - timeBaseDiff) for k in targets]
+        relTuple = [(k[0], modifiers_dict(k[1]), k[2] - timeBaseDiff) for k in targets]
         return relTuple
     elif timeStamped is True:
         return targets
     elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [(k[0], _mod_dict(k[1]), k[2] - timeStamped) for k in targets]
+        relTuple = [(k[0], modifiers_dict(k[1]), k[2] - timeStamped) for k in targets]
         return relTuple
 
 
