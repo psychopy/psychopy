@@ -127,7 +127,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
         useText = False
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
         keySource = 'Keypress'
-    _keyBuffer.append((thisKey, keyTime))  # tuple
+    _keyBuffer.append((thisKey, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, thisKey))
 
 
@@ -226,8 +226,20 @@ def resetMoveClock():
 #    def waitKeys(maxWait = None, keyList=None):
 #        return def waitKeys(maxWait = maxWait, keyList=keyList)
 
+MOD_SHIFT = 0x0001
+MOD_CTRL  = 0x0002
+MOD_ALT   = 0x0004
+MOD_FN    = 0x0200
 
-def getKeys(keyList=None, timeStamped=False):
+def _mod_dict(modifiers):
+    return {
+        'shift': modifiers & MOD_SHIFT > 0,
+        'ctrl': modifiers & MOD_CTRL > 0,
+        'alt': modifiers & MOD_ALT > 0,
+        'fn': modifiers & MOD_FN > 0
+    }
+
+def getKeys(keyList=None, modifiers=False, timeStamped=False):
     """Returns a list of keys that were pressed.
 
     :Parameters:
@@ -290,8 +302,11 @@ def getKeys(keyList=None, timeStamped=False):
 
     # now we have a list of tuples called targets
     # did the user want timestamped tuples or keynames?
-    if timeStamped == False:
+    if modifiers == False and timeStamped == False:
         keyNames = [k[0] for k in targets]
+        return keyNames
+    elif timeStamped == False:
+        keyNames = [(k[0], _mod_dict(k[1])) for k in targets]
         return keyNames
     elif hasattr(timeStamped, 'getLastResetTime'):
         # keys were originally time-stamped with
@@ -301,16 +316,16 @@ def getKeys(keyList=None, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [(k[0], k[1] - timeBaseDiff) for k in targets]
+        relTuple = [(k[0], _mod_dict(k[1]), k[2] - timeBaseDiff) for k in targets]
         return relTuple
     elif timeStamped is True:
         return targets
     elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [(k[0], k[1] - timeStamped) for k in targets]
+        relTuple = [(k[0], _mod_dict(k[1]), k[2] - timeStamped) for k in targets]
         return relTuple
 
 
-def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
+def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False, timeStamped=False):
     """Same as `~psychopy.event.getKeys`, but halts everything
     (including drawing) while awaiting input from keyboard. Implicitly
     clears keyboard, so any preceding keypresses will be lost.
@@ -338,7 +353,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
                 win.dispatch_events()
 
         # Get keypresses and return if anything is pressed
-        keys = getKeys(keyList=keyList, timeStamped=timeStamped)
+        keys = getKeys(keyList=keyList, modifiers=modifiers, timeStamped=timeStamped)
         if len(keys):
             return keys
 
