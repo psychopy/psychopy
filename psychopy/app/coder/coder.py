@@ -1782,7 +1782,6 @@ class CoderFrame(wx.Frame):
             if shortname.startswith('_'):
                 continue  # remove any 'private' files
             item = self.demosMenu.Append(thisID, shortname)
-            self.demos[thisID] = filename
             thisID = item.GetId()
             self.demos[thisID] = thisFile
             self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
