@@ -25,6 +25,7 @@ import collections
 
 try:
     # import openpyxl
+    import openpyxl
     from openpyxl.cell import get_column_letter
     from openpyxl.reader.excel import load_workbook
     haveOpenpyxl = True
@@ -2666,7 +2667,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if not haveOpenpyxl:
             raise ImportError('openpyxl is required for loading excel '
                               'format files, but it was not found.')
-        wb = load_workbook(filename=fileName, data_only=True)
+        if openpyxl.__version__ < "1.8":  # data_only added in 1.8
+            wb = load_workbook(filename=fileName)
+        else:
+            wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
