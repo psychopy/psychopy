@@ -330,12 +330,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [(k[0], modifiers_dict(k[1]), k[2] - timeBaseDiff) for k in targets]
+        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2] - timeBaseDiff)) for k in targets]
         return relTuple
     elif timeStamped is True:
-        return targets
+        return [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2])) for k in targets]
     elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [(k[0], modifiers_dict(k[1]), k[2] - timeStamped) for k in targets]
+        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2] - timeStamped)) for k in targets]
         return relTuple
 
 
