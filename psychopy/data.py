@@ -2666,12 +2666,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if not haveOpenpyxl:
             raise ImportError('openpyxl is required for loading excel '
                               'format files, but it was not found.')
-        try:
-            wb = load_workbook(filename=fileName, data_only=True)
-            blb
-        except Exception as err:  # InvalidFileException(unicode(e)): # this fails
-            print("{}: {}".format(sys.exc_info()[0], err))
-            raise ImportError('Could not open %s as conditions' % fileName)
+        wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
