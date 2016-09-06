@@ -11,6 +11,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 from __future__ import absolute_import
 
+import sys
 import copy
 import numpy
 
@@ -41,6 +42,18 @@ from psychopy.constants import NOT_STARTED
 if havePyglet:
     # importing from mouse takes ~250ms, so do it now
     from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
+    from pyglet.window.key import (
+        MOD_SHIFT,
+        MOD_CTRL,
+        MOD_ALT,
+        MOD_CAPSLOCK,
+        MOD_NUMLOCK,
+        MOD_WINDOWS,
+        MOD_COMMAND,
+        MOD_OPTION,
+        MOD_SCROLLLOCK
+    )
+
     global _keyBuffer
     _keyBuffer = []
     global mouseButtons
@@ -107,6 +120,8 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     pyglet.window.key.symbol_string(symbol).
 
     S Mathot 2012: Implement fallback to _onPygletText
+
+    5AM Solutions 2016: Add the keyboard modifier flags to the key buffer.
     """
 
     global useText
@@ -127,7 +142,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
         useText = False
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
         keySource = 'Keypress'
-    _keyBuffer.append((thisKey, keyTime))  # tuple
+    _keyBuffer.append((thisKey, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, thisKey))
 
 
@@ -227,7 +242,24 @@ def resetMoveClock():
 #        return def waitKeys(maxWait = maxWait, keyList=keyList)
 
 
-def getKeys(keyList=None, timeStamped=False):
+def modifiers_dict(modifiers):
+    """Return dict where the key is a keyboard modifier flag
+    and the value is the boolean state of that flag.
+
+    """
+    return {(mod[4:].lower()): modifiers & getattr(sys.modules[__name__], mod) > 0 for mod in [
+        'MOD_SHIFT',
+        'MOD_CTRL',
+        'MOD_ALT',
+        'MOD_CAPSLOCK',
+        'MOD_NUMLOCK',
+        'MOD_WINDOWS',
+        'MOD_COMMAND',
+        'MOD_OPTION',
+        'MOD_SCROLLLOCK'        
+    ]}
+
+def getKeys(keyList=None, modifiers=False, timeStamped=False):
     """Returns a list of keys that were pressed.
 
     :Parameters:
@@ -237,6 +269,11 @@ def getKeys(keyList=None, timeStamped=False):
             the keyboard buffer. If the keyList is None all keys will be
             checked and the key buffer will be cleared completely.
             NB, pygame doesn't return timestamps (they are always 0)
+        modifiers : **False** or True
+            If True will return a list of tuples instead of a list of 
+            keynames. Each tuple has (keyname, modifiers). The modifiers
+            are a dict of keyboard modifier flags keyed by the modifier
+            name (eg. 'shift', 'ctrl').
         timeStamped : **False**, True, or `Clock`
             If True will return a list of tuples instead of a list of
             keynames. Each tuple has (keyname, time). If a `core.Clock`
@@ -247,6 +284,7 @@ def getKeys(keyList=None, timeStamped=False):
         - 2003 written by Jon Peirce
         - 2009 keyList functionality added by Gary Strangman
         - 2009 timeStamped code provided by Dave Britton
+        - 2016 modifiers code provided by 5AM Solutions
     """
     keys = []
 
@@ -290,8 +328,11 @@ def getKeys(keyList=None, timeStamped=False):
 
     # now we have a list of tuples called targets
     # did the user want timestamped tuples or keynames?
-    if timeStamped == False:
+    if modifiers == False and timeStamped == False:
         keyNames = [k[0] for k in targets]
+        return keyNames
+    elif timeStamped == False:
+        keyNames = [(k[0], modifiers_dict(k[1])) for k in targets]
         return keyNames
     elif hasattr(timeStamped, 'getLastResetTime'):
         # keys were originally time-stamped with
@@ -301,16 +342,16 @@ def getKeys(keyList=None, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [(k[0], k[1] - timeBaseDiff) for k in targets]
+        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2] - timeBaseDiff)) for k in targets]
         return relTuple
     elif timeStamped is True:
-        return targets
+        return [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2])) for k in targets]
     elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [(k[0], k[1] - timeStamped) for k in targets]
+        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2] - timeStamped)) for k in targets]
         return relTuple
 
 
-def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
+def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False, timeStamped=False):
     """Same as `~psychopy.event.getKeys`, but halts everything
     (including drawing) while awaiting input from keyboard. Implicitly
     clears keyboard, so any preceding keypresses will be lost.
@@ -319,6 +360,11 @@ def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
         maxWait : any numeric value.
             Maximum number of seconds period and which keys to wait for.
             Default is float('inf') which simply waits forever.
+        modifiers : **False** or True
+            If True will return a list of tuples instead of a list of 
+            keynames. Each tuple has (keyname, modifiers). The modifiers
+            are a dict of keyboard modifier flags keyed by the modifier
+            name (eg. 'shift', 'ctrl').
 
     Returns None if times out.
     """
@@ -338,7 +384,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
                 win.dispatch_events()
 
         # Get keypresses and return if anything is pressed
-        keys = getKeys(keyList=keyList, timeStamped=timeStamped)
+        keys = getKeys(keyList=keyList, modifiers=modifiers, timeStamped=timeStamped)
         if len(keys):
             return keys
 
