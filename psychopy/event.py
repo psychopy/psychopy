@@ -120,6 +120,8 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     pyglet.window.key.symbol_string(symbol).
 
     S Mathot 2012: Implement fallback to _onPygletText
+
+    5AM Solutions 2016: Add the keyboard modifier flags to the key buffer.
     """
 
     global useText
@@ -241,6 +243,10 @@ def resetMoveClock():
 
 
 def modifiers_dict(modifiers):
+    """Return dict where the key is a keyboard modifier flag
+    and the value is the boolean state of that flag.
+
+    """
     return {(mod[4:].lower()): modifiers & getattr(sys.modules[__name__], mod) > 0 for mod in [
         'MOD_SHIFT',
         'MOD_CTRL',
@@ -263,6 +269,11 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             the keyboard buffer. If the keyList is None all keys will be
             checked and the key buffer will be cleared completely.
             NB, pygame doesn't return timestamps (they are always 0)
+        modifiers : **False** or True
+            If True will return a list of tuples instead of a list of 
+            keynames. Each tuple has (keyname, modifiers). The modifiers
+            are a dict of keyboard modifier flags keyed by the modifier
+            name (eg. 'shift', 'ctrl').
         timeStamped : **False**, True, or `Clock`
             If True will return a list of tuples instead of a list of
             keynames. Each tuple has (keyname, time). If a `core.Clock`
@@ -273,6 +284,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         - 2003 written by Jon Peirce
         - 2009 keyList functionality added by Gary Strangman
         - 2009 timeStamped code provided by Dave Britton
+        - 2016 modifiers code provided by 5AM Solutions
     """
     keys = []
 
@@ -348,6 +360,11 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False, timeStamped=Fa
         maxWait : any numeric value.
             Maximum number of seconds period and which keys to wait for.
             Default is float('inf') which simply waits forever.
+        modifiers : **False** or True
+            If True will return a list of tuples instead of a list of 
+            keynames. Each tuple has (keyname, modifiers). The modifiers
+            are a dict of keyboard modifier flags keyed by the modifier
+            name (eg. 'shift', 'ctrl').
 
     Returns None if times out.
     """
