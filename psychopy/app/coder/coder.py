@@ -1761,31 +1761,30 @@ class CoderFrame(wx.Frame):
             demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
 
             demoList.sort(key=str.lower)
-            demoIDs = map(lambda _makeID: wx.NewId(), range(len(demoList)))
 
-            for n in range(len(demoList)):
-                self.demos[demoIDs[n]] = demoList[n]
-            for thisID in demoIDs:
-                shortname = self.demos[thisID].split(os.path.sep)[-1]
+            for thisFile in demoList:
+                shortname = thisFile.split(os.path.sep)[-1]
                 if shortname == "run.py":
                     # file is just "run" so get shortname from directory name
                     # instead
-                    shortname = self.demos[thisID].split(os.path.sep)[-2]
+                    shortname = thisFile.split(os.path.sep)[-2]
                 if shortname.startswith('_'):
                     continue  # remove any 'private' files
-                submenu.Append(thisID, shortname)
-                wx.EVT_MENU(self, thisID, self.loadDemo)
+                item = submenu.Append(wx.ID_ANY, shortname)
+                thisID = item.GetId()
+                self.demos[thisID] = thisFile
+                self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
         # also add simple demos to root
         self.demosMenu.AppendSeparator()
         demos = glob.glob(os.path.join(self.paths['demos'], 'coder', '*.py'))
-        for filename in demos:
-            junk, shortname = os.path.split(filename)
+        for thisFile in demos:
+            shortname = thisFile.split(os.path.sep)[-1]
             if shortname.startswith('_'):
                 continue  # remove any 'private' files
-            thisID = wx.NewId()
-            self.demosMenu.Append(thisID, shortname)
-            self.demos[thisID] = filename
-            wx.EVT_MENU(self, thisID, self.loadDemo)
+            item = self.demosMenu.Append(thisID, shortname)
+            thisID = item.GetId()
+            self.demos[thisID] = thisFile
+            self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
 
         # ---_projects---#000000#FFFFFF---------------------------------------
         self.projectsMenu = projects.ProjectsMenu(parent=self)
@@ -1987,7 +1986,6 @@ class CoderFrame(wx.Frame):
                 if filename.lower().endswith('.psyexp'):
                     self.app.newBuilderFrame(filename)
                 else:
-                    print(filename)
                     self.setCurrentDoc(filename)
 
     def OnFindOpen(self, event):

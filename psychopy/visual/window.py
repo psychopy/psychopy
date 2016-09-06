@@ -927,7 +927,7 @@ class Window(object):
             # writes a series of static frames as frame001.tif,
             # frame002.tif etc...
             myWin.saveMovieFrames('frame.tif')
-            
+
             #as of PsychoPy 1.84.1 the following are written with moviepy
             myWin.saveMovieFrames('stimuli.mp4') # codec = 'libx264' or 'mpeg4'
             myWin.saveMovieFrames('stimuli.mov')
@@ -946,7 +946,7 @@ class Window(object):
 
         if fileExt in ['.gif', '.mpg', '.mpeg', '.mp4', '.mov']:
             # lazy loading of moviepy.editor (rarely needed)
-            from moviepy.editor import ImageSequenceClip 
+            from moviepy.editor import ImageSequenceClip
             # save variety of movies with moviepy
             numpyFrames = []
             for frame in self.movieFrames:
@@ -1330,6 +1330,13 @@ class Window(object):
         else:
             stencil_size = 0
         vsync = 0
+        
+        # provide warning if stereo buffers are requested but unavailable
+        if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
+            logging.warning('A stereo window was requested but the graphics '
+                            'card does not appear to support GL_STEREO')
+            self.stereo = False
+
         # options that the user might want
         config = GL.Config(depth_size=8, double_buffer=True,
                            stencil_size=stencil_size, stereo=self.stereo,
@@ -1416,10 +1423,6 @@ class Window(object):
         elif sys.platform == 'linux2':
             self._hw_handle = self.winHandle._window
 
-        # provide warning if stereo buffers are requested but unavailable
-        if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
-            logging.warning('A stereo window was requested but the graphics '
-                            'card does not appear to support GL_STEREO')
         if self.useFBO:  # check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
                 msg = ("Trying to use a framebuffer object but "

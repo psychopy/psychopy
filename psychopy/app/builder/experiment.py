@@ -140,7 +140,7 @@ class Experiment(object):
         # this can be checked by the builder that this is an experiment and a
         # compatible version
         self.psychopyVersion = __version__
-        self.psychopyLibs = ['visual', 'core',
+        self.psychopyLibs = ['gui', 'visual', 'core',
                              'data', 'event', 'logging', 'sound']
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
