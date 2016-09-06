@@ -2668,7 +2668,9 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                               'format files, but it was not found.')
         try:
             wb = load_workbook(filename=fileName, data_only=True)
-        except Exception:  # InvalidFileException(unicode(e)): # this fails
+            blb
+        except Exception as err:  # InvalidFileException(unicode(e)): # this fails
+            print("{}: {}".format(sys.exc_info()[0], err))
             raise ImportError('Could not open %s as conditions' % fileName)
         ws = wb.worksheets[0]
         try:
