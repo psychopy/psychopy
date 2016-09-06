@@ -43,7 +43,7 @@ class TestKeyboardEvents(object):
         assert keys[0][0] == 'a'
         assert isinstance(keys[0][1], float)
         assert keys[0][1] > 0.0
-        
+
     def test_modifiers_and_timestamp(self):
         """Test that both key modifiers and timestamp are returned"""
         event._onPygletKey('a', MOD_ALT, emulated=True)
