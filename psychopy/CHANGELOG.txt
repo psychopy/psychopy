@@ -15,10 +15,19 @@ PsychoPy 1.84
 PsychoPy 1.84.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED: Builder Keyboard component was treating non-response as correct answer. #1230 Thanks Jarrod
-* FIXED: MovieStim2 (opencv) now compatible with newer versions of opencv (v3.x) #1223
-* FIXED: SSL certificates for OSX causing failure to connect to osf.io for projects
-* ADDED: Movie *outputs* in gif, mp4, mov formats automatically, using moviepy #1228
+FIXED:
+
+  * Builder Keyboard component was treating non-response as correct answer. #1230 Thanks Jarrod
+  * MovieStim2 (opencv) now compatible with newer versions of opencv (v3.x) #1223
+  * SSL certificates for OS X causing failure to connect to osf.io for projects
+  * dependencies added/updated in Standalone packages:
+    * pyHook, pygame, pylink 0.3.2,  (win32)
+    * pysoundcard (OS X)
+  * hello_world demo crashing the app on load
+
+ADDED:
+
+  * Movie **outputs** in gif, mp4, mov formats automatically, using moviepy #1228
 
 PsychoPy 1.84.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

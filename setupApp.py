@@ -60,13 +60,14 @@ setup(
                       'pp', 'ppauto', 'ppcommon', 'pptransport', 'ppworker',
                       'pyo', 'greenlet', 'vlc', 'zmq', 'tornado',
                       'psutil',  # for iohub
-                      'pysoundcard', 'soundfile',
+                      'pysoundcard', 'soundfile', 'sounddevice',
                       'cv2',
                       'xlwt',  # writes excel files for pandas
                       ],
             packages=['wx', 'pyglet', 'pygame', 'OpenGL', 'psychopy', 'pytz',
                       'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
                       'moviepy', 'imageio',
+                      'pysoundcard', 'soundfile', 'sounddevice',
                       'PyQt4',
                       'PIL',  # 'Image',
                       'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
