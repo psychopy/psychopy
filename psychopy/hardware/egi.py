@@ -3,7 +3,7 @@
 This is currently a simple import of
 `pynetstation <https://github.com/gaelen/python-egi/>`_
 which is now simply called
-`egi <https://pypi.python.org/pypi/egi> on pypi.
+`egi <https://pypi.python.org/pypi/egi>`_ on pypi.
 
 `egi <https://github.com/gaelen/python-egi/>`_ is included in Standalone
 distributions of PsychoPy but you can install it with::
