@@ -1,18 +1,18 @@
 """Interface to `EGI Netstation <http://www.egi.com/>`_
 
-This is currently a simple import of `pynetstation
-<http://code.google.com/p/pynetstation/>`_
-That needs to be installed (but is included in the *Standalone* distributions
-of PsychoPy as of version 1.62.01).
+This is currently a simple import of
+`pynetstation <https://github.com/gaelen/python-egi/>`_
+which is now simply called
+`egi <https://pypi.python.org/pypi/egi> on pypi.
 
-installation:
+`egi <https://github.com/gaelen/python-egi/>`_ is included in Standalone
+distributions of PsychoPy but you can install it with::
 
-    Download the package from the link above and copy egi.py into your
-    site-packages directory.
+    pip install egi
 
-usage::
 
-    from psychopy.hardware import egi
+For examples on usage see the `example_simple` and `example_multi` files on
+the `egi github repository <https://github.com/gaelen/python-egi/>`_
 
 For an example see the demos menu of the PsychoPy Coder
 For further documentation see the pynetstation website
@@ -32,6 +32,6 @@ then try installing pynetstation.
 
 See:
     http://code.google.com/p/pynetstation/wiki/Installation
-    
+
 """
     logging.error(msg)
