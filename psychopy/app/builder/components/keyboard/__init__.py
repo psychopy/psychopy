@@ -155,21 +155,18 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
-            code = ("# AllowedKeys looks like a variable named `%s`\n"
-                    "if not '%s' in locals():\n"
-                    "    logging.error('AllowedKeys variable `%s` is not defined.')\n"
-                    "    core.quit()\n"
-                    "if not type(%s) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance(%s, basestring):\n"
-                    "        logging.error('AllowedKeys variable `%s` is "
+            code = ("# AllowedKeys looks like a variable named `{0}`\n"
+                    "if not type({0}) in [list, tuple, np.ndarray]:\n"
+                    "    if not isinstance({0}, basestring):\n"
+                    "        logging.error('AllowedKeys variable `{0}` is "
                     "not string- or list-like.')\n"
-                    "        core.quit()\n" %
-                    allowedKeys)
+                    "        core.quit()\n"
+                    .format(allowedKeys))
 
-            vals = (allowedKeys, allowedKeys, allowedKeys)
             code += (
-                "    elif not ',' in %s: %s = (%s,)\n" % vals +
-                "    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
+                "    elif not ',' in {0}: {0} = ({0},)\n"
+                "    else:  {0} = eval({0})\n"
+                .format(allowedKeys))
             buff.writeIndentedLines(code)
 
             keyListStr = "keyList=list(%s)" % allowedKeys  # eval at run time
