@@ -151,4 +151,4 @@ class StaticComponent(BaseComponent):
                                       updateType=prms[fieldName].updates,
                                       params=prms)
             code = "# component updates done\n"
-            buff.writeIndented(code % self.params['name'])
+            buff.writeIndented(code)

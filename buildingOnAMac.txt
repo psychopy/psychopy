@@ -6,11 +6,11 @@ Standalone PsychoPy is currently built using Framework Python 2.7 (not system py
 
 Framework Version
 ~~~~~~~~~~~~~~~~~~
+brew install wxpython hdf5
 
-brew install numpy scipy matplotlib wxpython
- hdf5
+
+pip install numpy scipy matplotlib 
 pip install pyglet pillow openpyxl pandas configobj lxml
-
 pip install pyyaml gevent msgpack-python psutil tables
 
 pip install pyobjc #mac only
@@ -19,14 +19,18 @@ pip install pytest sphinx cython cffi
 
 pip install ipython tornado pyzmq jinja2 jsonschema
 
-pip install pyxid ioLabs pylink pyserial parallel
+pyserial parallel
 
 pip install seaborn psychopy_ext
-pip install rusocsci
+
 
 pip install vlc python-bidi
-easy_install pp
 
+
+pip install rusocsci
+pip install pyxid 
+pip install ioLabs
+pip install pylink 
 
 # or all in one go:
 
