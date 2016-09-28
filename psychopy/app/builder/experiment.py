@@ -1541,6 +1541,13 @@ class Routine(list):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
         return _rep % (self.name, self.exp, str(list(self)))
 
+    @property
+    def name(self):
+        return self.params['name']
+    @name.setter
+    def name(self, name):
+        self.params['name'] = name
+
     def addComponent(self, component):
         """Add a component to the end of the routine"""
         self.append(component)
