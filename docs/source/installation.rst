@@ -81,6 +81,7 @@ OR you could just install the subsets of packages that you want::
   pip install numpy scipy matplotlib pandas pyopengl pyglet pillow moviepy lxml openpyxl configobj psychopy
 
   # to use iohub
+  # you need to install the hdf5 lib before installing tables (`brew install hdf5` on mac))
   pip install pyyaml gevent greenlet msgpack-python psutil tables
 
   # making online connections (e.g. OSF.io)
