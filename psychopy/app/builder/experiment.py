@@ -593,7 +593,14 @@ class Experiment(object):
                 self.flow.append(LoopTerminator(
                     loop=loops[elementNode.get('name')]))
             elif elementNode.tag == "Routine":
-                self.flow.append(self.routines[elementNode.get('name')])
+                if elementNode.get('name') in self.routines:
+                    self.flow.append(self.routines[elementNode.get('name')])
+                else:
+                    logging.error("A Routine called '{}' was on the Flow but "
+                                 "could not be found (failed rename?). You "
+                                 "may need to re-insert it"
+                                 .format(elementNode.get('name')))
+                    logging.flush()
 
         if modifiedNames:
             msg = 'duplicate variable name(s) changed in loadFromXML: %s\n'
