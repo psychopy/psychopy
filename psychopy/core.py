@@ -138,7 +138,7 @@ class StaticPeriod(object):
         be reset and starts again
         """
         self.status = STARTED
-        self.countdown.reset(duration)
+        self.countdown.reset(duration - self.frameTime)
         # turn off recording of frame intervals throughout static period
         if self.win:
             self.win.recordFrameIntervals = False
