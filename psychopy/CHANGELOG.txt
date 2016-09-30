@@ -12,6 +12,14 @@ Changelog
 PsychoPy 1.84
 ------------------------------
 
+PsychoPy 1.84.2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED:
+
+  * Problem with renaming of Routines preventing experiment from re-loading #1248
+  * Fix to code generation for Static Components and some Keyboard Components (with variable "allowed keys" settings)
+
 PsychoPy 1.84.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
