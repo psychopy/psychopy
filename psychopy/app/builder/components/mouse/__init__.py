@@ -194,7 +194,7 @@ class MouseComponent(BaseComponent):
             code = ("# store data for %s (%s)\n" %
                     (currLoop.params['name'], currLoop.type))
 
-        buff.writeIndented(code)
+        buff.writeIndentedLines(code)
 
         if store == 'final':
             # buff.writeIndented("# get info about the %(name)s\n"
@@ -212,7 +212,7 @@ class MouseComponent(BaseComponent):
                     "%s.addData('%s.midButton', buttons[1])\n" % vals +
                     "%s.addData('%s.rightButton', buttons[2])\n" % vals)
 
-            buff.writeIndented(code)
+            buff.writeIndentedLines(code)
         elif store != 'never':
             # buff.writeIndented("# save %(name)s data\n" %(self.params))
             for property in ['x', 'y', 'leftButton', 'midButton',
