@@ -93,9 +93,9 @@ class PR650(object):
             self._error(msg % sys.platform)
         # setup the params for PR650 comms
         if self.OK:
-            self.com.setBaudrate(9600)
-            self.com.setParity('N')  # none
-            self.com.setStopbits(1)
+            self.com.baudrate = 9600
+            self.com.parity = 'N'  # none
+            self.com.stopbits = 1
             try:
                 # Pyserial >=2.6 throws an exception when trying to open a
                 # serial port that is already open. Catching that exception
@@ -315,9 +315,9 @@ class PR655(PR650):
             self._error(msg % self.portString)
         # setup the params for PR650 comms
         if self.OK:
-            self.com.setBaudrate(9600)
-            self.com.setParity('N')  # none
-            self.com.setStopbits(1)
+            self.com.baudrate = 9600
+            self.com.parity = 'N'  # none
+            self.com.stopbits = 1
             try:
                 self.com.close()  # attempt to close if it's currently open
                 self.com.open()

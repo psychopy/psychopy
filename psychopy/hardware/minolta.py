@@ -128,10 +128,10 @@ class LS100(object):
         if self.OK:
             self.com.close()  # not sure why this helps but on win32 it does!!
             # this is a slightly odd characteristic of the Minolta LS100
-            self.com.setByteSize(7)
-            self.com.setBaudrate(4800)
-            self.com.setParity(serial.PARITY_EVEN)  # none
-            self.com.setStopbits(serial.STOPBITS_TWO)
+            self.com.bytesize = 7
+            self.com.baudrate = 4800
+            self.com.parity = serial.PARITY_EVEN  # none
+            self.com.stopbits = serial.STOPBITS_TWO
             try:
                 if not self.com.isOpen():
                     self.com.open()
