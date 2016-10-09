@@ -193,7 +193,6 @@ def setColor(obj, color, colorSpace=None, operation='',
 
         if color is None:
             setattr(obj, rgbAttrib, None)  # e.g. obj.rgb=[0,0,0]
-            obj.__dict__[colorSpaceAttrib] = None  # e.g. obj.colorSpace='hex'
             obj.__dict__[colorAttrib] = None  # e.g. obj.color='#000000'
             setTexIfNoShaders(obj)
 
