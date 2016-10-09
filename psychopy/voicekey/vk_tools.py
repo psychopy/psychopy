@@ -12,7 +12,7 @@ import numpy as np
 from scipy.signal import butter, lfilter
 try:
     import pyo64 as pyo
-except Exception:
+except ImportError:
     import pyo
 
 

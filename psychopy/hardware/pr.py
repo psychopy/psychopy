@@ -84,7 +84,7 @@ class PR650(object):
         if sys.platform in ('darwin', 'win32') or _linux:
             try:
                 self.com = serial.Serial(self.portString)
-            except Exception:
+            except serial.SerialException:
                 msg = ("Couldn't connect to port %s. Is it being used by"
                        " another program?")
                 self._error(msg % self.portString)
@@ -97,13 +97,9 @@ class PR650(object):
             self.com.setParity('N')  # none
             self.com.setStopbits(1)
             try:
-                # Pyserial >=2.6 throws an exception when trying to open a
-                # serial port that is already open. Catching that exception
-                # is not an option here because PySerial only defines a
-                # single exception type (SerialException)
                 if not self.com.isOpen():
                     self.com.open()
-            except Exception:
+            except serial.SerialException:
                 msg = "Opened serial port %s, but couldn't connect to PR650"
                 self._error(msg % self.portString)
             else:
@@ -309,7 +305,7 @@ class PR655(PR650):
         # try to open the port
         try:
             self.com = serial.Serial(self.portString)
-        except Exception:
+        except serial.SerialException:
             msg = ("Couldn't connect to port %s. Is it being used by "
                    "another program?")
             self._error(msg % self.portString)
@@ -322,7 +318,7 @@ class PR655(PR650):
                 self.com.close()  # attempt to close if it's currently open
                 self.com.open()
                 self.isOpen = 1
-            except Exception:
+            except serial.SerialException:
                 msg = ("Found a device on serial port %s, but couldn't "
                        "open that port")
                 self._error(msg % self.portString)
@@ -342,7 +338,7 @@ class PR655(PR650):
             time.sleep(0.1)
             self.com.close()
             logging.debug('Closed PR655 port')
-        except Exception:
+        except serial.SerialException:
             pass
 
     def startRemoteMode(self):

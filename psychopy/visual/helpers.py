@@ -31,7 +31,7 @@ try:
     else:
         from matplotlib import nxutils
     haveMatplotlib = True
-except Exception:
+except ImportError:
     haveMatplotlib = False
 
 

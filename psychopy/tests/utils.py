@@ -12,7 +12,7 @@ except ImportError:
 try:
     import pytest
     usePytest=True
-except Exception:
+except ImportError:
     usePytest=False
 
 from pytest import skip

@@ -45,7 +45,7 @@ try:
         from tobii.eye_tracking_io.time.sync import SyncManager as TobiiPySyncManager
         from tobii.eye_tracking_io.time.sync import State as TobiiPySyncState
         from tobii.eye_tracking_io.types import Point2D, Point3D
-except Exception:
+except ImportError:
     # This only happens when it is Sphinx auto-doc loading the file
     printExceptionDetailsToStdErr()
 

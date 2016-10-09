@@ -57,7 +57,7 @@ import numpy
 try:
     from pyglet import media
     havePygletMedia = True
-except Exception:
+except ImportError:
     havePygletMedia = False
 
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED

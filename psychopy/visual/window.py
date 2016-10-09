@@ -89,12 +89,12 @@ from . import shaders as _shaders
 try:
     from pyglet import media
     havePygletMedia = True
-except Exception:
+except ImportError:
     havePygletMedia = False
 
 try:
     import pygame
-except Exception:
+except ImportError:
     pass
 
 DEBUG = False

@@ -34,13 +34,13 @@ from __future__ import absolute_import
 try:
     import pygame.joystick
     havePygame = True
-except Exception:
+except ImportError:
     havePygame = False
 
 try:
     from pyglet import input as pyglet_input  # pyglet 1.2+
     havePyglet = True
-except Exception:
+except ImportError:
     havePyglet = False
 
 from psychopy import logging, visual

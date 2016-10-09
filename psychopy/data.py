@@ -682,7 +682,7 @@ class _BaseTrialHandler(object):
                 try:
                     # if it can convert to a number (from numpy) then do it
                     val = float(entry)
-                except Exception:
+                except ValueError:
                     val = unicode(entry)
                 _cell = _getExcelCellName(col=colN, row=lineN)
                 ws.cell(_cell).value = val
@@ -879,7 +879,7 @@ class TrialHandler(_BaseTrialHandler):
         # data first, then all others
         try:
             data = self.data
-        except Exception:
+        except AttributeError:
             data = None
         if data:
             strRepres += str('\tdata=')
@@ -1216,7 +1216,7 @@ class TrialHandler(_BaseTrialHandler):
                             thisAnal = thisAnal * sqrt(N) / sqrt(N - 1)
                     else:
                         thisAnal = eval("numpy.%s(thisData,1)" % analType)
-                except Exception:
+                except TypeError:
                     # that analysis doesn't work
                     dataHead.remove(dataType + '_' + analType)
                     dataOutInvalid.append(thisDataOut)
@@ -1560,7 +1560,7 @@ class TrialHandler2(_BaseTrialHandler):
         # data first, then all others
         try:
             data = self.data
-        except Exception:
+        except AttributeError:
             strRepres += '\t(no data)\n'
         else:
             strRepres += str('\tdata=')
@@ -2325,7 +2325,7 @@ class TrialHandlerExt(TrialHandler):
                             thisAnal = thisAnal * sqrt(N) / sqrt(N - 1)
                     else:
                         thisAnal = eval("numpy.%s(thisData,1)" % analType)
-                except Exception:
+                except TypeError:
                     # that analysis doesn't work
                     dataHead.remove(dataType + '_' + analType)
                     dataOutInvalid.append(thisDataOut)
@@ -2539,7 +2539,7 @@ def indicesFromString(indsString):
     try:
         inds = int(round(float(indsString)))
         return [inds]
-    except Exception:
+    except ValueError:
         pass
     # "-6::2"
     try:
@@ -2551,7 +2551,7 @@ def indicesFromString(indsString):
     try:
         inds = list(eval(indsString))
         return inds
-    except Exception:
+    except TypeError:
         pass
 
 
@@ -2709,7 +2709,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for n in selection:
                 try:
                     assert n == int(n)
-                except Exception:
+                except AssertionError:
                     raise TypeError("importConditions() was given some "
                                     "`indices` but could not parse them")
     # the selection might now be a slice or a series of indices
@@ -4821,7 +4821,7 @@ def functionFromStaircase(intensities, responses, bins=10):
         # concatenate if multidimensional
         intensities = numpy.concatenate(intensities)
         responses = numpy.concatenate(responses)
-    except Exception:
+    except (ValueError, TypeError):
         intensities = numpy.array(intensities)
         responses = numpy.array(responses)
 
@@ -4917,7 +4917,7 @@ def isValidVariableName(name):
         return False, "Variables must be string-like"
     try:
         name = str(name)  # convert from unicode if possible
-    except Exception:
+    except ValueError:
         if type(name) in [unicode, numpy.unicode_]:
             msg = ("name %s (type %s) contains non-ASCII characters"
                    " (e.g. accents)")

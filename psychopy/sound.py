@@ -71,7 +71,7 @@ for thisLibName in prefs.general['audioLib']:
             msg = ("Audio lib options are currently only 'pyo' or "
                    "'pygame', not '%s'")
             raise ValueError(msg % thisLibName)
-    except Exception:
+    except ImportError:
         msg = '%s audio lib was requested but not loaded: %s'
         logging.warning(msg % (thisLibName, sys.exc_info()[1]))
         continue  # to try next audio lib

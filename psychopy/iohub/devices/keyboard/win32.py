@@ -27,7 +27,7 @@ try:
     import ujson
 
     jdumps = ujson.dumps
-except Exception:
+except ImportError:
     import json
 
     jdumps = json.dumps

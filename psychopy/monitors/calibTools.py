@@ -10,7 +10,7 @@ from psychopy import __version__, logging, hardware
 try:
     import serial
     haveSerial = True
-except Exception:
+except ImportError:
     haveSerial = False
 import os
 import time

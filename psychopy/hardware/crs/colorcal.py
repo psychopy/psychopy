@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import sys
 try:
     import serial
-except Exception:
+except ImportError:
     serial = False
 import numpy
 
@@ -88,7 +88,7 @@ class ColorCAL(object):
         # try to open the port
         try:
             self.com = serial.Serial(self.portString)
-        except Exception:
+        except serial.SerialException:
             msg = ("Couldn't connect to port %s. Is it being used by "
                    "another program?")
             self._error(msg % self.portString)
@@ -103,7 +103,7 @@ class ColorCAL(object):
             try:
                 if not self.com.isOpen():
                     self.com.open()
-            except Exception:
+            except serial.SerialException:
                 msg = "Opened serial port %s, but couldn't connect to ColorCAL"
                 self._error(msg % self.portString)
             else:

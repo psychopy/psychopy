@@ -68,7 +68,7 @@ class SerialDevice(object):
                     rtscts=0,)              # enable RTS/CTS flow control
 
                 self.portString = portString
-            except Exception:
+            except serial.SerialException:
                 if port:
                     # the user asked for this port and we couldn't connect
                     logging.warn("Couldn't connect to port %s" % portString)
@@ -80,7 +80,7 @@ class SerialDevice(object):
             if not self.com.isOpen():
                 try:
                     self.com.open()
-                except Exception:
+                except serial.SerialException:
                     msg = ("Couldn't open port %s. Is it being used by "
                            "another program?")
                     logging.info(msg % self.portString)

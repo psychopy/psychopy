@@ -42,8 +42,10 @@ class TestComponents(object):
                 tmpApp = wx.PySimpleApp()
             else:
                 tmpApp = wx.App(False)
-            try: from psychopy.app import localization
-            except Exception: pass  # not needed if can't import it
+            try:
+                from psychopy.app import localization
+            except ImportError:
+                pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
 
     def setup(self):

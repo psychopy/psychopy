@@ -34,7 +34,7 @@ import numpy
 try:
     import pygame
     havePygame = True
-except Exception:
+except ImportError:
     havePygame = False
 
 defaultLetterHeight = {'cm': 1.0,

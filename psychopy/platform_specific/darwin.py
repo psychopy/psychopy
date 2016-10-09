@@ -9,7 +9,7 @@ try:
     import ctypes
     import ctypes.util
     importCtypesFailed = False
-except Exception:
+except ImportError:
     importCtypesFailed = True
     logging.debug("rush() not available because import ctypes "
                   "failed in contrib/darwin.py")

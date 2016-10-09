@@ -7,12 +7,12 @@ import Modbus
 
 try:
     import skymote
-except Exception:
+except ImportError:
     pass
 
 try:
     import u12
-except Exception:
+except ImportError:
     pass
 
 import u6

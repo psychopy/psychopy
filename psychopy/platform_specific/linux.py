@@ -12,7 +12,7 @@ try:
     import ctypes.util
     c = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
     importCtypesFailed = False
-except Exception:
+except ImportError:
     importCtypesFailed = True
     logging.debug("rush() not available because import ctypes, ctypes.util "
                   "failed in psychopy/platform_specific/linux.py")
