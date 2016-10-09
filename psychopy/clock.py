@@ -44,7 +44,6 @@ getTime = None
 #        time.time is used. For Python 2.7 and above, the timeit.default_timer
 #        function is used.
 if sys.platform == 'win32':
-    global _fcounter, _qpfreq, _winQPC
     from ctypes import byref, c_int64, windll
     _fcounter = c_int64()
     _qpfreq = c_int64()
