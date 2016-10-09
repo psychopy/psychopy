@@ -43,7 +43,7 @@ class SerialDevice(object):
         if port is None:
             ports = self._findPossiblePorts()
         elif type(port) in [int, float]:
-            ports = ['COM%i' % self.portNumber]
+            ports = ['COM%i' % port]
         else:
             ports = [port]
 
