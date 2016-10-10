@@ -18,12 +18,7 @@ import json
 from psychopy import gui, iohub
 from psychopy.iohub import FileDialog
 
-global _hubFiles
-
-try:
-    len(_hubFiles)
-except Exception:
-    _hubFiles=[]
+_hubFiles=[]
 
 def openHubFile(filepath,filename,mode):
     """

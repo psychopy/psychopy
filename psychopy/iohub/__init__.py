@@ -58,7 +58,6 @@ fix_encoding.fix_encoding()
 def _localFunc():
     return None
 
-global IO_HUB_DIRECTORY
 IO_HUB_DIRECTORY=module_directory(_localFunc)
 
 import devices
