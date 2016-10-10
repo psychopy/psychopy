@@ -222,7 +222,7 @@ def initProcessStats():
 def getSysInfo(win): 
     try: 
         from collections import OrderedDict
-    except Exception: 
+    except ImportError:
         from psychopy.iohub import OrderedDict
     # based on sysInfo.py
     from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES

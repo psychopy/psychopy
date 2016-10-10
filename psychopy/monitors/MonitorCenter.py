@@ -33,7 +33,7 @@ try:
     from matplotlib.backends.backend_wxagg import (FigureCanvasWxAgg
                                                    as FigureCanvas)
     from matplotlib.figure import Figure
-except Exception:
+except ImportError:
     pass
 import numpy
 

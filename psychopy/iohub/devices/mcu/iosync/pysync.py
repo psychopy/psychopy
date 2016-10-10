@@ -114,7 +114,7 @@ import numpy as np
 try:
     from psychopy.iohub import OrderedDict, print2err,Computer
     getTime=Computer.getTime
-except Exception:
+except ImportError:
     from timeit import default_timer as getTime
     from collections import OrderedDict
     

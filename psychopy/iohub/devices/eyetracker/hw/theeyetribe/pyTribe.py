@@ -10,7 +10,7 @@ from gevent import sleep, socket, queue
 from gevent.server import StreamServer
 try:
     import ujson as json
-except Exception:
+except ImportError:
     import json
 from ..... import print2err,printExceptionDetailsToStdErr,Computer,OrderedDict
 

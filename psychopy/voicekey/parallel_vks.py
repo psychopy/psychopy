@@ -12,7 +12,7 @@ from . vk_tools import get_time, sleep
 try:
     from psychopy import parallel
     have_parallel = True
-except Exception:  # ImportError:
+except ImportError:  # ImportError:
     have_parallel = False
 
 

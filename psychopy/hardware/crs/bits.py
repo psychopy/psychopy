@@ -37,7 +37,7 @@ if plotResults:
 try:
     from psychopy.ext import _bits
     haveBitsDLL = True
-except Exception:
+except ImportError:
     haveBitsDLL = False
 
 if DEBUG:  # we don't want error skipping in debug mode!
@@ -47,12 +47,12 @@ else:
     try:
         from . import shaders
         haveShaders = True
-    except Exception:
+    except ImportError:
         haveShaders = False
 
 try:
     import configparser
-except Exception:
+except ImportError:
     import ConfigParser as configparser
 
 # Bits++ modes

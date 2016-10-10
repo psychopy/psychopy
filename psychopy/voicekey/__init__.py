@@ -23,7 +23,7 @@ import numpy as np
 try:
     import pyo64 as pyo
     have_pyo64 = True
-except Exception:
+except ImportError:
     import pyo
     have_pyo64 = False
 

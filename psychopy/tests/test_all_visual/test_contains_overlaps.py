@@ -100,7 +100,7 @@ mpl_version = matplotlib.__version__
 try:
     from matplotlib import nxutils
     have_nxutils = True
-except Exception:
+except ImportError:
     have_nxutils = False
 
 # if matplotlib.__version__ > '1.2': try to use matplotlib Path objects

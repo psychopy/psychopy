@@ -8,7 +8,7 @@ from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
 try:
     import pygame
     havePygame = True
-except Exception:
+except ImportError:
     havePygame = False
 import pytest
 import copy

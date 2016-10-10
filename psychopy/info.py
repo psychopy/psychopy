@@ -175,7 +175,7 @@ class RunTimeInfo(dict):
                 if len(auth) and '=' in auth:
                     try:
                         author = str(eval(auth[auth.find('=') + 1:]))
-                    except Exception:
+                    except ValueError:
                         pass
             if not version and '__version__' in lines:
                 linespl = lines.splitlines()
@@ -185,7 +185,7 @@ class RunTimeInfo(dict):
                 if len(ver) and ver.find('=') > 0:
                     try:
                         version = str(eval(ver[ver.find('=') + 1:]))
-                    except Exception:
+                    except ValueError:
                         pass
 
         if author or verbose:

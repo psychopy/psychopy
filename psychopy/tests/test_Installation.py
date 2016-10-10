@@ -45,7 +45,7 @@ def test_extra_imports():
     import egi
     try:
         import labjack
-    except Exception:
+    except ImportError:
         import u3, u6, ue9, LabJackPython
     import ioLabs
     #platform specific

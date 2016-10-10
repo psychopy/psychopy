@@ -28,7 +28,7 @@ except Exception:
         tmpApp = wx.App(False)
     try:
         from psychopy.app import localization
-    except Exception:
+    except ImportError:
         pass  # not needed if can't import it
     allComp = getAllComponents(fetchIcons=False)
 

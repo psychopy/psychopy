@@ -20,7 +20,7 @@ from ...eye_events import *
 
 try:
     from tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
-except Exception:
+except ImportError:
     print2err("Error importing TobiiPsychopyCalibrationGraphics")
     printExceptionDetailsToStdErr()
 
@@ -63,7 +63,7 @@ class EyeTracker(EyeTrackerDevice):
                 from eyex_classes import TobiiEyeXTracker
             else:
                 from tobiiclasses import TobiiTracker
-        except Exception:
+        except ImportError:
             print2err("Error importing tobiiclasses")
             printExceptionDetailsToStdErr()
 

@@ -23,7 +23,7 @@ class TestPyo(object):
         self.contextName='pyo'
         try:
             assert sound.Sound == sound.SoundPyo
-        except Exception:
+        except AssertionError:
             pytest.xfail('need to be using pyo')
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 

@@ -27,7 +27,7 @@ currentSec= Computer.currentSec
 
 try:
     import ujson as json
-except Exception:
+except ImportError:
     import json
 
 import msgpack
