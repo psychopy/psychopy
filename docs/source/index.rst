@@ -12,7 +12,7 @@ PsychoPy is unique in giving you a choice of interface: use the **Builder interf
 News
 ====================
 
-**Workshops**: This year we'll be running **three** :ref:`officialWorkshops`:
+**Workshops**: This year we'll be running **three** :ref:`officialWorkshops` :
  - 26-28 Apr 2017: :ref:`PEP1`
  - 3-5 May 2017: :ref:`BEP`
  - (Date TBC): :ref:`PEP2`

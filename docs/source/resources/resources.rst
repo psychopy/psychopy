@@ -8,7 +8,7 @@ If you also have PsychoPy materials/course then please let us know so that we ca
 Workshops
 ---------------------------------------------------------------
 
-There are now several official workshops, run at Nottinghamby the creators of PsychoPy. These cater to different needs (Builder, Beginners Programming, Intermediate Programming). Please see the page on :officialWorkshops: for further details.
+There are now several official workshops, run at Nottinghamby the creators of PsychoPy. These cater to different needs (Builder, Beginners Programming, Intermediate Programming). Please see the page on :ref:`officialWorkshops` for further details.
 
 .. _youtube:
 
