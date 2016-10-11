@@ -54,21 +54,15 @@ if havePyglet:
         MOD_SCROLLLOCK
     )
 
-    global _keyBuffer
     _keyBuffer = []
-    global mouseButtons
     mouseButtons = [0, 0, 0]
-    global mouseWheelRel
     mouseWheelRel = numpy.array([0.0, 0.0])
-    global mouseClick
     # list of 3 clocks that are reset on mouse button presses
     mouseClick = [psychopy.core.Clock(), psychopy.core.Clock(),
                   psychopy.core.Clock()]
-    global mouseTimes
     # container for time elapsed from last reset of mouseClick[n] for any
     # button pressed
     mouseTimes = [0.0, 0.0, 0.0]
-    global mouseMove
     # clock for tracking time of mouse movement, reset when mouse is moved,
     # reset on mouse motion:
     mouseMove = psychopy.core.Clock()

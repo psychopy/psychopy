@@ -23,7 +23,6 @@ from .. import Computer
 ## XInput Functions
 #
 
-global _xinput_dll    
 
 def loadDLL():
     global _xinput_dll
