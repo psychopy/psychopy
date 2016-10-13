@@ -1178,7 +1178,7 @@ class ioHubConnection(object):
         # check if the reply is an error or not. If it is, raise the error.
         errorReply=self._isErrorReply(result)
         if errorReply:
-            raise errorReply
+            raise Exception(errorReply)
 
         #Otherwise return the result
         return result
