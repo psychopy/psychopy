@@ -39,7 +39,8 @@ Multiple stimuli:
 Other stimuli:
 
 	* :class:`.MovieStim` to show movies
-	* :class:`.RatingScale` to collect ratings
+	* :class:`.RatingScale` to collect continuous and categorical ratings
+	* :class:`.SimpleRatingScale` to collect continuous ratings
 	* :class:`.CustomMouse` to change the cursor in windows with GUI. OBS: will be deprecated soon
 
 Meta stimuli (stimuli that operate on other stimuli):
