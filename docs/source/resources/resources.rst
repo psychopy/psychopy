@@ -8,7 +8,7 @@ If you also have PsychoPy materials/course then please let us know so that we ca
 Workshops
 ---------------------------------------------------------------
 
-- **P4N: Python for Neuroscience** There is usually a 3-day Python bootcamp at Nottingham University in April. It won't be *only* about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. For further info see :ref:`P4N`
+There are now several official workshops, run at Nottinghamby the creators of PsychoPy. These cater to different needs (Builder, Beginners Programming, Intermediate Programming). Please see the page on :ref:`officialWorkshops` for further details.
 
 .. _youtube:
 
@@ -57,7 +57,7 @@ Previous events
 * `BPS Maths Stats and Computing Section <http://bps-msc.blogspot.com/>`_ workshop (Dec 2010):
 
     .. raw:: html
-        
+
        <p align='right'><iframe src="https://docs.google.com/present/embed?id=dg34vmg9_7fnp9ctg3" frameborder="0" width="410" height="342"></iframe>
 
 

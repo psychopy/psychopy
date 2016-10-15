@@ -18,7 +18,17 @@ PsychoPy 1.84.2
 * FIXED:
 
   * Problem with renaming of Routines preventing experiment from re-loading #1248
-  * Fix to code generation for Static Components and some Keyboard Components (with variable "allowed keys" settings)
+  * Several bugs with Builder code generation since PEP8 refactoring:
+    * Static Components gave error compiling script
+    * some Keyboard Components (with variable "allowed keys" settings) gave error compiling script #1245
+    * Mouse Component with "Save state at end of trial" gave indentation error #1253
+    * Loops gave error compiling script if conditions file was a formatted string #1253
+  * Standalone distributions were not including the correct `pylink 1.1.0.4` and `pyxid` packages
+
+* ADDED:
+
+  * Keyfinder demo to Builder view #1252
+  * Support for key modifiers using `event.getKeys()` #1242
 
 PsychoPy 1.84.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

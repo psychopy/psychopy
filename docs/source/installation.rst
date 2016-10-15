@@ -2,7 +2,6 @@ Installation
 ===============
 
 
-
 Download
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -11,18 +10,18 @@ For the easiest installation download and install the Standalone package for you
 
   * Windows (all versions):
 
-    * `Download StandalonePsychoPy-1.84.1-win32.exe <https://github.com/psychopy/psychopy/releases/download/1.84.1/StandalonePsychoPy-1.84.1-win32.exe>`_
+    * `Download StandalonePsychoPy-1.84.2-win32.exe <https://github.com/psychopy/psychopy/releases/download/1.84.2/StandalonePsychoPy-1.84.2-win32.exe>`_
 
   * Mac OSX (recent versions):
 
-    * `Download StandalonePsychoPy-1.84.1-OSX_64bit.dmg <https://github.com/psychopy/psychopy/releases/download/1.84.1/StandalonePsychoPy-1.84.1-OSX_64bit.dmg>`_
+    * `Download StandalonePsychoPy-1.84.2-OSX_64bit.dmg <https://github.com/psychopy/psychopy/releases/download/1.84.2/StandalonePsychoPy-1.84.2-OSX_64bit.dmg>`_
 
   * Ubuntu or debian-based systems:
 
     * `sudo apt-get install psychopy`
     * NB: the neurodebian package has newer versions than the default debian package: http://neuro.debian.net/
 
-**For previous versions (1.81 or later)** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
+**For previous recent versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
 
 See below for options:
 
@@ -32,7 +31,7 @@ See below for options:
   * :ref:`macports_install`
   * :ref:`gentoo`
 
-Notes OpenGL drivers
+Notes on OpenGL drivers
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 On windows, if you get an error saying **"pyglet.gl.ContextException: Unable to share contexts"** then the most likely cause is that you need OpenGL drivers and your built-in Windows only have limited support for OpenGL (or possibly you have an Intel graphics card that isn't very good). Try installing new drivers for your graphics card **from the manufacturer web page** not from Microsoft.
@@ -44,7 +43,7 @@ Recommended hardware
 
 The minimum requirement for PsychoPy is a computer with a graphics card that supports OpenGL. Many newer graphics cards will work well. Ideally the graphics card should support OpenGL version 2.0 or higher. Certain visual functions run much faster if OpenGL 2.0 is available, and some require it (e.g. ElementArrayStim).
 
-If you already have a computer, you can install PsychoPy and the Configuration Wizard will auto-detect the card and drivers, and provide more information. It is inexpensive to upgrade most desktop computers to an adequate graphics card. High-end graphics cards can be very expensive but are only needed for vision research (and high-end gaming).
+If you already have a computer, you can install PsychoPy and the Configuration Wizard will auto-detect the card and drivers, and provide more information. It is inexpensive to upgrade most desktop computers to an adequate graphics card. High-end graphics cards can be very expensive but are only needed for very intensive use.
 
 Generally nVidia and ATI (AMD) graphics chips are high-performance than Intel graphics chips so try and get one of those instead. Some graphics cards that are known to work with PsychoPy `can be found here <http://upload.psychopy.org/benchmark/report.html>`_; that list is not exhaustive, many cards will also work.
 
