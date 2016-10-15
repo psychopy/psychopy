@@ -482,6 +482,53 @@ class _baseVisualTest(object):
         rs.draw()
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
+
+    def test_SimpleRatingScale_vertical(self):
+        # if self.win.winType == 'pygame':
+        #     msg = 'PyGame tests not working for SimpleRatingScale, skipping'
+        #     pytest.skip(msg)
+
+        win = self.win
+        rs = visual.SimpleRatingScale(win, ori='vert', labelLoc='right',
+                                      autoLog=False)
+        str(rs)
+        rs.draw()
+
+        outfile = 'simpleratingscale_vert1_%s.png' % self.contextName
+        utils.compareScreenshot(outfile, win)
+        win.flip()
+
+    def test_SimpleRatingScale_horizontal(self):
+        # if self.win.winType == 'pygame':
+        #     msg = 'PyGame tests not working for SimpleRatingScale, skipping'
+        #     pytest.skip(msg)
+
+        win = self.win
+        rs = visual.SimpleRatingScale(win, ori='horiz', labelLoc='bottom',
+                                      autoLog=False)
+        str(rs)
+        rs.draw()
+
+        outfile = 'simpleratingscale_horiz1_%s.png' % self.contextName
+        utils.compareScreenshot(outfile, win)
+        win.flip()
+
+    def test_SimpleRatingScale_marker(self):
+        # if self.win.winType == 'pygame':
+        #     msg = 'PyGame tests not working for SimpleRatingScale, skipping'
+        #     pytest.skip(msg)
+
+        win = self.win
+        rs = visual.SimpleRatingScale(win, ori='horiz', labelLoc='bottom',
+                                      resetOnFirstFlip=False, autoLog=False)
+        str(rs)
+        rs._response = 75
+        rs.draw()
+
+        outfile = 'simpleratingscale_marker1_%s.png' % self.contextName
+        utils.compareScreenshot(outfile, win)
+        win.flip()
+
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
@@ -578,13 +625,13 @@ class TestPygletDegFlatPos(_baseVisualTest):
             units='degFlatPos', autoLog=False)
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
-#class TestPygameNorm(_baseVisualTest):
+# class TestPygameNorm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
 #        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
 #        self.contextName='norm'
 #        self.scaleFactor=1#applied to size/pos values
-#class TestPygamePix(_baseVisualTest):
+# class TestPygamePix(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
 #        mon = monitors.Monitor('testMonitor')
@@ -595,7 +642,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
 #            units='pix', autoLog=False)
 #        self.contextName='pix'
 #        self.scaleFactor=60#applied to size/pos values
-#class TestPygameCm(_baseVisualTest):
+# class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
 #        mon = monitors.Monitor('testMonitor')
@@ -606,7 +653,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
 #            units='cm')
 #        self.contextName='cm'
 #        self.scaleFactor=2#applied to size/pos values
-#class TestPygameDeg(_baseVisualTest):
+# class TestPygameDeg(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
 #        mon = monitors.Monitor('testMonitor')
@@ -617,7 +664,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
 #            units='deg')
 #        self.contextName='deg'
 #        self.scaleFactor=2#applied to size/pos values
-#
+
 
 if __name__ == '__main__':
     cls = TestPygletCm()
