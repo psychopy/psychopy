@@ -211,8 +211,8 @@ class Experiment(object):
             self.settings.writeInitCodeJS(script,
                                           self.psychopyVersion, localDateTime)
             self.settings.writeWindowCodeJS(script)
-            self.flow.writeResourcesCodeJS(script)
             self.flow.writeBodyJS(script)  # includes compon init and run code
+            self.flow.writeResourcesCodeJS(script)
 
             self.settings.writeEndCodeJS(script)
 
@@ -900,6 +900,11 @@ class TrialHandler(object):
                     "        exec(paramName + '= %(name)s.' + paramName)\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
+    def writeLoopStartCodeJS(self, buff):
+        """Write the code to create and run a sequence of trials
+        """
+        pass # todo
+        
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
@@ -938,6 +943,10 @@ class TrialHandler(object):
                         "    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
                 buff.writeIndentedLines(code % self.params)
 
+    def writeLoopEndCodeJS(self, buff):
+        # Just within the loop advance data line if loop is whole trials
+        pass # to do
+        
     def getType(self):
         return 'TrialHandler'
 
@@ -1231,11 +1240,19 @@ class LoopInitiator(object):
     def writeInitCode(self, buff):
         self.loop.writeInitCode(buff)
 
+    def writeInitCodeJS(self, buff):
+        self.loop.writeInitCodeJS(buff)
+        
     def writeMainCode(self, buff):
         self.loop.writeLoopStartCode(buff)
         # we are now the inner-most loop
         self.exp.flow._loopList.append(self.loop)
 
+    def writeMainCodeJS(self, buff):
+        self.loop.writeLoopStartCodeJS(buff)
+        # we are now the inner-most loop
+        self.exp.flow._loopList.append(self.loop)
+        
     def getType(self):
         return 'LoopInitiator'
 
@@ -1264,6 +1281,11 @@ class LoopTerminator(object):
         # _loopList[-1] will now be the inner-most loop
         self.exp.flow._loopList.remove(self.loop)
 
+    def writeMainCodeJS(self, buff):
+        self.loop.writeLoopEndCodeJS(buff)
+        # _loopList[-1] will now be the inner-most loop
+        self.exp.flow._loopList.remove(self.loop)
+        
     def getType(self):
         return 'LoopTerminator'
 
@@ -1472,9 +1494,9 @@ class Flow(list):
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
         code = ("\n# Create some handy timers\n"
-                "globalClock = core.Clock()  # to track the "
+                "globalClock = psychoJS.core.Clock()  # to track the "
                 "time since experiment started\n"
-                "routineTimer = core.CountdownTimer()  # to "
+                "routineTimer = psychoJS.core.CountdownTimer()  # to "
                 "track time remaining of each (non-slip) routine \n")
         script.writeIndentedLines(code)
         # run-time code
@@ -1492,13 +1514,6 @@ class Flow(list):
         # initialise the components for all Routines in a single function
         script.writeIndentedLines("\nfunction experimentInit() {")
         script.setIndentLevel(1, relative=True)
-        code = ("// Initialize resource loading component\n"
-                "resourceManagerClock = new core.Clock();\n"
-                "resourceManager = new io.ResourceManager("
-                " {win:win, target:'OSF', projectName:'stroop', "
-                " projectContributor:'Alain Pitiot', projectStatus:'PUBLIC',"
-                " clock:resourceManagerClock});\n")
-        script.writeIndentedLines(code)
 
         # routine init sections
         for entry in self:
@@ -1509,11 +1524,11 @@ class Flow(list):
 
         # create globalClock etc
         code = ("\n// Create some handy timers\n"
-                "globalClock = new core.Clock();"
+                "globalClock = new psychoJS.core.Clock();"
                 "  // to track the time since experiment started\n"
-                "routineTimer = new core.CountdownTimer();"
+                "routineTimer = new psychoJS.core.CountdownTimer();"
                 "  // to track time remaining of each (non-slip) routine\n"
-                "\nreturn NEXT;"
+                "\nreturn psychoJS.NEXT;"
                 )
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
@@ -1765,6 +1780,16 @@ class Routine(list):
                 code = "{}Components.push({});\n".format(
                     self.name, thisCompon.params['name'])
                 buff.writeIndentedLines(code)
+        code = ("for(var i = 0; i < {name}Components.length; ++i) {{\n"
+			"  thisComponent = {name}Components[i];\n"
+			"  if ('status' in thisComponent) {{\n"
+			"    thisComponent.status = psychoJS.NOT_STARTED;\n"
+			"  }}\n"
+			"\nreturn psychoJS.NEXT;\n"
+			"}}\n"
+                .format(name=self.name))
+        buff.writeIndentedLines(code)
+                
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -1796,20 +1821,20 @@ class Routine(list):
         code = ("\n// check if the Routine should terminate\n"
                 "if (!continueRoutine) {{"
                 "  // a component has requested a forced-end of Routine\n"
-                "  return NEXT;\n"
+                "  return psychoJS.NEXT;\n"
                 "}}\n"
                 "continueRoutine = false;"
                 "// reverts to True if at least one component still running\n"
                 "for(var i = 0; i < {0}Components.length; ++i) {{\n"
                 "  thisComponent = {0}Components[i];\n"
-                "  if ('status' in thisComponent && thisComponent.status != FINISHED) {{\n"
+                "  if ('status' in thisComponent && thisComponent.status != psychoJS.FINISHED) {{\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
                 "  }}\n"
                 "}}\n"
                 "// check for quit (the Esc key)\n"
                 "if (endExpNow || event.getKeys({{keyList:['escape']}}).length > 0) {{\n"
-                "  core.quit();\n"
+                "  psychoJS.core.quit('The <Escape> key was pressed. Goodbye!');\n"
                 "}}\n")
         buff.writeIndentedLines(code.format(self.name))
 
@@ -1819,10 +1844,10 @@ class Routine(list):
                                     "&& routineTimer.getTime() > 0) {")
         else:
             buff.writeIndentedLines("if (continueRoutine) {")
-        code = ("  return FLIP_REPEAT;\n"
+        code = ("  return psychoJS.FLIP_REPEAT;\n"
                 "}\n"
                 "else {\n"
-                "  return NEXT;\n"
+                "  return psychoJS.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
 
@@ -1834,39 +1859,28 @@ class Routine(list):
         buff.writeIndentedLines(code.format(self.name))
         buff.setIndentLevel(1, relative=True)
 
-        code = ("//------Ending Routine '{0}'-------\n"
-                "for (var i = 0; i < instructComponents.length; ++i) {{\n"
+        code = ("//------Ending Routine '{name}'-------\n"
+                "for (var i = 0; i < {name}Components.length; ++i) {{\n"
                 '  if ("setAutoDraw" in thisComponent) {{\n'
                 "    thisComponent.setAutoDraw(false);\n"
                 '  }}\n'
                 "}}\n")
-        buff.writeIndentedLines(code.format(self.params['name']))
+        buff.writeIndentedLines(code.format(name=self.params['name']))
         # add the EndRoutine code for each component
         for compon in self:
             if "PsychoJS" in compon.targets:
                 compon.writeRoutineEndCodeJS(buff)
-#
-#        # reset routineTimer at the *very end* of all non-nonSlip routines
-#        if not useNonSlip:
-#            code = ('# the Routine "%s" was not non-slip safe, so reset '
-#                    'the non-slip timer\n'
-#                    'routineTimer.reset()\n')
-#            buff.writeIndentedLines(code % self.name)
 
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        if not useNonSlip:
+            code = ('// the Routine "%s" was not non-slip safe, so reset '
+                    'the non-slip timer\n'
+                    'routineTimer.reset();\n')
+            buff.writeIndentedLines(code % self.name)
+
+        buff.writeIndented('return psychoJS.NEXT;\n')
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
-
-        # CURRENTLY HERE WORKING THROUGH ROUTINE MAIN CODE
-#
-#        # write the code for each component for the end of the routine
-#        code = ('\n# -------Ending Routine "%s"-------\n'
-#                'for thisComponent in %sComponents:\n'
-#                '    if hasattr(thisComponent, "setAutoDraw"):\n'
-#                '        thisComponent.setAutoDraw(False)\n')
-#        buff.writeIndentedLines(code % (self.name, self.name))
-
-#
-
 
 
     def writeExperimentEndCode(self, buff):

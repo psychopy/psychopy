@@ -3,8 +3,8 @@
 
 <html>
     <head>
-        <title>{params[expName]} [PsychoPy]</title>
-        <meta content="">
+        <title>{name} [PsychoPy]</title>
+        <meta charset="UTF-8">
         <link href="js/vendors//jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
 
         <style>
@@ -30,6 +30,7 @@
         <script type="text/javascript" src="js/vendors/stats.min.js"></script>
         <script type="text/javascript" src="js/vendors/pixi.min.js"></script>
         <script type="text/javascript" src="js/vendors/papaparse.min.js"></script>
+        <script type="text/javascript" src="js/vendors/preloadjs-0.6.2.min.js"></script>
 
         <script type="text/javascript" src="js/psychojs/main.js"></script>
         <script type="text/javascript" src="js/psychojs/core.js"></script>
@@ -41,8 +42,9 @@
         <script type="text/javascript" src="js/psychojs/visual.js"></script>
         <script type="text/javascript" src="js/psychojs/io.js"></script>
         <script type="text/javascript" src="js/psychojs/colors.js"></script>
+        <script type="text/javascript" src="js/psychojs/logging.js"></script>
 
         <script type='text/javascript'>
             // wait until document is ready:
             $(document).ready(function() {{
-                with (PsychoJs) {{
+              psychoJS.debug = true; //false;

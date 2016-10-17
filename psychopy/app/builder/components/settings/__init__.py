@@ -199,6 +199,30 @@ class SettingsComponent(object):
                             "('error' is fewest messages, 'debug' is most)"),
             label=_localized["logging level"], categ='Data')
 
+        # HTML output params
+        self.params['OSF Project ID'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("The ID of this project (e.g. 5bqpc)"),
+            label="OSF Project ID", categ='Online')
+        self.params['OSF User'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("Must be a user that has logged in from PsychoPy "
+                            "on this machine (with user remembered)"),
+            label="OSF username (email)", categ='Online')
+        self.params['HTML path'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("Place the HTML files will be saved locally "),
+            label="Output path", categ='Online')
+        self.params['email'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("Place the HTML files will be saved locally "),
+            label="Email address (for info emails)", categ='Online')
+        self.params['JS libs'] = Param(
+            'remote', valType='str', allowedVals=['packaged','remote'],
+            hint=_translate("Should we package a copy of the JS libs or use"
+                            "remote copies (http:/www.psychopy.org/js)?"),
+            label="JS libs", categ='Online')
+
     def getType(self):
         return self.__class__.__name__
 
@@ -259,15 +283,79 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
+    def prepareResourcesJS(self):
+        """Sets up the resources folder and writes the info.php file for PsychoJS
+        """
+
+        # detect OSF token from username
+        osfUser = self.params['OSF User'].val
+        if osfUser:
+            import pyosf.remote
+            tokens = pyosf.remote.TokenStorage()
+            osfToken = repr(tokens[osfUser])
+        else:
+            osfToken = 'undefined'
+
+        # write info.php file
+        folder = self.exp.expPath
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+
+        infoPHPfilename = os.path.join(folder, 'info.php')
+        infoText = ("<?php\n"
+            "  $this->data = array(\n"
+            "    // URL of OSF server\n"
+            "    'osfUrl' => 'https://api.osf.io/v2/',\n"
+            "    // project info\n"
+            "    'projectId' => {params[OSF Project ID]},\n"
+            "    'projectName' => {params[expName]},\n"
+            "    // experimenter's OSF security token for this project\n"
+            "    'token' => {osfToken},\n"
+            "    'osfResourceDirectory' => 'html/resources'\n"
+            "\n"
+            "    // name of the directory containing the experiment's resources,\n"
+            "    // both on the local experiment server and on the remote OSF server\n"
+            "    'resourceDirectory' => 'resources',\n"
+            "    // name of the directory containing the participant's data,\n"
+            "    // both on the local experiment server and on the remote OSF server\n"
+            "    'dataDirectory' => 'data',\n"
+            "    // associative array of resource names => resource download links\n"
+            "    'resources' => array(),\n"
+            "\n"
+            "    // experimenter contact details\n"
+            "    'experimenterEmail' => {params[email]}\n"
+            "  );\n"
+            "?>\n"
+            .format(params=self.params, osfToken=osfToken)
+            )
+        infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
+        with open(infoPHPfilename, 'w') as infoFile:
+            infoFile.write(infoText)
+
+        # copy over JS libs if needed
+        if  self.params['JS libs'].val == 'packaged':
+            pass
+
+        # add other files to the resources folder
+
+
     def writeInitCodeJS(self, buff, version, localDateTime):
+        # write info.php and resources folder as well
+        self.prepareResourcesJS()
         # header
-        template = readTextFile("JS_htmlHeader.txt")
-        header = template.format(params = self.params)
+        template = readTextFile("JS_htmlHeader.tmpl")
+        header = template.format(
+                   name = self.params['expName'].val, # prevent repr() conversion
+                   params = self.params)
         buff.write(header)
         # write the code to set up experiment
         buff.setIndentLevel(4, relative=False)
-        template = readTextFile("JS_setupExp.txt")
-        code = template.format(params=self.params)
+        template = readTextFile("JS_setupExp.tmpl")
+        code = template.format(
+                   params=self.params,
+                   saveType = "'OSF_VIA_EXPERIMENT_SERVER'",
+                   loggingLevel = self.params['logging level'].val.upper(),
+                   )
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff):
@@ -428,8 +516,10 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
-        template = readTextFile("JS_winInit.txt")
-        code = template.format(params=self.params)
+        fullscr = str(self.params['Full-screen window']).lower() #lower case string
+        template = readTextFile("JS_winInit.tmpl")
+        code = template.format(params=self.params,
+                               fullscr=fullscr)
         buff.writeIndentedLines(code)
 
     def writeEndCode(self, buff):
