@@ -141,7 +141,7 @@ class LogFile(object):
                 The minimum level of importance that a message must have
                 to be logged by this target.
 
-            - mode: 'a', 'w'
+            - filemode: 'a', 'w'
                 Append or overwrite existing log file
 
         """
