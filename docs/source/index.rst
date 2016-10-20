@@ -14,7 +14,9 @@ News
 
 **Workshops**: This year we'll be running **three** :ref:`officialWorkshops` :
  - 26-28 Apr 2017: :ref:`PEP1`
+   Book now at http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=786
  - 3-5 May 2017: :ref:`BEP`
+   Book now at http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=787
  - (Date TBC): :ref:`PEP2`
 
 **Latest version**: 1.84.2 was released Sept 2016, with new *Projects* menu for syncing with http://osf.io. Also various bug fixes and updated standalone packages. See the full :doc:`changelog`
