@@ -119,5 +119,37 @@ class TextComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
         buff.writeIndented('    ' + flipStr + 'depth=%.1f);\n' % depth)
 
-    def writeInitCodeJS(self, buff):
-        self.writeInitCode(buff)  # for now just use the python code
+    def writeInitCodeJS(self, buff):        
+        # do we need units code?
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = ""
+        else:
+            unitsStr = "units:'%(units)s', " % self.params
+        # do writing of init
+        # replaces variable params with sensible defaults
+        inits = getInitVals(self.params)
+        if self.params['wrapWidth'].val in ['', 'None', 'none']:
+            inits['wrapWidth'] = 'undefined'
+        code = ("%(name)s = psychopyJS.visual.TextStim({{win : win, "
+                "name : '%(name)s',\n"
+                "    text : %(text)s,\n"
+                "    font : %(font)s,\n"
+                "    " + unitsStr +
+                "pos : %(pos)s, height : %(letterHeight)s, "
+                "wrapWidth : %(wrapWidth)s, ori:%(ori)s, \n"
+                "    color : %(color)s, colorSpace:%(colorSpace)s, "
+                "opacity : %(opacity)s,")
+        buff.writeIndentedLines(code % inits)
+        flip = self.params['flip'].val.strip()
+        if flip == 'horiz':
+            flipStr = 'flipHoriz : true, '
+        elif flip == 'vert':
+            flipStr = 'flipVert : true, '
+        elif flip:
+            msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
+                   " in component '%s'")
+            raise ValueError(msg % self.params['name'].val)
+        else:
+            flipStr = ''
+        depth = -self.getPosInRoutine()
+        buff.writeIndented('    ' + flipStr + 'depth : %.1f);\n' % depth)

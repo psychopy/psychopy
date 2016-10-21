@@ -1197,7 +1197,7 @@ class BuilderFrame(wx.Frame):
             _translate("Save current experiment file as..."))
         menu.Append(
             self.IDs.fileExport,
-            _translate("Export HTML..."),
+            _translate("Export HTML...\t%s") % keys['exportHTML'],
             _translate("Export experiment to html/javascript file"))
         menu.Append(
             wx.ID_CLOSE,
@@ -1562,26 +1562,30 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None, htmlPath=""):
+    def fileExport(self, event=None, htmlPath=None):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
-        if htmlPath == "":
-            htmlPath = os.path.splitext(self.filename)[0] + ".html"
-            dlg = ExportFileDialog(self, -1, title="Export HTML file",
-                                   filePath=htmlPath)
-            retVal = dlg.ShowModal()
-            if retVal == wx.ID_OK:
-                htmlPath = dlg.filePath.GetValue()
-                if dlg.exportOnSave.GetValue():
-                    self.htmlPath = htmlPath  # this will be checked and used
-            else:
-                return  # nothing more to do here, move along
+        settingsHTMLpath = self.exp.settings.params['HTML path'].val
+        if htmlPath is None and self.exp.settings.params['HTML path']:
+
+            expPath = os.path.split(self.filename)[0]
+            htmlPath = os.path.join(expPath, settingsHTMLpath)
+        # present dialog box
+        dlg = ExportFileDialog(self, -1, title="Export HTML file",
+                               filePath=htmlPath)
+        retVal = dlg.ShowModal()
+        if retVal == wx.ID_OK:
+            htmlPath = dlg.filePath.GetValue()
+            if dlg.exportOnSave.GetValue():
+                self.htmlPath = htmlPath  # this will be checked and used
+        else:
+            return  # nothing more to do here, move along
         # then save the actual script
-        script = self.generateScript(experimentPath=htmlPath,
+        indexHTML = self.generateScript(experimentPath=htmlPath,
                                      target="PsychoJS")
-        f = codecs.open(htmlPath, 'wb', 'utf-8')
-        f.write(script.getvalue())
+        f = codecs.open(os.path.join(htmlPath,'index.html'), 'wb', 'utf-8')
+        f.write(indexHTML.getvalue())
         f.close()
 
     def getShortFilename(self):
@@ -2207,7 +2211,7 @@ class ReadmeFrame(wx.Frame):
 class ExportFileDialog(wx.Dialog):
     def __init__(
             self, parent, ID, title, size=wx.DefaultSize,
-            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, filePath=""
+            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, filePath=None
             ):
 
         wx.Dialog.__init__(self, parent, ID, title,
@@ -2225,10 +2229,10 @@ class ExportFileDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        label = wx.StaticText(self, -1, "Filepath:")
+        label = wx.StaticText(self, -1, "Filepath (relative to psyexp):")
         box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
         self.filePath = wx.TextCtrl(self, -1, filePath, size=(200, -1))
-        self.filePath.SetHelpText("The path to store the HTML file")
+        self.filePath.SetHelpText("The folder to store the HTML files")
         box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
         sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
@@ -2237,7 +2241,9 @@ class ExportFileDialog(wx.Dialog):
 
         self.exportOnSave = wx.CheckBox(self, -1,
                                         label="Continuously export on save")
+        self.exportOnSave.Disable()
         self.exportOnSave.SetHelpText(
+            "[NOT implemented yet]"
             "Tick this if you want the HTML file to export"
             " (and overwrite) on every save of the experiment."
             " Only works for THIS SESSION.")
