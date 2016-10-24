@@ -1720,7 +1720,8 @@ class Flow(list):
             script.writeIndentedLines(code)
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitpsychoJS);\n"
-                "\nscheduler.start(win);\n")
+                "\nscheduler.start(win);\n"
+                "}\n")
         script.writeIndentedLines(code)
 
 
