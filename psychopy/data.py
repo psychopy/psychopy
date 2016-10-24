@@ -22,11 +22,16 @@ import weakref
 import re
 import warnings
 import collections
+from distutils.version import StrictVersion
 
 try:
     # import openpyxl
     import openpyxl
-    from openpyxl.cell import get_column_letter
+    if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
+        # openpyxl moved get_column_letter to utils.cell
+        from openpyxl.utils.cell import get_column_letter
+    else:
+        from openpyxl.cell import get_column_letter
     from openpyxl.reader.excel import load_workbook
     haveOpenpyxl = True
 except ImportError:
@@ -645,7 +650,6 @@ class _BaseTrialHandler(object):
         # import necessary subpackages - they are small so won't matter to do
         # it here
         from openpyxl.workbook import Workbook
-        from openpyxl.writer.excel import ExcelWriter
         from openpyxl.reader.excel import load_workbook
 
         if not fileName.endswith('.xlsx'):
@@ -662,8 +666,6 @@ class _BaseTrialHandler(object):
             wb = Workbook()  # create new workbook
             wb.properties.creator = 'PsychoPy' + psychopy.__version__
             newWorkbook = True
-
-        ew = ExcelWriter(workbook=wb)
 
         if newWorkbook:
             ws = wb.worksheets[0]
@@ -687,7 +689,7 @@ class _BaseTrialHandler(object):
                 _cell = _getExcelCellName(col=colN, row=lineN)
                 ws.cell(_cell).value = val
 
-        ew.save(filename=fileName)
+        wb.save(filename=fileName)
 
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this
@@ -3305,7 +3307,6 @@ class StairHandler(_BaseTrialHandler):
         # import necessary subpackages - they are small so won't matter to do
         # it here
         from openpyxl.workbook import Workbook
-        from openpyxl.writer.excel import ExcelWriter
         from openpyxl.reader.excel import load_workbook
 
         if not fileName.endswith('.xlsx'):
@@ -3322,8 +3323,6 @@ class StairHandler(_BaseTrialHandler):
             wb = Workbook()
             wb.properties.creator = 'PsychoPy' + psychopy.__version__
             newWorkbook = True
-
-        ew = ExcelWriter(workbook=wb)
 
         if newWorkbook:
             ws = wb.worksheets[0]
@@ -3363,7 +3362,7 @@ class StairHandler(_BaseTrialHandler):
                 ws.cell(_cell).value = unicode(val)
                 rowN += 1
 
-        ew.save(filename=fileName)
+        wb.save(filename=fileName)
         if self.autoLog:
             logging.info('saved data to %s' % fileName)
 
@@ -4334,8 +4333,7 @@ class MultiStairHandler(_BaseTrialHandler):
             label = thisStair.condition['label']
             thisStair.saveAsExcel(
                 fileName, sheetName=label, matrixOnly=matrixOnly,
-                appendFile=append, fileCollisionMethod='rename'
-            )
+                appendFile=append, fileCollisionMethod=fileCollisionMethod)
             append = True
 
     def saveAsText(self, fileName,
