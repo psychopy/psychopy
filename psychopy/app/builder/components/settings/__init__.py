@@ -218,7 +218,7 @@ class SettingsComponent(object):
             hint=_translate("Place the HTML files will be saved locally "),
             label="Email address (for info emails)", categ='Online')
         self.params['JS libs'] = Param(
-            'remote', valType='str', allowedVals=['packaged','remote'],
+            'remote', valType='str', allowedVals=['packaged', 'remote'],
             hint=_translate("Should we package a copy of the JS libs or use"
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
@@ -303,31 +303,31 @@ class SettingsComponent(object):
 
         infoPHPfilename = os.path.join(folder, 'info.php')
         infoText = ("<?php\n"
-            "  $this->data = array(\n"
-            "    // URL of OSF server\n"
-            "    'osfUrl' => 'https://api.osf.io/v2/',\n"
-            "    // project info\n"
-            "    'projectId' => {params[OSF Project ID]},\n"
-            "    'projectName' => {params[expName]},\n"
-            "    // experimenter's OSF security token for this project\n"
-            "    'token' => {osfToken},\n"
-            "    'osfResourceDirectory' => 'html/resources'\n"
-            "\n"
-            "    // name of the directory containing the experiment's resources,\n"
-            "    // both on the local experiment server and on the remote OSF server\n"
-            "    'resourceDirectory' => 'resources',\n"
-            "    // name of the directory containing the participant's data,\n"
-            "    // both on the local experiment server and on the remote OSF server\n"
-            "    'dataDirectory' => 'data',\n"
-            "    // associative array of resource names => resource download links\n"
-            "    'resources' => array(),\n"
-            "\n"
-            "    // experimenter contact details\n"
-            "    'experimenterEmail' => {params[email]}\n"
-            "  );\n"
-            "?>\n"
-            .format(params=self.params, osfToken=osfToken)
-            )
+                    "  $this->data = array(\n"
+                    "    // URL of OSF server\n"
+                    "    'osfUrl' => 'https://api.osf.io/v2/',\n"
+                    "    // project info\n"
+                    "    'projectId' => {params[OSF Project ID]},\n"
+                    "    'projectName' => {params[expName]},\n"
+                    "    // experimenter's OSF security token for this project\n"
+                    "    'token' => {osfToken},\n"
+                    "    'osfResourceDirectory' => 'html/resources'\n"
+                    "\n"
+                    "    // name of the directory containing the experiment's resources,\n"
+                    "    // both on the local experiment server and on the remote OSF server\n"
+                    "    'resourceDirectory' => 'resources',\n"
+                    "    // name of the directory containing the participant's data,\n"
+                    "    // both on the local experiment server and on the remote OSF server\n"
+                    "    'dataDirectory' => 'data',\n"
+                    "    // associative array of resource names => resource download links\n"
+                    "    'resources' => array(),\n"
+                    "\n"
+                    "    // experimenter contact details\n"
+                    "    'experimenterEmail' => {params[email]}\n"
+                    "  );\n"
+                    "?>\n"
+                    .format(params=self.params, osfToken=osfToken)
+                    )
         infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
@@ -547,7 +547,6 @@ class SettingsComponent(object):
                     "}")
         footer = ("\n"
                   "        run();\n"
-                  "        }\n"
                   "      });\n"
                   "    </script>\n\n"
                   "  </body>\n"

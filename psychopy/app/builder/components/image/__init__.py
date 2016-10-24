@@ -138,8 +138,7 @@ class ImageComponent(BaseVisualComponent):
                 "    win : win, name : '{inits[name]}',{units}\n"
                 "    image : {inits[image]}, mask : {inits[mask]},\n"
                 "    ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
-                "    color : {inits[color]}, colorSpace : {inits[colorSpace]}, "
-                "opacity=%(opacity)s,\n"
+                "    color : {inits[color]}, colorSpace : {inits[colorSpace]}, opacity : {inits[opacity]},\n"
                 "    flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
                 # no newline - start optional parameters
                 "    texRes : {inits[texture resolution]}"
@@ -150,5 +149,7 @@ class ImageComponent(BaseVisualComponent):
         else:
             code += ", interpolate : false"
         depth = -self.getPosInRoutine()
-        code += ", depth : %.1f)\n" % depth
+        code += (", depth : %.1f \n"
+                 "});\n" % (depth)
+                 )
         buff.writeIndentedLines(code)

@@ -1197,7 +1197,7 @@ class BuilderFrame(wx.Frame):
             _translate("Save current experiment file as..."))
         menu.Append(
             self.IDs.fileExport,
-            _translate("Export HTML..."),
+            _translate("Export HTML...\t%s") % keys['exportHTML'],
             _translate("Export experiment to html/javascript file"))
         menu.Append(
             wx.ID_CLOSE,

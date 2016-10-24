@@ -202,6 +202,8 @@ class Experiment(object):
             # writes any components with a writeStartCode()
             self.flow.writeStartCode(script)
             self.settings.writeWindowCode(script)  # create our visual.Window()
+            # for JS the routine begin/frame/end code are functions so write here
+            
             # write the rest of the code for the components
             self.flow.writeBody(script)
             self.settings.writeEndCode(script)  # close log file
@@ -211,7 +213,40 @@ class Experiment(object):
             self.settings.writeInitCodeJS(script,
                                           self.psychopyVersion, localDateTime)
             self.settings.writeWindowCodeJS(script)
-            self.flow.writeBodyJS(script)  # includes compon init and run code
+
+            # initialise the components for all Routines in a single function
+            script.writeIndentedLines("\nfunction experimentInit() {")
+            script.setIndentLevel(1, relative=True)
+
+            # routine init sections
+            for entry in self.flow:
+                # NB each entry is a routine or LoopInitiator/Terminator
+                self._currentRoutine = entry
+                if hasattr(entry, 'writeInitCodeJS'):
+                    entry.writeInitCodeJS(script)
+
+            # create globalClock etc
+            code = ("\n// Create some handy timers\n"
+                    "globalClock = new psychoJS.core.Clock();"
+                    "  // to track the time since experiment started\n"
+                    "routineTimer = new psychoJS.core.CountdownTimer();"
+                    "  // to track time remaining of each (non-slip) routine\n"
+                    "\nreturn psychoJS.NEXT;"
+                    )
+            script.writeIndentedLines(code)
+            script.setIndentLevel(-1, relative=True)
+            script.writeIndentedLines("}")
+
+            # This differs to the Python script. We can loop through all Routines once (whether or not they get used)
+            # because we're using functions that may or may not get called later.
+            # Do the Routines of the experiment first
+            for thisRoutine in self.routines.values():
+                self._currentRoutine = thisRoutine
+                thisRoutine.writeRoutineBeginCodeJS(script)
+                thisRoutine.writeEachFrameCodeJS(script)
+                thisRoutine.writeRoutineEndCodeJS(script)
+                
+            self.flow.writeBodyJS(script)  # functions for loops and for scheduler
             self.flow.writeResourcesCodeJS(script)
 
             self.settings.writeEndCodeJS(script)
@@ -839,6 +874,9 @@ class TrialHandler(object):
         # no longer needed - initialise the trial handler just before it runs
         pass
 
+    def writeInitCodeJS(self, buff):
+        pass
+
     def writeResourcesCodeJS(self, buff):
         buff.writeIndented("resourceManager.addResource({});\n"
                            .format(self.params["conditionsFile"]))
@@ -903,7 +941,58 @@ class TrialHandler(object):
     def writeLoopStartCodeJS(self, buff):
         """Write the code to create and run a sequence of trials
         """
-        pass # todo
+        # some useful variables
+        # create the variable "thisTrial" from "trials"
+        makeLoopIndex = self.exp.namespace.makeLoopIndex
+        self.thisName = makeLoopIndex(self.params['name'].val)
+        # seed might be undefined
+        seed = self.params['random seed'].val or 'undefined'
+
+        code = ("\nfunction {params[name]}LoopBegin() {{\n"
+                "  // set up handler to look after randomisation of conditions etc\n"
+                "  try {{\n"
+                "    {params[name]} = new psychoJS.data.TrialHandler({{nReps:{params[nReps]}, method:{params[loopType]},\n"
+                "      extraInfo:expInfo, originPath:undefined,\n"
+                "      trialList:psychoJS.data.importConditions({params[conditionsFile]}),\n"
+                "      seed:{seed}, name:'{params[name]}'}});\n"
+                "    thisExp.addLoop({params[name]}); // add the loop to the experiment\n"
+                "    {thisName} = {params[name]}.trialList[0]; // so we can initialise stimuli with some values\n"
+                "    // abbreviate parameter names if possible (e.g. rgb={thisName}.rgb)\n"
+                "    if ({thisName} != undefined) {{\n"
+                "      for (paramName in {thisName}) {{\n"
+                "        window[paramName] = {thisName}[paramName]; // window is JS top-level namespace\n"
+                "      }}\n"
+                "    }}\n"
+                .format(params=self.params, thisName=self.thisName, seed=seed))
+        buff.writeIndentedLines(code)
+        # for the scheduler
+        code = ("    // Schedule each of the trials in the list to occur\n"
+                "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
+                "      {thisName} = {params[name]}.trialList[i];\n"
+                "      {params[name]}Scheduler.add(repeatInit({thisName}));\n"
+                .format(params=self.params, thisName=self.thisName, seed=seed))
+        buff.writeIndentedLines(code)
+        # then we need to include begin, eachFrame and end code for each entry within that loop
+        loopDict = self.exp.flow.loopDict
+        theseRoutines = loopDict[self]
+        code = ""
+        for thisRoutine in theseRoutines:
+            code += (
+                "      {params[name]}Scheduler.add({name}RoutineBegin);\n"
+                "      {params[name]}Scheduler.add({name}RoutineEachFrame);\n"
+                "      {params[name]}Scheduler.add({name}RoutineEnd);\n"
+                .format(params=self.params, name=thisRoutine.params['name'])
+                )
+        buff.writeIndentedLines(code)
+        code = ("    }}\n"
+                "  }} catch (exception) {{\n"
+                "    console.log(exception);\n"
+                "  }}\n"
+                "\n"
+                "  return psychoJS.NEXT;\n"
+                "}}\n"
+                .format())
+        buff.writeIndentedLines(code)
         
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
@@ -945,7 +1034,20 @@ class TrialHandler(object):
 
     def writeLoopEndCodeJS(self, buff):
         # Just within the loop advance data line if loop is whole trials
-        pass # to do
+        code = ("\nfunction {params[name]}LoopEnd() {{\n"
+                "  // get names of stimulus parameters\n"
+                "  if (psychoJS.isEmpty({params[name]}.trialList)) {{ // XXX equiv of : in ([], [None], None)\n"
+                "    params = [];\n"
+                "  }}\n"
+                "  else {{\n"
+                "    params = Object.keys({params[name]}.trialList[0]);\n"
+                "  }}\n\n"
+                "  // save data for this loop\n"
+                "  thisExp.save({{stimOut: params, dataOut: ['n','all_mean','all_std', 'all_raw']}});\n"
+                "  return psychoJS.NEXT;\n"
+                "  }}\n"
+                .format(params=self.params))
+        buff.writeIndentedLines(code)
         
     def getType(self):
         return 'TrialHandler'
@@ -969,6 +1071,7 @@ class StairHandler(object):
         self.type = 'StairHandler'
         self.exp = exp
         self.order = ['name']  # make name come first (others don't matter)
+        self.children = []
         self.params = {}
         self.params['name'] = Param(
             name, valType='code',
@@ -1234,6 +1337,9 @@ class LoopInitiator(object):
         self.exp = loop.exp
         loop.initiator = self
 
+    def getType(self):
+        return 'LoopInitiator'
+
     def writeResourcesCodeJS(self, buff):
         self.loop.writeResourcesCodeJS(buff)
 
@@ -1252,9 +1358,6 @@ class LoopInitiator(object):
         self.loop.writeLoopStartCodeJS(buff)
         # we are now the inner-most loop
         self.exp.flow._loopList.append(self.loop)
-        
-    def getType(self):
-        return 'LoopInitiator'
 
     def writeExperimentEndCode(self, buff):  # not needed
         pass
@@ -1270,10 +1373,10 @@ class LoopTerminator(object):
         self.exp = loop.exp
         loop.terminator = self
 
-    def writeInitCode(self, buff):
-        pass
+    def getType(self):
+        return 'LoopTerminator'
 
-    def writeResourcesCodeJS(self, buff):
+    def writeInitCode(self, buff):
         pass
 
     def writeMainCode(self, buff):
@@ -1285,9 +1388,6 @@ class LoopTerminator(object):
         self.loop.writeLoopEndCodeJS(buff)
         # _loopList[-1] will now be the inner-most loop
         self.exp.flow._loopList.remove(self.loop)
-        
-    def getType(self):
-        return 'LoopTerminator'
 
     def writeExperimentEndCode(self, buff):  # not needed
         pass
@@ -1303,6 +1403,29 @@ class Flow(list):
         self.exp = exp
         self._currentRoutine = None
         self._loopList = []  # will be used while we write the code
+
+    @property
+    def loopDict(self):
+        """Creates a tree of the Flow:
+        {entry:object, children:list, parent:object}
+        :return:
+        """
+        loopDict = {}
+        currentList = []
+        loopStack = [currentList]
+        for thisEntry in self:
+            if thisEntry.getType() == 'LoopInitiator':
+                currentList.append(thisEntry.loop) # this loop is child of current
+                loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
+                currentList = loopDict[thisEntry.loop]
+                loopStack.append(thisEntry.loop)  # update the list of loops (for depth)
+            elif thisEntry.getType() == 'LoopTerminator':
+                loopStack.pop()
+                currentList = loopStack[-1]
+            else:
+                # routines should be added to current
+                currentList.append(thisEntry)
+        return loopDict
 
     def __repr__(self):
         return "psychopy.experiment.Flow(%s)" % (str(list(self)))
@@ -1475,7 +1598,8 @@ class Flow(list):
         script.setIndentLevel(1, relative=True)
         # ask each Routine/Loop to insert what it needs
         for entry in self:
-            entry.writeResourcesCodeJS(script)
+            if hasattr(entry, 'writeResourcesCodeJS'):
+                entry.writeResourcesCodeJS(script)
         #
         endResources = ("// then add that scheduler to the resource manager\n"
                         "resourceManager.scheduleResources(resourceScheduler);\n"
@@ -1508,39 +1632,100 @@ class Flow(list):
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
 
+
     def writeBodyJS(self, script):
         """Initialise each component and then write the per-frame code too
         """
-        # initialise the components for all Routines in a single function
-        script.writeIndentedLines("\nfunction experimentInit() {")
-        script.setIndentLevel(1, relative=True)
 
-        # routine init sections
+        tree = []
+
+        # Then on the flow we need only the Loop Init/terminate
         for entry in self:
-            # NB each entry is a routine or LoopInitiator/Terminator
-            self._currentRoutine = entry
-            if hasattr(entry, 'writeInitCodeJS'):
-                entry.writeInitCodeJS(script)
+            if entry.getType() in ['LoopInitiator', 'LoopTerminator']:
+                entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()
 
-        # create globalClock etc
-        code = ("\n// Create some handy timers\n"
-                "globalClock = new psychoJS.core.Clock();"
-                "  // to track the time since experiment started\n"
-                "routineTimer = new psychoJS.core.CountdownTimer();"
-                "  // to track time remaining of each (non-slip) routine\n"
-                "\nreturn psychoJS.NEXT;"
+
+        # write the run function
+        script.writeIndentedLines("\nfunction run() {\n")
+        script.setIndentLevel(+1, relative=True)
+
+        # handle email for error messages
+        if self.exp.settings.params['email'].val:
+            code = ("// If there is an error, we should inform the participant and email the experimenter\n"
+                    "// note: we use window.onerror rather than a try/catch as the latter\n"
+                    "// do not handle so well exceptions thrown asynchronously\n"
+                    "/*window.onerror = function(message, source, lineno, colno, error) {\n"
+                    "  console.error(error);\n"
+                    "  psychoJS.gui.dialog({'error' : error});\n"
+                    "  //psychoJS.core.sendErrorToExperimenter(exception);\n"
+                    "  return true;\n"
+                    "}*/\n")
+            script.writeIndentedLines(code)
+
+        code = ("// init psychoJS and set up OpenGL Canvas\n"
+                "setupWin();\n"
+                "psychoJS.init(win);\n"
+                "\n"
+                "// main scheduler\n"
+                "scheduler = new psychoJS.Scheduler();\n"
+                "\n"
+                "// Store info about the experiment session\n"
+                "expName = 'stroop';  // from the Builder filename that created this script\n"
+                "expInfo = {'participant':'', 'session':'01'};\n"
+                "\n"
+                "// set up experiment\n"
+                "scheduler.add(setupExperiment);\n"
+                "scheduler.add(psychoJS.setupCallbacks);\n"
+                "\n"
+                "// register all available resources and download them\n"
+                "resourceScheduler = new psychoJS.Scheduler();\n"
+                "resourceScheduler.add(registerResources);\n"
+                "resourceScheduler.add(downloadResources);\n"
+                "// asynchronous approach: the resource scheduler is run in parallel to the main one\n"
+                "scheduler.add(function() { resourceScheduler.start(win); });\n"
                 )
         script.writeIndentedLines(code)
-        script.setIndentLevel(-1, relative=True)
-        script.writeIndentedLines("}")
+        code = (
+            "\n// dialog box\n"
+            "scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));\n"
+            "\n"
+            "dialogOKScheduler = new psychoJS.Scheduler();\n"
+            "dialogCancelScheduler = new psychoJS.Scheduler();\n"
+            "scheduler.addConditionalBranches(function() "
+            "{ return psychoJS.gui.dialogComponent.button === 'OK'; }, dialogOKScheduler, dialogCancelScheduler);\n"
+            "\n"
+            "// dialogOKScheduler gets run if the participants presses OK\n"
+            "dialogOKScheduler.add(updateInfo); // add timeStamp\n"
+            "dialogOKScheduler.add(experimentInit);"
+        )
+        script.writeIndentedLines(code)
+        # add the code for each routine
+        loopStack = []
+        for thisEntry in self:
 
-        # then for each Routine write the Begin, EachFrame and End functions
-        for thisRoutine in self:
-            if hasattr(thisRoutine, 'writeMainCodeJS'):
-                thisRoutine.writeMainCodeJS(script)
-        for thisRoutine in self:
-            if hasattr(thisRoutine, 'writeEndCodeJS'):
-                thisRoutine.writeEndCodeJS(script)
+            if thisEntry.getType() == 'LoopInitiator':
+                code = ("dialogOKScheduler.add(setup{name});\n"
+                        "{name}Scheduler = new psychoJS.Scheduler();\n"
+                        "dialogOKScheduler.add({name}Scheduler);\n"
+                        .format(name=thisEntry.loop.params['name']))
+
+                loopStack.append(thisEntry.loop)
+            elif thisEntry.getType() == 'LoopTerminator':
+                code = ""
+                loopStack.append(thisEntry.loop)
+            elif len(loopStack) == 0:  # if we're inside a loop then the loop should handle it instead
+                code = ("dialogOKScheduler.add({params[name]}RoutineBegin);\n"
+                        "dialogOKScheduler.add({params[name]}RoutineEachFrame);\n"
+                        "dialogOKScheduler.add({params[name]}RoutineEnd);\n"
+                        .format(params=thisEntry.params))
+            else:  # a Routine contained within a loop should have no associated code
+                code = ""
+            script.writeIndentedLines(code)
+        code = ("\n// quit if user presses Cancel in dialog box:\n"
+                "dialogCancelScheduler.add(quitpsychoJS);\n"
+                "\nscheduler.start(win);\n"
+                "}\n")
+        script.writeIndentedLines(code)
 
 
 class Routine(list):
@@ -1745,13 +1930,10 @@ class Routine(list):
             buff.writeIndentedLines(code % self.name)
 
 
-    def writeMainCodeJS(self, buff):
-        """This defines the code for the frames of a single routine
-        """
+    def writeRoutineBeginCodeJS(self, buff):
 
         # create the frame loop for this routine
-        code = ("\n"
-                "function {0}Begin() {{\n")
+        code = ("\nfunction {0}RoutineBegin() {{\n")
         buff.writeIndentedLines(code.format(self.name))
         buff.setIndentLevel(1, relative=True)
         code = ("//------Prepare to start Routine '{0}'-------\n"
@@ -1781,21 +1963,26 @@ class Routine(list):
                     self.name, thisCompon.params['name'])
                 buff.writeIndentedLines(code)
         code = ("for(var i = 0; i < {name}Components.length; ++i) {{\n"
-			"  thisComponent = {name}Components[i];\n"
-			"  if ('status' in thisComponent) {{\n"
-			"    thisComponent.status = psychoJS.NOT_STARTED;\n"
-			"  }}\n"
-			"\nreturn psychoJS.NEXT;\n"
-			"}}\n"
+                "  thisComponent = {name}Components[i];\n"
+                "  if ('status' in thisComponent) {{\n"
+                "    thisComponent.status = psychoJS.NOT_STARTED;\n"
+                "  }}\n"
+                "\nreturn psychoJS.NEXT;\n"
+                "}}\n"
                 .format(name=self.name))
         buff.writeIndentedLines(code)
                 
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
+    def writeEachFrameCodeJS(self, buff):
+        # can we use non-slip timing?
+        maxTime, useNonSlip = self.getMaxTime()
+        if useNonSlip:
+            buff.writeIndented('routineTimer.add(%f)\n' % (maxTime))
+            
         # write code for each frame
-        code = ("\n"
-                "function {0}EachFrame() {{\n")
+        code = ("\nfunction {0}RoutineEachFrame() {{\n")
         buff.writeIndentedLines(code.format(self.name))
         buff.setIndentLevel(1, relative=True)
         code = ("//------Loop for each frame of Routine '{0}'-------\n"
@@ -1854,8 +2041,13 @@ class Routine(list):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
-        code = ("\n"
-                "function {0}End() {{\n")
+    def writeRoutineEndCodeJS(self, buff):
+        # can we use non-slip timing?
+        maxTime, useNonSlip = self.getMaxTime()
+        if useNonSlip:
+            buff.writeIndented('routineTimer.add(%f)\n' % (maxTime))
+            
+        code = ("\nfunction {0}RoutineEnd() {{\n")
         buff.writeIndentedLines(code.format(self.name))
         buff.setIndentLevel(1, relative=True)
 
@@ -1884,12 +2076,20 @@ class Routine(list):
 
 
     def writeExperimentEndCode(self, buff):
-        """This defines the code for the frames of a single routine
+        """Some components have 
         """
         # This is the beginning of the routine, before the loop starts
         for component in self:
             component.writeExperimentEndCode(buff)
 
+    def writeExperimentEndCodeJS(self, buff):
+        """This defines the code for the frames of a single routine
+        """
+        # This is the beginning of the routine, before the loop starts
+        for component in self:
+            if 'writeExperimentEndCodeJS' in dir(component):
+                component.writeExperimentEndCodeJS(buff)
+            
     def getType(self):
         return 'Routine'
 
