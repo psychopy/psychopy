@@ -547,7 +547,6 @@ class SettingsComponent(object):
                     "}")
         footer = ("\n"
                   "        run();\n"
-                  "        }\n"
                   "      });\n"
                   "    </script>\n\n"
                   "  </body>\n"
