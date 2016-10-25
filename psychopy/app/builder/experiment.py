@@ -1356,6 +1356,9 @@ class LoopInitiator(object):
     def writeInitCode(self, buff):
         self.loop.writeInitCode(buff)
 
+    def writeInitCodeJS(self, buff):
+        self.loop.writeInitCodeJS(buff)
+        
     def writeMainCode(self, buff):
         self.loop.writeLoopStartCode(buff)
         # we are now the inner-most loop
@@ -1624,9 +1627,9 @@ class Flow(list):
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
         code = ("\n# Create some handy timers\n"
-                "globalClock = core.Clock()  # to track the "
+                "globalClock = psychoJS.core.Clock()  # to track the "
                 "time since experiment started\n"
-                "routineTimer = core.CountdownTimer()  # to "
+                "routineTimer = psychoJS.core.CountdownTimer()  # to "
                 "track time remaining of each (non-slip) routine \n")
         script.writeIndentedLines(code)
         # run-time code
