@@ -2040,7 +2040,7 @@ class Routine(list):
                 "  }}\n"
                 "}}\n"
                 "// check for quit (the Esc key)\n"
-                "if (endExpNow || event.getKeys({{keyList:['escape']}}).length > 0) {{\n"
+                "if (endExpNow || psychoJS.event.getKeys({{keyList:['escape']}}).length > 0) {{\n"
                 "  psychoJS.core.quit('The <Escape> key was pressed. Goodbye!');\n"
                 "}}\n")
         buff.writeIndentedLines(code.format(self.name))

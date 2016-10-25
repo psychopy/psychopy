@@ -126,7 +126,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = event.BuilderKeyResponse();\n"
+        code = "%(name)s = psychoJS.event.BuilderKeyResponse();\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -320,7 +320,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented(code)
 
         if self.params['discard previous'].val:
-            buff.writeIndented("event.clearEvents({eventType:'keyboard'});\n")
+            buff.writeIndented("psychoJS.event.clearEvents({eventType:'keyboard'});\n")
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n")
@@ -353,7 +353,7 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "{keyList:%s}" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("theseKeys = event.getKeys(%s);\n" % keyListStr)
+        buff.writeIndented("theseKeys = psychoJS.event.getKeys(%s);\n" % keyListStr)
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n// check for quit:\n'
