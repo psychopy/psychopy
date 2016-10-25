@@ -64,6 +64,7 @@ _localized = {
     'switchMethod': _translate('switchMethod')}
 #_localized = {k: _translate(k) for k in _loKeys}  # hides string from poedit
 
+scriptTarget = "PsychoPy"  # need a  global variable so that
 
 class CodeGenerationException(Exception):
     """
@@ -184,6 +185,9 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy"):
         """Write a PsychoPy script for the experiment
         """
+        global scriptTarget
+        scriptTarget = target
+
         self.flow._prescreenValues()
         self.expPath = expPath
         script = IndentingBuffer(u'')  # a string buffer object
@@ -746,6 +750,7 @@ class Param(object):
         self.readOnly = False
 
     def __str__(self):
+
         if self.valType == 'num':
             try:
                 # will work if it can be represented as a float
@@ -768,7 +773,15 @@ class Param(object):
                     return "%s" % getCodeFromParamStr(self.val)
                 else:  # str wanted
                     # remove \ from all \$
-                    return repr(re.sub(r"[\\]\$", '$', self.val))
+                    s = repr(re.sub(r"[\\]\$", '$', self.val))
+                    # if target is python2.x then unicode will be u'something'
+                    # but for other targets that will raise an annoying error
+                    if scriptTarget != 'PsychoPy':
+                        if self.label:
+                            print(self.label+s)
+                        if s.startswith("u'") or s.startswith('u"'):
+                            s = s[1:]
+                    return s
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
