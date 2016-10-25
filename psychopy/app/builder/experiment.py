@@ -245,10 +245,10 @@ class Experiment(object):
                 thisRoutine.writeRoutineBeginCodeJS(script)
                 thisRoutine.writeEachFrameCodeJS(script)
                 thisRoutine.writeRoutineEndCodeJS(script)
-                
-            self.flow.writeBodyJS(script)  # functions for loops and for scheduler
+            # loao resources files (images, csv files etc
             self.flow.writeResourcesCodeJS(script)
-
+            # create the run() function and schedulers
+            self.flow.writeBodyJS(script)  # functions for loops and for scheduler
             self.settings.writeEndCodeJS(script)
 
         return script
@@ -974,15 +974,25 @@ class TrialHandler(object):
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
         loopDict = self.exp.flow.loopDict
-        theseRoutines = loopDict[self]
+        thisLoop = loopDict[self]  # dict containing lists of children
         code = ""
-        for thisRoutine in theseRoutines:
-            code += (
-                "      {params[name]}Scheduler.add({name}RoutineBegin);\n"
-                "      {params[name]}Scheduler.add({name}RoutineEachFrame);\n"
-                "      {params[name]}Scheduler.add({name}RoutineEnd);\n"
-                .format(params=self.params, name=thisRoutine.params['name'])
-                )
+        for thisChild in thisLoop:
+            if thisChild.getType() == 'Routine':
+                thisType = 'Routine'
+                code += (
+                    "      {params[name]}Scheduler.add({name}RoutineBegin);\n"
+                    "      {params[name]}Scheduler.add({name}RoutineEachFrame);\n"
+                    "      {params[name]}Scheduler.add({name}RoutineEnd);\n"
+                    .format(params=self.params, name=thisChild.params['name'])
+                    )
+            else:  # for a LoopInitiator
+                code += (
+                    "      {params[name]}Scheduler.add({name}LoopBegin);\n"
+                    "      {name}LoopScheduler = new psychoJS.Scheduler();\n"
+                    "      {params[name]}Scheduler.add({name}LoopScheduler);\n"
+                    "      {params[name]}Scheduler.add({name}LoopEnd);\n"
+                    .format(params=self.params, name=thisChild.params['name'])
+                    )
         buff.writeIndentedLines(code)
         code = ("    }}\n"
                 "  }} catch (exception) {{\n"
@@ -1590,20 +1600,19 @@ class Flow(list):
         """For JS we need to create a function to fetch all resources needed
         by each loop
         """
-        startResources = """\nfunction setupResources() {{"""
-        script.writeIndentedLines(startResources.format())
-        script.setIndentLevel(1, relative=True)
-        # ask each Routine/Loop to insert what it needs
-        for entry in self:
-            if hasattr(entry, 'writeResourcesCodeJS'):
-                entry.writeResourcesCodeJS(script)
-        #
-        endResources = ("// then add that scheduler to the resource manager\n"
-                        "resourceManager.scheduleResources(resourceScheduler);\n"
-                        "return NEXT;")
-        script.writeIndentedLines(endResources)
-        script.setIndentLevel(-1, relative=True)
-        script.writeIndentedLines("}\n")
+        code = (
+            "\nfunction registerResources() {\n"
+            "    psychoJS.resourceManager.scheduleRegistration(resourceScheduler);\n"
+            "\n"
+            "    return psychoJS.NEXT;\n"
+            "}\n"
+            "\nfunction downloadResources() {\n"
+            "    psychoJS.resourceManager.scheduleDownload(resourceScheduler);\n"
+            "\n"
+            "    return psychoJS.NEXT;\n"
+            "}\n"
+        )
+        script.writeIndentedLines(code)
 
     def writeBody(self, script):
         """Write the rest of the code
@@ -1682,28 +1691,27 @@ class Flow(list):
                 "scheduler.add(function() { resourceScheduler.start(win); });\n"
                 )
         script.writeIndentedLines(code)
-        code = (
-            "\n// dialog box\n"
-            "scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));\n"
-            "\n"
-            "dialogOKScheduler = new psychoJS.Scheduler();\n"
-            "dialogCancelScheduler = new psychoJS.Scheduler();\n"
-            "scheduler.addConditionalBranches(function() "
-            "{ return psychoJS.gui.dialogComponent.button === 'OK'; }, dialogOKScheduler, dialogCancelScheduler);\n"
-            "\n"
-            "// dialogOKScheduler gets run if the participants presses OK\n"
-            "dialogOKScheduler.add(updateInfo); // add timeStamp\n"
-            "dialogOKScheduler.add(experimentInit);"
-        )
+        code = ("\n// dialog box\n"
+                "scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));\n"
+                "\n"
+                "dialogOKScheduler = new psychoJS.Scheduler();\n"
+                "dialogCancelScheduler = new psychoJS.Scheduler();\n"
+                "scheduler.addConditionalBranches(function() "
+                "{ return psychoJS.gui.dialogComponent.button === 'OK'; }, dialogOKScheduler, dialogCancelScheduler);\n"
+                "\n"
+                "// dialogOKScheduler gets run if the participants presses OK\n"
+                "dialogOKScheduler.add(updateInfo); // add timeStamp\n"
+                "dialogOKScheduler.add(experimentInit);"
+                )
         script.writeIndentedLines(code)
         # add the code for each routine
         loopStack = []
         for thisEntry in self:
-
             if thisEntry.getType() == 'LoopInitiator':
-                code = ("dialogOKScheduler.add(setup{name});\n"
-                        "{name}Scheduler = new psychoJS.Scheduler();\n"
-                        "dialogOKScheduler.add({name}Scheduler);\n"
+                code = ("dialogOKScheduler.add({name}LoopBegin);\n"
+                        "{name}LoopScheduler = new psychoJS.Scheduler();\n"
+                        "dialogOKScheduler.add({name}LoopScheduler);\n"
+                        "dialogOKScheduler.add({name}LoopEnd);\n"
                         .format(name=thisEntry.loop.params['name']))
 
                 loopStack.append(thisEntry.loop)
@@ -1719,10 +1727,11 @@ class Flow(list):
                 code = ""
             script.writeIndentedLines(code)
         code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitpsychoJS);\n"
-                "\nscheduler.start(win);\n"
-                "}\n")
+                "dialogCancelScheduler.add(quitPsychoJS);\n"
+                "\nscheduler.start(win);\n")
         script.writeIndentedLines(code)
+        script.setIndentLevel(-1, relative=True)
+        script.writeIndented("}\n")
 
 
 class Routine(list):
@@ -1814,7 +1823,7 @@ class Routine(list):
         code = '\n// Initialize components for Routine "%s"\n'
         buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
-        buff.writeIndented('%s = new core.Clock();\n' % self._clockName)
+        buff.writeIndented('%s = new psychoJS.core.Clock();\n' % self._clockName)
         for thisCompon in self:
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
@@ -1975,8 +1984,6 @@ class Routine(list):
     def writeEachFrameCodeJS(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
-        if useNonSlip:
-            buff.writeIndented('routineTimer.add(%f)\n' % (maxTime))
             
         # write code for each frame
         code = ("\nfunction {0}RoutineEachFrame() {{\n")
@@ -2041,9 +2048,7 @@ class Routine(list):
     def writeRoutineEndCodeJS(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
-        if useNonSlip:
-            buff.writeIndented('routineTimer.add(%f)\n' % (maxTime))
-            
+
         code = ("\nfunction {0}RoutineEnd() {{\n")
         buff.writeIndentedLines(code.format(self.name))
         buff.setIndentLevel(1, relative=True)

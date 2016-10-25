@@ -134,6 +134,16 @@ class ImageComponent(BaseVisualComponent):
 
         # replace variable params with defaults
         inits = getInitVals(self.params)
+
+        for paramName in inits:
+            val = inits[paramName].val
+            if val is True:
+                inits[paramName] = 'true'
+            elif val is False:
+                inits[paramName] = 'false'
+            elif val in [None, 'None', 'none']:
+                inits[paramName] = 'undefined'
+
         code = ("{inits[name]} = psychoJS.visual.ImageStim({{\n"
                 "    win : win, name : '{inits[name]}',{units}\n"
                 "    image : {inits[image]}, mask : {inits[mask]},\n"

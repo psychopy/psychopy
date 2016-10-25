@@ -302,41 +302,18 @@ class SettingsComponent(object):
             os.mkdir(folder)
 
         infoPHPfilename = os.path.join(folder, 'info.php')
-        infoText = ("<?php\n"
-                    "  $this->data = array(\n"
-                    "    // URL of OSF server\n"
-                    "    'osfUrl' => 'https://api.osf.io/v2/',\n"
-                    "    // project info\n"
-                    "    'projectId' => {params[OSF Project ID]},\n"
-                    "    'projectName' => {params[expName]},\n"
-                    "    // experimenter's OSF security token for this project\n"
-                    "    'token' => {osfToken},\n"
-                    "    'osfResourceDirectory' => 'html/resources'\n"
-                    "\n"
-                    "    // name of the directory containing the experiment's resources,\n"
-                    "    // both on the local experiment server and on the remote OSF server\n"
-                    "    'resourceDirectory' => 'resources',\n"
-                    "    // name of the directory containing the participant's data,\n"
-                    "    // both on the local experiment server and on the remote OSF server\n"
-                    "    'dataDirectory' => 'data',\n"
-                    "    // associative array of resource names => resource download links\n"
-                    "    'resources' => array(),\n"
-                    "\n"
-                    "    // experimenter contact details\n"
-                    "    'experimenterEmail' => {params[email]}\n"
-                    "  );\n"
-                    "?>\n"
-                    .format(params=self.params, osfToken=osfToken)
-                    )
+        infoText = readTextFile("JS_infoPHP.tmpl").format(params=self.params, osfToken=osfToken)
+
         infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
 
         # copy over JS libs if needed
-        if  self.params['JS libs'].val == 'packaged':
+        if self.params['JS libs'].val == 'packaged':
             pass
 
         # add other files to the resources folder
+
 
 
     def writeInitCodeJS(self, buff, version, localDateTime):
@@ -351,11 +328,19 @@ class SettingsComponent(object):
         # write the code to set up experiment
         buff.setIndentLevel(4, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
+        # check where to save data variables
+        if self.params['OSF Project ID'].val:
+            saveType = "OSF_VIA_EXPERIMENT_SERVER"
+            projID = "'{}'".format(self.params['OSF Project ID'].val)
+        else:
+            saveType = "EXPERIMENT_SERVER"
+            projID = 'undefined'
         code = template.format(
-                   params=self.params,
-                   saveType = "'OSF_VIA_EXPERIMENT_SERVER'",
-                   loggingLevel = self.params['logging level'].val.upper(),
-                   )
+                        params=self.params,
+                        saveType=saveType,
+                        projID=projID,
+                        loggingLevel = self.params['logging level'].val.upper(),
+                        )
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff):
@@ -542,14 +527,15 @@ class SettingsComponent(object):
     def writeEndCodeJS(self, buff):
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "    win.close()\n"
-                    "    core.quit();\n"
+                    "    psychoJS.core.quit();\n"
                     "    return QUIT;\n"
                     "}")
+        buff.writeIndentedLines(quitFunc)
+        buff.setIndentLevel(-1)
         footer = ("\n"
                   "        run();\n"
                   "      });\n"
                   "    </script>\n\n"
                   "  </body>\n"
                   "</html>")
-        buff.writeIndentedLines(quitFunc)
-        buff.write(footer)
+        buff.writeIndentedLines(footer)
