@@ -777,8 +777,6 @@ class Param(object):
                     # if target is python2.x then unicode will be u'something'
                     # but for other targets that will raise an annoying error
                     if scriptTarget != 'PsychoPy':
-                        if self.label:
-                            print(self.label+s)
                         if s.startswith("u'") or s.startswith('u"'):
                             s = s[1:]
                     return s
