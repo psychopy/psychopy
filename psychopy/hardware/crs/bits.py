@@ -568,7 +568,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         # get product ('Bits_Sharp'?)
         self.sendMessage('$ProductType\r')
         time.sleep(0.1)
-        info['ProductType'] = self.read().replace(pt, '')
+        info['ProductType'] = self.read().replace('#ProductType;', '')
         info['ProductType'] = info['ProductType'].replace(';\n\r', '')
         # get serial number
         self.sendMessage('$SerialNumber\r')
