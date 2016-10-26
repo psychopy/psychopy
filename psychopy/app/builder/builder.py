@@ -1276,37 +1276,37 @@ class BuilderFrame(wx.Frame):
         self.viewMenu = wx.Menu()
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
-        menu.Append(self.IDs.openCoderView,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&Open Coder view\t%s") % keys['switchToCoder'],
                     _translate("Open a new Coder view"))
-        wx.EVT_MENU(self, self.IDs.openCoderView, self.app.showCoder)
-        menu.Append(self.IDs.toggleReadme,
+        wx.EVT_MENU(self,item.GetId(), self.app.showCoder)
+        item = menu.Append(self.IDs.toggleReadme,
                     _translate(
                         "&Toggle readme\t%s") % self.app.keys['toggleReadme'],
                     _translate("Toggle Readme"))
-        wx.EVT_MENU(self, self.IDs.toggleReadme, self.toggleReadme)
-        menu.Append(self.IDs.tbIncrFlowSize,
+        wx.EVT_MENU(self, item.GetId(), self.toggleReadme)
+        item = menu.Append(wx.ID_ANY,
                     _translate(
                         "&Flow Larger\t%s") % self.app.keys['largerFlow'],
                     _translate("Larger flow items"))
-        wx.EVT_MENU(self, self.IDs.tbIncrFlowSize,
+        wx.EVT_MENU(self, item.GetId(),
                     self.flowPanel.increaseSize)
-        menu.Append(self.IDs.tbDecrFlowSize,
+        item = menu.Append(wx.ID_ANY,
                     _translate(
                         "&Flow Smaller\t%s") % self.app.keys['smallerFlow'],
                     _translate("Smaller flow items"))
-        wx.EVT_MENU(self, self.IDs.tbDecrFlowSize,
+        wx.EVT_MENU(self, item.GetId(),
                     self.flowPanel.decreaseSize)
-        menu.Append(self.IDs.tbIncrRoutineSize,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&Routine Larger\t%s") % keys['largerRoutine'],
                     _translate("Larger routine items"))
-        wx.EVT_MENU(self, self.IDs.tbIncrRoutineSize,
+        wx.EVT_MENU(self, item.GetId(),
                     self.routinePanel.increaseSize)
-        menu.Append(self.IDs.tbDecrRoutineSize,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&Routine Smaller\t%s") %
                     keys['smallerRoutine'],
                     _translate("Smaller routine items"))
-        wx.EVT_MENU(self, self.IDs.tbDecrRoutineSize,
+        wx.EVT_MENU(self, item.GetId(),
                     self.routinePanel.decreaseSize)
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
