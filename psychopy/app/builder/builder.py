@@ -1279,8 +1279,8 @@ class BuilderFrame(wx.Frame):
         item = menu.Append(wx.ID_ANY,
                     _translate("&Open Coder view\t%s") % keys['switchToCoder'],
                     _translate("Open a new Coder view"))
-        wx.EVT_MENU(self,item.GetId(), self.app.showCoder)
-        item = menu.Append(self.IDs.toggleReadme,
+        wx.EVT_MENU(self, item.GetId(), self.app.showCoder)
+        item = menu.Append(wx.ID_ANY,
                     _translate(
                         "&Toggle readme\t%s") % self.app.keys['toggleReadme'],
                     _translate("Toggle Readme"))
@@ -1313,36 +1313,36 @@ class BuilderFrame(wx.Frame):
         self.expMenu = wx.Menu()
         menuBar.Append(self.expMenu, _translate('&Experiment'))
         menu = self.expMenu
-        menu.Append(self.IDs.newRoutine,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&New Routine\t%s") % keys['newRoutine'],
                     _translate("Create a new routine (e.g. the trial "
                                "definition)"))
         wx.EVT_MENU(self, self.IDs.newRoutine, self.addRoutine)
-        menu.Append(self.IDs.copyRoutine,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&Copy Routine\t%s") % keys['copyRoutine'],
                     _translate("Copy the current routine so it can be used"
                                " in another exp"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.copyRoutine, self.onCopyRoutine)
-        menu.Append(self.IDs.pasteRoutine,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&Paste Routine\t%s") % keys['pasteRoutine'],
                     _translate("Paste the Routine into the current "
                                "experiment"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.pasteRoutine, self.onPasteRoutine)
-        menu.Append(self.IDs.renameRoutine,
+        item = menu.Append(wx.ID_ANY,
                     _translate("&Rename Routine\t%s") % keys['renameRoutine'],
                     _translate("Change the name of this routine"))
         wx.EVT_MENU(self, self.IDs.renameRoutine, self.renameRoutine)
         menu.AppendSeparator()
 
-        menu.Append(self.IDs.addRoutineToFlow,
+        item = menu.Append(wx.ID_ANY,
                     _translate("Insert Routine in Flow"),
                     _translate("Select one of your routines to be inserted"
                                " into the experiment flow"))
         wx.EVT_MENU(self, self.IDs.addRoutineToFlow,
                     self.flowPanel.onInsertRoutine)
-        menu.Append(self.IDs.addLoopToFlow,
+        item = menu.Append(wx.ID_ANY,
                     _translate("Insert Loop in Flow"),
                     _translate("Create a new loop in your flow window"))
         wx.EVT_MENU(self, self.IDs.addLoopToFlow, self.flowPanel.insertLoop)
