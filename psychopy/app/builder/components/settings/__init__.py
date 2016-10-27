@@ -311,11 +311,13 @@ class SettingsComponent(object):
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
 
+        # populate resources folder
         resFolder = os.path.join(folder, 'resources')
         if not os.path.isdir(resFolder):
             os.mkdir(resFolder)
+        resourceFiles = self.exp.getResourceFiles()
             
-        # add other files to the resources folder
+        # add the js libs if needed for packaging
         ppRoot = os.path.split(os.path.abspath(psychopy.__file__))[0]
         jsPath = os.path.join(ppRoot, '..', 'psychojs')
         if os.path.isdir(jsPath):
