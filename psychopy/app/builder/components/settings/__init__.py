@@ -1,7 +1,10 @@
 import os
 import wx
 import copy
+import shutil
+import zipfile
 from .._base import BaseComponent, Param, _translate
+import psychopy
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 
@@ -308,13 +311,32 @@ class SettingsComponent(object):
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
 
-        # copy over JS libs if needed
-        if self.params['JS libs'].val == 'packaged':
-            pass
-
-        # add other files to the resources folder
-
-
+        # populate resources folder
+        resFolder = os.path.join(folder, 'resources')
+        if not os.path.isdir(resFolder):
+            os.mkdir(resFolder)
+        resourceFiles = self.exp.getResourceFiles()
+            
+        # add the js libs if needed for packaging
+        ppRoot = os.path.split(os.path.abspath(psychopy.__file__))[0]
+        jsPath = os.path.join(ppRoot, '..', 'psychojs')
+        if os.path.isdir(jsPath):
+            print('using unzipped files')
+            if self.params['JS libs'].val == 'packaged':
+                shutil.copytree(os.path.join(jsPath, 'php'), 
+                                os.path.join(folder, 'php'))
+                shutil.copytree(os.path.join(jsPath, 'js'), 
+                                os.path.join(folder, 'js'))
+            # always copy server.php
+            shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
+        else:
+            print('zipfile')
+            jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
+            # copy over JS libs if needed
+            if self.params['JS libs'].val == 'packaged':
+                jsZip.extractall(path=folder)
+            else:            
+                jsZip.extract(path=folder, member="server.php")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # write info.php and resources folder as well

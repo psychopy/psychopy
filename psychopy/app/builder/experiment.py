@@ -207,7 +207,7 @@ class Experiment(object):
             self.flow.writeStartCode(script)
             self.settings.writeWindowCode(script)  # create our visual.Window()
             # for JS the routine begin/frame/end code are functions so write here
-            
+
             # write the rest of the code for the components
             self.flow.writeBody(script)
             self.settings.writeEndCode(script)  # close log file
@@ -654,6 +654,30 @@ class Experiment(object):
     def getExpName(self):
         return self.settings.params['expName'].val
 
+    def getResourceFiles(self):
+        """Returns a list of known files needed for the experiment
+        Interrogates each loop looking for conditions files and each
+
+        """
+        def isFile(filePath):
+            filePath = os.path.abspath(os.path.join(self.expPath, filePath))
+        resources = set()
+        for thisEntry in self.flow:
+            if thisEntry.getType() == 'LoopInitiator':
+                params = thisEntry.loop.params
+                if 'conditionsFile' in params:
+                    filePath = os.path.join(self.expPath,
+                                            params['conditionsFile'].val)
+                    resources.update([os.path.abspath(filePath)])
+            elif thisEntry.getType() == 'Routine':
+
+        # then go through and check the possible files
+        for filePath in resources:
+
+        if os.path.isfile(filePath):
+
+
+        return resources
 
 class Param(object):
     """Defines parameters for Experiment Components
@@ -777,8 +801,6 @@ class Param(object):
                     # if target is python2.x then unicode will be u'something'
                     # but for other targets that will raise an annoying error
                     if scriptTarget != 'PsychoPy':
-                        if self.label:
-                            print(self.label+s)
                         if s.startswith("u'") or s.startswith('u"'):
                             s = s[1:]
                     return s
@@ -918,7 +940,7 @@ class TrialHandler(object):
                 "%(name)s = data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n"
                 "    extraInfo=expInfo, originPath=-1,\n")
         buff.writeIndentedLines(code % inits)
-        # the next line needs to be kept separate to preserve potential string formatting 
+        # the next line needs to be kept separate to preserve potential string formatting
         # by the user in condStr (i.e. it shouldn't be a formatted string itself
         code = "    trialList=" + condsStr + ",\n"  # conditions go here
         buff.writeIndented(code)
@@ -1016,7 +1038,7 @@ class TrialHandler(object):
                 "}}\n"
                 .format())
         buff.writeIndentedLines(code)
-        
+
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val == True:
@@ -1071,7 +1093,7 @@ class TrialHandler(object):
                 "  }}\n"
                 .format(params=self.params))
         buff.writeIndentedLines(code)
-        
+
     def getType(self):
         return 'TrialHandler'
 
@@ -1371,7 +1393,7 @@ class LoopInitiator(object):
 
     def writeInitCodeJS(self, buff):
         self.loop.writeInitCodeJS(buff)
-        
+
     def writeMainCode(self, buff):
         self.loop.writeLoopStartCode(buff)
         # we are now the inner-most loop
@@ -1994,14 +2016,14 @@ class Routine(list):
                 "}}\n"
                 .format(name=self.name))
         buff.writeIndentedLines(code)
-                
+
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
     def writeEachFrameCodeJS(self, buff):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
-            
+
         # write code for each frame
         code = ("\nfunction {0}RoutineEachFrame() {{\n")
         buff.writeIndentedLines(code.format(self.name))
@@ -2095,7 +2117,7 @@ class Routine(list):
 
 
     def writeExperimentEndCode(self, buff):
-        """Some components have 
+        """Some components have
         """
         # This is the beginning of the routine, before the loop starts
         for component in self:
@@ -2108,7 +2130,7 @@ class Routine(list):
         for component in self:
             if 'writeExperimentEndCodeJS' in dir(component):
                 component.writeExperimentEndCodeJS(buff)
-            
+
     def getType(self):
         return 'Routine'
 
