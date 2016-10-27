@@ -126,7 +126,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = psychoJS.event.BuilderKeyResponse();\n"
+        code = "%(name)s = new psychoJS.event.BuilderKeyResponse();\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -395,7 +395,7 @@ class KeyboardComponent(BaseComponent):
 
         if storeCorr:
             code = ("// was this 'correct'?\n"
-                    "if ((%(name)s.keys == str(%(correctAns)s))"
+                    "if ((%(name)s.keys == psychoJS.str(%(correctAns)s))"
                     " || (%(name)s.keys == %(correctAns)s)) {\n"
                     "    %(name)s.corr = 1;\n"
                     "} else {\n"
@@ -482,7 +482,7 @@ class KeyboardComponent(BaseComponent):
 
         # write the actual code
         code = ("// check responses\n"
-                "if (%(name)s.keys in ['', [], None]) {"
+                "if (['', [], undefined].indexOf(%(name)s.keys) >= 0) {"
                 "    // No response was made\n"
                 "    %(name)s.keys = undefined;\n"
                 "}\n")
@@ -490,7 +490,7 @@ class KeyboardComponent(BaseComponent):
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
-                    "if (str(%(correctAns)s).lower() == 'none') {\n"
+                    "if (psychoJS.str(%(correctAns)s).toLowerCase() == 'none') {\n"
                     "   %(name)s.corr = 1  // correct non-response\n"
                     "} else {\n"
                     "   %(name)s.corr = 0  // failed to respond (incorrectly)\n"

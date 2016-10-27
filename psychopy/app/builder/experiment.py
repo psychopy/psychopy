@@ -982,7 +982,7 @@ class TrialHandler(object):
         code = ("    // Schedule each of the trials in the list to occur\n"
                 "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
                 "      {thisName} = {params[name]}.trialList[i];\n"
-                "      {params[name]}Scheduler.add(repeatInit({thisName}));\n"
+                "      {params[name]}LoopScheduler.add(abbrevNames({thisName}));\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
@@ -1963,6 +1963,7 @@ class Routine(list):
                 "{0}Clock.reset(); // clock\n"
                 "frameN = -1;\n"
                 )
+        buff.writeIndentedLines(code)
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:

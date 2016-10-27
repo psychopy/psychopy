@@ -525,6 +525,19 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
+        abbrevFunc = ("\nfunction abbrevNames(thisTrial) {\n"
+                "  return function () {\n"
+                "    // abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)\n"
+                "    if (thisTrial != undefined) {\n"
+                "      for (paramName in thisTrial) {\n"
+                "        window[paramName] = thisTrial[paramName];\n"
+                "      }\n"
+                "    }\n"
+                "    return psychoJS.NEXT;\n"
+                "  };\n"
+                "}\n"
+                )
+        buff.writeIndentedLines(abbrevFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "    win.close()\n"
                     "    psychoJS.core.quit();\n"
