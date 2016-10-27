@@ -34,10 +34,12 @@ def handleFileCollision(fileName, fileCollisionMethod):
     elif fileCollisionMethod == 'rename':
         rootName, extension = os.path.splitext(fileName)
         matchingFiles = glob.glob("%s*%s" % (rootName, extension))
-        count = len(matchingFiles)
 
         # Build the renamed string.
-        fileName = "%s_%d%s" % (rootName, count, extension)
+        if not matchingFiles:
+            fileName = "%s%s" % (rootName, extension)
+        else:
+            fileName = "%s_%d%s" % (rootName, len(matchingFiles), extension)
 
         # Check to make sure the new fileName hasn't been taken too.
         if os.path.exists(fileName):

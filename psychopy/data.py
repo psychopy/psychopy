@@ -4333,8 +4333,7 @@ class MultiStairHandler(_BaseTrialHandler):
             label = thisStair.condition['label']
             thisStair.saveAsExcel(
                 fileName, sheetName=label, matrixOnly=matrixOnly,
-                appendFile=append, fileCollisionMethod='rename'
-            )
+                appendFile=append, fileCollisionMethod=fileCollisionMethod)
             append = True
 
     def saveAsText(self, fileName,

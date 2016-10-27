@@ -136,9 +136,11 @@ class StaticPeriod(object):
     def start(self, duration):
         """Start the period. If this is called a second time, the timer will
         be reset and starts again
+
+        :param duration: The duration of the period, in seconds.
         """
         self.status = STARTED
-        self.countdown.reset(duration)
+        self.countdown.reset(duration - self.frameTime)
         # turn off recording of frame intervals throughout static period
         if self.win:
             self.win.recordFrameIntervals = False

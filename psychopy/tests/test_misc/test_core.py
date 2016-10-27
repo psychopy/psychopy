@@ -349,6 +349,26 @@ def testStaticPeriod():
     assert win.recordFrameIntervals == False
     static.complete()
     assert static._winWasRecordingIntervals == win.recordFrameIntervals
+    win.close()
+
+    # Test if screenHz parameter is respected, i.e., if after completion of the
+    # StaticPeriod, 1/screenHz seconds are still remaining, so the period will
+    # complete after the next flip.
+    refresh_rate = 100.0
+    period_duration = 0.1
+    timer = CountdownTimer()
+    win = Window(autoLog=False)
+
+    static = StaticPeriod(screenHz=refresh_rate, win=win)
+    static.start(period_duration)
+    timer.reset(period_duration )
+    static.complete()
+
+    assert np.allclose(timer.getTime(),
+                       1/refresh_rate,
+                       atol=0.001)
+    win.close()
+
 
 @pytest.mark.quit
 def test_quit():
@@ -376,5 +396,6 @@ if __name__ == '__main__':
     testWait()
     testLoggingDefaultClock()
     testTimebaseQuality()
+    testStaticPeriod()
     printf("\n** Next Test will Take ~ 1 minute...**\n")
     testDelayDurationAccuracy()

@@ -15,14 +15,18 @@ PsychoPy 1.84
 PsychoPy 1.84.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Released Sept 2016
+
 * FIXED:
 
   * Problem with renaming of Routines preventing experiment from re-loading #1248
   * Several bugs with Builder code generation since PEP8 refactoring:
+
     * Static Components gave error compiling script
     * some Keyboard Components (with variable "allowed keys" settings) gave error compiling script #1245
     * Mouse Component with "Save state at end of trial" gave indentation error #1253
     * Loops gave error compiling script if conditions file was a formatted string #1253
+
   * Standalone distributions were not including the correct `pylink 1.1.0.4` and `pyxid` packages
 
 * ADDED:
@@ -32,6 +36,8 @@ PsychoPy 1.84.2
 
 PsychoPy 1.84.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Sept 2016
 
 * FIXED:
 
@@ -49,6 +55,8 @@ PsychoPy 1.84.1
 
 PsychoPy 1.84.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2016
 
 * ADDED:
 
