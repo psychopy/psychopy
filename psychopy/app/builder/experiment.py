@@ -659,23 +659,33 @@ class Experiment(object):
         Interrogates each loop looking for conditions files and each
 
         """
-        def isFile(filePath):
-            filePath = os.path.abspath(os.path.join(self.expPath, filePath))
+        join = os.path.join
+        abspath = os.path.abspath
+        srcRoot = os.path.split(self.expPath)[0]
+        def srcPath(filePath):
+            return abspath(join(srcRoot, filePath))
         resources = set()
         for thisEntry in self.flow:
             if thisEntry.getType() == 'LoopInitiator':
+                # find all loops and check for conditions filename
                 params = thisEntry.loop.params
                 if 'conditionsFile' in params:
-                    filePath = os.path.join(self.expPath,
-                                            params['conditionsFile'].val)
-                    resources.update([os.path.abspath(filePath)])
+                    filePath = srcPath(params['conditionsFile'].val)
+                    resources.update([filePath])
             elif thisEntry.getType() == 'Routine':
+                # find all params of all compons and check if valid filename
+                for thisComp in thisEntry:
+                    for thisParam in thisComp.params:
+                        filePath = ''
+                        if isinstance(thisParam, basestring):
+                            filePath = srcPath(thisParam)
+                        elif isinstance(thisParam.val, basestring):
+                            filePath = srcPath(thisParam.val)
+                        # then check if it's a valid path
+                        if os.path.isfile(filePath):
+                            resources.update([filePath])
 
-        # then go through and check the possible files
-        for filePath in resources:
-
-        if os.path.isfile(filePath):
-
+        # todo check within excel/csv files for further possible filenames
 
         return resources
 
@@ -1015,17 +1025,17 @@ class TrialHandler(object):
             if thisChild.getType() == 'Routine':
                 thisType = 'Routine'
                 code += (
-                    "      {params[name]}Scheduler.add({name}RoutineBegin);\n"
-                    "      {params[name]}Scheduler.add({name}RoutineEachFrame);\n"
-                    "      {params[name]}Scheduler.add({name}RoutineEnd);\n"
+                    "      {params[name]}LoopScheduler.add({name}RoutineBegin);\n"
+                    "      {params[name]}LoopScheduler.add({name}RoutineEachFrame);\n"
+                    "      {params[name]}LoopScheduler.add({name}RoutineEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'])
                     )
             else:  # for a LoopInitiator
                 code += (
-                    "      {params[name]}Scheduler.add({name}LoopBegin);\n"
+                    "      {params[name]}LoopScheduler.add({name}LoopBegin);\n"
                     "      {name}LoopScheduler = new psychoJS.Scheduler();\n"
-                    "      {params[name]}Scheduler.add({name}LoopScheduler);\n"
-                    "      {params[name]}Scheduler.add({name}LoopEnd);\n"
+                    "      {params[name]}LoopScheduler.add({name}LoopScheduler);\n"
+                    "      {params[name]}LoopScheduler.add({name}LoopEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'])
                     )
         buff.writeIndentedLines(code)
@@ -1980,12 +1990,12 @@ class Routine(list):
         code = ("\nfunction {0}RoutineBegin() {{\n")
         buff.writeIndentedLines(code.format(self.name))
         buff.setIndentLevel(1, relative=True)
-        code = ("//------Prepare to start Routine '{0}'-------\n"
+        code = ("//------Prepare to start Routine '{name}'-------\n"
                 "t = 0;\n"
-                "{0}Clock.reset(); // clock\n"
+                "{name}Clock.reset(); // clock\n"
                 "frameN = -1;\n"
                 )
-        buff.writeIndentedLines(code)
+        buff.writeIndentedLines(code.format(name=self.name))
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
@@ -1999,7 +2009,7 @@ class Routine(list):
                 thisCompon.writeRoutineStartCodeJS(buff)
 
         code = ("// keep track of which components have finished\n"
-                "{0}Components = [];\n").format(self.name)
+                "{name}Components = [];\n").format(name=self.name)
         buff.writeIndentedLines(code)
         for thisCompon in self:
             if ('startType' in thisCompon.params
