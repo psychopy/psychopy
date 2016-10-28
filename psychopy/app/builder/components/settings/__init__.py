@@ -1,7 +1,10 @@
 import os
 import wx
 import copy
+import shutil
+import zipfile
 from .._base import BaseComponent, Param, _translate
+import psychopy
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 
@@ -199,6 +202,30 @@ class SettingsComponent(object):
                             "('error' is fewest messages, 'debug' is most)"),
             label=_localized["logging level"], categ='Data')
 
+        # HTML output params
+        self.params['OSF Project ID'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("The ID of this project (e.g. 5bqpc)"),
+            label="OSF Project ID", categ='Online')
+        self.params['OSF User'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("Must be a user that has logged in from PsychoPy "
+                            "on this machine (with user remembered)"),
+            label="OSF username (email)", categ='Online')
+        self.params['HTML path'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("Place the HTML files will be saved locally "),
+            label="Output path", categ='Online')
+        self.params['email'] = Param(
+            '', valType='str', allowedTypes=[],
+            hint=_translate("Place the HTML files will be saved locally "),
+            label="Email address (for info emails)", categ='Online')
+        self.params['JS libs'] = Param(
+            'remote', valType='str', allowedVals=['packaged', 'remote'],
+            hint=_translate("Should we package a copy of the JS libs or use"
+                            "remote copies (http:/www.psychopy.org/js)?"),
+            label="JS libs", categ='Online')
+
     def getType(self):
         return self.__class__.__name__
 
@@ -259,15 +286,83 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
+    def prepareResourcesJS(self):
+        """Sets up the resources folder and writes the info.php file for PsychoJS
+        """
+
+        # detect OSF token from username
+        osfUser = self.params['OSF User'].val
+        if osfUser:
+            import pyosf.remote
+            tokens = pyosf.remote.TokenStorage()
+            osfToken = repr(tokens[osfUser])
+        else:
+            osfToken = 'undefined'
+
+        # write info.php file
+        folder = self.exp.expPath
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+
+        infoPHPfilename = os.path.join(folder, 'info.php')
+        infoText = readTextFile("JS_infoPHP.tmpl").format(params=self.params, osfToken=osfToken)
+
+        infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
+        with open(infoPHPfilename, 'w') as infoFile:
+            infoFile.write(infoText)
+
+        # populate resources folder
+        resFolder = os.path.join(folder, 'resources')
+        if not os.path.isdir(resFolder):
+            os.mkdir(resFolder)
+        resourceFiles = self.exp.getResourceFiles()
+            
+        # add the js libs if needed for packaging
+        ppRoot = os.path.split(os.path.abspath(psychopy.__file__))[0]
+        jsPath = os.path.join(ppRoot, '..', 'psychojs')
+        if os.path.isdir(jsPath):
+            print('using unzipped files')
+            if self.params['JS libs'].val == 'packaged':
+                shutil.copytree(os.path.join(jsPath, 'php'), 
+                                os.path.join(folder, 'php'))
+                shutil.copytree(os.path.join(jsPath, 'js'), 
+                                os.path.join(folder, 'js'))
+            # always copy server.php
+            shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
+        else:
+            print('zipfile')
+            jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
+            # copy over JS libs if needed
+            if self.params['JS libs'].val == 'packaged':
+                jsZip.extractall(path=folder)
+            else:            
+                jsZip.extract(path=folder, member="server.php")
+
     def writeInitCodeJS(self, buff, version, localDateTime):
+        # write info.php and resources folder as well
+        self.prepareResourcesJS()
         # header
-        template = readTextFile("JS_htmlHeader.txt")
-        header = template.format(params = self.params)
+        template = readTextFile("JS_htmlHeader.tmpl")
+        header = template.format(
+                   name = self.params['expName'].val, # prevent repr() conversion
+                   params = self.params)
         buff.write(header)
         # write the code to set up experiment
         buff.setIndentLevel(4, relative=False)
-        template = readTextFile("JS_setupExp.txt")
-        code = template.format(params=self.params)
+        template = readTextFile("JS_setupExp.tmpl")
+        # check where to save data variables
+        if self.params['OSF Project ID'].val:
+            saveType = "OSF_VIA_EXPERIMENT_SERVER"
+            projID = "'{}'".format(self.params['OSF Project ID'].val)
+        else:
+            saveType = "EXPERIMENT_SERVER"
+            projID = 'undefined'
+        code = template.format(
+                        params=self.params,
+                        saveType=saveType,
+                        projID=projID,
+                        loggingLevel = self.params['logging level'].val.upper(),
+                        )
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff):
@@ -428,8 +523,10 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
-        template = readTextFile("JS_winInit.txt")
-        code = template.format(params=self.params)
+        fullscr = str(self.params['Full-screen window']).lower() #lower case string
+        template = readTextFile("JS_winInit.tmpl")
+        code = template.format(params=self.params,
+                               fullscr=fullscr)
         buff.writeIndentedLines(code)
 
     def writeEndCode(self, buff):
@@ -450,17 +547,30 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
+        abbrevFunc = ("\nfunction abbrevNames(thisTrial) {\n"
+                "  return function () {\n"
+                "    // abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)\n"
+                "    if (thisTrial != undefined) {\n"
+                "      for (paramName in thisTrial) {\n"
+                "        window[paramName] = thisTrial[paramName];\n"
+                "      }\n"
+                "    }\n"
+                "    return psychoJS.NEXT;\n"
+                "  };\n"
+                "}\n"
+                )
+        buff.writeIndentedLines(abbrevFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "    win.close()\n"
-                    "    core.quit();\n"
+                    "    psychoJS.core.quit();\n"
                     "    return QUIT;\n"
                     "}")
+        buff.writeIndentedLines(quitFunc)
+        buff.setIndentLevel(-1)
         footer = ("\n"
                   "        run();\n"
-                  "        }\n"
                   "      });\n"
                   "    </script>\n\n"
                   "  </body>\n"
                   "</html>")
-        buff.writeIndentedLines(quitFunc)
-        buff.write(footer)
+        buff.writeIndentedLines(footer)

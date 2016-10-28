@@ -1,0 +1,45 @@
+
+function setupExperiment() {{
+
+  // An ExperimentHandler isn't essential but helps with data saving
+  thisExp = new psychoJS.data.ExperimentHandler({{
+      name: {params[expName]},
+      version: '',
+      extraInfo: expInfo,
+      runtimeInfo: undefined,  // not yet supported by psychoJS
+      originPath: undefined,  //not yet supported by psychoJS
+      savePickle: true,       // not yet supported by psychoJS
+      saveWideText: true,
+      saveTo: '{saveType}',
+      /*dataFileName=filename*/}});
+
+  // setup resource manager:
+  psychoJS.resourceManager.set({{
+                        win:win, downloadFrom:'EXPERIMENT_SERVER', projectId:{projID},
+                        projectStatus:'PUBLIC', clock:new psychoJS.core.Clock()
+                        }});
+
+  endExpNow = false; // flag for 'escape' or other condition => quit the exp
+
+  // logging:
+  psychoJS.logging.console.setLevel(psychoJS.logging.{loggingLevel});
+  psychoJS.logging.server.set({{'level':psychoJS.logging.{loggingLevel}, 'saveTo':'{saveType}', 'experimentInfo': expInfo}});
+
+  return psychoJS.NEXT;
+}}
+
+function updateInfo() {{
+  expInfo['date'] = psychoJS.data.getDateStr();  // add a simple timestamp
+  expInfo['expName'] = expName;
+
+  // store frame rate of monitor if we can measure it successfully
+  expInfo['frameRate'] = win.getActualFrameRate();
+  if (expInfo['frameRate'] != undefined) {{
+      frameDur = 1.0/Math.round(expInfo['frameRate']);
+  }}
+  else {{
+      frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
+  }}
+
+  return psychoJS.NEXT;
+}}

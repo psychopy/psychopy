@@ -1,0 +1,14 @@
+
+function setupWin() {{
+  // Start Code - component code to be run before the window creation
+  // Setup the Window
+  win = new psychoJS.visual.Window({{size:{params[Window size (pixels)]},
+      fullscr:{fullscr}, screen:{params[Screen]},
+      allowGUI:false, allowStencil:false,
+      monitor:{params[Monitor]},
+      color:{params[color]}, colorSpace:{params[colorSpace]},
+      blendMode:{params[blendMode]},
+      units:{params[Units]}
+      }});
+  return psychoJS.NEXT;
+}}

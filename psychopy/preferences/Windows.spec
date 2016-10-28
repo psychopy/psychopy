@@ -141,6 +141,8 @@
     quit = string(default='Alt+F4')
     #open the preferences dialog
     preferences = string(default='Ctrl+,')
+    # export Builder experiment to HTML
+    exportHTML = string(default='Ctrl+H')
 
     # Coder: cut
     cut = string(default='Ctrl+X')

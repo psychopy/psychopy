@@ -124,3 +124,42 @@ class ImageComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
         code += ", depth=%.1f)\n" % depth
         buff.writeIndentedLines(code)
+
+    def writeInitCodeJS(self, buff):
+        # do we need units code?
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = ""
+        else:
+            unitsStr = "units : %(units)s, " % self.params
+
+        # replace variable params with defaults
+        inits = getInitVals(self.params)
+
+        for paramName in inits:
+            val = inits[paramName].val
+            if val is True:
+                inits[paramName] = 'true'
+            elif val is False:
+                inits[paramName] = 'false'
+            elif val in [None, 'None', 'none']:
+                inits[paramName] = 'undefined'
+
+        code = ("{inits[name]} = psychoJS.visual.ImageStim({{\n"
+                "    win : win, name : '{inits[name]}',{units}\n"
+                "    image : {inits[image]}, mask : {inits[mask]},\n"
+                "    ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
+                "    color : {inits[color]}, colorSpace : {inits[colorSpace]}, opacity : {inits[opacity]},\n"
+                "    flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
+                # no newline - start optional parameters
+                "    texRes : {inits[texture resolution]}"
+                .format(inits=inits, units=unitsStr))
+
+        if self.params['interpolate'].val == 'linear':
+            code += ", interpolate : true"
+        else:
+            code += ", interpolate : false"
+        depth = -self.getPosInRoutine()
+        code += (", depth : %.1f \n"
+                 "});\n" % (depth)
+                 )
+        buff.writeIndentedLines(code)
