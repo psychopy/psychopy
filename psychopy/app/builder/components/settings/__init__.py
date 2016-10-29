@@ -289,6 +289,7 @@ class SettingsComponent(object):
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
         """
+        join = os.path.join
 
         # detect OSF token from username
         osfUser = self.params['OSF User'].val
@@ -305,37 +306,46 @@ class SettingsComponent(object):
             os.mkdir(folder)
 
         infoPHPfilename = os.path.join(folder, 'info.php')
-        infoText = readTextFile("JS_infoPHP.tmpl").format(params=self.params, osfToken=osfToken)
+        infoText = readTextFile("JS_infoPHP.tmpl").format(params=self.params,
+                                                          osfToken=osfToken)
 
         infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
 
         # populate resources folder
-        resFolder = os.path.join(folder, 'resources')
+        resFolder = join(folder, 'resources')
         if not os.path.isdir(resFolder):
             os.mkdir(resFolder)
         resourceFiles = self.exp.getResourceFiles()
-            
+        for srcFile in resourceFiles:
+            dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
+            dstFolder = os.path.split(dstAbs)[0]
+            if not os.path.isdir(dstFolder):
+                os.makedirs(dstFolder)
+            shutil.copy2(srcFile['abs'], dstAbs)
+
         # add the js libs if needed for packaging
         ppRoot = os.path.split(os.path.abspath(psychopy.__file__))[0]
-        jsPath = os.path.join(ppRoot, '..', 'psychojs')
+        jsPath = join(ppRoot, '..', 'psychojs')
         if os.path.isdir(jsPath):
-            print('using unzipped files')
             if self.params['JS libs'].val == 'packaged':
-                shutil.copytree(os.path.join(jsPath, 'php'), 
-                                os.path.join(folder, 'php'))
-                shutil.copytree(os.path.join(jsPath, 'js'), 
-                                os.path.join(folder, 'js'))
+                # must remove folder or copytree fails TODO: smarter version
+                shutil.rmtree(join(folder, 'php'))
+                shutil.copytree(join(jsPath, 'php'),
+                                join(folder, 'php'))
+                # must remove folder or copytree fails TODO: smarter version
+                shutil.rmtree(join(folder, 'js'))
+                shutil.copytree(join(jsPath, 'js'),
+                                join(folder, 'js'))
             # always copy server.php
             shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
         else:
-            print('zipfile')
             jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
             # copy over JS libs if needed
             if self.params['JS libs'].val == 'packaged':
                 jsZip.extractall(path=folder)
-            else:            
+            else:
                 jsZip.extract(path=folder, member="server.php")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
