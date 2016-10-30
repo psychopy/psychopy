@@ -6,7 +6,8 @@
 import os
 
 startPath = os.getcwd()
-os.chdir(os.path.split(__file__)[0])
+if os.path.split(__file__)[0]:
+    os.chdir(os.path.split(__file__)[0])
 
 # load the base prefs common to all platforms as a single string:
 baseSpec = open('baseNoArch.spec').read()

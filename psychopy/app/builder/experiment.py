@@ -662,28 +662,41 @@ class Experiment(object):
         join = os.path.join
         abspath = os.path.abspath
         srcRoot = os.path.split(self.expPath)[0]
-        def srcPath(filePath):
-            return abspath(join(srcRoot, filePath))
-        resources = set()
+
+        def getPaths(filePath):
+            thisFile={}
+            if filePath[0] == "/" or filePath[1]==":":
+                thisFile['abs'] = filePath
+                thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+            else:
+                thisFile['rel'] = filePath
+                thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
+            if os.path.isfile(thisFile['abs']):
+                return thisFile
+            else:
+                return None
+
+        resources = []
         for thisEntry in self.flow:
             if thisEntry.getType() == 'LoopInitiator':
                 # find all loops and check for conditions filename
                 params = thisEntry.loop.params
                 if 'conditionsFile' in params:
-                    filePath = srcPath(params['conditionsFile'].val)
-                    resources.update([filePath])
+                    thisFile = getPaths(params['conditionsFile'].val)
+                    if thisFile:
+                        resources.append(thisFile)
             elif thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
                     for thisParam in thisComp.params:
                         filePath = ''
                         if isinstance(thisParam, basestring):
-                            filePath = srcPath(thisParam)
+                            thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, basestring):
-                            filePath = srcPath(thisParam.val)
+                            thisFile = getPaths(thisParam.val)
                         # then check if it's a valid path
-                        if os.path.isfile(filePath):
-                            resources.update([filePath])
+                        if thisFile:
+                            resources.append(thisFile)
 
         # todo check within excel/csv files for further possible filenames
 
