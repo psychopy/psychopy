@@ -368,12 +368,9 @@ class SettingsComponent(object):
         jsPath = join(ppRoot, '..', 'psychojs')
         if os.path.isdir(jsPath):
             if self.params['JS libs'].val == 'packaged':
-                import time
-                t0 = time.time()
                 copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
                 copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
 
-                print(time.time()-t0)
             # always copy server.php
             shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
         else:
