@@ -142,7 +142,7 @@
     #open the preferences dialog
     preferences = string(default='Ctrl+,')
     # export Builder experiment to HTML
-    exportHTML = string(default='Ctrl+H')
+    exportHTML = string(default='Ctrl+E')
 
     # Coder: cut
     cut = string(default='Ctrl+X')
