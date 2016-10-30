@@ -1,14 +1,14 @@
 import os
 import wx
-import copy
-import shutil
-import zipfile
 from .._base import BaseComponent, Param, _translate
 import psychopy
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
-
 from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
+# for creating html output folders:
+import shutil
+import hashlib
+import zipfile
 
 def readTextFile(relPath):
     fullPath = os.path.join(thisFolder, relPath)
@@ -289,7 +289,45 @@ class SettingsComponent(object):
     def prepareResourcesJS(self):
         """Sets up the resources folder and writes the info.php file for PsychoJS
         """
+
         join = os.path.join
+
+        def copyTreeWithMD5(src, dst):
+            """Copies the tree but checks SHA for each file first
+            """
+            # despite time to check the md5 hashes this func gives speed-up
+            # over about 20% over using shutil.rmtree() and copytree()
+            for root, subDirs, files in os.walk(src):
+                relPath = os.path.relpath(root, src)
+                for thisDir in subDirs:
+                    # print("{}: **{}".format(root, thisDir))
+                    # print(" -> {}".format(join(dst, relPath)))
+                    if not os.path.isdir(join(root, thisDir)):
+                        os.makedirs(join(root, thisDir))
+                for thisFile in files:
+                    # print("{}: {}".format(root, thisFile))
+                    # print(" -> {}".format(join(dst, relPath, thisFile)))
+                    copyFileWithMD5(join(root, thisFile),
+                                    join(dst, relPath, thisFile))
+
+        def copyFileWithMD5(src, dst):
+            """Copies a file but only if doesn't exist or SHA is diff
+            """
+            if os.path.isfile(dst):
+                with open(dst, 'r') as f:
+                    dstMD5 = hashlib.md5(f.read()).hexdigest()
+                with open(src, 'r') as f:
+                    srcMD5 = hashlib.md5(f.read()).hexdigest()
+                if srcMD5 == dstMD5:
+                    return  # already matches - do nothing
+                # if we got here then the file exists but not the same
+                # delete and replace. TODO: In future this should check date
+                os.remove(dst)
+            # either didn't exist or has been deleted
+            folder = os.path.split(dst)[0]
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            shutil.copy2(src, dst)
 
         # detect OSF token from username
         osfUser = self.params['OSF User'].val
@@ -330,14 +368,12 @@ class SettingsComponent(object):
         jsPath = join(ppRoot, '..', 'psychojs')
         if os.path.isdir(jsPath):
             if self.params['JS libs'].val == 'packaged':
-                # must remove folder or copytree fails TODO: smarter version
-                shutil.rmtree(join(folder, 'php'))
-                shutil.copytree(join(jsPath, 'php'),
-                                join(folder, 'php'))
-                # must remove folder or copytree fails TODO: smarter version
-                shutil.rmtree(join(folder, 'js'))
-                shutil.copytree(join(jsPath, 'js'),
-                                join(folder, 'js'))
+                import time
+                t0 = time.time()
+                copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
+                copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
+
+                print(time.time()-t0)
             # always copy server.php
             shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
         else:
