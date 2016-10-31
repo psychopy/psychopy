@@ -1,4 +1,7 @@
 <?php
+	require 'php/vendors/phpmailer/class.phpmailer.php';
+	require 'php/vendors/phpmailer/class.smtp.php';
+	require 'php/vendors/phpmailer/class.pop3.php';
 
 	/**
 	 * PHP experiment server
@@ -14,8 +17,12 @@
 	/**
 	 * Create a new Experiment Server
 	 *
-	 * <p>Note: The server requires the cURL PHP library to be installed.
-	 * Under linux, that can usually be done using: <code>sudo apt-get install curl libcurl3 libcurl3-dev php5-curl</code></p>
+	 * <p>Note:
+	 * <ul>
+	 * <li>The server requires the cURL PHP library to be installed.
+	 * Under linux, that can usually be done using: <code>sudo apt-get install curl libcurl3 libcurl3-dev php5-curl</code></li>
+	 * <li> PHP error logs can usually be found here: Ubuntu => /var/log/apache2/error.log</li>
+	 * </p>
 	 * @class
 	 */
 	class ExperimentServer {
@@ -24,8 +31,11 @@
 		 * @constructor
 		 */
 		function __construct() {
-			// load the data.php, which contains the project ID, the user's project's OSF token, etc.
-			include 'data.php';			
+			// load info.php, which contains the project ID, the user's project's OSF token, etc.
+			include 'info.php';
+			
+			// associative array of resource names => resource download links
+			$this->info["resources"] = array();
 		}
 
 
@@ -35,14 +45,18 @@
 		 * <p>Get the 'command' variable passed to the experiment server via a HTTP POST method
 		 * <ul>
 		 * <li>if 'command' is not set, we show the server's synchronisation GUI</li>
+		 * <li>if 'command' = 'EXP_UPLOAD', data contained in the 'data' variable passed via the
+		 * POST method is saved locally on the local experiment server's data directory</li>
 		 * <li>if 'command' = 'OSF_UPLOAD', data contained in the 'data' variable passed via the
 		 * POST method is saved locally on the local experiment server's data directory and
 		 * uploaded to the remote OSF server</li>
-		 * <li>if 'command' = 'SYNC', all of the project's resources are downloaded from the
+		 * <li>if 'command' = 'PULL', all of the project's resources are downloaded from the
 		 * project's resource directory on the remote OSF server onto the local experiment
 		 * server's resource directory</li>
-		 * <li>if 'command= = 'LIST_RESOURCES', return the list of all available resource names
+		 * <li>if 'command' = 'LIST_RESOURCES', return the list of all available resource names
 		 * in local resource directory as a stringified json array of resource names</li>
+		 * <li> if 'command' = 'EMAIL', we send an email to the experimenter using the specified
+		 * SMTP email server</li>
 		 * </ul></p>
 		 */
 		public function processPOST() {
@@ -62,17 +76,26 @@
 					
 					// OSF_UPLOAD - upload data to OSF server:
 					if (0 === strcmp('OSF_UPLOAD', $command)) {
-						$serverResponse = $this->OsfUpload();
+						$serverResponse = $this->osfUpload();
 					}
-					
-					// SYNC - get resources from OSF server:
-					else if (0 === strcmp('SYNC', $command)) {
-						$serverResponse = $this->OsfSync();
+
+					// OSF_EXP - upload local experiment server:
+					else if (0 === strcmp('EXP_UPLOAD', $command)) {
+						$serverResponse = $this->expUpload();
+					}
+
+					// PULL - get resources from OSF server:
+					else if (0 === strcmp('PULL', $command)) {
+						$serverResponse = $this->osfPull();
 					}
 					
 					// LIST_RESOURCES - return list of resources from local resource directory:
 					else if (0 === strcmp('LIST_RESOURCES', $command)) {
 						$serverResponse = $this->listLocalResources();
+					}
+					
+					else if (0 === strcmp('EMAIL', $command)) {
+						$serverResponse = $this->sendEmail();
 					}
 					
 					// unknown command:
@@ -81,7 +104,7 @@
 					}
 				}
 			} catch (Exception $e) {
-				$serverResponse = '{ "function" : "' . $this->data['projectId'] . ' experiment server", "context" : "when processing HTTP POST message", "error" : ' . $e->getMessage() . ' }';
+				$serverResponse = '{ "function" : "' . $this->info['projectId'] . ' experiment server", "context" : "when processing HTTP POST message", "error" : ' . $e->getMessage() . ' }';
 			}
 			
 			echo $serverResponse;
@@ -97,9 +120,9 @@
 				if (FALSE === $ch) {
 					throw new Exception('"Unabled to initialize cURL"');
 				}
-				$resourceUrl = $this->data["OsfUrl"] . 'nodes/' . $this->data["projectId"] . '/files/?format=json';
+				$resourceUrl = $this->info["osfUrl"] . 'nodes/' . $this->info["projectId"] . '/files/?format=json';
 				curl_setopt($ch, CURLOPT_URL, $resourceUrl);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->data["token"]));
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->info["token"]));
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				
 				$result = curl_exec($ch);
@@ -117,10 +140,10 @@
 					}
 					
 					$storageProviderUrl = $json->data[0]->relationships->files->links->related->href;
-					$this->data["storageProviderUrl"] = substr($storageProviderUrl, 0, strpos($storageProviderUrl, "?")); // remove ?format=json
+					$this->info["storageProviderUrl"] = substr($storageProviderUrl, 0, strpos($storageProviderUrl, "?")); // remove ?format=json
 					
 					$rootUploadUrl = $json->data[0]->links->upload;
-					$this->data["rootUploadUrl"] = $rootUploadUrl;
+					$this->info["rootUploadUrl"] = $rootUploadUrl;
 				}
 			} catch (Exception $e) {
 				throw new Exception('{ "function" : "getOsfStorageProvider()", "context" : "when getting storage provider from OSF", "error" : ' . $e->getMessage() . ' }');
@@ -137,8 +160,8 @@
 				if (FALSE === $ch) {
 					throw new Exception('"Unabled to initialize cURL"');
 				}
-				curl_setopt($ch, CURLOPT_URL, $this->data["rootUploadUrl"]);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->data["token"]));
+				curl_setopt($ch, CURLOPT_URL, $this->info["rootUploadUrl"]);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->info["token"]));
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				
 				$result = curl_exec($ch);
@@ -156,13 +179,13 @@
 					}
 					
 					// look for data folder:
-					$dataDirectory = $this->data["dataDirectory"];
+					$dataDirectory = $this->info["dataDirectory"];
 					foreach ($json->data as $entity) {
 						$name = $entity->attributes->name;
 						
 						if (0 === strcmp($dataDirectory, $name)) {
 							$uploadLink = $entity->links->upload;
-							$this->data["dataDirectoryUrl"] = substr($uploadLink, 0, strpos($uploadLink, "?")); // remove ?format=json
+							$this->info["dataDirectoryUrl"] = substr($uploadLink, 0, strpos($uploadLink, "?")); // remove ?format=json
 							return;
 						}
 					}
@@ -185,8 +208,8 @@
 				if (FALSE === $ch) {
 					throw new Exception('"Unabled to initialize cURL"');
 				}
-				curl_setopt($ch, CURLOPT_URL, $this->data["storageProviderUrl"]);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->data["token"]));
+				curl_setopt($ch, CURLOPT_URL, $this->info["storageProviderUrl"]);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->info["token"]));
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				
 				$result = curl_exec($ch);
@@ -204,12 +227,12 @@
 					}
 
 					// look for resource folder:
-					$resourceDirectory = $this->data["resourceDirectory"];
+					$resourceDirectory = $this->info["resourceDirectory"];
 					foreach ($json->data as $entity) {
 						$name = $entity->attributes->name;
 						
 						if (0 === strcmp($resourceDirectory, $name)) {
-							$this->data["resourceDirectoryUrl"] = $this->data["storageProviderUrl"] . $entity->attributes->path;
+							$this->info["resourceDirectoryUrl"] = $this->info["storageProviderUrl"] . $entity->attributes->path;
 							return;
 						}
 					}
@@ -233,8 +256,8 @@
 					throw new Exception('"Unabled to initialize cURL"');
 				}
 				
-				curl_setopt($ch, CURLOPT_URL, $this->data["resourceDirectoryUrl"]);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->data["token"]));
+				curl_setopt($ch, CURLOPT_URL, $this->info["resourceDirectoryUrl"]);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->info["token"]));
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				
 				$result = curl_exec($ch);
@@ -252,11 +275,11 @@
 					}
 
 					// look for resource folder:
-					$resourceDirectory = $this->data["resourceDirectory"];
+					$resourceDirectory = $this->info["resourceDirectory"];
 					
 					// get all resources and their download links:
 					foreach ($json->data as $entity) {
-						$this->data["resources"][$entity->attributes->name] = $entity->links->download;
+						$this->info["resources"][$entity->attributes->name] = $entity->links->download;
 					}
 				}
 			} catch (Exception $e) {
@@ -274,7 +297,7 @@
 		private function getOsfResource($name) {
 			try {
 				// open local file:
-				$resourceLocalFile = $this->data["resourceDirectory"] . "/" . $name;
+				$resourceLocalFile = $this->info["resourceDirectory"] . "/" . $name;
 				$writeHandle = fopen($resourceLocalFile, 'wb');
 				if (FALSE === $writeHandle) {
 					throw new Exception('"Unabled to open local resource file: ' . $resourceLocalFile . '"');
@@ -285,8 +308,8 @@
 					throw new Exception('"Unabled to initialize cURL"');
 				}
 
-				curl_setopt($ch, CURLOPT_URL, $this->data["resources"][$name]);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->data["token"]));
+				curl_setopt($ch, CURLOPT_URL, $this->info["resources"][$name]);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->info["token"]));
 				curl_setopt($ch, CURLOPT_FILE, $writeHandle); 
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 				curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
@@ -307,17 +330,17 @@
 
 
 		/**
-		 * Synchronise resources between the OSF server and the experiment server
+		 * Download resources from the OSF server onto the experiment server
 		 *
 		 * <p> Download all available resources from the resource directory of the
 		 * project on the OSF server onto the experiment server's resource directory</p>
 		 */
-		function OsfSync() {
+		function osfPull() {
 			try {
-				$projectId = $this->data["projectId"];
+				$projectId = $this->info["projectId"];
 				
 				// create resource directory if need be:
-				$resourceDirectory = $this->data["resourceDirectory"];
+				$resourceDirectory = $this->info["resourceDirectory"];
 				if (FALSE === file_exists($resourceDirectory)) {
 					if (FALSE === mkdir($resourceDirectory)) {
 						throw new Exception('"Unabled to create local resource directory: ' . $resourceDirectory . ' on experiment server."');
@@ -333,7 +356,7 @@
 				// download all resources and return stringified JSON array of resource names:
 				$serverResponse = "[";
 				$comma = FALSE;
-				foreach ($this->data["resources"] as $name => $downloadLink) {
+				foreach ($this->info["resources"] as $name => $downloadLink) {
 					$this->getOsfResource($name);
 					
 					if (TRUE === $comma) {
@@ -347,7 +370,7 @@
 				
 				return $serverResponse;
 			} catch (Exception $e) {
-				throw new Exception('{ "function" : "OsfSync()", "context" : "when synchronising resources from OSF", "error" : ' . $e->getMessage() . ' }');
+				throw new Exception('{ "function" : "osfPull()", "context" : "when pulling resources from OSF", "error" : ' . $e->getMessage() . ' }');
 			}
 		}
 		
@@ -358,7 +381,7 @@
 		 * @param {String} $name name of the resource
 		 */
 		private function addResource($name) {
-			$this->data["resourceNames"][] = $name;
+			$this->info["resourceNames"][] = $name;
 		}
 
 
@@ -374,7 +397,7 @@
 		private function showSynchronisationGUI() {
 			$html = "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>\n"
 			. "<html>\n"
-			. "<head><title>" . $this->data['projectId'] . " server</title>\n"
+			. "<head><title>" . $this->info['projectId'] . " server</title>\n"
 			. "<meta charset='UTF-8'>\n"
 			. "<link href='js/vendors/jquery-ui-1.11.4.base/jquery-ui.min.css' rel='stylesheet'>\n"
 			. "</head>\n"
@@ -384,11 +407,11 @@
 
 			$html  = $html
 			. "<div class='gui'><h1>PsychoJS Experiment Server</h1>"
-			. "<div id='info'><ul><li><a href='#project'>" . $this->data['projectName'] . "</a></li></ul>"
-			. "<div id='project'>Project ID: <b>" . $this->data['projectId'] . "</b></div><br>"
+			. "<div id='info'><ul><li><a href='#project'>" . $this->info['projectName'] . "</a></li></ul>"
+			. "<div id='project'>Project ID: <b>" . $this->info['projectId'] . "</b></div><br>"
 			. "<div id='actions' style='margin: 1em'><ul><li><a href='#sync'>Synchronisation</a></li></ul>"
-			. "<div id='sync'><p>Press the Sync button to download all available project resources from the OSF server onto this PsychoJS experiment server:</p>"
-			. "<input type='submit' value='Sync'>"
+			. "<div id='sync'><p>Press the Pull button to download all available project resources from the OSF server onto this PsychoJS experiment server:</p>"
+			. "<input type='submit' value='Pull'>"
 			. "<hr>"
 			. "<div id='result'><p><b>...</b></p></div>"
 			. "</div></div></div></div>";
@@ -400,11 +423,11 @@
 			. "$( '#actions' ).tabs();"
 			// init button:
 			. "$( '.gui input[type=submit]' ).button();"
-			// on click: post SYNC to server, get response and update result div:
+			// on click: post PULL to server, get response and update result div:
 			. "$( 'input' ).click( function( event ) {"
-			. "document.getElementById('result').innerHTML = '<p><b>Synchronisation in progress...</b></p>';"
+			. "document.getElementById('result').innerHTML = '<p><b>Pull in progress...</b></p>';"
 			. "$.post('" . $_SERVER['PHP_SELF'] . "',"
-			. "{'command' : 'SYNC'})"
+			. "{'command' : 'PULL'})"
 			. ".then("
 			. "function (result) {"
 			. "var json = JSON.parse(result);"
@@ -440,13 +463,13 @@
 		private function listLocalResources() {
 			// look for resources in local resource directory on experiment server:
 			set_error_handler(function($errno, $errstr) {}, E_WARNING); // suppress warnings
-			$scanResults = scandir($this->data["resourceDirectory"]);
+			$scanResults = scandir($this->info["resourceDirectory"]);
 			restore_error_handler();
 			if (FALSE === $scanResults) {
-				throw new Exception('{ "function" : "listLocalResources()", "context" : "when listing resources available on the experiment server", "error" : "Unabled to scan resource directory: ' . $this->data["resourceDirectory"] . '" }');
+				throw new Exception('{ "function" : "listLocalResources()", "context" : "when listing resources available on the experiment server", "error" : "Unabled to scan resource directory: ' . $this->info["resourceDirectory"] . '" }');
 			}
 			
-			$serverResponse = '{ "function" : "' . $this->data['projectId'] . ' experiment server", "context" : "when listing resources available on the experiment server", "resources": [';
+			$serverResponse = '{ "function" : "' . $this->info['projectId'] . ' experiment server", "context" : "when listing resources available on the experiment server", "resources": [';
 			$comma = FALSE;
 			foreach ($scanResults as $index => $resourceName ) {
 				if (0 !== strcmp('.', $resourceName) && 0 !== strcmp('..', $resourceName)) {
@@ -462,7 +485,61 @@
 			return $serverResponse;
 		}
 
+		
+		/**
+		 * Save data to a file on the local experiment server
+		 *
+		 * @param {String} $session - JSON session information (e.g. experiment name, participant name, etc.)
+		 * @param {Object} $data - data to be saved (e.g. a .csv string)
+		 * @param {{('RESULT'|'LOG')}} $dataType - type of the data to be saved
+		 *
+		 * @return {String} the name of the file in the resource directory on the local experiment server
+		 **/
+		private function saveDataToLocalFile($session, $data, $dataType) {
+			try {
+				// create data directory if need be:
+				set_error_handler(function($errno, $errstr) {}, E_WARNING); // suppress warnings
+				$dataDirectory = $this->info["dataDirectory"];
+				if (FALSE === file_exists($dataDirectory)) {
+					if (FALSE === mkdir($dataDirectory)) {
+						throw new Exception('"Unabled to create local data directory: ' . $dataDirectory . ' on experiment server."');
+					}
+				}
 
+				// save data to local file:
+				$fileID = $this->cleanString($session->participantName)
+				. "_" . $this->cleanString($session->sessionName)
+				. "_" . $this->cleanString($session->sessionDate)
+				. "_" . $this->cleanString($session->IP);
+				if (0 === strcmp('RESULT', $dataType)) {
+					$extension = '.csv';
+				}
+				else {
+					$extension = '.log';
+				}
+				$localFileName = $fileID . $extension;
+				$localFileFullPath = $dataDirectory . "/" . $localFileName;
+				
+				$handle = fopen($localFileFullPath, "w");
+				if (FALSE === $handle) {
+					throw new Exception('"Unabled to open local file: ' . $localFileFullPath . '"');
+				}
+				$return = fwrite($handle, $data);
+				if (FALSE === $return) {
+					throw new Exception('"Unabled to write to local file: ' . $localFileFullPath . '"');
+				}
+				fclose($handle);
+				restore_error_handler();
+				
+				// return the name of the local file:
+				return $localFileName;
+			} catch (Exception $e) {
+				restore_error_handler();
+				throw new Exception('{ "function" : "saveDataToLocalFile()", "context" : "when saving data to experiment server", "error" : ' . $e->getMessage() . ' }');
+			}
+		}
+		
+		
 		/**
 		 * Upload a file from the local experiment server onto the OSF server
 		 *
@@ -478,7 +555,7 @@
 				// get upload URL:
 				$this->getOsfStorageProvider();
 				$this->getOsfDataDirectoryLink();
-				$url = $this->data["dataDirectoryUrl"] . '?kind=file&name=' . $OSFFileName;
+				$url = $this->info["dataDirectoryUrl"] . '?kind=file&name=' . $OSFFileName;
 				
 				// open local file and get its size:
 				set_error_handler(function($errno, $errstr) {}, E_WARNING); // suppress warnings
@@ -496,7 +573,7 @@
 				}
 				curl_setopt($ch, CURLOPT_URL, $url);
 				curl_setopt($ch, CURLOPT_PUT, true);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->data["token"]));
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->info["token"]));
 				curl_setopt($ch, CURLOPT_INFILESIZE, $fileSize);
 				curl_setopt($ch, CURLOPT_INFILE, $handle);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -527,84 +604,116 @@
 
 
 		/**
-		 * Save data to the project's resource directory on the local experiment server
+		 * Upload data to the project's resource directory on the local experiment server
+		 *
+		 * <p>Note: the data are in the data variable of the POST request submitted
+		 * to the experiment server.</p>
+		 */
+		private function expUpload() {
+			try {
+				// get data from POST request:
+				if (!isset($_POST['session']) || !isset($_POST['data']) || !isset($_POST['dataType'])) {
+					throw new Exception('"malformed HTTP POST request: missing session, data or dataType."');
+				}
+				$session = json_decode($_POST['session']);
+				$postData = $_POST['data'];
+				$postDataType = $_POST['dataType'];
+
+				// save data to local file:
+				$localFileName = $this->saveDataToLocalFile($session, $postData, $postDataType);
+				$localFileFullPath = $this->info["dataDirectory"] . "/" . $localFileName;
+				
+				$serverResponse = '{ "function" : "expUpload()", "context" : "when uploading data to experiment server", "localFileName" : "' . $localFileFullPath . '", "representation" : "' . $localFileName . '" }';
+				return $serverResponse;
+			} catch (Exception $e) {
+				restore_error_handler();
+				throw new Exception('{ "function" : "expUpload()", "context" : "when uploading data to experiment server", "error" : ' . $e->getMessage() . ' }');
+			}
+		}
+		
+		
+		/**
+		 * Upload data to the project's resource directory on the local experiment server
 		 * and upload them to OSF
 		 *
 		 * <p>Note: the data are in the data variable of the POST request submitted
 		 * to the experiment server.</p>
 		 */
-		private function OsfUpload() {
+		private function osfUpload() {
 			try {
+				// get data from POST request:
 				if (!isset($_POST['session']) || !isset($_POST['data']) || !isset($_POST['dataType'])) {
 					throw new Exception('"malformed HTTP POST request: missing session, data or dataType."');
 				}
-				
 				$session = json_decode($_POST['session']);
 				$postData = $_POST['data'];
 				$postDataType = $_POST['dataType'];
 				
-				// create data directory if need be:
-				set_error_handler(function($errno, $errstr) {}, E_WARNING); // suppress warnings
-				$dataDirectory = $this->data["dataDirectory"];
-				if (FALSE === file_exists($dataDirectory)) {
-					if (FALSE === mkdir($dataDirectory)) {
-						throw new Exception('"Unabled to create local data directory: ' . $dataDirectory . ' on experiment server."');
-					}
-				}
-			
-				// save data to local file to server as local copy:
-				$fileID = $this->cleanString($session->participantName)
-				. "_" . $this->cleanString($session->sessionName)
-				. "_" . $this->cleanString($session->sessionDate)
-				. "_" . $this->cleanString($session->IP);
-				if (0 === strcmp('RESULT', $postDataType)) {
-					$extension = '.csv';
-				}
-				else {
-					$extension = '.log';
-				}
-				$localFileName = $dataDirectory . "/" . $fileID . $extension;
-				$OSFFileName = $fileID . $extension;
-				
-				$handle = fopen($localFileName, "w");
-				if (FALSE === $handle) {
-					throw new Exception('"Unabled to open local file: ' . $localFileName . '"');
-				}
-				$return = fwrite($handle, $postData);
-				if (FALSE === $return) {
-					throw new Exception('"Unabled to write to local file: ' . $localFileName . '"');
-				}
-				fclose($handle);
-				restore_error_handler();
+				// save data to local file:
+				$localFileName = $this->saveDataToLocalFile($session, $postData, $postDataType);
+				$localFileFullPath = $this->info["dataDirectory"] . "/" . $localFileName;
+				$OSFFileName = $localFileName;
 				
 				// upload local file to OSF:
-				$OsfFileRepresentation = $this->uploadLocalFileToOSF($localFileName, $OSFFileName);
+				$OsfFileRepresentation = $this->uploadLocalFileToOSF($localFileFullPath, $OSFFileName);
 				
-				$serverResponse = '{ "function" : "OsfUpload()", "context" : "when uploading data to OSF", "localFileName" : "' . $localFileName . '", "OSFFileName" : "' . $OSFFileName . '", "representation" : ' . $OsfFileRepresentation . ' }';
+				$serverResponse = '{ "function" : "osfUpload()", "context" : "when uploading data to OSF", "localFileName" : "' . $localFileFullPath . '", "OSFFileName" : "' . $OSFFileName . '", "representation" : ' . $OsfFileRepresentation . ' }';
 				return $serverResponse;
 			} catch (Exception $e) {
 				restore_error_handler();
-				throw new Exception('{ "function" : "OsfUpload()", "context" : "when uploading data to OSF", "error" : ' . $e->getMessage() . ' }');
+				throw new Exception('{ "function" : "osfUpload()", "context" : "when uploading data to OSF", "error" : ' . $e->getMessage() . ' }');
 			}
 		}
 
 		
 		/**
-		 * Send email to experimenter.
+		 * Send an email to the experimenter.
 		 *
 		 * @param {String} $subject - subject of the email
-		 * @param {String} $message - email message
+		 * @param {String} $body - body of the email
 		 *
+		 * <p>Note: we only send an email if an SMTP mail server has been specified in info.php.</p>
 		 */
-		private function sendEmail($subject, $message) {
-			$headers   = array();
-			$headers[] = "MIME-Version: 1.0";
-			$headers[] = "Content-type: text/plain; charset=iso-8859-1";
-			$headers[] = "From: " . $this->data['projectId'] . " experiment server";
-			$headers[] = "Subject: " . $subject;
-			$headers[] = "X-Mailer: PHP/" . phpversion();
+		private function sendEmail() {
+			try {
+				// check whether SMTP email server has been specified:
+				if (empty($this->info["smtpServer"])) {
+					throw new Exception('"No SMTP email server specified."');
+				}
+				
+				// get data from POST request:
+				if (!isset($_POST['subject']) || !isset($_POST['body'])) {
+					throw new Exception('"malformed HTTP POST request: missing subject or body."');
+				}
+				$subject = json_decode($_POST['subject']);
+				$body = $_POST['body'];
 
-			mail($this->data["experimenterEmail"] , $subject, $message, implode("\r\n", $headers));
+			
+				$mail = new PHPMailer;
+				$mail->isSMTP();
+				$mail->Host = $this->info["smtpServer"];
+				$mail->SMTPAuth = true;
+				$mail->Username = $this->info["smtpUsername"];
+				$mail->Password = $this->info["smtpPassword"];
+				$mail->SMTPSecure = $this->info["smtpSecure"];
+				$mail->Port = $this->info["smtpTcpPort"];
+
+				$mail->setFrom($this->info["experimenterEmail"], $this->info['projectId'] . " experiment server");
+				$mail->addAddress($this->info["experimenterEmail"]);
+
+				$mail->isHTML(false);
+
+				$mail->Subject = $subject;
+				$mail->Body = $body;
+
+				if ($mail->send()) {
+					return '{ "function" : "sendEmail()", "context" : "when sending an email to the experimenter" }';
+				} else {
+					throw new Exception('"message could not be sent: mailer error= ' . $mail->ErrorInfo . '"' );
+				}
+			} catch (Exception $e) {
+				throw new Exception('{ "function" : "sendEmail()", "context" : "when sending an email to the experimenter", "error" : ' . $e->getMessage() . ' }');
+			}
 		}
 
 		
@@ -627,6 +736,5 @@
 	// process the HTTP POST request and return the server response:
 	$experimentServer = new ExperimentServer();
 	$experimentServer->processPOST();
-	//echo $experimentServer->OsfSync();
 ?>
 

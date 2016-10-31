@@ -88,3 +88,21 @@ psychoJS.createHtml = function(htmlCode) {
 	}
 	return fragment;
 }
+
+
+/**
+ * Returns the error stack of the calling, exception-throwing function
+ * 
+ * @return the error stack
+ */
+function getErrorStack(){
+    try {
+			throw Error('');
+		} catch(error) {
+			// we need to remove the second line since it references getErrorStack:
+			var stack = error.stack.split("\n");
+			stack.splice(1, 1);
+			
+			return JSON.stringify(stack.join('\n'));
+		}
+}

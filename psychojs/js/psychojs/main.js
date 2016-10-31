@@ -74,7 +74,7 @@ psychoJS.getParticipantIPInfo = function() {
 			psychoJS._IP['location'] = response.loc;
 		},
 		function (error) {
-			throw '{ "function" : "psychoJS.getParticipantIPInfo", "context" : "when getting the IP information of the participant", "error" : "' + error + '" }';
+			throw '{ "function" : "psychoJS.getParticipantIPInfo", "context" : "when getting the IP information of the participant", "error" : "' + error.statusText + '", "stack" : ' + getErrorStack() + ' }';
 		}
 	);
 }

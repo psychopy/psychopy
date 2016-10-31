@@ -70,11 +70,13 @@ psychoJS.visual.Window = function(attribs) {
 	}
 		
 	Object.defineProperty(this, 'units', {
+		configurable: true,
 		get : function() { return this._units; },
 		set : function(value) { this.setUnits(value); }
 	});
 
 	Object.defineProperty(this, 'size', {
+		configurable: true,
 		get : function() { return [this._renderer.width, this._renderer.height]; },
 		set : function(value) { /* read only */ }
 	});
@@ -166,16 +168,19 @@ psychoJS.visual.MinimalStim = function(attribs) {
 	this._autoLog = psychoJS.getAttrib(attribs, 'autoLog', false);
 
 	Object.defineProperty(this, 'name', {
+		configurable: true,
 		get : function() { return this._name; },
 		set : function(name) { this._name = name; }
 	});
 	
 	Object.defineProperty(this, 'autoDraw', {
+		configurable: true,
 		get : function() { return this._autoDraw; },
 		set : function(autoDraw) { this.setAutoDraw(autoDraw); }
 	});
 	
 	Object.defineProperty(this, 'autoLog', {
+		configurable: true,
 		get : function() { return this._autoLog; },
 		set : function(autoLog) { this.setAutoLog(autoLog); }
 	});
@@ -251,8 +256,8 @@ psychoJS.visual.MinimalStim.prototype.setAutoLog = function(autoLog) {
  */
 psychoJS.visual.BaseVisualStim = function(attribs) {
 	console.log("BaseVisualStim created");
-	
-	this.autoLog = false;
+
+	this._autoLog = false;
 	this.win = psychoJS.getAttrib(attribs, 'win');
 
 	// units?
@@ -265,21 +270,25 @@ psychoJS.visual.BaseVisualStim = function(attribs) {
 	psychoJS.visual.MinimalStim.call(this, attribs);	
 	
 	Object.defineProperty(this, 'ori', {
+		configurable: true,
 		get : function() { return this._ori; },
 		set : function(value) { this.setOri(value); }
 	});
 	
 	Object.defineProperty(this, 'size', {
+		configurable: true,
 		get : function() { return this._size; },
 		set : function(value) { this.setSize(psychoJS.val2array(value)); }
 	});
 		
 	Object.defineProperty(this, 'pos', {
+		configurable: true,
 		get : function() { return this._pos; },
 		set : function(value) { this.setPos(value); }
 	});
 		
 	Object.defineProperty(this, 'opacity', {
+		configurable: true,
 		get : function() { return this._opacity; },
 		set : function(value) { this.setOpacity(value); }
 	});
@@ -401,14 +410,17 @@ psychoJS.visual.getRGB = function(color, colorSpace) {
  */
 psychoJS.visual.asColor = function() {
 	Object.defineProperty(this, 'color', {
+		configurable: true,
 		get : function() { return this._color; },
 		set : function(value) { this.setColor(value); }
 	});
 	Object.defineProperty(this, 'colorSpace', {
+		configurable: true,
 		get : function() { return this._colorSpace; },
 		set : function(value) { this.setColorSpace(value); }
 	});
 	Object.defineProperty(this, 'contrast', {
+		configurable: true,
 		get : function() { return this._contrast; },
 		set : function(value) { this.setContrast(value); }
 	});
@@ -468,6 +480,7 @@ psychoJS.visual.asColor = function() {
  */
 psychoJS.visual.asWindowRelated = function() {
 	Object.defineProperty(this, 'units', {
+		configurable: true,
 		get : function() { return this._color; },
 		set : function(value) { this.setUnits(value); }
 	});
@@ -588,16 +601,19 @@ psychoJS.visual.Circle = function(attribs) {
 	this._lineWidth = psychoJS.getAttrib(attribs ,'lineWidth', 1);
 	
 	Object.defineProperty(this, 'lineColor', {
+		configurable: true,
 		get : function() { return this._lineColor; },
 		set : function(value) { this.setLineColor(value); }
 	});
 		
 	Object.defineProperty(this, 'fillColor', {
+		configurable: true,
 		get : function() { return this._fillColor; },
 		set : function(value) { this.setFillColor(value); }
 	});
 	
 	Object.defineProperty(this, 'lineWidth', {
+		configurable: true,
 		get : function() { return this._lineWidth; },
 		set : function(value) { this.setLineWidth(value); }
 	});
@@ -708,41 +724,49 @@ psychoJS.visual.TextStim = function(attribs) {
 	
 
 	Object.defineProperty(this, 'text', {
+		configurable: true,
 		get : function() { return this._text; },
 		set : function(value) { this.setText(value); }
 	});
 	
 	Object.defineProperty(this, 'alignHoriz', {
+		configurable: true,
 		get : function() { return this._alignHoriz; },
 		set : function(value) { this.setAlignHoriz(value); }
 	});
 		
 	Object.defineProperty(this, 'wrapWidth', {
+		configurable: true,
 		get : function() { return this._wrapWidth; },
 		set : function(value) { this.setWrapWidth(value); }
 	});
 	
 	Object.defineProperty(this, 'height', {
+		configurable: true,
 		get : function() { return this._height; },
 		set : function(value) { this.setHeight(value); }
 	});	
 	
 	Object.defineProperty(this, 'italic', {
+		configurable: true,
 		get : function() { return this._italic; },
 		set : function(value) { this.setItalic(value); }
 	});	
 	
 	Object.defineProperty(this, 'bold', {
+		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setBold(value); }
 	});	
 		
 	Object.defineProperty(this, 'flipVert', {
+		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipVert(value); }
 	});
 	
 	Object.defineProperty(this, 'flipHoriz', {
+		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipHoriz(value); }
 	});
@@ -953,21 +977,25 @@ psychoJS.visual.ImageStim = function(attribs) {
 	
 
 	Object.defineProperty(this, 'image', {
+		configurable: true,
 		get : function() { return this._image; },
 		set : function(value) { this.setImage(value); }
 	});
 			
 	Object.defineProperty(this, 'mask', {
+		configurable: true,
 		get : function() { return this._mask; },
 		set : function(value) { this.setMask(value); }
 	});
 			
 	Object.defineProperty(this, 'flipVert', {
+		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipVert(value); }
 	});
 	
 	Object.defineProperty(this, 'flipHoriz', {
+		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipHoriz(value); }
 	});

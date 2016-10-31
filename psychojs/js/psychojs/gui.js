@@ -266,7 +266,7 @@ psychoJS.gui.dialog = function(info) {
 	}
 	// error:
 	else {
-		throw errorPrefix + '"unexpected argument: ' + JSON.stringify(info) + '" }';
+		throw errorPrefix + '"unexpected argument: ' + JSON.stringify(info) + '", "stack" : ' + getErrorStack() + ' }';
 	}
 	htmlCode = htmlCode + '</div>';
 	var dialogElement = document.getElementById('dialogDiv');

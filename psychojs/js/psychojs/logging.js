@@ -416,7 +416,7 @@ psychoJS.logging.ServerLogOutput.prototype.set = function(attribs) {
 
 	this.setLevel(this._level);
 	if (['OSF_VIA_EXPERIMENT_SERVER', 'EXPERIMENT_SERVER'].indexOf(this._saveTo) == -1) {
-		throw errorPrefix + '"unknown repository: ' + this._saveTo + '" }';
+		throw errorPrefix + '"unknown repository: ' + this._saveTo + '", "stack" : ' + getErrorStack() + ' }';
 	}
 }
 
@@ -475,7 +475,7 @@ psychoJS.logging.ServerLogOutput.prototype.flush = function() {
 		}
 	}
 	catch (exception) {
-		throw errorPrefix + exception + ' }';
+		throw errorPrefix + exception + ', "stack" : ' + getErrorStack() + ' }';
 	}
 }
 
