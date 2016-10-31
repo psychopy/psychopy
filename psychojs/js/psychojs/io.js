@@ -61,10 +61,10 @@ psychoJS.io.ResourceManager.prototype.set = function(attribs) {
 	
 	// check arguments:
 	if (['PUBLIC', 'PRIVATE'].indexOf(this.projectStatus) == -1) {
-		throw errorPrefix + '"unknown project status: ' + this.projectStatus + '" }';
+		throw errorPrefix + '"unknown project status: ' + this.projectStatus + '", "stack" : ' + getErrorStack() + ' }';
 	}
 	if (['OSF', 'EXPERIMENT_SERVER'].indexOf(this.downloadFrom) == -1) {
-		throw errorPrefix + '"unknown type of repository: ' + this.downloadFrom + '" }';
+		throw errorPrefix + '"unknown type of repository: ' + this.downloadFrom + '", "stack" : ' + getErrorStack() + ' }';
 	}
 
 	// status of the resource manager ('READY'|'REGISTERING'|'BUSY'|'ERROR'):
@@ -105,7 +105,7 @@ psychoJS.io.ResourceManager.prototype.setStatus = function(newStatus) {
 	var errorPrefix = '{ "function" : "io.ResourceManager.setStatus", "context" : "when changing the status of the resource manager", '
 		+ '"error" : ';
 	if (['READY', 'REGISTERING', 'BUSY', 'ERROR'].indexOf(newStatus) == -1) {
-		throw errorPrefix + '"unknown status: ' + newStatus + '" }';
+		throw errorPrefix + '"unknown status: ' + newStatus + '", "stack" : ' + getErrorStack() + ' }';
 	}
 	
 	this._status = newStatus;
@@ -203,9 +203,9 @@ psychoJS.io.ResourceManager.prototype.registerAvailableResources = function(reso
 					// JSON.parse will throw a SyntaxError if result is not a JSON string
 					// this might happens if php is not available on the server running server.php,
 					// in which case an HTTP POST request to server.php returns the code of server.php
-					throw errorPrefix + '"unexpected answer from the experiment server" }';
+					throw errorPrefix + '"unexpected answer from the experiment server", "stack" : ' + getErrorStack() + ' }';
 				}
-					
+				
 				if ('resources' in json) {
 					var nbResource = json.resources.length;
 					for (var i = 0; i < nbResource; i++) {
@@ -220,15 +220,15 @@ psychoJS.io.ResourceManager.prototype.registerAvailableResources = function(reso
 					}
 				} else {
 					resourceManager.setStatus('ERROR');
-					throw errorPrefix + $.trim(result) + ' }';
+					throw errorPrefix + $.trim(result) + ', "stack" : ' + getErrorStack() + ' }';
 				}
 			}, 
 			function (error){
 				resourceManager.setStatus('ERROR');
 				if ('statusText' in error)
-					throw errorPrefix + '"' + $.trim(error.statusText) + '" }';
+					throw errorPrefix + '"' + $.trim(error.statusText) + '", "stack" : ' + getErrorStack() + ' }';
 				else
-					throw errorPrefix + error + ' }';
+					throw errorPrefix + error + ', "stack" : ' + getErrorStack() + ' }';
 			}
 		);
 	}
@@ -258,7 +258,7 @@ psychoJS.io.ResourceManager.prototype.registerResource = function(resourceName) 
 psychoJS.io.ResourceManager.prototype.getResource = function(resourceName) {
 	var errorPrefix = '{ "function" : "io.ResourceManager.getResource", "context" : "when getting resource", "error" : ';
 	if (!this._resources.hasOwnProperty(resourceName)) {
-		throw errorPrefix + '"unknown resource: ' + resourceName + '" }';
+		throw errorPrefix + '"unknown resource: ' + resourceName + '", "stack" : ' + getErrorStack() + ' }';
 	}
 	
 	return this._resources[resourceName];
@@ -401,7 +401,7 @@ psychoJS.io.ResourceManager.prototype.OSFAuthenticate = function(resourceManager
 		},
 		function (error) {
 			resourceManager.setStatus('ERROR');
-			throw errorPrefix + '"' + error + '" }';
+			throw errorPrefix + '"' + error + '", "stack" : ' + getErrorStack() + ' }';
 		}
 	);
 }
@@ -434,7 +434,7 @@ psychoJS.io.ResourceManager.prototype.OSFProjectID = function(resourceManager, c
 		}, 
 		function (error) {
 			resourceManager.setStatus('ERROR');
-			throw errorPrefix + '"' + error + '" }';
+			throw errorPrefix + '"' + error + '", "stack" : ' + getErrorStack() + ' }';
 		}
 	);
 }
@@ -466,7 +466,7 @@ psychoJS.io.ResourceManager.prototype.OSFProjectID = function(resourceManager, c
 		},
 		function (error){
 			resourceManager.setStatus('ERROR');
-			throw errorPrefix + '"' + error + '" }';
+			throw errorPrefix + '"' + error + '", "stack" : ' + getErrorStack() + ' }';
 		}
   	);
 }
@@ -503,7 +503,7 @@ psychoJS.io.ResourceManager.prototype.OSFProjectID = function(resourceManager, c
 		},
 		function (error){
 			resourceManager.setStatus('ERROR');
-			throw errorPrefix + '"' + error + '" }';
+			throw errorPrefix + '"' + error + '", "stack" : ' + getErrorStack() + ' }';
 		}
   	);
 }
@@ -598,14 +598,13 @@ psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceMa
 	// error: we throw an exception
 	resourceManager.resourceQueue.addEventListener("error", function(event) {
 		resourceManager.setStatus('ERROR');
-		throw '{ "function" : "io.ResourceManager.EXPDownloadResources", "context" : "when downloading resource: ' + event.data.id + '", "error" : "' + event.title + '" }';
+		throw '{ "function" : "io.ResourceManager.EXPDownloadResources", "context" : "when downloading resource: ' + event.data.id + '", "error" : "' + event.title + '", "stack" : ' + getErrorStack() + ' }';
 	});
 	
 	// queue the resources:
 	for (resourceName in resourceManager._resources)
 			if (resourceManager._resources.hasOwnProperty(resourceName)) {
-				var resourceURL = "resources/" + resourceName;
-				resourceManager.resourceQueue.loadFile({id : resourceName, src : resourceURL}, false);
+				resourceManager.resourceQueue.loadFile({id : resourceName, src : resourceName}, false);
 			}
 	
 	// start loading:
@@ -634,7 +633,7 @@ psychoJS.io.ResourceManager.prototype.OSFEXPUploadData = function(session, dataT
 	
 	if (['RESULT', 'LOG'].indexOf(dataType) == -1) {
 		this.setStatus('ERROR');
-		throw errorPrefix + '"unknown data type: ' + dataType + '" }';
+		throw errorPrefix + '"unknown data type: ' + dataType + '", "stack" : ' + getErrorStack() + ' }';
 	}
 		
 	var self = this;
@@ -654,7 +653,7 @@ psychoJS.io.ResourceManager.prototype.OSFEXPUploadData = function(session, dataT
 				// in which case an HTTP POST request to server.php returns the code of server.php
 				// or if the experiment server ran into an error.
 				if (psychoJS.debug) console.log(result);
-				throw errorPrefix + '"unexpected answer from the experiment server" }';
+				throw errorPrefix + '"unexpected answer from the experiment server", "stack" : ' + getErrorStack() + ' }';
 			}
 
 			if ('representation' in json) {
@@ -662,15 +661,15 @@ psychoJS.io.ResourceManager.prototype.OSFEXPUploadData = function(session, dataT
 				return result;
 			} else {
 				self.setStatus('ERROR');
-				throw errorPrefix + $.trim(result) + ' }';
+				throw errorPrefix + $.trim(result) + ', "stack" : ' + getErrorStack() + ' }';
 			}
 		}, 
 		function (error) {
 			self.setStatus('ERROR');
 			if ('statusText' in error)
-				throw errorPrefix + '"' + $.trim(error.statusText) + '" }';
+				throw errorPrefix + '"' + $.trim(error.statusText) + '", "stack" : ' + getErrorStack() + ' }';
 			else
-				throw errorPrefix + error + ' }';
+				throw errorPrefix + error + ', "stack" : ' + getErrorStack() + ' }';
 		}
 	);
 }
@@ -697,7 +696,7 @@ psychoJS.io.ResourceManager.prototype.EXPUploadData = function(session, dataType
 	
 	if (['RESULT', 'LOG'].indexOf(dataType) == -1) {
 		this.setStatus('ERROR');
-         		throw errorPrefix + '"unknown data type: ' + dataType + '" }';
+		throw errorPrefix + '"unknown data type: ' + dataType + '", "stack" : ' + getErrorStack() + ' }';
 	}
 		
 	var self = this;
@@ -715,7 +714,7 @@ psychoJS.io.ResourceManager.prototype.EXPUploadData = function(session, dataType
 				// JSON.parse will throw a SyntaxError if result is not a JSON string
 				// this might happens if php is not available on the server running server.php,
 				// in which case an HTTP POST request to server.php returns the code of server.php
-				throw errorPrefix + '"unexpected answer from the experiment server" }';
+				throw errorPrefix + '"unexpected answer from the experiment server", "stack" : ' + getErrorStack() + ' }';
 			}
 
 			if ('representation' in json) {
@@ -723,15 +722,15 @@ psychoJS.io.ResourceManager.prototype.EXPUploadData = function(session, dataType
 				return result;
 			} else {
 				self.setStatus('ERROR');
-				throw errorPrefix + $.trim(result) + ' }';
+				throw errorPrefix + $.trim(result) + ', "stack" : ' + getErrorStack() + ' }';
 			}
 		}, 
 		function (error) {
 			self.setStatus('ERROR');
 			if ('statusText' in error)
-				throw errorPrefix + '"' + $.trim(error.statusText) + '" }';
+				throw errorPrefix + '"' + $.trim(error.statusText) + '", "stack" : ' + getErrorStack() + ' }';
 			else
-				throw errorPrefix + error + ' }';
+				throw errorPrefix + error + ', "stack" : ' + getErrorStack() + ' }';
 		}
 	);
 }

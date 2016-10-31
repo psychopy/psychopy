@@ -55,11 +55,6 @@ psychoJS.data.importConditions = function(resourceName, selection) {
 	try {
 		var resourceValue = psychoJS.resourceManager.getResource(resourceName);
 		
-		if (psychoJS.debug) {
-			console.log("data.importConditions: got resource:");
-			console.log(resourceValue);
-		}
-		
 		// parse the selection:
 		if (undefined !== selection) {
 			// TODO
@@ -85,8 +80,23 @@ psychoJS.data.importConditions = function(resourceName, selection) {
 		
 		/*
 		// Excel spreadsheet .xls or .xlsx:
-		// TODO:
 		else if (resourceExtension === 'xls' || resourceExtension === 'xlsx') {
+			
+			JSZip.loadAsync(resourceValue).then(
+				function (zip) {
+					zip.forEach(function (relativePath, zipEntry) {
+						console.log(relativePath + ":"); console.log(zipEntry);
+						//var workbook = XLSX.read(resourceValue, {type:"binary"});
+						//console.log(workbook);
+					});
+				},
+				function (error) {
+					throw '{ "function" : "JSZip", "context" : "when unzipping condition: ' + resourceName + '", "error" : ' + error + ' }';
+				});
+
+			console.log(resourceValue);
+			var workbook = XLSX.read(resourceValue, {type: "binary"});
+			console.log(workbook);
 		}*/
 		
 		else {
@@ -94,7 +104,7 @@ psychoJS.data.importConditions = function(resourceName, selection) {
 		}
 	}
 	catch (exception) {
-		throw '{ "function" : "data.importConditions", "context" : "when importing condition: ' + resourceName + '", "error" : ' + exception + ' }';
+		throw '{ "function" : "data.importConditions", "context" : "when importing condition: ' + resourceName + '", "error" : ' + exception + ', "stack" : ' + getErrorStack() + ' }';
 	}
 }
 
@@ -189,7 +199,7 @@ psychoJS.data.ExperimentHandler = function(attribs) {
 	this.name = psychoJS.getAttrib(attribs, 'name', 'experiment');
 	this.saveTo = psychoJS.getAttrib(attribs, 'saveTo', 'LOCAL_EXCEL');
 	if (['LOCAL_EXCEL', 'OSF', 'OSF_VIA_EXPERIMENT_SERVER', 'EXPERIMENT_SERVER'].indexOf(this.saveTo) == -1) {
-		throw errorPrefix + '"unknown repository: ' + saveTo + '" }';
+		throw errorPrefix + '"unknown repository: ' + saveTo + '", "stack" : ' + getErrorStack() + ' }';
 	}
 	this.version = psychoJS.getAttrib(attribs, 'version', '1.0');
 	this.extraInfo = psychoJS.getAttrib(attribs, 'extraInfo', undefined);
