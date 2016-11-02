@@ -20,7 +20,7 @@ import codecs
 
 home = expanduser("~")
 
-keepFiles = True
+keepFiles = False
 
 thisDir = split(__file__)[0]
 psychoRoot = join(thisDir, '..', '..')
