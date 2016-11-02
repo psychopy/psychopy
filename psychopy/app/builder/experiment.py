@@ -1725,6 +1725,9 @@ class Flow(list):
                     "  console.error(error);\n"
                     "  psychoJS.gui.dialog({'error' : error});\n"
                     "  //psychoJS.core.sendErrorToExperimenter(exception);\n"
+                    "  // show error stack on console:\n"
+                    "  var json = JSON.parse(error);\n"
+                    "  console.error(json.stack);\n"
                     "  return true;\n"
                     "}*/\n")
             script.writeIndentedLines(code)
