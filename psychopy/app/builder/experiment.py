@@ -694,7 +694,6 @@ class Experiment(object):
             :return: list of dicts{'rel','abs'} of valid file paths
             """
             paths = []
-
             # does it look at all like an excel file?
             if (not isinstance(filePath, basestring)
                     or filePath[-4:] not in ['.csv', 'xlsx']):
@@ -714,7 +713,7 @@ class Experiment(object):
                     if thisFile:
                         paths.append(thisFile)
                         # if it's a possible condidtions file then recursive
-                        if thisFile['abs'][-3:] in ["xlsx", ".csv"]:
+                        if thisFile['abs'][-4:] in ["xlsx", ".csv"]:
                             contained = findPathsInFile(thisFile['abs'])
                             paths.extend(contained)
             return paths
