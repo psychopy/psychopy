@@ -41,8 +41,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     **Examples**::
 
-        myGrat = GratingStim(tex='sin', mask='circle')  # circular grating
-        myGabor = GratingStim(tex='sin', mask='gauss')  # gives a 'Gabor'
+        myGrat = GratingStim(win, tex='sin', mask='circle')  # gives a circular patch of grating
+        myGabor = GratingStim(win, tex='sin', mask='gauss')  # gives a 'Gabor'
 
     A GratingStim can be rotated scaled and shifted in position,
     its texture can be drifted in X and/or Y and it can have a spatial
