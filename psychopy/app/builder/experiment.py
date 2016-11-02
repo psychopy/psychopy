@@ -125,6 +125,7 @@ class Experiment(object):
     def __init__(self, prefs=None):
         super(Experiment, self).__init__()
         self.name = ''
+        self.filename = ''  # update during load/save xml
         self.flow = Flow(exp=self)  # every exp has exactly one flow
         self.routines = {}
         # get prefs (from app if poss or from cfg files)
@@ -206,7 +207,7 @@ class Experiment(object):
             # writes any components with a writeStartCode()
             self.flow.writeStartCode(script)
             self.settings.writeWindowCode(script)  # create our visual.Window()
-            # for JS the routine begin/frame/end code are functions so write here
+            # for JS the routine begin/frame/end code are funcs so write here
 
             # write the rest of the code for the components
             self.flow.writeBody(script)
@@ -241,8 +242,9 @@ class Experiment(object):
             script.setIndentLevel(-1, relative=True)
             script.writeIndentedLines("}")
 
-            # This differs to the Python script. We can loop through all Routines once (whether or not they get used)
-            # because we're using functions that may or may not get called later.
+            # This differs to the Python script. We can loop through all
+            # Routines once (whether or not they get used) because we're using
+            # functions that may or may not get called later.
             # Do the Routines of the experiment first
             for thisRoutine in self.routines.values():
                 self._currentRoutine = thisRoutine
@@ -312,6 +314,7 @@ class Experiment(object):
         f = codecs.open(filename, 'wb', 'utf-8')
         f.write(pretty)
         f.close()
+        self.filename = filename
         return filename  # this may have been updated to include an extension
 
     def _getShortName(self, longName):
@@ -647,6 +650,8 @@ class Experiment(object):
         if duplicateNames:
             msg = 'duplicate variable names: %s'
             logging.warning(msg % ', '.join(list(set(duplicateNames))))
+        # if we succeeded then save current filename to self
+        self.filename = filename
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name
@@ -661,9 +666,14 @@ class Experiment(object):
         """
         join = os.path.join
         abspath = os.path.abspath
-        srcRoot = os.path.split(self.expPath)[0]
+        srcRoot = os.path.split(self.filename)[0]
 
         def getPaths(filePath):
+            """Helper to return absolute and relative paths (or None)
+
+            :param filePath: str to a potential file path (rel or abs)
+            :return: dict of 'asb' and 'rel' paths or None
+            """
             thisFile={}
             if filePath[0] == "/" or filePath[1]==":":
                 thisFile['abs'] = filePath
@@ -676,15 +686,47 @@ class Experiment(object):
             else:
                 return None
 
+        def findPathsInFile(filePath):
+            """Recursively search a conditions file (xlsx or csv)
+             extracting valid file paths in any param/cond
+
+            :param filePath: str to a potential file path (rel or abs)
+            :return: list of dicts{'rel','abs'} of valid file paths
+            """
+            paths = []
+
+            # does it look at all like an excel file?
+            if (not isinstance(filePath, basestring)
+                    or filePath[-4:] not in ['.csv', 'xlsx']):
+                return paths
+            thisFile = getPaths(filePath)
+            # does it exist?
+            if not thisFile:
+                return paths
+            # this file itself is valid so add to resources if not already
+            if thisFile not in (paths):
+                paths.append(thisFile)
+            conds = data.importConditions(thisFile['abs'])  # load the abs path
+            for thisCond in conds:  # thisCond is a dict
+                for param, val in thisCond.items():
+                    if isinstance(val, basestring):
+                        thisFile = getPaths(val)
+                    if thisFile:
+                        paths.append(thisFile)
+                        # if it's a possible condidtions file then recursive
+                        if thisFile['abs'][-3:] in ["xlsx", ".csv"]:
+                            contained = findPathsInFile(thisFile['abs'])
+                            paths.extend(contained)
+            return paths
+
         resources = []
         for thisEntry in self.flow:
             if thisEntry.getType() == 'LoopInitiator':
                 # find all loops and check for conditions filename
                 params = thisEntry.loop.params
                 if 'conditionsFile' in params:
-                    thisFile = getPaths(params['conditionsFile'].val)
-                    if thisFile:
-                        resources.append(thisFile)
+                    condsPaths = findPathsInFile(params['conditionsFile'].val)
+                    resources.extend(condsPaths)
             elif thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
@@ -697,9 +739,6 @@ class Experiment(object):
                         # then check if it's a valid path
                         if thisFile:
                             resources.append(thisFile)
-
-        # todo check within excel/csv files for further possible filenames
-
         return resources
 
 class Param(object):
@@ -1725,6 +1764,9 @@ class Flow(list):
                     "  console.error(error);\n"
                     "  psychoJS.gui.dialog({'error' : error});\n"
                     "  //psychoJS.core.sendErrorToExperimenter(exception);\n"
+                    "  // show error stack on console:\n"
+                    "  var json = JSON.parse(error);\n"
+                    "  console.error(json.stack);\n"
                     "  return true;\n"
                     "}*/\n")
             script.writeIndentedLines(code)
