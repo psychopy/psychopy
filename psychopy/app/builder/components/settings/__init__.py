@@ -300,13 +300,9 @@ class SettingsComponent(object):
             for root, subDirs, files in os.walk(src):
                 relPath = os.path.relpath(root, src)
                 for thisDir in subDirs:
-                    # print("{}: **{}".format(root, thisDir))
-                    # print(" -> {}".format(join(dst, relPath)))
                     if not os.path.isdir(join(root, thisDir)):
                         os.makedirs(join(root, thisDir))
                 for thisFile in files:
-                    # print("{}: {}".format(root, thisFile))
-                    # print(" -> {}".format(join(dst, relPath, thisFile)))
                     copyFileWithMD5(join(root, thisFile),
                                     join(dst, relPath, thisFile))
 
