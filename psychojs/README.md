@@ -1,6 +1,6 @@
 # PsychoJS for PsychoPy experiments online
 
-This folder contains the code for _PsychoJS_, a JavaScript port of (parts of) _PsychoPy_, written by http://www.ilixa.com
+This folder contains the code for _PsychoJS_, a JavaScript port of the _PsychoPy_ Python library, written by http://www.ilixa.com
 
 ## Why is this good?
 
@@ -36,16 +36,4 @@ The participant’s data and logs are saved to a data folder on the experiment s
 
 ## What parts of my Builder experiment are supported?
 
-So far PsychoJS contains ports of the following PsychoPy features and so experiments limited to these will work as of PsychoPy version 1.85 (soon):
-
-* Window class
-* TextStim class
-* ImageStim class
-* TrialHandler class
-* Keyboard class
-* Mouse class
-* Dialog boxes
-* Data saving
-* Automated logging
-
-In addition, Code Components will write their code into the JS file, just as they write their code into the Python script. Of course, you'll need to convert your code to be JS syntax rather than Python syntax though!
+See http://www.psychopy.org/online/status.html for more information.
