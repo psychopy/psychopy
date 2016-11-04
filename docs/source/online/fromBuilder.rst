@@ -5,8 +5,7 @@ Online studies from Builder
 
 PsychoPy can't export all possible experiments yet but where it can the process is relatively simple. "Standard" studies using images, text and keyboards will work. Studies with other stimuli, or that use code components, probably won't.
 
-
-Keep checking `onlineSatus` to see what is supported and/or sign up to the `PsychoPy forum <http://discourse.psychopy.org`_ and turn on "watching" for the `Online Studies <http://discourse.psychopy.org/c/online>`_ category to get updates.
+Keep checking `onlineSatus` to see what is supported and/or sign up to the `PsychoPy forum <http://discourse.psychopy.org>`_ and turn on "watching" for the `Online Studies <http://discourse.psychopy.org/c/online>`_ category to get updates.
 
 .. _onlineSettings
 
@@ -65,11 +64,11 @@ You could just download the data folder or, if you've set it up to sync with an 
 Sync with OSF
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO: This does work from the PsychoJS end. Need to make sure the Builder code is correct and write the docs!
+This is on the way. It does already work from the PsychoJS perspective. We need to make sure the Builder code is correct and write the docs!
 
 .. _onlineDebugging:
 
 Debugging online experiments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To do but, basically, in your browser you can hopefully open the javascript console and see if an error message is there! Send it to the PsychoPy forumin the `Online` category.
+To do but, basically, in your browser you can hopefully open the javascript console and see if an error message is there! Send it to the PsychoPy forum in the `Online` category.
