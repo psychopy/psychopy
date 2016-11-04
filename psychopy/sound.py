@@ -410,10 +410,12 @@ class SoundPySoundCard(_SoundBase):
         self.loops = self.requestedLoops
         try:
             self.sndFile = sndfile.SoundFile(fileName)
-            self.sndArr = self.sndFile.read()
+            sndArr = self.sndFile.read()
             self.sndFile.close()
+            self._setSndFromArray(sndArr)
+
         except Exception:
-            msg = "Sound file %s could not be opened using pygame for sound."
+            msg = "Sound file %s could not be opened using pysoundcard for sound."
             logging.error(msg % fileName)
             raise ValueError(msg % fileName)
 
