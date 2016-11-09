@@ -263,7 +263,8 @@ def _checkout(requestedVersion):
         # Grab new tags
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
-        subprocess.check_output('git fetch github'.split())
+        subprocess.check_output('git fetch github --tags'.split(),
+                                cwd=VERSIONSDIR)
         # is requested here now? forceCheck to refresh cache
         if requestedVersion not in _localVersions(forceCheck=True):
             msg = _translate("{} is not currently available.")
