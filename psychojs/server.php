@@ -451,33 +451,38 @@
 		/**
 		 * List the resources available in the resource directory of the local experiment server
 		 *
-		 * <p>Note: the experimenter should have first synced the resource directory of the experiment
-		 * server with that of the OSF server so that resources are available.</p>
-		 *
 		 * @return {String} list of available resources in the following JSON string format:
 		 * { "function" : "project ID experiment server", "context" : "when listing resources
-		 * available on the experiment server", "resources" : [ "resource name #1", "resource name #2", ... ] }
+		 * available on the experiment server", "resourceDirectory" : "resource directory on experiment server", "resources" : [ "resource name #1", "resource name #2", ... ] }
 		 *
 		 * @throws {String} Throws a JSON string exception if the listing failed.
 		 */
 		private function listLocalResources() {
 			// look for resources in local resource directory on experiment server:
 			set_error_handler(function($errno, $errstr) {}, E_WARNING); // suppress warnings
-			$scanResults = scandir($this->info["resourceDirectory"]);
+			$scanResults = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->info["resourceDirectory"])); // recursively scan sub-directories
+			//$scanResults = scandir($this->info["resourceDirectory"]);
 			restore_error_handler();
 			if (FALSE === $scanResults) {
 				throw new Exception('{ "function" : "listLocalResources()", "context" : "when listing resources available on the experiment server", "error" : "Unabled to scan resource directory: ' . $this->info["resourceDirectory"] . '" }');
 			}
 			
-			$serverResponse = '{ "function" : "' . $this->info['projectId'] . ' experiment server", "context" : "when listing resources available on the experiment server", "resources": [';
+			$serverResponse = '{ "function" : "' . $this->info['projectId'] . ' experiment server", "context" : "when listing resources available on the experiment server", "resourceDirectory": "' . $this->info["resourceDirectory"] . '", "resources": [';
 			$comma = FALSE;
-			foreach ($scanResults as $index => $resourceName ) {
-				if (0 !== strcmp('.', $resourceName) && 0 !== strcmp('..', $resourceName)) {
+			foreach ($scanResults as $resourceName => $splFileInfo ) {
+				if (!is_dir($resourceName)) {
 					if (TRUE === $comma) {
 						$serverResponse = $serverResponse . ',';
 					} else {
 						$comma = TRUE;
 					}
+					
+					// replace windows' backslash by the standard forward slash:
+					$resourceName = str_replace('\\', '/', $resourceName);
+					
+					// remove the first element of the path as it is the resource directory:
+					$resourceName = substr($resourceName, strpos($resourceName, '/') + 1);
+					
 					$serverResponse = $serverResponse . '"' . $resourceName . '"';
 				}
 			}
