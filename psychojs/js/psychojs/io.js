@@ -75,6 +75,7 @@ psychoJS.io.ResourceManager.prototype.set = function(attribs) {
 	this._resourceCallback = function(message) {};
 	
 	// resources:
+	this._experimentServerResourceDirectory = undefined;
 	this._resources = {};
 
 	// OSF specific:
@@ -207,6 +208,9 @@ psychoJS.io.ResourceManager.prototype.registerAvailableResources = function(reso
 				}
 				
 				if ('resources' in json) {
+					
+					resourceManager._experimentServerResourceDirectory = json.resourceDirectory;
+					
 					var nbResource = json.resources.length;
 					for (var i = 0; i < nbResource; i++) {
 						resourceManager.registerResource(json.resources[i]);
@@ -604,7 +608,7 @@ psychoJS.io.ResourceManager.prototype.EXPDownloadResources = function(resourceMa
 	// queue the resources:
 	for (resourceName in resourceManager._resources)
 			if (resourceManager._resources.hasOwnProperty(resourceName)) {
-				resourceManager.resourceQueue.loadFile({id : resourceName, src : resourceName}, false);
+				resourceManager.resourceQueue.loadFile({id : resourceName, src : resourceManager._experimentServerResourceDirectory + "/" + resourceName}, false);
 			}
 	
 	// start loading:
