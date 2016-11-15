@@ -9,6 +9,28 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.85
+------------------------------
+
+PsychoPy 1.85.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED:
+
+  * `Online experiments now supported <http://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`-. See what is supported so far at `PsychoPy online status <http://www.psychopy.org/online/status.html>`_
+
+* FIXED:
+
+  * crash when increasing size of Flow in Builder #1272
+  * bug in pysoundcard backend preventing file-based sounds playing #1299
+  * excel outputs were failing to save on new versions of openpyxl #1276
+  * `useVersion()` was not fetching new (uninstalled) versions correctly #1301
+
+* DEPENDENCIES/PACKAGING:
+
+  * pyserial and pyxid were incompatible versions
+  * now packaging 1.2-maintenance branch of pyglet including Text memory fixes
+
 PsychoPy 1.84
 ------------------------------
 
