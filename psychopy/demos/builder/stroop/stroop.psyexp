@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="1.84.2">
+<PsychoPy2experiment encoding="utf-8" version="1.85.0rc1">
   <Settings>
     <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
     <Param name="color" updates="None" val="black" valType="str"/>
     <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
-    <Param name="Experiment info" updates="None" val="{'participant':'', 'session':'01'}" valType="code"/>
-    <Param name="JS libs" updates="None" val="remote" valType="str"/>
+    <Param name="Experiment info" updates="None" val="{u'session': u'01', u'participant': u''}" valType="code"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
     <Param name="Units" updates="None" val="norm" valType="str"/>
     <Param name="Save excel file" updates="None" val="True" valType="bool"/>
     <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
@@ -15,15 +15,14 @@
     <Param name="blendMode" updates="None" val="avg" valType="str"/>
     <Param name="Use version" updates="None" val="" valType="str"/>
     <Param name="email" updates="None" val="" valType="str"/>
-    <Param name="HTML path" updates="None" val="" valType="str"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
     <Param name="Save csv file" updates="None" val="False" valType="bool"/>
     <Param name="OSF Project ID" updates="None" val="" valType="str"/>
     <Param name="Save log file" updates="None" val="True" valType="bool"/>
     <Param name="OSF User" updates="None" val="" valType="str"/>
     <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
-    <Param name="Saved data folder" updates="None" val="" valType="code"/>
     <Param name="Show mouse" updates="None" val="False" valType="bool"/>
-    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
+    <Param name="Data filename" updates="None" val="u'data' + os.sep + '%s_%s' % (expInfo['participant'], expInfo['date'])" valType="code"/>
     <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
     <Param name="expName" updates="None" val="stroop" valType="str"/>
     <Param name="logging level" updates="None" val="warning" valType="code"/>
@@ -125,22 +124,22 @@
         <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="arial" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.3" valType="code"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
       </TextComponent>
     </Routine>
   </Routines>
   <Flow>
     <Routine name="instruct"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
-      <Param name="conditionsFile" updates="None" val="trialTypes.xlsx" valType="str"/>
+      <Param name="conditionsFile" updates="None" val="trialTypes.csv" valType="str"/>
       <Param name="name" updates="None" val="trials" valType="code"/>
       <Param name="isTrials" updates="None" val="True" valType="bool"/>
       <Param name="random seed" updates="None" val="" valType="code"/>
       <Param name="loopType" updates="None" val="random" valType="str"/>
       <Param name="nReps" updates="None" val="5" valType="num"/>
       <Param name="endPoints" updates="None" val="[1, 2]" valType="num"/>
-      <Param name="conditions" updates="None" val="[{u'text': u'red', u'congruent': 1, u'corrAns': 1, u'letterColor': u'red'}, {u'text': u'red', u'congruent': 0, u'corrAns': 2, u'letterColor': u'green'}, {u'text': u'green', u'congruent': 1, u'corrAns': 2, u'letterColor': u'green'}, {u'text': u'green', u'congruent': 0, u'corrAns': 3, u'letterColor': u'blue'}, {u'text': u'blue', u'congruent': 1, u'corrAns': 3, u'letterColor': u'blue'}, {u'text': u'blue', u'congruent': 0, u'corrAns': 1, u'letterColor': u'red'}]" valType="str"/>
-      <Param name="Selected rows" updates="None" val="" valType="code"/>
+      <Param name="conditions" updates="None" val="[{'text': u'red', 'congruent': 1, 'corrAns': u'left', 'letterColor': u'red'}, {'text': u'red', 'congruent': 0, 'corrAns': u'down', 'letterColor': u'green'}, {'text': u'green', 'congruent': 1, 'corrAns': u'down', 'letterColor': u'green'}, {'text': u'green', 'congruent': 0, 'corrAns': u'right', 'letterColor': u'blue'}, {'text': u'blue', 'congruent': 1, 'corrAns': u'right', 'letterColor': u'blue'}, {'text': u'blue', 'congruent': 0, 'corrAns': u'left', 'letterColor': u'red'}]" valType="str"/>
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <LoopTerminator name="trials"/>

@@ -39,6 +39,7 @@ class ImageComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Image'
+        self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
@@ -144,7 +145,7 @@ class ImageComponent(BaseVisualComponent):
             elif val in [None, 'None', 'none']:
                 inits[paramName] = 'undefined'
 
-        code = ("{inits[name]} = psychoJS.visual.ImageStim({{\n"
+        code = ("{inits[name]} = new psychoJS.visual.ImageStim({{\n"
                 "    win : win, name : '{inits[name]}',{units}\n"
                 "    image : {inits[image]}, mask : {inits[mask]},\n"
                 "    ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
