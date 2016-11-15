@@ -122,7 +122,7 @@ class BaseComponent(object):
         self.writeParamUpdates(buff, 'set every repeat')
 
     def writeRoutineStartCodeJS(self, buff):
-        self.writeParamUpdates(buff, 'set every repeat')
+        self.writeParamUpdatesJS(buff, 'set every repeat')
 
     def writeRoutineEndCode(self, buff):
         """Write the code that will be called at the end of
@@ -205,8 +205,8 @@ class BaseComponent(object):
 
         buff.setIndentLevel(+1, relative=True)
         code = ("// keep track of start time/frame for later\n"
-                "%(name)s.tStart = t  // (not accounting for frame time here)\n"
-                "%(name)s.frameNStart = frameN  // exact frame index\n")
+                "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
+                "%(name)s.frameNStart = frameN;  // exact frame index\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCode(self, buff):
@@ -248,7 +248,7 @@ class BaseComponent(object):
         """
         if self.params['stopType'].val == 'time (s)':
             code = ("frameRemains = %(stopVal)s "
-                    "- win.monitorFramePeriod * 0.75"
+                    " - frameDur * 0.75;"
                     "  # most of one frame period left\n"
                     "if (%(name)s.status == psychoJS.STARTED "
                     "&& t >= frameRemains) {\n")
@@ -256,7 +256,7 @@ class BaseComponent(object):
         elif (self.params['stopType'].val == 'duration (s)' and
                 self.params['startType'].val == 'time (s)'):
             code = ("frameRemains = %(startVal)s + %(stopVal)s"
-                    " - win.monitorFramePeriod * 0.75"
+                    " - frameDur * 0.75;"
                     "  // most of one frame period left\n"
                     "if (%(name)s.status == psychoJS.STARTED "
                     "&& t >= frameRemains) {\n")
@@ -300,7 +300,7 @@ class BaseComponent(object):
 
     def writeParamUpdatesJS(self, buff, updateType, paramNames=None):
         # pass this to the standard writeParamUpdates but with new 'target'
-        self.writeParamUpdates(self, buff, updateType, paramNames,
+        self.writeParamUpdates(buff, updateType, paramNames,
                                target="PsychoJS")
 
     def writeParamUpdate(self, buff, compName, paramName, val, updateType,
@@ -539,7 +539,7 @@ class BaseVisualComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         if "PsychoJS" not in self.targets:
-            buff.writeIndented("# *%s* not supported by PsychoJS\n"
+            buff.writeIndented("// *%s* not supported by PsychoJS\n"
                                % self.params['name'])
             return
 
@@ -567,7 +567,7 @@ class BaseVisualComponent(BaseComponent):
                     "// only update if being drawn\n")
             buff.writeIndented(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdates(buff, 'set every frame')
+            self.writeParamUpdatesJS(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")
 

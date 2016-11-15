@@ -2053,7 +2053,7 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
-            buff.writeIndented('routineTimer.add(%f)\n' % (maxTime))
+            buff.writeIndented('routineTimer.add(%f);\n' % (maxTime))
 
         code = "// update component parameters for each repeat\n"
         buff.writeIndentedLines(code)
@@ -2076,13 +2076,11 @@ class Routine(list):
                 "  if ('status' in thisComponent) {{\n"
                 "    thisComponent.status = psychoJS.NOT_STARTED;\n"
                 "  }}\n"
+                "}}\n"
                 "\nreturn psychoJS.NEXT;\n"
                 "}}\n"
                 .format(name=self.name))
         buff.writeIndentedLines(code)
-
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
 
     def writeEachFrameCodeJS(self, buff):
         # can we use non-slip timing?
