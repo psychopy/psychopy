@@ -1131,7 +1131,7 @@ class WindowMixin(object):
                 # calling attributeSetter (does the same as mask)
                 self.mask = self.mask
             if hasattr(self, '_imName'):
-                self.setIm(self._imName, log=False)
+                self.setImage(self._imName, log=False)
             if self.__class__.__name__ == 'TextStim':
                 self._needSetText = True
             self._needUpdate = True

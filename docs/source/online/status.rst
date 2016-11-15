@@ -5,28 +5,6 @@ Status of online options
 
 The list below shows you the current state of play is the current state of play. If you want to see things develop faster then see the section below on :ref:`addToPsychoJS`
 
-**Already available:**
-
-  - Logic:
-
-    - loops (including nesting)
-    - randomization
-    - data outputs (csv and log files)
-
-  - Stimuli:
-
-    - Text
-    - Image
-
-  - Responses:
-
-    - Keyboard
-    - Mouse responses
-
-  - Everything works on a per-frame basis (excellent timing) just as in the Python script
-  - Everything has the same parameters as before (rotate your text, change color on every frame, etc)
-  - Pushing data automatically to `Open Science Framework <http://osf.io>`_ projects
-
 **To be added** (see http://discourse.psychopy.org/c/online for updates/discussion):
 
   - Inputs:
@@ -45,6 +23,27 @@ The list below shows you the current state of play is the current state of play.
 
   - Code components (including code conversion)
   - Support for recruitment tools like `Mechanical Turk <https://www.mturk.com/mturk/welcome>`_ or `Prolific <https://www.prolific.ac/>`_
+  -
+**Already available:**
+
+  - Logic:
+
+    - loops (including nesting)
+    - randomization
+    - data outputs (csv and log files)
+    - frmae-by-frame timing
+
+  - Stimuli:
+
+    - Text
+    - Image
+
+  - Responses:
+
+    - Keyboard
+    - Mouse responses
+
+  - Pushing data automatically to `Open Science Framework <http://osf.io>`_ projects
 
 .. _addToPsychoJS:
 
