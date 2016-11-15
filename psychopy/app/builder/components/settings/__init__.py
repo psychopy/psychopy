@@ -221,7 +221,7 @@ class SettingsComponent(object):
             hint=_translate("Place the HTML files will be saved locally "),
             label="Email address (for info emails)", categ='Online')
         self.params['JS libs'] = Param(
-            'remote', valType='str', allowedVals=['packaged', 'remote'],
+            'packaged', valType='str', allowedVals=['packaged'],
             hint=_translate("Should we package a copy of the JS libs or use"
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')

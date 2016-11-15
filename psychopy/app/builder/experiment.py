@@ -1796,34 +1796,34 @@ class Flow(list):
         code = ("\n// dialog box\n"
                 "scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));\n"
                 "\n"
-                "dialogOKScheduler = new psychoJS.Scheduler();\n"
+                "flowScheduler = new psychoJS.Scheduler();\n"
                 "dialogCancelScheduler = new psychoJS.Scheduler();\n"
                 "scheduler.addConditionalBranches(function() "
-                "{ return psychoJS.gui.dialogComponent.button === 'OK'; }, dialogOKScheduler, dialogCancelScheduler);\n"
+                "{ return psychoJS.gui.dialogComponent.button === 'OK'; }, flowScheduler, dialogCancelScheduler);\n"
                 "\n"
-                "// dialogOKScheduler gets run if the participants presses OK\n"
-                "dialogOKScheduler.add(updateInfo); // add timeStamp\n"
-                "dialogOKScheduler.add(experimentInit);"
+                "// flowScheduler gets run if the participants presses OK\n"
+                "flowScheduler.add(updateInfo); // add timeStamp\n"
+                "flowScheduler.add(experimentInit);"
                 )
         script.writeIndentedLines(code)
         # add the code for each routine
         loopStack = []
         for thisEntry in self:
             if thisEntry.getType() == 'LoopInitiator':
-                code = ("dialogOKScheduler.add({name}LoopBegin);\n"
+                code = ("flowScheduler.add({name}LoopBegin);\n"
                         "{name}LoopScheduler = new psychoJS.Scheduler();\n"
-                        "dialogOKScheduler.add({name}LoopScheduler);\n"
-                        "dialogOKScheduler.add({name}LoopEnd);\n"
+                        "flowScheduler.add({name}LoopScheduler);\n"
+                        "flowScheduler.add({name}LoopEnd);\n"
                         .format(name=thisEntry.loop.params['name']))
 
                 loopStack.append(thisEntry.loop)
             elif thisEntry.getType() == 'LoopTerminator':
                 code = ""
-                loopStack.append(thisEntry.loop)
+                loopStack.remove(thisEntry.loop)
             elif len(loopStack) == 0:  # if we're inside a loop then the loop should handle it instead
-                code = ("dialogOKScheduler.add({params[name]}RoutineBegin);\n"
-                        "dialogOKScheduler.add({params[name]}RoutineEachFrame);\n"
-                        "dialogOKScheduler.add({params[name]}RoutineEnd);\n"
+                code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
+                        "flowScheduler.add({params[name]}RoutineEachFrame);\n"
+                        "flowScheduler.add({params[name]}RoutineEnd);\n"
                         .format(params=thisEntry.params))
             else:  # a Routine contained within a loop should have no associated code
                 code = ""
