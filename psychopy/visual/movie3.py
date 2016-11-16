@@ -184,7 +184,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                     # duration is inflated in the saved file causes the
                     # audioclip to be the wrong length, so round down and it
                     # should work
-                    jwe_tmp = self._mov.subclip(0,round(self._mov.duration))
+                    jwe_tmp = self._mov.subclip(0, round(self._mov.duration))
                     self._audioStream = sound.Sound(
                         jwe_tmp.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
