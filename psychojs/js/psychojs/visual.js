@@ -1,10 +1,10 @@
 /**
  * Visual component of psychoJS
- * 
- * 
+ *
+ *
  * This file is part of the PsychoJS javascript engine of PsychoPy.
  * Copyright (c) 2016 Ilixa Ltd. (www.ilixa.com)
- * 
+ *
  * Distributed under the terms of the GNU General Public License (GPL).
  */
 
@@ -33,7 +33,7 @@ psychoJS.attributeSet = function(obj, attrib, value, log, stealth) {
 			psychoJS.logging.log(message, psychoJS.logging.EXP, obj);
 		}
 	}
-	
+
 	obj[attrib] = value;
 }
 
@@ -45,30 +45,30 @@ psychoJS.visual.Window = function(attribs) {
 	this.dim = psychoJS.getAttrib(attribs, 'dim');
 	this._units = psychoJS.getAttrib(attribs, 'units', 'norm');
 	this._fullscr = psychoJS.getAttrib(attribs, 'fullscr');
-	
+
 	this._renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor:0x00000});
-	
+
 	this._renderer.view.style["transform"] = "translatez(0)"; // what does this do?
 	document.body.appendChild(this._renderer.view);
 	this._renderer.view.style.position = "absolute";
 	this._container = new PIXI.Container();
 	//psychoJS.onResize(this._renderer, this.stats, this._container);
-	
+
 	if (psychoJS.debug) {
 		this.stats = new Stats();
 		document.body.appendChild(this.stats.domElement);
 		this.stats.domElement.style.position = "absolute";
 		this.stats.domElement.style.top = "0px";
 	}
-	
+
 	this._drawList = []; // list of all elements, in the order they are currently drawn
-	
+
 	this._logMessagesOnFlip = [];
-	
+
 	this.setUnits = function(value) {
 		this._units = value;
 	}
-		
+
 	Object.defineProperty(this, 'units', {
 		configurable: true,
 		get : function() { return this._units; },
@@ -82,7 +82,7 @@ psychoJS.visual.Window = function(attribs) {
 	});
 
 	psychoJS.core.openWindows.push(this);
-	
+
 	this._renderer.view.addEventListener("mousedown", psychoJS.event._onMouseDown, false);
 	this._renderer.view.addEventListener("mouseup", psychoJS.event._onMouseUp, false);
 	this._renderer.view.addEventListener("mousemove", psychoJS.event._onMouseMove, false);
@@ -111,7 +111,7 @@ psychoJS.visual.Window.prototype._refresh = function() {
 		else {
 			newDrawList.push(stim);
 			if (stim._updateIfNeeded && stim._needUpdate) {
-				console.log(stim + " needs udate");
+				console.log(stim.name + " needs udate");
 				this._container.removeChild(stim.pixiRep);
 				stim._updateIfNeeded(); // TODO: testing the presence of the method not useful once it's in a base class
 				this._container.addChild(stim.pixiRep);
@@ -120,7 +120,7 @@ psychoJS.visual.Window.prototype._refresh = function() {
 	}
 	this._drawList = newDrawList;
 }
-	
+
 /**
  * Measures the actual fps for the screen.
  * Currently unimplemented - always returns 60.
@@ -147,7 +147,7 @@ psychoJS.visual.Window.prototype._writeLogOnFlip = function() {
 		var entry = this._logMessagesOnFlip[i];
 		psychoJS.logging.log(entry.msg, entry.level, logTime, entry.obj);
 	}
-	
+
 	this._logMessagesOnFlip = [];
 }
 
@@ -161,8 +161,7 @@ psychoJS.visual.Window.prototype._writeLogOnFlip = function() {
  * @param {boolean} attribs.autoLog Whether every change in this stimulus should be auto logged.
  */
 psychoJS.visual.MinimalStim = function(attribs) {
-	console.log("MinimalStim created");
-	
+
 	this._name = psychoJS.getAttrib(attribs, 'name', "");
 	this._autoDraw = psychoJS.getAttrib(attribs, 'autoDraw', false);
 	this._autoLog = psychoJS.getAttrib(attribs, 'autoLog', false);
@@ -172,27 +171,27 @@ psychoJS.visual.MinimalStim = function(attribs) {
 		get : function() { return this._name; },
 		set : function(name) { this._name = name; }
 	});
-	
+
 	Object.defineProperty(this, 'autoDraw', {
 		configurable: true,
 		get : function() { return this._autoDraw; },
 		set : function(autoDraw) { this.setAutoDraw(autoDraw); }
 	});
-	
+
 	Object.defineProperty(this, 'autoLog', {
 		configurable: true,
 		get : function() { return this._autoLog; },
 		set : function(autoLog) { this.setAutoLog(autoLog); }
 	});
 }
-	
+
 /**
  * Sets autoDraw
  * @param autoDraw
  */
 psychoJS.visual.MinimalStim.prototype.setAutoDraw = function(autoDraw) {
 	this._updateIfNeeded();
-	
+
 	this._autoDraw = autoDraw;
 	if (this._autoDraw) {
 		if (this.win) {
@@ -219,16 +218,16 @@ psychoJS.visual.MinimalStim.prototype.setAutoDraw = function(autoDraw) {
 		this.status = psychoJS.STOPPED;
 	}
 }
-	
+
 /**
  * Draws this component on the next frame draw.
  */
 psychoJS.visual.MinimalStim.prototype.draw = function() {
 	this._updateIfNeeded();
-	
+
 	if (this.win && this.win._drawList.indexOf(this) < 0) {
 		this.win._container.addChild(this.pixiRep);
-		this.win._drawList.push(this); 
+		this.win._drawList.push(this);
 	}
 }
 
@@ -255,7 +254,6 @@ psychoJS.visual.MinimalStim.prototype.setAutoLog = function(autoLog) {
  * @param {Array} attribs.pos Position of the stimulus in the Window.
  */
 psychoJS.visual.BaseVisualStim = function(attribs) {
-	console.log("BaseVisualStim created");
 
 	this._autoLog = false;
 	this.win = psychoJS.getAttrib(attribs, 'win');
@@ -267,33 +265,33 @@ psychoJS.visual.BaseVisualStim = function(attribs) {
 	this._opacity = psychoJS.getAttrib(attribs, 'opacity', 1.0);
 	this._pos = psychoJS.getAttrib(attribs, 'pos', [0, 0]);
 
-	psychoJS.visual.MinimalStim.call(this, attribs);	
-	
+	psychoJS.visual.MinimalStim.call(this, attribs);
+
 	Object.defineProperty(this, 'ori', {
 		configurable: true,
 		get : function() { return this._ori; },
 		set : function(value) { this.setOri(value); }
 	});
-	
+
 	Object.defineProperty(this, 'size', {
 		configurable: true,
 		get : function() { return this._size; },
 		set : function(value) { this.setSize(psychoJS.val2array(value)); }
 	});
-		
+
 	Object.defineProperty(this, 'pos', {
 		configurable: true,
 		get : function() { return this._pos; },
 		set : function(value) { this.setPos(value); }
 	});
-		
+
 	Object.defineProperty(this, 'opacity', {
 		configurable: true,
 		get : function() { return this._opacity; },
 		set : function(value) { this.setOpacity(value); }
 	});
-	
-		
+
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -308,12 +306,12 @@ psychoJS.visual.BaseVisualStim.prototype = Object.create(psychoJS.visual.Minimal
  */
 psychoJS.visual.BaseVisualStim.prototype.setOri = function(value, log) {
 	psychoJS.attributeSet(this, "_ori", value, log);
-	
+
 	var radians = value * 0.017453292519943295;
 	this._rotationMatrix = [[Math.cos(radians), -Math.sin(radians)],
 							[Math.sin(radians), Math.cos(radians)]];
 	this._needVertexUpdate = true ; // need to update update vertices
-	this._needUpdate = true; 
+	this._needUpdate = true;
 }
 
 /**
@@ -325,7 +323,7 @@ psychoJS.visual.BaseVisualStim.prototype.setSize = function(value, log) {
 	psychoJS.attributeSet(this, "_size", value, log);
 
 	this._needVertexUpdate = true ; // need to update update vertices
-	this._needUpdate = true; 
+	this._needUpdate = true;
 }
 
 /**
@@ -335,9 +333,9 @@ psychoJS.visual.BaseVisualStim.prototype.setSize = function(value, log) {
  */
 psychoJS.visual.BaseVisualStim.prototype.setPos = function(value, log) {
 	psychoJS.attributeSet(this, "_pos", value, log);
-	
+
 	this._needVertexUpdate = true ; // need to update update vertices
-	this._needUpdate = true; 
+	this._needUpdate = true;
 }
 
 /**
@@ -348,7 +346,7 @@ psychoJS.visual.BaseVisualStim.prototype.setPos = function(value, log) {
 psychoJS.visual.BaseVisualStim.prototype.setOpacity = function(value, log) {
 	psychoJS.attributeSet(this, "_opacity", value, log);
 
-	this._needUpdate = true; 
+	this._needUpdate = true;
 }
 
 /**
@@ -359,10 +357,10 @@ psychoJS.visual.BaseVisualStim.prototype.setOpacity = function(value, log) {
  */
 psychoJS.visual.getRGB = function(color, colorSpace) {
 	colorSpace = colorSpace || 'rgb';
-	
+
 	if (typeof(color) === "string") {
 		color = color.toLowerCase();
-		
+
 		if (color[0] === '#' || color.indexOf('Ox')>=0) {
 			return hex2rgb(color);
 		}
@@ -391,7 +389,7 @@ psychoJS.visual.getRGB = function(color, colorSpace) {
 		}
 		else {
 			throw "color array length is not 3.";
-		}		
+		}
 	}
 	else if (typeof(color) === "number") {
 		return [color, color, color];
@@ -405,7 +403,7 @@ psychoJS.visual.getRGB = function(color, colorSpace) {
  * Implementation notice:
  * Equivalent of psychoPY's ColorMixin.
  * Functional Mixin as seen here: https://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/
- * 
+ *
  * Color and contrast related attributes and methods.
  */
 psychoJS.visual.asColor = function() {
@@ -424,29 +422,29 @@ psychoJS.visual.asColor = function() {
 		get : function() { return this._contrast; },
 		set : function(value) { this.setContrast(value); }
 	});
-	
+
 	this.setColor = function(value, colorSpace, log) {
 		psychoJS.attributeSet(this, "_color", value, log);
 		psychoJS.attributeSet(this, "_colorSpace", colorSpace, log);
-		
+
 		this._rgb = psychoJS.visual.getRGB(this._color, this._colorSpace);
 
 //		console.log("setColor color=" + JSON.stringify(this._color) + " rgb=" + JSON.stringify(this._rgb));
-		this._needUpdate = true; 
+		this._needUpdate = true;
 	};
-	
+
 	this.setColorSpace = function(value, log) {
 		psychoJS.attributeSet(this, "_colorSpace", value, log);
-		
-		this._needUpdate = true; 
+
+		this._needUpdate = true;
 	};
-	
+
 	this.setContrast = function(value, log) {
 		psychoJS.attributeSet(this, "_contrast", value, log);
-		
-		this._needUpdate = true; 
+
+		this._needUpdate = true;
 	};
-	
+
 	/**
 	 * Convert color to RGB while adding contrast. Requires self.rgb, self.colorSpace and self.contrast
 	 */
@@ -457,25 +455,25 @@ psychoJS.visual.asColor = function() {
 // 		 if (['rgb', 'dkl', 'lms', 'hsv'].indexOf(colorSpace) < 0) {
 //             rgb = (rgb / 255.0) * 2 - 1;
 // 		 }
-		
+
 		var desiredRGB = [
-			(rgb[0] * contrast + 1) / 2.0, 
-			(rgb[1] * contrast + 1) / 2.0, 
+			(rgb[0] * contrast + 1) / 2.0,
+			(rgb[1] * contrast + 1) / 2.0,
 			(rgb[2] * contrast + 1) / 2.0 ];
 
 		return desiredRGB
-		
+
 	}
-	
-	
-}	
-	
-	
+
+
+}
+
+
 /**
  * Implementation notice:
  * Equivalent of psychoPY's WindowMixin.
  * Functional Mixin as seen here: https://javascriptweblog.wordpress.com/2011/05/31/a-fresh-look-at-javascript-mixins/
- * 
+ *
  * Window-related attributes and methods.
  */
 psychoJS.visual.asWindowRelated = function() {
@@ -488,7 +486,7 @@ psychoJS.visual.asWindowRelated = function() {
 	this.setUnits = function(value, log) {
 		this._units = value || this.win.units;
 	}
-	
+
 	/**
 	 * sets posVar.x and posVar.y after converting pos to pixel values after taking units into account
 	 */
@@ -505,13 +503,13 @@ psychoJS.visual.asWindowRelated = function() {
 		else if (this._units === 'height') {
 			var winHeight = this.win.size[1];
 			posVar.x = pos[0] * winHeight;
-			posVar.y = pos[1] * winHeight;			
+			posVar.y = pos[1] * winHeight;
 		}
 		else {
 			throw 'Unit ' + this._units + ' is not implemented.';
 		}
 	}
-	
+
 	/**
 	 * returns length in pixels after taking units into account
 	 */
@@ -531,7 +529,7 @@ psychoJS.visual.asWindowRelated = function() {
 			throw 'Unit ' + this._units + ' is not implemented.';
 		}
 	}
-	
+
 	/**
 	 * returns a horizontal length in pixels after taking units into account
 	 */
@@ -551,7 +549,7 @@ psychoJS.visual.asWindowRelated = function() {
 			throw 'Unit ' + this._units + ' is not implemented.';
 		}
 	}
-	
+
 	/**
 	 * returns length in units from a length in pixels
 	 */
@@ -571,7 +569,7 @@ psychoJS.visual.asWindowRelated = function() {
 			throw 'Unit ' + this._units + ' is not implemented.';
 		}
 	}
-	
+
 }
 
 
@@ -588,7 +586,7 @@ psychoJS.visual.Circle = function(attribs) {
 	psychoJS.visual.BaseVisualStim.call(this, attribs);
 	psychoJS.visual.asColor.call(this);
 	psychoJS.visual.asWindowRelated.call(this);
-	
+
 	this.win = psychoJS.getAttrib(attribs ,'win', undefined);
 // 	this._color = psychoJS.getAttrib(attribs ,'color', 0xFFFFFF);
 	this._lineRGB = [1, 1, 1];
@@ -599,25 +597,25 @@ psychoJS.visual.Circle = function(attribs) {
 	this._lineColor = psychoJS.getAttrib(attribs ,'lineColor', 'white');
 	this._fillColor = psychoJS.getAttrib(attribs ,'fillColor', 'black');
 	this._lineWidth = psychoJS.getAttrib(attribs ,'lineWidth', 1);
-	
+
 	Object.defineProperty(this, 'lineColor', {
 		configurable: true,
 		get : function() { return this._lineColor; },
 		set : function(value) { this.setLineColor(value); }
 	});
-		
+
 	Object.defineProperty(this, 'fillColor', {
 		configurable: true,
 		get : function() { return this._fillColor; },
 		set : function(value) { this.setFillColor(value); }
 	});
-	
+
 	Object.defineProperty(this, 'lineWidth', {
 		configurable: true,
 		get : function() { return this._lineWidth; },
 		set : function(value) { this.setLineWidth(value); }
 	});
-	
+
 }
 
 psychoJS.visual.Circle.prototype = Object.create(psychoJS.visual.BaseVisualStim.prototype);
@@ -626,20 +624,20 @@ psychoJS.visual.Circle.prototype._updateIfNeeded = function() {
 	if (this._needUpdate) {
 		var lineRGB = this._getDesiredRGB(this._lineRGB, this._colorSpace, this._contrast);
 		var fillRGB = this._getDesiredRGB(this._fillRGB, this._colorSpace, this._contrast);
-		
-		console.log("lineRGB = " + lineRGB + "(" + psychoJS.rgb2int(lineRGB) + ") fillRGB=" + fillRGB + "(" + psychoJS.rgb2int(fillRGB) + ")");	
-		
+
+		console.log("lineRGB = " + lineRGB + "(" + psychoJS.rgb2int(lineRGB) + ") fillRGB=" + fillRGB + "(" + psychoJS.rgb2int(fillRGB) + ")");
+
 		this.pixiRep = new PIXI.Graphics();
 		this.pixiRep.lineStyle(this._lineWidth , psychoJS.rgb2int(lineRGB), 1);
  		this.pixiRep.beginFill(psychoJS.rgb2int(fillRGB));
 
 		this.pixiRep.drawCircle(0, 0, this._size/2);
-		
+
 		this.pixiRep.position.x = this._pos[0];
 		this.pixiRep.position.y = this._pos[1];
-		
+
 		this.pixiRep.alpha = this._opacity;
-		
+
 		this._needUpdate = false;
 	}
 }
@@ -650,7 +648,7 @@ psychoJS.visual.Circle.prototype.setLineColor = function(value, colorSpace, log)
 
 	this._lineRGB = psychoJS.visual.getRGB(this._lineColor, this._lineColorSpace);
 	console.log("setColor lineColor=" + JSON.stringify(this._lineColor) + " rgb=" + JSON.stringify(this._lineRGB));
-	this._needUpdate = true; 	
+	this._needUpdate = true;
 }
 
 psychoJS.visual.Circle.prototype.setFillColor = function(value, colorSpace, log) {
@@ -659,13 +657,13 @@ psychoJS.visual.Circle.prototype.setFillColor = function(value, colorSpace, log)
 
 	this._fillRGB = psychoJS.visual.getRGB(this._fillColor, this._fillColorSpace);
 	console.log("setColor fillColor=" + JSON.stringify(this._fillColor) + " rgb=" + JSON.stringify(this._fillRGB));
-	this._needUpdate = true; 		
+	this._needUpdate = true;
 }
 
 psychoJS.visual.Circle.prototype.setLineWidth = function(value, log) {
 	psychoJS.attributeSet(this, "_lineWidth", value, log);
-	
-	this._needUpdate = true; 	
+
+	this._needUpdate = true;
 }
 
 
@@ -695,7 +693,7 @@ psychoJS.visual.Circle.prototype.setLineWidth = function(value, log) {
  * @param {boolean} attribs.flipVert Flips the text vertically if true.
  * @param {boolean} attribs.flipHoriz Flips the text horizontally if true.
  */
-psychoJS.visual.TextStim = function(attribs) {	
+psychoJS.visual.TextStim = function(attribs) {
 	psychoJS.visual.BaseVisualStim.call(this, attribs);
 	psychoJS.visual.asColor.call(this);
 	psychoJS.visual.asWindowRelated.call(this);
@@ -704,14 +702,14 @@ psychoJS.visual.TextStim = function(attribs) {
 	this.name = psychoJS.getAttrib(attribs ,'name', undefined);
 	//this.depth = psychoJS.getAttrib(attribs, 'depth', 0); // deprecated attribute, just drop it?
 	this.status = undefined;
-	
+
 // 	this._color = psychoJS.getAttrib(attribs ,'color', 0xFFFFFF);
 // 	this._colorSpace = psychoJS.getAttrib(attribs, 'colorSpace', 'rgb');
 	this._contrast = psychoJS.getAttrib(attribs, 'contrast', 1);
 	this.setColor(psychoJS.getAttrib(attribs ,'color', 0xFFFFFF), psychoJS.getAttrib(attribs, 'colorSpace', 'rgb'));
-	
+
 	this._text = psychoJS.getAttrib(attribs, 'text', '');
-	
+
 	this._font = psychoJS.getAttrib(attribs, 'font', 'Arial');
 	this._alignHoriz = psychoJS.getAttrib(attribs, 'alignHoriz', 'center');
 	this._alignVert = psychoJS.getAttrib(attribs, 'alignVert', 'center');
@@ -721,56 +719,56 @@ psychoJS.visual.TextStim = function(attribs) {
 	this._bold = psychoJS.getAttrib(attribs, 'bold', false);
 	this._flipVert = psychoJS.getAttrib(attribs, 'flipVert', false);
 	this._flipHoriz = psychoJS.getAttrib(attribs, 'flipHoriz', false);
-	
+
 
 	Object.defineProperty(this, 'text', {
 		configurable: true,
 		get : function() { return this._text; },
 		set : function(value) { this.setText(value); }
 	});
-	
+
 	Object.defineProperty(this, 'alignHoriz', {
 		configurable: true,
 		get : function() { return this._alignHoriz; },
 		set : function(value) { this.setAlignHoriz(value); }
 	});
-		
+
 	Object.defineProperty(this, 'wrapWidth', {
 		configurable: true,
 		get : function() { return this._wrapWidth; },
 		set : function(value) { this.setWrapWidth(value); }
 	});
-	
+
 	Object.defineProperty(this, 'height', {
 		configurable: true,
 		get : function() { return this._height; },
 		set : function(value) { this.setHeight(value); }
-	});	
-	
+	});
+
 	Object.defineProperty(this, 'italic', {
 		configurable: true,
 		get : function() { return this._italic; },
 		set : function(value) { this.setItalic(value); }
-	});	
-	
+	});
+
 	Object.defineProperty(this, 'bold', {
 		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setBold(value); }
-	});	
-		
+	});
+
 	Object.defineProperty(this, 'flipVert', {
 		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipVert(value); }
 	});
-	
+
 	Object.defineProperty(this, 'flipHoriz', {
 		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipHoriz(value); }
 	});
-	
+
 	this._needUpdate = true;
 }
 
@@ -784,52 +782,52 @@ psychoJS.visual.TextStim.prototype._computeHeightPix = function() {
 psychoJS.visual.TextStim.prototype._updateIfNeeded = function() {
 	if (this._needUpdate) {
 		this._computeHeightPix();
-		
-		
-// 		var gameObjectText = new GameObject ("testText");   
+
+
+// 		var gameObjectText = new GameObject ("testText");
 // 		pixiObjectContainer =gameObject.getPixiContainer();
 // 		gameObject.size.width = pixiObjectContainer.context.measureText(pixiObjectContainer.text).width;
 // 		gameObject.size.height = pixiObjectContainer.context.measureText(pixiObjectContainer.text).height;
-		
+
 		var fontSize = Math.round(this._heightPix);
 		var rgb = this._getDesiredRGB(this._rgb, this._colorSpace, this._contrast);
 // 		console.log("Text._updateIfNeeded color: " + JSON.stringify(rgb) + " from " + JSON.stringify(this._rgb));
-		var font = 
-				(this._bold ? 'bold ' : '') + 
+		var font =
+				(this._bold ? 'bold ' : '') +
 				(this._italic ? 'italic ' : '') +
 				fontSize + 'px ' + this._font;
 		this.pixiRep = new PIXI.Text(this._text, {
-			font : font, 
-			fill : psychoJS.rgb2hex(rgb), 
+			font : font,
+			fill : psychoJS.rgb2hex(rgb),
 			align : this._alignHoriz,
 			wordWrap : this._wrapWidth != undefined,
 			wordWrapWidth : this._wrapWidth ? this._getHorLengthPix(this._wrapWidth) : 0
 		});
 
 		//console.log("********** wrapWidth = " + (this._wrapWidth ? this._getHorLengthPix(this._wrapWidth) : 0));
-		
+
 		this.pixiRep.anchor.x = 0.5;
 		this.pixiRep.anchor.y = 0.5;
-		
+
 		this.pixiRep.scale.x = this._flipHoriz ? -1 : 1;
 		this.pixiRep.scale.y = this._flipVert ? 1 : -1;
-		
+
 		// scales bitmap so not great
 // 		this.pixiRep.scale.x = this._size;
 // 		this.pixiRep.scale.y = this._size;
-		
+
 		this.pixiRep.rotation = this._ori * Math.PI/180;
-		
+
 		this._setPosPix(this.pixiRep.position, this._pos);
 		//this.pixiRep.position.x = this._pos[0];
 		//this.pixiRep.position.y = this._pos[1];
-		
+
 		this.pixiRep.alpha = this._opacity;
-		
+
 		this._size = [
 				this._getLengthUnits(Math.abs(this.pixiRep.width)),
 				this._getLengthUnits(Math.abs(this.pixiRep.height)) ];
-		
+
 		this._needUpdate = false;
 	}
 }
@@ -842,11 +840,11 @@ psychoJS.visual.TextStim.prototype._updateIfNeeded = function() {
  */
 psychoJS.visual.TextStim.prototype.setText = function(text, log) {
 	psychoJS.attributeSet(this, "_text", text, log);
-	
+
 //	this.pixiRep.text = this._text;
 // 	this.pixiRep.position.x = -this.pixiRep.width/2;
 // 	this.pixiRep.position.y = -this.pixiRep.height/2;
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -859,7 +857,7 @@ psychoJS.visual.TextStim.prototype.setText = function(text, log) {
  */
 psychoJS.visual.TextStim.prototype.setAlignHoriz = function(value, log) {
 	psychoJS.attributeSet(this, "_alignHoriz", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -872,7 +870,7 @@ psychoJS.visual.TextStim.prototype.setAlignHoriz = function(value, log) {
  */
 psychoJS.visual.TextStim.prototype.setWrapWidth = function(value, log) {
 	psychoJS.attributeSet(this, "_wrapWidth", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -884,7 +882,7 @@ psychoJS.visual.TextStim.prototype.setWrapWidth = function(value, log) {
  */
 psychoJS.visual.TextStim.prototype.setHeight = function(value, log) {
 	psychoJS.attributeSet(this, "_height", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -896,7 +894,7 @@ psychoJS.visual.TextStim.prototype.setHeight = function(value, log) {
  */
 psychoJS.visual.TextStim.prototype.setItalic = function(value, log) {
 	psychoJS.attributeSet(this, "_italic", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -908,7 +906,7 @@ psychoJS.visual.TextStim.prototype.setItalic = function(value, log) {
  */
 psychoJS.visual.TextStim.prototype.setBold = function(value, log) {
 	psychoJS.attributeSet(this, "_bold", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -920,7 +918,7 @@ psychoJS.visual.TextStim.prototype.setBold = function(value, log) {
  */
 psychoJS.visual.TextStim.prototype.setFlipVert = function(value, log) {
 	psychoJS.attributeSet(this, "_flipVert", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -932,7 +930,7 @@ psychoJS.visual.TextStim.prototype.setFlipVert = function(value, log) {
  */
 psychoJS.visual.TextStim.prototype.setFlipHoriz = function(value, log) {
 	psychoJS.attributeSet(this, "_flipHoriz", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -955,7 +953,7 @@ psychoJS.visual.TextStim.prototype.setFlipHoriz = function(value, log) {
  * @param {boolean} attribs.flipVert Flips the text vertically if true.
  * @param {boolean} attribs.flipHoriz Flips the text horizontally if true.
  */
-psychoJS.visual.ImageStim = function(attribs) {	
+psychoJS.visual.ImageStim = function(attribs) {
 	psychoJS.visual.BaseVisualStim.call(this, attribs);
 	psychoJS.visual.asColor.call(this);
 	psychoJS.visual.asWindowRelated.call(this);
@@ -963,37 +961,37 @@ psychoJS.visual.ImageStim = function(attribs) {
 	this.win = psychoJS.getAttrib(attribs ,'win', undefined);
 	this.name = psychoJS.getAttrib(attribs ,'name', undefined);
 	this.status = undefined;
-	
+
 	this._image = psychoJS.getAttrib(attribs ,'image', undefined);
 	this._mask = psychoJS.getAttrib(attribs ,'mask', undefined);
-	
+
 	this._color = psychoJS.getAttrib(attribs ,'color', 0xFFFFFF);
 	this._rgb = [1, 1, 1];
 	this._colorSpace = psychoJS.getAttrib(attribs, 'colorSpace', 'rgb');
 	this._contrast = psychoJS.getAttrib(attribs, 'contrast', 1);
-	
+
 	this._flipVert = psychoJS.getAttrib(attribs, 'flipVert', false);
 	this._flipHoriz = psychoJS.getAttrib(attribs, 'flipHoriz', false);
-	
+
 
 	Object.defineProperty(this, 'image', {
 		configurable: true,
 		get : function() { return this._image; },
 		set : function(value) { this.setImage(value); }
 	});
-			
+
 	Object.defineProperty(this, 'mask', {
 		configurable: true,
 		get : function() { return this._mask; },
 		set : function(value) { this.setMask(value); }
 	});
-			
+
 	Object.defineProperty(this, 'flipVert', {
 		configurable: true,
 		get : function() { return this._bold; },
 		set : function(value) { this.setFlipVert(value); }
 	});
-	
+
 	Object.defineProperty(this, 'flipHoriz', {
 		configurable: true,
 		get : function() { return this._bold; },
@@ -1008,37 +1006,37 @@ psychoJS.visual.ImageStim.prototype._updateIfNeeded = function() {
 		if (this._image) {
 			this._texture = new PIXI.Texture(new PIXI.BaseTexture(this._image)); //new PIXI.Texture.fromImage(this._image);
 			this.pixiRep = new PIXI.Sprite(this._texture);
-			
+
 			if (this._mask) {
 				this._maskTexture = new PIXI.Texture(new PIXI.BaseTexture(this._mask));
 				this.pixiRep.mask = new PIXI.Sprite(this._maskTexture); //PIXI.Sprite.fromImage(this._mask);
-				
+
 				// the following is required for the mask to be aligned with the image
 				this.pixiRep.mask.anchor.x = 0.5;
 				this.pixiRep.mask.anchor.y = 0.5;
 				this.pixiRep.addChild(this.pixiRep.mask);
 			}
-			
+
 			if (this._texture.width == 0) return; // width is not immediately available (following new PIXI.Texture.fromImage) and the following code requires it, so _needUpdate will remain true until we get a non 0 value
-		
+
 			if (!this._size) {
 				console.log("texture w=" + this._texture.width);
 				this._size = [this._getLengthUnits(this._texture.width), this._getLengthUnits(this._texture.height)];
 			}
-			
+
 			this.pixiRep.anchor.x = 0.5;
 			this.pixiRep.anchor.y = 0.5;
-			
+
 			var scaleX = this._getLengthPix(this.size[0]) / this._texture.width;
 			var scaleY = this._getLengthPix(this.size[1]) / this._texture.height;
-			
+
 			this.pixiRep.scale.x = this._flipHoriz ? -scaleX : scaleX;
 			this.pixiRep.scale.y = this._flipVert ? scaleY : -scaleY;
 
 			this.pixiRep.rotation = this._ori * Math.PI/180;
-			
+
 			this._setPosPix(this.pixiRep.position, this._pos);
-			
+
 			this.pixiRep.alpha = this._opacity;
 		}
 		else {
@@ -1055,7 +1053,7 @@ psychoJS.visual.ImageStim.prototype._updateIfNeeded = function() {
  */
 psychoJS.visual.ImageStim.prototype.setFlipVert = function(value, log) {
 	psychoJS.attributeSet(this, "_flipVert", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -1067,7 +1065,7 @@ psychoJS.visual.ImageStim.prototype.setFlipVert = function(value, log) {
  */
 psychoJS.visual.ImageStim.prototype.setFlipHoriz = function(value, log) {
 	psychoJS.attributeSet(this, "_flipHoriz", value, log);
-	
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -1080,7 +1078,7 @@ psychoJS.visual.ImageStim.prototype.setFlipHoriz = function(value, log) {
  */
 psychoJS.visual.ImageStim.prototype.setImage = function(value, log) {
 	psychoJS.attributeSet(this, "_image", value, log);
-		
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
@@ -1091,11 +1089,9 @@ psychoJS.visual.ImageStim.prototype.setImage = function(value, log) {
  * @param {String} value Path to the mask image to be used in this ImageStim.
  * @param {boolean} log true to log a message, false otherwise
  */
-psychoJS.visual.ImageStim.prototype.setMask = function(value, log) {	
+psychoJS.visual.ImageStim.prototype.setMask = function(value, log) {
 	psychoJS.attributeSet(this, "_mask", value, log);
-		
+
 	this._needUpdate = true;
 	this._needVertexUpdate = true;
 }
-
-
