@@ -31,7 +31,6 @@ reportNDroppedFrames = 10
 import os
 
 from psychopy import logging
-from psychopy import sound
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
@@ -120,6 +119,12 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         self._audioStream = None
         self.useTexSubImage2D = True
 
+        if noAudio:  # to avoid dependency problems in silent movies
+            self.sound = None
+        else:
+            from psychopy import sound
+            self.sound = sound
+
         self._videoClock = Clock()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -169,6 +174,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
             if (not self.noAudio) and (self._mov.audio is not None):
+                sound = self.sound
                 try:
                     self._audioStream = sound.Sound(
                         self._mov.audio.to_soundarray(),
@@ -422,6 +428,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         self._audioSeek(t)
 
     def _audioSeek(self, t):
+        sound = self.sound
         # for sound we need to extract the array again and just begin at new
         # loc
         if self._audioStream is None:
