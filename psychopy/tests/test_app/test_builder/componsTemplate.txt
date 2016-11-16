@@ -3090,16 +3090,16 @@ SettingsComponent.Experiment info.hint:The info to present in a dialog box. Righ
 SettingsComponent.Experiment info.allowedUpdates:None
 SettingsComponent.Experiment info.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Experiment info.label:Experiment info
-SettingsComponent.JS libs.default:'remote'
+SettingsComponent.JS libs.default:'packaged'
 SettingsComponent.JS libs.categ:Online
-SettingsComponent.JS libs.allowedVals:['packaged', 'remote']
+SettingsComponent.JS libs.allowedVals:['packaged']
 SettingsComponent.JS libs.readOnly:False
 SettingsComponent.JS libs.updates:None
-SettingsComponent.JS libs.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'remote', 'hint': u'Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['packaged', 'remote'], 'label': 'JS libs', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.JS libs.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'packaged', 'hint': u'Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['packaged'], 'label': 'JS libs', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.JS libs.__weakref__:None
 SettingsComponent.JS libs.valType:str
 SettingsComponent.JS libs.staticUpdater:None
-SettingsComponent.JS libs.val:remote
+SettingsComponent.JS libs.val:packaged
 SettingsComponent.JS libs.allowedTypes:[]
 SettingsComponent.JS libs.hint:Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?
 SettingsComponent.JS libs.allowedUpdates:None
@@ -3212,10 +3212,10 @@ SettingsComponent.blendMode.__class__:<class 'psychopy.app.builder.experiment.Pa
 SettingsComponent.blendMode.label:Blend mode
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.categ:Basic
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.84', '', '1.84.2']
+SettingsComponent.Use version.allowedVals:['latest', '1', '1.85', '', '1.85.0rc1']
 SettingsComponent.Use version.readOnly:False
 SettingsComponent.Use version.updates:None
-SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.84', '', '1.84.2'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.85', '', '1.85.0rc1'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.Use version.__weakref__:None
 SettingsComponent.Use version.valType:str
 SettingsComponent.Use version.staticUpdater:None
