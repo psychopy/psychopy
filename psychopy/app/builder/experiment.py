@@ -1044,7 +1044,7 @@ class TrialHandler(object):
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
 
-        code = ("\nfunction {params[name]}LoopBegin() {{\n"
+        code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  try {{\n"
                 "    {params[name]} = new psychoJS.data.TrialHandler({{nReps:{params[nReps]}, method:{params[loopType]},\n"
@@ -1054,18 +1054,14 @@ class TrialHandler(object):
                 "    thisExp.addLoop({params[name]}); // add the loop to the experiment\n"
                 "    {thisName} = {params[name]}.trialList[0]; // so we can initialise stimuli with some values\n"
                 "    // abbreviate parameter names if possible (e.g. rgb={thisName}.rgb)\n"
-                "    if ({thisName} != undefined) {{\n"
-                "      for (paramName in {thisName}) {{\n"
-                "        window[paramName] = {thisName}[paramName]; // window is JS top-level namespace\n"
-                "      }}\n"
-                "    }}\n"
+                "    abbrevNames({thisName});\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("    // Schedule each of the trials in the list to occur\n"
                 "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
                 "      {thisName} = {params[name]}.trialList[i];\n"
-                "      {params[name]}LoopScheduler.add(abbrevNames({thisName}));\n"
+                "      thisScheduler.add(abbrevNames({thisName}));\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
@@ -1076,17 +1072,17 @@ class TrialHandler(object):
             if thisChild.getType() == 'Routine':
                 thisType = 'Routine'
                 code += (
-                    "      {params[name]}LoopScheduler.add({name}RoutineBegin);\n"
-                    "      {params[name]}LoopScheduler.add({name}RoutineEachFrame);\n"
-                    "      {params[name]}LoopScheduler.add({name}RoutineEnd);\n"
+                    "      thisScheduler.add({name}RoutineBegin);\n"
+                    "      thisScheduler.add({name}RoutineEachFrame);\n"
+                    "      thisScheduler.add({name}RoutineEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'])
                     )
             else:  # for a LoopInitiator
                 code += (
-                    "      {params[name]}LoopScheduler.add({name}LoopBegin);\n"
                     "      {name}LoopScheduler = new psychoJS.Scheduler();\n"
-                    "      {params[name]}LoopScheduler.add({name}LoopScheduler);\n"
-                    "      {params[name]}LoopScheduler.add({name}LoopEnd);\n"
+                    "      thisScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
+                    "      thisScheduler.add({name}LoopScheduler);\n"
+                    "      thisScheduler.add({name}LoopEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'])
                     )
         buff.writeIndentedLines(code)
@@ -1809,25 +1805,31 @@ class Flow(list):
         # add the code for each routine
         loopStack = []
         for thisEntry in self:
-            if thisEntry.getType() == 'LoopInitiator':
-                code = ("flowScheduler.add({name}LoopBegin);\n"
-                        "{name}LoopScheduler = new psychoJS.Scheduler();\n"
-                        "flowScheduler.add({name}LoopScheduler);\n"
-                        "flowScheduler.add({name}LoopEnd);\n"
-                        .format(name=thisEntry.loop.params['name']))
-
-                loopStack.append(thisEntry.loop)
-            elif thisEntry.getType() == 'LoopTerminator':
-                code = ""
-                loopStack.remove(thisEntry.loop)
-            elif len(loopStack) == 0:  # if we're inside a loop then the loop should handle it instead
-                code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
-                        "flowScheduler.add({params[name]}RoutineEachFrame);\n"
-                        "flowScheduler.add({params[name]}RoutineEnd);\n"
-                        .format(params=thisEntry.params))
-            else:  # a Routine contained within a loop should have no associated code
-                code = ""
+            if not loopStack:  # if not currently in a loop
+                if thisEntry.getType() == 'LoopInitiator':
+                    code = ("{name}LoopScheduler = new psychoJS.Scheduler();\n"
+                            "flowScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
+                            "flowScheduler.add({name}LoopScheduler);\n"
+                            "flowScheduler.add({name}LoopEnd);\n"
+                            .format(name=thisEntry.loop.params['name']))
+                    print("started loop: {}".format(thisEntry.loop.params['name']))
+                    loopStack.append(thisEntry.loop)
+                elif thisEntry.getType() == "Routine":
+                    code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
+                            "flowScheduler.add({params[name]}RoutineEachFrame);\n"
+                            "flowScheduler.add({params[name]}RoutineEnd);\n"
+                            .format(params=thisEntry.params))
+                    print("running routine: {}".format(thisEntry.params['name']))
+            else:  # we are already in a loop so don't code here just count
+                code =""
+                if thisEntry.getType() == 'LoopInitiator':
+                    loopStack.append(thisEntry.loop)
+                    print("started loop: {}".format(thisEntry.loop.params['name']))
+                elif thisEntry.getType() == 'LoopTerminator':
+                    loopStack.remove(thisEntry.loop)
+                    print("ended loop: {}".format(thisEntry.loop.params['name']))
             script.writeIndentedLines(code)
+        # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS);\n"
                 "\nscheduler.start(win);\n")
