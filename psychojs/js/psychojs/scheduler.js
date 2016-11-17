@@ -42,6 +42,8 @@ psychoJS.QUIT = "QUIT";
 psychoJS.Scheduler = function() {
 	this.taskList = [];
 	this.currentTask = undefined;
+	this.argsList = [];
+	this.currentArgs = undefined;
 }
 
 
@@ -50,8 +52,9 @@ psychoJS.Scheduler = function() {
  * 
  * @param task - the task to be scheduled
  */
-psychoJS.Scheduler.prototype.add = function(task) {
+psychoJS.Scheduler.prototype.add = function(task, args) {
 	this.taskList.push(task);
+	this.argsList.push(args);
 }
 
 
@@ -92,6 +95,7 @@ psychoJS.Scheduler.prototype.run = function() {
 		if (!this.currentTask) {
 			if (this.taskList.length > 0) {
 				this.currentTask = this.taskList.shift();
+				this.currentArgs = this.argsList.shift();
 			}
 			else {
 				this.currentTask = undefined;
@@ -99,16 +103,16 @@ psychoJS.Scheduler.prototype.run = function() {
 			}
 		}
 		if (this.currentTask instanceof Function) {
-			state = this.currentTask();
+			state = this.currentTask(this.currentArgs);
 		}
 		else {
 			state = this.currentTask.run();
 			if (state === psychoJS.QUIT) state = psychoJS.NEXT;
 		}
-//console.log("Got state: " + state);
 				
 		if (state != psychoJS.FLIP_REPEAT) {
 			this.currentTask = undefined;
+			this.currentArgs = undefined;
 		}
 	}
 
