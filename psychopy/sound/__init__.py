@@ -60,7 +60,7 @@ for thisLibName in prefs.general['audioLib']:
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
         elif thisLibName == 'sounddevice':
-            from . import backend_pysound as backend
+            from . import backend_sounddevice as backend
             Sound = backend.SoundDeviceSound
         elif thisLibName == 'pygame':
             from . import backend_pygame as backend

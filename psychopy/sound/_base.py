@@ -13,8 +13,8 @@ from sys import platform
 
 if platform == 'win32':
     mediaLocation = "C:\\Windows\Media"
-else:
-    mediaLocation = ""
+elif platform == 'darwin':
+    mediaLocation = "/System/Library/Sounds/"
 
 stepsFromA = {
     'C': -9, 'Csh': -8,
@@ -112,7 +112,7 @@ class _SoundBase(object):
                     msg = "setSound: could not find a sound file named "
                     raise ValueError, msg + value
                 else:
-                    self._setSndFromFile(value)
+                    self._setSndFromFile(p)
         elif type(value) in [list, numpy.ndarray]:
             # create a sound from the input array/list
             self._setSndFromArray(numpy.array(value))
