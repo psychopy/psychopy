@@ -8,6 +8,10 @@ STARTED = PLAYING
 PAUSED = 2
 STOPPED = -1
 FINISHED = STOPPED
+# stereo sound: force stereo, mono or auto based on source
+STEREO = 1
+MONO = 0
+AUTO = -1
 
 # for button box:
 PRESSED = 1
