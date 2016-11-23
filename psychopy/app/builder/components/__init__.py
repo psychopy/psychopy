@@ -27,7 +27,7 @@ for filename in pycFiles:
             os.remove(filename)
         except:
             pass  # may not have sufficient privs
-        
+
 def pilToBitmap(pil, scaleFactor=1.0):
     image = wx.EmptyImage(pil.size[0], pil.size[1])
 
@@ -51,7 +51,7 @@ def getIcons(filename=None):
     icons = {}
     if filename is None:
         filename = join(dirname(abspath(__file__)), 'base.png')
-        
+
     # get the low-res version first
     im = Image.open(filename)
     icons['24'] = pilToBitmap(im, scaleFactor=0.5)
@@ -219,12 +219,26 @@ def getAllCategories(folderList=()):
     return allCats
 
 
-def getInitVals(params):
+def getInitVals(params, target="PsychoPy"):
     """Works out a suitable initial value for a parameter (e.g. to go into the
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
     for name in params.keys():
+
+        if target == "PsychoJS":
+            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
+            valStr = str(inits[name].val).strip()
+            if valStr.startswith("(") and valStr.endswith(")"):
+                inits[name].val = inits[name].val.replace("(", "[", 1)
+                inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
+            # filenames (e.g. for image) need to be loaded from resources
+            if name in ["image", "mask", "sound"]:
+                val = str(inits[name].val)
+                if val != "None":
+                    inits[name].val = ("psychoJS.resourceManager.getResource({})"
+                                       .format(val))
+                    inits[name].valType = 'code'
 
         if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
             continue
@@ -278,6 +292,7 @@ def getInitVals(params):
             print("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %
                   name)
+
     return inits
 
 tooltips = {}
