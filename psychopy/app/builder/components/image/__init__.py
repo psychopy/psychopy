@@ -107,7 +107,7 @@ class ImageComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s, " % self.params
 
         # replace variable params with defaults
-        inits = getInitVals(self.params)
+        inits = getInitVals(self.params, 'PsychoPy')
         code = ("%s = visual.ImageStim(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    image=%(image)s, mask=%(mask)s,\n" % inits +
@@ -134,8 +134,7 @@ class ImageComponent(BaseVisualComponent):
             unitsStr = "units : %(units)s, " % self.params
 
         # replace variable params with defaults
-        inits = getInitVals(self.params)
-
+        inits = getInitVals(self.params, 'PsychoJS')
         for paramName in inits:
             val = inits[paramName].val
             if val is True:

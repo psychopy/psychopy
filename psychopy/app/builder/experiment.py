@@ -875,7 +875,7 @@ class Param(object):
                 # the user actually wanted just the $
                 return "%s" % self.val[1:]
             elif isStr:
-                return "%s" % self.val  # user actually wanted just the $
+                return "%s" % self.val
             else:  # if val was a tuple it needs converting to a string first
                 return "%s" % repr(self.val)
         elif self.valType == 'bool':
@@ -1812,22 +1812,18 @@ class Flow(list):
                             "flowScheduler.add({name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopEnd);\n"
                             .format(name=thisEntry.loop.params['name']))
-                    print("started loop: {}".format(thisEntry.loop.params['name']))
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == "Routine":
                     code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
                             "flowScheduler.add({params[name]}RoutineEachFrame);\n"
                             "flowScheduler.add({params[name]}RoutineEnd);\n"
                             .format(params=thisEntry.params))
-                    print("running routine: {}".format(thisEntry.params['name']))
             else:  # we are already in a loop so don't code here just count
                 code =""
                 if thisEntry.getType() == 'LoopInitiator':
                     loopStack.append(thisEntry.loop)
-                    print("started loop: {}".format(thisEntry.loop.params['name']))
                 elif thisEntry.getType() == 'LoopTerminator':
                     loopStack.remove(thisEntry.loop)
-                    print("ended loop: {}".format(thisEntry.loop.params['name']))
             script.writeIndentedLines(code)
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"

@@ -145,8 +145,8 @@ class BaseComponent(object):
         writeEndTestCode
         """
         # unused internally; deprecated March 2016 v1.83.x, will remove 1.85
-        print('Deprecation warning: writeTimeTestCode() is not supported;\n'
-              'will be removed in v1.85.00, use writeStartTestCode() instead')
+        logging.warning('Deprecation warning: writeTimeTestCode() is not supported;\n'
+              'will be removed. Please use writeStartTestCode() instead')
         if self.params['duration'].val == '':
             code = "if %(startTime)s <= t:\n"
         else:
@@ -327,8 +327,18 @@ class BaseComponent(object):
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
 
+        # code conversions for PsychoJS
         if target == 'PsychoJS':
             endStr = ';'
+            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
+            valStr = str(val).strip()
+            if valStr.startswith("(") and valStr.endswith(")"):
+                val = val.replace("(", "[", 1)
+                val = val[::-1].replace(")", "]", 1)[::-1]  # replace from right
+            # filenames (e.g. for image) need to be loaded from resources
+            if paramName in ["image", "mask","sound"]:
+                val = ("psychoJS.resourceManager.getResource({})"
+                       .format(val))
         else:
             endStr = ''
 

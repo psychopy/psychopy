@@ -92,7 +92,7 @@ class TextComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s, " % self.params
         # do writing of init
         # replaces variable params with sensible defaults
-        inits = getInitVals(self.params)
+        inits = getInitVals(self.params, 'PsychoPy')
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
         code = ("%(name)s = visual.TextStim(win=win, "
@@ -119,7 +119,7 @@ class TextComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
         buff.writeIndented('    ' + flipStr + 'depth=%.1f);\n' % depth)
 
-    def writeInitCodeJS(self, buff):        
+    def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
@@ -127,7 +127,8 @@ class TextComponent(BaseVisualComponent):
             unitsStr = "units:'%(units)s', " % self.params
         # do writing of init
         # replaces variable params with sensible defaults
-        inits = getInitVals(self.params)
+        inits = getInitVals(self.params, 'PsychoJS')
+
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'undefined'
         code = ("%(name)s = new psychoJS.visual.TextStim({win : win, "

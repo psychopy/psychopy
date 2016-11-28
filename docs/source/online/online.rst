@@ -15,9 +15,13 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
+   fromBuilder
+
+.. toctree::
+   :maxdepth: 1
+
    status
    tech
-   fromBuilder
    psychojsCode
    syncOSF
    cautions
