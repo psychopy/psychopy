@@ -191,6 +191,8 @@
     copyRoutine = string(default='Ctrl+Shift+C')
     # Builder: paste the copied routine
     pasteRoutine = string(default='Ctrl+Shift+V')
+    # Builder: paste the copied component
+    pasteCompon = string(default='Ctrl+Alt+V')
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     #Builder: rename an existing routine

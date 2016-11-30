@@ -66,6 +66,7 @@ _localized = {
     #contextMenuLabels
     'edit': _translate('edit'),
     'remove': _translate('remove'),
+    'copy': _translate('copy'),
     'move to top': _translate('move to top'),
     'move up': _translate('move up'),
     'move down': _translate('move down'),
@@ -121,7 +122,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.lastpos = (0, 0)
         # use the ID of the drawn icon to retrieve component name:
         self.componentFromID = {}
-        self.contextMenuItems = ['edit', 'remove', 'move to top', 'move up',
+        self.contextMenuItems = ['copy', 'edit', 'remove',
+                                 'move to top', 'move up',
                                  'move down', 'move to bottom']
         # labels are only for display, and allow localization
         self.contextMenuLabels = {k: _localized[k]
@@ -203,6 +205,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         r = self.routine
         if op == 'edit':
             self.editComponentProperties(component=component)
+        elif op == 'copy':
+            self.copyCompon(component=component)
         elif op == 'remove':
             r.removeComponent(component)
             self.frame.addToUndoStack(
@@ -457,6 +461,37 @@ class RoutineCanvas(wx.ScrolledWindow):
             # update bounds to include time bar
             fullRect.Union(wx.Rect(xSt, y + yOffset, w, h))
         dc.SetIdBounds(id, fullRect)
+
+    def copyCompon(self, event=None, component=None):
+        """This is easy - just take a copy of the component into memory
+        """
+        self.app.copiedCompon = copy.deepcopy(component)
+
+    def pasteCompon(self, event=None, component=None):
+        if not self.app.copiedCompon:
+            return -1  #not possible to paste if nothing copied
+        exp = self.frame.exp
+        origName = self.app.copiedCompon.params['name'].val
+        defaultName = exp.namespace.makeValid(origName)
+        msg = _translate('New name for copy of "%(copied)s"?  [%(default)s]')
+        vals = {'copied': origName, 'default': defaultName}
+        message = msg % vals
+        dlg = wx.TextEntryDialog(self, message=message,
+                                 caption=_translate('Paste Component'))
+        if dlg.ShowModal() == wx.ID_OK:
+            newName = dlg.GetValue()
+            newCompon = copy.deepcopy(self.app.copiedCompon)
+            if not newName:
+                newName = defaultName
+            newName = exp.namespace.makeValid(newName)
+            newCompon.params['name'].val = newName
+            if 'name' in dir(newCompon):
+                newCompon.name = newName
+            self.routine.addComponent(newCompon)
+            # could do redrawRoutines but would be slower?
+            self.redrawRoutine()
+            self.addToUndoStack("PASTE Componen `%s`" % newCompon.name)
+        dlg.Destroy()
 
     def editComponentProperties(self, event=None, component=None):
         # we got here from a wx.button press (rather than our own drawn icons)
@@ -1334,6 +1369,12 @@ class BuilderFrame(wx.Frame):
                     _translate("&Rename Routine\t%s") % keys['renameRoutine'],
                     _translate("Change the name of this routine"))
         wx.EVT_MENU(self, self.IDs.renameRoutine, self.renameRoutine)
+        item = menu.Append(wx.ID_ANY,
+                    _translate("Paste Component\t%s") % keys['pasteCompon'],
+                    _translate("Paste the Component at bottom of the current "
+                               "Routine"),
+                    wx.ITEM_NORMAL)
+        wx.EVT_MENU(self, item.GetId(), self.onPasteCompon)
         menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
@@ -2021,6 +2062,14 @@ class BuilderFrame(wx.Frame):
             self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
             self.addToUndoStack("PASTE Routine `%s`" % newRoutine.name)
         dlg.Destroy()
+
+    def onPasteCompon(self, event=None):
+        """
+        Paste the copied Component (if there is one) into the current
+        Routine
+        """
+        routinePage = self.routinePanel.getCurrentPage()
+        routinePage.pasteCompon()
 
     def onURL(self, evt):
         """decompose the URL of a file and line number"""

@@ -247,6 +247,7 @@ class PsychoPyApp(wx.App):
             splash.SetText(_translate("  Creating frames..."))
         self.coder = None
         self.copiedRoutine = None
+        self.copiedCompon = None
         self._allFrames = []  # ordered; order updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
