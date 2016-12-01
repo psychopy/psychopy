@@ -55,7 +55,7 @@ Schedule
 
 We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
-All sessions subject to change. Key: **green** indicates self-paced work, **blue** indicates optional/specialist sessions
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
 
 .. image:: schedulePEP1.png
    :scale: 70 %
@@ -91,7 +91,7 @@ Schedule
 
 We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
-All sessions subject to change. Key: **green** indicates self-paced work, **blue** indicates optional/specialist sessions
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
 
 .. image:: scheduleBEP.png
    :scale: 70 %
