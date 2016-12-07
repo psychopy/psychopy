@@ -53,12 +53,13 @@ We'll provide you with additional 'intermediate' material as well, for you to bu
 Schedule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some sessions will be self-paced (shown in green). We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
+We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
-[All sessions subject to change]
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
 
-.. image:: ../images/scheduleBeginner.png
-   :scale: 80 %
+.. image:: schedulePEP1.png
+   :scale: 70 %
+   :align: center
 
 .. _BEP:
 
@@ -88,8 +89,13 @@ This workshop is suitable for beginners and those that don't want to learn subst
 Schedule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The schedule isn't finalised yet but there will be time over the three days to learn some material in formal taught sessions as well as some periods where you can develop your own studies.
+We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
+
+.. image:: scheduleBEP.png
+   :scale: 70 %
+   :align: center
 
 .. _PEP2:
 

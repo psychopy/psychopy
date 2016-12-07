@@ -525,9 +525,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL |
                          wx.stc.STC_SCMOD_SHIFT)
 
-        self.SetProperty("fold", "1")
-        # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
-        self.SetProperty("tab.timmy.whinge.level", "4")
         self.SetMargins(0, 0)
         self.SetUseTabs(False)
         self.SetTabWidth(4)
@@ -1245,8 +1242,13 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             self.SetKeyWords(0, " ".join(keyword.kwlist))
             self.SetIndentationGuides(self.coder.appData['showIndentGuides'])
             self.SetStyleBits(5)  # in case we had html before
+            self.SetProperty("fold", "1")  # wllow folding
+            self.SetProperty("tab.timmy.whinge.level", "1")
         elif lexer.lower() == 'html':
             self.SetStyleBits(7)  # apprently!
+            self.SetProperty("fold", "1")  # wllow folding
+            # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
+            self.SetProperty("tab.timmy.whinge.level", "1")
         else:
             self.SetIndentationGuides(0)
             self.SetProperty("tab.timmy.whinge.level", "0")

@@ -490,7 +490,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.routine.addComponent(newCompon)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
-            self.addToUndoStack("PASTE Componen `%s`" % newCompon.name)
+            self.frame.addToUndoStack("PASTE Component `%s`" % newName)
         dlg.Destroy()
 
     def editComponentProperties(self, event=None, component=None):
