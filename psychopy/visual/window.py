@@ -280,7 +280,7 @@ class Window(object):
         self.viewScale = val2array(viewScale)
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
-        if self.viewOri is not 0. and self.viewPos is not None:
+        if self.viewOri != 0. and self.viewPos is not None:
             raise NotImplementedError("Window: viewPos & viewOri are currently incompatible")
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
