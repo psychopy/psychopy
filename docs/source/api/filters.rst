@@ -1,7 +1,7 @@
-:mod:`psychopy.filters` - helper functions for creating filters 
+:mod:`psychopy.filters` - helper functions for creating filters
 ==============================================================================
 
-.. automodule:: psychopy.filters
-    :members:
+This module has moved to `psychopy.visual.filters` but you can still (currently) import it as `psychopy.filters`
 
-        
+.. automodule:: psychopy.visual. filters
+    :members:
