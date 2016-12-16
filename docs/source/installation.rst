@@ -68,7 +68,7 @@ You need a copy of Python 2.7.x from here, wxPython and probably pyo (or use an 
 
 Then, if you want **everything** available you could paste this in to your terminal/commandline and go and get a coffee (will take maybe 20mins to download and install everything?)::
 
-  pip install numpy scipy matplotlib pandas pyopengl pyglet pillow moviepy lxml openpyxl configobj pyyaml gevent greenlet msgpack-python psutil tables requests[security] pyosf cffi pysoundcard pysoundfile seaborn psychopy_ext python-bidi psychopy
+  pip install numpy scipy matplotlib pandas pyopengl pyglet pillow moviepy lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil tables requests[security] pyosf cffi pysoundcard pysoundfile seaborn psychopy_ext python-bidi psychopy
   pip install pyserial pyparallel egi iolabs
   pip install pytest coverage sphinx
   pip install pypiwin32
@@ -82,6 +82,9 @@ OR you could just install the subsets of packages that you want::
   # to use iohub
   # you need to install the hdf5 lib before installing tables (`brew install hdf5` on mac))
   pip install pyyaml gevent greenlet msgpack-python psutil tables
+
+  # better excel file reading (than openpyxl)
+  pip install xlrd
 
   # making online connections (e.g. OSF.io)
   pip install requests[security] pyosf
