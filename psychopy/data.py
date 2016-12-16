@@ -7,7 +7,7 @@
 
 from __future__ import absolute_import
 
-from pandas import DataFrame, read_csv
+import pandas
 import cPickle
 import string
 import sys
@@ -36,6 +36,12 @@ try:
     haveOpenpyxl = True
 except ImportError:
     haveOpenpyxl = False
+
+try:
+    import xlrd
+    haveXlrd = True
+except ImportError:
+    haveXlrd = False
 
 from psychopy import logging
 from psychopy.tools.arraytools import extendArr, shuffleArray
@@ -1245,8 +1251,8 @@ class TrialHandler(_BaseTrialHandler):
                        encoding='utf-8',
                        fileCollisionMethod='rename'):
         """Write a text file with the session, stimulus, and data values
-        from each trial in chronological order. Also, return a pandas
-        DataFrame containing same information as the file.
+        from each trial in chronological order. Also, return a
+        pandas.DataFrame containing same information as the file.
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
          - each row comprises information from only a single trial.
@@ -1322,7 +1328,7 @@ class TrialHandler(_BaseTrialHandler):
         if self.extraInfo is not None:
             for key in self.extraInfo:
                 header.insert(0, key)
-        df = DataFrame(columns=header)
+        df = pandas.DataFrame(columns=header)
 
         # loop through each trial, gathering the actual values:
         dataOut = []
@@ -1598,7 +1604,7 @@ class TrialHandler2(_BaseTrialHandler):
         Note that data are stored internally as a list of dictionaries,
         one per trial. These are converted to a DataFrame on access.
         """
-        return DataFrame(self._data)
+        return pandas.DataFrame(self._data)
 
     def next(self):
         """Advances to next trial and returns it.
@@ -1704,8 +1710,8 @@ class TrialHandler2(_BaseTrialHandler):
                        encoding='utf-8',
                        fileCollisionMethod='rename'):
         """Write a text file with the session, stimulus, and data values
-        from each trial in chronological order. Also, return a pandas
-        DataFrame containing same information as the file.
+        from each trial in chronological order. Also, return a
+        pandas.DataFrame containing same information as the file.
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
          - each row comprises information from only a single trial.
@@ -2593,6 +2599,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         - random(5) * 8  # five random vals 0-8
 
     """
+
     def _assertValidVarNames(fieldNames, fileName):
         """screens a list of names as candidate variable names. if all
         names are OK, return silently; else raise ImportError with msg
@@ -2617,12 +2624,12 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         msg = 'Conditions file not found: %s'
         raise ImportError(msg % os.path.abspath(fileName))
 
-    if fileName.endswith('.csv'):
-        with open(fileName, 'rU') as fileUniv:
-            # use pandas reader, which can handle commas in fields, etc
-            trialsArr = read_csv(fileUniv, encoding='utf-8')
+    def pandasToDictList(dataframe):
+        """Convert a pandas dataframe to a list of dicts.
+        This helper function is used by csv or excel imports via pandas
+        """
         # convert the resulting dataframe to a numpy recarray
-        trialsArr = trialsArr.to_records(index=False)
+        trialsArr = dataframe.to_records(index=False)
         if trialsArr.shape == ():
             # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[numpy.newaxis]
@@ -2634,7 +2641,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             thisTrial = {}
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
-                
+
                 if type(val) in [unicode, str]:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
@@ -2645,35 +2652,34 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
-                elif numpy.isnan(val): #if it is a numpy.nan, convert to None
-                        val = None
+                elif numpy.isnan(val):  # if it is a numpy.nan, convert to None
+                    val = None
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
-    elif fileName.endswith('.pkl'):
-        f = open(fileName, 'rU')  # is U needed?
-        try:
-            trialsArr = cPickle.load(f)
-        except Exception:
-            raise ImportError('Could not open %s as conditions' % fileName)
-        f.close()
-        trialList = []
-        fieldNames = trialsArr[0]  # header line first
-        _assertValidVarNames(fieldNames, fileName)
-        for row in trialsArr[1:]:
-            thisTrial = {}
-            for fieldN, fieldName in enumerate(fieldNames):
-                # type is correct, being .pkl
-                thisTrial[fieldName] = row[fieldN]
-            trialList.append(thisTrial)
-    else:
+        return trialList, fieldNames
+
+    if fileName.endswith('.csv'):
+        with open(fileName, 'rU') as fileUniv:
+            # use pandas reader, which can handle commas in fields, etc
+            trialsArr = pandas.read_csv(fileUniv, encoding='utf-8')
+            logging.debug("Read csv file with pandas: {}".format(fileName))
+            trialList, fieldNames = pandasToDictList(trialsArr)
+
+    elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
+        trialsArr = pandas.read_excel(fileName)
+        logging.debug("Read excel file with pandas: {}".format(fileName))
+        trialList, fieldNames = pandasToDictList(trialsArr)
+
+    elif fileName.endswith('.xlsx'):
         if not haveOpenpyxl:
-            raise ImportError('openpyxl is required for loading excel '
-                              'format files, but it was not found.')
+            raise ImportError('openpyxl or xlrd is required for loading excel '
+                              'files, but neither was found.')
         if openpyxl.__version__ < "1.8":  # data_only added in 1.8
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
+        logging.debug("Read excel file with openpyxl: {}".format(fileName))
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
             nCols = ws.max_column
@@ -2704,6 +2710,27 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
+
+    elif fileName.endswith('.pkl'):
+        f = open(fileName, 'rU')  # is U needed?
+        try:
+            trialsArr = cPickle.load(f)
+        except Exception:
+            raise ImportError('Could not open %s as conditions' % fileName)
+        f.close()
+        trialList = []
+        fieldNames = trialsArr[0]  # header line first
+        _assertValidVarNames(fieldNames, fileName)
+        for row in trialsArr[1:]:
+            thisTrial = {}
+            for fieldN, fieldName in enumerate(fieldNames):
+                # type is correct, being .pkl
+                thisTrial[fieldName] = row[fieldN]
+            trialList.append(thisTrial)
+    else:
+        raise IOError('Your conditions file should be an '
+                      'xlsx, csv or pkl file')
+
     # if we have a selection then try to parse it
     if isinstance(selection, basestring) and len(selection) > 0:
         selection = indicesFromString(selection)
