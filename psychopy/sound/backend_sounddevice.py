@@ -106,13 +106,35 @@ class SoundStream(object):
 
 
 class SoundDeviceSound(_SoundBase):
-    """
+    """Play a variety of sounds using the new SoundDevice library
     """
     def __init__(self, value="C", secs=0.5, octave=4, stereo=AUTO,
                  volume=1.0, loops=0,
                  sampleRate=44100, blockSize=128,
+                 bufferSize=-1,
                  hamming=True, start=0, stop=-1,
                  name='', autoLog=True):
+        """
+        :param value: note name ("C","Bfl"), filename or frequency (Hz)
+        :param secs: duration (for synthesised tones)
+        :param octave: which octave to use for note names (4 is middle)
+        :param stereo: 'auto', True or False
+                        to force sounds to a particular mode
+        :param volume: float 0-1
+        :param loops: number of loops to play (-1=forever, 0=single repeat)
+        :param sampleRate: sample rate for synthesized tones
+        :param blockSize: the size of the buffer on the sound card
+                         (small for low latency, large for stability)
+        :param bufferSize: integer to control streaming/buffering
+                           - -1 means store all
+                           - 0 (no buffer) means stream from disk
+                           - potentially we could buffer a few secs(!?)
+        :param hamming: boolean (True to smooth the onset/offset)
+        :param start: for sound files this controls the start of sound snippet
+        :param stop: for sound files this controls the end of sound snippet
+        :param name: string for logging purposes
+        :param autoLog: whether to automatically log every change
+        """
         self.sound = value
         self.name = name
         self.secs = secs  # for any synthesised sounds (notesand freqs)
