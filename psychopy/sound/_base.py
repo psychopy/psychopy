@@ -146,3 +146,33 @@ class _SoundBase(object):
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
 
+    def getDuration(self):
+        """Return the duration of the sound"""
+        return self.duration
+
+    def getVolume(self):
+        """Returns the current volume of the sound (0.0 to 1.0, inclusive)
+        """
+        return self.volume
+
+    def getLoops(self):
+        """Returns the current requested loops value for the sound (int)
+        """
+        return self.loops
+
+    def setVolume(self, newVol, log=True):
+        """Sets the current volume of the sound (0.0 to 1.0, inclusive)
+        """
+        self.volume = min(1.0, max(0.0, newVol))
+        self.needsUpdate = True
+        if log and self.autoLog:
+            logging.exp("Sound %s set volume %.3f" %
+                        (self.name, self.volume), obj=self)
+
+    def setLoops(self, newLoops, log=True):
+        """Sets the current requested extra loops (int)"""
+        self.loops = int(newLoops)
+        self.needsUpdate = True
+        if log and self.autoLog:
+            logging.exp("Sound %s set loops %s" %
+                        (self.name, self.loops), obj=self)
