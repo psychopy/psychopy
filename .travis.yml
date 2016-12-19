@@ -17,8 +17,8 @@ before_install:
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - travis_retry sudo apt-get install -qq python-pygame python-opengl
   - travis_retry sudo -H pip install --upgrade -qq pip
-# pyglet 1.1.4:
-#  - travis_retry sudo apt-get install -qq python-pyglet
+  - travis_retry sudo -H pip install --upgrade -qq pysoundcard
+  - travis_retry sudo -H pip install --upgrade -qq sounddevice
 # pyglet 1.2.2
   - travis_retry sudo -H pip install -qq pyglet
   - python -c 'import pyglet; print pyglet.version'
