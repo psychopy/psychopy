@@ -35,7 +35,6 @@ PEP1: Programming Experiments in Python (Beginners)
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 26-28 April 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
@@ -46,7 +45,7 @@ Details
 Is this suitable for you?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well.
+The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well. **If you want to get up and running more quickly or want to run studies online then you'd be better going to the PsychoPy Builder workshop instead (see below).**
 
 We'll provide you with additional 'intermediate' material as well, for you to build on what you've learnt, but if you're already a proficient programmer in Python then this is probably not the course for you.
 
@@ -73,7 +72,6 @@ Learning to *Build* experiments is the fastest way to get studies up and running
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 3-5 May 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
@@ -105,7 +103,6 @@ PEP2: Programming Experiments in Python (Intermediate)
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 3 days in early-mid August 2017 (date to be confirmed)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350

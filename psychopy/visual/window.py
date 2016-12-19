@@ -294,7 +294,7 @@ class Window(object):
         self.viewScale = val2array(viewScale)
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
-        if self.viewOri is not 0. and self.viewPos is not None:
+        if self.viewOri != 0. and self.viewPos is not None:
             msg = "Window: viewPos & viewOri are currently incompatible"
             raise NotImplementedError(msg)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
@@ -1330,7 +1330,7 @@ class Window(object):
         else:
             stencil_size = 0
         vsync = 0
-        
+
         # provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
