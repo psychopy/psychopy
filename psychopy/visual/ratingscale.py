@@ -1391,6 +1391,7 @@ class SimpleRatingScale(MinimalStim):
                  colorSpace=None, pos=(0, 0), size=1, tickSize=None,
                  mousePos=None, units=None, lineWidth=3, labelPadding=None,
                  maxTime=10, finishOnResponse=True, resetOnFirstFlip=True,
+                 lineKwargs=None, labelKwargs=None, markerKwargs=None,
                  iohub=False, name=None, autoLog=True):
         """
         A simple and minimalistic, yet flexible continuous rating scale that
@@ -1503,7 +1504,7 @@ class SimpleRatingScale(MinimalStim):
             :fuc:~`visual.ratingscale.SimpleRatingScale.draw`.
 
         iohub : bool
-            Whether to acquire respone times via the ioHub mouse device. Will
+            Whether to acquire response times via the ioHub mouse device. Will
             try to automatically connect to a running ioHub server process.
 
         name : string, or `None`
@@ -1512,6 +1513,19 @@ class SimpleRatingScale(MinimalStim):
 
         autoLog : bool
             Whether or not to enable automatic logging of noteworthy events.
+
+        lineKwargs : dict, or `None`
+            Additional keyword arguments passed to :class:`visual.line.Line`,
+            defining the appearance of the scale.
+
+        labelKwargs : dict, or `None`
+            Additional keyword arguments passed to
+            :class:`visual.text.TextStim`, defining the appearance of the
+            labels.
+
+        markerKwargs  : dict, or `None`
+            Additional keyword arguments passed to :class:`visual.line.Line`,
+            defining the appearance of the selection marker.
 
         Attributes
         ----------
@@ -1627,6 +1641,10 @@ class SimpleRatingScale(MinimalStim):
         self._iohub = iohub
         self._mouse, self._io, self._io_mouse = self._init_mouse()
 
+        self._line_kwargs = self._gen_kwargs(lineKwargs, kind='line')
+        self._label_kwargs = self._gen_kwargs(labelKwargs, kind='label')
+        self._marker_kwargs = self._gen_kwargs(markerKwargs, kind='marker')
+
         self._coords = self._gen_coords()
         self._visual_elements = self._gen_visual_elements()
         self._bounding_box = self._gen_bounding_box()
@@ -1737,6 +1755,18 @@ class SimpleRatingScale(MinimalStim):
     @property
     def labelPadding(self):
         return self._label_padding
+
+    @property
+    def lineKwargs(self):
+        return self._line_kwargs
+
+    @property
+    def labelKwargs(self):
+        return self._label_kwargs
+
+    @property
+    def markerKwargs(self):
+        return self._marker_kwargs
 
     @property
     def iohub(self):
@@ -1927,24 +1957,52 @@ class SimpleRatingScale(MinimalStim):
         coords.loc[self.ticks, 'label'] = self.tickLabels
         return coords
 
-    def _gen_visual_elements(self):
-        line_kwargs = dict(lineWidth=self.lineWidth, lineColor=self.color,
-                           lineColorSpace=self.colorSpace, units=self.units,
-                           autoLog=False)
-        text_kwargs = dict(color=self.color, colorSpace=self.colorSpace,
+    def _gen_kwargs(self, kwargs, kind):
+        if kwargs is None:
+            kwargs = dict()
+
+        if kind == 'line':
+            remove_keys = ['lineWidth', 'lineColor', 'lineColorSpace', 'units',
+                           'autoLog']
+            [kwargs.pop(key, None) for key in remove_keys]
+
+            kwargs_ = dict(lineWidth=self.lineWidth, lineColor=self.color,
+                           lineColorSpace=self.colorSpace,
+                           units=self.units, autoLog=False, **kwargs)
+        elif kind == 'label':
+            remove_keys = ['color', 'colorSpace', 'units', 'alignHoriz',
+                           'alignVert', 'autoLog']
+            [kwargs.pop(key, None) for key in remove_keys]
+
+            kwargs_ = dict(color=self.color, colorSpace=self.colorSpace,
                            units=self.units,
                            alignHoriz=self._tick_label_halign,
-                           alignVert=self._tick_label_valign, autoLog=False)
-        marker_kwargs = dict(lineWidth=self.lineWidth,
-                             lineColor=self.markerColor,
-                             lineColorSpace=self.colorSpace, units=self.units,
-                             autoLog=False)
+                           alignVert=self._tick_label_valign,
+                           autoLog=False, **kwargs)
+        elif kind == 'marker':
+            remove_keys = ['lineWidth', 'lineColor', 'lineColorSpace', 'units',
+                           'autoLog']
+            [kwargs.pop(key, None) for key in remove_keys]
 
+            kwargs_ = dict(lineWidth=self.lineWidth,
+                           lineColor=self.markerColor,
+                           lineColorSpace=self.colorSpace,
+                           units=self.units, autoLog=False, **kwargs)
+        else:
+            msg = ('You have encountered a bug. Please contact the '
+                   'developers.')
+            raise RuntimeError(msg)
+
+        return kwargs_
+
+    def _gen_visual_elements(self):
         visual_elements = []
-        visual_elements.append(self._gen_scale(**line_kwargs))
-        visual_elements.extend(self._gen_tick_marks(**line_kwargs))
-        visual_elements.extend(self._gen_tick_labels(**text_kwargs))
-        visual_elements.append(self._gen_selection_marker(**marker_kwargs))
+        visual_elements.append(self._gen_scale(**self._line_kwargs))
+        visual_elements.extend(self._gen_tick_marks(**self._line_kwargs))
+        visual_elements.extend(self._gen_tick_labels(**self._label_kwargs))
+        visual_elements.append(self._gen_selection_marker(
+            **self._marker_kwargs))
+
         return visual_elements
 
     def _gen_scale(self, **line_kwargs):
