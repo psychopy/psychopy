@@ -61,6 +61,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
+from psychopy.tools.monitorunittools import convertToPix
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -192,7 +193,9 @@ class Window(object):
                 Can be used to apply a custom scaling to the current units
                 of the :class:`~psychopy.visual.Window`.
             viewPos : *None*, or [x,y]
-                If not None, redefines the origin for the window
+                If not None, redefines the origin within the window, in the
+                ref:`units` of the window. Values outside the borders will be
+                clamped to lie on the border.
             viewOri : *0* or any numeric value
                 A single value determining the orientation of the view in degs
             waitBlanking : *None*, True or False.
@@ -654,8 +657,16 @@ class Window(object):
             absScaleX, absScaleY = 1, 1
 
         if self.viewPos is not None:
-            normRfPosX = self.viewPos[0] / absScaleX
-            normRfPosY = self.viewPos[1] / absScaleY
+            # first convert to pixels, then normalise to window units
+            viewPos_pix = convertToPix([0, 0], list(self.viewPos),
+                                       units=self.units, win=self)[:2]
+            viewPos_norm = viewPos_pix / (self.size / 2.0)
+            # Clip to +/- 1; should going out-of-window raise an exception?
+            viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
+
+            normRfPosX = viewPos_norm[0] / absScaleX
+            normRfPosY = viewPos_norm[1] / absScaleY
+
             GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
         if self.viewOri:  # float
