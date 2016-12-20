@@ -96,16 +96,16 @@ class _SoundStream(object):
         self.duplex = duplex
         self.blockSize = blockSize
         self.sounds = []  # list of dicts for sounds currently playing
-        if not travisCI:
+        if not travisCI:  # travis-CI testing does not have a sound device
             self._sdStream = sd.OutputStream(samplerate=sampleRate,
                                              blocksize=self.blockSize,
                                              latency='high',
                                              channels=channels,
                                              callback=self.callback)
-        self._sdStream.start()
-        self.device = self._sdStream.device
-        self.latency = self._sdStream.latency
-        self.cpu_load = self._sdStream.cpu_load
+            self._sdStream.start()
+            self.device = self._sdStream.device
+            self.latency = self._sdStream.latency
+            self.cpu_load = self._sdStream.cpu_load
         self.frameN = 1
         self.takeTimeStamp = False
         self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
@@ -197,8 +197,8 @@ class SoundDeviceSound(_SoundBase):
                            - 0 (no buffer) means stream from disk
                            - potentially we could buffer a few secs(!?)
         :param hamming: boolean (True to smooth the onset/offset)
-        :param startTime: for sound files this controls the start of sound snippet
-        :param stopTime: for sound files this controls the end of sound snippet
+        :param startTime: for sound files this controls the start of snippet
+        :param stopTime: for sound files this controls the end of snippet
         :param name: string for logging purposes
         :param autoLog: whether to automatically log every change
         """
@@ -216,6 +216,7 @@ class SoundDeviceSound(_SoundBase):
         self.blockSize = blockSize  # can be per-sound unlike other backends
         self.preBuffer = preBuffer
         self.frameN = 0
+        self._tSoundRequestPlay = 0
         self.sampleRate = sampleRate
         self.channels = None
         self.duplex = None
@@ -262,7 +263,7 @@ class SoundDeviceSound(_SoundBase):
                                          blockSize=self.blockSize)
         except SoundFormatError as err:
             # try to use something similar (e.g. mono->stereo)
-        # then check we have an approp stream open
+            # then check we have an appropriate stream open
             altern = streams.getSimilar(sampleRate=self.sampleRate,
                                         channels=-1,
                                         blockSize=-1)
@@ -308,8 +309,8 @@ class SoundDeviceSound(_SoundBase):
             self.sndFile.close()
             self._setSndFromArray(sndArr)
 
-    def _setSndFromFreq(self, freq, secs, hamming):
-        self.freq = freq
+    def _setSndFromFreq(self,  thisFreq, secs, hamming=True):
+        self.freq = thisFreq
         self.secs = secs
         self.sourceType = 'freq'
         self.t = 0
@@ -332,12 +333,6 @@ class SoundDeviceSound(_SoundBase):
         self._nSamples = thisArray.shape[0]
         # set to run from the start:
         self.seek(0)
-
-
-    def setVolume(self, value):
-        """Sets the volume (multiplies with the sound)
-        """
-        self.volume = value
 
     def play(self, loops=None):
         """Start the sound playing
