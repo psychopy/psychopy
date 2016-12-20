@@ -16,7 +16,7 @@ import numpy as np
 
 logging.console.setLevel(logging.INFO)
 
-END = -1
+END=-1
 
 print("using SoundDevice with {}".format(sd.get_portaudio_version()[1]))
 startTime = time.time()
@@ -103,10 +103,10 @@ class _SoundStream(object):
                                              latency='high',
                                              channels=channels,
                                              callback=self.callback)
-            self._sdStream.start()
-            self.device = self._sdStream.device
-            self.latency = self._sdStream.latency
-            self.cpu_load = self._sdStream.cpu_load
+        self._sdStream.start()
+        self.device = self._sdStream.device
+        self.latency = self._sdStream.latency
+        self.cpu_load = self._sdStream.cpu_load
         self.frameN = 1
         self.takeTimeStamp = False
         self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
@@ -125,25 +125,25 @@ class _SoundStream(object):
         """
         if self.takeTimeStamp:
             logging.info("Entered callback: {} ms after last frame end"
-                         .format((time.time()-self.lastFrameTime)*1000))
+                  .format((time.time()-self.lastFrameTime)*1000))
             logging.info("Entered callback: {} ms after sound start"
-                         .format((time.time()-self.t0)*1000))
+                  .format((time.time()-self.t0)*1000))
         t0 = time.time()
         self.frameN += 1
         toSpk *= 0  # it starts with the contents of the buffer before
         for thisSound in self.sounds:
             dat = thisSound._nextBlock()  # fetch the next block of data
             if self.channels == 2:
-                toSpk[:len(dat), :] += dat  # add to out stream
+                toSpk[:len(dat),:] += dat  # add to out stream
             else:
-                toSpk[:len(dat), 0] += dat  # add to out stream
+                toSpk[:len(dat),0] += dat  # add to out stream
             # check if that was a short block (sound is finished)
-            if len(dat) < len(toSpk[:, :]):
+            if len(dat)<len(toSpk[:,:]):
                 self.sounds.remove(thisSound)
                 thisSound._EOS()
             # check if that took a long time
             t1 = time.time()
-            if (t1-t0) > 0.001:
+            if (t1-t0)>0.001:
                 logging.info("buffer_callback took {:.3f}ms that frame"
                              .format((t1-t0)*1000))
         self.frameTimes.pop(0)
@@ -166,8 +166,8 @@ class _SoundStream(object):
     def __del__(self):
         print 'garbage_collected_soundDeviceStream'
         if not travisCI:
-            self._sdStream.stop()
-            del self._sdStream
+        self._sdStream.stop()
+        del self._sdStream
         sys.stdout.flush()
 
 
@@ -262,7 +262,7 @@ class SoundDeviceSound(_SoundBase):
                                          blockSize=self.blockSize)
         except SoundFormatError as err:
             # try to use something similar (e.g. mono->stereo)
-            # then check we have an approp stream open
+        # then check we have an approp stream open
             altern = streams.getSimilar(sampleRate=self.sampleRate,
                                         channels=-1,
                                         blockSize=-1)
@@ -287,7 +287,7 @@ class SoundDeviceSound(_SoundBase):
             self.sndFile.seek(int(startFrame))
             self.t = self.startTime
         else:
-            self.t = 0
+        self.t = 0
         if self.stopTime and self.stopTime > 0:
             requestedDur = self.stopTime - self.t
             maxDur = info.duration
@@ -383,10 +383,10 @@ class SoundDeviceSound(_SoundBase):
                 )
             block = np.sin(xx)
             # if run beyond our desired t then set to zeros
-            if stopT > self.secs:
+            if stopT>self.secs:
                 tRange = np.linspace(startT, stopT,
                                      num=self.blockSize, endpoint=False)
-                block[tRange > self.secs] == 0
+                block[tRange>self.secs] == 0
                 # and inform our EOS function that we finished
                 self._EOS()
 
