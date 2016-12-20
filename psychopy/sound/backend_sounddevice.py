@@ -166,7 +166,7 @@ class _SoundStream(object):
     def __del__(self):
         print 'garbage_collected_soundDeviceStream'
         if not travisCI:
-        self._sdStream.stop()
+            self._sdStream.stop()
         del self._sdStream
         sys.stdout.flush()
 
@@ -303,6 +303,7 @@ class SoundDeviceSound(_SoundBase):
             sndArr = self.sndFile.read(frames=self.durationFrames)
             self.sndFile.close()
             self._setSndFromArray(sndArr)
+
     def _setSndFromFreq(self, freq, secs, hamming):
         self.freq = freq
         self.secs = secs
