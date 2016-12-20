@@ -282,19 +282,23 @@ class SoundDeviceSound(_SoundBase):
         self.sampleRate = f.samplerate
         self.channels = f.channels
         info = sf.info(filename)  # needed for duration?
+        # process start time
         if self.startTime and self.startTime > 0:
             startFrame = self.startTime*self.sampleRate
             self.sndFile.seek(int(startFrame))
             self.t = self.startTime
         else:
-        self.t = 0
+            self.t = 0
+        # process stop time
         if self.stopTime and self.stopTime > 0:
             requestedDur = self.stopTime - self.t
             maxDur = info.duration
             self.duration = min(requestedDur, maxDur)
         else:
             self.duration = info.duration - self.t
+        # can now calculate duration in frames
         self.durationFrames = int(round(self.duration*self.sampleRate))
+        # are we preloading or streaming?
         if self.preBuffer == 0:
             # no buffer - stream from disk on each call to nextBlock
             pass
