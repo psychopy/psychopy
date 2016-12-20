@@ -23,6 +23,7 @@ def init():
     pass
     # for compatibility with other backends but not needed
 
+
 class _PySoundCallbackClass(object):
     """To use callbacks without creating circular references we need a
     callback class.

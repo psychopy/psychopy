@@ -13,11 +13,9 @@ News
 ====================
 
 **Workshops**: This year we'll be running **three** :ref:`officialWorkshops` :
- - 26-28 Apr 2017: :ref:`PEP1`
-  - Bookings now open at `PEP1 bookings <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=786>`_
+ - 26-28 Apr 2017: :ref:`PEP1` to get skills in programming rather than running experiments *per se*
 
- - 3-5 May 2017: :ref:`BEP`
-  - Bookings now open at `BEP bookings <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=787>`_
+ - 3-5 May 2017: :ref:`BEP` to get up and running fast **including a session on running ONLINE PsychoPy studies**
 
  - (Date TBC): :ref:`PEP2`
 
