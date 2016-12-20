@@ -14,23 +14,21 @@ import soundfile as sf
 
 import numpy as np
 
+travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 logging.console.setLevel(logging.INFO)
 
-END=-1
+logging.info("Loaded SoundDevice with {}".format(sd.get_portaudio_version()[1]))
 
-print("using SoundDevice with {}".format(sd.get_portaudio_version()[1]))
-startTime = time.time()
 
 def init():
     pass  # for compatibility with other backends
 
 
-travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
-
 def getStreamLabel(sampleRate, channels, blockSize):
     """Returns the string repr of the stream label
     """
     return "{}_{}_{}".format(sampleRate, channels, blockSize)
+
 
 class _StreamsDict(dict):
     """Keeps track of what streams have been created. On OS X we can have
@@ -86,6 +84,7 @@ class _StreamsDict(dict):
 
 streams = _StreamsDict()
 
+
 class _SoundStream(object):
     def __init__(self, sampleRate, channels, blockSize, duplex=False):
         # initialise thread
@@ -111,6 +110,7 @@ class _SoundStream(object):
         self.takeTimeStamp = False
         self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         self.lastFrameTime = time.time()
+        self._tSoundRequestPlay = None
 
     def callback(self, toSpk, blockSize, timepoint, status):
         """This is a callback for the SoundDevice lib
@@ -125,25 +125,25 @@ class _SoundStream(object):
         """
         if self.takeTimeStamp:
             logging.info("Entered callback: {} ms after last frame end"
-                  .format((time.time()-self.lastFrameTime)*1000))
+                         .format((time.time()-self.lastFrameTime)*1000))
             logging.info("Entered callback: {} ms after sound start"
-                  .format((time.time()-self.t0)*1000))
+                         .format((time.time()-self._tSoundRequestPlay)*1000))
         t0 = time.time()
         self.frameN += 1
         toSpk *= 0  # it starts with the contents of the buffer before
         for thisSound in self.sounds:
             dat = thisSound._nextBlock()  # fetch the next block of data
             if self.channels == 2:
-                toSpk[:len(dat),:] += dat  # add to out stream
+                toSpk[:len(dat), :] += dat  # add to out stream
             else:
-                toSpk[:len(dat),0] += dat  # add to out stream
+                toSpk[:len(dat), 0] += dat  # add to out stream
             # check if that was a short block (sound is finished)
-            if len(dat)<len(toSpk[:,:]):
+            if len(dat) < len(toSpk[:, :]):
                 self.sounds.remove(thisSound)
                 thisSound._EOS()
             # check if that took a long time
             t1 = time.time()
-            if (t1-t0)>0.001:
+            if (t1-t0) > 0.001:
                 logging.info("buffer_callback took {:.3f}ms that frame"
                              .format((t1-t0)*1000))
         self.frameTimes.pop(0)
@@ -164,7 +164,7 @@ class _SoundStream(object):
             self.sounds.remove(sound)
 
     def __del__(self):
-        print 'garbage_collected_soundDeviceStream'
+        print('garbage_collected_soundDeviceStream')
         if not travisCI:
             self._sdStream.stop()
         del self._sdStream
@@ -197,8 +197,8 @@ class SoundDeviceSound(_SoundBase):
                            - 0 (no buffer) means stream from disk
                            - potentially we could buffer a few secs(!?)
         :param hamming: boolean (True to smooth the onset/offset)
-        :param start: for sound files this controls the start of sound snippet
-        :param stop: for sound files this controls the end of sound snippet
+        :param startTime: for sound files this controls the start of sound snippet
+        :param stopTime: for sound files this controls the end of sound snippet
         :param name: string for logging purposes
         :param autoLog: whether to automatically log every change
         """
@@ -222,7 +222,7 @@ class SoundDeviceSound(_SoundBase):
         self.autoLog = autoLog
         self.streamLabel = ""
         self.sourceType = 'unknown'  # set to be file, array or freq
-        self.sndFile = ''
+        self.sndFile = None
         self.sndArr = None
         # setSound (determines sound type)
         self.setSound(value)
@@ -345,6 +345,7 @@ class SoundDeviceSound(_SoundBase):
         if loops is not None and self.loops != loops:
             self.setLoops(loops)
         self.status = PLAYING
+        self._tSoundRequestPlay = time.time()
         streams[self.streamLabel].takeTimeStamp = True
         streams[self.streamLabel].add(self)
 
@@ -388,10 +389,10 @@ class SoundDeviceSound(_SoundBase):
                 )
             block = np.sin(xx)
             # if run beyond our desired t then set to zeros
-            if stopT>self.secs:
+            if stopT > self.secs:
                 tRange = np.linspace(startT, stopT,
                                      num=self.blockSize, endpoint=False)
-                block[tRange>self.secs] == 0
+                block[tRange > self.secs] == 0
                 # and inform our EOS function that we finished
                 self._EOS()
 
@@ -400,9 +401,9 @@ class SoundDeviceSound(_SoundBase):
 
     def seek(self, t):
         self.t = t
-        self._sampleIndex = t * self.sampleRate
+        self.frameN = int(round(t * self.sampleRate))
         if self.sndFile and not self.sndFile.closed:
-            self.sndFile.seek(self._sampleIndex)
+            self.sndFile.seek(self.frameN)
 
     def _EOS(self):
         """Function called on End Of Stream
