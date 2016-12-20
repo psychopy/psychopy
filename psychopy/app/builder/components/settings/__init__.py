@@ -218,7 +218,7 @@ class SettingsComponent(object):
             label="Output path", categ='Online')
         self.params['email'] = Param(
             '', valType='str', allowedTypes=[],
-            hint=_translate("Place the HTML files will be saved locally "),
+            hint=_translate("Email address for information emails"),
             label="Email address (for info emails)", categ='Online')
         self.params['JS libs'] = Param(
             'packaged', valType='str', allowedVals=['packaged'],
