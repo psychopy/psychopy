@@ -15,6 +15,8 @@ if platform == 'win32':
     mediaLocation = "C:\\Windows\Media"
 elif platform == 'darwin':
     mediaLocation = "/System/Library/Sounds/"
+elif platform.startswith("linux"):
+    mediaLocation = "/usr/share/sounds"
 
 stepsFromA = {
     'C': -9, 'Csh': -8,
