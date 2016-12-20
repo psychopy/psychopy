@@ -41,7 +41,13 @@ _localized = {'expName': _translate("Experiment name"),
               'Save excel file':  _translate("Save excel file"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
-              'Use version': _translate("Use PsychoPy version")}
+              'Use version': _translate("Use PsychoPy version"),
+              'Output path': _translate("Output path"),
+              'JS libs': _translate("JS libs"),
+              'OSF Project ID': _translate("OSF Project ID"),
+              'OSF username (email)': _translate("OSF username (email)"),
+              'Email address (for info emails)':
+                  _translate("Email address (for infor emails)")}
 
 thisFolder = os.path.split(__file__)[0]
 
@@ -206,25 +212,25 @@ class SettingsComponent(object):
         self.params['OSF Project ID'] = Param(
             '', valType='str', allowedTypes=[],
             hint=_translate("The ID of this project (e.g. 5bqpc)"),
-            label="OSF Project ID", categ='Online')
+            label=_localized["OSF Project ID"], categ='Online')
         self.params['OSF User'] = Param(
             '', valType='str', allowedTypes=[],
             hint=_translate("Must be a user that has logged in from PsychoPy "
                             "on this machine (with user remembered)"),
-            label="OSF username (email)", categ='Online')
+            label=_localized["OSF username (email)"], categ='Online')
         self.params['HTML path'] = Param(
             '', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
-            label="Output path", categ='Online')
+            label=_localized["Output path"], categ='Online')
         self.params['email'] = Param(
             '', valType='str', allowedTypes=[],
             hint=_translate("Email address for information emails"),
-            label="Email address (for info emails)", categ='Online')
+            label=_localized["Email address (for info emails)"], categ='Online')
         self.params['JS libs'] = Param(
             'packaged', valType='str', allowedVals=['packaged'],
             hint=_translate("Should we package a copy of the JS libs or use"
                             "remote copies (http:/www.psychopy.org/js)?"),
-            label="JS libs", categ='Online')
+            label=_localized["JS libs"], categ='Online')
 
     def getType(self):
         return self.__class__.__name__

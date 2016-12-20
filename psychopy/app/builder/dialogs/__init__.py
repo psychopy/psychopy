@@ -437,6 +437,7 @@ class _BaseParamsDlg(wx.Dialog):
         categLabel = {'Basic': _translate('Basic'),
                       'Data': _translate('Data'),
                       'Screen': _translate('Screen'),
+                      'Online': _translate('Online'),
                       'Dots': _translate('Dots'),
                       'Grating': _translate('Grating'),
                       'Advanced': _translate('Advanced'),
