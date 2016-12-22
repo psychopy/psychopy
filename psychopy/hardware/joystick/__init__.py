@@ -24,7 +24,7 @@ Typical usage::
 
     nAxes = joy.getNumAxes()  # for interest
     while True:  # while presenting stimuli
-        currentjoy.getX()
+        joy.getX()
         # ...
         win.flip()  # flipping implicitly updates the joystick info
 """
