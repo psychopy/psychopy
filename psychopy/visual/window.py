@@ -444,6 +444,19 @@ class Window(object):
         setAttribute(self, 'units', value, log=log)
 
     @attributeSetter
+    def viewPos(self, value):
+        # first convert to pixels, then normalise to window units
+        viewPos_pix = convertToPix([0, 0], list(value),
+                                   units=self.units, win=self)[:2]
+        viewPos_norm = viewPos_pix / (self.size / 2.0)
+        # Clip to +/- 1; should going out-of-window raise an exception?
+        viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
+        self.__dict__['viewPos'] = viewPos_norm
+
+    def setViewPos(self, value, log=True):
+        setAttribute(self, 'viewPos', value, log=log)
+
+    @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.
         After a call to flip() should we wait for the blank before the
@@ -657,15 +670,17 @@ class Window(object):
             absScaleX, absScaleY = 1, 1
 
         if self.viewPos is not None:
-            # first convert to pixels, then normalise to window units
-            viewPos_pix = convertToPix([0, 0], list(self.viewPos),
-                                       units=self.units, win=self)[:2]
-            viewPos_norm = viewPos_pix / (self.size / 2.0)
-            # Clip to +/- 1; should going out-of-window raise an exception?
-            viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
-
-            normRfPosX = viewPos_norm[0] / absScaleX
-            normRfPosY = viewPos_norm[1] / absScaleY
+            # # first convert to pixels, then normalise to window units
+            # viewPos_pix = convertToPix([0, 0], list(self.viewPos),
+            #                            units=self.units, win=self)[:2]
+            # viewPos_norm = viewPos_pix / (self.size / 2.0)
+            # # Clip to +/- 1; should going out-of-window raise an exception?
+            # viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
+            # normRfPosX = viewPos_norm[0] / absScaleX
+            # normRfPosY = viewPos_norm[1] / absScaleY
+            #
+            normRfPosX = self.viewPos[0] / absScaleX
+            normRfPosY = self.viewPos[1] / absScaleY
 
             GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
