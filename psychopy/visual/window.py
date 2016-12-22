@@ -607,7 +607,10 @@ class Window(object):
             GL.glTranslatef(0.0, 0.0, -5.0)
 
             for dispatcher in self._eventDispatchers:
-                dispatcher.dispatch_events()
+                try:
+                    dispatcher.dispatch_events()
+                except:
+                    dispatcher._dispatch_events()
 
             # this might need to be done even more often than once per frame?
             self.winHandle.dispatch_events()
