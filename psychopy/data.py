@@ -3701,7 +3701,7 @@ class QuestHandler(StairHandler):
     def quantile(self, p=None):
         """quantile of Quest posterior pdf
         """
-        return self._quest.quantile(p)
+        return self._quest.quantile(quantileOrder=p)
 
     def confInterval(self, getDifference=False):
         """
