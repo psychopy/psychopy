@@ -220,7 +220,7 @@ class SoundPyo(_SoundBase):
         """
         global pyoSndServer
         if pyoSndServer is None or pyoSndServer.getIsBooted() == 0:
-            initPyo(rate=sampleRate)
+            init(rate=sampleRate)
 
         self.sampleRate = pyoSndServer.getSamplingRate()
         self.format = bits
