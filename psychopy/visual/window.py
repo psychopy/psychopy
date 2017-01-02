@@ -118,7 +118,7 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <www.pyglet.org>`_ or `pygame <www.pygame.org>`_
+    using either `pyglet <http://www.pyglet.org>`_ or `pygame <http://www.pygame.org>`_
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
@@ -607,7 +607,10 @@ class Window(object):
             GL.glTranslatef(0.0, 0.0, -5.0)
 
             for dispatcher in self._eventDispatchers:
-                dispatcher.dispatch_events()
+                try:
+                    dispatcher.dispatch_events()
+                except:
+                    dispatcher._dispatch_events()
 
             # this might need to be done even more often than once per frame?
             self.winHandle.dispatch_events()
