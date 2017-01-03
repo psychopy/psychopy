@@ -3469,7 +3469,7 @@ class QuestHandler(StairHandler):
         # can now access 1 of 3 suggested threshold levels
         staircase.mean()
         staircase.mode()
-        staircase.quantile()  # gets the median
+        staircase.quantile(0.5)  # gets the median
 
     """
 
@@ -3701,10 +3701,22 @@ class QuestHandler(StairHandler):
     def quantile(self, p=None):
         """quantile of Quest posterior pdf
         """
-        return self._quest.quantile(p)
+        return self._quest.quantile(quantileOrder=p)
 
     def confInterval(self, getDifference=False):
-        """give the range of the 5-95% confidence interval
+        """
+        Return estimate for the 5%--95% confidence interval (CI).
+
+        :Parameters:
+
+            getDifference (bool)
+                If ``True``, return the width of the confidence interval
+                (95% - 5% percentiles). If ``False``, return an NumPy array
+                with estimates for the 5% and 95% boundaries.
+
+        :Returns:
+
+            scalar or array of length 2.
         """
         interval = [self.quantile(0.05), self.quantile(0.95)]
         if getDifference:
