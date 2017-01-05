@@ -38,7 +38,7 @@ if sys.platform == 'win32':
         haveAvbin = False
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
-    except Exception, e:
+    except Exception as e:
         # WindowsError on some systems
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
@@ -119,7 +119,8 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <http://www.pyglet.org>`_ or `pygame <http://www.pygame.org>`_
+    using either `pyglet <http://www.pyglet.org>`_ or
+    `pygame <http://www.pygame.org>`_
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
@@ -156,7 +157,7 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 useRetina = False,
+                 useRetina=False,
                  autoLog=True):
         """
         These attributes can only be set at initialization. See further down
@@ -239,7 +240,7 @@ class Window(object):
             self._initParams.remove(unecess)
 
         # Check autoLog value
-        if not autoLog in (True, False):
+        if autoLog not in (True, False):
             raise ValueError(
                 'autoLog must be either True or False for visual.Window')
 
@@ -403,7 +404,7 @@ class Window(object):
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def __del__(self):
-        if self._closed == False:
+        if self._closed is False:
             self.close()
 
     def __enter__(self):
@@ -595,7 +596,7 @@ class Window(object):
                 stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
                 GL.glDisable(GL.GL_STENCIL_TEST)
 
-                if self.bits != None:
+                if self.bits is not None:
                     self.bits._prepareFBOrender()
 
                 # before flipping need to copy the renderBuffer to the
@@ -904,9 +905,11 @@ class Window(object):
         GL.glReadPixels(0, 0, self.size[0], self.size[1],
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=tuple(self.size), data=bufferDat)
+            im = Image.fromstring(mode='RGBA', size=tuple(self.size),
+                                  data=bufferDat)
         except Exception:
-            im = Image.frombytes(mode='RGBA', size=tuple(self.size), data=bufferDat)
+            im = Image.frombytes(mode='RGBA', size=tuple(self.size),
+                                 data=bufferDat)
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
         im = im.convert('RGB')
 
@@ -982,7 +985,7 @@ class Window(object):
                 numpyFrames.append(numpy.array(frame))
             clip = ImageSequenceClip(numpyFrames, fps=fps)
             if fileExt == '.gif':
-                clip.write_gif(fileName,fps=15)
+                clip.write_gif(fileName, fps=15)
             else:
                 clip.write_videofile(fileName, codec=codec)
         elif len(self.movieFrames) == 1:
@@ -1267,7 +1270,7 @@ class Window(object):
                    "Bits++/Bits# enabled. It was ambiguous what should "
                    "happen. Use the setGamma() function of the bits box "
                    "instead")
-            raise DeprecationError, msg
+            raise DeprecationWarning(msg)
         elif self.winType == 'pygame':
             pygame.display.set_gamma(self.gamma[0],
                                      self.gamma[1],
@@ -1395,7 +1398,7 @@ class Window(object):
             GL.glOrtho(0, width, 0, height, -1, 1)
             GL.glMatrixMode(GL.GL_MODELVIEW)
 
-        if self.useRetina and sys.platform=='darwin':
+        if self.useRetina and sys.platform == 'darwin':
             from pyglet.gl.cocoa import CocoaContext
             CocoaContext.attach = retinaAttach
             from pyglet.window.cocoa import CocoaWindow
