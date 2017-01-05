@@ -453,13 +453,19 @@ class Window(object):
         the viewPos-attribute in one shot, e.g.:
             win.viewPos = [0.5, 0.1]  # if degrees, x=0.5, y=0.1
         """
+        self.__dict__['viewPos'] = value
+        # setter takes care of normalisation
+        setattr(self, '_viewPosNorm', value)
+
+    @attributeSetter
+    def _viewPosNorm(self, value):
         # first convert to pixels, then normalise to window units
         viewPos_pix = convertToPix([0, 0], list(value),
                                    units=self.units, win=self)[:2]
         viewPos_norm = viewPos_pix / (self.size / 2.0)
         # Clip to +/- 1; should going out-of-window raise an exception?
         viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
-        self.__dict__['viewPos'] = viewPos_norm
+        self.__dict__['_viewPosNorm'] = viewPos_norm
 
     def setViewPos(self, value, log=True):
         setAttribute(self, 'viewPos', value, log=log)
@@ -677,11 +683,11 @@ class Window(object):
         else:
             absScaleX, absScaleY = 1, 1
 
-        if self.viewPos is not None:
+        if self._viewPosNorm is not None:
             # viewPos must be in normalised units, see the corresponding
             # attributeSetter above
-            normRfPosX = self.viewPos[0] / absScaleX
-            normRfPosY = self.viewPos[1] / absScaleY
+            normRfPosX = self._viewPosNorm[0] / absScaleX
+            normRfPosY = self._viewPosNorm[1] / absScaleY
 
             GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
