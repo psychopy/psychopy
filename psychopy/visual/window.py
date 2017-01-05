@@ -38,7 +38,7 @@ if sys.platform == 'win32':
         haveAvbin = False
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
-    except Exception, e:
+    except Exception as e:
         # WindowsError on some systems
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
@@ -61,6 +61,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
+from psychopy.tools.monitorunittools import convertToPix
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -118,7 +119,8 @@ openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <http://www.pyglet.org>`_ or `pygame <http://www.pygame.org>`_
+    using either `pyglet <http://www.pyglet.org>`_ or
+    `pygame <http://www.pygame.org>`_
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
@@ -155,7 +157,7 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 useRetina = False,
+                 useRetina=False,
                  autoLog=True):
         """
         These attributes can only be set at initialization. See further down
@@ -192,7 +194,9 @@ class Window(object):
                 Can be used to apply a custom scaling to the current units
                 of the :class:`~psychopy.visual.Window`.
             viewPos : *None*, or [x,y]
-                If not None, redefines the origin for the window
+                If not None, redefines the origin within the window, in the
+                ref:`units` of the window. Values outside the borders will be
+                clamped to lie on the border.
             viewOri : *0* or any numeric value
                 A single value determining the orientation of the view in degs
             waitBlanking : *None*, True or False.
@@ -236,7 +240,7 @@ class Window(object):
             self._initParams.remove(unecess)
 
         # Check autoLog value
-        if not autoLog in (True, False):
+        if autoLog not in (True, False):
             raise ValueError(
                 'autoLog must be either True or False for visual.Window')
 
@@ -292,6 +296,8 @@ class Window(object):
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
+        if self.viewPos is not None and self.units is None:
+            raise ValueError('You must define the window units to use viewPos')
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
         if self.viewOri != 0. and self.viewPos is not None:
@@ -400,7 +406,7 @@ class Window(object):
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def __del__(self):
-        if self._closed == False:
+        if self._closed is False:
             self.close()
 
     def __enter__(self):
@@ -439,6 +445,35 @@ class Window(object):
 
     def setUnits(self, value, log=True):
         setAttribute(self, 'units', value, log=log)
+
+    @attributeSetter
+    def viewPos(self, value):
+        """The origin of the window onto which stimulus-objects are drawn.
+
+        The value should be given in the units defined for the window. NB:
+        Never change a single component (x or y) of the origin, instead replace
+        the viewPos-attribute in one shot, e.g.:
+            win.viewPos = [new_xval, new_yval]  # This is the way to do it
+            win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
+        """
+        self.__dict__['viewPos'] = value
+        if value is not None:
+            # let setter take care of normalisation
+            setattr(self, '_viewPosNorm', value)
+
+    @attributeSetter
+    def _viewPosNorm(self, value):
+        """Normalised value of viewPos, hidden from user view."""
+        # first convert to pixels, then normalise to window units
+        viewPos_pix = convertToPix([0, 0], list(value),
+                                   units=self.units, win=self)[:2]
+        viewPos_norm = viewPos_pix / (self.size / 2.0)
+        # Clip to +/- 1; should going out-of-window raise an exception?
+        viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
+        self.__dict__['_viewPosNorm'] = viewPos_norm
+
+    def setViewPos(self, value, log=True):
+        setAttribute(self, 'viewPos', value, log=log)
 
     @attributeSetter
     def waitBlanking(self, value):
@@ -579,7 +614,7 @@ class Window(object):
                 stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
                 GL.glDisable(GL.GL_STENCIL_TEST)
 
-                if self.bits != None:
+                if self.bits is not None:
                     self.bits._prepareFBOrender()
 
                 # before flipping need to copy the renderBuffer to the
@@ -654,8 +689,11 @@ class Window(object):
             absScaleX, absScaleY = 1, 1
 
         if self.viewPos is not None:
-            normRfPosX = self.viewPos[0] / absScaleX
-            normRfPosY = self.viewPos[1] / absScaleY
+            # here we must use normalised units in _viewPosNorm,
+            # see the corresponding attributeSetter above
+            normRfPosX = self._viewPosNorm[0] / absScaleX
+            normRfPosY = self._viewPosNorm[1] / absScaleY
+
             GL.glTranslatef(normRfPosX, normRfPosY, 0.0)
 
         if self.viewOri:  # float
@@ -878,9 +916,11 @@ class Window(object):
         GL.glReadPixels(0, 0, self.size[0], self.size[1],
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=tuple(self.size), data=bufferDat)
+            im = Image.fromstring(mode='RGBA', size=tuple(self.size),
+                                  data=bufferDat)
         except Exception:
-            im = Image.frombytes(mode='RGBA', size=tuple(self.size), data=bufferDat)
+            im = Image.frombytes(mode='RGBA', size=tuple(self.size),
+                                 data=bufferDat)
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
         im = im.convert('RGB')
 
@@ -956,7 +996,7 @@ class Window(object):
                 numpyFrames.append(numpy.array(frame))
             clip = ImageSequenceClip(numpyFrames, fps=fps)
             if fileExt == '.gif':
-                clip.write_gif(fileName,fps=15)
+                clip.write_gif(fileName, fps=15)
             else:
                 clip.write_videofile(fileName, codec=codec)
         elif len(self.movieFrames) == 1:
@@ -1241,7 +1281,7 @@ class Window(object):
                    "Bits++/Bits# enabled. It was ambiguous what should "
                    "happen. Use the setGamma() function of the bits box "
                    "instead")
-            raise DeprecationError, msg
+            raise DeprecationWarning(msg)
         elif self.winType == 'pygame':
             pygame.display.set_gamma(self.gamma[0],
                                      self.gamma[1],
@@ -1369,7 +1409,7 @@ class Window(object):
             GL.glOrtho(0, width, 0, height, -1, 1)
             GL.glMatrixMode(GL.GL_MODELVIEW)
 
-        if self.useRetina and sys.platform=='darwin':
+        if self.useRetina and sys.platform == 'darwin':
             from pyglet.gl.cocoa import CocoaContext
             CocoaContext.attach = retinaAttach
             from pyglet.window.cocoa import CocoaWindow
