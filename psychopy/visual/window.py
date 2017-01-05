@@ -446,6 +446,13 @@ class Window(object):
 
     @attributeSetter
     def viewPos(self, value):
+        """The origin of the window onto which stimulus-objects can be drawn.
+
+        The value should be given in the units defined for the window. NB:
+        Never change a single component (x or y) of the origin, instead replace
+        the viewPos-attribute in one shot, e.g.:
+            win.viewPos = [0.5, 0.1]  # if degrees, x=0.5, y=0.1
+        """
         # first convert to pixels, then normalise to window units
         viewPos_pix = convertToPix([0, 0], list(value),
                                    units=self.units, win=self)[:2]
@@ -671,15 +678,8 @@ class Window(object):
             absScaleX, absScaleY = 1, 1
 
         if self.viewPos is not None:
-            # # first convert to pixels, then normalise to window units
-            # viewPos_pix = convertToPix([0, 0], list(self.viewPos),
-            #                            units=self.units, win=self)[:2]
-            # viewPos_norm = viewPos_pix / (self.size / 2.0)
-            # # Clip to +/- 1; should going out-of-window raise an exception?
-            # viewPos_norm = numpy.clip(viewPos_norm, a_min=-1., a_max=1.)
-            # normRfPosX = viewPos_norm[0] / absScaleX
-            # normRfPosY = viewPos_norm[1] / absScaleY
-            #
+            # viewPos must be in normalised units, see the corresponding
+            # attributeSetter above
             normRfPosX = self.viewPos[0] / absScaleX
             normRfPosY = self.viewPos[1] / absScaleY
 
