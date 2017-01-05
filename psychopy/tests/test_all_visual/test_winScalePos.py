@@ -33,10 +33,16 @@ class Test_Win_Scale_Pos_Ori(object):
 
         for ori in [0, 45]:
             self.win.viewOri = ori
-            for offset in [(0, 0), (-.4, 0)]:
+            for offset in [(0, 0), (-0.4, 0)]:
                 if ori and (offset[0] or offset[1]):
                     continue  # this combination is NotImplemented
-                self.win.viewPos = offset
+                else:  # NB assumes test win is in pixels!
+                    # convert from normalised offset to pixels
+                    offset_pix = (round(offs * siz / 2.) for offs, siz in
+                                  zip(offset, self.win.size))
+
+                    self.win.viewPos = offset_pix
+
                 for scale in [[1, 1],  # normal: green at lower left
                               [1, -1],  # mirror vert only: green appears to
                                         # move up, text mirrored
