@@ -446,19 +446,22 @@ class Window(object):
 
     @attributeSetter
     def viewPos(self, value):
-        """The origin of the window onto which stimulus-objects can be drawn.
+        """The origin of the window onto which stimulus-objects are drawn.
 
         The value should be given in the units defined for the window. NB:
         Never change a single component (x or y) of the origin, instead replace
         the viewPos-attribute in one shot, e.g.:
-            win.viewPos = [0.5, 0.1]  # if degrees, x=0.5, y=0.1
+            win.viewPos = [new_xval, new_yval]  # This is the way to do it
+            win.viewPos[0] = new_xval  # DO NOT DO THIS! Errors will result.
         """
         self.__dict__['viewPos'] = value
-        # setter takes care of normalisation
-        setattr(self, '_viewPosNorm', value)
+        if value is not None:
+            # let setter take care of normalisation
+            setattr(self, '_viewPosNorm', value)
 
     @attributeSetter
     def _viewPosNorm(self, value):
+        """Normalised value of viewPos, hidden from user view."""
         # first convert to pixels, then normalise to window units
         viewPos_pix = convertToPix([0, 0], list(value),
                                    units=self.units, win=self)[:2]
@@ -683,9 +686,9 @@ class Window(object):
         else:
             absScaleX, absScaleY = 1, 1
 
-        if self._viewPosNorm is not None:
-            # viewPos must be in normalised units, see the corresponding
-            # attributeSetter above
+        if self.viewPos is not None:
+            # here we must use normalised units in _viewPosNorm,
+            # see the corresponding attributeSetter above
             normRfPosX = self._viewPosNorm[0] / absScaleX
             normRfPosY = self._viewPosNorm[1] / absScaleY
 
