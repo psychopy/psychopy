@@ -1,5 +1,6 @@
 import sys, os, copy
-from psychopy import visual, monitors, filters, prefs
+from psychopy import visual, monitors, prefs
+from psychopy.visual import filters
 from psychopy.tools.coordinatetools import pol2cart
 from psychopy.tests import utils
 import numpy
@@ -14,7 +15,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-class Test_Window:
+class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     def setup_class(self):
@@ -45,7 +46,7 @@ class Test_Window:
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
 
-class _baseVisualTest:
+class _baseVisualTest(object):
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod
@@ -97,11 +98,11 @@ class _baseVisualTest:
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
     def test_numpyFilterMask(self):
-        """if the mask is passed in as a numpy array it goes through a different 
+        """if the mask is passed in as a numpy array it goes through a different
         set of rules when turned into a texture. But the outcome should be as above
         """
         win = self.win
-        from psychopy import filters
+        from psychopy.visual import filters
         gaussMask = filters.makeMask(128, 'gauss')
         size = numpy.array([2.0,2.0])*self.scaleFactor
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
@@ -262,7 +263,7 @@ class _baseVisualTest:
             raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
-        mov = visual.MovieStim(win, fileName, pos=pos)
+        mov = visual.MovieStim3(win, fileName, pos=pos)
         mov.setFlipVert(True)
         mov.setFlipHoriz(True)
         for frameN in range(10):
@@ -314,24 +315,25 @@ class _baseVisualTest:
         str(poly) #check that str(xxx) is working
         poly.edges = 3
         poly.radius = 1
+    @pytest.mark.shape2
     def test_shape(self):
         win = self.win
-
-        shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0,
-            fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004],
-            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]],
-            closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
+        arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]
+        shape = visual.ShapeStim(win, lineColor='white', lineWidth=1.0,
+            fillColor='red', vertices=arrow, pos=[0, 0],
+            ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.5)
+        utils.compareScreenshot('shape2_1_%s.png' %(self.contextName), win, crit=12.5)
         win.flip()
 
         # Using .set()
         shape.contrast = 0.8
         shape.opacity = 0.8
+        shape.ori = 90
         shape.draw()
-        str(shape) #check that str(xxx) is working
-        utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.5)
+        assert 'Shape' in str(shape)  # check that str(xxx) is working
+        utils.compareScreenshot('shape2_2_%s.png' %(self.contextName), win, crit=12.5)
     def test_radial(self):
         if self.win.winType=='pygame':
             pytest.skip("RadialStim dodgy on pygame")
@@ -449,8 +451,24 @@ class _baseVisualTest:
         for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
             aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
-            assert len(aperture.vertices) == nVert
+            assert len(aperture.vertices) == nVert  # true for BaseShapeStim; expect (nVert-2)*3 if tesselated
             assert aperture.contains(pos)
+    def test_aperture_image(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.png')
+        if not win.allowStencil:
+            pytest.skip("Don't run aperture test when no stencil is available")
+        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], shape=fileName)
+        aperture.enabled = False
+        grating.draw()
+        aperture.enabled = True
+        str(aperture) #check that str(xxx) is working
+        grating.ori = 90
+        grating.color = 'black'
+        grating.draw()
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win)
+        #aperture should automatically disable on exit
     def test_rating_scale(self):
         if self.win.winType=='pygame':
             pytest.skip("RatingScale not available on pygame")
@@ -462,7 +480,7 @@ class _baseVisualTest:
                         marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
         str(rs) #check that str(xxx) is working
         rs.draw()
-        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
+        utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
@@ -560,23 +578,23 @@ class TestPygletDegFlatPos(_baseVisualTest):
             units='degFlatPos', autoLog=False)
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
-class TestPygameNorm(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
-        self.contextName='norm'
-        self.scaleFactor=1#applied to size/pos values
-class TestPygamePix(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        mon = monitors.Monitor('testMonitor')
-        mon.setDistance(57.0)
-        mon.setWidth(40.0)
-        mon.setSizePix([1024,768])
-        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
-            units='pix', autoLog=False)
-        self.contextName='pix'
-        self.scaleFactor=60#applied to size/pos values
+#class TestPygameNorm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
+#        self.contextName='norm'
+#        self.scaleFactor=1#applied to size/pos values
+#class TestPygamePix(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        mon = monitors.Monitor('testMonitor')
+#        mon.setDistance(57.0)
+#        mon.setWidth(40.0)
+#        mon.setSizePix([1024,768])
+#        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+#            units='pix', autoLog=False)
+#        self.contextName='pix'
+#        self.scaleFactor=60#applied to size/pos values
 #class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):

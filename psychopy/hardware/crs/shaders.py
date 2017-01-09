@@ -1,20 +1,21 @@
-#!/usr/bin/env python
-#coding=utf-8
+#!/usr/bin/env python2
+# coding=utf-8
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-#Acknowledgements:
+# Acknowledgements:
 #    Written by Jon Peirce
 #
 #    Based on shader code for mono++ and color++ modes code in Psythtoolbox
 #    (Mario Kleiner) but does not use that code directly
 #    It is, for example, Mario's idea to add the 0.01 to avoid rounding issues
 
-from psychopy._shadersPyglet import compileProgram, vertSimple
+from __future__ import absolute_import
+from psychopy.visual.shaders import compileProgram, vertSimple
 
-bitsMonoModeFrag="""
+bitsMonoModeFrag = """
 /* Mono++ output formatter
  *
  * Converts from a 16bit framebuffer object into a 8bit per channel frame
@@ -31,6 +32,7 @@ bitsMonoModeFrag="""
         index = fboFrag.r * 65535.0 + 0.01;
         gl_FragColor.r = floor(index / 256.0) / 255.0;
         gl_FragColor.g = mod(index, 256.0) / 255.0;
+        gl_FragColor.b = 0.0;
     }
 """
 

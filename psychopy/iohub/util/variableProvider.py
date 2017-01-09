@@ -164,7 +164,7 @@ class ExperimentVariableProvider(object):
                         else:
                             np_dtype.append((cname,[('r','u1'),('g','u1'),('b','u1'),('a','u1')]))
                         color_column_indexes.append(i)
-                    except:
+                    except Exception:
                         print2err("*** ERROR HANDLING COLOR COLUMN: ",cname,". Setting to 64 char string.")
                         printExceptionDetailsToStdErr()
                         np_dtype.append((cname,'S',1))

@@ -59,7 +59,7 @@ try:
     import ujson
 
     jdumps = ujson.dumps
-except:
+except Exception:
     import json
 
     jdumps = json.dumps

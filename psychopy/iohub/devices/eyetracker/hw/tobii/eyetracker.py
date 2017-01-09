@@ -20,7 +20,7 @@ from ...eye_events import *
 
 try:
     from tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
-except:
+except Exception:
     print2err("Error importing TobiiPsychopyCalibrationGraphics")
     printExceptionDetailsToStdErr()
 
@@ -63,7 +63,7 @@ class EyeTracker(EyeTrackerDevice):
                 from eyex_classes import TobiiEyeXTracker
             else:
                 from tobiiclasses import TobiiTracker
-        except:
+        except Exception:
             print2err("Error importing tobiiclasses")
             printExceptionDetailsToStdErr()
 
@@ -72,7 +72,7 @@ class EyeTracker(EyeTrackerDevice):
                 EyeTracker._tobii=TobiiEyeXTracker()
             else:
                 EyeTracker._tobii=TobiiTracker(product_id=serial_num,model=model_name)
-        except:
+        except Exception:
             print2err("Error creating Tobii Device class")
             printExceptionDetailsToStdErr()
         
@@ -220,7 +220,7 @@ class EyeTracker(EyeTrackerDevice):
 
             return calibrationOK
             
-        except:
+        except Exception:
             print2err("Error during runSetupProcedure")
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_ERROR
@@ -378,7 +378,7 @@ class EyeTracker(EyeTrackerDevice):
                 else:
                     eye_data_event=args[1]
                     return self._handleNativeTobiiEvent(eye_data_event)
-            except:
+            except Exception:
                 print2err("ERROR IN _handleNativeEvent")
                 printExceptionDetailsToStdErr()
         else:
@@ -454,7 +454,7 @@ class EyeTracker(EyeTrackerDevice):
             else:
                 return self._getIOHubEventObjectForTobii(native_event_data)
 
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
         return None
         

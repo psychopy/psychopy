@@ -7,7 +7,7 @@ logging.console.setLevel(logging.DEBUG)
 from tempfile import mkdtemp
 
 
-class TestExperimentHandler():
+class TestExperimentHandler(object):
     def setup_class(self):
         self.tmpDir = mkdtemp(prefix='psychopy-tests-testExp')
 
@@ -70,11 +70,6 @@ class TestExperimentHandler():
                     staircase.addData(0)
                 exp.addData('id', id)
                 exp.nextEntry()
-
-        #exp should then automatically save the pickle and csv data files
-        #for e in exp.entries:
-        #    print e
-        #print 'done'
 
     def test_addData_with_mutable_values(self):
         # add mutable objects to data, check that the value *at that time* is saved

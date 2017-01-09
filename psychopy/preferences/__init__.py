@@ -2,4 +2,10 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from preferences import Preferences, prefs #class for loading/saving prefs
+"""Class for loading / saving prefs
+"""
+
+from . import preferences as prefsLib
+
+Preferences = prefsLib.Preferences
+prefs = prefsLib.prefs

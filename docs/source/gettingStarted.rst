@@ -33,7 +33,7 @@ Start PsychoPy, and be sure to be in the Builder view.
     
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
 * Click on a Text component
-    .. image:: ../../psychopy/app/builder/components/text.png
+    .. image:: ../../psychopy/app/builder/components/text/text.png
   
   and a Text Properties dialog will pop up.
     .. image:: images/textdialog.png

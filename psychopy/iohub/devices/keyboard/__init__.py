@@ -15,7 +15,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 #
 # http://docs.python.org/2/library/unicodedata.html
 
-global Keyboard
 Keyboard=None
 
 import numpy as N

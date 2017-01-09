@@ -100,7 +100,7 @@ mpl_version = matplotlib.__version__
 try:
     from matplotlib import nxutils
     have_nxutils = True
-except:
+except Exception:
     have_nxutils = False
 
 # if matplotlib.__version__ > '1.2': try to use matplotlib Path objects
@@ -148,6 +148,39 @@ def test_overlaps():
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('overlaps')
     matplotlib.__version__ = mpl_version
+
+@pytest.mark.polygon
+def test_border_contains():
+    # tests that the .border of ShapeStim is detected and used by .contains()
+    win.units = 'height'
+    # `thing` has a fake hole and discontinuity (as the border will reveal):
+    thingVert = [(0,0),(0,.4),(.4,.4),(.4,0),(.1,0),(.1,.1),(.3,.1),(.3,.3),(.1,.3),(.1,0),
+        (0,0),(.1,-.1),(.3,-.1),(.3,-.3),(.1,-.3),(.1,-.1)]
+
+    inside_pts = [(.05,.05), (.15,-.15)]
+    outside_pts = [(-.2,0)]
+    hole_pts = [(.2,.2)]
+
+    s = visual.ShapeStim(win, vertices=thingVert, fillColor='blue',
+                          lineWidth=1, lineColor='white')
+    s.draw()
+    win.flip()
+    for p in inside_pts:
+        assert s.contains(p)
+    for p in outside_pts + hole_pts:
+        assert not s.contains(p)
+
+    # lacking a .border attribute, contains() will improperly succeed in some cases
+    del s.border
+    for p in hole_pts:
+        assert s.contains(p), "no .border property (falls through to relying on tesselated .vertices)"
+    for p in outside_pts:
+        assert not s.contains(p)
+
+    # ... and should work properly again when restore the .border
+    s.border = thingVert
+    for p in hole_pts:
+        assert not s.contains(p)
 
 if __name__=='__main__':
     test_contains_overlaps('contains')

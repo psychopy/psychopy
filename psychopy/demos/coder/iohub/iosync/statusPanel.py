@@ -107,7 +107,7 @@ def main():
             core.wait(0.05)
             mcu.enableEventReporting(True)
             io.clearEvents('all')
-        except:
+        except Exception:
             import traceback
             traceback.print_exc()
             demo_title.setText('Error Starting ioHub.\n1) Is ioSync connected to the PC\n2) Has the correct serial port been provided?\n\nExiting in 5 seconds.')
@@ -177,7 +177,7 @@ def main():
         mcu.enableEventReporting(False)
         win.close()
 
-    except:
+    except Exception:
         import traceback
         traceback.print_exc()
     finally:

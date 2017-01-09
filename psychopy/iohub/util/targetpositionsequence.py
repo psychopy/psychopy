@@ -1525,7 +1525,7 @@ class ValidationProcedure(object):
             fig.savefig(fig_name, dpi=self.use_dpi)
             self.io.sendMessageEvent("Validation Plot: %s"%(fig_name), 'VALIDATION')
             return fig, fig_name
-        except:
+        except Exception:
             print "\nError While Calculating Accuracy Stats:"
             import traceback
             traceback.print_exc()

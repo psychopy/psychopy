@@ -151,7 +151,7 @@ Using the concept of fixed frame periods and `flip()` calls that sync to those p
         name='fixation', autoLog=False)
 
     clock = core.Clock()
-    #let's draw a stimulus for 2s, drifting for middle 0.5s
+    #let's draw a stimulus for 200 frames, drifting for frames 50:100
     for frameN in range(200):#for exactly 200 frames
         if 10 <= frameN < 150:  # present fixation for a subset of frames
             fixation.draw()

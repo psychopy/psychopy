@@ -1,5 +1,6 @@
 """Tests for psychopy.data.DataHandler"""
-import os, sys, glob
+from __future__ import print_function
+import os, glob
 from os.path import join as pjoin
 import shutil
 from pytest import raises
@@ -14,7 +15,7 @@ import pytest
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
 
-class TestTrialHandler:
+class TestTrialHandler(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
@@ -41,9 +42,9 @@ class TestTrialHandler:
         f.close()
         expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
         if expected_header != header:
-            print base_data_filename
-            print repr(expected_header),type(expected_header),len(expected_header)
-            print repr(header), type(header), len(header)
+            print(base_data_filename)
+            print(repr(expected_header),type(expected_header),len(expected_header))
+            print(repr(header), type(header), len(header))
         assert expected_header == unicode(header)
 
     def test_psydat_filename_collision_renaming(self):
@@ -144,7 +145,7 @@ class TestTrialHandler:
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandom.csv'))
 
-class TestMultiStairs:
+class TestMultiStairs(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
 

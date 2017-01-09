@@ -189,7 +189,7 @@ class AnalogInput(AnalogInputDevice):
                 if self._memory_handle == 0:  
                     print2err("\nERROR ALLOCATING DAQ MEMORY: out of memory\n")
                     sys.exit(1)
-            except:
+            except Exception:
                 print2err('------------- Error creating buffers -----------')
                 printExceptionDetailsToStdErr()
                 print2err('-------------------------------------------------')
@@ -208,7 +208,7 @@ class AnalogInput(AnalogInputDevice):
                                              self.gain, 
                                              self._memory_handle, 
                                              self.options)
-            except:
+            except Exception:
                 print2err('------------- Error calling cbAInScan -----------')
                 printExceptionDetailsToStdErr()
                 print2err('-------------------------------------------------')
@@ -347,5 +347,5 @@ class AnalogInput(AnalogInputDevice):
     def __del__(self):
         try:
             self._close()
-        except:
+        except Exception:
             pass

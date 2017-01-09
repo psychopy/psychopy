@@ -182,7 +182,7 @@ class LogEvent(DeviceEvent):
             if isinstance(lln,basestring):
                 _levelNames[lln]=llv
                 _levelNames[llv]=lln
-    except:
+    except Exception:
         CRITICAL = 50
         FATAL = CRITICAL
         ERROR = 40

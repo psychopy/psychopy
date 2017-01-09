@@ -6,7 +6,7 @@ from psychopy.iohub import Computer
 from psychopy.core import getTime
 
 @skip_under_travis
-class TestComputer:
+class TestComputer(object):
     """
     Computer Device tests.
     """

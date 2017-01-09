@@ -29,10 +29,12 @@ import numpy
 allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
 
 def _filterout_legal(lines):
-    return [l
-            for l in lines
-            if not "This experiment was created using PsychoPy2 Experiment Builder (" in l
-            and not ("trialList=data.importConditions(" in l and ".xlsx'))" in l) ]
+    """Ignore first 5 lines: header info, version, date can differ no problem
+    """
+    return [line
+            for line in lines[5:]
+            if not "This experiment was created using PsychoPy2 Experiment Builder (" in line and
+            not ("trialList=data.importConditions(" in line and ".xlsx'))" in line)]
         #-This experiment was created using PsychoPy2 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
         #+This experiment was created using PsychoPy2 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
         #-    trialList=data.importConditions(u'trialTypes.xlsx'))
@@ -49,11 +51,9 @@ def _diff_file(a, b):
     diff = _diff(open(a).readlines(), open(b).readlines())
     return list(diff)
 
-class TestExpt():
-
+class TestExpt(object):
     @classmethod
     def setup_class(cls):
-        # print "D: CREATING THE EXP"
         cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
@@ -111,8 +111,6 @@ class TestExpt():
                      line[1].find("if self.params[") > -1 # this pattern could miss some things
                      and not (line[1].find('].val') > -1 or line[1].find('].updates') > -1) )
                      ]
-            #for num, line in lines:
-            #    print file, '#'+str(num+1), line.strip()
             missing_dotval_count += len(lines)
 
         assert missing_dotval_count == 0  # some suspicious lines were found: "if self.param[]" without .val or .updates
@@ -147,7 +145,7 @@ class TestExpt():
     def _checkPyDiff(self, file_py, file2_py):
         """return '' for no meaningful diff, or a diff patch"""
 
-        diff_py_lines = _diff_file(file_py, file2_py)[2:] # ignore first two lines --- +++
+        diff_py_lines = _diff_file(file_py, file2_py)[5:] # ignore first five lines --- +++
         if not len(diff_py_lines):
             return ''
 
@@ -244,7 +242,9 @@ class TestExpt():
                 #sha1_second = sha1hex(file2_pyc, file=True)
 
                 # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
-                diff_in_file_py += self._checkPyDiff(file_py, file2_py)
+                d = self._checkPyDiff(file_py, file2_py)
+                if d:
+                    diff_in_file_py += os.path.basename(file) + '::' + d
                 #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
                 #diff_in_file_psyexp += diff_psyexp
                 #diff_pyc = (sha1_first != sha1_second)
@@ -294,8 +294,8 @@ class TestExpt():
         execfile(py_file)
         os.chdir(wd)
         #load the data
-        print "searching..." +datafileBase
-        print glob.glob(datafileBase+'*')
+        print("searching..." +datafileBase)
+        print(glob.glob(datafileBase+'*'))
         f = open(datafileBase+".csv", 'rU')
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
@@ -338,13 +338,10 @@ class TestExpt():
 
         # run:
         stdout, stderr = core.shellCall('python '+lastrun, stderr=True)
-        assert not len(stderr), stderr # print stderr if it's greater than zero
+        assert not len(stderr), stderr # printing stderr if it's greater than zero
 
     def test_Exp_AddRoutine(self):
-        exp = self.exp
         self.exp.addRoutine('instructions')
-        #self.exp.routines['instructions'].AddComponent(
-        #self.exp.Add
 
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
@@ -370,7 +367,7 @@ class TestExpt():
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
-class Test_ExptComponents():
+class Test_ExptComponents(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
@@ -378,14 +375,13 @@ class Test_ExptComponents():
         for compName, compClass in allComponents.items():
             if compName in ['SettingsComponent']:
                 continue
-            #print "testing with:", compName
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
             self._checkCompileWith(thisComp)
     @classmethod
     def setup_class(cls):
         app = psychopyApp._app #this was created already
         app.newBuilderFrame()
-        cls.builder = app.builderFrames[-1] # the most recent builder frame created
+        cls.builder = app.getAllFrames("builder")[-1] # the most recent builder frame created
         cls.exp = cls.builder.exp
         cls.here = path.abspath(path.dirname(__file__))
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
@@ -405,7 +401,6 @@ class Test_ExptComponents():
 #        def clickOK():
 #            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
 #            self.builder.ProcessEvent(clickEvent)
-#            print "D: tried click"
 #        wx.CallAfter(clickOK)
 
     def _checkCompileWith(self, thisComp):

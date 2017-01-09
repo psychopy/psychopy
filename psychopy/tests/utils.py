@@ -12,7 +12,7 @@ except ImportError:
 try:
     import pytest
     usePytest=True
-except:
+except Exception:
     usePytest=False
 
 from pytest import skip
@@ -92,7 +92,7 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                         wordCorrect=float(wordCorrect.lstrip('"[').strip(']"'))
                         # its not a whole well-formed list because .split(delim)
                         isFloat=True
-                    except:#stick with simple text if not a float value
+                    except Exception:#stick with simple text if not a float value
                         isFloat=False
                         pass
                     if isFloat:
@@ -101,19 +101,19 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                             %(lineN, wordN, wordActual, wordCorrect)
                     else:
                         if wordActual!=wordCorrect:
-                            print 'actual:'
-                            print repr(txtActual[lineN])
-                            print lineActual
-                            print 'expected:'
-                            print repr(txtCorrect[lineN])
-                            print lineCorrect
+                            print('actual:')
+                            print(repr(txtActual[lineN]))
+                            print(lineActual)
+                            print('expected:')
+                            print(repr(txtCorrect[lineN]))
+                            print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
     except AssertionError, err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
-        print "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
+        print("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
         raise AssertionError, err
 
 def compareXlsxFiles(pathToActual, pathToCorrect):
@@ -136,7 +136,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
                     expVal = np.array(expValList, dtype=float)
                     actVal = np.array(eval(str(actVal)), dtype=float) # should go through if expVal does...
                     isListableFloatable = True
-                except:
+                except Exception:
                     pass # non-list+float-able at this point = default
             #determine whether there will be errors
             try:
@@ -144,7 +144,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
                 # (default) precision
                 expVal = float(expVal)
                 isFloatable=True
-            except:
+            except Exception:
                 isFloatable=False
             if isListableFloatable:
                 if not np.allclose(expVal, actVal):

@@ -82,8 +82,9 @@ monitor_devices:
             # Note that if FILTER_ALL is specified, and other sample data stream values are
             # ignored.
             sample_filtering:
-    #                FILTER_ALL: FILTER_LEVEL_1
-    #                FILTER_FILE: FILTER_LEVEL_2
+                #FILTER_LEVEL_1
+                #FILTER_ALL: FILTER_OFF
+                FILTER_FILE: FILTER_LEVEL_2
                 FILTER_ONLINE: FILTER_OFF
             # VOG settings allow you to specify some eye tracker parameters related to
             # the image processing or data collection procedure used by the eye tracker

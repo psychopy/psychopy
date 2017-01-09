@@ -18,12 +18,7 @@ import json
 from psychopy import gui, iohub
 from psychopy.iohub import FileDialog
 
-global _hubFiles
-
-try:
-    len(_hubFiles)
-except:
-    _hubFiles=[]
+_hubFiles=[]
 
 def openHubFile(filepath,filename,mode):
     """
@@ -494,7 +489,7 @@ class ExperimentDataAccessUtility(object):
     def __del__(self):
         try:
             self.close()
-        except:
+        except Exception:
             pass
 
 class ExperimentDataAccessException(Exception):

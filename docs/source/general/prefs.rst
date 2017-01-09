@@ -103,7 +103,7 @@ newline convention (newlineConvention):
 .. _generalSettings:
 
 General settings (General)
--------------------
+--------------------------
 window type (winType):
     PsychoPy can use one of two 'backends' for creating windows and drawing; pygame and pyglet. Here you can set the default backend to be used.
     
@@ -135,7 +135,7 @@ parallel ports (parallelPorts):
 .. _connectionSettings:
 
 Connection settings (Connections)
----------------------------
+---------------------------------
 
 proxy (proxy):
     The proxy server used to connect to the internet if needed. Must be of the form \http://111.222.333.444:5555

@@ -1,7 +1,8 @@
 
 from psychopy.visual import RatingScale, Window, shape, TextStim
 from psychopy import event, core
-from psychopy.constants import *
+from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
+                                FINISHED, PRESSED, RELEASED, FOREVER)
 from psychopy.tests import utils
 import pytest, copy
 
@@ -16,7 +17,7 @@ import pytest, copy
 """
 
 @pytest.mark.ratingscale
-class Test_class_RatingScale:
+class Test_class_RatingScale(object):
     """RatingScale internal logic, no check that its drawn correctly
     """
     def setup_class(self):

@@ -4,18 +4,31 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy.app._psychopyApp import *
+from __future__ import absolute_import, print_function
 
-#NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
-#to allow for better upgrading possibilities from the mac app bundle. this file
-#now used solely as a launcher for the app, not as the app itself.
+import sys
+from psychopy.app._psychopyApp import PsychoPyApp, __version__
+# fix OS X locale-bug on startup: sets locale to LC_ALL (must be defined!)
+import psychopy.locale_setup  # noqa
 
-if __name__=='__main__':
+# NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
+# to allow for better upgrading possibilities from the mac app bundle. this
+# file now used solely as a launcher for the app, not as the app itself.
+
+if __name__ == '__main__':
+    if '-x' in sys.argv:
+        # run a .py script from the command line using StandAlone python
+        targetScript = sys.argv[sys.argv.index('-x') + 1]
+        from psychopy import core
+        import os
+        core.shellCall([sys.executable, os.path.abspath(targetScript)])
+        sys.exit()
     if '-v' in sys.argv or '--version' in sys.argv:
-        print 'PsychoPy2, version %s (c)Jonathan Peirce, 2015, GNU GPL license' %psychopy.__version__
+        info = 'PsychoPy2, version %s (c)Jonathan Peirce 2015, GNU GPL license'
+        print(info % __version__)
         sys.exit()
     if '-h' in sys.argv or '--help' in sys.argv:
-        print """Starts the PsychoPy2 application.
+        print("""Starts the PsychoPy2 application.
 
 Usage:  python PsychoPy.py [options] [file]
 
@@ -30,6 +43,7 @@ depends on the type of the [file]:
 Options:
     -c, --coder, coder       opens coder view only
     -b, --builder, builder   opens builder view only
+    -x script.py             execute script.py using StandAlone python
 
     -v, --version    prints version and exits
     -h, --help       prints this help and exit
@@ -37,7 +51,7 @@ Options:
     --firstrun       launches configuration wizard
     --no-splash      suppresses splash screen
 
-"""
+""")
         sys.exit()
 
     else:

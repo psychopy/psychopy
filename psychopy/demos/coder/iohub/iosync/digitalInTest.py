@@ -61,7 +61,7 @@ try:
             print'{0}\t{1}'.format(mcu_evt.time,mcu_evt.state)
         core.wait(0.002,0)
     io.clearEvents('all')
-except:
+except Exception:
     import traceback
     traceback.print_exc()    
 finally:

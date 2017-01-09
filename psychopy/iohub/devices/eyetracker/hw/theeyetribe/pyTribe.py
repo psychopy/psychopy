@@ -10,7 +10,7 @@ from gevent import sleep, socket, queue
 from gevent.server import StreamServer
 try:
     import ujson as json
-except:
+except Exception:
     import json
 from ..... import print2err,printExceptionDetailsToStdErr,Computer,OrderedDict
 
@@ -407,7 +407,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
                             self._client_interface.handleServerMsg(mdict)
                             msg_fragment=''
                             self.server_response_count += 1
-                        except:
+                        except Exception:
                             msg_fragment=m
             except socket.timeout:
                 pass

@@ -25,7 +25,7 @@ getTime=Computer.getTime
 
 #try:
 #    from tetCalibrationGraphics import TETPsychopyCalibrationGraphics
-#except:
+#except Exception:
 #    print2err("Error importing TETPsychopyCalibrationGraphics")
 #    printExceptionDetailsToStdErr()
 
@@ -125,7 +125,7 @@ class EyeTracker(EyeTrackerDevice):
                 # id called by TheEyeTribe when a sample is received.
                 self._eyetribe.processSample=self._handleNativeEvent
                 return True
-            except:
+            except Exception:
                 print2err("Error connecting to TheEyeTribe Device.")
                 printExceptionDetailsToStdErr()            
         elif enable is False and self._eyetribe is not None:
@@ -134,7 +134,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._eyetribe.processSample=None
                 EyeTracker._eyetribe=None
                 return False
-            except:
+            except Exception:
                 print2err("Error disconnecting from TheEyeTribe Device.")
                 printExceptionDetailsToStdErr()            
         return EyeTrackerConstants.EYETRACKER_ERROR    
@@ -199,7 +199,7 @@ class EyeTracker(EyeTrackerDevice):
 #            
 #            return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 #            
-#        except:
+#        except Exception:
 #            print2err("Error during runSetupProcedure")
 #            printExceptionDetailsToStdErr()
 #        return EyeTrackerConstants.EYETRACKER_ERROR

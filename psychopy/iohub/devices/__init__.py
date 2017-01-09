@@ -199,8 +199,14 @@ class Computer(object):
     #:      * processing_unit_count = num_cpus*num_cores_per_cpu*num_hyperthreads.
     #:      * For single core CPU's,  num_cores_per_cpu = 1.
     #:      * For CPU's that do not support hyperthreading,  num_hyperthreads = 1, otherwise num_hyperthreads = 2.
-    processing_unit_count = psutil.cpu_count()
-    core_count = psutil.cpu_count(False) #hyperthreads not included
+    try:
+        processing_unit_count = psutil.cpu_count()
+        core_count = psutil.cpu_count(False) #hyperthreads not included
+    except AttributeError:
+        # psutil might be too old (cpu_count added in 2.0)
+        import multiprocessing
+        processing_unit_count = multiprocessing.cpu_count()
+        core_count = None  # but not used anyway
 
     #: Access to the psutil.Process class for the current system Process.
     current_process = psutil.Process()
@@ -211,7 +217,11 @@ class Computer(object):
     #: The psutil Process object for the ioHub Process.
     iohub_process=None
 
-    _process_original_nice_value=psutil.Process().nice() # used on linux.
+    try:
+        _process_original_nice_value=psutil.Process().nice() # used on linux.
+    except TypeError:
+        # on older versions of psutil (in ubuntu 14.04) nice is attr not call
+        _process_original_nice_value=psutil.Process().nice
 
     def __init__(self):
         print2err("WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
@@ -1074,7 +1084,7 @@ class Device(ioObject):
             else:
                 print2err("Could not add filter . File not found.")
             return -1
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             print2err("ERROR During Add Filter")
 
@@ -1301,7 +1311,7 @@ class Device(ioObject):
         try:
             self.__class__._iohub_server=None
             self.__class__._display_device=None
-        except:
+        except Exception:
             pass
 
     def __del__(self):
@@ -1541,7 +1551,7 @@ try:
         display_class,device_class_name,event_classes=import_device('psychopy.iohub.devices.display','Display')
         setattr(sys.modules[__name__],'Display', display_class)
 
-except:
+except Exception:
     print2err("Warning: display device module could not be imported.")
     printExceptionDetailsToStdErr()
 

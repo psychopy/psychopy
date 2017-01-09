@@ -3,7 +3,7 @@
 Logging data
 -------------------
 
-TrialHandler and StairHandler can both generate data outputs in which responses are stored, in relation to the stimulus conditions. In addition to those data outputs, PsychoPy can created detailed chronological log files of events during the experiment.
+TrialHandler and StairHandler can both generate data outputs in which responses are stored, in relation to the stimulus conditions. In addition to those data outputs, PsychoPy can create detailed chronological log files of events during the experiment.
 
 Log levels and targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -14,10 +14,10 @@ Multiple `targets` can also be created to receive log messages. Each target has 
 
     from psychopy import logging
     logging.console.setLevel(logging.WARNING)
-    #overwrite (filemode='w') a detailed log of the last run in this dir
-    lastLog=logging.LogFile("lastRun.log", level=logging.INFO, filemode='w')
-    #also append warnings to a central log file
-    centralLog=logging.LogFile("c:/psychopyExps.log", level=logging.WARNING, filemode='a')
+    # overwrite (filemode='w') a detailed log of the last run in this dir
+    lastLog = logging.LogFile("lastRun.log", level=logging.INFO, filemode='w')
+    # also append warnings to a central log file
+    centralLog = logging.LogFile("C:\\psychopyExps.log", level=logging.WARNING, filemode='a')
 
 Updating the logs
 ~~~~~~~~~~~~~~~~~~~~~
@@ -27,7 +27,7 @@ For performance purposes log files are not actually written when the log command
     
     ...
     
-    logging.flush()#write messages out to all targets
+    logging.flush()    # write messages out to all targets
 
 This should only be necessary if you want to see the logged information as the experiment progresses.
 
@@ -67,5 +67,5 @@ Using a custom clock for logs
 By default times for log files are reported as seconds after the very beginning of the script (often it takes a few seconds to initialise and import all modules too). You can set the logging system to use any given :class:`core.Clock` object (actually, anything with a `getTime()` method)::
 
     from psychopy import core, logging
-    globalClock=core.Clock()
+    globalClock = core.Clock()
     logging.setDefaultClock(globalClock)

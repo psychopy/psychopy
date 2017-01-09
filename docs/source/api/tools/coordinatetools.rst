@@ -1,6 +1,6 @@
 
 :mod:`psychopy.tools.coordinatetools`
-------------------------------------
+-------------------------------------
 .. automodule:: psychopy.tools.coordinatetools
 .. currentmodule:: psychopy.tools.coordinatetools
         

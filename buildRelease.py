@@ -14,7 +14,7 @@ import os, sys, shutil, subprocess
 from os.path import join
 from createInitFile import createInitFile
 
-MAIN = os.path.split(__file__)[0]
+MAIN = os.path.abspath(os.path.split(__file__)[0])
 VERSIONS = join(MAIN,'..','versions')
 
 def getSHA(cwd='.'):

@@ -700,7 +700,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.calibrationPointINNER.setPos(tp) 
                 self.setTargetDefaults()
                 
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()                    
 
     def on_start_calibration(self,*args,**kwargs):

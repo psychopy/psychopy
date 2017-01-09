@@ -17,11 +17,15 @@ before_install:
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - travis_retry sudo apt-get install -qq python-pygame python-opengl
   - travis_retry sudo -H pip install --upgrade -qq pip
-# pyglet 1.1.4:
-#  - travis_retry sudo apt-get install -qq python-pyglet
+  - travis_retry sudo -H pip install --upgrade -qq soundfile
+  - travis_retry sudo -H pip install --upgrade -qq sounddevice
 # pyglet 1.2.2
   - travis_retry sudo -H pip install -qq pyglet
   - python -c 'import pyglet; print pyglet.version'
+  - travis_retry sudo -H pip install -q pillow
+  - travis_retry sudo -H pip install -q pyosf
+  - travis_retry sudo -H pip install -q xlrd
+#  - python -c 'import Image; print Image.PILLOW_VERSION'
   - travis_retry sudo -H pip install -qq gevent # Don't use apt-get (too old version of gevent)
   - travis_retry sudo apt-get install -qq python-yaml python-xlib
   - travis_retry sudo -H pip install -qq psutil # Don't use apt-get (too old version of psutil)
@@ -29,6 +33,7 @@ before_install:
   - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
   - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
   - travis_retry sudo apt-get install -qq python-pandas
+  - travis_retry sudo pip install -qq codecov
 install:
   - travis_retry sudo apt-get install -qq flac
   - flac -version
@@ -42,3 +47,4 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" coverage run --rcfile=.travis_coveragerc psychopy/tests/runPytest.py -v -s -m "not needs_sound"; else { echo "TODO while avoiding duplication"; exit 1; } fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - codecov

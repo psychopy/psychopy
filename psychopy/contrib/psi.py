@@ -64,7 +64,7 @@ class PsiObject(object):
             
         #Create P(r | lambda, x)
         if TwoAFC:
-            self._probResponseGivenLambdaX = (1-self._r) + (2*self._r-1) * (stats.norm.cdf((self._x / self._alpha)**self._beta/sqrt(2))*(1-self.delta)+self.delta)
+            self._probResponseGivenLambdaX = (1-self._r) + (2*self._r-1) * ((.5 + .5 * stats.norm.cdf(self._x, self._alpha, self._beta)) * (1 - self.delta) + self.delta / 2)
         else: # Yes/No
             self._probResponseGivenLambdaX = (1-self._r) + (2*self._r-1) * (stats.norm.cdf(self._x, self._alpha, self._beta)*(1-self.delta)+self.delta/2)
         
@@ -97,7 +97,7 @@ class PsiObject(object):
         else:
             lamb = lam
         if self._TwoAFC:
-            return lamb[0]*(sqrt(2)*stats.norm.ppf((thresh-self.delta)/(1-self.delta)))**(1/lamb[1])
+            return stats.norm.ppf((2*thresh-1)/(1-self.delta), lamb[0], lamb[1])
         else:
             return stats.norm.ppf((thresh-self.delta/2)/(1-self.delta), lamb[0], lamb[1])
         

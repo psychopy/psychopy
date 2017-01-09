@@ -7,13 +7,216 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
+
+PsychoPy 1.85
+------------------------------
+
+PsychoPy 1.85.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED:
+
+  * `Online experiments now supported <http://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`-. See what is supported so far at `PsychoPy online status <http://www.psychopy.org/online/status.html>`_
+
+* FIXED:
+
+  * crash when increasing size of Flow in Builder #1272
+  * bug in pysoundcard backend preventing file-based sounds playing #1299
+  * excel outputs were failing to save on new versions of openpyxl #1276
+  * `useVersion()` was not fetching new (uninstalled) versions correctly #1301
+
+* DEPENDENCIES/PACKAGING:
+
+  * pyserial and pyxid were incompatible versions
+  * now packaging 1.2-maintenance branch of pyglet including Text memory fixes
+
+PsychoPy 1.84
+------------------------------
+
+PsychoPy 1.84.2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Sept 2016
+
+* FIXED:
+
+  * Problem with renaming of Routines preventing experiment from re-loading #1248
+  * Several bugs with Builder code generation since PEP8 refactoring:
+
+    * Static Components gave error compiling script
+    * some Keyboard Components (with variable "allowed keys" settings) gave error compiling script #1245
+    * Mouse Component with "Save state at end of trial" gave indentation error #1253
+    * Loops gave error compiling script if conditions file was a formatted string #1253
+
+  * Standalone distributions were not including the correct `pylink 1.1.0.4` and `pyxid` packages
+
+* ADDED:
+
+  * Keyfinder demo to Builder view #1252
+  * Support for key modifiers using `event.getKeys()` #1242
+
+PsychoPy 1.84.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Sept 2016
+
+* FIXED:
+
+  * Builder Keyboard component was treating non-response as correct answer. #1230 Thanks Jarrod
+  * MovieStim2 (opencv) now compatible with newer versions of opencv (v3.x) #1223
+  * SSL certificates for OS X causing failure to connect to osf.io for projects
+  * dependencies added/updated in Standalone packages:
+    * pyHook, pygame, pylink 0.3.2,  (win32)
+    * pysoundcard (OS X)
+  * hello_world demo crashing the app on load
+
+* ADDED:
+
+  * Movie **outputs** in gif, mp4, mov formats automatically, using moviepy #1228
+
+PsychoPy 1.84.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2016
+
+* ADDED:
+
+  * :ref:`Projects menu <projects>`, which can sync files with Open Science Framework
+  * Movies in Builder can now avoid loading audio (i.e. mute). As well as meaning your movie is genuinely silent this saves processing for the computer, so do it unless you need the sound!
+  * menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
+  * Builder experiments force a save before the end of the study so pressing the red stop button is less likely to lose data for you
+  * You can now **rename a Routine** #1136
+  * a Builder experiment setting to specify the version of PsychoPy to be used when running the experiment #1137
+
+* CHANGED:
+
+  * MAJOR REFACTOR: A lot of code has been refactored to be more in line with a thing called PEP8. If that doesn't mean anything to you don't worry, it shouldn't affect you. If you like that sort of thing, sorry we didn't got further and get rid of camelCase. ;-)
+  * setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
+  * Some file names and locations have changed. To update, replace OLD form in your scripts with NEW form:
+
+      * OLD form --> NEW form
+      * Deprecated since 2012, must now update:
+      	* `from psychopy import calib` --> `from psychopy import monitors as calib` (or just use `monitors`)
+      	* `from psychopy import bits` --> `from psychopy.hardware.crs import bits`
+      	* `from psychopy import log` --> `from psychopy import logging`
+      * Newly deprecated (the old way still works but logs a warning):
+      	* `from psychopy import _shadersPyglet` --> `from psychopy.visual import shaders`
+      	* `from psychopy import gamma` --> `from psychopy.visual import gamma`
+      	* `from psychopy import filters` --> `from psychopy.visual import filters`
+      * API change (only affects people who write their own Builder components):
+      	* `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
+
+  * PyQt is now default over wx for dialog boxes (if either PyQt4 or PyQt5 are installed). Also fixed bug to support PyQt5
+  * No Static Components are created by default (e.g. ISI). Have to add them manually
+
+* IMPROVED:
+
+  * ShapeStim can properly fill arbitrary shapes (using tessellation); see new shapes.py Coder demo for examples.
+  * Coder view now has better support for Retina display on OSX. visual.Window also has a new option to use retina for rendering in the experiment (off by default)
+  * better warnings about VLC being wrong architecture for this python install
+  * Code Components now indicate which ones actually contain code. #1204
+
+* FIXED:
+
+  * bug with Monitor center not creating/saving monitor due to lack of SizePix #1208
+  * window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text)
+  * Builder experiments will always add their extension (to stop people overwriting them with the python script of the same experiment)
+  * faster writing of multiple lines (bits) to the LabJack
+  * sampling rate when using binocular mode in eyelink 1000 #1146
+  * Aperture now supports infinite durations in Builder #1122
+  * ColorCal II now supports newer pyserial version #1138
+  * Erroneous extra data column added if experiment was aborted #1115
+  * Ubuntu buglet with importing iohub devices caused by outdated psutils #1172
+
+PsychoPy 1.83
+------------------------------
+
+PsychoPy 1.83.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Feb 2016
+
+* FIXED:
+  * Mac Standalone was (still) not launching on some versions of OSX
+  * MovieStim3 not working on all graphics cards (glPopAttrib). Thanks Bryan Cort and Frank Papenmeier for their help
+  * MovieStim3 bug with movies that had no audio stream
+  * Data saving is forced at the end of Builder Experiments even if script fails to exit properly (red stop button less likely to lose data)
+  * Setting gamma on OSX 10.11 wasn't working (Apple moved the lib to a new location). #1089
+  * Option to turn off audio in Movies from Builder when not needed (better performance and fewer shutdown-probs)
+
+PsychoPy 1.83.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Dec 2015 (NB 1.83.02 was never publicly released)
+
+* FIXED:
+  * problems with the Mac Standalone failing to launch on some OSX versions
+  * reduced impact of pyglet text memory leaks (make fewer updates). (NB There is still a leak in Pyglet's code that we can't fix)
+  * several fixes to RatingScale
+  * window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text) #1011
+  * fixed memory leak in sounds on 64bit Mac installation (error in pyo)
+  * MovieStim3 was interacting badly with ShapeStim #981
+  * MovieStim3 was failing if no audio stream was present in the file #984
+  * PsychoPy app now gives a warning message if it can't start due to permissions error #1055
+  * Faster rendering of MovieStim2 and Moviestim3 due to removal of mipmapping code
+
+PsychoPy 1.83.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Oct 2015
+
+* FIXED:
+  * new bug with pygame sounds giving fileName not defined
+  * several RatingScale bugs; reduce the memory leak (due to pyglet as used in TextStim)
+  *
+* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxillary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
+* CHANGED: remove support for google's speech to text (the new google API is for chrome / chromium developers only)
+* CHANGED: deprecate psychopy.web.upload(); use the requests package instead: requests.post()
+
+PsychoPy 1.83.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Oct 2015
+
+* ADDED: MovieStim3 using an alternative backend that doesn’t require avbin, vlc or streamer. It just uses a couple of python libs and FFMPEG, which are relatively easy to package. Seems to have good performance too but this needs more testing
+* IMPROVED: speed to load psychopy.visual (“lazy loading” only the stimuli you use are loaded)
+* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+* ADDED: Coder view can now be set to read-only mode to prevent subjects accidentally altering study #945
+* ADDED: TextStim now has property `boundingBox` telling you the maximum area of the letters (defined by the font, not by the actual rendered letters) #35c168f1
+* ADDED: Aperture can now be created using images (anything that worked with ImageStim) #923 and can also be inverted so that opaque becomes transparent and vice versa #922 Thanks Thomas Emerling for both
+* ADDED: New visual stimulus EnvelopeGrating for contrast-modulated gratings. Thanks Andrew Schofield
+* ADDED: option to set mouse_exclusive mode (mouse locked to the window boundary and invisible) Thanks Suddha Sourav #898
+* FIXED: DotStim can now change field size on the fly
+* FIXED: several (but probably not all) annoying error messages that were unimportant
+* FIXED: Condition file in Builder no longer abbreviated. Thanks Mike #913
+
 PsychoPy 1.82
 ------------------------------
 
 PsychoPy 1.82.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+released Aug 2015
+
+    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) #815
+    - FIXED: don't have pickle file re-saving itself when it comes back from pickling #833
+    - FIXED: Mouse Component could crash data saving if no response was made #839
+    - FIXED: memory leaks in MovieStim2 (opencv backend) #838 and #919
+    - FIXED: checked that window positions are integers #854
+    - FIXED: OSX "10.10" incorrectly looked older than "10.9" #866
+    - FIXED: RatingScale would show "False" for scale description in some cases #870
+    - FIXED: problem with microphone saving files that end with w, a or v #875
+    - FIXED: MonitorCenter failing to create new monitor #887
+    - FIXED: universal line endings in csv outputs files #889
+    - FIXED: unicode in conditions files #892
+    - FIXED: `iohub` not detecting Linux mouse events #894
+    - FIXED: if output file is set to be `stdout` this should then be closed #902
+    - FIXED: don't abbreviate the path name of conditions files #913
+    - FIXED: minor error in logging for `rush()` under win32 #914
+    - FIXED: unicode issues in user preferences panel #930 #932
+    - FIXED: MonitorCenter won't lock you out if given an invalid screen number #937
+    - FIXED: mono++ mode in CRS Bits++/#/Display++ is now using full dynamic range (previously 8bit blue gun overlay was overriding the 16bit screen buffer)
 
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,13 +224,18 @@ PsychoPy 1.82.01
 Released Feb 2015
 
 
+PsychoPy 1.82.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Feb 2015
+
 * FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
 * FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
 * FIXED: better timing for non-slip routines that follow dynamic routines (Jeremy) #822
 * FIXED: problem with stimuli (e.g. shapes) not appearing if a texture had just been created and not yet drawn
 * FIXED: pygame sound engine complained about "global variable loops not defined"
 * ENHANCED: Filename collision handling for ExperimentHandler (Richard Höchenberger)
-* CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)
+* :blue:`CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)`
 
 
 PsychoPy 1.82.00
@@ -67,7 +275,7 @@ Released Dec 2014
 * FIXED: choice selection boxes stopped working in monitor centre (caused by hardware.crs.bits importing pyglet.gl)
 * FIXED: Bits# can be set to do gamma correction in the PsychoPy LUT ('software') rather than using the on-board gamma table file ('hardware')
 * FIXED: bug with monitor calib files not returning their linearization method correctly
-* ADDED: psychopy.qtgui as alternative to gui which doesn't duffer from problem with choice boxes and piglet clashing (thanks Sol)
+* ADDED: psychopy.qtgui as alternative to gui which doesn't duffer from problem with choice boxes and pyglet clashing (thanks Sol)
 * FIXED: data files now correctly include the originPath (the path to the script that created them). Thanks Alex Holcombe for the fix
 
 PsychoPy 1.81.02
@@ -98,9 +306,9 @@ Released Sept 2014
 
 * IMPROVED: cross-version compatibility:
     * In Builder experiments from 'future' versions can be opened and unknown objects will be ignored (but kept)
-    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX') to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
+    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX')` to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
 * IMPROVED: better unit tests for visual stimuli to prevent future bugs
-* FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
+* :blue:`FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction`
 * IMPROVED: Can now select a subset of conditions in Builder loops and in `data.importConditions()` function (thanks Mike MacAskill for help)
 * IMPROVED: In Builder, loops that don't reflect trials (e.g. stimuli within a trial or blocks of trials) can be flagged as such, resulting in neater data files
 * ADDED: support for additional hardware:
@@ -128,7 +336,7 @@ Released Sept 2014
 * ADDED: MovieStim2 stimulus type. Compared to MovieStim, improved performance and wider range of media encoding support has been reported from testing feedback on all OS's.
 * IMPROVED: stimulus attributes:
     * Nearly all stimulus attributes now support new syntax, e.g. `stim.pos = [0,0]` as well as the previous `stim.setPos([0,0])`. All docs are update to reflect this change.
-    * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`.
+    * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`. Read more in :ref:`Operations <attrib-operations>`.
     * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. `stim.win = mySecondWindow` changes which Window the stimulus is drawn to
 * IMPROVED: logging
     * CHANGED: `log=None` and `autoLog=None` inherits from parents, with `visual.Window` at the top of the hierarchy. None is now default for all stimuli and setter methods.
@@ -181,6 +389,8 @@ PsychoPy 1.80.05
 
 Released June 2014
 
+* IMPROVED: better unit tests for visual stimuli to prevent further regressions of the issues below
+* FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully.
 * FIXED: further fixes to greyscale coloring (some images were not correctly detected as greyscale by PIL so tests weren't working)
 * FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully
 * FIXED: named colors were not interpreted correctly by the visual.Window (but worked fine for stimuli)
@@ -222,6 +432,7 @@ PsychoPy 1.80.01
 
 Released Mar 2014
 
+* FIXED: buglet with movie glPopAttrib() on Intel gfx cards (thanks Bryan Cort)
 * FIXED: problem trying to use FrameBufferObject (FBO) on Intel GMA graphics cards
 * FIXED: problem with ImageStim not respecting setColor() and setContrast()
 * FIXED: some stimuli were failing to switch to a second window when requested
@@ -240,12 +451,12 @@ Released Mar 2014
     * the glitch that prevented scrolling the Routine view is gone (win32)
     * dialog boxes in the Builder now have tabs for categories of controls
     * Code Components have much more space for each piece of code (again due to tabs)
-* ADDED: In Builder you can now customise the data filename/path in the Experiment Settings. Any variables in the `expInfo` dialog box can be used to create this path
+* ADDED: In Builder you can now customise the data filename/path in the Experiment Settings. Any variables in the `expInfo` dialog box can be used to create this path. See :ref:`dataFileName` for further info
 * ADDED: support for advanced rendering modes. Can now 'add' rather than average when using transparency. This is better for visual compound stimuli like plaids, and essential for colored anaglyph stimuli where the resulting image needs to be the sum of the left and right eye images.
 * ADDED: new visual unit options: 'degFlatPos' and 'degFlat' provide more accurate conversions from degrees to pixels for drawing stimuli (although they're more accurate, accounting for the flat screen, they may look strange because 1 degree gets larger with greater eccentricity on a flat screen). The previous unit 'deg' still exists and remains default as, for many studies, these are expected
 * ADDED: wider support for the functions `contains` and `overlaps`. Most stimuli now have these methods. Also they can now be used irrespective of whether the stimulus and other object have the same units (they used only to work for units of pix)
 * ADDED: support for other shapes in the Aperture stimulus (and its Builder Component). You can either specify the number of vertices `nVert` and a `size` to get a regular polygon aperture, or you can provide a set of arbitrary vertices as your `shape` argument
-* CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.
+* :blue:`CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.`
 * IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames` option is still advised for brief stimuli
 * IMPROVED: there are now fewer irrelevant lines in the log file as stimuli are initially created
 * IMPROVED: Staircase loops in Builder now initialise just before the staircase is run, rather than at the start of the experiment. This means they can be controlled by an outer loop and, effectively, restarted
@@ -254,27 +465,22 @@ Released Mar 2014
 * FIXED: incorrect equation for the Cumulative Normal fitting function
 * FIXED: If your variable had a new line character in it this was causing a new line to be started in the csv data file. These are now handled correctly
 
-*psychopy.visual.RatingScale Changes* :
-
 * ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
 * ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
 * ADDED: RatingScale marker='hover' is similar to HTML-style hovering over clickable elements
-* CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels
-* CHANGED: skipping a rating now adds None as the final element in the history
-* CHANGED: the default minTime is shorter, now 0.4s
-* CHANGED: more info in the log when creating a rating scale object
-* CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)
-* CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label
-* CHANGED: renamed several parameters:
-    stretchHoriz -> stretch,
-    textSizeFactor -> textSize
-    ticksAboveLine -> tickHeight
-    displaySizeFactor -> size
-    markerStyle -> marker
-    customMarker -> marker
-* CHANGED: removed showScale: now use scale=None (instead of showScale=False)
-* CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)
-* CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as done in the coder demos)
+
+*psychopy.visual.RatingScale Changes* :
+
+* :blue:`CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels`
+* :blue:`CHANGED: skipping a rating now adds None as the final element in the history`
+* :blue:`CHANGED: the default minTime is shorter, now 0.4s`
+* :blue:`CHANGED: more info in the log when creating a rating scale object`
+* :blue:`CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)`
+* :blue:`CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label`
+* :blue:`CHANGED: renamed several parameters: stretchHoriz -> stretch, textSizeFactor -> textSize, ticksAboveLine -> tickHeight, displaySizeFactor -> size, markerStyle -> marker, customMarker -> marker`
+* :blue:`CHANGED: removed showScale: now use scale=None (instead of showScale=False)`
+* :blue:`CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)`
+* :blue:`CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as now done in the coder demo)`
 
 PsychoPy 1.79
 ------------------------------
@@ -300,20 +506,19 @@ Released Dec 2013
 * FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
 * FIXED: further fix to the extra "file close" queries during shut-down
 
-
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Dec 2013)
+Released Dec 2013
 
-* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
+* ADDED: attributes for some stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
     * ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
     * Cedrus button-box (tested on RB730)
     * parallel port output component
 * ADDED: option for sounds to `loop`
-* ADDED: window now prevents system from sleep/screensaver on windows and OS X
 * ADDED: volume argument for MovieStim so that sound can be muted (Frank Papenmeier)
+* ADDED: window now prevents system from sleep/screensaver on windows and OS X
 * ADDED: builder demo for mental rotation task
 * ADDED: Alternative Text stimulus, psychopy.visual.TextBox (Sol Simpson)
         * Two demos in psychopy.coder.visual.textbox
@@ -394,7 +599,7 @@ PsychoPy 1.78.00
 
 Released Aug 2013
 
-* ADDED: option to preload during Builder scripts using Static Component, which uses StaticPeriod class
+* ADDED: option to preload during Builder scripts using :ref:`static`, which uses :class:`~psychopy.core.StaticPeriod` class
 * ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
 * ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
@@ -404,9 +609,8 @@ Released Aug 2013
 * ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
 * ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
 * FIXED: greyscale images were being distorted during display since 1.77.00
-* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 * FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
-
+* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 
 PsychoPy 1.77
 ------------------------------
@@ -575,14 +779,14 @@ Tweaks and fixes:
 * FIXED: missing parameter name in conditions file is detected, triggers more informative error message
 * ADDED: fORP: option asKeys to handle button presses as pyglet keyboard events (when using a serial port); faster getUniqueEvents()
 * ADDED: basic file encryption (beta) using RSA + AES-256; see API encryption for usage and caveats
-* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server (contrib/http/*)
+* ADDED: upload a file to a remote server over http (libs: web.upload) with coder demo, php scripts for server `contrib/http/*`
 * ADDED: Builder demo (dualRatingScales): show a stim, get two different ratings side by side [unpack the demos again]
 * ADDED: rating scale options: 'maxTime' to time-out, 'disappear' to hide after a rating; see new Builder demo
 * FIXED: rating scale bug: skipKeys was not handling 'tab' properly (no skip for tab-key, do skip for 't', 'a', or 'b')
 * ADDED: new locale pref for explicitly setting locale, used in date format and passed to builder scripts (Jeremy, Hiroku Sogo)
 * ADDED: 'enable escape' option in experiment settings, default is 'enabled'
 * ADDED: support for ElementArrayStim to use the same set of color spaces as other stimuli
-* CHANGED: removed python 2.4's version of sha1 digest from :class:`~psychopy.info.RunTimeInfo`
+* CHANGED: removed python 2.4 version of sha1 digest from :class:`~psychopy.info.RunTimeInfo`
 * CHANGED: removed any need for PyOpenGL (pyglet.gl now used throughout even for pygame windows)
 * FIXED: Builder was ignoring changes to DotStim FieldPos (thanks Mike MacAskill)
 * FIXED: Builder Flow is smarter about Loops and now stops you creating 'broken' ones (e.g. Loops around nothing)
@@ -673,11 +877,9 @@ PsychoPy 1.72.00
 
 (rc1 released Nov 2011)
 
-* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert
-to a choice control if this is used (thanks Manuel Ebert)
+* CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)
     - for gui.Dlg the `.addField()` method now has `choices` attribute
-    - for gui.dlgFromDict if one of the values in the dict is a list it will be
-    interpreted as a set of choices (NB this potentially breaks old code)
+    - for gui.dlgFromDict if one of the values in the dict is a list it will be interpreted as a set of choices (NB this potentially breaks old code)
     - for info see API docs for psychopy.gui
 
 * ADDED: improvements to drawing of shapes (thanks Manuel Ebert for all)
@@ -995,7 +1197,7 @@ Released Oct 2010
 * FIXED: when a Routine was copied and pasted it didn't update its name properly (e.g. when inserted into the Flow it kept the origin name)
 * FIXED: color rendering for stimuli on non-shader machines using dkl,lms, and named color spaces
 * ADDED: data.QuestHandler (Thanks to Zarrar Shehzad). This is much like StairHandler but uses the QUEST routine of Watson and Pelli
-* **CHANGED: TextStim orientation now goes the other way, for consistency with other stimuli (thanks Manuel Spitschan for noticing)**
+* CHANGED: TextStim orientation now goes the other way, for consistency with other stimuli (thanks Manuel Spitschan for noticing)**
 * FIXED: Problem with DotStim using 'sqr' fieldShape
 * ADDED: MovieStim now has a setMovie() method (a copy of loadMovie())
 * FIXED: problem with MovieStim.loadMovie() when a movie had already been loaded
