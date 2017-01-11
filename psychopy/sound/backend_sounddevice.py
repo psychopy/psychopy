@@ -381,7 +381,7 @@ class SoundDeviceSound(_SoundBase):
         self.status = STOPPED
 
     def _nextBlock(self):
-        framesLeft = (self.stopTime-self.t)*self.sampleRate
+        framesLeft = int((self.stopTime-self.t)*self.sampleRate)
         nFrames = min(self.blockSize, framesLeft)
         if self.sourceType == 'file' and self.preBuffer == 0:
             # streaming sound block-by-block direct from file
