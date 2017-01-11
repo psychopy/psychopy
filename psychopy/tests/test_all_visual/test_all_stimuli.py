@@ -76,7 +76,8 @@ class _baseVisualTest(object):
             str(stim) #check that str(xxx) is working
     def test_imageAndGauss(self):
         win = self.win
-        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        incorrectName = 'testimage.tif'  # should correctly find testImage.jpg
+        fileName = os.path.join(utils.TESTS_DATA_PATH, incorrectName)
         #use image stim
         size = numpy.array([2.0,2.0])*self.scaleFactor
         image = visual.ImageStim(win, image=fileName, mask='gauss',
