@@ -17,7 +17,7 @@ except ImportError as err:
     raise exceptions.DependencyError(repr(err))
 
 import threading
-
+pyoSndServer = None
 
 def init(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
