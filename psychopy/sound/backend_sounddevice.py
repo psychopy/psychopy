@@ -110,7 +110,7 @@ class _SoundStream(object):
         self.takeTimeStamp = False
         self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         self.lastFrameTime = time.time()
-        self._tSoundRequestPlay = None
+        self._tSoundRequestPlay = 0
 
     def callback(self, toSpk, blockSize, timepoint, status):
         """This is a callback for the SoundDevice lib
@@ -229,6 +229,20 @@ class SoundDeviceSound(_SoundBase):
         self.setSound(value)
         self.status = NOT_STARTED
 
+    @property
+    def stereo(self):
+        return self.__dict__['stereo']
+    @stereo.setter
+    def stereo(self, val):
+        self.__dict__['stereo'] = val
+        if val==True:
+            self.__dict__['channels'] = 2
+        elif val==False:
+            self.__dict__['channels'] = 1
+        elif val==-1:
+            self.__dict__['channels'] = -1
+
+
     def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
 
@@ -309,7 +323,7 @@ class SoundDeviceSound(_SoundBase):
             self.sndFile.close()
             self._setSndFromArray(sndArr)
 
-    def _setSndFromFreq(self,  thisFreq, secs, hamming=True):
+    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         self.freq = thisFreq
         self.secs = secs
         self.sourceType = 'freq'
@@ -321,18 +335,27 @@ class SoundDeviceSound(_SoundBase):
                 )
 
     def _setSndFromArray(self, thisArray):
-        """For pysoundcard all sounds are ultimately played as an array so
-        other setSound methods are going to call this having created an arr
-        """
 
-        if self.stereo and thisArray.ndim == 1:
+        if self.channels==2 and thisArray.ndim == 1:
             # make mono sound stereo
             self.sndArr = np.resize(thisArray, [2, len(thisArray)]).T
         else:
             self.sndArr = np.asarray(thisArray)
+            # is this stereo?
+            if self.stereo == -1:  # auto stereo. Try to detect
+                if len(self.sndArr.shape)==1 or self.sndArr.shape[1]==1:
+                    self.stereo = 0
+                elif len(self.sndArr.shape)==2 and self.sndArr.shape[1]==2:
+                    self.stereo = 1
+                else:
+                    raise IOError("Couldn't determine whether array is "
+                                  "stereo. Shape={}".format(self.sndArr.shape))
+        if self.stopTime==-1:
+            self.stopTime = len(self.sndArr)/float(self.sampleRate)
         self._nSamples = thisArray.shape[0]
         # set to run from the start:
         self.seek(0)
+        self.sourceType = "array"
 
     def play(self, loops=None):
         """Start the sound playing
@@ -373,7 +396,9 @@ class SoundDeviceSound(_SoundBase):
                 block = self.sndArr[ii:ii+nFrames, :]
             elif self.stereo == 0:
                 block = self.sndArr[ii:ii+nFrames]
-
+            else:
+                raise IOError("Unknown stereo type {!r}"
+                              .format(self.stereo))
         elif self.sourceType == 'freq':
             startT = self.t
             stopT = self.t+self.blockSize/float(self.sampleRate)
@@ -390,6 +415,10 @@ class SoundDeviceSound(_SoundBase):
                 block[tRange > self.secs] == 0
                 # and inform our EOS function that we finished
                 self._EOS()
+
+        else:
+            raise IOError("SoundDeviceSound._nextBlock doesn't correctly handle"
+                          "{!r} sounds yet".format(self.sourceType))
 
         self.t += self.blockSize/float(self.sampleRate)
         return block
