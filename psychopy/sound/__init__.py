@@ -53,6 +53,8 @@ Sound = None
 audioLib = None
 audioDriver = None
 
+_audioLibs = ['sounddevice', 'pyo', 'pysoundcard', 'pygame']
+
 for thisLibName in prefs.general['audioLib']:
 
     try:
@@ -69,9 +71,9 @@ for thisLibName in prefs.general['audioLib']:
             from . import backend_pysound as backend
             Sound = backend.SoundPySoundCard
         else:
-            msg = ("Audio lib options are currently only 'pyo' or "
-                   "'pygame', not '%s'")
-            raise ValueError(msg % thisLibName)
+            msg = ("audioLib pref should be one of {!r}, not {!r}"
+                   .format(_audioLibs, thisLibName))
+            raise ValueError(msg)
         # if we got this far we were sucessful in loading the lib
         audioLib = thisLibName
         init = backend.init
@@ -87,6 +89,49 @@ if audioLib is None:
             "No sound libs could be loaded. Tried: {}\n"
             "Check whether the necessary sound libs are installed"
             .format(prefs.general['audioLib']))
+
+# function to set the device (if current lib allows it)
+def setDevice(dev, kind=None):
+    """Sets the device to be used for new streams being created.
+
+    :param dev: the device to be used (name, index or sounddevice.device)
+    :param kind: one of [None, 'output', 'input']
+    """
+    if not hasattr(backend, 'defaultOutput'):
+        raise IOError("Attempting to SetDevice (audio) but not supported by "
+                      "the current audio library ({!r})".format(audioLib))
+    if hasattr(dev,'name'):
+        dev = dev['name']
+    if kind is None:
+        backend.defaultInput = backend.defaultOutput = dev
+    elif kind == 'input':
+        backend.defaultInput = dev
+    elif kind == 'output':
+        backend.defaultOutput = dev
+    else:
+        raise TypeError("`kind` should be one of [None, 'output', 'input']"
+                        "not {!r}".format(kind))
+
+# Set the device according to user prefs (if current lib allows it)
+if hasattr(backend, 'defaultOutput'):
+    pref = prefs.general['audioDevice']
+    # is it a list or a simple string?
+    if type(prefs.general['audioDevice'])==list:
+        # multiple options so use zeroth
+        dev = prefs.general['audioDevice'][0]
+    else:
+        # a single option
+        dev = prefs.general['audioDevice']
+    # is it simply "default" (do nothing)
+    if dev=='default':
+        pass  # do nothing
+    elif dev not in backend.getDevices(kind='output'):
+        devNames = backend.getDevices(kind='output').keys()
+        raise ValueError("Requested audio device '{}' that is not available on "
+                        "this hardware. The 'audioDevice' preference should be one of "
+                        "{}".format(dev, devNames))
+    else:
+        setDevice(dev, kind='output')
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers

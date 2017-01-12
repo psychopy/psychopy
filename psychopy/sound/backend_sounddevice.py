@@ -20,9 +20,28 @@ logging.console.setLevel(logging.INFO)
 logging.info("Loaded SoundDevice with {}".format(sd.get_portaudio_version()[1]))
 
 
-def init():
+def init(rate=44100, stereo=True, buffer=128):
     pass  # for compatibility with other backends
 
+
+def getDevices(kind=None):
+    """Returns a dict of dict of audio devices of sepcified `kind`
+
+    The dict keys are names and items are dicts of properties
+    """
+    devs = {}
+    allDevs = sd.query_devices(kind=kind)
+    # annoyingly query_devices is a DeviceList or a dict depending on number
+    if type(allDevs)==dict:
+        allDevs = [allDevs]
+    for ii, dev in enumerate(allDevs):
+        devs[dev['name']] = dev
+        dev['id'] = ii
+    return devs
+
+# these will be controlled by sound.__init__.py
+defaultInput = None
+defaultOutput = None
 
 def getStreamLabel(sampleRate, channels, blockSize):
     """Returns the string repr of the stream label
@@ -78,7 +97,8 @@ class _StreamsDict(dict):
                 )
         else:
             # create new stream
-            self[label] = _SoundStream(sampleRate, channels, blockSize)
+            self[label] = _SoundStream(sampleRate, channels, blockSize,
+                                       device=defaultOutput)
         return label, self[label]
 
 
@@ -86,7 +106,8 @@ streams = _StreamsDict()
 
 
 class _SoundStream(object):
-    def __init__(self, sampleRate, channels, blockSize, duplex=False):
+    def __init__(self, sampleRate, channels, blockSize,
+                 device=None, duplex=False):
         # initialise thread
         self.streams = []
         self.list = []
@@ -100,6 +121,7 @@ class _SoundStream(object):
             self._sdStream = sd.OutputStream(samplerate=sampleRate,
                                              blocksize=self.blockSize,
                                              latency='high',
+                                             device=device,
                                              channels=channels,
                                              callback=self.callback)
             self._sdStream.start()
@@ -165,9 +187,10 @@ class _SoundStream(object):
 
     def __del__(self):
         print('garbage_collected_soundDeviceStream')
-        if not travisCI:
-            self._sdStream.stop()
-        del self._sdStream
+        if hasattr(self, '_sdStream'):
+            if not travisCI:
+                self._sdStream.stop()
+            del self._sdStream
         sys.stdout.flush()
 
 

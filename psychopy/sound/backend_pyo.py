@@ -19,6 +19,30 @@ except ImportError as err:
 import threading
 pyoSndServer = None
 
+def getDevices(kind=None):
+    """Returns a dict of dict of audio devices of sepcified `kind`
+
+    The dict keys are names and items are dicts of properties
+    """
+    inputs, outputs = pyo.pa_get_devices_infos()
+    if kind is None:
+        allDevs = inputs.update(outputs)
+    elif kind=='output':
+        allDevs = outputs
+    else:
+        allDevs = inputs
+    devs = {}
+    for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
+        dev = allDevs[ii]
+        devs[dev['name']] = dev
+        dev['id'] = ii
+    return devs
+
+# these will be controlled by sound.__init__.py
+defaultInput = None
+defaultOutput = None
+
+
 def init(rate=44100, stereo=True, buffer=128):
     """setup the pyo (sound) server
     """
