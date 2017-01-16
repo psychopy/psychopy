@@ -249,7 +249,8 @@ class SoundDeviceSound(_SoundBase):
         self.sndFile = None
         self.sndArr = None
         # setSound (determines sound type)
-        self.setSound(value)
+        self.setSound(value, secs=self.secs, octave=self.octave,
+                      hamming=self.hamming)
         self.status = NOT_STARTED
 
     @property
@@ -410,7 +411,6 @@ class SoundDeviceSound(_SoundBase):
             # streaming sound block-by-block direct from file
             block = self.sndFile.read(nFrames)
             # TODO: check if we already finished using sndFile?
-
         elif (self.sourceType == 'file' and self.preBuffer == -1) \
             or self.sourceType == 'array':
             # An array, or a file entirely loaded into an array

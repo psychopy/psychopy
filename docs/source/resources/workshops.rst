@@ -30,7 +30,7 @@ For queries about any of these please email me at `jonathan.peirce at nottingham
 PEP1: Programming Experiments in Python (Beginners)
 ---------------------------------------------------------
 
-`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=786>`_
+`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-programming-experiments-in-python-beginners>`_
 
 Details
 ~~~~~~~~~~~~
@@ -65,7 +65,7 @@ All sessions subject to change. Sessions in **green** and **blue** are optional 
 BEP: Building Experiments in PsychoPy
 ---------------------------------------------------------
 
-`Book onto Building Experiments in PsychoPy workshop now <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=787>`_
+`Book onto Building Experiments in PsychoPy workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/bep-building-experiments-in-psychopy>`_
 
 Learning to *Build* experiments is the fastest way to get studies up and running. You can do an awful lot with a graphical interface and some bits of Python code plugged in to do the fancy stuff! That's what we'll be learning here.
 
