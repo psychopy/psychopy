@@ -186,7 +186,6 @@ class _SoundStream(object):
             self.sounds.remove(sound)
 
     def __del__(self):
-        print('garbage_collected_soundDeviceStream')
         if hasattr(self, '_sdStream'):
             if not travisCI:
                 self._sdStream.stop()
