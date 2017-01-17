@@ -4,6 +4,7 @@
 
 from __future__ import division
 import numpy
+import copy
 from os import path
 from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
@@ -34,6 +35,7 @@ def apodize(soundArray, sampleRate):
     """
     hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
     hammingWindow = numpy.hamming(2 * hwSize + 1)
+    soundArray = copy.copy(soundArray)
     soundArray[:hwSize] *= hammingWindow[:hwSize]
     for i in range(2):
         soundArray[-hwSize:] *= hammingWindow[hwSize + 1:]
