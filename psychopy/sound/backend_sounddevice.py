@@ -7,7 +7,7 @@ from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
 from psychopy.exceptions import SoundFormatError
-from ._base import _SoundBase
+from ._base import _SoundBase, HammingWindow
 
 import sounddevice as sd
 import soundfile as sf
@@ -232,7 +232,6 @@ class SoundDeviceSound(_SoundBase):
         self.loops = loops
         self._loopsFinished = 0
         self.volume = volume
-        self.hamming = hamming  # TODO: add hamming option
         self.startTime = startTime  # for files
         self.stopTime = stopTime  # for files specify thesection to be played
         self.blockSize = blockSize  # can be per-sound unlike other backends
@@ -247,6 +246,9 @@ class SoundDeviceSound(_SoundBase):
         self.sourceType = 'unknown'  # set to be file, array or freq
         self.sndFile = None
         self.sndArr = None
+        self.hamming = hamming
+        self._hammingWindow = None  # will be created during setSound
+
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
@@ -255,6 +257,7 @@ class SoundDeviceSound(_SoundBase):
     @property
     def stereo(self):
         return self.__dict__['stereo']
+
     @stereo.setter
     def stereo(self, val):
         self.__dict__['stereo'] = val
@@ -266,7 +269,7 @@ class SoundDeviceSound(_SoundBase):
             self.__dict__['channels'] = -1
 
 
-    def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
+    def setSound(self, value, secs=0.5, octave=4, hamming=None, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during
@@ -314,6 +317,18 @@ class SoundDeviceSound(_SoundBase):
             self.blockSize = s.blockSize
         self.streamLabel = label
 
+        if hamming is None:
+            hamming = self.hamming
+        else:
+            self.hamming = hamming
+        if hamming:
+            # 5ms or 15th of stimulus (for short sounds)
+            hammDur = min(0.005,  # 5ms
+                              self.secs/15.0)  # 15th of stim
+            self._hammingWindow = HammingWindow(winSecs=hammDur,
+                                                soundSecs=self.secs,
+                                                sampleRate=self.sampleRate)
+
     def _setSndFromFile(self, filename):
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
@@ -352,14 +367,10 @@ class SoundDeviceSound(_SoundBase):
         self.sourceType = 'freq'
         self.t = 0
         self.duration = self.secs
-        if hamming:
-            logging.warning(
-                "Hamming smoothing not yet implemented for SoundDeviceSound."
-                )
 
     def _setSndFromArray(self, thisArray):
 
-        if self.channels==2 and thisArray.ndim == 1:
+        if self.channels == 2 and thisArray.ndim == 1:
             # make mono sound stereo
             self.sndArr = np.resize(thisArray, [2, len(thisArray)]).T
         else:
@@ -421,6 +432,9 @@ class SoundDeviceSound(_SoundBase):
             else:
                 raise IOError("Unknown stereo type {!r}"
                               .format(self.stereo))
+            if ii+nFrames>len(self.sndArr):
+                self._EOS()
+
         elif self.sourceType == 'freq':
             startT = self.t
             stopT = self.t+self.blockSize/float(self.sampleRate)
@@ -441,6 +455,15 @@ class SoundDeviceSound(_SoundBase):
         else:
             raise IOError("SoundDeviceSound._nextBlock doesn't correctly handle"
                           "{!r} sounds yet".format(self.sourceType))
+
+        if self._hammingWindow:
+            thisWin = self._hammingWindow.nextBlock(self.t, self.blockSize)
+            if thisWin is not None:
+                if len(block)==len(thisWin):
+                    block *= thisWin
+                else:
+                    block *= thisWin[0:len(block)]
+                    print len(block), len(thisWin), ii, self.secs
 
         self.t += self.blockSize/float(self.sampleRate)
         return block
