@@ -155,7 +155,12 @@ class _SoundStream(object):
         toSpk *= 0  # it starts with the contents of the buffer before
         for thisSound in self.sounds:
             dat = thisSound._nextBlock()  # fetch the next block of data
-            if self.channels == 2:
+            if self.channels == 2 and len(dat.shape)==2:
+                toSpk[:len(dat), :] += dat  # add to out stream
+            elif self.channels == 2 and len(dat.shape)==1:
+                toSpk[:len(dat), 0] += dat  # add to out stream
+                toSpk[:len(dat), 1] += dat  # add to out stream
+            elif self.channels == 1 and len(dat.shape)==2:
                 toSpk[:len(dat), :] += dat  # add to out stream
             else:
                 toSpk[:len(dat), 0] += dat  # add to out stream
@@ -228,7 +233,6 @@ class SoundDeviceSound(_SoundBase):
         self.name = name
         self.secs = secs  # for any synthesised sounds (notesand freqs)
         self.octave = octave  # for note name sounds
-        self.stereo = stereo
         self.loops = loops
         self._loopsFinished = 0
         self.volume = volume
@@ -239,7 +243,8 @@ class SoundDeviceSound(_SoundBase):
         self.frameN = 0
         self._tSoundRequestPlay = 0
         self.sampleRate = sampleRate
-        self.channels = None
+        self.channels = None  # let this be set by stereo
+        self.stereo = stereo
         self.duplex = None
         self.autoLog = autoLog
         self.streamLabel = ""
@@ -267,7 +272,6 @@ class SoundDeviceSound(_SoundBase):
             self.__dict__['channels'] = 1
         elif val==-1:
             self.__dict__['channels'] = -1
-
 
     def setSound(self, value, secs=0.5, octave=4, hamming=None, log=True):
         """Set the sound to be played.
@@ -357,7 +361,7 @@ class SoundDeviceSound(_SoundBase):
             pass
         elif self.preBuffer == -1:
             # no buffer - stream from disk on each call to nextBlock
-            sndArr = self.sndFile.read(frames=self.durationFrames)
+            sndArr = self.sndFile.read(frames=len(self.sndFile))
             self.sndFile.close()
             self._setSndFromArray(sndArr)
 
@@ -375,18 +379,19 @@ class SoundDeviceSound(_SoundBase):
             self.sndArr = np.resize(thisArray, [2, len(thisArray)]).T
         else:
             self.sndArr = np.asarray(thisArray)
+            self.sndArr.shape = [len(thisArray),2]
             # is this stereo?
             if self.stereo == -1:  # auto stereo. Try to detect
-                if len(self.sndArr.shape)==1 or self.sndArr.shape[1]==1:
+                if self.sndArr.shape[1]==1:
                     self.stereo = 0
-                elif len(self.sndArr.shape)==2 and self.sndArr.shape[1]==2:
+                elif self.sndArr.shape[1]==2:
                     self.stereo = 1
                 else:
                     raise IOError("Couldn't determine whether array is "
                                   "stereo. Shape={}".format(self.sndArr.shape))
-        if self.stopTime==-1:
-            self.stopTime = len(self.sndArr)/float(self.sampleRate)
         self._nSamples = thisArray.shape[0]
+        if self.stopTime==-1:
+            self.stopTime = self._nSamples/float(self.sampleRate)
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
@@ -443,6 +448,7 @@ class SoundDeviceSound(_SoundBase):
                 stop=stopT*self.freq*2*np.pi,
                 num=self.blockSize, endpoint=False
                 )
+            xx.shape = [self.blockSize, 1]
             block = np.sin(xx)
             # if run beyond our desired t then set to zeros
             if stopT > self.secs:
@@ -461,9 +467,10 @@ class SoundDeviceSound(_SoundBase):
             if thisWin is not None:
                 if len(block)==len(thisWin):
                     block *= thisWin
+                elif block.shape[0]==0:
+                    pass
                 else:
                     block *= thisWin[0:len(block)]
-                    print len(block), len(thisWin), ii, self.secs
 
         self.t += self.blockSize/float(self.sampleRate)
         return block

@@ -26,10 +26,10 @@ if prefs.general['audioLib'][0] == 'pyo':
     sound.init(48000, buffer=128)
 print 'Using %s(with %s) for sounds' % (sound.audioLib, sound.audioDriver)
 
-highA = sound.Sound('A', octave=3, sampleRate=44100, secs=0.8, bits=8)
+highA = sound.Sound('A', octave=3, sampleRate=44100, secs=0.8, stereo=True)
 highA.setVolume(0.8)
-tick = sound.Sound(800, secs=0.01, sampleRate=44100, bits=8)  # sample rate ignored because already set
-tock = sound.Sound('600', secs=0.01, sampleRate=44100)
+tick = sound.Sound(800, secs=0.01, sampleRate=44100, stereo=True)  # sample rate ignored because already set
+tock = sound.Sound('600', secs=0.01, sampleRate=44100, stereo=True)
 
 highA.play()
 core.wait(0.8)

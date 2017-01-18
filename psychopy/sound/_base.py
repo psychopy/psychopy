@@ -78,6 +78,8 @@ class HammingWindow(object):
             blockEndII = min(self.winSamples-startSample,  # if block beyond
                              blockSize)  # if block shorter
             block[0:blockEndII] = self.startWindow[startSample:winEndII]
+        elif startSample >= self.soundSamples:
+            block = None  # the sound has finished (shouldn't have got here!)
         elif startSample >= self.finalWinStart-blockSize:
             # we're in final hamming window (end of sound)
             # More complicated, with 3 options:
@@ -97,6 +99,8 @@ class HammingWindow(object):
                 self.endWindow[winStartII:winEndII]
         else:
             block = None  # we're in the middle of sound so no need for window
+        if block is not None:
+            block.shape = [len(block), 1]
         return block
 
 class _SoundBase(object):
@@ -153,7 +157,6 @@ class _SoundBase(object):
                 msg = 'Sound: bad requested frequency %.0f'
                 raise ValueError(msg % value)
             self._setSndFromFreq(value, secs, hamming=hamming)
-
         if isinstance(value, basestring):
             if value.capitalize() in knownNoteNames:
                 self._setSndFromNote(value.capitalize(), secs, octave,
@@ -167,7 +170,7 @@ class _SoundBase(object):
                         self.fileName = p
                         break
                     elif path.isfile(p + '.wav'):
-                        self.fileName = p + '.wav'
+                        self.fileName = p = p + '.wav'
                         break
                 if self.fileName is None:
                     msg = "setSound: could not find a sound file named "
