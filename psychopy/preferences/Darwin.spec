@@ -43,7 +43,7 @@
     # audio driver to use
     audioDriver = list(default=list('coreaudio', 'portaudio'))
     # audio device to use (if audioLib allows control)
-    audioDevice = list(default=list('default'))
+    audioDevice = list(default=list('auto'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
     # a list of parallel ports

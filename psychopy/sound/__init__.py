@@ -74,9 +74,11 @@ for thisLibName in prefs.general['audioLib']:
             msg = ("audioLib pref should be one of {!r}, not {!r}"
                    .format(_audioLibs, thisLibName))
             raise ValueError(msg)
-        # if we got this far we were sucessful in loading the lib
+        # if we got this far we were successful in loading the lib
         audioLib = thisLibName
         init = backend.init
+        if hasattr(backend, 'getDevices'):
+            getDevices = backend.getDevices
         logging.info('sound is using audioLib: %s' % audioLib)
         break
     except exceptions.DependencyError:
@@ -123,7 +125,7 @@ if hasattr(backend, 'defaultOutput'):
         # a single option
         dev = prefs.general['audioDevice']
     # is it simply "default" (do nothing)
-    if dev=='default':
+    if dev=='auto':
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
         devNames = backend.getDevices(kind='output').keys()
