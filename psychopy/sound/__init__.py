@@ -55,7 +55,12 @@ audioLib = None
 audioDriver = None
 
 _audioLibs = ['sounddevice', 'pyo', 'pysoundcard', 'pygame']
+
+# check if this is being imported on Travis (has no audio card)
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+if travisCI:
+    # for sounddevice we built in some TravisCI protection but not in pyo
+    prefs.general['audioLib'] = ['sounddevice']
 
 for thisLibName in prefs.general['audioLib']:
 
