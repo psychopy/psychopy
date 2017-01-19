@@ -286,7 +286,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # for 'direction' method we need to update the direction of the number
         # of signal dots immediately, but for other methods it will be done
         # during updateXY
-        #:::::::::::::::::::: AJS Actually you need to do this for 'walk' also otherwise 
+        #:::::::::::::::::::: AJS Actually you need to do this for 'walk' also otherwise
         #would be signal dots adopt random directions when the become sinal dots in later trails
         if self.noiseDots in ['direction', 'position','walk']:
             self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
@@ -399,11 +399,11 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                     return new[inCircle, :][:nDots, :] * 0.5
         else:
             return numpy.random.uniform(-0.5, 0.5, [nDots, 2])
-            
+
     def refreshDots(self):
         """Callable user function to choose a new set of dots"""
         self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
-        
+
     def _update_dotsXY(self):
         """The user shouldn't call this - its gets done within draw().
         """
@@ -463,7 +463,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             #dead0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5)
             #dead1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5)
             #dead = dead + dead0 + dead1
-            
+
             out0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5)
             out1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5)
             outofbounds = out0 + out1
@@ -482,19 +482,20 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if sum(dead):
             self._verticesBase[dead, :] = self._newDotsXY(sum(dead))
             #self._verticesBase[dead, :] = -self._verticesBase[dead,:]
-            
+
         # Reposition any dots that have gone out of bounds. Net effect is to place dot one step inside the boundary on the other side of the aperture.
         if sum(outofbounds):
+            self._verticesBase[outofbounds, :] = self._newDotsXY(sum(outofbounds))
             #wind the dots back one step and store as tempary values
-            if self.noiseDots == 'position':
-                tempvert0=self._verticesBase[sd,0]-self.speed * cosDots
-                tempvert1=self._verticesBase[sd,1]-self.speed * sinDots
-            else:
-                tempvert0=self._verticesBase[:,0]-self.speed * cosDots
-                tempvert1=self._verticesBase[:,1]-self.speed * sinDots
-            #reflect the position of the dots about the origine of the dot field
-            self._verticesBase[outofbounds, 0] = -tempvert0[outofbounds]
-            self._verticesBase[outofbounds, 1] = -tempvert1[outofbounds]
+            # if self.noiseDots == 'position':
+            #     tempvert0=self._verticesBase[sd,0]-self.speed * cosDots
+            #     tempvert1=self._verticesBase[sd,1]-self.speed * sinDots
+            # else:
+            #     tempvert0=self._verticesBase[:,0]-self.speed * cosDots
+            #     tempvert1=self._verticesBase[:,1]-self.speed * sinDots
+            # #reflect the position of the dots about the origine of the dot field
+            # self._verticesBase[outofbounds, 0] = -tempvert0[outofbounds]
+            # self._verticesBase[outofbounds, 1] = -tempvert1[outofbounds]
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()
