@@ -30,7 +30,10 @@ def getDevices(kind=None):
     The dict keys are names and items are dicts of properties
     """
     devs = {}
-    allDevs = sd.query_devices(kind=kind)
+    if travisCI:  # travis-CI testing does not have a sound device
+        return []
+    else:
+        allDevs = sd.query_devices(kind=kind)
     # annoyingly query_devices is a DeviceList or a dict depending on number
     if type(allDevs)==dict:
         allDevs = [allDevs]
