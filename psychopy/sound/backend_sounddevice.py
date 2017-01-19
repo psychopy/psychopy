@@ -31,7 +31,7 @@ def getDevices(kind=None):
     """
     devs = {}
     if travisCI:  # travis-CI testing does not have a sound device
-        return []
+        return devs
     else:
         allDevs = sd.query_devices(kind=kind)
     # annoyingly query_devices is a DeviceList or a dict depending on number
