@@ -46,6 +46,7 @@ preferable.
 
 from __future__ import division
 import sys
+import os
 from psychopy import logging, prefs, exceptions
 
 pyoSndServer = None
