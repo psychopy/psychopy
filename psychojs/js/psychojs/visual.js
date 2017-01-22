@@ -261,6 +261,7 @@ psychoJS.visual.BaseVisualStim = function(attribs) {
 	// units?
 	this._rotationMatrix = [[1, 0], [0, 1]];
 	this._size = psychoJS.getAttrib(attribs, 'size');
+	this._units = psychoJS.getAttrib(attribs, 'units');
 	this._ori = psychoJS.getAttrib(attribs, 'ori', 0);
 	this._opacity = psychoJS.getAttrib(attribs, 'opacity', 1.0);
 	this._pos = psychoJS.getAttrib(attribs, 'pos', [0, 0]);
@@ -540,6 +541,26 @@ psychoJS.visual.asWindowRelated = function() {
 		else if (this._units === undefined || this._units === 'norm') {
 			var winSize = this.win.size;
 			return length * winSize[0]/2;
+		}
+		else if (this._units === 'height') {
+			var winHeight = this.win.size[1];
+			return length * winHeight;
+		}
+		else {
+			throw 'Unit ' + this._units + ' is not implemented.';
+		}
+	}
+
+	/**
+	 * returns a vertical length in pixels after taking units into account
+	 */
+	this._getVerLengthPix = function(length) {
+		if (this._units === 'pix') {
+			return length;
+		}
+		else if (this._units === undefined || this._units === 'norm') {
+			var winSize = this.win.size;
+			return length * winSize[1]/2;
 		}
 		else if (this._units === 'height') {
 			var winHeight = this.win.size[1];
@@ -1027,8 +1048,8 @@ psychoJS.visual.ImageStim.prototype._updateIfNeeded = function() {
 			this.pixiRep.anchor.x = 0.5;
 			this.pixiRep.anchor.y = 0.5;
 
-			var scaleX = this._getLengthPix(this.size[0]) / this._texture.width;
-			var scaleY = this._getLengthPix(this.size[1]) / this._texture.height;
+			var scaleX = this._getHorLengthPix(this.size[0]) / this._texture.width;
+			var scaleY = this._getVerLengthPix(this.size[1]) / this._texture.height;
 
 			this.pixiRep.scale.x = this._flipHoriz ? -scaleX : scaleX;
 			this.pixiRep.scale.y = this._flipVert ? scaleY : -scaleY;
