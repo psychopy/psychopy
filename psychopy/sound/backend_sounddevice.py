@@ -58,7 +58,22 @@ class _StreamsDict(dict):
 
     use the instance `streams` rather than creating a new instance of this
     """
-    def getSimilar(self, sampleRate, channels=-1, blockSize=-1):
+
+    def getStream(self, sampleRate, channels, blockSize):
+        """Gets a stream of exact match or returns a new one
+        (if possible for the current operating system)
+        """
+        # if the query looks flexible then try getSimilar
+        if channels == -1 or blockSize == -1:
+            return self._getSimilar(sampleRate,
+                                    channels=channels,
+                                    blockSize=blockSize)
+        else:
+            return self._getStream(sampleRate,
+                                   channels=channels,
+                                   blockSize=blockSize)
+
+    def _getSimilar(self, sampleRate, channels=-1, blockSize=-1):
         """Do we already have a compatible stream?
 
         Many sounds can allow channels and blocksize to change but samplerate
@@ -81,11 +96,10 @@ class _StreamsDict(dict):
         if (sampleRate not in [None, -1, 0] and
                 channels not in [None, -1] and
                 blockSize not in [None, -1]):
-            return self.getStream(sampleRate, channels, blockSize)
+            return self._getStream(sampleRate, channels, blockSize)
 
-    def getStream(self, sampleRate, channels, blockSize):
-        """Gets a stream of exact match or returns a new one
-        (if possible for the current operating system)
+    def _getStream(self, sampleRate, channels, blockSize):
+        """Strict check for this format or create new
         """
         label = getStreamLabel(sampleRate, channels, blockSize)
         # try to retrieve existing stream of that name
@@ -105,6 +119,7 @@ class _StreamsDict(dict):
         return label, self[label]
 
 
+
 streams = _StreamsDict()
 
 
@@ -119,6 +134,7 @@ class _SoundStream(object):
         self.channels = channels
         self.duplex = duplex
         self.blockSize = blockSize
+        self.label = getStreamLabel(sampleRate, channels, blockSize)
         if device=='default':
             device=None
         self.sounds = []  # list of dicts for sounds currently playing
@@ -159,12 +175,12 @@ class _SoundStream(object):
         toSpk *= 0  # it starts with the contents of the buffer before
         for thisSound in self.sounds:
             dat = thisSound._nextBlock()  # fetch the next block of data
-            if self.channels == 2 and len(dat.shape)==2:
+            if self.channels == 2 and len(dat.shape) == 2:
                 toSpk[:len(dat), :] += dat  # add to out stream
-            elif self.channels == 2 and len(dat.shape)==1:
+            elif self.channels == 2 and len(dat.shape) == 1:
                 toSpk[:len(dat), 0] += dat  # add to out stream
                 toSpk[:len(dat), 1] += dat  # add to out stream
-            elif self.channels == 1 and len(dat.shape)==2:
+            elif self.channels == 1 and len(dat.shape) == 2:
                 toSpk[:len(dat), :] += dat  # add to out stream
             else:
                 toSpk[:len(dat), 0] += dat  # add to out stream
@@ -342,7 +358,8 @@ class SoundDeviceSound(_SoundBase):
         self.sndFile = f = sf.SoundFile(filename)
         self.sourceType = 'file'
         self.sampleRate = f.samplerate
-        self.channels = f.channels
+        if self.channels == -1:  # if channels was auto then set to file val
+            self.channels = f.channels
         info = sf.info(filename)  # needed for duration?
         # process start time
         if self.startTime and self.startTime > 0:
@@ -376,15 +393,29 @@ class SoundDeviceSound(_SoundBase):
         self.sourceType = 'freq'
         self.t = 0
         self.duration = self.secs
+        if self.stereo == -1:
+            self.stereo = 0
 
     def _setSndFromArray(self, thisArray):
 
-        if self.channels == 2 and thisArray.ndim == 1:
-            # make mono sound stereo
-            self.sndArr = np.resize(thisArray, [2, len(thisArray)]).T
+        self.sndArr = np.asarray(thisArray)
+        if self.channels == -1:
+            self.sndArr.shape = [len(thisArray), 1]
+        elif self.channels == 2 and thisArray.ndim == 1:
+            # make mono sound into stereo
+            self.sndArr.shape = [len(thisArray),1]  # give correct N dimensions
+            self.sndArr = self.sndArr.repeat(2,axis=1)
+        elif self.channels == 1 and thisArray.ndim == 1:
+            self.sndArr.shape = [len(thisArray), 1]  # make size 2D for broad
         else:
             self.sndArr = np.asarray(thisArray)
-            self.sndArr.shape = [len(thisArray),2]
+            try:
+                self.sndArr.shape = [len(thisArray), 2]
+            except:
+                raise ValueError("Failed to format sound with shape {} "
+                                 "into sound with channels={}"
+                                 .format(self.sndArr.shape, self.channels))
+
             # is this stereo?
             if self.stereo == -1:  # auto stereo. Try to detect
                 if self.sndArr.shape[1]==1:
