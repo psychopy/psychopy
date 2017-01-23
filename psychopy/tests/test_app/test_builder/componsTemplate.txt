@@ -359,6 +359,21 @@ DotsComponent.units.hint:Units of dimensions for this stimulus
 DotsComponent.units.allowedUpdates:None
 DotsComponent.units.__class__:<class 'psychopy.app.builder.experiment.Param'>
 DotsComponent.units.label:Units
+DotsComponent.refreshDots.default:'repeat'
+DotsComponent.refreshDots.categ:Dots
+DotsComponent.refreshDots.allowedVals:['none', 'repeat']
+DotsComponent.refreshDots.readOnly:False
+DotsComponent.refreshDots.updates:None
+DotsComponent.refreshDots.__dict__:{'staticUpdater': None, 'categ': 'Dots', 'val': 'repeat', 'hint': u'When should the whole sample of dots be refreshed', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['none', 'repeat'], 'label': u'Dot refresh rule', 'readOnly': False, 'updates': None, 'valType': 'str'}
+DotsComponent.refreshDots.__weakref__:None
+DotsComponent.refreshDots.valType:str
+DotsComponent.refreshDots.staticUpdater:None
+DotsComponent.refreshDots.val:repeat
+DotsComponent.refreshDots.allowedTypes:[]
+DotsComponent.refreshDots.hint:When should the whole sample of dots be refreshed
+DotsComponent.refreshDots.allowedUpdates:[]
+DotsComponent.refreshDots.__class__:<class 'psychopy.app.builder.experiment.Param'>
+DotsComponent.refreshDots.label:Dot refresh rule
 DotsComponent.opacity.default:1
 DotsComponent.opacity.categ:Basic
 DotsComponent.opacity.allowedVals:[]

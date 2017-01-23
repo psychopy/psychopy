@@ -38,6 +38,8 @@
     audioLib = list(default=list('pyo', 'pygame'))
     # audio driver to use
     audioDriver = list(default=list('portaudio'))
+    # audio device to use (if audioLib allows control)
+    audioDevice = list(default=list('default'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
     # a list of parallel ports
