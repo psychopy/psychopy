@@ -119,11 +119,16 @@ class _SoundStream(object):
         self.channels = channels
         self.duplex = duplex
         self.blockSize = blockSize
+        if device=='default':
+            device=None
         self.sounds = []  # list of dicts for sounds currently playing
+        self.takeTimeStamp = False
+        self.frameN = 1
+        self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
             self._sdStream = sd.OutputStream(samplerate=sampleRate,
                                              blocksize=self.blockSize,
-                                             latency='high',
+                                             latency='low',
                                              device=device,
                                              channels=channels,
                                              callback=self.callback)
@@ -131,10 +136,6 @@ class _SoundStream(object):
             self.device = self._sdStream.device
             self.latency = self._sdStream.latency
             self.cpu_load = self._sdStream.cpu_load
-        self.frameN = 1
-        self.takeTimeStamp = False
-        self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
-        self.lastFrameTime = time.time()
         self._tSoundRequestPlay = 0
 
     def callback(self, toSpk, blockSize, timepoint, status):
@@ -148,7 +149,7 @@ class _SoundStream(object):
             .inputBufferAdcTime
             .outputBufferDacTime
         """
-        if self.takeTimeStamp:
+        if self.takeTimeStamp and hasattr(self, 'lastFrameTime'):
             logging.info("Entered callback: {} ms after last frame end"
                          .format((time.time()-self.lastFrameTime)*1000))
             logging.info("Entered callback: {} ms after sound start"
@@ -177,7 +178,8 @@ class _SoundStream(object):
                 logging.info("buffer_callback took {:.3f}ms that frame"
                              .format((t1-t0)*1000))
         self.frameTimes.pop(0)
-        self.frameTimes.append(time.time()-self.lastFrameTime)
+        if hasattr(self, 'lastFrameTime'):
+            self.frameTimes.append(time.time()-self.lastFrameTime)
         self.lastFrameTime = time.time()
         if self.takeTimeStamp:
             logging.info("Callback durations: {}".format(self.frameTimes))
