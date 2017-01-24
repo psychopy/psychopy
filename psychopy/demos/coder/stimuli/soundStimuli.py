@@ -20,10 +20,6 @@ logging.console.setLevel(logging.DEBUG)  # get messages about the sound lib as i
 
 from psychopy import sound, core
 
-if prefs.general['audioLib'][0] == 'pyo':
-    # if pyo is the first lib in the list of preferred libs then we could use small buffer
-    # pygame sound is very bad with a small buffer though
-    sound.init(48000, buffer=128)
 print 'Using %s(with %s) for sounds' % (sound.audioLib, sound.audioDriver)
 
 highA = sound.Sound('A', octave=3, sampleRate=44100, secs=0.8, stereo=True)
