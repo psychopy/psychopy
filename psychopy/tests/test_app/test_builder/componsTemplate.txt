@@ -3227,10 +3227,10 @@ SettingsComponent.blendMode.__class__:<class 'psychopy.app.builder.experiment.Pa
 SettingsComponent.blendMode.label:Blend mode
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.categ:Basic
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.85', '', '1.85.0rc1']
+SettingsComponent.Use version.allowedVals:['latest', '1', '1.85', '', '1.85.0rc3']
 SettingsComponent.Use version.readOnly:False
 SettingsComponent.Use version.updates:None
-SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.85', '', '1.85.0rc1'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.85', '', '1.85.0rc3'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.Use version.__weakref__:None
 SettingsComponent.Use version.valType:str
 SettingsComponent.Use version.staticUpdater:None
@@ -3240,31 +3240,16 @@ SettingsComponent.Use version.hint:The version of PsychoPy to use when running t
 SettingsComponent.Use version.allowedUpdates:None
 SettingsComponent.Use version.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Use version.label:Use PsychoPy version
-SettingsComponent.email.default:''
-SettingsComponent.email.categ:Online
-SettingsComponent.email.allowedVals:[]
-SettingsComponent.email.readOnly:False
-SettingsComponent.email.updates:None
-SettingsComponent.email.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'Place the HTML files will be saved locally ', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Email address (for info emails)', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.email.__weakref__:None
-SettingsComponent.email.valType:str
-SettingsComponent.email.staticUpdater:None
-SettingsComponent.email.val:
-SettingsComponent.email.allowedTypes:[]
-SettingsComponent.email.hint:Place the HTML files will be saved locally 
-SettingsComponent.email.allowedUpdates:None
-SettingsComponent.email.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.email.label:Email address (for info emails)
-SettingsComponent.HTML path.default:''
+SettingsComponent.HTML path.default:'html'
 SettingsComponent.HTML path.categ:Online
 SettingsComponent.HTML path.allowedVals:[]
 SettingsComponent.HTML path.readOnly:False
 SettingsComponent.HTML path.updates:None
-SettingsComponent.HTML path.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'Place the HTML files will be saved locally ', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Output path', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.HTML path.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'html', 'hint': u'Place the HTML files will be saved locally ', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Output path', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.HTML path.__weakref__:None
 SettingsComponent.HTML path.valType:str
 SettingsComponent.HTML path.staticUpdater:None
-SettingsComponent.HTML path.val:
+SettingsComponent.HTML path.val:html
 SettingsComponent.HTML path.allowedTypes:[]
 SettingsComponent.HTML path.hint:Place the HTML files will be saved locally 
 SettingsComponent.HTML path.allowedUpdates:None
@@ -3287,10 +3272,10 @@ SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experimen
 SettingsComponent.Save csv file.label:Save csv file (summaries)
 SettingsComponent.OSF Project ID.default:''
 SettingsComponent.OSF Project ID.categ:Online
-SettingsComponent.OSF Project ID.allowedVals:[]
+SettingsComponent.OSF Project ID.allowedVals:[u'wgwec: test_LEFT', u'f8jfp: Sage_GFMT_materials', '']
 SettingsComponent.OSF Project ID.readOnly:False
 SettingsComponent.OSF Project ID.updates:None
-SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
 SettingsComponent.OSF Project ID.__weakref__:None
 SettingsComponent.OSF Project ID.valType:str
 SettingsComponent.OSF Project ID.staticUpdater:None
@@ -3298,7 +3283,7 @@ SettingsComponent.OSF Project ID.val:
 SettingsComponent.OSF Project ID.allowedTypes:[]
 SettingsComponent.OSF Project ID.hint:The ID of this project (e.g. 5bqpc)
 SettingsComponent.OSF Project ID.allowedUpdates:None
-SettingsComponent.OSF Project ID.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.OSF Project ID.__class__:<class 'psychopy.app.builder.components.settings.ProjIDParam'>
 SettingsComponent.OSF Project ID.label:OSF Project ID
 SettingsComponent.Save log file.default:True
 SettingsComponent.Save log file.categ:Data
@@ -3315,21 +3300,6 @@ SettingsComponent.Save log file.hint:Save a detailed log (more detailed than the
 SettingsComponent.Save log file.allowedUpdates:None
 SettingsComponent.Save log file.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Save log file.label:Save log file
-SettingsComponent.OSF User.default:''
-SettingsComponent.OSF User.categ:Online
-SettingsComponent.OSF User.allowedVals:[]
-SettingsComponent.OSF User.readOnly:False
-SettingsComponent.OSF User.updates:None
-SettingsComponent.OSF User.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'Must be a user that has logged in from PsychoPy on this machine (with user remembered)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'OSF username (email)', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.OSF User.__weakref__:None
-SettingsComponent.OSF User.valType:str
-SettingsComponent.OSF User.staticUpdater:None
-SettingsComponent.OSF User.val:
-SettingsComponent.OSF User.allowedTypes:[]
-SettingsComponent.OSF User.hint:Must be a user that has logged in from PsychoPy on this machine (with user remembered)
-SettingsComponent.OSF User.allowedUpdates:None
-SettingsComponent.OSF User.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.OSF User.label:OSF username (email)
 SettingsComponent.Save wide csv file.default:True
 SettingsComponent.Save wide csv file.categ:Data
 SettingsComponent.Save wide csv file.allowedVals:[]
