@@ -1514,7 +1514,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.name = name
         self.autoLog = autoLog
 
-        if trialList in [None, []]:  # user wants an empty trialList
+        if trialList in [None, [None], []]:  # user wants an empty trialList
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
             self.columns = []
@@ -1661,7 +1661,7 @@ class TrialHandler2(_BaseTrialHandler):
             self.thisIndex = 0
             self.thisTrial = {}
         else:
-            self.thisIndex = self.remainingIndices.pop()
+            self.thisIndex = self.remainingIndices.pop(0)
             # if None then use empty dict
             thisTrial = self.trialList[self.thisIndex] or {}
             self.thisTrial = copy.copy(thisTrial)
@@ -4447,7 +4447,6 @@ class MultiStairHandler(_BaseTrialHandler):
                 thisMatrixOnly = matrixOnly
             # make a filename
             label = thisStair.condition['label']
-            print("\n%s:" % label)
             thisStair.saveAsText(fileName='stdout', delim=delim,
                                  matrixOnly=thisMatrixOnly)
 
