@@ -829,13 +829,13 @@ class ProjectFrame(BaseFrame):
         # to check the status we need the
         while True:
             progress = changes.progress
+            self.syncStatus.setProgress(progress)
+            wx.Yield()
             if progress == 1:
                 self.update(_translate("Sync complete"))
                 changes.finish_sync()
                 self.project.save()
                 break
-            else:
-                self.syncStatus.setProgress(progress)
 
     def update(self, status=None):
         """Update to a particular status if given or deduce status msg if not
