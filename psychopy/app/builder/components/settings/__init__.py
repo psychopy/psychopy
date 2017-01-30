@@ -64,7 +64,6 @@ class ProjIDParam(Param):
         # always allow blank (None)
         if '' not in allowed:
             allowed.append('')
-        print("FoundTheseProjects:{}".format(allowed))
         return allowed
     @allowedVals.setter
     def allowedVals(self, allowed):
