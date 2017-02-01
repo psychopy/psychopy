@@ -820,17 +820,17 @@ class ProjectFrame(BaseFrame):
         # create or reset progress indicators
         self.syncStatus.reset()
         self.update(status=_translate("Checking for changes"))
-        wx.Yield()
+        time.sleep(0.01)
         changes = self.project.get_changes()
         self.update(status=_translate("Applying changes"))
-        wx.Yield()  # give wx a moment to breath
+        time.sleep(0.01)  # give wx a moment to breath
         # start the threads up/downloading
         changes.apply(threaded=True)
         # to check the status we need the
         while True:
             progress = changes.progress
             self.syncStatus.setProgress(progress)
-            wx.Yield()
+            time.sleep(0.01)
             if progress == 1:
                 self.update(_translate("Sync complete"))
                 changes.finish_sync()
@@ -979,15 +979,16 @@ class SyncStatusPanel(wx.Panel):
         self.downProg.SetValue(0)
 
     def setProgress(self, progress):
-        upDone, upTot = progress['up']
-        downDone, downTot = progress['down']
-        if upTot == 0:
+        if type(progress)==dict:
+            upDone, upTot = progress['up']
+            downDone, downTot = progress['down']
+        if progress == 1 or upTot == 0:
             self.upProg.SetRange(1)
             self.upProg.SetValue(1)
         else:
             self.upProg.SetRange(upTot)
             self.upProg.SetValue(upDone)
-        if downTot == 0:
+        if progress == 1 or downTot == 0:
             self.downProg.SetRange(1)
             self.downProg.SetValue(1)
         else:
