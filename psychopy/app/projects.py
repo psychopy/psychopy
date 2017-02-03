@@ -10,7 +10,6 @@ import glob
 import wx
 import wx.lib.scrolledpanel as scrlpanel
 
-from . import wxIDs
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
 from .localization import _translate
@@ -111,10 +110,10 @@ class ProjectsMenu(wx.Menu):
         global usersList
         self.userList = usersList
 
-        self.Append(wxIDs.projsAbout, _translate("Tell me more..."))
-        wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
+        item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
+        wx.EVT_MENU(parent, item.GetId(),  self.onAbout)
         if not havePyosf:
-            self.Append(wx.NewId(),
+            self.Append(wx.ID_ANY,
                         _translate("Requires pyosf (not installed)"))
             ProjectsMenu.knownUsers = {}
         else:
@@ -126,10 +125,10 @@ class ProjectsMenu(wx.Menu):
 
         # sub-menu to open previous or new projects
         self.projsSubMenu = wx.Menu()
-        self.projsSubMenu.Append(wxIDs.projsOpen,
+        item = self.projsSubMenu.Append(wx.ID_ANY,
                                  _translate("From file...\t{}")
                                  .format(keys['projectsOpen']))
-        wx.EVT_MENU(parent, wxIDs.projsOpen,  self.onOpenFile)
+        wx.EVT_MENU(parent, item.GetId(),  self.onOpenFile)
         self.projsSubMenu.AppendSeparator()
         self.projHistory.UseMenu(self.projsSubMenu)
         try:
@@ -150,22 +149,22 @@ class ProjectsMenu(wx.Menu):
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
-        self.userMenu.Append(wxIDs.projsNewUser,
+        item = self.userMenu.Append(wx.ID_ANY,
                              _translate("Log in...\t{}")
                              .format(keys['projectsLogIn']))
-        wx.EVT_MENU(parent, wxIDs.projsNewUser,  self.onLogIn)
+        wx.EVT_MENU(parent, item.GetId(),  self.onLogIn)
         self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
-        self.Append(wxIDs.projsSearch,
+        item = self.Append(wx.ID_ANY,
                     _translate("Search OSF\t{}")
                     .format(keys['projectsFind']))
-        wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
+        wx.EVT_MENU(parent, item.GetId(),  self.onSearch)
 
         # new
-        self.Append(wxIDs.projsNew,
+        item = self.Append(wx.ID_ANY,
                     _translate("New...\t{}").format(keys['projectsNew']))
-        wx.EVT_MENU(parent, wxIDs.projsNew,  self.onNew)
+        wx.EVT_MENU(parent, item.GetId(),  self.onNew)
 
         # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
         # wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
