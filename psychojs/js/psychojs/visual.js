@@ -42,11 +42,15 @@ psychoJS.attributeSet = function(obj, attrib, value, log, stealth) {
  * @constructor
  */
 psychoJS.visual.Window = function(attribs) {
+	psychoJS.visual.asColor.call(this);
+    
+	this.setColor(psychoJS.getAttrib(attribs ,'color', 0xFFFFFF), psychoJS.getAttrib(attribs, 'colorSpace', 'rgb'));
+    
 	this.dim = psychoJS.getAttrib(attribs, 'dim');
 	this._units = psychoJS.getAttrib(attribs, 'units', 'norm');
 	this._fullscr = psychoJS.getAttrib(attribs, 'fullscr');
 
-	this._renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor:0x00000});
+	this._renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor:psychoJS.rgb2int(this._getDesiredRGB(this._rgb, this._colorSpace, 1))});
 
 	this._renderer.view.style["transform"] = "translatez(0)"; // what does this do?
 	document.body.appendChild(this._renderer.view);
@@ -89,7 +93,13 @@ psychoJS.visual.Window = function(attribs) {
 	this._renderer.view.addEventListener("mousewheel", psychoJS.event._onMouseWheel, false);
 }
 
-
+psychoJS.visual.Window.prototype._updateIfNeeded = function() {
+	if (this._needUpdate) {
+		this._renderer.backgroundColor = psychoJS.rgb2int(this._getDesiredRGB(this._rgb, this._colorSpace, 1));
+        
+		this._needUpdate = false;
+	}
+}
 
 /**
  * "Closes" the window. This actually only removes the canvas used to render components.
@@ -102,6 +112,8 @@ psychoJS.visual.Window.prototype.close = function() {
  * Recomputes the window's _drawList and _container children for the next animation frame.
  */
 psychoJS.visual.Window.prototype._refresh = function() {
+	this._updateIfNeeded();
+    
 	var newDrawList = [];
 	for(var i = 0; i < this._drawList.length; ++i) {
 		var stim = this._drawList[i];
