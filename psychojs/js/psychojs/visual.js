@@ -273,7 +273,7 @@ psychoJS.visual.BaseVisualStim = function(attribs) {
 	// units?
 	this._rotationMatrix = [[1, 0], [0, 1]];
 	this._size = psychoJS.getAttrib(attribs, 'size');
-    this._units = psychoJS.getAttrib(attribs, 'units');
+	this._units = psychoJS.getAttrib(attribs, 'units');
 	this._ori = psychoJS.getAttrib(attribs, 'ori', 0);
 	this._opacity = psychoJS.getAttrib(attribs, 'opacity', 1.0);
 	this._pos = psychoJS.getAttrib(attribs, 'pos', [0, 0]);
