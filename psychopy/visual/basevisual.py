@@ -497,7 +497,11 @@ class ContainerMixin(object):
             verts = self._verticesBase
 
         # set size and orientation, combine with position and convert to pix:
-        verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
+        if hasattr(self, 'fieldSize'):
+            # this is probably a DotStim and size is handled differently
+            verts = numpy.dot(verts * flip, self._rotationMatrix)
+        else:
+            verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
         verts = convertToPix(vertices=verts, pos=self.pos,
                              win=self.win, units=self.units)
         self.__dict__['verticesPix'] = verts

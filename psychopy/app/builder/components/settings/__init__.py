@@ -348,7 +348,13 @@ class SettingsComponent(object):
         projLabel = self.params['OSF Project ID'].val
         # these are all blank unless we find a valid proj
         osfID = osfName = osfToken = ''
-        osfHtmlFolder = osfDataFolder = ''
+        osfHtmlFolder = ''
+        osfDataFolder = 'data'
+        # is email a defined parameter for this version
+        if 'email' in self.params:
+            email = str(self.params['email'])
+        else:
+            email = ''
         if projLabel in projectCatalog:  # this is the psychopy  descriptive label (id+title)
             proj = projectCatalog[projLabel]
             osfID = proj.osf.id
@@ -356,7 +362,6 @@ class SettingsComponent(object):
             osfUser = proj.username
             osfToken = remote.TokenStorage()[osfUser]
             osfHtmlFolder = self.params['HTML path'].val
-            osfDataFolder = 'data'
         infoPHPfilename = os.path.join(folder, 'info.php')
         infoText = readTextFile("JS_infoPHP.tmpl")
         infoText = infoText.format(osfID=osfID,
@@ -365,6 +370,7 @@ class SettingsComponent(object):
                                    osfHtmlFolder=osfHtmlFolder,
                                    osfDataFolder=osfDataFolder,
                                    params=self.params,
+                                   email=email,
                                    )
 
         infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
@@ -628,7 +634,7 @@ class SettingsComponent(object):
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "    win.close()\n"
                     "    psychoJS.core.quit();\n"
-                    "    return QUIT;\n"
+                    "    return psychoJS.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)
         buff.setIndentLevel(-1)

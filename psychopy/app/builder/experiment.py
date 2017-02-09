@@ -1751,7 +1751,7 @@ class Flow(list):
         script.setIndentLevel(+1, relative=True)
 
         # handle email for error messages
-        if self.exp.settings.params['email'].val:
+        if 'email' in self.exp.settings.params and self.exp.settings.params['email'].val:
             code = ("// If there is an error, we should inform the participant and email the experimenter\n"
                     "// note: we use window.onerror rather than a try/catch as the latter\n"
                     "// do not handle so well exceptions thrown asynchronously\n"
@@ -1824,6 +1824,8 @@ class Flow(list):
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == 'LoopTerminator':
                     loopStack.remove(thisEntry.loop)
+            # also flow should close when done
+            code += "flowScheduler.add(quitPsychoJS);\n"
             script.writeIndentedLines(code)
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
@@ -2154,9 +2156,10 @@ class Routine(list):
 
         code = ("//------Ending Routine '{name}'-------\n"
                 "for (var i = 0; i < {name}Components.length; ++i) {{\n"
+                '  thisComponent = trialComponents[i];\n'
                 '  if ("setAutoDraw" in thisComponent) {{\n'
                 "    thisComponent.setAutoDraw(false);\n"
-                '  }}\n'
+                "  }}\n"
                 "}}\n")
         buff.writeIndentedLines(code.format(name=self.params['name']))
         # add the EndRoutine code for each component

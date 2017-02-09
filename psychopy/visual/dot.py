@@ -396,9 +396,10 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 new = numpy.random.uniform(-1, 1, [nDots * 2, 2])
                 inCircle = (numpy.hypot(new[:, 0], new[:, 1]) < 1)
                 if sum(inCircle) >= nDots:
-                    return new[inCircle, :][:nDots, :] * 0.5
+                    return new[inCircle, :][:nDots, :] * self.fieldSize * 0.5
         else:
-            return numpy.random.uniform(-0.5, 0.5, [nDots, 2])
+            return numpy.random.uniform(-0.5*self.fieldSize[0],
+                                        0.5*self.fieldSize[1], [nDots, 2])
 
     def refreshDots(self):
         """Callable user function to choose a new set of dots"""
@@ -463,9 +464,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             #dead0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5)
             #dead1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5)
             #dead = dead + dead0 + dead1
-
-            out0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5)
-            out1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5)
+            out0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5*self.fieldSize[0])
+            out1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5*self.fieldSize[1])
             outofbounds = out0 + out1
 
         elif self.fieldShape == 'circle':
@@ -473,7 +473,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             # transform to a normalised circle (radius = 1 all around)
             # then to polar coords to check
             # the normalised XY position (where radius should be < 1)
-            normXY = self._verticesBase / 0.5
+            normXY = self._verticesBase / 0.5 / self.fieldSize
             # add out-of-bounds to those that need replacing
             #dead+= (numpy.hypot(normXY[:, 0], normXY[:, 1]) > 1)
             outofbounds = (numpy.hypot(normXY[:, 0], normXY[:, 1]) > 1)

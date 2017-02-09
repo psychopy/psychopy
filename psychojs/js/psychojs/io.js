@@ -694,7 +694,7 @@ psychoJS.io.ResourceManager.prototype.OSFEXPUploadData = function(session, dataT
  * @return {Object} JSON string representation of the file to which the data was saved
  */
 psychoJS.io.ResourceManager.prototype.EXPUploadData = function(session, dataType, data) {
-	var errorPrefix = '{ "function" : "io.ResourceManager.EXPUploadData", "context" : "when uploading data to OSF via the experiment server", '
+	var errorPrefix = '{ "function" : "io.ResourceManager.EXPUploadData", "context" : "when uploading data to the experiment server", '
 		+ '"error" : ';
 	this.setStatus('BUSY');
 	
