@@ -1609,19 +1609,12 @@ class BuilderFrame(wx.Frame):
         # get path if not given one
         settingsHTMLpath = self.exp.settings.params['HTML path'].val
         if htmlPath is None and self.exp.settings.params['HTML path']:
-
             expPath = os.path.split(self.filename)[0]
             htmlPath = os.path.join(expPath, settingsHTMLpath)
         # present dialog box
         dlg = ExportFileDialog(self, -1, title="Export HTML file",
                                filePath=htmlPath)
         retVal = dlg.ShowModal()
-        if retVal == wx.ID_OK:
-            htmlPath = dlg.filePath.GetValue()
-            if dlg.exportOnSave.GetValue():
-                self.htmlPath = htmlPath  # this will be checked and used
-        else:
-            return  # nothing more to do here, move along
         # then save the actual script
         indexHTML = self.generateScript(experimentPath=htmlPath,
                                      target="PsychoJS")
@@ -2278,10 +2271,11 @@ class ExportFileDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        label = wx.StaticText(self, -1, "Filepath (relative to psyexp):")
+        label = wx.StaticText(self, -1, "Filepath:")
         box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-        self.filePath = wx.TextCtrl(self, -1, filePath, size=(200, -1))
-        self.filePath.SetHelpText("The folder to store the HTML files")
+        if len(filePath)>70:
+            filePath = filePath[:20]+"....."+filePath[-40:]
+        self.filePath = wx.StaticText(self, -1, filePath, size=(500, -1))
         box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
         sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
@@ -2318,5 +2312,4 @@ class ExportFileDialog(wx.Dialog):
 
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.SetSizer(sizer)
-        sizer.Fit(self)
+        self.SetSizerAndFit(sizer)

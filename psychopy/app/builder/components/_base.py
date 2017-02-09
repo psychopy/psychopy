@@ -190,13 +190,13 @@ class BaseComponent(object):
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = ("if (t >= %(startVal)s "
-                    "&& %(name)s.status == psychoJS.NOT_STARTED) {\n")
+                    "&& %(name)s.status === psychoJS.NOT_STARTED) {\n")
         elif self.params['startType'].val == 'frame N':
             code = ("if (frameN >= %(startVal)s "
-                    "&& %(name)s.status == psychoJS.NOT_STARTED) {\n")
+                    "&& %(name)s.status === psychoJS.NOT_STARTED) {\n")
         elif self.params['startType'].val == 'condition':
             code = ("if ((%(startVal)s) "
-                    "&& %(name)s.status == psychoJS.NOT_STARTED) {\n")
+                    "&& %(name)s.status === psychoJS.NOT_STARTED) {\n")
         else:
             msg = "Not a known startType (%(startType)s) for %(name)s"
             raise CodeGenerationException(msg % self.params)
@@ -250,7 +250,7 @@ class BaseComponent(object):
             code = ("frameRemains = %(stopVal)s "
                     " - frameDur * 0.75;"
                     "  # most of one frame period left\n"
-                    "if (%(name)s.status == psychoJS.STARTED "
+                    "if (%(name)s.status === psychoJS.STARTED "
                     "&& t >= frameRemains) {\n")
         # duration in time (s)
         elif (self.params['stopType'].val == 'duration (s)' and
@@ -258,20 +258,20 @@ class BaseComponent(object):
             code = ("frameRemains = %(startVal)s + %(stopVal)s"
                     " - frameDur * 0.75;"
                     "  // most of one frame period left\n"
-                    "if (%(name)s.status == psychoJS.STARTED "
+                    "if (%(name)s.status === psychoJS.STARTED "
                     "&& t >= frameRemains) {\n")
         # start at frame and end with duratio (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
-            code = ("if (%(name)s.status == psychoJS.STARTED "
+            code = ("if (%(name)s.status === psychoJS.STARTED "
                     "&& t >= (%(name)s.tStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'duration (frames)':
-            code = ("if (%(name)s.status == psychoJS.STARTED "
+            code = ("if (%(name)s.status === psychoJS.STARTED "
                     "&& frameN >= (%(name)s.frameNStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'frame N':
-            code = ("if (%(name)s.status == psychoJS.STARTED "
+            code = ("if (%(name)s.status === psychoJS.STARTED "
                     "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
-            code = ("if (%(name)s.status == psychoJS.STARTED "
+            code = ("if (%(name)s.status === psychoJS.STARTED "
                     "&& bool(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType=%(startType)s, "
