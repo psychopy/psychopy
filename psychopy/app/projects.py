@@ -10,7 +10,6 @@ import glob
 import wx
 import wx.lib.scrolledpanel as scrlpanel
 
-from . import wxIDs
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
 from .localization import _translate
@@ -111,10 +110,10 @@ class ProjectsMenu(wx.Menu):
         global usersList
         self.userList = usersList
 
-        self.Append(wxIDs.projsAbout, _translate("Tell me more..."))
-        wx.EVT_MENU(parent, wxIDs.projsAbout,  self.onAbout)
+        item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
+        wx.EVT_MENU(parent, item.GetId(),  self.onAbout)
         if not havePyosf:
-            self.Append(wx.NewId(),
+            self.Append(wx.ID_ANY,
                         _translate("Requires pyosf (not installed)"))
             ProjectsMenu.knownUsers = {}
         else:
@@ -126,10 +125,10 @@ class ProjectsMenu(wx.Menu):
 
         # sub-menu to open previous or new projects
         self.projsSubMenu = wx.Menu()
-        self.projsSubMenu.Append(wxIDs.projsOpen,
+        item = self.projsSubMenu.Append(wx.ID_ANY,
                                  _translate("From file...\t{}")
                                  .format(keys['projectsOpen']))
-        wx.EVT_MENU(parent, wxIDs.projsOpen,  self.onOpenFile)
+        wx.EVT_MENU(parent, item.GetId(),  self.onOpenFile)
         self.projsSubMenu.AppendSeparator()
         self.projHistory.UseMenu(self.projsSubMenu)
         try:
@@ -150,22 +149,22 @@ class ProjectsMenu(wx.Menu):
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
-        self.userMenu.Append(wxIDs.projsNewUser,
+        item = self.userMenu.Append(wx.ID_ANY,
                              _translate("Log in...\t{}")
                              .format(keys['projectsLogIn']))
-        wx.EVT_MENU(parent, wxIDs.projsNewUser,  self.onLogIn)
+        wx.EVT_MENU(parent, item.GetId(),  self.onLogIn)
         self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
-        self.Append(wxIDs.projsSearch,
+        item = self.Append(wx.ID_ANY,
                     _translate("Search OSF\t{}")
                     .format(keys['projectsFind']))
-        wx.EVT_MENU(parent, wxIDs.projsSearch,  self.onSearch)
+        wx.EVT_MENU(parent, item.GetId(),  self.onSearch)
 
         # new
-        self.Append(wxIDs.projsNew,
+        item = self.Append(wx.ID_ANY,
                     _translate("New...\t{}").format(keys['projectsNew']))
-        wx.EVT_MENU(parent, wxIDs.projsNew,  self.onNew)
+        wx.EVT_MENU(parent, item.GetId(),  self.onNew)
 
         # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
         # wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
@@ -820,22 +819,22 @@ class ProjectFrame(BaseFrame):
         # create or reset progress indicators
         self.syncStatus.reset()
         self.update(status=_translate("Checking for changes"))
-        wx.Yield()
+        time.sleep(0.01)
         changes = self.project.get_changes()
         self.update(status=_translate("Applying changes"))
-        wx.Yield()  # give wx a moment to breath
+        time.sleep(0.01)  # give wx a moment to breath
         # start the threads up/downloading
         changes.apply(threaded=True)
         # to check the status we need the
         while True:
             progress = changes.progress
+            self.syncStatus.setProgress(progress)
+            time.sleep(0.01)
             if progress == 1:
                 self.update(_translate("Sync complete"))
                 changes.finish_sync()
                 self.project.save()
                 break
-            else:
-                self.syncStatus.setProgress(progress)
 
     def update(self, status=None):
         """Update to a particular status if given or deduce status msg if not
@@ -979,15 +978,16 @@ class SyncStatusPanel(wx.Panel):
         self.downProg.SetValue(0)
 
     def setProgress(self, progress):
-        upDone, upTot = progress['up']
-        downDone, downTot = progress['down']
-        if upTot == 0:
+        if type(progress)==dict:
+            upDone, upTot = progress['up']
+            downDone, downTot = progress['down']
+        if progress == 1 or upTot == 0:
             self.upProg.SetRange(1)
             self.upProg.SetValue(1)
         else:
             self.upProg.SetRange(upTot)
             self.upProg.SetValue(upDone)
-        if downTot == 0:
+        if progress == 1 or downTot == 0:
             self.downProg.SetRange(1)
             self.downProg.SetValue(1)
         else:
