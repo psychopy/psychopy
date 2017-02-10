@@ -9,6 +9,7 @@ from psychopy import core, logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from ._base import _SoundBase
+from . import _bestDriver
 
 try:
     import pyo
