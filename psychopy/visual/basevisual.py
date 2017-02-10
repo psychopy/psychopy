@@ -787,8 +787,8 @@ class TextureMixin(object):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex)
                 if not filename:
-                    msg = "Couldn't find image '%s'; check path? (tried: %s)"
-                    logging.error(msg % tex)
+                    msg = "Couldn't find image %s; check path? (tried: %s)"
+                    logging.error(msg % (tex, os.path.abspath(tex)))
                     logging.flush()
                     raise IOError, msg % (tex, os.path.abspath(tex))
                 try:
