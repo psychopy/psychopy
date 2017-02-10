@@ -82,7 +82,7 @@ class _StreamsDict(dict):
 
         usage:
 
-            label, stream = streams.getSimilar(sampleRate=44100,  # must match
+            label, stream = streams._getSimilar(sampleRate=44100,  # must match
                                                channels=-1,  # any
                                                blockSize=-1)  # wildcard
         """
@@ -329,7 +329,7 @@ class SoundDeviceSound(_SoundBase):
         except SoundFormatError as err:
             # try to use something similar (e.g. mono->stereo)
             # then check we have an appropriate stream open
-            altern = streams.getSimilar(sampleRate=self.sampleRate,
+            altern = streams._getSimilar(sampleRate=self.sampleRate,
                                         channels=-1,
                                         blockSize=-1)
             if altern is None:
