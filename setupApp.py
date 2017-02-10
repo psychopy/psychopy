@@ -68,6 +68,7 @@ setup(
                       'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
                       'moviepy', 'imageio',
                       'pysoundcard', 'soundfile', 'sounddevice',
+                      'cffi','pycparser',
                       'PyQt4',
                       'PIL',  # 'Image',
                       'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
