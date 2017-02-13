@@ -3377,17 +3377,31 @@ class StairHandler(_BaseTrialHandler):
             ws.cell(_getExcelCellName(col=3, row=intenN + 1)
                     ).value = unicode(self.data[intenN])
 
+        # add other data
+        col = 4
+        if self.otherData is not None:
+            # for varName in self.otherData:
+            for key, val in self.otherData.items():
+                ws.cell(_getExcelCellName(col=col, row=0)
+                        ).value = unicode(key)
+                for oDatN in range(len(self.otherData[key])):
+                    ws.cell(
+                        _getExcelCellName(col=col, row=oDatN + 1)
+                        ).value = unicode(self.otherData[key][oDatN])
+                col += 1
+
         # add self.extraInfo
-        rowN = 0
         if self.extraInfo is not None and not matrixOnly:
-            ws.cell(_getExcelCellName(col=6, row=rowN)).value = 'extraInfo'
-            rowN += 1
+            ws.cell(_getExcelCellName(col=startingCol,
+                                      row=0)).value = 'extraInfo'
+            rowN = 1
             for key, val in self.extraInfo.items():
-                _cell = _getExcelCellName(col=6, row=rowN)
+                _cell = _getExcelCellName(col=col, row=rowN)
                 ws.cell(_cell).value = unicode(key) + u':'
-                _cell = _getExcelCellName(col=7, row=rowN)
+                _cell = _getExcelCellName(col=col+1, row=rowN)
                 ws.cell(_cell).value = unicode(val)
                 rowN += 1
+
 
         wb.save(filename=fileName)
         if self.autoLog:
