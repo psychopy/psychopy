@@ -144,32 +144,3 @@ if hasattr(backend, 'defaultOutput'):
                         "{}".format(dev, devNames))
     else:
         setDevice(dev, kind='output')
-
-def _bestDriver(devNames, devIDs):
-    """Find ASIO or Windows sound drivers
-    """
-    preferredDrivers = prefs.general['audioDriver']
-    outputID = None
-    audioDriver = None
-    osEncoding = sys.getfilesystemencoding()
-    for prefDriver in preferredDrivers:
-        logging.info('Looking for {}'.format(prefDriver))
-        if prefDriver.lower() == 'directsound':
-            prefDriver = u'Primary Sound'
-        # look for that driver in available devices
-        for devN, devString in enumerate(devNames):
-            logging.info('Examining for {}'.format(devString))
-            try:
-                ds = devString.decode(osEncoding).encode('utf-8').lower()
-                if prefDriver.encode('utf-8').lower() in ds:
-                    audioDriver = devString.decode(osEncoding).encode('utf-8')
-                    outputID = devIDs[devN]
-                    logging.info('Success: {}'.format(devString))
-                    # we found a driver don't look for others
-                    return audioDriver, outputID
-            except (UnicodeDecodeError, UnicodeEncodeError):
-                logging.info('Failed: {}'.format(devString))
-                logging.warn('find best sound driver - could not '
-                             'interpret unicode in driver name')
-    else:
-        return None, None
