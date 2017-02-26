@@ -1387,14 +1387,18 @@ class Window(object):
             max_samples = (GL.GLint)()
             GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
 
-            if (self.numMSAASamples > 2) and (self.numMSAASamples <= max_samples.value):
+            if (self.numMSAASamples >= 2) and (self.numMSAASamples <= max_samples.value):
                 # NB - also check if divisible by two and integer?
                 aa_samples = self.numMSAASamples
             else:
                 logging.warning('Invalid number of MSAA samples provided, must be '
                                 'integer greater than two. Disabling.')
                 sample_buffers = 0
+                aa_samples = 0
                 self.useMSAA = False
+        else:
+            sample_buffers = 0
+            aa_samples = 0
 
         # provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
