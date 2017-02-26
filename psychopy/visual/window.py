@@ -215,6 +215,18 @@ class Window(object):
                 the OpenGL stencil buffer
                 (notably, allowing the class:`~psychopy.visual.Aperture`
                 to be used).
+            multiSample : True or *False*
+                If True and your graphics driver supports multisample buffers,
+                multiple color samples will be taken per-pixel, providing an
+                anti-aliased image through spatial filtering. Note this is
+                applied in addition to stimulus interpolation and may cause
+                excessive blurring. (Cannot be changed after opening window)
+            numSamples : *2* or integer >2
+                A single value specifying the number of samples per pixel if
+                multisample is enabled. The higher the number, the better the
+                image quality, but can delay frame flipping.
+                (The largest number of samples is determined by GL_MAX_SAMPLES,
+                usually 16 or 32 on newer hardware)
             stereo : True or *False*
                 If True and your graphics card supports quad buffers then
                 this will be enabled.
