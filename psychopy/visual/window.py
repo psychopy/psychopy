@@ -153,6 +153,8 @@ class Window(object):
                  viewOri=0.0,
                  waitBlanking=True,
                  allowStencil=False,
+                 useMSAA=False,
+                 numMSAASamples=8,
                  stereo=False,
                  name='window1',
                  checkTiming=True,
@@ -304,6 +306,10 @@ class Window(object):
             msg = "Window: viewPos & viewOri are currently incompatible"
             raise NotImplementedError(msg)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
+
+        # enable multisampling
+        self.useMSAA = useMSAA
+        self.numMSAASamples = numMSAASamples
 
         # load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
@@ -1374,6 +1380,22 @@ class Window(object):
             stencil_size = 0
         vsync = 0
 
+        # multisampling flag
+        if self.useMSAA and self.numMSAASamples:
+            sample_buffers = 1
+            # get maximum number of samples the driver supports
+            max_samples = (GL.GLint)()
+            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
+
+            if (self.numMSAASamples > 2) and (self.numMSAASamples <= max_samples.value):
+                # NB - also check if divisible by two and integer?
+                aa_samples = self.numMSAASamples
+            else:
+                logging.warning('Invalid number of MSAA samples provided, must be '
+                                'integer greater than two. Disabling.')
+                sample_buffers = 0
+                self.useMSAA = False
+
         # provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
@@ -1381,8 +1403,8 @@ class Window(object):
             self.stereo = False
 
         # options that the user might want
-        config = GL.Config(depth_size=8, double_buffer=True,
-                           stencil_size=stencil_size, stereo=self.stereo,
+        config = GL.Config(depth_size=8, double_buffer=True, sample_buffers=sample_buffers,
+                           samples=aa_samples, stencil_size=stencil_size, stereo=self.stereo,
                            vsync=vsync)
 
         # monkey patches for retina display if needed
