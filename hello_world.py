@@ -11,7 +11,7 @@ from __future__ import division
 from psychopy import visual, core
 
 # Create a visual window:
-win = visual.Window(useMSAA=True, numMSAASamples=16)
+win = visual.Window(multiSample=True, numSamples=2)
 
 # Create (but not yet display) some text:
 msg1 = visual.TextStim(win, text=u"Hello world!")  # default position = centered
