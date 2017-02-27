@@ -153,6 +153,8 @@ class Window(object):
                  viewOri=0.0,
                  waitBlanking=True,
                  allowStencil=False,
+                 multiSample=False,
+                 numSamples=2,
                  stereo=False,
                  name='window1',
                  checkTiming=True,
@@ -213,6 +215,18 @@ class Window(object):
                 the OpenGL stencil buffer
                 (notably, allowing the class:`~psychopy.visual.Aperture`
                 to be used).
+            multiSample : True or *False*
+                If True and your graphics driver supports multisample buffers,
+                multiple color samples will be taken per-pixel, providing an
+                anti-aliased image through spatial filtering. 
+                (Cannot be changed after opening a window, pyglet only)
+            numSamples : *2* or integer >2
+                A single value specifying the number of samples per pixel if
+                multisample is enabled. The higher the number, the better the
+                image quality, but can delay frame flipping.
+                (The largest number of samples is determined by GL_MAX_SAMPLES,
+                usually 16 or 32 on newer hardware, will crash if number
+                is invalid)
             stereo : True or *False*
                 If True and your graphics card supports quad buffers then
                 this will be enabled.
@@ -304,6 +318,10 @@ class Window(object):
             msg = "Window: viewPos & viewOri are currently incompatible"
             raise NotImplementedError(msg)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
+
+        # enable multisampling
+        self.multiSample = multiSample
+        self.numSamples = numSamples
 
         # load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
@@ -1380,9 +1398,27 @@ class Window(object):
                             'card does not appear to support GL_STEREO')
             self.stereo = False
 
+        # multisampling 
+        sample_buffers = 0
+        aa_samples = 0
+
+        if self.multiSample:
+            sample_buffers = 1
+            # get maximum number of samples the driver supports
+            max_samples = (GL.GLint)()
+            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
+
+            if (self.numSamples >= 2) and (self.numSamples <= max_samples.value):
+                # NB - also check if divisible by two and integer?
+                aa_samples = self.numSamples
+            else:
+                logging.warning('Invalid number of MSAA samples provided, must be '
+                                'integer greater than two. Disabling.')
+                self.multiSample = False
+
         # options that the user might want
-        config = GL.Config(depth_size=8, double_buffer=True,
-                           stencil_size=stencil_size, stereo=self.stereo,
+        config = GL.Config(depth_size=8, double_buffer=True, sample_buffers=sample_buffers,
+                           samples=aa_samples, stencil_size=stencil_size, stereo=self.stereo,
                            vsync=vsync)
 
         # monkey patches for retina display if needed
