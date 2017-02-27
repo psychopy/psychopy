@@ -1,4 +1,5 @@
 recursive-include psychopy *.txt
+recursive-include psychopy *.zip
 
 recursive-include psychopy *.png
 recursive-include psychopy/app/Resources *.icns
