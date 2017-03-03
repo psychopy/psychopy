@@ -5,6 +5,13 @@ import psychopy
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
+from psychopy.app.projects import projectCatalog
+try:
+    from pyosf import remote
+except ImportError:
+    pass
+
+
 # for creating html output folders:
 import shutil
 import hashlib
@@ -44,6 +51,23 @@ _localized = {'expName': _translate("Experiment name"),
               'Use version': _translate("Use PsychoPy version")}
 
 thisFolder = os.path.split(__file__)[0]
+
+
+# customize the Proj ID Param class to
+class ProjIDParam(Param):
+    @property
+    def allowedVals(self):
+        allowed = projectCatalog.keys()
+        # always allow the current val!
+        if self.val not in allowed:
+            allowed.append(self.val)
+        # always allow blank (None)
+        if '' not in allowed:
+            allowed.append('')
+        return allowed
+    @allowedVals.setter
+    def allowedVals(self, allowed):
+        pass
 
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
@@ -203,23 +227,14 @@ class SettingsComponent(object):
             label=_localized["logging level"], categ='Data')
 
         # HTML output params
-        self.params['OSF Project ID'] = Param(
-            '', valType='str', allowedTypes=[],
+        self.params['OSF Project ID'] = ProjIDParam(
+            '', valType='str', # automatically updates to allow choices
             hint=_translate("The ID of this project (e.g. 5bqpc)"),
             label="OSF Project ID", categ='Online')
-        self.params['OSF User'] = Param(
-            '', valType='str', allowedTypes=[],
-            hint=_translate("Must be a user that has logged in from PsychoPy "
-                            "on this machine (with user remembered)"),
-            label="OSF username (email)", categ='Online')
         self.params['HTML path'] = Param(
-            '', valType='str', allowedTypes=[],
+            'html', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
-        self.params['email'] = Param(
-            '', valType='str', allowedTypes=[],
-            hint=_translate("Place the HTML files will be saved locally "),
-            label="Email address (for info emails)", categ='Online')
         self.params['JS libs'] = Param(
             'packaged', valType='str', allowedVals=['packaged'],
             hint=_translate("Should we package a copy of the JS libs or use"
@@ -325,23 +340,38 @@ class SettingsComponent(object):
                 os.makedirs(folder)
             shutil.copy2(src, dst)
 
-        # detect OSF token from username
-        osfUser = self.params['OSF User'].val
-        if osfUser:
-            import pyosf.remote
-            tokens = pyosf.remote.TokenStorage()
-            osfToken = repr(tokens[osfUser])
-        else:
-            osfToken = 'undefined'
-
         # write info.php file
         folder = self.exp.expPath
         if not os.path.isdir(folder):
             os.mkdir(folder)
-
+        # get OSF projcet info if there was a project id
+        projLabel = self.params['OSF Project ID'].val
+        # these are all blank unless we find a valid proj
+        osfID = osfName = osfToken = ''
+        osfHtmlFolder = ''
+        osfDataFolder = 'data'
+        # is email a defined parameter for this version
+        if 'email' in self.params:
+            email = str(self.params['email'])
+        else:
+            email = ''
+        if projLabel in projectCatalog:  # this is the psychopy  descriptive label (id+title)
+            proj = projectCatalog[projLabel]
+            osfID = proj.osf.id
+            osfName = proj.osf.title
+            osfUser = proj.username
+            osfToken = remote.TokenStorage()[osfUser]
+            osfHtmlFolder = self.params['HTML path'].val
         infoPHPfilename = os.path.join(folder, 'info.php')
-        infoText = readTextFile("JS_infoPHP.tmpl").format(params=self.params,
-                                                          osfToken=osfToken)
+        infoText = readTextFile("JS_infoPHP.tmpl")
+        infoText = infoText.format(osfID=osfID,
+                                   osfName=osfName,
+                                   osfToken=osfToken,
+                                   osfHtmlFolder=osfHtmlFolder,
+                                   osfDataFolder=osfDataFolder,
+                                   params=self.params,
+                                   email=email,
+                                   )
 
         infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
         with open(infoPHPfilename, 'w') as infoFile:
@@ -380,12 +410,14 @@ class SettingsComponent(object):
     def writeInitCodeJS(self, buff, version, localDateTime):
         # write info.php and resources folder as well
         self.prepareResourcesJS()
-        # header
+
+        # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
                    name = self.params['expName'].val, # prevent repr() conversion
                    params = self.params)
         buff.write(header)
+
         # write the code to set up experiment
         buff.setIndentLevel(4, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
@@ -602,7 +634,7 @@ class SettingsComponent(object):
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "    win.close()\n"
                     "    psychoJS.core.quit();\n"
-                    "    return QUIT;\n"
+                    "    return psychoJS.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)
         buff.setIndentLevel(-1)

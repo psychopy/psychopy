@@ -3,9 +3,16 @@
 
 from setuptools import setup, Extension, find_packages
 ################
-import glob, os
+import glob, os, sys
 from sys import platform, argv
 
+# compress psychojs to a zip file for packaging
+if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer
+    pass
+else:
+    import shutil
+    shutil.make_archive(os.path.join('psychopy','psychojs'), 'zip', 'psychojs')
+    
 #regenerate __init__.py only if we're in the source repos (not in a source zip file)
 try:
     import createInitFile#won't exist in a sdist.zip
@@ -30,8 +37,8 @@ exec(vStr)
 #define the extensions to compile if necess
 packages = find_packages()
 #for the source dist this doesn't work - use the manifest.in file
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx']
-dataFiles = []
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx', '.zip']
+dataFiles = ['psychopy/psychojs.zip']
 
 scripts = ['psychopy/app/psychopyApp.py',
            'psychopy_post_inst.py'] #although post_install only needs installing on win32 it needs packaging in the zip

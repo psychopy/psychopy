@@ -20,7 +20,8 @@ _localized = {'nDots': _translate('Number of dots'),
               'noiseDots': _translate('Noise dots'),
               'fieldShape': _translate('Field shape'),
               'fieldSize': _translate('Field size'),
-              'fieldPos': _translate('Field position')}
+              'fieldPos': _translate('Field position'),
+              'refreshDots':_translate('Dot refresh rule')}
 
 
 class DotsComponent(BaseVisualComponent):
@@ -30,7 +31,7 @@ class DotsComponent(BaseVisualComponent):
                  nDots=100,
                  direction=0.0, speed=0.1, coherence=1.0,
                  dotSize=2,
-                 dotLife=3, signalDots='same', noiseDots='direction',
+                 dotLife=3, signalDots='same', noiseDots='direction', refreshDots='repeat',
                  fieldShape='circle', fieldSize=1.0, fieldPos=(0.0, 0.0),
                  color='$[1.0,1.0,1.0]', colorSpace='rgb',
                  opacity=1.0,
@@ -105,6 +106,14 @@ class DotsComponent(BaseVisualComponent):
             signalDots, valType='str', allowedVals=['same', 'different'],
             hint=msg,
             label=_localized['signalDots'], categ='Dots')
+            
+        msg = _translate("When should the whole sample of dots be refreshed")
+        self.params['refreshDots'] = Param(
+            refreshDots, valType='str', allowedVals=['none', 'repeat'],
+            allowedUpdates=[],
+            hint=msg,
+            label=_localized['refreshDots'], categ='Dots')
+            
 
         msg = _translate("What governs the behaviour of the noise dots? "
                          "See Scase et al.")
@@ -163,3 +172,8 @@ class DotsComponent(BaseVisualComponent):
                 "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
                 "    depth=%.1f)\n" % depth)
         buff.writeIndentedLines(code)
+
+    def writeRoutineStartCode(self,buff):
+        super(DotsComponent, self).writeRoutineStartCode(buff)
+        if self.params['refreshDots'].val in ['repeat', 'Repeat']:
+            buff.writeIndented("%(name)s.refreshDots()\n" %self.params)

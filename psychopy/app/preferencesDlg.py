@@ -149,7 +149,7 @@ class PreferencesDlg(wx.Dialog):
         # self.nb = wx.Notebook(self)  # notebook not nice with lots of pages
 
         self.ctrls = {}
-        sectionOrdering = ['app', 'builder', 'coder', 'general',
+        sectionOrdering = ['general', 'app', 'builder', 'coder',
                            'connections', 'keyBindings']
         for section in sectionOrdering:
             prefsPage = self.makePrefPage(parent=self.nb,
@@ -220,9 +220,6 @@ class PreferencesDlg(wx.Dialog):
         self.app.prefs.pageCurrent = self.nb.GetSelection()
         # don't set locale here; need to restart app anyway
 
-    def onEvt(self, evt, id=None):
-        print(evt)
-
     def onCancel(self, event=None):
         self.Destroy()
 
@@ -244,9 +241,13 @@ class PreferencesDlg(wx.Dialog):
             thisPref = prefsSection[prefName]
             thisSpec = specSection[prefName]
             ctrlName = sectionName + '.' + prefName
+
+            # for keybindings replace Ctrl with Cmd on Mac
             if platform.system() == 'Darwin' and sectionName == 'keyBindings':
                 if thisSpec.startswith('string'):
                     thisPref = thisPref.replace('Ctrl+', 'Cmd+')
+
+            # can we translate this pref?
             try:
                 pLabel = _localized[prefName]
             except Exception:
@@ -256,6 +257,8 @@ class PreferencesDlg(wx.Dialog):
                 thisSpec = 'option(' + ','.join(
                     [''] + self.app.localization.available) + ', default=xxx)'
                 thisPref = self.app.prefs.app['locale']
+
+            # create the actual controls
             self.ctrls[ctrlName] = ctrls = PrefCtrls(
                 parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -310,7 +313,7 @@ class PreferencesDlg(wx.Dialog):
                     try:
                         # if thisPref is not a null string, do eval() to get a
                         # list.
-                        if thisPref == '':
+                        if thisPref == '' or type(thisPref) == list:
                             newVal = thisPref
                         else:
                             newVal = eval(thisPref)
@@ -349,6 +352,7 @@ class PrefCtrls(object):
         super(PrefCtrls, self).__init__()
         self.pref = value
         self.parent = parent
+        self.name = name
         valueWidth = 200
         labelWidth = 200
         self.nameCtrl = self.valueCtrl = None
@@ -360,10 +364,20 @@ class PrefCtrls(object):
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(self.parent)
             self.valueCtrl.SetValue(value)
-        elif spec.startswith('option'):
-            options = spec.replace("option(", "").replace("'", "")
-            # item -1 is 'default=x' from spec
-            options = options.replace(", ", ",").split(',')[:-1]
+        elif spec.startswith('option') or name == 'audioDevice':
+            if name == 'audioDevice':
+                options = copy.copy(value)
+                from psychopy import sound
+                if hasattr(sound, 'getDevices'):
+                    devs = sound.getDevices('output')
+                    for thisDevName in devs:
+                        if thisDevName not in options:
+                            options.append(thisDevName)
+                value = value[0]
+            else:
+                options = spec.replace("option(", "").replace("'", "")
+                # item -1 is 'default=x' from spec
+                options = options.replace(", ", ",").split(',')[:-1]
             labels = []  # display only
             for opt in options:
                 try:
@@ -390,7 +404,14 @@ class PrefCtrls(object):
         if ctrl is None:
             return None
         elif hasattr(ctrl, '_choices'):  # for wx.Choice
-            return ctrl._choices[ctrl.GetSelection()]
+            if self.name == 'audioDevice':
+                # convert the option back to a list with preferred at top
+                val = ctrl._choices
+                preferred = ctrl._choices.pop(ctrl.GetSelection())
+                val.insert(0, preferred)
+                return val
+            else:
+                return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetValue'):  # e.g. TextCtrl
             return ctrl.GetValue()
         elif hasattr(ctrl, 'GetLabel'):  # for wx.StaticText

@@ -5,6 +5,7 @@ from os import path
 from psychopy import logging,exceptions
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
+from ._base import _SoundBase
 
 try:
     import pygame
@@ -13,7 +14,7 @@ except ImportError as err:
     # convert this import error to our own, pyo probably not installed
     raise exceptions.DependencyError(repr(err))
 
-def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
+def init(rate=22050, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
     function. Run this *before creating your visual.Window*.
 
@@ -87,7 +88,7 @@ class SoundPygame(_SoundBase):
 
         inits = mixer.get_init()
         if inits is None:
-            initPygame()
+            init()
             inits = mixer.get_init()
         self.sampleRate, self.format, self.isStereo = inits
 

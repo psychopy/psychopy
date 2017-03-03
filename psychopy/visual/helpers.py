@@ -7,11 +7,10 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys
 import os
+import copy
 
-import psychopy  # so we can get the __path__
-from psychopy import core, logging, colors
+from psychopy import logging, colors
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -277,6 +276,39 @@ def setColor(obj, color, colorSpace=None, operation='',
 immutables = {int, float, str, tuple, long, bool,
               numpy.float64, numpy.float, numpy.int, numpy.long}
 
+def findImageFile(filename):
+    """Tests whether the filename is an image file. If not will try some common
+    alternatives (e.g. extensions .jpg .tif...)
+    """
+    # if user supplied correct path then reutnr quickly
+    isfile = os.path.isfile
+    if isfile(filename):
+        return filename
+    orig = copy.copy(filename)
+
+    # search for file using additional extensions
+
+    extensions = ('.jpg', '.png', '.tif', '.bmp', '.gif', '.jpeg', '.tiff')
+    # not supported: 'svg', 'eps'
+    def logCorrected(orig, actual):
+        logging.warn("Requested image {!r} not found but similar filename "
+                    "{!r} exists. This will be used instead but changing the "
+                    "filename is advised.".format(orig, actual))
+
+    # it already has one but maybe it's wrong? Remove it
+    if filename.endswith(extensions):
+        filename = os.path.splitext(orig)[0]
+    if isfile(filename):
+        # had an extension but didn't need one (mac?)
+        logCorrected(orig, filename)
+        return filename
+
+    # try adding the standard set of extensions
+    for ext in extensions:
+        if isfile(filename+ext):
+            filename += ext
+            logCorrected(orig, filename)
+            return filename
 
 def groupFlipVert(flipList, yReflect=0):
     """Reverses the vertical mirroring of all items in list ``flipList``.

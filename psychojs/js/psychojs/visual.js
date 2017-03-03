@@ -42,11 +42,15 @@ psychoJS.attributeSet = function(obj, attrib, value, log, stealth) {
  * @constructor
  */
 psychoJS.visual.Window = function(attribs) {
+	psychoJS.visual.asColor.call(this);
+    
+	this.setColor(psychoJS.getAttrib(attribs ,'color', 0xFFFFFF), psychoJS.getAttrib(attribs, 'colorSpace', 'rgb'));
+    
 	this.dim = psychoJS.getAttrib(attribs, 'dim');
 	this._units = psychoJS.getAttrib(attribs, 'units', 'norm');
 	this._fullscr = psychoJS.getAttrib(attribs, 'fullscr');
 
-	this._renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor:0x00000});
+	this._renderer = PIXI.autoDetectRenderer(800, 600, {backgroundColor:psychoJS.rgb2int(this._getDesiredRGB(this._rgb, this._colorSpace, 1))});
 
 	this._renderer.view.style["transform"] = "translatez(0)"; // what does this do?
 	document.body.appendChild(this._renderer.view);
@@ -89,7 +93,13 @@ psychoJS.visual.Window = function(attribs) {
 	this._renderer.view.addEventListener("mousewheel", psychoJS.event._onMouseWheel, false);
 }
 
-
+psychoJS.visual.Window.prototype._updateIfNeeded = function() {
+	if (this._needUpdate) {
+		this._renderer.backgroundColor = psychoJS.rgb2int(this._getDesiredRGB(this._rgb, this._colorSpace, 1));
+        
+		this._needUpdate = false;
+	}
+}
 
 /**
  * "Closes" the window. This actually only removes the canvas used to render components.
@@ -102,6 +112,8 @@ psychoJS.visual.Window.prototype.close = function() {
  * Recomputes the window's _drawList and _container children for the next animation frame.
  */
 psychoJS.visual.Window.prototype._refresh = function() {
+	this._updateIfNeeded();
+    
 	var newDrawList = [];
 	for(var i = 0; i < this._drawList.length; ++i) {
 		var stim = this._drawList[i];
@@ -261,6 +273,7 @@ psychoJS.visual.BaseVisualStim = function(attribs) {
 	// units?
 	this._rotationMatrix = [[1, 0], [0, 1]];
 	this._size = psychoJS.getAttrib(attribs, 'size');
+	this._units = psychoJS.getAttrib(attribs, 'units');
 	this._ori = psychoJS.getAttrib(attribs, 'ori', 0);
 	this._opacity = psychoJS.getAttrib(attribs, 'opacity', 1.0);
 	this._pos = psychoJS.getAttrib(attribs, 'pos', [0, 0]);
@@ -540,6 +553,26 @@ psychoJS.visual.asWindowRelated = function() {
 		else if (this._units === undefined || this._units === 'norm') {
 			var winSize = this.win.size;
 			return length * winSize[0]/2;
+		}
+		else if (this._units === 'height') {
+			var winHeight = this.win.size[1];
+			return length * winHeight;
+		}
+		else {
+			throw 'Unit ' + this._units + ' is not implemented.';
+		}
+	}
+
+	/**
+	 * returns a vertical length in pixels after taking units into account
+	 */
+	this._getVerLengthPix = function(length) {
+		if (this._units === 'pix') {
+			return length;
+		}
+		else if (this._units === undefined || this._units === 'norm') {
+			var winSize = this.win.size;
+			return length * winSize[1]/2;
 		}
 		else if (this._units === 'height') {
 			var winHeight = this.win.size[1];
@@ -1027,8 +1060,8 @@ psychoJS.visual.ImageStim.prototype._updateIfNeeded = function() {
 			this.pixiRep.anchor.x = 0.5;
 			this.pixiRep.anchor.y = 0.5;
 
-			var scaleX = this._getLengthPix(this.size[0]) / this._texture.width;
-			var scaleY = this._getLengthPix(this.size[1]) / this._texture.height;
+			var scaleX = this._getHorLengthPix(this.size[0]) / this._texture.width;
+			var scaleY = this._getVerLengthPix(this.size[1]) / this._texture.height;
 
 			this.pixiRep.scale.x = this._flipHoriz ? -scaleX : scaleX;
 			this.pixiRep.scale.y = this._flipVert ? scaleY : -scaleY;

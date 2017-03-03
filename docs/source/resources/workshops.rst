@@ -30,12 +30,11 @@ For queries about any of these please email me at `jonathan.peirce at nottingham
 PEP1: Programming Experiments in Python (Beginners)
 ---------------------------------------------------------
 
-`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=786>`_
+`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-programming-experiments-in-python-beginners>`_
 
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 26-28 April 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
@@ -46,7 +45,7 @@ Details
 Is this suitable for you?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well.
+The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well. **If you want to get up and running more quickly or want to run studies online then you'd be better going to the PsychoPy Builder workshop instead (see below).**
 
 We'll provide you with additional 'intermediate' material as well, for you to build on what you've learnt, but if you're already a proficient programmer in Python then this is probably not the course for you.
 
@@ -66,14 +65,13 @@ All sessions subject to change. Sessions in **green** and **blue** are optional 
 BEP: Building Experiments in PsychoPy
 ---------------------------------------------------------
 
-`Book onto Building Experiments in PsychoPy workshop now <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=787>`_
+`Book onto Building Experiments in PsychoPy workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/bep-building-experiments-in-psychopy>`_
 
 Learning to *Build* experiments is the fastest way to get studies up and running. You can do an awful lot with a graphical interface and some bits of Python code plugged in to do the fancy stuff! That's what we'll be learning here.
 
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 3-5 May 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
@@ -105,7 +103,6 @@ PEP2: Programming Experiments in Python (Intermediate)
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 3 days in early-mid August 2017 (date to be confirmed)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350

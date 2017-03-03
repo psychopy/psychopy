@@ -5,7 +5,7 @@ Demo using the experimental movie3 stim to play a video file. Path of video
 needs to updated to point to a video you have. movie2 does /not/ require
 avbin to be installed.
 
-Movie2 does require:
+Movie3 does require:
 ~~~~~~~~~~~~~~~~~~~~~
 
 moviepy (which requires imageio, Decorator). These can be installed

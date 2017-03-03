@@ -7,3 +7,9 @@ class DependencyError(Exception):
     of a dependency error (e.g. audiolib that isn't available)
     """
     pass
+
+class SoundFormatError(Exception):
+    """The user tried to create two streams (diff sample rates) on a machine
+    that won't allow that
+    """
+    pass

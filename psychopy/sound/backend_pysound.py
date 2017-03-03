@@ -19,9 +19,28 @@ from os import path
 import weakref
 
 
-def init():
+def init(rate=44100, stereo=True, buffer=128):
     pass
     # for compatibility with other backends but not needed
+
+def getDevices(kind=None):
+    """Returns a dict of dict of audio devices of sepcified `kind`
+
+    The dict keys are names and items are dicts of properties
+    """
+    devs = {}
+    for ii, dev in enumerate(soundcard.device_info()):
+        if (dev['max_output_channels']==0 and kind=='output' or
+                dev['max_input_channels']==0 and kind=='input'):
+            continue
+        devs[dev['name']] = dev
+        dev['id'] = ii
+    return devs
+
+# these will be controlled by sound.__init__.py
+defaultInput = None
+defaultOutput = None
+
 
 class _PySoundCallbackClass(object):
     """To use callbacks without creating circular references we need a
@@ -258,8 +277,19 @@ class SoundPySoundCard(_SoundBase):
         other setSound methods are going to call this having created an arr
         """
         self._callbacks = _PySoundCallbackClass(sndInstance=self)
+        if defaultOutput is not None and type(defaultOutput) != int:
+            devs = getDevices()
+            if defaultOutput not in devs:
+                raise ValueError("Attempted to set use device {!r} to "
+                                 "a device that is not available".format(defaultOutput))
+            else:
+                device = devs[defaultOutput]['id']
+        else:
+            device = defaultOutput
         self._stream = soundcard.Stream(samplerate=self.sampleRate,
+                                        device=device,
                                         blocksize=self.bufferSize,
+                                        channels=1,
                                         callback=self._callbacks.fillBuffer)
         self._snd = self._stream
         chansIn, chansOut = self._stream.channels

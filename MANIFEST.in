@@ -1,4 +1,5 @@
 recursive-include psychopy *.txt
+recursive-include psychopy *.zip
 
 recursive-include psychopy *.png
 recursive-include psychopy/app/Resources *.icns
@@ -7,6 +8,7 @@ recursive-include psychopy/app/Resources *.ttf
 recursive-include psychopy/app/Resources *.desktop
 recursive-include psychopy/app/locale *.mo
 recursive-include psychopy/app *.spec *.xsd
+recursive-include psychopy/app *.tmpl
 
 recursive-include psychopy/monitors *.ico
 
