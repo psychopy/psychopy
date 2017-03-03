@@ -366,10 +366,15 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=(), order=(),
+    def __init__(self, dictionary, title='', fixed=None, order=None,
                  tip=None, screen=-1, sort_keys=True, copy_dict=False):
+        if fixed is None:
+            fixed = []
+        if order is None:
+            order = []
         if not tip:
             tip = {}
+
         Dlg.__init__(self, title, screen=screen)
 
         if copy_dict:
@@ -382,7 +387,7 @@ class DlgFromDict(Dlg):
         if sort_keys:
             keys.sort()
 
-        if len(order):
+        if order:
             keys = order + list(set(keys).difference(set(order)))
         types = dict([])
         for field in keys:

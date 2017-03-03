@@ -258,8 +258,13 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=(), order=(), tip=None,
+    def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
                  sort_keys=True, copy_dict=True):
+        if fixed is None:
+            fixed = []
+        if order is None:
+            order = []
+
         Dlg.__init__(self, title)
         # app = ensureWxApp() done by Dlg
 
@@ -274,7 +279,8 @@ class DlgFromDict(Dlg):
             keys.sort()
 
         tip = tip or {}
-        if len(order):
+
+        if order:
             keys = order + list(set(keys).difference(set(order)))
         types = dict([])
         for field in keys:
