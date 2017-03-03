@@ -328,6 +328,14 @@ class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.
     Any values changed by the user are change (in-place) by this
     dialogue box.
+
+    Parameters
+    ----------
+
+    sort_keys : bool
+        Whether the dictionaries keys should be ordered alphabetically
+        for displaying.
+
     e.g.:
 
     ::
@@ -353,13 +361,16 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=(), order=(),
-                 tip=None, screen=-1):
+                 tip=None, screen=-1, sort_keys=True):
         if not tip:
             tip = {}
         Dlg.__init__(self, title, screen=screen)
         self.dictionary = dictionary
         keys = self.dictionary.keys()
-        keys.sort()
+
+        if sort_keys:
+            keys.sort()
+
         if len(order):
             keys = order + list(set(keys).difference(set(order)))
         types = dict([])

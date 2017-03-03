@@ -220,6 +220,14 @@ class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.
     Any values changed by the user are change (in-place) by this
     dialogue box.
+
+    Parameters
+    ----------
+
+    sort_keys : bool
+        Whether the dictionaries keys should be ordered alphabetically
+        for displaying.
+
     e.g.:
 
     ::
@@ -244,12 +252,16 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=(), order=(), tip=None):
+    def __init__(self, dictionary, title='', fixed=(), order=(), tip=None,
+                 sort_keys=True):
         Dlg.__init__(self, title)
         # app = ensureWxApp() done by Dlg
         self.dictionary = dictionary
         keys = self.dictionary.keys()
-        keys.sort()
+
+        if sort_keys:
+            keys.sort()
+
         tip = tip or {}
         if len(order):
             keys = order + list(set(keys).difference(set(order)))
