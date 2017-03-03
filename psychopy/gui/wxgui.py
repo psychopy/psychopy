@@ -234,6 +234,11 @@ class DlgFromDict(Dlg):
         user interaction) can be retrieved from
         :attr:~`psychopy.gui.DlgFromDict.dictionary`.
 
+    show : bool
+        Whether to immediately display the dialog upon instantiation.
+         If False, it can be displayed at a later time by calling
+         its `show()` method.
+
     e.g.:
 
     ::
@@ -259,7 +264,7 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
-                 sort_keys=True, copy_dict=True):
+                 sort_keys=True, copy_dict=True, show=True):
         if fixed is None:
             fixed = []
         if order is None:
@@ -275,16 +280,16 @@ class DlgFromDict(Dlg):
         else:
             self.dictionary = dictionary
 
-        keys = self.dictionary.keys()
+        self._keys = self.dictionary.keys()
 
         if sort_keys:
-            keys.sort()
+            self._keys.sort()
         if order:
-            keys = order + list(set(keys).difference(set(order)))
+            self._keys = order + list(set(self._keys).difference(set(order)))
 
         types = dict()
 
-        for field in keys:
+        for field in self._keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''
             if field in tip.keys():
@@ -297,10 +302,15 @@ class DlgFromDict(Dlg):
             else:
                 self.addField(field, self.dictionary[field], tip=tooltip)
 
-        # show it and collect data
+        if show:
+            self.show()
+
+    def show(self):
+        """Display the dialog.
+        """
         self.show()
         if self.OK:
-            for n, thisKey in enumerate(keys):
+            for n, thisKey in enumerate(self._keys):
                 self.dictionary[thisKey] = self.data[n]
 
 
