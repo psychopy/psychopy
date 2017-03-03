@@ -373,7 +373,7 @@ class DlgFromDict(Dlg):
         if order is None:
             order = []
         if not tip:
-            tip = {}
+            tip = dict()
 
         Dlg.__init__(self, title, screen=screen)
 
@@ -386,10 +386,11 @@ class DlgFromDict(Dlg):
 
         if sort_keys:
             keys.sort()
-
         if order:
             keys = order + list(set(keys).difference(set(order)))
-        types = dict([])
+
+        types = dict()
+
         for field in keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''

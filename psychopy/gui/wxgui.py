@@ -264,9 +264,11 @@ class DlgFromDict(Dlg):
             fixed = []
         if order is None:
             order = []
+        if not tip:
+            tip = dict()
 
-        Dlg.__init__(self, title)
         # app = ensureWxApp() done by Dlg
+        Dlg.__init__(self, title)
 
         if copy_dict:
             self.dictionary = dictionary.copy()
@@ -277,12 +279,11 @@ class DlgFromDict(Dlg):
 
         if sort_keys:
             keys.sort()
-
-        tip = tip or {}
-
         if order:
             keys = order + list(set(keys).difference(set(order)))
-        types = dict([])
+
+        types = dict()
+
         for field in keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''
@@ -295,6 +296,7 @@ class DlgFromDict(Dlg):
                               tip=tooltip)
             else:
                 self.addField(field, self.dictionary[field], tip=tooltip)
+
         # show it and collect data
         self.show()
         if self.OK:
