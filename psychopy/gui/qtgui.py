@@ -336,6 +336,12 @@ class DlgFromDict(Dlg):
         Whether the dictionaries keys should be ordered alphabetically
         for displaying.
 
+    copy_dict : bool
+        If False, modify ``dictionary`` in-place. If True, a copy of
+        the dictionary is created, and the altered version (after
+        user interaction) can be retrieved from
+        :attr:~`psychopy.gui.DlgFromDict.dictionary`.
+
     e.g.:
 
     ::
@@ -361,11 +367,16 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=(), order=(),
-                 tip=None, screen=-1, sort_keys=True):
+                 tip=None, screen=-1, sort_keys=True, copy_dict=False):
         if not tip:
             tip = {}
         Dlg.__init__(self, title, screen=screen)
-        self.dictionary = dictionary
+
+        if copy_dict:
+            self.dictionary = dictionary.copy()
+        else:
+            self.dictionary = dictionary
+
         keys = self.dictionary.keys()
 
         if sort_keys:
