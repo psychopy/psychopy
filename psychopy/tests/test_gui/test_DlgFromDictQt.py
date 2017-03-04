@@ -69,6 +69,12 @@ class TestDlgFromDictQt():
         dlg = DlgFromDict(self.od, order=order, show=False)
         assert dlg.inputFieldNames == list(order)
 
+    def test_fixed(self):
+        fixed = 'exp_version'
+        dlg = DlgFromDict(self.d, fixed=fixed, show=False)
+        field = dlg.inputFields[dlg.inputFieldNames.index(fixed)]
+        assert field.isEnabled() is False
+
 
 if __name__ == '__main__':
     import pytest
