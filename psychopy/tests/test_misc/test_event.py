@@ -14,6 +14,7 @@ import pytest
 import copy
 import threading
 import os
+import numpy as np
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
@@ -149,8 +150,9 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
-    def test_misc(self):
-        assert event.xydist([0,0], [1,1]) == sqrt(2)
+    @staticmethod
+    def test_xydist():
+        assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
     def test_mouseMoved(self):
 
