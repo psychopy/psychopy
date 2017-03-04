@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-try:
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtTest import QTest
-except ImportError:
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtTest import QTest
-
 from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
 
