@@ -154,19 +154,18 @@ class _baseTest(object):
     def test_xydist():
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
-    def test_mouseMoved(self):
-
+    @staticmethod
+    def test_mouseMoved():
         if travis:
             pytest.skip()  # failing on travis-ci
 
         m = event.Mouse()
-        m.prevPos = [0,0]
-        m.lastPos = [0, 0]
-        m.prevPos[0] = 1  # fake movement
+        m.prevPos = [0, 0]
+        m.lastPos = [0, 1]
         assert m.mouseMoved()  # call to mouseMoved resets prev and last
-        m.prevPos = [0,0]
-        m.lastPos = [0, 0]
-        m.prevPos[0] = 1  # fake movement
+
+        m.prevPos = [0, 0]
+        m.lastPos = [0, 1]
         assert m.mouseMoved(distance=0.5)
         for reset in [True, 'here', (1,2)]:
             assert not m.mouseMoved(reset=reset)
