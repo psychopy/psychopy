@@ -264,7 +264,7 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
-                 sort_keys=True, copy_dict=True, show=True):
+                 sort_keys=True, copy_dict=False, show=True):
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
         if not fixed:
