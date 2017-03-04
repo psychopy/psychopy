@@ -265,13 +265,13 @@ class DlgFromDict(Dlg):
 
     def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
                  sort_keys=True, copy_dict=True, show=True):
-        # We don't explicitly check for None identity of `fixed` and
-        # `order` for backward-compatibility reasons.
+        # We don't explicitly check for None identity
+        # for backward-compatibility reasons.
         if not fixed:
             fixed = []
         if not order:
             order = []
-        if tip is None:
+        if not tip:
             tip = dict()
 
         # app = ensureWxApp() done by Dlg
