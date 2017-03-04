@@ -10,7 +10,7 @@ try:
     from PyQt4 import QtGui
     QtWidgets = QtGui  # in qt4 these were all in one package
     from PyQt4.QtCore import Qt
-except Exception:
+except ImportError:
     from PyQt5 import QtWidgets
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
