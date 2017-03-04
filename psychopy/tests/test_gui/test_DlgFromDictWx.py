@@ -68,6 +68,12 @@ class TestDlgFromDictWx():
         field = dlg.inputFields[dlg.inputFieldNames.index(fixed)]
         assert field.Enabled is False
 
+    def test_tooltips(self):
+        tip = dict(participant='Tooltip')
+        dlg = DlgFromDict(self.d, tip=tip, show=False)
+        field = dlg.inputFields[dlg.inputFieldNames.index('participant')]
+        assert field.ToolTipString == tip['participant']
+
 
 if __name__ == '__main__':
     import pytest
