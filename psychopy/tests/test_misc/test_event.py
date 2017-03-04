@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from psychopy.visual import Window, ShapeStim
 from psychopy import event, core, monitors
@@ -150,12 +151,10 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
-    @staticmethod
-    def test_xydist():
+    def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
-    @staticmethod
-    def test_mouseMoved():
+    def test_mouseMoved(self):
         if travis:
             pytest.skip()  # failing on travis-ci
 
@@ -234,3 +233,8 @@ class xxxTestPygameNorm(_baseTest):
         self.win = Window([128,128], winType='pygame', pos=[50,50], autoLog=False)
         assert pygame.display.get_init() == 1
         assert event.havePygame
+
+
+if __name__ == '__main__':
+    import pytest
+    pytest.main()
