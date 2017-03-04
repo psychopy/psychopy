@@ -5,8 +5,11 @@ from setuptools import setup, Extension, find_packages
 ################
 import glob, os, sys
 from sys import platform, argv
+'''
+      @incf @pyc0d3r @google '''
 
 # compress psychojs to a zip file for packaging
+print 'Reading...'
 if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer
     pass
 else:
@@ -56,7 +59,7 @@ elif platform=='posix':
                   ('share/pixmaps', ['psychopy/app/Resources/psychopy.png'])]
 
 
-setup(name="PsychoPy",
+setup(name="IncfInPsychoPy",
     packages=packages,
     scripts = scripts,
     include_package_data =True,
@@ -67,9 +70,8 @@ setup(name="PsychoPy",
     data_files = dataFiles,
     #metadata
     version = __version__,
-    description = "Psychophysics toolkit for Python",
-    long_description = "PsychoPy uses OpenGL and Python to create a toolkit" + \
-        " for running psychology/neuroscience/psychophysics experiments",
+    description = "Brain computer in psychopy",
+    long_description = "Brain computer in psychop is a gdoc 2017 idea project with i will be doing",
     author= __author__,
     author_email= __author_email__,
     maintainer_email= __maintainer_email__,
