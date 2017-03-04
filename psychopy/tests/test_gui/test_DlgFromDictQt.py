@@ -20,6 +20,12 @@ class TestDlgFromDictQt():
             exp_type=['foo', 'bar'],
             exp_version='2017-01-02')
 
+        self.od = OrderedDict(
+            [('participant', '000'),
+             ('handedness', ['r', 'l']),
+             ('exp_type', ['foo', 'bar']),
+             ('exp_version', '2017-01-02')])
+
         self.title = 'Experiment'
 
     def test_title(self):
@@ -44,6 +50,24 @@ class TestDlgFromDictQt():
     def test_copy_dict_false(self):
         dlg = DlgFromDict(self.d, copy_dict=False, show=False)
         assert self.d is dlg.dictionary
+
+    def test_order_list(self):
+        order = ['exp_type', 'participant', 'handedness', 'exp_version']
+        # Be certain we will actually request a different order
+        # further down.
+        assert order != self.od.keys()
+
+        dlg = DlgFromDict(self.od, order=order, show=False)
+        assert dlg.inputFieldNames == order
+
+    def test_order_tuple(self):
+        order = ('exp_type', 'participant', 'handedness', 'exp_version')
+        # Be certain we will actually request a different order
+        # further down.
+        assert list(order) != self.od.keys()
+
+        dlg = DlgFromDict(self.od, order=order, show=False)
+        assert dlg.inputFieldNames == list(order)
 
 
 if __name__ == '__main__':

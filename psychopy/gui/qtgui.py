@@ -395,7 +395,7 @@ class DlgFromDict(Dlg):
         if sort_keys:
             self._keys.sort()
         if order:
-            self._keys = order + list(set(self._keys).difference(set(order)))
+            self._keys = list(order) + list(set(self._keys).difference(set(order)))
 
         types = dict()
 
