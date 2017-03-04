@@ -333,7 +333,7 @@ class DlgFromDict(Dlg):
     ----------
 
     sort_keys : bool
-        Whether the dictionaries keys should be ordered alphabetically
+        Whether the dictionary keys should be ordered alphabetically
         for displaying.
 
     copy_dict : bool
