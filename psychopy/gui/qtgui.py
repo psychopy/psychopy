@@ -374,11 +374,13 @@ class DlgFromDict(Dlg):
     def __init__(self, dictionary, title='', fixed=None, order=None,
                  tip=None, screen=-1, sort_keys=True, copy_dict=False,
                  show=True):
-        if fixed is None:
+        # We don't explicitly check for None identity of `fixed` and
+        # `order` for backward-compatibility reasons.
+        if not fixed:
             fixed = []
-        if order is None:
+        if not order:
             order = []
-        if not tip:
+        if tip is None:
             tip = dict()
 
         Dlg.__init__(self, title, screen=screen)
