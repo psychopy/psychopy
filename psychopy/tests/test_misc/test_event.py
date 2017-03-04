@@ -224,7 +224,8 @@ class TestPygletNorm(_baseTest):
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
-        assert pygame.display.get_init() == 0
+        if havePygame:
+            assert pygame.display.get_init() == 0
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod
