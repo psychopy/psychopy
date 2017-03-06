@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from psychopy.visual import Window, ShapeStim
 from psychopy import event, core, monitors
@@ -14,6 +15,7 @@ import pytest
 import copy
 import threading
 import os
+import numpy as np
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
@@ -149,22 +151,20 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
-    def test_misc(self):
-        assert event.xydist([0,0], [1,1]) == sqrt(2)
+    def test_xydist(self):
+        assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
     def test_mouseMoved(self):
-
         if travis:
             pytest.skip()  # failing on travis-ci
 
         m = event.Mouse()
-        m.prevPos = [0,0]
-        m.lastPos = [0, 0]
-        m.prevPos[0] = 1  # fake movement
+        m.prevPos = [0, 0]
+        m.lastPos = [0, 1]
         assert m.mouseMoved()  # call to mouseMoved resets prev and last
-        m.prevPos = [0,0]
-        m.lastPos = [0, 0]
-        m.prevPos[0] = 1  # fake movement
+
+        m.prevPos = [0, 0]
+        m.lastPos = [0, 1]
         assert m.mouseMoved(distance=0.5)
         for reset in [True, 'here', (1,2)]:
             assert not m.mouseMoved(reset=reset)
@@ -224,7 +224,8 @@ class TestPygletNorm(_baseTest):
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
-        assert pygame.display.get_init() == 0
+        if havePygame:
+            assert pygame.display.get_init() == 0
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod
@@ -232,3 +233,8 @@ class xxxTestPygameNorm(_baseTest):
         self.win = Window([128,128], winType='pygame', pos=[50,50], autoLog=False)
         assert pygame.display.get_init() == 1
         assert event.havePygame
+
+
+if __name__ == '__main__':
+    import pytest
+    pytest.main()
