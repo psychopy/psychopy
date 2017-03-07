@@ -16,6 +16,7 @@ except ImportError as err:
     # convert this import error to our own, pyo probably not installed
     raise exceptions.DependencyError(repr(err))
 
+import sys
 import threading
 pyoSndServer = None
 
