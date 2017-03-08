@@ -135,7 +135,7 @@ if hasattr(backend, 'defaultOutput'):
         # a single option
         dev = prefs.general['audioDevice']
     # is it simply "default" (do nothing)
-    if dev=='auto' or travisCI:
+    if dev=='default' or travisCI:
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
         devNames = backend.getDevices(kind='output').keys()
