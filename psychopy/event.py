@@ -429,7 +429,7 @@ class Mouse(object):
                 # it's circular to "import visual" here in event
                 self.win = psychopy.core.openWindows[0]()
                 logging.info('Mouse: using default window')
-            except NameError, IndexError:
+            except (NameError, IndexError):
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None
