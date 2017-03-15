@@ -464,7 +464,7 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win, crit=30)
         #aperture should automatically disable on exit
         for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
