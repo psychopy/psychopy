@@ -251,6 +251,23 @@ class _baseVisualTest(object):
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
+    def test_text_with_add(self):
+        # pyglet text will reset the blendMode to 'avg' so check that we are
+        # getting back to 'add' if we want it
+        win = self.win
+        text = visual.TextStim(win, pos=[0, 0.9])
+        grat1 = visual.GratingStim(win, size=2*self.scaleFactor,
+                                   opacity=0.5,
+                                   pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
+        grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
+                                   opacity=0.5,
+                                   pos=[-0.3,0.0], ori=-45, sf=2*self.scaleFactor)
+
+        text.draw()
+        grat1.draw()
+        grat2.draw()
+        utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
+
     @pytest.mark.needs_sound
     def test_mov(self):
         win = self.win
@@ -498,6 +515,12 @@ class TestPygletNorm(_baseVisualTest):
     def setup_class(self):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
+class TestPygletBlendAdd(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+        self.contextName='normAddBlend'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
