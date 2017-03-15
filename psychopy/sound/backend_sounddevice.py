@@ -401,7 +401,6 @@ class SoundDeviceSound(_SoundBase):
         self.sndArr = np.asarray(thisArray)
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray),1]  # make 2D for broadcasting
-        print(self.channels == 1, self.sndArr.shape[1] == 1)
         if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
             self.sndArr = self.sndArr.repeat(2,axis=1)
         elif self.sndArr.shape[1] == 1:  # if channels in [-1,1] then pass
