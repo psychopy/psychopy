@@ -14,6 +14,7 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
+_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -517,12 +518,13 @@ class TestPygletNorm(_baseVisualTest):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
-class TestPygletBlendAdd(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
-        self.contextName='normAddBlend'
-        self.scaleFactor=1#applied to size/pos values
+if not _travisTesting:
+    class TestPygletBlendAdd(_baseVisualTest):
+        @classmethod
+        def setup_class(self):
+            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+            self.contextName='normAddBlend'
+            self.scaleFactor=1#applied to size/pos values
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
