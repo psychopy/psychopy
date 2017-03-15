@@ -399,17 +399,17 @@ class SoundDeviceSound(_SoundBase):
     def _setSndFromArray(self, thisArray):
 
         self.sndArr = np.asarray(thisArray)
-        if self.channels == 2 and thisArray.ndim == 1:
-            # make mono sound into stereo
-            self.sndArr.shape = [len(thisArray),1]  # give correct N dimensions
+        if thisArray.ndim == 1:
+            self.sndArr.shape = [len(thisArray),1]  # make 2D for broadcasting
+        if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
             self.sndArr = self.sndArr.repeat(2,axis=1)
-        elif self.channels == 1 and thisArray.ndim == 1:
-            self.sndArr.shape = [len(thisArray), 1]  # make size 2D for broad
+        elif self.sndArr.shape[1] == 1:  # if channels in [-1,1] then pass
+            pass
         else:
             self.sndArr = np.asarray(thisArray)
             try:
                 self.sndArr.shape = [len(thisArray), 2]
-            except:
+            except ValueError:
                 raise ValueError("Failed to format sound with shape {} "
                                  "into sound with channels={}"
                                  .format(self.sndArr.shape, self.channels))
