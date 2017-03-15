@@ -7,7 +7,7 @@ The following workshops are currently planned for the 2016-2017 academic year:
 
  - 26-28 Apr 2017: :ref:`PEP1`
  - 3-5 May 2017: :ref:`BEP`
- - (Date TBC): :ref:`PEP2`
+ - 12-14 July 2017: :ref:`PEP2`
 
 (Details below, booking site will be online soon)
 
@@ -100,15 +100,15 @@ All sessions subject to change. Sessions in **green** and **blue** are optional 
 PEP2: Programming Experiments in Python (Intermediate)
 ---------------------------------------------------------
 
+`Book onto the intermediate Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep2-programming-experiments-in-python-intermediates>`_
+
 Details
 ~~~~~~~~~~~~
 
-    :When: 3 days in early-mid August 2017 (date to be confirmed)
+    :When: 12-14th July 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
     :Includes: Refreshments and lunch. There is an accommodation package too, costing £46 per night including bed, full breakfast and free wifi
-    :Content:
-        Material will cover *Python* programming basics as well as PsychoPy-specific coding. Note that this is not a workshop about PsychoPy Builder; we'll really be focussing on programming.
 
 Is this suitable for you?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
