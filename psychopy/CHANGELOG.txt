@@ -18,14 +18,18 @@ PsychoPy 1.85.1
 * FIXED:
 
   * several errors with **PsychoJS** outputs from Builder
+
     * early termination of experiments #f1bd15047
     * incorrect blank email field in info.php #d68c36bf9
     * incorrect component name sin endRoutine #e47d90a36
     * incorrect default units for image stims #8c32d1c9a
+
   * several problems with **sound**
+
     * pyo not loading #1365
     * searching for 'auto' instead of 'default' device #d54d14fe
-  * textbox v textstim demo wasn't working #b2913c12476
+
+  * textbox v textstim demo wasn't working #b2913c12476
   * error with colors when using TextStim with blendmode='add'
 
 PsychoPy 1.85.0
