@@ -399,9 +399,7 @@ class SoundDeviceSound(_SoundBase):
     def _setSndFromArray(self, thisArray):
 
         self.sndArr = np.asarray(thisArray)
-        if self.channels == -1:
-            self.sndArr.shape = [len(thisArray), 1]
-        elif self.channels == 2 and thisArray.ndim == 1:
+        if self.channels == 2 and thisArray.ndim == 1:
             # make mono sound into stereo
             self.sndArr.shape = [len(thisArray),1]  # give correct N dimensions
             self.sndArr = self.sndArr.repeat(2,axis=1)
