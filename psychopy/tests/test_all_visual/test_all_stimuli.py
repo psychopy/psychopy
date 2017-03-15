@@ -14,6 +14,7 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
+_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -251,6 +252,24 @@ class _baseVisualTest(object):
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
+    def test_text_with_add(self):
+        # pyglet text will reset the blendMode to 'avg' so check that we are
+        # getting back to 'add' if we want it
+        win = self.win
+        text = visual.TextStim(win, pos=[0, 0.9])
+        grat1 = visual.GratingStim(win, size=2*self.scaleFactor,
+                                   opacity=0.5,
+                                   pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
+        grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
+                                   opacity=0.5,
+                                   pos=[-0.3,0.0], ori=-45, sf=2*self.scaleFactor)
+
+        text.draw()
+        grat1.draw()
+        grat2.draw()
+        utils.skip_under_travis()
+        utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
+
     @pytest.mark.needs_sound
     def test_mov(self):
         win = self.win
@@ -468,7 +487,7 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win, crit=30)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
         if self.win.winType=='pygame':
@@ -499,6 +518,13 @@ class TestPygletNorm(_baseVisualTest):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
+if not _travisTesting:
+    class TestPygletBlendAdd(_baseVisualTest):
+        @classmethod
+        def setup_class(self):
+            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+            self.contextName='normAddBlend'
+            self.scaleFactor=1#applied to size/pos values
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):

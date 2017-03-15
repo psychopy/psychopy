@@ -537,6 +537,7 @@ class ContainerMixin(object):
         orientation (ori) settings (and by the vertices for shape stimuli).
 
         See Coder demos: shapeContains.py
+        See Coder demos: shapeContains.py
         """
         # get the object in pixels
         if hasattr(x, 'border'):

@@ -163,5 +163,3 @@ class ImageComponent(BaseVisualComponent):
                  "});\n" % (depth)
                  )
         buff.writeIndentedLines(code)
-        buff.writeIndentedLines(
-                "{inits[name]}.units = {inits[units]};".format(inits=inits))
