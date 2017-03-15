@@ -109,6 +109,10 @@ class TextStim(BaseVisualStim, ColorMixin):
         super(TextStim, self).__init__(
             win, units=units, name=name, autoLog=False)
 
+        if win.blendMode=='add':
+            logging.warning("Pyglet text does not honor the Window setting "
+                            "`blendMode='add'` so 'avg' will be used for the "
+                            "text (but objects drawn after can be added)")
         self._needUpdate = True
         self._needVertexUpdate = True
         # use shaders if available by default, this is a good thing
@@ -679,6 +683,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         if win is None:
             win = self.win
         self._selectWindow(win)
+        blendMode = win.blendMode  # keep track for reset later
 
         GL.glPushMatrix()
         # for PyOpenGL this is necessary despite pop/PushMatrix, (not for
@@ -743,6 +748,10 @@ class TextStim(BaseVisualStim, ColorMixin):
             if self._needUpdate:
                 self._updateList()
             GL.glCallList(self._listID)
+
+        # pyglets text.draw() method alters the blend func so reassert ours
+        win.blendMode = blendMode
+
         if self.useShaders:
             # disable shader (but command isn't available pre-OpenGL2.0)
             GL.glUseProgram(0)
