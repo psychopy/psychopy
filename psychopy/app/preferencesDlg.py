@@ -10,6 +10,7 @@ import copy
 
 from . import localization, dialogs
 from psychopy import logging
+from psychopy.exceptions import DependencyError
 from .localization import _translate
 
 # this will be overridden by the size of the scrolled panel making the prefs
@@ -366,14 +367,17 @@ class PrefCtrls(object):
             self.valueCtrl.SetValue(value)
         elif spec.startswith('option') or name == 'audioDevice':
             if name == 'audioDevice':
-                options = copy.copy(value)
-                from psychopy import sound
-                if hasattr(sound, 'getDevices'):
-                    devs = sound.getDevices('output')
-                    for thisDevName in devs:
-                        if thisDevName not in options:
-                            options.append(thisDevName)
                 value = value[0]
+                options = copy.copy(value)
+                try:
+                    from psychopy import sound
+                    if hasattr(sound, 'getDevices'):
+                        devs = sound.getDevices('output')
+                        for thisDevName in devs:
+                            if thisDevName not in options:
+                                options.append(thisDevName)
+                except DependencyError:
+                    pass
             else:
                 options = spec.replace("option(", "").replace("'", "")
                 # item -1 is 'default=x' from spec
