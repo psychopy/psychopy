@@ -367,8 +367,8 @@ class PrefCtrls(object):
             self.valueCtrl.SetValue(value)
         elif spec.startswith('option') or name == 'audioDevice':
             if name == 'audioDevice':
-                value = value[0]
                 options = copy.copy(value)
+                value = value[0]
                 try:
                     from psychopy import sound
                     if hasattr(sound, 'getDevices'):
