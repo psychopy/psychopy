@@ -2156,7 +2156,7 @@ class Routine(list):
 
         code = ("//------Ending Routine '{name}'-------\n"
                 "for (var i = 0; i < {name}Components.length; ++i) {{\n"
-                '  thisComponent = trialComponents[i];\n'
+                '  thisComponent = {name}Components[i];\n'
                 '  if ("setAutoDraw" in thisComponent) {{\n'
                 "    thisComponent.setAutoDraw(false);\n"
                 "  }}\n"
