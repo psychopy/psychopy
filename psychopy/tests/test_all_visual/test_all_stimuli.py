@@ -266,6 +266,7 @@ class _baseVisualTest(object):
         text.draw()
         grat1.draw()
         grat2.draw()
+        utils.skip_under_travis()
         utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
 
     @pytest.mark.needs_sound
@@ -464,7 +465,7 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win, crit=30)
+        utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
         for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
@@ -485,7 +486,7 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win, crit=30)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
         if self.win.winType=='pygame':
