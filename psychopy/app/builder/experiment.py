@@ -1824,9 +1824,9 @@ class Flow(list):
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == 'LoopTerminator':
                     loopStack.remove(thisEntry.loop)
-            # also flow should close when done
-            code += "flowScheduler.add(quitPsychoJS);\n"
-            script.writeIndentedLines(code)
+        # also flow should close when done
+        code += "flowScheduler.add(quitPsychoJS);\n"
+        script.writeIndentedLines(code)
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS);\n"
