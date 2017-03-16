@@ -515,10 +515,9 @@ class KeyboardComponent(BaseComponent):
                                    (currLoop.params['name'], name, name))
 
             # only add an RT if we had a response
-            code = ("if (resp.keys != undefined) {  // we had a response\n" %
-                    self.params +
-                    "    %s.addData('%s.rt', %s.rt)\n}\n" %
-                    (currLoop.params['name'], name, name))
+            code = ("if ({name}.keys != undefined) {{  // we had a response\n"
+                    "    {loopName}.addData('{name}.rt', {name}.rt)\n}}\n"
+                    .format(loopName=currLoop.params['name'], name=name))
             buff.writeIndentedLines(code)
 
         if currLoop.params['name'].val == self.exp._expHandler.name:

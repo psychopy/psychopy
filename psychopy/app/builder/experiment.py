@@ -1060,6 +1060,7 @@ class TrialHandler(object):
         # for the scheduler
         code = ("    // Schedule each of the trials in the list to occur\n"
                 "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
+                "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
                 "      {thisName} = {params[name]}.trialList[i];\n"
                 "      thisScheduler.add(abbrevNames({thisName}));\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
@@ -1819,14 +1820,14 @@ class Flow(list):
                             "flowScheduler.add({params[name]}RoutineEnd);\n"
                             .format(params=thisEntry.params))
             else:  # we are already in a loop so don't code here just count
-                code =""
+                code = ""
                 if thisEntry.getType() == 'LoopInitiator':
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == 'LoopTerminator':
                     loopStack.remove(thisEntry.loop)
-        # also flow should close when done
-        code += "flowScheduler.add(quitPsychoJS);\n"
-        script.writeIndentedLines(code)
+            script.writeIndentedLines(code)
+        # quit when all routines are finished
+        script.writeIndented("flowScheduler.add(quitPsychoJS);\n")
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS);\n"
