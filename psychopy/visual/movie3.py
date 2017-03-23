@@ -207,14 +207,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         """Continue a paused movie from current position.
         """
         status = self.status
-        if self._audioStream is not None:
-            self._audioStream.play()
         if status != PLAYING:
+            if self._audioStream is not None:
+            	self._audioStream.play()
+            if status == PAUSED:
+            	if self.getCurrentFrameTime() < 0:
+            		self._audioSeek(0)
+            	else:
+            		self._audioSeek(self.getCurrentFrameTime())
             self.status = PLAYING
             self._videoClock.reset(-self.getCurrentFrameTime())
-
-            if status == PAUSED:
-                self._audioSeek(self.getCurrentFrameTime())
 
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s playing" % (self.name),
