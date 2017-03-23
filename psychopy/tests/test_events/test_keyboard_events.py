@@ -1,5 +1,8 @@
-import pytest
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
+import pytest
+from psychopy import event
 from pyglet.window.key import (
     MOD_SHIFT,
     MOD_CTRL,
@@ -11,7 +14,6 @@ from pyglet.window.key import (
     MOD_OPTION,
     MOD_SCROLLLOCK)
 
-from psychopy import event
 
 @pytest.mark.keyboard
 class TestKeyboardEvents(object):
@@ -53,3 +55,16 @@ class TestKeyboardEvents(object):
         assert keys[0][0] == 'a'
         assert keys[0][1]['alt']
         assert isinstance(keys[0][2], float)
+
+    def test_invalid_modifiers(self):
+        """Modifiers must be integers."""
+        key = 'a'
+        modifiers = None
+
+        with pytest.raises(ValueError):
+            event._onPygletKey(key, modifiers, emulated=True)
+
+
+if __name__ == '__main__':
+    import pytest
+    pytest.main()

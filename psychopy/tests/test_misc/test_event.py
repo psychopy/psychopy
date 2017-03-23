@@ -31,7 +31,7 @@ class DelayedFakeKey(threading.Thread):
         self.delay = delay
     def run(self):
         core.wait(self.delay)
-        event._onPygletKey(symbol=self.key, modifiers=None, emulated=True)
+        event._onPygletKey(symbol=self.key, modifiers=0, emulated=True)
 
 class _baseTest(object):
     #this class allows others to be created that inherit all the tests for
@@ -112,9 +112,9 @@ class _baseTest(object):
         assert event.getKeys() == []
         for k in ['s', 'return']:
             event.clearEvents()
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
             assert k in event.getKeys()
-            event._onPygletKey(symbol=17, modifiers=None, emulated=False)
+            event._onPygletKey(symbol=17, modifiers=0, emulated=False)
             assert '17' in event.getKeys()
 
             # test that key-based RT is about right
@@ -122,15 +122,15 @@ class _baseTest(object):
             c = core.Clock()
             t = 0.05
             core.wait(t)
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
             resp = event.getKeys(timeStamped=c)
             assert k in resp[0][0]
             assert t - 0.01 < resp[0][1] < t + 0.01
 
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
             assert k in event.getKeys(timeStamped=True)[0]
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
-            event._onPygletKey(symbol='x', modifiers=None, emulated=True)  # nontarget
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
+            event._onPygletKey(symbol='x', modifiers=0, emulated=True)  # nontarget
             assert k in event.getKeys(keyList=[k, 'd'])
 
             # waitKeys implicitly clears events, so use a thread to add a delayed key press

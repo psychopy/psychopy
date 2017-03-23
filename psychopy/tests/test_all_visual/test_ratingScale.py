@@ -195,7 +195,7 @@ class Test_class_RatingScale(object):
         r = RatingScale(self.win, tickMarks=[1,2,3], labels=None, autoLog=False)
         r = RatingScale(self.win, leftKeys=['s'], autoLog=False)
         r.markerPlaced = False
-        event._onPygletKey(symbol='s', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='s', modifiers=0, emulated=True)
         r.draw()
 
     def test_obsolete_args(self):
@@ -211,28 +211,28 @@ class Test_class_RatingScale(object):
         r.markerPlaced = True
 
         r.mouseOnly = False
-        event._onPygletKey(symbol='tab', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='tab', modifiers=0, emulated=True)
         r.draw()
 
         r.respKeys = ['s']
         r.enableRespKeys = True
-        event._onPygletKey(symbol='s', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='s', modifiers=0, emulated=True)
         r.draw()
 
         # test move left, move right:
         r = RatingScale(self.win, markerStart=3, autoLog=False)
         assert r.markerPlacedAt == 2
-        event._onPygletKey(symbol='left', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='left', modifiers=0, emulated=True)
         r.draw()
         assert r.markerPlaced  # and r.markerPlacedBySubject
         #assert r.markerPlacedAt == 1
-        event._onPygletKey(symbol='right', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='right', modifiers=0, emulated=True)
         r.draw()
         #assert r.markerPlacedAt == 2
 
         r.acceptKeys = ['s']
         r.beyondMinTime = True
-        event._onPygletKey(symbol='s', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='s', modifiers=0, emulated=True)
         r.draw()
 
     def test_somelines(self):
@@ -243,7 +243,7 @@ class Test_class_RatingScale(object):
         r.respKeys = ['s']
         r.allKeys = ['s']
         r.tickFromKeyPress = {u's': 1}
-        event._onPygletKey(symbol='s', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='s', modifiers=0, emulated=True)
         r.singleClick = True
         r.beyondMinTime = True
         r.draw()
@@ -285,7 +285,7 @@ class Test_class_RatingScale(object):
         core.wait(.001, 0)
         r.acceptKeys = r.allKeys = ['1']
         r.beyondMinTime = True
-        event._onPygletKey(symbol='1', modifiers=None, emulated=True)
+        event._onPygletKey(symbol='1', modifiers=0, emulated=True)
         r.draw()
         h = r.getHistory()
         assert h[0] == (None, 0)

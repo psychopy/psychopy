@@ -47,7 +47,7 @@ class ResponseEmulator(threading.Thread):
                 # avoid cryptic error if int
                 key = str(key)[0]
             if type(key) == str:
-                event._onPygletKey(symbol=key, modifiers=None, emulated=True)
+                event._onPygletKey(symbol=key, modifiers=0, emulated=True)
             else:
                 logging.error('ResponseEmulator: only keyboard events '
                               'are supported')
@@ -122,7 +122,7 @@ class SyncGenerator(threading.Thread):
             if self.stopflag:
                 break
             # "emit" a sync pulse by placing a key in the buffer:
-            event._onPygletKey(symbol=self.sync, modifiers=None,
+            event._onPygletKey(symbol=self.sync, modifiers=0,
                                emulated=True)
             # wait for start of next volume, doing our own hogCPU for
             # tighter sync:
