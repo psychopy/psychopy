@@ -406,7 +406,6 @@ class SoundDeviceSound(_SoundBase):
         elif self.sndArr.shape[1] == 1:  # if channels in [-1,1] then pass
             pass
         else:
-            self.sndArr = np.asarray(thisArray)
             try:
                 self.sndArr.shape = [len(thisArray), 2]
             except ValueError:
