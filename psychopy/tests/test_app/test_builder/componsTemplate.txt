@@ -583,6 +583,426 @@ DotsComponent.dir.hint:Direction of motion for the signal dots (degrees)
 DotsComponent.dir.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 DotsComponent.dir.__class__:<class 'psychopy.app.builder.experiment.Param'>
 DotsComponent.dir.label:Direction
+EnvGratingComponent.order:['carrier', 'mask']
+EnvGratingComponent.color.default:[1,1,1]
+EnvGratingComponent.color.categ:Basic
+EnvGratingComponent.color.allowedVals:[]
+EnvGratingComponent.color.readOnly:False
+EnvGratingComponent.color.updates:constant
+EnvGratingComponent.color.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '$[1,1,1]', 'hint': u'Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Color', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.color.__weakref__:None
+EnvGratingComponent.color.valType:str
+EnvGratingComponent.color.staticUpdater:None
+EnvGratingComponent.color.val:$[1,1,1]
+EnvGratingComponent.color.allowedTypes:[]
+EnvGratingComponent.color.hint:Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+EnvGratingComponent.color.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.color.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.color.label:Color
+EnvGratingComponent.colorSpace.default:'rgb'
+EnvGratingComponent.colorSpace.categ:Basic
+EnvGratingComponent.colorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
+EnvGratingComponent.colorSpace.readOnly:False
+EnvGratingComponent.colorSpace.updates:constant
+EnvGratingComponent.colorSpace.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'rgb', 'hint': u'Choice of color space for the color (rgb, dkl, lms, hsv)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['rgb', 'dkl', 'lms', 'hsv'], 'label': u'Color space', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.colorSpace.__weakref__:None
+EnvGratingComponent.colorSpace.valType:str
+EnvGratingComponent.colorSpace.staticUpdater:None
+EnvGratingComponent.colorSpace.val:rgb
+EnvGratingComponent.colorSpace.allowedTypes:[]
+EnvGratingComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, lms, hsv)
+EnvGratingComponent.colorSpace.allowedUpdates:None
+EnvGratingComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.colorSpace.label:Color space
+EnvGratingComponent.pos.default:(0, 0)
+EnvGratingComponent.pos.categ:Basic
+EnvGratingComponent.pos.allowedVals:[]
+EnvGratingComponent.pos.readOnly:False
+EnvGratingComponent.pos.updates:constant
+EnvGratingComponent.pos.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': (0, 0), 'hint': u'Position of this stimulus (e.g. [1,2] )', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Position [x,y]', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.pos.__weakref__:None
+EnvGratingComponent.pos.valType:code
+EnvGratingComponent.pos.staticUpdater:None
+EnvGratingComponent.pos.val:(0, 0)
+EnvGratingComponent.pos.allowedTypes:[]
+EnvGratingComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
+EnvGratingComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.pos.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.pos.label:Position [x,y]
+EnvGratingComponent.stopType.default:'duration (s)'
+EnvGratingComponent.stopType.categ:Basic
+EnvGratingComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+EnvGratingComponent.stopType.readOnly:False
+EnvGratingComponent.stopType.updates:None
+EnvGratingComponent.stopType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'duration (s)', 'hint': u'How do you want to define your end point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'], 'label': u'stop type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+EnvGratingComponent.stopType.__weakref__:None
+EnvGratingComponent.stopType.valType:str
+EnvGratingComponent.stopType.staticUpdater:None
+EnvGratingComponent.stopType.val:duration (s)
+EnvGratingComponent.stopType.allowedTypes:[]
+EnvGratingComponent.stopType.hint:How do you want to define your end point?
+EnvGratingComponent.stopType.allowedUpdates:None
+EnvGratingComponent.stopType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.stopType.label:stop type
+EnvGratingComponent.blendmode.default:'avg'
+EnvGratingComponent.blendmode.categ:Basic
+EnvGratingComponent.blendmode.allowedVals:[]
+EnvGratingComponent.blendmode.readOnly:False
+EnvGratingComponent.blendmode.updates:constant
+EnvGratingComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.blendmode.__weakref__:None
+EnvGratingComponent.blendmode.valType:str
+EnvGratingComponent.blendmode.staticUpdater:None
+EnvGratingComponent.blendmode.val:avg
+EnvGratingComponent.blendmode.allowedTypes:[]
+EnvGratingComponent.blendmode.hint:OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]
+EnvGratingComponent.blendmode.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.blendmode.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.blendmode.label:OpenGL blend mode
+EnvGratingComponent.startVal.default:0.0
+EnvGratingComponent.startVal.categ:Basic
+EnvGratingComponent.startVal.allowedVals:[]
+EnvGratingComponent.startVal.readOnly:False
+EnvGratingComponent.startVal.updates:None
+EnvGratingComponent.startVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 0.0, 'hint': u'When does the component start?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Start', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EnvGratingComponent.startVal.__weakref__:None
+EnvGratingComponent.startVal.valType:code
+EnvGratingComponent.startVal.staticUpdater:None
+EnvGratingComponent.startVal.val:0.0
+EnvGratingComponent.startVal.allowedTypes:[]
+EnvGratingComponent.startVal.hint:When does the component start?
+EnvGratingComponent.startVal.allowedUpdates:None
+EnvGratingComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.startVal.label:Start
+EnvGratingComponent.size.default:(0.5, 0.5)
+EnvGratingComponent.size.categ:Basic
+EnvGratingComponent.size.allowedVals:[]
+EnvGratingComponent.size.readOnly:False
+EnvGratingComponent.size.updates:constant
+EnvGratingComponent.size.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': (0.5, 0.5), 'hint': u'Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Size [w,h]', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.size.__weakref__:None
+EnvGratingComponent.size.valType:code
+EnvGratingComponent.size.staticUpdater:None
+EnvGratingComponent.size.val:(0.5, 0.5)
+EnvGratingComponent.size.allowedTypes:[]
+EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+EnvGratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.size.label:Size [w,h]
+EnvGratingComponent.units.default:'from exp settings'
+EnvGratingComponent.units.categ:Basic
+EnvGratingComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
+EnvGratingComponent.units.readOnly:False
+EnvGratingComponent.units.updates:None
+EnvGratingComponent.units.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'from exp settings', 'hint': u'Units of dimensions for this stimulus', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat'], 'label': u'Units', 'readOnly': False, 'updates': None, 'valType': 'str'}
+EnvGratingComponent.units.__weakref__:None
+EnvGratingComponent.units.valType:str
+EnvGratingComponent.units.staticUpdater:None
+EnvGratingComponent.units.val:from exp settings
+EnvGratingComponent.units.allowedTypes:[]
+EnvGratingComponent.units.hint:Units of dimensions for this stimulus
+EnvGratingComponent.units.allowedUpdates:None
+EnvGratingComponent.units.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.units.label:Units
+EnvGratingComponent.contrast.default:0.5
+EnvGratingComponent.contrast.categ:Carrier
+EnvGratingComponent.contrast.allowedVals:[]
+EnvGratingComponent.contrast.readOnly:False
+EnvGratingComponent.contrast.updates:constant
+EnvGratingComponent.contrast.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 0.5, 'hint': u'Contrast of background carrier', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Carrier contrast', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.contrast.__weakref__:None
+EnvGratingComponent.contrast.valType:code
+EnvGratingComponent.contrast.staticUpdater:None
+EnvGratingComponent.contrast.val:0.5
+EnvGratingComponent.contrast.allowedTypes:[]
+EnvGratingComponent.contrast.hint:Contrast of background carrier
+EnvGratingComponent.contrast.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.contrast.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.contrast.label:Carrier contrast
+EnvGratingComponent.opacity.default:1
+EnvGratingComponent.opacity.categ:Basic
+EnvGratingComponent.opacity.allowedVals:[]
+EnvGratingComponent.opacity.readOnly:False
+EnvGratingComponent.opacity.updates:constant
+EnvGratingComponent.opacity.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 1, 'hint': u'Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Opacity', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.opacity.__weakref__:None
+EnvGratingComponent.opacity.valType:code
+EnvGratingComponent.opacity.staticUpdater:None
+EnvGratingComponent.opacity.val:1
+EnvGratingComponent.opacity.allowedTypes:[]
+EnvGratingComponent.opacity.hint:Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+EnvGratingComponent.opacity.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.opacity.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.opacity.label:Opacity
+EnvGratingComponent.moddepth.default:1.0
+EnvGratingComponent.moddepth.categ:Envelope
+EnvGratingComponent.moddepth.allowedVals:[]
+EnvGratingComponent.moddepth.readOnly:False
+EnvGratingComponent.moddepth.updates:constant
+EnvGratingComponent.moddepth.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 1.0, 'hint': u'Modulation depth of modulation envelope', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope modulation depth', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.moddepth.__weakref__:None
+EnvGratingComponent.moddepth.valType:code
+EnvGratingComponent.moddepth.staticUpdater:None
+EnvGratingComponent.moddepth.val:1.0
+EnvGratingComponent.moddepth.allowedTypes:[]
+EnvGratingComponent.moddepth.hint:Modulation depth of modulation envelope
+EnvGratingComponent.moddepth.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.moddepth.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.moddepth.label:Envelope modulation depth
+EnvGratingComponent.beat.default:False
+EnvGratingComponent.beat.categ:Envelope
+EnvGratingComponent.beat.allowedVals:[]
+EnvGratingComponent.beat.readOnly:False
+EnvGratingComponent.beat.updates:constant
+EnvGratingComponent.beat.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': False, 'hint': u"Do you want a 'beat'? [beat = carrier*envelope, no beat = carrier*(1+envelope), True/False, Y/N]", 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Is modulation a beat', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.beat.__weakref__:None
+EnvGratingComponent.beat.valType:str
+EnvGratingComponent.beat.staticUpdater:None
+EnvGratingComponent.beat.val:False
+EnvGratingComponent.beat.allowedTypes:[]
+EnvGratingComponent.beat.hint:Do you want a 'beat'? [beat = carrier*envelope, no beat = carrier*(1+envelope), True/False, Y/N]
+EnvGratingComponent.beat.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.beat.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.beat.label:Is modulation a beat
+EnvGratingComponent.envori.default:0.0
+EnvGratingComponent.envori.categ:Envelope
+EnvGratingComponent.envori.allowedVals:[]
+EnvGratingComponent.envori.readOnly:False
+EnvGratingComponent.envori.updates:constant
+EnvGratingComponent.envori.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 0.0, 'hint': u'Orientation of the modulation envelope(wraps in range 0-360)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope orientation', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.envori.__weakref__:None
+EnvGratingComponent.envori.valType:code
+EnvGratingComponent.envori.staticUpdater:None
+EnvGratingComponent.envori.val:0.0
+EnvGratingComponent.envori.allowedTypes:[]
+EnvGratingComponent.envori.hint:Orientation of the modulation envelope(wraps in range 0-360)
+EnvGratingComponent.envori.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.envori.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.envori.label:Envelope orientation
+EnvGratingComponent.stopVal.default:1.0
+EnvGratingComponent.stopVal.categ:Basic
+EnvGratingComponent.stopVal.allowedVals:[]
+EnvGratingComponent.stopVal.readOnly:False
+EnvGratingComponent.stopVal.updates:constant
+EnvGratingComponent.stopVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 1.0, 'hint': u'When does the component end? (blank is endless)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Stop', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.stopVal.__weakref__:None
+EnvGratingComponent.stopVal.valType:code
+EnvGratingComponent.stopVal.staticUpdater:None
+EnvGratingComponent.stopVal.val:1.0
+EnvGratingComponent.stopVal.allowedTypes:[]
+EnvGratingComponent.stopVal.hint:When does the component end? (blank is endless)
+EnvGratingComponent.stopVal.allowedUpdates:[]
+EnvGratingComponent.stopVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.stopVal.label:Stop
+EnvGratingComponent.durationEstim.default:
+EnvGratingComponent.durationEstim.categ:Basic
+EnvGratingComponent.durationEstim.allowedVals:[]
+EnvGratingComponent.durationEstim.readOnly:False
+EnvGratingComponent.durationEstim.updates:None
+EnvGratingComponent.durationEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected duration (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected duration (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EnvGratingComponent.durationEstim.__weakref__:None
+EnvGratingComponent.durationEstim.valType:code
+EnvGratingComponent.durationEstim.staticUpdater:None
+EnvGratingComponent.durationEstim.val:
+EnvGratingComponent.durationEstim.allowedTypes:[]
+EnvGratingComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+EnvGratingComponent.durationEstim.allowedUpdates:None
+EnvGratingComponent.durationEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.durationEstim.label:Expected duration (s)
+EnvGratingComponent.envelope.default:'sin'
+EnvGratingComponent.envelope.categ:Envelope
+EnvGratingComponent.envelope.allowedVals:[]
+EnvGratingComponent.envelope.readOnly:False
+EnvGratingComponent.envelope.updates:constant
+EnvGratingComponent.envelope.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 'sin', 'hint': u'The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope Texture', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.envelope.__weakref__:None
+EnvGratingComponent.envelope.valType:str
+EnvGratingComponent.envelope.staticUpdater:None
+EnvGratingComponent.envelope.val:sin
+EnvGratingComponent.envelope.allowedTypes:[]
+EnvGratingComponent.envelope.hint:The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename (including path)
+EnvGratingComponent.envelope.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.envelope.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.envelope.label:Envelope Texture
+EnvGratingComponent.interpolate.default:'linear'
+EnvGratingComponent.interpolate.categ:Carrier
+EnvGratingComponent.interpolate.allowedVals:['linear', 'nearest']
+EnvGratingComponent.interpolate.readOnly:False
+EnvGratingComponent.interpolate.updates:constant
+EnvGratingComponent.interpolate.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 'linear', 'hint': u'How should the image be interpolated if/when rescaled', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['linear', 'nearest'], 'label': u'Interpolate', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.interpolate.__weakref__:None
+EnvGratingComponent.interpolate.valType:str
+EnvGratingComponent.interpolate.staticUpdater:None
+EnvGratingComponent.interpolate.val:linear
+EnvGratingComponent.interpolate.allowedTypes:[]
+EnvGratingComponent.interpolate.hint:How should the image be interpolated if/when rescaled
+EnvGratingComponent.interpolate.allowedUpdates:[]
+EnvGratingComponent.interpolate.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.interpolate.label:Interpolate
+EnvGratingComponent.startEstim.default:
+EnvGratingComponent.startEstim.categ:Basic
+EnvGratingComponent.startEstim.allowedVals:[]
+EnvGratingComponent.startEstim.readOnly:False
+EnvGratingComponent.startEstim.updates:None
+EnvGratingComponent.startEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected start (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected start (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EnvGratingComponent.startEstim.__weakref__:None
+EnvGratingComponent.startEstim.valType:code
+EnvGratingComponent.startEstim.staticUpdater:None
+EnvGratingComponent.startEstim.val:
+EnvGratingComponent.startEstim.allowedTypes:[]
+EnvGratingComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+EnvGratingComponent.startEstim.allowedUpdates:None
+EnvGratingComponent.startEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.startEstim.label:Expected start (s)
+EnvGratingComponent.startType.default:'time (s)'
+EnvGratingComponent.startType.categ:Basic
+EnvGratingComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+EnvGratingComponent.startType.readOnly:False
+EnvGratingComponent.startType.updates:None
+EnvGratingComponent.startType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'time (s)', 'hint': u'How do you want to define your start point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['time (s)', 'frame N', 'condition'], 'label': u'start type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+EnvGratingComponent.startType.__weakref__:None
+EnvGratingComponent.startType.valType:str
+EnvGratingComponent.startType.staticUpdater:None
+EnvGratingComponent.startType.val:time (s)
+EnvGratingComponent.startType.allowedTypes:[]
+EnvGratingComponent.startType.hint:How do you want to define your start point?
+EnvGratingComponent.startType.allowedUpdates:None
+EnvGratingComponent.startType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.startType.label:start type
+EnvGratingComponent.ori.default:0
+EnvGratingComponent.ori.categ:Carrier
+EnvGratingComponent.ori.allowedVals:[]
+EnvGratingComponent.ori.readOnly:False
+EnvGratingComponent.ori.updates:constant
+EnvGratingComponent.ori.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 0, 'hint': u'Orientation of this stimulus (in deg)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Carrier Orientation', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.ori.__weakref__:None
+EnvGratingComponent.ori.valType:code
+EnvGratingComponent.ori.staticUpdater:None
+EnvGratingComponent.ori.val:0
+EnvGratingComponent.ori.allowedTypes:[]
+EnvGratingComponent.ori.hint:Orientation of this stimulus (in deg)
+EnvGratingComponent.ori.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.ori.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.ori.label:Carrier Orientation
+EnvGratingComponent.phase.default:0.0
+EnvGratingComponent.phase.categ:Carrier
+EnvGratingComponent.phase.allowedVals:[]
+EnvGratingComponent.phase.readOnly:False
+EnvGratingComponent.phase.updates:constant
+EnvGratingComponent.phase.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 0.0, 'hint': u'Spatial positioning of the background carrier (wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Carrier phase (in cycles)', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.phase.__weakref__:None
+EnvGratingComponent.phase.valType:code
+EnvGratingComponent.phase.staticUpdater:None
+EnvGratingComponent.phase.val:0.0
+EnvGratingComponent.phase.allowedTypes:[]
+EnvGratingComponent.phase.hint:Spatial positioning of the background carrier (wraps in range 0-1.0)
+EnvGratingComponent.phase.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.phase.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.phase.label:Carrier phase (in cycles)
+EnvGratingComponent.texture resolution.default:128
+EnvGratingComponent.texture resolution.categ:Carrier
+EnvGratingComponent.texture resolution.allowedVals:['32', '64', '128', '256', '512']
+EnvGratingComponent.texture resolution.readOnly:False
+EnvGratingComponent.texture resolution.updates:constant
+EnvGratingComponent.texture resolution.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': '128', 'hint': u'Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['32', '64', '128', '256', '512'], 'label': u'Texture resolution', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.texture resolution.__weakref__:None
+EnvGratingComponent.texture resolution.valType:code
+EnvGratingComponent.texture resolution.staticUpdater:None
+EnvGratingComponent.texture resolution.val:128
+EnvGratingComponent.texture resolution.allowedTypes:[]
+EnvGratingComponent.texture resolution.hint:Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice
+EnvGratingComponent.texture resolution.allowedUpdates:[]
+EnvGratingComponent.texture resolution.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.texture resolution.label:Texture resolution
+EnvGratingComponent.name.default:env_grating
+EnvGratingComponent.name.categ:Basic
+EnvGratingComponent.name.allowedVals:[]
+EnvGratingComponent.name.readOnly:False
+EnvGratingComponent.name.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'env_grating', 'hint': u'Name of this component (alpha-numeric or _, no spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Name', 'readOnly': False, 'updates': None, 'valType': 'code'}
+EnvGratingComponent.name.__weakref__:None
+EnvGratingComponent.name.valType:code
+EnvGratingComponent.name.staticUpdater:None
+EnvGratingComponent.name.val:env_grating
+EnvGratingComponent.name.allowedTypes:[]
+EnvGratingComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+EnvGratingComponent.name.allowedUpdates:None
+EnvGratingComponent.name.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.name.label:Name
+EnvGratingComponent.envphase.default:0.0
+EnvGratingComponent.envphase.categ:Envelope
+EnvGratingComponent.envphase.allowedVals:[]
+EnvGratingComponent.envphase.readOnly:False
+EnvGratingComponent.envphase.updates:constant
+EnvGratingComponent.envphase.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 0.0, 'hint': u'Spatial positioning of the modulation envelope(wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope Phase', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.envphase.__weakref__:None
+EnvGratingComponent.envphase.valType:code
+EnvGratingComponent.envphase.staticUpdater:None
+EnvGratingComponent.envphase.val:0.0
+EnvGratingComponent.envphase.allowedTypes:[]
+EnvGratingComponent.envphase.hint:Spatial positioning of the modulation envelope(wraps in range 0-1.0)
+EnvGratingComponent.envphase.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.envphase.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.envphase.label:Envelope Phase
+EnvGratingComponent.envsf.default:1.0
+EnvGratingComponent.envsf.categ:Envelope
+EnvGratingComponent.envsf.allowedVals:[]
+EnvGratingComponent.envsf.readOnly:False
+EnvGratingComponent.envsf.updates:constant
+EnvGratingComponent.envsf.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 1.0, 'hint': u'Spatial frequency of the modulation envelope repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope spatial frequecy', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.envsf.__weakref__:None
+EnvGratingComponent.envsf.valType:code
+EnvGratingComponent.envsf.staticUpdater:None
+EnvGratingComponent.envsf.val:1.0
+EnvGratingComponent.envsf.allowedTypes:[]
+EnvGratingComponent.envsf.hint:Spatial frequency of the modulation envelope repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]
+EnvGratingComponent.envsf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.envsf.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.envsf.label:Envelope spatial frequecy
+EnvGratingComponent.mask.default:'None'
+EnvGratingComponent.mask.categ:Carrier
+EnvGratingComponent.mask.allowedVals:[]
+EnvGratingComponent.mask.readOnly:False
+EnvGratingComponent.mask.updates:constant
+EnvGratingComponent.mask.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 'None', 'hint': u'An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Mask', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.mask.__weakref__:None
+EnvGratingComponent.mask.valType:str
+EnvGratingComponent.mask.staticUpdater:None
+EnvGratingComponent.mask.val:None
+EnvGratingComponent.mask.allowedTypes:[]
+EnvGratingComponent.mask.hint:An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)
+EnvGratingComponent.mask.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.mask.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.mask.label:Mask
+EnvGratingComponent.carrier.default:'sin'
+EnvGratingComponent.carrier.categ:Carrier
+EnvGratingComponent.carrier.allowedVals:[]
+EnvGratingComponent.carrier.readOnly:False
+EnvGratingComponent.carrier.updates:constant
+EnvGratingComponent.carrier.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 'sin', 'hint': u'The (2D) texture of the background - can be sin, sqr, sinXsin... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Carrier texture', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.carrier.__weakref__:None
+EnvGratingComponent.carrier.valType:str
+EnvGratingComponent.carrier.staticUpdater:None
+EnvGratingComponent.carrier.val:sin
+EnvGratingComponent.carrier.allowedTypes:[]
+EnvGratingComponent.carrier.hint:The (2D) texture of the background - can be sin, sqr, sinXsin... or a filename (including path)
+EnvGratingComponent.carrier.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.carrier.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.carrier.label:Carrier texture
+EnvGratingComponent.sf.default:1.0
+EnvGratingComponent.sf.categ:Carrier
+EnvGratingComponent.sf.allowedVals:[]
+EnvGratingComponent.sf.readOnly:False
+EnvGratingComponent.sf.updates:constant
+EnvGratingComponent.sf.__dict__:{'staticUpdater': None, 'categ': 'Carrier', 'val': 1.0, 'hint': u'Spatial frequency of background carrier repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Carrier spatial frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.sf.__weakref__:None
+EnvGratingComponent.sf.valType:code
+EnvGratingComponent.sf.staticUpdater:None
+EnvGratingComponent.sf.val:1.0
+EnvGratingComponent.sf.allowedTypes:[]
+EnvGratingComponent.sf.hint:Spatial frequency of background carrier repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]
+EnvGratingComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+EnvGratingComponent.sf.__class__:<class 'psychopy.app.builder.experiment.Param'>
+EnvGratingComponent.sf.label:Carrier spatial frequency
 GratingComponent.order:['tex', 'mask']
 GratingComponent.opacity.default:1
 GratingComponent.opacity.categ:Basic
@@ -629,6 +1049,21 @@ GratingComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, 
 GratingComponent.colorSpace.allowedUpdates:None
 GratingComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.colorSpace.label:Color space
+GratingComponent.blendmode.default:'avg'
+GratingComponent.blendmode.categ:Basic
+GratingComponent.blendmode.allowedVals:[]
+GratingComponent.blendmode.readOnly:False
+GratingComponent.blendmode.updates:constant
+GratingComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+GratingComponent.blendmode.__weakref__:None
+GratingComponent.blendmode.valType:str
+GratingComponent.blendmode.staticUpdater:None
+GratingComponent.blendmode.val:avg
+GratingComponent.blendmode.allowedTypes:[]
+GratingComponent.blendmode.hint:OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]
+GratingComponent.blendmode.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+GratingComponent.blendmode.__class__:<class 'psychopy.app.builder.experiment.Param'>
+GratingComponent.blendmode.label:OpenGL blend mode
 GratingComponent.name.default:grating
 GratingComponent.name.categ:Basic
 GratingComponent.name.allowedVals:[]
@@ -929,21 +1364,6 @@ ImageComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, lm
 ImageComponent.colorSpace.allowedUpdates:None
 ImageComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.colorSpace.label:Color space
-ImageComponent.flipHoriz.default:False
-ImageComponent.flipHoriz.categ:Advanced
-ImageComponent.flipHoriz.allowedVals:[]
-ImageComponent.flipHoriz.readOnly:False
-ImageComponent.flipHoriz.updates:constant
-ImageComponent.flipHoriz.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': False, 'hint': u'Should the image be flipped horizontally (left to right)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Flip horizontally', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
-ImageComponent.flipHoriz.__weakref__:None
-ImageComponent.flipHoriz.valType:bool
-ImageComponent.flipHoriz.staticUpdater:None
-ImageComponent.flipHoriz.val:False
-ImageComponent.flipHoriz.allowedTypes:[]
-ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
-ImageComponent.flipHoriz.allowedUpdates:[]
-ImageComponent.flipHoriz.__class__:<class 'psychopy.app.builder.experiment.Param'>
-ImageComponent.flipHoriz.label:Flip horizontally
 ImageComponent.name.default:image
 ImageComponent.name.categ:Basic
 ImageComponent.name.allowedVals:[]
@@ -1153,6 +1573,21 @@ ImageComponent.startVal.hint:When does the component start?
 ImageComponent.startVal.allowedUpdates:None
 ImageComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.startVal.label:Start
+ImageComponent.flipHoriz.default:False
+ImageComponent.flipHoriz.categ:Advanced
+ImageComponent.flipHoriz.allowedVals:[]
+ImageComponent.flipHoriz.readOnly:False
+ImageComponent.flipHoriz.updates:constant
+ImageComponent.flipHoriz.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': False, 'hint': u'Should the image be flipped horizontally (left to right)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Flip horizontally', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+ImageComponent.flipHoriz.__weakref__:None
+ImageComponent.flipHoriz.valType:bool
+ImageComponent.flipHoriz.staticUpdater:None
+ImageComponent.flipHoriz.val:False
+ImageComponent.flipHoriz.allowedTypes:[]
+ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
+ImageComponent.flipHoriz.allowedUpdates:[]
+ImageComponent.flipHoriz.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ImageComponent.flipHoriz.label:Flip horizontally
 ImageComponent.image.default:''
 ImageComponent.image.categ:Basic
 ImageComponent.image.allowedVals:[]
@@ -2010,10 +2445,10 @@ ParallelOutComponent.startType.__class__:<class 'psychopy.app.builder.experiment
 ParallelOutComponent.startType.label:start type
 ParallelOutComponent.address.default:u'0x0378'
 ParallelOutComponent.address.categ:Basic
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'LabJack U3']
 ParallelOutComponent.address.readOnly:False
 ParallelOutComponent.address.updates:None
-ParallelOutComponent.address.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': u'0x0378', 'hint': u'Parallel port to be used (you can change these options in preferences>general)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3'], 'label': u'Port address', 'readOnly': False, 'updates': None, 'valType': 'str'}
+ParallelOutComponent.address.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': u'0x0378', 'hint': u'Parallel port to be used (you can change these options in preferences>general)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [u'0x0378', u'0x03BC', u'LabJack U3'], 'label': u'Port address', 'readOnly': False, 'updates': None, 'valType': 'str'}
 ParallelOutComponent.address.__weakref__:None
 ParallelOutComponent.address.valType:str
 ParallelOutComponent.address.staticUpdater:None
@@ -3045,276 +3480,6 @@ RatingScaleComponent.singleClick.allowedUpdates:[]
 RatingScaleComponent.singleClick.__class__:<class 'psychopy.app.builder.experiment.Param'>
 RatingScaleComponent.singleClick.label:Single click
 SettingsComponent.order:['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units']
-SettingsComponent.Monitor.default:'testMonitor'
-SettingsComponent.Monitor.categ:Screen
-SettingsComponent.Monitor.allowedVals:[]
-SettingsComponent.Monitor.readOnly:False
-SettingsComponent.Monitor.updates:None
-SettingsComponent.Monitor.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'testMonitor', 'hint': u'Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Monitor', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.Monitor.__weakref__:None
-SettingsComponent.Monitor.valType:str
-SettingsComponent.Monitor.staticUpdater:None
-SettingsComponent.Monitor.val:testMonitor
-SettingsComponent.Monitor.allowedTypes:[]
-SettingsComponent.Monitor.hint:Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.
-SettingsComponent.Monitor.allowedUpdates:None
-SettingsComponent.Monitor.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Monitor.label:Monitor
-SettingsComponent.color.default:[0,0,0]
-SettingsComponent.color.categ:Screen
-SettingsComponent.color.allowedVals:[]
-SettingsComponent.color.readOnly:False
-SettingsComponent.color.updates:None
-SettingsComponent.color.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': '$[0,0,0]', 'hint': u'Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Color', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.color.__weakref__:None
-SettingsComponent.color.valType:str
-SettingsComponent.color.staticUpdater:None
-SettingsComponent.color.val:$[0,0,0]
-SettingsComponent.color.allowedTypes:[]
-SettingsComponent.color.hint:Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)
-SettingsComponent.color.allowedUpdates:None
-SettingsComponent.color.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.color.label:Color
-SettingsComponent.colorSpace.default:'rgb'
-SettingsComponent.colorSpace.categ:Screen
-SettingsComponent.colorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
-SettingsComponent.colorSpace.readOnly:False
-SettingsComponent.colorSpace.updates:None
-SettingsComponent.colorSpace.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'rgb', 'hint': u'Needed if color is defined numerically (see PsychoPy documentation on color spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['rgb', 'dkl', 'lms', 'hsv'], 'label': u'Color space', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.colorSpace.__weakref__:None
-SettingsComponent.colorSpace.valType:str
-SettingsComponent.colorSpace.staticUpdater:None
-SettingsComponent.colorSpace.val:rgb
-SettingsComponent.colorSpace.allowedTypes:[]
-SettingsComponent.colorSpace.hint:Needed if color is defined numerically (see PsychoPy documentation on color spaces)
-SettingsComponent.colorSpace.allowedUpdates:None
-SettingsComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.colorSpace.label:Color space
-SettingsComponent.Experiment info.default:{'participant':'', 'session':'001'}
-SettingsComponent.Experiment info.categ:Basic
-SettingsComponent.Experiment info.allowedVals:[]
-SettingsComponent.Experiment info.readOnly:False
-SettingsComponent.Experiment info.updates:None
-SettingsComponent.Experiment info.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': "{'participant':'', 'session':'001'}", 'hint': u'The info to present in a dialog box. Right-click to check syntax and preview the dialog box.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Experiment info', 'readOnly': False, 'updates': None, 'valType': 'code'}
-SettingsComponent.Experiment info.__weakref__:None
-SettingsComponent.Experiment info.valType:code
-SettingsComponent.Experiment info.staticUpdater:None
-SettingsComponent.Experiment info.val:{'participant':'', 'session':'001'}
-SettingsComponent.Experiment info.allowedTypes:[]
-SettingsComponent.Experiment info.hint:The info to present in a dialog box. Right-click to check syntax and preview the dialog box.
-SettingsComponent.Experiment info.allowedUpdates:None
-SettingsComponent.Experiment info.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Experiment info.label:Experiment info
-SettingsComponent.JS libs.default:'packaged'
-SettingsComponent.JS libs.categ:Online
-SettingsComponent.JS libs.allowedVals:['packaged']
-SettingsComponent.JS libs.readOnly:False
-SettingsComponent.JS libs.updates:None
-SettingsComponent.JS libs.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'packaged', 'hint': u'Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['packaged'], 'label': 'JS libs', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.JS libs.__weakref__:None
-SettingsComponent.JS libs.valType:str
-SettingsComponent.JS libs.staticUpdater:None
-SettingsComponent.JS libs.val:packaged
-SettingsComponent.JS libs.allowedTypes:[]
-SettingsComponent.JS libs.hint:Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?
-SettingsComponent.JS libs.allowedUpdates:None
-SettingsComponent.JS libs.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.JS libs.label:JS libs
-SettingsComponent.Units.default:'use prefs'
-SettingsComponent.Units.categ:Screen
-SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat']
-SettingsComponent.Units.readOnly:False
-SettingsComponent.Units.updates:None
-SettingsComponent.Units.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'use prefs', 'hint': u'Units to use for window/stimulus coordinates (e.g. cm, pix, deg)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat'], 'label': u'Units', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.Units.__weakref__:None
-SettingsComponent.Units.valType:str
-SettingsComponent.Units.staticUpdater:None
-SettingsComponent.Units.val:use prefs
-SettingsComponent.Units.allowedTypes:[]
-SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. cm, pix, deg)
-SettingsComponent.Units.allowedUpdates:None
-SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Units.label:Units
-SettingsComponent.Save excel file.default:False
-SettingsComponent.Save excel file.categ:Data
-SettingsComponent.Save excel file.allowedVals:[]
-SettingsComponent.Save excel file.readOnly:False
-SettingsComponent.Save excel file.updates:None
-SettingsComponent.Save excel file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in Excel (.xlsx) format', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save excel file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save excel file.__weakref__:None
-SettingsComponent.Save excel file.valType:bool
-SettingsComponent.Save excel file.staticUpdater:None
-SettingsComponent.Save excel file.val:False
-SettingsComponent.Save excel file.allowedTypes:[]
-SettingsComponent.Save excel file.hint:Save data from loops in Excel (.xlsx) format
-SettingsComponent.Save excel file.allowedUpdates:None
-SettingsComponent.Save excel file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save excel file.label:Save excel file
-SettingsComponent.Enable Escape.default:True
-SettingsComponent.Enable Escape.categ:Basic
-SettingsComponent.Enable Escape.allowedVals:[]
-SettingsComponent.Enable Escape.readOnly:False
-SettingsComponent.Enable Escape.updates:None
-SettingsComponent.Enable Escape.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Enable the <esc> key, to allow subjects to quit / break out of the experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Enable Escape key', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Enable Escape.__weakref__:None
-SettingsComponent.Enable Escape.valType:bool
-SettingsComponent.Enable Escape.staticUpdater:None
-SettingsComponent.Enable Escape.val:True
-SettingsComponent.Enable Escape.allowedTypes:[]
-SettingsComponent.Enable Escape.hint:Enable the <esc> key, to allow subjects to quit / break out of the experiment
-SettingsComponent.Enable Escape.allowedUpdates:None
-SettingsComponent.Enable Escape.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Enable Escape.label:Enable Escape key
-SettingsComponent.Save psydat file.default:True
-SettingsComponent.Save psydat file.categ:Data
-SettingsComponent.Save psydat file.allowedVals:[True]
-SettingsComponent.Save psydat file.readOnly:False
-SettingsComponent.Save psydat file.updates:None
-SettingsComponent.Save psydat file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True], 'label': u'Save psydat file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save psydat file.__weakref__:None
-SettingsComponent.Save psydat file.valType:bool
-SettingsComponent.Save psydat file.staticUpdater:None
-SettingsComponent.Save psydat file.val:True
-SettingsComponent.Save psydat file.allowedTypes:[]
-SettingsComponent.Save psydat file.hint:Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.
-SettingsComponent.Save psydat file.allowedUpdates:None
-SettingsComponent.Save psydat file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save psydat file.label:Save psydat file
-SettingsComponent.Window size (pixels).default:(1024, 768)
-SettingsComponent.Window size (pixels).categ:Screen
-SettingsComponent.Window size (pixels).allowedVals:[]
-SettingsComponent.Window size (pixels).readOnly:False
-SettingsComponent.Window size (pixels).updates:None
-SettingsComponent.Window size (pixels).__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': (1024, 768), 'hint': u'Size of window (if not fullscreen)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Window size (pixels)', 'readOnly': False, 'updates': None, 'valType': 'code'}
-SettingsComponent.Window size (pixels).__weakref__:None
-SettingsComponent.Window size (pixels).valType:code
-SettingsComponent.Window size (pixels).staticUpdater:None
-SettingsComponent.Window size (pixels).val:(1024, 768)
-SettingsComponent.Window size (pixels).allowedTypes:[]
-SettingsComponent.Window size (pixels).hint:Size of window (if not fullscreen)
-SettingsComponent.Window size (pixels).allowedUpdates:None
-SettingsComponent.Window size (pixels).__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Window size (pixels).label:Window size (pixels)
-SettingsComponent.Full-screen window.default:True
-SettingsComponent.Full-screen window.categ:Screen
-SettingsComponent.Full-screen window.allowedVals:[]
-SettingsComponent.Full-screen window.readOnly:False
-SettingsComponent.Full-screen window.updates:None
-SettingsComponent.Full-screen window.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': True, 'hint': u'Run the experiment full-screen (recommended)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Full-screen window', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Full-screen window.__weakref__:None
-SettingsComponent.Full-screen window.valType:bool
-SettingsComponent.Full-screen window.staticUpdater:None
-SettingsComponent.Full-screen window.val:True
-SettingsComponent.Full-screen window.allowedTypes:[]
-SettingsComponent.Full-screen window.hint:Run the experiment full-screen (recommended)
-SettingsComponent.Full-screen window.allowedUpdates:None
-SettingsComponent.Full-screen window.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Full-screen window.label:Full-screen window
-SettingsComponent.blendMode.default:'avg'
-SettingsComponent.blendMode.categ:Screen
-SettingsComponent.blendMode.allowedVals:['add', 'avg']
-SettingsComponent.blendMode.readOnly:False
-SettingsComponent.blendMode.updates:None
-SettingsComponent.blendMode.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'avg', 'hint': u'Should new stimuli be added or averaged with the stimuli that have been drawn already', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['add', 'avg'], 'label': u'Blend mode', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.blendMode.__weakref__:None
-SettingsComponent.blendMode.valType:str
-SettingsComponent.blendMode.staticUpdater:None
-SettingsComponent.blendMode.val:avg
-SettingsComponent.blendMode.allowedTypes:[]
-SettingsComponent.blendMode.hint:Should new stimuli be added or averaged with the stimuli that have been drawn already
-SettingsComponent.blendMode.allowedUpdates:None
-SettingsComponent.blendMode.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.blendMode.label:Blend mode
-SettingsComponent.Use version.default:''
-SettingsComponent.Use version.categ:Basic
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.85', '', '1.85.0rc3']
-SettingsComponent.Use version.readOnly:False
-SettingsComponent.Use version.updates:None
-SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.85', '', '1.85.0rc3'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.Use version.__weakref__:None
-SettingsComponent.Use version.valType:str
-SettingsComponent.Use version.staticUpdater:None
-SettingsComponent.Use version.val:
-SettingsComponent.Use version.allowedTypes:[]
-SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
-SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Use version.label:Use PsychoPy version
-SettingsComponent.HTML path.default:'html'
-SettingsComponent.HTML path.categ:Online
-SettingsComponent.HTML path.allowedVals:[]
-SettingsComponent.HTML path.readOnly:False
-SettingsComponent.HTML path.updates:None
-SettingsComponent.HTML path.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'html', 'hint': u'Place the HTML files will be saved locally ', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Output path', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.HTML path.__weakref__:None
-SettingsComponent.HTML path.valType:str
-SettingsComponent.HTML path.staticUpdater:None
-SettingsComponent.HTML path.val:html
-SettingsComponent.HTML path.allowedTypes:[]
-SettingsComponent.HTML path.hint:Place the HTML files will be saved locally 
-SettingsComponent.HTML path.allowedUpdates:None
-SettingsComponent.HTML path.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.HTML path.label:Output path
-SettingsComponent.Save csv file.default:False
-SettingsComponent.Save csv file.categ:Data
-SettingsComponent.Save csv file.allowedVals:[]
-SettingsComponent.Save csv file.readOnly:False
-SettingsComponent.Save csv file.updates:None
-SettingsComponent.Save csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (summaries)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save csv file.__weakref__:None
-SettingsComponent.Save csv file.valType:bool
-SettingsComponent.Save csv file.staticUpdater:None
-SettingsComponent.Save csv file.val:False
-SettingsComponent.Save csv file.allowedTypes:[]
-SettingsComponent.Save csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
-SettingsComponent.Save csv file.allowedUpdates:None
-SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save csv file.label:Save csv file (summaries)
-SettingsComponent.OSF Project ID.default:''
-SettingsComponent.OSF Project ID.categ:Online
-SettingsComponent.OSF Project ID.allowedVals:['']
-SettingsComponent.OSF Project ID.readOnly:False
-SettingsComponent.OSF Project ID.updates:None
-SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.OSF Project ID.__weakref__:None
-SettingsComponent.OSF Project ID.valType:str
-SettingsComponent.OSF Project ID.staticUpdater:None
-SettingsComponent.OSF Project ID.val:
-SettingsComponent.OSF Project ID.allowedTypes:[]
-SettingsComponent.OSF Project ID.hint:The ID of this project (e.g. 5bqpc)
-SettingsComponent.OSF Project ID.allowedUpdates:None
-SettingsComponent.OSF Project ID.__class__:<class 'psychopy.app.builder.components.settings.ProjIDParam'>
-SettingsComponent.OSF Project ID.label:OSF Project ID
-SettingsComponent.Save log file.default:True
-SettingsComponent.Save log file.categ:Data
-SettingsComponent.Save log file.allowedVals:[]
-SettingsComponent.Save log file.readOnly:False
-SettingsComponent.Save log file.updates:None
-SettingsComponent.Save log file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save a detailed log (more detailed than the excel/csv files) of the entire experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save log file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save log file.__weakref__:None
-SettingsComponent.Save log file.valType:bool
-SettingsComponent.Save log file.staticUpdater:None
-SettingsComponent.Save log file.val:True
-SettingsComponent.Save log file.allowedTypes:[]
-SettingsComponent.Save log file.hint:Save a detailed log (more detailed than the excel/csv files) of the entire experiment
-SettingsComponent.Save log file.allowedUpdates:None
-SettingsComponent.Save log file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save log file.label:Save log file
-SettingsComponent.Save wide csv file.default:True
-SettingsComponent.Save wide csv file.categ:Data
-SettingsComponent.Save wide csv file.allowedVals:[]
-SettingsComponent.Save wide csv file.readOnly:False
-SettingsComponent.Save wide csv file.updates:None
-SettingsComponent.Save wide csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (trial-by-trial)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save wide csv file.__weakref__:None
-SettingsComponent.Save wide csv file.valType:bool
-SettingsComponent.Save wide csv file.staticUpdater:None
-SettingsComponent.Save wide csv file.val:True
-SettingsComponent.Save wide csv file.allowedTypes:[]
-SettingsComponent.Save wide csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
-SettingsComponent.Save wide csv file.allowedUpdates:None
-SettingsComponent.Save wide csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save wide csv file.label:Save csv file (trial-by-trial)
 SettingsComponent.Show mouse.default:False
 SettingsComponent.Show mouse.categ:Screen
 SettingsComponent.Show mouse.allowedVals:[]
@@ -3345,6 +3510,126 @@ SettingsComponent.Data filename.hint:Code to create your custom file name base. 
 SettingsComponent.Data filename.allowedUpdates:None
 SettingsComponent.Data filename.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Data filename.label:Data filename
+SettingsComponent.Monitor.default:'testMonitor'
+SettingsComponent.Monitor.categ:Screen
+SettingsComponent.Monitor.allowedVals:[]
+SettingsComponent.Monitor.readOnly:False
+SettingsComponent.Monitor.updates:None
+SettingsComponent.Monitor.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'testMonitor', 'hint': u'Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Monitor', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Monitor.__weakref__:None
+SettingsComponent.Monitor.valType:str
+SettingsComponent.Monitor.staticUpdater:None
+SettingsComponent.Monitor.val:testMonitor
+SettingsComponent.Monitor.allowedTypes:[]
+SettingsComponent.Monitor.hint:Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.
+SettingsComponent.Monitor.allowedUpdates:None
+SettingsComponent.Monitor.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Monitor.label:Monitor
+SettingsComponent.Enable Escape.default:True
+SettingsComponent.Enable Escape.categ:Basic
+SettingsComponent.Enable Escape.allowedVals:[]
+SettingsComponent.Enable Escape.readOnly:False
+SettingsComponent.Enable Escape.updates:None
+SettingsComponent.Enable Escape.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Enable the <esc> key, to allow subjects to quit / break out of the experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Enable Escape key', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Enable Escape.__weakref__:None
+SettingsComponent.Enable Escape.valType:bool
+SettingsComponent.Enable Escape.staticUpdater:None
+SettingsComponent.Enable Escape.val:True
+SettingsComponent.Enable Escape.allowedTypes:[]
+SettingsComponent.Enable Escape.hint:Enable the <esc> key, to allow subjects to quit / break out of the experiment
+SettingsComponent.Enable Escape.allowedUpdates:None
+SettingsComponent.Enable Escape.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Enable Escape.label:Enable Escape key
+SettingsComponent.color.default:[0,0,0]
+SettingsComponent.color.categ:Screen
+SettingsComponent.color.allowedVals:[]
+SettingsComponent.color.readOnly:False
+SettingsComponent.color.updates:None
+SettingsComponent.color.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': '$[0,0,0]', 'hint': u'Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Color', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.color.__weakref__:None
+SettingsComponent.color.valType:str
+SettingsComponent.color.staticUpdater:None
+SettingsComponent.color.val:$[0,0,0]
+SettingsComponent.color.allowedTypes:[]
+SettingsComponent.color.hint:Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)
+SettingsComponent.color.allowedUpdates:None
+SettingsComponent.color.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.color.label:Color
+SettingsComponent.Window size (pixels).default:(1024, 768)
+SettingsComponent.Window size (pixels).categ:Screen
+SettingsComponent.Window size (pixels).allowedVals:[]
+SettingsComponent.Window size (pixels).readOnly:False
+SettingsComponent.Window size (pixels).updates:None
+SettingsComponent.Window size (pixels).__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': (1024, 768), 'hint': u'Size of window (if not fullscreen)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Window size (pixels)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+SettingsComponent.Window size (pixels).__weakref__:None
+SettingsComponent.Window size (pixels).valType:code
+SettingsComponent.Window size (pixels).staticUpdater:None
+SettingsComponent.Window size (pixels).val:(1024, 768)
+SettingsComponent.Window size (pixels).allowedTypes:[]
+SettingsComponent.Window size (pixels).hint:Size of window (if not fullscreen)
+SettingsComponent.Window size (pixels).allowedUpdates:None
+SettingsComponent.Window size (pixels).__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Window size (pixels).label:Window size (pixels)
+SettingsComponent.Full-screen window.default:True
+SettingsComponent.Full-screen window.categ:Screen
+SettingsComponent.Full-screen window.allowedVals:[]
+SettingsComponent.Full-screen window.readOnly:False
+SettingsComponent.Full-screen window.updates:None
+SettingsComponent.Full-screen window.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': True, 'hint': u'Run the experiment full-screen (recommended)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Full-screen window', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Full-screen window.__weakref__:None
+SettingsComponent.Full-screen window.valType:bool
+SettingsComponent.Full-screen window.staticUpdater:None
+SettingsComponent.Full-screen window.val:True
+SettingsComponent.Full-screen window.allowedTypes:[]
+SettingsComponent.Full-screen window.hint:Run the experiment full-screen (recommended)
+SettingsComponent.Full-screen window.allowedUpdates:None
+SettingsComponent.Full-screen window.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Full-screen window.label:Full-screen window
+SettingsComponent.colorSpace.default:'rgb'
+SettingsComponent.colorSpace.categ:Screen
+SettingsComponent.colorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
+SettingsComponent.colorSpace.readOnly:False
+SettingsComponent.colorSpace.updates:None
+SettingsComponent.colorSpace.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'rgb', 'hint': u'Needed if color is defined numerically (see PsychoPy documentation on color spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['rgb', 'dkl', 'lms', 'hsv'], 'label': u'Color space', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.colorSpace.__weakref__:None
+SettingsComponent.colorSpace.valType:str
+SettingsComponent.colorSpace.staticUpdater:None
+SettingsComponent.colorSpace.val:rgb
+SettingsComponent.colorSpace.allowedTypes:[]
+SettingsComponent.colorSpace.hint:Needed if color is defined numerically (see PsychoPy documentation on color spaces)
+SettingsComponent.colorSpace.allowedUpdates:None
+SettingsComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.colorSpace.label:Color space
+SettingsComponent.Experiment info.default:{'participant':'', 'session':'001'}
+SettingsComponent.Experiment info.categ:Basic
+SettingsComponent.Experiment info.allowedVals:[]
+SettingsComponent.Experiment info.readOnly:False
+SettingsComponent.Experiment info.updates:None
+SettingsComponent.Experiment info.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': "{'participant':'', 'session':'001'}", 'hint': u'The info to present in a dialog box. Right-click to check syntax and preview the dialog box.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Experiment info', 'readOnly': False, 'updates': None, 'valType': 'code'}
+SettingsComponent.Experiment info.__weakref__:None
+SettingsComponent.Experiment info.valType:code
+SettingsComponent.Experiment info.staticUpdater:None
+SettingsComponent.Experiment info.val:{'participant':'', 'session':'001'}
+SettingsComponent.Experiment info.allowedTypes:[]
+SettingsComponent.Experiment info.hint:The info to present in a dialog box. Right-click to check syntax and preview the dialog box.
+SettingsComponent.Experiment info.allowedUpdates:None
+SettingsComponent.Experiment info.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Experiment info.label:Experiment info
+SettingsComponent.Save csv file.default:False
+SettingsComponent.Save csv file.categ:Data
+SettingsComponent.Save csv file.allowedVals:[]
+SettingsComponent.Save csv file.readOnly:False
+SettingsComponent.Save csv file.updates:None
+SettingsComponent.Save csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (summaries)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save csv file.__weakref__:None
+SettingsComponent.Save csv file.valType:bool
+SettingsComponent.Save csv file.staticUpdater:None
+SettingsComponent.Save csv file.val:False
+SettingsComponent.Save csv file.allowedTypes:[]
+SettingsComponent.Save csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
+SettingsComponent.Save csv file.allowedUpdates:None
+SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save csv file.label:Save csv file (summaries)
 SettingsComponent.Show info dlg.default:True
 SettingsComponent.Show info dlg.categ:Basic
 SettingsComponent.Show info dlg.allowedVals:[]
@@ -3360,6 +3645,36 @@ SettingsComponent.Show info dlg.hint:Start the experiment with a dialog to set i
 SettingsComponent.Show info dlg.allowedUpdates:None
 SettingsComponent.Show info dlg.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Show info dlg.label:Show info dialog
+SettingsComponent.Save wide csv file.default:True
+SettingsComponent.Save wide csv file.categ:Data
+SettingsComponent.Save wide csv file.allowedVals:[]
+SettingsComponent.Save wide csv file.readOnly:False
+SettingsComponent.Save wide csv file.updates:None
+SettingsComponent.Save wide csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (trial-by-trial)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save wide csv file.__weakref__:None
+SettingsComponent.Save wide csv file.valType:bool
+SettingsComponent.Save wide csv file.staticUpdater:None
+SettingsComponent.Save wide csv file.val:True
+SettingsComponent.Save wide csv file.allowedTypes:[]
+SettingsComponent.Save wide csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
+SettingsComponent.Save wide csv file.allowedUpdates:None
+SettingsComponent.Save wide csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save wide csv file.label:Save csv file (trial-by-trial)
+SettingsComponent.Save psydat file.default:True
+SettingsComponent.Save psydat file.categ:Data
+SettingsComponent.Save psydat file.allowedVals:[True]
+SettingsComponent.Save psydat file.readOnly:False
+SettingsComponent.Save psydat file.updates:None
+SettingsComponent.Save psydat file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [True], 'label': u'Save psydat file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save psydat file.__weakref__:None
+SettingsComponent.Save psydat file.valType:bool
+SettingsComponent.Save psydat file.staticUpdater:None
+SettingsComponent.Save psydat file.val:True
+SettingsComponent.Save psydat file.allowedTypes:[]
+SettingsComponent.Save psydat file.hint:Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.
+SettingsComponent.Save psydat file.allowedUpdates:None
+SettingsComponent.Save psydat file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save psydat file.label:Save psydat file
 SettingsComponent.expName.default:''
 SettingsComponent.expName.categ:Basic
 SettingsComponent.expName.allowedVals:[]
@@ -3390,6 +3705,81 @@ SettingsComponent.logging level.hint:How much output do you want in the log file
 SettingsComponent.logging level.allowedUpdates:None
 SettingsComponent.logging level.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.logging level.label:Logging level
+SettingsComponent.blendMode.default:'avg'
+SettingsComponent.blendMode.categ:Screen
+SettingsComponent.blendMode.allowedVals:['add', 'avg']
+SettingsComponent.blendMode.readOnly:False
+SettingsComponent.blendMode.updates:None
+SettingsComponent.blendMode.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'avg', 'hint': u'Should new stimuli be added or averaged with the stimuli that have been drawn already', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['add', 'avg'], 'label': u'Blend mode', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.blendMode.__weakref__:None
+SettingsComponent.blendMode.valType:str
+SettingsComponent.blendMode.staticUpdater:None
+SettingsComponent.blendMode.val:avg
+SettingsComponent.blendMode.allowedTypes:[]
+SettingsComponent.blendMode.hint:Should new stimuli be added or averaged with the stimuli that have been drawn already
+SettingsComponent.blendMode.allowedUpdates:None
+SettingsComponent.blendMode.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.blendMode.label:Blend mode
+SettingsComponent.Save excel file.default:False
+SettingsComponent.Save excel file.categ:Data
+SettingsComponent.Save excel file.allowedVals:[]
+SettingsComponent.Save excel file.readOnly:False
+SettingsComponent.Save excel file.updates:None
+SettingsComponent.Save excel file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in Excel (.xlsx) format', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save excel file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save excel file.__weakref__:None
+SettingsComponent.Save excel file.valType:bool
+SettingsComponent.Save excel file.staticUpdater:None
+SettingsComponent.Save excel file.val:False
+SettingsComponent.Save excel file.allowedTypes:[]
+SettingsComponent.Save excel file.hint:Save data from loops in Excel (.xlsx) format
+SettingsComponent.Save excel file.allowedUpdates:None
+SettingsComponent.Save excel file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save excel file.label:Save excel file
+SettingsComponent.Units.default:'use prefs'
+SettingsComponent.Units.categ:Screen
+SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat']
+SettingsComponent.Units.readOnly:False
+SettingsComponent.Units.updates:None
+SettingsComponent.Units.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'use prefs', 'hint': u'Units to use for window/stimulus coordinates (e.g. cm, pix, deg)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat'], 'label': u'Units', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Units.__weakref__:None
+SettingsComponent.Units.valType:str
+SettingsComponent.Units.staticUpdater:None
+SettingsComponent.Units.val:use prefs
+SettingsComponent.Units.allowedTypes:[]
+SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. cm, pix, deg)
+SettingsComponent.Units.allowedUpdates:None
+SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Units.label:Units
+SettingsComponent.Use version.default:''
+SettingsComponent.Use version.categ:Basic
+SettingsComponent.Use version.allowedVals:['latest', '1', '1.84', '', '1.84.2']
+SettingsComponent.Use version.readOnly:False
+SettingsComponent.Use version.updates:None
+SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.84', '', '1.84.2'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Use version.__weakref__:None
+SettingsComponent.Use version.valType:str
+SettingsComponent.Use version.staticUpdater:None
+SettingsComponent.Use version.val:
+SettingsComponent.Use version.allowedTypes:[]
+SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
+SettingsComponent.Use version.allowedUpdates:None
+SettingsComponent.Use version.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Use version.label:Use PsychoPy version
+SettingsComponent.Save log file.default:True
+SettingsComponent.Save log file.categ:Data
+SettingsComponent.Save log file.allowedVals:[]
+SettingsComponent.Save log file.readOnly:False
+SettingsComponent.Save log file.updates:None
+SettingsComponent.Save log file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save a detailed log (more detailed than the excel/csv files) of the entire experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save log file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save log file.__weakref__:None
+SettingsComponent.Save log file.valType:bool
+SettingsComponent.Save log file.staticUpdater:None
+SettingsComponent.Save log file.val:True
+SettingsComponent.Save log file.allowedTypes:[]
+SettingsComponent.Save log file.hint:Save a detailed log (more detailed than the excel/csv files) of the entire experiment
+SettingsComponent.Save log file.allowedUpdates:None
+SettingsComponent.Save log file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save log file.label:Save log file
 SettingsComponent.Screen.default:1.0
 SettingsComponent.Screen.categ:Screen
 SettingsComponent.Screen.allowedVals:[]
