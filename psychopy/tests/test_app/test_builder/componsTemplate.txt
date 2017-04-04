@@ -685,7 +685,7 @@ EnvGratingComponent.size.valType:code
 EnvGratingComponent.size.staticUpdater:None
 EnvGratingComponent.size.val:(0.5, 0.5)
 EnvGratingComponent.size.allowedTypes:[]
-EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 EnvGratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 EnvGratingComponent.size.label:Size [w,h]
@@ -1314,7 +1314,7 @@ GratingComponent.size.valType:code
 GratingComponent.size.staticUpdater:None
 GratingComponent.size.val:(0.5, 0.5)
 GratingComponent.size.allowedTypes:[]
-GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 GratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 GratingComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.size.label:Size [w,h]
@@ -1614,7 +1614,7 @@ ImageComponent.size.valType:code
 ImageComponent.size.staticUpdater:None
 ImageComponent.size.val:(0.5, 0.5)
 ImageComponent.size.allowedTypes:[]
-ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 ImageComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 ImageComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.size.label:Size [w,h]
@@ -2334,7 +2334,7 @@ MovieComponent.size.valType:code
 MovieComponent.size.staticUpdater:None
 MovieComponent.size.val:
 MovieComponent.size.allowedTypes:[]
-MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 MovieComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 MovieComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 MovieComponent.size.label:Size [w,h]
@@ -2799,7 +2799,7 @@ PatchComponent.size.valType:code
 PatchComponent.size.staticUpdater:None
 PatchComponent.size.val:(0.5, 0.5)
 PatchComponent.size.allowedTypes:[]
-PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 PatchComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 PatchComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 PatchComponent.size.label:Size [w,h]
@@ -3085,7 +3085,7 @@ PolygonComponent.size.staticUpdater:None
 PolygonComponent.size.val:(0.5, 0.5)
 PolygonComponent.size.allowedTypes:[]
 PolygonComponent.size.hint:Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,
- but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! 
+ but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!!
 PolygonComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 PolygonComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 PolygonComponent.size.label:Size [w,h]
@@ -3686,7 +3686,7 @@ SettingsComponent.HTML path.valType:str
 SettingsComponent.HTML path.staticUpdater:None
 SettingsComponent.HTML path.val:html
 SettingsComponent.HTML path.allowedTypes:[]
-SettingsComponent.HTML path.hint:Place the HTML files will be saved locally 
+SettingsComponent.HTML path.hint:Place the HTML files will be saved locally
 SettingsComponent.HTML path.allowedUpdates:None
 SettingsComponent.HTML path.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.HTML path.label:Output path
@@ -3707,7 +3707,7 @@ SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experimen
 SettingsComponent.Save csv file.label:Save csv file (summaries)
 SettingsComponent.OSF Project ID.default:''
 SettingsComponent.OSF Project ID.categ:Online
-SettingsComponent.OSF Project ID.allowedVals:[u'f8jfp: loc-gfmt', '']
+SettingsComponent.OSF Project ID.allowedVals:['']
 SettingsComponent.OSF Project ID.readOnly:False
 SettingsComponent.OSF Project ID.updates:None
 SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
