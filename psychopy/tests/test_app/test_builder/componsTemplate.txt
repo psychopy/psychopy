@@ -1364,6 +1364,21 @@ ImageComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, lm
 ImageComponent.colorSpace.allowedUpdates:None
 ImageComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.colorSpace.label:Color space
+ImageComponent.flipHoriz.default:False
+ImageComponent.flipHoriz.categ:Advanced
+ImageComponent.flipHoriz.allowedVals:[]
+ImageComponent.flipHoriz.readOnly:False
+ImageComponent.flipHoriz.updates:constant
+ImageComponent.flipHoriz.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': False, 'hint': u'Should the image be flipped horizontally (left to right)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Flip horizontally', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
+ImageComponent.flipHoriz.__weakref__:None
+ImageComponent.flipHoriz.valType:bool
+ImageComponent.flipHoriz.staticUpdater:None
+ImageComponent.flipHoriz.val:False
+ImageComponent.flipHoriz.allowedTypes:[]
+ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
+ImageComponent.flipHoriz.allowedUpdates:[]
+ImageComponent.flipHoriz.__class__:<class 'psychopy.app.builder.experiment.Param'>
+ImageComponent.flipHoriz.label:Flip horizontally
 ImageComponent.name.default:image
 ImageComponent.name.categ:Basic
 ImageComponent.name.allowedVals:[]
@@ -1573,21 +1588,6 @@ ImageComponent.startVal.hint:When does the component start?
 ImageComponent.startVal.allowedUpdates:None
 ImageComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.startVal.label:Start
-ImageComponent.flipHoriz.default:False
-ImageComponent.flipHoriz.categ:Advanced
-ImageComponent.flipHoriz.allowedVals:[]
-ImageComponent.flipHoriz.readOnly:False
-ImageComponent.flipHoriz.updates:constant
-ImageComponent.flipHoriz.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': False, 'hint': u'Should the image be flipped horizontally (left to right)?', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Flip horizontally', 'readOnly': False, 'updates': 'constant', 'valType': 'bool'}
-ImageComponent.flipHoriz.__weakref__:None
-ImageComponent.flipHoriz.valType:bool
-ImageComponent.flipHoriz.staticUpdater:None
-ImageComponent.flipHoriz.val:False
-ImageComponent.flipHoriz.allowedTypes:[]
-ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
-ImageComponent.flipHoriz.allowedUpdates:[]
-ImageComponent.flipHoriz.__class__:<class 'psychopy.app.builder.experiment.Param'>
-ImageComponent.flipHoriz.label:Flip horizontally
 ImageComponent.image.default:''
 ImageComponent.image.categ:Basic
 ImageComponent.image.allowedVals:[]
@@ -2445,10 +2445,10 @@ ParallelOutComponent.startType.__class__:<class 'psychopy.app.builder.experiment
 ParallelOutComponent.startType.label:start type
 ParallelOutComponent.address.default:u'0x0378'
 ParallelOutComponent.address.categ:Basic
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
 ParallelOutComponent.address.readOnly:False
 ParallelOutComponent.address.updates:None
-ParallelOutComponent.address.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': u'0x0378', 'hint': u'Parallel port to be used (you can change these options in preferences>general)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [u'0x0378', u'0x03BC', u'LabJack U3'], 'label': u'Port address', 'readOnly': False, 'updates': None, 'valType': 'str'}
+ParallelOutComponent.address.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': u'0x0378', 'hint': u'Parallel port to be used (you can change these options in preferences>general)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3'], 'label': u'Port address', 'readOnly': False, 'updates': None, 'valType': 'str'}
 ParallelOutComponent.address.__weakref__:None
 ParallelOutComponent.address.valType:str
 ParallelOutComponent.address.staticUpdater:None
@@ -3480,36 +3480,6 @@ RatingScaleComponent.singleClick.allowedUpdates:[]
 RatingScaleComponent.singleClick.__class__:<class 'psychopy.app.builder.experiment.Param'>
 RatingScaleComponent.singleClick.label:Single click
 SettingsComponent.order:['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units']
-SettingsComponent.Show mouse.default:False
-SettingsComponent.Show mouse.categ:Screen
-SettingsComponent.Show mouse.allowedVals:[]
-SettingsComponent.Show mouse.readOnly:False
-SettingsComponent.Show mouse.updates:None
-SettingsComponent.Show mouse.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': False, 'hint': u'Should the mouse be visible on screen?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Show mouse', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Show mouse.__weakref__:None
-SettingsComponent.Show mouse.valType:bool
-SettingsComponent.Show mouse.staticUpdater:None
-SettingsComponent.Show mouse.val:False
-SettingsComponent.Show mouse.allowedTypes:[]
-SettingsComponent.Show mouse.hint:Should the mouse be visible on screen?
-SettingsComponent.Show mouse.allowedUpdates:None
-SettingsComponent.Show mouse.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Show mouse.label:Show mouse
-SettingsComponent.Data filename.default:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
-SettingsComponent.Data filename.categ:Data
-SettingsComponent.Data filename.allowedVals:[]
-SettingsComponent.Data filename.readOnly:False
-SettingsComponent.Data filename.updates:None
-SettingsComponent.Data filename.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': u"u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])", 'hint': u"Code to create your custom file name base. Don't give a file extension - this will be added.", 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Data filename', 'readOnly': False, 'updates': None, 'valType': 'code'}
-SettingsComponent.Data filename.__weakref__:None
-SettingsComponent.Data filename.valType:code
-SettingsComponent.Data filename.staticUpdater:None
-SettingsComponent.Data filename.val:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
-SettingsComponent.Data filename.allowedTypes:[]
-SettingsComponent.Data filename.hint:Code to create your custom file name base. Don't give a file extension - this will be added.
-SettingsComponent.Data filename.allowedUpdates:None
-SettingsComponent.Data filename.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Data filename.label:Data filename
 SettingsComponent.Monitor.default:'testMonitor'
 SettingsComponent.Monitor.categ:Screen
 SettingsComponent.Monitor.allowedVals:[]
@@ -3525,21 +3495,6 @@ SettingsComponent.Monitor.hint:Name of the monitor (from Monitor Center). Right-
 SettingsComponent.Monitor.allowedUpdates:None
 SettingsComponent.Monitor.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Monitor.label:Monitor
-SettingsComponent.Enable Escape.default:True
-SettingsComponent.Enable Escape.categ:Basic
-SettingsComponent.Enable Escape.allowedVals:[]
-SettingsComponent.Enable Escape.readOnly:False
-SettingsComponent.Enable Escape.updates:None
-SettingsComponent.Enable Escape.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Enable the <esc> key, to allow subjects to quit / break out of the experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Enable Escape key', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Enable Escape.__weakref__:None
-SettingsComponent.Enable Escape.valType:bool
-SettingsComponent.Enable Escape.staticUpdater:None
-SettingsComponent.Enable Escape.val:True
-SettingsComponent.Enable Escape.allowedTypes:[]
-SettingsComponent.Enable Escape.hint:Enable the <esc> key, to allow subjects to quit / break out of the experiment
-SettingsComponent.Enable Escape.allowedUpdates:None
-SettingsComponent.Enable Escape.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Enable Escape.label:Enable Escape key
 SettingsComponent.color.default:[0,0,0]
 SettingsComponent.color.categ:Screen
 SettingsComponent.color.allowedVals:[]
@@ -3555,36 +3510,6 @@ SettingsComponent.color.hint:Color of the screen (e.g. black, $[1.0,1.0,1.0], $v
 SettingsComponent.color.allowedUpdates:None
 SettingsComponent.color.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.color.label:Color
-SettingsComponent.Window size (pixels).default:(1024, 768)
-SettingsComponent.Window size (pixels).categ:Screen
-SettingsComponent.Window size (pixels).allowedVals:[]
-SettingsComponent.Window size (pixels).readOnly:False
-SettingsComponent.Window size (pixels).updates:None
-SettingsComponent.Window size (pixels).__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': (1024, 768), 'hint': u'Size of window (if not fullscreen)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Window size (pixels)', 'readOnly': False, 'updates': None, 'valType': 'code'}
-SettingsComponent.Window size (pixels).__weakref__:None
-SettingsComponent.Window size (pixels).valType:code
-SettingsComponent.Window size (pixels).staticUpdater:None
-SettingsComponent.Window size (pixels).val:(1024, 768)
-SettingsComponent.Window size (pixels).allowedTypes:[]
-SettingsComponent.Window size (pixels).hint:Size of window (if not fullscreen)
-SettingsComponent.Window size (pixels).allowedUpdates:None
-SettingsComponent.Window size (pixels).__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Window size (pixels).label:Window size (pixels)
-SettingsComponent.Full-screen window.default:True
-SettingsComponent.Full-screen window.categ:Screen
-SettingsComponent.Full-screen window.allowedVals:[]
-SettingsComponent.Full-screen window.readOnly:False
-SettingsComponent.Full-screen window.updates:None
-SettingsComponent.Full-screen window.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': True, 'hint': u'Run the experiment full-screen (recommended)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Full-screen window', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Full-screen window.__weakref__:None
-SettingsComponent.Full-screen window.valType:bool
-SettingsComponent.Full-screen window.staticUpdater:None
-SettingsComponent.Full-screen window.val:True
-SettingsComponent.Full-screen window.allowedTypes:[]
-SettingsComponent.Full-screen window.hint:Run the experiment full-screen (recommended)
-SettingsComponent.Full-screen window.allowedUpdates:None
-SettingsComponent.Full-screen window.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Full-screen window.label:Full-screen window
 SettingsComponent.colorSpace.default:'rgb'
 SettingsComponent.colorSpace.categ:Screen
 SettingsComponent.colorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
@@ -3615,51 +3540,66 @@ SettingsComponent.Experiment info.hint:The info to present in a dialog box. Righ
 SettingsComponent.Experiment info.allowedUpdates:None
 SettingsComponent.Experiment info.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Experiment info.label:Experiment info
-SettingsComponent.Save csv file.default:False
-SettingsComponent.Save csv file.categ:Data
-SettingsComponent.Save csv file.allowedVals:[]
-SettingsComponent.Save csv file.readOnly:False
-SettingsComponent.Save csv file.updates:None
-SettingsComponent.Save csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (summaries)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save csv file.__weakref__:None
-SettingsComponent.Save csv file.valType:bool
-SettingsComponent.Save csv file.staticUpdater:None
-SettingsComponent.Save csv file.val:False
-SettingsComponent.Save csv file.allowedTypes:[]
-SettingsComponent.Save csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
-SettingsComponent.Save csv file.allowedUpdates:None
-SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save csv file.label:Save csv file (summaries)
-SettingsComponent.Show info dlg.default:True
-SettingsComponent.Show info dlg.categ:Basic
-SettingsComponent.Show info dlg.allowedVals:[]
-SettingsComponent.Show info dlg.readOnly:False
-SettingsComponent.Show info dlg.updates:None
-SettingsComponent.Show info dlg.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Start the experiment with a dialog to set info (e.g.participant or condition)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Show info dialog', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Show info dlg.__weakref__:None
-SettingsComponent.Show info dlg.valType:bool
-SettingsComponent.Show info dlg.staticUpdater:None
-SettingsComponent.Show info dlg.val:True
-SettingsComponent.Show info dlg.allowedTypes:[]
-SettingsComponent.Show info dlg.hint:Start the experiment with a dialog to set info (e.g.participant or condition)
-SettingsComponent.Show info dlg.allowedUpdates:None
-SettingsComponent.Show info dlg.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Show info dlg.label:Show info dialog
-SettingsComponent.Save wide csv file.default:True
-SettingsComponent.Save wide csv file.categ:Data
-SettingsComponent.Save wide csv file.allowedVals:[]
-SettingsComponent.Save wide csv file.readOnly:False
-SettingsComponent.Save wide csv file.updates:None
-SettingsComponent.Save wide csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (trial-by-trial)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save wide csv file.__weakref__:None
-SettingsComponent.Save wide csv file.valType:bool
-SettingsComponent.Save wide csv file.staticUpdater:None
-SettingsComponent.Save wide csv file.val:True
-SettingsComponent.Save wide csv file.allowedTypes:[]
-SettingsComponent.Save wide csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
-SettingsComponent.Save wide csv file.allowedUpdates:None
-SettingsComponent.Save wide csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save wide csv file.label:Save csv file (trial-by-trial)
+SettingsComponent.JS libs.default:'packaged'
+SettingsComponent.JS libs.categ:Online
+SettingsComponent.JS libs.allowedVals:['packaged']
+SettingsComponent.JS libs.readOnly:False
+SettingsComponent.JS libs.updates:None
+SettingsComponent.JS libs.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'packaged', 'hint': u'Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['packaged'], 'label': 'JS libs', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.JS libs.__weakref__:None
+SettingsComponent.JS libs.valType:str
+SettingsComponent.JS libs.staticUpdater:None
+SettingsComponent.JS libs.val:packaged
+SettingsComponent.JS libs.allowedTypes:[]
+SettingsComponent.JS libs.hint:Should we package a copy of the JS libs or useremote copies (http:/www.psychopy.org/js)?
+SettingsComponent.JS libs.allowedUpdates:None
+SettingsComponent.JS libs.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.JS libs.label:JS libs
+SettingsComponent.Units.default:'use prefs'
+SettingsComponent.Units.categ:Screen
+SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat']
+SettingsComponent.Units.readOnly:False
+SettingsComponent.Units.updates:None
+SettingsComponent.Units.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'use prefs', 'hint': u'Units to use for window/stimulus coordinates (e.g. cm, pix, deg)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat'], 'label': u'Units', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Units.__weakref__:None
+SettingsComponent.Units.valType:str
+SettingsComponent.Units.staticUpdater:None
+SettingsComponent.Units.val:use prefs
+SettingsComponent.Units.allowedTypes:[]
+SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. cm, pix, deg)
+SettingsComponent.Units.allowedUpdates:None
+SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Units.label:Units
+SettingsComponent.Save excel file.default:False
+SettingsComponent.Save excel file.categ:Data
+SettingsComponent.Save excel file.allowedVals:[]
+SettingsComponent.Save excel file.readOnly:False
+SettingsComponent.Save excel file.updates:None
+SettingsComponent.Save excel file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in Excel (.xlsx) format', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save excel file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save excel file.__weakref__:None
+SettingsComponent.Save excel file.valType:bool
+SettingsComponent.Save excel file.staticUpdater:None
+SettingsComponent.Save excel file.val:False
+SettingsComponent.Save excel file.allowedTypes:[]
+SettingsComponent.Save excel file.hint:Save data from loops in Excel (.xlsx) format
+SettingsComponent.Save excel file.allowedUpdates:None
+SettingsComponent.Save excel file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save excel file.label:Save excel file
+SettingsComponent.Enable Escape.default:True
+SettingsComponent.Enable Escape.categ:Basic
+SettingsComponent.Enable Escape.allowedVals:[]
+SettingsComponent.Enable Escape.readOnly:False
+SettingsComponent.Enable Escape.updates:None
+SettingsComponent.Enable Escape.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Enable the <esc> key, to allow subjects to quit / break out of the experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Enable Escape key', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Enable Escape.__weakref__:None
+SettingsComponent.Enable Escape.valType:bool
+SettingsComponent.Enable Escape.staticUpdater:None
+SettingsComponent.Enable Escape.val:True
+SettingsComponent.Enable Escape.allowedTypes:[]
+SettingsComponent.Enable Escape.hint:Enable the <esc> key, to allow subjects to quit / break out of the experiment
+SettingsComponent.Enable Escape.allowedUpdates:None
+SettingsComponent.Enable Escape.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Enable Escape.label:Enable Escape key
 SettingsComponent.Save psydat file.default:True
 SettingsComponent.Save psydat file.categ:Data
 SettingsComponent.Save psydat file.allowedVals:[True]
@@ -3675,6 +3615,186 @@ SettingsComponent.Save psydat file.hint:Save data from loops in psydat format. T
 SettingsComponent.Save psydat file.allowedUpdates:None
 SettingsComponent.Save psydat file.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.Save psydat file.label:Save psydat file
+SettingsComponent.Window size (pixels).default:(1024, 768)
+SettingsComponent.Window size (pixels).categ:Screen
+SettingsComponent.Window size (pixels).allowedVals:[]
+SettingsComponent.Window size (pixels).readOnly:False
+SettingsComponent.Window size (pixels).updates:None
+SettingsComponent.Window size (pixels).__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': (1024, 768), 'hint': u'Size of window (if not fullscreen)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Window size (pixels)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+SettingsComponent.Window size (pixels).__weakref__:None
+SettingsComponent.Window size (pixels).valType:code
+SettingsComponent.Window size (pixels).staticUpdater:None
+SettingsComponent.Window size (pixels).val:(1024, 768)
+SettingsComponent.Window size (pixels).allowedTypes:[]
+SettingsComponent.Window size (pixels).hint:Size of window (if not fullscreen)
+SettingsComponent.Window size (pixels).allowedUpdates:None
+SettingsComponent.Window size (pixels).__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Window size (pixels).label:Window size (pixels)
+SettingsComponent.Full-screen window.default:True
+SettingsComponent.Full-screen window.categ:Screen
+SettingsComponent.Full-screen window.allowedVals:[]
+SettingsComponent.Full-screen window.readOnly:False
+SettingsComponent.Full-screen window.updates:None
+SettingsComponent.Full-screen window.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': True, 'hint': u'Run the experiment full-screen (recommended)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Full-screen window', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Full-screen window.__weakref__:None
+SettingsComponent.Full-screen window.valType:bool
+SettingsComponent.Full-screen window.staticUpdater:None
+SettingsComponent.Full-screen window.val:True
+SettingsComponent.Full-screen window.allowedTypes:[]
+SettingsComponent.Full-screen window.hint:Run the experiment full-screen (recommended)
+SettingsComponent.Full-screen window.allowedUpdates:None
+SettingsComponent.Full-screen window.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Full-screen window.label:Full-screen window
+SettingsComponent.blendMode.default:'avg'
+SettingsComponent.blendMode.categ:Screen
+SettingsComponent.blendMode.allowedVals:['add', 'avg']
+SettingsComponent.blendMode.readOnly:False
+SettingsComponent.blendMode.updates:None
+SettingsComponent.blendMode.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'avg', 'hint': u'Should new stimuli be added or averaged with the stimuli that have been drawn already', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['add', 'avg'], 'label': u'Blend mode', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.blendMode.__weakref__:None
+SettingsComponent.blendMode.valType:str
+SettingsComponent.blendMode.staticUpdater:None
+SettingsComponent.blendMode.val:avg
+SettingsComponent.blendMode.allowedTypes:[]
+SettingsComponent.blendMode.hint:Should new stimuli be added or averaged with the stimuli that have been drawn already
+SettingsComponent.blendMode.allowedUpdates:None
+SettingsComponent.blendMode.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.blendMode.label:Blend mode
+SettingsComponent.Use version.default:''
+SettingsComponent.Use version.categ:Basic
+SettingsComponent.Use version.allowedVals:['latest', '1', '1.85', '', '1.85.1']
+SettingsComponent.Use version.readOnly:False
+SettingsComponent.Use version.updates:None
+SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.85', '', '1.85.1'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.Use version.__weakref__:None
+SettingsComponent.Use version.valType:str
+SettingsComponent.Use version.staticUpdater:None
+SettingsComponent.Use version.val:
+SettingsComponent.Use version.allowedTypes:[]
+SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
+SettingsComponent.Use version.allowedUpdates:None
+SettingsComponent.Use version.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Use version.label:Use PsychoPy version
+SettingsComponent.HTML path.default:'html'
+SettingsComponent.HTML path.categ:Online
+SettingsComponent.HTML path.allowedVals:[]
+SettingsComponent.HTML path.readOnly:False
+SettingsComponent.HTML path.updates:None
+SettingsComponent.HTML path.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': 'html', 'hint': u'Place the HTML files will be saved locally ', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'Output path', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.HTML path.__weakref__:None
+SettingsComponent.HTML path.valType:str
+SettingsComponent.HTML path.staticUpdater:None
+SettingsComponent.HTML path.val:html
+SettingsComponent.HTML path.allowedTypes:[]
+SettingsComponent.HTML path.hint:Place the HTML files will be saved locally 
+SettingsComponent.HTML path.allowedUpdates:None
+SettingsComponent.HTML path.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.HTML path.label:Output path
+SettingsComponent.Save csv file.default:False
+SettingsComponent.Save csv file.categ:Data
+SettingsComponent.Save csv file.allowedVals:[]
+SettingsComponent.Save csv file.readOnly:False
+SettingsComponent.Save csv file.updates:None
+SettingsComponent.Save csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (summaries)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save csv file.__weakref__:None
+SettingsComponent.Save csv file.valType:bool
+SettingsComponent.Save csv file.staticUpdater:None
+SettingsComponent.Save csv file.val:False
+SettingsComponent.Save csv file.allowedTypes:[]
+SettingsComponent.Save csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
+SettingsComponent.Save csv file.allowedUpdates:None
+SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save csv file.label:Save csv file (summaries)
+SettingsComponent.OSF Project ID.default:''
+SettingsComponent.OSF Project ID.categ:Online
+SettingsComponent.OSF Project ID.allowedVals:[u'f8jfp: loc-gfmt', '']
+SettingsComponent.OSF Project ID.readOnly:False
+SettingsComponent.OSF Project ID.updates:None
+SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
+SettingsComponent.OSF Project ID.__weakref__:None
+SettingsComponent.OSF Project ID.valType:str
+SettingsComponent.OSF Project ID.staticUpdater:None
+SettingsComponent.OSF Project ID.val:
+SettingsComponent.OSF Project ID.allowedTypes:[]
+SettingsComponent.OSF Project ID.hint:The ID of this project (e.g. 5bqpc)
+SettingsComponent.OSF Project ID.allowedUpdates:None
+SettingsComponent.OSF Project ID.__class__:<class 'psychopy.app.builder.components.settings.ProjIDParam'>
+SettingsComponent.OSF Project ID.label:OSF Project ID
+SettingsComponent.Save log file.default:True
+SettingsComponent.Save log file.categ:Data
+SettingsComponent.Save log file.allowedVals:[]
+SettingsComponent.Save log file.readOnly:False
+SettingsComponent.Save log file.updates:None
+SettingsComponent.Save log file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save a detailed log (more detailed than the excel/csv files) of the entire experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save log file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save log file.__weakref__:None
+SettingsComponent.Save log file.valType:bool
+SettingsComponent.Save log file.staticUpdater:None
+SettingsComponent.Save log file.val:True
+SettingsComponent.Save log file.allowedTypes:[]
+SettingsComponent.Save log file.hint:Save a detailed log (more detailed than the excel/csv files) of the entire experiment
+SettingsComponent.Save log file.allowedUpdates:None
+SettingsComponent.Save log file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save log file.label:Save log file
+SettingsComponent.Save wide csv file.default:True
+SettingsComponent.Save wide csv file.categ:Data
+SettingsComponent.Save wide csv file.allowedVals:[]
+SettingsComponent.Save wide csv file.readOnly:False
+SettingsComponent.Save wide csv file.updates:None
+SettingsComponent.Save wide csv file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save data from loops in comma-separated-value (.csv) format for maximum portability', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save csv file (trial-by-trial)', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Save wide csv file.__weakref__:None
+SettingsComponent.Save wide csv file.valType:bool
+SettingsComponent.Save wide csv file.staticUpdater:None
+SettingsComponent.Save wide csv file.val:True
+SettingsComponent.Save wide csv file.allowedTypes:[]
+SettingsComponent.Save wide csv file.hint:Save data from loops in comma-separated-value (.csv) format for maximum portability
+SettingsComponent.Save wide csv file.allowedUpdates:None
+SettingsComponent.Save wide csv file.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Save wide csv file.label:Save csv file (trial-by-trial)
+SettingsComponent.Show mouse.default:False
+SettingsComponent.Show mouse.categ:Screen
+SettingsComponent.Show mouse.allowedVals:[]
+SettingsComponent.Show mouse.readOnly:False
+SettingsComponent.Show mouse.updates:None
+SettingsComponent.Show mouse.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': False, 'hint': u'Should the mouse be visible on screen?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Show mouse', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Show mouse.__weakref__:None
+SettingsComponent.Show mouse.valType:bool
+SettingsComponent.Show mouse.staticUpdater:None
+SettingsComponent.Show mouse.val:False
+SettingsComponent.Show mouse.allowedTypes:[]
+SettingsComponent.Show mouse.hint:Should the mouse be visible on screen?
+SettingsComponent.Show mouse.allowedUpdates:None
+SettingsComponent.Show mouse.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Show mouse.label:Show mouse
+SettingsComponent.Data filename.default:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.categ:Data
+SettingsComponent.Data filename.allowedVals:[]
+SettingsComponent.Data filename.readOnly:False
+SettingsComponent.Data filename.updates:None
+SettingsComponent.Data filename.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': u"u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])", 'hint': u"Code to create your custom file name base. Don't give a file extension - this will be added.", 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Data filename', 'readOnly': False, 'updates': None, 'valType': 'code'}
+SettingsComponent.Data filename.__weakref__:None
+SettingsComponent.Data filename.valType:code
+SettingsComponent.Data filename.staticUpdater:None
+SettingsComponent.Data filename.val:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.allowedTypes:[]
+SettingsComponent.Data filename.hint:Code to create your custom file name base. Don't give a file extension - this will be added.
+SettingsComponent.Data filename.allowedUpdates:None
+SettingsComponent.Data filename.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Data filename.label:Data filename
+SettingsComponent.Show info dlg.default:True
+SettingsComponent.Show info dlg.categ:Basic
+SettingsComponent.Show info dlg.allowedVals:[]
+SettingsComponent.Show info dlg.readOnly:False
+SettingsComponent.Show info dlg.updates:None
+SettingsComponent.Show info dlg.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': True, 'hint': u'Start the experiment with a dialog to set info (e.g.participant or condition)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Show info dialog', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+SettingsComponent.Show info dlg.__weakref__:None
+SettingsComponent.Show info dlg.valType:bool
+SettingsComponent.Show info dlg.staticUpdater:None
+SettingsComponent.Show info dlg.val:True
+SettingsComponent.Show info dlg.allowedTypes:[]
+SettingsComponent.Show info dlg.hint:Start the experiment with a dialog to set info (e.g.participant or condition)
+SettingsComponent.Show info dlg.allowedUpdates:None
+SettingsComponent.Show info dlg.__class__:<class 'psychopy.app.builder.experiment.Param'>
+SettingsComponent.Show info dlg.label:Show info dialog
 SettingsComponent.expName.default:''
 SettingsComponent.expName.categ:Basic
 SettingsComponent.expName.allowedVals:[]
@@ -3705,81 +3825,6 @@ SettingsComponent.logging level.hint:How much output do you want in the log file
 SettingsComponent.logging level.allowedUpdates:None
 SettingsComponent.logging level.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.logging level.label:Logging level
-SettingsComponent.blendMode.default:'avg'
-SettingsComponent.blendMode.categ:Screen
-SettingsComponent.blendMode.allowedVals:['add', 'avg']
-SettingsComponent.blendMode.readOnly:False
-SettingsComponent.blendMode.updates:None
-SettingsComponent.blendMode.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'avg', 'hint': u'Should new stimuli be added or averaged with the stimuli that have been drawn already', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['add', 'avg'], 'label': u'Blend mode', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.blendMode.__weakref__:None
-SettingsComponent.blendMode.valType:str
-SettingsComponent.blendMode.staticUpdater:None
-SettingsComponent.blendMode.val:avg
-SettingsComponent.blendMode.allowedTypes:[]
-SettingsComponent.blendMode.hint:Should new stimuli be added or averaged with the stimuli that have been drawn already
-SettingsComponent.blendMode.allowedUpdates:None
-SettingsComponent.blendMode.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.blendMode.label:Blend mode
-SettingsComponent.Save excel file.default:False
-SettingsComponent.Save excel file.categ:Data
-SettingsComponent.Save excel file.allowedVals:[]
-SettingsComponent.Save excel file.readOnly:False
-SettingsComponent.Save excel file.updates:None
-SettingsComponent.Save excel file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': False, 'hint': u'Save data from loops in Excel (.xlsx) format', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save excel file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save excel file.__weakref__:None
-SettingsComponent.Save excel file.valType:bool
-SettingsComponent.Save excel file.staticUpdater:None
-SettingsComponent.Save excel file.val:False
-SettingsComponent.Save excel file.allowedTypes:[]
-SettingsComponent.Save excel file.hint:Save data from loops in Excel (.xlsx) format
-SettingsComponent.Save excel file.allowedUpdates:None
-SettingsComponent.Save excel file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save excel file.label:Save excel file
-SettingsComponent.Units.default:'use prefs'
-SettingsComponent.Units.categ:Screen
-SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat']
-SettingsComponent.Units.readOnly:False
-SettingsComponent.Units.updates:None
-SettingsComponent.Units.__dict__:{'staticUpdater': None, 'categ': 'Screen', 'val': 'use prefs', 'hint': u'Units to use for window/stimulus coordinates (e.g. cm, pix, deg)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat'], 'label': u'Units', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.Units.__weakref__:None
-SettingsComponent.Units.valType:str
-SettingsComponent.Units.staticUpdater:None
-SettingsComponent.Units.val:use prefs
-SettingsComponent.Units.allowedTypes:[]
-SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. cm, pix, deg)
-SettingsComponent.Units.allowedUpdates:None
-SettingsComponent.Units.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Units.label:Units
-SettingsComponent.Use version.default:''
-SettingsComponent.Use version.categ:Basic
-SettingsComponent.Use version.allowedVals:['latest', '1', '1.84', '', '1.84.2']
-SettingsComponent.Use version.readOnly:False
-SettingsComponent.Use version.updates:None
-SettingsComponent.Use version.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'The version of PsychoPy to use when running the experiment.', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['latest', '1', '1.84', '', '1.84.2'], 'label': u'Use PsychoPy version', 'readOnly': False, 'updates': None, 'valType': 'str'}
-SettingsComponent.Use version.__weakref__:None
-SettingsComponent.Use version.valType:str
-SettingsComponent.Use version.staticUpdater:None
-SettingsComponent.Use version.val:
-SettingsComponent.Use version.allowedTypes:[]
-SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
-SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Use version.label:Use PsychoPy version
-SettingsComponent.Save log file.default:True
-SettingsComponent.Save log file.categ:Data
-SettingsComponent.Save log file.allowedVals:[]
-SettingsComponent.Save log file.readOnly:False
-SettingsComponent.Save log file.updates:None
-SettingsComponent.Save log file.__dict__:{'staticUpdater': None, 'categ': 'Data', 'val': True, 'hint': u'Save a detailed log (more detailed than the excel/csv files) of the entire experiment', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Save log file', 'readOnly': False, 'updates': None, 'valType': 'bool'}
-SettingsComponent.Save log file.__weakref__:None
-SettingsComponent.Save log file.valType:bool
-SettingsComponent.Save log file.staticUpdater:None
-SettingsComponent.Save log file.val:True
-SettingsComponent.Save log file.allowedTypes:[]
-SettingsComponent.Save log file.hint:Save a detailed log (more detailed than the excel/csv files) of the entire experiment
-SettingsComponent.Save log file.allowedUpdates:None
-SettingsComponent.Save log file.__class__:<class 'psychopy.app.builder.experiment.Param'>
-SettingsComponent.Save log file.label:Save log file
 SettingsComponent.Screen.default:1.0
 SettingsComponent.Screen.categ:Screen
 SettingsComponent.Screen.allowedVals:[]
