@@ -116,11 +116,16 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     S Mathot 2012: Implement fallback to _onPygletText
 
     5AM Solutions 2016: Add the keyboard modifier flags to the key buffer.
-    """
 
+    """
     global useText
+
     keyTime = psychopy.core.getTime()  # capture when the key was pressed
     if emulated:
+        if not isinstance(modifiers, int):
+            msg = 'Modifiers must be passed as an integer value.'
+            raise ValueError(msg)
+
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
     else:
