@@ -77,8 +77,7 @@ class _baseVisualTest(object):
             str(stim) #check that str(xxx) is working
     def test_imageAndGauss(self):
         win = self.win
-        incorrectName = 'testimage.tif'  # should correctly find testImage.jpg
-        fileName = os.path.join(utils.TESTS_DATA_PATH, incorrectName)
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
         #use image stim
         size = numpy.array([2.0,2.0])*self.scaleFactor
         image = visual.ImageStim(win, image=fileName, mask='gauss',
@@ -99,6 +98,34 @@ class _baseVisualTest(object):
         image.draw()
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
+    def test_envelopeGratingAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
+                                        ori=-45,envsf=sf/2,envori=45,envphase=90,moddepth=0.5,contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            str(image)
+    def test_envelopeBeatAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
+                                        ori=-45,envsf=sf/2,envori=45,envphase=90,beat=True,moddepth=0.5,contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('beatandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            str(image)
     def test_numpyFilterMask(self):
         """if the mask is passed in as a numpy array it goes through a different
         set of rules when turned into a texture. But the outcome should be as above
@@ -647,7 +674,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
 #
 
 if __name__ == '__main__':
-    cls = TestPygletCm()
+    cls = TestPygletDegFlatPos()
     cls.setup_class()
     cls.test_radial()
     cls.teardown_class()

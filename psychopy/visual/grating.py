@@ -41,8 +41,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     **Examples**::
 
-        myGrat = GratingStim(win, tex='sin', mask='circle')  # gives a circular patch of grating
-        myGabor = GratingStim(win, tex='sin', mask='gauss')  # gives a 'Gabor'
+        myGrat = GratingStim(tex='sin', mask='circle')  # circular grating
+        myGabor = GratingStim(tex='sin', mask='gauss')  # gives a 'Gabor'
 
     A GratingStim can be rotated scaled and shifted in position,
     its texture can be drifted in X and/or Y and it can have a spatial
@@ -84,6 +84,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
+                 blendmode='avg',
                  name=None,
                  autoLog=None,
                  autoDraw=False,
@@ -154,6 +155,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.opacity = float(opacity)
         self.autoLog = autoLog
         self.autoDraw = autoDraw
+        self.blendmode=blendmode
 
         # fix scaling to window coords
         self._calcCyclesPerStim()
@@ -247,6 +249,19 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
+        
+    @attributeSetter
+    def blendmode(self, value): 
+        """The OpenGL mode in which the stimulus is draw
+        
+        Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
+        with a transparency given by its opacity. Opaque stimuli will hide other stimuli
+        transparent stimuli wont. Add performs the aritmetic sum of the new stimulus and the ones
+        already present.
+        
+        """
+        self.__dict__['blendmode'] = value
+        self._needUpdate = True
 
     def setSF(self, value, operation='', log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
@@ -262,6 +277,11 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self.tex = value
+        
+    def setBlendmode(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('blendmode', value, log=log)
 
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call
@@ -269,8 +289,11 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         stimulus to appear on that frame and then update the screen
         again.
         """
+        
         if win is None:
             win = self.win
+        saveBlendMode=win.blendMode
+        win.blendMode=self.blendmode
         self._selectWindow(win)
 
         # do scaling
@@ -291,6 +314,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         # return the view to previous state
         GL.glPopMatrix()
+        win.blendMode=saveBlendMode
 
     def _updateListShaders(self):
         """The user shouldn't need this method since it gets called

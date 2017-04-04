@@ -5,8 +5,8 @@ second order envelope carrier and envelope can vary independently for
 orienation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# some code provided by Andrew Schofield
+# Copyright (C) 2015 Jonathan Peirce.
+# Addtional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Requires shaders if you don't have them it will just throw and error.
@@ -27,7 +27,7 @@ from psychopy import logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
-from .grating import GratingStim
+from psychopy.visual.grating import GratingStim
 import numpy
 
 from . import shaders as _shaders
@@ -52,7 +52,7 @@ carrierEnvelopeMaskFrag = '''
 
 
 class EnvelopeGrating(GratingStim):
-    """A stimulus with 3 textures; a carrier, an envelope and a mask
+    """Second-order envelope stimuli with 3 textures; a carrier, an envelope and a mask
 
     **Examples**::
 
@@ -65,23 +65,26 @@ class EnvelopeGrating(GratingStim):
             mask = None, sf=1, envsf=4, size=1, contrast=0.5,
             moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0)
             # If noise is some numpy array contaning random values gives a
-            # circular patch of noise with a low freqeuncy sinewave envelope
+            # patch of noise with a low freqeuncy sinewave envelope
     env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin',
             mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5,
             moddepth=1.0, envori=0, pos=[.5,.5], beat=True, interpolate=0)
             # Setting beat will create a second order beat stimulus which
             # critically contains no net energy at the carrier frequency
-            # even though it appears to be present in this case carrier
+            # even though it appears to be present. In this case carrier
             # and envelope are at 90 degree to each other
 
     With an EnvelopeStim the carrier and envelope can have different spatial
-    frequency phase and orientation. Its position can be shifted as a whole.
+    frequencies, phases and orientations. Its position can be shifted as a whole.
+    
     contrast controls the contrast of the carrier and moddepth the modulation
-    depth of the envelope.
-    opacity controls the transparency of the whole stimulus.
+    depth of the envelope. contrast and moddepth must work together, for moddepth=1 the max carrier
+    contrast is 0.5 otherwise the displayable raneg will be exceeded. If moddepth < 1 higher contrasts can be accomodated.
+    
+    Opacity controls the transparency of the whole stimulus.
 
     Because orientation is implemented very differently for the carrier and
-    envelope using this function without a msk will produce unexpected results
+    envelope using this function without a broadly circular mask may produce unexpected results
 
     **Using EnvelopeStim with images from disk (jpg, tif, png, ...)**
 
@@ -91,9 +94,6 @@ class EnvelopeGrating(GratingStim):
     The size of the stimulus should be specified in the normal way using
     the appropriate units (deg, pix, cm, ...). Be sure to get the aspect
     ratio the same as the image (if you don't want it stretched!).
-
-    contrast and moddepth must work together, for moddepth=1 the max carrier
-    contrast is 0.5. If moddepth < 1 higher contrasts can be accomodated.
     """
 
     def __init__(self,
@@ -119,11 +119,11 @@ class EnvelopeGrating(GratingStim):
                  colorSpace='rgb',
                  contrast=0.5,  # see doc
                  moddepth=1.0,  # modulation depth for envelope
-                 # not sure what this will do with an envelope stimulus.
                  opacity=1.0,
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
+                 blendmode='avg',
                  name=None,
                  autoLog=None,
                  autoDraw=False,
@@ -131,9 +131,9 @@ class EnvelopeGrating(GratingStim):
         """ """  # Empty docstring. All doc is in attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
-        assert win._haveShaders is True, ("Currently EnvelopeGratings need "
-                                          "your graphics card to have shaders"
-                                          " and yours does not seem to.")
+        assert win._haveShaders is True, ("Currently EnvelopeGratings needs "
+                                         "your graphics card to have shaders"
+                                         " and yours does not seem to.")
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
@@ -152,6 +152,8 @@ class EnvelopeGrating(GratingStim):
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and
         # _calcCyclesPerStim whin initiating stimulus
+        
+        #AJS
         self.__dict__['carrier'] = carrier
         self.__dict__['envelope'] = envelope
         self.__dict__['maskParams'] = maskParams
@@ -165,28 +167,32 @@ class EnvelopeGrating(GratingStim):
         del self._texID  # created by GratingStim.__init__
 
         self.mask = mask
+
         self.envelope = envelope
         self.carrier = carrier
         self.envsf = val2array(envsf)
         self.envphase = val2array(envphase, False)
         self.envori = float(envori)
         self.moddepth = float(moddepth)
-        self.beat = bool(beat)
-        # print(self.CMphase)
+        if beat in ['True','true','Yes','yes','Y','y']:
+            self.beat =True
+        elif beat in ['False','false','No','no','N','n']:
+            self.beat =False
+        else:
+            self.beat =bool(beat)
+        self._needUpdate = True
+        self.blendmode=blendmode
         self._shaderProg = _shaders.compileProgram(
             _shaders.vertSimple, carrierEnvelopeMaskFrag)
 
         self.local = numpy.ones((texRes, texRes), dtype=numpy.ubyte)
         self.local_p = self.local.ctypes
-        # self.local=GL.GL_UNSIGNED_BYTE(self.local)
         # fix scaling to window coords
-        # self._calcCyclesPerStim()
         self._calcEnvCyclesPerStim()
         del self.__dict__['tex']
 
     @attributeSetter
-    def envsf(self, value):
-        # AJS
+    def envsf(self, value): 
         """Spatial frequency of the envelope texture
 
         Should be a :ref:`x,y-pair <attrib-xy>` or
@@ -194,9 +200,10 @@ class EnvelopeGrating(GratingStim):
         If `units` == 'deg' or 'cm' units are in cycles per deg or cm
         as appropriate.
         If `units` == 'norm' then sf units are in cycles per stimulus
-        (and so SF scales with stimulus size).
-        If texture is an image loaded from a file then sf=None defaults
+        (and so envsf scales with stimulus size).
+        If texture is an image loaded from a file then envsf=None defaults
         to 1/stimSize to give one cycle of the image.
+        Note sf is inhertited from GratingStim and controls the spatial frequency of the carrier
         """
 
         # Recode phase to numpy array
@@ -219,7 +226,7 @@ class EnvelopeGrating(GratingStim):
 
     @attributeSetter
     def envphase(self, value):
-        """Phase of the modulation in each dimension of the texture.
+        """Phase of the modulation in each dimension of the envelope texture.
 
         Should be an :ref:`x,y-pair <attrib-xy>` or
         :ref:`scalar <attrib-scalar>`
@@ -227,35 +234,69 @@ class EnvelopeGrating(GratingStim):
         **NB** phase has modulus 1 (rather than 360 or 2*pi)
         This is a little unconventional but has the nice effect
         that setting phase=t*n drifts a stimulus at n Hz
+        Note phase in inherited from GratingStim and controls the phase of the carrier
         """
         # Recode phase to numpy array
         value = val2array(value)
         self.__dict__['envphase'] = value
         self._needUpdate = True
 
-    @attributeSetter
-    def moddepth(self, value):
-        """modulation depth for envelope
+    @attributeSetter 
+    def moddepth(self, value): 
+        """Modulation depth or 'contrast' for the envelope component (0.0 - 1.0)
+        
+        Sets the range of variation in carrier contrast.
+        MD=(Cmax-Cmin)/(Cma+Cmin)
         """
         self.__dict__['moddepth'] = value
         self._needUpdate = True
 
     @attributeSetter
-    def envori(self, value):
-        """Orientation for envelope
+    def envori(self, value): 
+        """The orientation for the envelope texture (in degrees).
+        
+        Should be a single value (scalar). Operations are supported.
+        Orientation convention is like a clock: 0 is vertical, and positive values rotate clockwise. Beyond 360 and below zero values wrap appropriately.
+        Note ori is inhertied from gratingStim and controls only the orientation of the carrier
         """
         self.__dict__['envori'] = value
         self._needUpdate = True
 
     @attributeSetter
-    def beat(self, value):
-        """Orientation for envelope
+    def beat(self, value): 
+        """Beat (True) stimulus or full moduaiton (False)
+        
+        'The differences is that the spatial frequency components of the carrier are absent in a beat
+        (although the carrier will still be a visible component of the overall image) 
+        whereas they are present in a full modulation. Beats will always appear to have a 100% modulation 
+        depth and if sinusoidal the modulation will appear to be twice the requested spatial frequency. 
+        The modulation depth of fully modulated stimuli can be varied and they appear at their ture frequency. 
+        Both beats and full modulations appear in the literature and have specific uses.
         """
-        self.__dict__['beat'] = value
+        if value in ['True','true','Yes','yes','Y','y']:
+            self.__dict__['beat'] =True
+        elif value in ['False','false','No','no','N','n']:
+            self.__dict__['beat'] =False
+        else:
+            self.__dict__['beat'] =bool(value)
         self._needUpdate = True
+        
+        
+    #@attributeSetter
+    #def blendmode(self, value): 
+    #    """The OpenGL mode in which the stimulus is draw
+    #    
+    #    Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
+    #    with a transparency given by its opacity. Opaque stimuli will hide other stimuli
+    #    transparent stimuli wont. Add performs the aritmetic sum of the new stimulus and the ones
+    #    already present.
+    #    
+    #    """
+    #    self.__dict__['blendmode'] = value
+    #   self._needUpdate = True
 
     @attributeSetter
-    def carrier(self, value):
+    def carrier(self, value): 
         """Texture to use in the stimulus as a carrier, typically noise array.
 
         This can be one of various options:
@@ -276,7 +317,7 @@ class EnvelopeGrating(GratingStim):
         self._needTextureUpdate = False
 
     @attributeSetter
-    def envelope(self, value):
+    def envelope(self, value): 
         """Texture to use on the stimulus as a envelope, typically a grating.
 
         This can be one of various options:
@@ -303,6 +344,68 @@ class EnvelopeGrating(GratingStim):
             self.size = None  # Reset size do default
         self.__dict__['envelope'] = value
         self._needTextureUpdate = False
+        
+    def setTexRes(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('texRes', value, log=log)
+        
+    def setEnvori(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('envori', value, log=log)
+        
+    def setEnvsf(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('envsf', value, log=log)
+        
+    def setEnvphase(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('envphase', value, log=log)
+        
+    def setModdepth(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('moddepth', value, log=log)
+        
+    def setBeat(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self._set('beat', value, log=log)
+        
+    def setCarrier(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self.carrier=value
+        
+    def setEnvelope(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self.envelope=value
+        
+    #def setBlendmode(self, value, log=None):
+    #    """DEPRECATED. Use 'stim.parameter = value' syntax instead
+    #    """
+    #    self._set('blendmode', value, log=log)
+
+    #def draw(self, win=None):
+    #    """Draw the stimulus in its relevant window. You must call 
+    #    this method after every MyWin.flip() if you want the
+    #    stimulus to appear on that frame and then update the screen
+    #    again.
+    #    """
+    #    if win is None:
+    #        win = self.win
+
+    #    saveBlendMode=win.blendMode
+    #    win.blendMode=self.blendmode
+     #   self._selectWindow(win)
+    #    
+    #    super(EnvelopeGrating, self).draw(win)
+
+    #    win.blendMode=saveBlendMode
 
     def _updateListShaders(self):
         """
@@ -313,12 +416,14 @@ class EnvelopeGrating(GratingStim):
         rather than using the .set() command
         """
 
-        # make some corrections for the envelope:: The could be done whenever
+        # make some corrections for the envelope:: This could be done whenever
         # the envelope variables are set using some internal variables,
         # putting it here is safer but sometimes slower
+        
         # correct envelope orientation to adjust for link with carrier
         # orientation, to make it clockwise handed and convert to radians
         envrad = (self.ori - self.envori) * numpy.pi / 180.0
+
         # adjust envolope phases so that any envelope drift points
         # in the same direction as the envelope.
         rph1 = (numpy.cos(envrad) *
@@ -326,7 +431,8 @@ class EnvelopeGrating(GratingStim):
         rph2 = (-numpy.cos(envrad) *
                 self.envphase[1] + numpy.sin(envrad) * self.envphase[0])
 
-        if 'avg' in self.win.blendMode:
+        # we need a corrective offset when the blenmode is set to average
+        if self.blendmode=='avg':
             addvalue = 1.0
         else:
             addvalue = 0.0
@@ -350,11 +456,12 @@ class EnvelopeGrating(GratingStim):
         # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True
         # this becomes (moddepth*envelope)*carrier thus maing a second order
         # 'beat' pattern.
-        GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "offset"), 1.0 - self.beat)
-        # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True
-        # this becomes (moddepth*envelope)*carrier thus maing a second order
-        # 'beat' pattern.
+        if self.beat:
+            GL.glUniform1f(GL.glGetUniformLocation(
+                self._shaderProg, "offset"),0.0)
+        else:
+            GL.glUniform1f(GL.glGetUniformLocation(
+                self._shaderProg, "offset"), 1.0)
         GL.glUniform1f(GL.glGetUniformLocation(
             self._shaderProg, "add"), addvalue)
 
@@ -429,19 +536,19 @@ class EnvelopeGrating(GratingStim):
 
     # for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
-        """This currently combines the carrier and evelope as if they
+        """EnvelopeGratings require shaders so this function should never be reached.
+        It currently combines the carrier and evelope as if they
         add, so is plain wrong. Therefore there is an assertion in the
         init function which will throw an error if the window object does
-        not have shaders. Thus this function should never be
-        reached. If someone without shaders wishes to do second-order
-        gratings they need a new solution.
-
-        The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
+        not have shaders. If someone without shaders wishes to do second-order
+        gratings they need to provide a new solution.
         """
+        #The user shouldn't need this method since it gets called
+        #after every call to .set() Basically it updates the OpenGL
+        #representation of your stimulus if some parameter of the
+        #stimulus changes. Call it if you change a property manually
+        #rather than using the .set() command
+        #"""
         self._needUpdate = False
 
         # glColor can interfere with multitextures
@@ -519,14 +626,15 @@ class EnvelopeGrating(GratingStim):
         GL.glEndList()
 
     def clearTextures(self):
-        """This will be used by the __del__ method of GratingStim
+        """This will be used by the __del__ method of EnvelopeGrating
         """
         GL.glDeleteTextures(1, self._carrierID)
         GL.glDeleteTextures(1, self._envelopeID)
         GL.glDeleteTextures(1, self._maskID)
 
     def _calcEnvCyclesPerStim(self):
-        """
+        """The user should never need to call this function directly as it is called whenever there is a need
+        to recalcuate the spatial frequency of the envelope.
         """
         if self.units in ('norm', 'height'):
             # self._cycles = self.sf  # this is the only form of sf that is
