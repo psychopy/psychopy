@@ -398,7 +398,7 @@ class SoundDeviceSound(_SoundBase):
 
     def _setSndFromArray(self, thisArray):
 
-        self.sndArr = np.asarray(thisArray)
+        self.sndArr = np.asarray(thisArray) * self.volume
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray),1]  # make 2D for broadcasting
         if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
@@ -406,7 +406,6 @@ class SoundDeviceSound(_SoundBase):
         elif self.sndArr.shape[1] == 1:  # if channels in [-1,1] then pass
             pass
         else:
-            self.sndArr = np.asarray(thisArray)
             try:
                 self.sndArr.shape = [len(thisArray), 2]
             except ValueError:
@@ -483,7 +482,7 @@ class SoundDeviceSound(_SoundBase):
                 num=self.blockSize, endpoint=False
                 )
             xx.shape = [self.blockSize, 1]
-            block = np.sin(xx)
+            block = np.sin(xx) * self.volume
             # if run beyond our desired t then set to zeros
             if stopT > self.secs:
                 tRange = np.linspace(startT, stopT,
