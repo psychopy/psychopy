@@ -675,7 +675,7 @@ class Experiment(object):
             :return: dict of 'asb' and 'rel' paths or None
             """
             thisFile={}
-            if filePath[0] == "/" or filePath[1]==":":
+            if len(filePath)>2 and (filePath[0] == "/" or filePath[1]==":"):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
             else:
@@ -708,13 +708,15 @@ class Experiment(object):
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in thisCond.items():
-                    if isinstance(val, basestring):
-                        thisFile = getPaths(val)
-                    if thisFile:
-                        paths.append(thisFile)
-                        # if it's a possible condidtions file then recursive
+                    if isinstance(val, basestring) and len(val):
+                        subFile = getPaths(val)
+                    else:
+                        subFile = None
+                    if subFile:
+                        paths.append(subFile)
+                        # if it's a possible conditions file then recursive
                         if thisFile['abs'][-4:] in ["xlsx", ".csv"]:
-                            contained = findPathsInFile(thisFile['abs'])
+                            contained = findPathsInFile(subFile['abs'])
                             paths.extend(contained)
             return paths
 
@@ -1059,7 +1061,6 @@ class TrialHandler(object):
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("    // Schedule each of the trials in the list to occur\n"
-                "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
                 "    for (var i = 0; i < {params[name]}.trialList.length; ++i) {{\n"
                 "      {thisName} = {params[name]}.trialList[i];\n"
                 "      thisScheduler.add(abbrevNames({thisName}));\n"
