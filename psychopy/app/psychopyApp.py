@@ -8,6 +8,8 @@ from __future__ import absolute_import, print_function
 
 import sys
 from psychopy.app._psychopyApp import PsychoPyApp, __version__
+# fix OS X locale-bug on startup: sets locale to LC_ALL (must be defined!)
+import psychopy.locale_setup  # noqa
 
 # NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
 # to allow for better upgrading possibilities from the mac app bundle. this

@@ -1,4 +1,4 @@
-"""Control joysticks and gamepads from within PsychoPy
+"""Control joysticks and gamepads from within PsychoPy.
 
 You do need a window (and you need to be flipping it) for the joystick to be
 updated.
@@ -24,7 +24,7 @@ Typical usage::
 
     nAxes = joy.getNumAxes()  # for interest
     while True:  # while presenting stimuli
-        currentjoy.getX()
+        joy.getX()
         # ...
         win.flip()  # flipping implicitly updates the joystick info
 """
@@ -48,8 +48,7 @@ backend = 'pyglet'  # 'pyglet' or 'pygame'
 
 
 def getNumJoysticks():
-    """Return a count of the number of joysticks available.
-    """
+    """Return a count of the number of joysticks available."""
     if backend == 'pyglet':
         return len(pyglet_input.get_joysticks())
     else:
@@ -60,7 +59,7 @@ def getNumJoysticks():
 class Joystick(object):
 
     def __init__(self, id):
-        """An object to control a multi-axis joystick or gamepad
+        """An object to control a multi-axis joystick or gamepad.
 
         .. note:
 
@@ -97,13 +96,11 @@ class Joystick(object):
             self.name = self._device.get_name()
 
     def getName(self):
-        """Returns the manufacturer-defined name describing the device
-        """
+        """Return the manufacturer-defined name describing the device."""
         return self.name
 
     def getNumButtons(self):
-        """Returns the number of digital buttons on the device
-        """
+        """Return the number of digital buttons on the device."""
         if backend == 'pyglet':
             return len(self._device.buttons)
         else:
@@ -120,8 +117,7 @@ class Joystick(object):
             return self._device.get_button(buttonId)
 
     def getAllButtons(self):
-        """Get the state of all buttons as a list
-        """
+        """Get the state of all buttons as a list."""
         if backend == 'pyglet':
             return self._device.buttons
         else:
@@ -132,6 +128,7 @@ class Joystick(object):
 
     def getAllHats(self):
         """Get the current values of all available hats as a list of tuples.
+
         Each value is a tuple (x, y) where x and y can be -1, 0, +1
         """
         hats = []
@@ -145,8 +142,7 @@ class Joystick(object):
         return hats
 
     def getNumHats(self):
-        """Get the number of hats on this joystick
-        """
+        """Get the number of hats on this joystick."""
         if backend == 'pyglet':
             return len(self.getAllHats())
         else:
@@ -154,6 +150,7 @@ class Joystick(object):
 
     def getHat(self, hatId=0):
         """Get the position of a particular hat.
+
         The position returned is an (x, y) tuple where x and y
         can be -1, 0 or +1
         """
@@ -166,32 +163,28 @@ class Joystick(object):
             return self._device.get_hat(hatId)
 
     def getX(self):
-        """Returns the value on the X axis (equivalent to joystick.getAxis(0))
-        """
+        """Return the X axis value (equivalent to joystick.getAxis(0))."""
         if backend == 'pyglet':
             return self._device.x
         else:
             return self._device.get_axis(0)
 
     def getY(self):
-        """Returns the value on the Y axis (equivalent to joystick.getAxis(1))
-        """
+        """Return the Y axis value (equivalent to joystick.getAxis(1))."""
         if backend == 'pyglet':
             return self._device.y
         else:
             return self._device.get_axis(1)
 
     def getZ(self):
-        """Returns the value on the Z axis (equivalent to joystick.getAxis(2))
-        """
+        """Return the Z axis value (equivalent to joystick.getAxis(2))."""
         if backend == 'pyglet':
             return self._device.z
         else:
             return self._device.get_axis(2)
 
     def getAllAxes(self):
-        """Get a list of all current axis values
-        """
+        """Get a list of all current axis values."""
         axes = []
         if backend == 'pyglet':
             names = ['x', 'y', 'z', 'rx', 'ry', 'rz', ]
@@ -204,15 +197,15 @@ class Joystick(object):
         return axes
 
     def getNumAxes(self):
-        """Returns the number of joystick axes found
-        """
+        """Return the number of joystick axes found."""
         if backend == 'pyglet':
             return len(self.getAllAxes())
         else:
             return self._device.get_numaxes()
 
     def getAxis(self, axisId):
-        """Get the value of an axis by an integer id
+        """Get the value of an axis by an integer id.
+
         (from 0 to number of axes - 1)
         """
         if backend == 'pyglet':

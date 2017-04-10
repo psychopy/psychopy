@@ -23,7 +23,6 @@ import copy
 import sys
 import os
 
-import psychopy  # so we can get the __path__
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -34,7 +33,8 @@ from psychopy.tools.attributetools import (attributeSetter, logAttrib,
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
                                              pix2deg, convertToPix)
-from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
+from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
+                                     setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix
 from . import globalVars
@@ -497,7 +497,11 @@ class ContainerMixin(object):
             verts = self._verticesBase
 
         # set size and orientation, combine with position and convert to pix:
-        verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
+        if hasattr(self, 'fieldSize'):
+            # this is probably a DotStim and size is handled differently
+            verts = numpy.dot(verts * flip, self._rotationMatrix)
+        else:
+            verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
         verts = convertToPix(vertices=verts, pos=self.pos,
                              win=self.win, units=self.units)
         self.__dict__['verticesPix'] = verts
@@ -532,6 +536,7 @@ class ContainerMixin(object):
         stimulus is determined purely by the size, position (pos), and
         orientation (ori) settings (and by the vertices for shape stimuli).
 
+        See Coder demos: shapeContains.py
         See Coder demos: shapeContains.py
         """
         # get the object in pixels
@@ -636,7 +641,6 @@ class TextureMixin(object):
         allMaskParams = {'fringeWidth': 0.2, 'sd': 3}
         allMaskParams.update(maskParams)
 
-        cos = numpy.cos
         sin = numpy.sin
         if type(tex) == numpy.ndarray:
             # handle a numpy array
@@ -782,18 +786,18 @@ class TextureMixin(object):
         else:
             if type(tex) in [str, unicode, numpy.string_]:
                 # maybe tex is the name of a file:
-                if not os.path.isfile(tex):
-                    msg = "Couldn't find image file '%s'; check path?"
-                    logging.error(msg % tex)
+                filename = findImageFile(tex)
+                if not filename:
+                    msg = "Couldn't find image %s; check path? (tried: %s)"
+                    logging.error(msg % (tex, os.path.abspath(tex)))
                     logging.flush()
-                    msg = "Couldn't find image '%s'; check path? (tried: %s)"
-                    raise OSError, msg % (tex, os.path.abspath(tex))
+                    raise IOError, msg % (tex, os.path.abspath(tex))
                 try:
-                    im = Image.open(tex)
+                    im = Image.open(filename)
                     im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 except IOError:
                     msg = "Found file '%s', failed to load as an image"
-                    logging.error(msg % (tex))
+                    logging.error(msg % (filename))
                     logging.flush()
                     msg = "Found file '%s' [= %s], failed to load as an image"
                     raise IOError, msg % (tex, os.path.abspath(tex))
@@ -1131,7 +1135,7 @@ class WindowMixin(object):
                 # calling attributeSetter (does the same as mask)
                 self.mask = self.mask
             if hasattr(self, '_imName'):
-                self.setIm(self._imName, log=False)
+                self.setImage(self._imName, log=False)
             if self.__class__.__name__ == 'TextStim':
                 self._needSetText = True
             self._needUpdate = True

@@ -4,7 +4,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
 
@@ -17,7 +16,6 @@ from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web
-
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -164,11 +162,11 @@ def versionOptions(local=True):
     Returns major.minor versions e.g. 1.83, major e.g., 1., and 'latest'.
     To get patch level versions, use availableVersions().
     """
-    majorMinor = sorted(list({'.'.join(v.split('.')[:2])
-                              for v in availableVersions(local=local)}),
-                        reverse=True)
-    major = sorted(list({v.split('.')[0] for v in majorMinor}),
-                   reverse=True)
+    majorMinor = sorted(
+        list({'.'.join(v.split('.')[:2])
+              for v in availableVersions(local=local)}),
+        reverse=True)
+    major = sorted(list({v.split('.')[0] for v in majorMinor}), reverse=True)
     special = ['latest']
     return special + major + majorMinor
 
@@ -197,8 +195,7 @@ def _remoteVersions(forceCheck=False):
             pass
         else:
             allTags = [line.split('refs/tags/')[1]
-                       for line in tagInfo.splitlines()
-                       if '^{}' not in line]
+                       for line in tagInfo.splitlines() if '^{}' not in line]
             # ensure most recent (i.e., highest) first
             _remoteVersionsCache = sorted(allTags, reverse=True)
     return _remoteVersionsCache
@@ -214,9 +211,10 @@ def availableVersions(local=True, forceCheck=False):
     if local:
         return _localVersions(forceCheck)
     else:
-        return sorted(list(set(_localVersions(forceCheck) +
-                               _remoteVersions(forceCheck))),
-                      reverse=True)
+        return sorted(
+            list(set(_localVersions(forceCheck) + _remoteVersions(
+                forceCheck))),
+            reverse=True)
 
 
 def fullVersion(partial):
@@ -263,7 +261,8 @@ def _checkout(requestedVersion):
         # Grab new tags
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
-        subprocess.check_output('git fetch github'.split())
+        subprocess.check_output('git fetch github --tags'.split(),
+                                cwd=VERSIONSDIR)
         # is requested here now? forceCheck to refresh cache
         if requestedVersion not in _localVersions(forceCheck=True):
             msg = _translate("{} is not currently available.")
@@ -272,7 +271,8 @@ def _checkout(requestedVersion):
 
     # Checkout the requested tag
     cmd = ['git', 'checkout', requestedVersion]
-    out = subprocess.check_output(cmd, stderr=subprocess.STDOUT,
+    out = subprocess.check_output(cmd,
+                                  stderr=subprocess.STDOUT,
                                   cwd=VERSIONSDIR)
     logging.debug(out)
     logging.exp('Success:  ' + ' '.join(cmd))

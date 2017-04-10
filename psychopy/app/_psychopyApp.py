@@ -53,14 +53,14 @@ class MenuFrame(wx.Frame):
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, _translate('&View'))
         mtxt = _translate("&Open Builder view\t%s")
-        self.viewMenu.Append(self.app.IDs.openBuilderView,
+        self.app.IDs.openBuilderView = self.viewMenu.Append(wx.ID_ANY,
                              mtxt % self.app.keys['switchToBuilder'],
-                             _translate("Open a new Builder view"))
+                             _translate("Open a new Builder view")).GetId()
         wx.EVT_MENU(self, self.app.IDs.openBuilderView, self.app.showBuilder)
         mtxt = _translate("&Open Coder view\t%s")
-        self.viewMenu.Append(self.app.IDs.openCoderView,
+        self.app.IDs.openCoderView = self.viewMenu.Append(wx.ID_ANY,
                              mtxt % self.app.keys['switchToCoder'],
-                             _translate("Open a new Coder view"))
+                             _translate("Open a new Coder view")).GetId()
         wx.EVT_MENU(self, self.app.IDs.openCoderView, self.app.showCoder)
         mtxt = _translate("&Quit\t%s")
         item = self.viewMenu.Append(wx.ID_EXIT, mtxt % self.app.keys['quit'],
@@ -70,7 +70,18 @@ class MenuFrame(wx.Frame):
         self.SetMenuBar(self.menuBar)
         self.Show()
 
-
+        
+class IDStore(dict):
+    """A simpe class that works like a dict but you can access attributes
+    like standard python attrs. Useful to replace the previous pre-made 
+    app.IDs (wx.NewID() is no longer recommended or safe)
+    """
+    def __getattr__(self, attr):
+        return self[attr]
+    def __setattr__(self, attr, value):
+        self[attr] = value
+        
+        
 class _Showgui_Hack(object):
     """Class with side-effect of restoring wx window switching under wx-3.0
 
@@ -151,10 +162,10 @@ class PsychoPyApp(wx.App):
             splash.SetText(_translate("  Loading PsychoPy2..."))
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
-        from psychopy.app import coder, builder, dialogs, wxIDs, urls
+        from psychopy.app import coder, builder, dialogs, urls
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page, can return there
-        self.IDs = wxIDs
+        self.IDs = IDStore()
         self.urls = urls.urls
         self.quitting = False
         # check compatibility with last run version (before opening windows)
@@ -247,6 +258,7 @@ class PsychoPyApp(wx.App):
             splash.SetText(_translate("  Creating frames..."))
         self.coder = None
         self.copiedRoutine = None
+        self.copiedCompon = None
         self._allFrames = []  # ordered; order updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)

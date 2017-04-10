@@ -2,13 +2,13 @@
 """
 
 from psychopy import prefs, core
-prefs.general['audioLib'] = ['pyo']
 
 import pytest
 from scipy.io import wavfile
 import shutil, os
 from tempfile import mkdtemp
 from psychopy import sound, microphone
+origSoundPref = prefs.general['audioLib']
 
 import numpy
 
@@ -20,6 +20,8 @@ from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 class TestPyo(object):
     @classmethod
     def setup_class(self):
+        prefs.general['audioLib'] = ['pyo']
+        reload(sound)  # to force our new preference to be used
         self.contextName='pyo'
         try:
             assert sound.Sound == sound.SoundPyo
@@ -40,6 +42,8 @@ class TestPyo(object):
 
     @classmethod
     def teardown_class(self):
+        prefs.general['audioLib'] = origSoundPref
+
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
@@ -91,8 +95,3 @@ class TestPyo(object):
         pytest.skip()
         # was stalling on some machines; revisit if decide to stick with pyo
         sound.initPyo()
-
-    def test_sound_output(self):
-        # play a sound while also recording via microphone
-        # get FFT of the recorded sound, analyze it
-        pass

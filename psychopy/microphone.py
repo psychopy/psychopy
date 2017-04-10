@@ -1140,10 +1140,10 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     if pyo.serverCreated():
         sound.pyoSndServer.setSamplingRate(sampleRate)
     else:
-        # sound.initPyo() will create pyoSndServer. We want there only
+        # sound.init() will create pyoSndServer. We want there only
         # ever to be one server
         # will automatically use duplex=1 and stereo if poss
-        sound.initPyo(rate=sampleRate)
+        sound.init(rate=sampleRate)
     if outputDevice:
         sound.pyoSndServer.setOutputDevice(outputDevice)
     if bufferSize:

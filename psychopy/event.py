@@ -116,11 +116,16 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     S Mathot 2012: Implement fallback to _onPygletText
 
     5AM Solutions 2016: Add the keyboard modifier flags to the key buffer.
-    """
 
+    """
     global useText
+
     keyTime = psychopy.core.getTime()  # capture when the key was pressed
     if emulated:
+        if not isinstance(modifiers, int):
+            msg = 'Modifiers must be passed as an integer value.'
+            raise ValueError(msg)
+
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
     else:
@@ -336,12 +341,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2] - timeBaseDiff)) for k in targets]
+        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeBaseDiff)) for k in targets]
         return relTuple
     elif timeStamped is True:
-        return [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2])) for k in targets]
+        return [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1])) for k in targets]
     elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[2] - timeStamped)) for k in targets]
+        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped)) for k in targets]
         return relTuple
 
 
@@ -429,7 +434,7 @@ class Mouse(object):
                 # it's circular to "import visual" here in event
                 self.win = psychopy.core.openWindows[0]()
                 logging.info('Mouse: using default window')
-            except NameError, IndexError:
+            except (NameError, IndexError):
                 logging.error('Mouse: failed to get a default visual.Window'
                               ' (need to create one first)')
                 self.win = None

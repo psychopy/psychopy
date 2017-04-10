@@ -5,7 +5,7 @@ Demo using the experimental movie3 stim to play a video file. Path of video
 needs to updated to point to a video you have. movie2 does /not/ require
 avbin to be installed.
 
-Movie2 does require:
+Movie3 does require:
 ~~~~~~~~~~~~~~~~~~~~~
 
 moviepy (which requires imageio, Decorator). These can be installed
@@ -31,7 +31,6 @@ reportNDroppedFrames = 10
 import os
 
 from psychopy import logging
-from psychopy import sound
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
@@ -120,6 +119,12 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         self._audioStream = None
         self.useTexSubImage2D = True
 
+        if noAudio:  # to avoid dependency problems in silent movies
+            self.sound = None
+        else:
+            from psychopy import sound
+            self.sound = sound
+
         self._videoClock = Clock()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -169,14 +174,17 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
             if (not self.noAudio) and (self._mov.audio is not None):
+                sound = self.sound
                 try:
                     self._audioStream = sound.Sound(
                         self._mov.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
                 except:
-                    # JWE added this as a patch for a moviepy oddity where the duration is inflated in the saved file
-                    # causes the audioclip to be the wrong length, so round down and it should work
-                    jwe_tmp = self._mov.subclip(0,round(self._mov.duration))
+                    # JWE added this as a patch for a moviepy oddity where the
+                    # duration is inflated in the saved file causes the
+                    # audioclip to be the wrong length, so round down and it
+                    # should work
+                    jwe_tmp = self._mov.subclip(0, round(self._mov.duration))
                     self._audioStream = sound.Sound(
                         jwe_tmp.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
@@ -199,14 +207,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         """Continue a paused movie from current position.
         """
         status = self.status
-        if self._audioStream is not None:
-            self._audioStream.play()
         if status != PLAYING:
+            if self._audioStream is not None:
+            	self._audioStream.play()
+            if status == PAUSED:
+            	if self.getCurrentFrameTime() < 0:
+            		self._audioSeek(0)
+            	else:
+            		self._audioSeek(self.getCurrentFrameTime())
             self.status = PLAYING
             self._videoClock.reset(-self.getCurrentFrameTime())
-
-            if status == PAUSED:
-                self._audioSeek(self.getCurrentFrameTime())
 
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s playing" % (self.name),
@@ -422,6 +432,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         self._audioSeek(t)
 
     def _audioSeek(self, t):
+        sound = self.sound
         # for sound we need to extract the array again and just begin at new
         # loc
         if self._audioStream is None:

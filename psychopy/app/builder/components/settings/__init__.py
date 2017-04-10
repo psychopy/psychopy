@@ -1,11 +1,21 @@
 import os
 import wx
-import copy
 from .._base import BaseComponent, Param, _translate
+import psychopy
 from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
-
 from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
+from psychopy.app.projects import projectCatalog
+try:
+    from pyosf import remote
+except ImportError:
+    pass
+
+
+# for creating html output folders:
+import shutil
+import hashlib
+import zipfile
 
 def readTextFile(relPath):
     fullPath = os.path.join(thisFolder, relPath)
@@ -41,6 +51,23 @@ _localized = {'expName': _translate("Experiment name"),
               'Use version': _translate("Use PsychoPy version")}
 
 thisFolder = os.path.split(__file__)[0]
+
+
+# customize the Proj ID Param class to
+class ProjIDParam(Param):
+    @property
+    def allowedVals(self):
+        allowed = projectCatalog.keys()
+        # always allow the current val!
+        if self.val not in allowed:
+            allowed.append(self.val)
+        # always allow blank (None)
+        if '' not in allowed:
+            allowed.append('')
+        return allowed
+    @allowedVals.setter
+    def allowedVals(self, allowed):
+        pass
 
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
@@ -199,6 +226,21 @@ class SettingsComponent(object):
                             "('error' is fewest messages, 'debug' is most)"),
             label=_localized["logging level"], categ='Data')
 
+        # HTML output params
+        self.params['OSF Project ID'] = ProjIDParam(
+            '', valType='str', # automatically updates to allow choices
+            hint=_translate("The ID of this project (e.g. 5bqpc)"),
+            label="OSF Project ID", categ='Online')
+        self.params['HTML path'] = Param(
+            'html', valType='str', allowedTypes=[],
+            hint=_translate("Place the HTML files will be saved locally "),
+            label="Output path", categ='Online')
+        self.params['JS libs'] = Param(
+            'packaged', valType='str', allowedVals=['packaged'],
+            hint=_translate("Should we package a copy of the JS libs or use"
+                            "remote copies (http:/www.psychopy.org/js)?"),
+            label="JS libs", categ='Online')
+
     def getType(self):
         return self.__class__.__name__
 
@@ -259,15 +301,139 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
+    def prepareResourcesJS(self):
+        """Sets up the resources folder and writes the info.php file for PsychoJS
+        """
+
+        join = os.path.join
+
+        def copyTreeWithMD5(src, dst):
+            """Copies the tree but checks SHA for each file first
+            """
+            # despite time to check the md5 hashes this func gives speed-up
+            # over about 20% over using shutil.rmtree() and copytree()
+            for root, subDirs, files in os.walk(src):
+                relPath = os.path.relpath(root, src)
+                for thisDir in subDirs:
+                    if not os.path.isdir(join(root, thisDir)):
+                        os.makedirs(join(root, thisDir))
+                for thisFile in files:
+                    copyFileWithMD5(join(root, thisFile),
+                                    join(dst, relPath, thisFile))
+
+        def copyFileWithMD5(src, dst):
+            """Copies a file but only if doesn't exist or SHA is diff
+            """
+            if os.path.isfile(dst):
+                with open(dst, 'r') as f:
+                    dstMD5 = hashlib.md5(f.read()).hexdigest()
+                with open(src, 'r') as f:
+                    srcMD5 = hashlib.md5(f.read()).hexdigest()
+                if srcMD5 == dstMD5:
+                    return  # already matches - do nothing
+                # if we got here then the file exists but not the same
+                # delete and replace. TODO: In future this should check date
+                os.remove(dst)
+            # either didn't exist or has been deleted
+            folder = os.path.split(dst)[0]
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            shutil.copy2(src, dst)
+
+        # write info.php file
+        folder = self.exp.expPath
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+        # get OSF projcet info if there was a project id
+        projLabel = self.params['OSF Project ID'].val
+        # these are all blank unless we find a valid proj
+        osfID = osfName = osfToken = ''
+        osfHtmlFolder = ''
+        osfDataFolder = 'data'
+        # is email a defined parameter for this version
+        if 'email' in self.params:
+            email = repr(self.params['email'].val)
+        else:
+            email = "''"
+        if projLabel in projectCatalog:  # this is the psychopy  descriptive label (id+title)
+            proj = projectCatalog[projLabel]
+            osfID = proj.osf.id
+            osfName = proj.osf.title
+            osfUser = proj.username
+            osfToken = remote.TokenStorage()[osfUser]
+            osfHtmlFolder = self.params['HTML path'].val
+        infoPHPfilename = os.path.join(folder, 'info.php')
+        infoText = readTextFile("JS_infoPHP.tmpl")
+        infoText = infoText.format(osfID=osfID,
+                                   osfName=osfName,
+                                   osfToken=osfToken,
+                                   osfHtmlFolder=osfHtmlFolder,
+                                   osfDataFolder=osfDataFolder,
+                                   params=self.params,
+                                   email=email,
+                                   )
+
+        infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
+        with open(infoPHPfilename, 'w') as infoFile:
+            infoFile.write(infoText)
+
+        # populate resources folder
+        resFolder = join(folder, 'resources')
+        if not os.path.isdir(resFolder):
+            os.mkdir(resFolder)
+        resourceFiles = self.exp.getResourceFiles()
+        for srcFile in resourceFiles:
+            dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
+            dstFolder = os.path.split(dstAbs)[0]
+            if not os.path.isdir(dstFolder):
+                os.makedirs(dstFolder)
+            shutil.copy2(srcFile['abs'], dstAbs)
+
+        # add the js libs if needed for packaging
+        ppRoot = os.path.split(os.path.abspath(psychopy.__file__))[0]
+        jsPath = join(ppRoot, '..', 'psychojs')
+        if os.path.isdir(jsPath):
+            if self.params['JS libs'].val == 'packaged':
+                copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
+                copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
+
+            # always copy server.php
+            shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
+        else:
+            jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
+            # copy over JS libs if needed
+            if self.params['JS libs'].val == 'packaged':
+                jsZip.extractall(path=folder)
+            else:
+                jsZip.extract(path=folder, member="server.php")
+
     def writeInitCodeJS(self, buff, version, localDateTime):
-        # header
-        template = readTextFile("JS_htmlHeader.txt")
-        header = template.format(params = self.params)
+        # write info.php and resources folder as well
+        self.prepareResourcesJS()
+
+        # html header
+        template = readTextFile("JS_htmlHeader.tmpl")
+        header = template.format(
+                   name = self.params['expName'].val, # prevent repr() conversion
+                   params = self.params)
         buff.write(header)
+
         # write the code to set up experiment
         buff.setIndentLevel(4, relative=False)
-        template = readTextFile("JS_setupExp.txt")
-        code = template.format(params=self.params)
+        template = readTextFile("JS_setupExp.tmpl")
+        # check where to save data variables
+        if self.params['OSF Project ID'].val:
+            saveType = "OSF_VIA_EXPERIMENT_SERVER"
+            projID = "'{}'".format(self.params['OSF Project ID'].val)
+        else:
+            saveType = "EXPERIMENT_SERVER"
+            projID = 'undefined'
+        code = template.format(
+                        params=self.params,
+                        saveType=saveType,
+                        projID=projID,
+                        loggingLevel = self.params['logging level'].val.upper(),
+                        )
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff):
@@ -428,8 +594,10 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
-        template = readTextFile("JS_winInit.txt")
-        code = template.format(params=self.params)
+        fullscr = str(self.params['Full-screen window']).lower() #lower case string
+        template = readTextFile("JS_winInit.tmpl")
+        code = template.format(params=self.params,
+                               fullscr=fullscr)
         buff.writeIndentedLines(code)
 
     def writeEndCode(self, buff):
@@ -450,17 +618,30 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
+        abbrevFunc = ("\nfunction abbrevNames(thisTrial) {\n"
+                "  return function () {\n"
+                "    // abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)\n"
+                "    if (thisTrial != undefined) {\n"
+                "      for (paramName in thisTrial) {\n"
+                "        window[paramName] = thisTrial[paramName];\n"
+                "      }\n"
+                "    }\n"
+                "    return psychoJS.NEXT;\n"
+                "  };\n"
+                "}\n"
+                )
+        buff.writeIndentedLines(abbrevFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "    win.close()\n"
-                    "    core.quit();\n"
-                    "    return QUIT;\n"
+                    "    psychoJS.core.quit();\n"
+                    "    return psychoJS.QUIT;\n"
                     "}")
+        buff.writeIndentedLines(quitFunc)
+        buff.setIndentLevel(-1)
         footer = ("\n"
                   "        run();\n"
-                  "        }\n"
                   "      });\n"
                   "    </script>\n\n"
                   "  </body>\n"
                   "</html>")
-        buff.writeIndentedLines(quitFunc)
-        buff.write(footer)
+        buff.writeIndentedLines(footer)

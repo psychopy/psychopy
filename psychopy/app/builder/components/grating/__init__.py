@@ -17,6 +17,7 @@ _localized = {'tex': _translate('Texture'),
               'sf': _translate('Spatial frequency'),
               'phase': _translate('Phase (in cycles)'),
               'texture resolution': _translate('Texture resolution'),
+              'blendmode':_translate('OpenGL blend mode'),
               'interpolate': _translate('Interpolate')}
 
 
@@ -28,7 +29,7 @@ class GratingComponent(BaseVisualComponent):
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
                  pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
                  startType='time (s)', startVal=0.0,
-                 stopType='duration (s)', stopVal=1.0,
+                 stopType='duration (s)', stopVal=1.0, blendmode='avg',
                  startEstim='', durationEstim=''):
         super(GratingComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -96,6 +97,15 @@ class GratingComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'], categ="Grating")
+            
+        msg = _translate("OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]")
+        self.params['blendmode'] = Param(
+            blendmode, valType='str', allowedTypes=[],
+            updates='constant',
+            allowedVals=[],
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['blendmode'], categ="Basic")
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -112,7 +122,7 @@ class GratingComponent(BaseVisualComponent):
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
                 "sf=%(sf)s, phase=%(phase)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,\n" % inits +
+                "opacity=%(opacity)s,blendmode=%(blendmode)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
 

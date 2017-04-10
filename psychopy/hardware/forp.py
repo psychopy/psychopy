@@ -124,7 +124,7 @@ class ButtonBox(object):
             self.pressEvents += decodedEvents
             if asKeys:
                 for code in decodedEvents:
-                    event._onPygletKey(symbol=code, modifiers=None)
+                    event._onPygletKey(symbol=code, modifiers=0)
                     # better as: emulated='fORP_bbox_asKey', but need to
                     # adjust event._onPygletKey and the symbol conversion
                     # pyglet.window.key.symbol_string(symbol).lower()

@@ -1,25 +1,31 @@
 <?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="1.83.04">
+<PsychoPy2experiment encoding="utf-8" version="1.85.0rc1">
   <Settings>
-    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
-    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])" valType="code"/>
     <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
-    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
     <Param name="color" updates="None" val="$[0,0,0]" valType="str"/>
-    <Param name="Window size (pixels)" updates="None" val="[800, 600]" valType="code"/>
-    <Param name="Full-screen window" updates="None" val="False" valType="bool"/>
     <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
     <Param name="Experiment info" updates="None" val="{u'session': u'001', u'participant': u''}" valType="code"/>
-    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
-    <Param name="Show info dlg" updates="None" val="False" valType="bool"/>
-    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
+    <Param name="Units" updates="None" val="use prefs" valType="str"/>
+    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
+    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
     <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
+    <Param name="Window size (pixels)" updates="None" val="[800, 600]" valType="code"/>
+    <Param name="Full-screen window" updates="None" val="False" valType="bool"/>
+    <Param name="blendMode" updates="None" val="avg" valType="str"/>
+    <Param name="Use version" updates="None" val="" valType="str"/>
+    <Param name="email" updates="None" val="" valType="str"/>
+    <Param name="HTML path" updates="None" val="" valType="str"/>
+    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
+    <Param name="OSF Project ID" updates="None" val="" valType="str"/>
+    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="OSF User" updates="None" val="" valType="str"/>
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
+    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])" valType="code"/>
+    <Param name="Show info dlg" updates="None" val="False" valType="bool"/>
     <Param name="expName" updates="None" val="keyNameFinder" valType="str"/>
     <Param name="logging level" updates="None" val="exp" valType="code"/>
-    <Param name="blendMode" updates="None" val="avg" valType="str"/>
-    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
-    <Param name="Units" updates="None" val="use prefs" valType="str"/>
-    <Param name="Save log file" updates="None" val="True" valType="bool"/>
     <Param name="Screen" updates="None" val="1" valType="num"/>
   </Settings>
   <Routines>
@@ -50,7 +56,7 @@
         <Param name="Begin Routine" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
-        <Param name="Each Frame" updates="constant" val="keys = event.getKeys()&amp;#10;if keys:&amp;#10;&amp;#10;    if 'escape' in keys:&amp;#10;        continueRoutine = False&amp;#10;&amp;#10;    lastKey = keys.pop()&amp;#10;&amp;#10;    messFormat = &quot;That key was:\n\n\'{0}\'\n\nPress another key&quot;.format(lastKey)&amp;#10;&amp;#10;    keyNameText.text = messFormat&amp;#10;&amp;#10;" valType="extendedCode"/>
+        <Param name="Each Frame" updates="constant" val="keys = event.getKeys()&amp;#10;if keys:&amp;#10;&amp;#10;    if 'escape' in keys:&amp;#10;        continueRoutine = False&amp;#10;&amp;#10;    lastKey = keys.pop()&amp;#10;&amp;#10;    messFormat = u&quot;That key was:\n\n\'{0}\'\n\nPress another key&quot;.format(lastKey)&amp;#10;&amp;#10;    keyNameText.text = messFormat&amp;#10;&amp;#10;" valType="extendedCode"/>
       </CodeComponent>
     </Routine>
     <Routine name="trial">

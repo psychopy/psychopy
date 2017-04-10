@@ -39,6 +39,7 @@ class ImageComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Image'
+        self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
@@ -106,7 +107,7 @@ class ImageComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s, " % self.params
 
         # replace variable params with defaults
-        inits = getInitVals(self.params)
+        inits = getInitVals(self.params, 'PsychoPy')
         code = ("%s = visual.ImageStim(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    image=%(image)s, mask=%(mask)s,\n" % inits +
@@ -123,4 +124,42 @@ class ImageComponent(BaseVisualComponent):
             code += ", interpolate=False"
         depth = -self.getPosInRoutine()
         code += ", depth=%.1f)\n" % depth
+        buff.writeIndentedLines(code)
+
+    def writeInitCodeJS(self, buff):
+        # do we need units code?
+        if self.params['units'].val == 'from exp settings':
+            unitsStr = ""
+        else:
+            unitsStr = "units : %(units)s, " % self.params
+
+        # replace variable params with defaults
+        inits = getInitVals(self.params, 'PsychoJS')
+        for paramName in inits:
+            val = inits[paramName].val
+            if val is True:
+                inits[paramName] = 'true'
+            elif val is False:
+                inits[paramName] = 'false'
+            elif val in [None, 'None', 'none']:
+                inits[paramName] = 'undefined'
+
+        code = ("{inits[name]} = new psychoJS.visual.ImageStim({{\n"
+                "    win : win, name : '{inits[name]}',{units}\n"
+                "    image : {inits[image]}, mask : {inits[mask]},\n"
+                "    ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
+                "    color : {inits[color]}, colorSpace : {inits[colorSpace]}, opacity : {inits[opacity]},\n"
+                "    flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
+                # no newline - start optional parameters
+                "    texRes : {inits[texture resolution]}"
+                .format(inits=inits, units=unitsStr))
+
+        if self.params['interpolate'].val == 'linear':
+            code += ", interpolate : true"
+        else:
+            code += ", interpolate : false"
+        depth = -self.getPosInRoutine()
+        code += (", depth : %.1f \n"
+                 "});\n" % (depth)
+                 )
         buff.writeIndentedLines(code)

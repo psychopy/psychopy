@@ -7,7 +7,7 @@ The following workshops are currently planned for the 2016-2017 academic year:
 
  - 26-28 Apr 2017: :ref:`PEP1`
  - 3-5 May 2017: :ref:`BEP`
- - (Date TBC): :ref:`PEP2`
+ - 12-14 July 2017: :ref:`PEP2`
 
 (Details below, booking site will be online soon)
 
@@ -30,12 +30,11 @@ For queries about any of these please email me at `jonathan.peirce at nottingham
 PEP1: Programming Experiments in Python (Beginners)
 ---------------------------------------------------------
 
-`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=786>`_
+`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-programming-experiments-in-python-beginners>`_
 
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 26-28 April 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
@@ -46,33 +45,33 @@ Details
 Is this suitable for you?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well.
+The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well. **If you want to get up and running more quickly or want to run studies online then you'd be better going to the PsychoPy Builder workshop instead (see below).**
 
 We'll provide you with additional 'intermediate' material as well, for you to build on what you've learnt, but if you're already a proficient programmer in Python then this is probably not the course for you.
 
 Schedule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some sessions will be self-paced (shown in green). We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
+We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
-[All sessions subject to change]
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
 
-.. image:: ../images/scheduleBeginner.png
-   :scale: 80 %
+.. image:: schedulePEP1.png
+   :scale: 70 %
+   :align: center
 
 .. _BEP:
 
 BEP: Building Experiments in PsychoPy
 ---------------------------------------------------------
 
-`Book onto Building Experiments in PsychoPy workshop now <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=787>`_`
+`Book onto Building Experiments in PsychoPy workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/bep-building-experiments-in-psychopy>`_
 
 Learning to *Build* experiments is the fastest way to get studies up and running. You can do an awful lot with a graphical interface and some bits of Python code plugged in to do the fancy stuff! That's what we'll be learning here.
 
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
     :When: 3-5 May 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
@@ -88,24 +87,28 @@ This workshop is suitable for beginners and those that don't want to learn subst
 Schedule
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The schedule isn't finalised yet but there will be time over the three days to learn some material in formal taught sessions as well as some periods where you can develop your own studies.
+We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
+
+.. image:: scheduleBEP.png
+   :scale: 70 %
+   :align: center
 
 .. _PEP2:
 
 PEP2: Programming Experiments in Python (Intermediate)
 ---------------------------------------------------------
 
+`Book onto the intermediate Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep2-programming-experiments-in-python-intermediates>`_
+
 Details
 ~~~~~~~~~~~~
 
-    :Spaces: 60
-    :When: 3 days in early-mid August 2017 (date to be confirmed)
+    :When: 12-14th July 2017 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
     :Includes: Refreshments and lunch. There is an accommodation package too, costing £46 per night including bed, full breakfast and free wifi
-    :Content:
-        Material will cover *Python* programming basics as well as PsychoPy-specific coding. Note that this is not a workshop about PsychoPy Builder; we'll really be focussing on programming.
 
 Is this suitable for you?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,15 +116,17 @@ Is this suitable for you?
 This workshop is for people that have some experience in Python already. We expect you to know the basic syntax of data types (dicts, lists etc.) and flow control (loops, conditionals). It's about making your Python programming *better*. For instance, we'll be picking up the basic version of an experiment (as taught in the Beginners workshop) and making it more precise.
 
 Schedule
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
-Some sessions will be self-paced (shown in green). We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
+Details to follow but we'll be looking at:
 
-[All sessions subject to change]
+  - improving timing
+  - writing modular code (functions and classes)
+  - analysis methods
+  - specialist topics like eye-tracking (but limited without having eye-trackers present!)
+  - extending Builder with your own plug-in reusable components
 
-.. image:: ../images/scheduleIntermediate.png
-   :scale: 80 %
-
+Let Jon know if there are topics you'd like us to add here
 
 
 .. _Python: http://www.python.org/
