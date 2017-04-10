@@ -57,7 +57,7 @@ class ProjectorFramePacker(object):
         # This part is increasingly ugly.  Add a function to set these values?
         win._monitorFrameRate = 180.0
         win.monitorFramePeriod = 1.0 / win._monitorFrameRate
-        win._refreshThreshold = (1.0 / win._monitorFrameRate) * 1.2
+        win.refreshThreshold = (1.0 / win._monitorFrameRate) * 1.2
 
         # enable Blue initially, since projector output sequence is BGR
         GL.glColorMask(False, False, True, True)

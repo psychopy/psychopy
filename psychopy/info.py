@@ -471,7 +471,7 @@ class RunTimeInfo(dict):
                        'monitor', 'pos', 'screen', 'rgb', 'size']
         winAttrListVerbose = ['allowGUI', 'useNativeGamma',
                               'recordFrameIntervals', 'waitBlanking',
-                              '_haveShaders', '_refreshThreshold']
+                              '_haveShaders', 'refreshThreshold']
         if verbose:
             winAttrList += winAttrListVerbose
 
