@@ -175,6 +175,7 @@ class _SoundStream(object):
         toSpk *= 0  # it starts with the contents of the buffer before
         for thisSound in self.sounds:
             dat = thisSound._nextBlock()  # fetch the next block of data
+            dat *= thisSound.volume  # Set the volume block by block
             if self.channels == 2 and len(dat.shape) == 2:
                 toSpk[:len(dat), :] += dat  # add to out stream
             elif self.channels == 2 and len(dat.shape) == 1:
@@ -398,7 +399,7 @@ class SoundDeviceSound(_SoundBase):
 
     def _setSndFromArray(self, thisArray):
 
-        self.sndArr = np.asarray(thisArray) * self.volume
+        self.sndArr = np.asarray(thisArray)
         if thisArray.ndim == 1:
             self.sndArr.shape = [len(thisArray),1]  # make 2D for broadcasting
         if self.channels == 2 and self.sndArr.shape[1] == 1:  # mono -> stereo
@@ -482,7 +483,7 @@ class SoundDeviceSound(_SoundBase):
                 num=self.blockSize, endpoint=False
                 )
             xx.shape = [self.blockSize, 1]
-            block = np.sin(xx) * self.volume
+            block = np.sin(xx)
             # if run beyond our desired t then set to zeros
             if stopT > self.secs:
                 tRange = np.linspace(startT, stopT,
