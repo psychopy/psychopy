@@ -15,6 +15,7 @@
 /.spyproject
 /.vscode
 /.cache
+/.idea
 
 # Compiled source #
 ###################
@@ -93,6 +94,5 @@ appData.cfg
 # Documentation generated files #
 #################################
 .coverage
-.idea
 builddocs.sh
 nonSphinx
