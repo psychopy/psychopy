@@ -350,10 +350,10 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         return relTuple
 
 
-def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False, timeStamped=False):
+def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
+             timeStamped=False, clearBuffer=True):
     """Same as `~psychopy.event.getKeys`, but halts everything
-    (including drawing) while awaiting input from keyboard. Implicitly
-    clears keyboard, so any preceding keypresses will be lost.
+    (including drawing) while awaiting input from keyboard.
 
     :Parameters:
         maxWait : any numeric value.
@@ -364,14 +364,23 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False, timeStamped=Fa
             keynames. Each tuple has (keyname, modifiers). The modifiers
             are a dict of keyboard modifier flags keyed by the modifier
             name (eg. 'shift', 'ctrl').
+        timeStamped : **False**, True, or `Clock`
+            If True will return a list of tuples instead of a list of
+            keynames. Each tuple has (keyname, time). If a `core.Clock`
+            is given then the time will be relative to the `Clock`'s last
+            reset.
+        clearBuffer : **True** or False
+            Whether to clear the keyboard buffer (and discard preceding
+            keypresses) or not.
 
     Returns None if times out.
-    """
 
+    """
     # NB pygame.event does have a wait() function that will
     # do this and maybe leave more cpu idle time?
     key = None
-    clearEvents('keyboard')  # So that we only take presses from here onwards.
+    if clearBuffer:  # Only consider keypresses from here onwards.
+        clearEvents('keyboard')
 
     # Check for keypresses until maxWait is exceeded
     timer = psychopy.core.Clock()
@@ -383,12 +392,13 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False, timeStamped=Fa
                 win.dispatch_events()
 
         # Get keypresses and return if anything is pressed
-        keys = getKeys(keyList=keyList, modifiers=modifiers, timeStamped=timeStamped)
+        keys = getKeys(keyList=keyList, modifiers=modifiers,
+                       timeStamped=timeStamped)
         if len(keys):
             return keys
 
     # If maxWait is exceeded (exits while-loop), return None
-    logging.data("No keypress (maxWait exceeded)")
+    logging.data('No keypress (maxWait exceeded)')
     return None
 
 

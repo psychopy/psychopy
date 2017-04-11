@@ -151,6 +151,16 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
+    def test_waitKeys_clearBuffer_False(self):
+        keys = ['x', 'y', 'z']
+        [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
+         for key in keys]
+
+        key_events = event.waitKeys(keyList=keys[1:], clearBuffer=False)
+        assert 'x' not in key_events
+        assert 'y' in key_events
+        assert 'z' in key_events
+
     def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
