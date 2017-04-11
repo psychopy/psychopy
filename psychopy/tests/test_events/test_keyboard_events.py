@@ -2,20 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from psychopy import event, monitors
+from psychopy import event, core
 from psychopy.preferences import prefs
 from psychopy.visual import Window
 
-from pyglet.window.key import (
-    MOD_SHIFT,
-    MOD_CTRL,
-    MOD_ALT,
-    MOD_CAPSLOCK,
-    MOD_NUMLOCK,
-    MOD_WINDOWS,
-    MOD_COMMAND,
-    MOD_OPTION,
-    MOD_SCROLLLOCK)
+from pyglet.window.key import (MOD_SHIFT,
+                               MOD_CTRL,
+                               MOD_ALT,
+                               MOD_CAPSLOCK,
+                               MOD_NUMLOCK,
+                               MOD_WINDOWS,
+                               MOD_COMMAND,
+                               MOD_OPTION,
+                               MOD_SCROLLLOCK)
 
 
 @pytest.mark.keyboard
@@ -96,7 +95,7 @@ class TestGLobalEventKeys(object):
         e = list(global_keys)[0]
 
         assert key, modifiers == e
-        assert global_keys[e].func == quit
+        assert global_keys[e].func == core.quit
 
     def test_add(self):
         key = 'a'
