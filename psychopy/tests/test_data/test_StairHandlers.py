@@ -316,12 +316,13 @@ class TestStairHandler(_BaseTestStairHandler):
         assert staircase.nReversals == len(step_sizes)
 
         staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
-                                      nReversals=1)
+                                      nReversals=len(step_sizes) - 1)
         assert staircase.nReversals == len(step_sizes)
 
         staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
-                                      nReversals=10)
-        assert staircase.nReversals == 10
+                                      nReversals=len(step_sizes) + 1)
+        assert staircase.nReversals == len(step_sizes) + 1
+
 
 class TestQuestHandler(_BaseTestStairHandler):
     """
