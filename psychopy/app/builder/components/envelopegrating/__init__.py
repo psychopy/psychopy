@@ -54,14 +54,14 @@ class EnvGratingComponent(BaseVisualComponent):
         self.order = ['carrier', 'mask']
 
         # params
-        
+
         self.params['ori'] = Param(
             ori, valType='code', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
             label=_localized['ori'],categ="Carrier")
-        
+
         msg = _translate("The (2D) texture of the background - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['carrier'] = Param(
@@ -123,8 +123,8 @@ class EnvGratingComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'], categ="Carrier")
-            
-            
+
+
         msg = _translate("The (2D) texture of the envelope - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['envelope'] = Param(
@@ -133,7 +133,7 @@ class EnvGratingComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['envelope'], categ="Envelope")
-            
+
         msg = _translate("Spatial frequency of the modulation envelope repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['envsf'] = Param(
@@ -160,7 +160,7 @@ class EnvGratingComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['envori'], categ="Envelope")
-            
+
         msg = _translate("Modulation depth of modulation envelope")
         self.params['moddepth'] = Param(
             moddepth, valType='code', allowedTypes=[],
@@ -168,24 +168,25 @@ class EnvGratingComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['moddepth'], categ="Envelope")
-            
-        msg = _translate("Do you want a 'beat'? [beat = carrier*envelope, no beat = carrier*(1+envelope), True/False, Y/N]")
+
+        msg = _translate("Do you want a 'beat'? [beat = carrier*envelope, "
+                         "no beat = carrier*(1+envelope), True/False, Y/N]")
         self.params['beat'] = Param(
             beat, valType='str', allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['beat'], categ="Envelope")
-            
-        msg = _translate("OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]")
+
+        msg = _translate("OpenGL Blendmode. Avg is most common mode"
+                         " in PsychoPy, add is useful if combining a beat with"
+                         " the carrier image or numpy array at point of display")
         self.params['blendmode'] = Param(
-            blendmode, valType='str', allowedTypes=[],
+            blendmode, valType='str', allowedVals=['avg', 'add'],
             updates='constant',
-            allowedVals=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['blendmode'], categ="Basic")
-            
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -194,10 +195,10 @@ class EnvGratingComponent(BaseVisualComponent):
         else:
             unitsStr = "units=%(units)s, " % self.params
         #buff.writeIndented("from psychopy.visual.secondorder import EnvelopeGrating\n")
-        
+
         # replaces variable params with defaults and sets sample updateing flag
         inits = getInitVals(self.params)
-        
+
         code = ("%s = visual.EnvelopeGrating(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    carrier=%(carrier)s, mask=%(mask)s,\n" % inits +
@@ -209,7 +210,7 @@ class EnvGratingComponent(BaseVisualComponent):
                 "    texRes=%(texture resolution)s,\n" % inits +
                 "    envelope=%(envelope)s, envori=%(envori)s,\n" % inits +
                 "    envsf=%(envsf)s, envphase=%(envphase)s, moddepth=%(moddepth)s, blendmode=%(blendmode)s" %inits )
-                
+
         if self.params['beat'].val in ['Y','y','Yes', 'yes','True','true']:
             code += ", beat=True"
         elif self.params['beat'].val in ['N','n','No', 'no','False','false']:
@@ -263,7 +264,6 @@ class EnvGratingComponent(BaseVisualComponent):
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
 
-       
     def writeRoutineEndCode(self, buff):
         super(EnvGratingComponent, self).writeRoutineEndCode(buff)
         #if self.params['blendmode'].val!='default':

@@ -51,7 +51,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['tex'], categ="Grating")
+            label=_localized['tex'], categ="Advanced")
 
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
@@ -60,7 +60,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['mask'], categ="Grating")
+            label=_localized['mask'], categ="Advanced")
 
         msg = _translate("Spatial frequency of image repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
@@ -69,7 +69,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['sf'], categ="Grating")
+            label=_localized['sf'], categ="Advanced")
 
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
@@ -78,7 +78,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['phase'], categ="Grating")
+            label=_localized['phase'], categ="Advanced")
 
         msg = _translate(
             "Resolution of the texture for standard ones such as sin, sqr "
@@ -88,7 +88,7 @@ class GratingComponent(BaseVisualComponent):
             valType='code', allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['texture resolution'], categ="Grating")
+            label=_localized['texture resolution'], categ="Advanced")
 
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
@@ -96,13 +96,13 @@ class GratingComponent(BaseVisualComponent):
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['interpolate'], categ="Grating")
-            
-        msg = _translate("OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]")
+            label=_localized['interpolate'], categ="Advanced")
+
+        msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"
+                         " add is important to combine gratings)]")
         self.params['blendmode'] = Param(
-            blendmode, valType='str', allowedTypes=[],
+            blendmode, valType='str', allowedVals=['avg', 'add'],
             updates='constant',
-            allowedVals=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['blendmode'], categ="Basic")

@@ -25,8 +25,12 @@ PsychoPy 1.85.1
   * several problems with **sound**
     * pyo not loading #1365
     * searching for 'auto' instead of 'default' device #d54d14fe
+    * fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
   * textbox v textstim demo wasn't working #b2913c12476
   * error with colors when using TextStim with blendmode='add'
+  * errors in installer package:
+    * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
+    * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
 
 PsychoPy 1.85.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

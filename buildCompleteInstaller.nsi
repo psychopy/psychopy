@@ -85,7 +85,7 @@ Section "PsychoPy" SEC01
   SetOverwrite on
   ;AppDir is the path to the psychopy app folder
   Var /GLOBAL AppDir
-  StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${PRODUCT_VERSION}-py2.7.egg\psychopy\app"
+  StrCpy $AppDir "$INSTDIR\Lib\site-packages\psychopy\app"
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "C:\python27\*.*"
 ; avbin to system32
