@@ -791,7 +791,7 @@ class BuilderKeyResponse(object):
         self.clock = psychopy.core.Clock()  # we'll use this to measure the rt
 
 
-def clearEvents(eventType=None):
+def clearEvents(eventType=None, keyList=None, modifiers=None):
     """Clears all events currently in the event buffer.
 
     Optional argument, eventType, specifies only certain types to be
@@ -800,6 +800,11 @@ def clearEvents(eventType=None):
     :Parameters:
         eventType : **None**, 'mouse', 'joystick', 'keyboard'
             If this is not None then only events of the given type are cleared
+        keyList : **None** or []
+            Allows the user to specify a set of keys to remove from the
+            keyboard buffer. If the keyList is `None`, the buffer will be
+            cleared completely. This argument is unless `eventType
+
     """
     # pyglet
     if not havePygame or not display.get_init():
