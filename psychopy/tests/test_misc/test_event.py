@@ -174,17 +174,23 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
-    def test_waitKeys_clearBuffer_False(self):
+    def test_waitKeys_clearEvents_True(self):
+        key = 'x'
+        DelayedAddFakeKeysToBuffer(key).start()
+        key_events = event.waitKeys(clearEvents=True)
+        assert key_events == [key]
+
+    def test_waitKeys_clearEvents_False(self):
         keys = ['x', 'y', 'z']
         [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
          for key in keys]
 
-        key_events = event.waitKeys(keyList=keys[1:], clearBuffer=False)
+        key_events = event.waitKeys(keyList=keys[1:], clearEvents=False)
         assert 'x' not in key_events
         assert 'y' in key_events
         assert 'z' in key_events
 
-    def test_waitKeys_keyList_clearBuffer_True(self):
+    def test_waitKeys_keyList_clearEvents_True(self):
         """
         Only remove the keys specified in `keyList` from the keyboard buffer.
         We use DelayedAddFakeKeysToBuffer here to avoid having to call
@@ -196,7 +202,7 @@ class _baseTest(object):
         """
         keys = ['x', 'y', 'z']
         DelayedAddFakeKeysToBuffer(keys).start()
-        key_events = event.waitKeys(keyList=keys[:-1], clearBuffer=True)
+        key_events = event.waitKeys(keyList=keys[:-1], clearEvents=True)
 
         assert 'x' in key_events
         assert 'y' in key_events

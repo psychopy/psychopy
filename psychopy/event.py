@@ -351,7 +351,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
 
 
 def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
-             timeStamped=False, clearBuffer=True):
+             timeStamped=False, clearEvents=True):
     """Same as `~psychopy.event.getKeys`, but halts everything
     (including drawing) while awaiting input from keyboard.
 
@@ -375,7 +375,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
             keynames. Each tuple has (keyname, time). If a `core.Clock`
             is given then the time will be relative to the `Clock`'s last
             reset.
-        clearBuffer : **True** or False
+        clearEvents : **True** or False
             Whether to clear the keyboard buffer (and discard preceding
             keypresses) before starting to monitor for keypresses. If
             `keyList` is specified, only those keys are removed from the
@@ -384,9 +384,9 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     Returns None if times out.
 
     """
-    if clearBuffer:  # Only consider keypresses from here onwards.
+    if clearEvents:  # Only consider keypresses from here onwards.
         if not keyList:
-            clearEvents('keyboard')
+            globals()['clearEvents']('keyboard')
         else:
             getKeys(keyList=keyList)
 
