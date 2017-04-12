@@ -404,7 +404,7 @@ class Window(object):
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
-        self._refreshThreshold = 1 / 1.0  # initial val needed by flip()
+        self.refreshThreshold = 1 / 1.0  # initial val needed by flip()
 
         # over several frames with no drawing
         self._monitorFrameRate = None
@@ -414,9 +414,9 @@ class Window(object):
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
-            self._refreshThreshold = (1.0 / self._monitorFrameRate) * 1.2
+            self.refreshThreshold = (1.0 / self._monitorFrameRate) * 1.2
         else:
-            self._refreshThreshold = (1.0 / 60) * 1.2  # maybe a flat panel?
+            self.refreshThreshold = (1.0 / 60) * 1.2  # maybe a flat panel?
         openWindows.append(self)
 
         self.autoLog = autoLog
@@ -756,7 +756,7 @@ class Window(object):
                 self.recordFrameIntervalsJustTurnedOn = False
             else:  # past the first frame since turned on
                 self.frameIntervals.append(deltaT)
-                if deltaT > self._refreshThreshold:
+                if deltaT > self.refreshThreshold:
                     self.nDroppedFrames += 1
                     if self.nDroppedFrames < reportNDroppedFrames:
                         txt = 't of last frame was %.2fms (=1/%i)'
