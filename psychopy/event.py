@@ -386,6 +386,9 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     """
     if clearEvents:  # Only consider keypresses from here onwards.
         if not keyList:
+            # We need to invoke clearEvents(), but our keyword argument is
+            # also called clearEvents. We can work around this conflict by
+            # accessing the global scope explicitly.
             globals()['clearEvents']('keyboard')
         else:
             getKeys(keyList=keyList)
