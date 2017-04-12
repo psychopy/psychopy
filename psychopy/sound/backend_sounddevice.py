@@ -361,7 +361,7 @@ class SoundDeviceSound(_SoundBase):
         self.sampleRate = f.samplerate
         if self.channels == -1:  # if channels was auto then set to file val
             self.channels = f.channels
-        info = sf.info(filename)  # needed for duration?
+        fileDuration = float(len(f))/f.samplerate  # needed for duration?
         # process start time
         if self.startTime and self.startTime > 0:
             startFrame = self.startTime*self.sampleRate
@@ -372,10 +372,9 @@ class SoundDeviceSound(_SoundBase):
         # process stop time
         if self.stopTime and self.stopTime > 0:
             requestedDur = self.stopTime - self.t
-            maxDur = info.duration
-            self.duration = min(requestedDur, maxDur)
+            self.duration = min(requestedDur, fileDuration)
         else:
-            self.duration = info.duration - self.t
+            self.duration = fileDuration - self.t
         # can now calculate duration in frames
         self.durationFrames = int(round(self.duration*self.sampleRate))
         # are we preloading or streaming?
@@ -383,8 +382,8 @@ class SoundDeviceSound(_SoundBase):
             # no buffer - stream from disk on each call to nextBlock
             pass
         elif self.preBuffer == -1:
-            # no buffer - stream from disk on each call to nextBlock
-            sndArr = self.sndFile.read(frames=len(self.sndFile))
+            # full pre-buffer. Load requested duration to memory
+            sndArr = self.sndFile.read(frames=int(self.sampleRate*self.duration))
             self.sndFile.close()
             self._setSndFromArray(sndArr)
 
