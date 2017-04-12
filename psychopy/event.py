@@ -397,9 +397,11 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
     #
     # NB pygame.event does have a wait() function that will
     # do this and maybe leave more cpu idle time?
+
     timer = psychopy.core.Clock()
-    key = None
-    while key is None and timer.getTime() < maxWait:
+    got_keypress = False
+
+    while not got_keypress and timer.getTime() < maxWait:
         # Pump events on pyglet windows if they exist.
         if havePyglet:
             defDisplay = pyglet.window.get_platform().get_default_display()
@@ -409,12 +411,14 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
         # Get keypresses and return if anything is pressed.
         keys = getKeys(keyList=keyList, modifiers=modifiers,
                        timeStamped=timeStamped)
-        if len(keys):
-            return keys
+        if keys:
+            got_keypress = True
 
-    # If maxWait is exceeded (exits while-loop), return None
-    logging.data('No keypress (maxWait exceeded)')
-    return None
+    if got_keypress:
+        return keys
+    else:
+        logging.data('No keypress (maxWait exceeded)')
+        return None
 
 
 def xydist(p1=(0.0, 0.0), p2=(0.0, 0.0)):
