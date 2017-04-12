@@ -178,6 +178,7 @@ class _baseTest(object):
 
         assert 'x' in key_events
         assert 'y' in key_events
+        assert 'z' not in key_events
         assert 'z' in event.getKeys()
 
     def test_xydist(self):
