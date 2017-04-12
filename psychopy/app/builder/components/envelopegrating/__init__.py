@@ -184,7 +184,6 @@ class EnvGratingComponent(BaseVisualComponent):
         self.params['blendmode'] = Param(
             blendmode, valType='str', allowedVals=['avg', 'add'],
             updates='constant',
-            allowedVals=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['blendmode'], categ="Basic")
