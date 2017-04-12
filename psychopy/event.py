@@ -802,31 +802,34 @@ def clearEvents(eventType=None):
     :Parameters:
         eventType : **None**, 'mouse', 'joystick', 'keyboard'
             If this is not None then only events of the given type are cleared
+
     """
-    # pyglet
-    if not havePygame or not display.get_init():
-        # for each (pyglet) window, dispatch its events before checking event
-        # buffer
+    if not havePygame or not display.get_init():  # pyglet
+        # For each window, dispatch its events before
+        # checking event buffer.
         defDisplay = pyglet.window.get_platform().get_default_display()
         for win in defDisplay.get_windows():
             win.dispatch_events()  # pump events on pyglet windows
+
         if eventType == 'mouse':
-            return  # pump pyglet mouse events but don't flush keyboard buffer
-        global _keyBuffer
-        _keyBuffer = []
-    else:
-        # for pygame
-        if eventType == 'mouse':
-            junk = evt.get([locals.MOUSEMOTION, locals.MOUSEBUTTONUP,
-                            locals.MOUSEBUTTONDOWN])
-        elif eventType == 'keyboard':
-            junk = evt.get([locals.KEYDOWN, locals.KEYUP])
+            pass
         elif eventType == 'joystick':
-            junk = evt.get([locals.JOYAXISMOTION, locals.JOYBALLMOTION,
-                            locals.JOYHATMOTION, locals.JOYBUTTONUP,
-                            locals.JOYBUTTONDOWN])
+            pass
+        else:  # eventType='keyboard' or eventType=None.
+            global _keyBuffer
+            _keyBuffer = []
+    else:  # pygame
+        if eventType == 'mouse':
+            evt.get([locals.MOUSEMOTION, locals.MOUSEBUTTONUP,
+                     locals.MOUSEBUTTONDOWN])
+        elif eventType == 'keyboard':
+            evt.get([locals.KEYDOWN, locals.KEYUP])
+        elif eventType == 'joystick':
+            evt.get([locals.JOYAXISMOTION, locals.JOYBALLMOTION,
+                     locals.JOYHATMOTION, locals.JOYBUTTONUP,
+                     locals.JOYBUTTONDOWN])
         else:
-            junk = evt.get()
+            evt.get()
 
 
 class _GlobalEventKeys(MutableMapping):
