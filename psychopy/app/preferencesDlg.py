@@ -35,6 +35,8 @@ _localized = {
     'audioDriver': _translate("audio driver"),
     'flac': _translate('flac audio compression'),
     'parallelPorts': _translate("parallel ports"),
+    'shutdownKey': _translate("shutdown key"),
+    'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'showStartupTips': _translate("show start-up tips"),
     'largeIcons': _translate("large icons"),
     'defaultView': _translate("default view"),

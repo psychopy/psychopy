@@ -227,6 +227,7 @@ class TestPygletNorm(_baseTest):
         if havePygame:
             assert pygame.display.get_init() == 0
 
+
 class xxxTestPygameNorm(_baseTest):
     @classmethod
     def setup_class(self):
