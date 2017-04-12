@@ -109,14 +109,14 @@ class _baseTest(object):
         assert not event._keyBuffer
 
     def test_clearEvents_mouse(self):
-        """Keyboard buffer should not be affected
+        """Keyboard buffer should not be affected.
         """
         event._onPygletKey(symbol='x', modifiers=0, emulated=True)
         event.clearEvents('mouse')
         assert event._keyBuffer
 
     def test_clearEvents_joystick(self):
-        """Keyboard buffer should not be affected
+        """Keyboard buffer should not be affected.
         """
         event._onPygletKey(symbol='x', modifiers=0, emulated=True)
         event.clearEvents('joystick')
