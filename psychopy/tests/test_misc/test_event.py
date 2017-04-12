@@ -161,6 +161,25 @@ class _baseTest(object):
         assert 'y' in key_events
         assert 'z' in key_events
 
+    def test_waitKeys_keyList_clearBuffer_True(self):
+        """
+        Only remove the keys specified in `keyList` from the keyboard buffer.
+        """
+        keys = ['x', 'y', 'z']
+        [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
+         for key in keys]
+
+        key_thread_1 = DelayedFakeKey(keys[0])
+        key_thread_2 = DelayedFakeKey(keys[1])
+
+        key_thread_1.start()
+        key_thread_2.start()
+        key_events = event.waitKeys(keyList=keys[:-1], clearBuffer=True)
+
+        assert 'x' in key_events
+        assert 'y' in key_events
+        assert 'z' in event.getKeys()
+
     def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
