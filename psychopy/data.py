@@ -2936,11 +2936,12 @@ class StairHandler(_BaseTrialHandler):
         self._variableStep = True if len(self.stepSizes) > 1 else False
         self.stepSizeCurrent = self.stepSizes[0]
 
-        if nReversals is not None and len(self.stepSizes) > nReversals:
-            logging.warn(
-                "Increasing number of minimum required reversals to "
-                "the number of step sizes (%i)." % len(self.stepSizes)
-            )
+        if nReversals is None:
+            self.nReversals = len(self.stepSizes)
+        elif len(self.stepSizes) > nReversals:
+            msg = ('Increasing number of minimum required reversals to the '
+                   'number of step sizes, (%i).' % len(self.stepSizes))
+            logging.warn(msg)
             self.nReversals = len(self.stepSizes)
         else:
             self.nReversals = nReversals
