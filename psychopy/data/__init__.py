@@ -5,7 +5,7 @@ from distutils.version import StrictVersion
 
 from .base import DataHandler
 from .experiment import ExperimentHandler
-from .trial import TrialHandler, TrialHandler2, TrialHandlerExt
+from .trial import TrialHandler, TrialHandler2, TrialHandlerExt, TrialType
 from .staircase import (StairHandler, QuestHandler, PsiHandler,
                         MultiStairHandler)
 
