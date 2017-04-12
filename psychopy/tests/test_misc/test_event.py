@@ -24,6 +24,7 @@ import numpy as np
 
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
+
 class DelayedFakeKeys(threading.Thread):
     def __init__(self, keys, modifiers=0, delay=.01):
         threading.Thread.__init__(self, None, 'fake key', None)
@@ -38,6 +39,22 @@ class DelayedFakeKeys(threading.Thread):
         core.wait(self.delay)
         [event._onPygletKey(key, modifiers=self.modifiers, emulated=True)
          for key in self.keys]
+
+
+class DelayedAddFakeKeysToBuffer(threading.Thread):
+    def __init__(self, keys, modifiers=0, delay=.01):
+        threading.Thread.__init__(self, None, 'fake key', None)
+        if isinstance(keys, (str, unicode)):
+            self.keys = [keys]
+        else:
+            self.keys = keys
+        self.modifiers = modifiers
+        self.delay = delay
+
+    def run(self):
+        core.wait(self.delay)
+        fake_events = [(key, self.modifiers, -1) for key in self.keys]
+        event._keyBuffer.extend(fake_events)
 
 class _baseTest(object):
     #this class allows others to be created that inherit all the tests for
@@ -170,13 +187,15 @@ class _baseTest(object):
     def test_waitKeys_keyList_clearBuffer_True(self):
         """
         Only remove the keys specified in `keyList` from the keyboard buffer.
+        We use DelayedAddFakeKeysToBuffer here to avoid having to call
+        event._onPygletKey() multiple times, because waitKeys() constantly asks
+        pyglet to dispatch keyboard events and might start processing before we
+        have finished placing all of our fake keys in the buffer.
+        DelayedAddFakeKeysToBuffer, in contrast, puts all events into the buffer
+        _at once_, avoiding this sort of race condition.
         """
         keys = ['x', 'y', 'z']
-        [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
-         for key in keys]
-
-        key_thread = DelayedFakeKeys(keys[:1], delay=0.1)
-        key_thread.start()
+        DelayedAddFakeKeysToBuffer(keys).start()
         key_events = event.waitKeys(keyList=keys[:-1], clearBuffer=True)
 
         assert 'x' in key_events
