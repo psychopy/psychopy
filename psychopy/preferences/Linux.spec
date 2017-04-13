@@ -48,6 +48,9 @@
     flac = string(default='')
     # a list of parallel ports
     parallelPorts = list(default=list('/dev/parport0', '/dev/parport1'))
+    # Shutdown keys, following the pyglet naming scheme.
+    shutdownKey = string(default='')
+    shutdownKeyModifiers = list(default=list())
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

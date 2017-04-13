@@ -73,8 +73,8 @@ class _BaseTestStairHandler(object):
             # The first trial can never be a reversal.
             assert stairs.nReversals <= len(stairs.data) - 1
 
-            assert stairs.nReversals == len(stairs.reversalPoints)
-            assert stairs.nReversals == len(stairs.reversalIntensities)
+            assert len(stairs.reversalPoints) >= stairs.nReversals
+            assert len(stairs.reversalIntensities) >= stairs.nReversals
 
         if stairs.reversalPoints:
             assert stairs.reversalIntensities
@@ -307,6 +307,22 @@ class TestStairHandler(_BaseTestStairHandler):
         self.simulate()
         self.checkSimulationResults()
 
+    def test_nReversals(self):
+        start_val = 1
+        step_sizes = range(5)
+
+        staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
+                                      nReversals=None)
+        assert staircase.nReversals == len(step_sizes)
+
+        staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
+                                      nReversals=len(step_sizes) - 1)
+        assert staircase.nReversals == len(step_sizes)
+
+        staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
+                                      nReversals=len(step_sizes) + 1)
+        assert staircase.nReversals == len(step_sizes) + 1
+
 
 class TestQuestHandler(_BaseTestStairHandler):
     """
@@ -329,6 +345,8 @@ class TestQuestHandler(_BaseTestStairHandler):
             gamma=gamma, delta=delta, grain=grain, range=range,
             minVal=minVal, maxVal=maxVal
         )
+
+        self.stairs.nReversals = None
 
         self.responses = makeBasicResponseCycles(
             cycles=3, nCorrect=2, nIncorrect=2, length=10

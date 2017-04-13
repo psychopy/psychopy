@@ -12,17 +12,14 @@ PsychoPy is unique in giving you a choice of interface: use the **Builder interf
 News
 ====================
 
-**Workshops**: This year we'll be running **three** :ref:`officialWorkshops` :
+**Workshops**: Time is running out to book onto our **three** :ref:`officialWorkshops` :
  - 26-28 Apr 2017: :ref:`PEP1` to get skills in programming, rather than running experiments *per se*
 
  - 3-5 May 2017: :ref:`BEP` to get up and running fast with building flexible experiments **including a session on running ONLINE PsychoPy studies**
 
- - (Date TBC): :ref:`PEP2`
+ - 12-14 July 2017: :ref:`PEP2` to write better Python code: more reusable, better timed, just better!
 
-**Latest version**: 1.84.2 was released Sept 2016, with new *Projects* menu for syncing with http://osf.io. Also various bug fixes and updated standalone packages. See the full :doc:`changelog`
-
-**We've got a new forum**: To discuss anything PsychoPy (features, bugs, tips or
-announcements) go to the new `PsychoPy forum <http://discourse.psychopy.org>`_ Many thanks to the good people at `Discourse.org <http://www.discourse.org>`_ for creating such lovely software and hosting it for us!
+**Latest version**: 1.85.0 was released Feb 2017 with initial proof-of-concept of online experiments. Beware - these are bound to be buggy so only use if you know what you're doing. And :ref:`READ THE DOCS <online>`. See the full :doc:`changelog`
 
 .. title:: Home
 

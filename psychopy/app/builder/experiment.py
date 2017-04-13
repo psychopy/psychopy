@@ -675,7 +675,7 @@ class Experiment(object):
             :return: dict of 'asb' and 'rel' paths or None
             """
             thisFile={}
-            if filePath[0] == "/" or filePath[1]==":":
+            if len(filePath)>2 and (filePath[0] == "/" or filePath[1]==":"):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
             else:
@@ -708,13 +708,15 @@ class Experiment(object):
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in thisCond.items():
-                    if isinstance(val, basestring):
-                        thisFile = getPaths(val)
-                    if thisFile:
-                        paths.append(thisFile)
-                        # if it's a possible condidtions file then recursive
+                    if isinstance(val, basestring) and len(val):
+                        subFile = getPaths(val)
+                    else:
+                        subFile = None
+                    if subFile:
+                        paths.append(subFile)
+                        # if it's a possible conditions file then recursive
                         if thisFile['abs'][-4:] in ["xlsx", ".csv"]:
-                            contained = findPathsInFile(thisFile['abs'])
+                            contained = findPathsInFile(subFile['abs'])
                             paths.extend(contained)
             return paths
 
@@ -1819,14 +1821,14 @@ class Flow(list):
                             "flowScheduler.add({params[name]}RoutineEnd);\n"
                             .format(params=thisEntry.params))
             else:  # we are already in a loop so don't code here just count
-                code =""
+                code = ""
                 if thisEntry.getType() == 'LoopInitiator':
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == 'LoopTerminator':
                     loopStack.remove(thisEntry.loop)
-            # also flow should close when done
-            code += "flowScheduler.add(quitPsychoJS);\n"
             script.writeIndentedLines(code)
+        # quit when all routines are finished
+        script.writeIndented("flowScheduler.add(quitPsychoJS);\n")
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS);\n"
@@ -2156,7 +2158,7 @@ class Routine(list):
 
         code = ("//------Ending Routine '{name}'-------\n"
                 "for (var i = 0; i < {name}Components.length; ++i) {{\n"
-                '  thisComponent = trialComponents[i];\n'
+                '  thisComponent = {name}Components[i];\n'
                 '  if ("setAutoDraw" in thisComponent) {{\n'
                 "    thisComponent.setAutoDraw(false);\n"
                 "  }}\n"

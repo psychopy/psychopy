@@ -1,5 +1,5 @@
 rem build simple distributions
-python setup.py bdist_egg
+rem python setup.py bdist_egg
 rem python setup.py sdist --formats=zip
 rem python setup.py bdist_wininst --install-script=psychopy_post_inst.py
 

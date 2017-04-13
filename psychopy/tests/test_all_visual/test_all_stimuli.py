@@ -14,6 +14,7 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
+_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -76,8 +77,7 @@ class _baseVisualTest(object):
             str(stim) #check that str(xxx) is working
     def test_imageAndGauss(self):
         win = self.win
-        incorrectName = 'testimage.tif'  # should correctly find testImage.jpg
-        fileName = os.path.join(utils.TESTS_DATA_PATH, incorrectName)
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
         #use image stim
         size = numpy.array([2.0,2.0])*self.scaleFactor
         image = visual.ImageStim(win, image=fileName, mask='gauss',
@@ -98,6 +98,34 @@ class _baseVisualTest(object):
         image.draw()
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
+    def test_envelopeGratingAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
+                                        ori=-45,envsf=sf/2,envori=45,envphase=90,moddepth=0.5,contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            str(image)
+    def test_envelopeBeatAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
+                                        ori=-45,envsf=sf/2,envori=45,envphase=90,beat=True,moddepth=0.5,contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('beatandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            str(image)
     def test_numpyFilterMask(self):
         """if the mask is passed in as a numpy array it goes through a different
         set of rules when turned into a texture. But the outcome should be as above
@@ -250,6 +278,24 @@ class _baseVisualTest(object):
         str(stim) #check that str(xxx) is working
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
+
+    def test_text_with_add(self):
+        # pyglet text will reset the blendMode to 'avg' so check that we are
+        # getting back to 'add' if we want it
+        win = self.win
+        text = visual.TextStim(win, pos=[0, 0.9])
+        grat1 = visual.GratingStim(win, size=2*self.scaleFactor,
+                                   opacity=0.5,
+                                   pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
+        grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
+                                   opacity=0.5,
+                                   pos=[-0.3,0.0], ori=-45, sf=2*self.scaleFactor)
+
+        text.draw()
+        grat1.draw()
+        grat2.draw()
+        utils.skip_under_travis()
+        utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
 
     @pytest.mark.needs_sound
     def test_mov(self):
@@ -468,7 +514,7 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win, crit=30)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
         if self.win.winType=='pygame':
@@ -499,6 +545,13 @@ class TestPygletNorm(_baseVisualTest):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
+if not _travisTesting:
+    class TestPygletBlendAdd(_baseVisualTest):
+        @classmethod
+        def setup_class(self):
+            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+            self.contextName='normAddBlend'
+            self.scaleFactor=1#applied to size/pos values
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
@@ -621,7 +674,7 @@ class TestPygletDegFlatPos(_baseVisualTest):
 #
 
 if __name__ == '__main__':
-    cls = TestPygletCm()
+    cls = TestPygletDegFlatPos()
     cls.setup_class()
     cls.test_radial()
     cls.teardown_class()

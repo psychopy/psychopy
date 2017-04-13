@@ -218,7 +218,7 @@ class Window(object):
             multiSample : True or *False*
                 If True and your graphics driver supports multisample buffers,
                 multiple color samples will be taken per-pixel, providing an
-                anti-aliased image through spatial filtering. 
+                anti-aliased image through spatial filtering.
                 (Cannot be changed after opening a window, pyglet only)
             numSamples : *2* or integer >2
                 A single value specifying the number of samples per pixel if
@@ -404,7 +404,7 @@ class Window(object):
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
-        self._refreshThreshold = 1 / 1.0  # initial val needed by flip()
+        self.refreshThreshold = 1 / 1.0  # initial val needed by flip()
 
         # over several frames with no drawing
         self._monitorFrameRate = None
@@ -414,9 +414,9 @@ class Window(object):
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
-            self._refreshThreshold = (1.0 / self._monitorFrameRate) * 1.2
+            self.refreshThreshold = (1.0 / self._monitorFrameRate) * 1.2
         else:
-            self._refreshThreshold = (1.0 / 60) * 1.2  # maybe a flat panel?
+            self.refreshThreshold = (1.0 / 60) * 1.2  # maybe a flat panel?
         openWindows.append(self)
 
         self.autoLog = autoLog
@@ -756,7 +756,7 @@ class Window(object):
                 self.recordFrameIntervalsJustTurnedOn = False
             else:  # past the first frame since turned on
                 self.frameIntervals.append(deltaT)
-                if deltaT > self._refreshThreshold:
+                if deltaT > self.refreshThreshold:
                     self.nDroppedFrames += 1
                     if self.nDroppedFrames < reportNDroppedFrames:
                         txt = 't of last frame was %.2fms (=1/%i)'
@@ -1014,7 +1014,7 @@ class Window(object):
                 numpyFrames.append(numpy.array(frame))
             clip = ImageSequenceClip(numpyFrames, fps=fps)
             if fileExt == '.gif':
-                clip.write_gif(fileName, fps=15)
+                clip.write_gif(fileName, fps=fps, fuzz=0, opt='nq')
             else:
                 clip.write_videofile(fileName, codec=codec)
         elif len(self.movieFrames) == 1:
@@ -1398,7 +1398,7 @@ class Window(object):
                             'card does not appear to support GL_STEREO')
             self.stereo = False
 
-        # multisampling 
+        # multisampling
         sample_buffers = 0
         aa_samples = 0
 

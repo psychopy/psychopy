@@ -28,7 +28,8 @@ Basic Concepts
    codeStimuli
    codeLogging
    code*
-	
+   globalKeys
+
 .. _tutorials:
 
 PsychoPy Tutorials

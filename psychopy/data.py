@@ -2936,11 +2936,12 @@ class StairHandler(_BaseTrialHandler):
         self._variableStep = True if len(self.stepSizes) > 1 else False
         self.stepSizeCurrent = self.stepSizes[0]
 
-        if nReversals is not None and len(self.stepSizes) > nReversals:
-            logging.warn(
-                "Increasing number of minimum required reversals to "
-                "the number of step sizes (%i)." % len(self.stepSizes)
-            )
+        if nReversals is None:
+            self.nReversals = len(self.stepSizes)
+        elif len(self.stepSizes) > nReversals:
+            msg = ('Increasing number of minimum required reversals to the '
+                   'number of step sizes, (%i).' % len(self.stepSizes))
+            logging.warn(msg)
             self.nReversals = len(self.stepSizes)
         else:
             self.nReversals = nReversals
@@ -3464,8 +3465,8 @@ class QuestHandler(StairHandler):
         # create staircase object
         # trying to find out the point where subject's response is 50 / 50
         # if wanted to do a 2AFC then the defaults for pThreshold and gamma
-        # are good
-        staircase = data.QuestHandler(staircase._nextIntensity, 0.2,
+        # are good. As start value, we'll use 50% contrast, with SD = 20%
+        staircase = data.QuestHandler(0.5, 0.2,
             pThreshold=0.63, gamma=0.01,
             nTrials=20, minVal=0, maxVal=1)
         ...

@@ -220,6 +220,25 @@ class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.
     Any values changed by the user are change (in-place) by this
     dialogue box.
+
+    Parameters
+    ----------
+
+    sort_keys : bool
+        Whether the dictionary keys should be ordered alphabetically
+        for displaying.
+
+    copy_dict : bool
+        If False, modify ``dictionary`` in-place. If True, a copy of
+        the dictionary is created, and the altered version (after
+        user interaction) can be retrieved from
+        :attr:~`psychopy.gui.DlgFromDict.dictionary`.
+
+    show : bool
+        Whether to immediately display the dialog upon instantiation.
+         If False, it can be displayed at a later time by calling
+         its `show()` method.
+
     e.g.:
 
     ::
@@ -244,17 +263,35 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=(), order=(), tip=None):
-        Dlg.__init__(self, title)
+    def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
+                 sort_keys=True, copy_dict=False, show=True):
+        # We don't explicitly check for None identity
+        # for backward-compatibility reasons.
+        if not fixed:
+            fixed = []
+        if not order:
+            order = []
+        if not tip:
+            tip = dict()
+
         # app = ensureWxApp() done by Dlg
-        self.dictionary = dictionary
-        keys = self.dictionary.keys()
-        keys.sort()
-        tip = tip or {}
-        if len(order):
-            keys = order + list(set(keys).difference(set(order)))
-        types = dict([])
-        for field in keys:
+        Dlg.__init__(self, title)
+
+        if copy_dict:
+            self.dictionary = dictionary.copy()
+        else:
+            self.dictionary = dictionary
+
+        self._keys = self.dictionary.keys()
+
+        if sort_keys:
+            self._keys.sort()
+        if order:
+            self._keys = list(order) + list(set(self._keys).difference(set(order)))
+
+        types = dict()
+
+        for field in self._keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''
             if field in tip.keys():
@@ -266,10 +303,16 @@ class DlgFromDict(Dlg):
                               tip=tooltip)
             else:
                 self.addField(field, self.dictionary[field], tip=tooltip)
-        # show it and collect data
+
+        if show:
+            self.show()
+
+    def show(self):
+        """Display the dialog.
+        """
         self.show()
         if self.OK:
-            for n, thisKey in enumerate(keys):
+            for n, thisKey in enumerate(self._keys):
                 self.dictionary[thisKey] = self.data[n]
 
 

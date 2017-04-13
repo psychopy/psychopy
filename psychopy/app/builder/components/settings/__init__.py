@@ -352,9 +352,9 @@ class SettingsComponent(object):
         osfDataFolder = 'data'
         # is email a defined parameter for this version
         if 'email' in self.params:
-            email = str(self.params['email'])
+            email = repr(self.params['email'].val)
         else:
-            email = ''
+            email = "''"
         if projLabel in projectCatalog:  # this is the psychopy  descriptive label (id+title)
             proj = projectCatalog[projLabel]
             osfID = proj.osf.id

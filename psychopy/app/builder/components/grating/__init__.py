@@ -17,6 +17,7 @@ _localized = {'tex': _translate('Texture'),
               'sf': _translate('Spatial frequency'),
               'phase': _translate('Phase (in cycles)'),
               'texture resolution': _translate('Texture resolution'),
+              'blendmode':_translate('OpenGL blend mode'),
               'interpolate': _translate('Interpolate')}
 
 
@@ -28,7 +29,7 @@ class GratingComponent(BaseVisualComponent):
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
                  pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
                  startType='time (s)', startVal=0.0,
-                 stopType='duration (s)', stopVal=1.0,
+                 stopType='duration (s)', stopVal=1.0, blendmode='avg',
                  startEstim='', durationEstim=''):
         super(GratingComponent, self).__init__(
             exp, parentName, name=name, units=units,
@@ -50,7 +51,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['tex'], categ="Grating")
+            label=_localized['tex'], categ="Advanced")
 
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
@@ -59,7 +60,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['mask'], categ="Grating")
+            label=_localized['mask'], categ="Advanced")
 
         msg = _translate("Spatial frequency of image repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
@@ -68,7 +69,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['sf'], categ="Grating")
+            label=_localized['sf'], categ="Advanced")
 
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
@@ -77,7 +78,7 @@ class GratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['phase'], categ="Grating")
+            label=_localized['phase'], categ="Advanced")
 
         msg = _translate(
             "Resolution of the texture for standard ones such as sin, sqr "
@@ -87,7 +88,7 @@ class GratingComponent(BaseVisualComponent):
             valType='code', allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['texture resolution'], categ="Grating")
+            label=_localized['texture resolution'], categ="Advanced")
 
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
@@ -95,7 +96,16 @@ class GratingComponent(BaseVisualComponent):
             interpolate, valType='str', allowedVals=['linear', 'nearest'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['interpolate'], categ="Grating")
+            label=_localized['interpolate'], categ="Advanced")
+
+        msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"
+                         " add is important to combine gratings)]")
+        self.params['blendmode'] = Param(
+            blendmode, valType='str', allowedVals=['avg', 'add'],
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['blendmode'], categ="Basic")
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -112,7 +122,7 @@ class GratingComponent(BaseVisualComponent):
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
                 "sf=%(sf)s, phase=%(phase)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,\n" % inits +
+                "opacity=%(opacity)s,blendmode=%(blendmode)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
 
