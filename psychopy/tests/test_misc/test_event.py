@@ -24,14 +24,37 @@ import numpy as np
 
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
-class DelayedFakeKey(threading.Thread):
-    def __init__(self, key, delay=.01):
+
+class DelayedFakeKeys(threading.Thread):
+    def __init__(self, keys, modifiers=0, delay=.01):
         threading.Thread.__init__(self, None, 'fake key', None)
-        self.key = key
+        if isinstance(keys, (str, unicode)):
+            self.keys = [keys]
+        else:
+            self.keys = keys
+        self.modifiers = modifiers
         self.delay = delay
+
     def run(self):
         core.wait(self.delay)
-        event._onPygletKey(symbol=self.key, modifiers=0, emulated=True)
+        [event._onPygletKey(key, modifiers=self.modifiers, emulated=True)
+         for key in self.keys]
+
+
+class DelayedAddFakeKeysToBuffer(threading.Thread):
+    def __init__(self, keys, modifiers=0, delay=.01):
+        threading.Thread.__init__(self, None, 'fake key', None)
+        if isinstance(keys, (str, unicode)):
+            self.keys = [keys]
+        else:
+            self.keys = keys
+        self.modifiers = modifiers
+        self.delay = delay
+
+    def run(self):
+        core.wait(self.delay)
+        fake_events = [(key, self.modifiers, -1) for key in self.keys]
+        event._keyBuffer.extend(fake_events)
 
 class _baseTest(object):
     #this class allows others to be created that inherit all the tests for
@@ -154,21 +177,47 @@ class _baseTest(object):
 
             # waitKeys implicitly clears events, so use a thread to add a delayed key press
             assert event.waitKeys(maxWait=-1) is None
-            keyThread = DelayedFakeKey(k)
+            keyThread = DelayedFakeKeys(k)
             keyThread.start()
             assert event.waitKeys(maxWait=.1) == [k]
-            keyThread = DelayedFakeKey(k)
+            keyThread = DelayedFakeKeys(k)
             keyThread.start()
             assert event.waitKeys(maxWait=.1, keyList=[k]) == [k]
 
             # test time-stamped waitKeys
             c = core.Clock()
             delay=0.01
-            keyThread = DelayedFakeKey(k, delay=delay)
+            keyThread = DelayedFakeKeys(k, delay=delay)
             keyThread.start()
             result = event.waitKeys(maxWait=.1, keyList=[k], timeStamped=c)
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
+
+    def test_waitKeys_clearEvents_True(self):
+        key = 'x'
+        DelayedAddFakeKeysToBuffer(key).start()
+        key_events = event.waitKeys(clearEvents=True)
+        assert key_events == [key]
+
+    def test_waitKeys_clearEvents_False(self):
+        keys = ['x', 'y', 'z']
+        [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
+         for key in keys]
+
+        key_events = event.waitKeys(keyList=keys[1:], clearEvents=False)
+        assert 'x' not in key_events
+        assert 'y' in key_events
+        assert 'z' in key_events
+
+    def test_waitKeys_keyList_clearEvents_True(self):
+        keys = ['x', 'y', 'z']
+        DelayedAddFakeKeysToBuffer(keys).start()
+        key_events = event.waitKeys(keyList=keys[:-1], clearEvents=True)
+
+        assert 'x' in key_events
+        assert 'y' in key_events
+        assert 'z' not in key_events
+        assert 'z' in event.getKeys()
 
     def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
