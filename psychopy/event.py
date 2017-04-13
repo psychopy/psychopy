@@ -376,22 +376,18 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
             is given then the time will be relative to the `Clock`'s last
             reset.
         clearEvents : **True** or False
-            Whether to clear the keyboard buffer (and discard preceding
-            keypresses) before starting to monitor for keypresses. If
-            `keyList` is specified, only those keys are removed from the
-            keyboard buffer.
+            Whether to clear the keyboard event buffer (and discard preceding
+            keypresses) before starting to monitor for new keypresses.
 
     Returns None if times out.
 
     """
-    if clearEvents:  # Only consider keypresses from here onwards.
-        if not keyList:
-            # We need to invoke clearEvents(), but our keyword argument is
-            # also called clearEvents. We can work around this conflict by
-            # accessing the global scope explicitly.
-            globals()['clearEvents']('keyboard')
-        else:
-            getKeys(keyList=keyList)
+    if clearEvents:
+        # Only consider keypresses from here onwards.
+        # We need to invoke clearEvents(), but our keyword argument is
+        # also called clearEvents. We can work around this conflict by
+        # accessing the global scope explicitly.
+        globals()['clearEvents']('keyboard')
 
     # Check for keypresses until maxWait is exceeded
     #

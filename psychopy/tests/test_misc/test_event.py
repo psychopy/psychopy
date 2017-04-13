@@ -191,15 +191,6 @@ class _baseTest(object):
         assert 'z' in key_events
 
     def test_waitKeys_keyList_clearEvents_True(self):
-        """
-        Only remove the keys specified in `keyList` from the keyboard buffer.
-        We use DelayedAddFakeKeysToBuffer here to avoid having to call
-        event._onPygletKey() multiple times, because waitKeys() constantly asks
-        pyglet to dispatch keyboard events and might start processing before we
-        have finished placing all of our fake keys in the buffer.
-        DelayedAddFakeKeysToBuffer, in contrast, puts all events into the buffer
-        _at once_, avoiding this sort of race condition.
-        """
         keys = ['x', 'y', 'z']
         DelayedAddFakeKeysToBuffer(keys).start()
         key_events = event.waitKeys(keyList=keys[:-1], clearEvents=True)
