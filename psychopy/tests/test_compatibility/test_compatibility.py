@@ -9,7 +9,9 @@ fixtures_path = os.path.join(thisPath,'..','data')
 class _baseCompatibilityTest(object):
     def test_FromFile(self):
         dat = compatibility.fromFile(self.test_psydat)
-        assert str(dat.__class__) == self.test_class
+        # assert str(dat.__class__) == self.test_class
+        assert (str(dat.__class__).split('.')[-1] ==
+                self.test_class.split('.')[-1])
 
 class TestOldTrialHandler(_baseCompatibilityTest):
     '''Test Old Trial Handler'''
