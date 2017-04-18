@@ -41,6 +41,7 @@ _packagePath = path.split(__file__)[0]
 CRITICAL = 50
 FATAL = CRITICAL
 ERROR = 40
+DEPRECATION = ERROR
 WARNING = 30
 WARN = WARNING
 DATA = 25  # will be a custom level
@@ -52,14 +53,15 @@ NOTSET = 0
 _levelNames = {
     CRITICAL: 'CRITICAL',
     ERROR: 'ERROR',
+    WARNING: 'WARNING',
     DATA: 'DATA',
     EXP: 'EXP',
-    WARNING: 'WARNING',
     INFO: 'INFO',
     DEBUG: 'DEBUG',
     NOTSET: 'NOTSET',
     'CRITICAL': CRITICAL,
     'ERROR': ERROR,
+    'DEPRECATION': DEPRECATION,
     'DATA': DATA,
     'EXP': EXP,
     'WARN': WARNING,
