@@ -139,7 +139,7 @@ if hasattr(backend, 'defaultOutput'):
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
         devNames = backend.getDevices(kind='output').keys()
-        logging.error("Requested audio device '{}' that is not available on "
+        logging.error(u"Requested audio device '{}' that is not available on "
                         "this hardware. The 'audioDevice' preference should be one of "
                         "{}".format(dev, devNames))
     else:
