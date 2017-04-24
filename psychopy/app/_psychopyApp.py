@@ -431,9 +431,9 @@ class PsychoPyApp(wx.App):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
-        from psychopy.app import builder
+        from psychopy.app.builder.builder import BuilderFrame
         title = "PsychoPy2 Experiment Builder (v%s)"
-        thisFrame = builder.BuilderFrame(None, -1,
+        thisFrame = BuilderFrame(None, -1,
                                          title=title % self.version,
                                          fileName=fileName, app=self)
         thisFrame.Show(True)
