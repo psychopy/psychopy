@@ -5,7 +5,7 @@ Created on Sun Nov 10 12:18:45 2013
 @author: Sol
 """
 
-from __future__ import print_function
+
 import os
 import math
 import numpy as np
@@ -14,7 +14,7 @@ from matplotlib import font_manager
 from psychopy.core import getTime
 
 try:
-    from textureatlas import TextureAtlas
+    from .textureatlas import TextureAtlas
 except Exception as e:
     print('error importing TextureAtlas:', e)
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
@@ -76,7 +76,7 @@ class FontManager(object):
     def getFontFamilyNames(self):
         """Returns a list of the available font family names.
         """
-        return self._available_font_info.keys()
+        return list(self._available_font_info.keys())
 
     def getFontStylesForFamily(self, family_name):
         """For the given family_name, a list of style names supported is
@@ -84,7 +84,7 @@ class FontManager(object):
         """
         style_dict = self._available_font_info.get(family_name)
         if style_dict:
-            return style_dict.keys()
+            return list(style_dict.keys())
 
     def getFontFamilyStyles(self):
         """Returns a list where each element of the list is a itself a
@@ -102,9 +102,9 @@ class FontManager(object):
         style_dict = self._available_font_info.get(font_family_name)
         if style_dict is None:
             return None
-        if font_style and font_style in style_dict.keys():
+        if font_style and font_style in list(style_dict.keys()):
             return style_dict[font_style]
-        for style, fonts in style_dict.iteritems():
+        for style, fonts in style_dict.items():
             b, i = self.booleansFromStyleName(style)
             if b == bold and i == italic:
                 return fonts
@@ -307,7 +307,7 @@ class FontInfo(object):
 
     def asdict(self):
         d = {}
-        for k, v in self.__dict__.iteritems():
+        for k, v in self.__dict__.items():
             if k[0] != '_':
                 d[k] = v
         return d
@@ -381,9 +381,9 @@ class MonospaceFontAtlas(object):
         charcode, gindex = face.get_first_char()
 
         while gindex:
-            uchar = unichr(charcode)
-            if ud.category(uchar) not in (u'Zl', u'Zp', u'Cc', u'Cf',
-                                          u'Cs', u'Co', u'Cn'):
+            uchar = chr(charcode)
+            if ud.category(uchar) not in ('Zl', 'Zp', 'Cc', 'Cf',
+                                          'Cs', 'Co', 'Cn'):
                 self.charcode2unichr[charcode] = uchar
                 face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT)
                 bitmap = face.glyph.bitmap
@@ -441,7 +441,7 @@ class MonospaceFontAtlas(object):
         display_lists_for_chars = {}
 
         base = glGenLists(glyph_count)
-        for i, (charcode, glyph) in enumerate(self.charcode2glyph.iteritems()):
+        for i, (charcode, glyph) in enumerate(self.charcode2glyph.items()):
             dl_index = base + i
             uchar = self.charcode2unichr[charcode]
 
@@ -454,7 +454,7 @@ class MonospaceFontAtlas(object):
             glyph['texcoords'] = [gx1, gy1, gx2, gy2]
 
             glNewList(dl_index, GL_COMPILE)
-            if uchar not in [u'\t', u'\n']:
+            if uchar not in ['\t', '\n']:
                 glBegin(GL_QUADS)
                 x1 = glyph['offset'][0]
                 x2 = x1 + glyph['size'][0]
@@ -477,7 +477,7 @@ class MonospaceFontAtlas(object):
         if file_name is None:
             import os
             file_name = os.path.join(os.getcwd(),
-                                     self.getID().lower().replace(u' ', u'_') + '.png')
+                                     self.getID().lower().replace(' ', '_') + '.png')
         from scipy import misc
         if self.atlas is None:
             self.loadAtlas()

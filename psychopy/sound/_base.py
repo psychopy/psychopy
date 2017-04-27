@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import division
+
 import numpy
 import copy
 from os import path
@@ -157,7 +157,7 @@ class _SoundBase(object):
                 msg = 'Sound: bad requested frequency %.0f'
                 raise ValueError(msg % value)
             self._setSndFromFreq(value, secs, hamming=hamming)
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             if value.capitalize() in knownNoteNames:
                 self._setSndFromNote(value.capitalize(), secs, octave,
                                      hamming=hamming)
@@ -174,7 +174,7 @@ class _SoundBase(object):
                         break
                 if self.fileName is None:
                     msg = "setSound: could not find a sound file named "
-                    raise ValueError, msg + value
+                    raise ValueError(msg + value)
                 else:
                     self._setSndFromFile(p)
         elif type(value) in [list, numpy.ndarray]:

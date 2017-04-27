@@ -23,10 +23,10 @@ XINPUT_USE_9_1_0 = False
 
 if XINPUT_USE_9_1_0 is False:
     XINPUT_DLL_A  = "xinput1_3"
-    XINPUT_DLL_W = u"xinput1_3"
+    XINPUT_DLL_W = "xinput1_3"
 else:
     XINPUT_DLL_A = "xinput9_1_0"
-    XINPUT_DLL_W = u"xinput9_1_0"
+    XINPUT_DLL_W = "xinput9_1_0"
 
 if UNICODE:
     XINPUT_DLL = XINPUT_DLL_W
@@ -321,14 +321,14 @@ class XINPUT_STATE(ctypes.Structure):
                 
 
     def printState(self):
-        print "XINPUT_GAMEPAD (packet %d):"%(self.dwPacketNumber)
-        print "\twButtons: ",self.Gamepad.wButtons
-        print "\tbLeftTrigger: ",self.Gamepad.bLeftTrigger
-        print "\tbRightTrigger: ",self.Gamepad.bRightTrigger
-        print "\tsThumbLX: ",self.Gamepad.sThumbLX
-        print "\tsThumbLY: ",self.Gamepad.sThumbLY
-        print "\tsThumbRX: ",self.Gamepad.sThumbRX
-        print "\tsThumbRY: ",self.Gamepad.sThumbRY
+        print("XINPUT_GAMEPAD (packet %d):"%(self.dwPacketNumber))
+        print("\twButtons: ",self.Gamepad.wButtons)
+        print("\tbLeftTrigger: ",self.Gamepad.bLeftTrigger)
+        print("\tbRightTrigger: ",self.Gamepad.bRightTrigger)
+        print("\tsThumbLX: ",self.Gamepad.sThumbLX)
+        print("\tsThumbLY: ",self.Gamepad.sThumbLY)
+        print("\tsThumbRX: ",self.Gamepad.sThumbRX)
+        print("\tsThumbRY: ",self.Gamepad.sThumbRY)
         
 #
 # XINPUT_VIBRATION

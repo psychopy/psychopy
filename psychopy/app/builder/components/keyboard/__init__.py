@@ -210,7 +210,7 @@ class KeyboardComponent(BaseComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyListStr = "keyList=%s" % repr(keyList)
 
@@ -348,7 +348,7 @@ class KeyboardComponent(BaseComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyListStr = "{keyList:%s}" % repr(keyList)
 

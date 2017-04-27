@@ -2,19 +2,19 @@ __author__ = 'Sol'
 
 # labjack python does not come as a module, so like psychopy does, this is the ioHub wrapper of it.
 
-import LabJackPython
-import Modbus
+from . import LabJackPython
+from . import Modbus
 
 try:
-    import skymote
+    from . import skymote
 except Exception:
     pass
 
 try:
-    import u12
+    from . import u12
 except Exception:
     pass
 
-import u6
+from . import u6
 
-import ue9
+from . import ue9

@@ -29,7 +29,7 @@ Typical usage::
         win.flip()  # flipping implicitly updates the joystick info
 """
 
-from __future__ import absolute_import
+
 
 try:
     import pygame.joystick

@@ -49,7 +49,7 @@ run tests with:
 
 '''
 
-from __future__ import print_function
+
 import sys
 import numpy
 
@@ -174,7 +174,7 @@ def _get_tap(baseVal, powerVal):
             tap = [[1,1]]
     
     if not tap:
-        raise ValueError, 'M-sequence %.0f^%.0f is not defined by this function' % (baseVal, powerVal)
+        raise ValueError('M-sequence %.0f^%.0f is not defined by this function' % (baseVal, powerVal))
     
     return tap
 
@@ -219,15 +219,15 @@ def _center(ms, baseVal):
     if baseVal == 2:     
         ms = ms * 2 - 1
     elif baseVal == 3: 
-        ms = map(lambda x: -1 if x == 2 else x, ms)
+        ms = [-1 if x == 2 else x for x in ms]
     elif baseVal == 5: 
-        ms = map(lambda x: -1 if x == 4 else x, ms)
-        ms = map(lambda x: -2 if x == 3 else x, ms)
+        ms = [-1 if x == 4 else x for x in ms]
+        ms = [-2 if x == 3 else x for x in ms]
     else: # baseVal == 9:
-        ms = map(lambda x: -1 if x == 5 else x, ms)
-        ms = map(lambda x: -2 if x == 6 else x, ms)
-        ms = map(lambda x: -3 if x == 7 else x, ms)
-        ms = map(lambda x: -4 if x == 8 else x, ms)
+        ms = [-1 if x == 5 else x for x in ms]
+        ms = [-2 if x == 6 else x for x in ms]
+        ms = [-3 if x == 7 else x for x in ms]
+        ms = [-4 if x == 8 else x for x in ms]
     
     return ms
 
@@ -237,7 +237,7 @@ def _test():
     prints the first 10 items of the sequence, to allow checking against other implementations.
     """
     print('testing 2,3,5:')
-    powers = {2:range(2,9), 3:range(2,8), 5:range(2,5), 9:[2]}
+    powers = {2:list(range(2,9)), 3:list(range(2,8)), 5:list(range(2,5)), 9:[2]}
     for base in [2,3,5]:
         for power in powers[base]:
             tap = _get_tap(base, power)
@@ -251,7 +251,7 @@ def _test():
                     if seq_len > 10:
                         autocorr_first10 = [numpy.corrcoef(ms, numpy.append(ms[i:], ms[:i]))[1][0] for i in range(1,10)]
                         # for base 3, autocorrelation at offset seq_len / 2 is perfectly correlated
-                        max_abs_auto = max(map(abs, autocorr_first10))
+                        max_abs_auto = max(list(map(abs, autocorr_first10)))
                         print("max_abs_autocorr_first10=%.4f < 1/(len-2)" % max_abs_auto)
                         if base == 5 and power == 2:
                             print(' *** skipping assert 5 ^ 2 (fails) ***')
@@ -266,7 +266,7 @@ if __name__ == '__main__':
         _test()
     else:
         try:
-            args = map(int, sys.argv[1:])
+            args = list(map(int, sys.argv[1:]))
         except Exception:
-            raise ValueError, "expected integer arguments: base power [shift [which-sequence]]"
+            raise ValueError("expected integer arguments: base power [shift [which-sequence]]")
         print(mseq(*args))

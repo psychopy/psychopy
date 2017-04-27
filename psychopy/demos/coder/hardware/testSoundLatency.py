@@ -9,9 +9,9 @@ connect the earphones jack to the AIN0 (and GND) pins of the labjack.
 (The PsychoPy team would be interested to hear how your measurements go)
 """
 
-from __future__ import division
 
-from __future__ import print_function
+
+
 
 import psychopy
 from psychopy import visual, core, event, sound

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import codecs
-import cPickle
+import pickle
 import psychopy.data
 
 ######### Begin Compatibility Class Definitions #########
@@ -78,7 +78,7 @@ def fromFile(filename):
     with codecs.open(filename, 'rb') as f:
         try:
             # Try to load the psydat file into the new-style class.
-            contents = cPickle.load(f)
+            contents = pickle.load(f)
         except TypeError as e:
             f.seek(0)
             name = e.args[1].__name__
@@ -86,7 +86,7 @@ def fromFile(filename):
                 currentHandler = psychopy.data.TrialHandler
                 # Temporarily replace new-style class
                 psychopy.data.TrialHandler = _oldStyleTrialHandler
-                oldContents = cPickle.load(f)
+                oldContents = pickle.load(f)
                 psychopy.data.TrialHandler = currentHandler
                 contents = _convertToNewStyle(psychopy.data.TrialHandler,
                                               oldContents)
@@ -94,7 +94,7 @@ def fromFile(filename):
                 currentHandler = psychopy.data.StairHandler
                 # Temporarily replace new-style class
                 psychopy.data.StairHandler = _oldStyleStairHandler
-                oldContents = cPickle.load(f)
+                oldContents = pickle.load(f)
                 psychopy.data.StairHandler = currentHandler
                 contents = _convertToNewStyle(
                     psychopy.data.StairHandler, oldContents)
@@ -105,14 +105,14 @@ def fromFile(filename):
                 psychopy.data.StairHandler = _oldStyleStairHandler
                 # Temporarily replace new-style class
                 psychopy.data.MultiStairHandler = _oldStyleMultiStairHandler
-                oldContents = cPickle.load(f)
+                oldContents = pickle.load(f)
                 psychopy.data.MultiStairHandler = newMulti
                 # Temporarily replace new-style class:
                 psychopy.data.StairHandler = newStair
                 contents = _convertToNewStyle(
                     psychopy.data.MultiStairHandler, oldContents)
             else:
-                raise TypeError, ("Didn't recognize %s" % name)
+                raise TypeError("Didn't recognize %s" % name)
     return contents
 
 

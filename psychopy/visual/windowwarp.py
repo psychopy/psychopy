@@ -289,8 +289,8 @@ class Warper(object):
 
         # loop to create quads
         vdex = 0
-        for y in xrange(0, self.ygrid - 1):
-            for x in xrange(0, self.xgrid - 1):
+        for y in range(0, self.ygrid - 1):
+            for x in range(0, self.xgrid - 1):
                 index = y * (self.xgrid) + x
 
                 vertices[vdex + 0, 0] = x_coords[y, x]
@@ -323,7 +323,7 @@ class Warper(object):
             lines = fh.readlines()
             fh.close()
             filetype = int(lines[0])
-            rc = map(int, lines[1].split())
+            rc = list(map(int, lines[1].split()))
             cols, rows = rc[0], rc[1]
             warpdata = np.loadtxt(self.warpfile, skiprows=2)
         except Exception:
@@ -356,8 +356,8 @@ class Warper(object):
 
         # loop to create quads
         vdex = 0
-        for y in xrange(0, self.ygrid - 1):
-            for x in xrange(0, self.xgrid - 1):
+        for y in range(0, self.ygrid - 1):
+            for x in range(0, self.xgrid - 1):
                 index = y * (self.xgrid) + x
 
                 vertices[vdex + 0, 0] = warpdata[index, 0]  # x_coords[y,x]

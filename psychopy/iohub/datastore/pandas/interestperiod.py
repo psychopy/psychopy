@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub DataStore to Pandas DataFrame Module with Event Filtering Support
 
@@ -96,11 +96,11 @@ class InterestPeriodDefinition(object):
         if not isinstance(cols, dict):
             if not hasattr(cols, '__iter__'):
                 cols = [cols]
-            cols = dict(zip(cols,cols))
+            cols = dict(list(zip(cols,cols)))
         
         temp_target = target.set_index('ip_id_num', append=True)
         temp_ips = self.ip_df.set_index('ip_id_num', append=True)
-        temp_ips = temp_ips[cols.keys()]
+        temp_ips = temp_ips[list(cols.keys())]
         
         temp_target = temp_target.merge(temp_ips, left_index=True, right_index=True)
         temp_target = temp_target.rename(columns=cols)
@@ -108,7 +108,7 @@ class InterestPeriodDefinition(object):
         return temp_target
     
     def _extract_criteria_match(self, source, criteria, return_cols, exact):
-        col = criteria.keys()[0] # eventually we'll want to allow for
+        col = list(criteria.keys())[0] # eventually we'll want to allow for
         val = criteria[col]      # multiple criteria matches
         
         if exact:
@@ -117,15 +117,15 @@ class InterestPeriodDefinition(object):
             is_match = (source[col].str.contains(val))
         
         if not isinstance(return_cols, dict):
-            return_cols = dict(zip(return_cols,return_cols))
+            return_cols = dict(list(zip(return_cols,return_cols)))
         
-        keep_cols = return_cols.keys()
+        keep_cols = list(return_cols.keys())
         matches = source[is_match][keep_cols].rename(columns=return_cols)
         
         return matches
     
     def __enumerate_ips(self, group):
-        group['ip_id_num'] = range(len(group))
+        group['ip_id_num'] = list(range(len(group)))
         return group
     
     def _ip_zipper(self, start, end, temp_index='ip_id_num'):
@@ -315,7 +315,7 @@ class ConditionVariableBasedIP(InterestPeriodDefinition):
             # Add ip identifier cols
             self._ip_df['ip_name']=self.name            
             self._ip_df['ip_id']=self.ipid            
-            self._ip_df['ip_id_num']=range(1,len(self._ip_df)+1)   
+            self._ip_df['ip_id_num']=list(range(1,len(self._ip_df)+1))   
             
         return self._ip_df
                      

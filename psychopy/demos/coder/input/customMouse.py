@@ -6,7 +6,7 @@ Demo of CustomMouse(), showing movement limits, click detected upon release,
 and ability to change the pointer.
 """
 
-from __future__ import division
+
 
 # author Jeremy Gray
 
@@ -30,9 +30,9 @@ while not event.getKeys():
     if vm.getClicks():
         vm.resetClicks()
         # vm.setVisible(not vm.getVisible())
-        print("click at [%.2f, %.2f]" % (vm.getPos()[0], vm.getPos()[1]))
-        print(vm.getWheelRel())
-        print("%.3f sec"%vm.mouseMoveTime())
+        print(("click at [%.2f, %.2f]" % (vm.getPos()[0], vm.getPos()[1])))
+        print((vm.getWheelRel()))
+        print(("%.3f sec"%vm.mouseMoveTime()))
 
         # can set some limits, others are unchanged:
         vm.setLimit(leftLimit=-0.7, rightLimit=0.7, bottomLimit=-0.8)

@@ -11,7 +11,7 @@ The combined plot uses every unique X value form the staircase, and alters the
 size of the points according to how many trials were run at that level
 """
 
-from __future__ import division
+
 
 from psychopy import data, gui, core
 from psychopy.tools.filetools import fromFile
@@ -79,7 +79,7 @@ pylab.xlim([0, None])
 # save a vector-graphics format for future
 outputFile = os.path.join(dataFolder, 'last.pdf')
 pylab.savefig(outputFile)
-print('saved figure to: ' + outputFile)
+print(('saved figure to: ' + outputFile))
 pylab.show()
 
 core.quit()

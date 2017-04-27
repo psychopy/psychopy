@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import sys
 import re
@@ -437,7 +437,7 @@ class InstallUpdateDialog(wx.Dialog):
         if py3:
             zfileIsName = type(zfile) == str
         else:
-            zfileIsName = type(zfile) in (str, unicode)
+            zfileIsName = type(zfile) in (str, str)
         if os.path.isfile(zfile) and zfileIsName:
             # zfile is filename not an actual file
             if v is None:  # try and deduce it

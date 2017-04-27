@@ -101,9 +101,9 @@ if hasattr(cv2, 'cv'):
     cv2.CAP_PROP_POS_AVI_RATIO = cv2.cv.CV_CAP_PROP_POS_AVI_RATIO
 
 try:
-    import vlc
+    from . import vlc
 except Exception as err:
-    if sys.maxint == 9223372036854775807:
+    if sys.maxsize == 9223372036854775807:
         bits = 64
     else:
         bits = 32
@@ -137,7 +137,7 @@ def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
 def _setPluginPathEnviron():
     """Plugins aren't in the same path as the libvlc.dylib
     """
-    if 'VLC_PLUGIN_PATH' in os.environ.keys():
+    if 'VLC_PLUGIN_PATH' in list(os.environ.keys()):
         return
     dllPath = vlc.dll._name
     from os.path import split, join
@@ -248,7 +248,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         if size is None:
             self.size = numpy.array([self._video_width, self._video_height],
                                     float)
-        elif isinstance(size, (int, float, long)):
+        elif isinstance(size, (int, float)):
             # treat size as desired width, and calc a height
             # that maintains the aspect ratio of the video.
             self.size = numpy.array([size, size / self.aspectRatio], float)
@@ -519,7 +519,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         between 0 and 100.
         """
         if self._audio_stream_player:
-            if 0.0 <= v <= 1.0 and isinstance(v, (float,)):
+            if 0.0 <= v <= 1.0 and isinstance(v, float):
                 v = int(v * 100)
             else:
                 v = int(v)

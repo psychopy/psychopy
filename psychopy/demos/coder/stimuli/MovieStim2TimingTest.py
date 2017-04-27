@@ -18,7 +18,7 @@ The following variables control what video is played during the test as well as
 other configuration settings: 
 """
 
-from __future__ import division
+
 
 #   Test Config.
 
@@ -198,7 +198,7 @@ def getVideoFilePath():
 
 def getResultsFilePath(): 
     _vdir, _vfile = os.path.split(getVideoFilePath())
-    _results_file = u'%s_frame_timing.txt' % (_vfile.replace('.', '_'))
+    _results_file = '%s_frame_timing.txt' % (_vfile.replace('.', '_'))
     return os.path.join(_vdir, _results_file)
 
 def removeExistingResultsFile(): 
@@ -313,8 +313,8 @@ def getSysInfo(win):
                 pkey = proc.pid
                 vattrs = ['name', 'exe', 'ppid', 'num_threads', 'memory_percent', 'cpu_percent', 'cpu_affinity', 'nice', 
                           'num_ctx_switches']
-                procinfo = proc.as_dict(attrs=vattrs, ad_value=u"Access Denied")
-                if procinfo['exe'] is not u"Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
+                procinfo = proc.as_dict(attrs=vattrs, ad_value="Access Denied")
+                if procinfo['exe'] is not "Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
                     sys_info['Processes'][pkey] = procinfo
         except ImportError: 
             sys_info['Processes']['Failed'] = 'psutil 2.x + is required.'
@@ -328,7 +328,7 @@ def formattedDictStr(d, indent=1, rstr=''):
         from collections import OrderedDict
     except ImportError: 
         from psychopy.iohub import OrderedDict
-    for key, value in d.items(): 
+    for key, value in list(d.items()): 
         if isinstance(value, (dict, OrderedDict)): 
             rstr = "{rstr}{numtabs}{key}:\n".format(numtabs='\t' * indent, key=key, rstr=rstr)
             rstr = formattedDictStr(value, indent + 1, rstr)
@@ -372,8 +372,8 @@ def storeVideoFrameInfo(flip_time, frame_num):
             if ixdx >=  2: 
                 drop_count = drop_count + (ixdx - 1)
             elif ixdx < 0: 
-                print("ERROR: frame index change <=  0. This should not happen in this demo. frame=%d, last_frame=%d, ixdx=%d" % (
-                frame_num, last_frame_ix, ixdx))
+                print(("ERROR: frame index change <=  0. This should not happen in this demo. frame=%d, last_frame=%d, ixdx=%d" % (
+                frame_num, last_frame_ix, ixdx)))
         last_frame_ix = frame_num
 
         # calculate inter movie frame interval etc.
@@ -391,7 +391,7 @@ def storeVideoFrameInfo(flip_time, frame_num):
 def createResultsFile(): 
     if video_results is not None: 
         with open(getResultsFilePath(), 'a') as f:
-            print("Saving Frame Timing Results to: %s" % (getResultsFilePath()))
+            print(("Saving Frame Timing Results to: %s" % (getResultsFilePath())))
 
             import cv2
 

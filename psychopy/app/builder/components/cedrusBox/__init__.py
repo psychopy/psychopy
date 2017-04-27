@@ -163,7 +163,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyCheckStr = "%s" % (repr(keyList))
 
@@ -259,7 +259,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                     "%(name)s.rt.extend(theseRTs)\n")
             buff.writeIndentedLines(code % self.params)
         else:
-            print(store, type(store), str(store))
+            print((store, type(store), str(store)))
         if storeCorr:
             code = ("# was this 'correct'?\n"
                     "if (%(name)s.keys == str(%(correctAns)s)) or "

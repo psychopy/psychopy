@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # Select which event table to output by displaying a list of
     #   Event Class Names that have data available to the user...
     event_class_selection=displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:",
-                [eventTableMappings[event_id].class_name for event_id in events_with_data.keys()])
+                [eventTableMappings[event_id].class_name for event_id in list(events_with_data.keys())])
     if event_class_selection is None:
         print("Event table Selection Cancelled, exiting...")
         dataAccessUtil.close()
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     # Lookup the correct event iterator fiven the event class name selected.
     #
     event_iterator_for_output=None
-    for event_id, mapping_info in eventTableMappings.iteritems():
+    for event_id, mapping_info in eventTableMappings.items():
         if mapping_info.class_name==event_class_selection:
             event_iterator_for_output=events_with_data[event_id]
             break
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         writeOutputFileHeader(output_file,session_metadata_columns,
                               dataAccessUtil.getEventTable(event_class_selection).cols._v_colnames[3:])
 
-        print('Writing Data to %s:\n'%(log_file_name))
+        print(('Writing Data to %s:\n'%(log_file_name)))
         for i,event in enumerate(event_iterator_for_output):
             # write out each row of the event data with session
             # data as prepended columns.....
@@ -129,5 +129,5 @@ if __name__ == '__main__':
 
     duration=duration+(getTime()-start_time)
     print()
-    print('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration))
-    print('%s will be in the same directory as the selected .hdf5 file'%(log_file_name))
+    print(('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration)))
+    print(('%s will be in the same directory as the selected .hdf5 file'%(log_file_name)))

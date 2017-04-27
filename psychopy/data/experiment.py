@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+
 
 import sys
 import copy
-import cPickle
+import pickle
 
 from psychopy import logging
 from psychopy.tools.filetools import openOutputFile, genDelimiter
@@ -145,8 +145,8 @@ class ExperimentHandler(object):
             names = []
             vals = []
         else:
-            names = self.extraInfo.keys()
-            vals = self.extraInfo.values()
+            names = list(self.extraInfo.keys())
+            vals = list(self.extraInfo.values())
         return names, vals
 
     def _getLoopInfo(self, loop):
@@ -170,7 +170,7 @@ class ExperimentHandler(object):
             trial = loop.thisTrial
             if hasattr(trial, 'items'):
                 # is a TrialList object or a simple dict
-                for attr, val in trial.items():
+                for attr, val in list(trial.items()):
                     if attr not in self._paramNamesSoFar:
                         self._paramNamesSoFar.append(attr)
                     names.append(attr)
@@ -273,19 +273,19 @@ class ExperimentHandler(object):
         # write a header line
         if not matrixOnly:
             for heading in names:
-                f.write(u'%s%s' % (heading, delim))
+                f.write('%s%s' % (heading, delim))
             f.write('\n')
         # write the data for each entry
 
         for entry in self.entries:
             for name in names:
-                entry.keys()
-                if name in entry.keys():
-                    ename = unicode(entry[name])
+                list(entry.keys())
+                if name in list(entry.keys()):
+                    ename = str(entry[name])
                     if ',' in ename or '\n' in ename:
-                        fmt = u'"%s"%s'
+                        fmt = '"%s"%s'
                     else:
-                        fmt = u'%s%s'
+                        fmt = '%s%s'
                     f.write(fmt % (entry[name], delim))
                 else:
                     f.write(delim)
@@ -327,7 +327,7 @@ class ExperimentHandler(object):
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
-        cPickle.dump(self, f)
+        pickle.dump(self, f)
         f.close()
         logging.info('saved data to %s' % f.name)
         self.savePickle = savePickle

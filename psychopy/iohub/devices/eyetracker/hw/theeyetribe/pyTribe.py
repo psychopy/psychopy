@@ -24,9 +24,9 @@ class TheEyeTribe(object):
 
     # define the dict format for tracker set msgs
     set_tracker_prototype = {
-        u"category": u'tracker',
-        u"request": u'set',
-        u"values": {}
+        "category": 'tracker',
+        "request": 'set',
+        "values": {}
         }
         
     # define the dict format for tracker get msgs
@@ -182,29 +182,29 @@ class TheEyeTribe(object):
                 print2err( '***********\n')
                 return False
 
-        if msg_category == u'heartbeat':
+        if msg_category == 'heartbeat':
             return True
-        elif msg_category == u'tracker':
+        elif msg_category == 'tracker':
             request_type=msg.get('request') 
-            if request_type == u'get': 
+            if request_type == 'get': 
                 if msg.get('values',{}).get('frame'): 
                     return self.processSample(msg)
-                for k,v in msg.get('values',{}).iteritems():
+                for k,v in msg.get('values',{}).items():
                     #print2err('* Updating client.tracker_state[{0}] = {1}'.format(k,v))
                     self.tracker_state[k]=v
                     return True    
-            elif request_type == u'set': 
+            elif request_type == 'set': 
                 #print2err( 'SET Rx received from server: ',msg)
                 # TODO check status field for any errors
                 return True        
-        elif msg_category == u'calibration':
+        elif msg_category == 'calibration':
             request_type=msg.get('request') 
             #print2err( '::::::::::: Calibration Result: ', msg.get('values',{}).get('calibresult'))            
-            if request_type == u'pointend': 
+            if request_type == 'pointend': 
                 if msg.get('values',{}).get('calibresult'): 
                     #print2err('::::::::::: Calibration Result: ', msg)                   
                     return self.processCalibrationResult(msg)
-            elif request_type == u'pointstart': 
+            elif request_type == 'pointstart': 
                 #print2err( '==========Calibration response: ', msg)
                 return True
 
@@ -225,7 +225,7 @@ class TheEyeTribe(object):
         resolution is.        
         """
         send_values={}
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if k not in self.tracker_set_values:
                 print2err('**setTrackerMsg warning": Invalid tracker set value key \
                     [{0}] with value [{1}]. Ignoring'.format(k, v))
@@ -290,7 +290,7 @@ class TheEyeTribe(object):
             
         calreq=OrderedDict(category='calibration', request = request_type)
         if kwargs:
-            calreq['values'] = OrderedDict(sorted(kwargs.items(), key = lambda t:t[0]))
+            calreq['values'] = OrderedDict(sorted(list(kwargs.items()), key = lambda t:t[0]))
         send_str=json.dumps(calreq)
         print2err("send_str: ",send_str)
         self._transport_manager.send(send_str)
@@ -384,9 +384,9 @@ class EyeTribeTransportManager(gevent.Greenlet):
                 tx_count=self._socket.sendall(to_send)
                 #print2err('>>>>>>>>>>>>\n')
                 
-            except gevent.queue.Empty, e:
+            except gevent.queue.Empty as e:
                 pass
-            except Exception, e:
+            except Exception as e:
                 print2err('MANAGER ERROR WHEN SENDING MSG:',e)
             #finally:
                 # Yield to any other greenlets that are waiting to run.
@@ -411,13 +411,13 @@ class EyeTribeTransportManager(gevent.Greenlet):
                             msg_fragment=m
             except socket.timeout:
                 pass
-            except socket.error, e:
+            except socket.error as e:
                 if e.errno==10035 or e.errno==9:
                     pass
                 else:
                     print2err( ' socket.error: ',type(e))
                     raise e
-            except Exception, e:    
+            except Exception as e:    
                 print2err('>>>>>>>>>>>>')
                 print2err('MANAGER ERROR RECEIVING REPLY MSG:',e)
                 print2err('reply: ',reply)
@@ -435,7 +435,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
         eye tracker server. the msg is put in a queue that is emptied 
         as the EyeTribeTransportManager runs.
         """
-        if not isinstance(msg,basestring):
+        if not isinstance(msg,str):
             msg=json.dumps(msg)
         self._tracker_requests_queue.put(msg)        
         
@@ -446,7 +446,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
             hbp.connect((host, port))
             hbp.settimeout(0.01)
             return hbp
-        except Exception, e:
+        except Exception as e:
             print2err('** Error creating exception:', e)
             return None
 

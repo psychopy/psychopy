@@ -1,5 +1,5 @@
 """Tests for psychopy.data.DataHandler"""
-from __future__ import print_function
+
 import os, shutil
 import numpy
 
@@ -46,8 +46,8 @@ def test_TrialTypeImport():
     def checkEachtrial(fromCSV, fromXLSX):
         for trialN, trialCSV in enumerate(fromCSV):
             trialXLSX = fromXLSX[trialN]
-            assert trialXLSX.keys() == trialCSV.keys()
-            for header in trialCSV.keys():
+            assert list(trialXLSX.keys()) == list(trialCSV.keys())
+            for header in list(trialCSV.keys()):
                 if trialXLSX[header] != trialCSV[header]:
                     print(header, trialCSV[header], trialXLSX[header])
                 assert trialXLSX[header] == trialCSV[header]
@@ -73,7 +73,7 @@ def test_ImportCondsUnicode():
 
     fromXLSX = data.importConditions(os.path.join(fixturesPath,
                                      'right_to_left_unidcode.xlsx'))
-    assert u'\u05d2\u05d9\u05dc' in fromXLSX[0]['question']
+    assert '\u05d2\u05d9\u05dc' in fromXLSX[0]['question']
 
 if __name__=='__main__':
     t=TestXLSX()

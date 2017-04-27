@@ -11,7 +11,7 @@ You don't need to worry about setting the high- and low-bit pixels. Just draw as
 normal and PsychoPy will do the conversions for you
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core, event, logging
 from psychopy.hardware import crs
@@ -24,7 +24,7 @@ win = visual.Window([1024, 768], screen=0, useFBO=True,
 # you need to give this the psychopy Window so that it can override various
 # window functions (e.g. to override gamma settings etc)
 bits = crs.BitsSharp(win=win, mode='bits++')
-print(bits.info)
+print((bits.info))
 if not bits.OK:
     print('failed to connect to Bits box')
     core.quit()
@@ -69,7 +69,7 @@ for frameN in range(300):
 
 # You probably don't need to but you can send BitsSharp your own messages using
 bits.sendMessage('$FirmwareDate\r')
-print(bits.read(timeout=0.1))
+print((bits.read(timeout=0.1)))
 
 win.close()
 core.quit()

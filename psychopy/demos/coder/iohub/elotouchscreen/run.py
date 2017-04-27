@@ -44,7 +44,7 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
         #   query_reply=touch.queryDevice('ID')
         #
         id_dict=touch.queryDevice('ID')
-        print("queryDevice('ID'):" + str(id_dict))
+        print(("queryDevice('ID'):" + str(id_dict)))
         print()
 
         # getHardwareConfiguration returns the results from the following

@@ -7,7 +7,7 @@ real scan, or emulate sync pulses. Emulation is to allow debugging script timing
 offline, without requiring a scanner (or a hardware sync pulse generator).
 """
 
-from __future__ import division
+
 
 # Author: Jeremy R. Gray
 
@@ -30,16 +30,16 @@ win = visual.Window(fullscr=False)
 globalClock = core.Clock()
 
 # summary of run timing, for each key press:
-output = u'vol    onset key\n'
+output = 'vol    onset key\n'
 for i in range(-1 * MR_settings['skip'], 0):
-    output += u'%d prescan skip (no sync)\n' % i
+    output += '%d prescan skip (no sync)\n' % i
 
 counter = visual.TextStim(win, height=.05, pos=(0, 0), color=win.rgb + 0.5)
-output += u"  0    0.000 sync  [Start of scanning run, vol 0]\n"
+output += "  0    0.000 sync  [Start of scanning run, vol 0]\n"
 
 # launch: operator selects Scan or Test (emulate); see API docuwmentation
 vol = launchScan(win, MR_settings, globalClock=globalClock)
-counter.setText(u"%d volumes\n%.3f seconds" % (0, 0.0))
+counter.setText("%d volumes\n%.3f seconds" % (0, 0.0))
 counter.draw()
 win.flip()
 
@@ -52,22 +52,22 @@ while globalClock.getTime() < duration:
             onset = globalClock.getTime()
             # do your experiment code at this point if you want it sync'd to the TR
             # for demo just display a counter & time, updated at the start of each TR
-            counter.setText(u"%d volumes\n%.3f seconds" % (vol, onset))
-            output += u"%3d  %7.3f sync\n" % (vol, onset)
+            counter.setText("%d volumes\n%.3f seconds" % (vol, onset))
+            output += "%3d  %7.3f sync\n" % (vol, onset)
             counter.draw()
             win.flip()
             vol += 1
         else:
             # handle keys (many fiber-optic buttons become key-board key-presses)
-            output += u"%3d  %7.3f %s\n" % (vol-1, globalClock.getTime(), unicode(key))
+            output += "%3d  %7.3f %s\n" % (vol-1, globalClock.getTime(), str(key))
             if key == 'escape':
-                output += u'user cancel, '
+                output += 'user cancel, '
                 break
 
 t = globalClock.getTime()
 win.flip()
 
-output += u"End of scan (vol 0..%d = %d of %s). Total duration = %7.3f sec" % (vol - 1, vol, MR_settings['volumes'], t)
+output += "End of scan (vol 0..%d = %d of %s). Total duration = %7.3f sec" % (vol - 1, vol, MR_settings['volumes'], t)
 print(output)
 
 win.close()

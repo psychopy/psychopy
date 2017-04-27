@@ -21,16 +21,16 @@ rotating = visual.TextStim(myWin,text="Fonts \nrotate!",pos=(-5, -5),#and can ha
                         ori=0, height = 2.0,
                         font=comic)
 unicodeStuff = visual.TextStim(myWin,
-                        text = u"unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
+                        text = "unicode (eg \u03A8 \u040A \u03A3)",#you can find the unicode character value from MS Word 'insert symbol'
                         color='black',  font=serif,pos=(0,3), wrapWidth=20.0,
                         height = 2)
 psychopyTxt = visual.TextStim(myWin, color='#FFFFFF',
-                        text = u"PsychoPy \u00A9Jon Peirce",
+                        text = "PsychoPy \u00A9Jon Peirce",
                         units='norm', height=0.2,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
                         font=fancy)
 longSentence = visual.TextStim(myWin,
-                        text = u"Very long sentences can wrap", wrapWidth=0.8,
+                        text = "Very long sentences can wrap", wrapWidth=0.8,
                         units='norm', height=0.15,color='DarkSlateBlue',
                         pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom')
 trialClock = core.Clock()

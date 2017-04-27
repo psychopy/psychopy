@@ -5,7 +5,7 @@
 Demo of using ShapeStim to make a functioning visual clock.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core, event
 import numpy, time

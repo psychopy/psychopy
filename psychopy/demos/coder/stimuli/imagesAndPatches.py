@@ -5,7 +5,7 @@
 Demo of ImageStim and GratingStim with image contents.
 """
 
-from __future__ import division
+
 
 from psychopy import core, visual, event
 
@@ -17,7 +17,7 @@ beach = visual.ImageStim(win, image='beach.jpg', flipHoriz=True, pos=(0, 4.50), 
 faceRGB = visual.ImageStim(win, image='face.jpg', mask=None,
     pos=(50, -50), size=None,  # will be the size of the original image in pixels
     units='pix', interpolate=True, autoLog=False)
-print "original image size:", faceRGB.size
+print("original image size:", faceRGB.size)
 faceALPHA = visual.GratingStim(win, pos=(-0.7, -0.2),
     tex="sin", mask="face.jpg", color=[1.0, 1.0, -1.0],
     size=(0.5, 0.5), units="norm", autoLog=False)

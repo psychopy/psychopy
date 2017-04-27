@@ -12,7 +12,7 @@ Instructions: on each trial press the up/down cursor keys depending on
 the apparent direction of motion of the bars.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core, event, gui, data
 from psychopy.tools.filetools import fromFile, toFile
@@ -111,7 +111,7 @@ def getResponse(direction):
                 else:
                     return 1
             else:
-                print("hit DOWN or UP (or Esc) (You hit %s)" %key)
+                print(("hit DOWN or UP (or Esc) (You hit %s)" %key))
 
 def presentStimulus(direction):
     """Present stimulus drifting in a given direction (for low gamma)
@@ -142,7 +142,7 @@ def presentStimulus(direction):
 # run the staircase
 for trialN in range(info['nTrials']):
     for stairCase in stairCases:
-        thisGamma = stairCase.next()
+        thisGamma = next(stairCase)
         t = globalClock.getTime()
         win.gamma = [thisGamma, thisGamma, thisGamma]
 
@@ -164,7 +164,7 @@ stairCases[1].saveAsText(fileName + 'hi')
 stairCases[0].saveAsPickle(fileName + 'lo')
 stairCases[0].saveAsText(fileName + 'lo')
 
-print('That took %.1fmins' % (globalClock.getTime() / 60.0))
+print(('That took %.1fmins' % (globalClock.getTime() / 60.0)))
 
 core.quit()
 

@@ -8,7 +8,7 @@ and disable python garbage collection to see if either influences
 the precision of your frame flips.
 """
 
-from __future__ import division
+
 
 import gc, numpy
 from psychopy import visual, logging, core, event
@@ -26,7 +26,7 @@ elif process_priority == 'realtime':
     # Only makes a diff compared to 'high' on Windows.
     core.rush(True, realtime=True)
 else:
-    print 'Invalid process priority:', process_priority, "Process running at normal."
+    print('Invalid process priority:', process_priority, "Process running at normal.")
     process_priority = 'normal'
 
 if disable_gc:
@@ -54,7 +54,7 @@ for frameN in range(nIntervals + 1):
     myStim.setOri(1, '+')
     myStim.draw()
     if event.getKeys():
-        print 'stopped early'
+        print('stopped early')
         break
     win.logOnFlip(msg='frame=%i' % frameN, level=logging.EXP)
     fliptimes[frameN] = win.flip()

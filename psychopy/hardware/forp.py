@@ -83,7 +83,7 @@ class ButtonBox(object):
         """ Resets the pressed statuses, so getEvents will return pressed
         buttons, even if they were already pressed in the last call.
         """
-        for k in self.buttonStatus.keys():
+        for k in list(self.buttonStatus.keys()):
             self.buttonStatus[k] = False
 
     def getEvents(self, returnRaw=False, asKeys=False, allowRepeats=False):

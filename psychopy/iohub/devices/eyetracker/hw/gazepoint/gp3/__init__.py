@@ -1,1 +1,1 @@
-from eyetracker import *
+from .eyetracker import *

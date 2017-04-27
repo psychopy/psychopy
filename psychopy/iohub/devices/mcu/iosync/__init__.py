@@ -70,8 +70,8 @@ MCU Access
 
 
 """
-import pysync
-from pysync import T3MC,T3Request,T3Event
+from . import pysync
+from .pysync import T3MC,T3Request,T3Event
 
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
@@ -329,7 +329,7 @@ class MCU(Device):
                 return response.asdict()
         else:
             resp_return=[]
-            responses=self._response_dict.values()
+            responses=list(self._response_dict.values())
             self._response_dict.clear()
             for response in responses:
                 resp_return.append(response.asdict())
@@ -396,13 +396,13 @@ class MCU(Device):
             replies = self._mcu.getRequestReplies(True)
             for reply in replies:
                 rid=reply.getID()
-                if rid in self._request_dict.keys():
+                if rid in list(self._request_dict.keys()):
                     self._response_dict[rid]=reply
                     del self._request_dict[rid]
             
             self._last_callback_time=logged_time
             return True
-        except Exception, e:
+        except Exception as e:
             print2err("--------------------------------")
             print2err("ERROR in MCU._poll: ",e)
             printExceptionDetailsToStdErr()

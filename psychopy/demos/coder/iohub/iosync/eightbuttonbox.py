@@ -50,11 +50,11 @@ class ButtonBoxState(object):
 
     @property
     def pressed(self):
-        return self._pressed.items()#[bname for bname, mask in self.masks.items() if self._state & mask]
+        return list(self._pressed.items())#[bname for bname, mask in self.masks.items() if self._state & mask]
 
     @property
     def released(self):
-        return self._released.items()#[bname for bname, mask in self.masks.items() if self._state & mask]
+        return list(self._released.items())#[bname for bname, mask in self.masks.items() if self._state & mask]
 
     def setDigitalInputEvent(self, din_event):
         etime = din_event.time
@@ -64,9 +64,9 @@ class ButtonBoxState(object):
 
         self._released.clear()
 
-        new_pressed = [bname for bname, mask in self.masks.items() if self._state & mask]
-        for b in self.masks.keys():
-            if b not in new_pressed and b in self._pressed.keys():
+        new_pressed = [bname for bname, mask in list(self.masks.items()) if self._state & mask]
+        for b in list(self.masks.keys()):
+            if b not in new_pressed and b in list(self._pressed.keys()):
                 ptime = self._pressed[b]
                 ltime = self._last_event.get(b)
                 if ltime and etime-ltime >= self.debouncetime:
@@ -95,10 +95,10 @@ try:
         for mcu_evt in mcu_events:
             bbox.setDigitalInputEvent(mcu_evt)
             if bbox.pressed or bbox.released:
-                print '>>'
-                print 'Pressed:', bbox.pressed
-                print 'Released:', bbox.released
-                print '<<'
+                print('>>')
+                print('Pressed:', bbox.pressed)
+                print('Released:', bbox.released)
+                print('<<')
         core.wait(0.002, 0)
     io.clearEvents('all')
 except Exception:

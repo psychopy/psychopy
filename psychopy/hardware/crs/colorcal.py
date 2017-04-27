@@ -12,7 +12,7 @@
 # Acknowledgements
 #    This code was written by Jon Peirce
 
-from __future__ import absolute_import
+
 
 
 import sys
@@ -123,7 +123,7 @@ class ColorCAL(object):
         prevOut = self.com.read(self.com.inWaiting())
         if len(prevOut) and prevOut not in ('>' + eol, eol):
             # do not use log messages here
-            print('Resp found to prev cmd (%s):%s' % (self.lastCmd, prevOut))
+            print(('Resp found to prev cmd (%s):%s' % (self.lastCmd, prevOut)))
         self.lastCmd = message
 
         if message[-2:] not in ('\n', '\n\r'):
@@ -288,7 +288,7 @@ class ColorCAL(object):
                 matrix[rowN, :] = floats
             else:
                 msg = 'ColorCAL got this from command %s: %s'
-                print(msg % (rowName, repr(val)))
+                print((msg % (rowName, repr(val))))
         return matrix
 
     def _error(self, msg):

@@ -60,8 +60,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'ioHub'
-copyright = u'2013-2014, iSolver Software Solutions'
+project = 'ioHub'
+copyright = '2013-2014, iSolver Software Solutions'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -191,8 +191,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('ioHub/documentation', 'ioHub.tex', u'ioHub Documentation',
-   u'iSolver Software Solutions', 'manual'),
+  ('ioHub/documentation', 'ioHub.tex', 'ioHub Documentation',
+   'iSolver Software Solutions', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -221,8 +221,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('ioHub/documentation', 'ioHub', u'ioHub Documentation',
-     [u'iSolver Software Solutions'], 1)
+    ('ioHub/documentation', 'ioHub', 'ioHub Documentation',
+     ['iSolver Software Solutions'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -235,8 +235,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('ioHub/documentation', 'ioHub', u'ioHub Documentation',
-   u'iSolver Software Solutions', 'ioHub', 'ioHub provides support for input device event notification and storage, running in a seperate Python Process.',
+  ('ioHub/documentation', 'ioHub', 'ioHub Documentation',
+   'iSolver Software Solutions', 'ioHub', 'ioHub provides support for input device event notification and storage, running in a seperate Python Process.',
    'Python Package'),
 ]
 
@@ -253,9 +253,9 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'ioHub'
-epub_author = u'Sol Simpson'
-epub_copyright = u'2012-2014, iSolver Software Solutions'
+epub_title = 'ioHub'
+epub_author = 'Sol Simpson'
+epub_copyright = '2012-2014, iSolver Software Solutions'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.

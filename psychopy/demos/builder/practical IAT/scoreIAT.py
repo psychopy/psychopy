@@ -5,7 +5,7 @@
 Authors: Jeremy R. Gray & Nate Pasmanter, 2013
 """
 
-from __future__ import division
+
 import pandas as pd
 import glob, os, sys
 
@@ -39,7 +39,7 @@ def scoreIAT(csvfile, write_file=False):
     correct = 1
     incorrect = 0
     # GNB 2003 thesholds for why subject should be excluded:
-    warn = u''
+    warn = ''
     threshold = {'ac_prac_blk': 0.50,
                  'ac_prac_all': 0.60, 'rt_prac_all': 0.35,
                  'ac_task_blk': 0.60, 'rt_task_blk': 0.25,
@@ -162,4 +162,4 @@ def batchScoreIAT(path='.', write_file=False):
 
 if __name__ == '__main__':
     for f in sys.argv[1:]:
-        print(f, scoreIAT(f))
+        print((f, scoreIAT(f)))

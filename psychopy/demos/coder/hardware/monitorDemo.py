@@ -18,13 +18,13 @@ Or you can load a specific calibration of that monitor:
 More info is available at http: //www.psychopy.org/api/monitors.html
 """
 
-from __future__ import division
+
 
 from psychopy import monitors
 
 names = monitors.getAllMonitors()
 for thisName in names:
     thisMon = monitors.Monitor(thisName)
-    print(thisMon.getDistance())
+    print((thisMon.getDistance()))
 
 # The contents of this file are in the public domain.

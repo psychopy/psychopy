@@ -291,11 +291,11 @@ class TestExpt(object):
         f.close()
         #run the file (and make sure we return to this location afterwards)
         wd = os.getcwd()
-        execfile(py_file)
+        exec(compile(open(py_file).read(), py_file, 'exec'))
         os.chdir(wd)
         #load the data
-        print("searching..." +datafileBase)
-        print(glob.glob(datafileBase+'*'))
+        print(("searching..." +datafileBase))
+        print((glob.glob(datafileBase+'*')))
         f = open(datafileBase+".csv", 'rU')
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
@@ -372,7 +372,7 @@ class Test_ExptComponents(object):
     settings, they can be added to a Routine and result in a script that compiles
     """
     def test_all_components(self):
-        for compName, compClass in allComponents.items():
+        for compName, compClass in list(allComponents.items()):
             if compName in ['SettingsComponent']:
                 continue
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)

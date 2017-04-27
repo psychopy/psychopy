@@ -26,15 +26,15 @@ from psychopy import logging
 
 # To make life easier, only try drivers which have a hope in heck of working
 if sys.platform.startswith('linux'):
-    from _linux import PParallelLinux
+    from ._linux import PParallelLinux
     ParallelPort = PParallelLinux
 elif sys.platform == 'win32':
     from ctypes import windll
     if hasattr(windll, 'inpout32'):
-        from _inpout32 import PParallelInpOut32
+        from ._inpout32 import PParallelInpOut32
         ParallelPort = PParallelInpOut32
     elif hasattr(windll, 'dlportio'):
-        from _dlportio import PParallelDLPortIO
+        from ._dlportio import PParallelDLPortIO
         ParallelPort = PParallelDLPortIO
     else:
         logging.warning("psychopy.parallel has been imported but no "
@@ -125,7 +125,7 @@ def setPortAddress(address=0x0378):
 
     global PORT
     # convert u"0x0378" into 0x0378
-    if isinstance(address, basestring) and address.startswith('0x'):
+    if isinstance(address, str) and address.startswith('0x'):
         address = int(address, 16)
 
     # This is useful with the Linux-based driver where deleting

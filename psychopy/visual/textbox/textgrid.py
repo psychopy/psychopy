@@ -4,7 +4,7 @@ Created on Mon Jan 07 11:18:51 2013
 
 @author: Sol
 """
-from __future__ import print_function  # for compatibility with python3
+  # for compatibility with python3
 import numpy as np
 from weakref import proxy
 from psychopy import core
@@ -15,7 +15,7 @@ from pyglet.gl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
                        GL_TEXTURE_ENV_MODE, GL_MODULATE, GL_UNSIGNED_INT,
                        glPopMatrix, glBindTexture, glActiveTexture, glTexEnvf,
                        glPushMatrix, glCallLists, glVertex2i)
-import parsedtext
+from . import parsedtext
 getTime = core.getTime
 
 
@@ -78,9 +78,9 @@ class TextGrid(object):
         self._position = dx, dy
 
         # TextGrid cell boundaries
-        self._col_lines = [int(np.floor(x)) for x in xrange(
+        self._col_lines = [int(np.floor(x)) for x in range(
             0, self._size[0] + 1, self._cell_size[0])]
-        self._row_lines = [int(np.floor(y)) for y in xrange(
+        self._row_lines = [int(np.floor(y)) for y in range(
             0, -self._size[1] - 1, -self._cell_size[1])]
 
         self._apply_padding = False

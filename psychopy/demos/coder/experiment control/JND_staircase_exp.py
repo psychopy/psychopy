@@ -5,7 +5,7 @@
 Measure your JND in orientation using a staircase method
 """
 
-from __future__ import division
+
 
 from psychopy import core, visual, gui, data, event
 from psychopy.tools.filetools import fromFile, toFile
@@ -103,8 +103,8 @@ staircase.saveAsPickle(fileName)  # special python data file to save all the inf
 
 # give some output to user
 print('reversals:')
-print(staircase.reversalIntensities)
-print('mean of final 6 reversals = %.3f' % numpy.average(staircase.reversalIntensities[-6:]))
+print((staircase.reversalIntensities))
+print(('mean of final 6 reversals = %.3f' % numpy.average(staircase.reversalIntensities[-6:])))
 
 win.close()
 core.quit()

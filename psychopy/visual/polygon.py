@@ -47,7 +47,7 @@ class Polygon(BaseShapeStim):
         d = numpy.pi * 2 / self.edges
         self.vertices = numpy.asarray(
             [numpy.asarray((numpy.sin(e * d), numpy.cos(e * d))) * self.radius
-             for e in xrange(int(round(self.edges)))])
+             for e in range(int(round(self.edges)))])
 
     @attributeSetter
     def edges(self, edges):

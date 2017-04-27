@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub
 .. file: iohub/util/__init__.py
@@ -18,8 +18,8 @@ import sys,os,inspect
 import psychopy
 from collections import Iterable
 
-from exception_tools import ioHubError
-from exception_tools import printExceptionDetailsToStdErr, print2err
+from .exception_tools import ioHubError
+from .exception_tools import printExceptionDetailsToStdErr, print2err
 from psychopy.clock import MonotonicClock, monotonicClock
 
 # Path Update / Location functions
@@ -63,7 +63,7 @@ def module_directory(local_function):
 def isIterable(o):
     return isinstance(o, Iterable)
     
-from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+from .dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
 
  
 if sys.platform == 'win32':
@@ -91,7 +91,7 @@ else:
     
 import copy
 def updateDict(add_to,add_from):
-    for key,value in add_from.iteritems():
+    for key,value in add_from.items():
         if key not in add_to:
             add_to[key]=copy.deepcopy(value)
         elif isinstance(value,dict) and isinstance(add_to[key],dict):
@@ -118,11 +118,11 @@ if sys.version_info[0] != 2 or sys.version_info[1] < 7:
 else:
     from collections import OrderedDict
 
-from variableProvider import ExperimentVariableProvider
+from .variableProvider import ExperimentVariableProvider
 
-from visualUtil import SinusoidalMotion
-from visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
-from visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
+from .visualUtil import SinusoidalMotion
+from .visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
+from .visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 
 ###############################################################################
 #
@@ -269,7 +269,7 @@ class NumPyRingBuffer(object):
     def __setitem__(self, indexs,v):
         if isinstance(indexs,(list,tuple)):
             for i in indexs:
-                if isinstance(i, (int,long)):
+                if isinstance(i, int):
                     i=i+self._index
                     self._npa[i%self.max_size]=v
                     self._npa[(i%self.max_size)+self.max_size]=v
@@ -284,7 +284,7 @@ class NumPyRingBuffer(object):
                     stop=istop+self._index            
                     self._npa[slice(start%self.max_size,stop%self.max_size,i.step)]=v
                     self._npa[slice((start%self.max_size)+self.max_size,(stop%self.max_size)+self.max_size,i.step)]=v
-        elif isinstance(indexs, (int,long)):
+        elif isinstance(indexs, int):
             i=indexs+self._index
             self._npa[i%self.max_size]=v
             self._npa[(i%self.max_size)+self.max_size]=v
@@ -307,12 +307,12 @@ class NumPyRingBuffer(object):
         if isinstance(indexs,(list,tuple)):
             rarray=[]
             for i in indexs:
-                if isinstance(i, (int,long)):
+                if isinstance(i, int):
                     rarray.append(current_array[i])
                 elif isinstance(i,slice):          
                     rarray.extend(current_array[i])
             return numpy.asarray(rarray,dtype=self._dtype)
-        elif isinstance(indexs, (int,long,slice)):
+        elif isinstance(indexs, (int,slice)):
             return current_array[indexs]
         else:
             raise TypeError()
@@ -366,12 +366,12 @@ def rotate2D(pts,origin,ang=pi/4):
 ## Import utils sub modules
 #    
 
-from variableProvider import ExperimentVariableProvider
+from .variableProvider import ExperimentVariableProvider
 
-from visualUtil import SinusoidalMotion
-from visualUtil import TimeTrigger,DeviceEventTrigger
-from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
-from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+from .visualUtil import SinusoidalMotion
+from .visualUtil import TimeTrigger,DeviceEventTrigger
+from .visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
+from .dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
 
 ###############################################################################
 #

@@ -9,7 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-import hw
+from . import hw
 from ... import printExceptionDetailsToStdErr,print2err
 from ...constants import EventConstants, DeviceConstants
 from .. import Device
@@ -130,7 +130,7 @@ class TouchDevice(Device):
             change_y=cpos[1]-lpos[1]
             return cpos, (change_x,change_y)
 
-        except Exception, e:
+        except Exception as e:
             print2err(">>ERROR getPositionAndDelta: "+str(e))
             printExceptionDetailsToStdErr()
             return (0.0,0.0),(0.0,0.0)
@@ -178,7 +178,7 @@ class TouchEvent(DeviceEvent):
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+        return dict(list(zip(cls.CLASS_ATTRIBUTE_NAMES,values)))
 
     #noinspection PyUnresolvedReferences
     @classmethod

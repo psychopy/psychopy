@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub
 .. file: ioHub/client.py
@@ -595,12 +595,12 @@ class ioHubConnection(object):
         """
         trial=trials.trialList[0]
         numpy_trial_condition_types=[]
-        for cond_name,cond_val in trial.iteritems():
-            if isinstance(cond_val,basestring):
+        for cond_name,cond_val in trial.items():
+            if isinstance(cond_val,str):
                 numpy_dtype=(cond_name,'S',256)
             elif isinstance(cond_val,int):
                 numpy_dtype=(cond_name,'i4')
-            elif isinstance(cond_val,long):
+            elif isinstance(cond_val,int):
                 numpy_dtype=(cond_name,'i8')
             elif isinstance(cond_val,float):
                 numpy_dtype=(cond_name,'f8')
@@ -658,7 +658,7 @@ class ioHubConnection(object):
             None
         """
         for i,d in enumerate(data):
-            if isinstance(d,unicode):
+            if isinstance(d,str):
                 data[i]=d.encode('utf-8')
         r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentID,self.experimentSessionID,data)))
         return r[2]
@@ -812,7 +812,7 @@ class ioHubConnection(object):
             None
         """
         r=self._sendToHubServer(('RPC','flushIODataStoreFile'))
-        print "flushIODataStoreFile: ",r[2]
+        print("flushIODataStoreFile: ",r[2])
         return r[2]
 
     def shutdown(self):
@@ -866,7 +866,7 @@ class ioHubConnection(object):
                     return "ERROR: ioHubConfig:ioDataStore must contain both a 'experiment_info' and a 'session_info' key with a dict value each."
 
         elif ioHubConfigAbsPath  is not None and ioHubConfig is None:
-            ioHubConfig=load(file(ioHubConfigAbsPath,u'r'), Loader=Loader)
+            ioHubConfig=load(file(ioHubConfigAbsPath,'r'), Loader=Loader)
         else:
             return "ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided."
 
@@ -878,7 +878,7 @@ class ioHubConnection(object):
                     #short hand device spec is being used. Convert dict of
                     #devices in a list of device dicts.
                     devs=ioHubConfig.get('monitor_devices')
-                    devsList=[{dname:dc} for dname,dc in devs.iteritems()]
+                    devsList=[{dname:dc} for dname,dc in devs.items()]
                     ioHubConfig['monitor_devices']=devsList
 
                 import tempfile
@@ -916,8 +916,8 @@ class ioHubConnection(object):
                         old_iohub_process.kill()
                 except psutil.NoSuchProcess:
                     pass
-            except Exception, e:
-                print "Warning: Exception while checking for existing iohub process:"
+            except Exception as e:
+                print("Warning: Exception while checking for existing iohub process:")
                 import traceback
                 traceback.print_exc()
 
@@ -942,7 +942,7 @@ class ioHubConnection(object):
             while server_output and ctime()<timeout_time:
                 isDataAvail=self._serverStdOutHasData()
                 if isDataAvail is True:
-                    server_output=self._readServerStdOutLine().next()
+                    server_output=next(self._readServerStdOutLine())
                     if server_output.rstrip() == 'IOHUB_READY':
                         hubonline=True
                         #print "Ending Serving connection attempt due to timeout...."
@@ -1069,7 +1069,7 @@ class ioHubConnection(object):
         """
         # get the list of devices registered with the ioHub
         for device_config_dict in monitor_devices_config:
-            device_class_name, device_config = device_config_dict.keys()[0], device_config_dict.values()[0]
+            device_class_name, device_config = list(device_config_dict.keys())[0], list(device_config_dict.values())[0]
             if device_config.get('enable',True) is True:
                 try:
                     self._addDeviceView(device_class_name,device_config)
@@ -1095,7 +1095,7 @@ class ioHubConnection(object):
             DeviceConstants.addClassMapping(device_class)
 
             device_event_ids=[]
-            for ev in event_classes.values():
+            for ev in list(event_classes.values()):
                 if ev.EVENT_TYPE_ID:
                     device_event_ids.append(ev.EVENT_TYPE_ID)
             EventConstants.addClassMappings(device_class,device_event_ids,event_classes)
@@ -1155,7 +1155,7 @@ class ioHubConnection(object):
         try:
             # send request to host, return is # bytes sent.
             bytes_sent = self.udp_client.sendTo(ioHubMessage)
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             self.shutdown()
@@ -1166,7 +1166,7 @@ class ioHubConnection(object):
             result = self.udp_client.receive()
             if result:
                 result, address = result
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             self.shutdown()
@@ -1309,12 +1309,12 @@ class ioHubConnection(object):
                 self.udp_client.close()
                 if Computer.iohub_process:
                     r=Computer.iohub_process.wait(timeout=5)
-                    print 'ioHub Server Process Completed With Code: ',r
+                    print('ioHub Server Process Completed With Code: ',r)
             except TimeoutError:
-                print "Warning: TimeoutExpired, Killing ioHub Server process."
+                print("Warning: TimeoutExpired, Killing ioHub Server process.")
                 Computer.iohub_process.kill()
             except Exception:
-                print "Warning: Unhandled Exception. Killing ioHub Server process."
+                print("Warning: Unhandled Exception. Killing ioHub Server process.")
                 if Computer.iohub_process:
                     Computer.iohub_process.kill()
                 printExceptionDetailsToStdErr()
@@ -1333,7 +1333,7 @@ class ioHubConnection(object):
             if isIterable(data[0]):
                 return False
             else:
-                if (type(data[0]) in (str, unicode)) and data[0].find('ERROR') >= 0:
+                if (type(data[0]) in (str, str)) and data[0].find('ERROR') >= 0:
                     return data
                 return False
         else:
@@ -1347,7 +1347,7 @@ class ioHubConnection(object):
                 PID, userID = line.split()[1:3]
                 # could verify same userID as current user, probably not needed
                 os.kill(int(PID), signal.SIGKILL)
-                print 'Called  os.kill(int(PID), signal.SIGKILL): ', PID, userID
+                print('Called  os.kill(int(PID), signal.SIGKILL): ', PID, userID)
     def __del__(self):
         try:
             self._shutDownServer()
@@ -1439,7 +1439,7 @@ def launchHubServer(**kwargs):
             return "%s.%s"%(func.__module__, func.__name__)
 
         def configfuncs2str(config):
-            for k, v in config.items():
+            for k, v in list(config.items()):
                 if isinstance(v,dict):
                     configfuncs2str(v)
                 if isFunction(v):
@@ -1480,7 +1480,7 @@ def launchHubServer(**kwargs):
             del device_dict['Mouse']
 
         # Add remaining defined devices to the device list.
-        for class_name,device_config in device_dict.iteritems():
+        for class_name,device_config in device_dict.items():
             device_list.append({class_name:device_config})
 
         # Create an ioHub configuration dictionary.
@@ -1575,7 +1575,7 @@ class ioHubExperimentRuntime(object):
 
         # load the experiment config settings from the experiment_config.yaml file.
         # The file must be in the same directory as the experiment script.
-        self.configuration=load(file( os.path.join(self.configFilePath,self.configFileName),u'r'), Loader=Loader)
+        self.configuration=load(file( os.path.join(self.configFilePath,self.configFileName),'r'), Loader=Loader)
 
         import random
         random.seed(Computer.getTime()*1000.123)
@@ -1776,16 +1776,16 @@ class ioHubExperimentRuntime(object):
         traceback.print_exc()
         print("*** format_exc, first and last line:")
         formatted_lines = traceback.format_exc().splitlines()
-        print(formatted_lines[0])
-        print(formatted_lines[-1])
+        print((formatted_lines[0]))
+        print((formatted_lines[-1]))
         print("*** format_exception:")
-        print(repr(traceback.format_exception(exc_type, exc_value,
-                                              exc_traceback)))
+        print((repr(traceback.format_exception(exc_type, exc_value,
+                                              exc_traceback))))
         print("*** extract_tb:")
-        print(repr(traceback.extract_tb(exc_traceback)))
+        print((repr(traceback.extract_tb(exc_traceback))))
         print("*** format_tb:")
-        print(repr(traceback.format_tb(exc_traceback)))
-        print("*** tb_lineno:", exc_traceback.tb_lineno)
+        print((repr(traceback.format_tb(exc_traceback))))
+        print(("*** tb_lineno:", exc_traceback.tb_lineno))
 
     @staticmethod
     def mergeConfigurationFiles(base_config_file_path,update_from_config_file_path,merged_save_to_path):
@@ -1799,7 +1799,7 @@ class ioHubExperimentRuntime(object):
 
         def merge(update, base):
             if isinstance(update,dict) and isinstance(base,dict):
-                for k,v in base.iteritems():
+                for k,v in base.items():
                     if k not in update:
                         update[k] = v
                     else:
@@ -1837,7 +1837,7 @@ class ioHubExperimentRuntime(object):
             # or Cancel to end the experiment session if the wrong experiment was started.
             exitExperiment=self._displayExperimentSettingsDialog()
             if exitExperiment:
-                print "User Cancelled Experiment Launch."
+                print("User Cancelled Experiment Launch.")
                 self._close()
                 sys.exit(1)
 
@@ -1846,12 +1846,12 @@ class ioHubExperimentRuntime(object):
         ioHubInfo = self.configuration.get('ioHub', {})
 
         if ioHubInfo is None:
-            print 'ioHub section of configuration file could not be found. Exiting.....'
+            print('ioHub section of configuration file could not be found. Exiting.....')
             self._close()
             sys.exit(1)
         else:
-            ioHubConfigFileName = unicode(ioHubInfo.get('config', 'iohub_config.yaml'))
-            ioHubConfigAbsPath = os.path.join(self.configFilePath, unicode(ioHubConfigFileName))
+            ioHubConfigFileName = str(ioHubInfo.get('config', 'iohub_config.yaml'))
+            ioHubConfigAbsPath = os.path.join(self.configFilePath, str(ioHubConfigFileName))
             self.hub = ioHubConnection(None, ioHubConfigAbsPath)
 
             #print 'ioHubExperimentRuntime.hub: {0}'.format(self.hub)
@@ -1886,7 +1886,7 @@ class ioHubExperimentRuntime(object):
 
                     tempdict = self._displayExperimentSessionSettingsDialog(allSessionDialogVariables,sessionVariableOrder)
                     if tempdict is None:
-                        print "User Cancelled Experiment Launch."
+                        print("User Cancelled Experiment Launch.")
                         self._close()
                         sys.exit(1)
 
@@ -1910,7 +1910,7 @@ class ioHubExperimentRuntime(object):
                 tempdict=allSessionDialogVariables
                 tempdict['user_variables']=self.sessionUserVariables
 
-            for key,value in allSessionDialogVariables.iteritems():
+            for key,value in allSessionDialogVariables.items():
                 if key in self.experimentSessionDefaults:
                     self.experimentSessionDefaults[key]=value#(u''+value).encode('utf-8')
                 elif  key in self.sessionUserVariables:
@@ -1930,7 +1930,7 @@ class ioHubExperimentRuntime(object):
 
     def _setInitialProcessAffinities(self,ioHubInfo):
             # set process affinities based on config file settings
-            cpus=range(Computer.processing_unit_count)
+            cpus=list(range(Computer.processing_unit_count))
             experiment_process_affinity=cpus
             other_process_affinity=cpus
             iohub_process_affinity=cpus
@@ -2077,4 +2077,4 @@ class ioEvent(object):
                                                self.type,
                                                self.id)
 
-import keyboard
+from . import keyboard

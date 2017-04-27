@@ -5,7 +5,7 @@
 Demo: show a very basic program: hello world
 """
 
-from __future__ import division
+
 
 # Import key parts of the PsychoPy library:
 from psychopy import visual, core
@@ -14,8 +14,8 @@ from psychopy import visual, core
 win = visual.Window()
 
 # Create (but not yet display) some text:
-msg1 = visual.TextStim(win, text=u"Hello world!")  # default position = centered
-msg2 = visual.TextStim(win, text=u"\u00A1Hola mundo!", pos=(0, -0.3))
+msg1 = visual.TextStim(win, text="Hello world!")  # default position = centered
+msg2 = visual.TextStim(win, text="\u00A1Hola mundo!", pos=(0, -0.3))
 
 # Draw the text to the hidden visual buffer:
 msg1.draw()

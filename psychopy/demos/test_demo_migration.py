@@ -127,7 +127,7 @@ def process_files(f1, f2):
 
 if __name__ == '__main__':
     dirs = [d for d in glob.glob('coder/*') if os.path.isdir(d)]
-    print 'all pass unless noted'
+    print('all pass unless noted')
     for d in dirs:
         p = glob.glob(d+'/*.py')
         for f1 in p:
@@ -136,12 +136,12 @@ if __name__ == '__main__':
             f2 = f1.replace('coder/', 'coder_updated/')
             t1, t2 = process_files(f1, f2)
             if not t1 == t2:
-                print 'FAILED', f1
+                print('FAILED', f1)
                 t = t1[0]
                 i = 0
                 while t2.startswith(t):
                     i += 1
                     t += t1[i]
-                print '    ' + t[:-1] + ' |---'
+                print('    ' + t[:-1] + ' |---')
                 #print t1, '\n', t2
                 

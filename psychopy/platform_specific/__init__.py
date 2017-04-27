@@ -35,10 +35,10 @@ def sendStayAwake():
 
 # NB includes vista and 7 (but not sure about vista64)
 if sys.platform == 'win32':
-    from win32 import *  # pylint: disable=W0401
+    from .win32 import *  # pylint: disable=W0401
 elif sys.platform == 'darwin':
-    from darwin import *  # pylint: disable=W0401
+    from .darwin import *  # pylint: disable=W0401
 elif sys.platform.startswith('linux'):  # normally 'linux2'
-    from linux import *  # pylint: disable=W0401
+    from .linux import *  # pylint: disable=W0401
 elif sys.platform == 'posix':  # ever?!
-    from posix import *  # pylint: disable=W0401
+    from .posix import *  # pylint: disable=W0401

@@ -2457,7 +2457,7 @@ if __name__ == "__main__":
         sources = sources.encode("ascii") # ensure bytes
         sources = pickle.loads(zlib.decompress(base64.decodebytes(sources)))
     else:
-        import cPickle as pickle
+        import pickle as pickle
         exec("def do_exec(co, loc): exec co in loc\n")
         sources = pickle.loads(zlib.decompress(base64.decodestring(sources)))
 

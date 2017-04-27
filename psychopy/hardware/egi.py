@@ -24,7 +24,7 @@ For further documentation see the pynetstation website
 
 from psychopy import logging
 try:
-    from egi import *  # pyline: disable=W0614
+    from .egi import *  # pyline: disable=W0614
 except ImportError:
     msg = """Failed to import egi (pynetstation). If you're using your own
 copy of python (not the Standalone distribution of PsychoPy)

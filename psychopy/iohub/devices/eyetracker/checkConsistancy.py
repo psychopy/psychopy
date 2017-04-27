@@ -46,22 +46,22 @@ if __name__ == '__main__':
 
     attributes,methods,builtins,klasses=describeModule.describe(EyeTrackerDevice,True)
 
-    interfaceAttributes= collections.Counter(attributes.keys())
-    interfaceMethods= collections.Counter(methods.keys())
-    interfaceBuiltins= collections.Counter(builtins.keys())
-    interfaceClasses= collections.Counter(klasses.keys())
+    interfaceAttributes= collections.Counter(list(attributes.keys()))
+    interfaceMethods= collections.Counter(list(methods.keys()))
+    interfaceBuiltins= collections.Counter(list(builtins.keys()))
+    interfaceClasses= collections.Counter(list(klasses.keys()))
 
-    print '\n\n'
+    print('\n\n')
 
     eyetrackerImplementations=[EyeLinkEyeTracker,]
 
     for implementation in eyetrackerImplementations:
         attributes2,methods2,builtins2,klasses2=describeModule.describe(implementation,False)
 
-        a = collections.Counter(attributes2.keys())
-        m= collections.Counter(methods2.keys())
-        b= collections.Counter(builtins2.keys())
-        k= collections.Counter(klasses2.keys())
+        a = collections.Counter(list(attributes2.keys()))
+        m= collections.Counter(list(methods2.keys()))
+        b= collections.Counter(list(builtins2.keys()))
+        k= collections.Counter(list(klasses2.keys()))
 
         onlyInImplementationA=a-interfaceAttributes
         onlyInImplementationM=m-interfaceMethods
@@ -73,43 +73,43 @@ if __name__ == '__main__':
         missingInImplementationB=interfaceBuiltins-b
         missingInImplementationK=interfaceClasses-k
 
-        print "========================================================================================="
+        print("=========================================================================================")
 
-        print "Implementation ",implementation.__class__.__name__.split('.')[-3:-1] ," contains the following differences from the Interface:"
-        print
-        print "+ Attributes in not in the Interface Definition: "
+        print("Implementation ",implementation.__class__.__name__.split('.')[-3:-1] ," contains the following differences from the Interface:")
+        print()
+        print("+ Attributes in not in the Interface Definition: ")
         for x in onlyInImplementationA:
-            print '\t',x
-        print
-        print "+ Methods in not in the Interface Definition: "
+            print('\t',x)
+        print()
+        print("+ Methods in not in the Interface Definition: ")
         for x in onlyInImplementationM:
-            print '\t',x
-        print
-        print "+ Bultins in not in the Interface Definition: "
+            print('\t',x)
+        print()
+        print("+ Bultins in not in the Interface Definition: ")
         for x in onlyInImplementationB:
-            print '\t',x
-        print
-        print "+ Classes in not in the Interface Definition: "
+            print('\t',x)
+        print()
+        print("+ Classes in not in the Interface Definition: ")
         for x in onlyInImplementationK:
-            print '\t',x
-        print
-        print
-        print "- Attributes missing from Implementation:"
+            print('\t',x)
+        print()
+        print()
+        print("- Attributes missing from Implementation:")
         for x in missingInImplementationA:
-            print '\t',x
-        print
-        print "- Methods missing from Implementation:"
+            print('\t',x)
+        print()
+        print("- Methods missing from Implementation:")
         for x in missingInImplementationM:
-            print '\t',x
-        print
-        print  "- Bultins missing from Implementation:"
+            print('\t',x)
+        print()
+        print("- Bultins missing from Implementation:")
         for x in missingInImplementationB:
-            print '\t',x
-        print
-        print  "- Classes missing from Implementation:"
+            print('\t',x)
+        print()
+        print("- Classes missing from Implementation:")
         for x in missingInImplementationK:
-            print '\t',x
+            print('\t',x)
 
-        print "========================================================================================="
+        print("=========================================================================================")
         #c = a - b
         #print list(c.elements())

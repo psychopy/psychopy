@@ -16,12 +16,12 @@ Section Number Mapping:
 4 = Private Helper Functions
 
 """
-from LabJackPython import *
-import struct, ConfigParser
+from .LabJackPython import *
+import struct, configparser
 
 FIO0, FIO1, FIO2, FIO3, FIO4, FIO5, FIO6, FIO7, \
 EIO0, EIO1, EIO2, EIO3, EIO4, EIO5, EIO6, EIO7, \
-CIO0, CIO1, CIO2, CIO3 = range(20)
+CIO0, CIO1, CIO2, CIO3 = list(range(20))
 
 def openAllU3():
     """
@@ -745,7 +745,7 @@ class U3(Device):
         
             if rcvBuffer[3] != 0x00:
                 raise LabJackException("Got incorrect command bytes")
-        except LowlevelErrorException, e:
+        except LowlevelErrorException as e:
             if isinstance(commandlist[0], list):
                 culprit = commandlist[0][ (rcvBuffer[7] -1) ]
             else:
@@ -1588,7 +1588,7 @@ class U3(Device):
                 else:
                     return (bits * 0.000074463) * (0.000314 / 0.000037231) + -10.3
             else:
-                raise Exception, "Can't do differential on high voltage channels"
+                raise Exception("Can't do differential on high voltage channels")
     binaryToCalibratedAnalogVoltage.section = 3
     
     def binaryToCalibratedAnalogTemperature(self, bytesTemperature):
@@ -1670,7 +1670,7 @@ class U3(Device):
             self.calData['hvAIN1Offset'] = toDouble(calData[8:16])
             self.calData['hvAIN2Offset'] = toDouble(calData[16:24])
             self.calData['hvAIN3Offset'] = toDouble(calData[24:32])
-        except LowlevelErrorException, ex:
+        except LowlevelErrorException as ex:
             if ex.errorCode != 26:
                 #not an invalid block error, so do not disregard
                 raise ex
@@ -1737,7 +1737,7 @@ class U3(Device):
               object. Useful for saving the setup of your U3.
         """
         # Make a new configuration file
-        parser = ConfigParser.SafeConfigParser()
+        parser = configparser.SafeConfigParser()
         
         # Change optionxform so that options preserve their case.
         parser.optionxform = str
@@ -1760,10 +1760,10 @@ class U3(Device):
         parser.set(section, "FIOs Analog", str( self.readRegister(50590) ))
         parser.set(section, "EIOs Analog", str( self.readRegister(50591) ))
         
-        for key, value in dirs.items():
+        for key, value in list(dirs.items()):
             parser.set(section, "%s Directions" % key, str(value))
             
-        for key, value in states.items():
+        for key, value in list(states.items()):
             parser.set(section, "%s States" % key, str(value))
             
         # DACs
@@ -1785,7 +1785,7 @@ class U3(Device):
         parser.add_section(section)
         
         timerclockconfig = self.configTimerClock()
-        for key, value in timerclockconfig.items():
+        for key, value in list(timerclockconfig.items()):
             parser.set(section, key, str(value))
         
         # Timers / Counters
@@ -1962,7 +1962,7 @@ class AIN(FeedbackCommand):
         self.longSettling = LongSettling
         self.quickSample = QuickSample
         
-        validChannels = range(16) + [30, 31]
+        validChannels = list(range(16)) + [30, 31]
         if PositiveChannel not in validChannels:
             raise Exception("Invalid Positive Channel specified")
         if NegativeChannel not in validChannels:

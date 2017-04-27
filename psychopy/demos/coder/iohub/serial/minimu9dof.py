@@ -45,7 +45,7 @@ from psychopy.iohub import launchHubServer
 
 psychopy_mon_name = 'testMonitor'
 exp_code = '9dof'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 iohubkwargs = {'psychopy_monitor_name':psychopy_mon_name,
                 'experiment_code': exp_code,
                 'session_code': sess_code,
@@ -59,19 +59,19 @@ ser = io.devices.serial
 event_count = 0
 
 io.clearEvents('all')
-print "Saving Serial Port Events. Press any key to exit."
+print("Saving Serial Port Events. Press any key to exit.")
 ser.enableEventReporting(True)
 stime = core.getTime()
 
 while not kb.getEvents():
     event_count += len(ser.getEvents())
-    print 'Serial Event Count:', event_count, '\r',
+    print('Serial Event Count:', event_count, '\r', end=' ')
     core.wait(0.01, 0.0)
 
 etime = core.getTime()
 ser.enableEventReporting(False)
-print
-print "Received approx. %.2f events / second."%(event_count/(etime-stime))
+print()
+print("Received approx. %.2f events / second."%(event_count/(etime-stime)))
 io.quit()
 ## EOD
 

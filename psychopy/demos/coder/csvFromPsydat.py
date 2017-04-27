@@ -12,7 +12,7 @@ from psychopy.tools.filetools import fromFile
 name = 'fileName.psydat'
 
 file_psydat = os.path.abspath(name)
-print("psydat: {0}".format(file_psydat))
+print(("psydat: {0}".format(file_psydat)))
 
 # read in the experiment session from the psydat file:
 exp = fromFile(file_psydat)
@@ -25,4 +25,4 @@ else:
 file_csv += '.csv'
 exp.saveAsWideText(file_csv)
 
-print('-> csv: {0}'.format(os.path.abspath(file_csv)))
+print(('-> csv: {0}'.format(os.path.abspath(file_csv))))

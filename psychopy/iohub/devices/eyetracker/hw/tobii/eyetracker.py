@@ -19,7 +19,7 @@ from ...eye_events import *
 
 
 try:
-    from tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
+    from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
 except Exception:
     print2err("Error importing TobiiPsychopyCalibrationGraphics")
     printExceptionDetailsToStdErr()
@@ -60,9 +60,9 @@ class EyeTracker(EyeTrackerDevice):
 
         try:
             if EyeTracker._isEyeX:
-                from eyex_classes import TobiiEyeXTracker
+                from .eyex_classes import TobiiEyeXTracker
             else:
-                from tobiiclasses import TobiiTracker
+                from .tobiiclasses import TobiiTracker
         except Exception:
             print2err("Error importing tobiiclasses")
             printExceptionDetailsToStdErr()
@@ -235,7 +235,7 @@ class EyeTracker(EyeTrackerDevice):
             enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
             self.setRecordingState(enabled)
             return enabled
-        except Exception, e:
+        except Exception as e:
             print2err("Error during enableEventReporting")
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_ERROR

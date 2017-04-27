@@ -10,7 +10,7 @@ Abbrieviated: May 2013, Jon Peirce
 Updated July, 2013, Sol, Added timeouts
 """
 
-from __future__ import division
+
 
 import sys
 

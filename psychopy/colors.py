@@ -27,8 +27,8 @@ def isValidColor(color):
         color = float(color)
         return True
     except Exception:
-        if isinstance(color, basestring) and len(color):
-            return (color.lower() in colors255.keys()
+        if isinstance(color, str) and len(color):
+            return (color.lower() in list(colors255.keys())
                     or color[0] == '#' or color[0:2] == '0x')
         return type(color) in [tuple, list, numpy.ndarray] or not color
 

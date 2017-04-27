@@ -5,7 +5,7 @@
 Demo of how to copy pixels from the frame buffer
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core, logging
 logging.console.setLevel(logging.INFO)

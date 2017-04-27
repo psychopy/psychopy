@@ -204,12 +204,12 @@ if __name__ == '__main__':
             out = f1.replace('coder', 'coder_updated')
             with open(out, 'wb') as fh:
                 fh.write(new)
-            print new
+            print(new)
             
             try:
                 compile(new, '', 'exec')
             except Exception:
-                print out
+                print(out)
                 raise
             #"""
             

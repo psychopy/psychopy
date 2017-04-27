@@ -12,7 +12,7 @@ Clock logic.
 @author: Sol
 @author: Jon
 """
-from __future__ import division
+
 import time
 import sys
 

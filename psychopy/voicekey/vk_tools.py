@@ -4,7 +4,7 @@
 """Digital signal processing functions; pyo table, file, & sample conversions
 """
 
-from __future__ import division
+
 import os
 import sys
 import time
@@ -171,7 +171,7 @@ def _get_pyo_codes(fmt='', dtype='int16', file_out=''):
     if not fmt:
         dot_ext = os.path.splitext(file_out)[1]
         fmt = dot_ext.lower().strip('.')
-    if fmt in pyo_formats.keys():
+    if fmt in list(pyo_formats.keys()):
         file_fmt = pyo_formats[fmt]
     else:
         msg = 'format `{0}` not supported'.format(file_out)
@@ -182,7 +182,7 @@ def _get_pyo_codes(fmt='', dtype='int16', file_out=''):
     else:
         ok_dfmt = pyo_dtype
 
-    if dtype in ok_dfmt.keys():
+    if dtype in list(ok_dfmt.keys()):
         data_fmt = pyo_dtype[dtype]
     else:
         msg = 'data format `{0}` not supported for `{1}`'.format(

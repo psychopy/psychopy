@@ -13,7 +13,7 @@ Distributed under the terms of the GNU General Public License
 contributors, please see credits section of documentation.
 """
 
-import xinput
+from . import xinput
 import numpy as N
 import gevent
 from .. import Computer, Device, DeviceEvent, ioDeviceError
@@ -170,7 +170,7 @@ class Gamepad(XInputDevice):
         """
         bdict=self._getButtonNameList(self._device_state.Gamepad.wButtons)
         blist=[]
-        for k,v in bdict.iteritems():
+        for k,v in bdict.items():
             if v:
                 blist.append(k)
         return blist
@@ -363,7 +363,7 @@ class Gamepad(XInputDevice):
 
         g=self._capabilities.Gamepad
         b=g.wButtons
-        capabilities_dict['supported_buttons']=[k for k,v in self._getButtonNameList(b).iteritems() if v is True]
+        capabilities_dict['supported_buttons']=[k for k,v in self._getButtonNameList(b).items() if v is True]
 
 
         capabilities_dict['left_trigger_support']=g.bLeftTrigger==255

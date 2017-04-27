@@ -13,7 +13,7 @@ psychopy.filters and then creates a second sub-stimulus created from a section o
 the original. Both are masked simply by circles.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, event, core
 from psychopy.visual import filters

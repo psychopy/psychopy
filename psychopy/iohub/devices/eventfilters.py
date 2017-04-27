@@ -37,7 +37,7 @@ class DeviceEventFilter(object):
         self._input_events = []
         self._output_events = []
 
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             setattr(self, key, value)
 
         self._enabled = False
@@ -146,7 +146,7 @@ class MovingWindowFilter(object):
         length = kwargs.get('length')
         event_type = kwargs.get('event_type')
         event_field_name = kwargs.get('event_field_name')
-        if isinstance(knot_pos, basestring):
+        if isinstance(knot_pos, str):
             if knot_pos == 'center' and length%2 == 0:
                 raise ValueError("MovingWindow length must be odd for a centered knot_pos.")
             if knot_pos == 'center':
@@ -463,7 +463,7 @@ if __name__ == '__main__':
     my_filter = WeightedAverageFilter(weights=[17.0,33.0,50.0,33.0,17.0], event_type=None, event_field_name=None, knot_pos='center', inplace = True)
 
 
-    print "FIRST SOURCE EVENT ID:",events[0]['event_id']
+    print("FIRST SOURCE EVENT ID:",events[0]['event_id'])
     for e in events:
         r = mx_filter.add(e['x_position'])
         filtered_x=None
@@ -475,4 +475,4 @@ if __name__ == '__main__':
         if r:
             _junk, filtered_y=r
 
-        print "filtered values: ", filtered_x, filtered_y
+        print("filtered values: ", filtered_x, filtered_y)

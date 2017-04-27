@@ -105,7 +105,7 @@ class Aperture(MinimalStim, ContainerMixin):
             vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
-        elif type(shape) in [str, unicode]:
+        elif type(shape) in [str, str]:
             # is a string - see if it points to a file
             if os.path.isfile(shape):
                 self.__dict__['filename'] = shape

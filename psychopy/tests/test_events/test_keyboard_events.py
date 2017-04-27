@@ -314,7 +314,7 @@ class TestGLobalEventKeys(object):
         global_keys = event._GlobalEventKeys()
         global_keys.add(key=key, modifiers=modifiers, func=func)
 
-        index_key = global_keys.keys()[-1]
+        index_key = list(global_keys.keys())[-1]
         assert index_key.key == key
         assert index_key.modifiers == modifiers
 

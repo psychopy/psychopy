@@ -19,7 +19,7 @@ from ..... import Computer
 from .... import EyeTrackerDevice
 from ....eye_events import *
 
-import pEyeGaze
+from . import pEyeGaze
 
 import sys
 from ctypes import byref, sizeof
@@ -119,7 +119,7 @@ class EyeTracker(EyeTrackerDevice):
                     return False
             else:
                 return print2err("INVALID_METHOD_ARGUMENT_VALUE. ","EyeTracker.setConnectionState: ",enable)
-        except Exception,e:
+        except Exception as e:
                 return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",error_message="An unhandled exception occurred on the ioHub Server Process.",method="EyeTracker.setConnectionState",arguement='enable', value=enable, error=e)            
             
     def isConnected(self):
@@ -136,7 +136,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._eyegaze_control != None
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.isConnected", error=e)            
@@ -175,7 +175,7 @@ class EyeTracker(EyeTrackerDevice):
                     return rdict
                 else:
                     print2err('WARNING: EyeGaze command not handled: {0} = {1}.'.format())
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.sendCommand", key=key,value=value, error=e)            
@@ -188,7 +188,7 @@ class EyeTracker(EyeTrackerDevice):
             if self._eyegaze_control:
                 print2err("EyeGaze sendMessage not yet implemented")
                 return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.sendMessage", message_contents=message_contents,time_offset=time_offset, error=e)            
@@ -224,14 +224,14 @@ class EyeTracker(EyeTrackerDevice):
                 #from psychopy.iohub import module_directory
                 #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
                 #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
-                org_cwd = os.getcwdu()
+                org_cwd = os.getcwd()
                 print2err("==========")
                 print2err("CWD Prior to calibrate.exe launch: ",org_cwd)
-                p = subprocess.Popen((u'calibrate.exe', u''), cwd = u'c:\\eyegaze\\' )
+                p = subprocess.Popen(('calibrate.exe', ''), cwd = 'c:\\eyegaze\\' )
                 while p.poll() is None:
                     gevent.sleep(0.05)
                 self.setConnectionState(True)
-                new_cwd=os.getcwdu()
+                new_cwd=os.getcwd()
                 print2err("CWD after calibrate.exe: ",new_cwd)
                 print2err("==========")
 
@@ -244,7 +244,7 @@ class EyeTracker(EyeTrackerDevice):
 #            targetOuterDiameter=circle_attributes.get('outer_diameter')     # diameter of outer target circle (in px)
 #            targetInnerDiameter=circle_attributes.get('inner_diameter')     # diameter of inner target circle (in px)
             
-        except Exception,e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.runSetupProcedure", 
@@ -264,7 +264,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._eyegaze_control is not None and self._eyegaze_control.bTrackingActive in [1,True]
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.isRecordingEnabled", error=e)
@@ -278,7 +278,7 @@ class EyeTracker(EyeTrackerDevice):
             if self._eyegaze_control:
                 enabled=self.setRecordingState(self,enabled)
             return self.setRecordingState(enabled)
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.enableEventReporting", error=e)            
@@ -310,7 +310,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._latest_sample=None
                 self._latest_gaze_position=None
             return self.isRecordingEnabled()
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.setRecordingState", error=e)            
@@ -333,7 +333,7 @@ class EyeTracker(EyeTrackerDevice):
 
         try:
             return self._latest_sample
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.getLastSample", error=e)            
@@ -361,7 +361,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._latest_gaze_position
-        except Exception, e:
+        except Exception as e:
             return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",
                     #error_message="An unhandled exception occurred on the ioHub Server Process.",
                     #method="EyeTracker.getLastGazePosition", error=e)             

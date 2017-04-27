@@ -37,16 +37,16 @@ def main():
         # Various text stim used on the status panel.
         #
         demo_title = visual.TextStim(win, color='#FFFFFF',height=24, wrapWidth=w,
-                            text = u"ioSync Demo Initializing, Please Wait.",
+                            text = "ioSync Demo Initializing, Please Wait.",
                             pos=[0, 300], alignHoriz='center',alignVert='top')
         analog_in_txt = visual.TextStim(win, color='#FFFFFF',height=18,
-                            text = u"Analog Input Levels", wrapWidth=w,
+                            text = "Analog Input Levels", wrapWidth=w,
                             pos=[-375, 230], alignHoriz='left',alignVert='center')
         digital_in_txt = visual.TextStim(win, color='#FFFFFF',height=18,
-                            text = u"Digital Input States", wrapWidth=w,
+                            text = "Digital Input States", wrapWidth=w,
                             pos=[-375, -50], alignHoriz='left',alignVert='center')
         digital_out_txt = visual.TextStim(win, color='#FFFFFF',height=18, wrapWidth=w,
-                            text = u"Digital Output States (Click button to toggle state)",
+                            text = "Digital Output States (Click button to toggle state)",
                             pos=[-375, -175], alignHoriz='left',alignVert='center')
         static_text_stim=[demo_title,analog_in_txt,digital_in_txt,digital_out_txt]
 
@@ -219,7 +219,7 @@ def startIOHub():
     import time
     psychopy_mon_name = 'testMonitor'
     exp_code = 'events'
-    sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+    sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
     iohub_config = {
         "psychopy_monitor_name": psychopy_mon_name,
         "mcu.iosync.MCU": dict(serial_port='auto',

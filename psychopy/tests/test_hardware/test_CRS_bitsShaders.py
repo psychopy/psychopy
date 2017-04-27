@@ -4,7 +4,7 @@ Created on Mon Dec 15 15:22:48 2014
 
 @author: lpzjwp
 """
-from __future__ import print_function #for compatibility with python3
+ #for compatibility with python3
 from psychopy import visual,core, event
 from psychopy.hardware import crs
 import numpy as np
@@ -64,7 +64,7 @@ bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
 
 #draw a ramp across the screenexpectedVals = range(256)
 w,h = win.size
-intended = range(256)
+intended = list(range(256))
 testArrLums = np.resize(intended,[256,256])/127.5-1 #NB psychopy uses -1:1
 stim = visual.ImageStim(win, image=testArrLums,
     size=[256,h], pos=[128-w/2,0], units='pix',

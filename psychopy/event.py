@@ -9,7 +9,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 # 01/2011 modified by Dave Britton to get mouse event timing
 
-from __future__ import absolute_import
+
 
 import sys
 import string
@@ -129,7 +129,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
             msg = 'Modifiers must be passed as an integer value.'
             raise ValueError(msg)
 
-        thisKey = unicode(symbol)
+        thisKey = str(symbol)
         keySource = 'EmulatedKey'
     else:
         thisKey = pyglet.window.key.symbol_string(
@@ -327,7 +327,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
                 # Pressing special keys, such as 'volume-up', results in a
                 # ValueError. This appears to be a bug in pyglet, and may be
                 # specific to certain systems and versions of Python.
-                logging.error(u'Failed to handle keypress')
+                logging.error('Failed to handle keypress')
 
         global _keyBuffer
         if len(_keyBuffer) > 0:
@@ -365,12 +365,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeBaseDiff)) for k in targets]
+        relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeBaseDiff) if _f] for k in targets]
         return relTuple
     elif timeStamped is True:
-        return [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1])) for k in targets]
-    elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped)) for k in targets]
+        return [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1]) if _f] for k in targets]
+    elif isinstance(timeStamped, (float, int)):
+        relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped) if _f] for k in targets]
         return relTuple
 
 
@@ -900,7 +900,7 @@ class _GlobalEventKeys(MutableMapping):
 
     _IndexKey = namedtuple('_IndexKey', ['key', 'modifiers'])
 
-    _valid_keys = set(string.lowercase + string.digits
+    _valid_keys = set(string.ascii_lowercase + string.digits
                       + string.punctuation + ' \t')
     _valid_keys.update(['escape', 'left', 'right', 'up', 'down'])
 
@@ -922,7 +922,7 @@ class _GlobalEventKeys(MutableMapping):
 
     def __repr__(self):
         info = ''
-        for index_key, event in self._events.items():
+        for index_key, event in list(self._events.items()):
             info += '\n\t'
             if index_key.modifiers:
                 _modifiers = ['[%s]' % m.upper() for m in index_key.modifiers]
@@ -958,10 +958,10 @@ class _GlobalEventKeys(MutableMapping):
             logging.exp("Removed global key event: '%s'." % event.name)
 
     def __iter__(self):
-        return self._events.iterkeys()
+        return iter(self._events.keys())
 
     def _gen_index_key(self, key):
-        if isinstance(key, (str, unicode)):  # Single key, passed as a string.
+        if isinstance(key, str):  # Single key, passed as a string.
             index_key = self._IndexKey(key, ())
         else:  # Convert modifiers into a hashable type.
             index_key = self._IndexKey(key[0], tuple(key[1]))

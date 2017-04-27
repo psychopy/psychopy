@@ -88,9 +88,9 @@ def setAttribute(self, attrib, value, log,
         # Apply operation except for the case when new or old value
         # are None or string-like
         if (value is not None and
-                not isinstance(value, basestring) and
+                not isinstance(value, str) and
                 oldValue is not None and
-                not isinstance(oldValue, basestring)):
+                not isinstance(oldValue, str)):
             value = numpy.array(value, float)
 
             # Calculate new value using operation

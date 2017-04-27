@@ -9,7 +9,7 @@ Demo of text rendering in pyglet, including:
 - mirror-image
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core, event
 
@@ -38,17 +38,17 @@ rotating = visual.TextStim(win, text="Fonts \nrotate!", pos=(0, 0),  # and can h
     font=comic)
 unicodeStuff = visual.TextStim(win,
     # you can find the unicode character value by searching online
-    text = u"unicode (eg \u03A8 \u040A \u03A3)",
+    text = "unicode (eg \u03A8 \u040A \u03A3)",
     color='black',
     font=serif, pos=(0, 3),
     height = 1)
 psychopyTxt = visual.TextStim(win, color='#FFFFFF',
-    text = u"PsychoPy \u00A9Jon Peirce",
+    text = "PsychoPy \u00A9Jon Peirce",
     units='norm', height=0.1,
     pos=[0.95, 0.95], alignHoriz='right', alignVert='top',
     font=fancy)
 longSentence = visual.TextStim(win,
-    text = u"Very long sentences can wrap", wrapWidth=0.4,
+    text = "Very long sentences can wrap", wrapWidth=0.4,
     units='norm', height=0.05, color='DarkSlateBlue',
     pos=[0.95, -0.95], alignHoriz='right', alignVert='bottom')
 mirror = visual.TextStim(win, text="mirror mirror",

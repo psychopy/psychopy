@@ -11,9 +11,9 @@ printed to stdout.
 Inital Version: May 6th, 2013, Sol Simpson
 """
 
-from __future__ import division
 
-from __future__ import print_function  # for compatibility with python3
+
+  # for compatibility with python3
 from psychopy.iohub import launchHubServer
 
 def testWithNoKwargs():
@@ -126,7 +126,7 @@ def testEnabledDataStoreAutoSessionCode():
 
         psychopy_mon_name = 'testMonitor'
         exp_code = 'gap_endo_que'
-        sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+        sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
         print('Current Session Code will be: ', sess_code)
 
         io = launchHubServer(psychopy_monitor_name=psychopy_mon_name,

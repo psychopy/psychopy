@@ -1,1 +1,1 @@
-import gp3
+from . import gp3

@@ -5,7 +5,7 @@ __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
 __cvsid__ = "$Id: introspect.py,v 1.15 2006/06/29 22:23:19 RD Exp $"
 __revision__ = "$Revision: 1.15 $"[11:-2]
 
-import cStringIO
+import io
 import inspect
 import tokenize
 import types
@@ -58,7 +58,7 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
         attrdict = getAllAttributeNames(object)
         # Store the object's dir.
         object_dir = dir(object)
-        for (obj_type_name, technique, count), attrlist in attrdict.items():
+        for (obj_type_name, technique, count), attrlist in list(attrdict.items()):
             # This complexity is necessary to avoid accessing all the
             # attributes of the object.  This is very handy for objects
             # whose attributes are lazily evaluated.
@@ -71,17 +71,17 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
     # Remove duplicates from the attribute list.
     for item in attributes:
         dict[item] = None
-    attributes = dict.keys()
+    attributes = list(dict.keys())
     # new-style swig wrappings can result in non-string attributes
     # e.g. ITK http://www.itk.org/
     attributes = [attribute for attribute in attributes
                   if type(attribute) == str]
     attributes.sort(lambda x, y: cmp(x.upper(), y.upper()))
     if not includeSingle:
-        attributes = filter(lambda item: item[0] != '_'
-                            or item[1:2] == '_', attributes)
+        attributes = [item for item in attributes if item[0] != '_'
+                            or item[1:2] == '_']
     if not includeDouble:
-        attributes = filter(lambda item: item[:2] != '__', attributes)
+        attributes = [item for item in attributes if item[:2] != '__']
     return attributes
 
 
@@ -114,7 +114,7 @@ def getAllAttributeNames(object):
     attrdict[(key, 'dir', len(attributes))] = attributes
     # Get attributes from the object's dictionary, if it has one.
     try:
-        attributes = object.__dict__.keys()
+        attributes = list(object.__dict__.keys())
         attributes.sort()
     except Exception:  # Must catch all because object might have __getattr__.
         pass
@@ -138,9 +138,9 @@ def getAllAttributeNames(object):
     except Exception:  # Must catch all because object might have __getattr__.
         pass
     else:
-        if isinstance(bases, types.TupleType):
+        if isinstance(bases, tuple):
             for base in bases:
-                if type(base) is types.TypeType:
+                if type(base) is type:
                     # Break a circular reference. Happens in Python 2.2.
                     pass
                 else:
@@ -175,7 +175,7 @@ def getCallTip(command='', locals=None):
         pass
     elif inspect.isfunction(object):
         # tip1 is a string like: "getCallTip(command='', locals=None)"
-        argspec = apply(inspect.formatargspec, inspect.getargspec(object))
+        argspec = inspect.formatargspec(*inspect.getargspec(object))
         if dropSelf:
             # The first parameter to a method is a reference to an
             # instance, usually coded as "self", and is usually passed
@@ -303,13 +303,13 @@ def getTokens(command):
     """Return list of token tuples for command."""
 
     # In case the command is unicode try encoding it
-    if type(command) == unicode:
+    if type(command) == str:
         try:
             command = command.encode(wx.GetDefaultPyEncoding())
         except UnicodeEncodeError:
             pass  # otherwise leave it alone
 
-    f = cStringIO.StringIO(command)
+    f = io.StringIO(command)
     # tokens is a list of token tuples, each looking like:
     # (type, string, (srow, scol), (erow, ecol), line)
     tokens = []
@@ -352,14 +352,14 @@ def getBaseObject(object):
         # inspect.getargspec() complains that the object isn't a
         # Python function.
         try:
-            if object.im_self is None:
+            if object.__self__ is None:
                 # This is an unbound method so we do not drop self
                 # from the argspec, since an instance must be passed
                 # as the first arg.
                 dropSelf = 0
             else:
                 dropSelf = 1
-            object = object.im_func
+            object = object.__func__
         except AttributeError:
             dropSelf = 0
     elif inspect.isclass(object):
@@ -373,7 +373,7 @@ def getBaseObject(object):
     elif callable(object):
         # Get the __call__ method instead.
         try:
-            object = object.__call__.im_func
+            object = object.__call__.__func__
             dropSelf = 1
         except AttributeError:
             dropSelf = 0
@@ -385,7 +385,7 @@ def getBaseObject(object):
 def getConstructor(object):
     """Return constructor for class object, or None if there isn't one."""
     try:
-        return object.__init__.im_func
+        return object.__init__.__func__
     except AttributeError:
         for base in object.__bases__:
             constructor = getConstructor(base)

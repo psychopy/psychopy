@@ -212,7 +212,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         while self._player.source != self._movie:
-            self._player.next()
+            next(self._player)
         self.status = NOT_STARTED
         self._player.pause()  # start 'playing' on the next draw command
         self.filename = filename
@@ -374,6 +374,6 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
     def __del__(self):
         try:
-            self._player.next()
+            next(self._player)
         except Exception:
             pass

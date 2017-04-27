@@ -32,7 +32,7 @@ def createInitFile(dist=None, version=None, sha=None):
     with open(os.path.join(thisLoc, 'psychopy','__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
-    print 'wrote init for', version, sha
+    print('wrote init for', version, sha)
     #and return it
     return outStr
 

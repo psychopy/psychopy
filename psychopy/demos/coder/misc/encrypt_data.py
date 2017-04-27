@@ -5,7 +5,7 @@
 Demo to illustrate encryption and decryption of a data file using pyFileSec
 """
 
-from __future__ import division
+
 
 from pyfilesec import SecFile, GenRSA
 import os
@@ -23,8 +23,8 @@ with open(datafile, 'wb') as file:
 # To set up for encryption, give it to a SecFile:
 sf = SecFile(datafile)
 msg = 'make a file:\n  file name: "%s"\n  contents: "%s"'
-print msg % (sf.file, sf.snippet)
-print '  is encrypted: %s' % sf.is_encrypted
+print(msg % (sf.file, sf.snippet))
+print('  is encrypted: %s' % sf.is_encrypted)
 
 # These particular RSA keys are ONLY for testing
 # see pyfilesec.genrsa() to make your own keys)
@@ -34,14 +34,14 @@ pubkey, privkey, passphrase = GenRSA().demo_rsa_keys()
 # To encrypt the file, use the RSA public key:
 sf.encrypt(pubkey)
 msg = 'ENCRYPT it:\n  file name: "%s"\n  contents (base64): "%s . . ."'
-print msg % (sf.file, sf.snippet)
-print '  is encrypted: %s' % sf.is_encrypted
+print(msg % (sf.file, sf.snippet))
+print('  is encrypted: %s' % sf.is_encrypted)
 
 # To decrypt the file, use the matching RSA private key (and its passphrase):
 sf.decrypt(privkey, passphrase)
 msg = 'DECRYPT it:\n  file name: "%s"\n  contents: "%s"'
-print msg % (sf.file, sf.snippet)
-print '  is encrypted: %s' % sf.is_encrypted
+print(msg % (sf.file, sf.snippet))
+print('  is encrypted: %s' % sf.is_encrypted)
 
 # clean-up the tmp files:
 for file in [sf.file, pubkey, privkey, passphrase]:

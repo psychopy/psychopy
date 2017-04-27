@@ -15,6 +15,6 @@ from psychopy.iohub.util import addDirectoryToPythonPath
 
 addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
 
-from eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
+from .eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
                         FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
                         SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)

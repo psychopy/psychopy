@@ -31,12 +31,12 @@ class AnalogInput(AnalogInputDevice):
 
         self._labjack=None
 
-        if self.model_name in self._SUPPORTED_MODELS.keys():
+        if self.model_name in list(self._SUPPORTED_MODELS.keys()):
             try:
                 self._labjack = self._SUPPORTED_MODELS[self.model_name]()
                 self._calibration_data=self._labjack.getCalibrationData()
                 self._labjack.streamConfig( NumChannels = self.input_channel_count,
-                                           ChannelNumbers = range(self.input_channel_count),
+                                           ChannelNumbers = list(range(self.input_channel_count)),
                                            ChannelOptions = [ 0 ]*self.input_channel_count,
                                            SettlingFactor = self.settling_factor, 
                                            ResolutionIndex = self.resolution_index,
@@ -52,7 +52,7 @@ class AnalogInput(AnalogInputDevice):
                 print2err("ERROR DURING LABJACK INIT")
                 printExceptionDetailsToStdErr()    
         else:
-            print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(self._SUPPORTED_MODELS.keys()),))
+            print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(list(self._SUPPORTED_MODELS.keys())),))
             raise ioDeviceError(self,"AnalogInput Model not supported: %s"%(self.model_name))
             sys.exit(0)
         
@@ -88,7 +88,7 @@ class AnalogInput(AnalogInputDevice):
         #=print2err ('ain_keys: ',analog_data.keys())
         
         str_proto='AIN%d'
-        channel_index_list=range(self.input_channel_count)
+        channel_index_list=list(range(self.input_channel_count))
         ain=[[],]*self.input_channel_count
         ain_counts=[0,]*self.input_channel_count
         for c in channel_index_list:
@@ -275,7 +275,7 @@ class LabJackDataReader(threading.Thread):
                 while self.running and self.isStreamingData():
                     # Calling with convert = False, 
                     # because we are going to convert in the main thread.
-                    returnDict = self.labjack_device.streamData(convert = False).next()
+                    returnDict = next(self.labjack_device.streamData(convert = False))
     
                     # record and print any errors during streaming
                     if returnDict['errors'] != 0:

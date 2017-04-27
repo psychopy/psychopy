@@ -43,7 +43,7 @@ class ioHubKeyboardDevice(Device):
     __slots__=['_key_states','_modifier_states','_report_auto_repeats','_log_events_file']
     def __init__(self,*args,**kwargs):
         self._key_states=dict()
-        self._modifier_states=dict(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names)))
+        self._modifier_states=dict(list(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names))))
         self._report_auto_repeats=kwargs.get('report_auto_repeat_press_events',False)
 
         self._log_events_file = None
@@ -97,11 +97,11 @@ class ioHubKeyboardDevice(Device):
         Device._close(self)
 
 if Computer.system == 'win32':
-    from win32 import Keyboard
+    from .win32 import Keyboard
 elif Computer.system == 'linux2':
-    from linux2 import Keyboard
+    from .linux2 import Keyboard
 elif Computer.system == 'darwin':
-    from darwin import Keyboard
+    from .darwin import Keyboard
 
 ############# OS independent Keyboard Event classes ####################
 
@@ -187,7 +187,7 @@ class KeyboardInputEvent(DeviceEvent):
         # For standard character ascii keys (a-z,A-Z,0-9, some punctuation values), and
         #: unicode utf-8 encoded characters that have been successfully detected,
         #: *char* will be the the actual key value pressed as a unicode character.
-        self.char=u''
+        self.char=''
 
         #: The id or handle of the window that had focus when the key was pressed.
         #: long value.
@@ -210,7 +210,7 @@ class KeyboardInputEvent(DeviceEvent):
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+        return dict(list(zip(cls.CLASS_ATTRIBUTE_NAMES,values)))
 
     #noinspection PyUnresolvedReferences
     @classmethod

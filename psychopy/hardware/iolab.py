@@ -10,7 +10,7 @@
 # insensitive somewhere
 
 
-from __future__ import division
+
 from numpy import ubyte
 from psychopy import core, event, logging
 try:

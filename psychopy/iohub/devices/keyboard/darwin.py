@@ -27,13 +27,13 @@ import CoreFoundation
 import objc
 
 try:
-    unichr
+    chr
 except NameError:
-    unichr = chr
+    chr = chr
 
 import unicodedata
 
-from darwinkey import code2label
+from .darwinkey import code2label
 
 #print2err("code2label: ",code2label)
 carbon_path = ctypes.util.find_library('Carbon')
@@ -135,10 +135,10 @@ class Keyboard(ioHubKeyboardDevice):
                         0,  # ScanCode
                         0,  # KeyID 
                         0,  # ucode
-                        u'',# key
+                        '',# key
                         None,# mods
                         0, #win num
-                        u'', #char
+                        '', #char
                         0.0, #duration
                         0] #press evt id
     __slots__=['_loop_source','_tap','_device_loop','_CGEventTapEnable','_loop_mode','_last_general_mod_states','_codedict']
@@ -201,7 +201,7 @@ class Keyboard(ioHubKeyboardDevice):
                                        4,
                                        ctypes.byref(length),
                                        chars)
-        s = u''.join(unichr(chars[i]) for i in range(length.value))
+        s = ''.join(chr(chars[i]) for i in range(length.value))
         CoreFoundation.CFRelease(keyboard)
         return s
 

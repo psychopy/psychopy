@@ -11,7 +11,7 @@
 #    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
 
-from __future__ import absolute_import
+
 
 import os
 import sys
@@ -53,7 +53,7 @@ else:
 try:
     import configparser
 except Exception:
-    import ConfigParser as configparser
+    import configparser as configparser
 
 # Bits++ modes
 bits8BITPALETTEMODE = 0x00000001  # /* normal vsg mode */
@@ -963,7 +963,7 @@ class Config(object):
         if LUT is not None:
             win.gammaRamp = LUT
         # create the patch of stimulus to test
-        expectedVals = range(256)
+        expectedVals = list(range(256))
         w, h = win.size
         # NB psychopy uses -1:1
         testArrLums = np.resize(np.linspace(-1, 1, 256), [256, 256])
@@ -973,7 +973,7 @@ class Config(object):
         stim.draw()
         # make sure the frame buffer was correct (before gamma was applied)
         frm = np.array(win.getMovieFrame(buffer='back'))
-        assert np.alltrue(frm[0, 0:256, 0] == range(256))
+        assert np.alltrue(frm[0, 0:256, 0] == list(range(256)))
         win.flip()
         # use bits sharp to test
         if demoMode:
@@ -1029,7 +1029,7 @@ class Config(object):
             pyplot.Figure()
             pyplot.subplot(1, 2, 1)
             pyplot.plot([0, 255], [0, 255], '-k')
-            errPlot = pyplot.plot(range(256), range(256), '.r')[0]
+            errPlot = pyplot.plot(list(range(256)), list(range(256)), '.r')[0]
             pyplot.subplot(1, 2, 2)
             pyplot.plot(200, 0.01, '.w')
             pyplot.show(block=False)
@@ -1037,26 +1037,26 @@ class Config(object):
         lowestErr = 1000000000
         bestLUTname = None
         logging.flush()
-        for LUTname, currentLUT in LUTs.items():
+        for LUTname, currentLUT in list(LUTs.items()):
             sys.stdout.write('Checking %r LUT:' % LUTname)
             errs = self.testLUT(currentLUT, demoMode)
             if plotResults:
-                errPlot.set_ydata(range(256) + errs[:, 0])
+                errPlot.set_ydata(list(range(256)) + errs[:, 0])
                 pyplot.draw()
-            print('mean err = %.3f per LUT entry' % abs(errs).mean())
+            print(('mean err = %.3f per LUT entry' % abs(errs).mean()))
             if abs(errs).mean() < abs(lowestErr):
                 lowestErr = abs(errs).mean()
                 bestLUTname = LUTname
         if lowestErr == 0:
             msg = "The %r identity LUT produced zero error. We'll use that!"
-            print(msg % LUTname)
+            print((msg % LUTname))
             self.identityLUT = LUTs[bestLUTname]
             # it worked so save this configuration for future
             self.save()
             return
 
         msg = "Best was %r LUT (mean err = %.3f). Optimising that..."
-        print(msg % (bestLUTname, lowestErr))
+        print((msg % (bestLUTname, lowestErr)))
         currentLUT = LUTs[bestLUTname]
         errProgression = []
         corrInARow = 0
@@ -1069,7 +1069,7 @@ class Config(object):
             meanErr = abs(errs).mean()
             errProgression.append(meanErr)
             if plotResults:
-                errPlot.set_ydata(range(256) + errs[:, 0])
+                errPlot.set_ydata(list(range(256)) + errs[:, 0])
                 pyplot.subplot(1, 2, 2)
                 if meanErr == 0:
                     point = '.k'
@@ -1084,7 +1084,7 @@ class Config(object):
                 sys.stdout.write(". ")
                 corrInARow += 1
             if corrInARow >= nVerifications:
-                print('success in a total of %.1fs' % (time.time() - t0))
+                print(('success in a total of %.1fs' % (time.time() - t0)))
                 self.identityLUT = currentLUT
                 # it worked so save this configuration for future
                 self.save()
@@ -1108,7 +1108,7 @@ class Config(object):
             pyplot.title('Progression of errors')
             pyplot.ylabel("Mean error per LUT entry (0-1)")
             pyplot.xlabel("Test iteration")
-            r256 = np.reshape(range(256), [256, 1])
+            r256 = np.reshape(list(range(256)), [256, 1])
             pyplot.subplot(1, 3, 2)
             pyplot.plot(r256, r256, 'k-')
             pyplot.plot(r256, currentLUT[:, 0] * 255, 'r.', markersize=2.0)

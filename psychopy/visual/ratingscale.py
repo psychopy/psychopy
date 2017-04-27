@@ -309,7 +309,7 @@ class RatingScale(MinimalStim):
         # internally work in norm units, restore to orig units at the end of
         # __init__:
         self.savedWinUnits = self.win.units
-        self.win.setUnits(u'norm', log=False)
+        self.win.setUnits('norm', log=False)
         self.depth = depth
 
         # 'hover' style = like hyperlink with hover over choices:
@@ -450,7 +450,7 @@ class RatingScale(MinimalStim):
             elif labels in [None, False]:
                 self.labelTexts = []
             else:
-                first, last = unicode(self.low), unicode(self.high)
+                first, last = str(self.low), str(self.high)
                 self.labelTexts = [first] + [''] * (diff - 1) + [last]
 
         self.scale = scale
@@ -470,7 +470,7 @@ class RatingScale(MinimalStim):
         try:
             self.markerStart = float(markerStart)
         except Exception:
-            if (isinstance(markerStart, basestring) and
+            if (isinstance(markerStart, str) and
                     type(self.choices) == list and
                     markerStart in self.choices):
                 self.markerStart = self.choices.index(markerStart)
@@ -755,7 +755,7 @@ class RatingScale(MinimalStim):
         """
         # preparatory stuff:
         self.markerOffsetVert = 0.
-        if isinstance(marker, basestring):
+        if isinstance(marker, str):
             self.markerStyle = marker
         elif not hasattr(marker, 'draw'):
             logging.error("RatingScale: custom marker has no draw() method")
@@ -769,7 +769,7 @@ class RatingScale(MinimalStim):
                     "RatingScale: custom marker has no pos attribute")
 
         self.markerSize = 8. * self.size
-        if isinstance(markerColor, basestring):
+        if isinstance(markerColor, str):
             markerColor = markerColor.replace(' ', '')
 
         # define or create self.marker:
@@ -870,8 +870,8 @@ class RatingScale(MinimalStim):
             if self.choices:
                 scale = ''
             else:
-                msg = u' = not at all . . . extremely = '
-                scale = unicode(self.low) + msg + unicode(self.high)
+                msg = ' = not at all . . . extremely = '
+                scale = str(self.low) + msg + str(self.high)
 
         # create the TextStim:
         self.scaleDescription = TextStim(
@@ -890,7 +890,7 @@ class RatingScale(MinimalStim):
                 # need all labels for tick position, i
                 if label:  # skip '' placeholders, no need to create them
                     txtStim = TextStim(
-                        win=self.win, text=unicode(label), font=textFont,
+                        win=self.win, text=str(label), font=textFont,
                         pos=[self.tickPositions[i // self.autoRescaleFactor],
                              vertPosTmp],
                         height=self.textSizeSmall, color=self.textColor,
@@ -979,8 +979,8 @@ class RatingScale(MinimalStim):
         else:
             self.keyClick = 'click line'
         if acceptPreText != 'key, click':  # non-default
-            self.keyClick = unicode(acceptPreText)
-        self.acceptText = unicode(acceptText)
+            self.keyClick = str(acceptPreText)
+        self.acceptText = str(acceptText)
 
         # create the TextStim:
         self.accept = TextStim(
@@ -1060,7 +1060,7 @@ class RatingScale(MinimalStim):
         self.noResponse = False
         self.history.append((self.getRating(), self.getRT()))
         if log and self.autoLog:
-            vals = (self.name, triggeringAction, unicode(self.getRating()))
+            vals = (self.name, triggeringAction, str(self.getRating()))
             logging.data('RatingScale %s: (%s) rating=%s' % vals)
 
     def draw(self, log=True):
@@ -1069,7 +1069,7 @@ class RatingScale(MinimalStim):
         Sets response flags: `self.noResponse`, `self.timedOut`.
         `draw()` only draws the rating scale, not the item to be rated.
         """
-        self.win.setUnits(u'norm', log=False)  # get restored
+        self.win.setUnits('norm', log=False)  # get restored
         if self.firstDraw:
             self.firstDraw = False
             self.clock.reset()
@@ -1166,7 +1166,7 @@ class RatingScale(MinimalStim):
                 self.accept.setColor(self.acceptTextColor, log=False)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
-                        val = unicode(self.choices[int(self.markerPlacedAt)])
+                        val = str(self.choices[int(self.markerPlacedAt)])
                     elif self.precision == 60:
                         valTmp = self.markerPlacedAt + self.low
                         minutes = int(valTmp)  # also works for hours:minutes

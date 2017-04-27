@@ -23,7 +23,7 @@ def getSHA(cwd='.'):
     #get the SHA of the git HEAD
     SHA_string = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=cwd).split()[0]
     #convert to hex from a string and return it
-    print 'SHA:', SHA_string, 'for repo:',cwd
+    print('SHA:', SHA_string, 'for repo:',cwd)
     return SHA_string
 
 def buildRelease(versionStr, noCommit=False, interactive=True):
@@ -38,17 +38,17 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
 
     #todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
     Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
-    print "size for '%s' will be: %.2f Mb" %(versionStr, Mb)
+    print("size for '%s' will be: %.2f Mb" %(versionStr, Mb))
     if noCommit:
         return False
 
     if interactive:
-        ok = raw_input("OK to continue? [n]y :")
+        ok = input("OK to continue? [n]y :")
         if ok != "y":
             return False
 
     lastSHA = getSHA(cwd=VERSIONS)
-    print 'updating: git add --all'
+    print('updating: git add --all')
     output = subprocess.check_output(["git", "add", "--all"], cwd=VERSIONS)
     if interactive:
         ok = subprocess.call(["cola"], cwd=VERSIONS)
@@ -57,22 +57,22 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
             print("no git commit was made: exiting")
             return False
     else:
-        print "committing: git commit -m 'release version %s'" %versionStr
+        print("committing: git commit -m 'release version %s'" %versionStr)
         subprocess.call(["git", "commit", "-m", "'release version %s'" %versionStr], cwd=VERSIONS)
 
-    print "tagging: git tag -m 'release %s'" %versionStr
+    print("tagging: git tag -m 'release %s'" %versionStr)
     ok = subprocess.call(["git", "tag", versionStr, "-m", "'release %s'" %versionStr], cwd=VERSIONS)
 
-    print "'versions' tags are now:", subprocess.check_output(["git","tag"], cwd=VERSIONS).split()
+    print("'versions' tags are now:", subprocess.check_output(["git","tag"], cwd=VERSIONS).split())
     ok = subprocess.call(["git", "push", "%s" %versionStr], cwd=VERSIONS)
     if ok:
-        print "Successfully pushed tag %s upstream" %versionStr
+        print("Successfully pushed tag %s upstream" %versionStr)
     else:
-        print "Failed to push tag %s upstream" %versionStr
+        print("Failed to push tag %s upstream" %versionStr)
 
     #revert thte __init__ file to non-ditribution state
-    print 'reverting the main master branch: git reset --hard HEAD'
-    print subprocess.check_output(["git","reset", "--hard", "HEAD"], cwd=MAIN)
+    print('reverting the main master branch: git reset --hard HEAD')
+    print(subprocess.check_output(["git","reset", "--hard", "HEAD"], cwd=MAIN))
     return True #success
 
 if __name__=="__main__":
@@ -81,5 +81,5 @@ if __name__=="__main__":
     else:
         noCommit = False
     #todo: update versions first
-    versionStr = raw_input("version:")
+    versionStr = input("version:")
     buildRelease(versionStr, noCommit=noCommit, interactive=True)

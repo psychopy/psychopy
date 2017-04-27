@@ -1,12 +1,12 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+
 
 import string
 import sys
 import os
-import cPickle
+import pickle
 import copy
 import warnings
 import collections
@@ -341,7 +341,7 @@ class StairHandler(_BaseTrialHandler):
             # n wrong, so going up
             self._intensityInc()
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; `thisTrial`, `thisTrialN` and `thisIndex`.
 
@@ -365,7 +365,7 @@ class StairHandler(_BaseTrialHandler):
         """
         if self.finished == False:
             # check that all 'otherData' is aligned with current trialN
-            for key in self.otherData.keys():
+            for key in list(self.otherData.keys()):
                 while len(self.otherData[key]) < self.thisTrialN:
                     self.otherData[key].append(None)
             # update pointer for next trial
@@ -589,30 +589,30 @@ class StairHandler(_BaseTrialHandler):
         ws.cell('B1').value = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
             _cell = _getExcelCellName(col=0, row=revN + 1)  # col 0
-            ws.cell(_cell).value = unicode(revIntens)
+            ws.cell(_cell).value = str(revIntens)
             _cell = _getExcelCellName(col=1, row=revN + 1)  # col 1
-            ws.cell(_cell).value = unicode(self.reversalPoints[revN])
+            ws.cell(_cell).value = str(self.reversalPoints[revN])
 
         # trials data
         ws.cell('C1').value = 'All Intensities'
         ws.cell('D1').value = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
             ws.cell(_getExcelCellName(col=2, row=intenN + 1)
-                    ).value = unicode(intensity)
+                    ).value = str(intensity)
             ws.cell(_getExcelCellName(col=3, row=intenN + 1)
-                    ).value = unicode(self.data[intenN])
+                    ).value = str(self.data[intenN])
 
         # add other data
         col = 4
         if self.otherData is not None:
             # for varName in self.otherData:
-            for key, val in self.otherData.items():
+            for key, val in list(self.otherData.items()):
                 ws.cell(_getExcelCellName(col=col, row=0)
-                        ).value = unicode(key)
+                        ).value = str(key)
                 for oDatN in range(len(self.otherData[key])):
                     ws.cell(
                         _getExcelCellName(col=col, row=oDatN + 1)
-                    ).value = unicode(self.otherData[key][oDatN])
+                    ).value = str(self.otherData[key][oDatN])
                 col += 1
 
         # add self.extraInfo
@@ -620,11 +620,11 @@ class StairHandler(_BaseTrialHandler):
             ws.cell(_getExcelCellName(col=startingCol,
                                       row=0)).value = 'extraInfo'
             rowN = 1
-            for key, val in self.extraInfo.items():
+            for key, val in list(self.extraInfo.items()):
                 _cell = _getExcelCellName(col=col, row=rowN)
-                ws.cell(_cell).value = unicode(key) + u':'
+                ws.cell(_cell).value = str(key) + ':'
                 _cell = _getExcelCellName(col=col+1, row=rowN)
-                ws.cell(_cell).value = unicode(val)
+                ws.cell(_cell).value = str(val)
                 rowN += 1
 
 
@@ -655,7 +655,7 @@ class StairHandler(_BaseTrialHandler):
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
-        cPickle.dump(self, f)
+        pickle.dump(self, f)
         f.close()
         logging.info('saved data to %s' % f.name)
 
@@ -894,7 +894,7 @@ class QuestHandler(StairHandler):
         self.incTrials(len(intensities))
         for intensity, result in zip(intensities, results):
             try:
-                self.next()
+                next(self)
                 self.addResponse(result, intensity)
             except StopIteration:
                 # would get a stop iteration if stopInterval set
@@ -982,7 +982,7 @@ class QuestHandler(StairHandler):
             tTest = self._quest.quantile()
         return self._quest.simulate(tTest, tActual)
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; `thisTrial`, `thisTrialN`, `thisIndex`,
         `finished`, `intensities`
@@ -1201,7 +1201,7 @@ class PsiHandler(StairHandler):
             self.getExp().addData(self.name + ".response", result)
         self._psi.update(result)
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         """
         self._checkFinished()
@@ -1377,7 +1377,7 @@ class MultiStairHandler(_BaseTrialHandler):
                 type(c0))
 
         # Did `conditions` contain the things we need?
-        params = c0.keys()
+        params = list(c0.keys())
         if self.type not in ['simple', 'quest', 'QUEST']:
             raise ValueError(
                 'MultiStairHandler `stairType` should be \'simple\', '
@@ -1425,7 +1425,7 @@ class MultiStairHandler(_BaseTrialHandler):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
 
         This can be handled with code such as::
@@ -1461,7 +1461,7 @@ class MultiStairHandler(_BaseTrialHandler):
         # save the first intensity,
         # Error: miss align intensities and responses
         # gets updated by self.addResponse()
-        self._nextIntensity = self.currentStaircase.next()
+        self._nextIntensity = next(self.currentStaircase)
 
         # return value
         if not self.finished:
@@ -1470,7 +1470,7 @@ class MultiStairHandler(_BaseTrialHandler):
             if self.getExp() != None:
                 exp = self.getExp()
                 stair = self.currentStaircase
-                for key, value in stair.condition.items():
+                for key, value in list(stair.condition.items()):
                     exp.addData("%s.%s" % (self.name, key), value)
                 exp.addData(self.name + '.thisIndex',
                             self.conditions.index(stair.condition))
@@ -1526,7 +1526,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
         """
         self.addResponse(result, intensity)
-        if type(result) in (str, unicode):
+        if type(result) in (str, str):
             raise TypeError("MultiStairHandler.addData should only receive "
                             "corr / incorr. Use .addOtherData('datName',val)")
 
@@ -1553,7 +1553,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
-        cPickle.dump(self, f)
+        pickle.dump(self, f)
         f.close()
         logging.info('saved data to %s' % f.name)
 

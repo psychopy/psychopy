@@ -5,7 +5,7 @@ from psychopy.iohub import TargetStim, PositionGrid, ValidationProcedure
 import time
 import numpy as np
 exp_code = 'targetdisplay'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 
 # Start ioHub event monitoring process
 iohub_config = {

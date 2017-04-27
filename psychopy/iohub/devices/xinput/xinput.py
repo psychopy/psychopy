@@ -13,7 +13,7 @@ Distributed under the terms of the GNU General Public License
 contributors, please see credits section of documentation.
 """
 
-from xinput_h import *
+from .xinput_h import *
 from math import sqrt
 import ctypes,ctypes.wintypes
 from ctypes.wintypes import DWORD, pointer

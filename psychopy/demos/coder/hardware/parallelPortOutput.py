@@ -7,7 +7,7 @@ parallel ports demo
 This is for win32 only.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core
 from psychopy import parallel
@@ -38,8 +38,8 @@ for cycleN in range(nCycles):
         parallel.setPin(2, 1)  # sets just this pin to be high
 
 # report the mean time afterwards
-print('total time=%0.6f' % myClock.getTime())
-print('avg frame rate=%0.3f' % win.fps())
+print(('total time=%0.6f' % myClock.getTime()))
+print(('avg frame rate=%0.3f' % win.fps()))
 
 # set pins back to low
 win.flip()

@@ -43,7 +43,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
         self.codeGuiElements = {}
-        if not editing and 'name' in self.params.keys():
+        if not editing and 'name' in list(self.params.keys()):
             # then we're adding a new component so ensure a valid name:
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(params['name'].val)
@@ -65,7 +65,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.nameLabel = wx.StaticText(self, wx.ID_ANY, param.label)
                 _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
                 self.componentName = wx.TextCtrl(self, wx.ID_ANY,
-                                                 unicode(param.val),
+                                                 str(param.val),
                                                  style=_style)
                 self.componentName.SetToolTipString(param.hint)
                 self.componentName.SetValidator(validators.NameValidator())
@@ -84,7 +84,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                      style=0,
                                                      prefs=self.app.prefs))
                 if len(param.val):
-                    _codeBox.AddText(unicode(param.val))
+                    _codeBox.AddText(str(param.val))
                 if len(param.val.strip()) and not openToPage:
                     # index of first non-blank page
                     openToPage = idx
@@ -169,7 +169,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         used in __init__ and are also returned from this method.
         """
         # get data from input fields
-        for fieldName in self.params.keys():
+        for fieldName in list(self.params.keys()):
             param = self.params[fieldName]
             if fieldName == 'name':
                 param.val = self.componentName.GetValue()

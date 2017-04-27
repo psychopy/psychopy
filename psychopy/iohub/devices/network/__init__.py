@@ -64,7 +64,7 @@ class EventPublisher(Device):
             self._pub_socket.setsockopt(zmq.LINGER, 0)
             self._publishing_protocal=device_config.get('publishing_protocal',"tcp://127.0.0.1:5555")
             self._pub_socket.bind(self._publishing_protocal)
-        except Exception, e:
+        except Exception as e:
             print2err("** Exception during EventPublisher.__init__: ",e)
             printExceptionDetailsToStdErr()
             
@@ -106,7 +106,7 @@ class EventPublisher(Device):
  
     def _close(self):
         if self._pub_socket is not None:
-            self._pub_socket.send_multipart([u'EXIT',''])
+            self._pub_socket.send_multipart(['EXIT',''])
             self._pub_socket.close()
             self._pub_socket=None
             Device._close(self)
@@ -172,13 +172,13 @@ class RemoteEventSubscriber(Device):
                 self._zmq_context = zmq.Context()
                 self._sub_socket = self._zmq_context.socket(zmq.SUB)
             
-                self._subscription_filter=device_config.get('monitor_event_types',[u''])
+                self._subscription_filter=device_config.get('monitor_event_types',[''])
     
                 # If sub channel is filtering by category / event type, then auto add
                 # the EXIT category to the sub channels filter list of categories to include.
                 #
                 if len(self._subscription_filter)>0 and self._subscription_filter[0]!='':  
-                    self._sub_socket.setsockopt_string(zmq.SUBSCRIBE, u'EXIT')
+                    self._sub_socket.setsockopt_string(zmq.SUBSCRIBE, 'EXIT')
             
                 for sf in self._subscription_filter:
                     self._sub_socket.setsockopt_string(zmq.SUBSCRIBE, sf)
@@ -196,7 +196,7 @@ class RemoteEventSubscriber(Device):
                     self._time_sync_manager.start()   
                 
                 gevent.spawn(self._poll) # really like _run
-        except Exception, e:
+        except Exception as e:
             print2err("** Exception during RemoteEventSubscriber.__init__: ",e)
             printExceptionDetailsToStdErr()
             
@@ -223,7 +223,7 @@ class RemoteEventSubscriber(Device):
             try:
                 category,data=self._sub_socket.recv_multipart(0)
                 logged_time=Computer.currentSec()
-                if category == u'EXIT':
+                if category == 'EXIT':
                     self._running=False
                     break
                 self.feed(data)
@@ -246,7 +246,7 @@ class RemoteEventSubscriber(Device):
 
                 self._nativeEventCallback(data)
                 gevent.sleep(0)
-            except zmq.ZMQError,z:
+            except zmq.ZMQError as z:
                 break
             except Exception:
                 printExceptionDetailsToStdErr()

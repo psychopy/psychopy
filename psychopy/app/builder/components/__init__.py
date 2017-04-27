@@ -4,7 +4,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import os
 import glob
@@ -136,7 +136,7 @@ def getComponents(folder=None, fetchIcons=True):
 
     components = {}
     # setup a default icon
-    if fetchIcons and 'default' not in icons.keys():
+    if fetchIcons and 'default' not in list(icons.keys()):
         icons['default'] = getIcons(filename=None)
 
     # go through components in directory
@@ -199,12 +199,12 @@ def getAllComponents(folderList=(), fetchIcons=True):
 
     User-defined components will override built-ins with the same name.
     """
-    if isinstance(folderList, basestring):
-        raise TypeError, 'folderList should be iterable, not a string'
+    if isinstance(folderList, str):
+        raise TypeError('folderList should be iterable, not a string')
     components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
         userComps = getComponents(folder)
-        for thisKey in userComps.keys():
+        for thisKey in list(userComps.keys()):
             components[thisKey] = userComps[thisKey]
     return components
 
@@ -212,7 +212,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
     allCats = ['Stimuli', 'Responses', 'Custom']
-    for name, thisComp in allComps.items():
+    for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
                 allCats.append(thisCat)
@@ -224,7 +224,7 @@ def getInitVals(params, target="PsychoPy"):
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
-    for name in params.keys():
+    for name in list(params.keys()):
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
@@ -289,9 +289,9 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = "A"
             inits[name].valType = 'str'
         else:
-            print("I don't know the appropriate default value for a '%s' "
+            print(("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %
-                  name)
+                  name))
 
     return inits
 

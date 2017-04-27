@@ -8,7 +8,7 @@ external latency testing (e.g., BlackBox Toolkit) by providing visual-tone synch
 key lines: 29, 50, 61: mic = microphone.AdvAudioCapture(), mic.record(), mic.getOnset()
 """
 
-from __future__ import division
+
 
 from psychopy import microphone, sound, core, visual, event
 from matplotlib import pyplot
@@ -72,21 +72,21 @@ for i in range(10):
     # display options:
     text.draw()
     win.flip()
-    print("%.3f %.3f" % (onset, offset))
+    print(("%.3f %.3f" % (onset, offset)))
     if len(event.getKeys(['escape'])):
         core.quit()
     if len(event.getKeys()):
         msg2.draw()
         win.flip()
         data, sampleRate = microphone.readWavFile(filename)
-        plotYX(data, range(len(data)), "time domain @ %iHz" % sampleRate)
+        plotYX(data, list(range(len(data))), "time domain @ %iHz" % sampleRate)
         mag, freqV = microphone.getDft(data, sampleRate)
         plotYX(mag, freqV, "frequency domain (marker at %i Hz)" % mic.getMarkerInfo()[0])
 
     # no need to keep the recorded file:
     os.unlink(filename)
 
-print("\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.mean(onsets), np.std(onsets)))
+print(("\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.mean(onsets), np.std(onsets))))
 
 win.close()
 core.quit()

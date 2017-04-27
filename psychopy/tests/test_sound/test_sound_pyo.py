@@ -8,6 +8,7 @@ from scipy.io import wavfile
 import shutil, os
 from tempfile import mkdtemp
 from psychopy import sound, microphone
+import imp
 origSoundPref = prefs.general['audioLib']
 
 import numpy
@@ -21,7 +22,7 @@ class TestPyo(object):
     @classmethod
     def setup_class(self):
         prefs.general['audioLib'] = ['pyo']
-        reload(sound)  # to force our new preference to be used
+        imp.reload(sound)  # to force our new preference to be used
         self.contextName='pyo'
         try:
             assert sound.Sound == sound.SoundPyo

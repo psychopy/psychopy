@@ -15,7 +15,7 @@ If there are multiple lobes (a high enough SF) then the other color is simply th
 complement of the one specified (passing through neutral gray)
 """
 
-from __future__ import division
+
 
 from psychopy import visual, event, core
 

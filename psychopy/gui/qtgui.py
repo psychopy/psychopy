@@ -171,33 +171,33 @@ class Dlg(QtWidgets.QDialog):
             inputBox.stateChanged.connect(handleCheckboxChange)
         elif not choices:
             self.data.append(initial)
-            inputBox = QtWidgets.QLineEdit(unicode(initial), parent=self)
+            inputBox = QtWidgets.QLineEdit(str(initial), parent=self)
 
             def handleLineEditChange(new_text):
                 ix = self.inputFields.index(inputBox)
                 thisType = self.inputFieldTypes[ix]
 
                 try:
-                    if thisType in (str, unicode):
-                        self.data[ix] = unicode(new_text)
+                    if thisType in (str, str):
+                        self.data[ix] = str(new_text)
                     elif thisType == tuple:
-                        jtext = "[" + unicode(new_text) + "]"
+                        jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
                     elif thisType == list:
-                        jtext = "[" + unicode(new_text) + "]"
+                        jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
                     elif thisType == float:
                         self.data[ix] = string.atof(str(new_text))
                     elif thisType == int:
                         self.data[ix] = string.atoi(str(new_text))
-                    elif thisType == long:
+                    elif thisType == int:
                         self.data[ix] = string.atol(str(new_text))
                     elif thisType == dict:
-                        jtext = "[" + unicode(new_text) + "]"
+                        jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
                     elif thisType == np.ndarray:
                         self.data[ix] = np.array(
-                            json.loads("[" + unicode(new_text) + "]")[0])
+                            json.loads("[" + str(new_text) + "]")[0])
                     else:
                         self.data[ix] = new_text
                         msg = ("Unknown type in handleLineEditChange: "
@@ -208,7 +208,7 @@ class Dlg(QtWidgets.QDialog):
                            "type={1}, value={2}")
                     logging.debug(msg.format(label, thisType, self.data[ix]))
                 except Exception as e:
-                    self.data[ix] = unicode(new_text)
+                    self.data[ix] = str(new_text)
                     msg = ('Error in handleLineEditChange: inputFieldName='
                            '{0}, type={1}, value={2}, error={3}')
                     logging.error(msg.format(label, thisType, self.data[ix],
@@ -219,11 +219,11 @@ class Dlg(QtWidgets.QDialog):
             inputBox = QtWidgets.QComboBox(parent=self)
             choices = list(choices)
             for i, option in enumerate(choices):
-                inputBox.addItem(unicode(option))
+                inputBox.addItem(str(option))
                 # inputBox.addItems([unicode(option) for option in choices])
                 inputBox.setItemData(i, (option,))
 
-            if (isinstance(initial, (int, long)) and
+            if (isinstance(initial, int) and
                     len(choices) > initial >= 0):
                 pass
             elif initial in choices:
@@ -390,7 +390,7 @@ class DlgFromDict(Dlg):
         else:
             self.dictionary = dictionary
 
-        self._keys = self.dictionary.keys()
+        self._keys = list(self.dictionary.keys())
 
         if sort_keys:
             self._keys.sort()
@@ -402,7 +402,7 @@ class DlgFromDict(Dlg):
         for field in self._keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''
-            if field in tip.keys():
+            if field in list(tip.keys()):
                 tooltip = tip[field]
             if field in fixed:
                 self.addFixedField(field, self.dictionary[field], tip=tooltip)
@@ -461,7 +461,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
     fdir = os.path.join(initFilePath, initFileName)
     r = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
                                               directory=fdir, filter=allowed)
-    return unicode(r) or None
+    return str(r) or None
 
 
 def fileOpenDlg(tryFilePath="",
@@ -510,7 +510,7 @@ def fileOpenDlg(tryFilePath="",
     if type(filesToOpen) == tuple:  # some versions(?) of PyQt return (files, filter)
         filesToOpen = filesToOpen[0]
 
-    filesToOpen = [unicode(fpath) for fpath in filesToOpen
+    filesToOpen = [str(fpath) for fpath in filesToOpen
                    if os.path.exists(fpath)]
     if len(filesToOpen) == 0:
         return None
@@ -613,7 +613,7 @@ if __name__ == '__main__':
                       choices=['R1', 'R2', 'R3'],
                       tip="This field is readonly.")
     ok_data = dlg.show()
-    print("Dlg ok_data:", ok_data)
+    print(("Dlg ok_data:", ok_data))
 
     # Test Dict Dialog
 
@@ -629,10 +629,10 @@ if __name__ == '__main__':
     # Test File Dialogs
 
     fileToSave = fileSaveDlg(initFileName='__init__.pyc')
-    print("fileToSave: [", fileToSave, "]", type(fileToSave))
+    print(("fileToSave: [", fileToSave, "]", type(fileToSave)))
 
     fileToOpen = fileOpenDlg()
-    print("fileToOpen:", fileToOpen)
+    print(("fileToOpen:", fileToOpen))
 
     # Test Alert Dialogs
 
@@ -644,11 +644,11 @@ if __name__ == '__main__':
     criticalDlg(title="RuntimeError",
                 prompt=_pr.format(RuntimeError("A made up runtime error")))
 
-    aboutDlg(prompt=u"My Experiment v. 1.0"
-             u"<br>"
-             u"Written by: Dr. John Doe"
-             u"<br>"
-             u"Created using <b>PsychoPy</b> © Copyright 2015, Jonathan Peirce")
+    aboutDlg(prompt="My Experiment v. 1.0"
+             "<br>"
+             "Written by: Dr. John Doe"
+             "<br>"
+             "Created using <b>PsychoPy</b> © Copyright 2015, Jonathan Peirce")
 
     # Restore full screen psychopy window
     # showWindow(win)

@@ -39,8 +39,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PsychoPy'
-copyright = u'2015, Jonathan Peirce'
+project = 'PsychoPy'
+copyright = '2015, Jonathan Peirce'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -174,8 +174,8 @@ htmlhelp_basename = 'PsychoPydoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('documentation', 'PsychoPyManual.tex', u'PsychoPy - Psychology software for Python',
-   u'Jonathan Peirce', 'manual'),
+  ('documentation', 'PsychoPyManual.tex', 'PsychoPy - Psychology software for Python',
+   'Jonathan Peirce', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

@@ -5,7 +5,7 @@ import sys, glob
 def install():
     import os
     try:
-        print "Adding shortcuts to >>Start>Programs>PsychoPy"
+        print("Adding shortcuts to >>Start>Programs>PsychoPy")
         progsFolder= get_special_folder_path("CSIDL_COMMON_PROGRAMS")
         sitePackages = os.path.join(sys.prefix , 'lib','site-packages')
         demosFolder = os.path.join(sys.prefix , 'lib','site-packages', 'psychopy', 'demos')
@@ -51,7 +51,7 @@ def install():
                             'PsychoPy HomePage', homePageLink)
         file_created(homePageLink)
         
-        print "All done. Enjoy!"
+        print("All done. Enjoy!")
         
         #remove outdated demo files
         oldDemos = glob.glob(demosFolder+"//demo_*")
@@ -59,19 +59,19 @@ def install():
             os.remove(file)
         
     except:
-        print "failed to install shortcuts"
+        print("failed to install shortcuts")
         exc = sys.exc_info()
-        print exc[0],exc[1]
+        print(exc[0],exc[1])
     
-    print ""
-    print """TOP TIP: It's a good idea to add PsychoPyIDE to your handlers for *.py files.
+    print("")
+    print("""TOP TIP: It's a good idea to add PsychoPyIDE to your handlers for *.py files.
     To do that, open a windows explorer window, go to >Tools>FoldersOptions>FileTypes.
     Find .py file type, click 'Advanced' and add the command:
         "C:\Python25\pythonw.exe" "C:\Python25\Lib\site-packages\PsychoPyIDE\PsychoPyIDE.py" "%1"
     Now you can right-click files and open them in PsychoPy, ready-to-run :-)
-    """
+    """)
 if len(sys.argv) > 1:
     if sys.argv[1] == '-install':
         install()
     else:
-        print "Script was called with option %s" % sys.argv[1]
+        print("Script was called with option %s" % sys.argv[1])

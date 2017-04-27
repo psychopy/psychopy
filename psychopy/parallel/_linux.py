@@ -5,7 +5,7 @@
 
 # This is necessary to stop the local parallel.py masking the module
 # we actually want to find!
-from __future__ import absolute_import
+
 
 # We duck-type the parallel port objects
 
@@ -100,4 +100,4 @@ class PParallelLinux(object):
             return (self.port.PPRDATA() >> (pinNumber - 2)) & 1
         else:
             msg = 'Pin %i cannot be read (by PParallelLinux.readPin())'
-            print(msg % pinNumber)
+            print((msg % pinNumber))

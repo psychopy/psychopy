@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import division
+
 from psychopy import prefs, exceptions
 from sys import platform
 from psychopy import core, logging
@@ -30,7 +30,7 @@ def _bestDriver(devNames, devIDs):
     for prefDriver in preferredDrivers:
         logging.info('Looking for {}'.format(prefDriver))
         if prefDriver.lower() == 'directsound':
-            prefDriver = u'Primary Sound'
+            prefDriver = 'Primary Sound'
         # look for that driver in available devices
         for devN, devString in enumerate(devNames):
             logging.info('Examining for {}'.format(devString))
