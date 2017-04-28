@@ -492,7 +492,7 @@ class Monitor(object):
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            thisFile = open(thisFileName, 'r')
+            thisFile = open(thisFileName, 'rb')
             self.calibs = pickle.load(thisFile)
             self.calibNames = sorted(self.calibs)
             thisFile.close()
