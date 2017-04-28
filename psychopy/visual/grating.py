@@ -329,9 +329,9 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         _prog = self.win._progSignedTexMask
         GL.glUseProgram(_prog)
         # set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(_prog, "texture"), 0)
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
         # mask is texture unit 1
-        GL.glUniform1i(GL.glGetUniformLocation(_prog, "mask"), 1)
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
         # mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
