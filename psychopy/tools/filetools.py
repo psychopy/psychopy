@@ -24,7 +24,7 @@ def toFile(filename, data):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename, 'w')
+    f = open(filename, 'wb')
     pickle.dump(data, f)
     f.close()
 
