@@ -394,7 +394,7 @@ class StairHandler(_BaseTrialHandler):
         elif self.stepType == 'lin':
             self._nextIntensity += self.stepSizeCurrent
         # check we haven't gone out of the legal range
-        if self._nextIntensity > self.maxVal and self.maxVal is not None:
+        if (self.maxVal is not None) and (self._nextIntensity > self.maxVal):
             self._nextIntensity = self.maxVal
         self.correctCounter = 0
 
@@ -409,7 +409,7 @@ class StairHandler(_BaseTrialHandler):
             self._nextIntensity -= self.stepSizeCurrent
         self.correctCounter = 0
         # check we haven't gone out of the legal range
-        if (self._nextIntensity < self.minVal) and self.minVal is not None:
+        if (self.minVal is not None) and (self._nextIntensity < self.minVal):
             self._nextIntensity = self.minVal
 
     def saveAsText(self, fileName,
