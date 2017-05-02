@@ -110,7 +110,7 @@ languageID, lang = getID()
 
 # set locale before splash screen:
 if locale.IsAvailable(languageID):
-    wxlocale = wx.Locale(languageID)
+    wxlocale = wx.Locale(language=languageID)
 else:
     wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
 
@@ -124,7 +124,7 @@ try:
 except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
-trans.install(str=True)
+trans.install()
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:
