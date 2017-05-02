@@ -529,13 +529,4 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     For date in the format of the current localization, do:
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
-    now = time.strftime(format, time.localtime())
-    try:
-        now_decoded = codecs.utf_8_decode(now)[0]
-    except UnicodeDecodeError:
-        # '2011_03_16_1307'
-        now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
-
-    return now_decoded
-
-
+    return time.strftime(format, time.localtime())
