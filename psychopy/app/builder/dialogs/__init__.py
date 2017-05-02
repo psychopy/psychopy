@@ -15,7 +15,7 @@ import copy
 import numpy
 import re
 import wx
-from wx.lib import flatnotebook
+from wx.lib.agw import flatnotebook
 
 from ... import dialogs
 from .. import experiment
@@ -95,7 +95,7 @@ class ParamCtrls(object):
         _nonCode = ('name', 'Experiment info')
         if param.valType == 'code' and fieldName not in _nonCode:
             label += ' $'
-        self.nameCtrl = wx.StaticText(parent, -1, label, size=None,
+        self.nameCtrl = wx.StaticText(parent, -1, label,
                                       style=wx.ALIGN_RIGHT)
 
         if fieldName == 'Use version':

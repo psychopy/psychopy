@@ -29,14 +29,10 @@ for filename in pycFiles:
             pass  # may not have sufficient privs
 
 def pilToBitmap(pil, scaleFactor=1.0):
-    image = wx.EmptyImage(pil.size[0], pil.size[1])
+    image = wx.Image(pil.size[0], pil.size[1])
 
-    try:  # For PIL.
-        image.SetData(pil.convert("RGB").tostring())
-        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
-    except Exception:  # For Pillow.
-        image.SetData(pil.convert("RGB").tobytes())
-        image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
+    image.SetData(pil.convert("RGB").tobytes())
+    image.SetAlpha(pil.convert("RGBA").tobytes()[3::4])
 
     image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
     return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
@@ -54,6 +50,7 @@ def getIcons(filename=None):
 
     # get the low-res version first
     im = Image.open(filename)
+    test = im.convert("RGB").tobytes()
     icons['24'] = pilToBitmap(im, scaleFactor=0.5)
     icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
     # try to find a 128x128 version

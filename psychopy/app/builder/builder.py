@@ -5,6 +5,7 @@
 
 
 import wx
+import wx.adv
 from wx.lib import platebtn, scrolledpanel
 try:
     from wx import aui
@@ -114,7 +115,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.timeXposEnd = self.timeXposStart + 400  # onResize() overrides
 
         # create a PseudoDC to record our drawing
-        self.pdc = wx.PseudoDC()
+        self.pdc = wx.adv.PseudoDC()
         self.pen_cache = {}
         self.brush_cache = {}
         # vars for handling mouse clicks
@@ -1245,7 +1246,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
         item = menu.Append(
             wx.ID_PREFERENCES,
-            text=_translate("&Preferences\t%s") % keys['preferences'])
+            _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
 
         self.fileMenu.AppendSeparator()

@@ -63,11 +63,11 @@ def getLatestVersionInfo():
     for line in page.readlines():
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
-        if line.find(':') == -1:
+        if line.find(b':') == -1:
             return -1
             # this will succeed if every line has a key
-        key, keyInfo = line.split(':')
-        latest[key] = keyInfo.replace('\n', '').replace('\r', '')
+        key, keyInfo = line.split(b':')
+        latest[key] = keyInfo.replace(b'\n', b'').replace(b'\r', b'')
     return latest
 
 

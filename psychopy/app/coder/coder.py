@@ -1537,7 +1537,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, item.GetId(), self.filePrint)
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
-                           text=msg % keyCodes['preferences'])
+                           _translate(msg) % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         # -------------quit
         menu.AppendSeparator()

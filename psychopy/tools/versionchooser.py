@@ -196,7 +196,7 @@ def _remoteVersions(forceCheck=False):
             pass
         else:
             allTags = [line.split('refs/tags/')[1]
-                       for line in tagInfo.splitlines() if '^{}' not in line]
+                       for line in tagInfo.decode().splitlines() if '^{}' not in line]
             # ensure most recent (i.e., highest) first
             _remoteVersionsCache = sorted(allTags, reverse=True)
     return _remoteVersionsCache

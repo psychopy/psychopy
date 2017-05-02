@@ -248,7 +248,7 @@ class PsychoPyApp(wx.App):
             # Font.Larger is available since wyPython version 2.9.1
             # PsychoPy still supports 2.8 (see ensureMinimal above)
             self._mainFont = self._mainFont.Larger()
-        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
         self._codeFont.SetPointSize(
             self._mainFont.GetPointSize())  # unify font size
@@ -307,13 +307,13 @@ class PsychoPyApp(wx.App):
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
-        if wx.version() >= '3.0' and sys.platform == 'darwin':
-            _Showgui_Hack()  # returns ~immediately, no display
-            # focus stays in never-land, so bring back to the app:
-            if mainFrame in ['both', 'builder']:
-                self.showBuilder()
-            else:
-                self.showCoder()
+        # if wx.version() >= '3.0' and sys.platform == 'darwin':
+        #     _Showgui_Hack()  # returns ~immediately, no display
+        #     # focus stays in never-land, so bring back to the app:
+        #     if mainFrame in ['both', 'builder']:
+        #         self.showBuilder()
+        #     else:
+        #         self.showCoder()
 
         return True
 
