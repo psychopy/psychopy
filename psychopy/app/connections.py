@@ -61,13 +61,14 @@ def getLatestVersionInfo():
     # parse update file as a dictionary
     latest = {}
     for line in page.readlines():
+        line = line.decode()
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
-        if line.find(b':') == -1:
+        if line.find(':') == -1:
             return -1
             # this will succeed if every line has a key
-        key, keyInfo = line.split(b':')
-        latest[key] = keyInfo.replace(b'\n', b'').replace(b'\r', b'')
+        key, keyInfo = line.split(':')
+        latest[key] = keyInfo.replace('\n', '').replace('\r', '')
     return latest
 
 
