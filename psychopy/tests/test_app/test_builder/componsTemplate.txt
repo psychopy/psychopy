@@ -646,16 +646,16 @@ EnvGratingComponent.stopType.__class__:<class 'psychopy.app.builder.experiment.P
 EnvGratingComponent.stopType.label:stop type
 EnvGratingComponent.blendmode.default:'avg'
 EnvGratingComponent.blendmode.categ:Basic
-EnvGratingComponent.blendmode.allowedVals:[]
+EnvGratingComponent.blendmode.allowedVals:['avg', 'add']
 EnvGratingComponent.blendmode.readOnly:False
 EnvGratingComponent.blendmode.updates:constant
-EnvGratingComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': ['avg', 'add'], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 EnvGratingComponent.blendmode.__weakref__:None
 EnvGratingComponent.blendmode.valType:str
 EnvGratingComponent.blendmode.staticUpdater:None
 EnvGratingComponent.blendmode.val:avg
 EnvGratingComponent.blendmode.allowedTypes:[]
-EnvGratingComponent.blendmode.hint:OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]
+EnvGratingComponent.blendmode.hint:OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display
 EnvGratingComponent.blendmode.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.blendmode.__class__:<class 'psychopy.app.builder.experiment.Param'>
 EnvGratingComponent.blendmode.label:OpenGL blend mode
@@ -685,7 +685,7 @@ EnvGratingComponent.size.valType:code
 EnvGratingComponent.size.staticUpdater:None
 EnvGratingComponent.size.val:(0.5, 0.5)
 EnvGratingComponent.size.allowedTypes:[]
-EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
+EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 EnvGratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 EnvGratingComponent.size.label:Size [w,h]
@@ -1020,11 +1020,11 @@ GratingComponent.opacity.allowedUpdates:['constant', 'set every repeat', 'set ev
 GratingComponent.opacity.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.opacity.label:Opacity
 GratingComponent.tex.default:'sin'
-GratingComponent.tex.categ:Grating
+GratingComponent.tex.categ:Advanced
 GratingComponent.tex.allowedVals:[]
 GratingComponent.tex.readOnly:False
 GratingComponent.tex.updates:constant
-GratingComponent.tex.__dict__:{'staticUpdater': None, 'categ': 'Grating', 'val': 'sin', 'hint': u'The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Texture', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+GratingComponent.tex.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'sin', 'hint': u'The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Texture', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 GratingComponent.tex.__weakref__:None
 GratingComponent.tex.valType:str
 GratingComponent.tex.staticUpdater:None
@@ -1051,16 +1051,16 @@ GratingComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Pa
 GratingComponent.colorSpace.label:Color space
 GratingComponent.blendmode.default:'avg'
 GratingComponent.blendmode.categ:Basic
-GratingComponent.blendmode.allowedVals:[]
+GratingComponent.blendmode.allowedVals:['avg', 'add']
 GratingComponent.blendmode.readOnly:False
 GratingComponent.blendmode.updates:constant
-GratingComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+GratingComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode: avg gives traditional transparency, add is important to combine gratings)]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': ['avg', 'add'], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 GratingComponent.blendmode.__weakref__:None
 GratingComponent.blendmode.valType:str
 GratingComponent.blendmode.staticUpdater:None
 GratingComponent.blendmode.val:avg
 GratingComponent.blendmode.allowedTypes:[]
-GratingComponent.blendmode.hint:OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is useful if combining a beat with the carrier image or numpy array at point of display)]
+GratingComponent.blendmode.hint:OpenGL Blendmode: avg gives traditional transparency, add is important to combine gratings)]
 GratingComponent.blendmode.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 GratingComponent.blendmode.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.blendmode.label:OpenGL blend mode
@@ -1124,11 +1124,11 @@ GratingComponent.durationEstim.allowedUpdates:None
 GratingComponent.durationEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.durationEstim.label:Expected duration (s)
 GratingComponent.mask.default:'None'
-GratingComponent.mask.categ:Grating
+GratingComponent.mask.categ:Advanced
 GratingComponent.mask.allowedVals:[]
 GratingComponent.mask.readOnly:False
 GratingComponent.mask.updates:constant
-GratingComponent.mask.__dict__:{'staticUpdater': None, 'categ': 'Grating', 'val': 'None', 'hint': u'An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Mask', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+GratingComponent.mask.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'None', 'hint': u'An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Mask', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 GratingComponent.mask.__weakref__:None
 GratingComponent.mask.valType:str
 GratingComponent.mask.staticUpdater:None
@@ -1154,11 +1154,11 @@ GratingComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every 
 GratingComponent.pos.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.pos.label:Position [x,y]
 GratingComponent.interpolate.default:'linear'
-GratingComponent.interpolate.categ:Grating
+GratingComponent.interpolate.categ:Advanced
 GratingComponent.interpolate.allowedVals:['linear', 'nearest']
 GratingComponent.interpolate.readOnly:False
 GratingComponent.interpolate.updates:constant
-GratingComponent.interpolate.__dict__:{'staticUpdater': None, 'categ': 'Grating', 'val': 'linear', 'hint': u'How should the image be interpolated if/when rescaled', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['linear', 'nearest'], 'label': u'Interpolate', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+GratingComponent.interpolate.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'linear', 'hint': u'How should the image be interpolated if/when rescaled', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['linear', 'nearest'], 'label': u'Interpolate', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 GratingComponent.interpolate.__weakref__:None
 GratingComponent.interpolate.valType:str
 GratingComponent.interpolate.staticUpdater:None
@@ -1199,11 +1199,11 @@ GratingComponent.units.allowedUpdates:None
 GratingComponent.units.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.units.label:Units
 GratingComponent.texture resolution.default:128
-GratingComponent.texture resolution.categ:Grating
+GratingComponent.texture resolution.categ:Advanced
 GratingComponent.texture resolution.allowedVals:['32', '64', '128', '256', '512']
 GratingComponent.texture resolution.readOnly:False
 GratingComponent.texture resolution.updates:constant
-GratingComponent.texture resolution.__dict__:{'staticUpdater': None, 'categ': 'Grating', 'val': '128', 'hint': u'Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['32', '64', '128', '256', '512'], 'label': u'Texture resolution', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+GratingComponent.texture resolution.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': '128', 'hint': u'Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['32', '64', '128', '256', '512'], 'label': u'Texture resolution', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
 GratingComponent.texture resolution.__weakref__:None
 GratingComponent.texture resolution.valType:code
 GratingComponent.texture resolution.staticUpdater:None
@@ -1214,11 +1214,11 @@ GratingComponent.texture resolution.allowedUpdates:[]
 GratingComponent.texture resolution.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.texture resolution.label:Texture resolution
 GratingComponent.phase.default:0.0
-GratingComponent.phase.categ:Grating
+GratingComponent.phase.categ:Advanced
 GratingComponent.phase.allowedVals:[]
 GratingComponent.phase.readOnly:False
 GratingComponent.phase.updates:constant
-GratingComponent.phase.__dict__:{'staticUpdater': None, 'categ': 'Grating', 'val': 0.0, 'hint': u'Spatial positioning of the image on the grating (wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Phase (in cycles)', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+GratingComponent.phase.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 0.0, 'hint': u'Spatial positioning of the image on the grating (wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Phase (in cycles)', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
 GratingComponent.phase.__weakref__:None
 GratingComponent.phase.valType:code
 GratingComponent.phase.staticUpdater:None
@@ -1289,11 +1289,11 @@ GratingComponent.startVal.allowedUpdates:None
 GratingComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.startVal.label:Start
 GratingComponent.sf.default:None
-GratingComponent.sf.categ:Grating
+GratingComponent.sf.categ:Advanced
 GratingComponent.sf.allowedVals:[]
 GratingComponent.sf.readOnly:False
 GratingComponent.sf.updates:constant
-GratingComponent.sf.__dict__:{'staticUpdater': None, 'categ': 'Grating', 'val': 'None', 'hint': u'Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Spatial frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+GratingComponent.sf.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'None', 'hint': u'Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Spatial frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
 GratingComponent.sf.__weakref__:None
 GratingComponent.sf.valType:code
 GratingComponent.sf.staticUpdater:None
@@ -1314,7 +1314,7 @@ GratingComponent.size.valType:code
 GratingComponent.size.staticUpdater:None
 GratingComponent.size.val:(0.5, 0.5)
 GratingComponent.size.allowedTypes:[]
-GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
+GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 GratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 GratingComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 GratingComponent.size.label:Size [w,h]
@@ -1614,7 +1614,7 @@ ImageComponent.size.valType:code
 ImageComponent.size.staticUpdater:None
 ImageComponent.size.val:(0.5, 0.5)
 ImageComponent.size.allowedTypes:[]
-ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
+ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 ImageComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 ImageComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 ImageComponent.size.label:Size [w,h]
@@ -2334,7 +2334,7 @@ MovieComponent.size.valType:code
 MovieComponent.size.staticUpdater:None
 MovieComponent.size.val:
 MovieComponent.size.allowedTypes:[]
-MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
+MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 MovieComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 MovieComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 MovieComponent.size.label:Size [w,h]
@@ -2799,7 +2799,7 @@ PatchComponent.size.valType:code
 PatchComponent.size.staticUpdater:None
 PatchComponent.size.val:(0.5, 0.5)
 PatchComponent.size.allowedTypes:[]
-PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
+PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 PatchComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 PatchComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 PatchComponent.size.label:Size [w,h]
@@ -3085,7 +3085,7 @@ PolygonComponent.size.staticUpdater:None
 PolygonComponent.size.val:(0.5, 0.5)
 PolygonComponent.size.allowedTypes:[]
 PolygonComponent.size.hint:Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,
- but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!!
+ but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! 
 PolygonComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 PolygonComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
 PolygonComponent.size.label:Size [w,h]
@@ -3686,7 +3686,7 @@ SettingsComponent.HTML path.valType:str
 SettingsComponent.HTML path.staticUpdater:None
 SettingsComponent.HTML path.val:html
 SettingsComponent.HTML path.allowedTypes:[]
-SettingsComponent.HTML path.hint:Place the HTML files will be saved locally
+SettingsComponent.HTML path.hint:Place the HTML files will be saved locally 
 SettingsComponent.HTML path.allowedUpdates:None
 SettingsComponent.HTML path.__class__:<class 'psychopy.app.builder.experiment.Param'>
 SettingsComponent.HTML path.label:Output path

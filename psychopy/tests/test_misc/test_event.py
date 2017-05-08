@@ -103,6 +103,25 @@ class _baseTest(object):
         for t in ['mouse', 'joystick', 'keyboard', None]:
             event.clearEvents(t)
 
+    def test_clearEvents_keyboard(self):
+        event._onPygletKey(symbol='x', modifiers=0, emulated=True)
+        event.clearEvents('keyboard')
+        assert not event._keyBuffer
+
+    def test_clearEvents_mouse(self):
+        """Keyboard buffer should not be affected.
+        """
+        event._onPygletKey(symbol='x', modifiers=0, emulated=True)
+        event.clearEvents('mouse')
+        assert event._keyBuffer
+
+    def test_clearEvents_joystick(self):
+        """Keyboard buffer should not be affected.
+        """
+        event._onPygletKey(symbol='x', modifiers=0, emulated=True)
+        event.clearEvents('joystick')
+        assert event._keyBuffer
+
     def test_keys(self):
         if travis:
             pytest.skip()  # failing on travis-ci
@@ -226,6 +245,7 @@ class TestPygletNorm(_baseTest):
         self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
         if havePygame:
             assert pygame.display.get_init() == 0
+
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod
