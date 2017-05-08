@@ -12,14 +12,11 @@ PsychoPy is unique in giving you a choice of interface: use the **Builder interf
 News
 ====================
 
-**Workshops**: Time is running out to book onto our **three** :ref:`officialWorkshops` :
- - 26-28 Apr 2017: :ref:`PEP1` to get skills in programming, rather than running experiments *per se*
-
- - 3-5 May 2017: :ref:`BEP` to get up and running fast with building flexible experiments **including a session on running ONLINE PsychoPy studies**
+**Workshops**:
 
  - 12-14 July 2017: :ref:`PEP2` to write better Python code: more reusable, better timed, just better!
 
-**Latest version**: 1.85.0 was released Feb 2017 with initial proof-of-concept of online experiments. Beware - these are bound to be buggy so only use if you know what you're doing. And :ref:`READ THE DOCS <online>`. See the full :doc:`changelog`
+**Latest version**: 1.85.1 was released Apr 2017 with initial proof-of-concept of online experiments. Beware - these are bound to be buggy so only use if you know what you're doing. And :ref:`READ THE DOCS <online>`. See the full :doc:`changelog`
 
 .. title:: Home
 

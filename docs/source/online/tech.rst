@@ -1,9 +1,12 @@
+
+.. _PsychoJS: https://github.com/psychopy/psychojs
+
 .. _onlineHowWorks:
 
 How does it work?
 --------------------------
 
-The first stage of this is that there is now a JavaScript library, *PsychoJS*, that mirrors the PsychoPy Python library classes and functions.
+The first stage of this is that there is now a JavaScript library, `PsychoJS`_, that mirrors the PsychoPy Python library classes and functions.
 
 PsychoPy Builder is effectively just writing a script for you based on the visual representation of your study so the new feature is for it simply to write a html/JavaScript/PsychoJS page instead.
 
