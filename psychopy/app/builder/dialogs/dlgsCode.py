@@ -42,7 +42,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
         self.codeGuiElements = {}
-        if not editing and 'name' in list(self.params.keys()):
+        if not editing and 'name' in self.params:
             # then we're adding a new component so ensure a valid name:
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(params['name'].val)

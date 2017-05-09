@@ -215,7 +215,7 @@ class ExperimentVariableProvider(object):
 
             blockList=[]
             for pbn in self.practiceBlockValues:
-                if pbn in list(tempBlockDict.keys()):
+                if pbn in tempBlockDict:
                     blockList.append(TrialSetProvider(tempBlockDict[pbn],self.randomizeTrials))
                     del tempBlockDict[pbn]
             self.practiceBlocks=BlockSetProvider(blockList, False)

@@ -449,7 +449,7 @@ class TargetPosSequenceStim(object):
         # final_x,final_y         
         TARGET_POS = ("TARGET_POS", ',', float, float)
         )    
-    max_msg_type_length=max([len(s) for s in list(message_types.keys())])
+    max_msg_type_length=max([len(s) for s in message_types])
 
     binocular_sample_message_element=[
                     ('targ_pos_ix',np.int),
@@ -1600,4 +1600,3 @@ class ValidationProcedure(object):
         return self.win.flip()
 
 from .visualangle import VisualAngleCalc
-         

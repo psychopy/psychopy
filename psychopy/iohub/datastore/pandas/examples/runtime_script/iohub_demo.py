@@ -67,7 +67,7 @@ for t,trial in enumerate(trials):
         key_events=kb.getEvents(event_type_id=EventConstants.KEYBOARD_RELEASE)
         
         for ke in key_events:
-            if ke.key in list(key_mapping.keys()):
+            if ke.key in key_mapping.keys:
                 key_pressed=ke
                 break
             elif ke.key == 'ESCAPE':

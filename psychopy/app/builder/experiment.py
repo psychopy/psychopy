@@ -419,7 +419,7 @@ class Experiment(object):
                                 " and log files (blank defaults to the "
                                 "builder pref)"),
                 categ='Data')
-        elif 'val' in list(paramNode.keys()):
+        elif 'val' in paramNode:
             if val == 'window units':  # changed this value in 1.70.00
                 params[name].val = 'from exp settings'
             # in v1.80.00, some RatingScale API and Param fields were changed
@@ -468,7 +468,7 @@ class Experiment(object):
                     logging.warn(msg % name)
                     logging.flush()
         # get the value type and update rate
-        if 'valType' in list(paramNode.keys()):
+        if 'valType' in paramNode:
             params[name].valType = paramNode.get('valType')
             # compatibility checks:
             if name in ['allowedKeys'] and paramNode.get('valType') == 'str':
@@ -480,7 +480,7 @@ class Experiment(object):
             # conversions based on valType
             if params[name].valType == 'bool':
                 params[name].val = eval("%s" % params[name].val)
-        if 'updates' in list(paramNode.keys()):
+        if 'updates' in paramNode:
             params[name].updates = paramNode.get('updates')
 
     def loadFromXML(self, filename):
@@ -1018,7 +1018,7 @@ class TrialHandler(object):
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
-                    "    for paramName in %(name)s.keys():\n"
+                    "    for paramName in %(name)s:\n"
                     "        exec(paramName + '= %(name)s.' + paramName)\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
@@ -1032,7 +1032,7 @@ class TrialHandler(object):
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
-                    "    for paramName in %(name)s.keys():\n"
+                    "    for paramName in %(name)s:\n"
                     "        exec(paramName + '= %(name)s.' + paramName)\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
@@ -1401,7 +1401,7 @@ class MultiStairHandler(object):
         if not self.exp.prefsBuilder['unclutteredNamespace']:
             code = ("# abbreviate parameter names if possible (e.g. "
                     "rgb=condition.rgb)\n"
-                    "for paramName in condition.keys():\n"
+                    "for paramName in condition:\n"
                     "    exec(paramName + '= condition[paramName]')\n")
             buff.writeIndentedLines(code)
 

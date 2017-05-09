@@ -132,8 +132,7 @@ def getPacFiles():
         for i in range(nVals):
             thisName, thisVal, thisType = winreg.EnumValue(net, i)
             subkeys[thisName] = thisVal
-        if ('AutoConfigURL' in list(subkeys.keys()) and
-                len(subkeys['AutoConfigURL']) > 0):
+        if ('AutoConfigURL' in subkeys and len(subkeys['AutoConfigURL']) > 0):
             pacFiles.append(subkeys['AutoConfigURL'])
     elif sys.platform == 'darwin':
         import plistlib
@@ -143,7 +142,7 @@ def getPacFiles():
         # loop through each possible network (e.g. Ethernet, Airport...)
         for network in list(networks.items()):
             netKey, network = network  # the first part is a long identifier
-            if 'ProxyAutoConfigURLString' in list(network['Proxies'].keys()):
+            if 'ProxyAutoConfigURLString' in network['Proxies']:
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
     return list(set(pacFiles))  # remove redundant ones
 

@@ -294,7 +294,7 @@ class DlgFromDict(Dlg):
         for field in self._keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''
-            if field in list(tip.keys()):
+            if field in tip:
                 tooltip = tip[field]
             if field in fixed:
                 self.addFixedField(field, self.dictionary[field], tip=tooltip)
