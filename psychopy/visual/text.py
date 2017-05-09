@@ -187,7 +187,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             else:
                 msg = ("TextStim does now know a default letter height "
                        "for units %s")
-                raise AttributeError, msg % repr(self.units)
+                raise AttributeError(msg % repr(self.units))
         self.__dict__['height'] = height
         self._heightPix = convertToPix(pos=numpy.array([0, 0]),
                                        vertices=numpy.array([0, self.height]),
@@ -275,7 +275,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         if text == self.text:
             return
         if text != None:  # make sure we have unicode object to render
-            self.__dict__['text'] = unicode(text)
+            self.__dict__['text'] = str(text)
         if self.useShaders:
             self._setTextShaders(text)
         else:
@@ -635,7 +635,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                 wrapWidth = defaultWrapWidth[self.units]
             else:
                 msg = "TextStim does now know a default wrap width for units %s"
-                raise AttributeError, msg % repr(self.units)
+                raise AttributeError(msg % repr(self.units))
         self.__dict__['wrapWidth'] = wrapWidth
         verts = numpy.array([self.wrapWidth, 0])
         self._wrapWidthPix = convertToPix(pos=numpy.array([0, 0]),
@@ -713,7 +713,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             #       desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
             #  # set the texture to be texture unit 0
             GL.glUniform3f(
-                GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"),
+                GL.glGetUniformLocation(self.win._progSignedTexFont, b"rgb"),
                 desiredRGB[0], desiredRGB[1], desiredRGB[2])
 
         else:  # color is set in texture, so set glColor to white

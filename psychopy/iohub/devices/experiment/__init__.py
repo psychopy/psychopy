@@ -178,8 +178,8 @@ class LogEvent(DeviceEvent):
         from psychopy.logging import _levelNames
         _psychopyAvailable=True
         
-        for lln,llv in _levelNames.iteritems():
-            if isinstance(lln,basestring):
+        for lln,llv in _levelNames.items():
+            if isinstance(lln,str):
                 _levelNames[lln]=llv
                 _levelNames[llv]=lln
     except Exception:
@@ -262,7 +262,7 @@ class LogEvent(DeviceEvent):
             log_time=created_time
         if level is None or level not in cls._levelNames:
             level=cls.DEBUG
-        elif isinstance(level,basestring):
+        elif isinstance(level,str):
             level= cls._levelNames[level]
         return cls._createAsList(msg, level, created_time, log_time)
         
@@ -279,7 +279,7 @@ class LogEvent(DeviceEvent):
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+        return dict(list(zip(cls.CLASS_ATTRIBUTE_NAMES,values)))
 
     @classmethod
     def createEventAsNamedTuple(cls,valueList):
@@ -287,7 +287,7 @@ class LogEvent(DeviceEvent):
         return cls.namedTupleClass(*valueList)
 
 if not hasattr(LogEvent,'CRITICAL'):
-    for lln,llv in LogEvent._levelNames.iteritems():
-        if isinstance(lln,basestring):
+    for lln,llv in LogEvent._levelNames.items():
+        if isinstance(lln,str):
             setattr(LogEvent,lln,llv)
     

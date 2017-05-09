@@ -6,7 +6,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
@@ -272,10 +272,10 @@ def butter2d_lp(size, cutoff, n=3):
              filter kernel in 2D centered
        """
     if not 0 < cutoff <= 1.0:
-        raise ValueError, 'Cutoff frequency must be between 0 and 1.0'
+        raise ValueError('Cutoff frequency must be between 0 and 1.0')
 
     if not isinstance(n, int):
-        raise ValueError, 'n must be an integer >= 1'
+        raise ValueError('n must be an integer >= 1')
 
     rows, cols = size
 
@@ -356,9 +356,9 @@ def butter2d_lp_elliptic(size, cutoff_x, cutoff_y, n=3,
     """
 
     if not (0 < cutoff_x <= 1.0):
-        raise ValueError, 'cutoff_x frequency must be between 0 and 1'
+        raise ValueError('cutoff_x frequency must be between 0 and 1')
     if not (0 < cutoff_y <= 1.0):
-        raise ValueError, 'cutoff_y frequency must be between 0 and 1'
+        raise ValueError('cutoff_y frequency must be between 0 and 1')
 
     rows, cols = size
 

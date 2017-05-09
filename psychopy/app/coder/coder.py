@@ -2,7 +2,7 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import time
 import types
@@ -19,14 +19,14 @@ import keyword
 import os
 import sys
 import string
-import StringIO
+import io
 import glob
 import platform
 import io
 import threading
 import traceback
 import bdb
-import cPickle
+import pickle
 import py_compile
 
 from . import psychoParser, introspect
@@ -63,7 +63,7 @@ def toPickle(filename, data):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename, 'w')
-    cPickle.dump(data, f)
+    pickle.dump(data, f)
     f.close()
 
 
@@ -73,7 +73,7 @@ def fromPickle(filename):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename)
-    contents = cPickle.load(f)
+    contents = pickle.load(f)
     f.close()
     return contents
 
@@ -168,7 +168,7 @@ class PsychoDebugger(bdb.Bdb):
             # arrived at breakpoint
             name = frame.f_code.co_name or "<unknown>"
             filename = self.canonic(frame.f_code.co_filename)
-            print("break at %s %i in %s" % (filename, frame.f_lineno, name))
+            print(("break at %s %i in %s" % (filename, frame.f_lineno, name)))
         self.set_continue()  # continue to next breakpoint
 
     def user_return(self, frame, value):
@@ -699,7 +699,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         if self.AUTOCOMPLETE:
             # get last word any previous word (if there was a dot instead of
             # space)
-            isAlphaNum = bool(keyCode in range(65, 91) + range(97, 123))
+            isAlphaNum = bool(keyCode in list(range(65, 91)) + list(range(97, 123)))
             isDot = bool(keyCode == 46)
             prevWord = None
             if isAlphaNum:  # any alphanum
@@ -741,7 +741,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     # did we get a word?
                     if prevWord:
                         # is it in dictionary?
-                        if prevWord in self.autoCompleteDict.keys():
+                        if prevWord in self.autoCompleteDict:
                             attrs = self.autoCompleteDict[prevWord]['attrs']
                             # does it have known attributes?
                             if type(attrs) == list and len(attrs) >= 1:
@@ -750,7 +750,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     # for objects show simple completions
                     else:  # there was no preceding '.'
                         # start trying after 2 characters
-                        autokeys = self.autoCompleteDict.keys()
+                        autokeys = list(self.autoCompleteDict.keys())
                         if len(currWord) > 1 and len(autokeys) > 1:
                             subList = [s for s in autokeys
                                        if currWord.lower() in s.lower()]
@@ -890,7 +890,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             currWord = self.GetTextRange(startPos, endPos)
 
             # lookfor word in dictionary
-            if currWord in self.autoCompleteDict.keys():
+            if currWord in self.autoCompleteDict:
                 helpText = self.autoCompleteDict[currWord]['help']
                 thisIs = self.autoCompleteDict[currWord]['is']
                 thisType = self.autoCompleteDict[currWord]['type']
@@ -1104,7 +1104,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         start = self.LineFromPosition(selStart)
         end = self.LineFromPosition(selEnd)
-        return range(start, end)
+        return list(range(start, end))
 
     def _GetPositionsBoundingSelectedLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1133,7 +1133,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
     def analyseScript(self):
         # analyse the file
-        buffer = StringIO.StringIO()
+        buffer = io.StringIO()
         buffer.write(self.GetText())
         buffer.seek(0)
         try:
@@ -1537,7 +1537,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, item.GetId(), self.filePrint)
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
-                           text=msg % keyCodes['preferences'])
+                           _translate(msg) % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         # -------------quit
         menu.AppendSeparator()
@@ -1748,7 +1748,7 @@ class CoderFrame(wx.Frame):
                 continue
             # otherwise create a submenu
             folderDisplayName = os.path.split(folder)[-1]
-            if folderDisplayName in _localized.keys():
+            if folderDisplayName in _localized:
                 folderDisplayName = _localized[folderDisplayName]
             submenu = wx.Menu()
             self.demosMenu.AppendSubMenu(submenu, folderDisplayName)
@@ -2330,7 +2330,7 @@ class CoderFrame(wx.Frame):
                 try:
                     # this will fail when doc.newlines was not set (new file)
                     if self.prefs['newlineConvention'] == 'keep':
-                        if doc.GetText().lstrip(u'\ufeff').startswith("#!"):
+                        if doc.GetText().lstrip('\ufeff').startswith("#!"):
                             # document has shebang (ignore byte-order-marker)
                             newlines = '\n'
                         elif doc.newlines == '\r\n':
@@ -2351,8 +2351,8 @@ class CoderFrame(wx.Frame):
                 self.setFileModified(False)
                 doc.fileModTime = os.path.getmtime(filename)  # JRG
             except Exception:
-                print("Unable to save %s... trying save-as instead." %
-                      os.path.basename(doc.filename))
+                print(("Unable to save %s... trying save-as instead." %
+                      os.path.basename(doc.filename)))
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames()) > 0:
@@ -2550,18 +2550,18 @@ class CoderFrame(wx.Frame):
 
         # check syntax by compiling - errors printed (not raised as error)
         try:
-            if type(fullPath) == unicode:
+            if type(fullPath) == str:
                 # py_compile.compile doesn't accept Unicode filename.
                 py_compile.compile(fullPath.encode(
                     sys.getfilesystemencoding()), doraise=False)
             else:
                 py_compile.compile(fullPath, doraise=False)
         except Exception as e:
-            print("Problem compiling: %s" % e)
+            print(("Problem compiling: %s" % e))
 
         # provide a running... message; long fullPath --> no # are displayed
         # unless you add some manually
-        print("##### Running: %s #####" % (fullPath)).center(80, "#")
+        print(("##### Running: %s #####" % (fullPath)).center(80, "#"))
 
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)

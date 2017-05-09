@@ -23,7 +23,7 @@ class PParallelInpOut32(object):
         from numpy import uint8
         from ctypes import windll
 
-        if isinstance(address, basestring) and address.startswith('0x'):
+        if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:
@@ -109,4 +109,4 @@ class PParallelInpOut32(object):
             return (self.port.Inp32(self.base) >> (pinNumber - 2)) & 1
         else:
             msg = 'Pin %i cannot be read (by PParallelInpOut32.readPin())'
-            print(msg % pinNumber)
+            print((msg % pinNumber))

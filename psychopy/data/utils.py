@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+
 
 import os
 import re
-import cPickle
+import pickle
 import time
 import codecs
 import numpy as np
@@ -74,12 +74,12 @@ def isValidVariableName(name):
     """
     if not name:
         return False, "Variables cannot be missing, None, or ''"
-    if not type(name) in (str, unicode, np.string_, np.unicode_):
+    if not type(name) in (str, str, np.string_, np.unicode_):
         return False, "Variables must be string-like"
     try:
         name = str(name)  # convert from unicode if possible
     except Exception:
-        if type(name) in [unicode, np.unicode_]:
+        if type(name) in [str, np.unicode_]:
             msg = ("name %s (type %s) contains non-ASCII characters"
                    " (e.g. accents)")
             raise AttributeError(msg % (name, type(name)))
@@ -134,7 +134,7 @@ def sliceFromString(sliceString):
         else:
             sliceArgs.append(int(round(float(val))))
             # nb int(round(float(x))) is needed for x='4.3'
-    return apply(slice, sliceArgs)
+    return slice(*sliceArgs)
 
 
 def indicesFromString(indsString):
@@ -239,12 +239,12 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
 
-                if type(val) in [unicode, str]:
+                if type(val) in [str, str]:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
                 elif type(val) == np.string_:
-                    val = unicode(val.decode('utf-8'))
+                    val = str(val.decode('utf-8'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
@@ -300,7 +300,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for colN in range(nCols):
                 val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
                 # if it looks like a list or tuple, convert it
-                if (type(val) in (unicode, str) and
+                if (type(val) in (str, str) and
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
@@ -311,7 +311,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     elif fileName.endswith('.pkl'):
         f = open(fileName, 'rU')  # is U needed?
         try:
-            trialsArr = cPickle.load(f)
+            trialsArr = pickle.load(f)
         except Exception:
             raise ImportError('Could not open %s as conditions' % fileName)
         f.close()
@@ -329,7 +329,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                       'xlsx, csv or pkl file')
 
     # if we have a selection then try to parse it
-    if isinstance(selection, basestring) and len(selection) > 0:
+    if isinstance(selection, str) and len(selection) > 0:
         selection = indicesFromString(selection)
         if not isinstance(selection, slice):
             for n in selection:
@@ -529,13 +529,4 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     For date in the format of the current localization, do:
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
-    now = time.strftime(format, time.localtime())
-    try:
-        now_decoded = codecs.utf_8_decode(now)[0]
-    except UnicodeDecodeError:
-        # '2011_03_16_1307'
-        now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
-
-    return now_decoded
-
-
+    return time.strftime(format, time.localtime())

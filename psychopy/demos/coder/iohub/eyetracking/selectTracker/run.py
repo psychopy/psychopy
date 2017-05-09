@@ -184,7 +184,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the Experiment Condition Variable Data for this trial to the
             # ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(trial.values())          
+            self.hub.addRowToConditionVariableTable(list(trial.values()))          
             self.hub.clearEvents('all')
             t+=1
 
@@ -250,7 +250,7 @@ if __name__ == "__main__":
         if not infoDlg.OK:
             return -1 
 
-        while dlg_info.values()[0] == u'Select' and infoDlg.OK:
+        while list(dlg_info.values())[0] == 'Select' and infoDlg.OK:
                 dlg_info=dict(info)
                 infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='SELECT Eye Tracker To Continue...')
    
@@ -261,7 +261,7 @@ if __name__ == "__main__":
                                                        'iohub_config.yaml.part'))
                                                        
         eyetrack_config_file=os.path.normcase(os.path.join(configurationDirectory,
-                                eye_tracker_config_files[dlg_info.values()[0]]))
+                                eye_tracker_config_files[list(dlg_info.values())[0]]))
 
         combined_config_file_name=os.path.normcase(os.path.join(configurationDirectory,
                                                                 'iohub_config.yaml'))
@@ -271,7 +271,7 @@ if __name__ == "__main__":
 
         
         runtime=ExperimentRuntime(configurationDirectory, "experiment_config.yaml")    
-        runtime.start((dlg_info.values()[0],))
+        runtime.start((list(dlg_info.values())[0],))
 
 
     # Get the current directory, using a method that does not rely on __FILE__

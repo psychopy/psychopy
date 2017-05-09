@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import sys
 import re
@@ -61,6 +61,7 @@ def getLatestVersionInfo():
     # parse update file as a dictionary
     latest = {}
     for line in page.readlines():
+        line = line.decode()
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
         if line.find(':') == -1:
@@ -437,7 +438,7 @@ class InstallUpdateDialog(wx.Dialog):
         if py3:
             zfileIsName = type(zfile) == str
         else:
-            zfileIsName = type(zfile) in (str, unicode)
+            zfileIsName = type(zfile) in (str, str)
         if os.path.isfile(zfile) and zfileIsName:
             # zfile is filename not an actual file
             if v is None:  # try and deduce it

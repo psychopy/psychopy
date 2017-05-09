@@ -58,7 +58,7 @@ FT_Stroker: Opaque handler to a path stroker object.
 
 FT_BitmapGlyph: A structure used for bitmap glyph images.
 '''
-from ft_types import *
+from .ft_types import *
 
 
 # -----------------------------------------------------------------------------

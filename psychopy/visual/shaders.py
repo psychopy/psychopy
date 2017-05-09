@@ -5,7 +5,7 @@
 """shaders programs for either pyglet or pygame
 """
 
-from __future__ import absolute_import
+
 
 from ctypes import (byref, cast, c_int, c_char, c_char_p,
                     POINTER, create_string_buffer)
@@ -34,7 +34,7 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         """
         shader = GL.glCreateShaderObjectARB(shaderType)
 
-        prog = c_char_p(source)
+        prog = c_char_p(source.encode())
         length = c_int(-1)
         GL.glShaderSourceARB(shader,
                              1,
@@ -48,7 +48,7 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         if not status.value:
             print_log(shader)
             GL.glDeleteShader(shader)
-            raise ValueError, 'Shader compilation failed'
+            raise ValueError('Shader compilation failed')
         return shader
 
     program = GL.glCreateProgramObjectARB()

@@ -39,7 +39,7 @@ guess=[0.2, 0.5])
 smoothInt = pylab.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
 thresh = fit.inverse(0.8)
-print thresh
+print(thresh)
 
 #plot curve
 pylab.subplot(122)

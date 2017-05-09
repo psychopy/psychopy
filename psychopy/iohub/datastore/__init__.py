@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub
 .. file: ioHub/datastore/__init__.py
@@ -78,10 +78,10 @@ class ioHubpyTablesFile():
             tokens=str(event_table_label[0]+event_table_label[1:].lower()+'Event').split('_') 
             return ''.join([t[0].upper()+t[1:] for t in tokens])
 
-        for event_cls_name,event_cls in event_class_dict.iteritems():
+        for event_cls_name,event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label=event_cls.IOHUB_DATA_TABLE
-                if event_table_label not in self.TABLES.keys():
+                if event_table_label not in list(self.TABLES.keys()):
                     try:
                         self.TABLES[event_table_label]=self.emrtFile.createTable(self._eventGroupMappings[event_table_label],eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s Data"%(device_instance.__class__.__name__,),filters=dfilter.copy())
                         self.flush()
@@ -102,7 +102,7 @@ class ioHubpyTablesFile():
                         #print2err("\t_eventGroupMappings[event_table_label]: {0}".format(self._eventGroupMappings[event_table_label]))
                         #print2err("----------------------------------------------")
 
-                    except Exception, e:
+                    except Exception as e:
                         print2err("---------------ERROR------------------")
                         print2err("Exception %s in iohub.datastore.updateDataStoreStructure:"%(e.__class__.__name__))
                         print2err("\tevent_cls: {0}".format(event_cls))
@@ -113,7 +113,7 @@ class ioHubpyTablesFile():
                         print2err("\tException: {0}".format(e))
                         print2err("--------------------------------------")
 
-                if self.TABLES.has_key(event_table_label):
+                if event_table_label in self.TABLES:
                         #print2err("---------------ADDING CLASS MAPPING------------------")
                         #print2err("\tevent_cls: {0}".format(event_cls))
                         #print2err("\tevent_cls_name: {0}".format(event_cls_name))
@@ -403,7 +403,7 @@ class ioHubpyTablesFile():
             expCondTableName="EXP_CV_%d"%(experiment_id)
             experimentConditionVariableTable=self.emrtFile.root.data_collection.condition_variables._f_getChild(expCondTableName)
             self.TABLES['EXP_CV']=experimentConditionVariableTable
-        except NoSuchNodeError, nsne:
+        except NoSuchNodeError as nsne:
             try:
                 experimentConditionVariableTable=self.emrtFile.createTable(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
                 self.TABLES['EXP_CV']=experimentConditionVariableTable
@@ -520,7 +520,7 @@ class ioHubpyTablesFile():
 
             self.bufferedFlush(len(np_events))
 
-        except ioHubError, e:
+        except ioHubError as e:
             print2err(e)
         except Exception:
             printExceptionDetailsToStdErr()
@@ -571,7 +571,7 @@ def close_open_data_files(verbose):
         are_open_files = len(open_files) > 0
         if verbose and are_open_files:
             print2err("Closing remaining open data files:")
-        for fileh in open_files.keys():
+        for fileh in list(open_files.keys()):
             if verbose:
                 print2err( "%s..." % (open_files[fileh].filename,))
             open_files[fileh].close()

@@ -1,10 +1,10 @@
 
-from __future__ import absolute_import
+
 
 import sys
 import glob
 import collections
-from itertools import imap, chain
+from itertools import chain
 from psychopy import logging
 __all__ = ['forp', 'cedrus', 'minolta', 'pr', 'crs', 'iolab']
 
@@ -41,7 +41,7 @@ def getSerialPorts():
         # While PsychoPy does support using numeric values to specify
         # which serial port to use, it is better in this case to
         # provide a cannoncial name.
-        return imap("COM{0}".format, xrange(11))  # COM0-10
+        return map("COM{0}".format, range(11))  # COM0-10
     else:
         logging.error("We don't support serial ports on {0} yet!"
                       .format(sys.platform))
@@ -51,7 +51,7 @@ def getSerialPorts():
     # expressions are then chained together. This is more efficient
     # because it means we don't perform the lookups before we actually
     # need to.
-    return chain.from_iterable(imap(glob.iglob, ports))
+    return chain.from_iterable(map(glob.iglob, ports))
 
 
 def getAllPhotometers():
@@ -130,13 +130,13 @@ def findPhotometer(ports=None, device=None):
             print(photom.getSpectrum())
 
     """
-    if isinstance(device, basestring):
+    if isinstance(device, str):
         photometers = [getPhotometerByName(device)]
     elif isinstance(device, collections.Iterable):
         # if we find a string assume it is a name, otherwise treat it like a
         # photometer
         photometers = [getPhotometerByName(d)
-                       if isinstance(d, basestring) else d
+                       if isinstance(d, str) else d
                        for d in device]
     else:
         photometers = getAllPhotometers()
@@ -144,7 +144,7 @@ def findPhotometer(ports=None, device=None):
     # determine candidate ports
     if ports is None:
         ports = getSerialPorts()
-    elif type(ports) in (int, float) or isinstance(ports, basestring):
+    elif type(ports) in (int, float) or isinstance(ports, str):
         ports = [ports]  # so that we can iterate
 
     # go through each port in turn

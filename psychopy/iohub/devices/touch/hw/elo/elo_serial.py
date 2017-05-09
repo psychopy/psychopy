@@ -67,7 +67,7 @@ class ResponsePacket(SmartSetPacket):
 
     def asdict(self):
         rd=dict()
-        for k,v in self.__dict__.iteritems():
+        for k,v in self.__dict__.items():
             if k[0]!='_':
                 rd[k]=v
         return rd
@@ -138,16 +138,16 @@ class ResponseAcknowledge(ResponsePacket):
         
         no_error=True
         if self.error1!='0':
-            print 'WARNING: Acknowledge Error1:',self.error1,self.warning_types.get(self.error1,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error1:',self.error1,self.warning_types.get(self.error1,'UNKNOWN ACQ ERROR CODE'))
             no_error=False
         if self.error2!='0':
-            print 'WARNING: Acknowledge Error2:',self.error2,self.warning_types.get(self.error2,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error2:',self.error2,self.warning_types.get(self.error2,'UNKNOWN ACQ ERROR CODE'))
             no_error=False
         if self.error3!='0':
-            print 'WARNING: Acknowledge Error3:',self.error3,self.warning_types.get(self.error3,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error3:',self.error3,self.warning_types.get(self.error3,'UNKNOWN ACQ ERROR CODE'))
             no_error=False
         if self.error4!='0':
-            print 'WARNING: Acknowledge Error4:',self.error4,self.warning_types.get(self.error4,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error4:',self.error4,self.warning_types.get(self.error4,'UNKNOWN ACQ ERROR CODE'))
             no_error=False       
         if  no_error:
             pass#print 'AckResponse OK'           
@@ -915,7 +915,7 @@ class ResponseID(ResponsePacket):
         self.z_axis_available=features&128 != 0
         self._minor=self._packet_bytes[5]
         self._major=self._packet_bytes[6]
-        self.firmware_version=u'{0}.{1}'.format(self._major,self._minor)
+        self.firmware_version='{0}.{1}'.format(self._major,self._minor)
         self.p=self._packet_bytes[7]
         self.controller_model=self.ctrlByte2CtrlType.get(int(self._packet_bytes[8]),'UNKNOWN')      
 RESPONSE_PACKET_TYPES[ResponseID.PACKET_TYPE_CHAR]=ResponseID
@@ -1831,7 +1831,7 @@ class ResponseTouch(ResponsePacket):
 RESPONSE_PACKET_TYPES[ResponseTouch.PACKET_TYPE_CHAR]=ResponseTouch
 
 def loadPacketNames():
-    classes=[(name, obj) for name, obj in globals().iteritems() if hasattr(obj,'PACKET_TYPE_CHAR')]
+    classes=[(name, obj) for name, obj in globals().items() if hasattr(obj,'PACKET_TYPE_CHAR')]
     
     for name,obj in classes:
         if not name.endswith('Packet'):

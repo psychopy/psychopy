@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-from __future__ import division
+
 
 import sys
 import copy
@@ -22,7 +22,7 @@ from ..... import Computer
 from .... import EyeTrackerDevice   
 from ....eye_events import *
 
-import pyViewX
+from . import pyViewX
 from ctypes import byref, c_longlong ,c_int, c_void_p,POINTER
 
 import gevent
@@ -75,7 +75,7 @@ class EyeTracker(EyeTrackerDevice):
             self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)            
 
             # Set the filtering level......
-            filter_type, filter_level = self._runtime_settings['sample_filtering'].items()[0]
+            filter_type, filter_level = list(self._runtime_settings['sample_filtering'].items())[0]
             INT_POINTER=POINTER(c_int)
             if filter_type == 'FILTER_ALL':
                 level_int = EyeTrackerConstants.getID(filter_level)
@@ -90,7 +90,7 @@ class EyeTracker(EyeTrackerDevice):
                                                   pyViewX.etFilterAction.get('Set'),
                                                   filter_state_set
                                                 )
-                    except Exception, e:
+                    except Exception as e:
                         print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
 
                     # Try disabling filtering using the DisableGazeDataFilter
@@ -107,7 +107,7 @@ class EyeTracker(EyeTrackerDevice):
                                                   pyViewX.etFilterAction.get('Set'),
                                                   filter_state_set
                                                 )
-                    except Exception, e:
+                    except Exception as e:
                         print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
 
                     # Try enabling filtering using the DisableGazeDataFilter
@@ -200,7 +200,7 @@ class EyeTracker(EyeTrackerDevice):
                 print2err("iViewX isConnected() returned unexpected value {0}".format(r))
                 connected= EyeTrackerConstants.EYETRACKER_ERROR
             return connected
-        except Exception, e:
+        except Exception as e:
             print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
             printExceptionDetailsToStdErr()
         print2err("isConnected error!!: ", connected)
@@ -238,7 +238,7 @@ class EyeTracker(EyeTrackerDevice):
             else:
                 print2err(" ---- SMI EyeTracker setConnectionState INVALID_METHOD_ARGUMENT_VALUE ---- ")
                 printExceptionDetailsToStdErr()
-        except Exception,e:
+        except Exception as e:
             print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
             printExceptionDetailsToStdErr()
             
@@ -259,7 +259,7 @@ class EyeTracker(EyeTrackerDevice):
                 return EyeTrackerConstants.EYETRACKER_ERROR           
             return EyeTrackerConstants.EYETRACKER_OK     
 
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def sendCommand(self, key, value=None):
@@ -366,7 +366,7 @@ class EyeTracker(EyeTrackerDevice):
                                              EyeTrackerConstants.VALIDATION_STATE,
                                              EyeTrackerConstants.TRACKER_FEEDBACK_STATE]            
 
-            if isinstance(starting_state,basestring):
+            if isinstance(starting_state,str):
                 starting_state=EyeTrackerConstants.getID(starting_state)
                         
             self._registerKeyboardMonitor()
@@ -407,7 +407,7 @@ class EyeTracker(EyeTrackerDevice):
             self._unregisterKeyboardMonitor()
             
             return self._last_setup_result
-        except Exception, e:
+        except Exception as e:
             self._unregisterKeyboardMonitor()
             printExceptionDetailsToStdErr()
 
@@ -610,7 +610,7 @@ class EyeTracker(EyeTrackerDevice):
                 event=copy.deepcopy((self._kbEventQueue.pop(0)))
                 ke=KeyboardPressEvent.createEventAsNamedTuple(event)
                 key=ke.key.upper() 
-                if key in key_mappings.keys():
+                if key in key_mappings:
                     del self._kbEventQueue[:]
                     return key_mappings[key]
             gevent.sleep(0.02)
@@ -662,7 +662,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self.isConnected() and self.isReportingEvents()
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def setRecordingState(self, recording):
@@ -721,7 +721,7 @@ class EyeTracker(EyeTrackerDevice):
                     print2err("iViewX setRecordingState(False) Failed: ERR_WRONG_DEVICE") 
                     return False #EyeTrackerConstants.EYETRACKER_ERROR
 
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def enableEventReporting(self, enabled=True):
@@ -733,7 +733,7 @@ class EyeTracker(EyeTrackerDevice):
             result2 = self.setRecordingState(enabled)
             EyeTrackerDevice.enableEventReporting(self, enabled)
             return result2
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
         return False
 
@@ -746,7 +746,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._latest_sample
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def getLastGazePosition(self):
@@ -759,7 +759,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._latest_gaze_position
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _handleNativeEvent(self,*args,**kwargs):
@@ -983,7 +983,7 @@ class EyeTracker(EyeTrackerDevice):
             w,h=right-left,top-bottom            
             x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y) 
             return x,y
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
         
     def _displayToEyeTrackerCoords(self,display_x,display_y):
@@ -999,7 +999,7 @@ class EyeTracker(EyeTrackerDevice):
             cxn,cyn=(display_x+cw/2)/cw , 1.0-(display_y-ch/2)/ch       
             return cxn*dw,  cyn*dh          
            
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _TrackerSystemInfo(self):
@@ -1021,7 +1021,7 @@ class EyeTracker(EyeTrackerDevice):
                             )
             print2err("GetSystemInfo FAILED: " + str(res))  
             return EyeTrackerConstants.EYETRACKER_ERROR         
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
     def _close(self):
         self.setRecordingState(False)

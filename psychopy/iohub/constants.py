@@ -64,7 +64,7 @@ try:
             [setattr(cls,a,i+starting_index) for i,a in enumerate(dir(cls)) if ((a[0] != '_') and (not callable(getattr(cls,a))) and (getattr(cls,a) < 0))]
             cls._names=dict([(getattr(cls,a),a) for a in dir(cls) if ((a[0] != '_') and (not callable(getattr(cls,a))))])
             cls._keys=list(cls._names.keys())
-            cls._names.update(dict([(v,k) for k,v in cls._names.iteritems()]))
+            cls._names.update(dict([(v,k) for k,v in cls._names.items()]))
             cls._initialized=True
      
         @classmethod
@@ -252,14 +252,14 @@ try:
             for event_id in device_event_ids:
                 event_constant_string=cls.getName(event_id)
                 event_class=None
-                for event_class in event_classes.values():
+                for event_class in list(event_classes.values()):
                     if event_class.EVENT_TYPE_ID == event_id:
                         cls._classes[event_id]=event_class
                         cls._classes[event_class]=event_id
                         #iohub.print2err("\tAdding Event Class Mapping: ",event_constant_string, " = ",event_id)
                         break
                 
-                if event_id not in cls._classes.keys():
+                if event_id not in list(cls._classes.keys()):
                         from psychopy.iohub import print2err
                         print2err("\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ",event_constant_string, " = ",event_id)
     

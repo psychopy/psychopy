@@ -35,7 +35,7 @@ except wx._core.PyNoAppError:
 # Get a dict of locale aliases from wx.Locale() -- same cross-platform
 # (Win 7, Mac 10.9)
 locale = wx.Locale()
-aliases = {u'English (U.S.)': 'en_US'}
+aliases = {'English (U.S.)': 'en_US'}
 # set defaults because locale.GetLanguageInfo(0) can return None on some
 # systems:
 wxIdFromCode = {'en_US': wx.LANGUAGE_DEFAULT}  # int: 0 default, 2-229
@@ -54,8 +54,8 @@ for i in range(230):
 # for setting locale (non-wx)
 winmap = {'en_US': 'ENU'}
 # descriptive name, if available; 5-letter code if not
-locname = {'en_US': u'English (U.S.)'}
-reverseMap = {u'English (U.S.)': 'en_US'}
+locname = {'en_US': 'English (U.S.)'}
+reverseMap = {'English (U.S.)': 'en_US'}
 mappings = os.path.join(os.path.dirname(__file__), 'mappings.txt')
 for line in codecs.open(mappings, 'rU', 'utf8').readlines():
     try:
@@ -71,7 +71,7 @@ for line in codecs.open(mappings, 'rU', 'utf8').readlines():
 # what are the available translations? available languages on the OS?
 expr = os.path.join(os.path.dirname(__file__), '..', 'locale', '*')
 available = sorted(map(os.path.basename, glob.glob(expr)))
-sysAvail = [str(l) for l in codeFromWxId.values()  # installed language packs
+sysAvail = [str(l) for l in list(codeFromWxId.values())  # installed language packs
             if l and locale.IsAvailable(wxIdFromCode[l])]
 
 
@@ -110,7 +110,7 @@ languageID, lang = getID()
 
 # set locale before splash screen:
 if locale.IsAvailable(languageID):
-    wxlocale = wx.Locale(languageID)
+    wxlocale = wx.Locale(language=languageID)
 else:
     wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
 
@@ -124,7 +124,7 @@ try:
 except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
-trans.install(unicode=True)
+trans.install()
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:

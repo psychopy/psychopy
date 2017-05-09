@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import pEyeGaze
+from . import pEyeGaze
 from ctypes import byref
 
 def initEyeGaze():
@@ -23,7 +23,7 @@ def initEyeGaze():
 
     result=pEyeGaze.EgInit(byref(eyegaze_control))
     if result!=0:
-        print "Could not connect to EyeGaze. Error: ",result
+        print("Could not connect to EyeGaze. Error: ",result)
         sys.exit(0)
         
     return eyegaze_control
@@ -78,7 +78,7 @@ if __name__ == '__main__':
              delay=current_time-stime
              gaze_x=sample_data0.iIGaze
              gaze_y=sample_data0.iJGaze
-             print 'Sample Time: {0}\t{1}\t{2}\tX: {3}\tY: {4}\ti: {5}'.format(stime,current_time,delay,gaze_x,gaze_y,samples_rx)
+             print('Sample Time: {0}\t{1}\t{2}\tX: {3}\tY: {4}\ti: {5}'.format(stime,current_time,delay,gaze_x,gaze_y,samples_rx))
              samples_rx+=1
              if samples_rx > MAX_SAMPLES:
                  break
@@ -92,4 +92,4 @@ if __name__ == '__main__':
     result=pEyeGaze.EgInit(byref(eyegaze_control))
 
     dur=rec_end-rec_start
-    print 'Collected {0} samples in {1} seconds. {2} SPS'.format(samples_rx,dur,samples_rx/dur)
+    print('Collected {0} samples in {1} seconds. {2} SPS'.format(samples_rx,dur,samples_rx/dur))

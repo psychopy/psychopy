@@ -1,5 +1,5 @@
 """Test StairHandler"""
-from __future__ import division, print_function
+
 from psychopy import data, logging
 import numpy as np
 import shutil
@@ -309,7 +309,7 @@ class TestStairHandler(_BaseTestStairHandler):
 
     def test_nReversals(self):
         start_val = 1
-        step_sizes = range(5)
+        step_sizes = list(range(5))
 
         staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
                                       nReversals=None)
@@ -416,8 +416,8 @@ class TestMultiStairHandler(_BaseTestMultiStairHandler):
         }
 
         self.conditions = [
-            dict({'label': 'staircase_0'}.items() + conditions.items()),
-            dict({'label': 'staircase_1'}.items() + conditions.items()),
+            dict(list({'label': 'staircase_0'}.items()) + list(conditions.items())),
+            dict(list({'label': 'staircase_1'}.items()) + list(conditions.items())),
         ]
 
         self.stairs = data.MultiStairHandler(

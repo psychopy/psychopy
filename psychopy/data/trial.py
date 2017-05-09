@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+
 
 import os
 import sys
@@ -137,7 +137,7 @@ class TrialHandler(_BaseTrialHandler):
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList = importConditions(trialList)
         else:
@@ -283,7 +283,7 @@ class TrialHandler(_BaseTrialHandler):
         dims = inputArray.shape
         dimsProd = np.product(dims)
         dimsN = len(dims)
-        dimsList = range(dimsN)
+        dimsList = list(range(dimsN))
         listOfLists = []
         # this creates space for an array of any objects
         arrayOfTuples = np.ones(dimsProd, 'O')
@@ -301,7 +301,7 @@ class TrialHandler(_BaseTrialHandler):
             arrayOfTuples[n] = tuple((indexArr[:, n]))
         return (np.reshape(arrayOfTuples, dims)).tolist()
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; thisTrial, thisTrialN and thisIndex
         If the trials have ended this method will raise a StopIteration error.
@@ -378,7 +378,7 @@ class TrialHandler(_BaseTrialHandler):
         if (stimOut == [] and
                 len(self.trialList) and
                 hasattr(self.trialList[0], 'keys')):
-            stimOut = self.trialList[0].keys()
+            stimOut = list(self.trialList[0].keys())
             # these get added somewhere (by DataHandler?)
             if 'n' in stimOut:
                 stimOut.remove('n')
@@ -412,14 +412,14 @@ class TrialHandler(_BaseTrialHandler):
                 # make a string version of the data and then format it
                 tmpData = dataAnal[thisDataOut][stimN]
                 if hasattr(tmpData, 'tolist'):  # is a numpy array
-                    strVersion = unicode(tmpData.tolist())
+                    strVersion = str(tmpData.tolist())
                     # for numeric data replace None with a blank cell
                     if tmpData.dtype.kind not in ['SaUV']:
                         strVersion = strVersion.replace('None', '')
                 elif tmpData in [None, 'None']:
                     strVersion = ''
                 else:
-                    strVersion = unicode(tmpData)
+                    strVersion = str(tmpData)
 
                 if strVersion == '()':
                     # 'no data' in masked array should show as "--"
@@ -437,7 +437,7 @@ class TrialHandler(_BaseTrialHandler):
                     for entry in tup:
                         # contents of each entry is a list or tuple so keep in
                         # quotes to avoid probs with delim
-                        thisLine.append(unicode(entry))
+                        thisLine.append(str(entry))
                 else:
                     thisLine.extend(strVersion.split(','))
 
@@ -446,7 +446,7 @@ class TrialHandler(_BaseTrialHandler):
             lines.append([])
             # give a single line of space and then a heading
             lines.append(['extraInfo'])
-            for key, value in self.extraInfo.items():
+            for key, value in list(self.extraInfo.items()):
                 lines.append([key, value])
         return lines
 
@@ -464,7 +464,7 @@ class TrialHandler(_BaseTrialHandler):
             dataOut = list(dataOut)
 
         # expand any 'all' dataTypes to be full list of available dataTypes
-        allDataTypes = self.data.keys()
+        allDataTypes = list(self.data.keys())
         # treat these separately later
         allDataTypes.remove('ran')
         # ready to go through standard data types
@@ -621,7 +621,7 @@ class TrialHandler(_BaseTrialHandler):
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
-            header = self.trialList[0].keys()
+            header = list(self.trialList[0].keys())
         else:
             header = []
         # and then add parameter names related to data (e.g. RT)
@@ -647,7 +647,7 @@ class TrialHandler(_BaseTrialHandler):
                 # find out what trial type was on this trial
                 trialTypeIndex = self.sequenceIndices[trialN, rep]
                 # determine which repeat it is for this trial
-                if trialTypeIndex not in repsPerType.keys():
+                if trialTypeIndex not in list(repsPerType.keys()):
                     repsPerType[trialTypeIndex] = 0
                 else:
                     repsPerType[trialTypeIndex] += 1
@@ -696,7 +696,7 @@ class TrialHandler(_BaseTrialHandler):
         for trial in dataOut:
             nextLine = ''
             for prmName in header:
-                nextLine = nextLine + unicode(trial[prmName]) + delim
+                nextLine = nextLine + str(trial[prmName]) + delim
             # remove the final orphaned tab character
             nextLine = nextLine[:-1]
             f.write(nextLine + '\n')
@@ -824,12 +824,12 @@ class TrialHandler2(_BaseTrialHandler):
             self.trialList = [None]
             self.columns = []
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList, self.columns = importConditions(trialList, True)
         else:
             self.trialList = trialList
-            self.columns = trialList[0].keys()
+            self.columns = list(trialList[0].keys())
         # convert any entry in the TrialList into a TrialType object (with
         # obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
@@ -911,7 +911,7 @@ class TrialHandler2(_BaseTrialHandler):
         """
         return pd.DataFrame(self._data)
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; thisTrial, thisTrialN and thisIndex
         If the trials have ended this method will raise a StopIteration error.
@@ -941,7 +941,7 @@ class TrialHandler2(_BaseTrialHandler):
         # thisRepN has exceeded nReps
         if self.remainingIndices == []:
             # we've just started, or just starting a new repeat
-            sequence = range(len(self.trialList))
+            sequence = list(range(len(self.trialList)))
             if (self.method == 'fullRandom' and
                         self.thisN < (self.nReps * len(self.trialList))):
                 # we've only just started on a fullRandom sequence
@@ -1239,7 +1239,7 @@ class TrialHandlerExt(TrialHandler):
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList = importConditions(trialList)
         else:
@@ -1370,7 +1370,7 @@ class TrialHandlerExt(TrialHandler):
             logging.exp(msg % vals)
         return seqIndices
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; thisTrial, thisTrialN and thisIndex
         If the trials have ended this method will raise a StopIteration error.
@@ -1544,7 +1544,7 @@ class TrialHandlerExt(TrialHandler):
             dataOut = list(dataOut)
 
         # expand any 'all' dataTypes to the full list of available dataTypes
-        allDataTypes = self.data.keys()
+        allDataTypes = list(self.data.keys())
         # treat these separately later
         allDataTypes.remove('ran')
         # ready to go through standard data types
@@ -1728,7 +1728,7 @@ class TrialHandlerExt(TrialHandler):
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
-            header = self.trialList[0].keys()
+            header = list(self.trialList[0].keys())
         else:
             header = []
         # and then add parameter names related to data (e.g. RT)
@@ -1751,7 +1751,7 @@ class TrialHandlerExt(TrialHandler):
                 # find out what trial type was on this trial
                 trialTypeIndex = self.sequenceIndices[trialN, rep]
                 # determine which repeat it is for this trial
-                if trialTypeIndex not in repsPerType.keys():
+                if trialTypeIndex not in list(repsPerType.keys()):
                     repsPerType[trialTypeIndex] = 0
                 else:
                     repsPerType[trialTypeIndex] += 1
@@ -1806,7 +1806,7 @@ class TrialHandlerExt(TrialHandler):
             f.write(delim.join(header) + '\n')
         # write the data matrix:
         for trial in dataOut:
-            line = delim.join([unicode(trial[prm]) for prm in header])
+            line = delim.join([str(trial[prm]) for prm in header])
             f.write(line + '\n')
 
         if f != sys.stdout:

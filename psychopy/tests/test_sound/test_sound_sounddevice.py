@@ -8,6 +8,7 @@ import shutil, os
 from tempfile import mkdtemp
 from psychopy.tests import utils  # TESTS_DATA_PATH
 from psychopy import sound
+import imp
 origSoundPref = prefs.general['audioLib']
 
 import numpy
@@ -24,7 +25,7 @@ class TestSoundDevice(object):
     def setup_class(self):
         self.contextName='sounddevice'
         prefs.general['audioLib'] = ['sounddevice']
-        reload(sound)
+        imp.reload(sound)
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 
         self.testFile = os.path.join(utils.TESTS_DATA_PATH,

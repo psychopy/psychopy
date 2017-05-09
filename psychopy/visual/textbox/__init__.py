@@ -4,7 +4,7 @@ Created on Thu Mar 21 18:38:35 2013
 
 @author: Sol
 """
-from __future__ import division, print_function
+
 import os
 import inspect
 import numbers
@@ -28,8 +28,8 @@ from pyglet.gl import (glCallList, glFinish, glGenLists, glNewList, glViewport,
                        GL_SMOOTH_LINE_WIDTH_RANGE, GL_SMOOTH_LINE_WIDTH_GRANULARITY,
                        GL_POLYGON_SMOOTH)
 
-from fontmanager import FontManager
-from textgrid import TextGrid
+from .fontmanager import FontManager
+from .textgrid import TextGrid
 
 
 def getTime():
@@ -1143,7 +1143,7 @@ class TextBox(object):
                 "TextBox: %s is not a valid color." % (str(color)))
 
         valid_opacity = opacity >= 0.0 and opacity <= 1.0
-        if isinstance(color, basestring):
+        if isinstance(color, str):
             if color[0] == '#' or color[0:2].lower() == '0x':
                 rgb255color = colors.hex2rgb255(color)
                 if rgb255color and valid_opacity:
@@ -1158,7 +1158,7 @@ class TextBox(object):
             raise ValueError(
                 "TextBox: String color value could not be translated: %s" % (str(color)))
 
-        if isinstance(color, (float, int, long)) or (is_sequence(color) and len(color) == 3):
+        if isinstance(color, (float, int)) or (is_sequence(color) and len(color) == 3):
             color = arraytools.val2array(color, length=3)
             if color_space == 'dkl' and valid_opacity:
                 dkl_rgb = None
@@ -1258,18 +1258,18 @@ class TextBox(object):
         te_x, te_y = te_x + win_w // 2, te_y + win_h // 2
         # convert from alignment to top left
         horz_align, vert_align = self._align_horz, self._align_vert
-        if horz_align.lower() == u'center':
+        if horz_align.lower() == 'center':
             te_x = te_x - te_w // 2
-        elif horz_align.lower() == u'right':
+        elif horz_align.lower() == 'right':
             te_x = te_x - te_w
-        if vert_align.lower() == u'center':
+        if vert_align.lower() == 'center':
             te_y = te_y + te_h // 2
-        if vert_align.lower() == u'bottom':
+        if vert_align.lower() == 'bottom':
             te_y = te_y + te_h
         return te_x, te_y
 
     def __del__(self):
-        if hasattr(self, '_textbox_instance') and self.getName() in self._textbox_instance.keys():
+        if hasattr(self, '_textbox_instance') and self.getName() in list(self._textbox_instance.keys()):
             del self._textbox_instances[self.getName()]
         del self._current_glfont
         del self._text_grid

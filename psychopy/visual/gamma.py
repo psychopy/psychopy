@@ -5,7 +5,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import numpy
 import sys
@@ -113,7 +113,7 @@ def getGammaRamp(pygletWindow):
         success = windll.gdi32.GetDeviceGammaRamp(
             0xFFFFFFFF & pygletWindow._dc, origramps.ctypes)  # FB 504
         if not success:
-            raise AssertionError, 'GetDeviceGammaRamp failed'
+            raise AssertionError('GetDeviceGammaRamp failed')
         origramps = origramps / 65535.0  # rescale to 0:1
 
     if sys.platform == 'darwin':
@@ -130,7 +130,7 @@ def getGammaRamp(pygletWindow):
             origramps[1, :].ctypes,
             origramps[2, :].ctypes, n.ctypes)
         if error:
-            raise AssertionError, 'CGSetDisplayTransferByTable failed'
+            raise AssertionError('CGSetDisplayTransferByTable failed')
 
     if sys.platform.startswith('linux'):
         origramps = numpy.empty((3, 256), dtype=numpy.uint16)
@@ -140,7 +140,7 @@ def getGammaRamp(pygletWindow):
             origramps[1, :].ctypes,
             origramps[2, :].ctypes)
         if not success:
-            raise AssertionError, 'XF86VidModeGetGammaRamp failed'
+            raise AssertionError('XF86VidModeGetGammaRamp failed')
         origramps = origramps / 65535.0  # rescale to 0:1
 
     return origramps

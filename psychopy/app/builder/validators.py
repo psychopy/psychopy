@@ -137,7 +137,7 @@ class CodeSnippetValidator(BaseValidator):
         if not hasattr(control, 'GetValue'):
             return '', True
         val = control.GetValue()  # same as parent.params[self.fieldName].val
-        if not isinstance(val, basestring):
+        if not isinstance(val, str):
             return '', True
         codeWanted = experiment._unescapedDollarSign_re.search(val)
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
@@ -177,7 +177,7 @@ class CodeSnippetValidator(BaseValidator):
         Reset clsWarnings to {} when setting up the dialog.
         """
         self.clsWarnings[self.fieldName] = message
-        warnings = [w for w in self.clsWarnings.values() if w] or ['']
+        warnings = [w for w in list(self.clsWarnings.values()) if w] or ['']
         if parent.nameOKlabel:
             parent.nameOKlabel.SetLabel(warnings[0])
 

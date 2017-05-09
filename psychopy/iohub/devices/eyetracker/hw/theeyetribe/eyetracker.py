@@ -19,7 +19,7 @@ from .... import Computer
 from ... import EyeTrackerDevice
 from ...eye_events import *
 from gevent import socket
-from pyTribe import TheEyeTribe
+from .pyTribe import TheEyeTribe
 
 getTime=Computer.getTime
 
@@ -214,7 +214,7 @@ class EyeTracker(EyeTrackerDevice):
             enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
             self.setRecordingState(enabled)
             return enabled
-        except Exception, e:
+        except Exception as e:
             print2err("EyeTracker.enableEventReporting", str(e))
 
     def setRecordingState(self,recording):
@@ -345,7 +345,7 @@ class EyeTracker(EyeTrackerDevice):
   
             if len(sample_values)>1:
                 print2err("** Warning: Received Sample with extra values:")
-                for k,v in sample_values.iteritems():
+                for k,v in sample_values.items():
                     if k != 'frame':
                         print2err(k," : ",v)
 
@@ -513,7 +513,7 @@ class EyeTracker(EyeTrackerDevice):
             w,h=right-left,top-bottom            
             x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y) 
             return x,y
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
         
     def _displayToEyeTrackerCoords(self,display_x,display_y):
@@ -531,7 +531,7 @@ class EyeTracker(EyeTrackerDevice):
             cxn,cyn=(display_x+cw/2)/cw , 1.0-(display_y-ch/2)/ch       
             return cxn*dw,  cyn*dh          
            
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _close(self):

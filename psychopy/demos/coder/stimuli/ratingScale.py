@@ -7,7 +7,7 @@ Demo for the class psychopy.visual.RatingScale()
 author: Jeremy Gray, Example 4 by Henrik Singmann
 """
 
-from __future__ import division
+
 
 from psychopy import visual, event, core, logging
 import os
@@ -49,8 +49,8 @@ while myRatingScale.noResponse:  # show & update until a response has been made
     if event.getKeys(['escape']):
         core.quit()
 
-print 'Example 1: rating =', myRatingScale.getRating()
-print 'history =', myRatingScale.getHistory()
+print('Example 1: rating =', myRatingScale.getRating())
+print('history =', myRatingScale.getHistory())
 
 # Example 2 --------(multiple items, multiple dimensions for each)--------
 instr = visual.TextStim(win, text="""Example 2. This example uses non-default settings for the visual display, skipping a rating is not possible, and it uses a list of images (two) to be rated on several dimensions (valence and arousal).
@@ -96,9 +96,9 @@ for image in imageList:
         win.flip()
         core.wait(0.35)  # brief pause, slightly smoother for the subject
 
-print 'Example 2 (data from 2 images, each rated on 2 dimensions, reporting rating & RT):'
+print('Example 2 (data from 2 images, each rated on 2 dimensions, reporting rating & RT):')
 for d in data:
-    print '  ', d
+    print('  ', d)
 
 # Example 3 --------(two simultaneous ratings)--------
 instr = visual.TextStim(win, text="""Example 3. This example shows how one could obtain two ratings at the same time, e.g., to allow explicit comparison between images during ratings.
@@ -147,8 +147,8 @@ myRatingScaleRight.draw()
 win.flip()
 core.wait(1)
 
-print 'Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT()
-print '  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT()
+print('Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT())
+print('  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT())
 
 # Example 4 --------(using tickMarks argument)--------
 instr = visual.TextStim(win, text="""Example 4.
@@ -177,7 +177,7 @@ while myRatingScale.noResponse:
     if event.getKeys(['escape']):
         core.quit()
 
-print 'Example 4: rating =', myRatingScale.getRating()
+print('Example 4: rating =', myRatingScale.getRating())
 
 win.close()
 core.quit()

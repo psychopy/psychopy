@@ -5,7 +5,7 @@
 Demo for clocks and count-down timers
 """
 
-from __future__ import division
+
 
 from psychopy import core
 core.wait(0.5)  # give the system time to settle
@@ -25,23 +25,23 @@ countDown.add(3)
 
 another = core.Clock()
 
-print "down       up          clock"
+print("down       up          clock")
 while countDown.getTime() > 0:
     msg = "%.4f   %.4f   %.4f"
-    print msg % (countDown.getTime(), timer.getTime(), clock.getTime())
+    print(msg % (countDown.getTime(), timer.getTime(), clock.getTime()))
     core.wait(0.2)  # this combined + print will allow a gradual timing 'slip'
 
 # use the timer, rather than wait(), to prevent the slip
-print "\ndown          clock"
+print("\ndown          clock")
 timer.reset()
 timer.add(0.2)
 countDown.add(3)
 while countDown.getTime() > 0:
-    print "%.4f   %.4f" %(countDown.getTime(), clock.getTime())
+    print("%.4f   %.4f" %(countDown.getTime(), clock.getTime()))
     while timer.getTime() < 0:  # includes the time taken to print
         pass
     timer.add(0.2)
-print "The last run should have been precise sub-millisecond"
+print("The last run should have been precise sub-millisecond")
 
 core.quit()
 

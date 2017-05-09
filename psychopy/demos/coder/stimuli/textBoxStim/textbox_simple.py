@@ -17,7 +17,7 @@ window=visual.Window((800,600),
                         screen=0
                         )
 
-sometext=u'PRESS ANY KEY TO QUIT DEMO.'                                                        
+sometext='PRESS ANY KEY TO QUIT DEMO.'                                                        
 textbox=visual.TextBox(window=window, 
                          text=sometext,
                          font_size=21,

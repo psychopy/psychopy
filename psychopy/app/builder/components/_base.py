@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 from ..experiment import Param, CodeGenerationException
 from ..components import getInitVals
@@ -158,7 +158,7 @@ class BaseComponent(object):
         """
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and
+            if (isinstance(self.params['startVal'].val, str) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = ("if t >= %(startVal)s "
@@ -186,7 +186,7 @@ class BaseComponent(object):
         """
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and
+            if (isinstance(self.params['startVal'].val, str) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = ("if (t >= %(startVal)s "
@@ -287,7 +287,7 @@ class BaseComponent(object):
         updateType can be 'experiment', 'routine' or 'frame'
         """
         if paramNames is None:
-            paramNames = self.params.keys()
+            paramNames = list(self.params.keys())
         for thisParamName in paramNames:
             if thisParamName == 'advancedParams':
                 continue  # advancedParams is not really a parameter itself
@@ -371,7 +371,7 @@ class BaseComponent(object):
             True/False = checkNeedToUpdate(self, updateType)
 
         """
-        for thisParamName in self.params.keys():
+        for thisParamName in list(self.params.keys()):
             if thisParamName == 'advancedParams':
                 continue
             thisParam = self.params[thisParamName]

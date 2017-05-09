@@ -13,7 +13,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 
 
-from __future__ import print_function
+
 import array 
 import os
 import sys 

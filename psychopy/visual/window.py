@@ -6,7 +6,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import sys
 import os
@@ -275,7 +275,7 @@ class Window(object):
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
-        elif isinstance(monitor, basestring):
+        elif isinstance(monitor, str):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             # convert into a monitor object
@@ -1051,7 +1051,7 @@ class Window(object):
                (rect[1] / -2. + 0.5) * y,  # Top
                (rect[2] / 2. + 0.5) * x,  # Right
                (rect[3] / -2. + 0.5) * y]  # Bottom
-        box = map(int, box)
+        box = list(map(int, box))
 
         horz = box[2] - box[0]
         vert = box[3] - box[1]

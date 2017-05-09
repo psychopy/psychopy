@@ -1,5 +1,5 @@
 
-from __future__ import division
+
 import numpy
 from os import path
 from psychopy import logging,exceptions

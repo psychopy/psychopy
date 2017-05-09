@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub
 .. file: iohub/util/targetpositionsequence.py
@@ -372,9 +372,9 @@ class PositionGrid(object):
 
     # Python 3 compatibility
     def __next__(self):
-        return self.next()
+        return next(self)
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next position in the list. Usually this method is not
         called directly. Instead, positions are accessed by iterating over
@@ -449,7 +449,7 @@ class TargetPosSequenceStim(object):
         # final_x,final_y         
         TARGET_POS = ("TARGET_POS", ',', float, float)
         )    
-    max_msg_type_length=max([len(s) for s in message_types.keys()])
+    max_msg_type_length=max([len(s) for s in message_types])
 
     binocular_sample_message_element=[
                     ('targ_pos_ix',np.int),
@@ -530,7 +530,7 @@ class TargetPosSequenceStim(object):
             # Support is provided for a list of Trigger objects or a list of
             # strings.
             t1 = triggers[0]
-            if isinstance(t1, basestring):
+            if isinstance(t1, str):
                 # triggers is a list of strings, so try and create a list of
                 # DeviceEventTrigger's using keyboard device, KEYBOARD_RELEASE
                 # event type, and the triggers list elements each as the
@@ -549,12 +549,12 @@ class TargetPosSequenceStim(object):
             else:
                 # Assume triggers is a list of Trigger objects
                 self.triggers = triggers
-        elif isinstance(triggers, (int, float, long)):
+        elif isinstance(triggers, (int, float)):
             # triggers is a number, so assume a TimeTrigger is wanted where
             # the delay == triggers. start time will be the fliptime of the
             # last update for drawing to the new target position.
             self.triggers = (TimeTrigger(start_time=None, delay=triggers),)
-        elif isinstance(triggers, basestring):
+        elif isinstance(triggers, str):
             # triggers is a string, so try and create a
             # DeviceEventTrigger using keyboard device, KEYBOARD_RELEASE
             # event type, and triggers as the event.key.
@@ -735,7 +735,7 @@ class TargetPosSequenceStim(object):
 
     def _addDeviceEvents(self, device_event_dict={}):
         dev_event_buffer = self.targetdata[-1]['events']
-        for dev, dev_events in dev_event_buffer.iteritems():
+        for dev, dev_events in dev_event_buffer.items():
             if dev in device_event_dict:
                 dev_events.extend(device_event_dict[dev])
             else:
@@ -847,7 +847,7 @@ class TargetPosSequenceStim(object):
             
             # create a dict of device labels as keys, device events as value
             devlabel_events={}
-            for k,v in events.iteritems():
+            for k,v in events.items():
                 devlabel_events[k.getName()]=v
             
             samples = devlabel_events.get('tracker',[])
@@ -1192,7 +1192,7 @@ class ValidationProcedure(object):
 
             triggers = cfg.get('triggers')
             trigger_list=[]
-            for trig_type, trig_kwargs in triggers.items():
+            for trig_type, trig_kwargs in list(triggers.items()):
                 if trig_type == 'DeviceEventTrigger':
                     device_name = trig_kwargs.get('device')
                     device = self.io.getDevice(device_name)
@@ -1526,10 +1526,10 @@ class ValidationProcedure(object):
             self.io.sendMessageEvent("Validation Plot: %s"%(fig_name), 'VALIDATION')
             return fig, fig_name
         except Exception:
-            print "\nError While Calculating Accuracy Stats:"
+            print("\nError While Calculating Accuracy Stats:")
             import traceback
             traceback.print_exc()
-            print
+            print()
     
         self.io.sendMessageEvent("Validation Report Complete", 'VALIDATION')
 
@@ -1599,5 +1599,4 @@ class ValidationProcedure(object):
         self.textstim.draw()
         return self.win.flip()
 
-from visualangle import VisualAngleCalc
-         
+from .visualangle import VisualAngleCalc

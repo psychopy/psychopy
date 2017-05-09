@@ -5,7 +5,7 @@
 Demo of TrialHandler
 """
 
-from __future__ import division
+
 
 from random import random
 from psychopy import data
@@ -33,7 +33,7 @@ for thisTrial in trials:  # handler can act like a for loop
     nDone += 1  # just for a quick reference
 
     msg = 'trial %i had position %s in the list (sf=%.1f)'
-    print(msg % (nDone, trials.thisIndex, thisTrial['sf']))
+    print((msg % (nDone, trials.thisIndex, thisTrial['sf'])))
 
 # after the experiment
 print('\n')

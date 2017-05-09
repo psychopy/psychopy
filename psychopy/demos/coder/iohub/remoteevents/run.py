@@ -49,16 +49,16 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             while run_demo is True and Computer.getTime()-last_event_time<15.0:
                 local_kb_events=kb.getEvents()
                 for event in local_kb_events:
-                    print '* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time,ekey=event.key,edelay=event.delay)
+                    print('* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
+                        etime=event.time,ekey=event.key,edelay=event.delay))
                     last_event_time=event.time
-                    if event.key == u'ESCAPE':
+                    if event.key == 'ESCAPE':
                         run_demo=False
                         break
                 subscribed_kb_events=evt_sub.getEvents()
                 for event in subscribed_kb_events:
-                    print '# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time, ekey=event.key,edelay=event.delay)
+                    print('# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
+                        etime=event.time, ekey=event.key,edelay=event.delay))
                 self.hub.wait(0.1)
 
         ### End of experiment logic

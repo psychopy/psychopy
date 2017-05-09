@@ -35,7 +35,7 @@ assert perlVersion.find('perl5') > -1 # not completely sure what will happen wit
 newYear = str(time.localtime()[0]) # current year
 oldYear = str(int(newYear)-1) # last year; will need to set manually if you miss a year
 
-print "copyright %s -> %s: searching for files" % (oldYear, newYear)
+print("copyright %s -> %s: searching for files" % (oldYear, newYear))
 
 #find relevant files:
 files = []
@@ -54,7 +54,7 @@ for root, dirs, tmpfiles in os.walk('.'):
             and not file.startswith('./.git'):
                 #print tail, file
                 files.append(file)
-print len(files), 'files found, screening each'
+print(len(files), 'files found, screening each')
 
 badLines = 0 #  ['$/] will mess with perl search-replace; other characters might too
 targetFiles = 0 # count of files to be updated
@@ -83,18 +83,18 @@ for file in files:
             line = line[:line.find("'")]
             if line.find(oldYear) == -1:
                 badLines += 1
-                print file+": expected <last-year> somewhere between single-quotes:", line
+                print(file+": expected <last-year> somewhere between single-quotes:", line)
                 continue # skip the line
         if '$' in line:
             badLines += 1
-            print file+": cannot handle '$' in line:", line
+            print(file+": cannot handle '$' in line:", line)
             continue
         sep = '/'  # perl search-replace separator
         if sep in line:
             sep = '|'  # try this one instead
             if sep in line:
                 badLines += 1
-                print file+": cannot handle '"+sep+"' in line:", line
+                print(file+": cannot handle '"+sep+"' in line:", line)
                 continue
         newLine = line.replace(oldYear, newYear) # should not contain characters that will mess with perl 's/oldLine/newLine/'
         cmd = "echo "+file+"\n  " # helps with debugging, if the perl s/// flails due to a bad character -> you know what file to look at
@@ -106,10 +106,10 @@ tmp.close()
 
 core.shellCall('chmod u+x '+tmpFile) # make executable
 if targetFiles:
-    print 'To make %d changes, inspect then run:\n  '%targetFiles, tmpFile
-    print 'If something looks amiss, you can manually edit then run it.'
+    print('To make %d changes, inspect then run:\n  '%targetFiles, tmpFile)
+    print('If something looks amiss, you can manually edit then run it.')
     if badLines:
-        print "Warning: %d lines were skipped" % badLines
+        print("Warning: %d lines were skipped" % badLines)
 else:
-    print 'No matching files found for year', oldYear
+    print('No matching files found for year', oldYear)
     os.unlink(tmpFile)

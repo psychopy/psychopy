@@ -240,7 +240,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     except ValueError:
         msg = "wait_timeout must be number-like, but instead it was %s."
         raise ValueError(msg % str(wait_timeout))
-    settings['sync'] = unicode(settings['sync'])
+    settings['sync'] = str(settings['sync'])
     settings['TR'] = float(settings['TR'])
     settings['volumes'] = int(settings['volumes'])
     settings['skip'] = int(settings['skip'])

@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-import Queue
+import queue
 import exceptions
 import time
 import collections
@@ -53,7 +53,7 @@ except Exception:
 
 class BrowserEvent(object):
     _event_types=dict(BROWSER_EVENT=0,TRACKER_FOUND=1,TRACKER_UPDATE=2,TRACKER_REMOVED=3)
-    _event_types.update([(v,k) for k,v in _event_types.iteritems()])
+    _event_types.update([(v,k) for k,v in _event_types.items()])
     event_type=_event_types['BROWSER_EVENT']
     def __init__(self,tobii_event_type, tracker_info):
         self._tobii_event_type=tobii_event_type
@@ -76,7 +76,7 @@ class TrackerRemovedEvent(BrowserEvent):
 
 class EyeTrackerEvent(object):
     _event_types=dict(TRACKER_EVENT=0,EYE_TRACKER_CREATED=1)
-    _event_types.update([(v,k) for k,v in _event_types.iteritems()])
+    _event_types.update([(v,k) for k,v in _event_types.items()])
     event_type=_event_types['TRACKER_EVENT']
     def __init__(self,tracker_object):
         self.tracker_object=tracker_object
@@ -107,7 +107,7 @@ class TobiiTrackerBrowser(object):
             TobiiPy.init()
             TobiiTrackerBrowser._mainloop = TobiiPyMainloopThread()
             TobiiTrackerBrowser._mainloop.start()
-            TobiiTrackerBrowser._event_queue=Queue.Queue()
+            TobiiTrackerBrowser._event_queue=queue.Queue()
             TobiiTrackerBrowser._browser = TobiiPyEyetrackerBrowser(TobiiTrackerBrowser._mainloop, TobiiTrackerBrowser.on_eyetracker_browser_event)
             cls._active=True
             
@@ -127,7 +127,7 @@ class TobiiTrackerBrowser(object):
                 while e!=None:
                     try:            
                         e=TobiiTrackerBrowser.getNextEvent()
-                    except Queue.Empty:
+                    except queue.Empty:
                         pass
     
             TobiiTrackerBrowser._browser = None
@@ -186,7 +186,7 @@ class TobiiTrackerBrowser(object):
         
     @classmethod
     def getDetectedTrackerList(cls):
-        return [t for t in TobiiTrackerBrowser._detectedTrackers.values()]
+        return [t for t in list(TobiiTrackerBrowser._detectedTrackers.values())]
 
 
     @classmethod
@@ -219,7 +219,7 @@ class TobiiTrackerBrowser(object):
                     tracker_info=tb_event.tracker_info
                     if TobiiTrackerBrowser._checkForMatch(tracker_info,model,product_id) is True:
                         return tracker_info
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
 
@@ -273,7 +273,7 @@ class TobiiTracker(object):
                 self._mainloop = TobiiPyMainloopThread()
                 self._mainloop.start()
 
-        self._queue=Queue.Queue()
+        self._queue=queue.Queue()
         
         TobiiPyEyeTracker.create_async(self._mainloop,self._eyetracker_info,self.on_eyetracker_created)
     
@@ -289,12 +289,12 @@ class TobiiTracker(object):
                     elif hasattr(self._eyetracker.events,'OnTrackBoxChanged'):
                         self._eyetracker.events.OnTrackBoxChanged += self.on_head_box_change
                     else:
-                        print 'WARNING: TobiiClasses could not set callback hook for "self.on_head_box_change".'
+                        print('WARNING: TobiiClasses could not set callback hook for "self.on_head_box_change".')
                     self._eyetracker.events.OnXConfigurationChanged += self.on_x_series_physical_config_change
                     
                     break
                 self._queue.task_done()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
                 
         if self._eyetracker is None:
@@ -553,7 +553,7 @@ class TobiiTracker(object):
                 return imode
             return self._eyetracker.getIlluminationMode()
         else:
-            print 'WARNING: setIlluminationMode is not supported by either your Tobii model, or the version of the Tobii SDK being used.'
+            print('WARNING: setIlluminationMode is not supported by either your Tobii model, or the version of the Tobii SDK being used.')
             
     def getHeadBox(self):
         hb=None
@@ -627,113 +627,113 @@ if __name__ == '__main__':
     
     TobiiTrackerBrowser.start()
     
-    print ">> Return first device detected and print details dict: "
+    print(">> Return first device detected and print details dict: ")
     tracker_info=TobiiTrackerBrowser.findDevice()        
     if tracker_info:
-        print "Success: ",tracker_info
-        print '\tDetails:'
-        for k,v in TobiiTrackerBrowser.getTrackerDetails(tracker_info.product_id).iteritems():
-            print '\t',k,':',v
+        print("Success: ",tracker_info)
+        print('\tDetails:')
+        for k,v in TobiiTrackerBrowser.getTrackerDetails(tracker_info.product_id).items():
+            print('\t',k,':',v)
     else:
-        print 'ERROR: No Tracker Found.'
-    print ''
+        print('ERROR: No Tracker Found.')
+    print('')
     
-    print ">> Return first Tobii T120 detected: "
+    print(">> Return first Tobii T120 detected: ")
     tracker_info=TobiiTrackerBrowser.findDevice(model='Tobii T120')        
     if tracker_info:
-        print "\tSuccess: ",tracker_info
+        print("\tSuccess: ",tracker_info)
     else:
-        print '\tERROR: No Tracker Found.'
-    print ''
+        print('\tERROR: No Tracker Found.')
+    print('')
 
-    print ">> Return first Tobii T120 with id TT120-206-95100697 detected: "
+    print(">> Return first Tobii T120 with id TT120-206-95100697 detected: ")
     tracker_info=TobiiTrackerBrowser.findDevice(model='Tobii T120',product_id='TT120-206-95100697')        
     if tracker_info:
-        print "\tSuccess: ",tracker_info
+        print("\tSuccess: ",tracker_info)
     else:
-        print '\tERROR: No Tracker Found.'
-    print ''
+        print('\tERROR: No Tracker Found.')
+    print('')
 
-    print ">> Return Tobii with product id 12345678 detected (should always fail): "
+    print(">> Return Tobii with product id 12345678 detected (should always fail): ")
     tracker_info=TobiiTrackerBrowser.findDevice(product_id='1234567')        
     if tracker_info:
-        print "\tSuccess: ",tracker_info
+        print("\tSuccess: ",tracker_info)
     else:
-        print 'ERROR: No Tracker Found.'
+        print('ERROR: No Tracker Found.')
 
     TobiiTrackerBrowser.stop()
     
-    print '###################################'
-    print ''
+    print('###################################')
+    print('')
     
-    print "Test Creating a connected TobiiTracker class, using first available Tobii:"
+    print("Test Creating a connected TobiiTracker class, using first available Tobii:")
 
     tobii_tracker=TobiiTracker()
-    print "\tCreated a Connected Tobii Tracker OK."
-    print "\tDetails:"
-    for k,v in tobii_tracker.getTrackerDetails().iteritems():
-        print "\t\t{0}  {1}".format(k,v)
+    print("\tCreated a Connected Tobii Tracker OK.")
+    print("\tDetails:")
+    for k,v in tobii_tracker.getTrackerDetails().items():
+        print("\t\t{0}  {1}".format(k,v))
     
-    print ''
-    print 'Tracker Name: ',tobii_tracker.getName()
-    print 'Set Tracker Name (to "tracker [time]") ...'
+    print('')
+    print('Tracker Name: ',tobii_tracker.getName())
+    print('Set Tracker Name (to "tracker [time]") ...')
     tobii_tracker.setName('tracker %.6f'%getTime())
-    print 'Tracker Name now: ',tobii_tracker.getName()
+    print('Tracker Name now: ',tobii_tracker.getName())
 
-    print ''
-    print 'Tracker Low Blink Mode: ',tobii_tracker.getLowBlinkMode()
+    print('')
+    print('Tracker Low Blink Mode: ',tobii_tracker.getLowBlinkMode())
 
-    print ''
-    print 'Tracker Low Blink Mode: ',tobii_tracker.getAvailableIlluminationModes()
+    print('')
+    print('Tracker Low Blink Mode: ',tobii_tracker.getAvailableIlluminationModes())
 
-    print ''
+    print('')
     imodes=tobii_tracker.getAvailableIlluminationModes()
-    print 'Valid Tracker Illumination Modes: ',imodes
+    print('Valid Tracker Illumination Modes: ',imodes)
     if imodes:
         cimode=tobii_tracker.getIlluminationMode()
-        print 'Current Illumination Mode: ',cimode
-        print 'Setting Illumination Mode to ',imodes[0]
+        print('Current Illumination Mode: ',cimode)
+        print('Setting Illumination Mode to ',imodes[0])
         tobii_tracker.setIlluminationMode(imodes[0])
-        print 'Current Illumination Mode Now: ',tobii_tracker.getIlluminationMode()
-        print 'Setting Illumination Mode back to ',cimode
+        print('Current Illumination Mode Now: ',tobii_tracker.getIlluminationMode())
+        print('Setting Illumination Mode back to ',cimode)
         tobii_tracker.setIlluminationMode(cimode)
-        print 'Current Illumination Mode Now: ',tobii_tracker.getIlluminationMode()
+        print('Current Illumination Mode Now: ',tobii_tracker.getIlluminationMode())
     else:
-        print "NOTE: Illumination Mode API features are not supported."
+        print("NOTE: Illumination Mode API features are not supported.")
         
-    print ''
-    print 'Tracker Head Movement Box: ',tobii_tracker.getHeadBox()
+    print('')
+    print('Tracker Head Movement Box: ',tobii_tracker.getHeadBox())
 
-    print ''
-    print 'Tracker Physical Placement: ',tobii_tracker.getEyeTrackerPhysicalPlacement()
+    print('')
+    print('Tracker Physical Placement: ',tobii_tracker.getEyeTrackerPhysicalPlacement())
 
-    print ''
-    print 'Tracker Enabled Extensions: ',tobii_tracker.getEnabledExtensions()
+    print('')
+    print('Tracker Enabled Extensions: ',tobii_tracker.getEnabledExtensions())
 
-    print ''
-    print 'Tracker Available Extensions: ',tobii_tracker.getAvailableExtensions()
+    print('')
+    print('Tracker Available Extensions: ',tobii_tracker.getAvailableExtensions())
 
-    print ''
+    print('')
     srates=tobii_tracker.getAvailableSamplingRates()
-    print 'Valid Tracker Sampling Rates: ',srates
+    print('Valid Tracker Sampling Rates: ',srates)
     crate=tobii_tracker.getSamplingRate()
-    print 'Current Sampling Rate: ',crate
-    print 'Setting Sampling Rate to ',srates[0]
+    print('Current Sampling Rate: ',crate)
+    print('Setting Sampling Rate to ',srates[0])
     tobii_tracker.setSamplingRate(srates[0])
-    print 'Current Sampling Rate Now: ',tobii_tracker.getSamplingRate()
-    print 'Setting Sampling Rate back to ',crate
+    print('Current Sampling Rate Now: ',tobii_tracker.getSamplingRate())
+    print('Setting Sampling Rate back to ',crate)
     tobii_tracker.setSamplingRate(crate)
-    print 'Current Sampling Rate Now: ',tobii_tracker.getSamplingRate()
+    print('Current Sampling Rate Now: ',tobii_tracker.getSamplingRate())
     
-    print ''
-    print 'Tobii Time Info (20 sec):'    
+    print('')
+    print('Tobii Time Info (20 sec):')    
     # give some time for events
     
     last_times=None
     first_call_times=None
     stime=getTime()
     while getTime()-stime<20.0:
-        print '\tgetTobiiTimeResolution: ',tobii_tracker.getTobiiTimeResolution()
+        print('\tgetTobiiTimeResolution: ',tobii_tracker.getTobiiTimeResolution())
         iohub_t=int(getTime()*1000000.0)
         tobii_local_t=tobii_tracker.getCurrentLocalTobiiTime()
         tobii_remote_t=tobii_tracker.getCurrentEyeTrackerTime()
@@ -742,18 +742,18 @@ if __name__ == '__main__':
         tlocal_tremote_dt=tobii_remote_t-tobii_local_t
         
         if last_times:
-            print '\tioHub Time in usec (dt): ',iohub_t,iohub_t-last_times[0]
-            print '\tgetCurrentLocalTobiiTime (dt): ',tobii_local_t, tobii_local_t-last_times[1]
-            print '\tgetCurrentEyeTrackerTime (dt): ',tobii_remote_t, tobii_remote_t-last_times[2]
-            print '\tioHub, tobii local, tobii remote Elapsed times:',iohub_t-first_call_times[0],tobii_local_t-first_call_times[1],tobii_remote_t-first_call_times[2]
-            print '\t---'        
+            print('\tioHub Time in usec (dt): ',iohub_t,iohub_t-last_times[0])
+            print('\tgetCurrentLocalTobiiTime (dt): ',tobii_local_t, tobii_local_t-last_times[1])
+            print('\tgetCurrentEyeTrackerTime (dt): ',tobii_remote_t, tobii_remote_t-last_times[2])
+            print('\tioHub, tobii local, tobii remote Elapsed times:',iohub_t-first_call_times[0],tobii_local_t-first_call_times[1],tobii_remote_t-first_call_times[2])
+            print('\t---')        
         else:
             first_call_times=(iohub_t,tobii_local_t,tobii_remote_t)
         last_times=(iohub_t,tobii_local_t,tobii_remote_t)
         time.sleep(0.2)
         
-    print ''
-    print 'Tobii Recording Data (20 sec):'
+    print('')
+    print('Tobii Recording Data (20 sec):')
 
     tobii_tracker.startTracking()
 
@@ -765,8 +765,8 @@ if __name__ == '__main__':
     
     tobii_tracker.disconnect()
     
-    print ""
-    print "TESTS COMPLETE."
+    print("")
+    print("TESTS COMPLETE.")
 
 #
 ##########################################################        

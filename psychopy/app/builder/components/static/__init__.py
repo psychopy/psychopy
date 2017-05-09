@@ -144,7 +144,7 @@ class StaticComponent(BaseComponent):
                 compName = update['compName']
                 fieldName = update['fieldName']
                 routine = self.exp.routines[update['routine']]
-                prms = routine.getComponentFromName(unicode(compName)).params
+                prms = routine.getComponentFromName(str(compName)).params
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],

@@ -28,7 +28,7 @@ from psychopy.visual.grating import GratingStim
 try:
     from PIL import Image
 except ImportError:
-    import Image
+    from . import Image
 
 import numpy
 from numpy import pi

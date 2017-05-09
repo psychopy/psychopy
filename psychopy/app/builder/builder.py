@@ -2,9 +2,10 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import wx
+import wx.adv
 from wx.lib import platebtn, scrolledpanel
 try:
     from wx import aui
@@ -114,7 +115,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.timeXposEnd = self.timeXposStart + 400  # onResize() overrides
 
         # create a PseudoDC to record our drawing
-        self.pdc = wx.PseudoDC()
+        self.pdc = wx.adv.PseudoDC()
         self.pen_cache = {}
         self.brush_cache = {}
         # vars for handling mouse clicks
@@ -363,7 +364,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # set an id for the region of this component (so it can
         # act as a button). see if we created this already.
         id = None
-        for key in self.componentFromID.keys():
+        for key in self.componentFromID:
             if self.componentFromID[key] == component:
                 id = key
         if not id:  # then create one and add to the dict
@@ -411,7 +412,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # set an id for the region of this component (so it
         # can act as a button). see if we created this already
         id = None
-        for key in self.componentFromID.keys():
+        for key in self.componentFromID:
             if self.componentFromID[key] == component:
                 id = key
         if not id:  # then create one and add to the dict
@@ -610,7 +611,7 @@ class RoutinesNotebook(aui.AuiNotebook):
         name = routine.name
         # update experiment object, namespace, and flow window (if this is
         # being used)
-        if name in self.frame.exp.routines.keys():
+        if name in self.frame.exp.routines:
             # remove names of the routine and its components from namespace
             _nsp = self.frame.exp.namespace
             for c in self.frame.exp.routines[name]:
@@ -687,7 +688,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             if sys.platform.startswith('linux'):
                 label = categ
             else:
-                if categ in _localized.keys():
+                if categ in _localized:
                     label = _localized[categ]
                 else:
                     label = categ
@@ -723,7 +724,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             cols = self.GetClientSize()[0] / 58
         else:
             cols = self.GetClientSize()[0] / 34
-        for category in self.panels.values():
+        for category in list(self.panels.values()):
             category.SetCols(max(1, cols))
 
     def makeFavoriteButtons(self):
@@ -737,7 +738,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.makeFavoriteButtons()
         # then add another copy for each category that the component itself
         # lists
-        for thisName in self.components.keys():
+        for thisName in self.components:
             thisComp = self.components[thisName]
             # NB thisComp is a class - we can't use its methods/attribs until
             # it is an instance
@@ -921,10 +922,10 @@ class FavoriteComponents(object):
         # set those that are favorites by default
         for comp in ('ImageComponent', 'KeyboardComponent',
                      'SoundComponent', 'TextComponent'):
-            if comp not in self.currentLevels.keys():
+            if comp not in self.currentLevels:
                 self.currentLevels[comp] = self.threshold
-        for comp in self.panel.components.keys():
-            if comp not in self.currentLevels.keys():
+        for comp in self.panel.components:
+            if comp not in self.currentLevels:
                 self.currentLevels[comp] = self.neutral
 
     def makeFavorite(self, compName):
@@ -947,7 +948,7 @@ class FavoriteComponents(object):
         than the threshold and there will be not more than
         max length prefs['builder']['maxFavorites']
         """
-        sortedVals = sorted(self.currentLevels.items(),
+        sortedVals = sorted(list(self.currentLevels.items()),
                             key=lambda x: x[1], reverse=True)
         favorites = []
         maxFav = self.prefs.builder['maxFavorites']
@@ -986,7 +987,7 @@ class BuilderFrame(wx.Frame):
         self.filename = fileName
         self.htmlPath = None
 
-        if fileName in self.appData['frames'].keys():
+        if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
         else:  # work out a new frame size/location
             dispW, dispH = self.app.getPrimaryDisplaySize()
@@ -1245,7 +1246,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
         item = menu.Append(
             wx.ID_PREFERENCES,
-            text=_translate("&Preferences\t%s") % keys['preferences'])
+            _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
 
         self.fileMenu.AppendSeparator()
@@ -1517,8 +1518,8 @@ class BuilderFrame(wx.Frame):
             try:
                 self.exp.loadFromXML(filename)
             except Exception:
-                print("Failed to load %s. Please send the following to"
-                      " the PsychoPy user list" % filename)
+                print(("Failed to load %s. Please send the following to"
+                      " the PsychoPy user list" % filename))
                 traceback.print_exc()
                 logging.flush()
             self.resetUndoStack()
@@ -1742,7 +1743,7 @@ class BuilderFrame(wx.Frame):
         self.appData['frames'][self.filename] = frameData
         # save the display data only for those frames in the history:
         tmp2 = {}
-        for f in self.appData['frames'].keys():
+        for f in self.appData['frames']:
             if f in self.appData['fileHistory']:
                 tmp2[f] = self.appData['frames'][f]
         self.appData['frames'] = copy.copy(tmp2)
@@ -1909,7 +1910,7 @@ class BuilderFrame(wx.Frame):
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir, '*.psyexp'))
         if len(files) == 0:
-            print("Found no psyexp files in %s" % fileDir)
+            print(("Found no psyexp files in %s" % fileDir))
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
 
@@ -1922,7 +1923,7 @@ class BuilderFrame(wx.Frame):
         demoList.sort(key=lambda entry: entry.lower)
         self.demos = {wx.NewId(): demoList[n]
                       for n in range(len(demoList))}
-        for thisID in self.demos.keys():
+        for thisID in self.demos:
             junk, shortname = os.path.split(self.demos[thisID])
             if (shortname.startswith('_') or
                     shortname.lower().startswith('readme.')):
@@ -1960,7 +1961,7 @@ class BuilderFrame(wx.Frame):
         sys.stderr = self.stdoutFrame
 
         # provide a running... message
-        print("\n" + (" Running: %s " % (fullPath)).center(80, "#"))
+        print(("\n" + (" Running: %s " % (fullPath)).center(80, "#")))
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
 
         # self is the parent (which will receive an event when the process
@@ -2111,7 +2112,7 @@ class BuilderFrame(wx.Frame):
             # namespace:
             name = exp.namespace.makeValid(
                 name, prefix='routine')
-            if oldName in self.exp.routines.keys():
+            if oldName in self.exp.routines:
                 # Swap old with new names
                 self.exp.routines[oldName].name = name
                 self.exp.routines[name] = self.exp.routines.pop(oldName)

@@ -7,7 +7,7 @@
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
 
-from __future__ import absolute_import, print_function
+
 
 import os
 import sys
@@ -16,6 +16,7 @@ from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web
+import imp
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -89,11 +90,11 @@ def useVersion(requestedVersion):
         _switchToVersion(reqdMajorMinorPatch)
 
         # Reload!
-        reload(psychopy)
-        reload(logging)
-        reload(web)
+        imp.reload(psychopy)
+        imp.reload(logging)
+        imp.reload(web)
         if _versionTuple(reqdMajorMinorPatch) >= (1, 80):
-            reload(tools)  # because this file is within tools
+            imp.reload(tools)  # because this file is within tools
 
         # TODO check for other submodules that have already been imported
 
@@ -195,7 +196,7 @@ def _remoteVersions(forceCheck=False):
             pass
         else:
             allTags = [line.split('refs/tags/')[1]
-                       for line in tagInfo.splitlines() if '^{}' not in line]
+                       for line in tagInfo.decode().splitlines() if '^{}' not in line]
             # ensure most recent (i.e., highest) first
             _remoteVersionsCache = sorted(allTags, reverse=True)
     return _remoteVersionsCache

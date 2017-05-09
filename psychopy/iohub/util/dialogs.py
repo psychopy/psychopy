@@ -140,7 +140,7 @@ class MessageDialog(ioHubDialog):
                                        title,
                                        showButtons | dialogType)#, wrap=int(w/4))
         #TODO Change to own image         
-        import images        
+        from . import images        
         self.dialog.SetIcon(images.Mondrian.GetIcon())
 
         self.set_frame_display()        

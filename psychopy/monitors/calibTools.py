@@ -15,7 +15,7 @@ except Exception:
 import os
 import time
 import glob
-import cPickle
+import pickle
 import sys
 from copy import deepcopy, copy
 
@@ -39,14 +39,6 @@ if sys.platform == 'win32':
         os.renames(oldMonitorFolder, monitorFolder)
 else:
     monitorFolder = join(os.environ['HOME'], '.psychopy2', 'monitors')
-# HACK! On system where `monitorFolder` contains special characters, for
-# example because the Windows profile name does, `monitorFolder` must be
-# decoded to Unicode to prevent errors later on. However, this is not a proper
-# fix, since *everything* should be decoded to Unicode, and not just this
-# specific pathname. Right now, errors will still occur if `monitorFolder` is
-# combined with `str`-type objects that contain non-ASCII characters.
-if isinstance(monitorFolder, str):
-    monitorFolder = monitorFolder.decode(sys.getfilesystemencoding())
 
 if not os.path.isdir(monitorFolder):
     os.makedirs(monitorFolder)
@@ -81,7 +73,7 @@ def findPR650(ports=None):
                               "/dev/tty.* Check for serial port name "
                               "manually, check drivers installed etc...")
         elif sys.platform == 'win32':
-            ports = range(20)
+            ports = list(range(20))
     elif type(ports) in (int, float):
         ports = [ports]  # so that we can iterate
     pr650 = None
@@ -483,9 +475,9 @@ class Monitor(object):
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            thisFile = open(thisFileName, 'r')
-            self.calibs = cPickle.load(thisFile)
-            self.calibNames = self.calibs.keys()
+            thisFile = open(thisFileName, 'rb')
+            self.calibs = pickle.load(thisFile)
+            self.calibNames = list(self.calibs.keys())
             self.calibNames.sort()
             thisFile.close()
 
@@ -539,7 +531,7 @@ class Monitor(object):
         """
         # find the appropriate file
         # get desired calibration name if necess
-        if (isinstance(calibration, basestring) and
+        if (isinstance(calibration, str) and
                 calibration in self.calibNames):
             self.currentCalibName = calibration
         elif type(calibration) == int and calibration <= len(self.calibNames):
@@ -568,7 +560,7 @@ class Monitor(object):
         """
         thisFileName = os.path.join(monitorFolder, self.name + ".calib")
         thisFile = open(thisFileName, 'wb')
-        cPickle.dump(self.calibs, thisFile)
+        pickle.dump(self.calibs, thisFile)
         thisFile.close()
 
     def copyCalib(self, calibName=None):
@@ -730,7 +722,7 @@ class GammaCalculator(object):
                 self.gamma = self.gammaModel[0]
                 self.a = self.b = self.k = None
         else:
-            raise AttributeError, ("gammaTable needs EITHER a gamma value"
+            raise AttributeError("gammaTable needs EITHER a gamma value"
                                    " or some luminance measures")
 
     def fitGammaFun(self, x, y):
@@ -983,7 +975,7 @@ def getLumSeries(lumLevels=8,
             # take measurement
             if havePhotom and autoMode == 'auto':
                 actualLum = photometer.getLum()
-                print("At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum))
+                print(("At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum)))
                 if lum == -1 or not allGuns:
                     # if the screen is black set all guns to this lum value!
                     lumsList[:, valN] = actualLum
@@ -998,7 +990,7 @@ def getLumSeries(lumLevels=8,
                         return numpy.array([])
 
             elif autoMode == 'semi':
-                print("At DAC value %i" % DACval)
+                print(("At DAC value %i" % DACval))
 
                 done = False
                 while not done:
@@ -1154,7 +1146,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         # check params
         if nMissing > 1:
             msg = "For eq=4, gammaFun needs 2 of a, b, k to be specified"
-            raise AttributeError, msg
+            raise AttributeError(msg)
         elif nMissing == 1:
             if a is None:
                 a = minLum - b**(1.0 / gamma)  # when y=min, x=0

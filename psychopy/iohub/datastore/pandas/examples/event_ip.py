@@ -18,10 +18,10 @@ from psychopy.iohub.datastore.pandas.interestperiod import EventBasedIP
 exp_data=ioHubPandasDataView('io_stroop.hdf5')
 
 # Display the first 20 unfiltered MOUSE_MOVE events
-print '** KEY_PRESS Events (first 20):'
-print 
-print exp_data.KEYBOARD_PRESS.head(20)
-print
+print('** KEY_PRESS Events (first 20):')
+print() 
+print(exp_data.KEYBOARD_PRESS.head(20))
+print()
 
 # Create an Event based Interest Period. Interest Periods define a start and 
 # end time; any events that have a time >= an IP start time and <= an IP
@@ -39,10 +39,10 @@ ip=EventBasedIP(name='trial_ip',
 # Display the first 20 IP 's found using the criteria specified when creating 
 # the EventBasedIP
 #
-print '** MESSAGE Interest Periods (TRIAL_START to TRIAL_END):'
-print 
-print ip.ip_df
-print
+print('** MESSAGE Interest Periods (TRIAL_START to TRIAL_END):')
+print() 
+print(ip.ip_df)
+print()
 
 # Now we can filter out events from any event dataframe using the IP created.
 # Any events that do not occur within one of the interest periods found in the
@@ -51,16 +51,16 @@ print
 
 ip_events_filter=ip.filter(exp_data.KEYBOARD_PRESS)
 
-print '** KEYBOARD_PRESS events which occurred during an IP:'
-print 
-print ip_events_filter.head(20)
-print 
+print('** KEYBOARD_PRESS events which occurred during an IP:')
+print() 
+print(ip_events_filter.head(20))
+print() 
 
 ip_events_find=ip.find(exp_data.KEYBOARD_PRESS)
 
-print '** Can use both filter and find'
-print
-print ip_events_find.head(20)
+print('** Can use both filter and find')
+print()
+print(ip_events_find.head(20))
 
 def using_filter():
     ip.filter(exp_data.KEYBOARD_PRESS)
@@ -68,18 +68,18 @@ def using_filter():
 def using_find():
     ip.find(exp_data.KEYBOARD_PRESS)
 
-print
-print '** Compare performance'
-print '100 runs using filter', timeit.timeit(using_filter, number=100)
-print '100 runs using find', timeit.timeit(using_find, number=100)
+print()
+print('** Compare performance')
+print('100 runs using filter', timeit.timeit(using_filter, number=100))
+print('100 runs using find', timeit.timeit(using_find, number=100))
 
-print
-print 'Can also retain any ip cols in the filter/find output using ip_cols'
-print ip.filter(exp_data.KEYBOARD_PRESS, ip_cols='start_time')[['ip_id_num','start_time']].head(20)
+print()
+print('Can also retain any ip cols in the filter/find output using ip_cols')
+print(ip.filter(exp_data.KEYBOARD_PRESS, ip_cols='start_time')[['ip_id_num','start_time']].head(20))
 
-print
-print 'Also can rename'
-print ip.find(exp_data.KEYBOARD_PRESS, ip_cols={'end_time':'end_of_ip_time'})[['ip_id_num','end_of_ip_time']].head(20)
+print()
+print('Also can rename')
+print(ip.find(exp_data.KEYBOARD_PRESS, ip_cols={'end_time':'end_of_ip_time'})[['ip_id_num','end_of_ip_time']].head(20))
 
 
 exp_data.close()

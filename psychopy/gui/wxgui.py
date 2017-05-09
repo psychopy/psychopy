@@ -4,7 +4,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 from psychopy import logging
 import wx
@@ -120,14 +120,14 @@ class Dlg(wx.Dialog):
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
         elif not choices:
-            inputWidth, inputHeight = dc.GetTextExtent(unicode(initial))
+            inputWidth, inputHeight = dc.GetTextExtent(str(initial))
             inputLength = wx.Size(max(50, inputWidth + 16),
                                   max(25, inputHeight + 8))
-            inputBox = wx.TextCtrl(self, -1, unicode(initial),
+            inputBox = wx.TextCtrl(self, -1, str(initial),
                                    size=inputLength)
         else:
             inputBox = wx.Choice(self, -1,
-                                 choices=[unicode(option)
+                                 choices=[str(option)
                                           for option in list(choices)])
             # Somewhat dirty hack that allows us to treat the choice just like
             # an input box when retrieving the data
@@ -187,13 +187,13 @@ class Dlg(wx.Dialog):
                 thisType = self.inputFieldTypes[n]
                 # try to handle different types of input from strings
                 logging.debug("%s: %s" % (self.inputFieldNames[n],
-                                          unicode(thisVal)))
+                                          str(thisVal)))
                 if thisType in (tuple, list, float, int):
                     # probably a tuple or list
                     exec("self.data.append(" + thisVal + ")")  # evaluate it
                 elif thisType == numpy.ndarray:
                     exec("self.data.append(numpy.array(" + thisVal + "))")
-                elif thisType in (str, unicode, bool):
+                elif thisType in (str, str, bool):
                     self.data.append(thisVal)
                 else:
                     logging.warning('unknown type:' + self.inputFieldNames[n])
@@ -282,7 +282,7 @@ class DlgFromDict(Dlg):
         else:
             self.dictionary = dictionary
 
-        self._keys = self.dictionary.keys()
+        self._keys = list(self.dictionary.keys())
 
         if sort_keys:
             self._keys.sort()
@@ -294,7 +294,7 @@ class DlgFromDict(Dlg):
         for field in self._keys:
             types[field] = type(self.dictionary[field])
             tooltip = ''
-            if field in tip.keys():
+            if field in tip:
                 tooltip = tip[field]
             if field in fixed:
                 self.addFixedField(field, self.dictionary[field], tip=tooltip)

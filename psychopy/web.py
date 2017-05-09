@@ -10,7 +10,7 @@
 import os
 import sys
 import base64
-import httplib
+import http.client
 import mimetypes  # deprecated; use requests package instead
 import socket
 import re
@@ -28,7 +28,7 @@ if py3:
     import urllib.parse
     import io  # pylint: disable=W0611
 else:
-    import urllib2
+    import urllib.request, urllib.error, urllib.parse
 
     class FakeURLlib(object):
 
@@ -37,7 +37,7 @@ else:
             self.error = lib
             self.parse = lib
     urllib = FakeURLlib(urllib2)
-    import cStringIO as io  # pylint: disable=W0611
+    import io as io  # pylint: disable=W0611
 
 # default 20s from prefs, min 2s
 TIMEOUT = max(prefs.connections['timeout'], 2.0)
@@ -121,7 +121,7 @@ def getPacFiles():
     pacFiles = []
     if sys.platform == 'win32':
         try:
-            import _winreg as winreg  # used from python 2.0-2.6
+            import winreg as winreg  # used from python 2.0-2.6
         except ImportError:
             import winreg  # used from python 2.7 onwards
         net = winreg.OpenKey(
@@ -132,8 +132,7 @@ def getPacFiles():
         for i in range(nVals):
             thisName, thisVal, thisType = winreg.EnumValue(net, i)
             subkeys[thisName] = thisVal
-        if ('AutoConfigURL' in subkeys.keys() and
-                len(subkeys['AutoConfigURL']) > 0):
+        if ('AutoConfigURL' in subkeys and len(subkeys['AutoConfigURL']) > 0):
             pacFiles.append(subkeys['AutoConfigURL'])
     elif sys.platform == 'darwin':
         import plistlib
@@ -141,9 +140,9 @@ def getPacFiles():
                                       'Configuration/preferences.plist')
         networks = sysPrefs['NetworkServices']
         # loop through each possible network (e.g. Ethernet, Airport...)
-        for network in networks.items():
+        for network in list(networks.items()):
             netKey, network = network  # the first part is a long identifier
-            if 'ProxyAutoConfigURLString' in network['Proxies'].keys():
+            if 'ProxyAutoConfigURLString' in network['Proxies']:
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
     return list(set(pacFiles))  # remove redundant ones
 
@@ -332,32 +331,32 @@ def _post_multipart(host, selector, fields, files,
 
         Return (content_type, body) ready for httplib.HTTP instance
         """
-        BOUNDARY = u'----------ThIs_Is_tHe_bouNdaRY_$'
-        CRLF = u'\r\n'
+        BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
+        CRLF = '\r\n'
         L = []
 
         for (key, value) in fields:
-            L.append(u'--' + BOUNDARY)
-            L.append(u'Content-Disposition: form-data; name="%s"' % key)
-            L.append(u'Content-Type: text/plain;charset=%s' % encoding)
-            L.append(u'Content-Transfer-Encoding: 8bit')
-            L.append(u'')
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"' % key)
+            L.append('Content-Type: text/plain;charset=%s' % encoding)
+            L.append('Content-Transfer-Encoding: 8bit')
+            L.append('')
             L.append(value)
 
         for (key, filename, value) in files:
-            L.append(u'--' + BOUNDARY)
-            msg = u'Content-Disposition: form-data; name="%s"; filename="%s"'
+            L.append('--' + BOUNDARY)
+            msg = 'Content-Disposition: form-data; name="%s"; filename="%s"'
             L.append(msg % (key, filename))
-            msg = u'Content-Type: %s;charset=%s'
+            msg = 'Content-Type: %s;charset=%s'
             L.append(msg % (_get_content_type(filename), encoding))
-            L.append(u'Content-Transfer-Encoding: base64')
-            L.append(u'')
+            L.append('Content-Transfer-Encoding: base64')
+            L.append('')
             L.append(base64.b64encode(value).decode())
 
-        L.append(u'--' + BOUNDARY + u'--')
-        L.append(u'')
+        L.append('--' + BOUNDARY + '--')
+        L.append('')
         body = CRLF.join(L)
-        content_type = u'multipart/form-data; boundary=%s' % BOUNDARY
+        content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
 
         return content_type, body
 
@@ -369,19 +368,19 @@ def _post_multipart(host, selector, fields, files,
 
     # select https -- note there's NO verification of the server’s certificate
     if https is True:
-        conn = httplib.HTTPSConnection(host, timeout=timeout)
+        conn = http.client.HTTPSConnection(host, timeout=timeout)
     else:
-        conn = httplib.HTTPConnection(host, timeout=timeout)
-    headers = {u'User-Agent': userAgent,
-               u'Charset': encoding,
-               u'Content-Type': content_type}
+        conn = http.client.HTTPConnection(host, timeout=timeout)
+    headers = {'User-Agent': userAgent,
+               'Charset': encoding,
+               'Content-Type': content_type}
     # apache basic auth (sent in clear text, https can help):
     if basicAuth and type(basicAuth) == str:
         user_cred = base64.encodestring(basicAuth).replace('\n', '')
-        headers.update({u"Authorization": u"Basic %s" % user_cred})
+        headers.update({"Authorization": "Basic %s" % user_cred})
 
     try:
-        conn.request(u'POST', selector, body, headers)
+        conn.request('POST', selector, body, headers)
     except Exception:  # ? don't seem to get a proper exception
         msg = 'connection error (possible timeout after %ss)'
         return -1, msg % str(timeout), 'timeout or error'

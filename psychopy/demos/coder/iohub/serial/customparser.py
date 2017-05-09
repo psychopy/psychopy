@@ -8,7 +8,7 @@ custom parser function that the ioHub Serial device uses during runtime.
 serial device receives back as rx data. **
 
 """
-from __future__ import print_function
+
 import time
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer
@@ -36,7 +36,7 @@ event_parser_info = dict(parser_function="parseserial.checkForSerialEvents",
                          parser_kwargs=dict(var1='not used', var2=1234))
 # configure iohub
 exp_code = 'serial_demo'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 iohubkwargs = {'experiment_code': exp_code,
                'session_code': sess_code,
                'serial.Serial': dict(name='serial',

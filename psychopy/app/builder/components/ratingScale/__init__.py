@@ -214,13 +214,13 @@ class RatingScaleComponent(BaseComponent):
             s = str(self.params['pos'].val)
             s = s.lstrip('([ ').strip(')] ')
             try:
-                pos = map(float, s.split(',')) * 2
+                pos = list(map(float, s.split(','))) * 2
                 init_str += ", pos=%s" % pos[0:2]
             except Exception:
                 pass  # pos = None
 
             # type of scale:
-            choices = unicode(self.params['categoryChoices'].val)
+            choices = str(self.params['categoryChoices'].val)
             if self.params['visualAnalogScale'].val:
                 init_str += (", low=0, high=1, precision=100, "
                              "showValue=False, markerExpansion=0")
@@ -232,7 +232,7 @@ class RatingScaleComponent(BaseComponent):
                 else:
                     chc = choices.split(' ')
                 chc = [c.strip().strip(', ') for c in chc]
-                init_str += ', choices=%s' % unicode(chc)
+                init_str += ', choices=%s' % str(chc)
                 if self.params['tickHeight'].val:
                     tickh = self.params['tickHeight'].val
                     init_str += ", tickHeight=%.1f" % float(tickh)
@@ -253,7 +253,7 @@ class RatingScaleComponent(BaseComponent):
                 init_str += ', labels=%s' % repr(
                     self.params['labels'].val.split(','))
 
-            scale = unicode(self.params['scaleDescription'])
+            scale = str(self.params['scaleDescription'])
             if not len(choices) and len(scale):
                 init_str += ", scale=%s" % self.params['scaleDescription']
             if self.params['singleClick'].val:

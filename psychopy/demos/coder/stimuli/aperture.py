@@ -7,7 +7,7 @@ Demo for the class psychopy.visual.Aperture().
 Draw two gabor circles, one with an irregular aperture and one with no aperture.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, event
 

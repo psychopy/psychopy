@@ -5,7 +5,7 @@
 Demo of class data.ExperimentHandler
 """
 
-from __future__ import division
+
 
 from psychopy import data, logging
 from numpy import random

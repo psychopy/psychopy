@@ -6,9 +6,9 @@ import locale
 from psychopy.app import localization
 from psychopy.app.localization import _translate
 
-welcome = u'Welcome to PsychoPy2!'
+welcome = 'Welcome to PsychoPy2!'
 trans = {'en': welcome,
-         'ja': u'PsychoPy2へようこそ！'
+         'ja': 'PsychoPy2へようこそ！'
          }
 
 ### needs rewriting since localization.init() no longer sets the locale

@@ -1,5 +1,5 @@
 """Tests for psychopy.data.DataHandler"""
-from __future__ import print_function
+
 import os, glob
 from os.path import join as pjoin
 import shutil
@@ -38,7 +38,7 @@ class TestTrialHandler2(object):
         f = open(data_filename, 'rb')
         header = f.readline().replace('\n','')
         f.close()
-        expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
+        expected_header = "n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
         if expected_header != header:
             print(base_data_filename)
             print(repr(expected_header),type(expected_header),len(expected_header))

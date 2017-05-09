@@ -278,7 +278,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the experiment condition variable values for this
             # trial to the ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(trial.values())
+            self.hub.addRowToConditionVariableTable(list(trial.values()))
 
             # Clear all event buffers
             #

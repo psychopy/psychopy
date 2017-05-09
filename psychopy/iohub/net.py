@@ -81,7 +81,7 @@ class SocketConnection(object):
             if result[0] == 'IOHUB_MULTIPACKET_RESPONSE':
                 num_packets=result[1]
 
-                for p in xrange(num_packets-1):
+                for p in range(num_packets-1):
                     data, address = self.sock.recvfrom(self._rcvBufferLength)
                     self.feed(data)
 
@@ -146,7 +146,7 @@ class ioHubTimeSyncConnection(UDPClientConnection):
         min_local_time=0.0
         min_remote_time=0.0
                 
-        for s in xrange(sync_count):
+        for s in range(sync_count):
             # send sync request
             sync_start=Computer.currentSec()
             sendto(pack(sync_data),remote_address)                    
@@ -186,7 +186,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
                 self._sync_socket=ioHubTimeSyncConnection(remote_address)
                 sleep(1)
             self.sync_state_target=proxy(sync_state_target)
-        except Exception, e:
+        except Exception as e:
             print2err("** Exception during ioHubTimeGreenSyncManager.__init__: ",self._remote_address)
             printExceptionDetailsToStdErr()
             
@@ -222,7 +222,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
                     r=sync_state_target.R_times[-1]
                     self.sync_state_target.offsets=(r-l)
                 return True
-        except Exception, e:
+        except Exception as e:
             return False            
             #print2err("** Exception during ioHubTimeGreenSyncManager._sync: ",self._remote_address,' ',e)
             #printExceptionDetailsToStdErr()

@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import, print_function
+
 
 import wx
 import wx.lib.scrolledpanel as scrolled
@@ -211,7 +211,7 @@ class PreferencesDlg(wx.Dialog):
         currentPane = self.nb.GetPageText(self.nb.GetSelection())
         # what the url should be called in psychopy.app.urls
         urlName = "prefs.%s" % currentPane
-        if urlName in self.app.urls.keys():
+        if urlName in list(self.app.urls.keys()):
             url = self.app.urls[urlName]
         else:
             # couldn't find that section - use default prefs
@@ -235,7 +235,7 @@ class PreferencesDlg(wx.Dialog):
             parent, -1, size=(dlgSize[0] - 100, dlgSize[1] - 200))
         vertBox = wx.BoxSizer(wx.VERTICAL)
         # add each pref for this section
-        for prefName in specSection.keys():
+        for prefName in list(specSection.keys()):
             if prefName in ['version']:  # any other prefs not to show?
                 continue
             # allowModuleImports pref is handled by generateSpec.py
@@ -291,8 +291,8 @@ class PreferencesDlg(wx.Dialog):
         # b) case-insensitive match for Cmd+ at start of string
         # c) reverse-map locale display names to canonical names (ja_JP)
         re_cmd2ctrl = re.compile('^Cmd\+', re.I)
-        for sectionName in self.prefsCfg.keys():
-            for prefName in self.prefsSpec[sectionName].keys():
+        for sectionName in list(self.prefsCfg.keys()):
+            for prefName in list(self.prefsSpec[sectionName].keys()):
                 if prefName in ['version']:  # any other prefs not to show?
                     continue
                 ctrlName = sectionName + '.' + prefName
@@ -398,7 +398,7 @@ class PrefCtrls(object):
             self.valueCtrl = wx.TextCtrl(self.parent, -1, valuestring,
                                          size=(valueWidth, -1))
         else:  # just use a string
-            self.valueCtrl = wx.TextCtrl(self.parent, -1, unicode(value),
+            self.valueCtrl = wx.TextCtrl(self.parent, -1, str(value),
                                          size=(valueWidth, -1))
 
     def _getCtrlValue(self, ctrl):
@@ -454,7 +454,7 @@ class PrefCtrls(object):
                         en = "'" + str(e) + "',"
                     except Exception:  # unicode
                         # "u" is necessary if string is unicode.
-                        en = "u'" + unicode(e) + "',"
+                        en = "u'" + str(e) + "',"
                 l += en
             # remove unnecessary comma
             if l[-1] == ',':

@@ -4,7 +4,7 @@ Created on Sat May 25 00:09:01 2013
 
 @author: Sol
 """
-from __future__ import print_function  # for compatibility with python3
+  # for compatibility with python3
 from textwrap import TextWrapper
 import codecs
 import os
@@ -139,10 +139,10 @@ class ParsedTextDocument(object):
         rewrap = False
         para_text_index = 0
         for linestr in self._text_wrapper.wrap(para_text):
-            if (linestr[-1] != u' ' and
+            if (linestr[-1] != ' ' and
                     len(self._text) > current_index + len(linestr) and
-                    self._text[current_index + len(linestr)] == u' '):
-                last_space = linestr.rfind(u' ')
+                    self._text[current_index + len(linestr)] == ' '):
+                last_space = linestr.rfind(' ')
                 if last_space > 0:
                     linestr = linestr[:last_space + 1]
                     rewrap = True
@@ -263,13 +263,13 @@ class ParsedTextLine(object):
         if ParsedTextLine.charcodes_with_glyphs is None:
             active_text_style = self._parent._text_grid._text_box._current_glfont
             if active_text_style:
-                ParsedTextLine.charcodes_with_glyphs = active_text_style.charcode2unichr.keys()
+                ParsedTextLine.charcodes_with_glyphs = list(active_text_style.charcode2unichr.keys())
 
         ok_charcodes = ParsedTextLine.charcodes_with_glyphs
 
         if ParsedTextLine.replacement_charcode is None:
             replacement_charcodes = [ord(cc)
-                                     for cc in [u'?', u' ', u'_', u'-', u'0', u'=']
+                                     for cc in ['?', ' ', '_', '-', '0', '=']
                                      if cc in ok_charcodes]
             if not replacement_charcodes:
                 ParsedTextLine.replacement_charcode = ok_charcodes[0]
@@ -277,7 +277,7 @@ class ParsedTextLine(object):
                 ParsedTextLine.replacement_charcode = replacement_charcodes[0]
 
         self._ords = []
-        text = text.replace(u'\n', ' ').replace(u'\t', ' ')
+        text = text.replace('\n', ' ').replace('\t', ' ')
         for c in text:
             ccode = ord(c)
             if ccode in ok_charcodes:

@@ -32,7 +32,7 @@ from . import globalVars
 try:
     from PIL import Image
 except ImportError:
-    import Image
+    from . import Image
 
 import numpy
 
@@ -253,7 +253,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         (almost any). Can also be an image already loaded by PIL.
         """
         self.__dict__['image'] = filename
-        if type(filename) in [str, unicode]:
+        if type(filename) in [str, str]:
             # is a string - see if it points to a file
             if os.path.isfile(filename):
                 self.filename = filename

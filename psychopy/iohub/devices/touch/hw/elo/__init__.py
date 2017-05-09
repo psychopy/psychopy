@@ -101,7 +101,7 @@ class Touch(TouchDevice):
         Send the underlying touch screen device a query request and return the response.
         """
         self._query(query_type,*args,**kwargs)
-        if query_type in RESPONSE_PACKET_TYPES.keys():
+        if query_type in list(RESPONSE_PACKET_TYPES.keys()):
             stime=getTime()
             while getTime()-stime<0.10:
                 self._poll()
@@ -119,7 +119,7 @@ class Touch(TouchDevice):
         Send the underlying touch screen device a command and return the response.
         """
         self._command(cmd_type,*args,**kwargs)
-        if cmd_type in RESPONSE_PACKET_TYPES.keys():
+        if cmd_type in list(RESPONSE_PACKET_TYPES.keys()):
             stime=getTime()
             while getTime()-stime<0.010:
                 self._poll()
@@ -157,14 +157,14 @@ class Touch(TouchDevice):
 
     def _query(self,query_type,*args,**kwargs):
         qpkt=query_type
-        if isinstance(query_type,basestring):
+        if isinstance(query_type,str):
             qpkt=QUERY_PACKET_TYPES[query_type](*args,**kwargs)
         self._tx(qpkt._packet_bytes)
         return qpkt
         
     def _command(self,cmd_type,*args,**kwargs):
         qpkt=cmd_type
-        if isinstance(cmd_type,basestring):
+        if isinstance(cmd_type,str):
             qpkt=COMMAND_PACKET_TYPES[cmd_type](*args,**kwargs)
         self._tx(qpkt._packet_bytes)
         return qpkt
@@ -215,7 +215,7 @@ class Touch(TouchDevice):
             # Get current mode settings
             pkt=self._query('m')
             reply_packets=self._poll()
-        except Exception, e:
+        except Exception as e:
             print2err("Exception During Touch.initCalibration: ",str(e))
             
     def applyCalibrationData(self,xmin,xmax,ymin,ymax,x1,y1,x2,y2,sx,sy,leftx,uppery,rightx,lowery):
@@ -277,7 +277,7 @@ class Touch(TouchDevice):
             self.clearEvents()
             self._raw_positions=False
             
-        except Exception, e:
+        except Exception as e:
             print2err("Exception During Touch.applyCalibrationData: ",str(e))
 
     def clearEvents(self):
@@ -285,7 +285,7 @@ class Touch(TouchDevice):
             self._non_touch_events.clear()
             self._flushSerialInput()
             TouchDevice.clearEvents(self)
-        except Exception, e:
+        except Exception as e:
             print2err("Exception During Touch.clearEvents: ",str(e))
             
     def _poll(self):

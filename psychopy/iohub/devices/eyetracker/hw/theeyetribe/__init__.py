@@ -10,4 +10,4 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: ??
 """
 
-from eyetracker import *
+from .eyetracker import *

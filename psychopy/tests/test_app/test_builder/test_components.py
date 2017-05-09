@@ -89,10 +89,10 @@ class TestComponents(object):
                     mismatch = order + ' <== ' + targetTag[tag]
                 except IndexError: # missing
                     mismatch = order + ' <==> NEW (no matching param in the reference profile)'
-                print(mismatch.encode('utf8'))
+                print((mismatch.encode('utf8')))
                 if not ignoreOrder:
                     err.append(mismatch)
-            for parName in comp.params.keys():
+            for parName in list(comp.params.keys()):
                 # default is what you get from param.__str__, which returns its value
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
@@ -128,9 +128,9 @@ class TestComponents(object):
                                     break
                             else:
                                 err.append(mismatch)
-                                print(mismatch.encode('utf8'))
+                                print((mismatch.encode('utf8')))
                         else:
                             err.append(mismatch)
-                            print(mismatch.encode('utf8'))
+                            print((mismatch.encode('utf8')))
 
         assert not err

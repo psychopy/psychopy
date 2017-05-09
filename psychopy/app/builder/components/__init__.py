@@ -4,7 +4,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import os
 import glob
@@ -29,14 +29,10 @@ for filename in pycFiles:
             pass  # may not have sufficient privs
 
 def pilToBitmap(pil, scaleFactor=1.0):
-    image = wx.EmptyImage(pil.size[0], pil.size[1])
+    image = wx.Image(pil.size[0], pil.size[1])
 
-    try:  # For PIL.
-        image.SetData(pil.convert("RGB").tostring())
-        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
-    except Exception:  # For Pillow.
-        image.SetData(pil.convert("RGB").tobytes())
-        image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
+    image.SetData(pil.convert("RGB").tobytes())
+    image.SetAlpha(pil.convert("RGBA").tobytes()[3::4])
 
     image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
     return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
@@ -54,6 +50,7 @@ def getIcons(filename=None):
 
     # get the low-res version first
     im = Image.open(filename)
+    test = im.convert("RGB").tobytes()
     icons['24'] = pilToBitmap(im, scaleFactor=0.5)
     icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
     # try to find a 128x128 version
@@ -136,7 +133,7 @@ def getComponents(folder=None, fetchIcons=True):
 
     components = {}
     # setup a default icon
-    if fetchIcons and 'default' not in icons.keys():
+    if fetchIcons and 'default' not in list(icons.keys()):
         icons['default'] = getIcons(filename=None)
 
     # go through components in directory
@@ -199,12 +196,12 @@ def getAllComponents(folderList=(), fetchIcons=True):
 
     User-defined components will override built-ins with the same name.
     """
-    if isinstance(folderList, basestring):
-        raise TypeError, 'folderList should be iterable, not a string'
+    if isinstance(folderList, str):
+        raise TypeError('folderList should be iterable, not a string')
     components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
         userComps = getComponents(folder)
-        for thisKey in userComps.keys():
+        for thisKey in list(userComps.keys()):
             components[thisKey] = userComps[thisKey]
     return components
 
@@ -212,7 +209,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
     allCats = ['Stimuli', 'Responses', 'Custom']
-    for name, thisComp in allComps.items():
+    for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
                 allCats.append(thisCat)
@@ -224,7 +221,7 @@ def getInitVals(params, target="PsychoPy"):
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
-    for name in params.keys():
+    for name in list(params.keys()):
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
@@ -289,9 +286,9 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = "A"
             inits[name].valType = 'str'
         else:
-            print("I don't know the appropriate default value for a '%s' "
+            print(("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %
-                  name)
+                  name))
 
     return inits
 

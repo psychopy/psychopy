@@ -5,7 +5,7 @@
 Demo of dot kinematogram
 """
 
-from __future__ import division
+
 
 from psychopy import visual, event, core
 
@@ -28,7 +28,7 @@ while not event.getKeys():
 
     event.clearEvents('mouse')  # only really needed for pygame windows
 
-print(win.fps())
+print((win.fps()))
 win.close()
 core.quit()
 

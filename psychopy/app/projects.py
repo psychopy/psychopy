@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import os
 import time
@@ -40,7 +40,7 @@ class ProjectCatalog(dict):
         self.refresh()
 
     def projFromId(self, id):
-        for key, item in self.items():
+        for key, item in list(self.items()):
             if item.project_id == id:
                 return key, item
         return (None, None)  # got here without finding anything
@@ -86,7 +86,7 @@ projectCatalog = ProjectCatalog()
 idBase = wx.NewId()
 projHistory = wx.FileHistory(maxFiles=16, idBase=idBase)
 projHistory.idBase = idBase
-for key in projectCatalog.keys():
+for key in list(projectCatalog.keys()):
     projHistory.AddFileToHistory(key)
 
 
@@ -217,7 +217,7 @@ class ProjectsMenu(wx.Menu):
 
     def onLogIn(self, event):
         # check knownusers list
-        users = ProjectsMenu.knownUsers.keys()
+        users = list(ProjectsMenu.knownUsers.keys())
         dlg = LogInDlg(app=self.app)
         dlg.Show()
         if self.app.osf_session.authenticated:
@@ -542,7 +542,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     def setContents(self, projects):
         self.DestroyChildren()  # start with a clean slate
 
-        if type(projects) in [str, unicode]:
+        if type(projects) in [str, str]:
             # just text for a window so display
             self.mainSizer.Add(
                 wx.StaticText(self, -1, projects),
@@ -774,8 +774,8 @@ class ProjectFrame(BaseFrame):
             try:
                 self._setOSFproject(project.osf)
             except pyosf.DeletedError:
-                print("OSF Project <{}> no longer exists online"
-                      .format(project.project_id))
+                print(("OSF Project <{}> no longer exists online"
+                      .format(project.project_id)))
         elif isinstance(project, pyosf.remote.OSFProject):
             self._setOSFproject(project)
             projStr, localProj = projectCatalog.projFromId(project.id)

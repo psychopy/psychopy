@@ -44,7 +44,7 @@ preferable.
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import division
+
 import sys
 import os
 from psychopy import logging, prefs, exceptions
@@ -138,8 +138,8 @@ if hasattr(backend, 'defaultOutput'):
     if dev=='default' or travisCI:
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
-        devNames = backend.getDevices(kind='output').keys()
-        logging.error(u"Requested audio device '{}' that is not available on "
+        devNames = list(backend.getDevices(kind='output').keys())
+        logging.error("Requested audio device '{}' that is not available on "
                         "this hardware. The 'audioDevice' preference should be one of "
                         "{}".format(dev, devNames))
     else:

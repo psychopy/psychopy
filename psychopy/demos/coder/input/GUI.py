@@ -5,7 +5,7 @@
 Demo to illustrate Dialog (Dlg) classes and usage.
 """
 
-from __future__ import division
+
 
 from psychopy import gui  #fetch default gui handler (qt if available)
 ## you can explicitly choose one of the qt/wx backends like this:

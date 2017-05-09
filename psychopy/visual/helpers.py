@@ -161,10 +161,10 @@ def setColor(obj, color, colorSpace=None, operation='',
 
     # Handle strings and returns immediately as operations, colorspace etc.
     # does not apply here.
-    if type(color) in [str, unicode, numpy.string_]:
+    if type(color) in [str, str, numpy.string_]:
         if operation not in ('', None):
             raise TypeError('Cannot do operations on named or hex color')
-        if color.lower() in colors.colors255.keys():
+        if color.lower() in list(colors.colors255.keys()):
             # set rgb, color and colorSpace
             setattr(obj, rgbAttrib,
                     numpy.array(colors.colors255[color.lower()], float))
@@ -273,7 +273,7 @@ def setColor(obj, color, colorSpace=None, operation='',
     setTexIfNoShaders(obj)
 
 # set for groupFlipVert:
-immutables = {int, float, str, tuple, long, bool,
+immutables = {int, float, str, tuple, int, bool,
               numpy.float64, numpy.float, numpy.int, numpy.long}
 
 def findImageFile(filename):

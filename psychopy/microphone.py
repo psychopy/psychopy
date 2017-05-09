@@ -7,11 +7,11 @@
 
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-from __future__ import division
+
 import os
 import glob
 import threading
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 import numpy as np
 from scipy.io import wavfile
@@ -134,7 +134,7 @@ class AudioCapture(object):
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
         else:
             if not os.path.isdir(self.saveDir):
-                os.makedirs(self.saveDir, 0770)
+                os.makedirs(self.saveDir, 0o770)
 
         self.onset = None  # becomes onset time, used in filename
         self.savedFile = False  # becomes saved file name
@@ -647,7 +647,7 @@ def getRMS(data):
         if len(data.shape) > 1:
             return np.std(data, axis=1)  # np.sqrt(np.mean(data ** 2, axis=1))
         return np.std(data)  # np.sqrt(np.mean(data ** 2))
-    if isinstance(data, basestring):
+    if isinstance(data, str):
         if not os.path.isfile(data):
             raise ValueError('getRMS: could not find file %s' % data)
         _junk, data = wavfile.read(data)
@@ -658,15 +658,15 @@ def getRMS(data):
     return _rms(data)
 
 
-class SoundFormatNotSupported(StandardError):
+class SoundFormatNotSupported(Exception):
     """Class to report an unsupported sound format"""
 
 
-class SoundFileError(StandardError):
+class SoundFileError(Exception):
     """Class to report sound file failed to load"""
 
 
-class MicrophoneError(StandardError):
+class MicrophoneError(Exception):
     """Class to report a microphone error"""
 
 
@@ -745,13 +745,13 @@ class _GSQueryThread(threading.Thread):
         self.started = True
         self.duration = 0
         try:
-            self.raw = urllib2.urlopen(self.request)
+            self.raw = urllib.request.urlopen(self.request)
         except Exception:  # pragma: no cover
             # yeah, its the internet, stuff happens
             # maybe temporary HTTPError: HTTP Error 502: Bad Gateway
             try:
-                self.raw = urllib2.urlopen(self.request)
-            except StandardError as ex:  # or maybe a dropped connection, etc
+                self.raw = urllib.request.urlopen(self.request)
+            except Exception as ex:  # or maybe a dropped connection, etc
                 logging.error(str(ex))
                 self.running = False  # proceeds as if "timedout"
         self.duration = core.getTime() - self.t0
@@ -908,13 +908,13 @@ class Speech2Text(object):
                   'User-Agent': useragent}
         web.requireInternetAccess()  # needed to access google's speech API
         try:
-            self.request = urllib2.Request(url, audio, header)
+            self.request = urllib.request.Request(url, audio, header)
         except Exception:  # pragma: no cover
             # try again before accepting defeat
             logging.info("https request failed. %s, %s. trying again..." %
                          (filename, self.filename))
             core.wait(0.2, 0)
-            self.request = urllib2.Request(url, audio, header)
+            self.request = urllib.request.Request(url, audio, header)
 
     def getThread(self):
         """Send a query to Google using a new thread, no blocking or timeout.

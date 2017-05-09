@@ -69,7 +69,7 @@ class PParallelDLPortIO(object):
                   "parallel Ports not available")
             raise e
 
-        if isinstance(address, basestring) and address.startswith('0x'):
+        if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:
@@ -144,4 +144,4 @@ class PParallelDLPortIO(object):
             return (val >> (pinNumber - 2)) & 1
         else:
             msg = 'Pin %i cannot be read (by PParallelDLPortIO.readPin())'
-            print(msg % pinNumber)
+            print((msg % pinNumber))

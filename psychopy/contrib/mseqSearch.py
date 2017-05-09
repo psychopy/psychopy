@@ -67,7 +67,7 @@ from command line:
 %POSSIBILITY OF SUCH DAMAGE.
 """
 
-from __future__ import print_function
+
 
 import numpy
 import sys
@@ -94,7 +94,7 @@ def mseqSearch(baseVal, powerVal, shift=0, max_time=10):
     """search for an M-sequence, default time-out after 10 seconds
     """
     if not baseVal in [2,3,5,7,11,13,17,19,23,29]:
-        raise ValueError, "base must be a prime number < 30"
+        raise ValueError("base must be a prime number < 30")
     
     seqLen = baseVal**powerVal-1
     register = numpy.array([1 for i in range(powerVal)])
@@ -154,7 +154,7 @@ def _abs_auto(ms):
     num_acs = min(11, len(ms))
     if num_acs:
         auto_corrs = [numpy.corrcoef(ms, numpy.append(ms[i:], ms[:i]))[1][0] for i in range(1,num_acs)]
-        return map(abs, auto_corrs)
+        return list(map(abs, auto_corrs))
     
 def test():
     print('no tests; auto-correlations are computed for each sequence generated')
@@ -164,12 +164,12 @@ if __name__=='__main__':
         test()
     else:
         try:
-            args = map(int, sys.argv[1:])
+            args = list(map(int, sys.argv[1:]))
         except Exception:
-            raise ValueError, "expected 2-4 integer arguments: base power " +\
-                "[shift [max time to search in sec]]"
+            raise ValueError("expected 2-4 integer arguments: base power " +\
+                "[shift [max time to search in sec]]")
         if not args[0] in [2,3,5,7,11,13,17,19,23,29]:
-            raise ValueError, "base must be a prime number < 30"
+            raise ValueError("base must be a prime number < 30")
         t0 = time.time()
         ms = mseqSearch(*args)
         t1 = time.time() - t0

@@ -6,7 +6,7 @@ Demo of some ways to use class psychopy.info.RunTimeInfo()
 to obtain current system and other data at run-time.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, logging, core
 import psychopy.info
@@ -51,22 +51,22 @@ print("If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,
 # import your data file into python to reconstruct the dict.
 
 print("\nYou can extract single items from info, using keys, e.g.:")
-print("  psychopyVersion = %s" % runInfo['psychopyVersion'])
-if "windowRefreshTimeAvg_ms" in runInfo.keys():
+print(("  psychopyVersion = %s" % runInfo['psychopyVersion']))
+if "windowRefreshTimeAvg_ms" in runInfo:
     print("or from the test of the screen refresh rate:")
-    print("  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"])
-    print("  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"])
+    print(("  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"]))
+    print(("  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"]))
 
     # Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.
     refreshSDwarningLevel_ms = 0.20  # ms
     if runInfo["windowRefreshTimeSD_ms"] > refreshSDwarningLevel_ms:
-        print("\nThe variability of the refresh rate is sort of high (SD > %.2f ms)." % (refreshSDwarningLevel_ms))
+        print(("\nThe variability of the refresh rate is sort of high (SD > %.2f ms)." % (refreshSDwarningLevel_ms)))
         # and here you could prompt the user with suggestions, possibly based on other info:
         if runInfo["windowIsFullScr"]:
             print("Your window is full-screen, which is good for timing.")
             print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
             if len(runInfo['systemUserProcFlagged']):
-                print('other programs running? (command, process-ID):' + str(runInfo['systemUserProcFlagged']))
+                print(('other programs running? (command, process-ID):' + str(runInfo['systemUserProcFlagged'])))
         else:
             print("""Try defining the window as full-screen (it's not currently), i.e. at the top of the demo change to:
     win = visual.Window((800, 600), fullscr=True, ...

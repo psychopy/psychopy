@@ -62,7 +62,7 @@ def testDelayDurationAccuracy(sample_size=100):
     durations=np.zeros((3,sample_size))
     durations[0,:]=(np.random.random_integers(50,1000,sample_size)*0.001)
 
-    for t in xrange(sample_size):
+    for t in range(sample_size):
         cdur=durations[0][t]
         start_times=py_time(),getTime()
         stime=start_times[0]
@@ -113,7 +113,7 @@ def testTimebaseQuality(sample_size=1000):
     timer_clock_jumpbacks=0
     core_getTime_jumpbacks=0
 
-    for t in xrange(sample_size):
+    for t in range(sample_size):
        s=py_time()
        e=py_time()
        callTimes[0][t]=e-s

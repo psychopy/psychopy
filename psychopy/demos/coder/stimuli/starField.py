@@ -12,7 +12,7 @@ and avoiding for loops in your code for optimised performance.
 See also the elementArrayStim demo.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, event, core
 from psychopy.tools.coordinatetools import pol2cart

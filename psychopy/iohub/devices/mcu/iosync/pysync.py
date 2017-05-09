@@ -119,7 +119,7 @@ except Exception:
     from collections import OrderedDict
     
     def print2err(*args):
-        print args
+        print(args)
 
 
 class T3Event(object):
@@ -470,7 +470,7 @@ class T3MC(object):
             self._serial_port.flush()
             self._active_requests[request.getID()]=request
             return tx_count
-        except Exception, e:
+        except Exception as e:
             print2err("ERROR During sendT3Request: ",e,". Has ioSync been disconnected?")
             self.close()
 
@@ -485,7 +485,7 @@ class T3MC(object):
                     remaining_bytes = []
                     if remaining_byte_count > 0:
                         remaining_bytes = [ord(c) for c in self._serial_port.read(remaining_byte_count)]
-                    if request_id in EVENT_TYPE_2_CLASS.keys():
+                    if request_id in list(EVENT_TYPE_2_CLASS.keys()):
                         event = EVENT_TYPE_2_CLASS[request_id](request_id, time_bytes, remaining_bytes)
                         self._rx_events.append(event)
                 else:
@@ -497,7 +497,7 @@ class T3MC(object):
                             self._request_replies.append(reply)
                     else:
                         print2err("INVALID REQUEST ID in reply:",  request_id)
-        except Exception, e:
+        except Exception as e:
             print2err("ERROR During getSerialRx: ",e,". Has ioSync been disconnected?")
             self.close()
 
@@ -692,7 +692,7 @@ class RingBuffer(object):
     def __setitem__(self, indexs,v):
         if isinstance(indexs,(list,tuple)):
             for i in indexs:
-                if isinstance(i, (int,long)):
+                if isinstance(i, int):
                     i=i+self._index
                     self._npa[i%self.max_size]=v
                     self._npa[(i%self.max_size)+self.max_size]=v
@@ -707,7 +707,7 @@ class RingBuffer(object):
                     stop=istop+self._index            
                     self._npa[slice(start%self.max_size,stop%self.max_size,i.step)]=v
                     self._npa[slice((start%self.max_size)+self.max_size,(stop%self.max_size)+self.max_size,i.step)]=v
-        elif isinstance(indexs, (int,long)):
+        elif isinstance(indexs, int):
             i=indexs+self._index
             self._npa[i%self.max_size]=v
             self._npa[(i%self.max_size)+self.max_size]=v
@@ -730,12 +730,12 @@ class RingBuffer(object):
         if isinstance(indexs,(list,tuple)):
             rarray=[]
             for i in indexs:
-                if isinstance(i, (int,long)):
+                if isinstance(i, int):
                     rarray.append(current_array[i])
                 elif isinstance(i,slice):          
                     rarray.extend(current_array[i])
             return np.asarray(rarray,dtype=self._dtype)
-        elif isinstance(indexs, (int,long,slice)):
+        elif isinstance(indexs, (int,slice)):
             return current_array[indexs]
         else:
             raise TypeError()

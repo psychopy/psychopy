@@ -8,8 +8,8 @@ import sys
 
 def print2err(*args):
     for a in args:
-        sys.stderr.write(u"{0}".format(a))        
-    sys.stderr.write(u"\n") 
+        sys.stderr.write("{0}".format(a))        
+    sys.stderr.write("\n") 
     sys.stderr.flush()
    
 def printExceptionDetailsToStdErr():
@@ -30,6 +30,6 @@ class ioHubError(Exception):
 
     def __repr__(self):
         r="ioHubError:\nArgs: {0}\n".format(self.args)
-        for k,v in self.kwargs.iteritems():
+        for k,v in self.kwargs.items():
             r+="\t{0}: {1}\n".format(k,v)
         return r

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub
 .. file: ioHub/server.py
@@ -112,7 +112,7 @@ class udpServer(DatagramServer):
                     edata=('RPC_RESULT',callable_name,result)
                     self.sendResponse(edata,replyTo)
                     return True
-                except Exception,e:
+                except Exception as e:
                     print2err("RPC_RUNTIME_ERROR")
                     printExceptionDetailsToStdErr()
                     self.sendResponse('RPC_RUNTIME_ERROR', replyTo)
@@ -145,7 +145,7 @@ class udpServer(DatagramServer):
             else:
                 self.sendResponse(('GET_EVENTS_RESULT', None),replyTo)
             return True
-        except Exception, e:
+        except Exception as e:
             print2err("IOHUB_GET_EVENTS_ERROR")
             printExceptionDetailsToStdErr()
             self.sendResponse('IOHUB_GET_EVENTS_ERROR', replyTo)
@@ -174,7 +174,7 @@ class udpServer(DatagramServer):
 
             dev=None
             if dclass.find('.') > 0:
-                for dname, dev in ioServer.deviceDict.iteritems():
+                for dname, dev in ioServer.deviceDict.items():
                     if dname.endswith(dclass):
                         dev=ioServer.deviceDict.get(dname,None)
                         break
@@ -208,7 +208,7 @@ class udpServer(DatagramServer):
                     result=method()
                 self.sendResponse(('DEV_RPC_RESULT',result),replyTo)
                 return True
-            except Exception, e:
+            except Exception as e:
                 print2err("RPC_DEVICE_RUNTIME_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
@@ -221,7 +221,7 @@ class udpServer(DatagramServer):
                     dev_list.append((d.name,d.__class__.__name__))
                 self.sendResponse(('GET_DEV_LIST_RESULT',len(dev_list),dev_list),replyTo)
                 return True
-            except Exception, e:
+            except Exception as e:
                 print2err("RPC_DEVICE_RUNTIME_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
@@ -231,7 +231,7 @@ class udpServer(DatagramServer):
             dclass=request.pop(0)
             data=None
             if dclass in ['EyeTracker','DAQ']:
-                for dname, hdevice in ioServer.deviceDict.iteritems():
+                for dname, hdevice in ioServer.deviceDict.items():
                     if dname.endswith(dclass):
                         data=hdevice._getRPCInterface()
                         break
@@ -284,7 +284,7 @@ class udpServer(DatagramServer):
             if packet_data_length >= max_size:
                 num_packets = int(packet_data_length//max_size)+1
                 self.sendResponse(('IOHUB_MULTIPACKET_RESPONSE',num_packets),address)
-                for p in xrange(num_packets-1):
+                for p in range(num_packets-1):
                     self.socket.sendto(packet_data[p*max_size:(p+1)*max_size],address)
                 self.socket.sendto(packet_data[(p+1)*max_size:packet_data_length],address)
             else:
@@ -361,7 +361,7 @@ class udpServer(DatagramServer):
         if self.iohub.emrt_file:
             output=[]
             for a in numpy_dtype:
-                if isinstance(a[1],(str,unicode)):
+                if isinstance(a[1],str):
                     output.append(tuple(a))
                 else:
                     temp=[a[0],[]]
@@ -495,7 +495,7 @@ class ioServer(object):
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
                 _dslabel,default_datastore_config=load(file(default_datastore_config_path,'r'), Loader=Loader).popitem()
 
-                for default_key,default_value in default_datastore_config.iteritems():
+                for default_key,default_value in default_datastore_config.items():
                     if default_key not in experiment_datastore_config:
                         experiment_datastore_config[default_key]=default_value
                                 
@@ -514,7 +514,7 @@ class ioServer(object):
         #built device list and config from initial yaml config settings
         try:
             for iodevice in config.get('monitor_devices',()):
-                for device_class_name,deviceConfig in iodevice.iteritems():
+                for device_class_name,deviceConfig in iodevice.items():
                     #print2err("======================================================")
                     #print2err("Started load process for: {0}".format(device_class_name))
                     self.createNewMonitoredDevice(device_class_name,deviceConfig)
@@ -528,7 +528,7 @@ class ioServer(object):
         try:
             for d in self.devices:
                 if d.__class__.__name__ == "EventPublisher":
-                    monitored_event_ids=d._event_listeners.keys()
+                    monitored_event_ids=list(d._event_listeners.keys())
                     for eid in monitored_event_ids:
                         event_device_class=EventConstants.getClass(eid).PARENT_DEVICE
                         for ed in self.devices:
@@ -536,7 +536,7 @@ class ioServer(object):
                                 ed._addEventListener(d,[eid,])
                                 break
                             
-        except Exception, e:
+        except Exception as e:
             print2err("Error PubSub Device listener association ....")
             printExceptionDetailsToStdErr()
             raise e
@@ -546,7 +546,7 @@ class ioServer(object):
         
 
     def processDeviceConfigDictionary(self,device_module_path, device_class_name, device_config_dict,default_device_config_dict):
-        for default_config_param,default_config_value in default_device_config_dict.iteritems():
+        for default_config_param,default_config_value in default_device_config_dict.items():
             if default_config_param not in device_config_dict:            
                 if isinstance(default_config_value,(dict,OrderedDict)):
                     #print2err("dict setting value in default config not in device config:\n\nparam: {0}\n\nvalue: {1}\n============= ".format(default_config_param,default_config_value ))
@@ -563,7 +563,7 @@ class ioServer(object):
     
             device_config_errors=validateDeviceConfiguration(device_module_path,device_class_name,device_config_dict)
     
-            for error_type, error_list in device_config_errors.iteritems():
+            for error_type, error_list in device_config_errors.items():
                 if len(error_list)>0:
                     device_errors=self._all_device_config_errors.get(device_module_path,{})
                     device_errors[error_type]=error_list                
@@ -757,7 +757,7 @@ class ioServer(object):
             # Complete device config verification.
             print2err("**** ERROR: DEVICE CONFIG ERRORS FOUND ! NOT LOADING DEVICE: ",device_module_path)
             device_config_errors=self._all_device_config_errors[device_module_path]
-            for error_type,errors in device_config_errors.iteritems():
+            for error_type,errors in device_config_errors.items():
                 print2err("%s count %d:"%(error_type,len(errors)))
                 for error in errors:
                     print2err("\t{0}".format(error))
@@ -832,7 +832,7 @@ class ioServer(object):
             
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
         if psychopy.iohub._DATA_STORE_AVAILABLE:
-            from datastore import ioHubpyTablesFile
+            from .datastore import ioHubpyTablesFile
             self.closeDataStoreFile()                
             self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
 
@@ -864,7 +864,7 @@ class ioServer(object):
 
 
                 filtered_events = []
-                for filter in device._filters.values():
+                for filter in list(device._filters.values()):
                     filtered_events.extend(filter._removeOutputEvents())
 
                 for i in range(len(filtered_events)):

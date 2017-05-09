@@ -1,10 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+
 
 import weakref
-import cPickle
+import pickle
 import os
 import sys
 import inspect
@@ -95,7 +95,7 @@ class _BaseTrialHandler(object):
 
         f = openOutputFile(fileName, append=False,
                            fileCollisionMethod=fileCollisionMethod)
-        cPickle.dump(self, f)
+        pickle.dump(self, f)
         f.close()
         logging.info('saved data to %s' % f.name)
 
@@ -176,10 +176,10 @@ class _BaseTrialHandler(object):
         for line in dataArray:
             for cellN, entry in enumerate(line):
                 # surround in quotes to prevent effect of delimiter
-                if delim in unicode(entry):
-                    f.write(u'"%s"' % unicode(entry))
+                if delim in str(entry):
+                    f.write('"%s"' % str(entry))
                 else:
-                    f.write(unicode(entry))
+                    f.write(str(entry))
                 if cellN < (len(line) - 1):
                     f.write(delim)
             f.write("\n")  # add an EOL at end of each line
@@ -315,7 +315,7 @@ class _BaseTrialHandler(object):
                     # if it can convert to a number (from numpy) then do it
                     val = float(entry)
                 except Exception:
-                    val = unicode(entry)
+                    val = str(entry)
                 _cell = _getExcelCellName(col=colN, row=lineN)
                 ws.cell(_cell).value = val
 
@@ -394,7 +394,7 @@ class DataHandler(dict):
         """
         if not shape:
             shape = self.dataShape
-        if not isinstance(names, basestring):
+        if not isinstance(names, str):
             # recursively call this function until we have a string
             for thisName in names:
                 self.addDataType(thisName)

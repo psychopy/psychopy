@@ -56,7 +56,7 @@ class Test_PsychoJS_from_Builder(object):
         exp.settings.params['JS libs'].val = 'remote'
         outFolder = join(self.temp_dir, 'stroopJS_remote')
         self.writeScript(exp, outFolder)
-        print("files in {}".format(outFolder))
+        print(("files in {}".format(outFolder)))
 
 
     def test_blocked(self):
@@ -68,7 +68,7 @@ class Test_PsychoJS_from_Builder(object):
         exp.settings.params['JS libs'].val = 'packaged'
         outFolder = join(self.temp_dir, 'blocked_packaged')
         self.writeScript(exp, outFolder)
-        print("files in {}".format(outFolder))
+        print(("files in {}".format(outFolder)))
 
 if __name__ == '__main__':
     cls = Test_PsychoJS_from_Builder()

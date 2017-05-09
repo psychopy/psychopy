@@ -4,7 +4,7 @@ Created on Thu May  8 10:46:41 2014
 
 @author: jon.peirce
 """
-from __future__ import print_function
+
 import pytest
 from psychopy import visual, core
 from psychopy.hardware import crs

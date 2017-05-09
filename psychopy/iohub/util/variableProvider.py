@@ -27,7 +27,7 @@ class ConditionSetProvider(object):
         self.currentConditionSetIteration=0
         self.randomize=randomize
 
-        self._provideInOrder=range(self.conditionSetCount)
+        self._provideInOrder=list(range(self.conditionSetCount))
         if self.randomize is True:
             np.random.shuffle(self._provideInOrder)
 
@@ -183,7 +183,7 @@ class ExperimentVariableProvider(object):
                 np_dtype.append((cname,'u1'))
 
         temp_rows=[]
-        for r in xrange(1,worksheet.nrows):
+        for r in range(1,worksheet.nrows):
             rowValues=[r,]
             rowValues.extend(worksheet.row_values(r))
             for i in color_column_indexes:
@@ -209,20 +209,20 @@ class ExperimentVariableProvider(object):
                 tempBlockDict[v]=self.data[self.data[:][self.blockingVariableLabel] == v]
 
         if self.practiceBlockValues is not None:
-            if isinstance(self.practiceBlockValues,(str,unicode)):
+            if isinstance(self.practiceBlockValues,str):
                 self.practiceBlockValues=[self.practiceBlockValues,]
 
 
             blockList=[]
             for pbn in self.practiceBlockValues:
-                if pbn in tempBlockDict.keys():
+                if pbn in tempBlockDict:
                     blockList.append(TrialSetProvider(tempBlockDict[pbn],self.randomizeTrials))
                     del tempBlockDict[pbn]
             self.practiceBlocks=BlockSetProvider(blockList, False)
 
 
         blockList=[]
-        for pbv in tempBlockDict.values():
+        for pbv in list(tempBlockDict.values()):
             blockList.append(TrialSetProvider(pbv,self.randomizeTrials))
         self.experimentBlocks=BlockSetProvider(blockList,self.randomizeBlocks)
 

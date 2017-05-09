@@ -9,7 +9,7 @@
 
 import os
 import shutil
-import cPickle
+import pickle
 import sys
 import codecs
 from psychopy import logging
@@ -21,8 +21,8 @@ def toFile(filename, data):
 
     simple wrapper of the cPickle module in core python
     """
-    f = open(filename, 'w')
-    cPickle.dump(data, f)
+    f = open(filename, 'wb')
+    pickle.dump(data, f)
     f.close()
 
 
@@ -32,7 +32,7 @@ def fromFile(filename):
     Simple wrapper of the cPickle module in core python
     """
     f = open(filename)
-    contents = cPickle.load(f)
+    contents = pickle.load(f)
     f.close()
     # if loading an experiment file make sure we don't save further copies
     # using __del__

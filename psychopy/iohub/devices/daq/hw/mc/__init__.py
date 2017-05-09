@@ -16,7 +16,7 @@ from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
 from .... import Computer,  ioDeviceError
 
 from ctypes import *
-from constants import *
+from .constants import *
 
 currentSec=Computer.currentSec
 
@@ -63,19 +63,19 @@ class AnalogInput(AnalogInputDevice):
         self.device_number=c_int(self.device_number)
         
         if self.model_name not in self._SUPPORTED_MODELS:
-            print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(self._SUPPORTED_MODELS.keys()),))
+            print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(list(self._SUPPORTED_MODELS.keys())),))
             raise ioDeviceError(self,"AnalogInput Model not supported: %s"%(self.model_name))
 
         if self.model_name in self._SAMPLE_BLOCK_TRANSFER_SIZE:
             self._input_sample_buffer_size=self._SAMPLE_BLOCK_TRANSFER_SIZE[self.model_name]*self.input_channel_count
         else:
-            print2err("AnalogInput Model %s has no block transfer size specified. Supported models are %s, using model_name parameter."%(self.model_name,str(self._SAMPLE_BLOCK_TRANSFER_SIZE.keys()),))
+            print2err("AnalogInput Model %s has no block transfer size specified. Supported models are %s, using model_name parameter."%(self.model_name,str(list(self._SAMPLE_BLOCK_TRANSFER_SIZE.keys())),))
             raise ioDeviceError(self,"AnalogInput Model not supported: %s"%(self.model_name))
 
         if self.gain in self._DAQ_GAIN_OPTIONS:
             self.gain=c_int(self._DAQ_GAIN_OPTIONS[self.gain])
         else:
-            print2err("AnalogInput gain value [%s] is not supported. Supported gain values are %s, using the gain parameter."%(str(self._DAQ_GAIN_OPTIONS.keys()),))
+            print2err("AnalogInput gain value [%s] is not supported. Supported gain values are %s, using the gain parameter."%(str(list(self._DAQ_GAIN_OPTIONS.keys())),))
             raise ioDeviceError(self,"AnalogInput gain not supported: %s"%(self.gain))
 
         if self.input_channel_count != 8:
@@ -119,7 +119,7 @@ class AnalogInput(AnalogInputDevice):
         # Analog Inputs 0 - 7
         starting_channel_number=c_int(0)
         ending_channel_number=c_int(self.input_channel_count-1)
-        save_channels=range(starting_channel_number.value,ending_channel_number.value+1)
+        save_channels=list(range(starting_channel_number.value,ending_channel_number.value+1))
         save_channels=tuple(save_channels)
 
         # initialize various counters and index values for use during data collection
@@ -153,7 +153,7 @@ class AnalogInput(AnalogInputDevice):
                 return dsb
 
             def zero(self):
-                for d in xrange(self.count):
+                for d in range(self.count):
                     self.indexes[d]=0
                     self.values[d]=0
                     #self.channels[d]=0
@@ -261,11 +261,11 @@ class AnalogInput(AnalogInputDevice):
                         self._last_sample_buffer_index=c_long(currentIndex)
 
                         if lastIndex>currentIndex:
-                            for v in xrange(lastIndex,self._input_sample_buffer_size):
+                            for v in range(lastIndex,self._input_sample_buffer_size):
                                 self._saveScannedEvent(logged_time,samples,v)
                             lastIndex=0
 
-                        for v in xrange(lastIndex,currentIndex):
+                        for v in range(lastIndex,currentIndex):
                                 self._saveScannedEvent(logged_time,samples,v)
         else:        
            ioHub.print2err("Error: MC DAQ not responding. Exiting...")

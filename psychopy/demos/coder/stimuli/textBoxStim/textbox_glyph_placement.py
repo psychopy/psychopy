@@ -27,7 +27,7 @@ myMouse = event.Mouse()
 # Textbox. Note that since no font_name is provided when creating the
 # textbox stim, a default font is selected by TextBox stim automatically.  
 #
-sometext=u'PRESS ANY KEY TO QUIT DEMO.'                                                        
+sometext='PRESS ANY KEY TO QUIT DEMO.'                                                        
 textbox=visual.TextBox(window=window, 
                          text=sometext,
                          bold=False,
@@ -44,13 +44,13 @@ textbox=visual.TextBox(window=window,
                          )
 
 if textbox.getDisplayedText()!=textbox.getText():
-    print '**Note: Text provided to TextBox does not fit within the TextBox bounds.'
+    print('**Note: Text provided to TextBox does not fit within the TextBox bounds.')
 
 #print textbox.getTextGridCellPlacement()
-print 'Char Index 0 glyph box:',textbox.getGlyphPositionForTextIndex(0)
-print 'Char Index 7 glyph box:',textbox.getGlyphPositionForTextIndex(7)
+print('Char Index 0 glyph box:',textbox.getGlyphPositionForTextIndex(0))
+print('Char Index 7 glyph box:',textbox.getGlyphPositionForTextIndex(7))
 disp_txt_len=len(textbox.getDisplayedText())-1
-print 'Char Index %d glyph box:'%(disp_txt_len),textbox.getGlyphPositionForTextIndex(disp_txt_len)
+print('Char Index %d glyph box:'%(disp_txt_len),textbox.getGlyphPositionForTextIndex(disp_txt_len))
 
 
 mouse_position=visual.TextBox(window=window, 

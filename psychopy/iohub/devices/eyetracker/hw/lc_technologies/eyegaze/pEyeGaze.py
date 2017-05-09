@@ -52,7 +52,7 @@ def POINTER(obj):
 
 class UserString:
     def __init__(self, seq):
-        if isinstance(seq, basestring):
+        if isinstance(seq, str):
             self.data = seq
         elif isinstance(seq, UserString):
             self.data = seq.data[:]
@@ -61,7 +61,7 @@ class UserString:
     def __str__(self): return str(self.data)
     def __repr__(self): return repr(self.data)
     def __int__(self): return int(self.data)
-    def __long__(self): return long(self.data)
+    def __long__(self): return int(self.data)
     def __float__(self): return float(self.data)
     def __complex__(self): return complex(self.data)
     def __hash__(self): return hash(self.data)
@@ -83,12 +83,12 @@ class UserString:
     def __add__(self, other):
         if isinstance(other, UserString):
             return self.__class__(self.data + other.data)
-        elif isinstance(other, basestring):
+        elif isinstance(other, str):
             return self.__class__(self.data + other)
         else:
             return self.__class__(self.data + str(other))
     def __radd__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             return self.__class__(other + self.data)
         else:
             return self.__class__(str(other) + self.data)
@@ -102,7 +102,7 @@ class UserString:
     def capitalize(self): return self.__class__(self.data.capitalize())
     def center(self, width, *args):
         return self.__class__(self.data.center(width, *args))
-    def count(self, sub, start=0, end=sys.maxint):
+    def count(self, sub, start=0, end=sys.maxsize):
         return self.data.count(sub, start, end)
     def decode(self, encoding=None, errors=None): # XXX improve this?
         if encoding:
@@ -120,13 +120,13 @@ class UserString:
                 return self.__class__(self.data.encode(encoding))
         else:
             return self.__class__(self.data.encode())
-    def endswith(self, suffix, start=0, end=sys.maxint):
+    def endswith(self, suffix, start=0, end=sys.maxsize):
         return self.data.endswith(suffix, start, end)
     def expandtabs(self, tabsize=8):
         return self.__class__(self.data.expandtabs(tabsize))
-    def find(self, sub, start=0, end=sys.maxint):
+    def find(self, sub, start=0, end=sys.maxsize):
         return self.data.find(sub, start, end)
-    def index(self, sub, start=0, end=sys.maxint):
+    def index(self, sub, start=0, end=sys.maxsize):
         return self.data.index(sub, start, end)
     def isalpha(self): return self.data.isalpha()
     def isalnum(self): return self.data.isalnum()
@@ -146,9 +146,9 @@ class UserString:
         return self.data.partition(sep)
     def replace(self, old, new, maxsplit=-1):
         return self.__class__(self.data.replace(old, new, maxsplit))
-    def rfind(self, sub, start=0, end=sys.maxint):
+    def rfind(self, sub, start=0, end=sys.maxsize):
         return self.data.rfind(sub, start, end)
-    def rindex(self, sub, start=0, end=sys.maxint):
+    def rindex(self, sub, start=0, end=sys.maxsize):
         return self.data.rindex(sub, start, end)
     def rjust(self, width, *args):
         return self.__class__(self.data.rjust(width, *args))
@@ -160,7 +160,7 @@ class UserString:
     def rsplit(self, sep=None, maxsplit=-1):
         return self.data.rsplit(sep, maxsplit)
     def splitlines(self, keepends=0): return self.data.splitlines(keepends)
-    def startswith(self, prefix, start=0, end=sys.maxint):
+    def startswith(self, prefix, start=0, end=sys.maxsize):
         return self.data.startswith(prefix, start, end)
     def strip(self, chars=None): return self.__class__(self.data.strip(chars))
     def swapcase(self): return self.__class__(self.data.swapcase())
@@ -203,7 +203,7 @@ class MutableString(UserString):
         start = max(start, 0); end = max(end, 0)
         if isinstance(sub, UserString):
             self.data = self.data[:start]+sub.data+self.data[end:]
-        elif isinstance(sub, basestring):
+        elif isinstance(sub, str):
             self.data = self.data[:start]+sub+self.data[end:]
         else:
             self.data =  self.data[:start]+str(sub)+self.data[end:]
@@ -215,7 +215,7 @@ class MutableString(UserString):
     def __iadd__(self, other):
         if isinstance(other, UserString):
             self.data += other.data
-        elif isinstance(other, basestring):
+        elif isinstance(other, str):
             self.data += other
         else:
             self.data += str(other)
@@ -230,7 +230,7 @@ class String(MutableString, Union):
                 ('data', c_char_p)]
 
     def __init__(self, obj=""):
-        if isinstance(obj, (str, unicode, UserString)):
+        if isinstance(obj, (str, UserString)):
             self.data = str(obj)
         else:
             self.raw = obj
@@ -380,7 +380,7 @@ class LibraryLoader(object):
                 return ctypes.CDLL(path, ctypes.RTLD_GLOBAL)
             else:
                 return ctypes.cdll.LoadLibrary(path)
-        except OSError,e:
+        except OSError as e:
             raise ImportError(e)
 
     def getpaths(self,libname):
@@ -893,7 +893,7 @@ if hasattr(_libs['lctigaze'], 'EgUpdateWindowParameters'):
     EgUpdateWindowParameters.restype = None
 
 # <input>: 328
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgWindowPixFromMonMm'):
         continue
     EgWindowPixFromMonMm = _lib.EgWindowPixFromMonMm
@@ -902,7 +902,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 333
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'MonMmFromEgWindowPix'):
         continue
     MonMmFromEgWindowPix = _lib.MonMmFromEgWindowPix
@@ -911,7 +911,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 339
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgMonitorPixFromMonMm'):
         continue
     EgMonitorPixFromMonMm = _lib.EgMonitorPixFromMonMm
@@ -920,7 +920,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 344
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'MonMmFromEgMonitorPix'):
         continue
     MonMmFromEgMonitorPix = _lib.MonMmFromEgMonitorPix
@@ -929,7 +929,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 350
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgMonitorPixFromEgWindowPix'):
         continue
     EgMonitorPixFromEgWindowPix = _lib.EgMonitorPixFromEgWindowPix
@@ -938,7 +938,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 355
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgWindowPixFromEgMonitorPix'):
         continue
     EgWindowPixFromEgMonitorPix = _lib.EgWindowPixFromEgMonitorPix
@@ -947,7 +947,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 360
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'GdsPixFromMonMm'):
         continue
     GdsPixFromMonMm = _lib.GdsPixFromMonMm
@@ -956,7 +956,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 365
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'MonMmFromGdsPix'):
         continue
     MonMmFromGdsPix = _lib.MonMmFromGdsPix
@@ -965,7 +965,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 371
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'ScaleEgMonPixFromMm'):
         continue
     ScaleEgMonPixFromMm = _lib.ScaleEgMonPixFromMm
@@ -974,7 +974,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 376
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'ScaleEgMonMmFromPix'):
         continue
     ScaleEgMonMmFromPix = _lib.ScaleEgMonMmFromPix

@@ -12,7 +12,7 @@ Important: An XInput compatible gamepad must be connected to the Windows PC
     gamepads, ensure the gamepad is turned on before you try to start the demo.
 """
 
-from __future__ import division
+
 
 from psychopy import visual, core
 from psychopy.iohub import launchHubServer, EventConstants
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     gamepad.updateCapabilitiesInformation()
     caps = gamepad.getLastReadCapabilitiesInfo()
-    print("Capabilities: " + str(caps))
+    print(("Capabilities: " + str(caps)))
 
     unit_type = display.getCoordinateType()
 
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         alignHoriz='center', alignVert='center', height=24,
         wrapWidth=display_resolution[0] * .9)
     key_presses = []
-    while not u'q' in key_presses:
+    while not 'q' in key_presses:
         # Update stim from gamepad.
         # Sticks are 3 item lists (x, y, magnitude).
         #

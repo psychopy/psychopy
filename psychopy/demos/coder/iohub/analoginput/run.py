@@ -6,7 +6,7 @@ configured in the iohub.config.yaml file in this directory.
 @author: Sol
 """
 
-from __future__ import print_function #for compatibility with python3
+ #for compatibility with python3
 from psychopy import visual
 from psychopy.iohub import OrderedDict,ioHubExperimentRuntime,EventConstants,module_directory
 
@@ -134,7 +134,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 #
                 key_values=[k.key for k in kb.getEvents(EventConstants.KEYBOARD_RELEASE)]
                 
-                if u' ' in key_values:
+                if ' ' in key_values:
                     break
             
             # Clear the screen

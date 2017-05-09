@@ -50,7 +50,7 @@ class Test_class_RatingScale(object):
         ch = ['a', 'b']
         r = RatingScale(self.win, choices=ch, precision=10, autoLog=False)
         assert r.precision == 1  # because choices
-        assert r.respKeys == map(str, range(len(ch)))
+        assert r.respKeys == list(map(str, list(range(len(ch)))))
         r = RatingScale(self.win, choices=['a'], autoLog=False)
 
         r = RatingScale(self.win, tickMarks=[1,2,3], labels=['a','b'], autoLog=False)
@@ -72,7 +72,7 @@ class Test_class_RatingScale(object):
         r = RatingScale(self.win, acceptPreText='a', acceptText='a', acceptSize=2.1, autoLog=False)
 
         r = RatingScale(self.win, leftKeys=['a'], rightKeys=['a'], autoLog=False)
-        assert r.respKeys == map(str, range(1,8))
+        assert r.respKeys == list(map(str, list(range(1,8))))
         r = RatingScale(self.win, respKeys=['a'], acceptKeys=['a'], autoLog=False)
         r = RatingScale(self.win, acceptKeys=['1'], autoLog=False)
         r = RatingScale(self.win, tickHeight=-1, autoLog=False)
@@ -242,7 +242,7 @@ class Test_class_RatingScale(object):
         r.enableRespKeys = True
         r.respKeys = ['s']
         r.allKeys = ['s']
-        r.tickFromKeyPress = {u's': 1}
+        r.tickFromKeyPress = {'s': 1}
         event._onPygletKey(symbol='s', modifiers=0, emulated=True)
         r.singleClick = True
         r.beyondMinTime = True

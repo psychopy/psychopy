@@ -4,7 +4,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import sys
 import psychopy
@@ -174,7 +174,7 @@ class PsychoPyApp(wx.App):
         if '--firstrun' in sys.argv:
             del sys.argv[sys.argv.index('--firstrun')]
             self.firstRun = True
-        if 'lastVersion' not in self.prefs.appData.keys():
+        if 'lastVersion' not in list(self.prefs.appData.keys()):
             # must be before 1.74.00
             last = self.prefs.appData['lastVersion'] = '1.73.04'
             self.firstRun = True
@@ -204,7 +204,7 @@ class PsychoPyApp(wx.App):
             scripts = self.prefs.appData['coder']['prevFiles']
         else:
             scripts = []
-        appKeys = self.prefs.appData['builder'].keys()
+        appKeys = list(self.prefs.appData['builder'].keys())
         if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in appKeys):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
@@ -248,7 +248,7 @@ class PsychoPyApp(wx.App):
             # Font.Larger is available since wyPython version 2.9.1
             # PsychoPy still supports 2.8 (see ensureMinimal above)
             self._mainFont = self._mainFont.Larger()
-        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
         self._codeFont.SetPointSize(
             self._mainFont.GetPointSize())  # unify font size
@@ -307,13 +307,13 @@ class PsychoPyApp(wx.App):
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
-        if wx.version() >= '3.0' and sys.platform == 'darwin':
-            _Showgui_Hack()  # returns ~immediately, no display
-            # focus stays in never-land, so bring back to the app:
-            if mainFrame in ['both', 'builder']:
-                self.showBuilder()
-            else:
-                self.showCoder()
+        # if wx.version() >= '3.0' and sys.platform == 'darwin':
+        #     _Showgui_Hack()  # returns ~immediately, no display
+        #     # focus stays in never-land, so bring back to the app:
+        #     if mainFrame in ['both', 'builder']:
+        #         self.showBuilder()
+        #     else:
+        #         self.showCoder()
 
         return True
 
@@ -350,7 +350,7 @@ class PsychoPyApp(wx.App):
         names = gui.fileOpenDlg(allowed='*.psydat', prompt=prompt)
         for name in names or []:
             filePsydat = os.path.abspath(name)
-            print("psydat: {0}".format(filePsydat))
+            print(("psydat: {0}".format(filePsydat)))
 
             exp = fromFile(filePsydat)
             if filePsydat.endswith('.psydat'):
@@ -359,7 +359,7 @@ class PsychoPyApp(wx.App):
                 fileCsv = filePsydat
             fileCsv += '.csv'
             exp.saveAsWideText(fileCsv)
-            print('   -->: {0}'.format(os.path.abspath(fileCsv)))
+            print(('   -->: {0}'.format(os.path.abspath(fileCsv))))
 
     def checkUpdates(self, evt):
         # if we have internet and haven't yet checked for updates then do so
@@ -409,7 +409,7 @@ class PsychoPyApp(wx.App):
         keyCodesDict[self.keys['quit']] = wx.ID_EXIT
         # parse the key strings and convert to accelerator entries
         entries = []
-        for keyStr, code in keyCodesDict.items():
+        for keyStr, code in list(keyCodesDict.items()):
             mods, key = parseStr(keyStr)
             entry = wx.AcceleratorEntry(mods, key, code)
             entries.append(entry)
@@ -495,8 +495,8 @@ class PsychoPyApp(wx.App):
                 if dlg.ShowModal() == wx.ID_OK:
                     data = dlg.GetColourData()
                     rgb = data.GetColour().Get()
-                    rgb = map(lambda x: "%.3f" %
-                              ((x - 127.5) / 127.5), list(rgb))
+                    rgb = ["%.3f" %
+                              ((x - 127.5) / 127.5) for x in list(rgb)]
                     rgb = '[' + ','.join(rgb) + ']'
                     # http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
                     if wx.TheClipboard.Open():
@@ -634,7 +634,7 @@ class PsychoPyApp(wx.App):
         info.AddDeveloper('Jonathan Peirce')
         info.AddDeveloper('Jeremy Gray')
         info.AddDeveloper('Sol Simpson')
-        info.AddDeveloper(u'Jonas Lindel\xF8v')
+        info.AddDeveloper('Jonas Lindel\xF8v')
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Erik Kastman')
         info.AddDeveloper('Michael MacAskill')

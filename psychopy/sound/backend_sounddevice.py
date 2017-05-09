@@ -89,7 +89,7 @@ class _StreamsDict(dict):
         label = getStreamLabel(sampleRate, channels, blockSize)
         # replace -1 with any regex integer
         simil = re.compile(label.replace("-1", r"[-+]?(\d+)"))  # I hate REGEX!
-        for thisFormat in self.keys():
+        for thisFormat in list(self.keys()):
             if simil.match(thisFormat):  # we found a close-enough match
                 return thisFormat, self[thisFormat]
         # if we've been given values in each place then create stream
@@ -103,14 +103,14 @@ class _StreamsDict(dict):
         """
         label = getStreamLabel(sampleRate, channels, blockSize)
         # try to retrieve existing stream of that name
-        if label in self.keys():
+        if label in list(self.keys()):
             pass
         # on some systems more than one stream isn't supported so check
         elif sys.platform == 'win32' and len(self):
             raise exceptions.SoundFormatError(
                 "Tried to create audio stream {} but {} already exists "
                 "and {} doesn't support multiple portaudio streams"
-                .format(label, self.keys()[0], sys.platform)
+                .format(label, list(self.keys())[0], sys.platform)
                 )
         else:
             # create new stream
@@ -140,7 +140,7 @@ class _SoundStream(object):
         self.sounds = []  # list of dicts for sounds currently playing
         self.takeTimeStamp = False
         self.frameN = 1
-        self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
+        self.frameTimes = list(range(5))  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
             self._sdStream = sd.OutputStream(samplerate=sampleRate,
                                              blocksize=self.blockSize,

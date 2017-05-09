@@ -7,7 +7,7 @@ Demo for iohub keyboard
 Displays information from ioHub Keyboard Events vs. psychopy.event.geKeys().
 """
 
-from __future__ import division
+
 
 from psychopy import core, visual, event
 from psychopy.iohub import launchHubServer
@@ -41,78 +41,78 @@ TEXT_ROWS_START_Y = dh - MARGIN
 
 # field labels:
 title_label = visual.TextStim(win, units=unit_type,
-    text=u'Press and Releases Keys for ioHub KB Event Details',
+    text='Press and Releases Keys for ioHub KB Event Details',
     pos=[0, TEXT_ROWS_START_Y],
     height=TEXT_STIM_HEIGHT,
     color='black', wrapWidth=dw * 2)
 title2_label = visual.TextStim(win, units=unit_type,
-    text=u'Press "Q" Key to Exit Demo',
+    text='Press "Q" Key to Exit Demo',
     pos=[0, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT],
     height=TEXT_STIM_HEIGHT,
     color=[0.25, 0.2, 1],
     alignHoriz='center',
     alignVert='top',
     wrapWidth=dw * 2)
-key_text_label = visual.TextStim(win, units=unit_type, text=u'event.key:',
+key_text_label = visual.TextStim(win, units=unit_type, text='event.key:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 2],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-char_label = visual.TextStim(win, units=unit_type, text=u'event.char:',
+char_label = visual.TextStim(win, units=unit_type, text='event.char:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 3],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 modifiers_label = visual.TextStim(win, units=unit_type,
-    text=u'event.modifiers',
+    text='event.modifiers',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 4],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 keypress_duration_label = visual.TextStim(win, units=unit_type,
-    text=u'Last Pressed Duration:',
+    text='Last Pressed Duration:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 5],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 all_pressed__label = visual.TextStim(win, units=unit_type,
-    text=u'All Pressed Keys:',
+    text='All Pressed Keys:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 6],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 event_type_label = visual.TextStim(win, units=unit_type,
-    text=u'Last Event Type:',
+    text='Last Event Type:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 7],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 psychopy_key_label = visual.TextStim(win, units=unit_type,
-    text=u'event.getKeys():',
+    text='event.getKeys():',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 8],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 
 # Dynamic stim:
-key_text_stim = visual.TextStim(win, units=unit_type, text=u'',
+key_text_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 2],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-char_stim = visual.TextStim(win, units=unit_type, text=u'',
+char_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 3],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-modifiers_stim = visual.TextStim(win, units=unit_type, text=u'',
+modifiers_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 4],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-keypress_duration_stim = visual.TextStim(win, units=unit_type, text=u'',
+keypress_duration_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 5],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-all_pressed_stim = visual.TextStim(win, units=unit_type, text=u'',
+all_pressed_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 6],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-event_type_stim = visual.TextStim(win, units=unit_type, text=u'',
+event_type_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 7],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-psychopy_key_stim = visual.TextStim(win, units=unit_type, text=u'',
+psychopy_key_stim = visual.TextStim(win, units=unit_type, text='',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 8],
     color='black', alignHoriz='left',
     height=TEXT_STIM_HEIGHT,  wrapWidth=dw * 2)
@@ -157,7 +157,7 @@ while not 'q' in events and flip_time - demo_timeout_start < 15.0:
             psychopy_key_stim.text = ''
 
         modifiers_stim.text = str(kbe.modifiers)
-        all_pressed_stim.text = str(keyboard.state.keys())
+        all_pressed_stim.text = str(list(keyboard.state.keys()))
 
         if kbe.type == "KEYBOARD_PRESS":
             keypress_duration_stim.text = ''

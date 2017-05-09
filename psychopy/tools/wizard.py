@@ -105,7 +105,7 @@ class BaseWizard(object):
                     'configuration test (of %.1fG total)')
                 msg = txt % (totalRAM / 1024.)
                 warn = True
-            report.append(('available memory', unicode(freeRAM) + 'M',
+            report.append(('available memory', str(freeRAM) + 'M',
                            msg, warn))
 
         # ----- PSYCHOPY: -----
@@ -205,7 +205,7 @@ class BaseWizard(object):
         win.recordFrameIntervals = True
         win.frameIntervals = []
         win.flip()
-        for i in xrange(180):
+        for i in range(180):
             dots100.draw()
             win.flip()
         msg = _translate(
@@ -288,7 +288,7 @@ class BaseWizard(object):
         if not self.prefs.connections['proxy'].strip():
             prx = '&nbsp;&nbsp;--'
         else:
-            prx = unicode(self.prefs.connections['proxy'])
+            prx = str(self.prefs.connections['proxy'])
         report.append(('proxy setting', prx,
                        _translate('current manual proxy setting from <a '
                                   'href="http://www.psychopy.org/general/'
@@ -355,14 +355,14 @@ class BaseWizard(object):
             config[item[0]] = [item[1], item[2], item[3]]  # [3] = warn or not
         green = '#009933'
         red = '#CC3300'
-        check = u"\u2713   "
+        check = "\u2713   "
         summary = [(check + _translate('video card drivers'), green)]
         ofInterest = ('python version', 'available memory', 'openGL version',
                       'visual sync (refresh)', 'refresh stability (SD)',
                       'no dropped frames', 'internet access')
         # ofInterest.append('background processes')
         for item in ofInterest:
-            if not item in config.keys():
+            if not item in list(config.keys()):
                 continue  # eg, microphone latency
             if config[item][2]:  # warn True
                 summary.append(("X   " + _translate(item), red))
@@ -380,7 +380,7 @@ class BaseWizard(object):
 
         imgfile = os.path.join(self.prefs.paths['resources'],
                                'psychopySplash.png')
-        _head = (u'<html><head><meta http-equiv="Content-Type" '
+        _head = ('<html><head><meta http-equiv="Content-Type" '
                  'content="text/html; charset=utf-8"></head><body>' +
                  '<a href="http://www.psychopy.org"><img src="%s" '
                  'width=396 height=156></a>')
@@ -753,10 +753,10 @@ class BenchmarkWizard(BaseWizard):
 
         # baseline frames per second:
         if not baseline:
-            for i in xrange(5):
+            for i in range(5):
                 win.flip()  # wake things up
             win.fps()  # reset
-            for i in xrange(60):
+            for i in range(60):
                 win.flip()
             baseline = round(win.fps())
         maxFrame = round(baseline * secs)

@@ -6,7 +6,7 @@
    `ioLab python library <http://github.com/ioLab/python-ioLabs>`_.
 """
 
-from __future__ import division
+
 
 try:
     from labjack import u3

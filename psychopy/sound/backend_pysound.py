@@ -1,5 +1,5 @@
 
-from __future__ import division
+
 
 from psychopy import logging, exceptions
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,

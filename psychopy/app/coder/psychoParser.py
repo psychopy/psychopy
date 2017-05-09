@@ -50,13 +50,13 @@ def getTokensAndImports(buffer):
                     prevTok = prevTok.prev
 
             # do we have that token already?
-            if defineStr in definedTokens.keys():
+            if defineStr in definedTokens:
                 continue
             else:
                 # try to identify what new token =
                 definingStr = ''
                 while True:  # fetch the name of the object being defined
-                    nextTok = gen.next()
+                    nextTok = next(gen)
                     if nextTok[0] != 1 and nextTok[1] != '.':
                         break  # we have the full name
                     else:

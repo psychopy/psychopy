@@ -102,19 +102,19 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                     else:
                         if wordActual!=wordCorrect:
                             print('actual:')
-                            print(repr(txtActual[lineN]))
+                            print((repr(txtActual[lineN])))
                             print(lineActual)
                             print('expected:')
-                            print(repr(txtCorrect[lineN]))
+                            print((repr(txtCorrect[lineN])))
                             print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
-    except AssertionError, err:
+    except AssertionError as err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
-        print("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
-        raise AssertionError, err
+        print(("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal))
+        raise AssertionError(err)
 
 def compareXlsxFiles(pathToActual, pathToCorrect):
     from openpyxl.reader.excel import load_workbook
@@ -125,7 +125,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
 
     for wsN, expWS in enumerate(expBook.worksheets):
         actWS = actBook.worksheets[wsN]
-        for key, expVal in expWS._cells.items():
+        for key, expVal in list(expWS._cells.items()):
             actVal = actWS._cells[key].value
             expVal = expVal.value
             # intercept lists-of-floats, which might mismatch by rounding error
@@ -161,7 +161,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
-        raise IOError, error
+        raise IOError(error)
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 

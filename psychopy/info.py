@@ -9,7 +9,7 @@ the context in which an experiment was run.
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+
 
 import sys
 import os
@@ -329,7 +329,7 @@ class RunTimeInfo(dict):
                 # requires pyo svn r1024 or higher:
                 inp, out = pyo.pa_get_devices_infos()
                 for devList in [inp, out]:
-                    for key in devList.keys():
+                    for key in devList:
                         if isinstance(devList[key]['name'], str):
                             devList[key]['name'] = devList[
                                 key]['name'].decode(osEncoding)
@@ -564,8 +564,8 @@ class RunTimeInfo(dict):
                     'System', 'Window', 'Python', 'OpenGL']
         for sect in sections:
             info += '  #[[ %s ]] #---------\n' % (sect)
-            sectKeys = [k for k in self.keys(
-            ) if k.lower().find(sect.lower()) == 0]
+            sectKeys = [k for k in list(self.keys(
+            )) if k.lower().find(sect.lower()) == 0]
             # get keys for items matching this section label;
             #  use reverse-alpha order if easier to read:
             revSet = ('PsychoPy', 'Window', 'Python', 'OpenGL')

@@ -40,12 +40,12 @@ def displayDataFileSelectionDialog(starting_dir=None):
     status,filePathList=fdlg.show()
 
     if status != FileDialog.OK_RESULT:
-        print " Data File Selection Cancelled."
+        print(" Data File Selection Cancelled.")
         return None
 
     return filePathList[0]
 
-def displayEventTableSelectionDialog(title, list_label, list_values, default=u'Select'):
+def displayEventTableSelectionDialog(title, list_label, list_values, default='Select'):
     if default not in list_values:
         list_values.insert(0,default)
     else:
@@ -58,14 +58,14 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
     if not infoDlg.OK:
         return None
 
-    while dlg_info.values()[0] ==default and infoDlg.OK:
+    while list(dlg_info.values())[0] ==default and infoDlg.OK:
             dlg_info=dict(selection_dict)
             infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
 
     if not infoDlg.OK:
         return None
 
-    return dlg_info.values()[0]
+    return list(dlg_info.values())[0]
 ########### Experiment / Experiment Session Based Data Access #################
 
 class ExperimentDataAccessUtility(object):
@@ -121,7 +121,7 @@ class ExperimentDataAccessUtility(object):
         try:
             self.hdfFile=openHubFile(hdfFilePath,hdfFileName,mode)
         except Exception as e:
-            print e
+            print(e)
             raise ExperimentDataAccessException(e)
 
         self.getExperimentMetaData()
@@ -140,15 +140,15 @@ class ExperimentDataAccessUtility(object):
             for group in hubFile.walkGroups("/"):
                 for table in hubFile.listNodes(group, classname='Table'):
                     if table.name == tableName:
-                        print '------------------'
-                        print "Path:", table
-                        print "Table name:", table.name
-                        print "Number of rows in table:", table.nrows
-                        print "Number of cols in table:", len(table.colnames)
-                        print "Attribute name := type, shape:"
+                        print('------------------')
+                        print("Path:", table)
+                        print("Table name:", table.name)
+                        print("Number of rows in table:", table.nrows)
+                        print("Number of cols in table:", len(table.colnames))
+                        print("Attribute name := type, shape:")
                         for name in table.colnames:
-                            print '\t',name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape)
-                        print '------------------'
+                            print('\t',name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape))
+                        print('------------------')
                         return
 
     def printHubFileStructure(self):
@@ -156,7 +156,7 @@ class ExperimentDataAccessUtility(object):
         Print to stdout the current global structure of the loaded DataStore File.
         """
         if self.hdfFile:
-            print self.hdfFile
+            print(self.hdfFile)
 
     def getExperimentMetaData(self):
         """
@@ -215,7 +215,7 @@ class ExperimentDataAccessUtility(object):
             event_column=None
             event_value=None
 
-            if isinstance(event_type,basestring):
+            if isinstance(event_type,str):
                 if event_type.find('Event')>=0:
                     event_column='class_name'
                     event_value=event_type
@@ -226,7 +226,7 @@ class ExperimentDataAccessUtility(object):
                         event_value+=t[0].upper()+t[1:].lower()
                     event_value=event_type+'Event'
                 event_value='"%s"'%(event_value)
-            elif isinstance(event_type,(int,long)):
+            elif isinstance(event_type,int):
                 event_column='class_id'
                 event_value=event_type
             else:
@@ -266,12 +266,12 @@ class ExperimentDataAccessUtility(object):
         eventTableMappings=self.getEventMappingInformation()
         if eventTableMappings:
             events_by_type=dict()
-            for event_type_id,event_mapping_info in eventTableMappings.iteritems():
+            for event_type_id,event_mapping_info in eventTableMappings.items():
                 try:
                     cond="(type == %d)"%(event_type_id)
                     if condition_str:
                         cond+=" & "+condition_str
-                    events_by_type[event_type_id]= self.hdfFile.getNode(event_mapping_info.table_path).where(cond).next()
+                    events_by_type[event_type_id]= next(self.hdfFile.getNode(event_mapping_info.table_path).where(cond))
                 except StopIteration:
                     pass
             return events_by_type
@@ -300,7 +300,7 @@ class ExperimentDataAccessUtility(object):
 
         ConditionSetInstance=None
 
-        for conditionVarName, conditionVarComparitor in filter.iteritems():
+        for conditionVarName, conditionVarComparitor in filter.items():
             avComparison, value = conditionVarComparitor
 
             cv_group=self.hdfFile.root.data_collection.condition_variables
@@ -313,7 +313,7 @@ class ExperimentDataAccessUtility(object):
                     colnam=ecvTable.colnames
                     ConditionSetInstance = namedtuple('ConditionSetInstance', colnam)
 
-                cvrows.extend([ConditionSetInstance(*r[:]) for r in ecvTable if all([eval("{0} {1} {2}".format(r[conditionVarName],conditionVarComparitor[0],conditionVarComparitor[1])) for conditionVarName, conditionVarComparitor in filter.iteritems()])])
+                cvrows.extend([ConditionSetInstance(*r[:]) for r in ecvTable if all([eval("{0} {1} {2}".format(r[conditionVarName],conditionVarComparitor[0],conditionVarComparitor[1])) for conditionVarName, conditionVarComparitor in filter.items()])])
         return cvrows
 
     def getValuesForVariables(self,cv, value, cvNames):
@@ -324,17 +324,17 @@ class ExperimentDataAccessUtility(object):
         if isinstance(value,(list,tuple)):
             resolvedValues=[]
             for v in value:
-                if isinstance(value,basestring) and value.startswith('@') and value.endswith('@'):
+                if isinstance(value,str) and value.startswith('@') and value.endswith('@'):
                     value=value[1:-1]
                     if value in cvNames:
                         resolvedValues.append(getattr(cv,v))
                     else:
                         raise ExperimentDataAccessException("getEventAttributeValues: {0} is not a valid attribute name in {1}".format(v,cvNames))
                         return None
-                elif isinstance(value,basestring):
+                elif isinstance(value,str):
                     resolvedValues.append(value)
             return resolvedValues
-        elif isinstance(value,basestring) and value.startswith('@') and value.endswith('@'):
+        elif isinstance(value,str) and value.startswith('@') and value.endswith('@'):
             value=value[1:-1]
             if value in cvNames:
                 return getattr(cv,value)
@@ -430,7 +430,7 @@ class ExperimentDataAccessUtility(object):
                     # start Conditions need to be added to where clause
                     if startConditions is not None:
                         wclause += "& ("
-                        for conditionAttributeName, conditionAttributeComparitor in startConditions.iteritems():
+                        for conditionAttributeName, conditionAttributeComparitor in startConditions.items():
                             avComparison,value=conditionAttributeComparitor
                             value=self.getValuesForVariables(cv,value, cvNames)
                             wclause += " ( {0} {1} {2} ) & ".format(conditionAttributeName,avComparison,value)
@@ -440,7 +440,7 @@ class ExperimentDataAccessUtility(object):
                     # end Conditions need to be added to where clause
                     if endConditions is not None:
                         wclause += " & ("
-                        for conditionAttributeName, conditionAttributeComparitor in endConditions.iteritems():
+                        for conditionAttributeName, conditionAttributeComparitor in endConditions.items():
                             avComparison,value=conditionAttributeComparitor
                             value=self.getValuesForVariables(cv,value, cvNames)
                             wclause += " ( {0} {1} {2} ) & ".format(conditionAttributeName,avComparison,value)

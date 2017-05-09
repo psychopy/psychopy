@@ -67,14 +67,14 @@ for t,trial in enumerate(trials):
         key_events=kb.getEvents(event_type_id=EventConstants.KEYBOARD_RELEASE)
         
         for ke in key_events:
-            if ke.key in key_mapping.keys():
+            if ke.key in key_mapping.keys:
                 key_pressed=ke
                 break
             elif ke.key == 'ESCAPE':
                 break
     
     if key_pressed is None:
-        print "Experiment Terminated By User"
+        print("Experiment Terminated By User")
         io.quit()
         core.quit()
         import sys
@@ -91,11 +91,11 @@ for t,trial in enumerate(trials):
     trial['TRIAL_START']=tstart_flip_time
     trial['TRIAL_END']=tend_flip_time
     
-    for k,v in trial.iteritems():        
-        print k,v,type(v)
-    print '---'        
+    for k,v in trial.items():        
+        print(k,v,type(v))
+    print('---')        
     io.sendMessageEvent(category='EXP',text='TRIAL_END',sec_time=tend_flip_time)
-    io.addRowToConditionVariableTable(trial.values())
+    io.addRowToConditionVariableTable(list(trial.values()))
          
 win.close()    
 io.quit()

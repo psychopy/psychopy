@@ -11,7 +11,7 @@ RBGA object.`"""
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-from __future__ import division
+
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
@@ -28,7 +28,7 @@ from psychopy.visual.image import ImageStim
 try:
     from PIL import Image
 except ImportError:
-    import Image
+    from . import Image
 
 import numpy
 

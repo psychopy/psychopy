@@ -418,7 +418,7 @@ def demo():
     tActual = None
     while tActual is None:
         sys.stdout.write('Specify true threshold of simulated observer: ')
-        input = raw_input()
+        input = input()
         try:
             tActual = float(input)
         except Exception:
@@ -427,7 +427,7 @@ def demo():
     tGuess = None
     while tGuess is None:
         sys.stdout.write('Estimate threshold: ')
-        input = raw_input()
+        input = input()
         try:
             tGuess = float(input)
         except Exception:
@@ -455,26 +455,26 @@ def demo():
         # Simulate a trial
         timeSplit=time.time(); # omit simulation and printing from reported time/trial.
         response=q.simulate(tTest,tActual)
-        print('Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)]))
+        print(('Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)])))
         timeZero=timeZero+time.time()-timeSplit;
         
         # Update the pdf
         q.update(tTest,response);
 
     # Print results of timing.
-    print('%.0f ms/trial'%(1000*(time.time()-timeZero)/trialsDesired))
+    print(('%.0f ms/trial'%(1000*(time.time()-timeZero)/trialsDesired)))
 
     # Get final estimate.
     t=q.mean()
     sd=q.sd()
-    print('Mean threshold estimate is %4.2f +/- %.2f'%(t,sd))
+    print(('Mean threshold estimate is %4.2f +/- %.2f'%(t,sd)))
     #t=QuestMode(q);
     #print('Mode threshold estimate is %4.2f'%t)
     print('\nQuest beta analysis. Beta controls the steepness of the Weibull function.\n')
     q.beta_analysis()
     print('Actual parameters of simulated observer:')
     print('logC	beta	gamma')
-    print('%5.2f	%4.1f	%5.2f'%(tActual,q.beta,q.gamma))
+    print(('%5.2f	%4.1f	%5.2f'%(tActual,q.beta,q.gamma)))
     
 if __name__ == '__main__':
     demo() # run the demo

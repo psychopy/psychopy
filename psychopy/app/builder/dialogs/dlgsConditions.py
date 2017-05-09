@@ -8,11 +8,11 @@
 """Conditions-file preview and mini-editor for the Builder
 """
 
-from __future__ import absolute_import, print_function, division
+
 
 import os
 import sys
-import cPickle
+import pickle
 import wx
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 
@@ -91,14 +91,14 @@ class DlgConditions(wx.Dialog):
         if grid and type(grid) == list and type(grid[0]) == dict:
             conditions = grid[:]
             numCond, numParam = len(conditions), len(conditions[0])
-            grid = [conditions[0].keys()]
-            for i in xrange(numCond):
-                row = conditions[i].values()
+            grid = [list(conditions[0].keys())]
+            for i in range(numCond):
+                row = list(conditions[i].values())
                 grid.append(row)
             hasHeader = True  # keys of a dict are the header
         # ensure a sensible grid, or provide a basic default:
         if not grid or not len(grid) or not len(grid[0]):
-            grid = [[self.colName(0)], [u'']]
+            grid = [[self.colName(0)], ['']]
             hasHeader = True
             extraRows += 5
             extraCols += 3
@@ -133,7 +133,7 @@ class DlgConditions(wx.Dialog):
         longest = max([len(r) for r in self.grid]) + extraCols
         for row in self.grid:
             for i in range(len(row), longest):
-                row.append(u'')  # None
+                row.append('')  # None
         # self.header <== row of input param name fields
         self.hasHeader = bool(hasHeader)
         self.rows = min(len(self.grid), 30)  # max 30 rows displayed
@@ -149,10 +149,9 @@ class DlgConditions(wx.Dialog):
         # set length of input box as the longest in the column (bounded):
         self.colSizes = []
         for x in range(self.cols):
-            _size = [len(unicode(self.grid[y][x])) for y in range(self.rows)]
+            _size = [len(str(self.grid[y][x])) for y in range(self.rows)]
             self.colSizes.append(max([4] + _size))
-        self.colSizes = map(lambda x: min(20, max(10, x + 1)) * 8 + 30,
-                            self.colSizes)
+        self.colSizes = [min(20, max(10, x + 1)) * 8 + 30 for x in self.colSizes]
         self.inputTypes = []  # explicit, as selected by user
         self.inputFields = []  # values in fields
         self.data = []
@@ -199,7 +198,7 @@ class DlgConditions(wx.Dialog):
         for row in range(int(self.hasHeader), self.rows):
             self.addRow(row)
         for r in range(extraRows):
-            self.grid.append([u'' for i in range(self.cols)])
+            self.grid.append(['' for i in range(self.cols)])
             self.rows = len(self.grid)
             self.addRow(self.rows - 1)
         # show the GUI:
@@ -235,10 +234,10 @@ class DlgConditions(wx.Dialog):
         lastRow = []
         for col in range(self.cols):
             # get the item, as unicode for display purposes:
-            if len(unicode(self.grid[row][col])):  # want 0, for example
-                item = unicode(self.grid[row][col])
+            if len(str(self.grid[row][col])):  # want 0, for example
+                item = str(self.grid[row][col])
             else:
-                item = u''
+                item = ''
             # make a textbox:
             field = ExpandoTextCtrl(
                 self, -1, item, size=(self.colSizes[col], 20))
@@ -309,7 +308,7 @@ class DlgConditions(wx.Dialog):
     def userAddRow(self, event=None):
         """handle user request to add another row: add to the FlexGridSizer
         """
-        self.grid.append([u''] * self.cols)
+        self.grid.append([''] * self.cols)
         self.rows = len(self.grid)
         self.addRow(self.rows - 1)
         self.tmpMsg.SetLabel('')
@@ -418,10 +417,10 @@ class DlgConditions(wx.Dialog):
                     elif thisType in ['file']:
                         exec("lastRow.append(repr(" + thisVal + "))")
                     else:
-                        exec("lastRow.append(" + unicode(thisVal) + ')')
+                        exec("lastRow.append(" + str(thisVal) + ')')
                 except ValueError as msg:
                     print('ValueError:', msg, '; using unicode')
-                    exec("lastRow.append(" + unicode(thisVal) + ')')
+                    exec("lastRow.append(" + str(thisVal) + ')')
                 except NameError as msg:
                     print('NameError:', msg, '; using unicode')
                     exec("lastRow.append(" + repr(thisVal) + ')')
@@ -598,7 +597,7 @@ class DlgConditions(wx.Dialog):
             if not fullPath.endswith('.pkl'):
                 fullPath += '.pkl'
             f = open(fullPath, 'w')
-            cPickle.dump(self.data, f)
+            pickle.dump(self.data, f)
             f.close()
             self.fileName = fullPath
             self.newFile = False
@@ -620,7 +619,7 @@ class DlgConditions(wx.Dialog):
                 fileName = fullPathList[0]  # wx.MULTIPLE -> list
         if os.path.isfile(fileName) and fileName.endswith('.pkl'):
             f = open(fileName)
-            contents = cPickle.load(f)
+            contents = pickle.load(f)
             f.close()
             if self.parent:
                 self.parent.conditionsFile = fileName

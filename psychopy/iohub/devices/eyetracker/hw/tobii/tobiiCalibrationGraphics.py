@@ -14,7 +14,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 import psychopy
 from psychopy import visual
 import gevent
-import time, Queue
+import time, queue
 import copy
 import numpy as np
 
@@ -50,7 +50,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.height=self.screenSize[1]
         self._ioKeyboard=None
 
-        self._msg_queue=Queue.Queue()
+        self._msg_queue=queue.Queue()
         self._lastCalibrationOK=False
         self._lastCalibrationReturnCode=0
         self._lastCalibration=None
@@ -134,10 +134,10 @@ class TobiiPsychopyCalibrationGraphics(object):
         event=copy.deepcopy(ioe)
         event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
         if event[event_type_index] == EventConstants.KEYBOARD_RELEASE:
-            if event[self._keyboard_key_index] == u' ':
+            if event[self._keyboard_key_index] == ' ':
                 self._msg_queue.put("SPACE_KEY_ACTION")
                 self.clearAllEventBuffers()
-            elif event[self._keyboard_key_index] == u'escape':
+            elif event[self._keyboard_key_index] == 'escape':
                 self._msg_queue.put("QUIT")
                 self.clearAllEventBuffers()
 
@@ -156,7 +156,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             msg=self._msg_queue.get(block=True,timeout=0.02)
             self._msg_queue.task_done()
             return msg
-        except Queue.Empty:
+        except queue.Empty:
             pass
 
     def _createStim(self):         
@@ -399,7 +399,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                     cal_data_dict[target_pos].append((left_eye_data,right_eye_data))
     
                 cal_stats=dict()
-                for (targ_x,targ_y),eye_cal_result_list in cal_data_dict.iteritems():
+                for (targ_x,targ_y),eye_cal_result_list in cal_data_dict.items():
                     left_stats=dict(pos_sample_count=0,invalid_sample_count=0,avg_err=0.0,min_err=100000.0,max_err=0.0)
                     right_stats=dict(pos_sample_count=0,invalid_sample_count=0,avg_err=0.0,min_err=100000.0,max_err=0.0)
                     
@@ -504,7 +504,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                     self.feedback_resources[marker_names[i]].setOpacity(0.0)
     
             self.textLineStim.draw()
-            [r.draw() for r in self.feedback_resources.values()]
+            [r.draw() for r in list(self.feedback_resources.values())]
             self.window.flip()
                  
             msg=self.getNextMsg()
@@ -584,7 +584,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         num_retraces=sec_dur/self._eyetrackerinterface._display_device.getRetraceInterval()
         x_points=np.linspace(sx, ex, num=int(num_retraces))
         y_points=np.linspace(sy, ey, num=int(num_retraces))
-        t_points=zip(x_points,y_points)
+        t_points=list(zip(x_points,y_points))
         for p in t_points:
             self.calibrationPointOUTER.setPos(p)            
             self.calibrationPointINNER.setPos(p)                                    

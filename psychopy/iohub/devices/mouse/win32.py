@@ -154,7 +154,7 @@ class Mouse(MouseDevice):
                 self.activeButtons[bnum]= int(bstate==MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
 
             abuttonSum=0
-            for k,v in self.activeButtons.iteritems():
+            for k,v in self.activeButtons.items():
                 abuttonSum+=k*v
 
             event.ActiveButtons=abuttonSum

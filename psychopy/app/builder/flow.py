@@ -8,7 +8,7 @@
 """Dialog classes for the Builder
 """
 
-from __future__ import absolute_import, print_function, division
+
 
 import sys
 import re
@@ -18,6 +18,7 @@ import wx
 from wx.lib import platebtn
 import wx.aui
 import wx.stc
+import wx.adv
 
 from .. import dialogs
 from psychopy import logging, data
@@ -71,7 +72,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetScrollRate(self.dpi / 4, self.dpi / 4)
 
         # create a PseudoDC to record our drawing
-        self.pdc = wx.PseudoDC()
+        self.pdc = wx.adv.PseudoDC()
         self.pen_cache = {}
         self.brush_cache = {}
         # vars for handling mouse clicks
@@ -318,7 +319,7 @@ class FlowPanel(wx.ScrolledWindow):
         # add routine points to the timeline
         self.setDrawPoints('loops')
         self.draw()
-        if 'conditions' in loop.params.keys():
+        if 'conditions' in list(loop.params.keys()):
             condOrig = loop.params['conditions'].val
             condFileOrig = loop.params['conditionsFile'].val
         title = loop.params['name'].val + ' Properties'
@@ -349,7 +350,7 @@ class FlowPanel(wx.ScrolledWindow):
                 flow.addLoop(loop, startII, endII)
             self.frame.addToUndoStack("EDIT Loop `%s`" %
                                       (loop.params['name'].val))
-        elif 'conditions' in loop.params.keys():
+        elif 'conditions' in list(loop.params.keys()):
             loop.params['conditions'].val = condOrig
             loop.params['conditionsFile'].val = condFileOrig
         # remove the points from the timeline
@@ -520,7 +521,7 @@ class FlowPanel(wx.ScrolledWindow):
                     return  # have done the removal in final successful call
         # remove name from namespace only if it's a loop;
         # loops exist only in the flow
-        elif 'conditionsFile' in component.params.keys():
+        elif 'conditionsFile' in list(component.params.keys()):
             conditionsFile = component.params['conditionsFile'].val
             if conditionsFile and conditionsFile not in ['None', '']:
                 try:
@@ -861,7 +862,7 @@ class FlowPanel(wx.ScrolledWindow):
         name = loop.params['name'].val
         _show = self.appData['showLoopInfoInFlow']
         if _show and flowsize:
-            _cond = 'conditions' in loop.params.keys()
+            _cond = 'conditions' in list(loop.params.keys())
             if _cond and loop.params['conditions'].val:
                 xnumTrials = 'x' + str(len(loop.params['conditions'].val))
             else:

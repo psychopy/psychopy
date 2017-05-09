@@ -8,7 +8,7 @@ Note that egi pynetstation can also be used in a multi-threaded form.
 See the pynetstation documentation for further information.
 """
 
-from __future__ import division
+
 
 # Set up:
 

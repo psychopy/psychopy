@@ -197,7 +197,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
                              'state': state,
                              'time': timeSecs})
             else:
-                for n in evtChannels.keys():
+                for n in list(evtChannels.keys()):
                     if state[n] != lastState[n]:
                         if state[n] == '1':
                             evt = evtChannels[n] + "_on"
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     logging.console.setLevel(logging.DEBUG)
 
     BBTK = BlackBoxToolkit('/dev/ttyACM0')
-    print(BBTK.com)  # info about the com port that's open
+    print((BBTK.com))  # info about the com port that's open
 
     time.sleep(0.2)
     BBTK.showAbout()
@@ -244,8 +244,8 @@ if __name__ == "__main__":
     time.sleep(0.1)
     BBTK.setEventThresholds([20] * 8)
     time.sleep(2)
-    print('thresholds:', BBTK.getEventThresholds())
+    print(('thresholds:', BBTK.getEventThresholds()))
 
     BBTK.clearRAM()
     time.sleep(2)
-    print('leftovers: %s' % BBTK.com.read(BBTK.com.inWaiting()))
+    print(('leftovers: %s' % BBTK.com.read(BBTK.com.inWaiting())))

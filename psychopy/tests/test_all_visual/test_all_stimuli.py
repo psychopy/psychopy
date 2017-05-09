@@ -255,7 +255,7 @@ class _baseVisualTest(object):
         #set font
         fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
-        stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5, 1.0, 1.0], ori=15,
+        stim = visual.TextStim(win,text='\u03A8a', color=[0.5, 1.0, 1.0], ori=15,
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
             fontFiles=[fontFile])
         stim.draw()

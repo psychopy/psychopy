@@ -3,7 +3,7 @@
 # Created: 05.05.2008
 # Last Modified: 12/3/2009
 
-from __future__ import with_statement
+
 from threading import Lock
 
 from struct import pack, unpack #, unpack_from  # unpack_from is new in 2.5
