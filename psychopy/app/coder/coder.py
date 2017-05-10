@@ -34,6 +34,7 @@ from .. import stdOutRich, dialogs
 from .. import projects
 from psychopy import logging
 from ..localization import _translate
+from ..utils import FileDropTarget
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -479,24 +480,6 @@ class UnitTestFrame(wx.Frame):
         self.Destroy()
 
 
-class FileDropTarget(wx.FileDropTarget):
-    """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
-    Need this too.
-    """
-
-    def __init__(self, coder):
-        wx.FileDropTarget.__init__(self)
-        self.coder = coder
-
-    def OnDropFiles(self, x, y, filenames):
-        for filename in filenames:
-            if os.path.isfile(filename):
-                if filename.lower().endswith('.psyexp'):
-                    self.coder.app.newBuilderFrame(fileName=filename)
-                else:
-                    self.coder.setCurrentDoc(filename)
-
-
 class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
@@ -579,7 +562,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         # black-and-white text signals read-only file open in Coder window
         if not readonly:
             self.setFonts()
-        self.SetDropTarget(FileDropTarget(coder=self.coder))
+        self.SetDropTarget(FileDropTarget(targetFrame=self.coder))
 
         # set to python syntax code coloring
         self.setLexer('python')
@@ -1396,12 +1379,12 @@ class CoderFrame(wx.Frame):
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
-        self.notebook.SetDropTarget(FileDropTarget(coder=self))
+        self.notebook.SetDropTarget(FileDropTarget(targetFrame=self))
 
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.SetDropTarget(FileDropTarget(coder=self))
+        self.SetDropTarget(FileDropTarget(targetFrame=self))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
@@ -1532,7 +1515,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
         wx.EVT_MENU(self, wx.ID_SAVEAS, self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE, self.fileClose)
-        item = menu.Append(wx.ID_ANY, 
+        item = menu.Append(wx.ID_ANY,
                            _translate("Print\t%s") % keyCodes['print'])
         wx.EVT_MENU(self, item.GetId(), self.filePrint)
         msg = _translate("&Preferences\t%s")
@@ -2234,26 +2217,30 @@ class CoderFrame(wx.Frame):
         if readonly:
             self.currentDoc.SetReadOnly(True)
 
-    def fileOpen(self, event):
-        # get path of current file (empty if current file is '')
-        if hasattr(self.currentDoc, 'filename'):
-            initPath = os.path.split(self.currentDoc.filename)[0]
-        else:
-            initPath = ''
-        dlg = wx.FileDialog(
-            self, message=_translate("Open file ..."),
-            defaultDir=initPath, style=wx.OPEN
-        )
+    def fileOpen(self, event=None, filename=None):
+        if not filename:
+            # get path of current file (empty if current file is '')
+            if hasattr(self.currentDoc, 'filename'):
+                initPath = os.path.split(self.currentDoc.filename)[0]
+            else:
+                initPath = ''
+            dlg = wx.FileDialog(
+                self, message=_translate("Open file ..."),
+                defaultDir=initPath, style=wx.OPEN
+            )
 
-        if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
-            self.SetStatusText(_translate('Loading file'))
-            if os.path.isfile(newPath):
-                if newPath.lower().endswith('.psyexp'):
-                    self.app.newBuilderFrame(fileName=newPath)
-                else:
-                    self.setCurrentDoc(newPath)
-                    self.setFileModified(False)
+            if dlg.ShowModal() == wx.ID_OK:
+                filename = dlg.GetPath()
+                self.SetStatusText(_translate('Loading file'))
+            else:
+                return -1
+
+        if filename and os.path.isfile(filename):
+            if filename.lower().endswith('.psyexp'):
+                self.app.newBuilderFrame(fileName=filename)
+            else:
+                self.setCurrentDoc(filename)
+                self.setFileModified(False)
 
         self.SetStatusText('')
         # self.fileHistory.AddFileToHistory(newPath)  # this is done by

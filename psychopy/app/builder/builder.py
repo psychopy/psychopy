@@ -32,7 +32,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
 
 from .flow import FlowPanel
-from .utils import FileDropTarget, WindowFrozen
+from ..utils import FileDropTarget, WindowFrozen
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -716,7 +716,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
-        self.SetDropTarget(FileDropTarget(builder=self.frame))
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
@@ -1092,6 +1091,7 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         self.app.trackFrame(self)
+        self.SetDropTarget(FileDropTarget(targetFrame=self))
 
     def makeToolbar(self):
         # ---toolbar---#000000#FFFFFF-----------------------------------------
@@ -1310,29 +1310,29 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Coder view\t%s") % 
+                           _translate("&Open Coder view\t%s") %
                                keys['switchToCoder'],
                            _translate("Open a new Coder view"))
         wx.EVT_MENU(self, item.GetId(), self.app.showCoder)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Toggle readme\t%s") % 
+                           _translate("&Toggle readme\t%s") %
                                       self.app.keys['toggleReadme'],
                            _translate("Toggle Readme"))
         wx.EVT_MENU(self, item.GetId(), self.toggleReadme)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Flow Larger\t%s") % 
+                           _translate("&Flow Larger\t%s") %
                                       self.app.keys['largerFlow'],
                            _translate("Larger flow items"))
         wx.EVT_MENU(self, item.GetId(),
                     self.flowPanel.increaseSize)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Flow Smaller\t%s") % 
+                           _translate("&Flow Smaller\t%s") %
                                       self.app.keys['smallerFlow'],
                            _translate("Smaller flow items"))
         wx.EVT_MENU(self, item.GetId(),
                     self.flowPanel.decreaseSize)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Routine Larger\t%s") % 
+                           _translate("&Routine Larger\t%s") %
                                       keys['largerRoutine'],
                            _translate("Larger routine items"))
         wx.EVT_MENU(self, item.GetId(),
@@ -1349,13 +1349,13 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.expMenu, _translate('&Experiment'))
         menu = self.expMenu
         item = menu.Append(wx.ID_ANY,
-                           _translate("&New Routine\t%s") % 
+                           _translate("&New Routine\t%s") %
                                       keys['newRoutine'],
                            _translate("Create a new routine (e.g. the trial "
                                       "definition)"))
         wx.EVT_MENU(self, item.GetId(), self.addRoutine)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Copy Routine\t%s") % 
+                           _translate("&Copy Routine\t%s") %
                                       keys['copyRoutine'],
                            _translate("Copy the current routine so it can be "
                                       "used in another exp"),
@@ -1505,7 +1505,9 @@ class BuilderFrame(wx.Frame):
             filename = dlg.GetPath()
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
-            self.app.showCoder(fileList=[filename])
+            self.app.showCoder()  # ensures that a coder window exists
+            self.app.coder.setCurrentDoc(filename)
+            self.app.coder.setFileModified(False)
             return
         with WindowFrozen(ctrl=self):
             # try to pause rendering until all panels updated

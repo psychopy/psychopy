@@ -31,6 +31,7 @@ from .localization import _translate
 from psychopy import preferences, logging, __version__
 from . import connections
 from . import projects
+from .utils import FileDropTarget
 import os
 import threading
 import weakref
@@ -70,18 +71,18 @@ class MenuFrame(wx.Frame):
         self.SetMenuBar(self.menuBar)
         self.Show()
 
-        
+
 class IDStore(dict):
     """A simpe class that works like a dict but you can access attributes
-    like standard python attrs. Useful to replace the previous pre-made 
+    like standard python attrs. Useful to replace the previous pre-made
     app.IDs (wx.NewID() is no longer recommended or safe)
     """
     def __getattr__(self, attr):
         return self[attr]
     def __setattr__(self, attr, value):
         self[attr] = value
-        
-        
+
+
 class _Showgui_Hack(object):
     """Class with side-effect of restoring wx window switching under wx-3.0
 
@@ -431,9 +432,9 @@ class PsychoPyApp(wx.App):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
-        from psychopy.app import builder
+        from psychopy.app.builder.builder import BuilderFrame
         title = "PsychoPy2 Experiment Builder (v%s)"
-        thisFrame = builder.BuilderFrame(None, -1,
+        thisFrame = BuilderFrame(None, -1,
                                          title=title % self.version,
                                          fileName=fileName, app=self)
         thisFrame.Show(True)
@@ -465,6 +466,21 @@ class PsychoPyApp(wx.App):
     #    self.shell.Raise()
     #    self.SetTopWindow(self.shell)
     #    self.shell.SetFocus()
+
+    def OnDrop(self, x, y, files):
+        """Not clear this method ever gets called!"""
+        logging.info("Got Files")
+        print(files)
+
+    def MacOpenFile(self, files):
+        """Not clear this method ever gets called!"""
+        logging.info("Got Files")
+        print(files)
+
+    def MacReopenApp(self):
+        """Called when the doc icon is clicked, and ???"""
+        self.GetTopWindow().Raise()
+        print(files)
 
     def openIPythonNotebook(self, event=None):
         """Note that right now this is bad because it ceases all activity in
