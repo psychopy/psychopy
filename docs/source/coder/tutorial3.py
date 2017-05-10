@@ -34,7 +34,7 @@ for fileN, thisStair in enumerate(allIntensities):
 combinedInten, combinedResp, combinedN = \
              data.functionFromStaircase(allIntensities, allResponses, 5)
 #fit curve - in this case using a Weibull function
-fit = data.FitFunction('weibullTAFC',combinedInten, combinedResp, \
+fit = data.FitLogistic('weibullTAFC',combinedInten, combinedResp, \
 guess=[0.2, 0.5])
 smoothInt = pylab.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
