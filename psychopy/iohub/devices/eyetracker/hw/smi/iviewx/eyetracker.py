@@ -1031,11 +1031,13 @@ class EyeTracker(EyeTrackerDevice):
 
 class _iViewConfigMappings(object):
     # supported calibration modes    
-    calibration_methods = dict( NO_POINTS=0,TWO_POINTS=2,THREE_POINTS=3,FIVE_POINTS=5, NINE_POINTS=9, THIRTEEN_POINTS=13)
+    calibration_methods = dict(NO_POINTS=0, TWO_POINTS=2, THREE_POINTS=3,
+                               FIVE_POINTS=5, NINE_POINTS=9,
+                               THIRTEEN_POINTS=13)
     graphics_env = dict(INTERNAL=1, EXTERNAL=0)
-    auto_pace = dict (True=1, False=0, Yes=1, No=0, On=1, Off=0)
+    auto_pace = {"True": 1, "False": 0, "Yes": 1, "No": 0, "On": 1, "Off": 0}
     pacing_speed = dict(SLOW=0, FAST=1)
-    target_type= dict(IMAGE=0, CIRCLE_TARGET=1, CIRCLE_TARGET_V2=2, CROSS=3)
+    target_type = dict(IMAGE=0, CIRCLE_TARGET=1, CIRCLE_TARGET_V2=2, CROSS=3)
                         
     @classmethod
     def _createCalibrationStruct(cls,eyetracker, calibration_struct):
