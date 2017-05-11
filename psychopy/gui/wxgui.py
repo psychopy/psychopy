@@ -63,7 +63,7 @@ class Dlg(wx.Dialog):
         style = style | wx.RESIZE_BORDER
         global app  # avoid recreating for every gui
         app = ensureWxApp()
-        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
+        super().__init__(parent=None, id=-1, title=title, style=style)
         self.inputFields = []
         self.inputFieldTypes = []
         self.inputFieldNames = []
@@ -103,7 +103,7 @@ class Dlg(wx.Dialog):
             self.inputFieldTypes.append(type(initial))
         if type(initial) == numpy.ndarray:
             initial = initial.tolist()  # convert numpy arrays to lists
-        container = wx.GridSizer(cols=2, hgap=10)
+        container = wx.GridSizer(cols=2, vgap=0, hgap=10)
         # create label
         font = self.GetFont()
         dc = wx.WindowDC(self)
@@ -277,7 +277,7 @@ class DlgFromDict(Dlg):
             tip = dict()
 
         # app = ensureWxApp() done by Dlg
-        Dlg.__init__(self, title)
+        super().__init__(title)
 
         if copy_dict:
             self.dictionary = dictionary.copy()
@@ -312,7 +312,7 @@ class DlgFromDict(Dlg):
     def show(self):
         """Display the dialog.
         """
-        self.show()
+        super().show()
         if self.OK:
             for n, thisKey in enumerate(self._keys):
                 self.dictionary[thisKey] = self.data[n]
