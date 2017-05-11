@@ -1,6 +1,6 @@
 
 #This analysis script takes one or more staircase datafiles as input
-#from a GUI. It then plots the staircases on top of each other on 
+#from a GUI. It then plots the staircases on top of each other on
 #the left and a combined psychometric function from the same data
 #on the right
 
@@ -19,7 +19,7 @@ for thisFileName in files:
     thisDat = fromFile(thisFileName)
     allIntensities.append( thisDat.intensities )
     allResponses.append( thisDat.data )
-    
+
 #plot each staircase
 pylab.subplot(121)
 colors = 'brgkcmbrgkcm'
@@ -34,8 +34,7 @@ for fileN, thisStair in enumerate(allIntensities):
 combinedInten, combinedResp, combinedN = \
              data.functionFromStaircase(allIntensities, allResponses, 5)
 #fit curve - in this case using a Weibull function
-fit = data.FitFunction('weibullTAFC',combinedInten, combinedResp, \
-guess=[0.2, 0.5])
+fit = data.FitWeibull(combinedInten, combinedResp, guess=[0.2, 0.5])
 smoothInt = pylab.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
 thresh = fit.inverse(0.8)
