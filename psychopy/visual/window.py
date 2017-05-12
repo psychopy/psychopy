@@ -548,6 +548,23 @@ class Window(object):
             self.frameIntervals = []
             self.frameClock.reset()
 
+    def _setCurrent(self):
+        """Make this window current.
+        """
+        if self != globalVars.currWindow and self.winType == 'pyglet':
+            self.winHandle.switch_to()
+            globalVars.currWindow = win
+
+            # if we are using an FBO, bind it
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                        self.frameBuffer)
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+                GL.glEnable(GL.GL_STENCIL_TEST)
+
     def onResize(self, width, height):
         """A default resize event handler.
 
