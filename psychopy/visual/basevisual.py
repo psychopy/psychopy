@@ -1150,7 +1150,9 @@ class WindowMixin(object):
                                   'visual.BaseVisualStim.draw')
 
     def _selectWindow(self, win):
-        # don't call switch if it's already the curr window
+        """Switch drawing to the a specified window. Calls the window's 
+        _setCurrent() method which handles the switch.
+        """
         self.win._setCurrent()
 
     def _updateList(self):
