@@ -553,7 +553,7 @@ class Window(object):
         """
         if self != globalVars.currWindow and self.winType == 'pyglet':
             self.winHandle.switch_to()
-            globalVars.currWindow = win
+            globalVars.currWindow = self
 
             # if we are using an FBO, bind it
             if self.useFBO:
