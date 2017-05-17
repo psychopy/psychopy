@@ -683,14 +683,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.sizerList = []
 
         for categ in categories:
-            # Localized labels on PlateButton may be corrupted in Ubuntu.
-            if sys.platform.startswith('linux'):
-                label = categ
+            if categ in _localized.keys():
+                label = _localized[categ]
             else:
-                if categ in _localized.keys():
-                    label = _localized[categ]
-                else:
-                    label = categ
+                label = categ
             _style = platebtn.PB_STYLE_DROPARROW
             sectionBtn = platebtn.PlateButton(self, -1, label,
                                               style=_style, name=categ)

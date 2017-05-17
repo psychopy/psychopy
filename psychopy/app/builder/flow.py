@@ -100,17 +100,15 @@ class FlowPanel(wx.ScrolledWindow):
         # self.btnInsertRoutine = wx.Button(self,-1,
         #                                  'Insert Routine', pos=(10,10))
         # self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        # Localized labels on PlateButton may be corrupted in Ubuntu.
-        if sys.platform.startswith('linux'):
-            labelRoutine = 'Insert Routine '
-            labelLoop = 'Insert Loop     '
-        else:
-            labelRoutine = _translate('Insert Routine ')
-            labelLoop = _translate('Insert Loop     ')
+        labelRoutine = _translate('Insert Routine ')
+        labelLoop = _translate('Insert Loop     ')
         self.btnInsertRoutine = platebtn.PlateButton(
             self, -1, labelRoutine, pos=(10, 10))
         self.btnInsertLoop = platebtn.PlateButton(
             self, -1, labelLoop, pos=(10, 30))  # spaces give size for CANCEL
+
+        self.btnInsertRoutine.SetBackgroundColour(canvasColor)
+        self.btnInsertLoop.SetBackgroundColour(canvasColor)
 
         self.labelTextRed = {'normal': wx.Colour(
             250, 10, 10, 250), 'hlight': wx.Colour(250, 10, 10, 250)}
@@ -149,13 +147,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.gapsExcluded = []
         self.draw()
         self.frame.SetStatusText("")
-        # Localized labels on PlateButton may be corrupted in Ubuntu.
-        if sys.platform.startswith('linux'):
-            self.btnInsertRoutine.SetLabel('Insert Routine')
-            self.btnInsertLoop.SetLabel('Insert Loop')
-        else:
-            self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
-            self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
+        self.btnInsertRoutine.SetLabel(_translate('Insert Routine'))
+        self.btnInsertLoop.SetLabel(_translate('Insert Loop'))
         self.btnInsertRoutine.SetLabelColor(**self.labelTextBlack)
         self.btnInsertLoop.SetLabelColor(**self.labelTextBlack)
 
@@ -220,11 +213,7 @@ class FlowPanel(wx.ScrolledWindow):
         see self.insertRoutine() for further info
         """
         self.mode = 'routine'
-        # Localized labels on PlateButton may be corrupted in Ubuntu.
-        if sys.platform.startswith('linux'):
-            self.btnInsertRoutine.SetLabel('CANCEL Insert')
-        else:
-            self.btnInsertRoutine.SetLabel(_translate('CANCEL Insert'))
+        self.btnInsertRoutine.SetLabel(_translate('CANCEL Insert'))
         self.btnInsertRoutine.SetLabelColor(**self.labelTextRed)
         self.frame.SetStatusText(_translate(
             'Click where you want to insert the Routine, or CANCEL insert.'))
@@ -256,11 +245,7 @@ class FlowPanel(wx.ScrolledWindow):
         elif self.mode.startswith('loopPoint'):
             self.clearMode()
             return
-        # Localized labels on PlateButton may be corrupted in Ubuntu.
-        if sys.platform.startswith('linux'):
-            self.btnInsertLoop.SetLabel('CANCEL insert')
-        else:
-            self.btnInsertLoop.SetLabel(_translate('CANCEL insert'))
+        self.btnInsertLoop.SetLabel(_translate('CANCEL insert'))
         self.btnInsertLoop.SetLabelColor(**self.labelTextRed)
         self.mode = 'loopPoint1'
         self.frame.SetStatusText(_translate(
