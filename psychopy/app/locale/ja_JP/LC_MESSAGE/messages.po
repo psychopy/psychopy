@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-03 19:26+0900\n"
-"PO-Revision-Date: 2017-03-03 19:27+0900\n"
+"POT-Creation-Date: 2017-05-17 18:18+0900\n"
+"PO-Revision-Date: 2017-05-17 18:19+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -18,66 +18,66 @@ msgstr ""
 "X-Poedit-SearchPath-0: psychopy\n"
 "X-Poedit-SearchPathExcluded-0: psychopy/app/localization/utils\n"
 
-#: psychopy/app/_psychopyApp.py:54 psychopy/app/builder/builder.py:1310
-#: psychopy/app/coder/coder.py:1675
+#: psychopy/app/_psychopyApp.py:55 psychopy/app/builder/builder.py:1310
+#: psychopy/app/coder/coder.py:1658
 msgid "&View"
 msgstr "ビュー(&V)"
 
-#: psychopy/app/_psychopyApp.py:55
+#: psychopy/app/_psychopyApp.py:56
 #, python-format
 msgid "&Open Builder view\t%s"
 msgstr "Builderを開く(&O)\t%s"
 
-#: psychopy/app/_psychopyApp.py:58
+#: psychopy/app/_psychopyApp.py:59
 msgid "Open a new Builder view"
 msgstr "Builderのウィンドウを開きます"
 
-#: psychopy/app/_psychopyApp.py:60 psychopy/app/builder/builder.py:1313
+#: psychopy/app/_psychopyApp.py:61 psychopy/app/builder/builder.py:1313
 #, python-format
 msgid "&Open Coder view\t%s"
 msgstr "Coderを開く(&O)\t%s"
 
-#: psychopy/app/_psychopyApp.py:63 psychopy/app/builder/builder.py:1315
+#: psychopy/app/_psychopyApp.py:64 psychopy/app/builder/builder.py:1315
 msgid "Open a new Coder view"
 msgstr "Coderのウィンドウを開きます"
 
-#: psychopy/app/_psychopyApp.py:65 psychopy/app/builder/builder.py:1253
-#: psychopy/app/coder/coder.py:316 psychopy/app/coder/coder.py:1545
+#: psychopy/app/_psychopyApp.py:66 psychopy/app/builder/builder.py:1253
+#: psychopy/app/coder/coder.py:317 psychopy/app/coder/coder.py:1528
 #: psychopy/app/projects.py:401
 #, python-format
 msgid "&Quit\t%s"
 msgstr "終了(&Q)\t%s"
 
-#: psychopy/app/_psychopyApp.py:67 psychopy/app/builder/builder.py:1254
-#: psychopy/app/coder/coder.py:1546 psychopy/app/projects.py:402
+#: psychopy/app/_psychopyApp.py:68 psychopy/app/builder/builder.py:1254
+#: psychopy/app/coder/coder.py:1529 psychopy/app/projects.py:402
 msgid "Terminate the program"
 msgstr "アプリケーションを終了します"
 
-#: psychopy/app/_psychopyApp.py:155
+#: psychopy/app/_psychopyApp.py:156
 msgid "  Loading libraries..."
 msgstr "ライブラリをロード中..."
 
-#: psychopy/app/_psychopyApp.py:162
+#: psychopy/app/_psychopyApp.py:163
 msgid "  Loading PsychoPy2..."
 msgstr "PsychoPy2をロード中..."
 
-#: psychopy/app/_psychopyApp.py:258
+#: psychopy/app/_psychopyApp.py:259
 msgid "  Creating frames..."
 msgstr "ウィンドウを準備中..."
 
-#: psychopy/app/_psychopyApp.py:287
+#: psychopy/app/_psychopyApp.py:288
 msgid "Compatibility information"
 msgstr "互換性についての情報"
 
-#: psychopy/app/_psychopyApp.py:294
+#: psychopy/app/_psychopyApp.py:295
 msgid "tips.txt"
 msgstr "tips_ja_JP.txt"
 
-#: psychopy/app/_psychopyApp.py:349
+#: psychopy/app/_psychopyApp.py:350
 msgid "Select .psydat file(s) to extract"
 msgstr "変換する.psydatファイルを選択してください"
 
-#: psychopy/app/_psychopyApp.py:620
+#: psychopy/app/_psychopyApp.py:636
 msgid ""
 "For stimulus generation and experimental control in python.\n"
 "PsychoPy depends on your feedback. If something doesn't work\n"
@@ -134,7 +134,7 @@ msgstr "編集"
 msgid "remove"
 msgstr "削除"
 
-#: psychopy/app/builder/builder.py:69 psychopy/app/preferencesDlg.py:78
+#: psychopy/app/builder/builder.py:69 psychopy/app/preferencesDlg.py:81
 msgid "copy"
 msgstr "コピー"
 
@@ -154,7 +154,7 @@ msgstr "ひとつ下へ"
 msgid "move to bottom"
 msgstr "一番下へ"
 
-#: psychopy/app/builder/builder.py:476 psychopy/app/builder/builder.py:2039
+#: psychopy/app/builder/builder.py:476 psychopy/app/builder/builder.py:2041
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
 msgstr "%(copied)sのコピーの名前は？ [%(default)s]"
@@ -171,15 +171,15 @@ msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力して�
 msgid "New Routine"
 msgstr "新しいRoutine"
 
-#: psychopy/app/builder/builder.py:839
+#: psychopy/app/builder/builder.py:838
 msgid "Create a routine (Experiment menu) before adding components"
 msgstr "コンポーネントを追加する前にRoutineを作成してください"
 
-#: psychopy/app/builder/builder.py:842 psychopy/app/preferencesDlg.py:331
+#: psychopy/app/builder/builder.py:841 psychopy/app/preferencesDlg.py:334
 msgid "Error"
 msgstr "エラー"
 
-#: psychopy/app/builder/builder.py:1136 psychopy/app/coder/coder.py:1855
+#: psychopy/app/builder/builder.py:1136 psychopy/app/coder/coder.py:1838
 #, python-format
 msgid "New [%s]"
 msgstr "新規 [%s]"
@@ -188,7 +188,7 @@ msgstr "新規 [%s]"
 msgid "Create new experiment file"
 msgstr "新しい実験ファイルを作成します"
 
-#: psychopy/app/builder/builder.py:1140 psychopy/app/coder/coder.py:1860
+#: psychopy/app/builder/builder.py:1140 psychopy/app/coder/coder.py:1843
 #, python-format
 msgid "Open [%s]"
 msgstr "開く [%s]"
@@ -197,7 +197,7 @@ msgstr "開く [%s]"
 msgid "Open an existing experiment file"
 msgstr "実験ファイルを開きます"
 
-#: psychopy/app/builder/builder.py:1144 psychopy/app/coder/coder.py:1865
+#: psychopy/app/builder/builder.py:1144 psychopy/app/coder/coder.py:1848
 #, python-format
 msgid "Save [%s]"
 msgstr "保存 [%s]"
@@ -206,7 +206,7 @@ msgstr "保存 [%s]"
 msgid "Save current experiment file"
 msgstr "現在の実験を実験ファイルに保存します"
 
-#: psychopy/app/builder/builder.py:1149 psychopy/app/coder/coder.py:1871
+#: psychopy/app/builder/builder.py:1149 psychopy/app/coder/coder.py:1854
 #, python-format
 msgid "Save As... [%s]"
 msgstr "名前を付けて保存...[%s]"
@@ -215,40 +215,40 @@ msgstr "名前を付けて保存...[%s]"
 msgid "Save current experiment file as..."
 msgstr "現在の実験をファイル名を指定して保存します"
 
-#: psychopy/app/builder/builder.py:1153 psychopy/app/coder/coder.py:1876
+#: psychopy/app/builder/builder.py:1153 psychopy/app/coder/coder.py:1859
 #, python-format
 msgid "Undo [%s]"
 msgstr "元に戻す [%s]"
 
 #: psychopy/app/builder/builder.py:1154 psychopy/app/builder/builder.py:1263
-#: psychopy/app/coder/coder.py:1612 psychopy/app/coder/coder.py:1879
+#: psychopy/app/coder/coder.py:1595 psychopy/app/coder/coder.py:1862
 msgid "Undo last action"
 msgstr "直前の操作を元に戻します"
 
-#: psychopy/app/builder/builder.py:1157 psychopy/app/coder/coder.py:1881
+#: psychopy/app/builder/builder.py:1157 psychopy/app/coder/coder.py:1864
 #, python-format
 msgid "Redo [%s]"
 msgstr "繰り返す [%s]"
 
 #: psychopy/app/builder/builder.py:1158 psychopy/app/builder/builder.py:1268
-#: psychopy/app/coder/coder.py:1617 psychopy/app/coder/coder.py:1884
+#: psychopy/app/coder/coder.py:1600 psychopy/app/coder/coder.py:1867
 msgid "Redo last action"
 msgstr "直前の操作を繰り返します"
 
-#: psychopy/app/builder/builder.py:1163 psychopy/app/coder/coder.py:1889
+#: psychopy/app/builder/builder.py:1163 psychopy/app/coder/coder.py:1872
 msgid "Preferences"
 msgstr "設定"
 
-#: psychopy/app/builder/builder.py:1164 psychopy/app/coder/coder.py:1890
+#: psychopy/app/builder/builder.py:1164 psychopy/app/coder/coder.py:1873
 msgid "Application preferences"
 msgstr "アプリケーションの設定を変更します"
 
 #: psychopy/app/builder/builder.py:1167 psychopy/app/builder/builder.py:1277
-#: psychopy/app/coder/coder.py:1629 psychopy/app/coder/coder.py:1893
+#: psychopy/app/coder/coder.py:1612 psychopy/app/coder/coder.py:1876
 msgid "Monitor Center"
 msgstr "モニターセンター"
 
-#: psychopy/app/builder/builder.py:1168 psychopy/app/coder/coder.py:1894
+#: psychopy/app/builder/builder.py:1168 psychopy/app/coder/coder.py:1877
 msgid "Monitor settings and calibration"
 msgstr "モニターの設定とキャリブレーション"
 
@@ -269,7 +269,7 @@ msgstr "コンパイルしてスクリプトを作成 [%s]"
 msgid "Compile to script"
 msgstr "実験をコンパイルしてスクリプトを作成します"
 
-#: psychopy/app/builder/builder.py:1183 psychopy/app/coder/coder.py:1902
+#: psychopy/app/builder/builder.py:1183 psychopy/app/coder/coder.py:1885
 #, python-format
 msgid "Run [%s]"
 msgstr "実験の実行 [%s]"
@@ -278,7 +278,7 @@ msgstr "実験の実行 [%s]"
 msgid "Run experiment"
 msgstr "実験を実行します"
 
-#: psychopy/app/builder/builder.py:1187 psychopy/app/coder/coder.py:1907
+#: psychopy/app/builder/builder.py:1187 psychopy/app/coder/coder.py:1890
 #, python-format
 msgid "Stop [%s]"
 msgstr "実験の停止 [%s]"
@@ -287,33 +287,33 @@ msgstr "実験の停止 [%s]"
 msgid "Stop experiment"
 msgstr "実験を停止します"
 
-#: psychopy/app/builder/builder.py:1201 psychopy/app/builder/builder.py:2191
-#: psychopy/app/coder/coder.py:1504 psychopy/app/projects.py:386
+#: psychopy/app/builder/builder.py:1201 psychopy/app/builder/builder.py:2193
+#: psychopy/app/coder/coder.py:1487 psychopy/app/projects.py:386
 #: psychopy/app/stdOutRich.py:99 psychopy/monitors/MonitorCenter.py:225
 msgid "&File"
 msgstr "ファイル(&F)"
 
-#: psychopy/app/builder/builder.py:1216 psychopy/app/coder/coder.py:1518
+#: psychopy/app/builder/builder.py:1216 psychopy/app/coder/coder.py:1501
 #, python-format
 msgid "&New\t%s"
 msgstr "新規(&N)\t%s"
 
-#: psychopy/app/builder/builder.py:1219 psychopy/app/coder/coder.py:1519
+#: psychopy/app/builder/builder.py:1219 psychopy/app/coder/coder.py:1502
 #, python-format
 msgid "&Open...\t%s"
 msgstr "開く...(&O)\t%s"
 
-#: psychopy/app/builder/builder.py:1222 psychopy/app/coder/coder.py:1520
+#: psychopy/app/builder/builder.py:1222 psychopy/app/coder/coder.py:1503
 msgid "Open &Recent"
 msgstr "最近開いたファイル(&R)"
 
-#: psychopy/app/builder/builder.py:1225 psychopy/app/builder/builder.py:2194
-#: psychopy/app/coder/coder.py:1522
+#: psychopy/app/builder/builder.py:1225 psychopy/app/builder/builder.py:2196
+#: psychopy/app/coder/coder.py:1505
 #, python-format
 msgid "&Save\t%s"
 msgstr "保存(&S)\t%s"
 
-#: psychopy/app/builder/builder.py:1229 psychopy/app/coder/coder.py:1525
+#: psychopy/app/builder/builder.py:1229 psychopy/app/coder/coder.py:1508
 #, python-format
 msgid "Save &as...\t%s"
 msgstr "名前を付けて保存(&a)...\t%s"
@@ -327,7 +327,7 @@ msgstr "HTML形式でエクスポート...\t%s"
 msgid "Export experiment to html/javascript file"
 msgstr "実験をhtml/java形式のファイルとしてエクスポートします"
 
-#: psychopy/app/builder/builder.py:1237 psychopy/app/coder/coder.py:1528
+#: psychopy/app/builder/builder.py:1237 psychopy/app/coder/coder.py:1511
 #, python-format
 msgid "&Close file\t%s"
 msgstr "閉じる(&C)\t%s"
@@ -336,33 +336,33 @@ msgstr "閉じる(&C)\t%s"
 msgid "Close current experiment"
 msgstr "現在の実験を閉じます"
 
-#: psychopy/app/builder/builder.py:1248 psychopy/app/coder/coder.py:1538
+#: psychopy/app/builder/builder.py:1248 psychopy/app/coder/coder.py:1521
 #, python-format
 msgid "&Preferences\t%s"
 msgstr "設定(&P)\t%s"
 
-#: psychopy/app/builder/builder.py:1259 psychopy/app/coder/coder.py:1552
+#: psychopy/app/builder/builder.py:1259 psychopy/app/coder/coder.py:1535
 #: psychopy/monitors/MonitorCenter.py:233
 msgid "&Edit"
 msgstr "編集(&E)"
 
-#: psychopy/app/builder/builder.py:1262 psychopy/app/builder/builder.py:1861
-#: psychopy/app/coder/coder.py:1611
+#: psychopy/app/builder/builder.py:1262 psychopy/app/builder/builder.py:1863
+#: psychopy/app/coder/coder.py:1594
 #, python-format
 msgid "Undo\t%s"
 msgstr "元に戻す\t%s"
 
-#: psychopy/app/builder/builder.py:1267 psychopy/app/builder/builder.py:1875
-#: psychopy/app/coder/coder.py:1616
+#: psychopy/app/builder/builder.py:1267 psychopy/app/builder/builder.py:1877
+#: psychopy/app/coder/coder.py:1599
 #, python-format
 msgid "Redo\t%s"
 msgstr "繰り返す\t%s"
 
-#: psychopy/app/builder/builder.py:1274 psychopy/app/coder/coder.py:1627
+#: psychopy/app/builder/builder.py:1274 psychopy/app/coder/coder.py:1610
 msgid "&Tools"
 msgstr "ツール(&T)"
 
-#: psychopy/app/builder/builder.py:1278 psychopy/app/coder/coder.py:1630
+#: psychopy/app/builder/builder.py:1278 psychopy/app/coder/coder.py:1613
 msgid "To set information about your monitor"
 msgstr "モニターの設定を行います"
 
@@ -375,16 +375,16 @@ msgstr "コンパイル\t%s"
 msgid "Compile the exp to a script"
 msgstr "実験をコンパイルしてスクリプトを作成します"
 
-#: psychopy/app/builder/builder.py:1286 psychopy/app/coder/coder.py:1644
+#: psychopy/app/builder/builder.py:1286 psychopy/app/coder/coder.py:1627
 #, python-format
 msgid "Run\t%s"
 msgstr "実験の実行\t%s"
 
-#: psychopy/app/builder/builder.py:1287 psychopy/app/coder/coder.py:1645
+#: psychopy/app/builder/builder.py:1287 psychopy/app/coder/coder.py:1628
 msgid "Run the current script"
 msgstr "現在のスクリプトを実行します"
 
-#: psychopy/app/builder/builder.py:1290 psychopy/app/coder/coder.py:1648
+#: psychopy/app/builder/builder.py:1290 psychopy/app/coder/coder.py:1631
 #, python-format
 msgid "Stop\t%s"
 msgstr "実験の停止\t%s"
@@ -393,28 +393,28 @@ msgstr "実験の停止\t%s"
 msgid "Abort the current script"
 msgstr "現在のスクリプトの実行を中止します"
 
-#: psychopy/app/builder/builder.py:1296 psychopy/app/coder/coder.py:1654
+#: psychopy/app/builder/builder.py:1296 psychopy/app/coder/coder.py:1637
 msgid "PsychoPy updates..."
 msgstr "PsychoPyの更新..."
 
-#: psychopy/app/builder/builder.py:1297 psychopy/app/coder/coder.py:1655
+#: psychopy/app/builder/builder.py:1297 psychopy/app/coder/coder.py:1638
 msgid "Update PsychoPy to the latest, or a specific, version"
 msgstr "PsychoPyを最新の、または特定のバージョンに更新します"
 
-#: psychopy/app/builder/builder.py:1302 psychopy/app/coder/coder.py:1658
+#: psychopy/app/builder/builder.py:1302 psychopy/app/coder/coder.py:1641
 msgid "Benchmark wizard"
 msgstr "ベンチマークウィザード"
 
-#: psychopy/app/builder/builder.py:1303 psychopy/app/coder/coder.py:1659
+#: psychopy/app/builder/builder.py:1303 psychopy/app/coder/coder.py:1642
 msgid "Check software & hardware, generate report"
 msgstr "ソフトウェアとハードウェアをテストし、レポートを作成します"
 
-#: psychopy/app/builder/builder.py:1318 psychopy/app/builder/builder.py:2198
+#: psychopy/app/builder/builder.py:1318 psychopy/app/builder/builder.py:2200
 #, python-format
 msgid "&Toggle readme\t%s"
 msgstr "Readme表示ON/OFF(&T)\t%s"
 
-#: psychopy/app/builder/builder.py:1320 psychopy/app/builder/builder.py:2199
+#: psychopy/app/builder/builder.py:1320 psychopy/app/builder/builder.py:2201
 msgid "Toggle Readme"
 msgstr "Readmeファイルの表示ON/OFFを切り替えます"
 
@@ -527,23 +527,23 @@ msgstr "デモの展開...(&U)"
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr "デモを(実行可能なように)書き込み可能な場所へ展開します"
 
-#: psychopy/app/builder/builder.py:1408 psychopy/app/coder/coder.py:1741
+#: psychopy/app/builder/builder.py:1408 psychopy/app/coder/coder.py:1724
 msgid "&Demos"
 msgstr "デモ(&D)"
 
-#: psychopy/app/builder/builder.py:1412 psychopy/app/coder/coder.py:1789
+#: psychopy/app/builder/builder.py:1412 psychopy/app/coder/coder.py:1772
 msgid "P&rojects"
 msgstr "プロジェクト(&r)"
 
-#: psychopy/app/builder/builder.py:1416 psychopy/app/coder/coder.py:1793
+#: psychopy/app/builder/builder.py:1416 psychopy/app/coder/coder.py:1776
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: psychopy/app/builder/builder.py:1419 psychopy/app/coder/coder.py:1795
+#: psychopy/app/builder/builder.py:1419 psychopy/app/coder/coder.py:1778
 msgid "&PsychoPy Homepage"
 msgstr "&PsychoPyホームページ"
 
-#: psychopy/app/builder/builder.py:1420 psychopy/app/coder/coder.py:1796
+#: psychopy/app/builder/builder.py:1420 psychopy/app/coder/coder.py:1779
 msgid "Go to the PsychoPy homepage"
 msgstr "PsychoPyのホームページを開きます"
 
@@ -555,25 +555,25 @@ msgstr "PsychoPy Builderのヘルプ(&P)"
 msgid "Go to the online documentation for PsychoPy Builder"
 msgstr "PsychoPyのオンラインドキュメントを開きます"
 
-#: psychopy/app/builder/builder.py:1432 psychopy/app/coder/coder.py:1812
+#: psychopy/app/builder/builder.py:1432 psychopy/app/coder/coder.py:1795
 msgid "&About..."
 msgstr "このアプリケーションについて...(&A)"
 
-#: psychopy/app/builder/builder.py:1432 psychopy/app/coder/coder.py:1813
+#: psychopy/app/builder/builder.py:1432 psychopy/app/coder/coder.py:1796
 msgid "About PsychoPy"
 msgstr "PsychoPyについて"
 
 #: psychopy/app/builder/builder.py:1500
-#: psychopy/app/builder/dialogs/__init__.py:1424
-#: psychopy/app/coder/coder.py:2244
+#: psychopy/app/builder/dialogs/__init__.py:1426
+#: psychopy/app/coder/coder.py:2228
 msgid "Open file ..."
 msgstr "ファイルを開く..."
 
-#: psychopy/app/builder/builder.py:1572 psychopy/app/coder/coder.py:2396
+#: psychopy/app/builder/builder.py:1574 psychopy/app/coder/coder.py:2383
 msgid "Save file as ..."
 msgstr "名前を付けて保存..."
 
-#: psychopy/app/builder/builder.py:1581 psychopy/app/coder/coder.py:2402
+#: psychopy/app/builder/builder.py:1583 psychopy/app/coder/coder.py:2389
 #, python-format
 msgid ""
 "File '%s' already exists.\n"
@@ -582,38 +582,38 @@ msgstr ""
 "%sというファイルが既に存在しています\n"
 "上書きしてよいですか？"
 
-#: psychopy/app/builder/builder.py:1687
+#: psychopy/app/builder/builder.py:1689
 #, python-format
 msgid "Experiment %s has changed. Save before quitting?"
 msgstr "実験 %s は変更されています 終了する前に保存しますか？"
 
-#: psychopy/app/builder/builder.py:1865
+#: psychopy/app/builder/builder.py:1867
 #, python-format
 msgid "Undo %(action)s\t%(key)s"
 msgstr "元に戻す %(action)s\t%(key)s"
 
-#: psychopy/app/builder/builder.py:1879
+#: psychopy/app/builder/builder.py:1881
 #, python-format
 msgid "Redo %(action)s\t%(key)s"
 msgstr "繰り返す %(action)s\t%(key)s"
 
-#: psychopy/app/builder/builder.py:1892
+#: psychopy/app/builder/builder.py:1894
 msgid "Location to unpack demos"
 msgstr "デモを展開する場所を選択してください"
 
-#: psychopy/app/builder/builder.py:2043
+#: psychopy/app/builder/builder.py:2045
 msgid "Paste Routine"
 msgstr "Routineの貼り付け"
 
-#: psychopy/app/builder/builder.py:2104
+#: psychopy/app/builder/builder.py:2106
 msgid "What is the new name for the Routine?"
 msgstr "Routineの新しい名前を入力してください"
 
-#: psychopy/app/builder/builder.py:2106
+#: psychopy/app/builder/builder.py:2108
 msgid "Rename"
 msgstr "名前の変更"
 
-#: psychopy/app/builder/builder.py:2196
+#: psychopy/app/builder/builder.py:2198
 #, python-format
 msgid "&Close readme\t%s"
 msgstr "Readmeを閉じる(&C)\t%s"
@@ -633,22 +633,22 @@ msgid "stop type"
 msgstr "終了時刻の指定法"
 
 #: psychopy/app/builder/components/_base.py:18
-#: psychopy/app/builder/dialogs/__init__.py:538
+#: psychopy/app/builder/dialogs/__init__.py:540
 msgid "Start"
 msgstr "開始"
 
 #: psychopy/app/builder/components/_base.py:19
-#: psychopy/app/builder/dialogs/__init__.py:580
+#: psychopy/app/builder/dialogs/__init__.py:582
 msgid "Stop"
 msgstr "終了"
 
 #: psychopy/app/builder/components/_base.py:20
-#: psychopy/app/builder/dialogs/__init__.py:541
+#: psychopy/app/builder/dialogs/__init__.py:543
 msgid "Expected start (s)"
 msgstr "予想開始時刻 (s)"
 
 #: psychopy/app/builder/components/_base.py:21
-#: psychopy/app/builder/dialogs/__init__.py:583
+#: psychopy/app/builder/dialogs/__init__.py:585
 msgid "Expected duration (s)"
 msgstr "予想実行時間 (s)"
 
@@ -766,6 +766,7 @@ msgstr ""
 "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2])"
 
 #: psychopy/app/builder/components/_base.py:517
+#: psychopy/app/builder/components/envelopegrating/__init__.py:62
 msgid "Orientation of this stimulus (in deg)"
 msgstr "刺激の回転方向を指定します (単位は度)"
 
@@ -1009,6 +1010,178 @@ msgstr "フィールドの大きさを指定します"
 msgid "Where is the field centred (in the specified units)?"
 msgstr "フィールドの中心位置を指定します"
 
+#: psychopy/app/builder/components/envelopegrating/__init__.py:11
+msgid ""
+"Envelope Grating: present cyclic textures including 2nd order envelope "
+"stimuli, prebuilt or from a file"
+msgstr ""
+"Envelope Grating: 二次のエンベロープ刺激を含む周期的なテクスチャ刺激を描画し"
+"ます"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:15
+msgid "Carrier texture"
+msgstr "キャリアのテクスチャ"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:16
+msgid "Carrier Orientation"
+msgstr "キャリアの回転角度"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:17
+#: psychopy/app/builder/components/grating/__init__.py:16
+#: psychopy/app/builder/components/image/__init__.py:15
+#: psychopy/app/builder/components/patch/__init__.py:16
+msgid "Mask"
+msgstr "マスク"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:18
+msgid "Carrier spatial frequency"
+msgstr "キャリアの空間周波数"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:19
+msgid "Carrier phase (in cycles)"
+msgstr "キャリアの位相(周期に対する比)"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:20
+msgid "Carrier contrast"
+msgstr "キャリアのコントラスト"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:21
+#: psychopy/app/builder/components/grating/__init__.py:19
+#: psychopy/app/builder/components/image/__init__.py:16
+#: psychopy/app/builder/components/patch/__init__.py:19
+msgid "Texture resolution"
+msgstr "テクスチャの解像度"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:22
+#: psychopy/app/builder/components/grating/__init__.py:21
+#: psychopy/app/builder/components/image/__init__.py:19
+#: psychopy/app/builder/components/patch/__init__.py:20
+#: psychopy/app/builder/components/polygon/__init__.py:21
+msgid "Interpolate"
+msgstr "補間"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:23
+msgid "Envelope Texture"
+msgstr "エンベロープのテクスチャ"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:24
+msgid "Envelope spatial frequecy"
+msgstr "エンベロープの空間周波数"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:25
+msgid "Envelope orientation"
+msgstr "エンベロープの回転角度"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:26
+msgid "Envelope Phase"
+msgstr "エンベロープの位相"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:27
+msgid "Envelope modulation depth"
+msgstr "エンベロープの変調幅"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:28
+msgid "Is modulation a beat"
+msgstr "ビートモード"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:29
+#: psychopy/app/builder/components/grating/__init__.py:20
+msgid "OpenGL blend mode"
+msgstr "OpenGLのブレンドモード"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:65
+msgid ""
+"The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
+"filename (including path)"
+msgstr ""
+"背景となる(2D)テクスチャ (sin, sqr, sinXsin, ファイル名など)を指定します。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:74
+#: psychopy/app/builder/components/grating/__init__.py:56
+#: psychopy/app/builder/components/patch/__init__.py:56
+msgid ""
+"An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
+"(including path)"
+msgstr ""
+"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
+"ど)。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:83
+msgid "Contrast of background carrier"
+msgstr "背景となるキャリアのコントラストを指定します。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:91
+msgid ""
+"Spatial frequency of background carrier repeats across the grating in 1 or 2 "
+"dimensions, e.g. 4 or [2,3]"
+msgstr ""
+"背景となるキャリアの空間周波数を１次元または２次元(例えば4 や[2,3])で指定ま"
+"す。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:100
+msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
+msgstr "背景となるキャリアの位相を指定します(0.0から1.0の範囲に丸められます)。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:110
+#: psychopy/app/builder/components/grating/__init__.py:84
+#: psychopy/app/builder/components/patch/__init__.py:84
+msgid ""
+"Resolution of the texture for standard ones such as sin, sqr etc. For most "
+"cases a value of 256 pixels will suffice"
+msgstr ""
+"Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:119
+#: psychopy/app/builder/components/grating/__init__.py:93
+#: psychopy/app/builder/components/image/__init__.py:79
+#: psychopy/app/builder/components/patch/__init__.py:94
+#: psychopy/app/builder/components/polygon/__init__.py:105
+msgid "How should the image be interpolated if/when rescaled"
+msgstr "画像がリサイズされた時の補間方法を指定します"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:128
+msgid ""
+"The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename "
+"(including path)"
+msgstr ""
+"エンベロープとなる(2D)テクスチャ(sin, sqr, sinXsin, ファイル名など)を指定しま"
+"す。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:137
+msgid ""
+"Spatial frequency of the modulation envelope repeats across the grating in 1 "
+"or 2 dimensions, e.g. 4 or [2,3]"
+msgstr ""
+"変調エンベロープの空間周波数を1次元または2次元(例えば4や[2,3])で指定します。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:146
+msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
+msgstr "変調エンベロープの位相を指定します(0.0から1.0の範囲に丸められます)。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:155
+msgid "Orientation of the modulation envelope(wraps in range 0-360)"
+msgstr "変調エンベロープの回転角度を指定します(0から360の範囲に丸められます)。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:164
+msgid "Modulation depth of modulation envelope"
+msgstr "変調エンベロープによる変調幅を指定します。"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:172
+msgid ""
+"Do you want a 'beat'? [beat = carrier*envelope, no beat = "
+"carrier*(1+envelope), True/False, Y/N]"
+msgstr ""
+"ビートを使用しますか？(ビート=carrier*envelope, ビート無し"
+"=carrier*(1+envelope)　True/FalseまたはY/Nで指定)"
+
+#: psychopy/app/builder/components/envelopegrating/__init__.py:181
+msgid ""
+"OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
+"combining a beat with the carrier image or numpy array at point of display"
+msgstr ""
+"OpenGLのブレンドモードを指定します。avgはPsychoPyの標準モードです。addはビー"
+"トをキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です。"
+
 #: psychopy/app/builder/components/eyetracker/__init__.py:11
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
 msgstr "Eyetracker: サポートするアイトラッカーを利用して視線位置を取得します"
@@ -1030,12 +1203,6 @@ msgstr ""
 msgid "Texture"
 msgstr "テクスチャ"
 
-#: psychopy/app/builder/components/grating/__init__.py:16
-#: psychopy/app/builder/components/image/__init__.py:15
-#: psychopy/app/builder/components/patch/__init__.py:16
-msgid "Mask"
-msgstr "マスク"
-
 #: psychopy/app/builder/components/grating/__init__.py:17
 #: psychopy/app/builder/components/patch/__init__.py:17
 msgid "Spatial frequency"
@@ -1046,20 +1213,7 @@ msgstr "空間周波数"
 msgid "Phase (in cycles)"
 msgstr "位相 (周期に対する比)"
 
-#: psychopy/app/builder/components/grating/__init__.py:19
-#: psychopy/app/builder/components/image/__init__.py:16
-#: psychopy/app/builder/components/patch/__init__.py:19
-msgid "Texture resolution"
-msgstr "テクスチャの解像度"
-
-#: psychopy/app/builder/components/grating/__init__.py:20
-#: psychopy/app/builder/components/image/__init__.py:19
-#: psychopy/app/builder/components/patch/__init__.py:20
-#: psychopy/app/builder/components/polygon/__init__.py:21
-msgid "Interpolate"
-msgstr "補間"
-
-#: psychopy/app/builder/components/grating/__init__.py:46
+#: psychopy/app/builder/components/grating/__init__.py:47
 msgid ""
 "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
@@ -1067,16 +1221,7 @@ msgstr ""
 "グレーティングのテクスチャを指定します(sin, sqr, sinXsin, ... ファイル名な"
 "ど)。"
 
-#: psychopy/app/builder/components/grating/__init__.py:55
-#: psychopy/app/builder/components/patch/__init__.py:56
-msgid ""
-"An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
-"(including path)"
-msgstr ""
-"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
-"ど)。"
-
-#: psychopy/app/builder/components/grating/__init__.py:64
+#: psychopy/app/builder/components/grating/__init__.py:65
 msgid ""
 "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, "
 "e.g. 4 or [2,3]"
@@ -1084,24 +1229,15 @@ msgstr ""
 "グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元ま"
 "たは2次元の値を指定できます。"
 
-#: psychopy/app/builder/components/grating/__init__.py:73
+#: psychopy/app/builder/components/grating/__init__.py:74
 msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
 msgstr "グレーティングの位相を指定します (0.0から1.0の範囲に丸められます)"
 
-#: psychopy/app/builder/components/grating/__init__.py:83
-#: psychopy/app/builder/components/patch/__init__.py:84
+#: psychopy/app/builder/components/grating/__init__.py:101
 msgid ""
-"Resolution of the texture for standard ones such as sin, sqr etc. For most "
-"cases a value of 256 pixels will suffice"
-msgstr ""
-"Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
-
-#: psychopy/app/builder/components/grating/__init__.py:92
-#: psychopy/app/builder/components/image/__init__.py:79
-#: psychopy/app/builder/components/patch/__init__.py:94
-#: psychopy/app/builder/components/polygon/__init__.py:105
-msgid "How should the image be interpolated if/when rescaled"
-msgstr "画像がリサイズされた時の補間方法を指定します"
+"OpenGL Blendmode: avg gives traditional transparency, add is important to "
+"combine gratings)]"
+msgstr "OpenGLのブレンドモードを指定します。"
 
 #: psychopy/app/builder/components/image/__init__.py:11
 msgid "Image: present images (bmp, jpg, tif...)"
@@ -1967,7 +2103,7 @@ msgid "Browse..."
 msgstr "選択..."
 
 #: psychopy/app/builder/dialogs/__init__.py:360
-#: psychopy/app/builder/dialogs/__init__.py:1006
+#: psychopy/app/builder/dialogs/__init__.py:1008
 #: psychopy/app/builder/dialogs/dlgsCode.py:34
 msgid " Properties"
 msgstr "のプロパティ"
@@ -1992,20 +2128,28 @@ msgstr "グレーティング"
 msgid "Advanced"
 msgstr "高度"
 
-#: psychopy/app/builder/dialogs/__init__.py:731
-#: psychopy/app/builder/dialogs/__init__.py:1681
+#: psychopy/app/builder/dialogs/__init__.py:444
+msgid "Carrier"
+msgstr "キャリア"
+
+#: psychopy/app/builder/dialogs/__init__.py:445
+msgid "Envelope"
+msgstr "エンベロープ"
+
+#: psychopy/app/builder/dialogs/__init__.py:733
+#: psychopy/app/builder/dialogs/__init__.py:1683
 #: psychopy/app/builder/dialogs/dlgsCode.py:94
 #: psychopy/app/builder/dialogs/dlgsConditions.py:508
 msgid " Help "
 msgstr " ヘルプ "
 
-#: psychopy/app/builder/dialogs/__init__.py:732
+#: psychopy/app/builder/dialogs/__init__.py:734
 #: psychopy/app/builder/dialogs/dlgsCode.py:95
 msgid "Go to online help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:737
-#: psychopy/app/builder/dialogs/__init__.py:1685
+#: psychopy/app/builder/dialogs/__init__.py:739
+#: psychopy/app/builder/dialogs/__init__.py:1687
 #: psychopy/app/builder/dialogs/dlgsCode.py:97
 #: psychopy/app/builder/dialogs/dlgsConditions.py:513 psychopy/gui/qtgui.py:72
 #: psychopy/gui/wxgui.py:59 psychopy/monitors/MonitorCenter.py:1100
@@ -2013,8 +2157,8 @@ msgstr "このコンポーネントのオンラインヘルプを開きます"
 msgid " OK "
 msgstr " OK "
 
-#: psychopy/app/builder/dialogs/__init__.py:745
-#: psychopy/app/builder/dialogs/__init__.py:1688
+#: psychopy/app/builder/dialogs/__init__.py:747
+#: psychopy/app/builder/dialogs/__init__.py:1690
 #: psychopy/app/builder/dialogs/dlgsCode.py:100
 #: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/gui/qtgui.py:73
 #: psychopy/gui/wxgui.py:60 psychopy/monitors/MonitorCenter.py:1102
@@ -2022,33 +2166,33 @@ msgstr " OK "
 msgid " Cancel "
 msgstr " キャンセル "
 
-#: psychopy/app/builder/dialogs/__init__.py:968
+#: psychopy/app/builder/dialogs/__init__.py:970
 #: psychopy/app/builder/validators.py:77
 msgid "Missing name"
 msgstr "名前がありません"
 
-#: psychopy/app/builder/dialogs/__init__.py:975
+#: psychopy/app/builder/dialogs/__init__.py:977
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr "その名前は使用されています(%s) 名前を変更してください"
 
-#: psychopy/app/builder/dialogs/__init__.py:978
+#: psychopy/app/builder/dialogs/__init__.py:980
 #: psychopy/app/builder/dialogs/dlgsConditions.py:298
 #: psychopy/app/builder/dialogs/dlgsConditions.py:571
 #: psychopy/app/builder/validators.py:87
 msgid "Name must be alpha-numeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です スペースを含んではいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1200
-#: psychopy/app/builder/dialogs/__init__.py:1349
+#: psychopy/app/builder/dialogs/__init__.py:1202
+#: psychopy/app/builder/dialogs/__init__.py:1351
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1272
+#: psychopy/app/builder/dialogs/__init__.py:1274
 msgid "No parameters set (select a file above)"
 msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1339
+#: psychopy/app/builder/dialogs/__init__.py:1341
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
@@ -2057,28 +2201,28 @@ msgstr ""
 "%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
-#: psychopy/app/builder/dialogs/__init__.py:1348
-#: psychopy/app/builder/dialogs/__init__.py:1555
+#: psychopy/app/builder/dialogs/__init__.py:1350
+#: psychopy/app/builder/dialogs/__init__.py:1557
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1445
+#: psychopy/app/builder/dialogs/__init__.py:1447
 msgid "Could not read conditions from:\n"
 msgstr "条件を読み込めません\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1454
+#: psychopy/app/builder/dialogs/__init__.py:1456
 msgid "Configuration error in conditions file"
 msgstr "条件ファイルにエラーがあります"
 
-#: psychopy/app/builder/dialogs/__init__.py:1458
+#: psychopy/app/builder/dialogs/__init__.py:1460
 msgid "Bad condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1544
+#: psychopy/app/builder/dialogs/__init__.py:1546
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1545
+#: psychopy/app/builder/dialogs/__init__.py:1547
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
@@ -2086,7 +2230,7 @@ msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1682
+#: psychopy/app/builder/dialogs/__init__.py:1684
 msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
@@ -2268,21 +2412,21 @@ msgstr ""
 "イルに含まれています(新バージョンのPsychoPyで作成、保存された実験かもしれませ"
 "ん)。この実験は現在のバージョンでは正常に動作しない可能性があります。"
 
-#: psychopy/app/builder/experiment.py:917
-#: psychopy/app/builder/experiment.py:1180
-#: psychopy/app/builder/experiment.py:1325
+#: psychopy/app/builder/experiment.py:919
+#: psychopy/app/builder/experiment.py:1182
+#: psychopy/app/builder/experiment.py:1327
 msgid "Name of this loop"
 msgstr "このLoopの名前を指定します"
 
-#: psychopy/app/builder/experiment.py:921
+#: psychopy/app/builder/experiment.py:923
 msgid "Number of repeats (for each condition)"
 msgstr "各条件の繰り返し回数を指定します"
 
-#: psychopy/app/builder/experiment.py:926
+#: psychopy/app/builder/experiment.py:928
 msgid "A list of dictionaries describing the parameters in each condition"
 msgstr "それぞれの条件におけるパラメータを保持した辞書オブジェクトのリスト"
 
-#: psychopy/app/builder/experiment.py:931
+#: psychopy/app/builder/experiment.py:933
 msgid ""
 "Name of a file specifying the parameters for each condition (.csv, .xlsx, "
 "or .pkl). Browse to select a file. Right-click to preview file contents, or "
@@ -2291,11 +2435,11 @@ msgstr ""
 "実験の各条件におけるパラメータを記述したファイル(.csv, .xlsx, .pkl)の名前を指"
 "定します 右クリックすると内容を確認したり新しくファイルを作成したりできます"
 
-#: psychopy/app/builder/experiment.py:938
+#: psychopy/app/builder/experiment.py:940
 msgid "The start and end of the loop (see flow timeline)"
 msgstr "Loopの始点と終点"
 
-#: psychopy/app/builder/experiment.py:944
+#: psychopy/app/builder/experiment.py:946
 msgid ""
 "Select just a subset of rows from your condition file (the first is 0 not "
 "1!). Examples: 0, 0:5, 5:-1"
@@ -2303,11 +2447,11 @@ msgstr ""
 "条件ファイルから条件として使用する行(最初の行は1ではなく0)を指定します (例: "
 "0:5, 5:-1)"
 
-#: psychopy/app/builder/experiment.py:953
+#: psychopy/app/builder/experiment.py:955
 msgid "How should the next condition value(s) be chosen?"
 msgstr "各条件の実施順の決定方法を指定します"
 
-#: psychopy/app/builder/experiment.py:958
+#: psychopy/app/builder/experiment.py:960
 msgid ""
 "To have a fixed random sequence provide an integer of your choosing here. "
 "Leave blank to have a new random sequence on each run of the experiment."
@@ -2315,9 +2459,9 @@ msgstr ""
 "疑似乱数のシードを整数で指定します 実験実行の度に新たな疑似乱数系列を作成する"
 "場合は空白にします"
 
-#: psychopy/app/builder/experiment.py:965
-#: psychopy/app/builder/experiment.py:1241
-#: psychopy/app/builder/experiment.py:1367
+#: psychopy/app/builder/experiment.py:967
+#: psychopy/app/builder/experiment.py:1243
+#: psychopy/app/builder/experiment.py:1369
 msgid ""
 "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or "
 "stimuli within a trial. It alters how data files are output"
@@ -2326,95 +2470,95 @@ msgstr ""
 "ばチェックしてください。\n"
 "チェックの有無でデータの出力形式が変わります。"
 
-#: psychopy/app/builder/experiment.py:1185
+#: psychopy/app/builder/experiment.py:1187
 msgid "(Minimum) number of trials in the staircase"
 msgstr "ステアケースにおける最小の試行数を指定します"
 
-#: psychopy/app/builder/experiment.py:1189
+#: psychopy/app/builder/experiment.py:1191
 msgid "The initial value of the parameter"
 msgstr "パラメータの初期値を指定します"
 
-#: psychopy/app/builder/experiment.py:1193
+#: psychopy/app/builder/experiment.py:1195
 msgid "The maximum value the parameter can take"
 msgstr "パラメータがとり得る最大値を指定します"
 
-#: psychopy/app/builder/experiment.py:1197
+#: psychopy/app/builder/experiment.py:1199
 msgid "The minimum value the parameter can take"
 msgstr "パラメータがとり得る最小値を指定します"
 
-#: psychopy/app/builder/experiment.py:1201
+#: psychopy/app/builder/experiment.py:1203
 msgid "The size of the jump at each step (can change on each 'reversal')"
 msgstr "各ステップでの値の変化量を指定します"
 
-#: psychopy/app/builder/experiment.py:1206
+#: psychopy/app/builder/experiment.py:1208
 msgid ""
 "The units of the step size (e.g. 'linear' will add/subtract that value each "
 "step, whereas 'log' will ad that many log units)"
 msgstr "ステップサイズの単位を指定します"
 
-#: psychopy/app/builder/experiment.py:1212
+#: psychopy/app/builder/experiment.py:1214
 msgid "The number of 'incorrect' answers before the value goes up"
 msgstr "値を増加させるまでの「誤った」反応数を指定します"
 
-#: psychopy/app/builder/experiment.py:1217
+#: psychopy/app/builder/experiment.py:1219
 msgid "The number of 'correct' answers before the value goes down"
 msgstr "値を減少させるまでの「正しい」反応数を指定します"
 
-#: psychopy/app/builder/experiment.py:1222
+#: psychopy/app/builder/experiment.py:1224
 msgid ""
 "Minimum number of times the staircase must change direction before ending"
 msgstr "計測を終了するまでに必要な最小の方向反転回数"
 
-#: psychopy/app/builder/experiment.py:1231
-#: psychopy/app/builder/experiment.py:1347
+#: psychopy/app/builder/experiment.py:1233
+#: psychopy/app/builder/experiment.py:1349
 msgid "How should the next trial value(s) be chosen?"
 msgstr "次の試行の値を選択する方法を指定します"
 
-#: psychopy/app/builder/experiment.py:1236
-#: psychopy/app/builder/experiment.py:1351
+#: psychopy/app/builder/experiment.py:1238
+#: psychopy/app/builder/experiment.py:1353
 msgid "Where to loop from and to (see values currently shown in the flow view)"
 msgstr "Loopの始点と終点"
 
-#: psychopy/app/builder/experiment.py:1329
+#: psychopy/app/builder/experiment.py:1331
 msgid "(Minimum) number of trials in *each* staircase"
 msgstr "各ステアケースの最小の試行数を指定します"
 
-#: psychopy/app/builder/experiment.py:1334
-#: psychopy/app/builder/experiment.py:1339
+#: psychopy/app/builder/experiment.py:1336
+#: psychopy/app/builder/experiment.py:1341
 msgid "How to select the next staircase to run"
 msgstr "次のステアケースを選択する方法を指定します"
 
-#: psychopy/app/builder/experiment.py:1357
+#: psychopy/app/builder/experiment.py:1359
 msgid ""
 "A list of dictionaries describing the differences between each staircase"
 msgstr "個々のステアケースの差を定義する辞書オブジェクトのリストを指定します"
 
-#: psychopy/app/builder/experiment.py:1362
+#: psychopy/app/builder/experiment.py:1364
 msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
-#: psychopy/app/builder/experiment.py:2367
+#: psychopy/app/builder/experiment.py:2369
 msgid "one of your Components, Routines, or condition parameters"
 msgstr "ユーザーが使用済み"
 
-#: psychopy/app/builder/experiment.py:2370
+#: psychopy/app/builder/experiment.py:2372
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
 "this、these、continue、Clock、componentを名前に含まないようにしてください"
 
-#: psychopy/app/builder/experiment.py:2371
+#: psychopy/app/builder/experiment.py:2373
 msgid "Builder variable"
 msgstr "Builderの変数名"
 
-#: psychopy/app/builder/experiment.py:2372
+#: psychopy/app/builder/experiment.py:2374
 msgid "Psychopy module"
 msgstr "PsychoPyのモジュール名"
 
-#: psychopy/app/builder/experiment.py:2373
+#: psychopy/app/builder/experiment.py:2375
 msgid "numpy function"
 msgstr "numpyの関数名"
 
-#: psychopy/app/builder/experiment.py:2374
+#: psychopy/app/builder/experiment.py:2376
 msgid "python keyword"
 msgstr "Pythonのキーワード"
 
@@ -2430,39 +2574,39 @@ msgstr "Routineを挿入"
 msgid "Insert Loop     "
 msgstr "Loopを挿入    "
 
-#: psychopy/app/builder/flow.py:158
+#: psychopy/app/builder/flow.py:157
 msgid "Insert Routine"
 msgstr "Routineを挿入"
 
-#: psychopy/app/builder/flow.py:159
+#: psychopy/app/builder/flow.py:158
 msgid "Insert Loop"
 msgstr "Loopを挿入"
 
-#: psychopy/app/builder/flow.py:189
+#: psychopy/app/builder/flow.py:188
 msgid "Select a Routine to insert (Esc to exit)"
 msgstr "挿入するRoutineを選んでください(Escで中止)"
 
-#: psychopy/app/builder/flow.py:228
+#: psychopy/app/builder/flow.py:227
 msgid "CANCEL Insert"
 msgstr "挿入を中止"
 
-#: psychopy/app/builder/flow.py:231
+#: psychopy/app/builder/flow.py:230
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr "Routineを挿入する位置をクリックするか、挿入を中止してください"
 
-#: psychopy/app/builder/flow.py:264
+#: psychopy/app/builder/flow.py:263
 msgid "CANCEL insert"
 msgstr "挿入を中止"
 
-#: psychopy/app/builder/flow.py:268
+#: psychopy/app/builder/flow.py:267
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr "挿入するLoopの始点または終点をクリックするか、挿入を中止してください"
 
-#: psychopy/app/builder/flow.py:277
+#: psychopy/app/builder/flow.py:276
 msgid "Click the other end for the loop"
 msgstr "挿入するLoopのもう一端をクリックしてください"
 
-#: psychopy/app/builder/flow.py:505
+#: psychopy/app/builder/flow.py:504
 #, python-format
 msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
@@ -2470,7 +2614,7 @@ msgid ""
 msgstr ""
 "「%s」というLoopの内容が空になるため削除されようとしています よろしいですか？"
 
-#: psychopy/app/builder/flow.py:507
+#: psychopy/app/builder/flow.py:506
 msgid "Impending Loop collapse"
 msgstr "Loopが空になろうとしています"
 
@@ -2647,79 +2791,79 @@ msgstr "`{}`の{}にPythonの構文エラーがあります"
 msgid "Python var `{}` in `{}` is same as Name"
 msgstr "`{2}`で用いられている変数名`{1}`は他の名前と重複しています"
 
-#: psychopy/app/coder/coder.py:50
+#: psychopy/app/coder/coder.py:51
 msgid "basic"
 msgstr "基本"
 
-#: psychopy/app/coder/coder.py:51
+#: psychopy/app/coder/coder.py:52
 msgid "input"
 msgstr "入力"
 
-#: psychopy/app/coder/coder.py:52
+#: psychopy/app/coder/coder.py:53
 msgid "stimuli"
 msgstr "刺激"
 
-#: psychopy/app/coder/coder.py:53
+#: psychopy/app/coder/coder.py:54
 msgid "exp control"
 msgstr "実験制御"
 
-#: psychopy/app/coder/coder.py:55
+#: psychopy/app/coder/coder.py:56
 msgid "hardware"
 msgstr "ハードウェア"
 
-#: psychopy/app/coder/coder.py:56
+#: psychopy/app/coder/coder.py:57
 msgid "timing"
 msgstr "タイミング"
 
-#: psychopy/app/coder/coder.py:57
+#: psychopy/app/coder/coder.py:58
 msgid "misc"
 msgstr "その他"
 
-#: psychopy/app/coder/coder.py:260
+#: psychopy/app/coder/coder.py:261
 msgid "PsychoPy unit testing"
 msgstr "PsychoPy ユニットテスト"
 
-#: psychopy/app/coder/coder.py:293
+#: psychopy/app/coder/coder.py:294
 msgid "&Tests"
 msgstr "テスト(&T)"
 
-#: psychopy/app/coder/coder.py:296
+#: psychopy/app/coder/coder.py:297
 #, python-format
 msgid "&Run tests\t%s"
 msgstr "テストの実行(&R)\t%s"
 
-#: psychopy/app/coder/coder.py:300
+#: psychopy/app/coder/coder.py:301
 #, python-format
 msgid "&Cancel running test\t%s"
 msgstr "テストの中止(&C)\t%s"
 
-#: psychopy/app/coder/coder.py:301
+#: psychopy/app/coder/coder.py:302
 msgid "Quit a test in progress"
 msgstr "実行中のテストを中止します"
 
-#: psychopy/app/coder/coder.py:305
+#: psychopy/app/coder/coder.py:306
 #, python-format
 msgid "&Close tests panel\t%s"
 msgstr "テストパネルを閉じる(&C)\t%s"
 
-#: psychopy/app/coder/coder.py:309
+#: psychopy/app/coder/coder.py:310
 #, python-format
 msgid "Go to &Coder view\t%s"
 msgstr "Coderを開く(&C)t%s"
 
-#: psychopy/app/coder/coder.py:310
+#: psychopy/app/coder/coder.py:311
 msgid "Go to the Coder view"
 msgstr "Coderのウィンドウを開きます"
 
-#: psychopy/app/coder/coder.py:317
+#: psychopy/app/coder/coder.py:318
 msgid "Terminate PsychoPy"
 msgstr "PsychoPyを終了します"
 
-#: psychopy/app/coder/coder.py:320
+#: psychopy/app/coder/coder.py:321
 msgid "&Preferences"
 msgstr "設定"
 
-#: psychopy/app/coder/coder.py:340
+#: psychopy/app/coder/coder.py:341
 msgid ""
 "Select the test(s) to run, from:\n"
 "psychopy/tests/test*"
@@ -2727,285 +2871,285 @@ msgstr ""
 "テストを以下から選んで実行します\n"
 "psychopy/tests/test*"
 
-#: psychopy/app/coder/coder.py:347
+#: psychopy/app/coder/coder.py:348
 msgid "Run tests"
 msgstr "テストの実行"
 
-#: psychopy/app/coder/coder.py:349 psychopy/app/dialogs.py:46
-#: psychopy/app/preferencesDlg.py:182 psychopy/app/projects.py:329
+#: psychopy/app/coder/coder.py:350 psychopy/app/dialogs.py:46
+#: psychopy/app/preferencesDlg.py:185 psychopy/app/projects.py:329
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: psychopy/app/coder/coder.py:355
+#: psychopy/app/coder/coder.py:356
 msgid "Coverage Report"
 msgstr "カバレッジレポート"
 
-#: psychopy/app/coder/coder.py:356
+#: psychopy/app/coder/coder.py:357
 msgid "Include coverage report (requires coverage module)"
 msgstr "カバレッジレポートを実行します(coverageモジュールが必要)"
 
-#: psychopy/app/coder/coder.py:360
+#: psychopy/app/coder/coder.py:361
 msgid "ALL stdout"
 msgstr "すべてを出力"
 
-#: psychopy/app/coder/coder.py:362
+#: psychopy/app/coder/coder.py:363
 msgid "Report all printed output & show any new rms-test images"
 msgstr "全ての標準出力を報告してrmsテスト画像を表示します"
 
-#: psychopy/app/coder/coder.py:1294
+#: psychopy/app/coder/coder.py:1277
 #, python-format
 msgid "Unable to find \"%s\""
 msgstr "\"%s\"が見つかりません"
 
-#: psychopy/app/coder/coder.py:1394 psychopy/app/coder/coder.py:1491
+#: psychopy/app/coder/coder.py:1377 psychopy/app/coder/coder.py:1474
 msgid "Editor"
 msgstr "エディタ"
 
-#: psychopy/app/coder/coder.py:1426 psychopy/app/coder/coder.py:1488
+#: psychopy/app/coder/coder.py:1409 psychopy/app/coder/coder.py:1471
 msgid "Shelf"
 msgstr "シェルフ"
 
-#: psychopy/app/coder/coder.py:1440 psychopy/tools/wizard.py:509
+#: psychopy/app/coder/coder.py:1423 psychopy/tools/wizard.py:509
 msgid "Welcome to PsychoPy2!"
 msgstr "PsychoPy2へようこそ！"
 
-#: psychopy/app/coder/coder.py:1442
+#: psychopy/app/coder/coder.py:1425
 msgid "Output"
 msgstr "出力"
 
-#: psychopy/app/coder/coder.py:1454
+#: psychopy/app/coder/coder.py:1437
 msgid "IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)"
 msgstr ""
 "IPythonをシェルとして実行できません pyshellを使用します (IPython 0.12はwx上で"
 "動作しない場合があります)"
 
-#: psychopy/app/coder/coder.py:1459
+#: psychopy/app/coder/coder.py:1442
 msgid "PyShell in PsychoPy - type some commands!"
 msgstr "Pyshell in PsychoPy - コマンドを入力してください"
 
-#: psychopy/app/coder/coder.py:1462
+#: psychopy/app/coder/coder.py:1445
 msgid "Shell"
 msgstr "シェル"
 
-#: psychopy/app/coder/coder.py:1472 psychopy/app/coder/coder.py:1490
+#: psychopy/app/coder/coder.py:1455 psychopy/app/coder/coder.py:1473
 msgid "Source Assistant"
 msgstr "ソースアシスタント"
 
-#: psychopy/app/coder/coder.py:1523 psychopy/app/coder/coder.py:1868
+#: psychopy/app/coder/coder.py:1506 psychopy/app/coder/coder.py:1851
 msgid "Save current file"
 msgstr "現在のファイルを保存します"
 
-#: psychopy/app/coder/coder.py:1526 psychopy/app/coder/coder.py:1874
+#: psychopy/app/coder/coder.py:1509 psychopy/app/coder/coder.py:1857
 msgid "Save current python file as..."
 msgstr "現在のPythonファイルを名前を指定して保存します"
 
-#: psychopy/app/coder/coder.py:1529
+#: psychopy/app/coder/coder.py:1512
 msgid "Close current python file"
 msgstr "現在のPythonファイルを閉じます"
 
-#: psychopy/app/coder/coder.py:1536
+#: psychopy/app/coder/coder.py:1519
 #, python-format
 msgid "Print\t%s"
 msgstr "印刷\t%s"
 
-#: psychopy/app/coder/coder.py:1553
+#: psychopy/app/coder/coder.py:1536
 #, python-format
 msgid "Cu&t\t%s"
 msgstr "切り取り(&t)\t%s"
 
-#: psychopy/app/coder/coder.py:1555
+#: psychopy/app/coder/coder.py:1538
 #, python-format
 msgid "&Copy\t%s"
 msgstr "コピー(&C)\t%s"
 
-#: psychopy/app/coder/coder.py:1557
+#: psychopy/app/coder/coder.py:1540
 #, python-format
 msgid "&Paste\t%s"
 msgstr "貼り付け(&P)\t%s"
 
-#: psychopy/app/coder/coder.py:1559
+#: psychopy/app/coder/coder.py:1542
 msgid "Duplicate the current line (or current selection)"
 msgstr "現在の行(または選択範囲)を複製します"
 
-#: psychopy/app/coder/coder.py:1561
+#: psychopy/app/coder/coder.py:1544
 #, python-format
 msgid "&Duplicate\t%s"
 msgstr "複製(&D)\t%s"
 
-#: psychopy/app/coder/coder.py:1567
+#: psychopy/app/coder/coder.py:1550
 #, python-format
 msgid "&Find\t%s"
 msgstr "検索(&F)\t%s"
 
-#: psychopy/app/coder/coder.py:1570
+#: psychopy/app/coder/coder.py:1553
 #, python-format
 msgid "Find &Next\t%s"
 msgstr "次を検索(&N)\t%s"
 
-#: psychopy/app/coder/coder.py:1575
+#: psychopy/app/coder/coder.py:1558
 #, python-format
 msgid "Comment\t%s"
 msgstr "コメント化\t%s"
 
-#: psychopy/app/coder/coder.py:1576
+#: psychopy/app/coder/coder.py:1559
 msgid "Comment selected lines"
 msgstr "選択した行をコメント化します"
 
-#: psychopy/app/coder/coder.py:1580
+#: psychopy/app/coder/coder.py:1563
 #, python-format
 msgid "Uncomment\t%s"
 msgstr "コメント解除\t%s"
 
-#: psychopy/app/coder/coder.py:1581
+#: psychopy/app/coder/coder.py:1564
 msgid "Un-comment selected lines"
 msgstr "選択したコメント行を解除します"
 
-#: psychopy/app/coder/coder.py:1585
+#: psychopy/app/coder/coder.py:1568
 #, python-format
 msgid "Toggle fold\t%s"
 msgstr "折りたたみ\t%s"
 
-#: psychopy/app/coder/coder.py:1586
+#: psychopy/app/coder/coder.py:1569
 msgid "Toggle folding of top level"
 msgstr "トップレベルのブロックの折りたたみをON/OFFします"
 
-#: psychopy/app/coder/coder.py:1592
+#: psychopy/app/coder/coder.py:1575
 #, python-format
 msgid "Indent selection\t%s"
 msgstr "インデントを増やす\t%s"
 
-#: psychopy/app/coder/coder.py:1593
+#: psychopy/app/coder/coder.py:1576
 msgid "Increase indentation of current line"
 msgstr "選択行のインデントを一段増やします"
 
-#: psychopy/app/coder/coder.py:1597
+#: psychopy/app/coder/coder.py:1580
 #, python-format
 msgid "Dedent selection\t%s"
 msgstr "インデントを減らす\t%s"
 
-#: psychopy/app/coder/coder.py:1598
+#: psychopy/app/coder/coder.py:1581
 msgid "Decrease indentation of current line"
 msgstr "選択行のインデントを一段減らす"
 
-#: psychopy/app/coder/coder.py:1601
+#: psychopy/app/coder/coder.py:1584
 msgid "Try to indent to the correct position w.r.t. last line"
 msgstr "直前の行に対して適切なインデントになるようにインデントを変更します"
 
-#: psychopy/app/coder/coder.py:1604
+#: psychopy/app/coder/coder.py:1587
 #, python-format
 msgid "SmartIndent\t%s"
 msgstr "スマートインデント\t%s"
 
-#: psychopy/app/coder/coder.py:1649
+#: psychopy/app/coder/coder.py:1632
 msgid "Stop the current script"
 msgstr "現在のスクリプトの実行を中止します"
 
-#: psychopy/app/coder/coder.py:1662
+#: psychopy/app/coder/coder.py:1645
 msgid "csv from psydat"
 msgstr "psydataをcsvへ変換"
 
-#: psychopy/app/coder/coder.py:1663
+#: psychopy/app/coder/coder.py:1646
 msgid "Create a .csv file from an existing .psydat file"
 msgstr "既存の.psydatファイルを.csvファイルに変換します"
 
-#: psychopy/app/coder/coder.py:1668
+#: psychopy/app/coder/coder.py:1651
 msgid "Unit &testing...\tCtrl-T"
 msgstr "ユニットテスト(&t)...\tCtrl-T"
 
-#: psychopy/app/coder/coder.py:1669
+#: psychopy/app/coder/coder.py:1652
 msgid "Show dialog to run unit tests"
 msgstr "ユニットテストのダイアログを開きます"
 
-#: psychopy/app/coder/coder.py:1679
+#: psychopy/app/coder/coder.py:1662
 msgid "Shows guides in the editor for your indentation level"
 msgstr "インデントレベルのガイドを表示します"
 
-#: psychopy/app/coder/coder.py:1682
+#: psychopy/app/coder/coder.py:1665
 #, python-format
 msgid "&Indentation guides\t%s"
 msgstr "インデントガイドの表示\t%s"
 
-#: psychopy/app/coder/coder.py:1689
+#: psychopy/app/coder/coder.py:1672
 msgid "Show whitespace characters in the code"
 msgstr "コード中の空白文字を表示します"
 
-#: psychopy/app/coder/coder.py:1691
+#: psychopy/app/coder/coder.py:1674
 #, python-format
 msgid "&Whitespace\t%s"
 msgstr "空白文字の表示(&W)\t%s"
 
-#: psychopy/app/coder/coder.py:1697
+#: psychopy/app/coder/coder.py:1680
 msgid "Show End Of Line markers in the code"
 msgstr "コード中の改行文字を表示します"
 
-#: psychopy/app/coder/coder.py:1700
+#: psychopy/app/coder/coder.py:1683
 #, python-format
 msgid "Show &EOLs\t%s"
 msgstr "改行文字の表示(&E)\t%s"
 
-#: psychopy/app/coder/coder.py:1708
+#: psychopy/app/coder/coder.py:1691
 msgid "Shows the output and shell panes (and starts capturing stdout)"
 msgstr "OutputとShellのペインを表示して標準出力のキャプチャを開始します"
 
-#: psychopy/app/coder/coder.py:1711
+#: psychopy/app/coder/coder.py:1694
 #, python-format
 msgid "Show &Output/Shell\t%s"
 msgstr "Output/Shellを表示\t%s"
 
-#: psychopy/app/coder/coder.py:1716
+#: psychopy/app/coder/coder.py:1699
 msgid "Provides help functions and attributes of classes in your script"
 msgstr "関数・データ属性・クラスのヘルプを表示します"
 
-#: psychopy/app/coder/coder.py:1719
+#: psychopy/app/coder/coder.py:1702
 msgid "&Source Assistant"
 msgstr "ソースアシスタント(&S)"
 
-#: psychopy/app/coder/coder.py:1726
+#: psychopy/app/coder/coder.py:1709
 #, python-format
 msgid "Go to &Builder view\t%s"
 msgstr "Builderを開く(&B)\t%s"
 
-#: psychopy/app/coder/coder.py:1727
+#: psychopy/app/coder/coder.py:1710
 msgid "Go to the Builder view"
 msgstr "Builderのウィンドウを開きます"
 
-#: psychopy/app/coder/coder.py:1800
+#: psychopy/app/coder/coder.py:1783
 msgid "&PsychoPy Coder Tutorial"
 msgstr "PsychoPy Coderのチュートリアル(&P)"
 
-#: psychopy/app/coder/coder.py:1801
+#: psychopy/app/coder/coder.py:1784
 msgid "Go to the online PsychoPy tutorial"
 msgstr "PsychoPyのチュートリアルを開きます"
 
-#: psychopy/app/coder/coder.py:1805
+#: psychopy/app/coder/coder.py:1788
 msgid "&PsychoPy API (reference)"
 msgstr "PsychoPy APIリファレンス(&P)"
 
-#: psychopy/app/coder/coder.py:1806
+#: psychopy/app/coder/coder.py:1789
 msgid "Go to the online PsychoPy reference manual"
 msgstr "PsychoPyのオンラインリファレンスマニュアルを開きます"
 
-#: psychopy/app/coder/coder.py:1858
+#: psychopy/app/coder/coder.py:1841
 msgid "Create new python file"
 msgstr "新しいPythonファイルを作成します"
 
-#: psychopy/app/coder/coder.py:1863
+#: psychopy/app/coder/coder.py:1846
 msgid "Open an existing file"
 msgstr "既存のPythonファイルを開きます"
 
-#: psychopy/app/coder/coder.py:1897 psychopy/app/coder/coder.py:1898
+#: psychopy/app/coder/coder.py:1880 psychopy/app/coder/coder.py:1881
 msgid "Color Picker -> clipboard"
 msgstr "カラーピッカー(クリップボードへ)"
 
-#: psychopy/app/coder/coder.py:1905
+#: psychopy/app/coder/coder.py:1888
 msgid "Run current script"
 msgstr "現在のスクリプトを実行"
 
-#: psychopy/app/coder/coder.py:1910
+#: psychopy/app/coder/coder.py:1893
 msgid "Stop current script"
 msgstr "現在のスクリプトの実行を中止します"
 
-#: psychopy/app/coder/coder.py:1939 psychopy/app/coder/coder.py:1964
+#: psychopy/app/coder/coder.py:1922 psychopy/app/coder/coder.py:1947
 #, python-format
 msgid ""
 "'%s' was modified outside of PsychoPy:\n"
@@ -3016,24 +3160,24 @@ msgstr ""
 "PsychoPy以外のアプリケーションで変更されました\n"
 "(保存せずに)再読み込みしますか？"
 
-#: psychopy/app/coder/coder.py:1943 psychopy/app/coder/coder.py:1968
+#: psychopy/app/coder/coder.py:1926 psychopy/app/coder/coder.py:1951
 msgid "Reloading file"
 msgstr "ファイルの再読み込み中"
 
-#: psychopy/app/coder/coder.py:2053 psychopy/app/coder/coder.py:2435
+#: psychopy/app/coder/coder.py:2036 psychopy/app/coder/coder.py:2422
 #, python-format
 msgid "Save changes to %s before quitting?"
 msgstr "終了する前に%sへの変更を保存しますか？"
 
-#: psychopy/app/coder/coder.py:2229 psychopy/app/coder/coder.py:2721
+#: psychopy/app/coder/coder.py:2212 psychopy/app/coder/coder.py:2708
 msgid "Analyzing code"
 msgstr "解析中"
 
-#: psychopy/app/coder/coder.py:2250
+#: psychopy/app/coder/coder.py:2234
 msgid "Loading file"
 msgstr "ファイルの読み込み中"
 
-#: psychopy/app/coder/coder.py:2301
+#: psychopy/app/coder/coder.py:2288
 #, python-format
 msgid ""
 "File appears to have been modified outside of PsychoPy:\n"
@@ -3044,7 +3188,7 @@ msgstr ""
 "   %s\n"
 "上書きしますか？"
 
-#: psychopy/app/coder/coder.py:2314
+#: psychopy/app/coder/coder.py:2301
 #, python-format
 msgid ""
 "File '%s' lacks write-permission:\n"
@@ -3053,32 +3197,32 @@ msgstr ""
 "'%s'への書き込みパーミッションがありません\n"
 "別名で保存します"
 
-#: psychopy/app/coder/coder.py:2328
+#: psychopy/app/coder/coder.py:2315
 msgid "Saving file"
 msgstr "ファイルの保存中"
 
-#: psychopy/app/coder/coder.py:2359
+#: psychopy/app/coder/coder.py:2346
 msgid "Analyzing current source code"
 msgstr "現在のコードを解析中"
 
-#: psychopy/app/coder/coder.py:2389
+#: psychopy/app/coder/coder.py:2376
 msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
 msgstr ""
 "Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル "
 "(*.*)|*.*"
 
-#: psychopy/app/coder/coder.py:2392
+#: psychopy/app/coder/coder.py:2379
 msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
 msgstr ""
 "Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル "
 "(*.*)|*"
 
-#: psychopy/app/coder/coder.py:2532
+#: psychopy/app/coder/coder.py:2519
 #, python-format
 msgid "Save changes to %s before running?"
 msgstr "実行する前に%sへの変更を保存しますか？"
 
-#: psychopy/app/coder/coder.py:2729
+#: psychopy/app/coder/coder.py:2716
 msgid "ready"
 msgstr "準備完了"
 
@@ -3347,7 +3491,7 @@ msgstr ""
 "PsychoPyの取得に失敗しました\n"
 "「設定」のプロキシの設定を確認してください"
 
-#: psychopy/app/dialogs.py:31 psychopy/gui/qtgui.py:485
+#: psychopy/app/dialogs.py:31 psychopy/gui/qtgui.py:527
 msgid "Warning"
 msgstr "警告"
 
@@ -3359,391 +3503,399 @@ msgstr "情報"
 msgid "No"
 msgstr "いいえ"
 
-#: psychopy/app/dialogs.py:58 psychopy/app/preferencesDlg.py:175
+#: psychopy/app/dialogs.py:58 psychopy/app/preferencesDlg.py:178
 msgid "OK"
 msgstr "OK"
 
-#: psychopy/app/preferencesDlg.py:21
+#: psychopy/app/preferencesDlg.py:22
 msgid "General"
 msgstr "一般"
 
-#: psychopy/app/preferencesDlg.py:22
+#: psychopy/app/preferencesDlg.py:23
 msgid "App"
 msgstr "アプリケーション"
 
-#: psychopy/app/preferencesDlg.py:25
+#: psychopy/app/preferencesDlg.py:26
 msgid "Connections"
 msgstr "ネットワーク"
 
-#: psychopy/app/preferencesDlg.py:26
+#: psychopy/app/preferencesDlg.py:27
 msgid "Key bindings"
 msgstr "キー設定"
 
-#: psychopy/app/preferencesDlg.py:28
+#: psychopy/app/preferencesDlg.py:29
 msgid "window type"
 msgstr "ウィンドウ描画ライブラリ"
 
-#: psychopy/app/preferencesDlg.py:29
+#: psychopy/app/preferencesDlg.py:30
 msgid "units"
 msgstr "単位"
 
-#: psychopy/app/preferencesDlg.py:30 psychopy/tools/wizard.py:33
+#: psychopy/app/preferencesDlg.py:31 psychopy/tools/wizard.py:33
 msgid "full-screen"
 msgstr "フルスクリーン"
 
-#: psychopy/app/preferencesDlg.py:31
+#: psychopy/app/preferencesDlg.py:32
 msgid "allow GUI"
 msgstr "GUIを使用"
 
-#: psychopy/app/preferencesDlg.py:32
+#: psychopy/app/preferencesDlg.py:33
 msgid "paths"
 msgstr "パス"
 
-#: psychopy/app/preferencesDlg.py:33
+#: psychopy/app/preferencesDlg.py:34
 msgid "audio library"
 msgstr "オーディオライブラリ"
 
-#: psychopy/app/preferencesDlg.py:34
+#: psychopy/app/preferencesDlg.py:35
 msgid "audio driver"
 msgstr "オーディオドライバ"
 
-#: psychopy/app/preferencesDlg.py:35
+#: psychopy/app/preferencesDlg.py:36
 msgid "flac audio compression"
 msgstr "flacオーディオ圧縮"
 
-#: psychopy/app/preferencesDlg.py:36
+#: psychopy/app/preferencesDlg.py:37
 msgid "parallel ports"
 msgstr "パラレルポート"
 
-#: psychopy/app/preferencesDlg.py:37
+#: psychopy/app/preferencesDlg.py:38
+msgid "shutdown key"
+msgstr "実験終了キー"
+
+#: psychopy/app/preferencesDlg.py:39
+msgid "shutdown key modifier keys"
+msgstr "実験終了キーのモディファイア"
+
+#: psychopy/app/preferencesDlg.py:40
 msgid "show start-up tips"
 msgstr "起動時にチップを表示"
 
-#: psychopy/app/preferencesDlg.py:38
+#: psychopy/app/preferencesDlg.py:41
 msgid "large icons"
 msgstr "大きいアイコン"
 
-#: psychopy/app/preferencesDlg.py:39
+#: psychopy/app/preferencesDlg.py:42
 msgid "default view"
 msgstr "標準で開くウィンドウ"
 
-#: psychopy/app/preferencesDlg.py:40
+#: psychopy/app/preferencesDlg.py:43
 msgid "reset preferences"
 msgstr "設定の初期化"
 
-#: psychopy/app/preferencesDlg.py:41
+#: psychopy/app/preferencesDlg.py:44
 msgid "auto-save prefs"
 msgstr "設定の自動保存"
 
-#: psychopy/app/preferencesDlg.py:42
+#: psychopy/app/preferencesDlg.py:45
 msgid "debug mode"
 msgstr "デバッグモード"
 
-#: psychopy/app/preferencesDlg.py:43 psychopy/tools/wizard.py:38
+#: psychopy/app/preferencesDlg.py:46 psychopy/tools/wizard.py:38
 msgid "locale"
 msgstr "ロケール"
 
-#: psychopy/app/preferencesDlg.py:44
+#: psychopy/app/preferencesDlg.py:47
 msgid "read-only"
 msgstr "読み込み専用で開く"
 
-#: psychopy/app/preferencesDlg.py:45
+#: psychopy/app/preferencesDlg.py:48
 msgid "code font"
 msgstr "コード用フォント"
 
-#: psychopy/app/preferencesDlg.py:46
+#: psychopy/app/preferencesDlg.py:49
 msgid "comment font"
 msgstr "コメント用フォント"
 
-#: psychopy/app/preferencesDlg.py:47
+#: psychopy/app/preferencesDlg.py:50
 msgid "output font"
 msgstr "出力用フォント"
 
-#: psychopy/app/preferencesDlg.py:48
+#: psychopy/app/preferencesDlg.py:51
 msgid "output font size"
 msgstr "出力用フォントサイズ"
 
-#: psychopy/app/preferencesDlg.py:49
+#: psychopy/app/preferencesDlg.py:52
 msgid "code font size"
 msgstr "コード用フォントサイズ"
 
-#: psychopy/app/preferencesDlg.py:50
+#: psychopy/app/preferencesDlg.py:53
 msgid "show source asst"
 msgstr "ソースアシスタントを表示"
 
-#: psychopy/app/preferencesDlg.py:51
+#: psychopy/app/preferencesDlg.py:54
 msgid "show output"
 msgstr "出力パネルを表示"
 
-#: psychopy/app/preferencesDlg.py:52
+#: psychopy/app/preferencesDlg.py:55
 msgid "reload previous files"
 msgstr "前回のファイルを開く"
 
-#: psychopy/app/preferencesDlg.py:53
+#: psychopy/app/preferencesDlg.py:56
 msgid "preferred shell"
 msgstr "優先するシェル"
 
-#: psychopy/app/preferencesDlg.py:54
+#: psychopy/app/preferencesDlg.py:57
 msgid "newline convention"
 msgstr "改行文字の変換"
 
-#: psychopy/app/preferencesDlg.py:55
+#: psychopy/app/preferencesDlg.py:58
 msgid "reload previous exp"
 msgstr "前回の実験を開く"
 
-#: psychopy/app/preferencesDlg.py:56
+#: psychopy/app/preferencesDlg.py:59
 msgid "uncluttered namespace"
 msgstr "名前空間の整理"
 
-#: psychopy/app/preferencesDlg.py:57
+#: psychopy/app/preferencesDlg.py:60
 msgid "components folders"
 msgstr "コンポーネントフォルダ"
 
-#: psychopy/app/preferencesDlg.py:58
+#: psychopy/app/preferencesDlg.py:61
 msgid "hidden components"
 msgstr "表示しないコンポーネント"
 
-#: psychopy/app/preferencesDlg.py:59
+#: psychopy/app/preferencesDlg.py:62
 msgid "unpacked demos dir"
 msgstr "デモのディレクトリ"
 
-#: psychopy/app/preferencesDlg.py:60
+#: psychopy/app/preferencesDlg.py:63
 msgid "saved data folder"
 msgstr "データ保存フォルダ"
 
-#: psychopy/app/preferencesDlg.py:61
+#: psychopy/app/preferencesDlg.py:64
 msgid "Flow at top"
 msgstr "フローを上に表示"
 
-#: psychopy/app/preferencesDlg.py:62
+#: psychopy/app/preferencesDlg.py:65
 msgid "always show readme"
 msgstr "常にreadmeを表示"
 
-#: psychopy/app/preferencesDlg.py:63
+#: psychopy/app/preferencesDlg.py:66
 msgid "max favorites"
 msgstr "お気に入りの最大登録数"
 
-#: psychopy/app/preferencesDlg.py:64
+#: psychopy/app/preferencesDlg.py:67
 msgid "proxy"
 msgstr "プロキシ"
 
-#: psychopy/app/preferencesDlg.py:65
+#: psychopy/app/preferencesDlg.py:68
 msgid "auto-proxy"
 msgstr "プロキシの自動構成"
 
-#: psychopy/app/preferencesDlg.py:66
+#: psychopy/app/preferencesDlg.py:69
 msgid "allow usage stats"
 msgstr "利用統計の送信を許可"
 
-#: psychopy/app/preferencesDlg.py:67
+#: psychopy/app/preferencesDlg.py:70
 msgid "check for updates"
 msgstr "更新の確認"
 
-#: psychopy/app/preferencesDlg.py:68
+#: psychopy/app/preferencesDlg.py:71
 msgid "timeout"
 msgstr "タイムアウト"
 
-#: psychopy/app/preferencesDlg.py:69
+#: psychopy/app/preferencesDlg.py:72
 msgid "open"
 msgstr "開く"
 
-#: psychopy/app/preferencesDlg.py:70
+#: psychopy/app/preferencesDlg.py:73
 msgid "new"
 msgstr "新規作成"
 
-#: psychopy/app/preferencesDlg.py:71
+#: psychopy/app/preferencesDlg.py:74
 msgid "save"
 msgstr "保存"
 
-#: psychopy/app/preferencesDlg.py:72
+#: psychopy/app/preferencesDlg.py:75
 msgid "save as"
 msgstr "名前を付けて保存"
 
-#: psychopy/app/preferencesDlg.py:73
+#: psychopy/app/preferencesDlg.py:76
 msgid "print"
 msgstr "印刷"
 
-#: psychopy/app/preferencesDlg.py:74
+#: psychopy/app/preferencesDlg.py:77
 msgid "close"
 msgstr "閉じる"
 
-#: psychopy/app/preferencesDlg.py:75
+#: psychopy/app/preferencesDlg.py:78
 msgid "quit"
 msgstr "終了"
 
-#: psychopy/app/preferencesDlg.py:76
+#: psychopy/app/preferencesDlg.py:79
 msgid "preferences"
 msgstr "設定"
 
-#: psychopy/app/preferencesDlg.py:77
+#: psychopy/app/preferencesDlg.py:80
 msgid "cut"
 msgstr "切り取り"
 
-#: psychopy/app/preferencesDlg.py:79
+#: psychopy/app/preferencesDlg.py:82
 msgid "paste"
 msgstr "貼り付け"
 
-#: psychopy/app/preferencesDlg.py:80
+#: psychopy/app/preferencesDlg.py:83
 msgid "duplicate"
 msgstr "複製"
 
-#: psychopy/app/preferencesDlg.py:81
+#: psychopy/app/preferencesDlg.py:84
 msgid "indent"
 msgstr "インデントを増やす"
 
-#: psychopy/app/preferencesDlg.py:82
+#: psychopy/app/preferencesDlg.py:85
 msgid "dedent"
 msgstr "インデントを減らす"
 
-#: psychopy/app/preferencesDlg.py:83
+#: psychopy/app/preferencesDlg.py:86
 msgid "smart indent"
 msgstr "スマートインデント"
 
-#: psychopy/app/preferencesDlg.py:84
+#: psychopy/app/preferencesDlg.py:87
 msgid "find"
 msgstr "検索"
 
-#: psychopy/app/preferencesDlg.py:85
+#: psychopy/app/preferencesDlg.py:88
 msgid "find again"
 msgstr "次を検索"
 
-#: psychopy/app/preferencesDlg.py:86
+#: psychopy/app/preferencesDlg.py:89
 msgid "undo"
 msgstr "元に戻す"
 
-#: psychopy/app/preferencesDlg.py:87
+#: psychopy/app/preferencesDlg.py:90
 msgid "redo"
 msgstr "やり直す"
 
-#: psychopy/app/preferencesDlg.py:88
+#: psychopy/app/preferencesDlg.py:91
 msgid "comment"
 msgstr "コメント化"
 
-#: psychopy/app/preferencesDlg.py:89
+#: psychopy/app/preferencesDlg.py:92
 msgid "uncomment"
 msgstr "コメント解除"
 
-#: psychopy/app/preferencesDlg.py:90
+#: psychopy/app/preferencesDlg.py:93
 msgid "fold"
 msgstr "折りたたみ"
 
-#: psychopy/app/preferencesDlg.py:91
+#: psychopy/app/preferencesDlg.py:94
 msgid "analyze code"
 msgstr "コードの解析"
 
-#: psychopy/app/preferencesDlg.py:92
+#: psychopy/app/preferencesDlg.py:95
 msgid "compile script"
 msgstr "スクリプトの生成(コンパイル)"
 
-#: psychopy/app/preferencesDlg.py:93
+#: psychopy/app/preferencesDlg.py:96
 msgid "run script"
 msgstr "スクリプトを実行"
 
-#: psychopy/app/preferencesDlg.py:94
+#: psychopy/app/preferencesDlg.py:97
 msgid "stop script"
 msgstr "実行を中止"
 
-#: psychopy/app/preferencesDlg.py:95
+#: psychopy/app/preferencesDlg.py:98
 msgid "toggle whitespace"
 msgstr "空白文字表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:96
+#: psychopy/app/preferencesDlg.py:99
 msgid "toggle EOLs"
 msgstr "改行文字表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:97
+#: psychopy/app/preferencesDlg.py:100
 msgid "toggle indent guides"
 msgstr "インデントガイド表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:98
+#: psychopy/app/preferencesDlg.py:101
 msgid "new Routine"
 msgstr "新規Routine"
 
-#: psychopy/app/preferencesDlg.py:99
+#: psychopy/app/preferencesDlg.py:102
 msgid "copy Routine"
 msgstr "Routineのコピー"
 
-#: psychopy/app/preferencesDlg.py:100
+#: psychopy/app/preferencesDlg.py:103
 msgid "paste Routine"
 msgstr "Routineの貼り付け"
 
-#: psychopy/app/preferencesDlg.py:101
+#: psychopy/app/preferencesDlg.py:104
 msgid "rename Routine"
 msgstr "Routineの名前を変更"
 
-#: psychopy/app/preferencesDlg.py:102
+#: psychopy/app/preferencesDlg.py:105
 msgid "toggle output panel"
 msgstr "出力パネルの切り替え"
 
-#: psychopy/app/preferencesDlg.py:103
+#: psychopy/app/preferencesDlg.py:106
 msgid "switch to Builder"
 msgstr "Builderへ切り替え"
 
-#: psychopy/app/preferencesDlg.py:104
+#: psychopy/app/preferencesDlg.py:107
 msgid "switch to Coder"
 msgstr "Coderへ切り替え"
 
-#: psychopy/app/preferencesDlg.py:105
+#: psychopy/app/preferencesDlg.py:108
 msgid "larger Flow"
 msgstr "Flowのアイテムを大きく表示"
 
-#: psychopy/app/preferencesDlg.py:106
+#: psychopy/app/preferencesDlg.py:109
 msgid "smaller Flow"
 msgstr "Flowのアイテムを小さく表示"
 
-#: psychopy/app/preferencesDlg.py:107
+#: psychopy/app/preferencesDlg.py:110
 msgid "larger routine"
 msgstr "Routineのアイテムを大きく表示"
 
-#: psychopy/app/preferencesDlg.py:108
+#: psychopy/app/preferencesDlg.py:111
 msgid "smaller routine"
 msgstr "Routineのアイテムを小さく表示"
 
-#: psychopy/app/preferencesDlg.py:109
+#: psychopy/app/preferencesDlg.py:112
 msgid "toggle readme"
 msgstr "Readmeファイル表示の切り替え"
 
-#: psychopy/app/preferencesDlg.py:111
+#: psychopy/app/preferencesDlg.py:114
 msgid "same as last session"
 msgstr "前回使用時のウィンドウを開く"
 
-#: psychopy/app/preferencesDlg.py:112
+#: psychopy/app/preferencesDlg.py:115
 msgid "both Builder & Coder"
 msgstr "BuilderとCoderを開く"
 
-#: psychopy/app/preferencesDlg.py:113
+#: psychopy/app/preferencesDlg.py:116
 msgid "same as in the file"
 msgstr "改行コードを変更しない"
 
-#: psychopy/app/preferencesDlg.py:133
+#: psychopy/app/preferencesDlg.py:136
 msgid "PsychoPy Preferences"
 msgstr "PsychoPyの設定"
 
-#: psychopy/app/preferencesDlg.py:176
+#: psychopy/app/preferencesDlg.py:179
 msgid "Save prefs (in all sections) and close window"
 msgstr "全てのセクションの設定を保存してウィンドウを閉じます"
 
-#: psychopy/app/preferencesDlg.py:183
+#: psychopy/app/preferencesDlg.py:186
 msgid "Cancel any changes (to any panel)"
 msgstr "全てのセクションの変更をキャンセルします"
 
-#: psychopy/app/preferencesDlg.py:187
+#: psychopy/app/preferencesDlg.py:190
 msgid "Apply"
 msgstr "適用"
 
-#: psychopy/app/preferencesDlg.py:188
+#: psychopy/app/preferencesDlg.py:191
 msgid "Apply these prefs (in all sections) and continue"
 msgstr "全てのセクションの設定を適用します"
 
-#: psychopy/app/preferencesDlg.py:193
+#: psychopy/app/preferencesDlg.py:196
 msgid "Help"
 msgstr "ヘルプ"
 
-#: psychopy/app/preferencesDlg.py:194
+#: psychopy/app/preferencesDlg.py:197
 msgid "Get help on prefs"
 msgstr "設定のヘルプを開く"
 
-#: psychopy/app/preferencesDlg.py:329
+#: psychopy/app/preferencesDlg.py:332
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
 msgstr "「%(pref)s」の値が不正です (「%(section)s」タブ)"
@@ -4021,28 +4173,28 @@ msgstr "アプリケーションを終了します"
 msgid "PsychoPy Dialog"
 msgstr "PsychoPyダイアログ"
 
-#: psychopy/gui/qtgui.py:386 psychopy/gui/wxgui.py:277
+#: psychopy/gui/qtgui.py:428 psychopy/gui/wxgui.py:320
 msgid "Select file to save"
 msgstr "保存するファイル名を指定してください"
 
-#: psychopy/gui/qtgui.py:427
+#: psychopy/gui/qtgui.py:469
 msgid "Select file to open"
 msgstr "開くファイルを選択してください"
 
-#: psychopy/gui/qtgui.py:478
+#: psychopy/gui/qtgui.py:520
 msgid "Information"
 msgstr "情報"
 
-#: psychopy/gui/qtgui.py:481 psychopy/gui/qtgui.py:488
-#: psychopy/gui/qtgui.py:495 psychopy/gui/qtgui.py:502
+#: psychopy/gui/qtgui.py:523 psychopy/gui/qtgui.py:530
+#: psychopy/gui/qtgui.py:537 psychopy/gui/qtgui.py:544
 msgid "No details provided. ('prompt' value not set)."
 msgstr "情報がありません ('prompt'の値が設定されていません)"
 
-#: psychopy/gui/qtgui.py:492
+#: psychopy/gui/qtgui.py:534
 msgid "Critical"
 msgstr "重大"
 
-#: psychopy/gui/qtgui.py:499
+#: psychopy/gui/qtgui.py:541
 msgid "About Experiment"
 msgstr "実験について"
 
@@ -4050,7 +4202,7 @@ msgstr "実験について"
 msgid "PsychoPy dialogue"
 msgstr "PsychoPyダイアログ"
 
-#: psychopy/gui/wxgui.py:328
+#: psychopy/gui/wxgui.py:371
 msgid "Select file(s) to open"
 msgstr "開くファイルを選択してください"
 
