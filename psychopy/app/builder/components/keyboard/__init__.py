@@ -490,10 +490,12 @@ class KeyboardComponent(BaseComponent):
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
-                    "if (psychoJS.str(%(correctAns)s).toLowerCase() == 'none') {\n"
-                    "   %(name)s.corr = 1  // correct non-response\n"
-                    "} else {\n"
-                    "   %(name)s.corr = 0  // failed to respond (incorrectly)\n"
+                    "if (%(name)s.keys == undefined) {\n"
+                    "  if (psychoJS.str(%(correctAns)s).toLowerCase() == 'none') {\n"
+                    "     %(name)s.corr = 1  // correct non-response\n"
+                    "  } else {\n"
+                    "     %(name)s.corr = 0  // failed to respond (incorrectly)\n"
+                    "  }\n"
                     "}\n"
                     % self.params)
 
