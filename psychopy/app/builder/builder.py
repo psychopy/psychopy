@@ -1264,6 +1264,8 @@ class BuilderFrame(wx.Frame):
                                       _translate("Redo last action"),
                                       wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO, self.redo)
+        menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
+        wx.EVT_MENU(self, wx.ID_PASTE, self.paste)
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -1850,6 +1852,12 @@ class BuilderFrame(wx.Frame):
         self.updateAllViews()
         self.setIsModified(newVal=True)  # update save icon if needed
         return self.currentUndoLevel
+
+    def paste(self, event=None):
+        # this receives paste commands for all child dialog boxes as well
+        foc = self.FindFocus()
+        if hasattr(foc, 'Paste'):
+            foc.Paste()
 
     def updateUndoRedo(self):
         undoLevel = self.currentUndoLevel
