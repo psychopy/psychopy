@@ -1268,6 +1268,8 @@ class BuilderFrame(wx.Frame):
                                       _translate("Redo last action"),
                                       wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO, self.redo)
+        menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
+        wx.EVT_MENU(self, wx.ID_PASTE, self.paste)
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -1310,29 +1312,29 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Open Coder view\t%s") % 
+                           _translate("&Open Coder view\t%s") %
                                keys['switchToCoder'],
                            _translate("Open a new Coder view"))
         wx.EVT_MENU(self, item.GetId(), self.app.showCoder)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Toggle readme\t%s") % 
+                           _translate("&Toggle readme\t%s") %
                                       self.app.keys['toggleReadme'],
                            _translate("Toggle Readme"))
         wx.EVT_MENU(self, item.GetId(), self.toggleReadme)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Flow Larger\t%s") % 
+                           _translate("&Flow Larger\t%s") %
                                       self.app.keys['largerFlow'],
                            _translate("Larger flow items"))
         wx.EVT_MENU(self, item.GetId(),
                     self.flowPanel.increaseSize)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Flow Smaller\t%s") % 
+                           _translate("&Flow Smaller\t%s") %
                                       self.app.keys['smallerFlow'],
                            _translate("Smaller flow items"))
         wx.EVT_MENU(self, item.GetId(),
                     self.flowPanel.decreaseSize)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Routine Larger\t%s") % 
+                           _translate("&Routine Larger\t%s") %
                                       keys['largerRoutine'],
                            _translate("Larger routine items"))
         wx.EVT_MENU(self, item.GetId(),
@@ -1349,13 +1351,13 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.expMenu, _translate('&Experiment'))
         menu = self.expMenu
         item = menu.Append(wx.ID_ANY,
-                           _translate("&New Routine\t%s") % 
+                           _translate("&New Routine\t%s") %
                                       keys['newRoutine'],
                            _translate("Create a new routine (e.g. the trial "
                                       "definition)"))
         wx.EVT_MENU(self, item.GetId(), self.addRoutine)
         item = menu.Append(wx.ID_ANY,
-                           _translate("&Copy Routine\t%s") % 
+                           _translate("&Copy Routine\t%s") %
                                       keys['copyRoutine'],
                            _translate("Copy the current routine so it can be "
                                       "used in another exp"),
@@ -1852,6 +1854,12 @@ class BuilderFrame(wx.Frame):
         self.updateAllViews()
         self.setIsModified(newVal=True)  # update save icon if needed
         return self.currentUndoLevel
+
+    def paste(self, event=None):
+        # this receives paste commands for all child dialog boxes as well
+        foc = self.FindFocus()
+        if hasattr(foc, 'Paste'):
+            foc.Paste()
 
     def updateUndoRedo(self):
         undoLevel = self.currentUndoLevel
