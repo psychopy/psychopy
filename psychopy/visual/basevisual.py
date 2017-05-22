@@ -1150,10 +1150,10 @@ class WindowMixin(object):
                                   'visual.BaseVisualStim.draw')
 
     def _selectWindow(self, win):
-        # don't call switch if it's already the curr window
-        if win != globalVars.currWindow and win.winType == 'pyglet':
-            win.winHandle.switch_to()
-            globalVars.currWindow = win
+        """Switch drawing to the specified window. Calls the window's 
+        _setCurrent() method which handles the switch.
+        """
+        self.win._setCurrent()
 
     def _updateList(self):
         """The user shouldn't need this method since it gets called
