@@ -261,10 +261,11 @@ def getInitVals(params, target="PsychoPy"):
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
-                      'dir', 'speed']:
+                      'dir', 'speed',
+                      'contrast', 'moddepth', 'envori', 'envphase', 'envsf']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
-        elif name in ['image', 'mask']:
+        elif name in ['image', 'mask', 'envelope','carrier']:
             inits[name].val = "sin"
             inits[name].valType = 'str'
         elif name == 'texture resolution':
@@ -287,6 +288,12 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].valType = 'str'
         elif name == 'sound':
             inits[name].val = "A"
+            inits[name].valType = 'str'
+        elif name == 'blendmode':
+            inits[name].val = "avg"
+            inits[name].valType = 'str'
+        elif name == 'beat':
+            inits[name].val = "False"
             inits[name].valType = 'str'
         else:
             print("I don't know the appropriate default value for a '%s' "
