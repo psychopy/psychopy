@@ -10,7 +10,6 @@ import os
 import glob
 import copy
 import shutil
-import wx
 from PIL import Image
 from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
@@ -29,6 +28,7 @@ for filename in pycFiles:
             pass  # may not have sufficient privs
 
 def pilToBitmap(pil, scaleFactor=1.0):
+    import wx
     image = wx.EmptyImage(pil.size[0], pil.size[1])
 
     try:  # For PIL.

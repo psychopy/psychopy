@@ -12,7 +12,8 @@ The table below shows you the current state of play is the current state of play
       __, __, __
     ,**Inputs**,
   Keyboard, ,Mic
-  Mouse, ,Webcam
+     , ,Mouse (partially done - JS code is written)
+     , ,Webcam
      , ,Rating Scales
      , ,Free text (and similar)
      , ,Multi-touch devices

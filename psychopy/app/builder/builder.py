@@ -32,7 +32,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
 
 from .flow import FlowPanel
-from .utils import FileDropTarget, WindowFrozen
+from ..utils import FileDropTarget, WindowFrozen
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -716,7 +716,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
         self.SetupScrolling()
-        self.SetDropTarget(FileDropTarget(builder=self.frame))
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
@@ -1092,6 +1091,7 @@ class BuilderFrame(wx.Frame):
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         self.app.trackFrame(self)
+        self.SetDropTarget(FileDropTarget(targetFrame=self))
 
     def makeToolbar(self):
         # ---toolbar---#000000#FFFFFF-----------------------------------------
@@ -1507,7 +1507,9 @@ class BuilderFrame(wx.Frame):
             filename = dlg.GetPath()
         # did user try to open a script in Builder?
         if filename.endswith('.py'):
-            self.app.showCoder(fileList=[filename])
+            self.app.showCoder()  # ensures that a coder window exists
+            self.app.coder.setCurrentDoc(filename)
+            self.app.coder.setFileModified(False)
             return
         with WindowFrozen(ctrl=self):
             # try to pause rendering until all panels updated

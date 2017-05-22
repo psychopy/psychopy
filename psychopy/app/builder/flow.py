@@ -10,19 +10,19 @@
 
 from __future__ import absolute_import, print_function, division
 
-import sys
 import re
-import numpy
+import sys
 
+import numpy
 import wx
-from wx.lib import platebtn
 import wx.aui
 import wx.stc
+from wx.lib import platebtn
 
-from .. import dialogs
 from psychopy import logging, data
-from .utils import FileDropTarget
+from psychopy.app.utils import FileDropTarget
 from .dialogs import DlgLoopProperties
+from .. import dialogs
 from ..localization import _translate
 
 
@@ -128,7 +128,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine, self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1, self.btnInsertLoop)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.SetDropTarget(FileDropTarget(builder=self.frame))
 
         idClear = wx.NewId()
         self.Bind(wx.EVT_MENU, self.clearMode, id=idClear)
