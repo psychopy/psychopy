@@ -105,14 +105,14 @@ class ParamCtrls(object):
             if vc._remoteVersionsCache:
                 options = vc.versionOptions(local=False)
                 versions = vc.availableVersions(local=False)
-                param.allowedVals=(options + [''] + versions)
+                param.allowedVals = (options + [''] + versions)
         if fieldName in ['text', 'customize_everything']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
             else:
-                sx, sy = 100, 100
-            # set viewer small, then it will increase with wx.aui control
+                sx, sy = 100, 200
+            # set viewer small, then it SHOULD increase with wx.aui control
             self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(sx, sy), style=0,
                                      prefs=appPrefs)
@@ -427,8 +427,8 @@ class _BaseParamsDlg(wx.Dialog):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
         self.ctrls = flatnotebook.FlatNotebook(self, style=agwStyle)
-        self.mainSizer.Add(self.ctrls, flag=wx.EXPAND |
-                           wx.ALL)  # add main controls
+        self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
+                           proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         categNames = sorted(categs)
         if 'Basic' in categNames:
             # move it to be the first category we see
@@ -445,7 +445,6 @@ class _BaseParamsDlg(wx.Dialog):
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
-            page.SetSizer(ctrls)
             if categName in categLabel.keys():
                 cat = categLabel[categName]
             else:
@@ -467,6 +466,9 @@ class _BaseParamsDlg(wx.Dialog):
                     if 'expName' in self.paramCtrls:
                         # ExperimentSettings has expName instead
                         self.paramCtrls['expName'].valueCtrl.SetFocus()
+            page.SetSizerAndFit(ctrls)
+            page.SetAutoLayout(True)
+        self.SetSizerAndFit(self.mainSizer)
 
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category
@@ -474,7 +476,6 @@ class _BaseParamsDlg(wx.Dialog):
         """
         # create the sizers to fit the params and set row to zero
         sizer = wx.GridBagSizer(vgap=2, hgap=2)
-        sizer.AddGrowableCol(0)  # valueCtrl column
         currRow = 0
         # does the dlg need an 'updates' row (do any params use it?)
         self.useUpdates = False
@@ -525,6 +526,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.addParam(fieldName, parent, sizer, currRow,
                           valType=self.params[fieldName].valType)
             currRow += 1
+        sizer.AddGrowableCol(1)
         return sizer
 
     def addStartStopCtrls(self, remaining, parent, sizer, currRow):
@@ -647,15 +649,28 @@ class _BaseParamsDlg(wx.Dialog):
         elif isinstance(ctrls.valueCtrl, (wx.TextCtrl, CodeBox)):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
-        # self.valueCtrl = self.typeCtrl = self.updateCtrl
+        # add the controls to the sizer
         _flag = wx.ALIGN_RIGHT | wx.ALIGN_CENTRE_VERTICAL | wx.LEFT | wx.RIGHT
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
+        if ctrls.updateCtrl:
+            sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
+        if ctrls.typeCtrl:
+            sizer.Add(ctrls.typeCtrl, (currRow, 3), flag=_flag)
+        # different flag for the value control (expand)
         _flag = wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL
         sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
-        if ctrls.updateCtrl:
-            sizer.Add(ctrls.updateCtrl, (currRow, 2))
-        if ctrls.typeCtrl:
-            sizer.Add(ctrls.typeCtrl, (currRow, 3))
+
+        # use monospace font to signal code:
+        if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
+            if self.params[fieldName].valType == 'code':
+                ctrls.valueCtrl.SetFont(self.app._codeFont)
+            elif self.params[fieldName].valType == 'str':
+                ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+                try:
+                    self.checkCodeWanted(ctrls.valueCtrl)
+                except Exception:
+                    pass
+
         if fieldName in ['text']:
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
             # self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize,
@@ -669,16 +684,6 @@ class _BaseParamsDlg(wx.Dialog):
         elif fieldName == 'Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 
-        # use monospace font to signal code:
-        if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
-            if self.params[fieldName].valType == 'code':
-                ctrls.valueCtrl.SetFont(self.app._codeFont)
-            elif self.params[fieldName].valType == 'str':
-                ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
-                try:
-                    self.checkCodeWanted(ctrls.valueCtrl)
-                except Exception:
-                    pass
 
     def openMonitorCenter(self, event):
         self.app.openMonitorCenter(event)
@@ -713,17 +718,17 @@ class _BaseParamsDlg(wx.Dialog):
         sets self.OK to be True or False
         """
         # add a label to check name
-        if 'name' in self.params.keys():
+        if 'name' in self.params:
             # if len(self.params['name'].val):
             #    nameInfo=''
             # else:
             #    nameInfo='Need a name'
-            nameInfo = ''
+            nameInfo = 'info here'
             self.nameOKlabel = wx.StaticText(self, -1, nameInfo,
-                                             size=(300, 25),
+                                             size=(300, 100),
                                              style=wx.ALIGN_CENTRE)
             self.nameOKlabel.SetForegroundColour(wx.RED)
-            self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_CENTRE | wx.EXPAND)
+            self.mainSizer.Add(self.nameOKlabel, flag=wx.ALIGN_CENTRE)
         # add buttons for OK and Cancel
         buttons = wx.StdDialogButtonSizer()
         # help button if we know the url
@@ -732,7 +737,7 @@ class _BaseParamsDlg(wx.Dialog):
             _tip = _translate("Go to online help about this component")
             helpBtn.SetToolTip(wx.ToolTip(_tip))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0, wx.ALIGN_LEFT | wx.ALL, border=3)
+            buttons.Add(helpBtn, 0, flag=wx.ALIGN_LEFT | wx.ALL, border=3)
             buttons.AddSpacer(12)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
@@ -746,10 +751,9 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL, border=3)
         buttons.Realize()
         # add to sizer
-        self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
-        border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(self.mainSizer, flag=wx.ALL | wx.EXPAND, border=8)
-        self.SetSizerAndFit(border)
+        self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT | wx.ALL, border=2)
+        self.mainSizer.Layout()
+        self.SetSizerAndFit(self.mainSizer)
         # move the position to be v near the top of screen and
         # to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
@@ -1690,7 +1694,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
 
         buttons.Realize()
         self.ctrls.Fit()
-        self.mainSizer.Add(self.ctrls)
+        self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
 

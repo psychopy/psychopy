@@ -145,13 +145,15 @@ class DlgCodeComponentProperties(wx.Dialog):
                     guikey + '_panel'), tabLabel)
 
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        nameSizer.Add(self.nameLabel, 0, wx.ALL, 10)
-        nameSizer.Add(self.componentName, 0, wx.BOTTOM | wx.TOP, 10)
+        nameSizer.Add(self.nameLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
+        nameSizer.Add(self.componentName,
+                      flag=wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_CENTER_VERTICAL,
+                      border=10, proportion=1)
         nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
 
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer1.Add(nameSizer)
+        sizer1.Add(nameSizer, flag=wx.EXPAND, proportion=1)
         sizer1.Add(self.codeSections, 1, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(self.helpButton, 0, wx.RIGHT, 10)
         sizer2.Add(self.okButton, 0, wx.LEFT, 10)
