@@ -823,7 +823,7 @@ EnvGratingComponent.envelope.allowedTypes:[]
 EnvGratingComponent.envelope.hint:The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename (including path)
 EnvGratingComponent.envelope.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.envelope.__class__:<class 'psychopy.app.builder.experiment.Param'>
-EnvGratingComponent.envelope.label:Envelope Texture
+EnvGratingComponent.envelope.label:Envelope texture
 EnvGratingComponent.interpolate.default:'linear'
 EnvGratingComponent.interpolate.categ:Carrier
 EnvGratingComponent.interpolate.allowedVals:['linear', 'nearest']
@@ -942,7 +942,7 @@ EnvGratingComponent.envphase.allowedTypes:[]
 EnvGratingComponent.envphase.hint:Spatial positioning of the modulation envelope(wraps in range 0-1.0)
 EnvGratingComponent.envphase.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.envphase.__class__:<class 'psychopy.app.builder.experiment.Param'>
-EnvGratingComponent.envphase.label:Envelope Phase
+EnvGratingComponent.envphase.label:Envelope phase
 EnvGratingComponent.envsf.default:1.0
 EnvGratingComponent.envsf.categ:Envelope
 EnvGratingComponent.envsf.allowedVals:[]
@@ -957,7 +957,7 @@ EnvGratingComponent.envsf.allowedTypes:[]
 EnvGratingComponent.envsf.hint:Spatial frequency of the modulation envelope repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]
 EnvGratingComponent.envsf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.envsf.__class__:<class 'psychopy.app.builder.experiment.Param'>
-EnvGratingComponent.envsf.label:Envelope spatial frequecy
+EnvGratingComponent.envsf.label:Envelope spatial frequency
 EnvGratingComponent.mask.default:'None'
 EnvGratingComponent.mask.categ:Carrier
 EnvGratingComponent.mask.allowedVals:[]
