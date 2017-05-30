@@ -49,12 +49,12 @@ class TestComponents(object):
                 pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
 
-        cls.origProjectCatalog = projects.ProjectCatalog
+        cls.origProjectCatalog = projects.projectCatalog
         projects.projectCatalog = {}
 
     @classmethod
     def teardown_class(cls):
-        projects.ProjectCatalog = cls.origProjectCatalog
+        projects.projectCatalog = cls.origProjectCatalog
 
     def setup(self):
         """This setup is done for each test individually

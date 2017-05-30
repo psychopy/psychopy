@@ -3707,7 +3707,7 @@ SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experimen
 SettingsComponent.Save csv file.label:Save csv file (summaries)
 SettingsComponent.OSF Project ID.default:''
 SettingsComponent.OSF Project ID.categ:Online
-SettingsComponent.OSF Project ID.allowedVals:[u'keaj6: LEFT_short1', '']
+SettingsComponent.OSF Project ID.allowedVals:['']
 SettingsComponent.OSF Project ID.readOnly:False
 SettingsComponent.OSF Project ID.updates:None
 SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
