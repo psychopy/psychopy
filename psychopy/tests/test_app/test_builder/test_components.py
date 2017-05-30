@@ -2,7 +2,8 @@
 import os
 import pytest
 
-from psychopy.app import builder
+from psychopy import prefs
+from psychopy.app import builder, projects
 from psychopy.app.builder.components import getAllComponents
 
 # use "python genComponsTemplate.py --out" to generate a new profile to test against
@@ -42,9 +43,18 @@ class TestComponents(object):
                 tmpApp = wx.PySimpleApp()
             else:
                 tmpApp = wx.App(False)
-            try: from psychopy.app import localization
-            except Exception: pass  # not needed if can't import it
+            try:
+                from psychopy.app import localization
+            except Exception:
+                pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
+
+        cls.origProjectCatalog = projects.ProjectCatalog
+        projects.projectCatalog = {}
+
+    @classmethod
+    def teardown_class(cls):
+        projects.ProjectCatalog = cls.origProjectCatalog
 
     def setup(self):
         """This setup is done for each test individually
