@@ -5,7 +5,7 @@ if wx.version() < '2.9':
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
-from psychopy.app import builder
+from psychopy.app import builder, projects
 from psychopy.app.builder.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
@@ -16,6 +16,9 @@ from psychopy.app.builder.components import getAllComponents
 
 # ignore attributes that are there because inherit from object
 ignoreObjectAttribs = True
+
+origProjectCatalog = projects.ProjectCatalog
+projects.ProjectCatalog = {}
 
 # should not need a wx.App with fetchIcons=False
 try:
@@ -108,3 +111,6 @@ for compName in sorted(allComp):
                 mismatches.append(err)
 
 #return mismatches
+
+# revert project catalog to original
+projects.ProjectCatalog = origProjectCatalog

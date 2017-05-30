@@ -814,7 +814,7 @@ EnvGratingComponent.envelope.categ:Envelope
 EnvGratingComponent.envelope.allowedVals:[]
 EnvGratingComponent.envelope.readOnly:False
 EnvGratingComponent.envelope.updates:constant
-EnvGratingComponent.envelope.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 'sin', 'hint': u'The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope Texture', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+EnvGratingComponent.envelope.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 'sin', 'hint': u'The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope texture', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 EnvGratingComponent.envelope.__weakref__:None
 EnvGratingComponent.envelope.valType:str
 EnvGratingComponent.envelope.staticUpdater:None
@@ -933,7 +933,7 @@ EnvGratingComponent.envphase.categ:Envelope
 EnvGratingComponent.envphase.allowedVals:[]
 EnvGratingComponent.envphase.readOnly:False
 EnvGratingComponent.envphase.updates:constant
-EnvGratingComponent.envphase.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 0.0, 'hint': u'Spatial positioning of the modulation envelope(wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope Phase', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.envphase.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 0.0, 'hint': u'Spatial positioning of the modulation envelope(wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope phase', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
 EnvGratingComponent.envphase.__weakref__:None
 EnvGratingComponent.envphase.valType:code
 EnvGratingComponent.envphase.staticUpdater:None
@@ -948,7 +948,7 @@ EnvGratingComponent.envsf.categ:Envelope
 EnvGratingComponent.envsf.allowedVals:[]
 EnvGratingComponent.envsf.readOnly:False
 EnvGratingComponent.envsf.updates:constant
-EnvGratingComponent.envsf.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 1.0, 'hint': u'Spatial frequency of the modulation envelope repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope spatial frequecy', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+EnvGratingComponent.envsf.__dict__:{'staticUpdater': None, 'categ': 'Envelope', 'val': 1.0, 'hint': u'Spatial frequency of the modulation envelope repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Envelope spatial frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
 EnvGratingComponent.envsf.__weakref__:None
 EnvGratingComponent.envsf.valType:code
 EnvGratingComponent.envsf.staticUpdater:None
@@ -3707,7 +3707,7 @@ SettingsComponent.Save csv file.__class__:<class 'psychopy.app.builder.experimen
 SettingsComponent.Save csv file.label:Save csv file (summaries)
 SettingsComponent.OSF Project ID.default:''
 SettingsComponent.OSF Project ID.categ:Online
-SettingsComponent.OSF Project ID.allowedVals:['']
+SettingsComponent.OSF Project ID.allowedVals:[u'keaj6: LEFT_short1', '']
 SettingsComponent.OSF Project ID.readOnly:False
 SettingsComponent.OSF Project ID.updates:None
 SettingsComponent.OSF Project ID.__dict__:{'staticUpdater': None, 'categ': 'Online', 'val': '', 'hint': u'The ID of this project (e.g. 5bqpc)', 'allowedTypes': [], 'allowedUpdates': None, 'label': 'OSF Project ID', 'readOnly': False, 'updates': None, 'valType': 'str'}
