@@ -118,15 +118,15 @@ This workshop is for people that have some experience in Python already. We expe
 Schedule
 ~~~~~~~~~~~~~
 
-Details to follow but we'll be looking at:
+Many of the sessions will mirror the concepts taught in the Beginners version (PEP1 above) but the concepts are taught faster so we'll get into more depth. Basically, because we don't need to explain the syntax of the code so much we can focus more on the cool stuff! 
 
-  - improving timing
-  - writing modular code (functions and classes)
-  - analysis methods
-  - specialist topics like eye-tracking (but limited without having eye-trackers present!)
-  - extending Builder with your own plug-in reusable components
+We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
-Let Jon know if there are topics you'd like us to add here
+All sessions subject to change. Sessions in **green** and **blue** are optional (for self-paced and specialist sessions, respectively).
+
+.. image:: schedulePEP2.png
+   :scale: 70 %
+   :align: center
 
 
 .. _Python: http://www.python.org/

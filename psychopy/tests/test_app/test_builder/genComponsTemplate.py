@@ -17,8 +17,8 @@ from psychopy.app.builder.components import getAllComponents
 # ignore attributes that are there because inherit from object
 ignoreObjectAttribs = True
 
-origProjectCatalog = projects.ProjectCatalog
-projects.ProjectCatalog = {}
+origProjectCatalog = projects.projectCatalog
+projects.projectCatalog = {}
 
 # should not need a wx.App with fetchIcons=False
 try:
@@ -37,6 +37,7 @@ except Exception:
 
 exp = builder.experiment.Experiment()
 relPath = os.path.join(os.path.split(__file__)[0], 'componsTemplate.txt')
+
 if not '--out' in sys.argv:
     target = open(relPath, 'rU').read()
     targetLines = target.splitlines()
