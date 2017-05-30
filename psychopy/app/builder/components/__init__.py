@@ -237,7 +237,7 @@ def getInitVals(params, target="PsychoPy"):
                 val = unicode(inits[name].val)
                 if val != "None":
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
-                                       .format(val))
+                                       .format(inits[name]))
                     inits[name].valType = 'code'
 
         if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
@@ -265,7 +265,7 @@ def getInitVals(params, target="PsychoPy"):
                       'contrast', 'moddepth', 'envori', 'envphase', 'envsf']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
-        elif name in ['image', 'mask', 'envelope','carrier']:
+        elif name in ['image', 'mask', 'envelope', 'carrier']:
             inits[name].val = "sin"
             inits[name].valType = 'str'
         elif name == 'texture resolution':
