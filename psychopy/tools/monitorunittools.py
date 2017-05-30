@@ -125,7 +125,7 @@ def cm2deg(cm, monitor, correctFlat=False):
         msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
         raise ValueError(msg % monitor.name)
     if correctFlat:
-        return np.arctan(np.radians(cm / dist))
+        return np.degrees(np.arctan(cm / dist))
     else:
         return cm / (dist * 0.017455)
 
