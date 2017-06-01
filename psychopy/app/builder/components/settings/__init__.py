@@ -631,7 +631,17 @@ class SettingsComponent(object):
                 "}\n"
                 )
         buff.writeIndentedLines(abbrevFunc)
+        recordLoopIterationFunc = ("\nfunction recordLoopIteration(name) {\n"
+                    "  return function () {\n"
+                    "    thisExp.addData('eventName',name+'.loopEnd');\n"
+                    "    thisExp.nextEntry();\n"
+                    "    return psychoJS.NEXT;\n"
+                    "  }\n"
+                    "}\n"
+                )
+        buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
+                    "    thisExp.save();\n"
                     "    win.close()\n"
                     "    psychoJS.core.quit();\n"
                     "    return psychoJS.QUIT;\n"
