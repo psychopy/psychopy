@@ -1089,8 +1089,8 @@ class TrialHandler(object):
                     )
         if self.params['isTrials'].val == True:
             code += (
-                   "      thisScheduler.add(recordLoopIteration('{name}'));\n"
-                   .format(params=self.params, name=thisChild.params['name'])
+                   "      thisScheduler.add(recordLoopIteration({name}));\n"
+                   .format(name=self.params['name'])
                    )
         buff.writeIndentedLines(code)
         code = ("    }}\n"
@@ -2083,10 +2083,6 @@ class Routine(list):
                 "  if ('status' in thisComponent) {{\n"
                 "    thisComponent.status = psychoJS.NOT_STARTED;\n"
                 "  }}\n"
-                "}}\n"
-                "for (var l = 0; l < thisExp._unfinishedLoops.length; l++) {{\n"
-                "  var loop = thisExp._unfinishedLoops[l];\n"
-                "  loop.updateAttributesAtBegin();\n"
                 "}}\n"
                 "\nreturn psychoJS.NEXT;\n"
                 "}}\n"

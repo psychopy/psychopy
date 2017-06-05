@@ -631,9 +631,9 @@ class SettingsComponent(object):
                 "}\n"
                 )
         buff.writeIndentedLines(abbrevFunc)
-        recordLoopIterationFunc = ("\nfunction recordLoopIteration(name) {\n"
+        recordLoopIterationFunc = ("\nfunction recordLoopIteration(currentLoop) {\n"
                     "  return function () {\n"
-                    "    thisExp.addData('eventName',name+'.loopEnd');\n"
+                    "    currentLoop.updateAttributesAtBegin();\n"
                     "    thisExp.nextEntry();\n"
                     "    return psychoJS.NEXT;\n"
                     "  }\n"

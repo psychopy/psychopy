@@ -521,6 +521,3 @@ class KeyboardComponent(BaseComponent):
                     "    {loopName}.addData('{name}.rt', {name}.rt)\n}}\n"
                     .format(loopName=currLoop.params['name'], name=name))
             buff.writeIndentedLines(code)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.addData('eventName','keyboard');\n" % self.exp._expHandler.name)
