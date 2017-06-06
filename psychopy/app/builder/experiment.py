@@ -2089,9 +2089,11 @@ class Routine(list):
                 "  loop.updateAttributesAtBegin();\n"
                 "}}\n"
                 "\nreturn psychoJS.NEXT;\n"
-                "}}\n"
                 .format(name=self.name))
         buff.writeIndentedLines(code)
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines("}\n")
+
 
     def writeEachFrameCodeJS(self, buff):
         # can we use non-slip timing?
