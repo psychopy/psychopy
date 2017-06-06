@@ -124,7 +124,7 @@ class TextComponent(BaseVisualComponent):
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
-            unitsStr = "units:'%(units)s', " % self.params
+            unitsStr = "units : %(units)s, " % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
