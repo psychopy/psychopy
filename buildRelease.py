@@ -37,7 +37,7 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
 
     #todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
-    Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
+    Mb = float(subprocess.check_output(["du", "-ksc", dest]).split()[0])/10**3
     print "size for '%s' will be: %.2f Mb" %(versionStr, Mb)
     if noCommit:
         return False
@@ -58,10 +58,10 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
             return False
     else:
         print "committing: git commit -m 'release version %s'" %versionStr
-        subprocess.call(["git", "commit", "-m", "'release version %s'" %versionStr], cwd=VERSIONS)
+        subprocess.call(["git", "commit", "-m", "release version %s" %versionStr], cwd=VERSIONS)
 
     print "tagging: git tag -m 'release %s'" %versionStr
-    ok = subprocess.call(["git", "tag", versionStr, "-m", "'release %s'" %versionStr], cwd=VERSIONS)
+    ok = subprocess.call(["git", "tag", versionStr, "-m", "release %s" %versionStr], cwd=VERSIONS)
 
     print "'versions' tags are now:", subprocess.check_output(["git","tag"], cwd=VERSIONS).split()
     ok = subprocess.call(["git", "push", "%s" %versionStr], cwd=VERSIONS)
@@ -80,6 +80,10 @@ if __name__=="__main__":
         noCommit = True
     else:
         noCommit = False
+    if "--noInteractive" not in sys.argv:
+        interactive = True
+    else:
+        interactive = False
     #todo: update versions first
     versionStr = raw_input("version:")
-    buildRelease(versionStr, noCommit=noCommit, interactive=True)
+    buildRelease(versionStr, noCommit=noCommit, interactive=interactive)
