@@ -197,7 +197,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
                              'state': state,
                              'time': timeSecs})
             else:
-                for n in evtChannels.keys():
+                for n in evtChannels:
                     if state[n] != lastState[n]:
                         if state[n] == '1':
                             evt = evtChannels[n] + "_on"

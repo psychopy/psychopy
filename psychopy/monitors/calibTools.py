@@ -485,8 +485,7 @@ class Monitor(object):
         else:
             thisFile = open(thisFileName, 'r')
             self.calibs = cPickle.load(thisFile)
-            self.calibNames = self.calibs.keys()
-            self.calibNames.sort()
+            self.calibNames = sorted(self.calibs)
             thisFile.close()
 
     def newCalib(self, calibName=None, width=None,

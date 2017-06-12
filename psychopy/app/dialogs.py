@@ -280,7 +280,7 @@ class GlobSizer(wx.GridBagSizer):
         # 2. Unspan all objects.
         objs = self._resetSpan()
         # 3. Move the _update_span objects to an adjacent row somewhere safe.
-        for obj in _update_span.keys():
+        for obj in _update_span:
             item = self.FindItem(obj)
             org_r, org_c = item.GetPos().Get()
             if org_r == row:
@@ -323,7 +323,7 @@ class GlobSizer(wx.GridBagSizer):
         # 2. Unspan all objects.
         objs = self._resetSpan()
         # 3. Move the _update_span objects to an adjacent col somewhere safe.
-        for obj in _update_span.keys():
+        for obj in _update_span:
             item = self.FindItem(obj)
             org_r, org_c = item.GetPos().Get()
             if org_c == col:

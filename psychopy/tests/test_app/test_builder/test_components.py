@@ -102,7 +102,7 @@ class TestComponents(object):
                 print(mismatch.encode('utf8'))
                 if not ignoreOrder:
                     err.append(mismatch)
-            for parName in comp.params.keys():
+            for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []

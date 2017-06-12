@@ -175,7 +175,7 @@ class PsychoPyApp(wx.App):
         if '--firstrun' in sys.argv:
             del sys.argv[sys.argv.index('--firstrun')]
             self.firstRun = True
-        if 'lastVersion' not in self.prefs.appData.keys():
+        if 'lastVersion' not in self.prefs.appData:
             # must be before 1.74.00
             last = self.prefs.appData['lastVersion'] = '1.73.04'
             self.firstRun = True

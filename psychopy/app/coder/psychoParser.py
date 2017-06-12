@@ -50,7 +50,7 @@ def getTokensAndImports(buffer):
                     prevTok = prevTok.prev
 
             # do we have that token already?
-            if defineStr in definedTokens.keys():
+            if defineStr in definedTokens:
                 continue
             else:
                 # try to identify what new token =

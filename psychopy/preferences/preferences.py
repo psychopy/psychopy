@@ -192,7 +192,7 @@ class Preferences(object):
                                         preserve_errors=True)
         self.restoreBadPrefs(cfg, resultOfValidate)
         # force favComponent level values to be integers
-        if 'favComponents' in cfg['builder'].keys():
+        if 'favComponents' in cfg['builder']:
             for key in cfg['builder']['favComponents']:
                 _compKey = cfg['builder']['favComponents'][key]
                 cfg['builder']['favComponents'][key] = int(_compKey)

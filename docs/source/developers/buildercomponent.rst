@@ -73,7 +73,7 @@ During development, it can sometimes be helpful to save the params into the xxx_
     def writeInitCode(self,buff):
         # for debugging during Component development:
         buff.writeIndented("# self.params for aperture:\n")
-        for p in self.params.keys():
+        for p in self.params:
             try: buff.writeIndented("# %s: %s <type %s>\n" % (p, self.params[p].val, self.params[p].valType))
             except: pass
 

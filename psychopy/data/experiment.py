@@ -145,7 +145,7 @@ class ExperimentHandler(object):
             names = []
             vals = []
         else:
-            names = self.extraInfo.keys()
+            names = list(self.extraInfo)
             vals = self.extraInfo.values()
         return names, vals
 
@@ -279,8 +279,7 @@ class ExperimentHandler(object):
 
         for entry in self.entries:
             for name in names:
-                entry.keys()
-                if name in entry.keys():
+                if name in entry:
                     ename = unicode(entry[name])
                     if ',' in ename or '\n' in ename:
                         fmt = u'"%s"%s'

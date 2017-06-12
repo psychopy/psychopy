@@ -143,7 +143,7 @@ def getPacFiles():
         # loop through each possible network (e.g. Ethernet, Airport...)
         for network in networks.items():
             netKey, network = network  # the first part is a long identifier
-            if 'ProxyAutoConfigURLString' in network['Proxies'].keys():
+            if 'ProxyAutoConfigURLString' in network['Proxies']:
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
     return list(set(pacFiles))  # remove redundant ones
 

@@ -102,7 +102,7 @@ class FontManager(object):
         style_dict = self._available_font_info.get(font_family_name)
         if style_dict is None:
             return None
-        if font_style and font_style in style_dict.keys():
+        if font_style and font_style in style_dict:
             return style_dict[font_style]
         for style, fonts in style_dict.iteritems():
             b, i = self.booleansFromStyleName(style)

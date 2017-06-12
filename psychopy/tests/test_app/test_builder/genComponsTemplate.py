@@ -79,7 +79,7 @@ for compName in sorted(allComp):
             err = order + ' <==> NEW (no matching param in original)'
         print(err.encode('utf8'))
         mismatches.append(err)
-    for parName in comp.params.keys():
+    for parName in comp.params:
         # default is what you get from param.__str__, which returns its value
         default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
         out.append(default)

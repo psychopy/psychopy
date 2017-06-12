@@ -65,8 +65,8 @@ class ButtonBoxState(object):
         self._released.clear()
 
         new_pressed = [bname for bname, mask in self.masks.items() if self._state & mask]
-        for b in self.masks.keys():
-            if b not in new_pressed and b in self._pressed.keys():
+        for b in self.masks:
+            if b not in new_pressed and b in self._pressed:
                 ptime = self._pressed[b]
                 ltime = self._last_event.get(b)
                 if ltime and etime-ltime >= self.debouncetime:
@@ -108,5 +108,5 @@ finally:
     if mcu:
         mcu.enableEventReporting(False)
     if io:
-        io.quit() 
+        io.quit()
 

@@ -137,7 +137,7 @@ def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
 def _setPluginPathEnviron():
     """Plugins aren't in the same path as the libvlc.dylib
     """
-    if 'VLC_PLUGIN_PATH' in os.environ.keys():
+    if 'VLC_PLUGIN_PATH' in os.environ:
         return
     dllPath = vlc.dll._name
     from os.path import split, join

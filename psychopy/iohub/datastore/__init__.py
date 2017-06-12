@@ -43,9 +43,9 @@ FILE_VERSION = '0.8.1.1'
 SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'Dec 19th, 2014'
 
-        
+
 class ioHubpyTablesFile():
-    
+
     def __init__(self, fileName, folderPath, fmode='a', ioHubsettings=None):
         self.fileName = fileName
         self.folderPath = folderPath
@@ -55,33 +55,33 @@ class ioHubpyTablesFile():
 
         self.active_experiment_id = None
         self.active_session_id = None
-        
+
         self.flushCounter = self.settings.get('flush_interval', 32)
         self._eventCounter = 0
-        
+
         self.TABLES = dict()
         self._eventGroupMappings = dict()
         self.emrtFile = openFile(self.filePath, mode = fmode)
-               
+
         atexit.register(close_open_data_files, False)
-        
+
         if len(self.emrtFile.title) == 0:
             self.buildOutTemplate()
             self.flush()
         else:
             self.loadTableMappings()
-    
+
     def updateDataStoreStructure(self,device_instance,event_class_dict):
         dfilter = Filters(complevel=0, complib='zlib', shuffle=False, fletcher32=False)
-        
+
         def eventTableLabel2ClassName(event_table_label):
-            tokens=str(event_table_label[0]+event_table_label[1:].lower()+'Event').split('_') 
+            tokens=str(event_table_label[0]+event_table_label[1:].lower()+'Event').split('_')
             return ''.join([t[0].upper()+t[1:] for t in tokens])
 
         for event_cls_name,event_cls in event_class_dict.iteritems():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label=event_cls.IOHUB_DATA_TABLE
-                if event_table_label not in self.TABLES.keys():
+                if event_table_label not in self.TABLES:
                     try:
                         self.TABLES[event_table_label]=self.emrtFile.createTable(self._eventGroupMappings[event_table_label],eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s Data"%(device_instance.__class__.__name__,),filters=dfilter.copy())
                         self.flush()
@@ -133,13 +133,13 @@ class ioHubpyTablesFile():
 
     def loadTableMappings(self):
         # create meta-data tables
-        
+
         self._buildEventGroupMappingDict()
-        
+
         self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.root.data_collection.experiment_meta_data
         self.TABLES['SESSION_METADETA']=self.emrtFile.root.data_collection.session_meta_data
         self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.root.class_table_mapping
-        
+
         # create tables dict of hdf5 path mappings
 
 
@@ -274,13 +274,13 @@ class ioHubpyTablesFile():
         except Exception:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
-        
-    def buildOutTemplate(self): 
+
+    def buildOutTemplate(self):
         self.emrtFile.title=DATA_FILE_TITLE
         self.emrtFile.FILE_VERSION=FILE_VERSION
         self.emrtFile.SCHEMA_DESIGNER=SCHEMA_AUTHORS
         self.emrtFile.SCHEMA_MODIFIED=SCHEMA_MODIFIED_DATE
-        
+
         #CREATE GROUPS
 
         #self.emrtFile.createGroup(self.emrtFile.root, 'analysis', title='Data Analysis Files, notebooks, scripts and saved results tables.')
@@ -295,7 +295,7 @@ class ioHubpyTablesFile():
         self.emrtFile.createGroup(self.emrtFile.root.data_collection, 'condition_variables', title="Tables created to Hold Experiment DV and IV's Values Saved During an Experiment Session.")
         self.flush()
 
-        
+
         self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.createTable(self.emrtFile.root.data_collection,'experiment_meta_data', ExperimentMetaData, title='Information About Experiments Saved to This ioHub DataStore File.')
         self.TABLES['SESSION_METADETA']=self.emrtFile.createTable(self.emrtFile.root.data_collection,'session_meta_data', SessionMetaData, title='Information About Sessions Saved to This ioHub DataStore File.')
         self.flush()
@@ -313,7 +313,7 @@ class ioHubpyTablesFile():
         self.flush()
 
         self._buildEventGroupMappingDict()
-        
+
 
     def _buildEventGroupMappingDict(self):
         self._eventGroupMappings['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard
@@ -339,7 +339,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['BLINK_START']=self.emrtFile.root.data_collection.events.eyetracker
         self._eventGroupMappings['BLINK_END']=self.emrtFile.root.data_collection.events.eyetracker
 
-    
+
     def addClassMapping(self,ioClass,ctable):
         names = [ x['class_id'] for x in self.TABLES['CLASS_TABLE_MAPPINGS'].where("(class_id == %d)"%(ioClass.EVENT_TYPE_ID)) ]
         if len(names)==0:
@@ -348,9 +348,9 @@ class ioHubpyTablesFile():
             trow['class_type_id'] = 1 # Device or Event etc.
             trow['class_name'] = ioClass.__name__
             trow['table_path']  = ctable._v_pathname
-            trow.append()            
-            self.flush()    
-          
+            trow.append()
+            self.flush()
+
     def createOrUpdateExperimentEntry(self,experimentInfoList):
         #ioHub.print2err("createOrUpdateExperimentEntry called with: ",experimentInfoList)
         experiment_metadata=self.TABLES['EXPERIMENT_METADETA']
@@ -360,20 +360,20 @@ class ioHubpyTablesFile():
             result=result[0]
             self.active_experiment_id=result['experiment_id']
             return self.active_experiment_id
-        
+
         max_id=0
         id_col=experiment_metadata.col('experiment_id')
 
         if len(id_col) > 0:
             max_id=N.amax(id_col)
-            
+
         self.active_experiment_id=max_id+1
         experimentInfoList[0]=self.active_experiment_id
         experiment_metadata.append([experimentInfoList,])
         self.flush()
         #ioHub.print2err("Experiment ID set to: ",self.active_experiment_id)
         return self.active_experiment_id
-    
+
     def createExperimentSessionEntry(self,sessionInfoDict):
         #ioHub.print2err("createExperimentSessionEntry called with: ",sessionInfoDict)
         session_metadata=self.TABLES['SESSION_METADETA']
@@ -382,9 +382,9 @@ class ioHubpyTablesFile():
         id_col=session_metadata.col('session_id')
         if len(id_col) > 0:
             max_id=N.amax(id_col)
-        
+
         self.active_session_id=int(max_id+1)
-        
+
         values=(self.active_session_id,self.active_experiment_id,sessionInfoDict['code'],sessionInfoDict['name'],sessionInfoDict['comments'],sessionInfoDict['user_variables'])
         session_metadata.append([values,])
         self.flush()
@@ -422,7 +422,7 @@ class ioHubpyTablesFile():
         if self.emrtFile and 'EXP_CV' in self.TABLES and self._EXP_COND_DTYPE is not None:
             temp=[experiment_id,session_id]
             temp.extend(data)
-            data=temp            
+            data=temp
             try:
                 etable=self.TABLES['EXP_CV']
                 #print2err('data: ',data,' ',type(data))
@@ -457,7 +457,7 @@ class ioHubpyTablesFile():
             #iohub.print2err(Computer.getTime()," Experiment or Session ID is None, event not being saved: "+str(event),' exp_id: ',exp_id,' sess_id: ', sess_id)
             return False
         return True
-        
+
     def checkIfSessionCodeExists(self,sessionCode):
         if self.emrtFile:
             sessionsForExperiment=self.emrtFile.root.data_collection.session_meta_data.where("experiment_id == %d"%(self.active_experiment_id,))
@@ -465,7 +465,7 @@ class ioHubpyTablesFile():
             if len(sessionCodeMatch)>0:
                 return True
             return False
-            
+
     def _handleEvent(self, event):
         try:
             eventClass=None
@@ -477,7 +477,7 @@ class ioHubpyTablesFile():
 
 #            print2err("*** ",DeviceEvent.EVENT_TYPE_ID_INDEX, '_handleEvent: ',etype,' : event list: ',event)
             eventClass=EventConstants.getClass(etype)
-                
+
             etable=self.TABLES[eventClass.IOHUB_DATA_TABLE]
             event[DeviceEvent.EVENT_EXPERIMENT_ID_INDEX]=self.active_experiment_id
             event[DeviceEvent.EVENT_SESSION_ID_INDEX]=self.active_session_id
@@ -553,12 +553,12 @@ class ioHubpyTablesFile():
         self.flush()
         self._activeRunTimeConditionVariableTable=None
         self.emrtFile.close()
-        
+
     def __del__(self):
         try:
             self.close()
         except Exception:
-            pass    
+            pass
 
 ## -------------------- Utility Functions ------------------------ ##
 
@@ -571,7 +571,7 @@ def close_open_data_files(verbose):
         are_open_files = len(open_files) > 0
         if verbose and are_open_files:
             print2err("Closing remaining open data files:")
-        for fileh in open_files.keys():
+        for fileh in open_files:
             if verbose:
                 print2err( "%s..." % (open_files[fileh].filename,))
             open_files[fileh].close()
@@ -600,8 +600,8 @@ class ExperimentMetaData(IsDescription):
     title = StringCol(48,pos=3)
     description  = StringCol(256,pos=4)
     version = StringCol(6,pos=5)
-    total_sessions_to_run = UInt16Col(pos=9)    
- 
+    total_sessions_to_run = UInt16Col(pos=9)
+
 class SessionMetaData(IsDescription):
     session_id = UInt32Col(pos=1)
     experiment_id = UInt32Col(pos=2)
@@ -612,46 +612,46 @@ class SessionMetaData(IsDescription):
 
 
 """
-# NEEDS TO BE COMPLETED    
+# NEEDS TO BE COMPLETED
 class ParticipantMetaData(IsDescription):
-    participant_id = UInt32Col(pos=1) 
+    participant_id = UInt32Col(pos=1)
     participant_code = StringCol(8,pos=2)
 
-# NEEDS TO BE COMPLETED       
+# NEEDS TO BE COMPLETED
 class SiteMetaData(IsDescription):
-    site_id = UInt32Col(pos=1) 
+    site_id = UInt32Col(pos=1)
     site_code = StringCol(8,pos=2)
 
-# NEEDS TO BE COMPLETED       
+# NEEDS TO BE COMPLETED
 class MemberMetaData(IsDescription):
-    member_id =UInt32Col(pos=1) 
+    member_id =UInt32Col(pos=1)
     username = StringCol(16,pos=2)
     password = StringCol(16,pos=3)
     email = StringCol(32,pos=4)
     secretPhrase = StringCol(64,pos=5)
     dateAdded = Int64Col(pos=6)
 
-# NEEDS TO BE COMPLETED       
+# NEEDS TO BE COMPLETED
 class DeviceInformation(IsDescription):
-    device_id = UInt32Col(pos=1) 
+    device_id = UInt32Col(pos=1)
     device_code = StringCol(7,pos=2)
     name =StringCol(32,pos=3)
     manufacturer =StringCol(32,pos=3)
 
-# NEEDS TO BE COMPLETED       
+# NEEDS TO BE COMPLETED
 class CalibrationAreaInformation(IsDescription):
     cal_id = UInt32Col(pos=1)
 
-# NEEDS TO BE COMPLETED       
+# NEEDS TO BE COMPLETED
 class EyeTrackerInformation(IsDescription):
     et_id = UInt32Col(pos=1)
 
-# NEEDS TO BE COMPLETED   
+# NEEDS TO BE COMPLETED
 class EyeTrackerSessionConfiguration(IsDescription):
     et_config_id = UInt32Col(pos=1)
 
-# NEEDS TO BE COMPLETED       
+# NEEDS TO BE COMPLETED
 class ApparatusSetupMetaData(IsDescription):
     app_setup_id = UInt32Col(pos=1)
-    
+
 """
