@@ -31,33 +31,33 @@ class AnalogInput(AnalogInputDevice):
 
         self._labjack=None
 
-        if self.model_name in self._SUPPORTED_MODELS.keys():
+        if self.model_name in self._SUPPORTED_MODELS:
             try:
                 self._labjack = self._SUPPORTED_MODELS[self.model_name]()
                 self._calibration_data=self._labjack.getCalibrationData()
                 self._labjack.streamConfig( NumChannels = self.input_channel_count,
                                            ChannelNumbers = range(self.input_channel_count),
                                            ChannelOptions = [ 0 ]*self.input_channel_count,
-                                           SettlingFactor = self.settling_factor, 
+                                           SettlingFactor = self.settling_factor,
                                            ResolutionIndex = self.resolution_index,
                                            SampleFrequency = self.channel_sampling_rate)
-    
+
                 delay_offset=self.getConfiguration().get('delay_offset')
                 if delay_offset is not None:
                     self.setDelayOffset(delay_offset)
-                    
+
                 self._data_streaming_thread=LabJackDataReader(self)
                 self._data_streaming_thread.start()
             except Exception:
                 print2err("ERROR DURING LABJACK INIT")
-                printExceptionDetailsToStdErr()    
+                printExceptionDetailsToStdErr()
         else:
             print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(self._SUPPORTED_MODELS.keys()),))
             raise ioDeviceError(self,"AnalogInput Model not supported: %s"%(self.model_name))
             sys.exit(0)
-        
+
         self._scan_count=0
-        
+
     def enableEventReporting(self, enable):
         try:
             current = self.isReportingEvents()
@@ -68,11 +68,11 @@ class AnalogInput(AnalogInputDevice):
                 self._scan_count=0
                 self._part_sample=None
                 self._data_streaming_thread.enableDataStreaming(True)
-                
+
             else:
                 self._data_streaming_thread.enableDataStreaming(False)
                 self._part_sample=None
-                                     
+
         except Exception:
             print2err("----- LabJack AnalogInput enableEventReporting ERROR ----")
             printExceptionDetailsToStdErr()
@@ -81,12 +81,12 @@ class AnalogInput(AnalogInputDevice):
     def _nativeEventCallback(self,labjack_data):
         if not self.isReportingEvents():
             return False
-            
+
         logged_time=Computer.getTime()
         start_pre,start_post,analog_data=labjack_data
-        
+
         #=print2err ('ain_keys: ',analog_data.keys())
-        
+
         str_proto='AIN%d'
         channel_index_list=range(self.input_channel_count)
         ain=[[],]*self.input_channel_count
@@ -96,28 +96,28 @@ class AnalogInput(AnalogInputDevice):
             ain_counts[c]=len(ain[c])
 
         ain_counts=tuple(ain_counts)
-        
-        
+
+
         if ain_counts[0] != ain_counts[-1]:
             #print2err('Channel Count Mismatch: ',ain_counts)
-            
+
             missing_channel_count=0
             if ain_counts[0] > ain_counts[-1]:
                 #print2err('Last sample in packet incomplete: ', ain_counts[-1])
                 missing_channel_count=ain_counts[0]-ain_counts[-1]
-                
+
                 if missing_channel_count>1:
                     print2err('**** UNHANDLED: > 1 sample in packet does not have 8 channels: ', ain_counts)
                     print2err('Dropping all samples in packet')
                     print2err('-----------')
                     return
-                    
+
                 self._part_sample=[0.0,]*self.input_channel_count
                 for ci in channel_index_list:
                     if ain_counts[ci]>ain_counts[-1]:
                         self._part_sample[ci]=ain[ci][-1]
                         ain[ci]=ain[ci][:-1]
-                    
+
                 #print2err('Part Sample Created: {0}'.format(self._part_sample))
                 #print2err('-----------')
             elif ain_counts[0] < ain_counts[-1]:
@@ -129,7 +129,7 @@ class AnalogInput(AnalogInputDevice):
                     print2err('Dropping all samples in packet')
                     print2err('-----------')
                     return
-                
+
                 if self._part_sample is None:
                     print2err('**** Part Sample is None')
                     print2err('**** Dropping first sample in packet')
@@ -143,12 +143,12 @@ class AnalogInput(AnalogInputDevice):
                         if ain_counts[ci]>ain_counts[0]:
                             self._part_sample[ci]=ain[ci][0]
                             ain[ci]=ain[ci][1:]
-                            
+
                     for ci in channel_index_list:
                         temp=ain[ci]
                         ain[ci]=[self._part_sample[ci],]
                         ain[ci].extend(temp)
-                    
+
                     #print2err('Inserted completed sample {0}'.format(self._part_sample))
                     #print2err('-----------')
                     self._part_sample=None
@@ -157,20 +157,20 @@ class AnalogInput(AnalogInputDevice):
                 print2err('Dropping all samples in packet')
                 print2err('-----------')
                 return
-                
-                
-                
-                
-               
-                
-               
+
+
+
+
+
+
+
         device_time=0.0
         iohub_time=0.0
         delay=0.0
 
         confidence_interval=start_post-start_pre
-        
-        event =[            
+
+        event =[
             0, # exp id
             0, # session id
             0, #device id (not currently used)
@@ -183,7 +183,7 @@ class AnalogInput(AnalogInputDevice):
             delay, # delay
             0 # filter_id
             ]
-        
+
         for s in range(len(ain[0])):
             multi_channel_event=list(event)
 
@@ -195,10 +195,10 @@ class AnalogInput(AnalogInputDevice):
             multi_channel_event.extend([ain[a][s] for a in channel_index_list])
             self._addNativeEventToBuffer(multi_channel_event)
             self._scan_count+=1
-            
+
         self._last_callback_time=logged_time
         return True
-        
+
     def _getIOHubEventObject(self,native_event_data):
         return native_event_data
 
@@ -216,15 +216,15 @@ class AnalogInput(AnalogInputDevice):
             self._close()
         except Exception:
             pass
-        
-# LabJack Stream Reading Thread. I 'dislike' threads in Python, but as a last 
+
+# LabJack Stream Reading Thread. I 'dislike' threads in Python, but as a last
 # nonblocking resort, it is what it is. ;)
 
 import threading,copy
-    
+
 class LabJackDataReader(threading.Thread):
     def __init__(self, device,thread_name='LabJackDataStreamingThread'):
-        threading.Thread.__init__(self,group=None, target=None, name=thread_name, args=(), kwargs={})        
+        threading.Thread.__init__(self,group=None, target=None, name=thread_name, args=(), kwargs={})
         self.labjack_device = device._labjack
         self.iohub_device=device
         self.stream_data_event=threading.Event()
@@ -246,15 +246,15 @@ class LabJackDataReader(threading.Thread):
 
     def isStreamingData(self):
         return self.stream_data_event.is_set()
-        
+
     def run(self):
         getTime=Computer.getTime
         try:
             self.running = True
-    
+
             while self.running:
                 # wait for threading event to become True
-     
+
                 self.stream_start_time_pre=None
                 self.stream_start_time_post=None
                 self.stream_stop_time=None
@@ -262,21 +262,21 @@ class LabJackDataReader(threading.Thread):
                 self.channel_array_read_count = 0
                 self.missed_count = 0
                 self.error_count = 0
-               
+
                 self.stream_data_event.wait(None)
-                
+
                 # start streaming
                 self.stream_start_time_pre = getTime()
                 self.labjack_device.streamStart()
                 self.stream_start_time_post = getTime()
-                
-                # Stream until either the ioHub server has set running to False, 
+
+                # Stream until either the ioHub server has set running to False,
                 # or until threading event is False again
                 while self.running and self.isStreamingData():
-                    # Calling with convert = False, 
+                    # Calling with convert = False,
                     # because we are going to convert in the main thread.
                     returnDict = self.labjack_device.streamData(convert = False).next()
-    
+
                     # record and print any errors during streaming
                     if returnDict['errors'] != 0:
                         self.error_count+=returnDict['errors']
@@ -289,13 +289,13 @@ class LabJackDataReader(threading.Thread):
                     self.iohub_device._nativeEventCallback([self.stream_start_time_pre,
                                                             self.stream_start_time_post,
                                                             copy.deepcopy(self.labjack_device.processStreamData(returnDict['result']))])
-                    
+
                     self.request_count += 1
-                
+
                 self.labjack_device.streamStop()
                 self.stream_stop_time=getTime()
-    
-        
+
+
                 total = self.request_count * self.labjack_device.packetsPerRequest * self.labjack_device.streamSamplesPerPacket
                 total -= self.missed_count
                 run_time = self.stream_stop_time-self.stream_start_time_post
@@ -305,4 +305,4 @@ class LabJackDataReader(threading.Thread):
         except Exception:
             print2err("ERROR IN THREAD RUN:")
             printExceptionDetailsToStdErr()
-            
+

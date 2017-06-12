@@ -211,7 +211,7 @@ class PreferencesDlg(wx.Dialog):
         currentPane = self.nb.GetPageText(self.nb.GetSelection())
         # what the url should be called in psychopy.app.urls
         urlName = "prefs.%s" % currentPane
-        if urlName in self.app.urls.keys():
+        if urlName in self.app.urls:
             url = self.app.urls[urlName]
         else:
             # couldn't find that section - use default prefs
@@ -235,7 +235,7 @@ class PreferencesDlg(wx.Dialog):
             parent, -1, size=(dlgSize[0] - 100, dlgSize[1] - 200))
         vertBox = wx.BoxSizer(wx.VERTICAL)
         # add each pref for this section
-        for prefName in specSection.keys():
+        for prefName in specSection:
             if prefName in ['version']:  # any other prefs not to show?
                 continue
             # allowModuleImports pref is handled by generateSpec.py
@@ -291,8 +291,8 @@ class PreferencesDlg(wx.Dialog):
         # b) case-insensitive match for Cmd+ at start of string
         # c) reverse-map locale display names to canonical names (ja_JP)
         re_cmd2ctrl = re.compile('^Cmd\+', re.I)
-        for sectionName in self.prefsCfg.keys():
-            for prefName in self.prefsSpec[sectionName].keys():
+        for sectionName in self.prefsCfg:
+            for prefName in self.prefsSpec[sectionName]:
                 if prefName in ['version']:  # any other prefs not to show?
                     continue
                 ctrlName = sectionName + '.' + prefName

@@ -416,7 +416,7 @@ class HookManager(threading.Thread):
             # numlock is active:
             modifier_key_state += ModifierKeyCodes.numlock
 
-        for pk in pressed_keys.keys():
+        for pk in pressed_keys:
             if pk not in ['capslock', 'numlock']:
                 is_mod_id = ModifierKeyCodes.getID(pk)
                 if is_mod_id:

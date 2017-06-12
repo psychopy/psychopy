@@ -47,7 +47,7 @@ def test_TrialTypeImport():
         for trialN, trialCSV in enumerate(fromCSV):
             trialXLSX = fromXLSX[trialN]
             assert trialXLSX.keys() == trialCSV.keys()
-            for header in trialCSV.keys():
+            for header in trialCSV:
                 if trialXLSX[header] != trialCSV[header]:
                     print(header, trialCSV[header], trialXLSX[header])
                 assert trialXLSX[header] == trialCSV[header]

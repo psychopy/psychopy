@@ -1269,7 +1269,7 @@ class TextBox(object):
         return te_x, te_y
 
     def __del__(self):
-        if hasattr(self, '_textbox_instance') and self.getName() in self._textbox_instance.keys():
+        if hasattr(self, '_textbox_instance') and self.getName() in self._textbox_instance:
             del self._textbox_instances[self.getName()]
         del self._current_glfont
         del self._text_grid

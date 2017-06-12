@@ -362,7 +362,7 @@ class BaseWizard(object):
                       'no dropped frames', 'internet access')
         # ofInterest.append('background processes')
         for item in ofInterest:
-            if not item in config.keys():
+            if not item in config:
                 continue  # eg, microphone latency
             if config[item][2]:  # warn True
                 summary.append(("X   " + _translate(item), red))

@@ -7,101 +7,101 @@ Created on Thu Nov 08 15:13:55 2012
 """
 
 try:
-    
+
     class Constants(object):
         UNDEFINED=0
         _keys=None
         _names=None
         _classes=None
-    
+
         _initialized=False
-    
+
         @classmethod
         def getName(cls,id):
             """
             Return the constant's name given a valid constant id.
-            
+
             Args:
                 id (int): The constant's id value to look-up the string name for.
-                
+
             Returns:
                 str: The name for the given constant id.
             """
             return cls._names.get(id,cls._names[cls.UNDEFINED])
-     
+
         @classmethod
         def getID(cls,name):
             """
             Return the constant's id given a valid constant name string.
-            
+
             Args:
                 name (str): The constant's name value to look-up the int id for.
-                
+
             Returns:
                 int: The id for the given constant name.
             """
             return cls._names.get(name,None)
-    
+
         @classmethod
         def getClass(cls,id):
             """
-            Return the constant's ioHub CLass Name given constant id. 
+            Return the constant's ioHub CLass Name given constant id.
             If no class is associated with the specified constant value, None is returned.
-            
+
             Args:
                 id (int): The constant's id value to look-up the string name for.
-                
+
             Returns:
                 class: The ioHub class associated with the constant id provided.
             """
             return cls._classes.get(id,None)
-    
+
         @classmethod
         def initialize(cls,starting_index=1):
             if cls._initialized:
                 return
-    
+
             [setattr(cls,a,i+starting_index) for i,a in enumerate(dir(cls)) if ((a[0] != '_') and (not callable(getattr(cls,a))) and (getattr(cls,a) < 0))]
             cls._names=dict([(getattr(cls,a),a) for a in dir(cls) if ((a[0] != '_') and (not callable(getattr(cls,a))))])
             cls._keys=list(cls._names.keys())
             cls._names.update(dict([(v,k) for k,v in cls._names.iteritems()]))
             cls._initialized=True
-     
+
         @classmethod
         def getConstants(cls):
             return cls._names
-            
+
     class EventConstants(Constants):
         """
-        EventConstants provides access to the ioHub Device Event type constants, 
-        with methods to convert between the different associated constant value 
+        EventConstants provides access to the ioHub Device Event type constants,
+        with methods to convert between the different associated constant value
         types for a given event type:
-            
+
         * int constant
         * str constant
         * event class associated with a constant
-        
+
         The EventConstants class is initialized when ioHub is started. All
         constants and methods available are class level attributes and methods.
         Therefore do not ever create an instance of a Constants class; simply
         access it directly, such as::
-            
+
             int_kb_press_constant=iohub.EventConstants.KEYBOARD_PRESS
             str_kb_press_constant=iohub.EventConstants.getName(int_kb_press_constant)
             iohub_kb_press_class=iohub.EventConstants.getClass(int_kb_press_constant)
-            
+
             print 'Keyboard Press Event Type ID Constant: ',int_kb_press_constant
             print 'Keyboard Press Event  Type String Name Constant: ',str_kb_press_constant
             print 'Keyboard Press Event  Type ioHub Class: ',iohub_kb_press_class
-            
-        """        
+
+        """
 
         KEYBOARD_INPUT=20
         KEYBOARD_KEY=21
         KEYBOARD_PRESS=22
         KEYBOARD_RELEASE=23
         KEYBOARD_CHAR=24
-    
+
         MOUSE_INPUT=30
         MOUSE_BUTTON=31
         MOUSE_BUTTON_PRESS=32
@@ -112,12 +112,12 @@ try:
         MOUSE_SCROLL=35
         MOUSE_MOVE=36
         MOUSE_DRAG=37
-        
+
         TOUCH=40
         TOUCH_MOVE=41
         TOUCH_PRESS=42
         TOUCH_RELEASE=43
-        
+
         EYETRACKER=50
         MONOCULAR_EYE_SAMPLE=51
         BINOCULAR_EYE_SAMPLE=52
@@ -127,10 +127,10 @@ try:
         SACCADE_END=56
         BLINK_START=57
         BLINK_END=58
-    
+
         GAMEPAD_STATE_CHANGE=81
         GAMEPAD_DISCONNECT=82
-        
+
         DIGITAL_INPUT=101
         ANALOG_INPUT=102
         THRESHOLD = 103
@@ -138,7 +138,7 @@ try:
         SERIAL_INPUT = 105
         SERIAL_BYTE_CHANGE = 106
         PSTBOX_BUTTON = 107
-        
+
         MULTI_CHANNEL_ANALOG_INPUT=122
 
         MESSAGE=151
@@ -155,7 +155,7 @@ try:
 
             #: Constant for a Keyboard Char Event.
             #KEYBOARD_CHAR=24
-        
+
             #: Constant for a Mouse Button Press Event.
             MOUSE_BUTTON_PRESS=32
 
@@ -186,7 +186,7 @@ try:
 
             #: Constant for a Touch release Event.
             TOUCH_RELEASE=43
-            
+
             #: Constant for an Eye Tracker Monocular Sample Event.
             MONOCULAR_EYE_SAMPLE=51
 
@@ -210,7 +210,7 @@ try:
 
             #: Constant for an Eye Tracker Blink End Event.
             BLINK_END=58
-        
+
             #: Constant for a Gamepad Event.
             GAMEPAD_STATE_CHANGE=81
 
@@ -225,7 +225,7 @@ try:
 
             #: Constant for an Eight Channel Analog Input Sample Event.
             MULTI_CHANNEL_ANALOG_INPUT=122
-        
+
             #: Constant for a general purpose Serial Rx Event.
             SERIAL_INPUT = 105
 
@@ -234,21 +234,21 @@ try:
 
             #: Constant for a PST Box serial interface event due to a button state change.
             PSTBOX_BUTTON = 107
-            
+
             #: Constant for an Experiment Message Event.
             MESSAGE=151
 
             #: Constant for an Experiment Log Event.
             LOG=152
-        
+
         @classmethod
         def addClassMappings(cls,device_class,device_event_ids,event_classes):
             if cls._classes is None:
                 cls._classes={}
-    
+
             #import iohub
             #iohub.print2err("Adding Device Event Mappings for device: ",device_class.__name__)
-   
+
             for event_id in device_event_ids:
                 event_constant_string=cls.getName(event_id)
                 event_class=None
@@ -258,38 +258,38 @@ try:
                         cls._classes[event_class]=event_id
                         #iohub.print2err("\tAdding Event Class Mapping: ",event_constant_string, " = ",event_id)
                         break
-                
-                if event_id not in cls._classes.keys():
+
+                if event_id not in cls._classes:
                         from psychopy.iohub import print2err
                         print2err("\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ",event_constant_string, " = ",event_id)
-    
+
     EventConstants.initialize()
-    
+
     class DeviceConstants(Constants):
         """
         DeviceConstants provides access to the ioHub Device type constants, with
-        methods to convert between the different associated constant value 
+        methods to convert between the different associated constant value
         types for a given device type::
-            
+
         * int constant
         * str constant
         * device class associated with a constant
-        
+
         The DeviceConstants class is initialized when ioHub is started. All
         constants and methods available are class level attributes and methods.
         Therefore do nit ever create an instance of a Constants class; simply
         access it directly, such as::
-            
+
             int_kb_dev_constant=iohub.DeviceConstants.KEYBOARD
             str_kb_dev_constant=iohub.DeviceConstants.getName(int_kb_dev_constant)
             iohub_kb_dev_class=iohub.DeviceConstants.getClass(int_kb_dev_constant)
-            
+
             print 'Keyboard Device Type ID Constant: ',int_kb_dev_constant
             print 'Keyboard Device Type String Name Constant: ',str_kb_dev_constant
             print 'Keyboard Device Type ioHub Class: ',iohub_kb_dev_class
-            
-        """        
-        
+
+        """
+
         OTHER = 1
         KEYBOARD = 20
         MOUSE = 30
@@ -298,7 +298,7 @@ try:
         NETWORK = 60
         EVENTPUBLISHER = 61
         REMOTEEVENTSUBSCRIBER = 62
-        
+
         XINPUT = 70
         GAMEPAD = 80
         MCU = 100
@@ -311,16 +311,16 @@ try:
 
         def __init__(self):
             # just so Sphinx will doc the class attributes. ;(
-            
+
             #: Constant for a Device Type not currently categoried.
             OTHER = 1
-            
+
             #: Constant for a Keyboard Device.
             KEYBOARD = 20
 
             #: Constant for a Mouse Device.
             MOUSE = 30
-            
+
             #: Constant for a Touch Device.
             TOUCH = 40
 
@@ -329,7 +329,7 @@ try:
 
             #: Constant for a Network Device
             EVENTPUBLISHER=61
-            
+
             #: Constant for a Network Device
             REMOTEEVENTSUBSCRIBER=62
 
@@ -358,24 +358,24 @@ try:
 
             #: Constant for a Computer Device.
             COMPUTER = 200
-    
-            
+
+
         @classmethod
         def addClassMapping(cls,device_class):
             if cls._classes is None:
                 cls._classes={}
-            
+
             device_constant_string=device_class.__name__.upper()
             device_id=getattr(cls,device_constant_string)
             cls._classes[device_id]=device_class
             cls._classes[device_class]=device_id
-    
+
     DeviceConstants.initialize()
-    
+
     class MouseConstants(Constants):
         """
         MouseConstants provides access to ioHub Mouse Device specific constants.
-        """    
+        """
         MOUSE_BUTTON_NONE=0
         MOUSE_BUTTON_LEFT=1
         MOUSE_BUTTON_RIGHT=2
@@ -386,7 +386,7 @@ try:
         MOUSE_BUTTON_7=64
         MOUSE_BUTTON_8=128
         MOUSE_BUTTON_9=256
-    
+
         MOUSE_BUTTON_STATE_RELEASED=10 # event has a  button released state
         MOUSE_BUTTON_STATE_PRESSED=11 # event has a  button pressed state
         MOUSE_BUTTON_STATE_DOUBLE_CLICK=12 # a button double click event
@@ -406,23 +406,23 @@ try:
 
             #: Constant representing that the middle Mouse button is pressed.
             MOUSE_BUTTON_MIDDLE=4
-        
+
             #: Constant representing a mouse button is in a released state.
-            MOUSE_BUTTON_STATE_RELEASED=10 
+            MOUSE_BUTTON_STATE_RELEASED=10
 
             #: Constant representing a mouse button is in a pressed state.
-            MOUSE_BUTTON_STATE_PRESSED=11 
+            MOUSE_BUTTON_STATE_PRESSED=11
 
             #: Constant representing a mouse is in a multiple click state.
-            MOUSE_BUTTON_STATE_MULTI_CLICK=12             
+            MOUSE_BUTTON_STATE_MULTI_CLICK=12
     MouseConstants.initialize()
-    
-    import sys    
+
+    import sys
     if sys.platform == 'win32':
-        
+
         class AsciiConstants(Constants):
             # Mainly from the pyHook lookup Table, some from Pyglet
-        
+
             BACKSPACE = 0x08
             TAB = 0x09
             LINEFEED = 0x0A
@@ -430,7 +430,7 @@ try:
             RETURN = 0x0D
             SYSREQ = 0x15
             ESCAPE = 0x1B
-        
+
             SPACE = 0x20
             EXCLAMATION = 0x21
             DOUBLEQUOTE = 0x22
@@ -447,7 +447,7 @@ try:
             MINUS = 0x2D
             PERIOD = 0x2E
             SLASH = 0x2F
-        
+
             n0_=0x30
             n1_=0x31
             n2_=0x32
@@ -458,7 +458,7 @@ try:
             n7_=0x37
             n8_=0x38
             n9_=0x39
-        
+
             COLON = 0x3A
             SEMICOLON = 0x3B
             LESS = 0x3C
@@ -466,7 +466,7 @@ try:
             GREATER = 0x3E
             QUESTION = 0x3F
             AT = 0x40
-        
+
             A=0x41
             B=0x42
             C=0x43
@@ -493,14 +493,14 @@ try:
             X=0x58
             Y=0x59
             Z=0x5A
-        
+
             BRACKETLEFT = 0x5B
             BACKSLASH = 0x5C
             BRACKETRIGHT = 0x5D
             ASCIICIRCUM = 0x5E
             UNDERSCORE = 0x5F
             GRAVE = 0x60
-        
+
             a = 0x61
             b = 0x62
             c = 0x63
@@ -527,18 +527,18 @@ try:
             x = 0x78
             y = 0x79
             z = 0x7A
-        
+
             BRACELEFT = 0x7B
             BAR = 0x7C
             BRACERIGHT = 0x7D
             ASCIITILDE = 0x7E
-        
+
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
-        
+
         AsciiConstants.initialize()
-    
+
         class VirtualKeyCodes(Constants):
                 # Mainly from the pyHook lookup Table, some from Pyglet
                 VK_CANCEL  =  0x03
@@ -546,7 +546,7 @@ try:
                 VK_TAB  =  0x09
                 VK_CLEAR  =  0x0C
                 VK_RETURN  =  0x0D
-            
+
                 VK_SHIFT  =  0x10
                 VK_CONTROL  =  0x11
                 VK_MENU  =  0x12
@@ -563,7 +563,7 @@ try:
                 VK_NONCONVERT  =  0x1D
                 VK_ACCEPT  =  0x1E
                 VK_MODECHANGE  =  0x1F
-            
+
                 VK_SPACE  =  0x20
                 VK_PAGEUP  =  0x21
                 VK_PAGEDOWN  =  0x22
@@ -580,14 +580,14 @@ try:
                 VK_INSERT  =  0x2D
                 VK_DELETE  =  0x2E
                 VK_HELP  =  0x2F
-            
+
                 VK_LWIN = 0x5B
                 VK_RWIN = 0x5C
                 VK_APPS = 0x5D
                 VK_lcmd  =  0x5B
                 VK_rcmd  =  0x5C
                 VK_menu  =  0x5D
-            
+
                 VK_NUMPAD0  =  0x60
                 VK_NUMPAD1  =  0x61
                 VK_NUMPAD2  =  0x62
@@ -604,7 +604,7 @@ try:
                 VK_NUMPADSUBTRACT  =  0x6D
                 VK_NUMPADDECIMAL  =  0x6E
                 VK_NUMPADDIVIDE  =  0x6F
-            
+
                 VK_F1  =  0x70
                 VK_F2  =  0x71
                 VK_F3  =  0x72
@@ -629,7 +629,7 @@ try:
                 VK_F22  =  0x85
                 VK_F23  =  0x86
                 VK_F24  =  0x87
-            
+
                 VK_NUM_LOCK = 0x90
                 VK_SCROLL = 0x91
                 VK_LSHIFT = 0xA0
@@ -658,7 +658,7 @@ try:
                 VK_VOLUME_MUTE  =  0xAD
                 VK_VOLUME_DOWN  =  0xAE
                 VK_VOLUME_UP  =  0xAF
-            
+
                 VK_MEDIA_NEXT_TRACK  =  0xB0
                 VK_MEDIA_PREV_TRACK  =  0xB1
                 VK_MEDIA_STOP  =  0xB2
@@ -667,7 +667,7 @@ try:
                 VK_LAUNCH_MEDIA_SELECT  =  0xB5
                 VK_LAUNCH_APP1  =  0xB6
                 VK_LAUNCH_APP2  =  0xB7
-            
+
                 VK_PROCESSKEY  =  0xE5
                 VK_PACKET  =  0xE7
                 VK_ATTN  =  0xF6
@@ -679,11 +679,11 @@ try:
                 VK_NONAME  =  0xFC
                 VK_PA1  =  0xFD
                 VK_OEM_CLEAR  =  0xFE
-            
+
                 @classmethod
                 def getName(cls,id):
                     return cls._names.get(id,None)
-    
+
         VirtualKeyCodes.initialize()
 
     elif sys.platform == 'linux2':
@@ -695,40 +695,40 @@ try:
 
     elif sys.platform == 'darwin':
         class AnsiKeyCodes(Constants):
-            ANSI_Equal    = 0x18 
-            ANSI_Minus    = 0x1B 
-            ANSI_RightBracket         = 0x1E 
-            ANSI_LeftBracket          = 0x21 
-            ANSI_Quote    = 0x27 
-            ANSI_Semicolon            = 0x29 
-            ANSI_Backslash            = 0x2A 
-            ANSI_Comma    = 0x2B 
-            ANSI_Slash    = 0x2C 
-            ANSI_Period   = 0x2F 
-            ANSI_Grave    = 0x32 
-            ANSI_KeypadDecimal        = 0x41 
-            ANSI_KeypadMultiply       = 0x43 
-            ANSI_KeypadPlus           = 0x45 
-            ANSI_KeypadClear          = 0x47 
-            ANSI_KeypadDivide         = 0x4B 
-            ANSI_KeypadEnter          = 0x4C 
-            ANSI_KeypadMinus          = 0x4E 
-            ANSI_KeypadEquals         = 0x51 
-            ANSI_Keypad0  = 0x52 
-            ANSI_Keypad1  = 0x53 
-            ANSI_Keypad2  = 0x54 
-            ANSI_Keypad3  = 0x55 
-            ANSI_Keypad4  = 0x56 
-            ANSI_Keypad5  = 0x57 
-            ANSI_Keypad6  = 0x58 
-            ANSI_Keypad7  = 0x59 
+            ANSI_Equal    = 0x18
+            ANSI_Minus    = 0x1B
+            ANSI_RightBracket         = 0x1E
+            ANSI_LeftBracket          = 0x21
+            ANSI_Quote    = 0x27
+            ANSI_Semicolon            = 0x29
+            ANSI_Backslash            = 0x2A
+            ANSI_Comma    = 0x2B
+            ANSI_Slash    = 0x2C
+            ANSI_Period   = 0x2F
+            ANSI_Grave    = 0x32
+            ANSI_KeypadDecimal        = 0x41
+            ANSI_KeypadMultiply       = 0x43
+            ANSI_KeypadPlus           = 0x45
+            ANSI_KeypadClear          = 0x47
+            ANSI_KeypadDivide         = 0x4B
+            ANSI_KeypadEnter          = 0x4C
+            ANSI_KeypadMinus          = 0x4E
+            ANSI_KeypadEquals         = 0x51
+            ANSI_Keypad0  = 0x52
+            ANSI_Keypad1  = 0x53
+            ANSI_Keypad2  = 0x54
+            ANSI_Keypad3  = 0x55
+            ANSI_Keypad4  = 0x56
+            ANSI_Keypad5  = 0x57
+            ANSI_Keypad6  = 0x58
+            ANSI_Keypad7  = 0x59
             ANSI_Keypad8  = 0x5B
             ANSI_Keypad9  = 0x5C
 
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
-        
+
         AnsiKeyCodes.initialize()
         AnsiKeyCodes._keys.remove(AnsiKeyCodes.getID('UNDEFINED'))
 
@@ -820,12 +820,12 @@ try:
             CHECK     = 0x2713 # Unicode CHECK MARK*/
             DIAMOND   = 0x25C6 #  Unicode BLACK DIAMOND*/
             BULLET   = 0x2022 # Unicode BULLET*/
-            APPLE_LOGO = 0xF8FF# Unicode APPLE LOGO*/    
-            
+            APPLE_LOGO = 0xF8FF# Unicode APPLE LOGO*/
+
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
-        
+
         UnicodeChars.initialize()
         UnicodeChars._keys.remove(UnicodeChars.getID('UNDEFINED'))
 
@@ -887,76 +887,76 @@ try:
             VK_LEFT     = 0x7B
             VK_UP       = 0x7E
             VK_RIGHT    = 0x7C
-            VK_DOWN     = 0x7D      
+            VK_DOWN     = 0x7D
             VK_F1       = 0x7A
-            KEY_EQUAL = 24 
-            KEY_MINUS = 27 
-            KEY_RIGHT_SQUARE_BRACKET = 30 
-            KEY_LEFT_SQUARE_BRACKET = 33 
-            KEY_RETURN = 36 
-            KEY_SINGLE_QUOTE = 39 
-            KEY_SEMICOLAN  = 41 
-            KEY_BACKSLASH = 42 
-            KEY_COMMA = 43 
-            KEY_FORWARD_SLASH = 44 
-            KEY_PERIOD = 47 
-            KEY_TAB = 48 
-            KEY_SPACE = 49 
-            KEY_LEFT_SINGLE_QUOTE = 50 
-            KEY_DELETE = 51 
-            KEY_ENTER = 52 
-            KEY_ESCAPE = 53 
-            KEYPAD_PERIOD = 65 
-            KEYPAD_MULTIPLY = 67 
-            KEYPAD_PLUS = 69 
-            KEYPAD_CLEAR = 71 
-            KEYPAD_DIVIDE = 75 
+            KEY_EQUAL = 24
+            KEY_MINUS = 27
+            KEY_RIGHT_SQUARE_BRACKET = 30
+            KEY_LEFT_SQUARE_BRACKET = 33
+            KEY_RETURN = 36
+            KEY_SINGLE_QUOTE = 39
+            KEY_SEMICOLAN  = 41
+            KEY_BACKSLASH = 42
+            KEY_COMMA = 43
+            KEY_FORWARD_SLASH = 44
+            KEY_PERIOD = 47
+            KEY_TAB = 48
+            KEY_SPACE = 49
+            KEY_LEFT_SINGLE_QUOTE = 50
+            KEY_DELETE = 51
+            KEY_ENTER = 52
+            KEY_ESCAPE = 53
+            KEYPAD_PERIOD = 65
+            KEYPAD_MULTIPLY = 67
+            KEYPAD_PLUS = 69
+            KEYPAD_CLEAR = 71
+            KEYPAD_DIVIDE = 75
             KEYPAD_ENTER = 76   # numberpad on full kbd
-            KEYPAD_EQUALS = 78 	
-            KEYPAD_EQUAL = 81 
-            KEYPAD_0 = 82 
-            KEYPAD_1 = 83 
-            KEYPAD_2 = 84 
-            KEYPAD_3 = 85 
-            KEYPAD_4 = 86 
-            KEYPAD_5 = 87 
-            KEYPAD_6 = 88 
-            KEYPAD_7 = 89 	
-            KEYPAD_8 = 91 
-            KEYPAD_9 = 92 
-            KEY_F5 = 96 
-            KEY_F6 = 97 
-            KEY_F7 = 98 
-            KEY_F3 = 99 
-            KEY_F8 = 100 
-            KEY_F9 = 101 	
-            KEY_F11 = 103 	
-            KEY_F13 = 105 	
-            KEY_F14 = 107 	
-            KEY_F10 = 109	
-            KEY_F12 = 111 
-            KEY_F15 = 113 
-            KEY_HELP = 114 
-            KEY_HOME = 115 
-            KEY_PGUP = 116 
-            KEY_DELETE = 117 
-            KEY_F4 = 118 
-            KEY_END = 119 
-            KEY_F2 = 120 
-            KEY_PGDN = 121 
-            KEY_F1 = 122 
-            KEY_LEFT = 123 
-            KEY_RIGHT = 124 
-            KEY_DOWN = 125 
-            KEY_UP = 126 
+            KEYPAD_EQUALS = 78
+            KEYPAD_EQUAL = 81
+            KEYPAD_0 = 82
+            KEYPAD_1 = 83
+            KEYPAD_2 = 84
+            KEYPAD_3 = 85
+            KEYPAD_4 = 86
+            KEYPAD_5 = 87
+            KEYPAD_6 = 88
+            KEYPAD_7 = 89
+            KEYPAD_8 = 91
+            KEYPAD_9 = 92
+            KEY_F5 = 96
+            KEY_F6 = 97
+            KEY_F7 = 98
+            KEY_F3 = 99
+            KEY_F8 = 100
+            KEY_F9 = 101
+            KEY_F11 = 103
+            KEY_F13 = 105
+            KEY_F14 = 107
+            KEY_F10 = 109
+            KEY_F12 = 111
+            KEY_F15 = 113
+            KEY_HELP = 114
+            KEY_HOME = 115
+            KEY_PGUP = 116
+            KEY_DELETE = 117
+            KEY_F4 = 118
+            KEY_END = 119
+            KEY_F2 = 120
+            KEY_PGDN = 121
+            KEY_F1 = 122
+            KEY_LEFT = 123
+            KEY_RIGHT = 124
+            KEY_DOWN = 125
+            KEY_UP = 126
 
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
-        
+
         VirtualKeyCodes.initialize()
         VirtualKeyCodes._keys.remove(VirtualKeyCodes.getID('UNDEFINED'))
-    
+
     class ModifierKeyCodes(Constants):
         _mod_names=['lctrl','rctrl','lshift',
                    'rshift','lalt','ralt',
@@ -981,23 +981,23 @@ try:
         scrolllock=modhelp*2
     ModifierKeyCodes.initialize()
     ModifierKeyCodes._keys.remove(ModifierKeyCodes.getID('UNDEFINED'))
-    
+
     class KeyboardConstants(Constants):
         '''
         Stores internal windows hook constants including hook types, mappings from virtual
         keycode name to value and value to name, and event type value to name.
         '''
-    
+
         _virtualKeyCodes=VirtualKeyCodes()
-        
+
         if sys.platform == 'win32':
             _asciiKeyCodes=AsciiConstants()
         if sys.platform == 'darwin':
             _unicodeChars=UnicodeChars()
             _ansiKeyCodes=AnsiKeyCodes()
-            
+
         _modifierCodes=ModifierKeyCodes()
-          
+
         @classmethod
         def getName(cls,id):
             return cls._names.get(id,None)
@@ -1019,8 +1019,8 @@ try:
         @classmethod
         def _getKeyNameAndModsForEvent(cls,keyEvent):
             return cls._getKeyName(keyEvent), cls.getModifiersForEvent(keyEvent)
-    
-    
+
+
         @classmethod
         def getModifiersForEvent(cls,event):
             return cls._modifierCodes2Labels(event.Modifiers)
@@ -1029,7 +1029,7 @@ try:
         def _modifierCodes2Labels(cls,mods):
             if mods == 0:
                 return []
-    
+
             modconstants=cls._modifierCodes
             modNameList=[]
             for k in modconstants._keys:
@@ -1040,16 +1040,16 @@ try:
                     if mods==0:
                         return modNameList
             return modNameList
-    
+
     KeyboardConstants.initialize()
-    
+
     class EyeTrackerConstants(Constants):
-        
+
         #
         ## Sample Filtering related constants
         #
-        
-        # Sample Filter Levels        
+
+        # Sample Filter Levels
         FILTER_LEVEL_OFF=0
         FILTER_OFF=0
         FILTER_LEVEL_1=1
@@ -1058,15 +1058,15 @@ try:
         FILTER_LEVEL_4=4
         FILTER_LEVEL_5=5
         FILTER_ON=9
-    
-        # Sample Filter Types        
+
+        # Sample Filter Types
         FILTER_FILE=10
         FILTER_NET=11
         FILTER_ONLINE=11
         FILTER_SERIAL=12
         FILTER_ANALOG=13
         FILTER_ALL=15
-    
+
         #
         ## Eye Type Constants
         #
@@ -1082,7 +1082,7 @@ try:
         #
         ## Calibration / Validation Related Constants
         #
-        
+
         # Target Point Count
         NO_POINTS=40
         ONE_POINT=41
@@ -1107,13 +1107,13 @@ try:
         # Target Pacing Types
         AUTO_CALIBRATION_PACING=90
         MANUAL_CALIBRATION_PACING=91
-            
+
         # Target Shape Types
         CIRCLE_TARGET=121
         CROSSHAIR_TARGET=122
         IMAGE_TARGET=123
         MOVIE_TARGET=124
-        
+
         # System Setup Method Initial State Constants
         DEFAULT_SETUP_PROCEDURE=100
         TRACKER_FEEDBACK_STATE=101
@@ -1137,21 +1137,21 @@ try:
         PUPIL_MAJOR_AXIS_MM = 80
         PUPIL_MINOR_AXIS_MM = 81
         PUPIL_RADIUS_MM = 82
-    
-            
+
+
         #
         ## Video Based Eye Tracking Method Constants
         #
         PUPIL_CR_TRACKING=140
         PUPIL_ONLY_TRACKING=141
-    
+
         #
         ## Video Based Pupil Center Calculation Algorithm Constants
         #
         ELLIPSE_FIT=146
         CIRCLE_FIT = 147
         CENTROID_FIT = 148
-    
+
         #
         ## Eye Tracker Interface Return Code Constants
         #
@@ -1159,7 +1159,7 @@ try:
         # EYETRACKER_ERROR deprecated for EYETRACKER_UNDEFINED_ERROR
         EYETRACKER_ERROR=201
         EYETRACKER_UNDEFINED_ERROR=201
-        # FUNCTIONALITY_NOT_SUPPORTED deprecated for 
+        # FUNCTIONALITY_NOT_SUPPORTED deprecated for
         # EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
         FUNCTIONALITY_NOT_SUPPORTED=202
         EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED=202
@@ -1169,34 +1169,34 @@ try:
         EYETRACKER_NOT_CONNECTED=206
         EYETRACKER_MODEL_NOT_SUPPORTED=207
         EYETRACKER_RECEIVED_INVALID_INPUT=208
-        
+
     EyeTrackerConstants.initialize()
-    
-    
+
+
     #
     ## Gamepad related
     #
-    
+
     class XInputBatteryTypeConstants(Constants):
-        BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected. 
-        BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not 
-                                               # have a battery. 
-        BATTERY_TYPE_ALKALINE = 0x02           # The device has an alkaline battery. 
-        BATTERY_TYPE_NIMH = 0x03	               # The device has a nickel metal hydride battery. 
-        BATTERY_TYPE_UNKNOWN = 0xFF            # The device has an unknown battery type. 
-    XInputBatteryTypeConstants.initialize() 
+        BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected.
+        BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not
+                                               # have a battery.
+        BATTERY_TYPE_ALKALINE = 0x02           # The device has an alkaline battery.
+        BATTERY_TYPE_NIMH = 0x03	               # The device has a nickel metal hydride battery.
+        BATTERY_TYPE_UNKNOWN = 0xFF            # The device has an unknown battery type.
+    XInputBatteryTypeConstants.initialize()
     try:
         XInputBatteryTypeConstants._keys.remove(XInputBatteryTypeConstants.getID('UNDEFINED'))
     except Exception:
         pass
-    
+
     class XInputBatteryLevelConstants(Constants):
         # BatteryLevels
         BATTERY_LEVEL_EMPTY = 0x00
         BATTERY_LEVEL_LOW = 0x01
         BATTERY_LEVEL_MEDIUM = 0x02
         BATTERY_LEVEL_FULL = 0x03
-    
+
     XInputBatteryLevelConstants.initialize()
     try:
         XInputBatteryLevelConstants._keys.remove(XInputBatteryLevelConstants.getID('UNDEFINED'))
@@ -1205,36 +1205,36 @@ try:
 
     class XInputCapabilitiesConstants(Constants):
         UNDEFINED=9999999
-        # Device Type        
+        # Device Type
         XBOX360_GAMEPAD=0x01
         OTHER_XINPUT_GAMEPAD=0x0
-        
+
         #subtype
         XINPUT_GAMEPAD=0x08 # is defined as 0x01 in xinput.h, redining so no conflicts
         XINPUT_UNKNOWN_SUBTYPE=0x06
-        
+
 #        # Note:
-#        # Older XUSB Windows drivers report incomplete capabilities information, 
-#        # particularly for wireless devices. The latest XUSB Windows driver provides 
-#        # full support for wired and wireless devices, and more complete and accurate 
+#        # Older XUSB Windows drivers report incomplete capabilities information,
+#        # particularly for wireless devices. The latest XUSB Windows driver provides
+#        # full support for wired and wireless devices, and more complete and accurate
 #        # capabilties flags.
 #        XINPUT_CAPS_VOICE_SUPPORTED = 0x0004 # Device has an integrated voice device.
-#        
+#
 #        #XINPUT_CAPS_FFB_SUPPORTED =     # Device supports force feedback functionality.
-#                                        # Note that these force-feedback features 
-#                                        # beyond rumble are not currently supported 
+#                                        # Note that these force-feedback features
+#                                        # beyond rumble are not currently supported
 #                                        # through XINPUT on Windows.
-#        
+#
 #        #XINPUT_CAPS_WIRELESS =          # Device is wireless.
-#        
-#        #XINPUT_CAPS_PMD_SUPPORTED =     # Device supports plug-in modules. 
-#                                        # Note that plug-in modules like the text 
-#                                        # input device (TID) are not supported 
+#
+#        #XINPUT_CAPS_PMD_SUPPORTED =     # Device supports plug-in modules.
+#                                        # Note that plug-in modules like the text
+#                                        # input device (TID) are not supported
 #                                        # currently through XINPUT on Windows.
-#        
-#        #XINPUT_CAPS_NO_NAVIGATION =     # Device lacks menu navigation buttons 
+#
+#        #XINPUT_CAPS_NO_NAVIGATION =     # Device lacks menu navigation buttons
 #                                        # (START, BACK, DPAD).
-#        
+#
 #        #
 #        # XINPUT_GAMEPAD struct - wButtons masks
 #        #
@@ -1252,43 +1252,43 @@ try:
 #        XINPUT_GAMEPAD_B = 0x2000
 #        XINPUT_GAMEPAD_X = 0x4000
 #        XINPUT_GAMEPAD_Y = 0x8000
-#        
+#
 #        #
 #        # Gamepad thresholds
 #        #
 #        XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE = 7849
 #        XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE = 8689
 #        XINPUT_GAMEPAD_TRIGGER_THRESHOLD = 30
-#        
+#
 #        #
 #        # Flags to pass to XInputGetCapabilities
 #        #
 #        XINPUT_FLAG_GAMEPAD = 0x00000001
-#        
-#        
+#
+#
 #        if XINPUT_USE_9_1_0 is False:
 #            #
 #            # Devices that support batteries
 #            #
 #            BATTERY_DEVTYPE_GAMEPAD = 0x00
 #            BATTERY_DEVTYPE_HEADSET = 0x01
-#            
+#
 #            # BatteryTypes
-#            BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected. 
-#            BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not 
-#                                                   # have a battery. 
-#            BATTERY_TYPE_ALKALINE = 0x02           # The device has an alkaline battery. 
-#            BATTERY_TYPE_NIMH = 0x03	               # The device has a nickel metal hydride battery. 
-#            BATTERY_TYPE_UNKNOWN = 0xFF            # The device has an unknown battery type. 
-#            
+#            BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected.
+#            BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not
+#                                                   # have a battery.
+#            BATTERY_TYPE_ALKALINE = 0x02           # The device has an alkaline battery.
+#            BATTERY_TYPE_NIMH = 0x03	               # The device has a nickel metal hydride battery.
+#            BATTERY_TYPE_UNKNOWN = 0xFF            # The device has an unknown battery type.
+#
 #            # BatteryLevels
 #            BATTERY_LEVEL_EMPTY = 0x00
 #            BATTERY_LEVEL_LOW = 0x01
 #            BATTERY_LEVEL_MEDIUM = 0x02
 #            BATTERY_LEVEL_FULL = 0x03
-#        
+#
 #            #
-#            # Multiple Controller Support 
+#            # Multiple Controller Support
 #            #
 #            XINPUT_USER_0=DWORD(0)
 #            XINPUT_USER_1=DWORD(1)
@@ -1297,16 +1297,16 @@ try:
 #            XUSER_MAX_COUNT=4
 #            XINPUT_USERS=(XINPUT_USER_0,XINPUT_USER_1,XINPUT_USER_2,XINPUT_USER_3)
 #            XUSER_INDEX_ANY = 0x000000FF
-#            
+#
 #            XINPUT_GAMEPAD_TL_LIT=DWORD(0)
 #            XINPUT_GAMEPAD_TR_LIT=DWORD(1)
 #            XINPUT_GAMEPAD_BR_LIT=DWORD(2)
 #            XINPUT_GAMEPAD_BL_LIT=DWORD(3)
-#                
+#
 #            #
 #            # Codes returned for the gamepad keystroke
 #            #
-#        
+#
 #            VK_PAD_A = 0x5800
 #            VK_PAD_B = 0x5801
 #            VK_PAD_X = 0x5802
@@ -1315,7 +1315,7 @@ try:
 #            VK_PAD_LSHOULDER = 0x5805
 #            VK_PAD_LTRIGGER = 0x5806
 #            VK_PAD_RTRIGGER  =  0x5807
-#            
+#
 #            VK_PAD_DPAD_UP = 0x5810
 #            VK_PAD_DPAD_DOWN = 0x5811
 #            VK_PAD_DPAD_LEFT = 0x5812
@@ -1324,7 +1324,7 @@ try:
 #            VK_PAD_BACK = 0x5815
 #            VK_PAD_LTHUMB_PRESS = 0x5816
 #            VK_PAD_RTHUMB_PRESS = 0x5817
-#            
+#
 #            VK_PAD_LTHUMB_UP = 0x5820
 #            VK_PAD_LTHUMB_DOWN = 0x5821
 #            VK_PAD_LTHUMB_RIGHT = 0x5822
@@ -1333,7 +1333,7 @@ try:
 #            VK_PAD_LTHUMB_UPRIGHT = 0x5825
 #            VK_PAD_LTHUMB_DOWNRIGHT = 0x5826
 #            VK_PAD_LTHUMB_DOWNLEFT = 0x5827
-#            
+#
 #            VK_PAD_RTHUMB_UP = 0x5830
 #            VK_PAD_RTHUMB_DOWN = 0x5831
 #            VK_PAD_RTHUMB_RIGHT = 0x5832
@@ -1342,23 +1342,23 @@ try:
 #            VK_PAD_RTHUMB_UPRIGHT = 0x5835
 #            VK_PAD_RTHUMB_DOWNRIGHT = 0x5836
 #            VK_PAD_RTHUMB_DOWNLEFT = 0x5837
-#        
-#            # 
+#
+#            #
 #            # Flags used in XINPUT_KEYSTROKE
 #            #
-#            XINPUT_KEYSTROKE_KEYDOWN = 0x0001       # The key was pressed. 
-#            XINPUT_KEYSTROKE_KEYUP  = 0x0002         # The key was released. 
-#            XINPUT_KEYSTROKE_REPEAT = 0x0004         # A repeat of a held key. 
-#        
+#            XINPUT_KEYSTROKE_KEYDOWN = 0x0001       # The key was pressed.
+#            XINPUT_KEYSTROKE_KEYUP  = 0x0002         # The key was released.
+#            XINPUT_KEYSTROKE_REPEAT = 0x0004         # A repeat of a held key.
+#
 #        #
 #        # Return Values
 #        #
-#        
+#
 #        ERROR_SUCCESS = 0
 #        ERROR_DEVICE_NOT_CONNECTED = 0x048F
-#        
+#
 #        if XINPUT_USE_9_1_0 is False:
-#            ERROR_EMPTY = 2 # made this up, need to confirm .... # 
+#            ERROR_EMPTY = 2 # made this up, need to confirm .... #
 
 
     XInputCapabilitiesConstants.initialize()
@@ -1366,7 +1366,7 @@ try:
         XInputCapabilitiesConstants._keys.remove(XInputCapabilitiesConstants.getID('UNDEFINED'))
     except Exception:
         pass
-    
+
     class XInputGamePadConstants(Constants):
         DPAD_UP = 0x0001
         DPAD_DOWN = 0x0002
@@ -1382,23 +1382,23 @@ try:
         B = 0x2000
         X = 0x4000
         Y = 0x8000
-   
+
         _batteryTypes=XInputBatteryTypeConstants()
         _batteryLevels=XInputBatteryLevelConstants()
         _capabilities=XInputCapabilitiesConstants()
-             
+
     XInputGamePadConstants.initialize()
     try:
         XInputGamePadConstants._keys.remove(XInputGamePadConstants.getID('UNDEFINED'))
     except Exception:
         pass
-            
+
 except Exception:
     import traceback
     traceback.print_exc()
     #from . import printExceptionDetailsToStdErr
     #printExceptionDetailsToStdErr()
-    
+
 #class SerialConstants(Constants):
 #    import serial
 #    XON=serial.XON

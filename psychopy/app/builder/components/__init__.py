@@ -136,7 +136,7 @@ def getComponents(folder=None, fetchIcons=True):
 
     components = {}
     # setup a default icon
-    if fetchIcons and 'default' not in icons.keys():
+    if fetchIcons and 'default' not in icons:
         icons['default'] = getIcons(filename=None)
 
     # go through components in directory
@@ -204,7 +204,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
     components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
         userComps = getComponents(folder)
-        for thisKey in userComps.keys():
+        for thisKey in userComps:
             components[thisKey] = userComps[thisKey]
     return components
 
@@ -224,7 +224,7 @@ def getInitVals(params, target="PsychoPy"):
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
-    for name in params.keys():
+    for name in params:
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"

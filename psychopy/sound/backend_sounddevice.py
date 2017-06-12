@@ -89,7 +89,7 @@ class _StreamsDict(dict):
         label = getStreamLabel(sampleRate, channels, blockSize)
         # replace -1 with any regex integer
         simil = re.compile(label.replace("-1", r"[-+]?(\d+)"))  # I hate REGEX!
-        for thisFormat in self.keys():
+        for thisFormat in self:
             if simil.match(thisFormat):  # we found a close-enough match
                 return thisFormat, self[thisFormat]
         # if we've been given values in each place then create stream
@@ -103,7 +103,7 @@ class _StreamsDict(dict):
         """
         label = getStreamLabel(sampleRate, channels, blockSize)
         # try to retrieve existing stream of that name
-        if label in self.keys():
+        if label in self:
             pass
         # on some systems more than one stream isn't supported so check
         elif sys.platform == 'win32' and len(self):

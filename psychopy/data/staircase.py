@@ -365,7 +365,7 @@ class StairHandler(_BaseTrialHandler):
         """
         if self.finished == False:
             # check that all 'otherData' is aligned with current trialN
-            for key in self.otherData.keys():
+            for key in self.otherData:
                 while len(self.otherData[key]) < self.thisTrialN:
                     self.otherData[key].append(None)
             # update pointer for next trial
