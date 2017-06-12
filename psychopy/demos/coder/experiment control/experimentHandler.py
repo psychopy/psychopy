@@ -6,6 +6,7 @@ Demo of class data.ExperimentHandler
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import data, logging
 from numpy import random

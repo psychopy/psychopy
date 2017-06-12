@@ -70,8 +70,9 @@ MCU Access
 
 
 """
-import pysync
-from pysync import T3MC,T3Request,T3Event
+from __future__ import absolute_import
+from . import pysync
+from .pysync import T3MC,T3Request,T3Event
 
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
@@ -402,7 +403,7 @@ class MCU(Device):
 
             self._last_callback_time=logged_time
             return True
-        except Exception, e:
+        except Exception as e:
             print2err("--------------------------------")
             print2err("ERROR in MCU._poll: ",e)
             printExceptionDetailsToStdErr()

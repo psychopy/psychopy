@@ -215,7 +215,7 @@ class Touch(TouchDevice):
             # Get current mode settings
             pkt=self._query('m')
             reply_packets=self._poll()
-        except Exception, e:
+        except Exception as e:
             print2err("Exception During Touch.initCalibration: ",str(e))
 
     def applyCalibrationData(self,xmin,xmax,ymin,ymax,x1,y1,x2,y2,sx,sy,leftx,uppery,rightx,lowery):
@@ -277,7 +277,7 @@ class Touch(TouchDevice):
             self.clearEvents()
             self._raw_positions=False
 
-        except Exception, e:
+        except Exception as e:
             print2err("Exception During Touch.applyCalibrationData: ",str(e))
 
     def clearEvents(self):
@@ -285,7 +285,7 @@ class Touch(TouchDevice):
             self._non_touch_events.clear()
             self._flushSerialInput()
             TouchDevice.clearEvents(self)
-        except Exception, e:
+        except Exception as e:
             print2err("Exception During Touch.clearEvents: ",str(e))
 
     def _poll(self):

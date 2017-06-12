@@ -5,9 +5,11 @@ The advantage of running as a script is that this won't interact with your
 existing namespace (e.g. avbin can load because scipy won't already have
 been loaded).
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from psychopy import logging
-from calibTools import DACrange
+from .calibTools import DACrange
 import numpy
 import time
 

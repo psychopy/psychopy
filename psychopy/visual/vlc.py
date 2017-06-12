@@ -40,6 +40,7 @@ L{MediaListPlayer} class directly and an instance of L{Instance}
 will be implicitly created.  The latter can be obtained using the
 C{get_instance} method of L{MediaPlayer} and L{MediaListPlayer}.
 """
+from __future__ import print_function
 
 import ctypes
 from ctypes.util import find_library

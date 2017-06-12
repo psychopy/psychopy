@@ -48,7 +48,7 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         if not status.value:
             print_log(shader)
             GL.glDeleteShader(shader)
-            raise ValueError, 'Shader compilation failed'
+            raise ValueError('Shader compilation failed')
         return shader
 
     program = GL.glCreateProgramObjectARB()

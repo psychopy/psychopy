@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 
 """
+from __future__ import absolute_import
 import datetime
 import warnings
 import scipy, numpy
@@ -18,8 +19,8 @@ import sys,os,inspect
 import psychopy
 from collections import Iterable
 
-from exception_tools import ioHubError
-from exception_tools import printExceptionDetailsToStdErr, print2err
+from .exception_tools import ioHubError
+from .exception_tools import printExceptionDetailsToStdErr, print2err
 from psychopy.clock import MonotonicClock, monotonicClock
 
 # Path Update / Location functions
@@ -63,7 +64,7 @@ def module_directory(local_function):
 def isIterable(o):
     return isinstance(o, Iterable)
     
-from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+from .dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
 
  
 if sys.platform == 'win32':
@@ -118,11 +119,11 @@ if sys.version_info[0] != 2 or sys.version_info[1] < 7:
 else:
     from collections import OrderedDict
 
-from variableProvider import ExperimentVariableProvider
+from .variableProvider import ExperimentVariableProvider
 
-from visualUtil import SinusoidalMotion
-from visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
-from visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
+from .visualUtil import SinusoidalMotion
+from .visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
+from .visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 
 ###############################################################################
 #
@@ -366,12 +367,12 @@ def rotate2D(pts,origin,ang=pi/4):
 ## Import utils sub modules
 #    
 
-from variableProvider import ExperimentVariableProvider
+from .variableProvider import ExperimentVariableProvider
 
-from visualUtil import SinusoidalMotion
-from visualUtil import TimeTrigger,DeviceEventTrigger
-from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
-from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+from .visualUtil import SinusoidalMotion
+from .visualUtil import TimeTrigger,DeviceEventTrigger
+from .visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
+from .dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
 
 ###############################################################################
 #

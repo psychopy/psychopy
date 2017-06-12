@@ -12,6 +12,7 @@ Wiring:
 
 DOUT_0 to DIN_8
 """
+from __future__ import print_function
 
 repetitions=10
 
@@ -44,8 +45,8 @@ try:
     core.wait(0.5)
     mcu.enableEventReporting(True)
     
-    print 'Running Test. Please wait.'
-    print
+    print('Running Test. Please wait.')
+    print()
 
     mcu.setDigitalOutputByte(0)
     old_stuff=mcu.getRequestResponse()

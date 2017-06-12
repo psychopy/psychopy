@@ -6,6 +6,7 @@ Demo of TrialHandler
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from random import random
 from psychopy import data

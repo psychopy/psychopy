@@ -1,5 +1,6 @@
 """Tools to help with calibrations
 """
+from __future__ import print_function
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -729,7 +730,7 @@ class GammaCalculator(object):
                 self.gamma = self.gammaModel[0]
                 self.a = self.b = self.k = None
         else:
-            raise AttributeError, ("gammaTable needs EITHER a gamma value"
+            raise AttributeError("gammaTable needs EITHER a gamma value"
                                    " or some luminance measures")
 
     def fitGammaFun(self, x, y):
@@ -1153,7 +1154,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
         # check params
         if nMissing > 1:
             msg = "For eq=4, gammaFun needs 2 of a, b, k to be specified"
-            raise AttributeError, msg
+            raise AttributeError(msg)
         elif nMissing == 1:
             if a is None:
                 a = minLum - b**(1.0 / gamma)  # when y=min, x=0

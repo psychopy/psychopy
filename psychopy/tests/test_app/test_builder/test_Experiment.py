@@ -1,3 +1,4 @@
+from __future__ import print_function
 from psychopy.app import psychopyApp
 import psychopy.app.builder.experiment
 from os import path

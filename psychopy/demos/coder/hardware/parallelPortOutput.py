@@ -8,6 +8,7 @@ This is for win32 only.
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, core
 from psychopy import parallel

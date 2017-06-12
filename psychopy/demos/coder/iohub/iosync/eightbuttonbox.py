@@ -17,6 +17,7 @@ Since the DIN lines are set to be INPUT_PULLPUT, when a line is high (1), the
 corresponding button is NOT pressed. When the button is pressed, the line
 that button is connected to goes low ( 0 )
 """
+from __future__ import print_function
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
@@ -95,10 +96,10 @@ try:
         for mcu_evt in mcu_events:
             bbox.setDigitalInputEvent(mcu_evt)
             if bbox.pressed or bbox.released:
-                print '>>'
-                print 'Pressed:', bbox.pressed
-                print 'Released:', bbox.released
-                print '<<'
+                print('>>')
+                print('Pressed:', bbox.pressed)
+                print('Released:', bbox.released)
+                print('<<')
         core.wait(0.002, 0)
     io.clearEvents('all')
 except Exception:

@@ -134,7 +134,7 @@ def sliceFromString(sliceString):
         else:
             sliceArgs.append(int(round(float(val))))
             # nb int(round(float(x))) is needed for x='4.3'
-    return apply(slice, sliceArgs)
+    return slice(*sliceArgs)
 
 
 def indicesFromString(indsString):

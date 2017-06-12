@@ -108,6 +108,7 @@ PWM Outputs:
     PMW_2: 22   // digital pin 22 on T3
     PMW_3: 23   // digital pin 23 on T3
 """
+from __future__ import print_function
 
 import serial
 import numpy as np
@@ -119,7 +120,7 @@ except Exception:
     from collections import OrderedDict
 
     def print2err(*args):
-        print args
+        print(args)
 
 
 class T3Event(object):
@@ -470,7 +471,7 @@ class T3MC(object):
             self._serial_port.flush()
             self._active_requests[request.getID()]=request
             return tx_count
-        except Exception, e:
+        except Exception as e:
             print2err("ERROR During sendT3Request: ",e,". Has ioSync been disconnected?")
             self.close()
 
@@ -497,7 +498,7 @@ class T3MC(object):
                             self._request_replies.append(reply)
                     else:
                         print2err("INVALID REQUEST ID in reply:",  request_id)
-        except Exception, e:
+        except Exception as e:
             print2err("ERROR During getSerialRx: ",e,". Has ioSync been disconnected?")
             self.close()
 

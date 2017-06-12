@@ -10,7 +10,9 @@ Guide:
 
 http://labjack.com/support/u6/users-guide/5.2
 """
-from LabJackPython import *
+from __future__ import print_function
+from __future__ import absolute_import
+from .LabJackPython import *
 
 import struct, ConfigParser
 
@@ -246,9 +248,9 @@ class U6(Device):
         #command[9-25] = Reserved 
         try:
             result = self._writeRead(command, 38, [0xF8, 0x10, 0x08])
-        except LabJackException, e:
+        except LabJackException as e:
             if e.errorCode is 4:
-                print "NOTE: ConfigU6 returned an error of 4. This probably means you are using U6 with a *really old* firmware. Please upgrade your U6's firmware as soon as possible."
+                print("NOTE: ConfigU6 returned an error of 4. This probably means you are using U6 with a *really old* firmware. Please upgrade your U6's firmware as soon as possible.")
                 result = self._writeRead(command, 38, [0xF8, 0x10, 0x08], checkBytes = False)
             else:
                 raise e
@@ -430,7 +432,7 @@ class U6(Device):
         
             if rcvBuffer[3] != 0x00:
                 raise LabJackException("Got incorrect command bytes")
-        except LowlevelErrorException, e:
+        except LowlevelErrorException as e:
             if isinstance(commandlist[0], list):
                 culprit = commandlist[0][ (rcvBuffer[7] -1) ]
             else:
@@ -1074,7 +1076,7 @@ class U6(Device):
         <ainDiffOffset: -2.46886488446,...>
         """
         if self.debug is True:
-            print "Calibration data retrieval"
+            print("Calibration data retrieval")
         
         self.calInfo.nominal = False
         

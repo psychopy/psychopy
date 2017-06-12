@@ -9,7 +9,9 @@ To learn about the low-level functions, please see Section 5.2 of the UE9 User's
 
 http://labjack.com/support/ue9/users-guide/5.2 
 """
-from LabJackPython import *
+from __future__ import print_function
+from __future__ import absolute_import
+from .LabJackPython import *
 
 import struct, socket, select, ConfigParser
 from datetime import datetime
@@ -1036,7 +1038,7 @@ class UE9(Device):
                 e = ord(result[11+offset])
                 if e != 0:
                     errors += 1
-                    if self.debug: print e
+                    if self.debug: print(e)
                 i+=1
             
             if len(result) == 0  and self.ethernet == False:

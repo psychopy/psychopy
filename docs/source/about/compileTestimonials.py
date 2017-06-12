@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv, codecs
 from psychopy import gui
 
@@ -6,11 +7,11 @@ filename = gui.fileOpenDlg('.', allowed='*.csv')[0]
 #use csv from python (not from numpy) due to handling newlines within quote char
 with open(filename, 'rU') as csvFile:
     spamreader = csv.reader(csvFile, delimiter=',', quotechar='"', dialect=csv.excel)
-    headers = spamreader.next()
-    print 'headers:', type(headers), headers
+    headers = next(spamreader)
+    print('headers:', type(headers), headers)
     entries=[]
     for thisRow in spamreader:
-        print thisRow
+        print(thisRow)
         thisEntry = {}
         for fieldN, thisFieldName in enumerate(headers):
             thisEntry[thisFieldName] = thisRow[fieldN]

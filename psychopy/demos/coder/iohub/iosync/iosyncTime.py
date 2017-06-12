@@ -6,6 +6,7 @@ running this script.
 Script can be used to test the accuracy of the conversion from ioSync time
 stamps to iohub the time base.
 """
+from __future__ import print_function
 
 repetitions = 1000
 
@@ -34,7 +35,7 @@ for i in range(repetitions):
         response = mcu.getRequestResponse(request['id'])
         if response:
             if response['id'] != request['id']:
-                print "ERROR: Got REsponse %d; looking for %d"%(response['id'] ,request['id'] )
+                print("ERROR: Got REsponse %d; looking for %d"%(response['id'] ,request['id'] ))
                 response = None
             results[i][0] = response['tx_time']*1000.0
             results[i][1] = response.get('iohub_time', ((response['rx_time']*1000.0+response['tx_time']*1000.0)/2.0))

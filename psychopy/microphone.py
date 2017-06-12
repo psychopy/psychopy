@@ -134,7 +134,7 @@ class AudioCapture(object):
             self.wavOutFilename = os.path.abspath(self.wavOutFilename)
         else:
             if not os.path.isdir(self.saveDir):
-                os.makedirs(self.saveDir, 0770)
+                os.makedirs(self.saveDir, 0o770)
 
         self.onset = None  # becomes onset time, used in filename
         self.savedFile = False  # becomes saved file name
@@ -658,15 +658,15 @@ def getRMS(data):
     return _rms(data)
 
 
-class SoundFormatNotSupported(StandardError):
+class SoundFormatNotSupported(Exception):
     """Class to report an unsupported sound format"""
 
 
-class SoundFileError(StandardError):
+class SoundFileError(Exception):
     """Class to report sound file failed to load"""
 
 
-class MicrophoneError(StandardError):
+class MicrophoneError(Exception):
     """Class to report a microphone error"""
 
 
@@ -751,7 +751,7 @@ class _GSQueryThread(threading.Thread):
             # maybe temporary HTTPError: HTTP Error 502: Bad Gateway
             try:
                 self.raw = urllib2.urlopen(self.request)
-            except StandardError as ex:  # or maybe a dropped connection, etc
+            except Exception as ex:  # or maybe a dropped connection, etc
                 logging.error(str(ex))
                 self.running = False  # proceeds as if "timedout"
         self.duration = core.getTime() - self.t0

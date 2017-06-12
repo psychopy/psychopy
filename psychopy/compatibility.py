@@ -112,7 +112,7 @@ def fromFile(filename):
                 contents = _convertToNewStyle(
                     psychopy.data.MultiStairHandler, oldContents)
             else:
-                raise TypeError, ("Didn't recognize %s" % name)
+                raise TypeError("Didn't recognize %s" % name)
     return contents
 
 

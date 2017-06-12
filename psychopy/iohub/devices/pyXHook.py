@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #
 # Copyright (C) 2008 Tim Alexander <dragonfyre13@gmail.com>
@@ -46,13 +47,13 @@
 import threading
 import unicodedata
 import ctypes as ct
-from Xlib import X, display
-from Xlib.ext import record
-from Xlib.protocol import rq
+from .Xlib import X, display
+from .Xlib.ext import record
+from .Xlib.protocol import rq
 from .. import print2err
 from ..devices import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
-import xlib as _xlib
+from . import xlib as _xlib
 
 jdumps = lambda x: str(x)
 try:

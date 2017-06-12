@@ -24,11 +24,12 @@ UPDATED MAY 2013 by Sol Simpson:
       never being found in the freetype lib. We never use it or need to,
       so just removing it was the easiest solution. ;)
 '''
+from __future__ import absolute_import
 from ctypes import *
-from ft_types import *
-from ft_enums import *
-from ft_errors import *
-from ft_structs import *
+from .ft_types import *
+from .ft_enums import *
+from .ft_errors import *
+from .ft_structs import *
 import ctypes.util
 
 __dll__    = None
@@ -248,8 +249,7 @@ def set_lcd_filter_weights(a,b,c,d,e):
         error = FT_Library_SetLcdFilterWeights(library, weights)
         if error: raise FT_Exception(error)
     else:
-        raise RuntimeError, \
-              'set_lcd_filter_weights require freetype > 2.4.0'
+        raise RuntimeError('set_lcd_filter_weights require freetype > 2.4.0')
 
 
 

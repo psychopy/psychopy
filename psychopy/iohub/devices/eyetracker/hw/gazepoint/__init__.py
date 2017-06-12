@@ -1,1 +1,2 @@
-import gp3
+from __future__ import absolute_import
+from . import gp3

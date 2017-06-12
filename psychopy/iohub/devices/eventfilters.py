@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = 'Sol'
 import numpy as np
 from collections import deque
@@ -463,7 +464,7 @@ if __name__ == '__main__':
     my_filter = WeightedAverageFilter(weights=[17.0,33.0,50.0,33.0,17.0], event_type=None, event_field_name=None, knot_pos='center', inplace = True)
 
 
-    print "FIRST SOURCE EVENT ID:",events[0]['event_id']
+    print("FIRST SOURCE EVENT ID:",events[0]['event_id'])
     for e in events:
         r = mx_filter.add(e['x_position'])
         filtered_x=None
@@ -475,4 +476,4 @@ if __name__ == '__main__':
         if r:
             _junk, filtered_y=r
 
-        print "filtered values: ", filtered_x, filtered_y
+        print("filtered values: ", filtered_x, filtered_y)

@@ -275,7 +275,7 @@ class LabJackDataReader(threading.Thread):
                 while self.running and self.isStreamingData():
                     # Calling with convert = False,
                     # because we are going to convert in the main thread.
-                    returnDict = self.labjack_device.streamData(convert = False).next()
+                    returnDict = next(self.labjack_device.streamData(convert = False))
 
                     # record and print any errors during streaming
                     if returnDict['errors'] != 0:

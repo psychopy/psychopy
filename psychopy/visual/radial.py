@@ -2,6 +2,7 @@
 
 """Stimulus class for drawing radial stimuli.
 """
+from __future__ import absolute_import
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -28,7 +29,7 @@ from psychopy.visual.grating import GratingStim
 try:
     from PIL import Image
 except ImportError:
-    import Image
+    from . import Image
 
 import numpy
 from numpy import pi

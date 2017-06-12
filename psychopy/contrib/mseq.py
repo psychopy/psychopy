@@ -174,7 +174,7 @@ def _get_tap(baseVal, powerVal):
             tap = [[1,1]]
     
     if not tap:
-        raise ValueError, 'M-sequence %.0f^%.0f is not defined by this function' % (baseVal, powerVal)
+        raise ValueError('M-sequence %.0f^%.0f is not defined by this function' % (baseVal, powerVal))
     
     return tap
 
@@ -268,5 +268,5 @@ if __name__ == '__main__':
         try:
             args = map(int, sys.argv[1:])
         except Exception:
-            raise ValueError, "expected integer arguments: base power [shift [which-sequence]]"
+            raise ValueError("expected integer arguments: base power [shift [which-sequence]]")
         print(mseq(*args))

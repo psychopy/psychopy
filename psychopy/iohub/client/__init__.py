@@ -10,6 +10,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os,sys
 import time
@@ -812,7 +814,7 @@ class ioHubConnection(object):
             None
         """
         r=self._sendToHubServer(('RPC','flushIODataStoreFile'))
-        print "flushIODataStoreFile: ",r[2]
+        print("flushIODataStoreFile: ",r[2])
         return r[2]
 
     def shutdown(self):
@@ -916,8 +918,8 @@ class ioHubConnection(object):
                         old_iohub_process.kill()
                 except psutil.NoSuchProcess:
                     pass
-            except Exception, e:
-                print "Warning: Exception while checking for existing iohub process:"
+            except Exception as e:
+                print("Warning: Exception while checking for existing iohub process:")
                 import traceback
                 traceback.print_exc()
 
@@ -942,7 +944,7 @@ class ioHubConnection(object):
             while server_output and ctime()<timeout_time:
                 isDataAvail=self._serverStdOutHasData()
                 if isDataAvail is True:
-                    server_output=self._readServerStdOutLine().next()
+                    server_output=next(self._readServerStdOutLine())
                     if server_output.rstrip() == 'IOHUB_READY':
                         hubonline=True
                         #print "Ending Serving connection attempt due to timeout...."
@@ -1155,7 +1157,7 @@ class ioHubConnection(object):
         try:
             # send request to host, return is # bytes sent.
             bytes_sent = self.udp_client.sendTo(ioHubMessage)
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             self.shutdown()
@@ -1166,7 +1168,7 @@ class ioHubConnection(object):
             result = self.udp_client.receive()
             if result:
                 result, address = result
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             self.shutdown()
@@ -1309,12 +1311,12 @@ class ioHubConnection(object):
                 self.udp_client.close()
                 if Computer.iohub_process:
                     r=Computer.iohub_process.wait(timeout=5)
-                    print 'ioHub Server Process Completed With Code: ',r
+                    print('ioHub Server Process Completed With Code: ',r)
             except TimeoutError:
-                print "Warning: TimeoutExpired, Killing ioHub Server process."
+                print("Warning: TimeoutExpired, Killing ioHub Server process.")
                 Computer.iohub_process.kill()
             except Exception:
-                print "Warning: Unhandled Exception. Killing ioHub Server process."
+                print("Warning: Unhandled Exception. Killing ioHub Server process.")
                 if Computer.iohub_process:
                     Computer.iohub_process.kill()
                 printExceptionDetailsToStdErr()
@@ -1347,7 +1349,7 @@ class ioHubConnection(object):
                 PID, userID = line.split()[1:3]
                 # could verify same userID as current user, probably not needed
                 os.kill(int(PID), signal.SIGKILL)
-                print 'Called  os.kill(int(PID), signal.SIGKILL): ', PID, userID
+                print('Called  os.kill(int(PID), signal.SIGKILL): ', PID, userID)
     def __del__(self):
         try:
             self._shutDownServer()
@@ -1785,7 +1787,7 @@ class ioHubExperimentRuntime(object):
         print(repr(traceback.extract_tb(exc_traceback)))
         print("*** format_tb:")
         print(repr(traceback.format_tb(exc_traceback)))
-        print("*** tb_lineno:", exc_traceback.tb_lineno)
+        print(("*** tb_lineno:", exc_traceback.tb_lineno))
 
     @staticmethod
     def mergeConfigurationFiles(base_config_file_path,update_from_config_file_path,merged_save_to_path):
@@ -1837,7 +1839,7 @@ class ioHubExperimentRuntime(object):
             # or Cancel to end the experiment session if the wrong experiment was started.
             exitExperiment=self._displayExperimentSettingsDialog()
             if exitExperiment:
-                print "User Cancelled Experiment Launch."
+                print("User Cancelled Experiment Launch.")
                 self._close()
                 sys.exit(1)
 
@@ -1846,7 +1848,7 @@ class ioHubExperimentRuntime(object):
         ioHubInfo = self.configuration.get('ioHub', {})
 
         if ioHubInfo is None:
-            print 'ioHub section of configuration file could not be found. Exiting.....'
+            print('ioHub section of configuration file could not be found. Exiting.....')
             self._close()
             sys.exit(1)
         else:
@@ -1886,7 +1888,7 @@ class ioHubExperimentRuntime(object):
 
                     tempdict = self._displayExperimentSessionSettingsDialog(allSessionDialogVariables,sessionVariableOrder)
                     if tempdict is None:
-                        print "User Cancelled Experiment Launch."
+                        print("User Cancelled Experiment Launch.")
                         self._close()
                         sys.exit(1)
 
@@ -2077,4 +2079,4 @@ class ioEvent(object):
                                                self.type,
                                                self.id)
 
-import keyboard
+from . import keyboard

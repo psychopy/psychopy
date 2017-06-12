@@ -33,7 +33,7 @@ def run(rootScriptPathDir,configFilePath):
     updateDict(ioHubConfig,hub_defaults_config)
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
         sys.stdout.flush()
         

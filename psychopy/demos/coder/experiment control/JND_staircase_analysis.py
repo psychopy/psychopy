@@ -12,6 +12,7 @@ size of the points according to how many trials were run at that level
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import data, gui, core
 from psychopy.tools.filetools import fromFile

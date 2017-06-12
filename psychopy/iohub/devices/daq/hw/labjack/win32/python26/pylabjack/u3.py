@@ -16,7 +16,8 @@ Section Number Mapping:
 4 = Private Helper Functions
 
 """
-from LabJackPython import *
+from __future__ import absolute_import
+from .LabJackPython import *
 import struct, ConfigParser
 
 FIO0, FIO1, FIO2, FIO3, FIO4, FIO5, FIO6, FIO7, \
@@ -745,7 +746,7 @@ class U3(Device):
         
             if rcvBuffer[3] != 0x00:
                 raise LabJackException("Got incorrect command bytes")
-        except LowlevelErrorException, e:
+        except LowlevelErrorException as e:
             if isinstance(commandlist[0], list):
                 culprit = commandlist[0][ (rcvBuffer[7] -1) ]
             else:
@@ -1588,7 +1589,7 @@ class U3(Device):
                 else:
                     return (bits * 0.000074463) * (0.000314 / 0.000037231) + -10.3
             else:
-                raise Exception, "Can't do differential on high voltage channels"
+                raise Exception("Can't do differential on high voltage channels")
     binaryToCalibratedAnalogVoltage.section = 3
     
     def binaryToCalibratedAnalogTemperature(self, bytesTemperature):
@@ -1670,7 +1671,7 @@ class U3(Device):
             self.calData['hvAIN1Offset'] = toDouble(calData[8:16])
             self.calData['hvAIN2Offset'] = toDouble(calData[16:24])
             self.calData['hvAIN3Offset'] = toDouble(calData[24:32])
-        except LowlevelErrorException, ex:
+        except LowlevelErrorException as ex:
             if ex.errorCode != 26:
                 #not an invalid block error, so do not disregard
                 raise ex

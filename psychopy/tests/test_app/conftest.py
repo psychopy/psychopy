@@ -4,6 +4,7 @@
 """
 py.test fixtures to create an instance of PsychoPyApp for testing
 """
+from __future__ import print_function
 from psychopy.app import psychopyApp
 
 def pytest_configure(config):

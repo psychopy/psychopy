@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import time
 import types
@@ -2548,7 +2549,7 @@ class CoderFrame(wx.Frame):
 
         # provide a running... message; long fullPath --> no # are displayed
         # unless you add some manually
-        print("##### Running: %s #####" % (fullPath)).center(80, "#")
+        print(("##### Running: %s #####" % (fullPath)).center(80, "#"))
 
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)

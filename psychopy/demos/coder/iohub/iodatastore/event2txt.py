@@ -8,6 +8,7 @@ tab delimited file.
 
 @author: Sol
 """
+from __future__ import print_function
 import sys,os
 import psychopy
 from psychopy.core import getTime

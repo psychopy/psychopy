@@ -7,6 +7,7 @@ to obtain current system and other data at run-time.
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, logging, core
 import psychopy.info

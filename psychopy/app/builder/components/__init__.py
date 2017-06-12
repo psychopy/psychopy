@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import glob
@@ -200,7 +201,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
     User-defined components will override built-ins with the same name.
     """
     if isinstance(folderList, basestring):
-        raise TypeError, 'folderList should be iterable, not a string'
+        raise TypeError('folderList should be iterable, not a string')
     components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
         userComps = getComponents(folder)

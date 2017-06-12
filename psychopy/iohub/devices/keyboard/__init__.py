@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import absolute_import
 
 #
 # Some possibly useful python modules / functions for unicode support:
@@ -97,11 +98,11 @@ class ioHubKeyboardDevice(Device):
         Device._close(self)
 
 if Computer.system == 'win32':
-    from win32 import Keyboard
+    from .win32 import Keyboard
 elif Computer.system == 'linux2':
-    from linux2 import Keyboard
+    from .linux2 import Keyboard
 elif Computer.system == 'darwin':
-    from darwin import Keyboard
+    from .darwin import Keyboard
 
 ############# OS independent Keyboard Event classes ####################
 

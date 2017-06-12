@@ -9,6 +9,7 @@ key lines: 29, 50, 61: mic = microphone.AdvAudioCapture(), mic.record(), mic.get
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import microphone, sound, core, visual, event
 from matplotlib import pyplot

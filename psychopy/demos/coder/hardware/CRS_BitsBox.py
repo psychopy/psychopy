@@ -12,6 +12,7 @@ normal and PsychoPy will do the conversions for you
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, core, event, logging
 from psychopy.hardware import crs

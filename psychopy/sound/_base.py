@@ -174,7 +174,7 @@ class _SoundBase(object):
                         break
                 if self.fileName is None:
                     msg = "setSound: could not find a sound file named "
-                    raise ValueError, msg + value
+                    raise ValueError(msg + value)
                 else:
                     self._setSndFromFile(p)
         elif type(value) in [list, numpy.ndarray]:
