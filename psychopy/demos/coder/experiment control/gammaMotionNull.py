@@ -13,6 +13,7 @@ the apparent direction of motion of the bars.
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, core, event, gui, data
 from psychopy.tools.filetools import fromFile, toFile
@@ -142,7 +143,7 @@ def presentStimulus(direction):
 # run the staircase
 for trialN in range(info['nTrials']):
     for stairCase in stairCases:
-        thisGamma = stairCase.next()
+        thisGamma = next(stairCase)
         t = globalClock.getTime()
         win.gamma = [thisGamma, thisGamma, thisGamma]
 

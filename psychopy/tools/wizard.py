@@ -3,6 +3,7 @@
 
 """Libraries for wizards, currently firstrun configuration and benchmark.
 """
+from __future__ import print_function
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce

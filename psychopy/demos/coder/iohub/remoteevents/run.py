@@ -14,6 +14,7 @@ RemoteEventSubscriber subscribes to only KeyboardPressEvents, and KeyboardCharEv
     
 Inital Version: July 17th, 2013, Sol Simpson
 """
+from __future__ import print_function
 
 from psychopy.iohub import (ioHubExperimentRuntime, MessageDialog,
                             module_directory,Computer)
@@ -49,16 +50,16 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             while run_demo is True and Computer.getTime()-last_event_time<15.0:
                 local_kb_events=kb.getEvents()
                 for event in local_kb_events:
-                    print '* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time,ekey=event.key,edelay=event.delay)
+                    print('* Local KB Event: {etime}\t{ekey}\t{edelay}'.format(
+                        etime=event.time,ekey=event.key,edelay=event.delay))
                     last_event_time=event.time
                     if event.key == u'ESCAPE':
                         run_demo=False
                         break
                 subscribed_kb_events=evt_sub.getEvents()
                 for event in subscribed_kb_events:
-                    print '# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
-                        etime=event.time, ekey=event.key,edelay=event.delay)
+                    print('# Subscribed KB Event: {etime}\t{ekey}\t{edelay}'.format(
+                        etime=event.time, ekey=event.key,edelay=event.delay))
                 self.hub.wait(0.1)
 
         ### End of experiment logic

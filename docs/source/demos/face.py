@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from __future__ import print_function
 from psychopy import core, visual, event
 
 #create a window to draw in
@@ -43,7 +44,7 @@ while True:
     #handle key presses each frame
     for keys in event.getKeys():
         if keys in ['escape', 'q']:
-            print myWin.fps()
+            print(myWin.fps())
             myWin.close()
             core.quit()
     event.clearEvents()

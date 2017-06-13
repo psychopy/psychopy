@@ -16,6 +16,7 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
+from __future__ import print_function
 import string
 import random
 from psychopy import visual, core, event
@@ -181,42 +182,42 @@ for stim1, stim2 in stim_draw_orders:
     
     # Print a comparision of the TextBox and TextStim performance.
     #
-    print
-    print '-------Text Draw Duration Test---------'
-    print
-    print '+ Draw Order: %s then %s\t'%(stim1_type,stim2_type)
-    print '+ Text Stim Char Length:\t',text_length
+    print()
+    print('-------Text Draw Duration Test---------')
+    print()
+    print('+ Draw Order: %s then %s\t'%(stim1_type,stim2_type))
+    print('+ Text Stim Char Length:\t',text_length)
     if stim1_type == 'TextBox':
-        print '+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0)
+        print('+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0))
     else:    
-        print '+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0)
+        print('+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0))
     if stim1 != stim2:
         if stim2_type == 'TextBox':
-            print '+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0)
+            print('+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0))
         else:    
-            print '+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0)
-    print '+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0),r'%'
-    print
-    print '+ Total Flip Count:\t\t',fcount
-    print '+ Test Duration (secs):\t\t%.3f'%(flip_time-demo_start)
-    print '+ FPS:\t\t\t\t%.3f'%(float(fcount)/(flip_time-demo_start))
-    print
-    print '+ Average Draw Call Durations (msec):'
-    print
-    print 'Text Object\tNo Txt Change\tTxt Change'
-    print
-    print '%s\t\t%.3f\t\t%.3f'%(stim1_type,
-        stim1_no_change_draw_times.mean(),stim1_txt_change_draw_times.mean())
-    print '%s\t%.3f\t\t%.3f'%(stim2_type,
-        stim2_no_change_draw_times.mean(),stim2_txt_change_draw_times.mean())
-    print
-    print '+ %s / %s Draw Time Ratio:'%(stim1_type,stim2_type)
-    print
-    print '\tNo Txt Change\tTxt Change'
-    print
-    print 'Ratio\t%.3f\t\t%.3f'%(stim1_no_change_draw_times.mean()/stim2_no_change_draw_times.mean(),
-        stim1_txt_change_draw_times.mean()/stim2_txt_change_draw_times.mean())
-    print
-    print '---------------------------------------'
+            print('+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0))
+    print('+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0),r'%')
+    print()
+    print('+ Total Flip Count:\t\t',fcount)
+    print('+ Test Duration (secs):\t\t%.3f'%(flip_time-demo_start))
+    print('+ FPS:\t\t\t\t%.3f'%(float(fcount)/(flip_time-demo_start)))
+    print()
+    print('+ Average Draw Call Durations (msec):')
+    print()
+    print('Text Object\tNo Txt Change\tTxt Change')
+    print()
+    print('%s\t\t%.3f\t\t%.3f'%(stim1_type,
+        stim1_no_change_draw_times.mean(),stim1_txt_change_draw_times.mean()))
+    print('%s\t%.3f\t\t%.3f'%(stim2_type,
+        stim2_no_change_draw_times.mean(),stim2_txt_change_draw_times.mean()))
+    print()
+    print('+ %s / %s Draw Time Ratio:'%(stim1_type,stim2_type))
+    print()
+    print('\tNo Txt Change\tTxt Change')
+    print()
+    print('Ratio\t%.3f\t\t%.3f'%(stim1_no_change_draw_times.mean()/stim2_no_change_draw_times.mean(),
+        stim1_txt_change_draw_times.mean()/stim2_txt_change_draw_times.mean()))
+    print()
+    print('---------------------------------------')
 
 core.quit()

@@ -10,6 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import absolute_import
 import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
@@ -112,7 +113,7 @@ class udpServer(DatagramServer):
                     edata=('RPC_RESULT',callable_name,result)
                     self.sendResponse(edata,replyTo)
                     return True
-                except Exception,e:
+                except Exception as e:
                     print2err("RPC_RUNTIME_ERROR")
                     printExceptionDetailsToStdErr()
                     self.sendResponse('RPC_RUNTIME_ERROR', replyTo)
@@ -145,7 +146,7 @@ class udpServer(DatagramServer):
             else:
                 self.sendResponse(('GET_EVENTS_RESULT', None),replyTo)
             return True
-        except Exception, e:
+        except Exception as e:
             print2err("IOHUB_GET_EVENTS_ERROR")
             printExceptionDetailsToStdErr()
             self.sendResponse('IOHUB_GET_EVENTS_ERROR', replyTo)
@@ -208,7 +209,7 @@ class udpServer(DatagramServer):
                     result=method()
                 self.sendResponse(('DEV_RPC_RESULT',result),replyTo)
                 return True
-            except Exception, e:
+            except Exception as e:
                 print2err("RPC_DEVICE_RUNTIME_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
@@ -221,7 +222,7 @@ class udpServer(DatagramServer):
                     dev_list.append((d.name,d.__class__.__name__))
                 self.sendResponse(('GET_DEV_LIST_RESULT',len(dev_list),dev_list),replyTo)
                 return True
-            except Exception, e:
+            except Exception as e:
                 print2err("RPC_DEVICE_RUNTIME_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
@@ -536,7 +537,7 @@ class ioServer(object):
                                 ed._addEventListener(d,[eid,])
                                 break
                             
-        except Exception, e:
+        except Exception as e:
             print2err("Error PubSub Device listener association ....")
             printExceptionDetailsToStdErr()
             raise e
@@ -832,7 +833,7 @@ class ioServer(object):
             
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
         if psychopy.iohub._DATA_STORE_AVAILABLE:
-            from datastore import ioHubpyTablesFile
+            from .datastore import ioHubpyTablesFile
             self.closeDataStoreFile()                
             self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
 

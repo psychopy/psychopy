@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import absolute_import
 from .. import Computer, Device
 from ... import printExceptionDetailsToStdErr,print2err
 from ...constants import EventConstants, DeviceConstants, MouseConstants,KeyboardConstants
@@ -215,7 +216,7 @@ class MouseDevice(Device):
                 return (cpos, (change_x,change_y), self._display_index)       
             return cpos, (change_x,change_y)
 
-        except Exception, e:
+        except Exception as e:
             print2err(">>ERROR getPositionAndDelta: "+str(e))
             printExceptionDetailsToStdErr()
             if return_display_index is True:        
@@ -355,13 +356,13 @@ class MouseDevice(Device):
         return native_clip_rect
         
 if Computer.system == 'win32':
-    from win32 import Mouse
+    from .win32 import Mouse
             
 elif Computer.system == 'linux2':
-    from linux2 import Mouse
+    from .linux2 import Mouse
 
 elif Computer.system == 'darwin':
-    from darwin import Mouse
+    from .darwin import Mouse
    
 ############# OS Independent Mouse Event Classes ####################
 

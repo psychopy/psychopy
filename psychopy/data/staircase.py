@@ -894,7 +894,7 @@ class QuestHandler(StairHandler):
         self.incTrials(len(intensities))
         for intensity, result in zip(intensities, results):
             try:
-                self.next()
+                next(self)
                 self.addResponse(result, intensity)
             except StopIteration:
                 # would get a stop iteration if stopInterval set
@@ -1461,7 +1461,7 @@ class MultiStairHandler(_BaseTrialHandler):
         # save the first intensity,
         # Error: miss align intensities and responses
         # gets updated by self.addResponse()
-        self._nextIntensity = self.currentStaircase.next()
+        self._nextIntensity = next(self.currentStaircase)
 
         # return value
         if not self.finished:

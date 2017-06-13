@@ -27,6 +27,7 @@ Both the round trip time of iohub sending and receiving the request, and the
 full round trip time from experiment script send to receive, are recorded
 and plotted separately for comparison purposes.
 """
+from __future__ import print_function
 
 # How many request - reply iterations should be run.
 repetitions = 10000
@@ -67,8 +68,8 @@ for i in range(repetitions):
         if response:
             if response['id'] != request['id']:
                 # This should never happen. ;)
-                print "ERROR: Got Response %d; looking for %d"%(response['id'],
-                                                                request['id'])
+                print("ERROR: Got Response %d; looking for %d"%(response['id'],
+                                                                request['id']))
                 response = None
 
             # Collect time request was sent (tx_time) and time response was

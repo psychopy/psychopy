@@ -384,9 +384,9 @@ class EyeTribeTransportManager(gevent.Greenlet):
                 tx_count=self._socket.sendall(to_send)
                 #print2err('>>>>>>>>>>>>\n')
                 
-            except gevent.queue.Empty, e:
+            except gevent.queue.Empty as e:
                 pass
-            except Exception, e:
+            except Exception as e:
                 print2err('MANAGER ERROR WHEN SENDING MSG:',e)
             #finally:
                 # Yield to any other greenlets that are waiting to run.
@@ -411,13 +411,13 @@ class EyeTribeTransportManager(gevent.Greenlet):
                             msg_fragment=m
             except socket.timeout:
                 pass
-            except socket.error, e:
+            except socket.error as e:
                 if e.errno==10035 or e.errno==9:
                     pass
                 else:
                     print2err( ' socket.error: ',type(e))
                     raise e
-            except Exception, e:    
+            except Exception as e:    
                 print2err('>>>>>>>>>>>>')
                 print2err('MANAGER ERROR RECEIVING REPLY MSG:',e)
                 print2err('reply: ',reply)
@@ -446,7 +446,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
             hbp.connect((host, port))
             hbp.settimeout(0.01)
             return hbp
-        except Exception, e:
+        except Exception as e:
             print2err('** Error creating exception:', e)
             return None
 

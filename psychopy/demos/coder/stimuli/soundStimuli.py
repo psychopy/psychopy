@@ -13,6 +13,7 @@ See the demo hardware > testSoundLatency.py
 """
 
 from __future__ import division
+from __future__ import print_function
 
 import sys
 from psychopy import logging, prefs
@@ -20,7 +21,7 @@ logging.console.setLevel(logging.DEBUG)  # get messages about the sound lib as i
 
 from psychopy import sound, core
 
-print 'Using %s(with %s) for sounds' % (sound.audioLib, sound.audioDriver)
+print('Using %s(with %s) for sounds' % (sound.audioLib, sound.audioDriver))
 
 highA = sound.Sound('A', octave=3, sampleRate=44100, secs=0.8, stereo=True)
 highA.setVolume(0.8)
@@ -44,7 +45,7 @@ if sys.platform == 'win32':
     tada.play()
 
     core.wait(2)
-print 'done'
+print('done')
 
 core.quit()
 

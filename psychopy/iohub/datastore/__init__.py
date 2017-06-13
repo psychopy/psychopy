@@ -102,7 +102,7 @@ class ioHubpyTablesFile():
                         #print2err("\t_eventGroupMappings[event_table_label]: {0}".format(self._eventGroupMappings[event_table_label]))
                         #print2err("----------------------------------------------")
 
-                    except Exception, e:
+                    except Exception as e:
                         print2err("---------------ERROR------------------")
                         print2err("Exception %s in iohub.datastore.updateDataStoreStructure:"%(e.__class__.__name__))
                         print2err("\tevent_cls: {0}".format(event_cls))
@@ -113,7 +113,7 @@ class ioHubpyTablesFile():
                         print2err("\tException: {0}".format(e))
                         print2err("--------------------------------------")
 
-                if self.TABLES.has_key(event_table_label):
+                if event_table_label in self.TABLES:
                         #print2err("---------------ADDING CLASS MAPPING------------------")
                         #print2err("\tevent_cls: {0}".format(event_cls))
                         #print2err("\tevent_cls_name: {0}".format(event_cls_name))
@@ -403,7 +403,7 @@ class ioHubpyTablesFile():
             expCondTableName="EXP_CV_%d"%(experiment_id)
             experimentConditionVariableTable=self.emrtFile.root.data_collection.condition_variables._f_getChild(expCondTableName)
             self.TABLES['EXP_CV']=experimentConditionVariableTable
-        except NoSuchNodeError, nsne:
+        except NoSuchNodeError as nsne:
             try:
                 experimentConditionVariableTable=self.emrtFile.createTable(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
                 self.TABLES['EXP_CV']=experimentConditionVariableTable
@@ -520,7 +520,7 @@ class ioHubpyTablesFile():
 
             self.bufferedFlush(len(np_events))
 
-        except ioHubError, e:
+        except ioHubError as e:
             print2err(e)
         except Exception:
             printExceptionDetailsToStdErr()

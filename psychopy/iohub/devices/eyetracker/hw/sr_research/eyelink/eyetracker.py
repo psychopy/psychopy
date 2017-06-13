@@ -1,6 +1,7 @@
 """
 ioHub Common Eye Tracker Interface for EyeLink(C) Systems.
 """
+from __future__ import absolute_import
 # Part of the PsychoPy.iohub library
 # Copyright (C) 2012-2016 iSolver Software Solutionse
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -218,7 +219,7 @@ class EyeTracker(EyeTrackerDevice):
                     return EyeTrackerConstants.EYETRACKER_OK
             else:
                 print2err('INVALID_METHOD_ARGUMENT_VALUE')
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
 
@@ -242,7 +243,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._eyelink.isConnected() != 0
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def sendCommand(self, key, value=None):
@@ -276,7 +277,7 @@ class EyeTracker(EyeTrackerDevice):
                 r= self._readResultFromTracker(cmdstr)
                 print2err("[%s] result: %s"%(cmdstr,r))
                 return EyeTrackerConstants.EYETRACKER_OK
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def sendMessage(self,message_contents,time_offset=None):
@@ -295,7 +296,7 @@ class EyeTracker(EyeTrackerDevice):
             if r == 0:
                 return EyeTrackerConstants.EYETRACKER_OK
             return EyeTrackerConstants.EYETRACKER_ERROR
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
     def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """
@@ -319,7 +320,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
         try:
-            import eyeLinkCoreGraphicsIOHubPsychopy
+            from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
 
             calibration_properties=self.getConfiguration().get('calibration')
@@ -344,7 +345,7 @@ class EyeTracker(EyeTrackerDevice):
 
             return EyeTrackerConstants.EYETRACKER_OK
 
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def isRecordingEnabled(self):
@@ -361,7 +362,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._eyelink.isRecording()  == 0
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def enableEventReporting(self,enabled=True):
@@ -372,7 +373,7 @@ class EyeTracker(EyeTrackerDevice):
         try:
             enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
             return self.setRecordingState(enabled)
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
     def setRecordingState(self,recording):
         """
@@ -409,7 +410,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._latest_sample=None
                 self._latest_gaze_position=None
                 return self.isRecordingEnabled()
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def getLastSample(self):
@@ -431,7 +432,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._latest_sample
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def getLastGazePosition(self):
@@ -462,7 +463,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             return self._latest_gaze_position
-        except Exception, e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _poll(self):
@@ -1028,7 +1029,7 @@ class EyeTracker(EyeTrackerDevice):
 
             gxn,gyn=eyetracker_point[0]/dw,eyetracker_point[1]/dh
             return cl+cw*gxn,cb+ch*(1.0-gyn)
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _displayToEyeTrackerCoords(self,display_x,display_y):
@@ -1044,7 +1045,7 @@ class EyeTracker(EyeTrackerDevice):
             cxn,cyn=(display_x+cw/2)/cw , 1.0-(display_y-ch/2)/ch
             return cxn*dw,  cyn*dh
 
-        except Exception,e:
+        except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _setRuntimeSettings(self,runtimeSettings):
@@ -1457,7 +1458,7 @@ def _getTrackerMode(*args, **kwargs):
     try:
         r=pylink.getEyeLink().getTrackerMode()
         return _EYELINK_HOST_MODES[r]
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _doDriftCorrect(*args,**kwargs):
@@ -1469,7 +1470,7 @@ def _doDriftCorrect(*args,**kwargs):
         else:
             print2err("doDriftCorrect requires 4 parameters, received: ", args)
             return False
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _applyDriftCorrect():
@@ -1479,7 +1480,7 @@ def _applyDriftCorrect():
             return True
         else:
             return ['EYE_TRACKER_ERROR','applyDriftCorrect',r]
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _eyeAvailable(*args,**kwargs):
@@ -1493,14 +1494,14 @@ def _eyeAvailable(*args,**kwargs):
             return EyeTrackerConstants.getName(EyeTrackerConstants.BINOCULAR)
         else:
             return EyeTrackerConstants.UNDEFINED
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _dummyOpen(*args,**kwargs):
     try:
         r=pylink.getEyeLink().dummy_open()
         return r
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _getCalibrationMessage(*args,**kwargs):
@@ -1513,7 +1514,7 @@ def _getCalibrationMessage(*args,**kwargs):
             r = 'NO_REPLY'
         rString="Last Calibration Message:\n{0}\n\nLastCalibrationResult:\n{1}".format(m,r)
         return rString
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _setIPAddress(*args, **kwargs):
@@ -1524,7 +1525,7 @@ def _setIPAddress(*args, **kwargs):
             if r == 0:
                 return True
         return ['EYE_TRACKER_ERROR','setIPAddress','Could not Parse IP String']
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _setLockEye(*args,**kwargs):
@@ -1534,7 +1535,7 @@ def _setLockEye(*args,**kwargs):
             r=pylink.getEyeLink().sendCommand("lock_eye_after_calibration %d"%(enable))
             return r
         return ['EYE_TRACKER_ERROR','setLockEye','One argument is required, bool type.']
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 def _setNativeRecordingFileSaveDir(*args):
@@ -1543,7 +1544,7 @@ def _setNativeRecordingFileSaveDir(*args):
             edfpath=args[0]
             print2err("Setting File Save path: ",edfpath)
             EyeTracker._local_edf_dir=edfpath
-    except Exception,e:
+    except Exception as e:
         printExceptionDetailsToStdErr()
 
 #    def drawToHostApplicationWindow(self,graphic_type,**graphic_attributes):

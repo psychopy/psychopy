@@ -218,7 +218,7 @@ class GlobSizer(wx.GridBagSizer):
             item = self.FindItemAtPosition((row, c))
             if item:
                 rs, cs = item.GetSpan().Get()
-                if rs > 1 and item.GetPos().GetRow() <> row:
+                if rs > 1 and item.GetPos().GetRow() != row:
                     _update_span[item.GetWindow()] = (rs + 1, cs)
         # 2. Unspan all objects.
         objs = self._resetSpan()
@@ -245,7 +245,7 @@ class GlobSizer(wx.GridBagSizer):
             item = self.FindItemAtPosition((r, col))
             if item:
                 rs, cs = item.GetSpan().Get()
-                if cs > 1 and item.GetPos().GetCol() <> col:
+                if cs > 1 and item.GetPos().GetCol() != col:
                     _update_span[item.GetWindow()] = (rs, cs + 1)
         # 2. Unspan all objects.
         objs = self._resetSpan()
@@ -500,7 +500,7 @@ class ListWidget(GlobSizer):
         self.value = value or [{}]
         if type(value) != list or len(value) < 1:
             msg = 'The initial value for a ListWidget must be a list of dicts'
-            raise AttributeError, msg
+            raise AttributeError(msg)
         # sort fieldNames using order information where possible
         allNames = value[0].keys()
         self.fieldNames = []

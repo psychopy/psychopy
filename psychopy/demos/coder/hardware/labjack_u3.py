@@ -12,6 +12,7 @@ line is slightly different to the documentation on LabJack's website
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, core, event, sound
 from labjack import u3

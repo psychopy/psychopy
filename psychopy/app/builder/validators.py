@@ -8,6 +8,7 @@
 """
 Module containing validators for various parameters.
 """
+from __future__ import print_function
 
 import wx
 from ..localization import _translate

@@ -463,7 +463,7 @@ class Serial(Device):
                 read_time = logged_time
             self._last_poll_time = read_time
             return True
-        except Exception, e:
+        except Exception as e:
             print2err("--------------------------------")
             print2err("ERROR in Serial._poll: ",e)
             printExceptionDetailsToStdErr()

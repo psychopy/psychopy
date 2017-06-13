@@ -52,8 +52,9 @@ FT_LOAD_TARGET_LCD_V
   A variant of FT_LOAD_TARGET_NORMAL optimized for vertically decimated LCD
   displays.
 """
+from __future__ import absolute_import
 
-from ft_render_modes import *
+from .ft_render_modes import *
 
 
 def _FT_LOAD_TARGET_(x):

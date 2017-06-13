@@ -2,6 +2,7 @@
 
   For all demos/coder/subdir/*.py (there are ~70 or so total), write out a new file: coder_updated/subdir/*
 """
+from __future__ import print_function
 
 import sys, glob, os, re
 
@@ -204,12 +205,12 @@ if __name__ == '__main__':
             out = f1.replace('coder', 'coder_updated')
             with open(out, 'wb') as fh:
                 fh.write(new)
-            print new
+            print(new)
             
             try:
                 compile(new, '', 'exec')
             except Exception:
-                print out
+                print(out)
                 raise
             #"""
             

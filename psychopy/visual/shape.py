@@ -192,7 +192,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         msg = ('ShapeStim does not support setColor method. '
                'Please use setFillColor or setLineColor instead')
-        raise AttributeError, msg
+        raise AttributeError(msg)
 
     def setLineRGB(self, value, operation=''):
         """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.lineColor`

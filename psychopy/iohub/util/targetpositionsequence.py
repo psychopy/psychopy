@@ -28,6 +28,8 @@ To use this module, the following high level steps are generally preformed:
   position displayed and the events collected during the display duration for
   each position.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 from ... import visual, core
 from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger, OrderedDict
 from ..constants import EventConstants
@@ -372,7 +374,7 @@ class PositionGrid(object):
 
     # Python 3 compatibility
     def __next__(self):
-        return self.next()
+        return next(self)
 
     def next(self):
         """
@@ -1526,10 +1528,10 @@ class ValidationProcedure(object):
             self.io.sendMessageEvent("Validation Plot: %s"%(fig_name), 'VALIDATION')
             return fig, fig_name
         except Exception:
-            print "\nError While Calculating Accuracy Stats:"
+            print("\nError While Calculating Accuracy Stats:")
             import traceback
             traceback.print_exc()
-            print
+            print()
     
         self.io.sendMessageEvent("Validation Report Complete", 'VALIDATION')
 
@@ -1599,5 +1601,5 @@ class ValidationProcedure(object):
         self.textstim.draw()
         return self.win.flip()
 
-from visualangle import VisualAngleCalc
+from .visualangle import VisualAngleCalc
          

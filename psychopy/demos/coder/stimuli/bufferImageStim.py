@@ -10,6 +10,7 @@ Demo of class psychopy.visual.BufferImageStim()
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, event, core
 
@@ -67,12 +68,12 @@ bufferAvg = 1000. * sum(drawTimeBuffer) / len(drawTimeBuffer)
 multiAvg = 1000. * sum(drawTimeMulti) / len(drawTimeMulti)
 msg = "\nBufferImageStim\nrect=%s norm units, becomes %s pix"
 print(msg % (str(rect), str(screenshot.size)))
-print "initial set-up / screen capture: %.0fms total" % (1000. * captureTime)
-print "first frame:    %.2fms (typically slow)" % (1000. * firstFrameTime)
+print("initial set-up / screen capture: %.0fms total" % (1000. * captureTime))
+print("first frame:    %.2fms (typically slow)" % (1000. * firstFrameTime))
 msg = "BufferImage:    %.2fms avg, %.2fms max draw-time (%d frames)"
-print msg % (bufferAvg, max(drawTimeBuffer) * 1000., len(drawTimeBuffer))
+print(msg % (bufferAvg, max(drawTimeBuffer) * 1000., len(drawTimeBuffer)))
 msg = "Text & Image:   %.2fms avg, %.2fms max draw-time"
-print msg % (multiAvg, max(drawTimeMulti) * 1000.)
+print(msg % (multiAvg, max(drawTimeMulti) * 1000.))
 
 win.close()
 core.quit()

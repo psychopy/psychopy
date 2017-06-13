@@ -6,6 +6,7 @@ Created on Sun Nov 10 12:18:45 2013
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import math
 import numpy as np
@@ -14,7 +15,7 @@ from matplotlib import font_manager
 from psychopy.core import getTime
 
 try:
-    from textureatlas import TextureAtlas
+    from .textureatlas import TextureAtlas
 except Exception as e:
     print('error importing TextureAtlas:', e)
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,

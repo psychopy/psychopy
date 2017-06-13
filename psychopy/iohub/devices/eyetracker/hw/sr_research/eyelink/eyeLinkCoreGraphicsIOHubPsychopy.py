@@ -497,7 +497,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         for i in range(width):
             try:
                 self.rgb_index_array[line-1, i] = buff[i]
-            except Exception, e:
+            except Exception as e:
                 printExceptionDetailsToStdErr()
                 print2err("FAILED TO DRAW PIXEL TO IMAGE LINE: %d %d"%(line-1,i))
 
@@ -531,7 +531,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                     self.imagetitlestim.draw()
                 self.window.flip()
 
-            except Exception, err:
+            except Exception as err:
                 import traceback
                 print2err("Error during eye image display: ", err)
                 printExceptionDetailsToStdErr()

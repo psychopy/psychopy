@@ -94,7 +94,7 @@ def mseqSearch(baseVal, powerVal, shift=0, max_time=10):
     """search for an M-sequence, default time-out after 10 seconds
     """
     if not baseVal in [2,3,5,7,11,13,17,19,23,29]:
-        raise ValueError, "base must be a prime number < 30"
+        raise ValueError("base must be a prime number < 30")
     
     seqLen = baseVal**powerVal-1
     register = numpy.array([1 for i in range(powerVal)])
@@ -166,10 +166,10 @@ if __name__=='__main__':
         try:
             args = map(int, sys.argv[1:])
         except Exception:
-            raise ValueError, "expected 2-4 integer arguments: base power " +\
-                "[shift [max time to search in sec]]"
+            raise ValueError("expected 2-4 integer arguments: base power " +\
+                "[shift [max time to search in sec]]")
         if not args[0] in [2,3,5,7,11,13,17,19,23,29]:
-            raise ValueError, "base must be a prime number < 30"
+            raise ValueError("base must be a prime number < 30")
         t0 = time.time()
         ms = mseqSearch(*args)
         t1 = time.time() - t0

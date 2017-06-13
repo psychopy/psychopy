@@ -56,7 +56,7 @@ def getTokensAndImports(buffer):
                 # try to identify what new token =
                 definingStr = ''
                 while True:  # fetch the name of the object being defined
-                    nextTok = gen.next()
+                    nextTok = next(gen)
                     if nextTok[0] != 1 and nextTok[1] != '.':
                         break  # we have the full name
                     else:

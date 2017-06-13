@@ -1,4 +1,5 @@
 """measure your JND in orientation using a staircase method"""
+from __future__ import print_function
 
 from psychopy import core, visual, gui, data, event
 from psychopy.tools.filetools import fromFile, toFile
@@ -93,9 +94,9 @@ dataFile.close()
 staircase.saveAsPickle(fileName) #special python binary file to save all the info
 
 #give some output to user in the command line in the output window
-print 'reversals:'
-print staircase.reversalIntensities
-print 'mean of final 6 reversals = %.3f' %(numpy.average(staircase.reversalIntensities[-6:]))
+print('reversals:')
+print(staircase.reversalIntensities)
+print('mean of final 6 reversals = %.3f' %(numpy.average(staircase.reversalIntensities[-6:])))
 
 #give some on screen feedback
 feedback1 = visual.TextStim(win, pos=[0,+3],

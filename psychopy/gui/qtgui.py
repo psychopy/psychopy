@@ -6,6 +6,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import print_function
 try:
     from PyQt4 import QtGui
     QtWidgets = QtGui  # in qt4 these were all in one package
@@ -613,7 +614,7 @@ if __name__ == '__main__':
                       choices=['R1', 'R2', 'R3'],
                       tip="This field is readonly.")
     ok_data = dlg.show()
-    print("Dlg ok_data:", ok_data)
+    print(("Dlg ok_data:", ok_data))
 
     # Test Dict Dialog
 
@@ -629,10 +630,10 @@ if __name__ == '__main__':
     # Test File Dialogs
 
     fileToSave = fileSaveDlg(initFileName='__init__.pyc')
-    print("fileToSave: [", fileToSave, "]", type(fileToSave))
+    print(("fileToSave: [", fileToSave, "]", type(fileToSave)))
 
     fileToOpen = fileOpenDlg()
-    print("fileToOpen:", fileToOpen)
+    print(("fileToOpen:", fileToOpen))
 
     # Test Alert Dialogs
 

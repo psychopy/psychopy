@@ -8,6 +8,7 @@
     It should be run from the root of the main git repository, which should be
     next to a clone of the psychopy/versions git repository
 """
+from __future__ import print_function
 
 import os, sys, shutil, subprocess
 from os.path import join
@@ -20,12 +21,12 @@ VERSIONS = join(MAIN, '..', 'versions')
 def getSHA(cwd='.'):
     if cwd == '.':
         cwd = os.getcwd()
-    #get the SHA of the git HEAD
+    # get the SHA of the git HEAD
     SHA_string = subprocess.check_output(
         ['git', 'rev-parse', '--short', 'HEAD'],
         cwd=cwd).split()[0]
-    #convert to hex from a string and return it
-    print 'SHA:', SHA_string, 'for repo:', cwd
+    # convert to hex from a string and return it
+    print('SHA:', SHA_string, 'for repo:', cwd)
     return SHA_string
 
 
@@ -39,10 +40,9 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
                                      ".DS_Store", ".coverage")
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
 
-    #todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
-    Mb = float(subprocess.check_output(["du", "-ksc", dest]).split()[
-        0]) / 10**3
-    print "size for '%s' will be: %.2f Mb" % (versionStr, Mb)
+    # todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
+    Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
+    print("size for '%s' will be: %.2f Mb" %(versionStr, Mb))
     if noCommit:
         return False
 
@@ -52,38 +52,40 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
             return False
 
     lastSHA = getSHA(cwd=VERSIONS)
-    print 'updating: git add --all'
+    print('updating: git add --all')
     output = subprocess.check_output(["git", "add", "--all"], cwd=VERSIONS)
     if interactive:
         ok = subprocess.call(["cola"], cwd=VERSIONS)
         if lastSHA == getSHA():
-            #we didn't commit the changes so quit
+            # we didn't commit the changes so quit
             print("no git commit was made: exiting")
             return False
     else:
-        print "committing: git commit -m 'release version %s'" % versionStr
+        print("committing: git commit -m 'release version %s'" %versionStr)
         subprocess.call(
-            ["git", "commit", "-m", "release version %s" % versionStr],
+            ["git", "commit", "-m", "'release version %s'" %versionStr],
             cwd=VERSIONS)
 
-    print "tagging: git tag -m 'release %s'" % versionStr
+    print("tagging: git tag -m 'release %s'" %versionStr)
     ok = subprocess.call(
-        ["git", "tag", versionStr, "-m", "release %s" % versionStr],
+        ["git", "tag", versionStr, "-m", "'release %s'" %versionStr],
         cwd=VERSIONS)
 
-    print "'versions' tags are now:", subprocess.check_output(
-        ["git", "tag"],
-        cwd=VERSIONS).split()
-    ok = subprocess.call(["git", "push", "%s" % versionStr], cwd=VERSIONS)
+    print("'versions' tags are now:", subprocess.check_output(
+        ["git","tag"], cwd=VERSIONS).split())
+    ok = subprocess.call(["git", "push", "%s" % versionStr],
+                         cwd=VERSIONS)
     if ok:
-        print "Successfully pushed tag %s upstream" % versionStr
+        print("Successfully pushed tag %s upstream" %versionStr)
     else:
-        print "Failed to push tag %s upstream" % versionStr
+        print("Failed to push tag %s upstream" %versionStr)
 
-    #revert thte __init__ file to non-ditribution state
-    print 'reverting the main master branch: git reset --hard HEAD'
-    print subprocess.check_output(["git", "reset", "--hard", "HEAD"], cwd=MAIN)
-    return True  #success
+    # revert the __init__ file to non-ditribution state
+    print('reverting the main master branch: git reset --hard HEAD')
+    print(subprocess.check_output(
+        ["git","reset", "--hard", "HEAD"],
+        cwd=MAIN))
+    return True  # success
 
 
 if __name__ == "__main__":
@@ -95,6 +97,6 @@ if __name__ == "__main__":
         interactive = True
     else:
         interactive = False
-    #todo: update versions first
+    # todo: update versions first
     versionStr = raw_input("version:")
     buildRelease(versionStr, noCommit=noCommit, interactive=interactive)

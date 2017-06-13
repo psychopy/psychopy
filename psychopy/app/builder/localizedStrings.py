@@ -10,6 +10,7 @@ Discover all _localized strings from all Builder components, etc.
 
 Mainly used by validators.py -- need access to _translate()d field names.
 """
+from __future__ import print_function
 
 import copy
 import os, glob
@@ -96,4 +97,4 @@ for comp in components:
 
 if __name__ == '__main__':
     for key, val in _localized.iteritems():
-        print key, val
+        print(key, val)
