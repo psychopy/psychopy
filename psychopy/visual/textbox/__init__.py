@@ -5,6 +5,7 @@ Created on Thu Mar 21 18:38:35 2013
 @author: Sol
 """
 from __future__ import division, print_function
+from __future__ import absolute_import
 import os
 import inspect
 import numbers
@@ -28,8 +29,8 @@ from pyglet.gl import (glCallList, glFinish, glGenLists, glNewList, glViewport,
                        GL_SMOOTH_LINE_WIDTH_RANGE, GL_SMOOTH_LINE_WIDTH_GRANULARITY,
                        GL_POLYGON_SMOOTH)
 
-from fontmanager import FontManager
-from textgrid import TextGrid
+from .fontmanager import FontManager
+from .textgrid import TextGrid
 
 
 def getTime():
@@ -1269,7 +1270,7 @@ class TextBox(object):
         return te_x, te_y
 
     def __del__(self):
-        if hasattr(self, '_textbox_instance') and self.getName() in self._textbox_instance.keys():
+        if hasattr(self, '_textbox_instance') and self.getName() in self._textbox_instance:
             del self._textbox_instances[self.getName()]
         del self._current_glfont
         del self._text_grid

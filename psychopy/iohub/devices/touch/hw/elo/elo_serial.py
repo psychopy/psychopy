@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import print_function
 
 from .... import Computer
 from ..... import print2err
@@ -138,16 +139,16 @@ class ResponseAcknowledge(ResponsePacket):
         
         no_error=True
         if self.error1!='0':
-            print 'WARNING: Acknowledge Error1:',self.error1,self.warning_types.get(self.error1,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error1:',self.error1,self.warning_types.get(self.error1,'UNKNOWN ACQ ERROR CODE'))
             no_error=False
         if self.error2!='0':
-            print 'WARNING: Acknowledge Error2:',self.error2,self.warning_types.get(self.error2,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error2:',self.error2,self.warning_types.get(self.error2,'UNKNOWN ACQ ERROR CODE'))
             no_error=False
         if self.error3!='0':
-            print 'WARNING: Acknowledge Error3:',self.error3,self.warning_types.get(self.error3,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error3:',self.error3,self.warning_types.get(self.error3,'UNKNOWN ACQ ERROR CODE'))
             no_error=False
         if self.error4!='0':
-            print 'WARNING: Acknowledge Error4:',self.error4,self.warning_types.get(self.error4,'UNKNOWN ACQ ERROR CODE')
+            print('WARNING: Acknowledge Error4:',self.error4,self.warning_types.get(self.error4,'UNKNOWN ACQ ERROR CODE'))
             no_error=False       
         if  no_error:
             pass#print 'AckResponse OK'           

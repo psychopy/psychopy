@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 """
 from __future__ import division
+from __future__ import print_function
 
 import time
 import weakref
@@ -222,11 +223,11 @@ class ScreenState(object):
                 mtext = "%s : tracker_time [%.6f]"%(mtext, tracker.trackerSec())
                 tracker.sendMessage(mtext)
             else:
-                print '----------------------'
-                print 'Warning: eyetracker is not connected.'
-                print 'Msg not sent to eyetracker datafile: '
-                print mtext
-                print '----------------------'
+                print('----------------------')
+                print('Warning: eyetracker is not connected.')
+                print('Msg not sent to eyetracker datafile: ')
+                print(mtext)
+                print('----------------------')
         except Exception:
             pass
         self.experimentRuntime().hub.sendMessageEvent(mtext, sec_time=mtime)
@@ -550,7 +551,7 @@ class SinusoidalMotion(object):
         self.nextFlipTimeEstimate = None
 
         self.reportedRetraceInterval = display.getRetraceInterval()
-        print "Display retrace interval: ", self.reportedRetraceInterval
+        print("Display retrace interval: ", self.reportedRetraceInterval)
 
         # calculate the omega constants needed for the simple
         # harmonic motion equations:

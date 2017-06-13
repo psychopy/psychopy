@@ -54,6 +54,8 @@ What does work so far:
 
 Testing has only been done on Windows and Linux so far.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -101,9 +103,9 @@ if hasattr(cv2, 'cv'):
     cv2.CAP_PROP_POS_AVI_RATIO = cv2.cv.CV_CAP_PROP_POS_AVI_RATIO
 
 try:
-    import vlc
+    from . import vlc
 except Exception as err:
-    if sys.maxint == 9223372036854775807:
+    if sys.maxsize == 9223372036854775807:
         bits = 64
     else:
         bits = 32
@@ -137,7 +139,7 @@ def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
 def _setPluginPathEnviron():
     """Plugins aren't in the same path as the libvlc.dylib
     """
-    if 'VLC_PLUGIN_PATH' in os.environ.keys():
+    if 'VLC_PLUGIN_PATH' in os.environ:
         return
     dllPath = vlc.dll._name
     from os.path import split, join
@@ -519,7 +521,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         between 0 and 100.
         """
         if self._audio_stream_player:
-            if 0.0 <= v <= 1.0 and isinstance(v, (float,)):
+            if 0.0 <= v <= 1.0 and isinstance(v, float):
                 v = int(v * 100)
             else:
                 v = int(v)

@@ -218,7 +218,7 @@ class GlobSizer(wx.GridBagSizer):
             item = self.FindItemAtPosition((row, c))
             if item:
                 rs, cs = item.GetSpan().Get()
-                if rs > 1 and item.GetPos().GetRow() <> row:
+                if rs > 1 and item.GetPos().GetRow() != row:
                     _update_span[item.GetWindow()] = (rs + 1, cs)
         # 2. Unspan all objects.
         objs = self._resetSpan()
@@ -245,7 +245,7 @@ class GlobSizer(wx.GridBagSizer):
             item = self.FindItemAtPosition((r, col))
             if item:
                 rs, cs = item.GetSpan().Get()
-                if cs > 1 and item.GetPos().GetCol() <> col:
+                if cs > 1 and item.GetPos().GetCol() != col:
                     _update_span[item.GetWindow()] = (rs, cs + 1)
         # 2. Unspan all objects.
         objs = self._resetSpan()
@@ -280,7 +280,7 @@ class GlobSizer(wx.GridBagSizer):
         # 2. Unspan all objects.
         objs = self._resetSpan()
         # 3. Move the _update_span objects to an adjacent row somewhere safe.
-        for obj in _update_span.keys():
+        for obj in _update_span:
             item = self.FindItem(obj)
             org_r, org_c = item.GetPos().Get()
             if org_r == row:
@@ -323,7 +323,7 @@ class GlobSizer(wx.GridBagSizer):
         # 2. Unspan all objects.
         objs = self._resetSpan()
         # 3. Move the _update_span objects to an adjacent col somewhere safe.
-        for obj in _update_span.keys():
+        for obj in _update_span:
             item = self.FindItem(obj)
             org_r, org_c = item.GetPos().Get()
             if org_c == col:
@@ -500,7 +500,7 @@ class ListWidget(GlobSizer):
         self.value = value or [{}]
         if type(value) != list or len(value) < 1:
             msg = 'The initial value for a ListWidget must be a list of dicts'
-            raise AttributeError, msg
+            raise AttributeError(msg)
         # sort fieldNames using order information where possible
         allNames = value[0].keys()
         self.fieldNames = []

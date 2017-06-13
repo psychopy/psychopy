@@ -3,6 +3,7 @@
 
 """Libraries for wizards, currently firstrun configuration and benchmark.
 """
+from __future__ import print_function
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -362,7 +363,7 @@ class BaseWizard(object):
                       'no dropped frames', 'internet access')
         # ofInterest.append('background processes')
         for item in ofInterest:
-            if not item in config.keys():
+            if not item in config:
                 continue  # eg, microphone latency
             if config[item][2]:  # warn True
                 summary.append(("X   " + _translate(item), red))

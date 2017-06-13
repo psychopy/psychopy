@@ -10,11 +10,12 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import absolute_import
 
 from psychopy.iohub.util import addDirectoryToPythonPath
 
 addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
 
-from eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
+from .eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
                         FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
                         SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)

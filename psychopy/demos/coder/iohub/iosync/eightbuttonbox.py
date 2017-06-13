@@ -17,6 +17,7 @@ Since the DIN lines are set to be INPUT_PULLPUT, when a line is high (1), the
 corresponding button is NOT pressed. When the button is pressed, the line
 that button is connected to goes low ( 0 )
 """
+from __future__ import print_function
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
@@ -65,8 +66,8 @@ class ButtonBoxState(object):
         self._released.clear()
 
         new_pressed = [bname for bname, mask in self.masks.items() if self._state & mask]
-        for b in self.masks.keys():
-            if b not in new_pressed and b in self._pressed.keys():
+        for b in self.masks:
+            if b not in new_pressed and b in self._pressed:
                 ptime = self._pressed[b]
                 ltime = self._last_event.get(b)
                 if ltime and etime-ltime >= self.debouncetime:
@@ -95,10 +96,10 @@ try:
         for mcu_evt in mcu_events:
             bbox.setDigitalInputEvent(mcu_evt)
             if bbox.pressed or bbox.released:
-                print '>>'
-                print 'Pressed:', bbox.pressed
-                print 'Released:', bbox.released
-                print '<<'
+                print('>>')
+                print('Pressed:', bbox.pressed)
+                print('Released:', bbox.released)
+                print('<<')
         core.wait(0.002, 0)
     io.clearEvents('all')
 except Exception:
@@ -108,5 +109,5 @@ finally:
     if mcu:
         mcu.enableEventReporting(False)
     if io:
-        io.quit() 
+        io.quit()
 

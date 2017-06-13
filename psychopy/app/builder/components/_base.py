@@ -371,7 +371,7 @@ class BaseComponent(object):
             True/False = checkNeedToUpdate(self, updateType)
 
         """
-        for thisParamName in self.params.keys():
+        for thisParamName in self.params:
             if thisParamName == 'advancedParams':
                 continue
             thisParam = self.params[thisParamName]

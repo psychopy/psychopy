@@ -1,3 +1,4 @@
+from __future__ import print_function
 from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil
@@ -109,12 +110,12 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                             print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
-    except AssertionError, err:
+    except AssertionError as err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
         print("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
-        raise AssertionError, err
+        raise AssertionError(err)
 
 def compareXlsxFiles(pathToActual, pathToCorrect):
     from openpyxl.reader.excel import load_workbook
@@ -161,7 +162,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
-        raise IOError, error
+        raise IOError(error)
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 

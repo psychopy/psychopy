@@ -12,8 +12,9 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> +
 contributors, please see credits section of documentation.
 """
+from __future__ import absolute_import
 
-import xinput
+from . import xinput
 import numpy as N
 import gevent
 from .. import Computer, Device, DeviceEvent, ioDeviceError

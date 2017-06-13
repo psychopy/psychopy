@@ -187,7 +187,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             else:
                 msg = ("TextStim does now know a default letter height "
                        "for units %s")
-                raise AttributeError, msg % repr(self.units)
+                raise AttributeError(msg % repr(self.units))
         self.__dict__['height'] = height
         self._heightPix = convertToPix(pos=numpy.array([0, 0]),
                                        vertices=numpy.array([0, self.height]),
@@ -635,7 +635,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                 wrapWidth = defaultWrapWidth[self.units]
             else:
                 msg = "TextStim does now know a default wrap width for units %s"
-                raise AttributeError, msg % repr(self.units)
+                raise AttributeError(msg % repr(self.units))
         self.__dict__['wrapWidth'] = wrapWidth
         verts = numpy.array([self.wrapWidth, 0])
         self._wrapWidthPix = convertToPix(pos=numpy.array([0, 0]),

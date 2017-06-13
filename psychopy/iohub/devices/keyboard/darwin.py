@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import absolute_import
 
         
 from copy import copy
@@ -33,7 +34,7 @@ except NameError:
 
 import unicodedata
 
-from darwinkey import code2label
+from .darwinkey import code2label
 
 #print2err("code2label: ",code2label)
 carbon_path = ctypes.util.find_library('Carbon')

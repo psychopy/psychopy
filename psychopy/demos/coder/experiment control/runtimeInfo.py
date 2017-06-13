@@ -7,6 +7,7 @@ to obtain current system and other data at run-time.
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, logging, core
 import psychopy.info
@@ -52,7 +53,7 @@ print("If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,
 
 print("\nYou can extract single items from info, using keys, e.g.:")
 print("  psychopyVersion = %s" % runInfo['psychopyVersion'])
-if "windowRefreshTimeAvg_ms" in runInfo.keys():
+if "windowRefreshTimeAvg_ms" in runInfo:
     print("or from the test of the screen refresh rate:")
     print("  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"])
     print("  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"])

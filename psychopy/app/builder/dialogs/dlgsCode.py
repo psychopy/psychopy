@@ -43,7 +43,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
         self.codeGuiElements = {}
-        if not editing and 'name' in self.params.keys():
+        if not editing and 'name' in self.params:
             # then we're adding a new component so ensure a valid name:
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(params['name'].val)
@@ -171,7 +171,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         used in __init__ and are also returned from this method.
         """
         # get data from input fields
-        for fieldName in self.params.keys():
+        for fieldName in self.params:
             param = self.params[fieldName]
             if fieldName == 'name':
                 param.val = self.componentName.GetValue()

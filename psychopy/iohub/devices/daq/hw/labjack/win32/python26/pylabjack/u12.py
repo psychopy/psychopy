@@ -22,6 +22,7 @@ Desc: Defines the U12 class, which makes working with a U12 much easier. The
       http://labjack.com/support/u12/users-guide/5
       
 """
+from __future__ import print_function
 
 import platform
 import ctypes
@@ -366,23 +367,23 @@ staticLib = None
 if os.name == 'posix':
         try:
             staticLib = _loadLinuxSo()
-        except OSError, e:
+        except OSError as e:
             pass # We may be on Mac.
-        except Exception, e:
+        except Exception as e:
             raise U12Exception("Could not load the Linux SO for some reason other than it not being installed. Ethernet connectivity only.\n\n    The error was: %s" % e)
         
         try:
             if staticLib is None:
                 staticLib = _loadMacDylib()
-        except OSError, e:
+        except OSError as e:
             raise U12Exception("Could not load the Exodriver driver. Ethernet connectivity only.\n\nCheck that the Exodriver is installed, and the permissions are set correctly.\nThe error message was: %s" % e)
-        except Exception, e:
+        except Exception as e:
             raise U12Exception("Could not load the Mac Dylib for some reason other than it not being installed. Ethernet connectivity only.\n\n    The error was: %s" % e)   
 else:
     try:
         staticLib = ctypes.windll.LoadLibrary("ljackuw")
     except Exception:
-        raise Exception, "Could not load LabJack UW driver."
+        raise Exception("Could not load LabJack UW driver.")
     
 class U12(object):
     """
@@ -419,7 +420,7 @@ class U12(object):
         if ON_WINDOWS:
             pass
         else:
-            if self.debug: print "open called"
+            if self.debug: print("open called")
             devType = ctypes.c_ulong(1)
             openDev = staticLib.LJUSB_OpenDevice
             openDev.restype = ctypes.c_void_p
@@ -511,7 +512,7 @@ class U12(object):
             if self.handle is None:
                 raise U12Exception("The U12's handle is None. Please open a U12 with open()")
             
-            if self.debug: print "Writing:", hexWithoutQuotes(writeBuffer)
+            if self.debug: print("Writing:", hexWithoutQuotes(writeBuffer))
             newA = (ctypes.c_byte*len(writeBuffer))(0) 
             for i in range(len(writeBuffer)):
                 newA[i] = ctypes.c_byte(writeBuffer[i])
@@ -533,7 +534,7 @@ class U12(object):
             readBytes = staticLib.LJUSB_Read(self.handle, ctypes.byref(newA), numBytes)
             # return a list of integers in command/response mode
             result = [(newA[i] & 0xff) for i in range(readBytes)]
-            if self.debug: print "Received:", hexWithoutQuotes(result)
+            if self.debug: print("Received:", hexWithoutQuotes(result))
             return result
 
 
@@ -2363,7 +2364,7 @@ class U12(object):
         dataArray = [0] * 18
         for i in range(0, len(data)):
             dataArray[i] = data[i]
-        print dataArray
+        print(dataArray)
         dataArray = listToCArray(dataArray, ctypes.c_long)
         
         ecode = staticLib.Asynch(ctypes.byref(idNum), demo, portB, enableTE, enableTO, enableDel, baudrate, numWrite, numRead, ctypes.byref(dataArray))
@@ -2387,7 +2388,7 @@ class U12(object):
             volts = ctypes.c_float()
             ecode = staticLib.BitsToVolts(chnum, chgain, bits, ctypes.byref(volts))
     
-            if ecode != 0: print ecode
+            if ecode != 0: print(ecode)
     
             return volts.value
         else:
@@ -2439,7 +2440,7 @@ class U12(object):
         stateIO = ctypes.c_long(999)
         count = ctypes.c_ulong(999)
         
-        print idNum
+        print(idNum)
         ecode = staticLib.Counter(ctypes.byref(idNum), demo, ctypes.byref(stateD), ctypes.byref(stateIO), resetCounter, enableSTB, ctypes.byref(count))
 
         if ecode != 0: raise U12Exception(ecode)
@@ -2872,7 +2873,7 @@ class U12(object):
         """
         
         if address is None:
-            raise Exception, "Must give an Address."
+            raise Exception("Must give an Address.")
         
         if idnum is None:
             idnum = self.id
@@ -2905,9 +2906,9 @@ class U12(object):
         >>> 1
         """
         if address is None or data is None:
-            raise Exception, "Must give both an Address and data."
+            raise Exception("Must give both an Address and data.")
         if type(data) is not list or len(data) != 4:
-            raise Exception, "Data must be a list and have a length of 4"
+            raise Exception("Data must be a list and have a length of 4")
         
         if idnum is None:
             idnum = self.id

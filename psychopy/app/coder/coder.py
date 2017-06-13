@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import time
 import types
@@ -724,7 +725,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     # did we get a word?
                     if prevWord:
                         # is it in dictionary?
-                        if prevWord in self.autoCompleteDict.keys():
+                        if prevWord in self.autoCompleteDict:
                             attrs = self.autoCompleteDict[prevWord]['attrs']
                             # does it have known attributes?
                             if type(attrs) == list and len(attrs) >= 1:
@@ -873,7 +874,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             currWord = self.GetTextRange(startPos, endPos)
 
             # lookfor word in dictionary
-            if currWord in self.autoCompleteDict.keys():
+            if currWord in self.autoCompleteDict:
                 helpText = self.autoCompleteDict[currWord]['help']
                 thisIs = self.autoCompleteDict[currWord]['is']
                 thisType = self.autoCompleteDict[currWord]['type']
@@ -1731,7 +1732,7 @@ class CoderFrame(wx.Frame):
                 continue
             # otherwise create a submenu
             folderDisplayName = os.path.split(folder)[-1]
-            if folderDisplayName in _localized.keys():
+            if folderDisplayName in _localized:
                 folderDisplayName = _localized[folderDisplayName]
             submenu = wx.Menu()
             self.demosMenu.AppendSubMenu(submenu, folderDisplayName)
@@ -2548,7 +2549,7 @@ class CoderFrame(wx.Frame):
 
         # provide a running... message; long fullPath --> no # are displayed
         # unless you add some manually
-        print("##### Running: %s #####" % (fullPath)).center(80, "#")
+        print(("##### Running: %s #####" % (fullPath)).center(80, "#"))
 
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)

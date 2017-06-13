@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import glob
@@ -136,7 +137,7 @@ def getComponents(folder=None, fetchIcons=True):
 
     components = {}
     # setup a default icon
-    if fetchIcons and 'default' not in icons.keys():
+    if fetchIcons and 'default' not in icons:
         icons['default'] = getIcons(filename=None)
 
     # go through components in directory
@@ -200,11 +201,11 @@ def getAllComponents(folderList=(), fetchIcons=True):
     User-defined components will override built-ins with the same name.
     """
     if isinstance(folderList, basestring):
-        raise TypeError, 'folderList should be iterable, not a string'
+        raise TypeError('folderList should be iterable, not a string')
     components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
         userComps = getComponents(folder)
-        for thisKey in userComps.keys():
+        for thisKey in userComps:
             components[thisKey] = userComps[thisKey]
     return components
 
@@ -224,7 +225,7 @@ def getInitVals(params, target="PsychoPy"):
     __init__ of a stimulus object, avoiding using a variable name if possible
     """
     inits = copy.deepcopy(params)
-    for name in params.keys():
+    for name in params:
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"

@@ -1,6 +1,7 @@
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
 """
+from __future__ import print_function
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -197,7 +198,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
                              'state': state,
                              'time': timeSecs})
             else:
-                for n in evtChannels.keys():
+                for n in evtChannels:
                     if state[n] != lastState[n]:
                         if state[n] == '1':
                             evt = evtChannels[n] + "_on"
@@ -244,7 +245,7 @@ if __name__ == "__main__":
     time.sleep(0.1)
     BBTK.setEventThresholds([20] * 8)
     time.sleep(2)
-    print('thresholds:', BBTK.getEventThresholds())
+    print(('thresholds:', BBTK.getEventThresholds()))
 
     BBTK.clearRAM()
     time.sleep(2)

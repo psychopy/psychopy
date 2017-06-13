@@ -28,7 +28,7 @@ def array2image(a):
     elif a.dtype.kind == numpy.float32:
         mode = "F"
     else:
-        raise ValueError, "unsupported image mode"
+        raise ValueError("unsupported image mode")
     try:
         im = Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
     except Exception:
@@ -45,7 +45,7 @@ def image2array(im):
 #     http://www.pythonware.com
 
     if im.mode not in ("L", "F"):
-        raise ValueError, "can only convert single-layer images"
+        raise ValueError("can only convert single-layer images")
     try:
         imdata = im.tostring()
     except Exception:

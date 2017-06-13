@@ -64,7 +64,7 @@ class EventPublisher(Device):
             self._pub_socket.setsockopt(zmq.LINGER, 0)
             self._publishing_protocal=device_config.get('publishing_protocal',"tcp://127.0.0.1:5555")
             self._pub_socket.bind(self._publishing_protocal)
-        except Exception, e:
+        except Exception as e:
             print2err("** Exception during EventPublisher.__init__: ",e)
             printExceptionDetailsToStdErr()
             
@@ -196,7 +196,7 @@ class RemoteEventSubscriber(Device):
                     self._time_sync_manager.start()   
                 
                 gevent.spawn(self._poll) # really like _run
-        except Exception, e:
+        except Exception as e:
             print2err("** Exception during RemoteEventSubscriber.__init__: ",e)
             printExceptionDetailsToStdErr()
             
@@ -246,7 +246,7 @@ class RemoteEventSubscriber(Device):
 
                 self._nativeEventCallback(data)
                 gevent.sleep(0)
-            except zmq.ZMQError,z:
+            except zmq.ZMQError as z:
                 break
             except Exception:
                 printExceptionDetailsToStdErr()

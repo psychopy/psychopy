@@ -14,6 +14,8 @@ precise synchronised manner that will not interfere with stimulus presentation
 # (GPL version 3 or any later version).
 
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import sys
 if sys.platform == 'darwin':
@@ -43,15 +45,15 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
 
 EXP_SCRIPT_DIRECTORY = ''
 
-import constants
-from constants import EventConstants, DeviceConstants
-from constants import KeyboardConstants, MouseConstants, EyeTrackerConstants
+from . import constants
+from .constants import EventConstants, DeviceConstants
+from .constants import KeyboardConstants, MouseConstants, EyeTrackerConstants
 
-from util import print2err, printExceptionDetailsToStdErr, ioHubError
-from util import fix_encoding, OrderedDict, module_directory, updateDict
-from util import isIterable, getCurrentDateTimeString, convertCamelToSnake
-from util import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
-from util import win32MessagePump
+from .util import print2err, printExceptionDetailsToStdErr, ioHubError
+from .util import fix_encoding, OrderedDict, module_directory, updateDict
+from .util import isIterable, getCurrentDateTimeString, convertCamelToSnake
+from .util import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
+from .util import win32MessagePump
 
 fix_encoding.fix_encoding()
 
@@ -60,25 +62,25 @@ def _localFunc():
 
 IO_HUB_DIRECTORY=module_directory(_localFunc)
 
-import devices
-from devices import Computer, import_device, DeviceEvent, Device
+from . import devices
+from .devices import Computer, import_device, DeviceEvent, Device
 
 _DATA_STORE_AVAILABLE=False
 try:
-    import datastore
+    from . import datastore
     _DATA_STORE_AVAILABLE=True
-except Exception, e:
+except Exception as e:
     print2err("WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
     printExceptionDetailsToStdErr()
 
-import client
-from client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
+from . import client
+from .client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
 
 
-from util import Trigger, TimeTrigger, DeviceEventTrigger
-from util import ScreenState, ClearScreen, InstructionScreen, ImageScreen
-from util import ExperimentVariableProvider, SinusoidalMotion, to_numeric
-from util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure
+from .util import Trigger, TimeTrigger, DeviceEventTrigger
+from .util import ScreenState, ClearScreen, InstructionScreen, ImageScreen
+from .util import ExperimentVariableProvider, SinusoidalMotion, to_numeric
+from .util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure
 
 def _start(**kwargs):
     """
@@ -100,7 +102,7 @@ def _start(**kwargs):
     from psychopy import visual
     openWindows = visual.window.openWindows
     if len(openWindows) == 0:
-        print "The PsychoPy Window must be created prior to starting iohub. Exiting..."
+        print("The PsychoPy Window must be created prior to starting iohub. Exiting...")
         sys.exit(1)
 
     # TODO: Use info from win.monitor to set screen info and eye distance if possible.
@@ -133,18 +135,18 @@ def _start(**kwargs):
         override_using_psycho_settings: False
     '''
 
-    if not kwargs.has_key('experiment_code'):
+    if 'experiment_code' not in kwargs:
         kwargs['experiment_code'] = 'default_exp'
 
-    if kwargs.has_key('iohub_config_name'):
-        print "Starting iohub with iohub_config_name provided."
+    if 'iohub_config_name' in kwargs:
+        print("Starting iohub with iohub_config_name provided.")
         return launchHubServer(**kwargs)
 
     iohub_config_name = './iohub_config.yaml'
     if os.path.isfile(os.path.normpath(os.path.abspath(iohub_config_name))):
         kwargs['iohub_config_name'] = os.path.normpath(os.path.abspath(iohub_config_name))
-        print "Starting iohub with iohub_config_name:",kwargs['iohub_config_name']
+        print("Starting iohub with iohub_config_name:",kwargs['iohub_config_name'])
         return launchHubServer(**kwargs)
 
-    print "Starting iohub with default settings."
+    print("Starting iohub with default settings.")
     return launchHubServer(**kwargs)

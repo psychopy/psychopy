@@ -70,8 +70,9 @@ MCU Access
 
 
 """
-import pysync
-from pysync import T3MC,T3Request,T3Event
+from __future__ import absolute_import
+from . import pysync
+from .pysync import T3MC,T3Request,T3Event
 
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
@@ -79,7 +80,7 @@ from ....constants import DeviceConstants, EventConstants
 import numpy as N
 import gevent
 getTime= Computer.getTime
-        
+
 class MCU(Device):
     """
     """
@@ -97,8 +98,8 @@ class MCU(Device):
                 ]
     __slots__=[e for e in _mcu_slots]
     def __init__(self, *args, **kwargs):
-        self.serial_port=None   
-        self.time_sync_interval=None   
+        self.serial_port=None
+        self.time_sync_interval=None
 
         Device.__init__(self,*args,**kwargs['dconfig'])
 
@@ -129,18 +130,18 @@ class MCU(Device):
                 self._mcu.resetState(blocking=True)
                 self._mcu.close()
                 self._mcu=None
-                
+
         return self.isConnected()
 
     def isConnected(self):
         return self._mcu != None
-           
+
     def getDeviceTime(self):
         return T3Request.sync_state.local2RemoteTime(getTime())
-        
+
     def getSecTime(self):
         """
-        Returns current device time in sec.msec format. 
+        Returns current device time in sec.msec format.
         Relies on a functioning getDeviceTime() method.
         """
         return self.getDeviceTime()#*self.DEVICE_TIMEBASE_TO_SEC
@@ -150,18 +151,18 @@ class MCU(Device):
         Specifies if the device should be reporting events to the ioHub Process
         (enabled=True) or whether the device should stop reporting events to the
         ioHub Process (enabled=False).
-        
-            
+
+
         Args:
             enabled (bool):  True (default) == Start to report device events to the ioHub Process. False == Stop Reporting Events to the ioHub Process. Most Device types automatically start sending events to the ioHUb Process, however some devices like the EyeTracker and AnlogInput device's do not. The setting to control this behavour is 'auto_report_events'
-        
+
         Returns:
-            bool: The current reporting state. 
+            bool: The current reporting state.
         """
         if enabled and not self.isReportingEvents():
             if not self.isConnected():
                 self.setConnectionState(True)
-            event_types=self.getConfiguration().get('monitor_event_types',[])    
+            event_types=self.getConfiguration().get('monitor_event_types',[])
             enable_analog = 'AnalogInputEvent' in event_types
             enable_digital = 'DigitalInputEvent' in event_types
             enable_threshold = 'ThresholdEvent' in event_types
@@ -169,15 +170,15 @@ class MCU(Device):
         elif enabled is False and self.isReportingEvents() is True:
             if self.isConnected():
                 self._enableInputEvents(False,False,False)
-                
+
         return Device.enableEventReporting(self,enabled)
 
     def isReportingEvents(self):
         """
         Returns whether a Device is currently reporting events to the ioHub Process.
-        
+
         Args: None
-        
+
         Returns:
             (bool): Current reporting state.
         """
@@ -189,7 +190,7 @@ class MCU(Device):
         request = self._mcu.requestTime()
         self._request_dict[request.getID()]=request
         return request.asdict()
- 
+
     def getDigitalInputs(self):
         request=self._mcu.getDigitalInputs()
         self._request_dict[request.getID()]=request
@@ -209,7 +210,7 @@ class MCU(Device):
         request=self._mcu.generateKeyboardEvent(use_char, press_duration)
         self._request_dict[request.getID()]=request
         return request.asdict()
-        
+
     def setDigitalOutputPin(self,dout_pin_index,new_pin_state):
         request=self._mcu.setDigitalOutputPin(dout_pin_index,new_pin_state)
         self._request_dict[request.getID()]=request
@@ -342,7 +343,7 @@ class MCU(Device):
         try:
             logged_time=getTime()
 
-            if self.isConnected():            
+            if self.isConnected():
                 self._mcu.getSerialRx()
                 if logged_time-self._last_sync_time>=self.time_sync_interval:
                     self._mcu._runTimeSync()
@@ -352,9 +353,9 @@ class MCU(Device):
                 return False
 
             confidence_interval=logged_time-self._last_callback_time
-    
+
             events = self._mcu.getRxEvents()
-            for event in events:             
+            for event in events:
                 current_MCU_time = event.device_time#self.getSecTime()
                 device_time = event.device_time
                 if event.local_time is None:
@@ -390,33 +391,33 @@ class MCU(Device):
                     elist[8] = confidence_interval
                     elist[9] = delay
                     elist[10] = 0
-                   
+
                     self._addNativeEventToBuffer(elist)
-                
+
             replies = self._mcu.getRequestReplies(True)
             for reply in replies:
                 rid=reply.getID()
-                if rid in self._request_dict.keys():
+                if rid in self._request_dict:
                     self._response_dict[rid]=reply
                     del self._request_dict[rid]
-            
+
             self._last_callback_time=logged_time
             return True
-        except Exception, e:
+        except Exception as e:
             print2err("--------------------------------")
             print2err("ERROR in MCU._poll: ",e)
             printExceptionDetailsToStdErr()
             print2err("---------------------")
-            
+
     def _close(self):
         if self._mcu:
             self.resetState()
             self.setConnectionState(False)
-            
+
         Device._close(self)
-        
+
 class AnalogInputEvent(DeviceEvent):
-    _newDataTypes = [        
+    _newDataTypes = [
             ('AI_0',N.float32),
             ('AI_1',N.float32),
             ('AI_2',N.float32),
@@ -430,7 +431,7 @@ class AnalogInputEvent(DeviceEvent):
     EVENT_TYPE_STRING='ANALOG_INPUT'
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
     __slots__=[e[0] for e in _newDataTypes]
-    def __init__(self,*args,**kwargs):        
+    def __init__(self,*args,**kwargs):
         DeviceEvent.__init__(self,*args,**kwargs)
 
 class ThresholdEvent(DeviceEvent):
@@ -457,7 +458,7 @@ class DigitalInputEvent(DeviceEvent):
     EVENT_TYPE_ID=EventConstants.DIGITAL_INPUT
     EVENT_TYPE_STRING='DIGITAL_INPUT'
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
-    __slots__=[e[0] for e in _newDataTypes]    
-    def __init__(self,*args,**kwargs):        
+    __slots__=[e[0] for e in _newDataTypes]
+    def __init__(self,*args,**kwargs):
         self.state=0
         DeviceEvent.__init__(self,*args,**kwargs)

@@ -6,6 +6,7 @@ Created on Sun Nov 10 12:18:45 2013
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import math
 import numpy as np
@@ -14,7 +15,7 @@ from matplotlib import font_manager
 from psychopy.core import getTime
 
 try:
-    from textureatlas import TextureAtlas
+    from .textureatlas import TextureAtlas
 except Exception as e:
     print('error importing TextureAtlas:', e)
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
@@ -102,7 +103,7 @@ class FontManager(object):
         style_dict = self._available_font_info.get(font_family_name)
         if style_dict is None:
             return None
-        if font_style and font_style in style_dict.keys():
+        if font_style and font_style in style_dict:
             return style_dict[font_style]
         for style, fonts in style_dict.iteritems():
             b, i = self.booleansFromStyleName(style)

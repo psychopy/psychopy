@@ -12,6 +12,7 @@ To create a movie that will play on all systems I would recommend using the form
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, core, event
 

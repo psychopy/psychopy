@@ -3,6 +3,7 @@
 """A simple stimulus for loading images from a file and presenting at exactly
 the resolution and color in the file (subject to gamma correction if set).
 """
+from __future__ import absolute_import
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -32,7 +33,7 @@ from . import globalVars
 try:
     from PIL import Image
 except ImportError:
-    import Image
+    from . import Image
 
 import numpy
 

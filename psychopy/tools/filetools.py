@@ -6,6 +6,7 @@
 
 """Functions and classes related to file and directory handling
 """
+from __future__ import print_function
 
 import os
 import shutil

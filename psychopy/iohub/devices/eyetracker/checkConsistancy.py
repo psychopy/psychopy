@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import print_function
 
 from . import EyeTrackerDevice
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     interfaceBuiltins= collections.Counter(builtins.keys())
     interfaceClasses= collections.Counter(klasses.keys())
 
-    print '\n\n'
+    print('\n\n')
 
     eyetrackerImplementations=[EyeLinkEyeTracker,]
 
@@ -73,43 +74,43 @@ if __name__ == '__main__':
         missingInImplementationB=interfaceBuiltins-b
         missingInImplementationK=interfaceClasses-k
 
-        print "========================================================================================="
+        print("=========================================================================================")
 
-        print "Implementation ",implementation.__class__.__name__.split('.')[-3:-1] ," contains the following differences from the Interface:"
-        print
-        print "+ Attributes in not in the Interface Definition: "
+        print("Implementation ",implementation.__class__.__name__.split('.')[-3:-1] ," contains the following differences from the Interface:")
+        print()
+        print("+ Attributes in not in the Interface Definition: ")
         for x in onlyInImplementationA:
-            print '\t',x
-        print
-        print "+ Methods in not in the Interface Definition: "
+            print('\t',x)
+        print()
+        print("+ Methods in not in the Interface Definition: ")
         for x in onlyInImplementationM:
-            print '\t',x
-        print
-        print "+ Bultins in not in the Interface Definition: "
+            print('\t',x)
+        print()
+        print("+ Bultins in not in the Interface Definition: ")
         for x in onlyInImplementationB:
-            print '\t',x
-        print
-        print "+ Classes in not in the Interface Definition: "
+            print('\t',x)
+        print()
+        print("+ Classes in not in the Interface Definition: ")
         for x in onlyInImplementationK:
-            print '\t',x
-        print
-        print
-        print "- Attributes missing from Implementation:"
+            print('\t',x)
+        print()
+        print()
+        print("- Attributes missing from Implementation:")
         for x in missingInImplementationA:
-            print '\t',x
-        print
-        print "- Methods missing from Implementation:"
+            print('\t',x)
+        print()
+        print("- Methods missing from Implementation:")
         for x in missingInImplementationM:
-            print '\t',x
-        print
-        print  "- Bultins missing from Implementation:"
+            print('\t',x)
+        print()
+        print("- Bultins missing from Implementation:")
         for x in missingInImplementationB:
-            print '\t',x
-        print
-        print  "- Classes missing from Implementation:"
+            print('\t',x)
+        print()
+        print("- Classes missing from Implementation:")
         for x in missingInImplementationK:
-            print '\t',x
+            print('\t',x)
 
-        print "========================================================================================="
+        print("=========================================================================================")
         #c = a - b
         #print list(c.elements())

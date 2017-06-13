@@ -12,8 +12,9 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + 
 contributors, please see credits section of documentation.
 """
+from __future__ import absolute_import
 
-from xinput_h import *
+from .xinput_h import *
 from math import sqrt
 import ctypes,ctypes.wintypes
 from ctypes.wintypes import DWORD, pointer

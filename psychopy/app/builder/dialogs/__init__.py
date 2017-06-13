@@ -372,7 +372,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.title = title
         if (not editing and
                 title != 'Experiment Settings' and
-                'name' in self.params.keys()):
+                'name' in self.params):
             # then we're adding a new component, so provide known-valid name:
             makeValid = self.frame.exp.namespace.makeValid
             self.params['name'].val = makeValid(params['name'].val)
@@ -447,14 +447,14 @@ class _BaseParamsDlg(wx.Dialog):
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
-            if categName in categLabel.keys():
+            if categName in categLabel:
                 cat = categLabel[categName]
             else:
                 cat = categName
             self.ctrls.AddPage(page, cat)
             # so the validator finds this set of controls
             self.panels.append(page)
-            if 'customize_everything' in self.params.keys():
+            if 'customize_everything' in self.params:
                 if self.params['customize_everything'].val.strip():
                     # set focus to the custom panel
                     page.SetFocus()
@@ -906,7 +906,7 @@ class _BaseParamsDlg(wx.Dialog):
         used in __init__ and are also returned from this method.
         """
         # get data from input fields
-        for fieldName in self.params.keys():
+        for fieldName in self.params:
             param = self.params[fieldName]
             if fieldName == 'advancedParams':
                 pass
@@ -1158,7 +1158,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         # that can be hidden or shown
         handler = self.trialHandler
         # loop through the params
-        keys = handler.params.keys()
+        keys = list(handler.params.keys())
         panel = wx.Panel(parent=self)
         panelSizer = wx.GridBagSizer(5, 5)
         panel.SetSizer(panelSizer)
@@ -1234,7 +1234,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         # that can be hidden or shown
         handler = self.multiStairHandler
         # loop through the params
-        keys = handler.params.keys()
+        keys = list(handler.params.keys())
         # add conditions stuff to the *end*
         # add conditions stuff to the *end*
         if 'conditionsFile' in keys:
@@ -1384,7 +1384,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                     self.conditionsFile = gridGUI.fileName
         self.currentHandler.params['conditionsFile'].val = self.conditionsFile
         # as set via DlgConditions
-        if 'conditionsFile' in self.currentCtrls.keys():
+        if 'conditionsFile' in self.currentCtrls:
             valCtrl = self.currentCtrls['conditionsFile'].valueCtrl
             valCtrl.Clear()
             valCtrl.WriteText(self.conditionsFile)
@@ -1498,7 +1498,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.duplCondNames = duplCondNames
 
             if (needUpdate or
-                    ('conditionsFile' in self.currentCtrls.keys() and
+                    ('conditionsFile' in list(self.currentCtrls.keys()) and
                      not duplCondNames)):
                 self.currentCtrls['conditionsFile'].setValue(newPath)
                 self.currentCtrls['conditions'].setValue(
@@ -1509,7 +1509,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         those handler params
         """
         # get data from input fields
-        for fieldName in self.currentHandler.params.keys():
+        for fieldName in self.currentHandler.params:
             if fieldName == 'endPoints':
                 continue  # this was deprecated in v1.62.00
             param = self.currentHandler.params[fieldName]
@@ -1538,7 +1538,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if val.find('...') == -1 and self.conditionsFile != val:
             self.conditionsFile = val
             if self.conditions:
-                self.exp.namespace.remove(self.conditions[0].keys())
+                self.exp.namespace.remove(list(self.conditions[0].keys()))
             if os.path.isfile(self.conditionsFile):
                 try:
                     self.conditions = data.importConditions(
@@ -1567,7 +1567,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
-        if 'conditionsFile' in self.currentCtrls.keys():
+        if 'conditionsFile' in self.currentCtrls:
             self.refreshConditions()
         event.Skip()  # do the OK button press
 

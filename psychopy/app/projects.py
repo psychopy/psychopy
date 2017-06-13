@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import time
@@ -86,7 +87,7 @@ projectCatalog = ProjectCatalog()
 idBase = wx.NewId()
 projHistory = wx.FileHistory(maxFiles=16, idBase=idBase)
 projHistory.idBase = idBase
-for key in projectCatalog.keys():
+for key in projectCatalog:
     projHistory.AddFileToHistory(key)
 
 

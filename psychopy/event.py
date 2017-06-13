@@ -10,6 +10,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 # 01/2011 modified by Dave Britton to get mouse event timing
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import sys
 import string

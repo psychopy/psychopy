@@ -378,7 +378,7 @@ class TrialHandler(_BaseTrialHandler):
         if (stimOut == [] and
                 len(self.trialList) and
                 hasattr(self.trialList[0], 'keys')):
-            stimOut = self.trialList[0].keys()
+            stimOut = list(self.trialList[0].keys())
             # these get added somewhere (by DataHandler?)
             if 'n' in stimOut:
                 stimOut.remove('n')
@@ -464,7 +464,7 @@ class TrialHandler(_BaseTrialHandler):
             dataOut = list(dataOut)
 
         # expand any 'all' dataTypes to be full list of available dataTypes
-        allDataTypes = self.data.keys()
+        allDataTypes = list(self.data.keys())
         # treat these separately later
         allDataTypes.remove('ran')
         # ready to go through standard data types
@@ -621,7 +621,7 @@ class TrialHandler(_BaseTrialHandler):
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
-            header = self.trialList[0].keys()
+            header = list(self.trialList[0].keys())
         else:
             header = []
         # and then add parameter names related to data (e.g. RT)
@@ -647,7 +647,7 @@ class TrialHandler(_BaseTrialHandler):
                 # find out what trial type was on this trial
                 trialTypeIndex = self.sequenceIndices[trialN, rep]
                 # determine which repeat it is for this trial
-                if trialTypeIndex not in repsPerType.keys():
+                if trialTypeIndex not in repsPerType:
                     repsPerType[trialTypeIndex] = 0
                 else:
                     repsPerType[trialTypeIndex] += 1
@@ -829,7 +829,7 @@ class TrialHandler2(_BaseTrialHandler):
             self.trialList, self.columns = importConditions(trialList, True)
         else:
             self.trialList = trialList
-            self.columns = trialList[0].keys()
+            self.columns = list(trialList[0].keys())
         # convert any entry in the TrialList into a TrialType object (with
         # obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
@@ -1544,7 +1544,7 @@ class TrialHandlerExt(TrialHandler):
             dataOut = list(dataOut)
 
         # expand any 'all' dataTypes to the full list of available dataTypes
-        allDataTypes = self.data.keys()
+        allDataTypes = list(self.data.keys())
         # treat these separately later
         allDataTypes.remove('ran')
         # ready to go through standard data types
@@ -1728,7 +1728,7 @@ class TrialHandlerExt(TrialHandler):
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
-            header = self.trialList[0].keys()
+            header = list(self.trialList[0].keys())
         else:
             header = []
         # and then add parameter names related to data (e.g. RT)
@@ -1751,7 +1751,7 @@ class TrialHandlerExt(TrialHandler):
                 # find out what trial type was on this trial
                 trialTypeIndex = self.sequenceIndices[trialN, rep]
                 # determine which repeat it is for this trial
-                if trialTypeIndex not in repsPerType.keys():
+                if trialTypeIndex not in repsPerType:
                     repsPerType[trialTypeIndex] = 0
                 else:
                     repsPerType[trialTypeIndex] += 1

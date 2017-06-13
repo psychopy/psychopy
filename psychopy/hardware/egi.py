@@ -18,13 +18,14 @@ For an example see the demos menu of the PsychoPy Coder
 For further documentation see the pynetstation website
 
 """
+from __future__ import absolute_import
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy import logging
 try:
-    from egi import *  # pyline: disable=W0614
+    from .egi import *  # pyline: disable=W0614
 except ImportError:
     msg = """Failed to import egi (pynetstation). If you're using your own
 copy of python (not the Standalone distribution of PsychoPy)

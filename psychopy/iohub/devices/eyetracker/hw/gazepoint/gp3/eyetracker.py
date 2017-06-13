@@ -145,7 +145,7 @@ class EyeTracker(EyeTrackerDevice):
                     self._rx_buffer=''
                     return None
 
-            except socket.error, e:
+            except socket.error as e:
                 err = e.args[0]
                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK or err == 'timed out':
                     # non blocking socket found no data; it happens.
@@ -281,7 +281,7 @@ class EyeTracker(EyeTrackerDevice):
             self.setRecordingState(enabled)
             enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
             return enabled
-        except Exception, e:
+        except Exception as e:
             print2err("Exception in EyeTracker.enableEventReporting: ", str(e))
             printExceptionDetailsToStdErr()
 

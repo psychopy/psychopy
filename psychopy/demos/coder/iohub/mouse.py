@@ -11,6 +11,7 @@ Updated July, 2013, Sol, Added timeouts
 """
 
 from __future__ import division
+from __future__ import print_function
 
 import sys
 

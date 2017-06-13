@@ -5,6 +5,7 @@ Created on Mon Jan 07 11:18:51 2013
 @author: Sol
 """
 from __future__ import print_function  # for compatibility with python3
+from __future__ import absolute_import
 import numpy as np
 from weakref import proxy
 from psychopy import core
@@ -15,7 +16,7 @@ from pyglet.gl import (glCallList, glGenLists, glNewList, glDisable, glEnable,
                        GL_TEXTURE_ENV_MODE, GL_MODULATE, GL_UNSIGNED_INT,
                        glPopMatrix, glBindTexture, glActiveTexture, glTexEnvf,
                        glPushMatrix, glCallLists, glVertex2i)
-import parsedtext
+from . import parsedtext
 getTime = core.getTime
 
 

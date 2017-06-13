@@ -10,6 +10,7 @@ the context in which an experiment was run.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import sys
 import os
@@ -329,7 +330,7 @@ class RunTimeInfo(dict):
                 # requires pyo svn r1024 or higher:
                 inp, out = pyo.pa_get_devices_infos()
                 for devList in [inp, out]:
-                    for key in devList.keys():
+                    for key in devList:
                         if isinstance(devList[key]['name'], str):
                             devList[key]['name'] = devList[
                                 key]['name'].decode(osEncoding)

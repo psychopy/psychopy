@@ -11,6 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import print_function
 
 import gc, os, sys, copy
 import collections
@@ -566,7 +567,7 @@ class Computer(object):
             Computer.setProcessAffinities([2,3],[4,5])
             Computer.setAllOtherProcessesAffinity([0,1,6,7],[Computer.currentProcessID,Computer.iohub_process_id])
         else:
-            print "autoAssignAffinities does not support %d processors."%(cpu_count,)
+            print("autoAssignAffinities does not support %d processors."%(cpu_count,))
 
     @staticmethod
     def getCurrentProcessAffinity():

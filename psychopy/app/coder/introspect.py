@@ -138,9 +138,9 @@ def getAllAttributeNames(object):
     except Exception:  # Must catch all because object might have __getattr__.
         pass
     else:
-        if isinstance(bases, types.TupleType):
+        if isinstance(bases, tuple):
             for base in bases:
-                if type(base) is types.TypeType:
+                if type(base) is type:
                     # Break a circular reference. Happens in Python 2.2.
                     pass
                 else:
@@ -175,7 +175,7 @@ def getCallTip(command='', locals=None):
         pass
     elif inspect.isfunction(object):
         # tip1 is a string like: "getCallTip(command='', locals=None)"
-        argspec = apply(inspect.formatargspec, inspect.getargspec(object))
+        argspec = inspect.formatargspec(*inspect.getargspec(object))
         if dropSelf:
             # The first parameter to a method is a reference to an
             # instance, usually coded as "self", and is usually passed
@@ -352,14 +352,14 @@ def getBaseObject(object):
         # inspect.getargspec() complains that the object isn't a
         # Python function.
         try:
-            if object.im_self is None:
+            if object.__self__ is None:
                 # This is an unbound method so we do not drop self
                 # from the argspec, since an instance must be passed
                 # as the first arg.
                 dropSelf = 0
             else:
                 dropSelf = 1
-            object = object.im_func
+            object = object.__func__
         except AttributeError:
             dropSelf = 0
     elif inspect.isclass(object):
@@ -373,7 +373,7 @@ def getBaseObject(object):
     elif callable(object):
         # Get the __call__ method instead.
         try:
-            object = object.__call__.im_func
+            object = object.__call__.__func__
             dropSelf = 1
         except AttributeError:
             dropSelf = 0
@@ -385,7 +385,7 @@ def getBaseObject(object):
 def getConstructor(object):
     """Return constructor for class object, or None if there isn't one."""
     try:
-        return object.__init__.im_func
+        return object.__init__.__func__
     except AttributeError:
         for base in object.__bases__:
             constructor = getConstructor(base)

@@ -8,7 +8,7 @@ from . import OrderedDict,  printExceptionDetailsToStdErr, print2err
 #### Experiment Variable (IV and DV) Condition Management
 #
 class ConditionSetProvider(object):
-    def __init__(self, conditionSetArray, randomize=False):        
+    def __init__(self, conditionSetArray, randomize=False):
         non_empty_count=0
         empty_sets=[]
         for i,c in enumerate(conditionSetArray):
@@ -16,7 +16,7 @@ class ConditionSetProvider(object):
                 non_empty_count+=1
             else:
                 empty_sets.append(i)
-        
+
         for i in empty_sets:
             conditionSetArray.pop(i)
 
@@ -109,7 +109,7 @@ class ExperimentVariableProvider(object):
         the second level within each block is a ndarray of trial condition variable. Each trial is an nd array
         of the condition variable values for that iteration.
         Supported variable types are:
-            
+
              * unicode
              * color ( a string in an xls file of format [r,g,b,a] or (r,g,b,a). a is optional. It is converted to a
              * ndarray for the cell [(r,'u8'),(g,'u8'),(b,'u8'),(a,'u8')]
@@ -196,7 +196,7 @@ class ExperimentVariableProvider(object):
                 max_str_lens[i]=max(max_str_lens[i],len(r[s]))
         for i,s in enumerate(string_column_indexes):
             np_dtype[s]=(np_dtype[s][0],np_dtype[s][1],max_str_lens[i])
-            
+
         self._numpyConditionVariableDescriptor=np_dtype
 
         self.data=np.asarray(temp_rows,dtype=np_dtype)
@@ -215,7 +215,7 @@ class ExperimentVariableProvider(object):
 
             blockList=[]
             for pbn in self.practiceBlockValues:
-                if pbn in tempBlockDict.keys():
+                if pbn in tempBlockDict:
                     blockList.append(TrialSetProvider(tempBlockDict[pbn],self.randomizeTrials))
                     del tempBlockDict[pbn]
             self.practiceBlocks=BlockSetProvider(blockList, False)

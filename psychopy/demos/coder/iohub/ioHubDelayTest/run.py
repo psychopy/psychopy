@@ -9,6 +9,7 @@ Changes:
     *. April, 2013: greatly improved graphics rendering time by optimizing PsychoPy stim resource usage (JG).
 
 """
+from __future__ import print_function
 
 
 from numpy import zeros

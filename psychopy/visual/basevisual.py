@@ -2,6 +2,7 @@
 
 """Provides class BaseVisualStim and mixins; subclass to get visual stimuli
 """
+from __future__ import absolute_import
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -17,7 +18,7 @@ GL = pyglet.gl
 try:
     from PIL import Image
 except ImportError:
-    import Image
+    from . import Image
 
 import copy
 import sys
@@ -791,7 +792,7 @@ class TextureMixin(object):
                     msg = "Couldn't find image %s; check path? (tried: %s)"
                     logging.error(msg % (tex, os.path.abspath(tex)))
                     logging.flush()
-                    raise IOError, msg % (tex, os.path.abspath(tex))
+                    raise IOError(msg % (tex, os.path.abspath(tex)))
                 try:
                     im = Image.open(filename)
                     im = im.transpose(Image.FLIP_TOP_BOTTOM)
@@ -800,7 +801,7 @@ class TextureMixin(object):
                     logging.error(msg % (filename))
                     logging.flush()
                     msg = "Found file '%s' [= %s], failed to load as an image"
-                    raise IOError, msg % (tex, os.path.abspath(tex))
+                    raise IOError(msg % (tex, os.path.abspath(tex)))
             else:
                 # can't be a file; maybe its an image already in memory?
                 try:

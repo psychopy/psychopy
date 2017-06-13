@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 #This analysis script takes one or more staircase datafiles as input
 #from a GUI. It then plots the staircases on top of each other on
@@ -38,7 +39,7 @@ fit = data.FitWeibull(combinedInten, combinedResp, guess=[0.2, 0.5])
 smoothInt = pylab.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
 thresh = fit.inverse(0.8)
-print thresh
+print(thresh)
 
 #plot curve
 pylab.subplot(122)

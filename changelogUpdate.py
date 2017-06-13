@@ -3,6 +3,7 @@
 # this script replaces hashtags with a sphinx URL string (to the github issues or pull request)
 # written by Jon with regex code by Jeremy
 
+from __future__ import print_function
 import re
 
 input_path = 'psychopy/CHANGELOG.txt'
@@ -26,15 +27,15 @@ txt = open(input_path, "rU").read()
 
 # programmatic replacements:
 hashtag = re.compile(r"([ (]#\d{3,5})\b")
-print "found %i issue tags" %(len(hashtag.findall(txt)))
+print("found %i issue tags" %(len(hashtag.findall(txt))))
 txt_hash = hashtag.sub(repl_issue, txt)
 
 hashtag = re.compile(r"([ (]#[0-9a-f]{6,})\b")
-print "found %i commit tags" %(len(hashtag.findall(txt_hash)))
+print("found %i commit tags" %(len(hashtag.findall(txt_hash))))
 txt_hash = hashtag.sub(repl_commit, txt_hash)
 
 blue = re.compile(r"(CHANGE.*)\n")
-print "found %i CHANGE" %(len(blue.findall(txt_hash)))
+print("found %i CHANGE" %(len(blue.findall(txt_hash))))
 txt_hashblue = blue.sub(repl_blue, txt_hash)
 
 # one-off specific .rst directives:

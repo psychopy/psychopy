@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -521,6 +522,3 @@ class KeyboardComponent(BaseComponent):
                     "    {loopName}.addData('{name}.rt', {name}.rt)\n}}\n"
                     .format(loopName=currLoop.params['name'], name=name))
             buff.writeIndentedLines(code)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.addData('eventName','keyboard');\n" % self.exp._expHandler.name)

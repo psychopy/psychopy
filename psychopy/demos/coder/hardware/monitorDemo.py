@@ -19,6 +19,7 @@ More info is available at http: //www.psychopy.org/api/monitors.html
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import monitors
 

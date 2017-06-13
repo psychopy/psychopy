@@ -186,7 +186,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
                 self._sync_socket=ioHubTimeSyncConnection(remote_address)
                 sleep(1)
             self.sync_state_target=proxy(sync_state_target)
-        except Exception, e:
+        except Exception as e:
             print2err("** Exception during ioHubTimeGreenSyncManager.__init__: ",self._remote_address)
             printExceptionDetailsToStdErr()
             
@@ -222,7 +222,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
                     r=sync_state_target.R_times[-1]
                     self.sync_state_target.offsets=(r-l)
                 return True
-        except Exception, e:
+        except Exception as e:
             return False            
             #print2err("** Exception during ioHubTimeGreenSyncManager._sync: ",self._remote_address,' ',e)
             #printExceptionDetailsToStdErr()

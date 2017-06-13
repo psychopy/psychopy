@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -259,7 +260,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                     "%(name)s.rt.extend(theseRTs)\n")
             buff.writeIndentedLines(code % self.params)
         else:
-            print(store, type(store), str(store))
+            print((store, type(store), str(store)))
         if storeCorr:
             code = ("# was this 'correct'?\n"
                     "if (%(name)s.keys == str(%(correctAns)s)) or "

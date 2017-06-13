@@ -3,7 +3,9 @@ Name: bridge.py
 Desc: Provides a Bridge and Mote class for working with SkyMote bridges and 
       motes.
 """
-from LabJackPython import *
+from __future__ import print_function
+from __future__ import absolute_import
+from .LabJackPython import *
 
 if os.name == "nt":
     if skymoteLib is None:
@@ -276,7 +278,7 @@ class Mote(object):
         if name[1] == 3:
             # Old style string
             name = "My %s" % self.productName
-            print "Old UTF-16 name detected, replacing with %s" % name
+            print("Old UTF-16 name detected, replacing with %s" % name)
             self.setName(name)
             name = name.decode("UTF-8")
         else:
@@ -285,7 +287,7 @@ class Mote(object):
                 name = struct.pack("B"*end, *name[:end]).decode("UTF-8")
             except ValueError:
                 name = "My %s" % self.productName
-                print "Improperly formatted name detected, replacing with %s" % name
+                print("Improperly formatted name detected, replacing with %s" % name)
                 self.setName(name)
                 name = name.decode("UTF-8")
         
@@ -426,6 +428,6 @@ class Mote(object):
             
         byteList = list(struct.unpack(">"+"H" * 8, struct.pack("B"*16, *byteList)))
         
-        print "Writing:", byteList
+        print("Writing:", byteList)
         
         self.writeRegister(50120, byteList)
