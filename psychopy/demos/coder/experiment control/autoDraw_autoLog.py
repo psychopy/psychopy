@@ -12,6 +12,7 @@ This can be turned off for each call with stim.setAutoDraw(True, autoLog=False)
 
 from __future__ import division
 
+from builtins import range
 from psychopy import visual, core
 
 win = visual.Window([800, 800])

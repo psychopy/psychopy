@@ -4,6 +4,7 @@
 """Libraries for wizards, currently firstrun configuration and benchmark.
 """
 from __future__ import print_function
+from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -11,6 +12,11 @@ from __future__ import print_function
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
 
+from builtins import map
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from pyglet.gl import gl_info
 import os
 import sys
@@ -90,7 +96,7 @@ class BaseWizard(object):
         warn = False
         if freeRAM == 'unknown':
             if totalRAM != 'unknown':
-                totalRAM = "%.1fG" % (totalRAM / 1024.)
+                totalRAM = "%.1fG" % (old_div(totalRAM, 1024.))
             txt = _translate(
                 'could not assess available physical RAM; total %s')
             msg = txt % totalRAM
@@ -99,14 +105,14 @@ class BaseWizard(object):
             txt = _translate(
                 'physical RAM available for configuration test '
                 '(of %.1fG total)')
-            msg = txt % (totalRAM / 1024.)
+            msg = txt % (old_div(totalRAM, 1024.))
             if freeRAM < 300:  # in M
                 txt = _translate(
                     'Warning: low available physical RAM for '
                     'configuration test (of %.1fG total)')
-                msg = txt % (totalRAM / 1024.)
+                msg = txt % (old_div(totalRAM, 1024.))
                 warn = True
-            report.append(('available memory', unicode(freeRAM) + 'M',
+            report.append(('available memory', str(freeRAM) + 'M',
                            msg, warn))
 
         # ----- PSYCHOPY: -----
@@ -206,7 +212,7 @@ class BaseWizard(object):
         win.recordFrameIntervals = True
         win.frameIntervals = []
         win.flip()
-        for i in xrange(180):
+        for i in range(180):
             dots100.draw()
             win.flip()
         msg = _translate(
@@ -289,7 +295,7 @@ class BaseWizard(object):
         if not self.prefs.connections['proxy'].strip():
             prx = '&nbsp;&nbsp;--'
         else:
-            prx = unicode(self.prefs.connections['proxy'])
+            prx = str(self.prefs.connections['proxy'])
         report.append(('proxy setting', prx,
                        _translate('current manual proxy setting from <a '
                                   'href="http://www.psychopy.org/general/'
@@ -668,7 +674,7 @@ class BenchmarkWizard(BaseWizard):
         for k, v, m, w in diagnostics:
             # list of tuples --> dict, ignore msg m, warning w
             info[k] = v
-        fps = 1000. / float(info['visual sync (refresh)'].split()[0])
+        fps = old_div(1000., float(info['visual sync (refresh)'].split()[0]))
 
         itemsList = [('Benchmark', '', '', False)]
         itemsList.append(('benchmark version', '0.1', _translate(
@@ -754,10 +760,10 @@ class BenchmarkWizard(BaseWizard):
 
         # baseline frames per second:
         if not baseline:
-            for i in xrange(5):
+            for i in range(5):
                 win.flip()  # wake things up
             win.fps()  # reset
-            for i in xrange(60):
+            for i in range(60):
                 win.flip()
             baseline = round(win.fps())
         maxFrame = round(baseline * secs)

@@ -3,6 +3,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import division
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import numpy
 import copy
 from os import path

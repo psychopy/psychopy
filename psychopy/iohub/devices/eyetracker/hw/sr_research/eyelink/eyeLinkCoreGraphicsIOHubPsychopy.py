@@ -2,10 +2,14 @@
 ioHub Common Eye Tracker Interface for EyeLink(C) Systems.  
 EyeLink(C) calibration graphics implemented using PsychoPy.
 """
+from __future__ import division
 # Part of the PsychoPy.iohub library
 # Copyright (C) 2012-2016 iSolver Software Solutionse
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import numpy as np
 import scipy
 from psychopy import visual
@@ -103,9 +107,9 @@ class IntroScreen(object):
         font_height = 30
         space_per_lines = int(font_height*2.5)
         total_line_height = space_per_lines*line_count
-        topline_y = int(min(total_line_height/1.5, self.display_size[1]/2-20))
+        topline_y = int(min(old_div(total_line_height,1.5), old_div(self.display_size[1],2)-20))
 
-        left_margin = -self.display_size[0]/6
+        left_margin = old_div(-self.display_size[0],6)
         self.introlines = []
 
         self.introlines.append(visual.TextStim(self.window,
@@ -264,8 +268,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_OUTER_COLOR=targetForegroundColor
         EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_COLOR=targetBackgroundColor
         EyeLinkCoreGraphicsIOHubPsychopy.WINDOW_BACKGROUND_COLOR=screenColor
-        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_OUTER_RADIUS=targetOuterDiameter/2.0,targetOuterDiameter/2.0
-        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_RADIUS=targetInnerDiameter/2.0,targetInnerDiameter/2.0
+        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_OUTER_RADIUS=old_div(targetOuterDiameter,2.0),old_div(targetOuterDiameter,2.0)
+        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_RADIUS=old_div(targetInnerDiameter,2.0),old_div(targetInnerDiameter,2.0)
 
         self.tmp_file = os.path.join(tempfile.gettempdir(),'_eleye.png')
 
@@ -450,8 +454,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         Draws calibration target.
         """
         # convert to psychopy pix coords
-        x = x-self.window.size[0]/2
-        y = -(y-self.window.size[1]/2)
+        x = x-old_div(self.window.size[0],2)
+        y = -(y-old_div(self.window.size[1],2))
         self.blankdisplay.draw()
         self.fixationpoint.draw((x,y))
         self.window.flip()
@@ -479,7 +483,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if self.imagetitlestim is None:
            self.imagetitlestim = visual.TextStim(self.window,
                 text=text,
-                pos=(0,self.window.size[1]/2-15), height = 28,
+                pos=(0,old_div(self.window.size[1],2)-15), height = 28,
                 color=(0, 0, 0), colorSpace='rgb255',
                 opacity=1.0, contrast=1.0, units='pix',
                 ori=0.0, antialias=True,
@@ -509,7 +513,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                                            pal=self.rgb_pallete,
                                            mode='P')
                 if self.imgstim_size is None:
-                    maxsz = self.width/2
+                    maxsz = old_div(self.width,2)
                     mx = 1.0
                     while (mx+1) * self.size[0] <= maxsz:
                         mx += 1.0

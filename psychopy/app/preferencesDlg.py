@@ -1,6 +1,8 @@
 
 from __future__ import absolute_import, print_function
 
+from builtins import str
+from builtins import object
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
@@ -398,7 +400,7 @@ class PrefCtrls(object):
             self.valueCtrl = wx.TextCtrl(self.parent, -1, valuestring,
                                          size=(valueWidth, -1))
         else:  # just use a string
-            self.valueCtrl = wx.TextCtrl(self.parent, -1, unicode(value),
+            self.valueCtrl = wx.TextCtrl(self.parent, -1, str(value),
                                          size=(valueWidth, -1))
 
     def _getCtrlValue(self, ctrl):
@@ -454,7 +456,7 @@ class PrefCtrls(object):
                         en = "'" + str(e) + "',"
                     except Exception:  # unicode
                         # "u" is necessary if string is unicode.
-                        en = "u'" + unicode(e) + "',"
+                        en = "u'" + str(e) + "',"
                 l += en
             # remove unnecessary comma
             if l[-1] == ',':

@@ -1,6 +1,7 @@
 
 from __future__ import absolute_import, print_function, division
 
+from builtins import object
 import os
 import sys
 import platform
@@ -53,7 +54,7 @@ class Preferences(object):
             join(self.paths['userPrefsDir'], 'userPrefs.cfg'))
         for sectionName in ['general', 'coder', 'builder', 'connections']:
             section = getattr(self, sectionName)
-            for key, val in section.items():
+            for key, val in list(section.items()):
                 strOut += "  prefs.%s['%s'] = %s\n" % (
                     sectionName, key, repr(val))
         return strOut

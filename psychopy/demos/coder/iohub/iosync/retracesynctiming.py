@@ -16,7 +16,9 @@ at:
 
 http://www.adafruit.com/products/1384
 """
+from __future__ import division
 
+from builtins import range
 import time
 from psychopy import visual, core,event
 from psychopy.iohub import launchHubServer, EventConstants
@@ -40,7 +42,7 @@ LOG_LUX_RANGE = MAX_LUX
 NORM_RANGE = 2.0
 LOG_LUX_RATIO = LOG_LUX_RANGE/MAX_RAW
 NORM_RATIO = NORM_RANGE/MAX_NORM
-DIGITAL_ANALOG_16_STEP = MAX_AIN_V / MAX_RAW
+DIGITAL_ANALOG_16_STEP = MAX_AIN_V/MAX_RAW
 
 def toLux(raw):
     """
@@ -117,7 +119,7 @@ ai0_times=[]
 try:
     psychopy_mon_name='testMonitor'
     exp_code='events'
-    sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
+    sess_code='S_{0}'.format(int(time.mktime(time.localtime())))
     iohub_config={
     "psychopy_monitor_name":psychopy_mon_name,
     "mcu.iosync.MCU":dict(serial_port='auto',monitor_event_types=['AnalogInputEvent']),#['DigitalInputEvent']),

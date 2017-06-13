@@ -329,7 +329,7 @@ def formattedDictStr(d, indent=1, rstr=''):
         from collections import OrderedDict
     except ImportError: 
         from psychopy.iohub import OrderedDict
-    for key, value in d.items(): 
+    for key, value in list(d.items()): 
         if isinstance(value, (dict, OrderedDict)): 
             rstr = "{rstr}{numtabs}{key}:\n".format(numtabs='\t' * indent, key=key, rstr=rstr)
             rstr = formattedDictStr(value, indent + 1, rstr)

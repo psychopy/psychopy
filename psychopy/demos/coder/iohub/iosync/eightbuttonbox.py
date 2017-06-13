@@ -18,6 +18,7 @@ corresponding button is NOT pressed. When the button is pressed, the line
 that button is connected to goes low ( 0 )
 """
 from __future__ import print_function
+from builtins import object
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
@@ -51,11 +52,11 @@ class ButtonBoxState(object):
 
     @property
     def pressed(self):
-        return self._pressed.items()#[bname for bname, mask in self.masks.items() if self._state & mask]
+        return list(self._pressed.items())#[bname for bname, mask in self.masks.items() if self._state & mask]
 
     @property
     def released(self):
-        return self._released.items()#[bname for bname, mask in self.masks.items() if self._state & mask]
+        return list(self._released.items())#[bname for bname, mask in self.masks.items() if self._state & mask]
 
     def setDigitalInputEvent(self, din_event):
         etime = din_event.time
@@ -65,7 +66,7 @@ class ButtonBoxState(object):
 
         self._released.clear()
 
-        new_pressed = [bname for bname, mask in self.masks.items() if self._state & mask]
+        new_pressed = [bname for bname, mask in list(self.masks.items()) if self._state & mask]
         for b in self.masks:
             if b not in new_pressed and b in self._pressed:
                 ptime = self._pressed[b]

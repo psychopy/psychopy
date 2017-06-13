@@ -4,7 +4,9 @@ Created on Thu Apr 11 18:48:58 2013
 
 @author: isolver
 """
+from __future__ import division
 
+from past.utils import old_div
 import ctypes
 from . import MouseDevice
 from ...constants import EventConstants,MouseConstants
@@ -154,7 +156,7 @@ class Mouse(MouseDevice):
                 self.activeButtons[bnum]= int(bstate==MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
 
             abuttonSum=0
-            for k,v in self.activeButtons.iteritems():
+            for k,v in self.activeButtons.items():
                 abuttonSum+=k*v
 
             event.ActiveButtons=abuttonSum
@@ -187,7 +189,7 @@ class Mouse(MouseDevice):
         # between subsequent messages, because the value wraps to zero if the timer count exceeds the maximum value for a long integer. To calculate time
         # delays between messages, verify that the time of the second message is greater than the time of the first message; then, subtract the time of the
         # first message from the time of the second message.
-        device_time = event.Time/1000.0 # convert to sec
+        device_time = old_div(event.Time,1000.0) # convert to sec
         
         hubTime = logged_time
 

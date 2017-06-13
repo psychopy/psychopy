@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.compatibility"""
+from builtins import str
+from builtins import object
 import os
 from psychopy import compatibility
 

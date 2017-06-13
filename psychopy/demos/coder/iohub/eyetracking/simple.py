@@ -6,6 +6,8 @@ Demo config is setup for an EyeLink(C) 1000 Desktop System.
 To to use a different eye tracker implementation, change the 
 iohub_tracker_class_path and eyetracker_config dict script variables.
 '''
+from __future__ import division
+from past.utils import old_div
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 
@@ -49,7 +51,7 @@ text_stim_str += 'Press space key to start next trial.'
 missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
 missing_gpos_str += 'Press space key to start next trial.'
 text_stim = visual.TextStim(win, text=text_stim_str,
-                            pos=[0, int((-win.size[1]/2)*0.8)], height=24,
+                            pos=[0, int((old_div(-win.size[1],2))*0.8)], height=24,
                                  color='black',
                                  alignHoriz='center',
                                  alignVert='center', 

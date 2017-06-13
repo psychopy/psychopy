@@ -2,11 +2,13 @@
 
 '''Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
 '''
+from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
 import os
 import glob
 
@@ -275,7 +277,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         if text == self.text:
             return
         if text != None:  # make sure we have unicode object to render
-            self.__dict__['text'] = unicode(text)
+            self.__dict__['text'] = str(text)
         if self.useShaders:
             self._setTextShaders(text)
         else:
@@ -354,8 +356,8 @@ class TextStim(BaseVisualStim, ColorMixin):
 
         # coords:
         if self.alignHoriz in ['center', 'centre']:
-            left = -self.width / 2.0
-            right = self.width / 2.0
+            left = -self.width/2.0
+            right = self.width/2.0
         elif self.alignHoriz == 'right':
             left = -self.width
             right = 0.0
@@ -364,8 +366,8 @@ class TextStim(BaseVisualStim, ColorMixin):
             right = self.width
         # how much to move bottom
         if self.alignVert in ['center', 'centre']:
-            bottom = -self._fontHeightPix / 2.0
-            top = self._fontHeightPix / 2.0
+            bottom = -self._fontHeightPix/2.0
+            top = self._fontHeightPix/2.0
         elif self.alignVert == 'top':
             bottom = -self._fontHeightPix
             top = 0
@@ -485,7 +487,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             right = self.width
         # how much to move bottom
         if self.alignVert in ('center', 'centre'):
-            bottom = -self._fontHeightPix / 2.0
+            bottom = -self._fontHeightPix /  2.0
             top = self._fontHeightPix / 2.0
         elif self.alignVert == 'top':
             bottom = -self._fontHeightPix
@@ -730,7 +732,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                 GL.glTranslatef(-self.width, 0, 0)  # NB depth is set already
             if self.alignHoriz in ['center', 'centre']:
                 # NB depth is set already
-                GL.glTranslatef(-self.width / 2, 0, 0)
+                GL.glTranslatef(-self.width/2, 0, 0)
 
             # unbind the mask texture regardless
             GL.glActiveTexture(GL.GL_TEXTURE1)

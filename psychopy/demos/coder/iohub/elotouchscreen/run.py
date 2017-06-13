@@ -5,6 +5,9 @@ Created on Thu Oct 03 12:50:46 2013
 @author: Sol
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 from psychopy import visual
 from psychopy.iohub import ioHubExperimentRuntime,EventConstants,module_directory
 import math
@@ -158,7 +161,7 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
             if touch_events:
                 te=touch_events[-1]
                 rad_range=self.max_touch_stim_radius- self.min_touch_stim_radius
-                touch_stim_radius=self.min_touch_stim_radius+(te.pressure/255.0)*rad_range
+                touch_stim_radius=self.min_touch_stim_radius+(old_div(te.pressure,255.0))*rad_range
                 self.touch_contingent_stim.pos = (te.x_position, te.y_position)
                 self.touch_contingent_stim.radius = touch_stim_radius
                 self.cal_instruct_stim.draw()
@@ -223,9 +226,9 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
 Touch each Point when it is Presented.")
 
         cal_points=[
-                    (leftx-dwidth/2, -(uppery-dheight/2)),
-                    (rightx-dwidth/2, -(lowery-dheight/2)),
-                    (rightx-dwidth/2, -(uppery-dheight/2))
+                    (leftx-old_div(dwidth,2), -(uppery-old_div(dheight,2))),
+                    (rightx-old_div(dwidth,2), -(lowery-old_div(dheight,2))),
+                    (rightx-old_div(dwidth,2), -(uppery-old_div(dheight,2)))
                     ]
 
         ts_points=[]

@@ -12,7 +12,10 @@ Distributed under the terms of the GNU General Public License
 .. fileauthor:: ???
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 import numpy as np 
 from ..... import print2err,printExceptionDetailsToStdErr
 from .....constants import EventConstants, EyeTrackerConstants
@@ -346,7 +349,7 @@ class EyeTracker(EyeTrackerDevice):
   
             if len(sample_values)>1:
                 print2err("** Warning: Received Sample with extra values:")
-                for k,v in sample_values.iteritems():
+                for k,v in sample_values.items():
                     if k != 'frame':
                         print2err(k," : ",v)
 
@@ -508,8 +511,8 @@ class EyeTracker(EyeTrackerDevice):
         try:
             gaze_x,gaze_y=eyetracker_point
             dw,dh=self._display_device.getPixelResolution()
-            gaze_x=gaze_x/dw
-            gaze_y=gaze_y/dh
+            gaze_x=old_div(gaze_x,dw)
+            gaze_y=old_div(gaze_y,dh)
             left,top,right,bottom=self._display_device.getCoordBounds()
             w,h=right-left,top-bottom            
             x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y) 
@@ -529,7 +532,7 @@ class EyeTracker(EyeTrackerDevice):
             dl,dt,dr,db=self._display_device.getBounds()
             dw,dh=dr-dl,db-dt
             
-            cxn,cyn=(display_x+cw/2)/cw , 1.0-(display_y-ch/2)/ch       
+            cxn,cyn=old_div((display_x+old_div(cw,2)),cw) , 1.0-old_div((display_y-old_div(ch,2)),ch)       
             return cxn*dw,  cyn*dh          
            
         except Exception as e:

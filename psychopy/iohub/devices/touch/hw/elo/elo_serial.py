@@ -11,6 +11,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 from __future__ import print_function
 
+from builtins import chr
+from builtins import str
+from builtins import object
 from .... import Computer
 from ..... import print2err
 getTime=Computer.getTime
@@ -68,7 +71,7 @@ class ResponsePacket(SmartSetPacket):
 
     def asdict(self):
         rd=dict()
-        for k,v in self.__dict__.iteritems():
+        for k,v in self.__dict__.items():
             if k[0]!='_':
                 rd[k]=v
         return rd
@@ -1832,7 +1835,7 @@ class ResponseTouch(ResponsePacket):
 RESPONSE_PACKET_TYPES[ResponseTouch.PACKET_TYPE_CHAR]=ResponseTouch
 
 def loadPacketNames():
-    classes=[(name, obj) for name, obj in globals().iteritems() if hasattr(obj,'PACKET_TYPE_CHAR')]
+    classes=[(name, obj) for name, obj in globals().items() if hasattr(obj,'PACKET_TYPE_CHAR')]
     
     for name,obj in classes:
         if not name.endswith('Packet'):

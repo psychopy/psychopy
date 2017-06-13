@@ -7,6 +7,9 @@ See http://www.photoresearch.com/
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
+from builtins import range
+from builtins import object
 from psychopy import logging
 import struct
 import sys

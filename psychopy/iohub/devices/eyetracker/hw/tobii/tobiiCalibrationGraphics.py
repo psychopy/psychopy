@@ -10,11 +10,17 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import object
+from past.utils import old_div
 import psychopy
 from psychopy import visual
 import gevent
-import time, Queue
+import time, queue
 import copy
 import numpy as np
 
@@ -50,7 +56,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.height=self.screenSize[1]
         self._ioKeyboard=None
 
-        self._msg_queue=Queue.Queue()
+        self._msg_queue=queue.Queue()
         self._lastCalibrationOK=False
         self._lastCalibrationReturnCode=0
         self._lastCalibration=None
@@ -156,7 +162,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             msg=self._msg_queue.get(block=True,timeout=0.02)
             self._msg_queue.task_done()
             return msg
-        except Queue.Empty:
+        except queue.Empty:
             pass
 
     def _createStim(self):         
@@ -176,7 +182,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
         self.calibrationPointOUTER = visual.Circle(self.window,pos=(0,0) ,
                                                    lineWidth=calibration_prefs['outer_stroke_width'],
-                                                   radius=calibration_prefs['outer_diameter']/2.0,
+                                                   radius=old_div(calibration_prefs['outer_diameter'],2.0),
                                                    name='CP_OUTER',
                                                    fillColor=calibration_prefs['outer_fill_color'],
                                                    lineColor=calibration_prefs['outer_line_color'],
@@ -189,7 +195,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                    
         self.calibrationPointINNER = visual.Circle(self.window,pos=(0,0),
                                                    lineWidth=calibration_prefs['inner_stroke_width'],
-                                                   radius=calibration_prefs['inner_diameter']/2.0,
+                                                   radius=old_div(calibration_prefs['inner_diameter'],2.0),
                                                     name='CP_INNER',
                                                    fillColor=calibration_prefs['inner_fill_color'],
                                                    lineColor=calibration_prefs['inner_line_color'],
@@ -216,12 +222,12 @@ class TobiiPsychopyCalibrationGraphics(object):
         # create Tobii eye position feedback graphics
         #
         sw,sh=self.screenSize
-        self.hbox_bar_length=hbox_bar_length=sw/4
+        self.hbox_bar_length=hbox_bar_length=old_div(sw,4)
         hbox_bar_height=6
         marker_diameter=7
         self.marker_heights=(-sh/2.0*.7,-sh/2.0*.75,-sh/2.0*.8,-sh/2.0*.7,-sh/2.0*.75,-sh/2.0*.8)
         
-        bar_vertices=[-hbox_bar_length/2,-hbox_bar_height/2],[hbox_bar_length/2,-hbox_bar_height/2],[hbox_bar_length/2,hbox_bar_height/2],[-hbox_bar_length/2,hbox_bar_height/2]
+        bar_vertices=[old_div(-hbox_bar_length,2),old_div(-hbox_bar_height,2)],[old_div(hbox_bar_length,2),old_div(-hbox_bar_height,2)],[old_div(hbox_bar_length,2),old_div(hbox_bar_height,2)],[old_div(-hbox_bar_length,2),old_div(hbox_bar_height,2)]
         
         self.feedback_resources=psychopy.iohub.OrderedDict()
                 
@@ -399,7 +405,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                     cal_data_dict[target_pos].append((left_eye_data,right_eye_data))
     
                 cal_stats=dict()
-                for (targ_x,targ_y),eye_cal_result_list in cal_data_dict.iteritems():
+                for (targ_x,targ_y),eye_cal_result_list in cal_data_dict.items():
                     left_stats=dict(pos_sample_count=0,invalid_sample_count=0,avg_err=0.0,min_err=100000.0,max_err=0.0)
                     right_stats=dict(pos_sample_count=0,invalid_sample_count=0,avg_err=0.0,min_err=100000.0,max_err=0.0)
                     
@@ -435,20 +441,20 @@ class TobiiPsychopyCalibrationGraphics(object):
                     if right_stats['invalid_sample_count']==0:
                         right_stats['valid_sample_percentage']=100.0
                     else:
-                        right_stats['valid_sample_percentage']=(1.0-right_stats['invalid_sample_count']/right_stats['pos_sample_count'])*100.0
+                        right_stats['valid_sample_percentage']=(1.0-old_div(right_stats['invalid_sample_count'],right_stats['pos_sample_count']))*100.0
                     
                     if left_stats['invalid_sample_count']==0:
                         left_stats['valid_sample_percentage']=100.0
                     else:
-                        left_stats['valid_sample_percentage']=(1.0-left_stats['invalid_sample_count']/left_stats['pos_sample_count'])*100.0
+                        left_stats['valid_sample_percentage']=(1.0-old_div(left_stats['invalid_sample_count'],left_stats['pos_sample_count']))*100.0
                  
                     if int(right_stats['pos_sample_count']-right_stats['invalid_sample_count'])>0:
-                        right_stats['avg_err']=right_stats['avg_err']/(right_stats['pos_sample_count']-right_stats['invalid_sample_count'])
+                        right_stats['avg_err']=old_div(right_stats['avg_err'],(right_stats['pos_sample_count']-right_stats['invalid_sample_count']))
                     else:
                         right_stats['avg_err']=-1.0
                         
                     if int(left_stats['pos_sample_count']-left_stats['invalid_sample_count'])>0:
-                        left_stats['avg_err']=left_stats['avg_err']/(left_stats['pos_sample_count']-left_stats['invalid_sample_count'])
+                        left_stats['avg_err']=old_div(left_stats['avg_err'],(left_stats['pos_sample_count']-left_stats['invalid_sample_count']))
                     else:
                         left_stats['avg_err']=-1.0
                    
@@ -497,14 +503,14 @@ class TobiiPsychopyCalibrationGraphics(object):
             
             for i,p in enumerate(eye_positions):
                 if p is not None:
-                    mpoint=hbox_bar_length*p-hbox_bar_length/2.0,marker_heights[i]
+                    mpoint=hbox_bar_length*p-old_div(hbox_bar_length,2.0),marker_heights[i]
                     self.feedback_resources[marker_names[i]].setPos(mpoint)
                     self.feedback_resources[marker_names[i]].setOpacity(1.0)
                 else:
                     self.feedback_resources[marker_names[i]].setOpacity(0.0)
     
             self.textLineStim.draw()
-            [r.draw() for r in self.feedback_resources.values()]
+            [r.draw() for r in list(self.feedback_resources.values())]
             self.window.flip()
                  
             msg=self.getNextMsg()
@@ -562,12 +568,12 @@ class TobiiPsychopyCalibrationGraphics(object):
         """
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
 
-        self.calibrationPointOUTER.radius = calibration_prefs['outer_diameter'] / 2.0
+        self.calibrationPointOUTER.radius = old_div(calibration_prefs['outer_diameter'], 2.0)
         self.calibrationPointOUTER.setLineColor(calibration_prefs['outer_line_color'])
         self.calibrationPointOUTER.setFillColor(calibration_prefs['outer_fill_color'])
         self.calibrationPointOUTER.lineWidth=int(calibration_prefs['outer_stroke_width'])
 
-        self.calibrationPointINNER.radius = calibration_prefs['inner_diameter'] / 2.0
+        self.calibrationPointINNER.radius = old_div(calibration_prefs['inner_diameter'], 2.0)
         self.calibrationPointINNER.setLineColor(calibration_prefs['inner_line_color'])
         self.calibrationPointINNER.setFillColor(calibration_prefs['inner_fill_color'])
         self.calibrationPointINNER.lineWidth=int(calibration_prefs['inner_stroke_width'])
@@ -580,11 +586,11 @@ class TobiiPsychopyCalibrationGraphics(object):
         sx,sy=start_pt
         ex,ey=end_pt
         dist = np.linalg.norm(end_pt-start_pt)
-        sec_dur=dist/TARG_VELOCITY
-        num_retraces=sec_dur/self._eyetrackerinterface._display_device.getRetraceInterval()
+        sec_dur=old_div(dist,TARG_VELOCITY)
+        num_retraces=old_div(sec_dur,self._eyetrackerinterface._display_device.getRetraceInterval())
         x_points=np.linspace(sx, ex, num=int(num_retraces))
         y_points=np.linspace(sy, ey, num=int(num_retraces))
-        t_points=zip(x_points,y_points)
+        t_points=list(zip(x_points,y_points))
         for p in t_points:
             self.calibrationPointOUTER.setPos(p)            
             self.calibrationPointINNER.setPos(p)                                    
@@ -595,7 +601,7 @@ class TobiiPsychopyCalibrationGraphics(object):
 
     def expandTarget(self,TARG_RAD_MULTIPLIER,EXPANSION_RATE):
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
-        orad=calibration_prefs['outer_diameter']/2.0
+        orad=old_div(calibration_prefs['outer_diameter'],2.0)
         self.calibrationPointOUTER.lineWidth=int(calibration_prefs['outer_stroke_width'])
         if self.calibrationPointOUTER.lineWidth<1:
             self.calibrationPointOUTER.lineWidth=1
@@ -623,7 +629,7 @@ class TobiiPsychopyCalibrationGraphics(object):
 
     def contractTarget(self,TARG_RAD_MULTIPLIER,EXPANSION_RATE):
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
-        orad=calibration_prefs['outer_diameter']/2.0
+        orad=old_div(calibration_prefs['outer_diameter'],2.0)
         self.calibrationPointOUTER.lineWidth=int(calibration_prefs['outer_stroke_width'])
         if self.calibrationPointOUTER.lineWidth<1:
             self.calibrationPointOUTER.lineWidth=1

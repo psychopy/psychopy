@@ -13,7 +13,9 @@ Distributed under the terms of the GNU General Public License
 contributors, please see credits section of documentation.
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from past.utils import old_div
 from .xinput_h import *
 from math import sqrt
 import ctypes,ctypes.wintypes
@@ -47,8 +49,8 @@ def normalizeThumbStickValues(X,Y,INPUT_DEADZONE):
 
     if magnitude != 0:
         #determine the direction the controller is pushed
-        normalizedX = X / magnitude;
-        normalizedY = Y / magnitude;
+        normalizedX = old_div(X, magnitude);
+        normalizedY = old_div(Y, magnitude);
 
     normalizedMagnitude = 0;
 
@@ -64,7 +66,7 @@ def normalizeThumbStickValues(X,Y,INPUT_DEADZONE):
 
         # normalize the magnitude with respect to its expected range
         # giving a magnitude value of 0.0 to 1.0
-        normalizedMagnitude = magnitude / (32767.0 - INPUT_DEADZONE)
+        normalizedMagnitude = old_div(magnitude, (32767.0 - INPUT_DEADZONE))
         
         return normalizedX,normalizedY,normalizedMagnitude
 

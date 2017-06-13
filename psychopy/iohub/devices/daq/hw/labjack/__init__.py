@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import next
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import numpy as N
 
@@ -36,7 +41,7 @@ class AnalogInput(AnalogInputDevice):
                 self._labjack = self._SUPPORTED_MODELS[self.model_name]()
                 self._calibration_data=self._labjack.getCalibrationData()
                 self._labjack.streamConfig( NumChannels = self.input_channel_count,
-                                           ChannelNumbers = range(self.input_channel_count),
+                                           ChannelNumbers = list(range(self.input_channel_count)),
                                            ChannelOptions = [ 0 ]*self.input_channel_count,
                                            SettlingFactor = self.settling_factor,
                                            ResolutionIndex = self.resolution_index,
@@ -52,7 +57,7 @@ class AnalogInput(AnalogInputDevice):
                 print2err("ERROR DURING LABJACK INIT")
                 printExceptionDetailsToStdErr()
         else:
-            print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(self._SUPPORTED_MODELS.keys()),))
+            print2err("AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter."%(self.model_name,str(list(self._SUPPORTED_MODELS.keys())),))
             raise ioDeviceError(self,"AnalogInput Model not supported: %s"%(self.model_name))
             sys.exit(0)
 
@@ -88,7 +93,7 @@ class AnalogInput(AnalogInputDevice):
         #=print2err ('ain_keys: ',analog_data.keys())
 
         str_proto='AIN%d'
-        channel_index_list=range(self.input_channel_count)
+        channel_index_list=list(range(self.input_channel_count))
         ain=[[],]*self.input_channel_count
         ain_counts=[0,]*self.input_channel_count
         for c in channel_index_list:
@@ -188,7 +193,7 @@ class AnalogInput(AnalogInputDevice):
             multi_channel_event=list(event)
 
             multi_channel_event[3]=Computer._getNextEventID()
-            multi_channel_event[5]=float(self._scan_count)/float(self.channel_sampling_rate) #device_time
+            multi_channel_event[5]=old_div(float(self._scan_count),float(self.channel_sampling_rate)) #device_time
             multi_channel_event[7]=multi_channel_event[5]+start_post+self.getDelayOffset() # iohub time
             multi_channel_event[9]=(logged_time-multi_channel_event[7])-self.getDelayOffset() #delay
 

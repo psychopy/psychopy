@@ -6,7 +6,10 @@
 
 """Functions and classes related to unit conversion respective to a particular
 monitor"""
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 from psychopy import monitors
 import numpy as np
 from numpy import array, sin, cos, tan, pi, radians, degrees, hypot
@@ -125,9 +128,9 @@ def cm2deg(cm, monitor, correctFlat=False):
         msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
         raise ValueError(msg % monitor.name)
     if correctFlat:
-        return np.degrees(np.arctan(cm / dist))
+        return np.degrees(np.arctan(old_div(cm, dist)))
     else:
-        return cm / (dist * 0.017455)
+        return old_div(cm, (dist * 0.017455))
 
 
 def deg2cm(degrees, monitor, correctFlat=False):

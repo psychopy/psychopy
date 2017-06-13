@@ -7,6 +7,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
+from past.builtins import basestring
 import os
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -105,7 +107,7 @@ class Aperture(MinimalStim, ContainerMixin):
             vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
-        elif type(shape) in [str, unicode]:
+        elif isinstance(shape, basestring):
             # is a string - see if it points to a file
             if os.path.isfile(shape):
                 self.__dict__['filename'] = shape
@@ -135,7 +137,7 @@ class Aperture(MinimalStim, ContainerMixin):
         wantLog = autoLog is None and self.win.autoLog
         self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
-            logging.exp("Created %s = %s" % (self.name, str(self)))
+            logging.exp("Created {} = {}".format(self.name, self))
 
     def _reset(self):
         """Internal method to rebuild the shape - shouldn't be called by

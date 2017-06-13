@@ -10,6 +10,9 @@
 
 from __future__ import absolute_import, print_function, division
 
+from builtins import map
+from builtins import str
+from builtins import object
 import os
 import copy
 import numpy
@@ -117,7 +120,7 @@ class ParamCtrls(object):
                                      size=wx.Size(sx, sy), style=0,
                                      prefs=appPrefs)
             if len(param.val):
-                self.valueCtrl.AddText(unicode(param.val))
+                self.valueCtrl.AddText(str(param.val))
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif fieldName == 'Experiment info':
@@ -132,7 +135,7 @@ class ParamCtrls(object):
                                      size=wx.Size(100, 100), style=0,
                                      prefs=appPrefs)
             if len(param.val):
-                self.valueCtrl.AddText(unicode(param.val))
+                self.valueCtrl.AddText(str(param.val))
             # code input fields: one day change these to wx.stc fields?
             # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
             #    style=wx.TE_MULTILINE,
@@ -175,7 +178,7 @@ class ParamCtrls(object):
             self.valueCtrl.SetSelection(index)
         else:
             # create the full set of ctrls
-            val = unicode(param.val)
+            val = str(param.val)
             self.valueCtrl = wx.TextCtrl(parent, -1, val, name=fieldName,
                                          size=wx.Size(self.valueWidth, -1))
             # set focus for these fields; seems to get reset elsewhere (?)
@@ -211,7 +214,7 @@ class ParamCtrls(object):
             # allowedUpdates = extend version of allowed updates that includes
             # "set during:static period"
             allowedUpdates = copy.copy(param.allowedUpdates)
-            for routineName, routine in self.exp.routines.items():
+            for routineName, routine in list(self.exp.routines.items()):
                 for static in routine.getStatics():
                     msg = _translate(
                         "set during: %(routineName)s.%(staticName)s")
@@ -330,7 +333,7 @@ class ParamCtrls(object):
         """
         expInfo = eval(expInfoStr)
         listOfDicts = []
-        for field, default in expInfo.items():
+        for field, default in list(expInfo.items()):
             listOfDicts.append({'Field': field, 'Default': default})
         return listOfDicts
 
@@ -546,16 +549,16 @@ class _BaseParamsDlg(wx.Dialog):
                                    style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         # the method to be used to interpret this start/stop
-        _choices = map(_translate, startTypeParam.allowedVals)
+        _choices = list(map(_translate, startTypeParam.allowedVals))
         self.startTypeCtrl = wx.Choice(parent, choices=_choices)
         self.startTypeCtrl.SetStringSelection(_translate(startTypeParam.val))
         self.startTypeCtrl.SetToolTipString(self.params['startType'].hint)
         # the value to be used as the start/stop
-        _start = unicode(startValParam.val)
+        _start = str(startValParam.val)
         self.startValCtrl = wx.TextCtrl(parent, -1, _start)
         self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
         # the value to estimate start/stop if not numeric
-        _est = unicode(self.params['startEstim'].val)
+        _est = str(self.params['startEstim'].val)
         self.startEstimCtrl = wx.TextCtrl(parent, -1, _est)
         self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
         # add the controls to a new line
@@ -588,15 +591,15 @@ class _BaseParamsDlg(wx.Dialog):
                                    style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         # the method to be used to interpret this start/stop
-        _choices = map(_translate, stopTypeParam.allowedVals)
+        _choices = list(map(_translate, stopTypeParam.allowedVals))
         self.stopTypeCtrl = wx.Choice(parent, choices=_choices)
         self.stopTypeCtrl.SetStringSelection(_translate(stopTypeParam.val))
         self.stopTypeCtrl.SetToolTipString(self.params['stopType'].hint)
         # the value to be used as the start/stop
-        self.stopValCtrl = wx.TextCtrl(parent, -1, unicode(stopValParam.val))
+        self.stopValCtrl = wx.TextCtrl(parent, -1, str(stopValParam.val))
         self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
         # the value to estimate start/stop if not numeric
-        _est = unicode(self.params['durationEstim'].val)
+        _est = str(self.params['durationEstim'].val)
         self.durationEstimCtrl = wx.TextCtrl(parent, -1, _est)
         _hnt = self.params['durationEstim'].hint
         self.durationEstimCtrl.SetToolTipString(_hnt)
@@ -1339,7 +1342,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             # annoying for novice)
             paramStr = "["
             for param in conditions[0]:
-                paramStr += (unicode(param) + ', ')
+                paramStr += (str(param) + ', ')
             paramStr = paramStr[:-2] + "]"  # remove final comma and add ]
             # generate summary info
             msg = _translate('%(nCondition)i conditions, with %(nParam)i '
@@ -1446,7 +1449,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditions, self.condNamesInFile = _c, _n
                 needUpdate = True
             except ImportError as msg:
-                msg = unicode(msg)
+                msg = str(msg)
                 if msg.startswith('Could not open'):
                     msg = _translate('Could not read conditions from:\n')
                     _file = newFullPath.split(os.path.sep)[-1]
@@ -1664,7 +1667,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             size = list(wx.Display(screenN).GetGeometry()[2:])
             # set vals and disable changes
             field = 'Window size (pixels)'
-            self.paramCtrls[field].valueCtrl.SetValue(unicode(size))
+            self.paramCtrls[field].valueCtrl.SetValue(str(size))
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()
         else:

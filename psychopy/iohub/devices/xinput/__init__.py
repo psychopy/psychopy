@@ -13,7 +13,10 @@ Distributed under the terms of the GNU General Public License
 contributors, please see credits section of documentation.
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 from . import xinput
 import numpy as N
 import gevent
@@ -154,7 +157,7 @@ class Gamepad(XInputDevice):
         """
         if gamepad_state is None:
             gamepad_state=self._device_state.Gamepad
-        return dict(time=self._state_time, confidence_interval=self._time_ci,left_trigger=gamepad_state.bLeftTrigger/255.0,right_trigger=gamepad_state.bRightTrigger/255.0)
+        return dict(time=self._state_time, confidence_interval=self._time_ci,left_trigger=old_div(gamepad_state.bLeftTrigger,255.0),right_trigger=old_div(gamepad_state.bRightTrigger,255.0))
 
     def getPressedButtons(self):
         return self._device_state.Gamepad.wButtons
@@ -171,7 +174,7 @@ class Gamepad(XInputDevice):
         """
         bdict=self._getButtonNameList(self._device_state.Gamepad.wButtons)
         blist=[]
-        for k,v in bdict.iteritems():
+        for k,v in bdict.items():
             if v:
                 blist.append(k)
         return blist
@@ -211,8 +214,8 @@ class Gamepad(XInputDevice):
         Returns:
             tuple: (low_frequency, high_frequency) rumble motor stats on devices that support vibration / rumble settings. Each value is returned as a percentage between 0.0 and 100.0.
         """
-        NormalizedLowFrequencyValue= 100.0*(self._rumble.wLeftMotorSpeed/65535.0)
-        NormalizedHighFrequencyValue= 100.0*(self._rumble.wRightMotorSpeed/65535.0)
+        NormalizedLowFrequencyValue= 100.0*(old_div(self._rumble.wLeftMotorSpeed,65535.0))
+        NormalizedHighFrequencyValue= 100.0*(old_div(self._rumble.wRightMotorSpeed,65535.0))
         return NormalizedLowFrequencyValue, NormalizedHighFrequencyValue
 
     def setRumble(self,lowFrequencyValue=0,highFrequencyValue=0,duration=1.0):
@@ -246,8 +249,8 @@ class Gamepad(XInputDevice):
         Returns:
             (float,float): (command_return_time, command_call_duration), where command_return_time is the sec.msec time that the call to the native device to update vibration setting returned to the ioHub process, and command_call_duration is the sec.msec time taken for the native device call to return to the ioHub process.
         """
-        DeNormalizedLowFrequencyValue= int(65535.0*(lowFrequencyValue/100.0))
-        DeNormalizedHighFrequencyValue= int(65535.0*(highFrequencyValue/100.0))
+        DeNormalizedLowFrequencyValue= int(65535.0*(old_div(lowFrequencyValue,100.0)))
+        DeNormalizedHighFrequencyValue= int(65535.0*(old_div(highFrequencyValue,100.0)))
 
         if DeNormalizedLowFrequencyValue < 0:
             self._rumble.wLeftMotorSpeed=0
@@ -364,7 +367,7 @@ class Gamepad(XInputDevice):
 
         g=self._capabilities.Gamepad
         b=g.wButtons
-        capabilities_dict['supported_buttons']=[k for k,v in self._getButtonNameList(b).iteritems() if v is True]
+        capabilities_dict['supported_buttons']=[k for k,v in self._getButtonNameList(b).items() if v is True]
 
 
         capabilities_dict['left_trigger_support']=g.bLeftTrigger==255
@@ -438,7 +441,7 @@ class Gamepad(XInputDevice):
                 self._time_ci=t2-t
                 self._device_state_buffer=temp
 
-                delay=(t-self._last_poll_time)/2.0 # assuming normal distribution, on average delay will be 1/2 the
+                delay=old_div((t-self._last_poll_time),2.0) # assuming normal distribution, on average delay will be 1/2 the
                                                  # inter poll interval
                 buttons=0
                 if len(changed.get('Buttons',[])) > 0:
@@ -472,7 +475,7 @@ class Gamepad(XInputDevice):
             self._time_ci=t2-t
             self._device_state_buffer=temp
 
-            delay=(t-self._last_poll_time)/2.0 # assuming normal distribution, on average delay will be 1/2 the
+            delay=old_div((t-self._last_poll_time),2.0) # assuming normal distribution, on average delay will be 1/2 the
                                              # inter poll interval
             gpe= [
                 0,                                      # experiment_id filled in by ioHub
@@ -526,9 +529,9 @@ class Gamepad(XInputDevice):
 
 
         if g1.bLeftTrigger!=g2.bLeftTrigger:
-            changed['LeftTrigger']=g2.bLeftTrigger/255.0
+            changed['LeftTrigger']=old_div(g2.bLeftTrigger,255.0)
         if g1.bRightTrigger!=g2.bRightTrigger:
-            changed['RightTrigger']=g2.bRightTrigger/255.0
+            changed['RightTrigger']=old_div(g2.bRightTrigger,255.0)
 
 
         if g1.sThumbLX!=g2.sThumbLX or g1.sThumbLY!=g2.sThumbLY:

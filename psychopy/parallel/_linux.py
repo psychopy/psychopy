@@ -11,6 +11,7 @@ from __future__ import print_function
 # We duck-type the parallel port objects
 
 
+from builtins import object
 class PParallelLinux(object):
     """This class provides read/write access to the parallel port for linux
     using pyparallel.

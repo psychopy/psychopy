@@ -9,6 +9,7 @@
 """
 
 from __future__ import (absolute_import, print_function, division)
+from builtins import str
 
 import keyword
 import re
@@ -65,7 +66,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.nameLabel = wx.StaticText(self, wx.ID_ANY, param.label)
                 _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
                 self.componentName = wx.TextCtrl(self, wx.ID_ANY,
-                                                 unicode(param.val),
+                                                 str(param.val),
                                                  style=_style)
                 self.componentName.SetToolTipString(param.hint)
                 self.componentName.SetValidator(validators.NameValidator())
@@ -84,7 +85,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                      style=0,
                                                      prefs=self.app.prefs))
                 if len(param.val):
-                    _codeBox.AddText(unicode(param.val))
+                    _codeBox.AddText(str(param.val))
                 if len(param.val.strip()) and not openToPage:
                     # index of first non-blank page
                     openToPage = idx

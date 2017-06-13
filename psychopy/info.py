@@ -11,7 +11,10 @@ the context in which an experiment was run.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 import sys
 import os
 import platform
@@ -565,8 +568,8 @@ class RunTimeInfo(dict):
                     'System', 'Window', 'Python', 'OpenGL']
         for sect in sections:
             info += '  #[[ %s ]] #---------\n' % (sect)
-            sectKeys = [k for k in self.keys(
-            ) if k.lower().find(sect.lower()) == 0]
+            sectKeys = [k for k in list(self.keys(
+            )) if k.lower().find(sect.lower()) == 0]
             # get keys for items matching this section label;
             #  use reverse-alpha order if easier to read:
             revSet = ('PsychoPy', 'Window', 'Python', 'OpenGL')
@@ -764,7 +767,7 @@ def getRAM():
     """Return system's physical RAM & available RAM, in M.
     """
     totalRAM, available = psutil.virtual_memory()[0:2]
-    return totalRAM / 1048576., available / 1048576.
+    return old_div(totalRAM, 1048576.), old_div(available, 1048576.)
 
 # faster to get the current process only once:
 _thisProcess = psutil.Process()
@@ -773,4 +776,4 @@ _thisProcess = psutil.Process()
 def getMemoryUsage():
     """Get the memory (RAM) currently used by this Python process, in M.
     """
-    return _thisProcess.memory_info()[0] / 1048576.
+    return old_div(_thisProcess.memory_info()[0], 1048576.)

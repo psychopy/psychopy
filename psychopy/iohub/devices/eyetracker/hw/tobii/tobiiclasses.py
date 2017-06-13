@@ -11,7 +11,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 from __future__ import print_function
 
-import Queue
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import queue
 import exceptions
 import time
 import collections
@@ -54,7 +58,7 @@ except Exception:
 
 class BrowserEvent(object):
     _event_types=dict(BROWSER_EVENT=0,TRACKER_FOUND=1,TRACKER_UPDATE=2,TRACKER_REMOVED=3)
-    _event_types.update([(v,k) for k,v in _event_types.iteritems()])
+    _event_types.update([(v,k) for k,v in _event_types.items()])
     event_type=_event_types['BROWSER_EVENT']
     def __init__(self,tobii_event_type, tracker_info):
         self._tobii_event_type=tobii_event_type
@@ -77,7 +81,7 @@ class TrackerRemovedEvent(BrowserEvent):
 
 class EyeTrackerEvent(object):
     _event_types=dict(TRACKER_EVENT=0,EYE_TRACKER_CREATED=1)
-    _event_types.update([(v,k) for k,v in _event_types.iteritems()])
+    _event_types.update([(v,k) for k,v in _event_types.items()])
     event_type=_event_types['TRACKER_EVENT']
     def __init__(self,tracker_object):
         self.tracker_object=tracker_object
@@ -108,7 +112,7 @@ class TobiiTrackerBrowser(object):
             TobiiPy.init()
             TobiiTrackerBrowser._mainloop = TobiiPyMainloopThread()
             TobiiTrackerBrowser._mainloop.start()
-            TobiiTrackerBrowser._event_queue=Queue.Queue()
+            TobiiTrackerBrowser._event_queue=queue.Queue()
             TobiiTrackerBrowser._browser = TobiiPyEyetrackerBrowser(TobiiTrackerBrowser._mainloop, TobiiTrackerBrowser.on_eyetracker_browser_event)
             cls._active=True
             
@@ -128,7 +132,7 @@ class TobiiTrackerBrowser(object):
                 while e!=None:
                     try:            
                         e=TobiiTrackerBrowser.getNextEvent()
-                    except Queue.Empty:
+                    except queue.Empty:
                         pass
     
             TobiiTrackerBrowser._browser = None
@@ -187,7 +191,7 @@ class TobiiTrackerBrowser(object):
         
     @classmethod
     def getDetectedTrackerList(cls):
-        return [t for t in TobiiTrackerBrowser._detectedTrackers.values()]
+        return [t for t in list(TobiiTrackerBrowser._detectedTrackers.values())]
 
 
     @classmethod
@@ -220,7 +224,7 @@ class TobiiTrackerBrowser(object):
                     tracker_info=tb_event.tracker_info
                     if TobiiTrackerBrowser._checkForMatch(tracker_info,model,product_id) is True:
                         return tracker_info
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
 
@@ -274,7 +278,7 @@ class TobiiTracker(object):
                 self._mainloop = TobiiPyMainloopThread()
                 self._mainloop.start()
 
-        self._queue=Queue.Queue()
+        self._queue=queue.Queue()
         
         TobiiPyEyeTracker.create_async(self._mainloop,self._eyetracker_info,self.on_eyetracker_created)
     
@@ -295,7 +299,7 @@ class TobiiTracker(object):
                     
                     break
                 self._queue.task_done()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
                 
         if self._eyetracker is None:
@@ -633,7 +637,7 @@ if __name__ == '__main__':
     if tracker_info:
         print("Success: ",tracker_info)
         print('\tDetails:')
-        for k,v in TobiiTrackerBrowser.getTrackerDetails(tracker_info.product_id).iteritems():
+        for k,v in TobiiTrackerBrowser.getTrackerDetails(tracker_info.product_id).items():
             print('\t',k,':',v)
     else:
         print('ERROR: No Tracker Found.')
@@ -672,7 +676,7 @@ if __name__ == '__main__':
     tobii_tracker=TobiiTracker()
     print("\tCreated a Connected Tobii Tracker OK.")
     print("\tDetails:")
-    for k,v in tobii_tracker.getTrackerDetails().iteritems():
+    for k,v in tobii_tracker.getTrackerDetails().items():
         print("\t\t{0}  {1}".format(k,v))
     
     print('')

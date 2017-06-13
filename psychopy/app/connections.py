@@ -3,7 +3,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import object
+from past.builtins import basestring
 import sys
 import re
 import glob
@@ -419,8 +422,8 @@ class InstallUpdateDialog(wx.Dialog):
             self.progressBar.SetValue(read)
             txt = _translate(
                 "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip")
-            msg = txt % {'done': read / 1000,
-                         'total': fileSize / 1000, 'version': v}
+            msg = txt % {'done': read // 1000,
+                         'total': fileSize // 1000, 'version': v}
             self.statusMessage.SetLabel(msg)
             self.Update()
         info += _translate('Successfully downloaded PsychoPy-%s.zip') % v
@@ -434,10 +437,7 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        if py3:
-            zfileIsName = type(zfile) == str
-        else:
-            zfileIsName = type(zfile) in (str, unicode)
+        zfileIsName = isinstance(zfile, basestring)
         if os.path.isfile(zfile) and zfileIsName:
             # zfile is filename not an actual file
             if v is None:  # try and deduce it

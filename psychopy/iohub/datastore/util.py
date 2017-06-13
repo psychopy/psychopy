@@ -11,6 +11,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 from __future__ import print_function
 
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from past.builtins import basestring
+from builtins import object
 from tables import *
 import os
 from collections import namedtuple
@@ -59,14 +64,14 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
     if not infoDlg.OK:
         return None
 
-    while dlg_info.values()[0] ==default and infoDlg.OK:
+    while list(dlg_info.values())[0] ==default and infoDlg.OK:
             dlg_info=dict(selection_dict)
             infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
 
     if not infoDlg.OK:
         return None
 
-    return dlg_info.values()[0]
+    return list(dlg_info.values())[0]
 ########### Experiment / Experiment Session Based Data Access #################
 
 class ExperimentDataAccessUtility(object):
@@ -227,7 +232,7 @@ class ExperimentDataAccessUtility(object):
                         event_value+=t[0].upper()+t[1:].lower()
                     event_value=event_type+'Event'
                 event_value='"%s"'%(event_value)
-            elif isinstance(event_type,(int,long)):
+            elif isinstance(event_type,(int,int)):
                 event_column='class_id'
                 event_value=event_type
             else:
@@ -267,7 +272,7 @@ class ExperimentDataAccessUtility(object):
         eventTableMappings=self.getEventMappingInformation()
         if eventTableMappings:
             events_by_type=dict()
-            for event_type_id,event_mapping_info in eventTableMappings.iteritems():
+            for event_type_id,event_mapping_info in eventTableMappings.items():
                 try:
                     cond="(type == %d)"%(event_type_id)
                     if condition_str:
@@ -301,7 +306,7 @@ class ExperimentDataAccessUtility(object):
 
         ConditionSetInstance=None
 
-        for conditionVarName, conditionVarComparitor in filter.iteritems():
+        for conditionVarName, conditionVarComparitor in filter.items():
             avComparison, value = conditionVarComparitor
 
             cv_group=self.hdfFile.root.data_collection.condition_variables
@@ -314,7 +319,7 @@ class ExperimentDataAccessUtility(object):
                     colnam=ecvTable.colnames
                     ConditionSetInstance = namedtuple('ConditionSetInstance', colnam)
 
-                cvrows.extend([ConditionSetInstance(*r[:]) for r in ecvTable if all([eval("{0} {1} {2}".format(r[conditionVarName],conditionVarComparitor[0],conditionVarComparitor[1])) for conditionVarName, conditionVarComparitor in filter.iteritems()])])
+                cvrows.extend([ConditionSetInstance(*r[:]) for r in ecvTable if all([eval("{0} {1} {2}".format(r[conditionVarName],conditionVarComparitor[0],conditionVarComparitor[1])) for conditionVarName, conditionVarComparitor in filter.items()])])
         return cvrows
 
     def getValuesForVariables(self,cv, value, cvNames):
@@ -431,7 +436,7 @@ class ExperimentDataAccessUtility(object):
                     # start Conditions need to be added to where clause
                     if startConditions is not None:
                         wclause += "& ("
-                        for conditionAttributeName, conditionAttributeComparitor in startConditions.iteritems():
+                        for conditionAttributeName, conditionAttributeComparitor in startConditions.items():
                             avComparison,value=conditionAttributeComparitor
                             value=self.getValuesForVariables(cv,value, cvNames)
                             wclause += " ( {0} {1} {2} ) & ".format(conditionAttributeName,avComparison,value)
@@ -441,7 +446,7 @@ class ExperimentDataAccessUtility(object):
                     # end Conditions need to be added to where clause
                     if endConditions is not None:
                         wclause += " & ("
-                        for conditionAttributeName, conditionAttributeComparitor in endConditions.iteritems():
+                        for conditionAttributeName, conditionAttributeComparitor in endConditions.items():
                             avComparison,value=conditionAttributeComparitor
                             value=self.getValuesForVariables(cv,value, cvNames)
                             wclause += " ( {0} {1} {2} ) & ".format(conditionAttributeName,avComparison,value)

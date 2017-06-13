@@ -11,7 +11,14 @@ A typical user should start with their device's module, such as u3.py.
 from __future__ import with_statement
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import hex
+from builtins import str
+from builtins import chr
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import collections
 import ctypes
 import os
@@ -230,10 +237,10 @@ class Device(object):
                 dataWords = len(writeBuffer)
                 writeBuffer = [0, 0xF8, 0, 0x07, 0, 0] + writeBuffer #modbus low-level function
                 if dataWords % 2 != 0:
-                    dataWords = (dataWords+1)/2
+                    dataWords = old_div((dataWords+1),2)
                     writeBuffer.append(0)
                 else:
-                    dataWords = dataWords/2
+                    dataWords = old_div(dataWords,2)
                 writeBuffer[2] = dataWords
                 setChecksum(writeBuffer)
             elif modbus is True and self.modbusPrependZeros:
@@ -614,7 +621,7 @@ class Device(object):
                     
 
     def _loadChangedIntoSelf(self, d):
-        for key, value in d.changed.items():
+        for key, value in list(d.changed.items()):
             self.__setattr__(key, value)
             
     def _registerAtExitClose(self):
@@ -942,7 +949,7 @@ class Device(object):
             bl = bl + [0x00]
             strLen += 1
         
-        bl = struct.unpack(">"+"H"*(strLen/2), struct.pack("B" * strLen, *bl))
+        bl = struct.unpack(">"+"H"*(old_div(strLen,2)), struct.pack("B" * strLen, *bl))
         
         self.writeRegister(58000, list(bl))
 
@@ -979,7 +986,7 @@ class Device(object):
     def setToFactoryDefaults(self):
         return self.setDefaults(SetToFactoryDefaults = True)
     
-    validDefaultBlocks = range(8)
+    validDefaultBlocks = list(range(8))
     def readDefaults(self, BlockNum, ReadCurrent = False):
         """
         Name: Device.readDefaults(BlockNum)
@@ -1202,7 +1209,7 @@ def listAll(deviceType, connectionType = 1):
         
         deviceList = dict()
     
-        for i in xrange(pNumFound.value):
+        for i in range(pNumFound.value):
             if pSerialNumbers[i] != 1010:
                 deviceValue = dict(localId = pIDs[i], serialNumber = pSerialNumbers[i], ipAddress = DoubleToStringAddress(pAddresses[i]), devType = deviceType)
                 deviceList[pSerialNumbers[i]] = deviceValue
@@ -1282,7 +1289,7 @@ def openAllLabJacks():
         devs[0x501] = listAll(0x501)
         
         devices = list()
-        for prodId, numConnected in devs.items():
+        for prodId, numConnected in list(devs.items()):
             for i, serial in enumerate(numConnected.keys()):
                 d = Device(None, devType = prodId)
                 if prodId == 0x501:
@@ -1323,7 +1330,7 @@ def _openLabJackUsingLJSocket(deviceType, firstFound, pAddress, LJSocket, handle
 def _openLabJackUsingUDDriver(deviceType, connectionType, firstFound, pAddress, devNumber ):
     if devNumber is not None:
         devs = listAll(deviceType)
-        pAddress = devs.keys()[(devNumber-1)]
+        pAddress = list(devs.keys())[(devNumber-1)]
     
     handle = ctypes.c_long()
     pAddress = str(pAddress)
@@ -2731,7 +2738,7 @@ def __listAllUE9Unix(connectionType):
     if connectionType == LJ_ctUSB:
         numDevices = staticLib.LJUSB_GetDevCount(LJ_dtUE9)
     
-        for i in xrange(numDevices):
+        for i in range(numDevices):
             try:
                 device = openLabJack(LJ_dtUE9, 1, firstFound = False, devNumber = i+1)
                 device.close()
@@ -2800,7 +2807,7 @@ def __listAllU3Unix():
     deviceList = {}
     numDevices = staticLib.LJUSB_GetDevCount(LJ_dtU3)
 
-    for i in xrange(numDevices):
+    for i in range(numDevices):
         try:
             device = openLabJack(LJ_dtU3, 1, firstFound = False, devNumber = i+1)
             device.close()
@@ -2818,7 +2825,7 @@ def __listAllU6Unix():
     deviceList = {}
     numDevices = staticLib.LJUSB_GetDevCount(LJ_dtU6)
 
-    for i in xrange(numDevices):
+    for i in range(numDevices):
         try:
             device = openLabJack(LJ_dtU6, 1, firstFound = False, devNumber = i+1)
             device.close()
@@ -2834,7 +2841,7 @@ def __listAllBridgesUnix():
     deviceList = {}
     numDevices = staticLib.LJUSB_GetDevCount(0x501)
 
-    for i in xrange(numDevices):
+    for i in range(numDevices):
         try:
             device = openLabJack(0x501, 1, firstFound = False, devNumber = i+1)
             device.close()
@@ -3016,7 +3023,7 @@ def toDouble(bytes):
     """
     right, left = struct.unpack("<Ii", struct.pack("B" * 8, *bytes[0:8]))
     
-    return float(left) + float(right)/(2**32)
+    return float(left) + old_div(float(right),(2**32))
     
 def hexWithoutQuotes(l):
     """ Return a string listing hex without all the single quotes.

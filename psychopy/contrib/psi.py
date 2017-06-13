@@ -14,6 +14,8 @@
 
 from __future__ import division
 
+from builtins import range
+from builtins import object
 __all__ = ['PsiObject']
 
 import math
@@ -40,7 +42,7 @@ class PsiObject(object):
             raise RuntimeError('Invalid step type. Unable to initialize PsiObject.')
         self.alpha = linspace(alpha[0], alpha[1], round((alpha[1]-alpha[0])/aPrecision)+1, True)
         self.beta = linspace(beta[0], beta[1], round((beta[1]-beta[0])/bPrecision)+1, True)
-        self.r = array(range(2))
+        self.r = array(list(range(2)))
         self.delta = delta
         
         # Change x,a,b,r arrays to matrix computation compatible orthogonal 4D arrays

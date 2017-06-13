@@ -3,6 +3,7 @@
 """Stimulus class for drawing radial stimuli.
 """
 from __future__ import absolute_import
+from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -12,6 +13,8 @@ from __future__ import absolute_import
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
+from builtins import str
+from past.utils import old_div
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -171,7 +174,7 @@ class RadialStim(GratingStim):
         fromFile = 0
         self.__dict__['mask'] = value
         res = self.texRes  # resolution of texture - 128 is bearable
-        step = 1.0 / res
+        step = old_div(1.0, res)
         rad = numpy.arange(0, 1 + step, step)
         if type(self.mask) == numpy.ndarray:
             # handle a numpy array
@@ -186,11 +189,11 @@ class RadialStim(GratingStim):
         elif self.mask == "gauss":
             # Set SD if specified
             if self.maskParams is None:
-                sigma = 1.0 / 3
+                sigma = old_div(1.0, 3)
             else:
-                sigma = 1.0 / self.maskParams['sd']
+                sigma = old_div(1.0, self.maskParams['sd'])
             # 3sd.s by the edge of the stimulus
-            intensity = 255.0 * numpy.exp(-rad**2.0 / (2.0 * sigma**2.0))
+            intensity = 255.0 * numpy.exp(old_div(-rad**2.0, (2.0 * sigma**2.0)))
         elif self.mask == "radRamp":  # a radial ramp
             intensity = 255.0 - 255.0 * rad
             # half wave rectify:
@@ -332,7 +335,7 @@ class RadialStim(GratingStim):
         visW = self.visibleWedge
         self._visible = (self._angles >= visW[0] * pi / 180)
         # second edge of wedge:
-        edge2 = (self._angles + self._triangleWidth) * (180 / pi) > visW[1]
+        edge2 = (self._angles + self._triangleWidth) * (old_div(180, pi)) > visW[1]
         self._visible[edge2] = False
         self._nVisible = numpy.sum(self._visible) * 3
 
@@ -475,7 +478,7 @@ class RadialStim(GratingStim):
         self._textureCoords = numpy.zeros([self.angularRes, 3, 2])
         # x position of inner vertex
         self._textureCoords[:, 0, 0] = (
-            (self._angles + self._triangleWidth / 2) *
+            (self._angles + old_div(self._triangleWidth, 2)) *
             self.angularCycles / pi2 + self.angularPhase)
         # y position of inner vertex
         self._textureCoords[:, 0, 1] = 0.25 - self.radialPhase

@@ -11,6 +11,7 @@ key lines: 29, 50, 61: mic = microphone.AdvAudioCapture(), mic.record(), mic.get
 from __future__ import division
 from __future__ import print_function
 
+from builtins import range
 from psychopy import microphone, sound, core, visual, event
 from matplotlib import pyplot
 import numpy as np
@@ -80,7 +81,7 @@ for i in range(10):
         msg2.draw()
         win.flip()
         data, sampleRate = microphone.readWavFile(filename)
-        plotYX(data, range(len(data)), "time domain @ %iHz" % sampleRate)
+        plotYX(data, list(range(len(data))), "time domain @ %iHz" % sampleRate)
         mag, freqV = microphone.getDft(data, sampleRate)
         plotYX(mag, freqV, "frequency domain (marker at %i Hz)" % mic.getMarkerInfo()[0])
 

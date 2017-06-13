@@ -1,3 +1,4 @@
+from past.builtins import basestring
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb  # pylint: disable=W0611
 import numpy
 
@@ -28,7 +29,7 @@ def isValidColor(color):
         return True
     except Exception:
         if isinstance(color, basestring) and len(color):
-            return (color.lower() in colors255.keys()
+            return (color.lower() in list(colors255.keys())
                     or color[0] == '#' or color[0:2] == '0x')
         return type(color) in [tuple, list, numpy.ndarray] or not color
 

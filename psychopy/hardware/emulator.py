@@ -7,6 +7,8 @@ Limitations: pyglet only; keyboard events only.
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
+from builtins import range
 __author__ = 'Jeremy Gray'
 
 import threading
@@ -240,7 +242,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     except ValueError:
         msg = "wait_timeout must be number-like, but instead it was %s."
         raise ValueError(msg % str(wait_timeout))
-    settings['sync'] = unicode(settings['sync'])
+    settings['sync'] = str(settings['sync'])
     settings['TR'] = float(settings['TR'])
     settings['volumes'] = int(settings['volumes'])
     settings['skip'] = int(settings['skip'])

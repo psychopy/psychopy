@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
+
 """
 ioHub
 .. file: iohub/util/targetpositionsequence.py
@@ -30,6 +30,13 @@ To use this module, the following high level steps are generally preformed:
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from builtins import next
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+
 from ... import visual, core
 from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger, OrderedDict
 from ..constants import EventConstants
@@ -376,7 +383,7 @@ class PositionGrid(object):
     def __next__(self):
         return next(self)
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next position in the list. Usually this method is not
         called directly. Instead, positions are accessed by iterating over
@@ -433,25 +440,25 @@ class TargetPosSequenceStim(object):
     #
     message_types=dict(
         # position_count
-        BEGIN_SEQUENCE = ("BEGIN_SEQUENCE", '', int),        
+        BEGIN_SEQUENCE = ("BEGIN_SEQUENCE", '', int),
         # position_count
-        DONE_SEQUENCE = ("DONE_SEQUENCE", '', int),        
+        DONE_SEQUENCE = ("DONE_SEQUENCE", '', int),
         # event_type_id event_time
         NEXT_POS_TRIG = ("NEXT_POS_TRIG", '', int,float),
-        # position_count from_x,from_y to_x,to_y         
+        # position_count from_x,from_y to_x,to_y
         START_DRAW = ("START_DRAW", ',', int, float, float, float, float),
-        # position_count from_x,from_y to_x,to_y         
-        SYNCTIME = ("SYNCTIME", ',', int, float, float, float, float),        
-        # current_radius original_radius         
+        # position_count from_x,from_y to_x,to_y
+        SYNCTIME = ("SYNCTIME", ',', int, float, float, float, float),
+        # current_radius original_radius
         EXPAND_SIZE = ("EXPAND_SIZE", '', float, float),
-        # current_radius original_radius         
+        # current_radius original_radius
         CONTRACT_SIZE = ("CONTRACT_SIZE", '', float, float),
-        # current_x,current_y         
+        # current_x,current_y
         POS_UPDATE = ("POS_UPDATE", ',', float, float),
-        # final_x,final_y         
+        # final_x,final_y
         TARGET_POS = ("TARGET_POS", ',', float, float)
-        )    
-    max_msg_type_length=max([len(s) for s in message_types.keys()])
+        )
+    max_msg_type_length=max([len(s) for s in list(message_types.keys())])
 
     binocular_sample_message_element=[
                     ('targ_pos_ix',np.int),
@@ -471,7 +478,7 @@ class TargetPosSequenceStim(object):
                     ('right_eye_y',np.float32),
                     ('right_pupil_size',np.float32)
                    ]
-                   
+
     monocular_sample_message_element=[
                     ('targ_pos_ix',np.int),
                     ('last_msg_time',np.float32),
@@ -487,7 +494,7 @@ class TargetPosSequenceStim(object):
                     ('eye_y',np.float32),
                     ('pupil_size',np.float32)
                    ]
-                           
+
     def __init__(self,
                  win,
                  target,            # The TargetStim instance to use.
@@ -514,7 +521,7 @@ class TargetPosSequenceStim(object):
         self.positions = positions
         self.storeevents=storeeventsfor
         self.msgcategory=msgcategory
-        
+
         if io is None:
             io=ioHubConnection.getActiveConnection()
         self.io=io
@@ -551,7 +558,7 @@ class TargetPosSequenceStim(object):
             else:
                 # Assume triggers is a list of Trigger objects
                 self.triggers = triggers
-        elif isinstance(triggers, (int, float, long)):
+        elif isinstance(triggers, (int, float, int)):
             # triggers is a number, so assume a TimeTrigger is wanted where
             # the delay == triggers. start time will be the fliptime of the
             # last update for drawing to the new target position.
@@ -674,13 +681,13 @@ class TargetPosSequenceStim(object):
         if frompos is not None:
             fpx, fpy = frompos[0], frompos[1]
         io.sendMessageEvent("START_DRAW %d %.2f,%.2f %.2f,%.2f"%(
-            self.positions.posIndex, fpx, fpy, 
+            self.positions.posIndex, fpx, fpy,
             topos[0], topos[1]), self.msgcategory)
 
         fliptime=self._animateTarget(topos, frompos, **kwargs)
 
         io.sendMessageEvent("SYNCTIME %d %.2f,%.2f %.2f,%.2f"%(
-            self.positions.posIndex, fpx, fpy, 
+            self.positions.posIndex, fpx, fpy,
             topos[0], topos[1]), self.msgcategory, sec_time=fliptime)
 
         # wait for trigger to fire
@@ -690,7 +697,7 @@ class TargetPosSequenceStim(object):
                 win32MessagePump()
                 last_pump_time = getTime()
             sleep(0.001)
-            
+
     def _hasTriggerFired(self, **kwargs):
         """
         Used internally to know when one of the triggers has occurred and the
@@ -737,7 +744,7 @@ class TargetPosSequenceStim(object):
 
     def _addDeviceEvents(self, device_event_dict={}):
         dev_event_buffer = self.targetdata[-1]['events']
-        for dev, dev_events in dev_event_buffer.iteritems():
+        for dev, dev_events in dev_event_buffer.items():
             if dev in device_event_dict:
                 dev_events.extend(device_event_dict[dev])
             else:
@@ -811,7 +818,7 @@ class TargetPosSequenceStim(object):
         """
         del self.targetdata[:]
         prevpos = None
-        
+
         io = self.getIO()
         io.clearEvents('all')
         io.sendMessageEvent("BEGIN_SEQUENCE {0}".format(len(self.positions.positions)),
@@ -822,9 +829,9 @@ class TargetPosSequenceStim(object):
                 d.enableEventReporting(True)
                 turn_rec_off.append(d)
 
-        sleep(0.025)                
+        sleep(0.025)
         for pos in self.positions:
-            self._initTargetData(prevpos,pos)        
+            self._initTargetData(prevpos,pos)
             self._addDeviceEvents()
             self.moveTo(pos, prevpos, **kwargs)
             prevpos = pos
@@ -835,34 +842,34 @@ class TargetPosSequenceStim(object):
 
         io.sendMessageEvent("DONE_SEQUENCE {0}".format(len(self.positions.positions)),
                             self.msgcategory)
-        sleep(0.025)        
+        sleep(0.025)
         self._addDeviceEvents()
-        io.clearEvents('all')        
+        io.clearEvents('all')
 
     def _processMessageEvents(self):
-        self.target_pos_msgs=[]   
+        self.target_pos_msgs=[]
         self.saved_pos_samples=[]
         for pd in self.targetdata:
             frompos=pd.get('frompos')
             topos=pd.get('topos')
             events=pd.get('events')
-            
+
             # create a dict of device labels as keys, device events as value
             devlabel_events={}
-            for k,v in events.iteritems():
+            for k,v in events.items():
                 devlabel_events[k.getName()]=v
-            
+
             samples = devlabel_events.get('tracker',[])
             # remove any eyetracker events that are not samples
             samples = [s for s in samples if s.type in (EventConstants.BINOCULAR_EYE_SAMPLE,EventConstants.MONOCULAR_EYE_SAMPLE)]
             self.saved_pos_samples.append(samples)
 
-            self.sample_type= self.saved_pos_samples[0][0].type  
+            self.sample_type= self.saved_pos_samples[0][0].type
             if  self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
                 self.sample_msg_dtype=self.binocular_sample_message_element
             else:
                 self.sample_msg_dtype=self.monocular_sample_message_element
- 
+
             messages = devlabel_events.get('experiment',[])
             msg_lists=[]
             for m in messages:
@@ -870,44 +877,44 @@ class TargetPosSequenceStim(object):
                 msg_type= self.message_types.get(temp[0])
                 if msg_type:
                     current_msg = [m.time,m.category]
-                    if msg_type[1]==',':                                                
+                    if msg_type[1]==',':
                         for t in temp:
-                            current_msg.extend(t.split(',')) 
+                            current_msg.extend(t.split(','))
                     else:
                         current_msg.extend(temp)
 
                     for mi,dtype in enumerate(msg_type[2:]):
                         current_msg[mi+3]=dtype(current_msg[mi+3])
-                        
+
                     msg_lists.append(current_msg)
-            
+
             if msg_lists[0][2] == 'NEXT_POS_TRIG':
                 # handle case where the trigger msg from the previous target
                 # message was not read until the start of the next pos.
                 # In which case, move msg to end of previous targ pos msgs
                 npm=msg_lists.pop(0)
                 self.target_pos_msgs[-1].append(npm)
-               
+
             self.target_pos_msgs.append(msg_lists)
-        
-        for i in range(len( self.target_pos_msgs)):        
+
+        for i in range(len( self.target_pos_msgs)):
             self.target_pos_msgs[i]=np.asarray(self.target_pos_msgs[i])
-  
-        return self.target_pos_msgs  
-        
+
+        return self.target_pos_msgs
+
     def getSampleMessageData(self):
         """
         Return a list of numpy ndarrays, each containing joined eye sample
         and previous / next experiment message data for the sample's time.
         """
-        
+
         #preprocess message events
         self._processMessageEvents()
-        
-        # inline func to return sample field array based on sample namedtup                       
+
+        # inline func to return sample field array based on sample namedtup
         def getSampleData(s):
             sampledata=[s.time,s.status]
-            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:                
+            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
                 sampledata.extend((s.left_gaze_x,
                                    s.left_gaze_y,
                                    s.left_pupil_measure1,
@@ -918,19 +925,19 @@ class TargetPosSequenceStim(object):
 
             sampledata.extend((s.gaze_x,
                                s.gaze_y,
-                               s.pupil_measure1))                   
-            return sampledata  
-            
+                               s.pupil_measure1))
+            return sampledata
+
         ######
 
         #
         ## Process Samples
         #
-        
+
         current_target_pos=-1.0,-1.0
-        current_targ_state=0        
+        current_targ_state=0
         target_pos_samples=[]
-        for pindex,samples in enumerate(self.saved_pos_samples):       
+        for pindex,samples in enumerate(self.saved_pos_samples):
             last_msg,messages= self.target_pos_msgs[pindex][0], self.target_pos_msgs[pindex][1:]
             samplesforposition=[]
             pos_sample_count=len(samples)
@@ -943,14 +950,14 @@ class TargetPosSequenceStim(object):
                         current_targ_state+= self.TARGET_STATIONARY
                     current_targ_state-=current_targ_state& self.TARGET_MOVING
                     current_targ_state-=current_targ_state& self.TARGET_EXPANDING
-                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING                    
+                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING
                 elif last_msg_type == 'EXPAND_SIZE':
                     if not current_targ_state& self.TARGET_EXPANDING:
                         current_targ_state+= self.TARGET_EXPANDING
-                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING                                        
+                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING
                 elif last_msg_type == 'CONTRACT_SIZE':
                     if not current_targ_state& self.TARGET_CONTRACTING:
-                        current_targ_state+= self.TARGET_CONTRACTING                                        
+                        current_targ_state+= self.TARGET_CONTRACTING
                     current_targ_state-=current_targ_state& self.TARGET_EXPANDING
                 elif last_msg_type == 'TARGET_POS':
                     current_target_pos=float(last_msg[3]),float(last_msg[4])
@@ -969,9 +976,9 @@ class TargetPosSequenceStim(object):
                     current_targ_state-=current_targ_state& self.TARGET_EXPANDING
                     current_targ_state-=current_targ_state& self.TARGET_CONTRACTING
                     current_target_pos=float(last_msg[6]),float(last_msg[7])
-                
+
                 while si < pos_sample_count:
-                    sample=samples[si]               
+                    sample=samples[si]
                     if sample.time >= last_msg_time and sample.time < current_msg[0]:
                         sarray=[pindex, last_msg_time, last_msg_type,
                                 current_msg[0], current_msg[2],
@@ -986,17 +993,17 @@ class TargetPosSequenceStim(object):
                     else:
                         si+=1
                 last_msg=current_msg
-            
+
             # convert any position fields to degrees if needed
             possamples=np.asanyarray(samplesforposition)
             target_pos_samples.append(possamples)
-            
-        # So we now have a list len == number target positions. Each element 
+
+        # So we now have a list len == number target positions. Each element
         # of the list is a list of all eye sample / message data for a
-        # target position. Each element of the data list for a single target 
+        # target position. Each element of the data list for a single target
         # position is itself a list that that contains combined info about
         # an eye sample and message info valid for when the sample time was.
-        
+
         return np.asanyarray(target_pos_samples)
 
 ################ Validation #######################
@@ -1093,73 +1100,73 @@ validation:
 
 class ValidationProcedure(object):
     """
-    ValidationProcedure can be used to check the accuracy of a calibrated eye 
+    ValidationProcedure can be used to check the accuracy of a calibrated eye
     tracking system.
-    
-    One a ValidationProcedure class instance has been created, the 
+
+    One a ValidationProcedure class instance has been created, the
     display(**kwargs) method can be called to run the full validation process.
-    
+
     The validation process consists of the following stages:
-    
+
     1) Display an Introduction / Instruction screen. A key press is used to
        move to the next stage.
-    2) The validation target presentation sequence. Based on the Target and 
+    2) The validation target presentation sequence. Based on the Target and
        PositionGrid objects provided when the ValidationProcedure was created,
        a series of target positions are displayed. The progression from one
        target position to the next is controlled by the triggers specified.
        The target can simply jump from one position to the next, or optional
        linear motion settings can be used to have the target move across the
-       screen from one point to the next. The Target graphic itself can also 
+       screen from one point to the next. The Target graphic itself can also
        be configured to expand or contract once it has reached a location
        defined in the position grid.
     3) During stage 2), data is collected from the devices being monitored by
-       iohub. Specifically eye tracker samples and experiment messages are 
+       iohub. Specifically eye tracker samples and experiment messages are
        collected.
-    4) The data collected during the validation target sequence is used to 
+    4) The data collected during the validation target sequence is used to
        calculate accuracy information for each target position presented.
        The raw data as well as the computed accuracy data is available via the
        ValidationProcedure class. Calculated measures are provided seperately
        for each target position and include:
-       
+
            a) An array of the samples used for the accuracy calculation. The
               samples used are selected using the following criteria:
-                   i) Only samples where the target was stationary and 
+                   i) Only samples where the target was stationary and
                       not expanding or contracting are selected.
-                   
+
                    ii) Samples are selected that fall between:
-                   
+
                           start_time_filter = last_sample_time - accuracy_period_start
-                          
+
                        and
-                       
+
                           end_time_filter = last_sample_time - accuracy_period_end
-                       
+
                        Therefore, the duration of the selected sample period is:
-                       
+
                           selection_period_dur = end_time_filter - start_time_filter
-                          
+
                    iii) Sample that contain missing / invalid position data
                         are then removed, providing the final set of samples
                         used for accuracy calculations. The min, max, and mean
                         values from each set of selected samples is calculated.
-                        
+
            b) The x and y error of each samples gaze position relative to the
-              current target position. This data is in the same units as is 
+              current target position. This data is in the same units as is
               used by the Target instance. Computations are done for each eye
               being recorded. The values are signed floats.
-              
+
            c) The xy distance error from the from each eye's gaze position to
-              the target position. This is also calculated as an average of 
+              the target position. This is also calculated as an average of
               both eyes when binocular data is available. The data is unsigned,
               providing the absolute distance from gaze to target positions
-    
+
     5) A 2D plot is created displaying each target position and the position of
        each sample used for the accuracy calculation. The minimum, maximum, and
        average error is displayed for all target positions. A key press is used
-       to remove the validation results plot, and control is returned to the 
-       script that started the validation display. Note that the plot is also 
+       to remove the validation results plot, and control is returned to the
+       script that started the validation display. Note that the plot is also
        saved as a png file in the same directory as the calling stript.
-    
+
     See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
     """
     def __init__(self,
@@ -1194,7 +1201,7 @@ class ValidationProcedure(object):
 
             triggers = cfg.get('triggers')
             trigger_list=[]
-            for trig_type, trig_kwargs in triggers.items():
+            for trig_type, trig_kwargs in list(triggers.items()):
                 if trig_type == 'DeviceEventTrigger':
                     device_name = trig_kwargs.get('device')
                     device = self.io.getDevice(device_name)
@@ -1266,9 +1273,9 @@ class ValidationProcedure(object):
         self.use_dpi=80
 
     def _waitForTrigger(self, trigger_key):
-        # TODO: should process a Trigger object. Right now only kb 
+        # TODO: should process a Trigger object. Right now only kb
         # event supported.
-        self.io.clearEvents('all')        
+        self.io.clearEvents('all')
         show_screen=True
         while show_screen:
             kb_events=self.io.devices.keyboard.getEvents()
@@ -1278,17 +1285,17 @@ class ValidationProcedure(object):
                     break
             core.wait(0.2,0.025)
         self.io.clearEvents('all')
-        
+
     def display(self,**kwargs):
         """
-        Begin the validation procedure. The method returns after the full 
+        Begin the validation procedure. The method returns after the full
         validation process is complete, including:
             a) display of an instruction screen
             b) display of the target position sequence used for validation
                data collection.
             c) display of a validation accuracy results plot.
         """
-        
+
         if self.show_intro_screen:
             # Display Validation Intro Screen
             #
@@ -1305,9 +1312,9 @@ class ValidationProcedure(object):
                 self._waitForTrigger(' ')
                 return True
             return False
-        
+
         return self.validation_results
-        
+
     def _generateImageName(self):
         from psychopy.iohub.util import getCurrentDateTimeString, normjoin
         file_name='validation_'+getCurrentDateTimeString().replace(' ',
@@ -1315,10 +1322,10 @@ class ValidationProcedure(object):
                                                             '_').replace('-',
                                                             '_')+'.png'
         if self.save_figure_path:
-            return normjoin(self.save_figure_path,file_name)    
+            return normjoin(self.save_figure_path,file_name)
         rootScriptPath = os.path.dirname(sys.argv[0])
         return normjoin(rootScriptPath,file_name)
-    
+
     def _createPlot(self):
         try:
             self.validation_results=None
@@ -1333,18 +1340,18 @@ class ValidationProcedure(object):
 
                     postdat['right_eye_x'], postdat['right_eye_y']=self.pix2deg(
                     postdat['right_eye_x'],postdat['right_eye_y'])
-                
-                
+
+
             pixw,pixh=self.display_size
             # Validation Accuracy Analysis
-            
+
             from matplotlib import pyplot as pl
             pl.clf()
-            fig=pl.gcf()  
+            fig=pl.gcf()
             fig.set_size_inches((pixw*.9)/self.use_dpi,(pixh*.8)/self.use_dpi)
 
             cm = pl.cm.get_cmap('RdYlBu')
-    
+
             min_error=100000.0
             max_error=0.0
             summed_error=0.0
@@ -1364,28 +1371,28 @@ class ValidationProcedure(object):
             for pindex,samplesforpos in enumerate(sample_array):
                 self.io.sendMessageEvent("Target Position Results: {0}".format(pindex), 'VALIDATION')
 
-                stationary_samples=samplesforpos[samplesforpos['targ_state'] == 
+                stationary_samples=samplesforpos[samplesforpos['targ_state'] ==
                                             self.targetsequence.TARGET_STATIONARY]
-            
+
                 last_stime=stationary_samples[-1]['eye_time']
                 first_stime=stationary_samples[0]['eye_time']
 
                 filter_stime=last_stime- self.accuracy_period_start
                 filter_etime=last_stime- self.accuracy_period_stop
-            
+
                 all_samples_for_accuracy_calc=stationary_samples[
-                                    stationary_samples['eye_time']>=filter_stime]    
+                                    stationary_samples['eye_time']>=filter_stime]
                 all_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
-                            all_samples_for_accuracy_calc['eye_time']<filter_etime]    
-                
+                            all_samples_for_accuracy_calc['eye_time']<filter_etime]
+
                 good_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
                                     all_samples_for_accuracy_calc['eye_status']<=1]
-            
+
                 all_samples_for_accuracy_count=all_samples_for_accuracy_calc.shape[0]
-                good_accuracy_sample_count= good_samples_for_accuracy_calc.shape[0]            
+                good_accuracy_sample_count= good_samples_for_accuracy_calc.shape[0]
                 accuracy_calc_good_sample_perc=good_accuracy_sample_count/float(
                                                     all_samples_for_accuracy_count)
-            
+
                 # stationary_period_sample_count=stationary_samples.shape[0]
                 # target_period_sample_count=samplesforpos.shape[0]
                 # print 'target_period_sample_count:',target_period_sample_count
@@ -1393,24 +1400,24 @@ class ValidationProcedure(object):
                 # print 'all_samples_for_accuracy_count:',all_samples_for_accuracy_count
                 # print 'good_accuracy_sample_count:',good_accuracy_sample_count
                 # print 'accuracy_calc_good_sample_perc:',accuracy_calc_good_sample_perc
-                
-                # Ordered dictionary of the different levels of samples 
-                # selected during filtering for valid samples to use in 
+
+                # Ordered dictionary of the different levels of samples
+                # selected during filtering for valid samples to use in
                 # accuracy calculations.
                 sample_msg_data_filtering=OrderedDict(
                                       # All samples from target period.
-                                      all_samples=samplesforpos, 
-                                      # Sample during stationary period at 
+                                      all_samples=samplesforpos,
+                                      # Sample during stationary period at
                                       # end of target presentation display.
                                       stationary_samples=stationary_samples,
-                                      # Samples that occurred within the 
-                                      # defined time selection period. 
+                                      # Samples that occurred within the
+                                      # defined time selection period.
                                       time_filtered_samples=all_samples_for_accuracy_calc,
-                                      # Samples from the selection period that 
+                                      # Samples from the selection period that
                                       # do not have missing data
                                       used_samples=good_samples_for_accuracy_calc
                                       )
-                                      
+
                 position_results=dict(pos_index=pindex,
                                       sample_time_range=[first_stime,last_stime],
                                       filter_samples_time_range=[filter_stime,filter_etime],
@@ -1426,24 +1433,24 @@ class ValidationProcedure(object):
                     results['positions_failed_processing']+=1
                 else:
                     time=good_samples_for_accuracy_calc[:]['eye_time']
-                
+
                     target_x=good_samples_for_accuracy_calc[:]['targ_pos_x']
                     target_y=good_samples_for_accuracy_calc[:]['targ_pos_y']
-                
+
                     left_x=good_samples_for_accuracy_calc[:]['left_eye_x']
                     left_y=good_samples_for_accuracy_calc[:]['left_eye_y']
                     left_pupil=good_samples_for_accuracy_calc[:]['left_pupil_size']
                     left_error_x=target_x-left_x
                     left_error_y=target_y-left_y
                     left_error_xy=np.hypot(left_error_x,left_error_y)
-                
+
                     right_x=good_samples_for_accuracy_calc[:]['right_eye_x']
                     right_y=good_samples_for_accuracy_calc[:]['right_eye_y']
-                    right_pupil=good_samples_for_accuracy_calc[:]['right_pupil_size']    
+                    right_pupil=good_samples_for_accuracy_calc[:]['right_pupil_size']
                     right_error_x=target_x-right_x
-                    right_error_y=target_y-right_y    
+                    right_error_y=target_y-right_y
                     right_error_xy=np.hypot(right_error_x,right_error_y)
-                    
+
                     lr_x=(left_x+right_x)/2.0
                     lr_y=(left_y+right_y)/2.0
                     lr_error=(right_error_xy+left_error_xy)/2.0
@@ -1451,12 +1458,12 @@ class ValidationProcedure(object):
                     lr_error_min=lr_error.min()
                     lr_error_mean=lr_error.mean()
                     lr_error_std=np.std(lr_error)
-                    
+
                     min_error=min(min_error,lr_error_min)
                     max_error=max(max_error,lr_error_max)
                     summed_error+=lr_error_mean
                     point_count+=1.0
-                    
+
                     position_results['calculation_status']='PASSED'
                     position_results['target_position']=(target_x[0],target_y[0])
                     position_results['min_error']=lr_error_min
@@ -1473,27 +1480,27 @@ class ValidationProcedure(object):
                     self.io.sendMessageEvent("Done Target Position Results : {0}".format(pindex), 'VALIDATION')
 
                     normed_time = (time-time.min())/(time.max()-time.min())
-                    
-                    pl.scatter(target_x[0], 
-                               target_y[0], 
-                               s=400, 
-                               c=[0.75,0.75,0.75], 
+
+                    pl.scatter(target_x[0],
+                               target_y[0],
+                               s=400,
+                               c=[0.75,0.75,0.75],
                                alpha=0.5)
-    
-                    pl.text(target_x[0], target_y[0], 
-                            str(pindex), 
-                            size=11, 
+
+                    pl.text(target_x[0], target_y[0],
+                            str(pindex),
+                            size=11,
                             horizontalalignment='center',
                             verticalalignment='center')
-            
-                    pl.scatter(lr_x, lr_y, 
-                               s=40, c=normed_time, 
+
+                    pl.scatter(lr_x, lr_y,
+                               s=40, c=normed_time,
                                cmap=cm,alpha=0.75)
-           
+
                     results['position_results'].append(position_results)
-            
+
             unit_type='pixels'
-            if self.results_in_degrees:            
+            if self.results_in_degrees:
                 ldeg,bdeg=self.pix2deg(-pixw/2,-pixh/2)
                 rdeg,tdeg=self.pix2deg(pixw/2,pixh/2)
                 pl.xlim(ldeg, rdeg)
@@ -1501,14 +1508,14 @@ class ValidationProcedure(object):
                 unit_type='degrees'
             else:
                 pl.xlim(-pixw/2, pixw/2)
-                pl.ylim(-pixh/2, pixh/2)                
+                pl.ylim(-pixh/2, pixh/2)
             pl.xlabel("Horizontal Position (%s)"%(unit_type))
             pl.ylabel("Vertical Position (%s)"%(unit_type))
-            
+
             mean_error=summed_error/point_count
             pl.title("Validation Accuracy (%s)\nMin: %.2f, Max: %.2f, Mean %.2f"%(
                                     unit_type,min_error,max_error,mean_error))
-                                    
+
             results['min_error']=min_error
             results['max_error']=max_error
             results['mean_error']=mean_error
@@ -1519,7 +1526,7 @@ class ValidationProcedure(object):
             self.io.sendMessageEvent("mean_error: {0}".format(mean_error), 'VALIDATION')
 
             self.validation_results=results
-            
+
             #pl.colorbar()
             fig.tight_layout()
 
@@ -1532,29 +1539,29 @@ class ValidationProcedure(object):
             import traceback
             traceback.print_exc()
             print()
-    
+
         self.io.sendMessageEvent("Validation Report Complete", 'VALIDATION')
 
     def getValidationResults(self):
         return self.validation_results
-        
+
     def _buildResultScreen(self,replot=False):
-        if replot or self.imagestim is None:        
+        if replot or self.imagestim is None:
             fig, fig_image_path = self._createPlot()
             text_pos=(0,0)
             text='Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
-            
+
             if fig:
                 fig_image = Image.open(fig_image_path)
-        
+
                 if self.imagestim:
                     self.imagestim.setImage(fig_image)
                 else:
-                    self.imagestim = visual.ImageStim(self.win, 
-                                                      image=fig_image, 
-                                                      units='pix', 
+                    self.imagestim = visual.ImageStim(self.win,
+                                                      image=fig_image,
+                                                      units='pix',
                                                       pos=(0.0, 0.0))
-                    
+
                 text = 'Press SPACE to continue.'
                 text_pos = (0.0, -(self.display_size[1]/2.0)*.9)
             else:
@@ -1562,19 +1569,19 @@ class ValidationProcedure(object):
 
             if self.textstim is None:
                 self.textstim=visual.TextStim(self.win,
-                    text=text, pos=text_pos, 
-                    color=(0, 0, 0), colorSpace='rgb255', 
-                    opacity=1.0, contrast=1.0, units='pix', 
-                    ori=0.0, height=None, antialias=True, 
-                    bold=False, italic=False, alignHoriz='center', 
-                    alignVert='center', wrapWidth=self.display_size[0]*.8)        
+                    text=text, pos=text_pos,
+                    color=(0, 0, 0), colorSpace='rgb255',
+                    opacity=1.0, contrast=1.0, units='pix',
+                    ori=0.0, height=None, antialias=True,
+                    bold=False, italic=False, alignHoriz='center',
+                    alignVert='center', wrapWidth=self.display_size[0]*.8)
             else:
                 self.textstim.setText(text)
                 self.textstim.setPos(text_pos)
 
         elif self.imagestim:
                 return True
-        return False        
+        return False
 
     def showResultsScreen(self):
         self._buildResultScreen()
@@ -1592,14 +1599,13 @@ class ValidationProcedure(object):
         else:
             self.textstim=visual.TextStim(self.win,
                 text=text, pos=textpos, height = 30,
-                color=(0, 0, 0), colorSpace='rgb255', 
-                opacity=1.0, contrast=1.0, units='pix', 
-                ori=0.0, antialias=True, 
-                bold=False, italic=False, alignHoriz='center', 
-                alignVert='center', wrapWidth=self.display_size[0]*.8)        
+                color=(0, 0, 0), colorSpace='rgb255',
+                opacity=1.0, contrast=1.0, units='pix',
+                ori=0.0, antialias=True,
+                bold=False, italic=False, alignHoriz='center',
+                alignVert='center', wrapWidth=self.display_size[0]*.8)
 
         self.textstim.draw()
         return self.win.flip()
 
 from .visualangle import VisualAngleCalc
-         

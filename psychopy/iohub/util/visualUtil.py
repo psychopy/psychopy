@@ -13,6 +13,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 from __future__ import division
 from __future__ import print_function
 
+from builtins import object
 import time
 import weakref
 from ... import visual, core
@@ -470,7 +471,7 @@ class DeviceEventTrigger(Trigger):
                 foundEvent = False
             else:
                 for (attrname,
-                     conds) in self.event_attribute_conditions.iteritems():
+                     conds) in self.event_attribute_conditions.items():
                     if isinstance(conds, (list, tuple)) and getattr(event, attrname) in conds:
                         # event_value is a list or tuple of possible values that are OK
                         pass

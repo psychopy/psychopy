@@ -40,13 +40,15 @@ Demo Created: April 16th, 2014.
 By: Sol Simpson
 """
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
 
 psychopy_mon_name = 'testMonitor'
 exp_code = '9dof'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 iohubkwargs = {'psychopy_monitor_name':psychopy_mon_name,
                 'experiment_code': exp_code,
                 'session_code': sess_code,
@@ -72,7 +74,7 @@ while not kb.getEvents():
 etime = core.getTime()
 ser.enableEventReporting(False)
 print()
-print("Received approx. %.2f events / second."%(event_count/(etime-stime)))
+print("Received approx. %.2f events / second."%(old_div(event_count,(etime-stime))))
 io.quit()
 ## EOD
 

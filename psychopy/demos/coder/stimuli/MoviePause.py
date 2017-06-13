@@ -15,6 +15,8 @@ To create a movie that will play on all systems I would recommend using the form
 from __future__ import division
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
 from psychopy import visual, core
 
 win = visual.Window((800, 600))

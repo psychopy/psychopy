@@ -5,6 +5,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import chr
+from builtins import str
+from builtins import range
 import time
 import types
 import wx
@@ -20,14 +25,14 @@ import keyword
 import os
 import sys
 import string
-import StringIO
+import io
 import glob
 import platform
 import io
 import threading
 import traceback
 import bdb
-import cPickle
+import pickle
 import py_compile
 
 from . import psychoParser, introspect
@@ -65,7 +70,7 @@ def toPickle(filename, data):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename, 'w')
-    cPickle.dump(data, f)
+    pickle.dump(data, f)
     f.close()
 
 
@@ -75,7 +80,7 @@ def fromPickle(filename):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename)
-    contents = cPickle.load(f)
+    contents = pickle.load(f)
     f.close()
     return contents
 
@@ -683,7 +688,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         if self.AUTOCOMPLETE:
             # get last word any previous word (if there was a dot instead of
             # space)
-            isAlphaNum = bool(keyCode in range(65, 91) + range(97, 123))
+            isAlphaNum = bool(keyCode in list(range(65, 91)) + list(range(97, 123)))
             isDot = bool(keyCode == 46)
             prevWord = None
             if isAlphaNum:  # any alphanum
@@ -734,7 +739,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     # for objects show simple completions
                     else:  # there was no preceding '.'
                         # start trying after 2 characters
-                        autokeys = self.autoCompleteDict.keys()
+                        autokeys = list(self.autoCompleteDict.keys())
                         if len(currWord) > 1 and len(autokeys) > 1:
                             subList = [s for s in autokeys
                                        if currWord.lower() in s.lower()]
@@ -1088,7 +1093,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         start = self.LineFromPosition(selStart)
         end = self.LineFromPosition(selEnd)
-        return range(start, end)
+        return list(range(start, end))
 
     def _GetPositionsBoundingSelectedLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1117,7 +1122,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
     def analyseScript(self):
         # analyse the file
-        buffer = StringIO.StringIO()
+        buffer = io.StringIO()
         buffer.write(self.GetText())
         buffer.seek(0)
         try:
@@ -1742,7 +1747,7 @@ class CoderFrame(wx.Frame):
             demoList += glob.glob(os.path.join(folder, '*', '*.py'))
             demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
 
-            demoList.sort(key=str.lower)
+            demoList.sort()
 
             for thisFile in demoList:
                 shortname = thisFile.split(os.path.sep)[-1]
@@ -2538,7 +2543,7 @@ class CoderFrame(wx.Frame):
 
         # check syntax by compiling - errors printed (not raised as error)
         try:
-            if type(fullPath) == unicode:
+            if type(fullPath) == str:
                 # py_compile.compile doesn't accept Unicode filename.
                 py_compile.compile(fullPath.encode(
                     sys.getfilesystemencoding()), doraise=False)

@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 from psychopy.sound._base import apodize, HammingWindow
 from psychopy.constants import FINISHED
 import numpy as np
@@ -14,7 +16,7 @@ sampleRate = 44100
 thisFreq = 100
 secs = 0.3
 nSamples = int(secs * sampleRate)
-t = np.arange(0.0, 1.0, 1.0 / nSamples)*secs
+t = np.arange(0.0, 1.0, old_div(1.0, nSamples))*secs
 sndArray = np.sin(t*2*np.pi*thisFreq)
 
 plotting = False

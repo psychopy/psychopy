@@ -7,6 +7,7 @@ Authors: Jeremy R. Gray & Nate Pasmanter, 2013
 
 from __future__ import division
 from __future__ import print_function
+from builtins import range
 import pandas as pd
 import glob, os, sys
 

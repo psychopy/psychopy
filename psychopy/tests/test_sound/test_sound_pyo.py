@@ -1,6 +1,9 @@
 """Test PsychoPy sound.py using pyo backend
 """
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 from psychopy import prefs, core
 
 import pytest
@@ -58,7 +61,7 @@ class TestPyo(object):
             sound.setaudioLib('foo')
 
         points = 100
-        snd = numpy.ones(points) / 20
+        snd = old_div(numpy.ones(points), 20)
 
         s = sound.Sound(self.testFile)
 
