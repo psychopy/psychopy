@@ -6,7 +6,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import range
+from past.utils import old_div
 import numpy
 import sys
 import platform
@@ -50,7 +54,7 @@ def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
         pygletWindow, rampType), (3, 1))  # linear ramp
     if numpy.all(newGamma == 1.0) == False:
         # correctly handles 1 or 3x1 gamma vals
-        newLUT = newLUT**(1 / numpy.array(newGamma))
+        newLUT = newLUT**(old_div(1, numpy.array(newGamma)))
     setGammaRamp(pygletWindow, newLUT)
 
 
@@ -114,7 +118,7 @@ def getGammaRamp(pygletWindow):
             0xFFFFFFFF & pygletWindow._dc, origramps.ctypes)  # FB 504
         if not success:
             raise AssertionError('GetDeviceGammaRamp failed')
-        origramps = origramps / 65535.0  # rescale to 0:1
+        origramps = old_div(origramps, 65535.0)  # rescale to 0:1
 
     if sys.platform == 'darwin':
         # init R, G, and B ramps
@@ -141,7 +145,7 @@ def getGammaRamp(pygletWindow):
             origramps[2, :].ctypes)
         if not success:
             raise AssertionError('XF86VidModeGetGammaRamp failed')
-        origramps = origramps / 65535.0  # rescale to 0:1
+        origramps = old_div(origramps, 65535.0)  # rescale to 0:1
 
     return origramps
 
@@ -208,11 +212,11 @@ def createLinearRamp(win, rampType=None):
     if rampType == 0:
         ramp = numpy.linspace(0.0, 1.0, num=256)
     elif rampType == 1:
-        ramp = numpy.linspace(1 / 256.0, 1.0, num=256)
+        ramp = numpy.linspace(old_div(1, 256.0), 1.0, num=256)
     elif rampType == 2:
-        ramp = numpy.linspace(0, 1023.0 / 1024, num=1024)
+        ramp = numpy.linspace(0, old_div(1023.0, 1024), num=1024)
     elif rampType == 3:
-        ramp = numpy.linspace(0, 1023.0 / 1024, num=1024)
-        ramp[512:] = ramp[512:] - 1 / 256.0
+        ramp = numpy.linspace(0, old_div(1023.0, 1024), num=1024)
+        ramp[512:] = ramp[512:] - old_div(1, 256.0)
     logging.info('Using gamma ramp type: %i' % rampType)
     return ramp

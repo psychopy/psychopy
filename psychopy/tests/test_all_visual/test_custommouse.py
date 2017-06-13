@@ -1,3 +1,4 @@
+from builtins import object
 from psychopy.visual import Window, CustomMouse, TextStim
 import pytest
 import pyglet

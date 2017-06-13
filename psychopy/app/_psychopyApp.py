@@ -6,7 +6,10 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import object
 import sys
 import psychopy
 
@@ -206,7 +209,7 @@ class PsychoPyApp(wx.App):
             scripts = self.prefs.appData['coder']['prevFiles']
         else:
             scripts = []
-        appKeys = self.prefs.appData['builder'].keys()
+        appKeys = list(self.prefs.appData['builder'].keys())
         if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in appKeys):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
@@ -411,7 +414,7 @@ class PsychoPyApp(wx.App):
         keyCodesDict[self.keys['quit']] = wx.ID_EXIT
         # parse the key strings and convert to accelerator entries
         entries = []
-        for keyStr, code in keyCodesDict.items():
+        for keyStr, code in list(keyCodesDict.items()):
             mods, key = parseStr(keyStr)
             entry = wx.AcceleratorEntry(mods, key, code)
             entries.append(entry)

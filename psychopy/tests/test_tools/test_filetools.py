@@ -3,6 +3,8 @@
 Tests for psychopy.tools.filetools
 
 """
+from builtins import zip
+from builtins import object
 import shutil
 from tempfile import mkdtemp
 from os.path import join as pjoin

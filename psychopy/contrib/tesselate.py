@@ -41,6 +41,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # of the BSD.
 # http://www.supereffective.org/pages/Squirtle-SVG-Library
 
+from builtins import chr
+from builtins import object
 from ctypes import CFUNCTYPE, POINTER, byref, cast
 
 import sys

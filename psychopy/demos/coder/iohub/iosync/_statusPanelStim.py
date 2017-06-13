@@ -1,3 +1,5 @@
+from __future__ import division
+from builtins import object
 __author__ = 'Sol'
 
 from psychopy import visual
@@ -29,9 +31,9 @@ class AnalogMeter(object):
                                            autoLog=False)
 
         y_offset = self.h * .5 * (size * .08)
-        w2 = self.w / 2.0
-        h2 = self.h / 2.0
-        strokew = (size / 18.0)
+        w2 = (self.w/2.0)
+        h2 = (self.h/2.0)
+        strokew = (size/18.0)
         self.handVerts = np.array([[0.0, (size * 0.9) * w2],
                                    [-strokew * h2, strokew * w2],
                                    [0.0, 0.0],
@@ -54,7 +56,7 @@ class AnalogMeter(object):
                                          size=(self.w * size, 40),
                                          pos=(
                                              px,
-                                             py + (self.w * size) / 4.0 - 20),
+                                             py + (self.w * size)/4.0 - 20),
                                          units='pix',
                                          grid_horz_justification='center',
                                          grid_vert_justification='center',
@@ -84,7 +86,7 @@ class AnalogMeter(object):
         self.arrow.draw()
 
     def update_gauge(self, percent, value_txt=''):
-        arrowPos = ((percent * 360.0) / 2.0 - 90.0)
+        arrowPos = ((percent * 360.0)/2.0 - 90.0)
         self.arrow.setOri(arrowPos)
         self.text_value.setText(value_txt)
         self.draw(value_txt)

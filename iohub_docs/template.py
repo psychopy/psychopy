@@ -1,6 +1,8 @@
 """This module illustrates how to write your docstring in OpenAlea
 and other projects related to OpenAlea."""
+from __future__ import division
 
+from builtins import object
 __license__ = "Cecill-C"
 __revision__ = " $Id: actor.py 1586 2009-01-30 15:56:25Z cokelaer $ "
 __docformat__ = 'reStructuredText'

@@ -5,6 +5,10 @@ Created on Mon Dec 15 15:22:48 2014
 @author: lpzjwp
 """
 from __future__ import print_function #for compatibility with python3
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from psychopy import visual,core, event
 from psychopy.hardware import crs
 import numpy as np
@@ -64,10 +68,10 @@ bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
 
 #draw a ramp across the screenexpectedVals = range(256)
 w,h = win.size
-intended = range(256)
-testArrLums = np.resize(intended,[256,256])/127.5-1 #NB psychopy uses -1:1
+intended = list(range(256))
+testArrLums = old_div(np.resize(intended,[256,256]),127.5)-1 #NB psychopy uses -1:1
 stim = visual.ImageStim(win, image=testArrLums,
-    size=[256,h], pos=[128-w/2,0], units='pix',
+    size=[256,h], pos=[128-old_div(w,2),0], units='pix',
     )
 expected = np.repeat(intended,3).reshape([-1,3])
 

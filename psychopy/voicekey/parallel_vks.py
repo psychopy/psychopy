@@ -6,6 +6,7 @@
 """
 
 
+from builtins import hex
 from . signal import _BaseVoiceKeySignal
 from . vk_tools import get_time, sleep
 

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
 """
 ioHub
 .. file: ioHub/client.py
@@ -10,8 +9,14 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from builtins import str
+from builtins import next
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 
 import os,sys
 import time
@@ -597,12 +602,12 @@ class ioHubConnection(object):
         """
         trial=trials.trialList[0]
         numpy_trial_condition_types=[]
-        for cond_name,cond_val in trial.iteritems():
+        for cond_name,cond_val in trial.items():
             if isinstance(cond_val,basestring):
                 numpy_dtype=(cond_name,'S',256)
             elif isinstance(cond_val,int):
                 numpy_dtype=(cond_name,'i4')
-            elif isinstance(cond_val,long):
+            elif isinstance(cond_val,int):
                 numpy_dtype=(cond_name,'i8')
             elif isinstance(cond_val,float):
                 numpy_dtype=(cond_name,'f8')
@@ -610,7 +615,7 @@ class ioHubConnection(object):
                 numpy_dtype=(cond_name,'S',256)
             numpy_trial_condition_types.append(numpy_dtype)
 
-            class ConditionVariableDescription:
+            class ConditionVariableDescription(object):
                 _numpyConditionVariableDescriptor=numpy_trial_condition_types
 
         self.initializeConditionVariableTable(ConditionVariableDescription)
@@ -660,7 +665,7 @@ class ioHubConnection(object):
             None
         """
         for i,d in enumerate(data):
-            if isinstance(d,unicode):
+            if isinstance(d,str):
                 data[i]=d.encode('utf-8')
         r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentID,self.experimentSessionID,data)))
         return r[2]
@@ -880,7 +885,7 @@ class ioHubConnection(object):
                     #short hand device spec is being used. Convert dict of
                     #devices in a list of device dicts.
                     devs=ioHubConfig.get('monitor_devices')
-                    devsList=[{dname:dc} for dname,dc in devs.iteritems()]
+                    devsList=[{dname:dc} for dname,dc in devs.items()]
                     ioHubConfig['monitor_devices']=devsList
 
                 import tempfile
@@ -1071,7 +1076,7 @@ class ioHubConnection(object):
         """
         # get the list of devices registered with the ioHub
         for device_config_dict in monitor_devices_config:
-            device_class_name, device_config = device_config_dict.keys()[0], device_config_dict.values()[0]
+            device_class_name, device_config = list(device_config_dict.keys())[0], list(device_config_dict.values())[0]
             if device_config.get('enable',True) is True:
                 try:
                     self._addDeviceView(device_class_name,device_config)
@@ -1097,7 +1102,7 @@ class ioHubConnection(object):
             DeviceConstants.addClassMapping(device_class)
 
             device_event_ids=[]
-            for ev in event_classes.values():
+            for ev in list(event_classes.values()):
                 if ev.EVENT_TYPE_ID:
                     device_event_ids.append(ev.EVENT_TYPE_ID)
             EventConstants.addClassMappings(device_class,device_event_ids,event_classes)
@@ -1335,7 +1340,7 @@ class ioHubConnection(object):
             if isIterable(data[0]):
                 return False
             else:
-                if (type(data[0]) in (str, unicode)) and data[0].find('ERROR') >= 0:
+                if (isinstance(data[0], basestring)) and data[0].find('ERROR') >= 0:
                     return data
                 return False
         else:
@@ -1441,7 +1446,7 @@ def launchHubServer(**kwargs):
             return "%s.%s"%(func.__module__, func.__name__)
 
         def configfuncs2str(config):
-            for k, v in config.items():
+            for k, v in list(config.items()):
                 if isinstance(v,dict):
                     configfuncs2str(v)
                 if isFunction(v):
@@ -1482,7 +1487,7 @@ def launchHubServer(**kwargs):
             del device_dict['Mouse']
 
         # Add remaining defined devices to the device list.
-        for class_name,device_config in device_dict.iteritems():
+        for class_name,device_config in device_dict.items():
             device_list.append({class_name:device_config})
 
         # Create an ioHub configuration dictionary.
@@ -1801,7 +1806,7 @@ class ioHubExperimentRuntime(object):
 
         def merge(update, base):
             if isinstance(update,dict) and isinstance(base,dict):
-                for k,v in base.iteritems():
+                for k,v in base.items():
                     if k not in update:
                         update[k] = v
                     else:
@@ -1852,8 +1857,8 @@ class ioHubExperimentRuntime(object):
             self._close()
             sys.exit(1)
         else:
-            ioHubConfigFileName = unicode(ioHubInfo.get('config', 'iohub_config.yaml'))
-            ioHubConfigAbsPath = os.path.join(self.configFilePath, unicode(ioHubConfigFileName))
+            ioHubConfigFileName = str(ioHubInfo.get('config', 'iohub_config.yaml'))
+            ioHubConfigAbsPath = os.path.join(self.configFilePath, str(ioHubConfigFileName))
             self.hub = ioHubConnection(None, ioHubConfigAbsPath)
 
             #print 'ioHubExperimentRuntime.hub: {0}'.format(self.hub)
@@ -1912,7 +1917,7 @@ class ioHubExperimentRuntime(object):
                 tempdict=allSessionDialogVariables
                 tempdict['user_variables']=self.sessionUserVariables
 
-            for key,value in allSessionDialogVariables.iteritems():
+            for key,value in allSessionDialogVariables.items():
                 if key in self.experimentSessionDefaults:
                     self.experimentSessionDefaults[key]=value#(u''+value).encode('utf-8')
                 elif  key in self.sessionUserVariables:
@@ -1932,7 +1937,7 @@ class ioHubExperimentRuntime(object):
 
     def _setInitialProcessAffinities(self,ioHubInfo):
             # set process affinities based on config file settings
-            cpus=range(Computer.processing_unit_count)
+            cpus=list(range(Computer.processing_unit_count))
             experiment_process_affinity=cpus
             other_process_affinity=cpus
             iohub_process_affinity=cpus

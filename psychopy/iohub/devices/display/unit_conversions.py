@@ -12,7 +12,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>, Josh Borah <josh@a-s-l.com>
 """
+from __future__ import division
 
+from past.utils import old_div
 from math import atan, tan, sqrt
 
 #
@@ -25,13 +27,13 @@ from math import atan, tan, sqrt
 # vertical screen axes.
 #
 def distToPixel(hpix_per_dist_unit, vpix_per_dist_unit, pixHres, pixVres, distH, distV):
-    pixH = pixHres/2.0 + (distH * hpix_per_dist_unit)
-    pixV = pixVres/2.0 + (distV * vpix_per_dist_unit)
+    pixH = old_div(pixHres,2.0) + (distH * hpix_per_dist_unit)
+    pixV = old_div(pixVres,2.0) + (distV * vpix_per_dist_unit)
     return pixH, pixV
 
 def pixelToDist(hpix_per_dist_unit,vpix_per_dist_unit,pixHres, pixVres, pixH, pixV):
-    distH = (pixH - pixHres/2.0) / hpix_per_dist_unit
-    distV = (pixV - pixVres/2.0) / vpix_per_dist_unit
+    distH = old_div((pixH - old_div(pixHres,2.0)), hpix_per_dist_unit)
+    distV = old_div((pixV - old_div(pixVres,2.0)), vpix_per_dist_unit)
     return distH, distV
 
 #
@@ -73,13 +75,13 @@ def convertNdToDist(eye2display, ndH, ndV):
 # coordinate line with the horizontal axes.
 #
 def distToCa(eye2display, distH, distV):
-    caH = 57.2958 * atan( distH/eye2display )
-    caV = 57.2958 * atan( distV/eye2display )
+    caH = 57.2958 * atan( old_div(distH,eye2display) )
+    caV = 57.2958 * atan( old_div(distV,eye2display) )
     return caH,caV
 
 def caToDist(eye2display, caH, caV):
-    distH =  eye2display * tan(caH/57.2958)
-    distV = eye2display * tan(caV/57.2968)
+    distH =  eye2display * tan(old_div(caH,57.2958))
+    distV = eye2display * tan(old_div(caV,57.2968))
     return distH,distV
 
 
@@ -87,14 +89,14 @@ def caToDist(eye2display, caH, caV):
 # Convert between distance coordinates (distH, distV) and Fick Coordinates (as,el)
 #
 def distToFick(eye2display,distH,distV):
-    az = 57.2958 * atan( distH/eye2display )
-    el =  57.2958 * atan( distV/ sqrt( eye2display * eye2display + distH * distH ) )
+    az = 57.2958 * atan( old_div(distH,eye2display) )
+    el =  57.2958 * atan( old_div(distV, sqrt( eye2display * eye2display + distH * distH )) )
     return az,el
 
 def fickToDist(eye2display, az, el):
-    distH = eye2display * tan( az/57.2958 )
-    distV = sqrt(eye2display * eye2display + distH * distH) * tan( el/57.2958 )
-    return distH/distV
+    distH = eye2display * tan( old_div(az,57.2958) )
+    distV = sqrt(eye2display * eye2display + distH * distH) * tan( old_div(el,57.2958) )
+    return old_div(distH,distV)
 
 #
 # Convert between distance coordinates (distH, distV) and 'symmetric angle'
@@ -105,13 +107,13 @@ def fickToDist(eye2display, az, el):
 # symmetrical fashion and is not the same as the Fick azimuth angle.
 #
 def distToSa(eye2display, distH, distV):
-    saH = 57.2958 * atan(distH/ sqrt(eye2display * eye2display + distV * distV))
-    saV = 57.2958 * atan(distV/ sqrt(eye2display * eye2display + distH * distH))
+    saH = 57.2958 * atan(old_div(distH, sqrt(eye2display * eye2display + distV * distV)))
+    saV = 57.2958 * atan(old_div(distV, sqrt(eye2display * eye2display + distH * distH)))
     return saH,saV
 
 def saToDist(eye2dsply, saH, saV):
-    tansaV_sqrd = tan( saV/57.2958) * tan( saV/57.2958)
-    tansaH_sqrd = tan( saH/57.2958) * tan( saH/57.2958)
+    tansaV_sqrd = tan( old_div(saV,57.2958)) * tan( old_div(saV,57.2958))
+    tansaH_sqrd = tan( old_div(saH,57.2958)) * tan( old_div(saH,57.2958))
     Dsqrd = eye2dsply * eye2dsply
 
     signsaV = 1.0
@@ -122,7 +124,7 @@ def saToDist(eye2dsply, saH, saV):
     if saH < 0.0:
         signsaH = -1.0
 
-    distV = signsaV * sqrt((Dsqrd * tansaV_sqrd  + Dsqrd * tansaH_sqrd * tansaV_sqrd)/ ( 1- tansaH_sqrd * tansaV_sqrd ))
+    distV = signsaV * sqrt(old_div((Dsqrd * tansaV_sqrd  + Dsqrd * tansaH_sqrd * tansaV_sqrd), ( 1- tansaH_sqrd * tansaV_sqrd )))
 
     distH = signsaH * sqrt((Dsqrd + distV * distV) * tansaH_sqrd)
 

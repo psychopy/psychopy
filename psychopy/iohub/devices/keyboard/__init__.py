@@ -16,6 +16,7 @@ from __future__ import absolute_import
 #
 # http://docs.python.org/2/library/unicodedata.html
 
+from builtins import zip
 Keyboard=None
 
 import numpy as N
@@ -44,7 +45,7 @@ class ioHubKeyboardDevice(Device):
     __slots__=['_key_states','_modifier_states','_report_auto_repeats','_log_events_file']
     def __init__(self,*args,**kwargs):
         self._key_states=dict()
-        self._modifier_states=dict(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names)))
+        self._modifier_states=dict(list(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names))))
         self._report_auto_repeats=kwargs.get('report_auto_repeat_press_events',False)
 
         self._log_events_file = None
@@ -211,7 +212,7 @@ class KeyboardInputEvent(DeviceEvent):
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+        return dict(list(zip(cls.CLASS_ATTRIBUTE_NAMES,values)))
 
     #noinspection PyUnresolvedReferences
     @classmethod

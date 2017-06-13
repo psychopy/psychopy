@@ -7,7 +7,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import division
 
+from past.utils import old_div
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
 from psychopy import logging
@@ -46,11 +48,11 @@ def makeGrating(res,
     """
     # to prevent the sinusoid ever being exactly at zero (for sqr wave):
     tiny = 0.0000000000001
-    ori *= (-numpy.pi / 180)
-    phase *= (numpy.pi / 180)
+    ori *= (old_div(-numpy.pi, 180))
+    phase *= (old_div(numpy.pi, 180))
     cyclesTwoPi = cycles * 2.0 * numpy.pi
-    xrange, yrange = numpy.mgrid[0.0: cyclesTwoPi: cyclesTwoPi / res,
-                                 0.0: cyclesTwoPi: cyclesTwoPi / res]
+    xrange, yrange = numpy.mgrid[0.0: cyclesTwoPi: old_div(cyclesTwoPi, res),
+                                 0.0: cyclesTwoPi: old_div(cyclesTwoPi, res)]
 
     sin, cos = numpy.sin, numpy.cos
     if gratType is "none":
@@ -141,7 +143,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
             [numpy.logical_and(rad <= 1, rad >= 1 - fringeProportion)])[1:]
 
         # Make a raised_cos (half a hamming window):
-        raisedCos = numpy.hamming(hammingLen)[:hammingLen / 2]
+        raisedCos = numpy.hamming(hammingLen)[:hammingLen//2]
         raisedCos -= numpy.min(raisedCos)
         raisedCos /= numpy.max(raisedCos)
 
@@ -149,7 +151,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
         # hamming window:
         dFromEdge = numpy.abs((1 - fringeProportion) - rad[raisedCosIdx])
         dFromEdge /= numpy.max(dFromEdge)
-        dFromEdge *= numpy.round(hammingLen / 2)
+        dFromEdge *= numpy.round(hammingLen/2)
 
         # This is the indices into the hamming (larger for small distances
         # from the edge!):
@@ -222,8 +224,7 @@ def makeGauss(x, mean=0.0, sd=1.0, gain=1.0, base=0.0):
 def getRMScontrast(matrix):
     """Returns the RMS contrast (the sample standard deviation) of a array
     """
-    matrix = matrix.flat
-    RMScontrast = (sum((matrix - numpy.mean(matrix))**2) / len(matrix))**0.5
+    RMScontrast = numpy.std(matrix)
     return RMScontrast
 
 
@@ -285,7 +286,7 @@ def butter2d_lp(size, cutoff, n=3):
     # An array with every pixel = radius relative to center
     radius = numpy.sqrt((x**2)[numpy.newaxis] + (y**2)[:, numpy.newaxis])
 
-    f = 1 / (1.0 + (radius / cutoff)**(2 * n))   # The filter
+    f = 1 / (1.0 + (radius/cutoff)**(2 * n))   # The filter
     return f
 
 
@@ -369,6 +370,6 @@ def butter2d_lp_elliptic(size, cutoff_x, cutoff_y, n=3,
     x2 = (x * numpy.cos(alpha) - y * numpy.sin(-alpha))
     y2 = (x * numpy.sin(-alpha) + y * numpy.cos(alpha))
 
-    f = 1. / (1 + ((2 * x2 / cutoff_x)**2 + (2 * y2 / cutoff_y)**2)**n)
+    f = 1 / (1 + ((2 * x2 / cutoff_x)**2 + (2 * y2 / cutoff_y)**2)**n)
 
     return f

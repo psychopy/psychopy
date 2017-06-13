@@ -6,7 +6,11 @@
 
 """Functions and classes related to attribute handling
 """
+from __future__ import division
 
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 import numpy
 
 from psychopy import logging
@@ -106,7 +110,7 @@ def setAttribute(self, attrib, value, log,
             elif operation == '-':
                 value = oldValue - value
             elif operation == '/':
-                value = oldValue / value
+                value = old_div(oldValue, value)
             elif operation == '**':
                 value = oldValue ** value
             elif operation == '%':

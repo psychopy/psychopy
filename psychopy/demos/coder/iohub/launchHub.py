@@ -126,7 +126,7 @@ def testEnabledDataStoreAutoSessionCode():
 
         psychopy_mon_name = 'testMonitor'
         exp_code = 'gap_endo_que'
-        sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+        sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
         print('Current Session Code will be: ', sess_code)
 
         io = launchHubServer(psychopy_monitor_name=psychopy_mon_name,

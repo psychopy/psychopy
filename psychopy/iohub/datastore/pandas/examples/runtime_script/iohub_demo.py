@@ -5,6 +5,7 @@ Created on Thu Oct 17 22:46:06 2013
 @author: Sol
 """
 from __future__ import print_function
+from builtins import str
 from psychopy import visual,core
 from psychopy.data import TrialHandler,importConditions
 from psychopy.iohub import launchHubServer,Computer,EventConstants
@@ -92,11 +93,11 @@ for t,trial in enumerate(trials):
     trial['TRIAL_START']=tstart_flip_time
     trial['TRIAL_END']=tend_flip_time
 
-    for k,v in trial.iteritems():
+    for k,v in trial.items():
         print(k,v,type(v))
     print('---')
     io.sendMessageEvent(category='EXP',text='TRIAL_END',sec_time=tend_flip_time)
-    io.addRowToConditionVariableTable(trial.values())
+    io.addRowToConditionVariableTable(list(trial.values()))
 
 win.close()
 io.quit()

@@ -10,9 +10,13 @@
 
 from __future__ import absolute_import, print_function, division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
 import os
 import sys
-import cPickle
+import pickle
 import wx
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 
@@ -91,9 +95,9 @@ class DlgConditions(wx.Dialog):
         if grid and type(grid) == list and type(grid[0]) == dict:
             conditions = grid[:]
             numCond, numParam = len(conditions), len(conditions[0])
-            grid = [conditions[0].keys()]
-            for i in xrange(numCond):
-                row = conditions[i].values()
+            grid = [list(conditions[0].keys())]
+            for i in range(numCond):
+                row = list(conditions[i].values())
                 grid.append(row)
             hasHeader = True  # keys of a dict are the header
         # ensure a sensible grid, or provide a basic default:
@@ -149,10 +153,9 @@ class DlgConditions(wx.Dialog):
         # set length of input box as the longest in the column (bounded):
         self.colSizes = []
         for x in range(self.cols):
-            _size = [len(unicode(self.grid[y][x])) for y in range(self.rows)]
+            _size = [len(str(self.grid[y][x])) for y in range(self.rows)]
             self.colSizes.append(max([4] + _size))
-        self.colSizes = map(lambda x: min(20, max(10, x + 1)) * 8 + 30,
-                            self.colSizes)
+        self.colSizes = [min(20, max(10, x + 1)) * 8 + 30 for x in self.colSizes]
         self.inputTypes = []  # explicit, as selected by user
         self.inputFields = []  # values in fields
         self.data = []
@@ -235,8 +238,8 @@ class DlgConditions(wx.Dialog):
         lastRow = []
         for col in range(self.cols):
             # get the item, as unicode for display purposes:
-            if len(unicode(self.grid[row][col])):  # want 0, for example
-                item = unicode(self.grid[row][col])
+            if len(str(self.grid[row][col])):  # want 0, for example
+                item = str(self.grid[row][col])
             else:
                 item = u''
             # make a textbox:
@@ -418,10 +421,10 @@ class DlgConditions(wx.Dialog):
                     elif thisType in ['file']:
                         exec("lastRow.append(repr(" + thisVal + "))")
                     else:
-                        exec("lastRow.append(" + unicode(thisVal) + ')')
+                        exec("lastRow.append(" + str(thisVal) + ')')
                 except ValueError as msg:
                     print('ValueError:', msg, '; using unicode')
-                    exec("lastRow.append(" + unicode(thisVal) + ')')
+                    exec("lastRow.append(" + str(thisVal) + ')')
                 except NameError as msg:
                     print('NameError:', msg, '; using unicode')
                     exec("lastRow.append(" + repr(thisVal) + ')')
@@ -598,7 +601,7 @@ class DlgConditions(wx.Dialog):
             if not fullPath.endswith('.pkl'):
                 fullPath += '.pkl'
             f = open(fullPath, 'w')
-            cPickle.dump(self.data, f)
+            pickle.dump(self.data, f)
             f.close()
             self.fileName = fullPath
             self.newFile = False
@@ -620,7 +623,7 @@ class DlgConditions(wx.Dialog):
                 fileName = fullPathList[0]  # wx.MULTIPLE -> list
         if os.path.isfile(fileName) and fileName.endswith('.pkl'):
             f = open(fileName)
-            contents = cPickle.load(f)
+            contents = pickle.load(f)
             f.close()
             if self.parent:
                 self.parent.conditionsFile = fileName

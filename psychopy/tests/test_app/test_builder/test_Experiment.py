@@ -1,4 +1,6 @@
 from __future__ import print_function
+from past.builtins import execfile
+from builtins import object
 from psychopy.app import psychopyApp
 import psychopy.app.builder.experiment
 from os import path
@@ -373,7 +375,7 @@ class Test_ExptComponents(object):
     settings, they can be added to a Routine and result in a script that compiles
     """
     def test_all_components(self):
-        for compName, compClass in allComponents.items():
+        for compName, compClass in list(allComponents.items()):
             if compName in ['SettingsComponent']:
                 continue
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)

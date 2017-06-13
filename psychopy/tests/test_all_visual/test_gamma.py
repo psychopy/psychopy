@@ -1,3 +1,4 @@
+from builtins import range
 from psychopy import visual, monitors
 import numpy
 

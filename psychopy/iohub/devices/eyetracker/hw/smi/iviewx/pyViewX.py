@@ -7,6 +7,8 @@ ctypesgen.py -a --insert-file=prepend_contents.py --cpp=cl -E -l iViewXAPI -o iV
 Do not modify this file.
 '''
 
+from builtins import str
+from builtins import object
 __docformat__ =  'restructuredtext'
 
 # Begin preamble
@@ -1764,7 +1766,7 @@ ET_PARAM_BINOCULAR = 18
 # Creating the enum as a dict for utility..
 etDeviceTypes= dict(NONE=0, RED=1, REDm=2, HiSpeed=3, MRI=4, HED=5, ETG=6, Custom=7)
 
-for k,v in etDeviceTypes.items():
+for k,v in list(etDeviceTypes.items()):
     etDeviceTypes[v]=k
 
 

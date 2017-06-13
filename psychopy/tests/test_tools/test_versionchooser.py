@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.tools.versionchooser"""
+from builtins import object
 import os
 from psychopy.tools.versionchooser import useVersion
 import psychopy

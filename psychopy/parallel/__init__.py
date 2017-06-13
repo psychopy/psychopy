@@ -22,6 +22,9 @@ parallel port at once.
 """
 from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import sys
 from psychopy import logging
 

@@ -12,6 +12,8 @@ pyxid package instead (bundled with Standalone PsychoPy)::
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import range
+from builtins import object
 from psychopy import core, logging
 import struct
 import sys

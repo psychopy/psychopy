@@ -4,7 +4,11 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
 import wx
 from wx.lib import platebtn, scrolledpanel
 try:
@@ -259,7 +263,7 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         # work out where the component names and icons should be from name
         # lengths
-        self.setFontSize(self.fontBaseSize / self.dpi, self.pdc)
+        self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
         longest = 0
         w = 50
         for comp in self.routine:
@@ -330,7 +334,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         elif tMax / unitSize < 6:
             # gives units of 5 (0.5,5,50)
             unitSize = 10**numpy.ceil(numpy.log10(tMax * 0.8)) / 20.0
-        for lineN in range(int(numpy.floor(tMax / unitSize))):
+        for lineN in range(int(numpy.floor((tMax / unitSize)))):
             # vertical line:
             dc.DrawLine(xSt + lineN * unitSize / xScale, yPosTop - 4,
                         xSt + lineN * unitSize / xScale, yPosBottom + 4)
@@ -342,17 +346,17 @@ class RoutineCanvas(wx.ScrolledWindow):
                 dc.DrawText('%.2g' % (lineN * unitSize), xSt + lineN *
                             unitSize / xScale - 4, yPosBottom + 10)
         # add a label
-        self.setFontSize(self.fontBaseSize / self.dpi, dc)
+        self.setFontSize(self.fontBaseSize // self.dpi, dc)
         # y is y-half height of text
-        dc.DrawText('t (sec)', xEnd + 5, yPosTop -
-                    self.GetFullTextExtent('t')[1] / 2.0)
+        dc.DrawText('t (sec)', xEnd + 5,
+                    yPosTop - self.GetFullTextExtent('t')[1] / 2.0)
         # or draw bottom labels only if scrolling is turned on, virtual size >
         # available size?
         if yPosBottom > 300:
             # if bottom of grid is far away then draw labels there too
             # y is y-half height of text
-            dc.DrawText('t (sec)', xEnd + 5, yPosBottom -
-                        self.GetFullTextExtent('t')[1] / 2.0)
+            dc.DrawText('t (sec)', xEnd + 5,
+                        yPosBottom - self.GetFullTextExtent('t')[1] / 2.0)
 
     def setFontSize(self, size, dc):
         font = self.GetFont()
@@ -385,8 +389,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         xScale = self.getSecsPerPixel()
         dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
         dc.SetBrush(wx.Brush(staticTimeColor))
-        xSt = self.timeXposStart + startTime / xScale
-        w = duration / xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
+        xSt = self.timeXposStart + startTime // xScale
+        w = duration // xScale + 1  # +1 b/c border alpha=0 in dc.SetPen
         w = max(min(w, 10000), 2)  # ensure 2..10000 pixels
         h = yPosBottom - yPosTop
         # name label, position:
@@ -396,13 +400,13 @@ class RoutineCanvas(wx.ScrolledWindow):
             # duration
             name += ' ???'
         nameW, nameH = self.GetFullTextExtent(name)[0:2]
-        x = xSt + w / 2
+        x = xSt + w // 2
         staticLabelTop = (0, 50, 60)[self.drawSize]
         y = staticLabelTop - nameH * 3
         fullRect = wx.Rect(x - 20, y, nameW, nameH)
         # draw the rectangle, draw text on top:
         dc.DrawRectangle(xSt, yPosTop - nameH * 4, w, h + nameH * 5)
-        dc.DrawText(name, x - nameW / 2, y)
+        dc.DrawText(name, x - nameW // 2, y)
         # update bounds to include time bar
         fullRect.Union(wx.Rect(xSt, yPosTop, w, h))
         dc.SetIdBounds(id, fullRect)
@@ -427,16 +431,16 @@ class RoutineCanvas(wx.ScrolledWindow):
         fullRect = wx.Rect(self.iconXpos, yPos,
                            thisIcon.GetWidth(), thisIcon.GetHeight())
 
-        self.setFontSize(self.fontBaseSize / self.dpi, dc)
+        self.setFontSize(self.fontBaseSize // self.dpi, dc)
 
         name = component.params['name'].val
         # get size based on text
         w, h = self.GetFullTextExtent(name)[0:2]
         # draw text
         _base = (self.iconSize, self.iconSize, 10)[self.drawSize]
-        x = self.iconXpos - self.dpi / 10 - w + _base
+        x = self.iconXpos - self.dpi // 10 - w + _base
         _adjust = (5, 5, -2)[self.drawSize]
-        y = yPos + thisIcon.GetHeight() / 2 - h / 2 + _adjust
+        y = yPos + thisIcon.GetHeight() // 2 - h // 2 + _adjust
         dc.DrawText(name, x - 20, y)
         fullRect.Union(wx.Rect(x - 20, y, w, h))
 
@@ -451,9 +455,9 @@ class RoutineCanvas(wx.ScrolledWindow):
             dc.SetBrush(wx.Brush(routineTimeColor))
             hSize = (3.5, 2.75, 2)[self.drawSize]
             yOffset = (3, 3, 0)[self.drawSize]
-            h = self.componentStep / hSize
-            xSt = self.timeXposStart + startTime / xScale
-            w = duration / xScale + 1
+            h = self.componentStep // hSize
+            xSt = self.timeXposStart + startTime // xScale
+            w = duration // xScale + 1
             if w > 10000:
                 w = 10000  # limit width to 10000 pixels!
             if w < 2:
@@ -716,10 +720,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def on_resize(self, event):
         if self.app.prefs.app['largeIcons']:
-            cols = self.GetClientSize()[0] / 58
+            cols = self.GetClientSize()[0] // 58
         else:
-            cols = self.GetClientSize()[0] / 34
-        for category in self.panels.values():
+            cols = self.GetClientSize()[0] // 34
+        for category in list(self.panels.values()):
             category.SetCols(max(1, cols))
 
     def makeFavoriteButtons(self):
@@ -943,7 +947,7 @@ class FavoriteComponents(object):
         than the threshold and there will be not more than
         max length prefs['builder']['maxFavorites']
         """
-        sortedVals = sorted(self.currentLevels.items(),
+        sortedVals = sorted(list(self.currentLevels.items()),
                             key=lambda x: x[1], reverse=True)
         favorites = []
         maxFav = self.prefs.builder['maxFavorites']

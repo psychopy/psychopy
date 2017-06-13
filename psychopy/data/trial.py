@@ -2,7 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 import os
 import sys
 import string
@@ -283,7 +288,7 @@ class TrialHandler(_BaseTrialHandler):
         dims = inputArray.shape
         dimsProd = np.product(dims)
         dimsN = len(dims)
-        dimsList = range(dimsN)
+        dimsList = list(range(dimsN))
         listOfLists = []
         # this creates space for an array of any objects
         arrayOfTuples = np.ones(dimsProd, 'O')
@@ -301,7 +306,7 @@ class TrialHandler(_BaseTrialHandler):
             arrayOfTuples[n] = tuple((indexArr[:, n]))
         return (np.reshape(arrayOfTuples, dims)).tolist()
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; thisTrial, thisTrialN and thisIndex
         If the trials have ended this method will raise a StopIteration error.
@@ -412,14 +417,14 @@ class TrialHandler(_BaseTrialHandler):
                 # make a string version of the data and then format it
                 tmpData = dataAnal[thisDataOut][stimN]
                 if hasattr(tmpData, 'tolist'):  # is a numpy array
-                    strVersion = unicode(tmpData.tolist())
+                    strVersion = str(tmpData.tolist())
                     # for numeric data replace None with a blank cell
                     if tmpData.dtype.kind not in ['SaUV']:
                         strVersion = strVersion.replace('None', '')
                 elif tmpData in [None, 'None']:
                     strVersion = ''
                 else:
-                    strVersion = unicode(tmpData)
+                    strVersion = str(tmpData)
 
                 if strVersion == '()':
                     # 'no data' in masked array should show as "--"
@@ -437,7 +442,7 @@ class TrialHandler(_BaseTrialHandler):
                     for entry in tup:
                         # contents of each entry is a list or tuple so keep in
                         # quotes to avoid probs with delim
-                        thisLine.append(unicode(entry))
+                        thisLine.append(str(entry))
                 else:
                     thisLine.extend(strVersion.split(','))
 
@@ -446,7 +451,7 @@ class TrialHandler(_BaseTrialHandler):
             lines.append([])
             # give a single line of space and then a heading
             lines.append(['extraInfo'])
-            for key, value in self.extraInfo.items():
+            for key, value in list(self.extraInfo.items()):
                 lines.append([key, value])
         return lines
 
@@ -696,7 +701,7 @@ class TrialHandler(_BaseTrialHandler):
         for trial in dataOut:
             nextLine = ''
             for prmName in header:
-                nextLine = nextLine + unicode(trial[prmName]) + delim
+                nextLine = nextLine + str(trial[prmName]) + delim
             # remove the final orphaned tab character
             nextLine = nextLine[:-1]
             f.write(nextLine + '\n')
@@ -911,7 +916,7 @@ class TrialHandler2(_BaseTrialHandler):
         """
         return pd.DataFrame(self._data)
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; thisTrial, thisTrialN and thisIndex
         If the trials have ended this method will raise a StopIteration error.
@@ -941,7 +946,7 @@ class TrialHandler2(_BaseTrialHandler):
         # thisRepN has exceeded nReps
         if self.remainingIndices == []:
             # we've just started, or just starting a new repeat
-            sequence = range(len(self.trialList))
+            sequence = list(range(len(self.trialList)))
             if (self.method == 'fullRandom' and
                         self.thisN < (self.nReps * len(self.trialList))):
                 # we've only just started on a fullRandom sequence
@@ -1370,7 +1375,7 @@ class TrialHandlerExt(TrialHandler):
             logging.exp(msg % vals)
         return seqIndices
 
-    def next(self):
+    def __next__(self):
         """Advances to next trial and returns it.
         Updates attributes; thisTrial, thisTrialN and thisIndex
         If the trials have ended this method will raise a StopIteration error.
@@ -1472,7 +1477,7 @@ class TrialHandlerExt(TrialHandler):
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + (nThisTrialPresented - 1) % _tw
-            dataColThisTrial = int((nThisTrialPresented - 1) / _tw)
+            dataColThisTrial = int(old_div((nThisTrialPresented - 1), _tw))
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1502,7 +1507,7 @@ class TrialHandlerExt(TrialHandler):
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + nThisTrialPresented % _tw
-            dataColThisTrial = int(nThisTrialPresented / _tw)
+            dataColThisTrial = int(old_div(nThisTrialPresented, _tw))
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1785,7 +1790,7 @@ class TrialHandlerExt(TrialHandler):
                             firstRowIndex = sum(self.trialWeights[:tti])
                             _tw = self.trialWeights[tti]
                             row = firstRowIndex + rep % _tw
-                            col = int(rep / _tw)
+                            col = int(old_div(rep, _tw))
                             nextEntry[prmName] = self.data[prmName][row][col]
                     else:
                         # allow a null value if this parameter wasn't
@@ -1806,7 +1811,7 @@ class TrialHandlerExt(TrialHandler):
             f.write(delim.join(header) + '\n')
         # write the data matrix:
         for trial in dataOut:
-            line = delim.join([unicode(trial[prm]) for prm in header])
+            line = delim.join([str(trial[prm]) for prm in header])
             f.write(line + '\n')
 
         if f != sys.stdout:

@@ -7,6 +7,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from builtins import str
+from past.builtins import basestring
 import os
 import glob
 import copy
@@ -213,7 +215,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
     allCats = ['Stimuli', 'Responses', 'Custom']
-    for name, thisComp in allComps.items():
+    for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
                 allCats.append(thisCat)
@@ -229,13 +231,13 @@ def getInitVals(params, target="PsychoPy"):
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
-            valStr = unicode(inits[name].val).strip()
+            valStr = str(inits[name].val).strip()
             if valStr.startswith("(") and valStr.endswith(")"):
                 inits[name].val = inits[name].val.replace("(", "[", 1)
                 inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["image", "mask", "sound"]:
-                val = unicode(inits[name].val)
+                val = str(inits[name].val)
                 if val != "None":
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))

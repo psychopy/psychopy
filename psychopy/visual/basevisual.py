@@ -3,6 +3,7 @@
 """Provides class BaseVisualStim and mixins; subclass to get visual stimuli
 """
 from __future__ import absolute_import
+from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -12,6 +13,9 @@ from __future__ import absolute_import
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
+
+from builtins import object
+from past.builtins import basestring
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
@@ -427,7 +431,7 @@ class ColorMixin(object):
         # Ensure that we work on 0-centered color (to make negative contrast
         # values work)
         if colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
-            rgb = (rgb / 255.0) * 2 - 1
+            rgb = rgb / 127.5 - 1
 
         # Convert to RGB in range 0:1 and scaled for contrast
         # NB glColor will clamp it to be 0-1 (whether or not we use FBO)
@@ -699,7 +703,7 @@ class TextureMixin(object):
             # -1:3 means the middle is at +1
             intens = numpy.linspace(-1.0, 3.0, res, endpoint=True)
             # remove from 3 to get back down to -1
-            intens[int(res / 2.0 + 1):] = 2.0 - intens[int(res / 2.0 + 1):]
+            intens[res // 2 + 1 :] = 2.0 - intens[res // 2 + 1 :]
             intensity = intens * numpy.ones([res, 1])  # make 2D
             wasLum = True
         elif tex == "sinXsin":
@@ -723,7 +727,7 @@ class TextureMixin(object):
             rad = makeRadialMatrix(res)
             # 3sd.s by the edge of the stimulus
             invVar = (1.0 / allMaskParams['sd']) ** 2.0
-            intensity = numpy.exp(-rad**2.0 / (2.0 * invVar)) * 2 - 1
+            intensity = numpy.exp( -rad**2.0 / (2.0 * invVar)) * 2 - 1
             wasLum = True
         elif tex == "cross":
             X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
@@ -753,7 +757,7 @@ class TextureMixin(object):
                 [numpy.logical_and(rad <= 1, rad >= 1 - frng)])[1:]
 
             # Make a raised_cos (half a hamming window):
-            raisedCos = numpy.hamming(hammingLen)[:hammingLen / 2]
+            raisedCos = numpy.hamming(hammingLen)[ : hammingLen // 2]
             raisedCos -= numpy.min(raisedCos)
             raisedCos /= numpy.max(raisedCos)
 
@@ -762,7 +766,7 @@ class TextureMixin(object):
             dFromEdge = numpy.abs(
                 (1 - allMaskParams['fringeWidth']) - rad[raisedCosIdx])
             dFromEdge /= numpy.max(dFromEdge)
-            dFromEdge *= numpy.round(hammingLen / 2)
+            dFromEdge *= numpy.round(hammingLen/2)
 
             # This is the indices into the hamming (larger for small distances
             # from the edge!):
@@ -773,7 +777,7 @@ class TextureMixin(object):
 
             # Scale it into the interval -1:1:
             intensity = intensity - 0.5
-            intensity = intensity / numpy.max(intensity)
+            intensity /= numpy.max(intensity)
 
             # Sometimes there are some remaining artifacts from this process,
             # get rid of them:
@@ -785,7 +789,7 @@ class TextureMixin(object):
             intensity[artifactIdx] = 0
 
         else:
-            if type(tex) in [str, unicode, numpy.string_]:
+            if isinstance(tex, basestring):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex)
                 if not filename:
@@ -893,10 +897,10 @@ class TextureMixin(object):
                 rgb = stim.rgb
             else:
                 # colour is not a float - convert to float to do the scaling
-                rgb = stim.rgb / 127.5 - 1.0
+                rgb = (stim.rgb / 127.5) - 1.0
             # if wasImage it will also have ubyte values for the intensity
             if wasImage:
-                intensity = intensity / 127.5 - 1.0
+                intensity = (intensity / 127.5) - 1.0
             # scale by rgb
             # initialise data array as a float
             data = numpy.ones((intensity.shape[0], intensity.shape[1], 4),
@@ -1151,7 +1155,7 @@ class WindowMixin(object):
                                   'visual.BaseVisualStim.draw')
 
     def _selectWindow(self, win):
-        """Switch drawing to the specified window. Calls the window's 
+        """Switch drawing to the specified window. Calls the window's
         _setCurrent() method which handles the switch.
         """
         self.win._setCurrent()

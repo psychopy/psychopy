@@ -13,6 +13,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 from __future__ import division
 from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import sys
 import copy
 
@@ -76,7 +79,7 @@ class EyeTracker(EyeTrackerDevice):
             self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)
 
             # Set the filtering level......
-            filter_type, filter_level = self._runtime_settings['sample_filtering'].items()[0]
+            filter_type, filter_level = list(self._runtime_settings['sample_filtering'].items())[0]
             INT_POINTER=POINTER(c_int)
             if filter_type == 'FILTER_ALL':
                 level_int = EyeTrackerConstants.getID(filter_level)

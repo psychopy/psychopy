@@ -12,8 +12,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 from __future__ import absolute_import
+from __future__ import division
 
 
+from builtins import range
+from past.utils import old_div
 from ...... import printExceptionDetailsToStdErr, print2err
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
@@ -66,7 +69,7 @@ class EyeTracker(EyeTrackerDevice):
         Return:
             float: The eye tracker hardware's reported current time.
         """
-        return pEyeGaze.lct_TimerRead(None)-(pEyeGaze.EgGetApplicationStartTimeSec()/self.DEVICE_TIMEBASE_TO_SEC)
+        return pEyeGaze.lct_TimerRead(None)-(old_div(pEyeGaze.EgGetApplicationStartTimeSec(),self.DEVICE_TIMEBASE_TO_SEC))
         
     def trackerSec(self):
         """
@@ -225,14 +228,14 @@ class EyeTracker(EyeTrackerDevice):
                 #from psychopy.iohub import module_directory
                 #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
                 #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
-                org_cwd = os.getcwdu()
+                org_cwd = os.getcwd()
                 print2err("==========")
                 print2err("CWD Prior to calibrate.exe launch: ",org_cwd)
                 p = subprocess.Popen((u'calibrate.exe', u''), cwd = u'c:\\eyegaze\\' )
                 while p.poll() is None:
                     gevent.sleep(0.05)
                 self.setConnectionState(True)
-                new_cwd=os.getcwdu()
+                new_cwd=os.getcwd()
                 print2err("CWD after calibrate.exe: ",new_cwd)
                 print2err("==========")
 
@@ -543,7 +546,7 @@ class EyeTracker(EyeTrackerDevice):
                     
                     g=[0.0,0.0]                    
                     if right_pupil_measure1>0.0 and left_pupil_measure1>0.0:
-                        g=[(left_gaze_x+right_gaze_x)/2.0,(left_gaze_y+right_gaze_y)/2.0]
+                        g=[old_div((left_gaze_x+right_gaze_x),2.0),old_div((left_gaze_y+right_gaze_y),2.0)]
                     elif left_pupil_measure1>0.0:
                         g=[left_gaze_x,left_gaze_y]
                     elif right_pupil_measure1>0.0:
@@ -694,7 +697,7 @@ def _eyeTrackerToDisplayCoords(self,eyetracker_point):
             dl,dt,dr,db=self._display_device.getBounds()
             dw,dh=dr-dl,db-dt
 
-            gxn,gyn=eyetracker_point[0]/dw,eyetracker_point[1]/dh                        
+            gxn,gyn=old_div(eyetracker_point[0],dw),old_div(eyetracker_point[1],dh)                        
             return cl+cw*gxn,cb+ch*(1.0-gyn)   
         except Exception:
             print2err("ERROR occurred during _eyeTrackerToDisplayCoords:")
@@ -711,7 +714,7 @@ def _displayToEyeTrackerCoords(self,display_x,display_y):
             dl,dt,dr,db=self._display_device.getBounds()
             dw,dh=dr-dl,db-dt
             
-            cxn,cyn=(display_x+cw/2)/cw , 1.0-(display_y-ch/2)/ch       
+            cxn,cyn=old_div((display_x+old_div(cw,2)),cw) , 1.0-old_div((display_y-old_div(ch,2)),ch)       
             return cxn*dw,  cyn*dh          
            
         except Exception:

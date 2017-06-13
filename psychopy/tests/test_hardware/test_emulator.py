@@ -4,6 +4,8 @@
 
 # py.test -k emulator --cov-report term-missing --cov hardware/emulator.py tests/test_hardware
 
+from builtins import str
+from builtins import object
 import os, sys
 import pytest
 

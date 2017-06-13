@@ -6,7 +6,10 @@
 
 """Functions and classes related to array handling
 """
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 import numpy
 
 
@@ -72,7 +75,7 @@ def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
     """
-    oneStep = 2.0 / (matrixSize - 1)
+    oneStep = old_div(2.0, (matrixSize - 1))
     # NB need to add one step length because
     xx, yy = numpy.mgrid[0:2 + oneStep:oneStep, 0:2 + oneStep:oneStep] - 1.0
     rad = numpy.sqrt(xx**2 + yy**2)
@@ -100,7 +103,7 @@ def ratioRange(start, nSteps=None, stop=None,
     if start <= 0:
         raise RuntimeError(badRange)
     if stepdB is not None:
-        stepRatio = 10.0**(stepdB / 20.0)  # dB = 20*log10(ratio)
+        stepRatio = 10.0**(old_div(stepdB, 20.0))  # dB = 20*log10(ratio)
     if stepLogUnits is not None:
         stepRatio = 10.0**stepLogUnits  # logUnit = log10(ratio)
 
@@ -113,7 +116,7 @@ def ratioRange(start, nSteps=None, stop=None,
             raise RuntimeError(badRange)
         lgStart = numpy.log10(start)
         lgStop = numpy.log10(stop)
-        lgStep = (lgStop - lgStart) / (nSteps - 1)
+        lgStep = old_div((lgStop - lgStart), (nSteps - 1))
         lgArray = numpy.arange(lgStart, lgStop + lgStep, lgStep)
         # if the above is a badly rounded float it may have one extra entry
         if len(lgArray) > nSteps:

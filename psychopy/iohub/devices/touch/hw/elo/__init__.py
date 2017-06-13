@@ -9,6 +9,10 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import division
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
 from psychopy.iohub.devices import Computer
 from ..... import printExceptionDetailsToStdErr,print2err
 from .....constants import EventConstants, DeviceConstants
@@ -222,8 +226,8 @@ class Touch(TouchDevice):
         # set calibration and scaling params on controller */
         try:
             # compute number of touch points per screen coordinate */
-            xunit = (x2-x1) / (rightx-leftx)
-            yunit = (y2-y1) / (lowery-uppery)
+            xunit = old_div((x2-x1), (rightx-leftx))
+            yunit = old_div((y2-y1), (lowery-uppery))
 
             #/* extrapolate the calibration points to corner points of screen image */
             xhigh = x2 + (xunit * (xmax-rightx))
@@ -382,8 +386,8 @@ class Touch(TouchDevice):
         """
         try:
             dw,dh=self._display_device.getPixelResolution()
-            rx=px/float(dw)
-            ry=py/float(dh)
+            rx=old_div(px,float(dw))
+            ry=old_div(py,float(dh))
             left,top,right,bottom=self._display_device.getCoordBounds()
             w,h=right-left,top-bottom
             x,y=left+w*rx,bottom+h*(1.0-ry)

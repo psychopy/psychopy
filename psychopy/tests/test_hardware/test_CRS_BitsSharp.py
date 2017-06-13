@@ -5,6 +5,9 @@ Created on Thu May  8 10:46:41 2014
 @author: jon.peirce
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import pytest
 from psychopy import visual, core
 from psychopy.hardware import crs
@@ -34,7 +37,7 @@ def test_bitsSharp():
     print('\n  up from zero:')
     bit16 = (2.0**16)-1
     for frameN in range(5):
-        intensity = frameN/bit16
+        intensity = old_div(frameN,bit16)
         screenSqr.color = intensity*2-1 #psychopy is -1:1
         screenSqr.draw()
         win.flip()
@@ -43,7 +46,7 @@ def test_bitsSharp():
 
     print('\n  down from 1:')
     for frameN in range(5):
-        intensity = 1-frameN/bit16
+        intensity = 1-old_div(frameN,bit16)
         screenSqr.color = intensity*2-1 #psychopy is -1:1
         screenSqr.draw()
         win.flip()
@@ -51,7 +54,7 @@ def test_bitsSharp():
         print(pixels[0], pixels[1], intensity)
 
     print('\n  check the middle::')
-    for intensity in [0.5, 0.5+1/bit16]:
+    for intensity in [0.5, 0.5+old_div(1,bit16)]:
         screenSqr.color = intensity*2-1 #psychopy is -1:1
         screenSqr.draw()
         win.flip()

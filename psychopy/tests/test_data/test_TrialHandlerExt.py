@@ -5,6 +5,9 @@ Maybe not worth doing if TrialHandler2 is going to have weights eventually.
 """
 
 from __future__ import print_function
+from builtins import str
+from builtins import range
+from builtins import object
 import os, glob
 from os.path import join as pjoin
 import shutil
@@ -50,7 +53,7 @@ class TestTrialHandlerExt(object):
             print(base_data_filename)
             print(repr(expected_header),type(expected_header),len(expected_header))
             print(repr(header), type(header), len(header))
-        assert expected_header == unicode(header)
+        assert expected_header == str(header)
 
     def test_psydat_filename_collision_renaming(self):
         for count in range(1,20):

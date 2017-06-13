@@ -2,7 +2,10 @@
 
 py.test -k polygon --cov-report term-missing --cov visual/helpers.py
 """
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 from psychopy import visual, monitors, core
 from psychopy.visual import helpers
 from numpy import sqrt, cos, sin, radians, array
@@ -24,7 +27,7 @@ points = [
     array((0,0)),
     array((0,unitDist)),
     array((0,unitDist*2)),
-    array((unitDist/sqrt2,unitDist/sqrt2)),
+    array((old_div(unitDist,sqrt2),old_div(unitDist,sqrt2))),
     array((unitDist*sqrt2,0)),
     array((unitDist*sqrt2,unitDist*sqrt2)) ]
 

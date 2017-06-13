@@ -9,7 +9,10 @@
     next to a clone of the psychopy/versions git repository
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import input
+from past.utils import old_div
 import os, sys, shutil, subprocess
 from os.path import join
 from createInitFile import createInitFile
@@ -41,13 +44,13 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
 
     # todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
-    Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
+    Mb = old_div(float(subprocess.check_output(["du", "-bsc", dest]).split()[0]),10**6)
     print("size for '%s' will be: %.2f Mb" %(versionStr, Mb))
     if noCommit:
         return False
 
     if interactive:
-        ok = raw_input("OK to continue? [n]y :")
+        ok = input("OK to continue? [n]y :")
         if ok != "y":
             return False
 
@@ -98,5 +101,5 @@ if __name__ == "__main__":
     else:
         interactive = False
     # todo: update versions first
-    versionStr = raw_input("version:")
+    versionStr = input("version:")
     buildRelease(versionStr, noCommit=noCommit, interactive=interactive)

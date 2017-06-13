@@ -7,6 +7,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from past.builtins import basestring
+from builtins import range
 import os
 import copy
 
@@ -161,7 +163,7 @@ def setColor(obj, color, colorSpace=None, operation='',
 
     # Handle strings and returns immediately as operations, colorspace etc.
     # does not apply here.
-    if type(color) in [str, unicode, numpy.string_]:
+    if isinstance(color, basestring):
         if operation not in ('', None):
             raise TypeError('Cannot do operations on named or hex color')
         if color.lower() in colors.colors255:
@@ -273,7 +275,7 @@ def setColor(obj, color, colorSpace=None, operation='',
     setTexIfNoShaders(obj)
 
 # set for groupFlipVert:
-immutables = {int, float, str, tuple, long, bool,
+immutables = {int, float, str, tuple, int, bool,
               numpy.float64, numpy.float, numpy.int, numpy.long}
 
 def findImageFile(filename):
@@ -335,10 +337,10 @@ def groupFlipVert(flipList, yReflect=0):
                 for i in range(len(item)):
                     item[i][1] = 2 * yReflect - item[i][1]
             else:
-                msg = 'Cannot vert-flip elements in "%s", type=%s'
-                raise ValueError(msg % (str(item), type(item[0])))
+                msg = 'Cannot vert-flip elements in "{}", type={}'
+                raise ValueError(msg.format(item, type(item[0])))
         elif type(item) in immutables:
-            raise ValueError('Cannot change immutable item "%s"' % str(item))
+            raise ValueError('Cannot change immutable item "{}"'.format(item))
         if hasattr(item, 'setPos'):
             item.setPos([1, -1], '*')
             item.setPos([0, 2 * yReflect], '+')

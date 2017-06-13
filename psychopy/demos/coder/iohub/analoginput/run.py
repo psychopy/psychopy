@@ -7,6 +7,7 @@ configured in the iohub.config.yaml file in this directory.
 """
 
 from __future__ import print_function #for compatibility with python3
+from builtins import range
 from psychopy import visual
 from psychopy.iohub import OrderedDict,ioHubExperimentRuntime,EventConstants,module_directory
 

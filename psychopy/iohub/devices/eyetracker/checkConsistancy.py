@@ -47,10 +47,10 @@ if __name__ == '__main__':
 
     attributes,methods,builtins,klasses=describeModule.describe(EyeTrackerDevice,True)
 
-    interfaceAttributes= collections.Counter(attributes.keys())
-    interfaceMethods= collections.Counter(methods.keys())
-    interfaceBuiltins= collections.Counter(builtins.keys())
-    interfaceClasses= collections.Counter(klasses.keys())
+    interfaceAttributes= collections.Counter(list(attributes.keys()))
+    interfaceMethods= collections.Counter(list(methods.keys()))
+    interfaceBuiltins= collections.Counter(list(builtins.keys()))
+    interfaceClasses= collections.Counter(list(klasses.keys()))
 
     print('\n\n')
 
@@ -59,10 +59,10 @@ if __name__ == '__main__':
     for implementation in eyetrackerImplementations:
         attributes2,methods2,builtins2,klasses2=describeModule.describe(implementation,False)
 
-        a = collections.Counter(attributes2.keys())
-        m= collections.Counter(methods2.keys())
-        b= collections.Counter(builtins2.keys())
-        k= collections.Counter(klasses2.keys())
+        a = collections.Counter(list(attributes2.keys()))
+        m= collections.Counter(list(methods2.keys()))
+        b= collections.Counter(list(builtins2.keys()))
+        k= collections.Counter(list(klasses2.keys()))
 
         onlyInImplementationA=a-interfaceAttributes
         onlyInImplementationM=m-interfaceMethods

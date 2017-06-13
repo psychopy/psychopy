@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-This demo requires that an ioSync device is correctly connected to the computer 
+This demo requires that an ioSync device is correctly connected to the computer
 running this script.
 
-This demo displays the ioSync digital and analog input values in real time. 
+This demo displays the ioSync digital and analog input values in real time.
 The GUI can also be used to toggle the state of any of the digital output lines.
 """
+from __future__ import division
 
+from builtins import range
 LUX_AIN = 0
 
 import sys
@@ -64,7 +66,7 @@ def main():
             meter = AnalogMeter(win, dial_color=[1, 1, 1],
                                 arrow_color=[-0.8, -0.8, -0.8],
                                 size=0.2, pos=(
-                    -0.75 + (i % 4) * .5, 0.025 + .4 * (1 - int(i / 4))),
+                    -0.75 + (i % 4) * .5, 0.025 + .4 * (1 - int(i/4))),
                                 title=ain_name)
             meter.ain_name = ain_name
             ain_gauges.append(meter)
@@ -139,7 +141,7 @@ def main():
             if last_analog_in_event:
                 for c, m in enumerate(ain_gauges):
                     vraw = getattr(last_analog_in_event, m.ain_name)
-                    raw_ratio = vraw / MAX_RAW
+                    raw_ratio = vraw//MAX_RAW
                     vstr = '%.3fV' % (toVolts(vraw))
                     if LUX_AIN == c:
                         vstr = '%d Lux' % (int(tolux(vraw)))
@@ -193,7 +195,7 @@ MAX_LUX = 15.0 # in k lux
 MAX_AIN_V = 3.3
 LOG_LUX_RANGE = MAX_AIN_V
 LOG_LUX_RATIO = LOG_LUX_RANGE/MAX_RAW
-DIGITAL_ANALOG_16_STEP = MAX_AIN_V / MAX_RAW
+DIGITAL_ANALOG_16_STEP = MAX_AIN_V/MAX_RAW
 
 def toVolts(raw):
     """
@@ -219,7 +221,7 @@ def startIOHub():
     import time
     psychopy_mon_name = 'testMonitor'
     exp_code = 'events'
-    sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+    sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
     iohub_config = {
         "psychopy_monitor_name": psychopy_mon_name,
         "mcu.iosync.MCU": dict(serial_port='auto',
