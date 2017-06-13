@@ -189,6 +189,7 @@ class EnvelopeGrating(GratingStim):
         self.local_p = self.local.ctypes
         # fix scaling to window coords
         self._calcEnvCyclesPerStim()
+        self.texRes=int(texRes)
         del self.__dict__['tex']
 
     @attributeSetter
@@ -344,6 +345,23 @@ class EnvelopeGrating(GratingStim):
             self.size = None  # Reset size do default
         self.__dict__['envelope'] = value
         self._needTextureUpdate = False
+        
+    @attributeSetter
+    def texRes(self, value):
+        """Power-of-two int. Sets the resolution of the mask and texture.
+        texRes is overridden if an array or image is provided as mask.
+
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['texRes'] = value
+
+        # ... now rebuild textures (call attributeSetters without logging).
+        if hasattr(self, 'carrier'):
+            self._set('carrier', self.carrier, log=False)
+        if hasattr(self, 'envelope'):
+            self._set('envelope', self.envelope, log=False)
+        if hasattr(self, 'mask'):
+            self._set('mask', self.mask, log=False)
         
     def setTexRes(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
