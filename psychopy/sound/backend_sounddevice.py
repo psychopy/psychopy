@@ -140,7 +140,7 @@ class _SoundStream(object):
         self.sounds = []  # list of dicts for sounds currently playing
         self.takeTimeStamp = False
         self.frameN = 1
-        self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
+        # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
             self._sdStream = sd.OutputStream(samplerate=sampleRate,
                                              blocksize=self.blockSize,
@@ -189,23 +189,22 @@ class _SoundStream(object):
                 self.sounds.remove(thisSound)
                 thisSound._EOS()
             # check if that took a long time
-            t1 = time.time()
-            if (t1-t0) > 0.001:
-                logging.info("buffer_callback took {:.3f}ms that frame"
-                             .format((t1-t0)*1000))
-        self.frameTimes.pop(0)
-        if hasattr(self, 'lastFrameTime'):
-            self.frameTimes.append(time.time()-self.lastFrameTime)
-        self.lastFrameTime = time.time()
-        if self.takeTimeStamp:
-            logging.info("Callback durations: {}".format(self.frameTimes))
-            logging.info("blocksize = {}".format(blockSize))
-            self.takeTimeStamp = False
+            # t1 = time.time()
+            # if (t1-t0) > 0.001:
+            #     logging.debug("buffer_callback took {:.3f}ms that frame"
+            #                  .format((t1-t0)*1000))
+        # self.frameTimes.pop(0)
+        # if hasattr(self, 'lastFrameTime'):
+        #     self.frameTimes.append(time.time()-self.lastFrameTime)
+        # self.lastFrameTime = time.time()
+        # if self.takeTimeStamp:
+        #     logging.debug("Callback durations: {}".format(self.frameTimes))
+        #     self.takeTimeStamp = False
 
     def add(self, sound):
-        t0 = time.time()
+        # t0 = time.time()
         self.sounds.append(sound)
-        logging.info("took {} ms to add".format((time.time()-t0)*1000))
+        # logging.debug("took {} ms to add".format((time.time()-t0)*1000))
 
     def remove(self, sound):
         if sound in self.sounds:
