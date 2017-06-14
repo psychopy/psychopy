@@ -248,12 +248,12 @@ class PsychoPyApp(wx.App):
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
-            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         if hasattr(self._mainFont, 'Larger'):
             # Font.Larger is available since wyPython version 2.9.1
             # PsychoPy still supports 2.8 (see ensureMinimal above)
             self._mainFont = self._mainFont.Larger()
-        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
         self._codeFont.SetPointSize(
             self._mainFont.GetPointSize())  # unify font size
