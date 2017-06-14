@@ -35,6 +35,7 @@ before_install:
   - travis_retry sudo apt-get install -qq python-pandas
   - travis_retry sudo apt-get install -qq python-qt4
   - travis_retry sudo pip install -qq codecov
+  - travis_retry sudo pip install -qq future
 install:
   - travis_retry sudo apt-get install -qq flac
   - flac -version
