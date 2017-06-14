@@ -295,7 +295,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         if win is None:
             win = self.win
         saveBlendMode=win.blendMode
-        win.blendMode=self.blendmode
+        win.setBlendMode(self.blendmode, log=False)
         self._selectWindow(win)
 
         # do scaling
@@ -316,7 +316,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         # return the view to previous state
         GL.glPopMatrix()
-        win.blendMode=saveBlendMode
+        win.setBlendMode(saveBlendMode, log=False)
 
     def _updateListShaders(self):
         """The user shouldn't need this method since it gets called

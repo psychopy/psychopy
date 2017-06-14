@@ -752,7 +752,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             GL.glCallList(self._listID)
 
         # pyglets text.draw() method alters the blend func so reassert ours
-        win.blendMode = blendMode
+        win.setBlendMode(blendMode, log=False)
 
         if self.useShaders:
             # disable shader (but command isn't available pre-OpenGL2.0)
