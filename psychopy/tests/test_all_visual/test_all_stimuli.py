@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import object
+
 import sys, os, copy
 from psychopy import visual, monitors, prefs
 from psychopy.visual import filters
@@ -14,7 +17,7 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
-_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -74,7 +77,7 @@ class _baseVisualTest(object):
             stim.autoDraw = False
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
-            str(stim) #check that str(xxx) is working
+            "{}".format(stim) #check that str(xxx) is working
     def test_imageAndGauss(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
@@ -104,28 +107,28 @@ class _baseVisualTest(object):
         if win.units in ['norm','height']:
             sf = 5
         else:
-            sf = 5/size #this will do the flipping and get exactly one cycle
+            sf = 5.0/size #this will do the flipping and get exactly one cycle
         if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
             image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
-                                        ori=-45,envsf=sf/2,envori=45,envphase=90,moddepth=0.5,contrast=0.5)
+                                        ori=-45,envsf=sf/2.0,envori=45,envphase=90,moddepth=0.5,contrast=0.5)
             image.draw()
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
-            str(image)
+            "{}".format(image)
     def test_envelopeBeatAndRaisedCos(self):
         win = self.win
         size = numpy.array([2.0,2.0])*self.scaleFactor
         if win.units in ['norm','height']:
             sf = 5
         else:
-            sf = 5/size #this will do the flipping and get exactly one cycle
+            sf = 5.0/size #this will do the flipping and get exactly one cycle
         if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
             image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
-                                        ori=-45,envsf=sf/2,envori=45,envphase=90,beat=True,moddepth=0.5,contrast=0.5)
+                                        ori=-45,envsf=sf/2.0,envori=45,envphase=90,beat=True,moddepth=0.5,contrast=0.5)
             image.draw()
             utils.compareScreenshot('beatandrcos_%s.png' %(self.contextName), win)
             win.flip()
-            str(image)
+            "{}".format(image)
     def test_numpyFilterMask(self):
         """if the mask is passed in as a numpy array it goes through a different
         set of rules when turned into a texture. But the outcome should be as above
@@ -146,7 +149,7 @@ class _baseVisualTest(object):
         imageStim = visual.ImageStim(win, fileName)
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
-        str(imageStim) #check that str(xxx) is working
+        "{}".format(imageStim) #check that str(xxx) is working
         win.flip()
         imageStim.color = [0.1,0.1,0.1]
         imageStim.draw()
@@ -175,7 +178,7 @@ class _baseVisualTest(object):
         imageStim.draw()
 
         utils.compareScreenshot('numpyImage_%s.png' %(self.contextName), win)
-        str(imageStim) #check that str(xxx) is working
+        "{}".format(imageStim) #check that str(xxx) is working
         win.flip()
         #set lowcontrast using color
         imageStim.color = [0.1,0.1,0.1]
@@ -211,7 +214,7 @@ class _baseVisualTest(object):
         gabor.draw()
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
-        str(gabor) #check that str(xxx) is working
+        "{}".format(gabor) #check that str(xxx) is working
 
     @pytest.mark.bufferimage
     def test_bufferImage(self):
@@ -275,13 +278,15 @@ class _baseVisualTest(object):
         stim.contrast = 0.8
         stim.opacity = 0.8
         stim.draw()
-        str(stim) #check that str(xxx) is working
+        "{}".format(stim) #check that str(xxx) is working
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
         # getting back to 'add' if we want it
+        if 'add' in self.contextName:
+            self.win.blendMode = 'add'
         win = self.win
         text = visual.TextStim(win, pos=[0, 0.9])
         grat1 = visual.GratingStim(win, size=2*self.scaleFactor,
@@ -318,7 +323,7 @@ class _baseVisualTest(object):
             if frameN==0:
                 utils.compareScreenshot('movFrame1_%s.png' %(self.contextName), win)
             win.flip()
-        str(mov) #check that str(xxx) is working
+        "{}".format(mov) #check that str(xxx) is working
     def test_rect(self):
         win = self.win
         rect = visual.Rect(win)
@@ -328,7 +333,7 @@ class _baseVisualTest(object):
         rect.ori = 30
         rect.fillColor = 'pink'
         rect.draw()
-        str(rect) #check that str(xxx) is working
+        "{}".format(rect) #check that str(xxx) is working
         rect.width = 1
         rect.height = 1
     def test_circle(self):
@@ -341,7 +346,7 @@ class _baseVisualTest(object):
         circle.pos = [0.5, -0.5]
         circle.ori = 30
         circle.draw()
-        str(circle) #check that str(xxx) is working
+        "{}".format(circle) #check that str(xxx) is working
     def test_line(self):
         win = self.win
         line = visual.Line(win)
@@ -351,7 +356,7 @@ class _baseVisualTest(object):
         line.overlaps()  # pass
         line.draw()
         win.flip()
-        str(line) #check that str(xxx) is working
+        "{}".format(line) #check that str(xxx) is working
     def test_Polygon(self):
         win = self.win
         cols = ['red','green','purple','orange','blue']
@@ -359,7 +364,7 @@ class _baseVisualTest(object):
             poly = visual.Polygon(win, edges=n + 5, lineColor=col)
             poly.draw()
         win.flip()
-        str(poly) #check that str(xxx) is working
+        "{}".format(poly) #check that str(xxx) is working
         poly.edges = 3
         poly.radius = 1
     @pytest.mark.shape2
@@ -379,7 +384,7 @@ class _baseVisualTest(object):
         shape.opacity = 0.8
         shape.ori = 90
         shape.draw()
-        assert 'Shape' in str(shape)  # check that str(xxx) is working
+        assert 'Shape' in "{}".format(shape)  # check that str(xxx) is working
         utils.compareScreenshot('shape2_2_%s.png' %(self.contextName), win, crit=12.5)
     def test_radial(self):
         if self.win.winType=='pygame':
@@ -404,7 +409,7 @@ class _baseVisualTest(object):
         wedge.radialPhase += 0.1
         wedge.angularPhase = 0.1
         wedge.draw()
-        str(wedge) #check that str(xxx) is working
+        "{}".format(wedge) #check that str(xxx) is working
         utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
     def test_simpleimage(self):
         win = self.win
@@ -412,7 +417,7 @@ class _baseVisualTest(object):
         if not os.path.isfile(fileName):
             raise IOError('Could not find image file: %s' % os.path.abspath(fileName))
         image = visual.SimpleImageStim(win, image=fileName, flipHoriz=True, flipVert=True)
-        str(image) #check that str(xxx) is working
+        "{}".format(image) #check that str(xxx) is working
         image.draw()
         utils.compareScreenshot('simpleimage1_%s.png' %(self.contextName), win, crit=5.0) # Should be exact replication
     def test_dotsUnits(self):
@@ -437,7 +442,7 @@ class _baseVisualTest(object):
             speed=0.01*self.scaleFactor, coherence=0.9)
         dots.draw()
         win.flip()
-        str(dots) #check that str(xxx) is working
+        "{}".format(dots) #check that str(xxx) is working
 
         #using .set() and check the underlying variable changed
         prevDirs = copy.copy(dots._dotsDir)
@@ -475,7 +480,7 @@ class _baseVisualTest(object):
         spiral.opacities = 1.0
         spiral.sfs = 3.0
         spiral.draw()
-        str(spiral) #check that str(xxx) is working
+        "{}".format(spiral) #check that str(xxx) is working
         win.flip()
         spiral.draw()
         utils.compareScreenshot('elarray1_%s.png' %(self.contextName), win)
@@ -489,7 +494,7 @@ class _baseVisualTest(object):
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
-        str(aperture) #check that str(xxx) is working
+        "{}".format(aperture) #check that str(xxx) is working
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
@@ -510,7 +515,7 @@ class _baseVisualTest(object):
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
-        str(aperture) #check that str(xxx) is working
+        "{}".format(aperture) #check that str(xxx) is working
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
@@ -525,7 +530,7 @@ class _baseVisualTest(object):
         rs = visual.RatingScale(win, low=0, high=1, precision=100, size=3, pos=(0,-.4),
                         labels=[' ', ' '], scale=' ',
                         marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
-        str(rs) #check that str(xxx) is working
+        "{}".format(rs) #check that str(xxx) is working
         rs.draw()
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
