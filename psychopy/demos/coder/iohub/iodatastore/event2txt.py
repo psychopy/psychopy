@@ -11,7 +11,6 @@ tab delimited file.
 from __future__ import print_function
 from __future__ import division
 from builtins import str
-from past.utils import old_div
 import sys,os
 import psychopy
 from psychopy.core import getTime
@@ -133,5 +132,5 @@ if __name__ == '__main__':
 
     duration=duration+(getTime()-start_time)
     print()
-    print('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,old_div(i,duration)))
+    print('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration))
     print('%s will be in the same directory as the selected .hdf5 file'%(log_file_name))

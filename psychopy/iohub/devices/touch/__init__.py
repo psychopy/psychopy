@@ -13,7 +13,6 @@ from __future__ import absolute_import
 from __future__ import division
 from builtins import str
 from builtins import zip
-from past.utils import old_div
 from . import hw
 from ... import printExceptionDetailsToStdErr,print2err
 from ...constants import EventConstants, DeviceConstants
@@ -90,8 +89,8 @@ class TouchDevice(Device):
         """
         try:
             dw,dh=self._display_device.getPixelResolution()
-            rx=old_div(px,float(dw))
-            ry=old_div(py,float(dh))
+            rx=px/float(dw)
+            ry=py/float(dh)
             left,top,right,bottom=self._display_device.getCoordBounds()
             w,h=right-left,top-bottom            
             x,y=left+w*rx,bottom+h*(1.0-ry) 

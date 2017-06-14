@@ -16,7 +16,6 @@ from __future__ import division
 from past.builtins import basestring
 from builtins import str
 from builtins import object
-from past.utils import old_div
 import sys
 import string
 import copy
@@ -525,12 +524,12 @@ class Mouse(object):
         """
         newPosPix = self._windowUnits2pix(numpy.array(newPos))
         if usePygame:
-            newPosPix[1] = old_div(self.win.size[1], 2) - newPosPix[1]
-            newPosPix[0] = old_div(self.win.size[0], 2) + newPosPix[0]
+            newPosPix[1] = self.win.size[1] / 2 - newPosPix[1]
+            newPosPix[0] = self.win.size[0] / 2 + newPosPix[0]
             mouse.set_pos(newPosPix)
         else:
             if hasattr(self.win.winHandle, 'set_mouse_position'):
-                newPosPix = old_div(self.win.size, 2) + newPosPix
+                newPosPix = self.win.size / 2 + newPosPix
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
             else:
@@ -544,8 +543,8 @@ class Mouse(object):
         if usePygame:  # for pygame top left is 0,0
             lastPosPix = numpy.array(mouse.get_pos())
             # set (0,0) to centre
-            lastPosPix[1] = old_div(self.win.size[1], 2) - lastPosPix[1]
-            lastPosPix[0] = lastPosPix[0] - old_div(self.win.size[0], 2)
+            lastPosPix[1] = self.win.size[1] / 2 - lastPosPix[1]
+            lastPosPix[0] = lastPosPix[0] - self.win.size[0] / 2
         else:  # for pyglet bottom left is 0,0
             # use default window if we don't have one
             if self.win:
@@ -556,7 +555,7 @@ class Mouse(object):
             # get position in window
             lastPosPix = numpy.array([w._mouse_x, w._mouse_y])
             # set (0,0) to centre
-            lastPosPix = lastPosPix - old_div(self.win.size, 2)
+            lastPosPix = lastPosPix - self.win.size / 2
         self.lastPos = self._pix2windowUnits(lastPosPix)
         return self.lastPos
 
@@ -772,7 +771,7 @@ class Mouse(object):
         elif self.win.units == 'deg':
             return pix2deg(pos, self.win.monitor)
         elif self.win.units == 'height':
-            return old_div(pos, float(self.win.size[1]))
+            return pos / float(self.win.size[1])
 
     def _windowUnits2pix(self, pos):
         if self.win.units == 'pix':

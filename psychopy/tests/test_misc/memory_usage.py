@@ -2,7 +2,6 @@ from __future__ import division
 from builtins import str
 from builtins import range
 from builtins import object
-from past.utils import old_div
 from psychopy import visual, event, info
 import pytest
 import numpy as np
@@ -35,8 +34,8 @@ def leakage(Cls, *args, **kwargs):
         # don't keep going if we're leaking:
         if mem[i] - mem[0] > THRESHOLD:
             break
-    proportion = old_div(i, 99.)
-    return round(old_div((mem[i] - mem[0]), proportion), 1)
+    proportion = i / 99.
+    return round((mem[i] - mem[0]) / proportion, 1)
 
 
 @pytest.mark.needs_sound

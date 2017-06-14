@@ -13,7 +13,6 @@ from __future__ import print_function
 from __future__ import division
 
 
-from past.utils import old_div
 from numpy import zeros
 
 from psychopy import core, visual
@@ -249,7 +248,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         nTotal=len(intervalsMS)
         nDropped=sum(intervalsMS>(1.5*m))
         droppedString = "Dropped/Frames = {0:d}/{1:d} = {2}%".format(
-                                nDropped, nTotal, old_div(int(nDropped), float(nTotal)))
+                                nDropped, nTotal, int(nDropped) / float(nTotal))
 
         pylab.subplot(1,3,2)
 

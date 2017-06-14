@@ -14,7 +14,6 @@ from __future__ import division
 
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import sys
 from ..... import print2err
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
@@ -280,7 +279,7 @@ class AnalogInput(AnalogInputDevice):
     def _saveScannedEvent(self,logged_time,samples,sample_index):
         sample_channel=self._local_sample_count_created%samples.input_channel_count
         samples.values[sample_index]=self._sample_data_buffer[sample_index]
-        samples.indexes[sample_index]=old_div(self._local_sample_count_created,samples.input_channel_count)
+        samples.indexes[sample_index]=self._local_sample_count_created/samples.input_channel_count
         if sample_channel == samples.input_channel_count-1 and self.isReportingEvents():
             mce=self._createMultiChannelEventList(logged_time,samples,sample_index-sample_channel)
             self._addNativeEventToBuffer(mce)
@@ -292,7 +291,7 @@ class AnalogInput(AnalogInputDevice):
         # provided for the samples, but we will use the device_time field
         # to store a simulated device_time:
         #   = device sample number for analog input 0 / channel_sampling_rate
-        device_time = old_div(float(samples.indexes[index]), float(self.channel_sampling_rate.value))
+        device_time = float(samples.indexes[index])/ float(self.channel_sampling_rate.value)
 
         # ioHub time = device_time + ioHub time when scan start function returned.        
         time=device_time+self._last_start_recording_time_post

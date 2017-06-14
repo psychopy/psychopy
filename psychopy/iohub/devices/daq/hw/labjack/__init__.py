@@ -2,7 +2,6 @@ from __future__ import division
 from builtins import next
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import sys
 import numpy as N
 
@@ -193,7 +192,7 @@ class AnalogInput(AnalogInputDevice):
             multi_channel_event=list(event)
 
             multi_channel_event[3]=Computer._getNextEventID()
-            multi_channel_event[5]=old_div(float(self._scan_count),float(self.channel_sampling_rate)) #device_time
+            multi_channel_event[5]=float(self._scan_count)/float(self.channel_sampling_rate) #device_time
             multi_channel_event[7]=multi_channel_event[5]+start_post+self.getDelayOffset() # iohub time
             multi_channel_event[9]=(logged_time-multi_channel_event[7])-self.getDelayOffset() #delay
 
