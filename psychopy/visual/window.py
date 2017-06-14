@@ -1560,8 +1560,8 @@ class Window(object):
                         (thisScreen.height - self.size[1]) / 2]
         if not self._isFullScr:
             # add the necessary amount for second screen
-            self.winHandle.set_location(self.pos[0] + thisScreen.x,
-                                        self.pos[1] + thisScreen.y)
+            self.winHandle.set_location(int(self.pos[0] + thisScreen.x),
+                                        int(self.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
             iconFile = os.path.join(psychopy.prefs.paths['resources'],
