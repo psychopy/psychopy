@@ -43,7 +43,6 @@ currentSec= Computer.currentSec
 _currentSessionInfo=None
 
 
-
 #
 # The ioHubDeviceView is the ioHub client side representation of an ioHub device.
 # It has a dynamically created list of methods that can be called
@@ -347,15 +346,15 @@ class ioHubConnection(object):
         optional as_type property to the method. Valid values for
         as_type are the following str values:
 
-		* 'list': Each event is sent from the ioHub Process as a list of ordered attributes. This is the most efficient for data transmission, but not for human readability or usability. However, if you do want events to be kept in list form, set as_type = 'list'.
-		* 'astuple': Each event is converted to a namedtuple object. Event attributes are accessed using natural naming style (dot name style), or by the index of the event attribute for the event type. The namedtuple class definition is created once for each Event type at the start of the experiment, so memory overhead is almost the same as the event value list, and conversion from the event list to the namedtuple is very fast. This is the default, and normally most useful, event representation type.
-		* 'dict': Each event converted to a dict object, keys equaling the event attribute names, values being, well the attribute values for the event.
-		* 'object': Each event is converted into an instance of the ioHub DeviceEvent subclass based on the event's type. This conversion process can take a bit of time if the number of events returned is large, and currently there is no real benefit converting events into DeviceEvent Class instances vs. the default namedtuple object type. Therefore this option should be used rarely.
+        * 'list': Each event is sent from the ioHub Process as a list of ordered attributes. This is the most efficient for data transmission, but not for human readability or usability. However, if you do want events to be kept in list form, set as_type = 'list'.
+        * 'astuple': Each event is converted to a namedtuple object. Event attributes are accessed using natural naming style (dot name style), or by the index of the event attribute for the event type. The namedtuple class definition is created once for each Event type at the start of the experiment, so memory overhead is almost the same as the event value list, and conversion from the event list to the namedtuple is very fast. This is the default, and normally most useful, event representation type.
+        * 'dict': Each event converted to a dict object, keys equaling the event attribute names, values being, well the attribute values for the event.
+        * 'object': Each event is converted into an instance of the ioHub DeviceEvent subclass based on the event's type. This conversion process can take a bit of time if the number of events returned is large, and currently there is no real benefit converting events into DeviceEvent Class instances vs. the default namedtuple object type. Therefore this option should be used rarely.
 
         Args:
             device_label (str): Indicates what device to retrieve events for. If None ( the default ) returns device events from all devices.
 
-			as_type (str): Indicates how events should be represented when they are returned to the user. Default: 'namedtuple'.
+            as_type (str): Indicates how events should be represented when they are returned to the user. Default: 'namedtuple'.
 
         Returns:
             tuple: A tuple of event objects, where the event object type is defined by the 'as_type' parameter.
@@ -512,8 +511,8 @@ class ioHubConnection(object):
 
         This is done for two reasons:
 
-		* The ioHub Process and ioHub Device buffers do not reach their specified limits and start descarding old events when new events arrive.
-		* So that a very large build up of events does not occur on the ioHub Process, resulting in a very large number of events being returned if getEvents() is called after a long wait period. If a large number of events needs to be returned by the ioHub, that will result in multiple UDP packets being sent to the PsychoPy Process to return all the events. This would slow event retrieval down for that request unnecessarily.
+        * The ioHub Process and ioHub Device buffers do not reach their specified limits and start descarding old events when new events arrive.
+        * So that a very large build up of events does not occur on the ioHub Process, resulting in a very large number of events being returned if getEvents() is called after a long wait period. If a large number of events needs to be returned by the ioHub, that will result in multiple UDP packets being sent to the PsychoPy Process to return all the events. This would slow event retrieval down for that request unnecessarily.
 
         Calling clearEvents('all') after any long delays between calls to getEvents()
         or clearEvents() will clear events from the ioHub Process as well. If you know
@@ -524,7 +523,7 @@ class ioHubConnection(object):
         Args:
             delay (float/double): The sec.msec period that the PsychoPy Process should wait before returning from the function call.
 
-			check_hub_interval (float/double): The sec.msec interval after which a call to getEvents() will be made by the wait() function. Any returned events are stored in a local buffer. This is repeated every check_hub_interval sec.msec until the delay time has passed. Default is every 0.02 sec ( 20.0 msec ).
+            check_hub_interval (float/double): The sec.msec interval after which a call to getEvents() will be made by the wait() function. Any returned events are stored in a local buffer. This is repeated every check_hub_interval sec.msec until the delay time has passed. Default is every 0.02 sec ( 20.0 msec ).
 
         Returns:
             float/double: The actual duration of the delay in sec.msec format.
@@ -876,7 +875,6 @@ class ioHubConnection(object):
             ioHubConfig=load(file(ioHubConfigAbsPath,u'r'), Loader=Loader)
         else:
             return "ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided."
-
         if ioHubConfig:
             updateDict(ioHubConfig,hub_defaults_config)
 
@@ -905,8 +903,7 @@ class ioHubConnection(object):
                            run_script,
                            "%.6f"%Computer.global_clock.getLastResetTime(),
                            rootScriptPath, ioHubConfigAbsPath,
-                           str(Computer.current_process.pid)]
-
+                           "{}".format(Computer.current_process.pid)]
         # check for existing ioHub Process based on process if saved to file
         iopFileName=os.path.join(rootScriptPath ,'.iohpid')
         if os.path.exists(iopFileName):
@@ -931,8 +928,10 @@ class ioHubConnection(object):
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
 
-        # start subprocess, get pid, and get psutil process object for affinity and process priority setting
-        self._server_process = subprocess.Popen(subprocessArgList,stdout=subprocess.PIPE)
+        # start subprocess, get pid, and get psutil process object for
+        # affinity and process priority setting
+        self._server_process = subprocess.Popen(subprocessArgList,
+                                                stdout=subprocess.PIPE)
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
 
@@ -940,12 +939,12 @@ class ioHubConnection(object):
         stdout_read_data=""
         if Computer.system == 'win32':
             #print 'IOSERVER STARTING UP....'
-            # wait for server to send back 'IOHUB_READY' text over stdout, indicating it is running
-            # and ready to receive network packets
+            # wait for server to send back 'IOHUB_READY' text over stdout,
+            # indicating it is runningand ready to receive network packets
             server_output='hi there'
             ctime = Computer.global_clock.getTime
-
-            timeout_time=ctime()+ioHubConfig.get('start_process_timeout',30.0)# timeout if ioServer does not reply in 10 seconds
+            # timeout if ioServer does not reply in 30 seconds
+            timeout_time=ctime()+ioHubConfig.get('start_process_timeout', 30.0)
             while server_output and ctime()<timeout_time:
                 isDataAvail=self._serverStdOutHasData()
                 if isDataAvail is True:
@@ -993,17 +992,16 @@ class ioHubConnection(object):
                 whs.append(w()._hw_handle)
             #print 'ioclient registering existing windows:',whs
             self.registerPygletWindowHandles(*whs)
-
         iopFile= open(iopFileName,'w')
-        iopFile.write("ioHub PID: "+str(Computer.iohub_process_id))
+        iopFile.write("ioHub PID: {}".format(Computer.iohub_process_id))
         iopFile.flush()
         iopFile.close()
 
         if experiment_info:
-            #print 'Sending experiment_info: {0}'.format(experiment_info)
+            # print 'Sending experiment_info: {0}'.format(experiment_info)
             self._sendExperimentInfo(experiment_info)
         if session_info:
-            #print 'Sending session_info: {0}'.format(session_info)
+            # print 'Sending session_info: {0}'.format(session_info)
             self._sendSessionInfo(session_info)
 
         # create a local 'thin' representation of the registered ioHub devices,
@@ -1018,7 +1016,7 @@ class ioHubConnection(object):
         try:
             self._createDeviceList(ioHubConfig['monitor_devices'])
         except Exception as e:
-            return "Error in _createDeviceList: ",str(e)
+            return "Error in _createDeviceList: {}".format(e)
         #print 'Created Experiment Process Device List'
         return "OK"
 
@@ -1088,7 +1086,7 @@ class ioHubConnection(object):
     def _addDeviceView(self, device_class_name, device_config):
         try:
             name = device_config.get('name',device_class_name.lower())
-            device_class_name=str(device_class_name)
+            device_class_name="{}".format(device_class_name)
             class_name_start=device_class_name.rfind('.')
             device_module_path='psychopy.iohub.devices.'
             if class_name_start>0:
