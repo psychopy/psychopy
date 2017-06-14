@@ -151,19 +151,19 @@ class DlgCodeComponentProperties(wx.Dialog):
         nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         nameSizer.Add(self.nameLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 10)
         nameSizer.Add(self.componentName,
-                      flag=wx.EXPAND | wx.BOTTOM | wx.TOP | wx.ALIGN_CENTER_VERTICAL,
+                      flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                       border=10, proportion=1)
         nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
 
-        sizer1 = wx.BoxSizer(wx.VERTICAL)
-        sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer1.Add(nameSizer, flag=wx.EXPAND, proportion=1)
-        sizer1.Add(self.codeSections, 1, wx.EXPAND | wx.ALL, 10)
-        sizer2.Add(self.helpButton, 0, wx.RIGHT, 10)
-        sizer2.Add(self.okButton, 0, wx.LEFT, 10)
-        sizer2.Add(self.cancelButton, 0, 0, 0)
-        sizer1.Add(sizer2, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
-        self.SetSizer(sizer1)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer.Add(nameSizer)
+        mainSizer.Add(self.codeSections, 1, wx.EXPAND | wx.ALL, 10)
+        buttonSizer.Add(self.helpButton, 0, wx.RIGHT, 10)
+        buttonSizer.Add(self.okButton, 0, wx.LEFT, 10)
+        buttonSizer.Add(self.cancelButton, 0, 0, 0)
+        mainSizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+        self.SetSizer(mainSizer)
         self.Layout()
         self.Center()
 
