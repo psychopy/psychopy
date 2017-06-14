@@ -12,7 +12,6 @@ from __future__ import print_function
 from __future__ import division
 
 from builtins import input
-from past.utils import old_div
 import os, sys, shutil, subprocess
 from os.path import join
 from createInitFile import createInitFile
@@ -44,7 +43,7 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
 
     # todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
-    Mb = old_div(float(subprocess.check_output(["du", "-bsc", dest]).split()[0]),10**6)
+    Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
     print("size for '%s' will be: %.2f Mb" %(versionStr, Mb))
     if noCommit:
         return False

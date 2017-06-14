@@ -8,7 +8,6 @@ from __future__ import absolute_import, print_function
 from __future__ import division
 
 from builtins import object
-from past.utils import old_div
 import sys
 import threading
 import subprocess
@@ -134,7 +133,7 @@ class StaticPeriod(object):
         if screenHz is None:
             self.frameTime = 0
         else:
-            self.frameTime = old_div(1.0, screenHz)
+            self.frameTime = 1.0 / screenHz
 
     def start(self, duration):
         """Start the period. If this is called a second time, the timer will

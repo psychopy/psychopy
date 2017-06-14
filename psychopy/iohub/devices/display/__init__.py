@@ -14,7 +14,6 @@ Distributed under the terms of the GNU General Public License
 from __future__ import division
 
 from builtins import range
-from past.utils import old_div
 import wx
 import sys
 
@@ -206,7 +205,7 @@ class Display(Device):
         Returns:
             float: Current retrace interval of Monitor reported by the OS in sec.msec format.
         """
-        return (old_div(1000.0,self.getConfiguration()['runtime_info']['retrace_rate']))*0.001
+        return (1000.0/self.getConfiguration()['runtime_info']['retrace_rate'])*0.001
 
     def getBounds(self):
         """
@@ -549,10 +548,10 @@ class Display(Device):
         def display2psychopyPix(x,y):
             x=x-l
             y=y-t       
-            return (x-old_div(w,2)),-y+old_div(h,2)
+            return (x-w/2),-y+h/2
 
         def psychopy2displayPix(cx,cy):
-            return l+(cx+old_div(w,2)),t+(cy-old_div(h,2)) 
+            return l+(cx+w/2),t+(cy-h/2) 
              
         if coord_type=='pix':
             def pix2coord(self, x,y,display_index=None):
@@ -602,13 +601,13 @@ class Display(Device):
                 #print2err('Display {0} bounds: {1}'.format(display_index,self.getBounds()))
                 if display_index == self.getIndex():      
                     ppx,ppy=display2psychopyPix(x,y)
-                    return old_div(ppx,(old_div((r-l),2.0))),old_div(ppy,(old_div((b-t),2.0)))
+                    return ppx/((r-l)/2.0),ppy/((b-t)/2.0)
                 return x,y
             self._pix2coord=pix2ncoord
         
             def ncoord2pix(self,nx,ny,display_index=None):
                 if display_index == self.getIndex():
-                    return psychopy2displayPix(nx*(old_div((r-l),2.0)),ny*(old_div((b-t),2.0))) 
+                    return psychopy2displayPix(nx*((r-l)/2.0),ny*((b-t)/2.0)) 
                 return nx,ny
             self._coord2pix=ncoord2pix
                     
@@ -632,8 +631,8 @@ class Display(Device):
 
             px,py=self.getPixelResolution()
             mwidth=psychoMonitor.getWidth()*10.0
-            aspect_ratio=old_div(px,float(py))
-            mheight=old_div(mwidth,aspect_ratio)
+            aspect_ratio=px/float(py)
+            mheight=mwidth/aspect_ratio
             display_config['physical_dimensions']['width']=mwidth
             display_config['physical_dimensions']['height']=mheight
             display_config['physical_dimensions']['unit_type']='mm'
@@ -648,14 +647,14 @@ class Display(Device):
             # switch from mm to cm if required
             dw_unit_type=stim_area['unit_type']
             if dw_unit_type == 'mm':
-                dwidth=old_div(dwidth,10.0)
+                dwidth=dwidth/10.0
     
             ddist= self.getDefaultEyeDistance()
             unit_type=self.getConfiguration()['default_eye_distance']\
                                             ['unit_type']                                        
             # switch from mm to cm if required
             if unit_type == 'mm':
-                ddist=old_div(ddist,10.0)
+                ddist=ddist/10.0
             
             psychoMonitor=monitors.Monitor(psychopy_monitor_name,
                                        width=dwidth, distance=ddist, gamma=1.0)

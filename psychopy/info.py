@@ -14,7 +14,6 @@ from __future__ import print_function
 from __future__ import division
 
 from builtins import str
-from past.utils import old_div
 import sys
 import os
 import platform
@@ -767,7 +766,7 @@ def getRAM():
     """Return system's physical RAM & available RAM, in M.
     """
     totalRAM, available = psutil.virtual_memory()[0:2]
-    return old_div(totalRAM, 1048576.), old_div(available, 1048576.)
+    return totalRAM / 1048576., available / 1048576.
 
 # faster to get the current process only once:
 _thisProcess = psutil.Process()
@@ -776,4 +775,4 @@ _thisProcess = psutil.Process()
 def getMemoryUsage():
     """Get the memory (RAM) currently used by this Python process, in M.
     """
-    return old_div(_thisProcess.memory_info()[0], 1048576.)
+    return _thisProcess.memory_info()[0] / 1048576.

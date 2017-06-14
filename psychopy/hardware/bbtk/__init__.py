@@ -8,7 +8,6 @@ from __future__ import division
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from builtins import str
-from past.utils import old_div
 import time
 from psychopy import logging
 from psychopy.hardware import serialdevice
@@ -193,7 +192,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             detected in the state
             """
             state = line[:12]
-            timeSecs = old_div(int(line[-14:-2]), 10.0**6)
+            timeSecs = int(line[-14:-2]) / 10.0**6
             evts = []
             evt = ''
             if lastState is None:
