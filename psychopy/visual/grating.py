@@ -249,16 +249,16 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
-        
+
     @attributeSetter
-    def blendmode(self, value): 
+    def blendmode(self, value):
         """The OpenGL mode in which the stimulus is draw
-        
+
         Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
         with a transparency given by its opacity. Opaque stimuli will hide other stimuli
         transparent stimuli wont. Add performs the aritmetic sum of the new stimulus and the ones
         already present.
-        
+
         """
         self.__dict__['blendmode'] = value
         self._needUpdate = True
@@ -277,7 +277,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self.tex = value
-        
+
     def setBlendmode(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
@@ -289,11 +289,11 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        
+
         if win is None:
             win = self.win
         saveBlendMode=win.blendMode
-        win.blendMode=self.blendmode
+        win.setBlendMode(self.blendmode, log=False)
         self._selectWindow(win)
 
         # do scaling
@@ -314,7 +314,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         # return the view to previous state
         GL.glPopMatrix()
-        win.blendMode=saveBlendMode
+        win.setBlendMode(saveBlendMode, log=False)
 
     def _updateListShaders(self):
         """The user shouldn't need this method since it gets called
