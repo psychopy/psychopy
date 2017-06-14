@@ -34,12 +34,13 @@ def pilToBitmap(pil, scaleFactor=1.0):
     import wx
     image = wx.EmptyImage(pil.size[0], pil.size[1])
 
-    try:  # For PIL.
+    # set the RGB values
+    if hasattr(pil, 'tobytes'):
+        image.SetData(pil.convert("RGB").tobytes())
+        image.SetAlphaBuffer(pil.convert("RGBA").tobytes()[3::4])
+    else:
         image.SetData(pil.convert("RGB").tostring())
         image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
-    except Exception:  # For Pillow.
-        image.SetData(pil.convert("RGB").tobytes())
-        image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
 
     image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
     return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different

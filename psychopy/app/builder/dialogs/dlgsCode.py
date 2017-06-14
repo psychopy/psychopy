@@ -14,7 +14,10 @@ from builtins import str
 import keyword
 import re
 import wx
-from wx.lib import flatnotebook
+try:
+    from wx.lib.agw import flatnotebook
+except ImportError:  # was here wx<4.0:
+    from wx.lib import flatnotebook
 
 from .. import validators
 from ...localization import _translate
@@ -24,7 +27,7 @@ _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-              | wx.THICK_FRAME | wx.DIALOG_NO_PARENT)
+              | wx.DIALOG_NO_PARENT)
 
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,

@@ -19,6 +19,10 @@ import wx
 import wx.aui
 import wx.stc
 from wx.lib import platebtn
+try:
+    from wx.adv import PseudoDC
+except ImportError:
+    from wx import PseudoDC
 
 from psychopy import logging, data
 from psychopy.app.utils import FileDropTarget
@@ -72,7 +76,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetScrollRate(self.dpi / 4, self.dpi / 4)
 
         # create a PseudoDC to record our drawing
-        self.pdc = wx.PseudoDC()
+        self.pdc = PseudoDC()
         self.pen_cache = {}
         self.brush_cache = {}
         # vars for handling mouse clicks

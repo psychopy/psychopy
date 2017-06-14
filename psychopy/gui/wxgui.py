@@ -7,6 +7,7 @@
 from __future__ import absolute_import
 
 from builtins import str
+from builtins import super
 from builtins import range
 from psychopy import logging
 import wx

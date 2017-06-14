@@ -18,7 +18,10 @@ import copy
 import numpy
 import re
 import wx
-from wx.lib import flatnotebook
+try:
+    from wx.lib.agw import flatnotebook
+except ImportError:  # was here wx<4.0:
+    from wx.lib import flatnotebook
 
 from ... import dialogs
 from .. import experiment

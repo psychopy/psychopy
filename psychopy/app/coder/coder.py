@@ -25,12 +25,9 @@ import keyword
 import os
 import sys
 import string
-import io
 import glob
-import platform
 import io
 import threading
-import traceback
 import bdb
 import pickle
 import py_compile
@@ -41,6 +38,7 @@ from .. import projects
 from psychopy import logging
 from ..localization import _translate
 from ..utils import FileDropTarget
+from psychopy.constants import PY3
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -522,7 +520,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetBufferedDraw(False)
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.SetEOLMode(wx.stc.STC_EOL_LF)
-        self.SetUseAntiAliasing(True)
+        # self.SetUseAntiAliasing(True)
         # self.SetUseHorizontalScrollBar(True)
         # self.SetUseVerticalScrollBar(True)
 
@@ -1084,7 +1082,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 # if we can decode/encode to utf-8 then all is good
                 txt.decode('utf-8')
             except:
-                # if not then wx conversion broek so get raw data instead
+                # if not then wx conversion broke so get raw data instead
                 txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt)
 
@@ -1526,7 +1524,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, item.GetId(), self.filePrint)
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
-                           text=msg % keyCodes['preferences'])
+                           msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         # -------------quit
         menu.AppendSeparator()
@@ -2167,7 +2165,10 @@ class CoderFrame(wx.Frame):
             # load text from document
             if os.path.isfile(filename):
                 with open(filename, 'rU') as f:
-                    self.currentDoc.SetText(f.read().decode('utf8'))
+                    if PY3:
+                        self.currentDoc.SetText(f.read())
+                    else:
+                        self.currentDoc.SetText(f.read().decode('utf8'))
                     self.currentDoc.newlines = f.newlines
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)

@@ -16,6 +16,10 @@ try:
 except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
 import wx.stc
+try:
+    from wx.adv import PseudoDC
+except ImportError:
+    from wx import PseudoDC
 
 import sys
 import os
@@ -119,7 +123,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.timeXposEnd = self.timeXposStart + 400  # onResize() overrides
 
         # create a PseudoDC to record our drawing
-        self.pdc = wx.PseudoDC()
+        self.pdc = PseudoDC()
         self.pen_cache = {}
         self.brush_cache = {}
         # vars for handling mouse clicks
@@ -1246,7 +1250,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
         item = menu.Append(
             wx.ID_PREFERENCES,
-            text=_translate("&Preferences\t%s") % keys['preferences'])
+            _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
 
         self.fileMenu.AppendSeparator()
@@ -1929,8 +1933,7 @@ class BuilderFrame(wx.Frame):
         if not unpacked:
             return
         # list available demos
-        demoList = glob.glob(os.path.join(unpacked, '*'))
-        demoList.sort(key=lambda entry: entry.lower)
+        demoList = sorted(glob.glob(os.path.join(unpacked, '*')))
         self.demos = {wx.NewId(): demoList[n]
                       for n in range(len(demoList))}
         for thisID in self.demos:
