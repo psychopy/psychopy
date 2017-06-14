@@ -6,7 +6,9 @@
 
 """Functions and classes related to color space conversion
 """
+from __future__ import division
 
+from past.utils import old_div
 import numpy
 
 from psychopy import logging
@@ -109,7 +111,7 @@ def hsv2rgb(hsv_Nx3):
     origShape = hsv_Nx3.shape
     hsv_Nx3 = hsv_Nx3.reshape([-1, 3])
 
-    H_ = (hsv_Nx3[:, 0] % 360) / 60.0  # this is H' in the wikipedia version
+    H_ = old_div((hsv_Nx3[:, 0] % 360), 60.0)  # this is H' in the wikipedia version
     # multiply H and V to give chroma (color intensity)
     C = hsv_Nx3[:, 1] * hsv_Nx3[:, 2]
     X = C * (1 - abs(H_ % 2 - 1))

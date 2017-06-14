@@ -34,6 +34,8 @@ from __future__ import print_function
 #  IN THE SOFTWARE.
 
 
+from past.builtins import basestring
+from builtins import object
 class PParallelDLPortIO(object):
     """This class provides read/write access to the parallel port on a PC.
 

@@ -9,7 +9,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyHook
 import ctypes
 from unicodedata import category as ucategory
@@ -253,7 +257,7 @@ class Keyboard(ioHubKeyboardDevice):
             notifiedTime, event = native_event_data
             is_press = event.Type == EventConstants.KEYBOARD_PRESS
             keyID = event.KeyID
-            device_time = event.Time / 1000.0  # convert to sec
+            device_time = old_div(event.Time, 1000.0)  # convert to sec
             time = notifiedTime
             # since this is a keyboard device using a callback method,
             # confidence_interval is not applicable

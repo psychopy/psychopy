@@ -5,6 +5,8 @@ Created on Sat May 25 00:09:01 2013
 @author: Sol
 """
 from __future__ import print_function  # for compatibility with python3
+from builtins import range
+from builtins import object
 from textwrap import TextWrapper
 import codecs
 import os
@@ -263,7 +265,7 @@ class ParsedTextLine(object):
         if ParsedTextLine.charcodes_with_glyphs is None:
             active_text_style = self._parent._text_grid._text_box._current_glfont
             if active_text_style:
-                ParsedTextLine.charcodes_with_glyphs = active_text_style.charcode2unichr.keys()
+                ParsedTextLine.charcodes_with_glyphs = list(active_text_style.charcode2unichr.keys())
 
         ok_charcodes = ParsedTextLine.charcodes_with_glyphs
 

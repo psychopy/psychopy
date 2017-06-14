@@ -1,6 +1,9 @@
 """Test PsychoPy sound.py using pygame backend; will fail if have already used pyo
 """
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 from psychopy import prefs, core
 prefs.general['audioLib'] = ['pygame']
 
@@ -48,7 +51,7 @@ class TestPygame(object):
             sound.setaudioLib('foo')
 
         points = 100
-        snd = numpy.ones(points) / 20
+        snd = old_div(numpy.ones(points), 20)
 
         #testFile = os.path.join(self.tmp, 'green_48000.wav')
         #r, d = wavfile.read(testFile)

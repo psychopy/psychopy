@@ -1,3 +1,4 @@
+from __future__ import division
 from psychopy.sound._base import apodize, HammingWindow
 from psychopy.constants import FINISHED
 import numpy as np

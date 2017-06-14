@@ -11,7 +11,11 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 
+from past.builtins import basestring
+from builtins import str
+from builtins import object
 import sys
 import string
 import copy
@@ -130,7 +134,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
             msg = 'Modifiers must be passed as an integer value.'
             raise ValueError(msg)
 
-        thisKey = unicode(symbol)
+        thisKey = str(symbol)
         keySource = 'EmulatedKey'
     else:
         thisKey = pyglet.window.key.symbol_string(
@@ -280,7 +284,7 @@ def modifiers_dict(modifiers):
         'MOD_WINDOWS',
         'MOD_COMMAND',
         'MOD_OPTION',
-        'MOD_SCROLLLOCK'        
+        'MOD_SCROLLLOCK'
     ]}
 
 def getKeys(keyList=None, modifiers=False, timeStamped=False):
@@ -294,7 +298,7 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             checked and the key buffer will be cleared completely.
             NB, pygame doesn't return timestamps (they are always 0)
         modifiers : **False** or True
-            If True will return a list of tuples instead of a list of 
+            If True will return a list of tuples instead of a list of
             keynames. Each tuple has (keyname, modifiers). The modifiers
             are a dict of keyboard modifier flags keyed by the modifier
             name (eg. 'shift', 'ctrl').
@@ -366,12 +370,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
         _last = timeStamped.getLastResetTime()
         _clockLast = psychopy.core.monotonicClock.getLastResetTime()
         timeBaseDiff = _last - _clockLast
-        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeBaseDiff)) for k in targets]
+        relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeBaseDiff) if _f] for k in targets]
         return relTuple
     elif timeStamped is True:
-        return [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1])) for k in targets]
-    elif isinstance(timeStamped, (float, int, long)):
-        relTuple = [filter(None, (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped)) for k in targets]
+        return [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1]) if _f] for k in targets]
+    elif isinstance(timeStamped, (float, int, int)):
+        relTuple = [[_f for _f in (k[0], modifiers and modifiers_dict(k[1]) or None, k[-1] - timeStamped) if _f] for k in targets]
         return relTuple
 
 
@@ -391,7 +395,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
             checked and the key buffer will be cleared completely.
             NB, pygame doesn't return timestamps (they are always 0)
         modifiers : **False** or True
-            If True will return a list of tuples instead of a list of 
+            If True will return a list of tuples instead of a list of
             keynames. Each tuple has (keyname, modifiers). The modifiers
             are a dict of keyboard modifier flags keyed by the modifier
             name (eg. 'shift', 'ctrl').
@@ -923,7 +927,7 @@ class _GlobalEventKeys(MutableMapping):
 
     def __repr__(self):
         info = ''
-        for index_key, event in self._events.items():
+        for index_key, event in list(self._events.items()):
             info += '\n\t'
             if index_key.modifiers:
                 _modifiers = ['[%s]' % m.upper() for m in index_key.modifiers]
@@ -959,10 +963,10 @@ class _GlobalEventKeys(MutableMapping):
             logging.exp("Removed global key event: '%s'." % event.name)
 
     def __iter__(self):
-        return self._events.iterkeys()
+        return iter(self._events.keys())
 
     def _gen_index_key(self, key):
-        if isinstance(key, (str, unicode)):  # Single key, passed as a string.
+        if isinstance(key, basestring):  # Single key, passed as a string.
             index_key = self._IndexKey(key, ())
         else:  # Convert modifiers into a hashable type.
             index_key = self._IndexKey(key[0], tuple(key[1]))

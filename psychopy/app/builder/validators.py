@@ -10,6 +10,7 @@ Module containing validators for various parameters.
 """
 from __future__ import print_function
 
+from past.builtins import basestring
 import wx
 from ..localization import _translate
 from . import experiment
@@ -178,7 +179,7 @@ class CodeSnippetValidator(BaseValidator):
         Reset clsWarnings to {} when setting up the dialog.
         """
         self.clsWarnings[self.fieldName] = message
-        warnings = [w for w in self.clsWarnings.values() if w] or ['']
+        warnings = [w for w in list(self.clsWarnings.values()) if w] or ['']
         if parent.nameOKlabel:
             parent.nameOKlabel.SetLabel(warnings[0])
 

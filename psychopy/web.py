@@ -7,10 +7,15 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 import os
 import sys
 import base64
-import httplib
+import http.client
 import mimetypes  # deprecated; use requests package instead
 import socket
 import re
@@ -29,6 +34,7 @@ if py3:
     import io  # pylint: disable=W0611
 else:
     import urllib2
+    import urllib.request, urllib.error, urllib.parse
 
     class FakeURLlib(object):
 
@@ -37,7 +43,7 @@ else:
             self.error = lib
             self.parse = lib
     urllib = FakeURLlib(urllib2)
-    import cStringIO as io  # pylint: disable=W0611
+    import io as io  # pylint: disable=W0611
 
 # default 20s from prefs, min 2s
 TIMEOUT = max(prefs.connections['timeout'], 2.0)
@@ -121,7 +127,7 @@ def getPacFiles():
     pacFiles = []
     if sys.platform == 'win32':
         try:
-            import _winreg as winreg  # used from python 2.0-2.6
+            import winreg as winreg  # used from python 2.0-2.6
         except ImportError:
             import winreg  # used from python 2.7 onwards
         net = winreg.OpenKey(
@@ -132,7 +138,7 @@ def getPacFiles():
         for i in range(nVals):
             thisName, thisVal, thisType = winreg.EnumValue(net, i)
             subkeys[thisName] = thisVal
-        if ('AutoConfigURL' in subkeys.keys() and
+        if ('AutoConfigURL' in list(subkeys.keys()) and
                 len(subkeys['AutoConfigURL']) > 0):
             pacFiles.append(subkeys['AutoConfigURL'])
     elif sys.platform == 'darwin':
@@ -141,7 +147,7 @@ def getPacFiles():
                                       'Configuration/preferences.plist')
         networks = sysPrefs['NetworkServices']
         # loop through each possible network (e.g. Ethernet, Airport...)
-        for network in networks.items():
+        for network in list(networks.items()):
             netKey, network = network  # the first part is a long identifier
             if 'ProxyAutoConfigURLString' in network['Proxies']:
                 pacFiles.append(network['Proxies']['ProxyAutoConfigURLString'])
@@ -369,9 +375,9 @@ def _post_multipart(host, selector, fields, files,
 
     # select https -- note there's NO verification of the server’s certificate
     if https is True:
-        conn = httplib.HTTPSConnection(host, timeout=timeout)
+        conn = http.client.HTTPSConnection(host, timeout=timeout)
     else:
-        conn = httplib.HTTPConnection(host, timeout=timeout)
+        conn = http.client.HTTPConnection(host, timeout=timeout)
     headers = {u'User-Agent': userAgent,
                u'Charset': encoding,
                u'Content-Type': content_type}

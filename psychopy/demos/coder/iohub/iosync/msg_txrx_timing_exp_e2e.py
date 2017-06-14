@@ -30,6 +30,7 @@ and plotted separately for comparison purposes.
 from __future__ import print_function
 
 # How many request - reply iterations should be run.
+from builtins import range
 repetitions = 10000
 
 import numpy as np

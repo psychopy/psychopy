@@ -96,5 +96,5 @@ for comp in components:
         pass
 
 if __name__ == '__main__':
-    for key, val in _localized.iteritems():
+    for key, val in _localized.items():
         print(key, val)

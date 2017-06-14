@@ -214,7 +214,7 @@ class Mouse(MouseDevice):
                         self.activeButtons[iohub_button_id]= int(button_state==MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
         
                     pressed_buttons=0
-                    for k,v in self.activeButtons.iteritems():
+                    for k,v in self.activeButtons.items():
                         pressed_buttons+=k*v
                     
                     # Create Event List

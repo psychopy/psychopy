@@ -45,6 +45,7 @@ preferable.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import division
+from builtins import str
 import sys
 import os
 from psychopy import logging, prefs, exceptions

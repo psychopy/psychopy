@@ -1,3 +1,4 @@
+from builtins import object
 import pytest
 from psychopy.tools.wizard import ConfigWizard, BenchmarkWizard
 

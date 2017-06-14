@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from builtins import object
 from collections import OrderedDict
 from psychopy.gui.wxgui import DlgFromDict
 
 
-class TestDlgFromDictWx():
+class TestDlgFromDictWx(object):
     def setup(self):
         self.d = dict(
             participant='000',

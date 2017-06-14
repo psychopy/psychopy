@@ -25,6 +25,8 @@ UPDATED MAY 2013 by Sol Simpson:
       so just removing it was the easiest solution. ;)
 '''
 from __future__ import absolute_import
+from builtins import range
+from builtins import object
 from ctypes import *
 from .ft_types import *
 from .ft_enums import *
@@ -610,7 +612,7 @@ class Charmap( object ):
 
     def _get_encoding_name(self):
         encoding = self.encoding
-        for key,value in FT_ENCODINGS.items():
+        for key,value in list(FT_ENCODINGS.items()):
             if encoding == value:
                 return key
         return 'Unknown encoding'
@@ -981,7 +983,7 @@ class GlyphSlot( object ):
        are not.''')
 
     def _get_next( self ):
-        return GlyphSlot( self._FT_GlyphSlot.contents.next )
+        return GlyphSlot( self._FT_GlyphSlot.contents.__next__ )
     next = property( _get_next,
      doc = '''In some cases (like some font tools), several glyph slots per
               face object can be a good thing. As this is rare, the glyph slots
@@ -1159,7 +1161,7 @@ class Face( object ):
           correspond to the internal indices used within the file. This is done
           to ensure that value 0 always corresponds to the 'missing glyph'.
         '''
-        if type( charcode ) in (str,unicode):
+        if type( charcode ) in (str,str):
             charcode = ord( charcode )
         return FT_Get_Char_Index( self._FT_Face, charcode )
 
@@ -1373,7 +1375,7 @@ class Face( object ):
         '''
 
         flag = FT_Get_FSType_Flags( self._FT_Face )
-        for k, v in FT_FSTYPE_XXX.items():
+        for k, v in list(FT_FSTYPE_XXX.items()):
             if v == flag:
                 return k, v
 

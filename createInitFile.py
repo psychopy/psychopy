@@ -2,6 +2,7 @@
 """Writes the current version, build platform etc to
 """
 from __future__ import print_function
+from past.builtins import str
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
 
@@ -98,7 +99,7 @@ def _getGitShaString(dist=None, sha=None):
         repo_commit, _ = proc.communicate()
         del proc#to get rid of the background process
         if repo_commit:
-            shaStr=repo_commit.strip()#remove final linefeed
+            shaStr=str(repo_commit.strip())#remove final linefeed
         else:
             shaStr='n/a'
         #this looks neater but raises errors on win32

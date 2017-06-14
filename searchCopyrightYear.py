@@ -23,6 +23,7 @@ for line in fileinput.input(file, inplace = 1):
 """
 from __future__ import print_function
 
+from builtins import str
 __author__ = 'Jeremy Gray'
 
 import os, sys, time, glob

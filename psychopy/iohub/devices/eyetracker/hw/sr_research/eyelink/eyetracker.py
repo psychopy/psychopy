@@ -2,10 +2,14 @@
 ioHub Common Eye Tracker Interface for EyeLink(C) Systems.
 """
 from __future__ import absolute_import
+from __future__ import division
 # Part of the PsychoPy.iohub library
 # Copyright (C) 2012-2016 iSolver Software Solutionse
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
 import os
 import numpy as np
 import pylink
@@ -101,7 +105,7 @@ class EyeTracker(EyeTrackerDevice):
             eyelink=self._eyelink
             calibration_config=tracker_config.get('calibration',None)
             if calibration_config:
-                for cal_key,cal_val in calibration_config.iteritems():
+                for cal_key,cal_val in calibration_config.items():
                     if cal_key == 'auto_pace':
                         if cal_val is True:
                             eyelink.enableAutoCalibration()
@@ -124,7 +128,7 @@ class EyeTracker(EyeTrackerDevice):
             # native data recording file
             default_native_data_file_name=tracker_config.get('default_native_data_file_name',None)
             if default_native_data_file_name:
-                if isinstance(default_native_data_file_name,(str,unicode)):
+                if isinstance(default_native_data_file_name,(str,str)):
                     r=default_native_data_file_name.rfind('.')
                     if default_native_data_file_name>0:
                         if default_native_data_file_name[r:] == 'edf'.lower():
@@ -561,7 +565,7 @@ class EyeTracker(EyeTrackerDevice):
                                 lastgaze = rightGaze
                             else:
                                 lastgaze = [lastgaze[0]+rightGaze[0], lastgaze[1]+rightGaze[1]]
-                                lastgaze = lastgaze[0]/2.0, lastgaze[1]/2.0
+                                lastgaze = old_div(lastgaze[0],2.0), old_div(lastgaze[1],2.0)
 
                         self._latest_gaze_position=lastgaze
 
@@ -1027,7 +1031,7 @@ class EyeTracker(EyeTrackerDevice):
             dl,dt,dr,db=self._display_device.getBounds()
             dw,dh=dr-dl,db-dt
 
-            gxn,gyn=eyetracker_point[0]/dw,eyetracker_point[1]/dh
+            gxn,gyn=old_div(eyetracker_point[0],dw),old_div(eyetracker_point[1],dh)
             return cl+cw*gxn,cb+ch*(1.0-gyn)
         except Exception as e:
             printExceptionDetailsToStdErr()
@@ -1042,14 +1046,14 @@ class EyeTracker(EyeTrackerDevice):
             dl,dt,dr,db=self._display_device.getBounds()
             dw,dh=dr-dl,db-dt
 
-            cxn,cyn=(display_x+cw/2)/cw , 1.0-(display_y-ch/2)/ch
+            cxn,cyn=old_div((display_x+old_div(cw,2)),cw) , 1.0-old_div((display_y-old_div(ch,2)),ch)
             return cxn*dw,  cyn*dh
 
         except Exception as e:
             printExceptionDetailsToStdErr()
 
     def _setRuntimeSettings(self,runtimeSettings):
-        for pkey,v in runtimeSettings.iteritems():
+        for pkey,v in runtimeSettings.items():
 
             if pkey == 'sample_filtering':
                 all_filters={'FILTER_FILE': 'FILTER_LEVEL_2',
@@ -1060,7 +1064,7 @@ class EyeTracker(EyeTrackerDevice):
                     vd = {u'FILTER_ALL': str(v)}
                     v = vd
 
-                fkeys = [str(k) for k in v.keys()]
+                fkeys = [str(k) for k in list(v.keys())]
                 if 'FILTER_ALL' in fkeys:
                     for k in all_filters:
                         all_filters[k] = str(v[u'FILTER_ALL'])
@@ -1076,7 +1080,7 @@ class EyeTracker(EyeTrackerDevice):
             elif pkey == 'track_eyes':
                 self._setEyesToTrack(v)
             elif pkey == 'vog_settings':
-                for vog_key,vog_val in v.iteritems():
+                for vog_key,vog_val in v.items():
                     if vog_key == 'pupil_measure_types':
                         self._eyelink.sendCommand("pupil_size_diameter = %s"%(vog_val.split('_')[1]))
                     elif vog_key == 'pupil_center_algorithm':
@@ -1099,7 +1103,7 @@ class EyeTracker(EyeTrackerDevice):
                 EyeTracker._file_transfer_progress_dialog.close()
                 EyeTracker._file_transfer_progress_dialog = None
         else:
-            perc = int((float(received)/float(size))*100.0)+1
+            perc = int((old_div(float(received),float(size)))*100.0)+1
             if perc > 100:
                 perc=100
             if perc !=self._file_transfer_progress_dialog.getCurrentStatus():
@@ -1258,8 +1262,8 @@ class EyeTracker(EyeTrackerDevice):
                 if 'width' in sdim and 'height' in sdim:
                     sw=sdim['width']
                     sh=sdim['height']
-                    hsw=sw/2.0
-                    hsh=sh/2.0
+                    hsw=old_div(sw,2.0)
+                    hsh=old_div(sh,2.0)
 
                     eyelink.sendCommand("screen_phys_coords = -%.3f, %.3f, %.3f, -%.3f"%(hsw,hsh,hsw,hsh))
             else:
@@ -1451,7 +1455,7 @@ _eyeLinkCalibrationResultDict[27]='ABORTED_BY_USER'
 
 if 1 not in _EYELINK_HOST_MODES:
     t=dict(_EYELINK_HOST_MODES)
-    for k,v in t.iteritems():
+    for k,v in t.items():
         _EYELINK_HOST_MODES[v]=k
 
 def _getTrackerMode(*args, **kwargs):

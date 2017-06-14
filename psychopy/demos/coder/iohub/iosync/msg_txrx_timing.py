@@ -27,6 +27,7 @@ When the data has been collected, a plot is displayed with the results.
 """
 from __future__ import print_function
 # How many request - reply iterations should be run.
+from builtins import range
 repetitions = 10000
 
 import numpy as np

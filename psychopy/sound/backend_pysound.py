@@ -1,6 +1,7 @@
 
 from __future__ import division
 
+from builtins import object
 from psychopy import logging, exceptions
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)

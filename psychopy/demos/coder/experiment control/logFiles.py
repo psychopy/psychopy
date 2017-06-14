@@ -21,6 +21,7 @@ So setting to DEBUG level will include all possible messages, setting to ERROR w
 
 from __future__ import division
 
+from builtins import range
 from psychopy import logging, core, visual
 
 globalClock = core.Clock()  # if this isn't provided the log times will reflect secs since python started

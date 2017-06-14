@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """iohub provides an integrated framework to interact with input and output
-devices (from keyboards and mice to eyetrackers and custom hardware) in a 
+devices (from keyboards and mice to eyetrackers and custom hardware) in a
 precise synchronised manner that will not interfere with stimulus presentation
 """
 

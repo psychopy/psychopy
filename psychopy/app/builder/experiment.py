@@ -15,21 +15,27 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import re
 import os
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
-import StringIO
+import io
 import codecs
 import keyword
 
 from .components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging, constants
-from psychopy.constants import FOREVER
+from psychopy.constants import FOREVER, PY3
 
 from ..localization import _translate
 import locale
+import sys
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
@@ -74,16 +80,16 @@ class CodeGenerationException(Exception):
     def __init__(self, source, message=""):
         super(CodeGenerationException, self).__init__()
         self.source = source
-        self.message = str(message)
+        self.message = message
 
     def __str__(self):
-        return str(self.source) + ": " + self.message
+        return "{}: ".format(self.source, self.message)
 
 
-class IndentingBuffer(StringIO.StringIO):
+class IndentingBuffer(io.StringIO):
 
     def __init__(self, *args, **kwargs):
-        StringIO.StringIO.__init__(self, *args, **kwargs)
+        io.StringIO.__init__(self, *args, **kwargs)
         self.oneIndent = "    "
         self.indentLevel = 0
 
@@ -114,6 +120,11 @@ class IndentingBuffer(StringIO.StringIO):
         else:
             self.indentLevel = newLevel
 
+    def write(self, text):
+        if PY3:
+            io.StringIO.write(self, "{}".format(text))
+        else:
+            io.StringIO.write(self, u"{}".format(text))
 
 class Experiment(object):
     """
@@ -246,7 +257,7 @@ class Experiment(object):
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            for thisRoutine in self.routines.values():
+            for thisRoutine in list(self.routines.values()):
                 self._currentRoutine = thisRoutine
                 thisRoutine.writeRoutineBeginCodeJS(script)
                 thisRoutine.writeEachFrameCodeJS(script)
@@ -266,13 +277,13 @@ class Experiment(object):
         self.xmlRoot.set('encoding', 'utf-8')
         # store settings
         settingsNode = xml.SubElement(self.xmlRoot, 'Settings')
-        for name, setting in self.settings.params.iteritems():
+        for name, setting in self.settings.params.items():
             settingNode = self._setXMLparam(
                 parent=settingsNode, param=setting, name=name)
         # store routines
         routinesNode = xml.SubElement(self.xmlRoot, 'Routines')
         # routines is a dict of routines
-        for routineName, routine in self.routines.iteritems():
+        for routineName, routine in self.routines.items():
             routineNode = self._setXMLparam(
                 parent=routinesNode, param=routine, name=routineName)
             # a routine is based on a list of components
@@ -280,7 +291,7 @@ class Experiment(object):
                 componentNode = self._setXMLparam(
                     parent=routineNode, param=component,
                     name=component.params['name'].val)
-                for name, param in component.params.iteritems():
+                for name, param in component.params.items():
                     paramNode = self._setXMLparam(
                         parent=componentNode, param=param, name=name)
         # implement flow
@@ -293,7 +304,7 @@ class Experiment(object):
                 name = loop.params['name'].val
                 elementNode.set('loopType', loop.getType())
                 elementNode.set('name', name)
-                for paramName, param in loop.params.iteritems():
+                for paramName, param in loop.params.items():
                     paramNode = self._setXMLparam(
                         parent=elementNode, param=param, name=paramName)
                     # override val with repr(val)
@@ -332,11 +343,11 @@ class Experiment(object):
         thisChild = xml.SubElement(parent, thisType)
         thisChild.set('name', name)
         if hasattr(param, 'val'):
-            thisChild.set('val', unicode(param.val).replace("\n", "&#10;"))
+            thisChild.set('val', "{}".format(param.val).replace("\n", "&#10;"))
         if hasattr(param, 'valType'):
             thisChild.set('valType', param.valType)
         if hasattr(param, 'updates'):
-            thisChild.set('updates', unicode(param.updates))
+            thisChild.set('updates', "{}".format(param.updates))
         return thisChild
 
     def _getXMLparam(self, params, paramNode):
@@ -353,8 +364,8 @@ class Experiment(object):
         if name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'startTime':  # deprecated in v1.70.00
-            params['startType'].val = unicode('time (s)')
-            params['startVal'].val = unicode(val)
+            params['startType'].val = "{}".format('time (s)')
+            params['startVal'].val = "{}".format(val)
             return  # times doesn't need to update its type or 'updates' rule
         elif name == 'forceEndTrial':  # deprecated in v1.70.00
             params['forceEndRoutine'].val = bool(val)
@@ -366,11 +377,11 @@ class Experiment(object):
             params['conditions'].val = eval(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'trialListFile':  # deprecated in v1.70.00
-            params['conditionsFile'].val = unicode(val)
+            params['conditionsFile'].val = "{}".format(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'duration':  # deprecated in v1.70.00
             params['stopType'].val = u'duration (s)'
-            params['stopVal'].val = unicode(val)
+            params['stopVal'].val = "{}".format(val)
             return  # times doesn't need to update its type or 'updates' rule
         elif name == 'allowedKeys' and valType == 'str':  # changed v1.70.00
             # ynq used to be allowed, now should be 'y','n','q' or
@@ -401,10 +412,10 @@ class Experiment(object):
             params[name].val = val
         elif name == 'times':  # deprecated in v1.60.00
             times = eval('%s' % val)
-            params['startType'].val = unicode('time (s)')
-            params['startVal'].val = unicode(times[0])
-            params['stopType'].val = unicode('time (s)')
-            params['stopVal'].val = unicode(times[1])
+            params['startType'].val = "{}".format('time (s)')
+            params['startVal'].val = "{}".format(times[0])
+            params['stopType'].val = "{}".format('time (s)')
+            params['stopVal'].val = "{}".format(times[1])
             return  # times doesn't need to update its type or 'updates' rule
         elif name in ('Begin Experiment', 'Begin Routine', 'Each Frame',
                       'End Routine', 'End Experiment'):
@@ -574,7 +585,7 @@ class Experiment(object):
                 routine.append(component)
         # for each component that uses a Static for updates, we need to set
         # that
-        for thisRoutine in self.routines.values():
+        for thisRoutine in list(self.routines.values()):
             for thisComp in thisRoutine:
                 for thisParamName in thisComp.params:
                     thisParam = thisComp.params[thisParamName]
@@ -707,7 +718,7 @@ class Experiment(object):
                 paths.append(thisFile)
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
-                for param, val in thisCond.items():
+                for param, val in list(thisCond.items()):
                     if isinstance(val, basestring) and len(val):
                         subFile = getPaths(val)
                     else:
@@ -841,20 +852,20 @@ class Param(object):
         if self.valType == 'num':
             try:
                 # will work if it can be represented as a float
-                return str(float(self.val))
+                return "{}".format(float(self.val))
             except Exception:  # might be an array
                 return "asarray(%s)" % (self.val)
         elif self.valType == 'int':
             try:
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
-                return unicode(self.val)  # try array of float instead?
+                return "{}".format(self.val)  # try array of float instead?
         elif self.valType == 'str':
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
-            if type(self.val) in [str, unicode]:
+            if isinstance(self.val, basestring):
                 codeWanted = _unescapedDollarSign_re.search(self.val)
                 if codeWanted:
                     return "%s" % getCodeFromParamStr(self.val)
@@ -1604,7 +1615,7 @@ class Flow(list):
         # exec(key+'=expInfo[key]')
         expInfo = eval(self.exp.settings.params['Experiment info'].val)
         keywords = self.exp.namespace.nonUserBuilder[:]
-        keywords.extend(['expInfo'] + expInfo.keys())
+        keywords.extend(['expInfo'] + list(expInfo.keys()))
         reserved = set(keywords).difference({'random', 'rand'})
         for key in component.params:
             field = component.params[key]
@@ -1883,7 +1894,7 @@ class Routine(list):
         name = component.params['name']
         self.remove(component)
         # check if the component was using any Static Components for updates
-        for thisParamName, thisParam in component.params.items():
+        for thisParamName, thisParam in list(component.params.items()):
             if (hasattr(thisParam, 'updates') and
                     thisParam.updates and
                     'during:' in thisParam.updates):
@@ -2564,11 +2575,11 @@ class NameSpace(object):
         prefix = 'this'
         irregular = {'stimuli': 'stimulus',
                      'mice': 'mouse', 'people': 'person'}
-        for plural, singular in irregular.items():
+        for plural, singular in list(irregular.items()):
             nn = re.compile(plural, re.IGNORECASE)
             newName = nn.sub(singular, newName)
         if (newName.endswith('s') and
-                not newName.lower() in irregular.values()):
+                not newName.lower() in list(irregular.values())):
             newName = newName[:-1]  # trim last 's'
         else:  # might end in s_2, so delete that s; leave S
             match = re.match(r"^(.*)s(_\d+)$", newName)

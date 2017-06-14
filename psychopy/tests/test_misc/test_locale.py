@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+from builtins import object
 import pytest
 import locale
 from psychopy.app import localization

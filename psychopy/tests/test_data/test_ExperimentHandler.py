@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from builtins import object
 from psychopy import data, logging
 from numpy import random
 import os, glob, shutil

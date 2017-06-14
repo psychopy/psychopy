@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from past.builtins import basestring
 
 import os
 import time
@@ -41,7 +42,7 @@ class ProjectCatalog(dict):
         self.refresh()
 
     def projFromId(self, id):
-        for key, item in self.items():
+        for key, item in list(self.items()):
             if item.project_id == id:
                 return key, item
         return (None, None)  # got here without finding anything
@@ -218,7 +219,7 @@ class ProjectsMenu(wx.Menu):
 
     def onLogIn(self, event):
         # check knownusers list
-        users = ProjectsMenu.knownUsers.keys()
+        users = list(ProjectsMenu.knownUsers.keys())
         dlg = LogInDlg(app=self.app)
         dlg.Show()
         if self.app.osf_session.authenticated:
@@ -543,7 +544,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     def setContents(self, projects):
         self.DestroyChildren()  # start with a clean slate
 
-        if type(projects) in [str, unicode]:
+        if isinstance(projects, basestring):
             # just text for a window so display
             self.mainSizer.Add(
                 wx.StaticText(self, -1, projects),

@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import codecs
-import cPickle
+import pickle
 import psychopy.data
 
 ######### Begin Compatibility Class Definitions #########
 
 
-class _oldStyleBaseTrialHandler:
+class _oldStyleBaseTrialHandler(object):
     """Please excuse these ugly kluges, but in order to unpickle
         psydat pickled trial handlers that were created using the old-style
         (pre python 2.2) class, original classes have to be defined.
@@ -14,22 +18,22 @@ class _oldStyleBaseTrialHandler:
     pass
 
 
-class _oldStyleBaseStairHandler:
+class _oldStyleBaseStairHandler(object):
     """Stubbed compapatibility class for StairHandler"""
     pass
 
 
-class _oldStyleTrialHandler:
+class _oldStyleTrialHandler(object):
     """Stubbed compapatibility class for TrialHandler"""
     pass
 
 
-class _oldStyleStairHandler:
+class _oldStyleStairHandler(object):
     """Stubbed compapatibility class for StairHandler"""
     pass
 
 
-class _oldStyleMultiStairHandler:
+class _oldStyleMultiStairHandler(object):
     """Stubbed compapatibility class for MultiStairHandler"""
     pass
 ######### End Compatibility Class Definitions #########
@@ -78,15 +82,24 @@ def fromFile(filename):
     with codecs.open(filename, 'rb') as f:
         try:
             # Try to load the psydat file into the new-style class.
-            contents = cPickle.load(f)
+            contents = pickle.load(f)
         except TypeError as e:
             f.seek(0)
-            name = e.args[1].__name__
+            # check er as string for one of our handlers
+            errStr = "{}".format(e)
+            name = ''
+            for thisHandler in ['TrialHandler','StairHandler','MultiStairHandler']:
+                if thisHandler in errStr:
+                    name = thisHandler
+            # if error is from something else try to deduce the class
+            if not name:
+                name = e.args[1].__name__
+            # then process accordingly
             if name == 'TrialHandler':
                 currentHandler = psychopy.data.TrialHandler
                 # Temporarily replace new-style class
                 psychopy.data.TrialHandler = _oldStyleTrialHandler
-                oldContents = cPickle.load(f)
+                oldContents = pickle.load(f)
                 psychopy.data.TrialHandler = currentHandler
                 contents = _convertToNewStyle(psychopy.data.TrialHandler,
                                               oldContents)
@@ -94,18 +107,18 @@ def fromFile(filename):
                 currentHandler = psychopy.data.StairHandler
                 # Temporarily replace new-style class
                 psychopy.data.StairHandler = _oldStyleStairHandler
-                oldContents = cPickle.load(f)
+                oldContents = pickle.load(f)
                 psychopy.data.StairHandler = currentHandler
                 contents = _convertToNewStyle(
                     psychopy.data.StairHandler, oldContents)
-            elif name == 'MultiStairHandler':
+            elif name == '':
                 newStair = psychopy.data.StairHandler
                 newMulti = psychopy.data.MultiStairHandler
                 # Temporarily replace new-style class
                 psychopy.data.StairHandler = _oldStyleStairHandler
                 # Temporarily replace new-style class
                 psychopy.data.MultiStairHandler = _oldStyleMultiStairHandler
-                oldContents = cPickle.load(f)
+                oldContents = pickle.load(f)
                 psychopy.data.MultiStairHandler = newMulti
                 # Temporarily replace new-style class:
                 psychopy.data.StairHandler = newStair

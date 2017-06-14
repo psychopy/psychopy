@@ -11,7 +11,9 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import division
 
+from builtins import range
 import wx
 import sys
 

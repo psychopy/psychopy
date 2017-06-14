@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import pyglet
 from pyglet.window import key
 from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
@@ -38,9 +42,9 @@ class ProjectionsLinesAndCircles(object):
 
         self.stimT = TextStim(self.win, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
 
-        self.bl = -win.size / 2.0
+        self.bl = old_div(-win.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = win.size / 2.0
+        self.tr = old_div(win.size, 2.0)
 
         self.stims = []
         self.degrees = 120
@@ -146,7 +150,7 @@ class ProjectionsLinesAndCircles(object):
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, self.warper.eyepoint)
             self.updateInfo()
 
-        pos = (self.mouse.getPos() + 1) / 2
+        pos = old_div((self.mouse.getPos() + 1), 2)
         leftDown = self.mouse.getPressed()[0]
         if leftDown:
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, pos)

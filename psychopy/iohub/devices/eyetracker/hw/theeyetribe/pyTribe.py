@@ -4,6 +4,8 @@ Created on Mon Feb 10 17:13:14 2014
 
 @author: zahm
 """
+from past.builtins import basestring
+from builtins import object
 from weakref import proxy
 import gevent
 from gevent import sleep, socket, queue
@@ -189,7 +191,7 @@ class TheEyeTribe(object):
             if request_type == u'get': 
                 if msg.get('values',{}).get('frame'): 
                     return self.processSample(msg)
-                for k,v in msg.get('values',{}).iteritems():
+                for k,v in msg.get('values',{}).items():
                     #print2err('* Updating client.tracker_state[{0}] = {1}'.format(k,v))
                     self.tracker_state[k]=v
                     return True    
@@ -225,7 +227,7 @@ class TheEyeTribe(object):
         resolution is.        
         """
         send_values={}
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if k not in self.tracker_set_values:
                 print2err('**setTrackerMsg warning": Invalid tracker set value key \
                     [{0}] with value [{1}]. Ignoring'.format(k, v))
@@ -290,7 +292,7 @@ class TheEyeTribe(object):
             
         calreq=OrderedDict(category='calibration', request = request_type)
         if kwargs:
-            calreq['values'] = OrderedDict(sorted(kwargs.items(), key = lambda t:t[0]))
+            calreq['values'] = OrderedDict(sorted(list(kwargs.items()), key = lambda t:t[0]))
         send_str=json.dumps(calreq)
         print2err("send_str: ",send_str)
         self._transport_manager.send(send_str)

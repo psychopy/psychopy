@@ -1,4 +1,9 @@
+from __future__ import division
 
+from builtins import map
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from psychopy.visual import RatingScale, Window, shape, TextStim
 from psychopy import event, core
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
@@ -50,7 +55,7 @@ class Test_class_RatingScale(object):
         ch = ['a', 'b']
         r = RatingScale(self.win, choices=ch, precision=10, autoLog=False)
         assert r.precision == 1  # because choices
-        assert r.respKeys == map(str, range(len(ch)))
+        assert r.respKeys == list(map(str, list(range(len(ch)))))
         r = RatingScale(self.win, choices=['a'], autoLog=False)
 
         r = RatingScale(self.win, tickMarks=[1,2,3], labels=['a','b'], autoLog=False)
@@ -72,7 +77,7 @@ class Test_class_RatingScale(object):
         r = RatingScale(self.win, acceptPreText='a', acceptText='a', acceptSize=2.1, autoLog=False)
 
         r = RatingScale(self.win, leftKeys=['a'], rightKeys=['a'], autoLog=False)
-        assert r.respKeys == map(str, range(1,8))
+        assert r.respKeys == list(map(str, list(range(1,8))))
         r = RatingScale(self.win, respKeys=['a'], acceptKeys=['a'], autoLog=False)
         r = RatingScale(self.win, acceptKeys=['1'], autoLog=False)
         r = RatingScale(self.win, tickHeight=-1, autoLog=False)
@@ -93,7 +98,7 @@ class Test_class_RatingScale(object):
         r = RatingScale(self.win, pos=(0,.5), skipKeys='space', autoLog=False)
         r = RatingScale(self.winpix, pos=[1], autoLog=False)
         r = RatingScale(self.winpix, pos=['a','x'], autoLog=False)
-        assert r.pos == [0.0, -50.0 / r.win.size[1]]
+        assert r.pos == [0.0, old_div(-50.0, r.win.size[1])]
         x, y = -3, 17
         r = RatingScale(self.winpix, pos=(x, y), size=.2, stretch=2, autoLog=False)
         assert r.offsetHoriz == 2. * x / r.win.size[0]

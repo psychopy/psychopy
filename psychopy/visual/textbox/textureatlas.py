@@ -8,6 +8,8 @@
 #  Distributed under the terms of the new BSD license.
 #
 # -----------------------------------------------------------------------------
+from builtins import range
+from builtins import object
 import pyglet.gl as gl
 from pyglet.gl import (GLuint, glEnable, GL_TEXTURE_2D, glBindTexture, glTexParameteri,
                        GL_TEXTURE_WRAP_S, GL_CLAMP, GL_TEXTURE_WRAP_T, glTexImage2D,

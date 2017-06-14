@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from builtins import str
+from builtins import range
 """
 ioHub DataStore to Pandas DataFrame Module with Event Filtering Support
 
@@ -49,7 +51,7 @@ class Polygon(shapely.geometry.Polygon):
             self._ia_df['ia_name']=self.name
             self._ia_df['ia_id']=self.ia_id
             self._ia_df['ia_name']=self.name
-            self._ia_df['ia_id_num']=range(1,len(self._ia_df)+1) 
+            self._ia_df['ia_id_num']=list(range(1,len(self._ia_df)+1)) 
         return self._ia_df
         
 class Circle(Polygon):            

@@ -9,6 +9,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import division
+from builtins import str
+from past.builtins import basestring
 from psychopy.iohub.devices import Computer
 from ..... import printExceptionDetailsToStdErr,print2err
 from .....constants import EventConstants, DeviceConstants

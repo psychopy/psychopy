@@ -6,6 +6,8 @@
 # this is really just for the purpose of constructing code analysis in
 # python scripts
 
+from builtins import next
+from builtins import object
 import pyclbr
 import tokenize
 

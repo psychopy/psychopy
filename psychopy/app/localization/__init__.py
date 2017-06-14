@@ -15,6 +15,9 @@ translation _translate():
 # Author: Jeremy Gray, July 2014
 
 
+from builtins import str
+from builtins import map
+from builtins import range
 import gettext
 import os
 import glob
@@ -71,7 +74,7 @@ for line in codecs.open(mappings, 'rU', 'utf8').readlines():
 # what are the available translations? available languages on the OS?
 expr = os.path.join(os.path.dirname(__file__), '..', 'locale', '*')
 available = sorted(map(os.path.basename, glob.glob(expr)))
-sysAvail = [str(l) for l in codeFromWxId.values()  # installed language packs
+sysAvail = [str(l) for l in list(codeFromWxId.values())  # installed language packs
             if l and locale.IsAvailable(wxIdFromCode[l])]
 
 
@@ -124,7 +127,7 @@ try:
 except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
-trans.install(unicode=True)
+trans.install()
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:

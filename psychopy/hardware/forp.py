@@ -13,6 +13,7 @@ E.g., use a Keyboard component, and typically listen for Allowed keys
 
 # Jeremy Gray and Dan Grupe developed the asKeys and baud parameters
 
+from builtins import object
 from psychopy import logging, event
 import sys
 from collections import defaultdict

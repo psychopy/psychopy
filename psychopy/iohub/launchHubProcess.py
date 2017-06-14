@@ -4,6 +4,7 @@ Created on Wed May 01 06:30:07 2013
 
 @author: Sol
 """
+from builtins import str
 import gevent
 import json
 import os,sys

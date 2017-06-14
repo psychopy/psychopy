@@ -7,6 +7,7 @@ Limitations: pyglet only; keyboard events only.
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import range
 __author__ = 'Jeremy Gray'
 
 import threading
@@ -45,8 +46,8 @@ class ResponseEmulator(threading.Thread):
             core.wait(float(onset) - last_onset)
             if type(key) == int:
                 # avoid cryptic error if int
-                key = str(key)[0]
-            if type(key) == str:
+                key = "{}".format(key)[0]
+            if type(key) == type(""):
                 event._onPygletKey(symbol=key, modifiers=0, emulated=True)
             else:
                 logging.error('ResponseEmulator: only keyboard events '
@@ -238,9 +239,9 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     try:
         wait_timeout = max(0.01, float(wait_timeout))
     except ValueError:
-        msg = "wait_timeout must be number-like, but instead it was %s."
-        raise ValueError(msg % str(wait_timeout))
-    settings['sync'] = unicode(settings['sync'])
+        msg = "wait_timeout must be number-like, but instead it was {}."
+        raise ValueError(msg.format(wait_timeout))
+    settings['sync'] = "{}".format(settings['sync'])  # convert to str/unicode
     settings['TR'] = float(settings['TR'])
     settings['volumes'] = int(settings['volumes'])
     settings['skip'] = int(settings['skip'])
@@ -254,7 +255,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         win, text=runInfo, height=.05, pos=(0, -0.5), color=.4, autoLog=False)
 
     # if a valid mode was specified, use it; otherwise query via RatingScale:
-    mode = str(mode).capitalize()
+    mode = "{}".format(mode).capitalize()
     if mode not in ['Scan', 'Test']:
         run_type = visual.RatingScale(win, choices=['Scan', 'Test'],
                                       marker='circle',

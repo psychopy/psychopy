@@ -13,6 +13,7 @@ RBGA object.`"""
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 from __future__ import division
 from __future__ import absolute_import
+from builtins import str
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl

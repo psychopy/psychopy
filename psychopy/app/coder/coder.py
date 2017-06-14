@@ -5,6 +5,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import chr
+from builtins import str
+from builtins import range
 import time
 import types
 import wx
@@ -20,14 +25,11 @@ import keyword
 import os
 import sys
 import string
-import StringIO
 import glob
-import platform
 import io
 import threading
-import traceback
 import bdb
-import cPickle
+import pickle
 import py_compile
 
 from . import psychoParser, introspect
@@ -36,6 +38,7 @@ from .. import projects
 from psychopy import logging
 from ..localization import _translate
 from ..utils import FileDropTarget
+from psychopy.constants import PY3
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -65,7 +68,7 @@ def toPickle(filename, data):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename, 'w')
-    cPickle.dump(data, f)
+    pickle.dump(data, f)
     f.close()
 
 
@@ -75,7 +78,7 @@ def fromPickle(filename):
     simple wrapper of the cPickle module in core python
     """
     f = open(filename)
-    contents = cPickle.load(f)
+    contents = pickle.load(f)
     f.close()
     return contents
 
@@ -517,7 +520,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.SetBufferedDraw(False)
         self.SetViewEOL(self.coder.appData['showEOLs'])
         self.SetEOLMode(wx.stc.STC_EOL_LF)
-        self.SetUseAntiAliasing(True)
+        # self.SetUseAntiAliasing(True)
         # self.SetUseHorizontalScrollBar(True)
         # self.SetUseVerticalScrollBar(True)
 
@@ -683,7 +686,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         if self.AUTOCOMPLETE:
             # get last word any previous word (if there was a dot instead of
             # space)
-            isAlphaNum = bool(keyCode in range(65, 91) + range(97, 123))
+            isAlphaNum = bool(keyCode in list(range(65, 91)) + list(range(97, 123)))
             isDot = bool(keyCode == 46)
             prevWord = None
             if isAlphaNum:  # any alphanum
@@ -734,7 +737,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     # for objects show simple completions
                     else:  # there was no preceding '.'
                         # start trying after 2 characters
-                        autokeys = self.autoCompleteDict.keys()
+                        autokeys = list(self.autoCompleteDict.keys())
                         if len(currWord) > 1 and len(autokeys) > 1:
                             subList = [s for s in autokeys
                                        if currWord.lower() in s.lower()]
@@ -1079,7 +1082,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 # if we can decode/encode to utf-8 then all is good
                 txt.decode('utf-8')
             except:
-                # if not then wx conversion broek so get raw data instead
+                # if not then wx conversion broke so get raw data instead
                 txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt)
 
@@ -1088,7 +1091,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         start = self.LineFromPosition(selStart)
         end = self.LineFromPosition(selEnd)
-        return range(start, end)
+        return list(range(start, end))
 
     def _GetPositionsBoundingSelectedLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1117,7 +1120,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
     def analyseScript(self):
         # analyse the file
-        buffer = StringIO.StringIO()
+        buffer = io.StringIO()
         buffer.write(self.GetText())
         buffer.seek(0)
         try:
@@ -1521,7 +1524,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, item.GetId(), self.filePrint)
         msg = _translate("&Preferences\t%s")
         item = menu.Append(wx.ID_PREFERENCES,
-                           text=msg % keyCodes['preferences'])
+                           msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         # -------------quit
         menu.AppendSeparator()
@@ -1742,7 +1745,7 @@ class CoderFrame(wx.Frame):
             demoList += glob.glob(os.path.join(folder, '*', '*.py'))
             demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
 
-            demoList.sort(key=str.lower)
+            demoList.sort()
 
             for thisFile in demoList:
                 shortname = thisFile.split(os.path.sep)[-1]
@@ -2162,7 +2165,10 @@ class CoderFrame(wx.Frame):
             # load text from document
             if os.path.isfile(filename):
                 with open(filename, 'rU') as f:
-                    self.currentDoc.SetText(f.read().decode('utf8'))
+                    if PY3:
+                        self.currentDoc.SetText(f.read())
+                    else:
+                        self.currentDoc.SetText(f.read().decode('utf8'))
                     self.currentDoc.newlines = f.newlines
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
@@ -2538,7 +2544,7 @@ class CoderFrame(wx.Frame):
 
         # check syntax by compiling - errors printed (not raised as error)
         try:
-            if type(fullPath) == unicode:
+            if type(fullPath) == str:
                 # py_compile.compile doesn't accept Unicode filename.
                 py_compile.compile(fullPath.encode(
                     sys.getfilesystemencoding()), doraise=False)

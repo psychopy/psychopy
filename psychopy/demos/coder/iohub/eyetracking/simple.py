@@ -6,6 +6,7 @@ Demo config is setup for an EyeLink(C) 1000 Desktop System.
 To to use a different eye tracker implementation, change the 
 iohub_tracker_class_path and eyetracker_config dict script variables.
 '''
+from __future__ import division
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 

@@ -6,6 +6,7 @@
 
 """Functions and classes related to variable type conversion
 """
+from __future__ import division
 
 import numpy
 
@@ -49,4 +50,4 @@ def uint8_float(inarray):
     0.0
 
     """
-    return numpy.asarray(inarray, 'f') / 127.5 - 1
+    return numpy.asarray(inarray, 'f')/127.5 - 1

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from builtins import object
 import sys, os, copy
 from psychopy import visual, monitors, prefs
 from psychopy.visual import filters

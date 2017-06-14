@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 sources = """
 eNrsvV2TI0eSIDZ3J93qIO3trnRafdzuKYlSX2ayUeiqJjkfOIIjTrN7t3c5ZBu7e5dnxTIwC8hC
 5RSQic5MdFXtLMf0rle934Me9FP0KjP9IflXfGYkgGqSMyszFdlVQGZ8eHh4eLh7eLj/r//8uzc/
@@ -2457,7 +2460,7 @@ if __name__ == "__main__":
         sources = sources.encode("ascii") # ensure bytes
         sources = pickle.loads(zlib.decompress(base64.decodebytes(sources)))
     else:
-        import cPickle as pickle
+        import pickle as pickle
         exec("def do_exec(co, loc): exec co in loc\n")
         sources = pickle.loads(zlib.decompress(base64.decodestring(sources)))
 

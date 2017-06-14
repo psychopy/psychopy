@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from builtins import object
 """
 ioHub DataStore to Pandas DataFrames
 
@@ -115,7 +116,7 @@ class ioHubPandasDataView(object):
         
         if 'user_variables' in self._session_meta_data.columns:
             self._session_meta_data['user_variables'] = self._session_meta_data['user_variables'].apply(json.loads)
-            user_vars = self._session_meta_data['user_variables'].ix[self._session_meta_data.index[0]].keys()
+            user_vars = list(self._session_meta_data['user_variables'].ix[self._session_meta_data.index[0]].keys())
             for var in user_vars:
                 self._session_meta_data[var] = self._session_meta_data['user_variables'].apply(lambda x: x[var])
             self._session_meta_data = self._session_meta_data.drop('user_variables', axis=1)

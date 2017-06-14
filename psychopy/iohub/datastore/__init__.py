@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from builtins import str
+from builtins import object
 """
 ioHub
 .. file: ioHub/datastore/__init__.py
@@ -44,7 +46,7 @@ SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'Dec 19th, 2014'
 
 
-class ioHubpyTablesFile():
+class ioHubpyTablesFile(object):
 
     def __init__(self, fileName, folderPath, fmode='a', ioHubsettings=None):
         self.fileName = fileName
@@ -78,7 +80,7 @@ class ioHubpyTablesFile():
             tokens=str(event_table_label[0]+event_table_label[1:].lower()+'Event').split('_')
             return ''.join([t[0].upper()+t[1:] for t in tokens])
 
-        for event_cls_name,event_cls in event_class_dict.iteritems():
+        for event_cls_name,event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label=event_cls.IOHUB_DATA_TABLE
                 if event_table_label not in self.TABLES:
