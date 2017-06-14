@@ -425,7 +425,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        thisIcon = components.icons[component.getType()][str(
+        thisIcon = components.icons[component.getType()]["{}".format(
             self.iconSize)]  # getType index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
@@ -2163,7 +2163,7 @@ class BuilderFrame(wx.Frame):
                     parent=self, app=self.app, size=(700, 300))
             self.stdoutFrame.write(
                 "Error when generating experiment script:\n")
-            self.stdoutFrame.write(str(e) + "\n")
+            self.stdoutFrame.write("{}\n".format(e))
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()
             return None

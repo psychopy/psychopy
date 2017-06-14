@@ -1253,10 +1253,10 @@ class Window(object):
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif type(self.colorSpace) is str:
+        elif self.colorSpace in ['rgb255', 'named']:
             desiredRGB = self.rgb / 255.0
         else:  # some array / numeric stuff
-            msg = 'invalid value "%s" for Window.colorSpace'
+            msg = 'invalid value %r for Window.colorSpace'
             raise ValueError(msg % colorSpace)
 
         # if it is None then this will be done during window setup
