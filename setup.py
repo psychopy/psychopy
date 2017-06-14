@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
 """Requires setuptools and uses the manifest.in file for data files"""
 
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, find_packages
 ################
-import glob, os, sys
+import os
 from sys import platform, argv
 
 # compress psychojs to a zip file for packaging
@@ -12,7 +12,7 @@ if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer
 else:
     import shutil
     shutil.make_archive(os.path.join('psychopy','psychojs'), 'zip', 'psychojs')
-    
+
 #regenerate __init__.py only if we're in the source repos (not in a source zip file)
 try:
     import createInitFile#won't exist in a sdist.zip

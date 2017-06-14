@@ -8,7 +8,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import zip
 from builtins import next
-from builtins import basestring
+from past.builtins import basestring
 from past.builtins import str
 from builtins import range
 from past.utils import old_div

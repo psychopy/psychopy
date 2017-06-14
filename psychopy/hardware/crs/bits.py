@@ -19,7 +19,6 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import os
 import sys
 import time
@@ -60,7 +59,7 @@ else:
 try:
     import configparser
 except Exception:
-    import configparser as configparser
+    import ConfigParser as configparser
 
 # Bits++ modes
 bits8BITPALETTEMODE = 0x00000001  # /* normal vsg mode */
@@ -218,9 +217,9 @@ class BitsPlusPlus(object):
         # choose endpoints
         LUTrange = np.asarray(LUTrange)
         if LUTrange.size == 1:
-            startII = int(round((0.5 - old_div(LUTrange, 2.0)) * 255.0))
+            startII = int(round((0.5 - LUTrange/2.0) * 255.0))
             # +1 because python ranges exclude last value:
-            endII = int(round((0.5 + old_div(LUTrange, 2.0)) * 255.0)) + 1
+            endII = int(round((0.5 + LUTrange/2.0) * 255.0)) + 1
         elif LUTrange.size == 2:
             multiplier = 1.0
             if LUTrange[1] <= 1:
@@ -228,13 +227,13 @@ class BitsPlusPlus(object):
             startII = int(round(LUTrange[0] * multiplier))
             # +1 because python ranges exclude last value:
             endII = int(round(LUTrange[1] * multiplier)) + 1
-        stepLength = old_div(2.0, (endII - startII - 1))
+        stepLength = 2.0/(endII - startII - 1)
 
         if newLUT is None:
             # create a LUT from scratch (based on contrast and gamma)
             # rampStep = 2.0/(self.nEntries-1)
             ramp = np.arange(-1.0, 1.0 + stepLength, stepLength)
-            ramp = old_div((ramp * self.contrast + 1.0), 2.0)
+            ramp = (ramp * self.contrast + 1.0)/2.0
             # self.LUT will be stored as 0.0:1.0 (gamma-corrected)
             self.LUT[startII:endII, 0] = copy(ramp)
             self.LUT[startII:endII, 1] = copy(ramp)
@@ -975,7 +974,7 @@ class Config(object):
         # NB psychopy uses -1:1
         testArrLums = np.resize(np.linspace(-1, 1, 256), [256, 256])
         stim = visual.ImageStim(win, image=testArrLums, size=[256, h],
-                                pos=[128 - old_div(w, 2), 0], units='pix')
+                                pos=[128 - w//2, 0], units='pix')
         expected = np.repeat(expectedVals, 3).reshape([-1, 3])
         stim.draw()
         # make sure the frame buffer was correct (before gamma was applied)
@@ -995,7 +994,7 @@ class Config(object):
                 self.logFile.write('\n')
         return errs
 
-    def findIdentityLUT(self, maxIterations=1000, errCorrFactor=old_div(1.0, 5000),
+    def findIdentityLUT(self, maxIterations=1000, errCorrFactor=1.0/5000,
                         nVerifications=50,
                         demoMode=True,
                         logFile=''):
@@ -1023,7 +1022,7 @@ class Config(object):
         # create standard options
         intel = np.linspace(.05, .95, 256)
         one = np.linspace(0, 1.0, 256)
-        fraction = np.linspace(0.0, old_div(65535.0, 65536.0), num=256)
+        fraction = np.linspace(0.0, 65535.0/65536.0, num=256)
         LUTs = {'intel': np.repeat(intel, 3).reshape([-1, 3]),
                 '0-255': np.repeat(one, 3).reshape([-1, 3]),
                 '0-65535': np.repeat(fraction, 3).reshape([-1, 3]),
@@ -1126,7 +1125,7 @@ class Config(object):
             pyplot.xlabel("LUT entry")
 
             pyplot.subplot(1, 3, 3)
-            deviations = currentLUT - old_div(r256, 255.0)
+            deviations = currentLUT - r256/255.0
             pyplot.plot(r256, deviations[:, 0], 'r.')
             pyplot.plot(r256, deviations[:, 1], 'g.')
             pyplot.plot(r256, deviations[:, 2], 'b.')

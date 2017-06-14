@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 from builtins import map
-from builtins import str
 from builtins import range
 from past.builtins import basestring
 import sys
@@ -156,7 +155,7 @@ def findPhotometer(ports=None, device=None):
     logging.info('scanning serial ports...')
     logging.flush()
     for thisPort in ports:
-        logging.info('...' + str(thisPort))
+        logging.info('...{}'.format(thisPort))
         logging.flush()
         for Photometer in photometers:
             # Looks like we got an invalid photometer, carry on
