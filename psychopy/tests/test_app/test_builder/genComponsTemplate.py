@@ -62,6 +62,9 @@ if not '--out' in sys.argv:
                'label',  # comment-out to not ignore labels when checking
                'categ'
                ]
+for field in dir(param):
+    if field.startswith("__"):
+        ignore.append(field)
 fields = set(dir(param)).difference(ignore)
 
 mismatches = []

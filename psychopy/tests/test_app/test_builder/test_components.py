@@ -88,8 +88,12 @@ class TestComponents(object):
         # not when things are still new-ish and subject to change:
         ignore += ['hint',
                    'label',  # comment-out to compare labels when checking
-                   'categ'
+                   'categ',
+                   'next',
                    ]
+        for field in dir(param):
+            if field.startswith("__"):
+                ignore.append(field)
         fields = set(dir(param)).difference(ignore)
 
         err = []
