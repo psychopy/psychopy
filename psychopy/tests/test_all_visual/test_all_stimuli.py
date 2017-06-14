@@ -96,7 +96,7 @@ class _baseVisualTest(object):
         if win.units in ['norm','height']:
             sf = -1.0
         else:
-            sf = -1.0/size #this will do the flipping and get exactly one cycle
+            sf = -1.0 / size  # this will do the flipping and get exactly one cycle
         image = visual.GratingStim(win, tex=fileName, size=size, sf=sf, mask='gauss')
         image.draw()
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
@@ -109,8 +109,11 @@ class _baseVisualTest(object):
         else:
             sf = 5.0/size #this will do the flipping and get exactly one cycle
         if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
-            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
-                                        ori=-45,envsf=sf/2.0,envori=45,envphase=90,moddepth=0.5,contrast=0.5)
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin',
+                                           size=size, sf=sf, mask='raisedCos',
+                                           ori=-45, envsf=sf / 2, envori=45,
+                                           envphase=90, moddepth=0.5,
+                                           contrast=0.5)
             image.draw()
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
@@ -123,8 +126,11 @@ class _baseVisualTest(object):
         else:
             sf = 5.0/size #this will do the flipping and get exactly one cycle
         if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
-            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin', size=size, sf=sf, mask='raisedCos',
-                                        ori=-45,envsf=sf/2.0,envori=45,envphase=90,beat=True,moddepth=0.5,contrast=0.5)
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin',
+                                           size=size, sf=sf, mask='raisedCos',
+                                           ori=-45, envsf=sf / 2, envori=45,
+                                           envphase=90, beat=True, moddepth=0.5,
+                                           contrast=0.5)
             image.draw()
             utils.compareScreenshot('beatandrcos_%s.png' %(self.contextName), win)
             win.flip()
@@ -196,8 +202,8 @@ class _baseVisualTest(object):
         win = self.win
         #using init
         gabor = visual.PatchStim(win, mask='gauss', ori=-45,
-            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
-            sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
+            pos=[0.6 * self.scaleFactor, -0.6 * self.scaleFactor],
+            sf=2.0 / self.scaleFactor, size=2 * self.scaleFactor,
             interpolate=True)
         gabor.draw()
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
@@ -206,7 +212,7 @@ class _baseVisualTest(object):
         #using .set()
         gabor.ori = 45
         gabor.size -= 0.2 * self.scaleFactor
-        gabor.setColor([45,30,0.3], colorSpace='dkl')
+        gabor.setColor([45, 30, 0.3], colorSpace='dkl')
         gabor.sf += 0.2 / self.scaleFactor
         gabor.pos += [-0.5*self.scaleFactor, 0.5*self.scaleFactor]
         gabor.contrast = 0.8
@@ -285,8 +291,6 @@ class _baseVisualTest(object):
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
         # getting back to 'add' if we want it
-        if 'add' in self.contextName:
-            self.win.blendMode = 'add'
         win = self.win
         text = visual.TextStim(win, pos=[0, 0.9])
         grat1 = visual.GratingStim(win, size=2*self.scaleFactor,
