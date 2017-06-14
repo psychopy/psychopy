@@ -16,6 +16,7 @@ from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web
+from psychopy.constants import PY3
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -194,8 +195,14 @@ def _remoteVersions(forceCheck=False):
         except (CalledProcessError, OSError):
             pass
         else:
-            allTags = [line.split('refs/tags/')[1]
-                       for line in tagInfo.splitlines() if '^{}' not in line]
+            if PY3:
+                allTags = [line.split('refs/tags/')[1]
+                           for line in tagInfo.decode().splitlines()
+                           if '^{}' not in line]
+            else:
+                allTags = [line.split('refs/tags/')[1]
+                           for line in tagInfo.splitlines()
+                           if '^{}' not in line]
             # ensure most recent (i.e., highest) first
             _remoteVersionsCache = sorted(allTags, reverse=True)
     return _remoteVersionsCache

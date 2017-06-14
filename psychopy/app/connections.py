@@ -22,6 +22,7 @@ except ImportError:  # if it's not there locally, try the wxPython lib
     import wx.lib.hyperlink as wxhl
 
 import psychopy
+from psychopy.constants import PY3
 from . import dialogs
 from .localization import _translate
 from psychopy import logging
@@ -66,6 +67,8 @@ def getLatestVersionInfo():
     for line in page.readlines():
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
+        if PY3:
+            line = line.decode()  # convert from a byte to a str
         if line.find(':') == -1:
             return -1
             # this will succeed if every line has a key
@@ -122,7 +125,10 @@ class Updater(object):
         if self.latest == -1:
             return -1  # failed to find out about updates
         # have found 'latest'. Is it newer than running version?
-        newer = self.latest['version'] > self.runningVersion
+        try:
+            newer = self.latest['version'] > self.runningVersion
+        except KeyError:
+            print(self.latest)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
         if newer and not skip:
             if self.latest['lastUpdatable'] <= self.runningVersion:
