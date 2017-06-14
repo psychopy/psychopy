@@ -1528,7 +1528,7 @@ class DeviceEvent(ioObject):
 import sys
 
 def import_device(module_path, device_class_name):
-    module = __import__(module_path, fromlist=[device_class_name])
+    module = __import__(module_path, fromlist=["{}".format(device_class_name)])
     device_class=getattr(module, device_class_name)
 
     setattr(sys.modules[__name__], device_class_name, device_class)
