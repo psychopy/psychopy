@@ -1062,7 +1062,7 @@ class _iViewConfigMappings(object):
         calibration_struct.autoAccept=c_int(calibration_config.get('auto_pace',1))
         calibration_struct.backgroundBrightness=c_int(calibration_config.get('screen_background_color',239))
         calibration_struct.targetShape=c_int(_iViewConfigMappings.target_type[calibration_config.get('target_type','CIRCLE_TARGET')])
-        calibration_struct.targetFilename=b''
+        calibration_struct.targetFilename=''
 
         if calibration_config['target_type'] in ['CIRCLE_TARGET_V2', 'CIRCLE_TARGET']:
             target_settings=calibration_config['target_attributes']

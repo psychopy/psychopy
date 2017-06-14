@@ -31,10 +31,11 @@ import keyword
 from .components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging, constants
-from psychopy.constants import FOREVER
+from psychopy.constants import FOREVER, PY3
 
 from ..localization import _translate
 import locale
+import sys
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
@@ -79,10 +80,10 @@ class CodeGenerationException(Exception):
     def __init__(self, source, message=""):
         super(CodeGenerationException, self).__init__()
         self.source = source
-        self.message = str(message)
+        self.message = message
 
     def __str__(self):
-        return str(self.source) + ": " + self.message
+        return "{}: ".format(self.source, self.message)
 
 
 class IndentingBuffer(io.StringIO):
@@ -119,6 +120,11 @@ class IndentingBuffer(io.StringIO):
         else:
             self.indentLevel = newLevel
 
+    def write(self, text):
+        if PY3:
+            io.StringIO.write(self, "{}".format(text))
+        else:
+            io.StringIO.write(self, u"{}".format(text))
 
 class Experiment(object):
     """
@@ -337,11 +343,11 @@ class Experiment(object):
         thisChild = xml.SubElement(parent, thisType)
         thisChild.set('name', name)
         if hasattr(param, 'val'):
-            thisChild.set('val', str(param.val).replace("\n", "&#10;"))
+            thisChild.set('val', "{}".format(param.val).replace("\n", "&#10;"))
         if hasattr(param, 'valType'):
             thisChild.set('valType', param.valType)
         if hasattr(param, 'updates'):
-            thisChild.set('updates', str(param.updates))
+            thisChild.set('updates', "{}".format(param.updates))
         return thisChild
 
     def _getXMLparam(self, params, paramNode):
@@ -358,8 +364,8 @@ class Experiment(object):
         if name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'startTime':  # deprecated in v1.70.00
-            params['startType'].val = str('time (s)')
-            params['startVal'].val = str(val)
+            params['startType'].val = "{}".format('time (s)')
+            params['startVal'].val = "{}".format(val)
             return  # times doesn't need to update its type or 'updates' rule
         elif name == 'forceEndTrial':  # deprecated in v1.70.00
             params['forceEndRoutine'].val = bool(val)
@@ -371,11 +377,11 @@ class Experiment(object):
             params['conditions'].val = eval(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'trialListFile':  # deprecated in v1.70.00
-            params['conditionsFile'].val = str(val)
+            params['conditionsFile'].val = "{}".format(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'duration':  # deprecated in v1.70.00
             params['stopType'].val = u'duration (s)'
-            params['stopVal'].val = str(val)
+            params['stopVal'].val = "{}".format(val)
             return  # times doesn't need to update its type or 'updates' rule
         elif name == 'allowedKeys' and valType == 'str':  # changed v1.70.00
             # ynq used to be allowed, now should be 'y','n','q' or
@@ -406,10 +412,10 @@ class Experiment(object):
             params[name].val = val
         elif name == 'times':  # deprecated in v1.60.00
             times = eval('%s' % val)
-            params['startType'].val = str('time (s)')
-            params['startVal'].val = str(times[0])
-            params['stopType'].val = str('time (s)')
-            params['stopVal'].val = str(times[1])
+            params['startType'].val = "{}".format('time (s)')
+            params['startVal'].val = "{}".format(times[0])
+            params['stopType'].val = "{}".format('time (s)')
+            params['stopVal'].val = "{}".format(times[1])
             return  # times doesn't need to update its type or 'updates' rule
         elif name in ('Begin Experiment', 'Begin Routine', 'Each Frame',
                       'End Routine', 'End Experiment'):
@@ -846,14 +852,14 @@ class Param(object):
         if self.valType == 'num':
             try:
                 # will work if it can be represented as a float
-                return str(float(self.val))
+                return "{}".format(float(self.val))
             except Exception:  # might be an array
                 return "asarray(%s)" % (self.val)
         elif self.valType == 'int':
             try:
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
-                return str(self.val)  # try array of float instead?
+                return "{}".format(self.val)  # try array of float instead?
         elif self.valType == 'str':
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
