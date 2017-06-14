@@ -85,7 +85,16 @@ def fromFile(filename):
             contents = pickle.load(f)
         except TypeError as e:
             f.seek(0)
-            name = e.args[1].__name__
+            # check er as string for one of our handlers
+            errStr = "{}".format(e)
+            name = ''
+            for thisHandler in ['TrialHandler','StairHandler','MultiStairHandler']:
+                if thisHandler in errStr:
+                    name = thisHandler
+            # if error is from something else try to deduce the class
+            if not name:
+                name = e.args[1].__name__
+            # then process accordingly
             if name == 'TrialHandler':
                 currentHandler = psychopy.data.TrialHandler
                 # Temporarily replace new-style class
@@ -102,7 +111,7 @@ def fromFile(filename):
                 psychopy.data.StairHandler = currentHandler
                 contents = _convertToNewStyle(
                     psychopy.data.StairHandler, oldContents)
-            elif name == 'MultiStairHandler':
+            elif name == '':
                 newStair = psychopy.data.StairHandler
                 newMulti = psychopy.data.MultiStairHandler
                 # Temporarily replace new-style class
