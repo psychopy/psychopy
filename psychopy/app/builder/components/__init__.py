@@ -10,7 +10,6 @@ import os
 import glob
 import copy
 import shutil
-import wx
 from PIL import Image
 from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
@@ -29,6 +28,7 @@ for filename in pycFiles:
             pass  # may not have sufficient privs
 
 def pilToBitmap(pil, scaleFactor=1.0):
+    import wx
     image = wx.EmptyImage(pil.size[0], pil.size[1])
 
     try:  # For PIL.
@@ -228,16 +228,16 @@ def getInitVals(params, target="PsychoPy"):
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
-            valStr = str(inits[name].val).strip()
+            valStr = unicode(inits[name].val).strip()
             if valStr.startswith("(") and valStr.endswith(")"):
                 inits[name].val = inits[name].val.replace("(", "[", 1)
                 inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["image", "mask", "sound"]:
-                val = str(inits[name].val)
+                val = unicode(inits[name].val)
                 if val != "None":
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
-                                       .format(val))
+                                       .format(inits[name]))
                     inits[name].valType = 'code'
 
         if not hasattr(inits[name], 'updates'):  # might be settings parameter instead
@@ -261,10 +261,11 @@ def getInitVals(params, target="PsychoPy"):
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
-                      'dir', 'speed']:
+                      'dir', 'speed',
+                      'contrast', 'moddepth', 'envori', 'envphase', 'envsf']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
-        elif name in ['image', 'mask']:
+        elif name in ['image', 'mask', 'envelope', 'carrier']:
             inits[name].val = "sin"
             inits[name].valType = 'str'
         elif name == 'texture resolution':
@@ -287,6 +288,12 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].valType = 'str'
         elif name == 'sound':
             inits[name].val = "A"
+            inits[name].valType = 'str'
+        elif name == 'blendmode':
+            inits[name].val = "avg"
+            inits[name].valType = 'str'
+        elif name == 'beat':
+            inits[name].val = "False"
             inits[name].valType = 'str'
         else:
             print("I don't know the appropriate default value for a '%s' "
