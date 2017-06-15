@@ -12,6 +12,22 @@ Changelog
 PsychoPy 1.85
 ------------------------------
 
+PsychoPy 1.85.2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED:
+
+  * several errors with **PsychoJS** outputs from Builder:
+
+    * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
+    * "correct" responses were being overwritten by non-responses #f903210
+    * Text components that were static caused a crash (were erroneously given two single-quotes) #b399a50
+
+  * Staircase would finish prematurely if nReversals was None #7148cad
+  * PsychoPy would crash if sound device contained a unicode character #c1ff68f
+  * FrameBufferObject not working correctly for dual-window setups #5e1c045
+  * removed some annoying junk messages about sounddevice #e5ae2fc
+
 PsychoPy 1.85.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -28,9 +44,14 @@ PsychoPy 1.85.1
 
     * pyo not loading #1365
     * searching for 'auto' instead of 'default' device #d54d14fe
+    * fixed duration calculation (bug in soundfile) for sounddevice #e0e01ad
 
-  * textbox v textstim demo wasn't working #b2913c12476
+  * textbox v textstim demo wasn't working #b2913c12476
   * error with colors when using TextStim with blendmode='add'
+  * errors in installer package:
+  
+    * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
+    * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
 
 PsychoPy 1.85.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
