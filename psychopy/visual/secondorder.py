@@ -461,28 +461,28 @@ class EnvelopeGrating(GratingStim):
         # setup the shaderprogram
         GL.glUseProgram(self._shaderProg)
         # set the carrier to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "carrier"),
+        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, b"carrier"),
                        0)
         # set the envelope to be texture unit 1
         GL.glUniform1i(GL.glGetUniformLocation(
-            self._shaderProg, "envelope"), 1)
+            self._shaderProg, b"envelope"), 1)
         GL.glUniform1i(GL.glGetUniformLocation(
-            self._shaderProg, "mask"), 2)  # mask is texture unit 2
+            self._shaderProg, b"mask"), 2)  # mask is texture unit 2
         GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "moddepth"), self.moddepth)
+            self._shaderProg, b"moddepth"), self.moddepth)
         GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "ori"), envrad)
+            self._shaderProg, b"ori"), envrad)
         # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True
         # this becomes (moddepth*envelope)*carrier thus maing a second order
         # 'beat' pattern.
         if self.beat:
             GL.glUniform1f(GL.glGetUniformLocation(
-                self._shaderProg, "offset"),0.0)
+                self._shaderProg, b"offset"),0.0)
         else:
             GL.glUniform1f(GL.glGetUniformLocation(
-                self._shaderProg, "offset"), 1.0)
+                self._shaderProg, b"offset"), 1.0)
         GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "add"), addvalue)
+            self._shaderProg, b"add"), addvalue)
 
         # mask
         GL.glActiveTexture(GL.GL_TEXTURE2)

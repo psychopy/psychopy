@@ -905,7 +905,7 @@ class _GlobalEventKeys(MutableMapping):
 
     _IndexKey = namedtuple('_IndexKey', ['key', 'modifiers'])
 
-    _valid_keys = set(string.lowercase + string.digits
+    _valid_keys = set(string.ascii_lowercase + string.digits
                       + string.punctuation + ' \t')
     _valid_keys.update(['escape', 'left', 'right', 'up', 'down'])
 

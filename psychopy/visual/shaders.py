@@ -33,7 +33,9 @@ def compileProgram(vertexSource=None, fragmentSource=None):
         """Compile shader source of given type (only needed by compileProgram)
         """
         shader = GL.glCreateShaderObjectARB(shaderType)
-
+        # if Py3 then we need to convert our (unicode) str into bytes for C
+        if type(source) != bytes:
+            source = source.encode()
         prog = c_char_p(source)
         length = c_int(-1)
         GL.glShaderSourceARB(shader,

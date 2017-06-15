@@ -125,17 +125,17 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             _prog = self.win._progSignedTexMask
             GL.glUseProgram(_prog)
             # set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, "texture"), 0)
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
             # mask is texture unit 1
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, "mask"), 1)
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
         else:
             # for an rgb image there is no recoloring
             _prog = self.win._progImageStim
             GL.glUseProgram(_prog)
             # set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, "texture"), 0)
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"texture"), 0)
             # mask is texture unit 1
-            GL.glUniform1i(GL.glGetUniformLocation(_prog, "mask"), 1)
+            GL.glUniform1i(GL.glGetUniformLocation(_prog, b"mask"), 1)
 
         # mask
         GL.glActiveTexture(GL.GL_TEXTURE1)

@@ -54,7 +54,7 @@ else:
 # fix, since *everything* should be decoded to Unicode, and not just this
 # specific pathname. Right now, errors will still occur if `monitorFolder` is
 # combined with `str`-type objects that contain non-ASCII characters.
-if isinstance(monitorFolder, str):
+if isinstance(monitorFolder, bytes):
     monitorFolder = monitorFolder.decode(sys.getfilesystemencoding())
 
 if not os.path.isdir(monitorFolder):
