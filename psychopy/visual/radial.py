@@ -408,9 +408,9 @@ class RadialStim(GratingStim):
             prog = self.win._progSignedTexMask1D
             GL.glUseProgram(prog)
             # set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(prog, "texture"), 0)
+            GL.glUniform1i(GL.glGetUniformLocation(prog, b"texture"), 0)
             # mask is texture unit 1
-            GL.glUniform1i(GL.glGetUniformLocation(prog, "mask"), 1)
+            GL.glUniform1i(GL.glGetUniformLocation(prog, b"mask"), 1)
 
             # set pointers to visible textures
             GL.glClientActiveTexture(GL.GL_TEXTURE0)
@@ -528,9 +528,9 @@ class RadialStim(GratingStim):
         GL.glUseProgram(self.win._progSignedTexMask1D)
         # set the texture to be texture unit 0
         GL.glUniform1i(GL.glGetUniformLocation(
-            self.win._progSignedTexMask1D, "texture"), 0)
+            self.win._progSignedTexMask1D, b"texture"), 0)
         GL.glUniform1i(GL.glGetUniformLocation(
-            self.win._progSignedTexMask1D, "mask"), 1)  # mask is texture unit 1
+            self.win._progSignedTexMask1D, b"mask"), 1)  # mask is texture unit 1
 
         # set pointers to visible textures
         GL.glClientActiveTexture(GL.GL_TEXTURE0)
