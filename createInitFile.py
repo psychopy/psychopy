@@ -20,6 +20,7 @@ def createInitFile(dist=None, version=None, sha=None):
     if version is None:
         with open(os.path.join(thisLoc,'version')) as f:
             version = f.read()
+            version = version.replace("\n", "")
     if sha is None:
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
