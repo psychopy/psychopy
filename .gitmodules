@@ -1,0 +1,3 @@
+[submodule "psychojs"]
+	path = psychojs
+	url = https://github.com/psychopy/psychojs.git
