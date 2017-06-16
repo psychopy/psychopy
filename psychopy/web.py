@@ -15,7 +15,7 @@ from builtins import object
 import os
 import sys
 import base64
-import http.client
+import httplib2
 import mimetypes  # deprecated; use requests package instead
 import socket
 import re
@@ -43,7 +43,7 @@ else:
             self.error = lib
             self.parse = lib
     urllib = FakeURLlib(urllib2)
-    import io as io  # pylint: disable=W0611
+    import cStringIO as io  # pylint: disable=W0611
 
 # default 20s from prefs, min 2s
 TIMEOUT = max(prefs.connections['timeout'], 2.0)
@@ -127,7 +127,7 @@ def getPacFiles():
     pacFiles = []
     if sys.platform == 'win32':
         try:
-            import winreg as winreg  # used from python 2.0-2.6
+            import _winreg as winreg  # used from python 2.0-2.6
         except ImportError:
             import winreg  # used from python 2.7 onwards
         net = winreg.OpenKey(
@@ -336,7 +336,7 @@ def _post_multipart(host, selector, fields, files,
         form fields. files is a sequence of (name, filename, value)
         elements for data to be uploaded as files
 
-        Return (content_type, body) ready for httplib.HTTP instance
+        Return (content_type, body) ready for httplib2.HTTP instance
         """
         BOUNDARY = u'----------ThIs_Is_tHe_bouNdaRY_$'
         CRLF = u'\r\n'
@@ -375,9 +375,9 @@ def _post_multipart(host, selector, fields, files,
 
     # select https -- note there's NO verification of the server’s certificate
     if https is True:
-        conn = http.client.HTTPSConnection(host, timeout=timeout)
+        conn = httplib2.HTTPSConnection(host, timeout=timeout)
     else:
-        conn = http.client.HTTPConnection(host, timeout=timeout)
+        conn = httplib2.HTTPConnection(host, timeout=timeout)
     headers = {u'User-Agent': userAgent,
                u'Charset': encoding,
                u'Content-Type': content_type}
@@ -459,7 +459,7 @@ def upload(selector, filename, basicAuth=None, host=None,
 
             An important caveat is that the authenticity of the certificate returned from the
             server is not checked, and so the certificate could potentially be spoofed
-            (see the warning under HTTPSConnection http://docs.python.org/library/httplib.html).
+            (see the warning under HTTPSConnection http://docs.python.org/library/httplib2.html).
             Overall, using https can still be much more secure than not using it.
             The encryption is good, but that of itself does not eliminate all risk.
             Importantly, it is not as secure as one might expect, given that all major web browsers
