@@ -383,7 +383,7 @@ class InstallUpdateDialog(wx.Dialog):
 
     def onCancel(self, event):
         self.app.updater = None
-        self.Destroy()
+        self.Close()
 
     def onFileBrowse(self, event):
         self.filename = event.GetString()
