@@ -28,8 +28,11 @@ from .localization import _translate
 from psychopy import logging
 from psychopy import web
 py3 = web.py3
-io = web.io  # fixed for py2 or py3
-urllib = web.urllib
+if py3:
+    import io
+else:
+    import StringIO as io
+urllib = web.urllib  # fixed in web.py to work for py2 or py3
 
 versionURL = "http://www.psychopy.org/version.txt"
 
