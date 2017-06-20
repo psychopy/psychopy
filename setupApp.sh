@@ -16,7 +16,7 @@ rm psychopy/prefSite.cfg
 
 sudo rm -r dist/PsychoPy2.app #the previous version
 sudo rm -r ../dist/PsychoPy2.app #the previous version in 'main' location
-python setupApp.py py2app
+python setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
 # sudo chmod -R g+w dist/PsychoPy2.app #Jon: not sure this is needed
 # remove matplotlib tests (45mb)
 rm -r dist/PsychoPy2.app/Contents/Resources/lib/python2.7/matplotlib/tests
@@ -24,7 +24,7 @@ rm -r dist/PsychoPy2.app/Contents/Resources/lib/python2.7/matplotlib/tests
 echo "stripping i386 using ditto"
 ditto --rsrc --arch x86_64 dist/PsychoPy2.app ../dist/PsychoPy2.app
 mv dist/PsychoPy2.app ../dist/PsychoPy2_fat.app
-
+ 
 # mount the disk image to put the app in
 echo "Opening disk image for app"
 hdiutil detach "/Volumes/PsychoPy" -quiet
