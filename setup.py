@@ -1,17 +1,43 @@
 #!/usr/bin/env python2
-"""Requires setuptools and uses the manifest.in file for data files"""
+"""Install PsychoPy to your current Python dist, including requirements
+
+usage::
+
+    pip install psychopy
+    pip install .  # to install from within the repository
+    pip install -e .  # to install a link instead of copying the files
+
+"""
 
 from setuptools import setup, find_packages
 ################
 import os
-from sys import platform, argv
+from sys import platform, argv, version_info
+
+PY3 = version_info>=(3,0)
+
+# use pip module to parse the
+required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
+            'wxPython', 'pyglet','pygame', 'configobj',
+            'soundfile', 'sounddevice',
+            'python-bidi', 'cffi', 'future', 'json_tricks',
+            'pyosf', 'requests[security]',
+            'xlrd', 'openpyxl',
+            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables'
+            'opencv-python',
+            ]
+# some optional dependencies
+if platform == 'darwin':
+    required.append('pyobjc-core', 'pyobjc-framework-Quartz')
+if PY3:  # doesn't exist on py2
+    required.append('pyqt5')
 
 # compress psychojs to a zip file for packaging
 if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer
     pass
 else:
     import shutil
-    shutil.make_archive(os.path.join('psychopy','psychojs'), 'zip', 'psychojs')
+    shutil.make_archive(os.path.join('psychopy', 'psychojs'), 'zip', 'psychojs')
 
 #regenerate __init__.py only if we're in the source repos (not in a source zip file)
 try:
@@ -25,7 +51,8 @@ if writeNewInit:
     for arg in argv:
         if arg.startswith('bdist') or arg.startswith('install'):
             dist='bdist'
-        else: dist='sdist'
+        else:
+            dist='sdist'
     vStr = createInitFile.createInitFile(dist=dist)
 else:
     #import the metadata from file we just created (or retrieve previous)
@@ -65,6 +92,7 @@ setup(name="PsychoPy",
         '': dataExtensions,
     },
     data_files = dataFiles,
+    install_requires = required,
     #metadata
     version = __version__,
     description = "Psychophysics toolkit for Python",

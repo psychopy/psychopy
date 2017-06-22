@@ -2,7 +2,7 @@ Thanks for downloading PsychoPy!
 
 MORE INFO:
 See the documentation at
-	http://www.psychopy.org
+    http://www.psychopy.org
 and run the included demos.
 
 FEEDBACK:

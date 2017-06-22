@@ -1,0 +1,5 @@
+# these are only needed for for development/testing
+codecov
+pytest
+sphinx
+cython

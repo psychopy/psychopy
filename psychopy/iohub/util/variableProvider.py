@@ -7,7 +7,8 @@ import numpy as np
 import sys
 import json
 from psychopy.core import getTime
-from . import OrderedDict,  printExceptionDetailsToStdErr, print2err
+from . import printExceptionDetailsToStdErr, print2err
+from collections import OrderedDict
 #### Experiment Variable (IV and DV) Condition Management
 #
 class ConditionSetProvider(object):

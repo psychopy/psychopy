@@ -49,7 +49,7 @@ PsychoPy 1.85.1
   * textbox v textstim demo wasn't working #b2913c12476
   * error with colors when using TextStim with blendmode='add'
   * errors in installer package:
-  
+
     * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
     * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
 
@@ -146,15 +146,15 @@ Released Aug 2016
 
       * OLD form --> NEW form
       * Deprecated since 2012, must now update:
-      	* `from psychopy import calib` --> `from psychopy import monitors as calib` (or just use `monitors`)
-      	* `from psychopy import bits` --> `from psychopy.hardware.crs import bits`
-      	* `from psychopy import log` --> `from psychopy import logging`
+        * `from psychopy import calib` --> `from psychopy import monitors as calib` (or just use `monitors`)
+        * `from psychopy import bits` --> `from psychopy.hardware.crs import bits`
+        * `from psychopy import log` --> `from psychopy import logging`
       * Newly deprecated (the old way still works but logs a warning):
-      	* `from psychopy import _shadersPyglet` --> `from psychopy.visual import shaders`
-      	* `from psychopy import gamma` --> `from psychopy.visual import gamma`
-      	* `from psychopy import filters` --> `from psychopy.visual import filters`
+        * `from psychopy import _shadersPyglet` --> `from psychopy.visual import shaders`
+        * `from psychopy import gamma` --> `from psychopy.visual import gamma`
+        * `from psychopy import filters` --> `from psychopy.visual import filters`
       * API change (only affects people who write their own Builder components):
-      	* `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
+        * `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
 
   * PyQt is now default over wx for dialog boxes (if either PyQt4 or PyQt5 are installed). Also fixed bug to support PyQt5
   * No Static Components are created by default (e.g. ISI). Have to add them manually
