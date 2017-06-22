@@ -24,10 +24,11 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'pyosf', 'requests[security]',
             'xlrd', 'openpyxl',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables'
+            'opencv-python',
             ]
 # some optional dependencies
 if platform == 'darwin':
-    required.append('pyobjc-core')
+    required.append('pyobjc-core', 'pyobjc-framework-Quartz')
 if PY3:  # doesn't exist on py2
     required.append('pyqt5')
 
