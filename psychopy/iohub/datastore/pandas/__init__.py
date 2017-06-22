@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from __future__ import print_function
 from builtins import object
 """
 ioHub DataStore to Pandas DataFrames
@@ -13,7 +14,7 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> and
                   Pierce Edmiston <pierce.edmiston@gmail.com>
 """
-from __future__ import print_function
+
 try:
     import ujson as json
 except ImportError:

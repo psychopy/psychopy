@@ -2,6 +2,7 @@
 # coding=utf-8
 
 from __future__ import absolute_import
+from __future__ import division
 
 # Copyright (c) 2009-2012 Valentin Haenel <valentin.haenel@gmx.de>
 #
@@ -175,7 +176,7 @@ from past.utils import old_div
     be put into 'current' mode at startup.
 
 """
-from __future__ import division
+
 __version__ = "0.4"
 __author__ = "Valentin Haenel <valentin.haenel@gmx.de>"
 __docformat__ = "restructuredtext en"
