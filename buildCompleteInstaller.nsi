@@ -65,9 +65,7 @@ Function .onInit
   IfSilent +3
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
   "A version of PsychoPy2 is already installed. $\n$\nClick `OK` to remove the \
-  previous version or `Cancel` to cancel this upgrade. \
-  \
-  WAIT UNTIL UNINSTALL COMPLETES BEFORE CONTINUING" \
+  previous version or `Cancel` to cancel this upgrade." \
   IDOK uninst
   Abort
 
