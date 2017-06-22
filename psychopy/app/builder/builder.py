@@ -974,7 +974,7 @@ class BuilderFrame(wx.Frame):
                  pos=wx.DefaultPosition, fileName=None, frameData=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
 
-        if fileName is not None:
+        if (fileName is not None) and (type(fileName)==bytes):
             fileName = fileName.decode(sys.getfilesystemencoding())
 
         self.app = app

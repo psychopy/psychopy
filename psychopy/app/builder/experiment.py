@@ -153,8 +153,9 @@ class Experiment(object):
         # this can be checked by the builder that this is an experiment and a
         # compatible version
         self.psychopyVersion = __version__
-        self.psychopyLibs = ['gui', 'visual', 'core',
-                             'data', 'event', 'logging', 'sound']
+        # What libs are needed (make sound come first)
+        self.psychopyLibs = ['sound', 'gui', 'visual', 'core',
+                             'data', 'event', 'logging']
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving

@@ -31,6 +31,7 @@ from copy import deepcopy, copy
 import numpy
 import scipy.optimize as optim
 from scipy import interpolate
+import json_tricks
 
 DEBUG = False
 
@@ -179,7 +180,7 @@ class Monitor(object):
         self.name = name
         self.autoLog = autoLog
         self.currentCalib = currentCalib or {}
-        self.currentCalibName = strFromDate(time.localtime())
+        self.currentCalibName = strFromDate(time.mktime(time.localtime()))
         self.calibs = {}
         self.calibNames = []
         self._gammaInterpolator = None
@@ -237,7 +238,7 @@ class Monitor(object):
         date/time if none given. (Also returns the date as set)
         """
         if date is None:
-            date = time.localtime()
+            date = time.mktime(time.localtime())
         self.currentCalib['calibDate'] = date
         return date
 
@@ -496,6 +497,8 @@ class Monitor(object):
             self.calibs = pickle.load(thisFile)
             self.calibNames = sorted(self.calibs)
             thisFile.close()
+            # save JSON copies of our calibrations
+            self.saveJSON()
 
     def newCalib(self, calibName=None, width=None,
                  distance=None, gamma=None, notes=None, useBits=False,
@@ -503,15 +506,16 @@ class Monitor(object):
         """create a new (empty) calibration for this monitor and
         makes this the current calibration
         """
+        dateTime = time.mktime(time.localtime())
         if calibName is None:
-            calibName = strFromDate(time.localtime())
+            calibName = strFromDate(dateTime)
         # add to the list of calibrations
         self.calibNames.append(calibName)
         self.calibs[calibName] = {}
 
         self.setCurrent(calibName)
         # populate with some default values:
-        self.setCalibDate(time.localtime())
+        self.setCalibDate(dateTime)
         self.setGamma(gamma)
         self.setWidth(width)
         self.setDistance(distance)
@@ -572,19 +576,34 @@ class Monitor(object):
         return 1
 
     def saveMon(self):
-        """Saves the current dictionary of calibrations to disk
+        """Saves the current dictionary of calibrations as a json file
         """
         thisFileName = os.path.join(monitorFolder, self.name + ".calib")
         thisFile = open(thisFileName, 'wb')
         pickle.dump(self.calibs, thisFile)
         thisFile.close()
+        # also save as JSON (at the moment)
+        # (When we're sure this works we should ONLY save as JSON)
+        self.saveJSON()
+
+    def saveJSON(self):
+        thisFileName = os.path.join(monitorFolder, self.name + ".json")
+        # convert time structs to timestamps (floats)
+        for calibName in self.calibs:
+            calib = self.calibs[calibName]
+            if isinstance(calib['calibDate'], time.struct_time):
+                calib['calibDate'] = time.mktime(calib['calibDate'])
+        with open(thisFileName, 'w') as outfile:
+            json_tricks.dump(self.calibs, outfile, indent=2,
+                             allow_nan=True)
+
 
     def copyCalib(self, calibName=None):
         """Stores the settings for the current calibration settings as
         new monitor.
         """
         if calibName is None:
-            calibName = strFromDate(time.localtime())
+            calibName = strFromDate(time.mktime(time.localtime()))
         # add to the list of calibrations
         self.calibNames.append(calibName)
         self.calibs[calibName] = deepcopy(self.currentCalib)
@@ -1238,4 +1257,6 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
 def strFromDate(date):
     """Simply returns a string with a std format from a date object
     """
+    if type(date) == float:
+        date = time.localtime(date)
     return time.strftime("%Y_%m_%d %H:%M", date)
