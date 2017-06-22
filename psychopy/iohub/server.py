@@ -20,8 +20,9 @@ from gevent import Greenlet
 import os,sys
 from operator import itemgetter
 from collections import deque
+from collections import OrderedDict
 import psychopy.iohub
-from psychopy.iohub import OrderedDict, convertCamelToSnake, IO_HUB_DIRECTORY
+from psychopy.iohub import convertCamelToSnake, IO_HUB_DIRECTORY
 from psychopy.iohub import load, dump, Loader, Dumper
 from psychopy.iohub import print2err, printExceptionDetailsToStdErr, ioHubError
 from psychopy.iohub import DeviceConstants, EventConstants

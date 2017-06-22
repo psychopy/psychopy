@@ -16,8 +16,8 @@ from __future__ import division
 from numpy import zeros
 
 from psychopy import core, visual
-from psychopy.iohub import Computer, ioHubExperimentRuntime,EventConstants,OrderedDict
-
+from psychopy.iohub import Computer, ioHubExperimentRuntime, EventConstants
+from collections import OrderedDict
 
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -26,18 +26,18 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         Tests the round trip delay from when the experiment runtime requests
         new events from the ioHub server to when a response with >=1 new
         event is received and ready for use within the experiment script.
-        
+
         Only getEvent requests that return with atleast one new event are used in
         the calculated statistics to try and ensure the reported delay is measuring
-        the higher processing load case of new events being returned, vs. the 
-        case of no new events being available. 
+        the higher processing load case of new events being returned, vs. the
+        case of no new events being available.
 
         At the end of the test, a MatPlotLib figure is displayed showing a
         histogram of the round trip event request delays as well as two figures
-        representing the retrace onset detection stability of PsychoPy when the 
+        representing the retrace onset detection stability of PsychoPy when the
         ioHub is being used.
-         
-        PsychoPy code is taken from an example psychopy script in the coder 
+
+        PsychoPy code is taken from an example psychopy script in the coder
         documentation.
         """
         self.psychoStim = OrderedDict()
@@ -92,51 +92,51 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def createPsychoGraphicsWindow(self):
         #create a window
-        self.psychoWindow = visual.Window(self.display.getPixelResolution(), 
-                                    monitor=self.display.getPsychopyMonitorName(), 
+        self.psychoWindow = visual.Window(self.display.getPixelResolution(),
+                                    monitor=self.display.getPsychopyMonitorName(),
                                     units=self.display.getCoordinateType(),
                                     color=[128,128,128], colorSpace='rgb255',
                                     fullscr=True, allowGUI=False,
                                     screen=self.display.getIndex()
-                        ) 
-        
+                        )
+
         currentPosition=self.mouse.setPosition((0,0))
         self.mouse.setSystemCursorVisibility(False)
 
         fixation = visual.PatchStim(self.psychoWindow, size=25, pos=[0,0], sf=0,
                                     color=[-1,-1,-1], colorSpace='rgb')
-        title = visual.TextStim(win=self.psychoWindow, 
+        title = visual.TextStim(win=self.psychoWindow,
                                 text="ioHub getEvents Delay Test", pos = [0,125],
                                 height=36, color=[1,.5,0], colorSpace='rgb',
                                 alignHoriz='center', wrapWidth=800.0)
-                                
-        instr = visual.TextStim(win=self.psychoWindow, 
+
+        instr = visual.TextStim(win=self.psychoWindow,
                                 text='Move the mouse around, press keyboard keys and mouse buttons',
-                                pos = [0,-125], height=32, color=[-1,-1,-1], 
+                                pos = [0,-125], height=32, color=[-1,-1,-1],
                                 colorSpace='rgb',alignHoriz='center',wrapWidth=800.0)
 
         self.psychoStim['static'] = visual.BufferImageStim(win=self.psychoWindow,
                                          stim=(fixation, title, instr))
-        self.psychoStim['grating'] = visual.PatchStim(self.psychoWindow, 
-                                        mask="circle", size=75,pos=[-100,0],   
+        self.psychoStim['grating'] = visual.PatchStim(self.psychoWindow,
+                                        mask="circle", size=75,pos=[-100,0],
                                         sf=.075)
-        self.psychoStim['keytext'] = visual.TextStim(win=self.psychoWindow, 
-                                        text='key', pos = [0,300], height=48, 
+        self.psychoStim['keytext'] = visual.TextStim(win=self.psychoWindow,
+                                        text='key', pos = [0,300], height=48,
                                         color=[-1,-1,-1], colorSpace='rgb',
                                         alignHoriz='left',wrapWidth=800.0)
         self.psychoStim['mouseDot'] = visual.GratingStim(win=self.psychoWindow,
-                                        tex=None, mask="gauss", 
+                                        tex=None, mask="gauss",
                                         pos=currentPosition,size=(50,50),
                                         color='purple')
-        self.psychoStim['progress'] = visual.ShapeStim(win=self.psychoWindow, 
-                                        vertices=[(0,0),(0,0),(0,0),(0,0)], 
+        self.psychoStim['progress'] = visual.ShapeStim(win=self.psychoWindow,
+                                        vertices=[(0,0),(0,0),(0,0),(0,0)],
                                         pos=(400, -300))
 
     def drawAndFlipPsychoWindow(self):
         self.psychoStim['grating'].setPhase(0.05, '+')#advance phase by 0.05 of a cycle
         currentPosition,currentDisplayIndex=self.mouse.getPosition(return_display_index=True)
-        
-        if currentDisplayIndex == self.display.getIndex():       
+
+        if currentDisplayIndex == self.display.getIndex():
             currentPosition=(float(currentPosition[0]),float(currentPosition[1]))
             self.psychoStim['mouseDot'].setPos(currentPosition)
 

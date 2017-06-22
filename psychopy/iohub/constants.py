@@ -62,7 +62,10 @@ try:
             if cls._initialized:
                 return
 
-            [setattr(cls,a,i+starting_index) for i,a in enumerate(dir(cls)) if ((a[0] != '_') and (not callable(getattr(cls,a))) and (getattr(cls,a) < 0))]
+            [setattr(cls,a,i+starting_index) for i,a in enumerate(dir(cls))
+                if ((a[0] != '_')
+                    and (not callable(getattr(cls,a)))
+                    )]
             cls._names=dict([(getattr(cls,a),a) for a in dir(cls) if ((a[0] != '_') and (not callable(getattr(cls,a))))])
             cls._keys=list(cls._names.keys())
             cls._names.update(dict([(v,k) for k,v in cls._names.items()]))
