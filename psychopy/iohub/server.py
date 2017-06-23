@@ -583,7 +583,7 @@ class ioServer(object):
             gevent.sleep(max(0.0, dur))
 
     def createNewMonitoredDevice(self,device_class_name,deviceConfig):
-        print2err("#### createNewMonitoredDevice: ",device_class_name)
+        #print2err("#### createNewMonitoredDevice: ",device_class_name)
         self._all_device_config_errors=dict()
 
         try:
