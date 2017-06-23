@@ -519,8 +519,8 @@ class ioServer(object):
         try:
             for iodevice in config.get('monitor_devices',()):
                 for device_class_name,deviceConfig in iodevice.items():
-                    print2err("======================================================")
-                    print2err("Started load process for: {0}".format(device_class_name))
+                    #print2err("======================================================")
+                    #print2err("Started load process for: {0}".format(device_class_name))
                     self.createNewMonitoredDevice(device_class_name,deviceConfig)
         except Exception:
             print2err("Error XXX during device creation ....")
