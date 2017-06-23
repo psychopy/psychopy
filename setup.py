@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """Install PsychoPy to your current Python dist, including requirements
 
 usage::
@@ -23,12 +23,12 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'python-bidi', 'cffi', 'future', 'json_tricks',
             'pyosf', 'requests[security]',
             'xlrd', 'openpyxl',
-            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables'
+            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables',
             'opencv-python',
             ]
 # some optional dependencies
 if platform == 'darwin':
-    required.append('pyobjc-core', 'pyobjc-framework-Quartz')
+    required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
 if PY3:  # doesn't exist on py2
     required.append('pyqt5')
 
