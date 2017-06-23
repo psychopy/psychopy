@@ -11,7 +11,9 @@ the context in which an experiment was run.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
 import sys
 import os
 import platform
@@ -565,8 +567,8 @@ class RunTimeInfo(dict):
                     'System', 'Window', 'Python', 'OpenGL']
         for sect in sections:
             info += '  #[[ %s ]] #---------\n' % (sect)
-            sectKeys = [k for k in self.keys(
-            ) if k.lower().find(sect.lower()) == 0]
+            sectKeys = [k for k in list(self.keys(
+            )) if k.lower().find(sect.lower()) == 0]
             # get keys for items matching this section label;
             #  use reverse-alpha order if easier to read:
             revSet = ('PsychoPy', 'Window', 'Python', 'OpenGL')

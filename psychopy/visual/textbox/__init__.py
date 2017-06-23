@@ -6,6 +6,9 @@ Created on Thu Mar 21 18:38:35 2013
 """
 from __future__ import division, print_function
 from __future__ import absolute_import
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import os
 import inspect
 import numbers
@@ -1159,7 +1162,7 @@ class TextBox(object):
             raise ValueError(
                 "TextBox: String color value could not be translated: %s" % (str(color)))
 
-        if isinstance(color, (float, int, long)) or (is_sequence(color) and len(color) == 3):
+        if isinstance(color, (float, int, int)) or (is_sequence(color) and len(color) == 3):
             color = arraytools.val2array(color, length=3)
             if color_space == 'dkl' and valid_opacity:
                 dkl_rgb = None

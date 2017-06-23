@@ -2,6 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
 from os import path
 from .._base import BaseComponent, Param, _translate
 
@@ -144,7 +145,7 @@ class StaticComponent(BaseComponent):
                 compName = update['compName']
                 fieldName = update['fieldName']
                 routine = self.exp.routines[update['routine']]
-                prms = routine.getComponentFromName(unicode(compName)).params
+                prms = routine.getComponentFromName(str(compName)).params
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],

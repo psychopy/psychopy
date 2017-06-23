@@ -1,4 +1,7 @@
 
+from builtins import str
+from builtins import zip
+from builtins import object
 from psychopy import visual
 from psychopy.tests import utils
 import os

@@ -3,6 +3,8 @@ from __future__ import print_function
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
+from past.builtins import basestring
 from os import path
 from ..keyboard import KeyboardComponent, Param, _translate
 from ...experiment import CodeGenerationException, _valid_var_re

@@ -8,10 +8,15 @@
 # Author: Jeremy R. Gray, March 2012, March 2013
 
 from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import os
 import glob
 import threading
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 import numpy as np
 from scipy.io import wavfile
@@ -745,12 +750,12 @@ class _GSQueryThread(threading.Thread):
         self.started = True
         self.duration = 0
         try:
-            self.raw = urllib2.urlopen(self.request)
+            self.raw = urllib.request.urlopen(self.request)
         except Exception:  # pragma: no cover
             # yeah, its the internet, stuff happens
             # maybe temporary HTTPError: HTTP Error 502: Bad Gateway
             try:
-                self.raw = urllib2.urlopen(self.request)
+                self.raw = urllib.request.urlopen(self.request)
             except Exception as ex:  # or maybe a dropped connection, etc
                 logging.error(str(ex))
                 self.running = False  # proceeds as if "timedout"
@@ -908,13 +913,13 @@ class Speech2Text(object):
                   'User-Agent': useragent}
         web.requireInternetAccess()  # needed to access google's speech API
         try:
-            self.request = urllib2.Request(url, audio, header)
+            self.request = urllib.request.Request(url, audio, header)
         except Exception:  # pragma: no cover
             # try again before accepting defeat
             logging.info("https request failed. %s, %s. trying again..." %
                          (filename, self.filename))
             core.wait(0.2, 0)
-            self.request = urllib2.Request(url, audio, header)
+            self.request = urllib.request.Request(url, audio, header)
 
     def getThread(self):
         """Send a query to Google using a new thread, no blocking or timeout.

@@ -2,6 +2,7 @@
 """Writes the current version, build platform etc to
 """
 from __future__ import print_function
+from past.builtins import str
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
 
@@ -21,6 +22,7 @@ def createInitFile(dist=None, version=None, sha=None):
     if version is None:
         with open(os.path.join(thisLoc,'version')) as f:
             version = f.read()
+            version = version.replace("\n", "")
     if sha is None:
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
@@ -77,13 +79,18 @@ if __git_sha__ == 'n/a':
     if output:
         __git_sha__ = output.strip()  # remove final linefeed
 
-# update preferences and the user paths
-from psychopy.preferences import prefs
-import sys
-for pathName in prefs.general['paths']:
-    sys.path.append(pathName)
+# This block of code breaks when attempting to pip install on python 3 because
+# configobj is not found. Suppress the error if it involves configobj.
+try:
+    # update preferences and the user paths
+    from psychopy.preferences import prefs
+    for pathName in prefs.general['paths']:
+        sys.path.append(pathName)
 
-from psychopy.tools.versionchooser import useVersion, ensureMinimal
+    from psychopy.tools.versionchooser import useVersion, ensureMinimal
+except ImportError as e:
+    if "configobj" not in e.msg:
+        raise
 """
 
 def _getGitShaString(dist=None, sha=None):
@@ -98,7 +105,7 @@ def _getGitShaString(dist=None, sha=None):
         repo_commit, _ = proc.communicate()
         del proc#to get rid of the background process
         if repo_commit:
-            shaStr=repo_commit.strip()#remove final linefeed
+            shaStr=str(repo_commit.strip())#remove final linefeed
         else:
             shaStr='n/a'
         #this looks neater but raises errors on win32

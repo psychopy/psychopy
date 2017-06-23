@@ -1,3 +1,4 @@
+from builtins import object
 from psychopy import web
 import pytest
 

@@ -5,7 +5,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from __future__ import division
 
+from builtins import object
 import sys
 import threading
 import subprocess

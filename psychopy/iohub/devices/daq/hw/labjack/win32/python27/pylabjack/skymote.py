@@ -5,6 +5,11 @@ Desc: Provides a Bridge and Mote class for working with SkyMote bridges and
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from .LabJackPython import *
 
 if os.name == "nt":
@@ -325,7 +330,7 @@ class Mote(object):
             bl = bl + [0x00]
             strLen += 1
         
-        bl = struct.unpack(">"+"H"*(strLen/2), struct.pack("B" * strLen, *bl))
+        bl = struct.unpack(">"+"H"*(old_div(strLen,2)), struct.pack("B" * strLen, *bl))
         
         self.writeRegister(58000, list(bl))
 

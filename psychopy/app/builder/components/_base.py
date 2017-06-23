@@ -4,6 +4,9 @@
 
 from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 from ..experiment import Param, CodeGenerationException
 from ..components import getInitVals
 from psychopy.constants import FOREVER
@@ -287,7 +290,7 @@ class BaseComponent(object):
         updateType can be 'experiment', 'routine' or 'frame'
         """
         if paramNames is None:
-            paramNames = self.params.keys()
+            paramNames = list(self.params.keys())
         for thisParamName in paramNames:
             if thisParamName == 'advancedParams':
                 continue  # advancedParams is not really a parameter itself

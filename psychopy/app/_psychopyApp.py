@@ -6,7 +6,10 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import object
 import sys
 import psychopy
 
@@ -206,7 +209,7 @@ class PsychoPyApp(wx.App):
             scripts = self.prefs.appData['coder']['prevFiles']
         else:
             scripts = []
-        appKeys = self.prefs.appData['builder'].keys()
+        appKeys = list(self.prefs.appData['builder'].keys())
         if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in appKeys):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
@@ -245,12 +248,12 @@ class PsychoPyApp(wx.App):
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
-            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         if hasattr(self._mainFont, 'Larger'):
             # Font.Larger is available since wyPython version 2.9.1
             # PsychoPy still supports 2.8 (see ensureMinimal above)
             self._mainFont = self._mainFont.Larger()
-        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
         self._codeFont.SetPointSize(
             self._mainFont.GetPointSize())  # unify font size
@@ -411,7 +414,7 @@ class PsychoPyApp(wx.App):
         keyCodesDict[self.keys['quit']] = wx.ID_EXIT
         # parse the key strings and convert to accelerator entries
         entries = []
-        for keyStr, code in keyCodesDict.items():
+        for keyStr, code in list(keyCodesDict.items()):
             mods, key = parseStr(keyStr)
             entry = wx.AcceleratorEntry(mods, key, code)
             entries.append(entry)
@@ -620,7 +623,7 @@ class PsychoPyApp(wx.App):
                 self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
-        self.Exit()
+        sys.exit()
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg

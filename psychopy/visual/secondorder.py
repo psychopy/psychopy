@@ -16,6 +16,7 @@ orienation, frequencyand phase. Also does beat stimuli. """
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
 from __future__ import absolute_import
+from __future__ import division
 
 import pyglet
 pyglet.options['debug_gl'] = False
@@ -76,11 +77,11 @@ class EnvelopeGrating(GratingStim):
 
     With an EnvelopeStim the carrier and envelope can have different spatial
     frequencies, phases and orientations. Its position can be shifted as a whole.
-    
+
     contrast controls the contrast of the carrier and moddepth the modulation
     depth of the envelope. contrast and moddepth must work together, for moddepth=1 the max carrier
     contrast is 0.5 otherwise the displayable raneg will be exceeded. If moddepth < 1 higher contrasts can be accomodated.
-    
+
     Opacity controls the transparency of the whole stimulus.
 
     Because orientation is implemented very differently for the carrier and
@@ -152,7 +153,7 @@ class EnvelopeGrating(GratingStim):
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and
         # _calcCyclesPerStim whin initiating stimulus
-        
+
         #AJS
         self.__dict__['carrier'] = carrier
         self.__dict__['envelope'] = envelope
@@ -193,7 +194,7 @@ class EnvelopeGrating(GratingStim):
         del self.__dict__['tex']
 
     @attributeSetter
-    def envsf(self, value): 
+    def envsf(self, value):
         """Spatial frequency of the envelope texture
 
         Should be a :ref:`x,y-pair <attrib-xy>` or
@@ -214,7 +215,7 @@ class EnvelopeGrating(GratingStim):
             if (self.units in ['pix', 'pixels'] or
                     self._origSize is not None and
                     self.units in ['deg', 'cm']):
-                value = 1.0 / self.size  # default to one cycle
+                value = 1.0/self.size  # default to one cycle
             else:
                 value = numpy.array([1.0, 1.0])
         else:
@@ -242,10 +243,10 @@ class EnvelopeGrating(GratingStim):
         self.__dict__['envphase'] = value
         self._needUpdate = True
 
-    @attributeSetter 
-    def moddepth(self, value): 
+    @attributeSetter
+    def moddepth(self, value):
         """Modulation depth or 'contrast' for the envelope component (0.0 - 1.0)
-        
+
         Sets the range of variation in carrier contrast.
         MD=(Cmax-Cmin)/(Cma+Cmin)
         """
@@ -253,9 +254,9 @@ class EnvelopeGrating(GratingStim):
         self._needUpdate = True
 
     @attributeSetter
-    def envori(self, value): 
+    def envori(self, value):
         """The orientation for the envelope texture (in degrees).
-        
+
         Should be a single value (scalar). Operations are supported.
         Orientation convention is like a clock: 0 is vertical, and positive values rotate clockwise. Beyond 360 and below zero values wrap appropriately.
         Note ori is inhertied from gratingStim and controls only the orientation of the carrier
@@ -264,14 +265,14 @@ class EnvelopeGrating(GratingStim):
         self._needUpdate = True
 
     @attributeSetter
-    def beat(self, value): 
+    def beat(self, value):
         """Beat (True) stimulus or full moduaiton (False)
-        
+
         'The differences is that the spatial frequency components of the carrier are absent in a beat
-        (although the carrier will still be a visible component of the overall image) 
-        whereas they are present in a full modulation. Beats will always appear to have a 100% modulation 
-        depth and if sinusoidal the modulation will appear to be twice the requested spatial frequency. 
-        The modulation depth of fully modulated stimuli can be varied and they appear at their ture frequency. 
+        (although the carrier will still be a visible component of the overall image)
+        whereas they are present in a full modulation. Beats will always appear to have a 100% modulation
+        depth and if sinusoidal the modulation will appear to be twice the requested spatial frequency.
+        The modulation depth of fully modulated stimuli can be varied and they appear at their ture frequency.
         Both beats and full modulations appear in the literature and have specific uses.
         """
         if value in ['True','true','Yes','yes','Y','y']:
@@ -281,23 +282,23 @@ class EnvelopeGrating(GratingStim):
         else:
             self.__dict__['beat'] =bool(value)
         self._needUpdate = True
-        
-        
+
+
     #@attributeSetter
-    #def blendmode(self, value): 
+    #def blendmode(self, value):
     #    """The OpenGL mode in which the stimulus is draw
-    #    
+    #
     #    Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
     #    with a transparency given by its opacity. Opaque stimuli will hide other stimuli
     #    transparent stimuli wont. Add performs the aritmetic sum of the new stimulus and the ones
     #    already present.
-    #    
+    #
     #    """
     #    self.__dict__['blendmode'] = value
     #   self._needUpdate = True
 
     @attributeSetter
-    def carrier(self, value): 
+    def carrier(self, value):
         """Texture to use in the stimulus as a carrier, typically noise array.
 
         This can be one of various options:
@@ -318,7 +319,7 @@ class EnvelopeGrating(GratingStim):
         self._needTextureUpdate = False
 
     @attributeSetter
-    def envelope(self, value): 
+    def envelope(self, value):
         """Texture to use on the stimulus as a envelope, typically a grating.
 
         This can be one of various options:
@@ -345,7 +346,7 @@ class EnvelopeGrating(GratingStim):
             self.size = None  # Reset size do default
         self.__dict__['envelope'] = value
         self._needTextureUpdate = False
-        
+
     @attributeSetter
     def texRes(self, value):
         """Power-of-two int. Sets the resolution of the mask and texture.
@@ -362,54 +363,54 @@ class EnvelopeGrating(GratingStim):
             self._set('envelope', self.envelope, log=False)
         if hasattr(self, 'mask'):
             self._set('mask', self.mask, log=False)
-        
+
     def setTexRes(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('texRes', value, log=log)
-        
+
     def setEnvori(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('envori', value, log=log)
-        
+
     def setEnvsf(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('envsf', value, log=log)
-        
+
     def setEnvphase(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('envphase', value, log=log)
-        
+
     def setModdepth(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('moddepth', value, log=log)
-        
+
     def setBeat(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('beat', value, log=log)
-        
+
     def setCarrier(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self.carrier=value
-        
+
     def setEnvelope(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self.envelope=value
-        
+
     #def setBlendmode(self, value, log=None):
     #    """DEPRECATED. Use 'stim.parameter = value' syntax instead
     #    """
     #    self._set('blendmode', value, log=log)
 
     #def draw(self, win=None):
-    #    """Draw the stimulus in its relevant window. You must call 
+    #    """Draw the stimulus in its relevant window. You must call
     #    this method after every MyWin.flip() if you want the
     #    stimulus to appear on that frame and then update the screen
     #    again.
@@ -420,7 +421,7 @@ class EnvelopeGrating(GratingStim):
     #    saveBlendMode=win.blendMode
     #    win.blendMode=self.blendmode
      #   self._selectWindow(win)
-    #    
+    #
     #    super(EnvelopeGrating, self).draw(win)
 
     #    win.blendMode=saveBlendMode
@@ -437,19 +438,19 @@ class EnvelopeGrating(GratingStim):
         # make some corrections for the envelope:: This could be done whenever
         # the envelope variables are set using some internal variables,
         # putting it here is safer but sometimes slower
-        
+
         # correct envelope orientation to adjust for link with carrier
         # orientation, to make it clockwise handed and convert to radians
         envrad = (self.ori - self.envori) * numpy.pi / 180.0
 
-        # adjust envolope phases so that any envelope drift points
+        # adjust envelope phases so that any envelope drift points
         # in the same direction as the envelope.
         rph1 = (numpy.cos(envrad) *
                 self.envphase[0] + numpy.sin(envrad) * self.envphase[1])
         rph2 = (-numpy.cos(envrad) *
                 self.envphase[1] + numpy.sin(envrad) * self.envphase[0])
 
-        # we need a corrective offset when the blenmode is set to average
+        # we need a corrective offset when the blendmode is set to average
         if self.blendmode=='avg':
             addvalue = 1.0
         else:
@@ -460,28 +461,28 @@ class EnvelopeGrating(GratingStim):
         # setup the shaderprogram
         GL.glUseProgram(self._shaderProg)
         # set the carrier to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "carrier"),
+        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, b"carrier"),
                        0)
         # set the envelope to be texture unit 1
         GL.glUniform1i(GL.glGetUniformLocation(
-            self._shaderProg, "envelope"), 1)
+            self._shaderProg, b"envelope"), 1)
         GL.glUniform1i(GL.glGetUniformLocation(
-            self._shaderProg, "mask"), 2)  # mask is texture unit 2
+            self._shaderProg, b"mask"), 2)  # mask is texture unit 2
         GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "moddepth"), self.moddepth)
+            self._shaderProg, b"moddepth"), self.moddepth)
         GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "ori"), envrad)
+            self._shaderProg, b"ori"), envrad)
         # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True
         # this becomes (moddepth*envelope)*carrier thus maing a second order
         # 'beat' pattern.
         if self.beat:
             GL.glUniform1f(GL.glGetUniformLocation(
-                self._shaderProg, "offset"),0.0)
+                self._shaderProg, b"offset"),0.0)
         else:
             GL.glUniform1f(GL.glGetUniformLocation(
-                self._shaderProg, "offset"), 1.0)
+                self._shaderProg, b"offset"), 1.0)
         GL.glUniform1f(GL.glGetUniformLocation(
-            self._shaderProg, "add"), addvalue)
+            self._shaderProg, b"add"), addvalue)
 
         # mask
         GL.glActiveTexture(GL.GL_TEXTURE2)
@@ -497,15 +498,15 @@ class EnvelopeGrating(GratingStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        Lcar = -self._cycles[0] / 2 - self.phase[0] + 0.5
-        Rcar = +self._cycles[0] / 2 - self.phase[0] + 0.5
-        Tcar = +self._cycles[1] / 2 - self.phase[1] + 0.5
-        Bcar = -self._cycles[1] / 2 - self.phase[1] + 0.5
+        Lcar = (-self._cycles[0]/2) - self.phase[0] + 0.5
+        Rcar = (+self._cycles[0]/2) - self.phase[0] + 0.5
+        Tcar = (+self._cycles[1]/2) - self.phase[1] + 0.5
+        Bcar = (-self._cycles[1]/2) - self.phase[1] + 0.5
 
-        Lenv = -self._envcycles[0] / 2 - rph1 + 0.5
-        Renv = +self._envcycles[0] / 2 - rph1 + 0.5
-        Tenv = +self._envcycles[1] / 2 - rph2 + 0.5
-        Benv = -self._envcycles[1] / 2 - rph2 + 0.5
+        Lenv = (-self._envcycles[0]/2) - rph1 + 0.5
+        Renv = (+self._envcycles[0]/2) - rph1 + 0.5
+        Tenv = (+self._envcycles[1]/2) - rph2 + 0.5
+        Benv = (-self._envcycles[1]/2) - rph2 + 0.5
         Lmask = Bmask = 0.0
         Tmask = Rmask = 1.0  # mask
 
@@ -555,7 +556,7 @@ class EnvelopeGrating(GratingStim):
     # for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
         """EnvelopeGratings require shaders so this function should never be reached.
-        It currently combines the carrier and evelope as if they
+        It currently combines the carrier and envelope as if they
         add, so is plain wrong. Therefore there is an assertion in the
         init function which will throw an error if the window object does
         not have shaders. If someone without shaders wishes to do second-order
@@ -586,15 +587,15 @@ class EnvelopeGrating(GratingStim):
 
         # depth = self.depth
 
-        Lcar = -self._cycles[0] / 2 - self.phase[0] + 0.5
-        Rcar = +self._cycles[0] / 2 - self.phase[0] + 0.5
-        Tcar = +self._cycles[1] / 2 - self.phase[1] + 0.5
-        Bcar = -self._cycles[1] / 2 - self.phase[1] + 0.5
+        Lcar = (-self._cycles[0]/2) - self.phase[0] + 0.5
+        Rcar = (+self._cycles[0]/2) - self.phase[0] + 0.5
+        Tcar = (+self._cycles[1]/2) - self.phase[1] + 0.5
+        Bcar = (-self._cycles[1]/2) - self.phase[1] + 0.5
 
-        Lenv = -self._envcycles[0] / 2 - self.envphase[0] + 0.5
-        Renv = +self._envcycles[0] / 2 - self.envphase[0] + 0.5
-        Tenv = +self._envcycles[1] / 2 - self.envphase[1] + 0.5
-        Benv = -self._envcycles[1] / 2 - self.envphase[1] + 0.5
+        Lenv = (-self._envcycles[0]/2) - self.envphase[0] + 0.5
+        Renv = (+self._envcycles[0]/2) - self.envphase[0] + 0.5
+        Tenv = (+self._envcycles[1]/2) - self.envphase[1] + 0.5
+        Benv = (-self._envcycles[1]/2) - self.envphase[1] + 0.5
 
         Lmask = Bmask = 0.0
         Tmask = Rmask = 1.0  # mask
@@ -651,8 +652,9 @@ class EnvelopeGrating(GratingStim):
         GL.glDeleteTextures(1, self._maskID)
 
     def _calcEnvCyclesPerStim(self):
-        """The user should never need to call this function directly as it is called whenever there is a need
-        to recalcuate the spatial frequency of the envelope.
+        """The user should never need to call this function directly as it is
+        called whenever there is a need to recalcuate the spatial
+        frequency of the envelope.
         """
         if self.units in ('norm', 'height'):
             # self._cycles = self.sf  # this is the only form of sf that is

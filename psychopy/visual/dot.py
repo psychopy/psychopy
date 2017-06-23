@@ -3,6 +3,7 @@
 """This stimulus class defines a field of dots with an update rule that
 determines how they change on every call to the .draw() method.
 """
+from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -20,6 +21,9 @@ determines how they change on every call to the .draw() method.
 # Provide a visible wrapper function to refresh all the dot locations so that the whole field can be more easily refreshed between trials.
 
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -280,7 +284,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if not 0 <= coherence <= 1:
             raise ValueError('DotStim.coherence must be between 0 and 1')
         _cohDots = coherence * self.nDots
-        self.__dict__['coherence'] = round(_cohDots) / self.nDots
+        self.__dict__['coherence'] = old_div(round(_cohDots), self.nDots)
         self._signalDots = numpy.zeros(self.nDots, dtype=bool)
         self._signalDots[0:int(self.coherence * self.nDots)] = True
         # for 'direction' method we need to update the direction of the number

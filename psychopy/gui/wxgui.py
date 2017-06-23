@@ -6,6 +6,9 @@
 
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import super
+from builtins import range
 from psychopy import logging
 import wx
 import numpy
@@ -61,7 +64,7 @@ class Dlg(wx.Dialog):
         style = style | wx.RESIZE_BORDER
         global app  # avoid recreating for every gui
         app = ensureWxApp()
-        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
+        super().__init__(parent=None, id=-1, title=title, style=style)
         self.inputFields = []
         self.inputFieldTypes = []
         self.inputFieldNames = []
@@ -101,7 +104,7 @@ class Dlg(wx.Dialog):
             self.inputFieldTypes.append(type(initial))
         if type(initial) == numpy.ndarray:
             initial = initial.tolist()  # convert numpy arrays to lists
-        container = wx.GridSizer(cols=2, hgap=10)
+        container = wx.GridSizer(cols=2, vgap=0, hgap=10)
         # create label
         font = self.GetFont()
         dc = wx.WindowDC(self)
@@ -120,14 +123,14 @@ class Dlg(wx.Dialog):
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
         elif not choices:
-            inputWidth, inputHeight = dc.GetTextExtent(unicode(initial))
+            inputWidth, inputHeight = dc.GetTextExtent(str(initial))
             inputLength = wx.Size(max(50, inputWidth + 16),
                                   max(25, inputHeight + 8))
-            inputBox = wx.TextCtrl(self, -1, unicode(initial),
+            inputBox = wx.TextCtrl(self, -1, str(initial),
                                    size=inputLength)
         else:
             inputBox = wx.Choice(self, -1,
-                                 choices=[unicode(option)
+                                 choices=[str(option)
                                           for option in list(choices)])
             # Somewhat dirty hack that allows us to treat the choice just like
             # an input box when retrieving the data
@@ -187,13 +190,13 @@ class Dlg(wx.Dialog):
                 thisType = self.inputFieldTypes[n]
                 # try to handle different types of input from strings
                 logging.debug("%s: %s" % (self.inputFieldNames[n],
-                                          unicode(thisVal)))
+                                          str(thisVal)))
                 if thisType in (tuple, list, float, int):
                     # probably a tuple or list
                     exec("self.data.append(" + thisVal + ")")  # evaluate it
                 elif thisType == numpy.ndarray:
                     exec("self.data.append(numpy.array(" + thisVal + "))")
-                elif thisType in (str, unicode, bool):
+                elif thisType in (str, bool):
                     self.data.append(thisVal)
                 else:
                     logging.warning('unknown type:' + self.inputFieldNames[n])
@@ -275,14 +278,14 @@ class DlgFromDict(Dlg):
             tip = dict()
 
         # app = ensureWxApp() done by Dlg
-        Dlg.__init__(self, title)
+        super().__init__(title)
 
         if copy_dict:
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
 
-        self._keys = self.dictionary.keys()
+        self._keys = list(self.dictionary.keys())
 
         if sort_keys:
             self._keys.sort()
@@ -310,7 +313,7 @@ class DlgFromDict(Dlg):
     def show(self):
         """Display the dialog.
         """
-        self.show()
+        super().show()
         if self.OK:
             for n, thisKey in enumerate(self._keys):
                 self.dictionary[thisKey] = self.data[n]

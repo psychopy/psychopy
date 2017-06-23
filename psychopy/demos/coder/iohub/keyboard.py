@@ -9,6 +9,7 @@ Displays information from ioHub Keyboard Events vs. psychopy.event.geKeys().
 
 from __future__ import division
 
+from builtins import str
 from psychopy import core, visual, event
 from psychopy.iohub import launchHubServer
 
@@ -157,7 +158,7 @@ while not 'q' in events and flip_time - demo_timeout_start < 15.0:
             psychopy_key_stim.text = ''
 
         modifiers_stim.text = str(kbe.modifiers)
-        all_pressed_stim.text = str(keyboard.state.keys())
+        all_pressed_stim.text = str(list(keyboard.state.keys()))
 
         if kbe.type == "KEYBOARD_PRESS":
             keypress_duration_stim.text = ''

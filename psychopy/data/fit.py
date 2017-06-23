@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 import numpy as np
 from scipy import optimize, special
 
@@ -43,11 +46,11 @@ class _baseFunctionFit(object):
             self._eval, self.xx, self.yy, p0=self.guess, sigma=self.sems)
         self.ssq = self._getErr(self.params, self.xx, self.yy, 1.0)
         self.chi = self._getErr(self.params, self.xx, self.yy, self.sems)
-        self.rms = self.ssq / len(self.xx)
+        self.rms = old_div(self.ssq, len(self.xx))
 
     def _getErr(self, params, xx, yy, sems):
         mod = self.eval(xx, params)
-        err = sum((yy - mod)**2 / sems)
+        err = sum(old_div((yy - mod)**2, sems))
         return err
 
     def eval(self, xx, params=None):
@@ -96,13 +99,13 @@ class FitWeibull(_baseFunctionFit):
     def _eval(xx, alpha, beta):
         global _chance
         xx = np.asarray(xx)
-        yy = _chance + (1.0 - _chance) * (1 - np.exp(-(xx / alpha)**beta))
+        yy = _chance + (1.0 - _chance) * (1 - np.exp(-(old_div(xx, alpha))**beta))
         return yy
 
     @staticmethod
     def _inverse(yy, alpha, beta):
         global _chance
-        xx = alpha * (-np.log((1.0 - yy) / (1 - _chance))) ** (1.0 / beta)
+        xx = alpha * (-np.log(old_div((1.0 - yy), (1 - _chance)))) ** (old_div(1.0, beta))
         return xx
 
 
@@ -133,15 +136,15 @@ class FitNakaRushton(_baseFunctionFit):
             n = 0.001
         if rMin <= 0:
             n = 0.001
-        yy = rMin + (rMax - rMin) * (xx**n / (xx**n + c50**n))
+        yy = rMin + (rMax - rMin) * (old_div(xx**n, (xx**n + c50**n)))
         return yy
 
     @staticmethod
     def _inverse(yy, c50, n, rMin, rMax):
-        yScaled = (yy - rMin) / (rMax - rMin)  # remove baseline and scale
+        yScaled = old_div((yy - rMin), (rMax - rMin))  # remove baseline and scale
         # do we need to shift while fitting?
         yScaled[yScaled < 0] = 0
-        xx = (yScaled * c50**n / (1 - yScaled))**(1 / n)
+        xx = (yScaled * c50**n / (1 - yScaled))**(old_div(1, n))
         return xx
 
 
@@ -167,14 +170,14 @@ class FitLogistic(_baseFunctionFit):
         global _chance
         chance = _chance
         xx = np.asarray(xx)
-        yy = chance + (1 - chance) / (1 + np.exp((PSE - xx) * JND))
+        yy = chance + old_div((1 - chance), (1 + np.exp((PSE - xx) * JND)))
         return yy
 
     @staticmethod
     def _inverse(yy, PSE, JND):
         global _chance
         yy = np.asarray(yy)
-        xx = PSE - np.log((1 - _chance) / (yy - _chance) - 1) / JND
+        xx = PSE - old_div(np.log(old_div((1 - _chance), (yy - _chance)) - 1), JND)
         return xx
 
 
@@ -209,7 +212,7 @@ class FitCumNormal(_baseFunctionFit):
         xx = np.asarray(xx)
         # NB np.special.erf() goes from -1:1
         yy = (_chance + (1 - _chance) *
-              ((special.erf((xx - xShift) / (np.sqrt(2) * sd)) + 1) * 0.5))
+              ((special.erf(old_div((xx - xShift), (np.sqrt(2) * sd))) + 1) * 0.5))
         return yy
 
     @staticmethod
@@ -219,7 +222,7 @@ class FitCumNormal(_baseFunctionFit):
         # xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
         # NB: np.special.erfinv() goes from -1:1
         xx = (xShift + np.sqrt(2) * sd *
-              special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2))
+              special.erfinv((old_div((yy - _chance), (1 - _chance)) - 0.5) * 2))
         return xx
 
 class FitFunction(object):

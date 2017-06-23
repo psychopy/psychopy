@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
+from past.utils import old_div
 from . import pEyeGaze
 from ctypes import byref
 
@@ -76,7 +78,7 @@ if __name__ == '__main__':
              # assume monocular for this example only. ;)
              sample_data0=eyegaze_control.pstEgData[0]
              stime=sample_data0.dGazeTimeSec
-             current_time=(pEyeGaze.lct_TimerRead(None)/1000000.0) - pEyeGaze.EgGetApplicationStartTimeSec()
+             current_time=(old_div(pEyeGaze.lct_TimerRead(None),1000000.0)) - pEyeGaze.EgGetApplicationStartTimeSec()
              delay=current_time-stime
              gaze_x=sample_data0.iIGaze
              gaze_y=sample_data0.iJGaze
@@ -94,4 +96,4 @@ if __name__ == '__main__':
     result=pEyeGaze.EgInit(byref(eyegaze_control))
 
     dur=rec_end-rec_start
-    print('Collected {0} samples in {1} seconds. {2} SPS'.format(samples_rx,dur,samples_rx/dur))
+    print('Collected {0} samples in {1} seconds. {2} SPS'.format(samples_rx,dur,old_div(samples_rx,dur)))

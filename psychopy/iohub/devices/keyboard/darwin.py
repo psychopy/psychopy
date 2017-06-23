@@ -12,6 +12,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 from __future__ import absolute_import
 
         
+from builtins import chr
+from builtins import range
 from copy import copy
 import Quartz as Qz
 from AppKit import NSEvent #NSKeyUp, NSSystemDefined, NSEvent
@@ -28,9 +30,9 @@ import CoreFoundation
 import objc
 
 try:
-    unichr
+    chr
 except NameError:
-    unichr = chr
+    chr = chr
 
 import unicodedata
 
@@ -202,7 +204,7 @@ class Keyboard(ioHubKeyboardDevice):
                                        4,
                                        ctypes.byref(length),
                                        chars)
-        s = u''.join(unichr(chars[i]) for i in range(length.value))
+        s = u''.join(chr(chars[i]) for i in range(length.value))
         CoreFoundation.CFRelease(keyboard)
         return s
 

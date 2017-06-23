@@ -4,6 +4,7 @@
 
 # py.test -k emulator --cov-report term-missing --cov hardware/emulator.py tests/test_hardware
 
+from builtins import object
 import os, sys
 import pytest
 
@@ -13,7 +14,7 @@ from psychopy.hardware.emulator import *
 
 # launchScan sound is not tested, nor included coverage
 
-travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+travis = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 
 BASE_MR_SETTINGS = {
     'TR': 0.5,    # duration (sec) per volume

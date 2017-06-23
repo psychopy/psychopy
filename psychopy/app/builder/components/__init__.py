@@ -7,6 +7,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from builtins import str
+from past.builtins import basestring
 import os
 import glob
 import copy
@@ -32,12 +34,13 @@ def pilToBitmap(pil, scaleFactor=1.0):
     import wx
     image = wx.EmptyImage(pil.size[0], pil.size[1])
 
-    try:  # For PIL.
+    # set the RGB values
+    if hasattr(pil, 'tobytes'):
+        image.SetData(pil.convert("RGB").tobytes())
+        image.SetAlphaBuffer(pil.convert("RGBA").tobytes()[3::4])
+    else:
         image.SetData(pil.convert("RGB").tostring())
         image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
-    except Exception:  # For Pillow.
-        image.SetData(pil.convert("RGB").tobytes())
-        image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
 
     image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
     return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
@@ -213,7 +216,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
     allCats = ['Stimuli', 'Responses', 'Custom']
-    for name, thisComp in allComps.items():
+    for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
                 allCats.append(thisCat)
@@ -229,13 +232,13 @@ def getInitVals(params, target="PsychoPy"):
 
         if target == "PsychoJS":
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
-            valStr = unicode(inits[name].val).strip()
+            valStr = str(inits[name].val).strip()
             if valStr.startswith("(") and valStr.endswith(")"):
                 inits[name].val = inits[name].val.replace("(", "[", 1)
                 inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["image", "mask", "sound"]:
-                val = unicode(inits[name].val)
+                val = str(inits[name].val)
                 if val != "None":
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))

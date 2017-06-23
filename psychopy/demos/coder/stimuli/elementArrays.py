@@ -18,6 +18,7 @@ See also the starField demo.
 
 from __future__ import division
 
+from builtins import range
 from psychopy import visual, core, event
 from psychopy.tools.coordinatetools import cart2pol
 
@@ -46,7 +47,7 @@ def makeCoherentOris(XYs, coherence, formAngle):
     newOris = random(nNew) * 180
 
     # select some elements to be coherent
-    possibleIndices = range(nNew)  # create an array of indices
+    possibleIndices = list(range(nNew))  # create an array of indices
     shuffle(possibleIndices)  # shuffle it 'in-place' (no new array)
     coherentIndices = possibleIndices[0: int(nNew * coherence)]
 

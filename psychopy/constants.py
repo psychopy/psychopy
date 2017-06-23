@@ -1,6 +1,11 @@
 # instead of import *, use this (+ PSYCHOPY_USERAGENT if you need that)
 # (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED, FINISHED, PRESSED,
 #  RELEASED, FOREVER)
+import sys
+if sys.version_info[0] >= 3:
+    PY3 = True
+else:
+    PY3 = False
 
 NOT_STARTED = 0
 PLAYING = 1

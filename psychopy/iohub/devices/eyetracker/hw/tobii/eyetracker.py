@@ -10,7 +10,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 from __future__ import absolute_import
+from __future__ import division
 
+from past.utils import old_div
 import numpy as np 
 from ..... import print2err,printExceptionDetailsToStdErr
 from .....constants import EventConstants, EyeTrackerConstants
@@ -389,7 +391,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         Logic for most Tobii device native events goes here
         """
-        logged_time_iohub_usec=Computer.getTime()/self.DEVICE_TIMEBASE_TO_SEC
+        logged_time_iohub_usec=old_div(Computer.getTime(),self.DEVICE_TIMEBASE_TO_SEC)
         logged_time_tobii_local_usec=self._tobii._getTobiiClockTime()        
         data_time_in_tobii_local_time=self._tobii._sync_manager.convert_from_remote_to_local(eye_data_event.Timestamp)
         
@@ -417,7 +419,7 @@ class EyeTracker(EyeTrackerDevice):
 
         # Correct-ish time delay tracking math
         logged_sec = Computer.getTime()
-        logged_usec = logged_sec / self.DEVICE_TIMEBASE_TO_SEC
+        logged_usec = old_div(logged_sec, self.DEVICE_TIMEBASE_TO_SEC)
 
         tobii_usec = self._tobii.getDelayInMicroseconds(eye_data_event.timestamp, self.DEVICE_TIMEBASE_TO_SEC)
         tobii_event_time = tobii_usec * self.DEVICE_TIMEBASE_TO_SEC
@@ -561,8 +563,8 @@ class EyeTracker(EyeTrackerDevice):
         if eye_data_event.LeftValidity>=2 and eye_data_event.RightValidity >=2:
             self._latest_gaze_position=None
         elif eye_data_event.LeftValidity<2 and eye_data_event.RightValidity<2:
-            self._latest_gaze_position=[(right_gaze_x+left_gaze_x)/2.0,
-                                            (right_gaze_y+left_gaze_y)/2.0]
+            self._latest_gaze_position=[old_div((right_gaze_x+left_gaze_x),2.0),
+                                            old_div((right_gaze_y+left_gaze_y),2.0)]
         elif eye_data_event.LeftValidity<2:
             self._latest_gaze_position=[left_gaze_x,left_gaze_y]
         elif eye_data_event.RightValidity<2:
@@ -687,7 +689,7 @@ class EyeTracker(EyeTrackerDevice):
         left,top,right,bottom=self._display_device.getCoordBounds()
         w,h=right-left,top-bottom 
 
-        return (left-display_x)/w,(top-display_y)/h
+        return old_div((left-display_x),w),old_div((top-display_y),h)
 
     def _close(self):
         if self._tobii and self._tobii._mainloop:

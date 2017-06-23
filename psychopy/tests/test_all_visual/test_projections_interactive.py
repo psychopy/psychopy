@@ -1,4 +1,8 @@
 #!/usr/bin/env python2
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy as np
 import time
 import pyglet
@@ -25,9 +29,9 @@ class ProjectionsLinesAndCircles(object):
 
         self.stimT = TextStim(self.window, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
 
-        self.bl = -window.size / 2.0
+        self.bl = old_div(-window.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = window.size / 2.0
+        self.tr = old_div(window.size, 2.0)
 
         self.stims = []
         self.degrees = 120
@@ -135,7 +139,7 @@ class ProjectionsLinesAndCircles(object):
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, self.warper.eyepoint)
             self.updateInfo()
 
-        pos = (self.mouse.getPos() + 1) / 2
+        pos = old_div((self.mouse.getPos() + 1), 2)
         leftDown = self.mouse.getPressed()[0]
         if leftDown:
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, pos)

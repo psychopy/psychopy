@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 """
 ioHub
 .. file: ioHub/server.py
@@ -10,15 +14,15 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-from __future__ import absolute_import
 import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
 import os,sys
 from operator import itemgetter
 from collections import deque
+from collections import OrderedDict
 import psychopy.iohub
-from psychopy.iohub import OrderedDict, convertCamelToSnake, IO_HUB_DIRECTORY
+from psychopy.iohub import convertCamelToSnake, IO_HUB_DIRECTORY
 from psychopy.iohub import load, dump, Loader, Dumper
 from psychopy.iohub import print2err, printExceptionDetailsToStdErr, ioHubError
 from psychopy.iohub import DeviceConstants, EventConstants
@@ -56,20 +60,20 @@ class udpServer(DatagramServer):
             self.packer=msgpack.Packer()
             self.pack=self.packer.pack
             self.unpacker=msgpack.Unpacker(use_list=True)
-            self.unpack=self.unpacker.unpack      
+            self.unpack=self.unpacker.unpack
             self.feed=self.unpacker.feed
         DatagramServer.__init__(self,address)
-         
+
     def handle(self, request, replyTo):
         if self._running is False:
             return False
-        
+
         self.feed(request)
-        request = self.unpack()   
+        request = self.unpack()
         request_type= request.pop(0)
         if request_type == 'SYNC_REQ':
-            self.sendResponse(['SYNC_REPLY',currentSec()],replyTo)  
-            return True        
+            self.sendResponse(['SYNC_REPLY',currentSec()],replyTo)
+            return True
         elif request_type == 'PING':
                 clienttime=request.pop(0)
                 msg_id=request.pop(0)
@@ -88,8 +92,8 @@ class udpServer(DatagramServer):
             if len(request)==1:
                 args=request.pop(0)
             if len(request)==1:
-                kwargs=request.pop(0)    
-            
+                kwargs=request.pop(0)
+
             result=None
             try:
                 result=getattr(self,callable_name)
@@ -98,7 +102,7 @@ class udpServer(DatagramServer):
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_ATTRIBUTE_ERROR',replyTo)
                 return False
-                
+
             if result and callable(result):
                 funcPtr=result
                 try:
@@ -133,7 +137,7 @@ class udpServer(DatagramServer):
             printExceptionDetailsToStdErr()
             self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
             return False
-            
+
     def handleGetEvents(self,replyTo):
         try:
             self.iohub.processDeviceEvents()
@@ -175,20 +179,20 @@ class udpServer(DatagramServer):
 
             dev=None
             if dclass.find('.') > 0:
-                for dname, dev in ioServer.deviceDict.iteritems():
+                for dname, dev in ioServer.deviceDict.items():
                     if dname.endswith(dclass):
                         dev=ioServer.deviceDict.get(dname,None)
                         break
             else:
                 dev=ioServer.deviceDict.get(dclass,None)
-            
+
             if dev is None:
                 print2err("IOHUB_DEVICE_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('IOHUB_DEVICE_ERROR', replyTo)
                 return False
 
-            
+
             try:
                 method=getattr(dev,dmethod)
             except Exception:
@@ -196,7 +200,7 @@ class udpServer(DatagramServer):
                 printExceptionDetailsToStdErr()
                 self.sendResponse('IOHUB_DEVICE_METHOD_ERROR', replyTo)
                 return False
-                
+
             result=[]
             try:
                 if args and kwargs:
@@ -216,7 +220,7 @@ class udpServer(DatagramServer):
                 return False
 
         elif request_type == 'GET_DEVICE_LIST':
-            try:            
+            try:
                 dev_list=[]
                 for d in self.iohub.devices:
                     dev_list.append((d.name,d.__class__.__name__))
@@ -232,15 +236,15 @@ class udpServer(DatagramServer):
             dclass=request.pop(0)
             data=None
             if dclass in ['EyeTracker','DAQ']:
-                for dname, hdevice in ioServer.deviceDict.iteritems():
+                for dname, hdevice in ioServer.deviceDict.items():
                     if dname.endswith(dclass):
                         data=hdevice._getRPCInterface()
                         break
             else:
                 dev=ioServer.deviceDict.get(dclass,None)
-                if dev:                
+                if dev:
                     data=dev._getRPCInterface()
-                    
+
             if data:
                 self.sendResponse(('GET_DEV_INTERFACE',data),replyTo)
                 return True
@@ -253,11 +257,11 @@ class udpServer(DatagramServer):
         elif request_type == 'ADD_DEVICE':
             dclass_name=request.pop(0)
             dconfig_dict=request.pop(1)
-            
+
             # add device to ioSever here
             data=self.iohub.createNewMonitoredDevice(dclass_name,dconfig_dict)
             # end adding device to server
-                    
+
             if data:
                 self.sendResponse(('ADD_DEVICE',data),replyTo)
                 return True
@@ -272,7 +276,7 @@ class udpServer(DatagramServer):
             printExceptionDetailsToStdErr()
             self.sendResponse('DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR', replyTo)
             return False
-            
+
     def sendResponse(self,data,address):
         packet_data=None
         try:
@@ -285,7 +289,7 @@ class udpServer(DatagramServer):
             if packet_data_length >= max_size:
                 num_packets = int(packet_data_length//max_size)+1
                 self.sendResponse(('IOHUB_MULTIPACKET_RESPONSE',num_packets),address)
-                for p in xrange(num_packets-1):
+                for p in range(num_packets-1):
                     self.socket.sendto(packet_data[p*max_size:(p+1)*max_size],address)
                 self.socket.sendto(packet_data[(p+1)*max_size:packet_data_length],address)
             else:
@@ -298,16 +302,16 @@ class udpServer(DatagramServer):
 
             print2err("=============================")
             printExceptionDetailsToStdErr()
-            print2err("=============================")            
+            print2err("=============================")
 
-            first_data_element="NO_DATA_AVAILABLE"            
+            first_data_element="NO_DATA_AVAILABLE"
             if data:
-                print2err('Data was [{0}]'.format(data))     
-                try:    
+                print2err('Data was [{0}]'.format(data))
+                try:
                     first_data_element=data[0]
                 except Exception:
                     pass
-                    
+
             packet_data_length=0
             if packet_data:
                 packet_data_length=len(packet_data)
@@ -317,16 +321,16 @@ class udpServer(DatagramServer):
             printExceptionDetailsToStdErr()
             packet_data=self.pack('IOHUB_SERVER_RESPONSE_ERROR')
             self.socket.sendto(packet_data,address)
-            
+
     def setExperimentInfo(self,experimentInfoList):
         self.iohub.experimentInfoList=experimentInfoList
         if self.iohub.emrt_file:
-            exp_id= self.iohub.emrt_file.createOrUpdateExperimentEntry(experimentInfoList) 
+            exp_id= self.iohub.emrt_file.createOrUpdateExperimentEntry(experimentInfoList)
             self.iohub._experiment_id=exp_id
             self.iohub.log("Current Experiment ID: %d"%(self.iohub._experiment_id))
             return exp_id
         return False
-        
+
     def checkIfSessionCodeExists(self,sessionCode):
         try:
             if self.iohub.emrt_file:
@@ -339,16 +343,16 @@ class udpServer(DatagramServer):
         if self.iohub:
             for wh in win_hwhds:
                 if wh not in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.append(wh)            
+                    self.iohub._pyglet_window_hnds.append(wh)
             #print2err(">>IOHUB.registerPygletWindowHandles:",win_hwhds)
-        
+
     def unregisterPygletWindowHandles(self,*win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
                 if wh in self.iohub._pyglet_window_hnds:
                     self.iohub._pyglet_window_hnds.remove(wh)
             #print2err("<<IOHUB.unregisterPygletWindowHandles:",win_hwhds)
-            
+
     def createExperimentSessionEntry(self,sessionInfoDict):
         self.iohub.sessionInfoDict=sessionInfoDict
         if self.iohub.emrt_file:
@@ -362,7 +366,7 @@ class udpServer(DatagramServer):
         if self.iohub.emrt_file:
             output=[]
             for a in numpy_dtype:
-                if isinstance(a[1],(str,unicode)):
+                if isinstance(a[1],(str,str)):
                     output.append(tuple(a))
                 else:
                     temp=[a[0],[]]
@@ -442,7 +446,7 @@ class DeviceMonitor(Greenlet):
         self.device = device
         self.sleep_interval=sleep_interval
         self.running=False
-        
+
     def _run(self):
         self.running = True
         ctime=Computer.currentSec
@@ -454,7 +458,7 @@ class DeviceMonitor(Greenlet):
                 gevent.sleep(i)
             else:
                 gevent.sleep(0.0)
-                
+
     def __del__(self):
         self.device = None
 
@@ -479,12 +483,12 @@ class ioServer(object):
         self.experimentInfoList=None
         self.filterLookupByInput={}
         self.filterLookupByOutput={}
-        self.filterLookupByName={}  
+        self.filterLookupByName={}
         self._hookDevice=None
         ioServer.eventBuffer=deque(maxlen=config.get('global_event_buffer',2048))
 
         self._running=True
-        
+
         # start UDP service
         self.udpService=udpServer(self,':%d'%config.get('udp_port',9000))
 
@@ -496,10 +500,10 @@ class ioServer(object):
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
                 _dslabel,default_datastore_config=load(file(default_datastore_config_path,'r'), Loader=Loader).popitem()
 
-                for default_key,default_value in default_datastore_config.iteritems():
+                for default_key,default_value in default_datastore_config.items():
                     if default_key not in experiment_datastore_config:
                         experiment_datastore_config[default_key]=default_value
-                                
+
                 if experiment_datastore_config.get('enable', True):
                     #print2err("Creating ioDataStore....")
 
@@ -515,28 +519,28 @@ class ioServer(object):
         #built device list and config from initial yaml config settings
         try:
             for iodevice in config.get('monitor_devices',()):
-                for device_class_name,deviceConfig in iodevice.iteritems():
+                for device_class_name,deviceConfig in iodevice.items():
                     #print2err("======================================================")
                     #print2err("Started load process for: {0}".format(device_class_name))
                     self.createNewMonitoredDevice(device_class_name,deviceConfig)
         except Exception:
-            print2err("Error during device creation ....")
+            print2err("Error XXX during device creation ....")
             printExceptionDetailsToStdErr()
-            raise ioHubError("Error during device creation ....")
+            raise ioHubError("Error YYY during device creation ....")
 
 
         # Add PubSub device listeners to other event types
         try:
             for d in self.devices:
                 if d.__class__.__name__ == "EventPublisher":
-                    monitored_event_ids=d._event_listeners.keys()
+                    monitored_event_ids=list(d._event_listeners.keys())
                     for eid in monitored_event_ids:
                         event_device_class=EventConstants.getClass(eid).PARENT_DEVICE
                         for ed in self.devices:
                             if ed.__class__ == event_device_class:
                                 ed._addEventListener(d,[eid,])
                                 break
-                            
+
         except Exception as e:
             print2err("Error PubSub Device listener association ....")
             printExceptionDetailsToStdErr()
@@ -544,11 +548,11 @@ class ioServer(object):
 
         # initial time offset
         #print2err("-- ioServer Init Complete -- ")
-        
+
 
     def processDeviceConfigDictionary(self,device_module_path, device_class_name, device_config_dict,default_device_config_dict):
-        for default_config_param,default_config_value in default_device_config_dict.iteritems():
-            if default_config_param not in device_config_dict:            
+        for default_config_param,default_config_value in default_device_config_dict.items():
+            if default_config_param not in device_config_dict:
                 if isinstance(default_config_value,(dict,OrderedDict)):
                     #print2err("dict setting value in default config not in device config:\n\nparam: {0}\n\nvalue: {1}\n============= ".format(default_config_param,default_config_value ))
                     device_param_value=dict()
@@ -557,17 +561,17 @@ class ioServer(object):
                     device_config_dict[default_config_param]=device_param_value
                 else:
                     device_config_dict[default_config_param]=default_config_value
-                    
+
         # Start device config verification.
         if device_module_path and  device_class_name:
             #print2err('** Verifying device configuartion: {0}\t{1}'.format(device_module_path,device_class_name))
-    
+
             device_config_errors=validateDeviceConfiguration(device_module_path,device_class_name,device_config_dict)
-    
-            for error_type, error_list in device_config_errors.iteritems():
+
+            for error_type, error_list in device_config_errors.items():
                 if len(error_list)>0:
                     device_errors=self._all_device_config_errors.get(device_module_path,{})
-                    device_errors[error_type]=error_list                
+                    device_errors[error_type]=error_list
                     self._all_device_config_errors[device_module_path]=device_errors
 
     def pumpMsgTasklet(self, sleep_interval):
@@ -588,25 +592,25 @@ class ioServer(object):
             device_config=None
             device_event_ids=None
             event_classes=None
-            
+
             device_instance_and_config=self.addDeviceToMonitor(device_class_name,deviceConfig)
             if device_instance_and_config:
-                device_instance,device_config,device_event_ids,event_classes=device_instance_and_config 
+                device_instance,device_config,device_event_ids,event_classes=device_instance_and_config
                 DeviceConstants.addClassMapping(device_instance.__class__)
                 EventConstants.addClassMappings(device_instance.__class__,device_event_ids,event_classes)
             else:
                 print2err('## Device was not started by the ioHub Server: ',device_class_name)
                 raise ioHubError("Device config validation failed")
-                
+
         except Exception:
-            print2err("Error during device creation ....")
+            print2err("Error ZZZ during device creation ....")
             printExceptionDetailsToStdErr()
-            raise ioHubError("Error during device creation ....")
+            raise ioHubError("Error ZZ2 during device creation ....")
 
 
         # Update DataStore Structure if required.
-        if psychopy.iohub._DATA_STORE_AVAILABLE:        
-            try:            
+        if psychopy.iohub._DATA_STORE_AVAILABLE:
+            try:
                 if self.emrt_file is not None:
                     self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
             except Exception:
@@ -628,9 +632,9 @@ class ioServer(object):
         else:
             #print2err("DataStore Not Evabled. No events will be saved.")
             self.log("DataStore Not Enabled. No events will be saved.")
-    
 
-        # Add Device Monitor for Keyboard or Mouse device type 
+
+        # Add Device Monitor for Keyboard or Mouse device type
         deviceDict=ioServer.deviceDict
         iohub=self
         if device_class_name in ('Mouse','Keyboard'):
@@ -652,7 +656,7 @@ class ioServer(object):
                     self._hookManager.KeyAll = ioServer.deviceDict['Keyboard']._nativeEventCallback
                     self._hookManager.HookKeyboard()
 
-                
+
             elif Computer.system == 'linux2':
                 # TODO: consider switching to xlib-ctypes implementation of xlib
                 # https://github.com/garrybodsworth/pyxlib-ctypes
@@ -670,14 +674,14 @@ class ioServer(object):
                         self._hookManager.KeyDown = deviceDict['Keyboard']._nativeEventCallback
                         self._hookManager.KeyUp = deviceDict['Keyboard']._nativeEventCallback
                         self._hookManager._keyboardHooked=True
-                    elif device_class_name == 'Mouse':                
+                    elif device_class_name == 'Mouse':
                         #print2err("Hooking Mouse.....")
                         self._hookManager.HookMouse()
                         self._hookManager.MouseAllButtonsDown = deviceDict['Mouse']._nativeEventCallback
                         self._hookManager.MouseAllButtonsUp = deviceDict['Mouse']._nativeEventCallback
                         self._hookManager.MouseAllMotion = deviceDict['Mouse']._nativeEventCallback
                         self._hookManager._mouseHooked=True
-    
+
                     #print2err("Starting pyXHook.HookManager.....")
                     self._hookManager.start()
                     #iohub.log("pyXHook Thread Created.")
@@ -690,7 +694,7 @@ class ioServer(object):
                         self._hookManager.KeyDown = deviceDict['Keyboard']._nativeEventCallback
                         self._hookManager.KeyUp = deviceDict['Keyboard']._nativeEventCallback
                         self._hookManager._keyboardHooked=True
-                    if device_class_name == 'Mouse' and self._hookManager._mouseHooked is False:                
+                    if device_class_name == 'Mouse' and self._hookManager._mouseHooked is False:
                         #print2err("Hooking Mouse.....")
                         self._hookManager.HookMouse()
                         self._hookManager.MouseAllButtonsDown = deviceDict['Mouse']._nativeEventCallback
@@ -698,12 +702,12 @@ class ioServer(object):
                         self._hookManager.MouseAllMotion = deviceDict['Mouse']._nativeEventCallback
                         self._hookManager._mouseHooked=True
                     #iohub.log("Finished Updating pyXHook Monitor....")
-                    
+
 
             else: # OSX
                 if self._hookDevice is None:
                     self._hookDevice=[]
-                    
+
                 if  device_class_name == 'Mouse' and 'Mouse' not in self._hookDevice:
                     #print2err("Hooking OSX Mouse.....")
                     mouseHookMonitor=DeviceMonitor(deviceDict['Mouse'],0.004)
@@ -722,10 +726,10 @@ class ioServer(object):
 
             return [device_class_name, device_config['name'], device_instance._getRPCInterface()]
 
-                    
+
     def addDeviceToMonitor(self,device_class_name,device_config):
         device_class_name=str(device_class_name)
-        
+
         self.log("Handling Device: %s"%(device_class_name,))
         #print2err("addDeviceToMonitor:\n\tdevice_class: {0}\n\texperiment_device_config:{1}\n".format(device_class_name,device_config))
 
@@ -735,13 +739,15 @@ class ioServer(object):
         iohub_submod_path_length=len(iohub_sub_mod)
         device_module_path=iohub_sub_mod+'devices.'
         if class_name_start>0:
-            device_module_path="{0}{1}".format(device_module_path,device_class_name[:class_name_start].lower())   
+            device_module_path="{0}{1}".format(device_module_path,
+                                               device_class_name[:class_name_start].lower())
             device_class_name=device_class_name[class_name_start+1:]
         else:
-            device_module_path="{0}{1}".format(device_module_path,device_class_name.lower())
+            device_module_path="{0}{1}".format(device_module_path,
+                                               device_class_name.lower())
 
         #print2err("Processing device, device_class_name: {0}, device_module_path: {1}".format(device_class_name, device_module_path))
-         
+
         dconfigPath=os.path.join(IO_HUB_DIRECTORY,device_module_path[iohub_submod_path_length:].replace('.',os.path.sep),"default_%s.yaml"%(device_class_name.lower()))
 
         #print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
@@ -751,34 +757,34 @@ class ioServer(object):
         _dclass,default_device_config=load(file(dconfigPath,'r'), Loader=Loader).popitem()
 
         #print2err("Device Defaults:\n\tdevice_class: {0}\n\tdefault_device_config:{1}\n".format(device_class_name,default_device_config))
-        
-        self.processDeviceConfigDictionary(device_module_path, device_class_name, device_config,default_device_config)
 
+        self.processDeviceConfigDictionary(device_module_path, device_class_name, device_config,default_device_config)
+        print("here3")
         if device_module_path in self._all_device_config_errors:
             # Complete device config verification.
             print2err("**** ERROR: DEVICE CONFIG ERRORS FOUND ! NOT LOADING DEVICE: ",device_module_path)
             device_config_errors=self._all_device_config_errors[device_module_path]
-            for error_type,errors in device_config_errors.iteritems():
+            for error_type,errors in device_config_errors.items():
                 print2err("%s count %d:"%(error_type,len(errors)))
                 for error in errors:
                     print2err("\t{0}".format(error))
                 print2err("\n")
             return None
-        
+
         DeviceClass,device_class_name,event_classes=import_device(device_module_path,device_class_name)
         #print2err("Updated Experiment Device Config:\n\tdevice_class: {0}\n\tdevice_config:{1}\n".format(device_class_name,default_device_config))
-            
+
         if device_config.get('enable',True):
             self.log("Searching Device Path: %s"%(device_class_name,))
             self.log("Creating Device: %s"%(device_class_name,))
             #print2err("Creating Device: %s"%(device_class_name,))
-            
+
             if DeviceClass._iohub_server is None:
                 DeviceClass._iohub_server=self
-            
+
             if device_class_name != 'Display' and DeviceClass._display_device is None:
-                DeviceClass._display_device=ioServer.deviceDict['Display']  
-                
+                DeviceClass._display_device=ioServer.deviceDict['Display']
+
             deviceInstance=DeviceClass(dconfig=device_config)
 
             self.log("Device Instance Created: %s"%(device_class_name,))
@@ -830,12 +836,12 @@ class ioServer(object):
                 self._logMessageBuffer.append((text,level,log_time))
         except Exception:
             printExceptionDetailsToStdErr()
-            
+
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
         if psychopy.iohub._DATA_STORE_AVAILABLE:
             from .datastore import ioHubpyTablesFile
-            self.closeDataStoreFile()                
-            self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
+            self.closeDataStoreFile()
+            self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)
 
     def closeDataStoreFile(self):
         if self.emrt_file:
@@ -843,7 +849,7 @@ class ioServer(object):
             self.emrt_file=None
             pytablesfile.flush()
             pytablesfile.close()
-            
+
     def processEventsTasklet(self,sleep_interval):
         while self._running:
             stime=Computer.getTime()
@@ -865,7 +871,7 @@ class ioServer(object):
 
 
                 filtered_events = []
-                for filter in device._filters.values():
+                for filter in list(device._filters.values()):
                     filtered_events.extend(filter._removeOutputEvents())
 
                 for i in range(len(filtered_events)):
@@ -917,7 +923,7 @@ class ioServer(object):
                 #    self._hookManager.UnhookMouse()
                 #    self._hookManager.UnhookKeyboard()
 
-                    
+
             while len(self.deviceMonitors) > 0:
                 m=self.deviceMonitors.pop(0)
                 m.running=False
@@ -940,7 +946,7 @@ class ioServer(object):
         except Exception:
             print2err("Error in ioSever.shutdown():")
             printExceptionDetailsToStdErr()
-            
+
     def __del__(self):
         self.shutdown()
 

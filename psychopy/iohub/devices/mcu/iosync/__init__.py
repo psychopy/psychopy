@@ -330,7 +330,7 @@ class MCU(Device):
                 return response.asdict()
         else:
             resp_return=[]
-            responses=self._response_dict.values()
+            responses=list(self._response_dict.values())
             self._response_dict.clear()
             for response in responses:
                 resp_return.append(response.asdict())

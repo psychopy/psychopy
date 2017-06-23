@@ -13,6 +13,7 @@ Clock logic.
 @author: Jon
 """
 from __future__ import division
+from builtins import object
 import time
 import sys
 

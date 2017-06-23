@@ -31,6 +31,8 @@ Typical usage::
 
 from __future__ import absolute_import
 
+from builtins import range
+from builtins import object
 try:
     import pygame.joystick
     havePygame = True

@@ -64,6 +64,7 @@ setup(
                       'pysoundcard', 'soundfile', 'sounddevice',
                       'cv2',
                       'xlwt',  # writes excel files for pandas
+                      'UserString',
                       ],
             packages=['wx', 'pyglet', 'pygame', 'OpenGL', 'psychopy', 'pytz',
                       'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
@@ -78,6 +79,7 @@ setup(
                       'pyolib',
                       'requests', 'certifi',  # for up/downloading to servers
                       'pyosf',
+                      'future',
                       # for unit testing
                       'coverage',
                       # handy external science libs

@@ -12,6 +12,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 from __future__ import absolute_import
 
+from builtins import object
 import os
 import wx
 import wx.lib.agw.genericmessagedialog as GMD     

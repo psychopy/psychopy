@@ -5,6 +5,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
+from builtins import map
+from builtins import range
 import time
 import os
 import locale
@@ -1118,7 +1120,7 @@ class GammaLumValsDlg(wx.Dialog):
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
 
-        theCols = map(str, levels)
+        theCols = list(map(str, levels))
         self.gammaGrid = SimpleGrid(parent, id=-1,
                                     cols=theCols,
                                     rows=['lum', 'R', 'G', 'B'])
@@ -1146,7 +1148,7 @@ class GammaLumValsDlg(wx.Dialog):
             bob = []
             for nCol in range(self.gammaGrid.nCols):
                 bob.append(self.gammaGrid.GetCellValue(nRow, nCol))
-            data.append(map(float, bob))
+            data.append(list(map(float, bob)))
         return data
 
     def show(self):

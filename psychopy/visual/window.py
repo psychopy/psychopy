@@ -7,7 +7,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import map
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import sys
 import os
 import weakref
@@ -404,7 +410,7 @@ class Window(object):
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
-        self.refreshThreshold = 1 / 1.0  # initial val needed by flip()
+        self.refreshThreshold = 1.0  # initial val needed by flip()
 
         # over several frames with no drawing
         self._monitorFrameRate = None
@@ -414,9 +420,9 @@ class Window(object):
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod = 1.0 / self._monitorFrameRate
-            self.refreshThreshold = (1.0 / self._monitorFrameRate) * 1.2
+            self.refreshThreshold = 1.0 / self._monitorFrameRate * 1.2
         else:
-            self.refreshThreshold = (1.0 / 60) * 1.2  # maybe a flat panel?
+            self.refreshThreshold = 1.0 / 60 * 1.2  # maybe a flat panel?
         openWindows.append(self)
 
         self.autoLog = autoLog
@@ -550,7 +556,7 @@ class Window(object):
 
     def _setCurrent(self):
         """Make this window current. If useFBO=True, the framebuffer is bound
-        after the context switch. 
+        after the context switch.
         """
         if self != globalVars.currWindow and self.winType == 'pyglet':
             self.winHandle.switch_to()
@@ -1071,7 +1077,7 @@ class Window(object):
                (rect[1] / -2. + 0.5) * y,  # Top
                (rect[2] / 2. + 0.5) * x,  # Right
                (rect[3] / -2. + 0.5) * y]  # Bottom
-        box = map(int, box)
+        box = list(map(int, box))
 
         horz = box[2] - box[0]
         vert = box[3] - box[1]
@@ -1107,7 +1113,7 @@ class Window(object):
             imP2 = Image.new(imType, (xPowerOf2, yPowerOf2))
             # paste centered
             imP2.paste(region, (int(xPowerOf2 / 2. - region.size[0] / 2.),
-                                int(yPowerOf2 / 2. - region.size[1] / 2)))
+                                int(yPowerOf2 / 2.) - region.size[1] / 2))
             region = imP2
 
         return region
@@ -1162,7 +1168,7 @@ class Window(object):
     def fps(self):
         """Report the frames per second since the last call to this function
         (or since the window was created if this is first call)"""
-        fps = self.frames / (self.frameClock.getTime())
+        fps = self.frames / self.frameClock.getTime()
         self.frameClock.reset()
         self.frames = 0
         return fps
@@ -1247,10 +1253,10 @@ class Window(object):
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif type(self.colorSpace) is str:
-            desiredRGB = (self.rgb) / 255.0
+        elif self.colorSpace in ['rgb255', 'named']:
+            desiredRGB = self.rgb / 255.0
         else:  # some array / numeric stuff
-            msg = 'invalid value "%s" for Window.colorSpace'
+            msg = 'invalid value %r for Window.colorSpace'
             raise ValueError(msg % colorSpace)
 
         # if it is None then this will be done during window setup
@@ -1267,9 +1273,9 @@ class Window(object):
         if self.winType == 'pyglet' and globalVars.currWindow != self:
             self.winHandle.switch_to()
             globalVars.currWindow = self
-        GL.glClearColor((self.rgb[0] + 1.0) / 2.0,
-                        (self.rgb[1] + 1.0) / 2.0,
-                        (self.rgb[2] + 1.0) / 2.0,
+        GL.glClearColor(((self.rgb[0] + 1.0) / 2.0),
+                        ((self.rgb[1] + 1.0) / 2.0),
+                        ((self.rgb[2] + 1.0) / 2.0),
                         1.0)
 
     def _setupGamma(self, gammaVal):
@@ -1370,8 +1376,8 @@ class Window(object):
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            thisScale = ((numpy.array([2.0, 2.0]) / self.size) /
-                         (float(self.scrWidthCM) / float(self.scrWidthPIX)))
+            thisScale = ((numpy.array([2.0, 2.0]) / self.size)
+                        / (self.scrWidthCM / self.scrWidthPIX))
         elif units in ["deg", "degs"]:
             # windowPerDeg = winPerCM * CMperDEG
             #              = winPerCM * tan(pi/180) * distance
@@ -1382,7 +1388,7 @@ class Window(object):
                 core.wait(1.0)
                 core.quit()
             cmScale = ((numpy.array([2.0, 2.0]) / self.size) /
-                       (float(self.scrWidthCM) / float(self.scrWidthPIX)))
+                       (self.scrWidthCM / self.scrWidthPIX))
             thisScale = cmScale * 0.017455 * self.scrDistCM
         elif units == "stroke_font":
             lw = 2 * font.letterWidth
@@ -1554,8 +1560,8 @@ class Window(object):
                         (thisScreen.height - self.size[1]) / 2]
         if not self._isFullScr:
             # add the necessary amount for second screen
-            self.winHandle.set_location(self.pos[0] + thisScreen.x,
-                                        self.pos[1] + thisScreen.y)
+            self.winHandle.set_location(int(self.pos[0] + thisScreen.x),
+                                        int(self.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
             iconFile = os.path.join(psychopy.prefs.paths['resources'],
@@ -1958,7 +1964,7 @@ class Window(object):
         frameTimes.sort()
         # median-most slice
         msPFmed = 1000. * float(numpy.average(
-            frameTimes[(nFrames - num2avg) / 2:(nFrames + num2avg) / 2]))
+            frameTimes[((nFrames - num2avg) // 2):((nFrames + num2avg) // 2)]))
         msPFavg = 1000. * float(numpy.average(frameTimes))
         msPFstd = 1000. * float(numpy.std(frameTimes))
         msdrawAvg = 1000. * float(numpy.average(drawTimes))

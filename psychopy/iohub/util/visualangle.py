@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from builtins import object
 """
 Pixel to Visual Angle Calculation.
 

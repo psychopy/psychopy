@@ -9,6 +9,7 @@ Created on Thu Mar 14 16:32:33 2013
 # support_settings_values.yaml (which must be in the same directory as the Device class)
 # to ensure all entries for the device setting are valid values.
 
+from past.builtins import basestring
 import socket
 import os
 
@@ -242,7 +243,7 @@ def isValidFloat(config_param_name,value,constraints):
     raise FloatValueError(config_param_name,value,constraints)
 
 def isValidInt(config_param_name,value,constraints):
-    if isinstance(value,(int,long)):
+    if isinstance(value,(int,int)):
         constraints.setdefault('min',MIN_VALID_INT_VALUE)
         constraints.setdefault('max',MAX_VALID_INT_VALUE)
         minv=int(constraints.get('min'))
@@ -359,7 +360,7 @@ def loadYamlFile(yaml_file_path,print_file=False):
 _current_dir=module_directory(isValidString)
 
 def buildConfigParamValidatorMapping(device_setting_validation_dict,param_validation_func_mapping,parent_name):
-    for param_name,param_config in device_setting_validation_dict.iteritems():
+    for param_name,param_config in device_setting_validation_dict.items():
         current_param_path=None
         if parent_name is None:
             current_param_path=param_name
@@ -392,7 +393,7 @@ def buildConfigParamValidatorMapping(device_setting_validation_dict,param_valida
 
 def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,parent_param_path):
     validation_results=dict(errors=[],not_found=[])
-    for config_param,config_value in current_device_config.iteritems():
+    for config_param,config_value in current_device_config.items():
         if parent_param_path is None:
             current_param_path=config_param
         else:
@@ -421,7 +422,7 @@ def validateDeviceConfiguration(relative_module_path,device_class_name,current_d
         validation_file_path=os.path.join(_current_dir,relative_module_path[len('psychopy.iohub.devices.'):].replace('.',os.path.sep),'supported_config_settings.yaml')
     #print2err("{0} using config settings file: ".format(device_class_name.lower()),validation_file_path)
     device_settings_validation_dict=loadYamlFile(validation_file_path,print_file=True)
-    device_settings_validation_dict=device_settings_validation_dict[device_settings_validation_dict.keys()[0]]
+    device_settings_validation_dict=device_settings_validation_dict[list(device_settings_validation_dict.keys())[0]]
 
     param_validation_func_mapping=dict()
     parent_config_param_path=None

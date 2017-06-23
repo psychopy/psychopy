@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from builtins import range
 import time
 import numpy as np
 from psychopy import core, visual
@@ -19,7 +20,7 @@ BAUDRATE = 19200
 # ioHub configuration.
 psychopy_mon_name = 'Monitor_01'
 exp_code = 'pstbox'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 iohubkwargs = {
     'psychopy_monitor_name': psychopy_mon_name,
     'experiment_code': exp_code,

@@ -1,3 +1,4 @@
+from builtins import object
 from psychopy import visual, event
 from psychopy.visual import Window
 from psychopy.visual.textbox import TextBox

@@ -23,7 +23,14 @@ Desc: Defines the U12 class, which makes working with a U12 much easier. The
       
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import hex
+from builtins import zip
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import platform
 import ctypes
 import os, atexit
@@ -189,7 +196,7 @@ class BitField(object):
         self.labelPrefix = labelPrefix
         
         if labelList is None:
-            self.labelList = range(8)
+            self.labelList = list(range(8))
         else:
             self.labelList = list(reversed(labelList))
         
@@ -201,7 +208,7 @@ class BitField(object):
         self.data = [ self.zeroLabel ] * 8
         
         items = min(8, len(self.labelList))
-        for i in reversed(range(items)):
+        for i in reversed(list(range(items))):
             self.labels.append("%s%s" % (self.labelPrefix, self.labelList[i]))
         
         if rawByte is not None:
@@ -224,7 +231,7 @@ class BitField(object):
         self.data = []
         
         items = min(8, len(self.labelList))
-        for i in reversed(range(items)):
+        for i in reversed(list(range(items))):
             self.rawBits.append( ((raw >> (i)) & 1) )
             self.data.append(self.oneLabel if bool(((raw >> (i)) & 1)) else self.zeroLabel)
     
@@ -321,7 +328,7 @@ class BitField(object):
         FIO1 Output
         FIO0 Input
         """
-        return zip(self.labels, self.data)
+        return list(zip(self.labels, self.data))
     
     def __int__(self):
         return self.asByte()
@@ -684,7 +691,7 @@ class U12(object):
         returnDict = {}
         returnDict['EchoValue'] = results[1]
         returnDict['PGAOvervoltage'] = bool(bf.bit4)
-        returnDict['IO3toIO0States'] = BitField(results[0], "IO", range(3, -1, -1), "Low", "High")
+        returnDict['IO3toIO0States'] = BitField(results[0], "IO", list(range(3, -1, -1)), "Low", "High")
         
         channel0 = (results[2] >> 4) & 0xf
         channel1 = (results[2] & 0xf)
@@ -811,16 +818,16 @@ class U12(object):
         if results[0] != 87:
             raise U12Exception("Expected a DIO response, got %s instead." % results[0])
         
-        returnDict['D15toD8States'] = BitField(results[1], "D", range(15, 7, -1), "Low", "High")
-        returnDict['D7toD0States'] = BitField(results[2], "D", range(7, -1, -1), "Low", "High")
+        returnDict['D15toD8States'] = BitField(results[1], "D", list(range(15, 7, -1)), "Low", "High")
+        returnDict['D7toD0States'] = BitField(results[2], "D", list(range(7, -1, -1)), "Low", "High")
         
-        returnDict['D15toD8Directions'] = BitField(results[4], "D", range(15, 7, -1), "Output", "Input")
-        returnDict['D7toD0Directions'] = BitField(results[5], "D", range(7, -1, -1), "Output", "Input")
+        returnDict['D15toD8Directions'] = BitField(results[4], "D", list(range(15, 7, -1)), "Output", "Input")
+        returnDict['D7toD0Directions'] = BitField(results[5], "D", list(range(7, -1, -1)), "Output", "Input")
         
-        returnDict['D15toD8OutputLatchStates'] = BitField(results[6], "D", range(15, 7, -1))
-        returnDict['D7toD0OutputLatchStates'] = BitField(results[7], "D", range(7, -1, -1))
+        returnDict['D15toD8OutputLatchStates'] = BitField(results[6], "D", list(range(15, 7, -1)))
+        returnDict['D7toD0OutputLatchStates'] = BitField(results[7], "D", list(range(7, -1, -1)))
         
-        returnDict['IO3toIO0States'] = BitField((results[3] >> 4), "IO", range(3, -1, -1), "Low", "High")
+        returnDict['IO3toIO0States'] = BitField((results[3] >> 4), "IO", list(range(3, -1, -1)), "Low", "High")
         
         return returnDict
     
@@ -884,9 +891,9 @@ class U12(object):
         if results[0] != command[5]:
             raise U12Exception("Expected a Counter response, got %s instead." % results[0])
         
-        returnDict['D15toD8States'] = BitField(results[1], "D", range(15, 7, -1), "Low", "High")
-        returnDict['D7toD0States'] = BitField(results[2], "D", range(7, -1, -1), "Low", "High")
-        returnDict['IO3toIO0States'] = BitField((results[3] >> 4), "IO", range(3, -1, -1), "Low", "High")
+        returnDict['D15toD8States'] = BitField(results[1], "D", list(range(15, 7, -1)), "Low", "High")
+        returnDict['D7toD0States'] = BitField(results[2], "D", list(range(7, -1, -1)), "Low", "High")
+        returnDict['IO3toIO0States'] = BitField((results[3] >> 4), "IO", list(range(3, -1, -1)), "Low", "High")
         
         counter = results[7]
         counter += results[6] << 8
@@ -971,8 +978,8 @@ class U12(object):
         bf.bit5 = int(ResetCounter)
         bf.bit4 = int(UpdateDigital)
         
-        binPWMA = int((1023 * (float(PWMA)/5.0)))
-        binPWMB = int((1023 * (float(PWMB)/5.0)))
+        binPWMA = int((1023 * (old_div(float(PWMA),5.0))))
+        binPWMB = int((1023 * (old_div(float(PWMB),5.0))))
         
         bf2 = BitField()
         bf2.fromByte( binPWMA & 3 ) # 3 = 0b11
@@ -993,9 +1000,9 @@ class U12(object):
         
         returnDict = {}
         
-        returnDict['D15toD8States'] = BitField(results[1], "D", range(15, 7, -1), "Low", "High")
-        returnDict['D7toD0States'] = BitField(results[2], "D", range(7, -1, -1), "Low", "High")
-        returnDict['IO3toIO0States'] = BitField((results[3] >> 4), "IO", range(3, -1, -1), "Low", "High")
+        returnDict['D15toD8States'] = BitField(results[1], "D", list(range(15, 7, -1)), "Low", "High")
+        returnDict['D7toD0States'] = BitField(results[2], "D", list(range(7, -1, -1)), "Low", "High")
+        returnDict['IO3toIO0States'] = BitField((results[3] >> 4), "IO", list(range(3, -1, -1)), "Low", "High")
         
         counter = results[7]
         counter += results[6] << 8
@@ -1178,7 +1185,7 @@ class U12(object):
             
             returnDict['BufferOverflowOrChecksumErrors'].append(bool(bf.bit5))
             returnDict['PGAOvervoltages'].append(bool(bf.bit4))
-            returnDict['IO3toIO0States'].append(BitField(results[0], "IO", range(3, -1, -1), "Low", "High"))
+            returnDict['IO3toIO0States'].append(BitField(results[0], "IO", list(range(3, -1, -1)), "Low", "High"))
             
             returnDict['IterationCounters'].append((results[1] >> 5))
             returnDict['Backlogs'].append(results[1] & 0xf)
@@ -1453,7 +1460,7 @@ class U12(object):
         
         # Timeout is increments of 2^16 cycles.
         # 2^16 cycles is about 0.01 seconds.
-        binTimeout = int((float(Timeout) / 0.01))
+        binTimeout = int((old_div(float(Timeout), 0.01)))
         command[6] = ( binTimeout >> 8 ) & 0xff
         command[7] = binTimeout & 0xff
         
@@ -2371,7 +2378,7 @@ class U12(object):
         
         if ecode != 0: raise U12Exception(ecode) # TODO: Switch this out for exception
         
-        return {"idnum":long, "data":dataArray}
+        return {"idnum":int, "data":dataArray}
     
     GainMapping = [ 1.0, 2.0, 4.0, 5.0, 8.0, 10.0, 16.0, 20.0 ] 
     def bitsToVolts(self, chnum, chgain, bits):
@@ -2396,7 +2403,7 @@ class U12(object):
                 return ( float(bits) * 20.0 / 4096.0 ) - 10.0
             else:
                 volts = ( float(bits) * 40.0 / 4096.0 ) - 20.0
-                return volts / self.GainMapping[chgain]
+                return old_div(volts, self.GainMapping[chgain])
 
     def voltsToBits(self, chnum, chgain, volts):
         """

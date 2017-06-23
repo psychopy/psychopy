@@ -14,6 +14,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 
 from __future__ import print_function
+from builtins import object
 import array 
 import os
 import sys 
@@ -147,7 +148,7 @@ class TobiiGazeDataExtensions(Structure):
 
 
 
-class TobiiEyeXTracker():
+class TobiiEyeXTracker(object):
     def __init__(self):
 
         machine = platform.machine()

@@ -1,23 +1,10 @@
+# main requirements are now defined in setup.py
+# you can install them using:
+#   pip install psychopy
+# or:
+#   pip install -r psychopy
+# Optional additional dependencies are available:
+#   pip install -r requirements_dev.txt
+#   pip install -r requirements_suggested.txt
 
-requests
-numpy
-scipy
-matplotlib
-pandas
-pyglet
-pillow
-openpyxl
-configobj
-#for iohub
-pyyaml
-gevent
-msgpack-python
-psutil
-tables
-python-bidi
-cffi
-
-# for developers
-pytest 
-sphinx 
-cython
+-e .

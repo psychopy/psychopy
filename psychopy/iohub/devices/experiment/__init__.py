@@ -8,6 +8,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from builtins import zip
+from past.builtins import basestring
 import numpy as N
 from .. import Device,Computer,DeviceEvent
 from ...constants import DeviceConstants, EventConstants
@@ -178,7 +180,7 @@ class LogEvent(DeviceEvent):
         from psychopy.logging import _levelNames
         _psychopyAvailable=True
         
-        for lln,llv in _levelNames.iteritems():
+        for lln,llv in _levelNames.items():
             if isinstance(lln,basestring):
                 _levelNames[lln]=llv
                 _levelNames[llv]=lln
@@ -279,7 +281,7 @@ class LogEvent(DeviceEvent):
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+        return dict(list(zip(cls.CLASS_ATTRIBUTE_NAMES,values)))
 
     @classmethod
     def createEventAsNamedTuple(cls,valueList):
@@ -287,7 +289,7 @@ class LogEvent(DeviceEvent):
         return cls.namedTupleClass(*valueList)
 
 if not hasattr(LogEvent,'CRITICAL'):
-    for lln,llv in LogEvent._levelNames.iteritems():
+    for lln,llv in LogEvent._levelNames.items():
         if isinstance(lln,basestring):
             setattr(LogEvent,lln,llv)
     

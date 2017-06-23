@@ -9,6 +9,9 @@
 #
 #
 
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 from ...... import print2err, printExceptionDetailsToStdErr, to_numeric
 from ......constants import EyeTrackerConstants
 from ..... import Computer
@@ -526,7 +529,7 @@ class EyeTracker(EyeTrackerDevice):
         left,top,right,bottom=self._display_device.getCoordBounds()
         w,h=right-left,top-bottom 
     
-        return (left-display_x)/w,(top-display_y)/h
+        return old_div((left-display_x),w),old_div((top-display_y),h)
 
     def _close(self):
         if self._gp3:

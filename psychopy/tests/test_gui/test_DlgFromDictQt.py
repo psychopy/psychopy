@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from builtins import object
 from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
 
 
-class TestDlgFromDictQt():
+class TestDlgFromDictQt(object):
     def setup(self):
         self.d = dict(
             participant='000',
@@ -27,13 +28,13 @@ class TestDlgFromDictQt():
 
     def test_sort_keys_true(self):
         dlg = DlgFromDict(self.d, sort_keys=True, show=False)
-        keys = self.d.copy().keys()
+        keys = list(self.d.copy().keys())
         keys.sort()
         assert keys == dlg._keys
 
     def test_sort_keys_false(self):
         dlg = DlgFromDict(self.d, sort_keys=False, show=False)
-        keys = self.d.copy().keys()
+        keys = list(self.d.copy().keys())
         assert keys == dlg._keys
 
     def test_copy_dict_true(self):
@@ -48,7 +49,7 @@ class TestDlgFromDictQt():
         order = ['exp_type', 'participant', 'handedness', 'exp_version']
         # Be certain we will actually request a different order
         # further down.
-        assert order != self.od.keys()
+        assert order != list(self.od.keys())
 
         dlg = DlgFromDict(self.od, order=order, show=False)
         assert dlg.inputFieldNames == order
@@ -57,7 +58,7 @@ class TestDlgFromDictQt():
         order = ('exp_type', 'participant', 'handedness', 'exp_version')
         # Be certain we will actually request a different order
         # further down.
-        assert list(order) != self.od.keys()
+        assert list(order) != list(self.od.keys())
 
         dlg = DlgFromDict(self.od, order=order, show=False)
         assert dlg.inputFieldNames == list(order)

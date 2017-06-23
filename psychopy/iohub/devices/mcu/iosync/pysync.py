@@ -109,7 +109,12 @@ PWM Outputs:
     PMW_3: 23   // digital pin 23 on T3
 """
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import serial
 import numpy as np
 try:
@@ -132,7 +137,7 @@ class T3Event(object):
         self.usec_device_time = (event_time_bytes[4] << 40) + (event_time_bytes[5] << 32) \
         + (event_time_bytes[0] << 24) + (event_time_bytes[1] << 16) \
         + (event_time_bytes[2] << 8) + event_time_bytes[3]
-        self.device_time = self.usec_device_time/1000000.0
+        self.device_time = old_div(self.usec_device_time,1000000.0)
         self.local_time=T3Request.sync_state.remote2LocalTime(self.device_time)
         self._parseRemainingBytes(remaining_bytes)
 
@@ -267,7 +272,7 @@ class T3Request(object):
             raise AttributeError("Request Rx Byte Size to short: {0}".format(self._rx_data))
         self.usec_device_time = (d[6] << 40) + (d[7] << 32) + (d[2] << 24) + (d[3] << 16) \
                 + (d[4] << 8) + d[5]
-        self.device_time=self.usec_device_time/1000000.0
+        self.device_time=old_div(self.usec_device_time,1000000.0)
 
     @classmethod
     def _readRequestReply(cls,t3,request_id):
@@ -326,7 +331,7 @@ class SyncTimebaseRequest(T3Request):
             SyncTimebaseRequest.sync_point_counter=0
         else:
             i = SyncTimebaseRequest.sync_point_counter
-            self.sync_run_data[i,0]=((self.rx_time+self.tx_time)/2.0) # L
+            self.sync_run_data[i,0]=(old_div((self.rx_time+self.tx_time),2.0)) # L
             self.sync_run_data[i,1]=self.device_time # R
             self.sync_run_data[i,2]=(self.rx_time-self.tx_time) # rtt
 
@@ -693,7 +698,7 @@ class RingBuffer(object):
     def __setitem__(self, indexs,v):
         if isinstance(indexs,(list,tuple)):
             for i in indexs:
-                if isinstance(i, (int,long)):
+                if isinstance(i, (int,int)):
                     i=i+self._index
                     self._npa[i%self.max_size]=v
                     self._npa[(i%self.max_size)+self.max_size]=v
@@ -708,7 +713,7 @@ class RingBuffer(object):
                     stop=istop+self._index
                     self._npa[slice(start%self.max_size,stop%self.max_size,i.step)]=v
                     self._npa[slice((start%self.max_size)+self.max_size,(stop%self.max_size)+self.max_size,i.step)]=v
-        elif isinstance(indexs, (int,long)):
+        elif isinstance(indexs, (int,int)):
             i=indexs+self._index
             self._npa[i%self.max_size]=v
             self._npa[(i%self.max_size)+self.max_size]=v
@@ -731,12 +736,12 @@ class RingBuffer(object):
         if isinstance(indexs,(list,tuple)):
             rarray=[]
             for i in indexs:
-                if isinstance(i, (int,long)):
+                if isinstance(i, (int,int)):
                     rarray.append(current_array[i])
                 elif isinstance(i,slice):
                     rarray.extend(current_array[i])
             return np.asarray(rarray,dtype=self._dtype)
-        elif isinstance(indexs, (int,long,slice)):
+        elif isinstance(indexs, (int,int,slice)):
             return current_array[indexs]
         else:
             raise TypeError()
@@ -770,8 +775,8 @@ class TimeSyncState(object):
         """
         if len(self.R_times) <= 1:
             return None
-        return float((self.R_times[-1] - self.R_times[-2]) / \
-                     (self.L_times[-1] - self.L_times[-2]))
+        return float(old_div((self.R_times[-1] - self.R_times[-2]), \
+                     (self.L_times[-1] - self.L_times[-2])))
 
 #
 #        if len(self.RTTs) <= 1:
@@ -804,7 +809,7 @@ class TimeSyncState(object):
         """
         if len(self.R_times) < 1:
             return None
-        return float(self.RTTs[-1]/2.0)
+        return float(old_div(self.RTTs[-1],2.0))
 #
 #        if len(self.RTTs) <= 1:
 #            return None

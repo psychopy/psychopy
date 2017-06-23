@@ -17,14 +17,15 @@ from __future__ import division
 from psychopy import visual, logging, event, core
 
 # create a window to draw in
-win = visual.Window((600, 600), allowGUI=False, blendMode='add', useFBO=True)
+win = visual.Window((600, 600), allowGUI=False, blendMode='avg', useFBO=True)
 logging.console.setLevel(logging.DEBUG)
 
 # Initialize some stimuli, note contrast, opacity, ori
-grating1 = visual.GratingStim(win, mask="gauss", color='white', contrast=0.5,
+grating1 = visual.GratingStim(win, mask="circle", color='white', contrast=0.5,
     size=(1.0, 1.0), sf=(4, 0), ori = 45, autoLog=False)
-grating2 = visual.GratingStim(win, mask="gauss", color='white', opacity=0.5,
-    size=(1.0, 1.0), sf=(4, 0), ori = -45, autoLog=False)
+grating2 = visual.GratingStim(win, mask="circle", color='white', opacity=0.5,
+    size=(1.0, 1.0), sf=(4, 0), ori = -45, autoLog=False,
+    pos=(0.1,0.1))
 
 trialClock = core.Clock()
 t = 0

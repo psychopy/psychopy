@@ -44,12 +44,13 @@ from __future__ import absolute_import
 #             - optimized keysym lookup by loading into a dict cache
 #             - started adding support for reporting unicode keys
 
+from builtins import str
 import threading
 import unicodedata
 import ctypes as ct
-from .Xlib import X, display
-from .Xlib.ext import record
-from .Xlib.protocol import rq
+from Xlib import X, display
+from Xlib.ext import record
+from Xlib.protocol import rq
 from .. import print2err
 from ..devices import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
@@ -271,7 +272,7 @@ class HookManager(threading.Thread):
         """
         if repeatCounts:
             return self.key_states
-        return self.key_states.keys()
+        return list(self.key_states.keys())
 
     def processevents(self, reply):
         logged_time = getTime()

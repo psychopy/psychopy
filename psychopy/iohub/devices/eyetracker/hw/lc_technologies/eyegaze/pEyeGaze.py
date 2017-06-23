@@ -11,6 +11,10 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 # Begin preamble
 
+from past.builtins import cmp
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import ctypes, os, sys
 from ctypes import *
 
@@ -50,7 +54,7 @@ def POINTER(obj):
 
     return p
 
-class UserString:
+class UserString(object):
     def __init__(self, seq):
         if isinstance(seq, basestring):
             self.data = seq
@@ -61,7 +65,7 @@ class UserString:
     def __str__(self): return str(self.data)
     def __repr__(self): return repr(self.data)
     def __int__(self): return int(self.data)
-    def __long__(self): return long(self.data)
+    def __long__(self): return int(self.data)
     def __float__(self): return float(self.data)
     def __complex__(self): return complex(self.data)
     def __hash__(self): return hash(self.data)
@@ -230,7 +234,7 @@ class String(MutableString, Union):
                 ('data', c_char_p)]
 
     def __init__(self, obj=""):
-        if isinstance(obj, (str, unicode, UserString)):
+        if isinstance(obj, basestring):
             self.data = str(obj)
         else:
             self.raw = obj
@@ -893,7 +897,7 @@ if hasattr(_libs['lctigaze'], 'EgUpdateWindowParameters'):
     EgUpdateWindowParameters.restype = None
 
 # <input>: 328
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgWindowPixFromMonMm'):
         continue
     EgWindowPixFromMonMm = _lib.EgWindowPixFromMonMm
@@ -902,7 +906,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 333
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'MonMmFromEgWindowPix'):
         continue
     MonMmFromEgWindowPix = _lib.MonMmFromEgWindowPix
@@ -911,7 +915,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 339
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgMonitorPixFromMonMm'):
         continue
     EgMonitorPixFromMonMm = _lib.EgMonitorPixFromMonMm
@@ -920,7 +924,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 344
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'MonMmFromEgMonitorPix'):
         continue
     MonMmFromEgMonitorPix = _lib.MonMmFromEgMonitorPix
@@ -929,7 +933,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 350
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgMonitorPixFromEgWindowPix'):
         continue
     EgMonitorPixFromEgWindowPix = _lib.EgMonitorPixFromEgWindowPix
@@ -938,7 +942,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 355
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'EgWindowPixFromEgMonitorPix'):
         continue
     EgWindowPixFromEgMonitorPix = _lib.EgWindowPixFromEgMonitorPix
@@ -947,7 +951,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 360
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'GdsPixFromMonMm'):
         continue
     GdsPixFromMonMm = _lib.GdsPixFromMonMm
@@ -956,7 +960,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 365
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'MonMmFromGdsPix'):
         continue
     MonMmFromGdsPix = _lib.MonMmFromGdsPix
@@ -965,7 +969,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 371
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'ScaleEgMonPixFromMm'):
         continue
     ScaleEgMonPixFromMm = _lib.ScaleEgMonPixFromMm
@@ -974,7 +978,7 @@ for _lib in _libs.itervalues():
     break
 
 # <input>: 376
-for _lib in _libs.itervalues():
+for _lib in _libs.values():
     if not hasattr(_lib, 'ScaleEgMonMmFromPix'):
         continue
     ScaleEgMonMmFromPix = _lib.ScaleEgMonMmFromPix
@@ -1072,9 +1076,9 @@ if hasattr(_libs['lctigaze'], 'ReadProcSpeed'):
 #
 ## defines
 #
-EG_COMM_TYPE_LOCAL  =0    # Single computer configuration. 
-EG_COMM_TYPE_SOCKET =1    # 2 computers, comm over TCP/IP. 
-EG_COMM_TYPE_SERIAL =2    # 2 computers, comm over TCP/IP. 
+EG_COMM_TYPE_LOCAL  =0    # Single computer configuration.
+EG_COMM_TYPE_SOCKET =1    # 2 computers, comm over TCP/IP.
+EG_COMM_TYPE_SERIAL =2    # 2 computers, comm over TCP/IP.
 
 EG_MESSAGE_TYPE_GAZEINFO      = 0
 EG_MESSAGE_TYPE_MOUSEPOSITION = 1
@@ -1129,7 +1133,7 @@ EG_ERROR_EYEGAZE_ALREADY_INITIALIZED =     9101
 EG_ERROR_TRACKING_TERMINATED =             9102
 EG_ERROR_MEMORY_ALLOC_FAILED  =            9103
 EG_ERROR_LCT_COMM_OPEN_FAILED  =           9104
-                                              
+
 
 ## User added functionality
 
@@ -1139,13 +1143,13 @@ from ctypes import create_unicode_buffer  as UnicodeBuffer
 _CAMERA_IMAGE_POSITIONS=('NOT_USED','UPPER_RIGHT','UPPER_LEFT')
 _COMM_CHANNEL_TYPES=dict(LOCAL=EG_COMM_TYPE_LOCAL,SOCKET=EG_COMM_TYPE_SOCKET,
                          SERIAL=EG_COMM_TYPE_SERIAL)
-    
+
 def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     """
     Initiale and connect to the EyeGaze eye tracker.
-    """    
+    """
     stEgControl= _stEgControl()
-                            
+
     # Tell Eyegaze the length of the Eyegaze
     # data ring buffer
     stEgControl.iNDataSetsInRingBuffer = iohub_device_config.get('event_buffer_length',32)
@@ -1169,7 +1173,7 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     # window.
     v= iohub_device_config.get('display_camera_image',False)
     stEgControl.bEgCameraDisplayActive = v
-    
+
     # Tell Eyegaze that the location for the
     # eye image display is the upper right
     # corner
@@ -1178,11 +1182,11 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     v= iohub_device_config.get('camera_image_screen_position','UPPER_RIGHT')
     try:
         v=_CAMERA_IMAGE_POSITIONS.index(v)
-        stEgControl.iEyeImagesScreenPos = v 
+        stEgControl.iEyeImagesScreenPos = v
     except Exception:
         print2err('EyeGaze ERROR: Camera Image Position value invalid. Given {0}, must be one of {1}'.format(v,_CAMERA_IMAGE_POSITIONS))
         stEgControl.iEyeImagesScreenPos=0
-        
+
     stEgControl.iVisionSelect=0; # Set this reserved variable to 0
 
     # The communications type may be set to one of three values. Please see
@@ -1196,23 +1200,23 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     # for EG_COMM_TYPE_SOCKET
 
     host_conn=iohub_device_config.get('host_connection',None)
-    if host_conn:    
+    if host_conn:
         conn_type=host_conn.get('type',None)
         conn_param=host_conn.get('parameter',None)
-            
+
     if conn_type not in _COMM_CHANNEL_TYPES:
         print2err("ERROR: EyeGaze connection_settings comm_type (first list element) must be one of {0}. Received: {1}.".format(_COMM_CHANNEL_TYPES,conn_type))
         print2err("..... USING DEFAULT SETTING OF LOCAL")
         conn_type='LOCAL'
-        
-    stEgControl.iCommType = _COMM_CHANNEL_TYPES[conn_type]; 
-    
+
+    stEgControl.iCommType = _COMM_CHANNEL_TYPES[conn_type];
+
     if conn_type not in ['SOCKET','SERIAL']:
         if conn_param is None or len(conn_param)==0:
-            stEgControl.pszCommName=None 
+            stEgControl.pszCommName=None
         else:
             stEgControl.pszCommName=UnicodeBuffer(conn_param)
-            
+
     # Create the Eyegaze image processing thread
     result=EgInit(byref(stEgControl))
     return stEgControl

@@ -15,6 +15,7 @@ Important: An XInput compatible gamepad must be connected to the Windows PC
 from __future__ import division
 from __future__ import print_function
 
+from builtins import str
 from psychopy import visual, core
 from psychopy.iohub import launchHubServer, EventConstants
 

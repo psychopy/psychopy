@@ -10,6 +10,8 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 from __future__ import absolute_import
+from builtins import str
+from builtins import zip
 from .. import Computer, Device
 from ... import printExceptionDetailsToStdErr,print2err
 from ...constants import EventConstants, DeviceConstants, MouseConstants,KeyboardConstants
@@ -252,7 +254,7 @@ class MouseDevice(Device):
         Returns:
             int: current vertical scroll value.
         """
-        if isinstance(s, (int, long, float, complex)):
+        if isinstance(s, (int, int, float, complex)):
             self._scrollPositionY=s
         return self._scrollPositionY
 
@@ -273,7 +275,7 @@ class MouseDevice(Device):
             tuple: new (x,y) position of mouse in Display coordinate space.
 
         """
-        if isinstance(pos[0], (int, long, float, complex)) and isinstance(pos[1], (int, long, float, complex)):
+        if isinstance(pos[0], (int, int, float, complex)) and isinstance(pos[1], (int, int, float, complex)):
             display=self._display_device
             current_display_index=display.getIndex()
 
@@ -457,7 +459,7 @@ class MouseInputEvent(DeviceEvent):
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
-        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+        return dict(list(zip(cls.CLASS_ATTRIBUTE_NAMES,values)))
 
     #noinspection PyUnresolvedReferences
     @classmethod

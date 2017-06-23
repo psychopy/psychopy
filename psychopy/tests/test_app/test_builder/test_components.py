@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from builtins import object
 import os
 import pytest
 
@@ -79,15 +80,20 @@ class TestComponents(object):
                 targetTag[t] += '\n' + line  # previous t value
 
         param = builder.experiment.Param('', '')  # want its namespace
-        ignore = ['__doc__', '__init__', '__module__', '__str__']
+        ignore = ['__doc__', '__init__', '__module__', '__str__', 'next',
+                  '__unicode__', '__native__', '__nonzero__', '__long__']
 
         # these are for display only (cosmetic) and can end up being localized
         # so typically do not want to check during automated testing, at least
         # not when things are still new-ish and subject to change:
         ignore += ['hint',
                    'label',  # comment-out to compare labels when checking
-                   'categ'
+                   'categ',
+                   'next',
                    ]
+        for field in dir(param):
+            if field.startswith("__"):
+                ignore.append(field)
         fields = set(dir(param)).difference(ignore)
 
         err = []
@@ -116,12 +122,16 @@ class TestComponents(object):
                     lineFields.append(f)
 
                 for line in [default] + lineFields:
+                    # some attributes vary by machine so don't check those
                     if line.startswith('ParallelOutComponent.address') and ignoreParallelOutAddresses:
                         continue
-                    if ('SettingsComponent.Use version.allowedVals' in line or
+                    elif line.startswith('SettingsComponent.OSF Project ID.allowedVals'):
+                        continue
+                    elif ('SettingsComponent.Use version.allowedVals' in line or
                         'SettingsComponent.Use version.__dict__' in line):
                         # versions available on travis-ci are only local
                         continue
+                    # start checking params
                     if not line+'\n' in target:
                         # mismatch, so report on the tag from orig file
                         # match checks tag + multi-line, because line is multi-line and target is whole file

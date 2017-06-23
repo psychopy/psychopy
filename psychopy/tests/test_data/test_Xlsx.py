@@ -1,5 +1,6 @@
 """Tests for psychopy.data.DataHandler"""
 from __future__ import print_function
+from builtins import object
 import os, shutil
 import numpy
 
@@ -46,7 +47,7 @@ def test_TrialTypeImport():
     def checkEachtrial(fromCSV, fromXLSX):
         for trialN, trialCSV in enumerate(fromCSV):
             trialXLSX = fromXLSX[trialN]
-            assert trialXLSX.keys() == trialCSV.keys()
+            assert list(trialXLSX.keys()) == list(trialCSV.keys())
             for header in trialCSV:
                 if trialXLSX[header] != trialCSV[header]:
                     print(header, trialCSV[header], trialXLSX[header])

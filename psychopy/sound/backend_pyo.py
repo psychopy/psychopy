@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import division
+from builtins import map
 from psychopy import prefs, exceptions
 from sys import platform
 from psychopy import core, logging

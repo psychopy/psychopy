@@ -73,6 +73,7 @@ changes will occur and will be used for the delay error correction calculation.
   
 """
 from __future__ import print_function
+from builtins import range
 analog_input_channels=[0,1]
 repetitions=5
 
@@ -90,7 +91,7 @@ try:
 
     psychopy_mon_name='testMonitor'
     exp_code='events'
-    sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
+    sess_code='S_{0}'.format(int(time.mktime(time.localtime())))
     iohub_config={
     "psychopy_monitor_name":psychopy_mon_name,
     "mcu.iosync.MCU":dict(serial_port='auto',monitor_event_types=[]),

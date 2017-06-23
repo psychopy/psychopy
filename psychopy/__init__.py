@@ -10,7 +10,7 @@ import os
 import sys
 
 # version info for PsychoPy
-__version__ = '1.85.1'
+__version__ = '1.85.2'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon@peirce.org.uk'
@@ -38,10 +38,15 @@ if __git_sha__ == 'n/a':
     if output:
         __git_sha__ = output.strip()  # remove final linefeed
 
-# update preferences and the user paths
-from psychopy.preferences import prefs
-import sys
-for pathName in prefs.general['paths']:
-    sys.path.append(pathName)
+# This block of code breaks when attempting to pip install on python 3 because
+# configobj is not found. Suppress the error if it involves configobj.
+try:
+    # update preferences and the user paths
+    from psychopy.preferences import prefs
+    for pathName in prefs.general['paths']:
+        sys.path.append(pathName)
 
-from psychopy.tools.versionchooser import useVersion, ensureMinimal
+    from psychopy.tools.versionchooser import useVersion, ensureMinimal
+except ImportError as e:
+    if "configobj" not in e.msg:
+        raise

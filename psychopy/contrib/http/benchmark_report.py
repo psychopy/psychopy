@@ -14,8 +14,13 @@ Future enhancements:
 Author Jeremy Gray
 """
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
 import sys, os, time, glob
-import cPickle as pickle
+import pickle as pickle
 import numpy as np
 
 # global file and path names, etc:
@@ -109,7 +114,7 @@ def squash(tags, datacols, data):
     lines = []
     
     noIP = True  # suppress IP address as a tag even if its in tags (as first item in list)
-    tcols = range(3, len(tags)+2)
+    tcols = list(range(3, len(tags)+2))
     d_col = -1 # data column is last, currently; want to select columns by tag; need header row in data?
     
     # init dictionaries here, later link by common keys
@@ -125,7 +130,7 @@ def squash(tags, datacols, data):
             count[hash] = 0
         values[hash].append(field[d_col])
         count[hash] += 1
-    sortedKeys = values.keys()
+    sortedKeys = list(values.keys())
     sortedKeys.sort()
     
     # data reduction & descriptive stats within-cell:

@@ -2,10 +2,12 @@
 ports and check for the expected device
 """
 from __future__ import print_function
+from __future__ import division
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from builtins import str
 import time
 from psychopy import logging
 from psychopy.hardware import serialdevice

@@ -12,6 +12,8 @@ from __future__ import print_function
 
 # Author: Jeremy R. Gray
 
+from builtins import str
+from builtins import range
 from psychopy import visual, event, core, gui
 from psychopy.hardware.emulator import launchScan
 
@@ -60,7 +62,7 @@ while globalClock.getTime() < duration:
             vol += 1
         else:
             # handle keys (many fiber-optic buttons become key-board key-presses)
-            output += u"%3d  %7.3f %s\n" % (vol-1, globalClock.getTime(), unicode(key))
+            output += u"%3d  %7.3f %s\n" % (vol-1, globalClock.getTime(), str(key))
             if key == 'escape':
                 output += u'user cancel, '
                 break

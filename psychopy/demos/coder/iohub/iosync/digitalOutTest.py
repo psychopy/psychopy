@@ -14,6 +14,7 @@ DOUT_0 to DIN_8
 """
 from __future__ import print_function
 
+from builtins import range
 repetitions=10
 
 import time
@@ -31,7 +32,7 @@ din_times=[]
 try:
     psychopy_mon_name='testMonitor'
     exp_code='events'
-    sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
+    sess_code='S_{0}'.format(int(time.mktime(time.localtime())))
     iohub_config={
     "psychopy_monitor_name":psychopy_mon_name,
     "mcu.iosync.MCU":dict(serial_port='auto',monitor_event_types=['DigitalInputEvent']),

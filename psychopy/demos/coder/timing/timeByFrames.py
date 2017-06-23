@@ -14,6 +14,7 @@ might try to update
 from __future__ import division
 from __future__ import print_function
 
+from builtins import range
 from psychopy import visual, logging, core, event
 visual.useFBO = True  # if available (try without for comparison)
 
