@@ -1,11 +1,19 @@
 #!/usr/bin/env python2
 
-"""Stimulus object for drawing random noise stimuliof various kinds. """
+"""Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
+second order envelope carrier and envelope can vary independently for
+orienation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # some code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
+
+# Requires shaders if you don't have them it will just throw and error.
+# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
+# other calls to pyglet or pyglet submodules, otherwise it may not get picked
+# up by the pyglet GL engine and have no effect.
+# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
 from __future__ import absolute_import
 
@@ -62,25 +70,23 @@ class NoiseStim(GratingStim):
 
             In practice the desired amplitude spectrum for the noise is built in Fourier space with a random phase spectrum. DC term is set to zero - ie zero mean.
         
-    Filtered - Effectively a white noise sample that has been filtered with a low, high or bandpass Butterworth filter.
+    Filtered - A noise sample that has been filtered with a low, high or bandpass Butterworth filter. The inital sample can have its spectrum skewed towards low or high frequencies
             The contrast of the noise falls by half its maximum (3dB) at the cutoff frequencies.
             Parameters -    noiseFilterUpper - upper cutoff frequency - if greater than texRes/2 cycles per image low pass filter used.
                             noiseFilterLower - Lower cutoff frequency - if zero low pass filter used.
-                            noiseFilterOrder - The order of the filter controls the steepness of the falloff outside the passband.
-                            noiseClip - with 'contrast' determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
-            
-            In practice the desired amplitude spectrum is built in the Fourier Domain with a random phase spectrum. DC term is set to zero - ie zero mean
-        
-    White, Coloured - A noise sample whose spatial frequency spectrum is biased towards low (pink, red noise) or high (purple, violet noise) spatial frequencies or completely flat for White noise.
-            Parameters -    noiseFractalPower - spectrum = f^noiseFractalPower  - determines the spatial frequency bias of the noise. 1 = white, negative = low prefered, postive = high preferred, -1 = fractal or brownian noise. This parameter is ignored for noise type = White.
-                            noiseClip - with 'contrast' determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
+                            noiseFilterOrder - The order of the filter controls the steepness of the falloff outside the passband is zero no filter is applied.
+                            noiseFractalPower - spectrum = f^noiseFractalPower  - determines the spatial frequency bias of the intial noise sample. 0 = flat spectrum, negative = low frequency bias, postive = high frequency bias, -1 = fractal or brownian noise.
+                            noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
+
+    White - A short cut to obtain noise with a flat, unfiltered spectrum
+                            noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
 
             In practice the desired amplitude spectrum is built in the Fourier Domain with a random phase spectrum. DC term is set to zero - ie zero mean
-            Note despite name the noise is always grey scale.
+            Note despite name the noise contains all grey levels.
 
     Image - A noise sample whose spatial frequency spectrum is taken from the supplied image.
             Parameters -    noiseImage name of nparray or image file from which to take spectrum - should be same size as largest side requested for component if units is pix or texRes x texRes otherwise
-                            noiseClip - with 'contrast' determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
+                            noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
 
             In practice the desired amplitude spectrum is taken from the image and paired with a random phase spectrum. DC term is set to zero - ie zero mean
             
@@ -128,10 +134,10 @@ class NoiseStim(GratingStim):
                  noiseBaseSf='1',
                  noiseBW='1',
                  noiseBWO='30',
-                 noiseFractalPower=-1,
+                 noiseFractalPower='0.0',
                  noiseFilterUpper='50',
                  noiseFilterLower='0',
-                 noiseFilterOrder='1.0',
+                 noiseFilterOrder='0.0',
                  noiseClip='1',
                  noiseImage='None',
                  texRes=128,
@@ -153,7 +159,9 @@ class NoiseStim(GratingStim):
         """ """  # Empty docstring. All doc is in attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
-
+        #assert win._haveShaders is True, ("Currently EnvelopeGratings need "
+        #                                  "your graphics card to have shaders"
+        #                                  " and yours does not seem to.")
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
@@ -171,6 +179,7 @@ class NoiseStim(GratingStim):
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and
+        # _calcCyclesPerStim whin initiating stimulus
         #self.__dict__['tex'] = tex
         self.__dict__['mask'] = mask
         self.__dict__['maskParams'] = maskParams
@@ -445,7 +454,7 @@ class NoiseStim(GratingStim):
             self.tex=numpy.real(ifft2(In))
             self.tex=ifftshift(self.tex)
             gsd=filters.getRMScontrast(self.tex)
-            factor=(gsd*self.noiseClip)/self.contrast
+            factor=(gsd*self.noiseClip)
             numpy.clip(self.tex,-factor,factor,self.tex)
             self.tex=self.tex/factor
         else:
@@ -488,11 +497,11 @@ class NoiseStim(GratingStim):
         elif self.noiseType in ['White','white']:
             self.noiseTex=numpy.ones((int(mysize),int(mysize)))
             self.noiseTex[0][0]=0
-        elif self.noiseType in ['Coloured','coloured']:
-            pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
-            self.noiseTex=numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower) 
-            self.noiseTex=fftshift(self.noiseTex)
-            self.noiseTex[0][0]=0
+        #elif self.noiseType in ['Coloured','coloured']:
+        #    pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
+        #    self.noiseTex=numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower) 
+        #    self.noiseTex=fftshift(self.noiseTex)
+        #    self.noiseTex[0][0]=0
         elif self.noiseType in ['Isotropic','isotropic']:
             localf=mysf/mysize
             linbw=2**self.noiseBW
@@ -536,11 +545,14 @@ class NoiseStim(GratingStim):
                 self.noiseTex=numpy.ones((int(mysize),int(mysize)))  # if image is 'None' will make white noise as tempary measure
             self.noiseTex[0][0]=0
         elif self.noiseType in ['filtered','Filtered']:
-            self.noiseTex=numpy.ones((int(mysize),int(mysize)))
-            if upsf<(mysize/2.0):
-                self.noiseTex=filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
-            if lowsf>0:
-                self.noiseTex=self.noiseTex-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+            pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
+            self.noiseTex=numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower)
+            if self.noiseFilterOrder>0.01:
+                if upsf<(mysize/2.0):
+                    filter=filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                if lowsf>0:
+                    filter=filter-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                self.noiseTex=self.noiseTex*filter
             self.noiseTex=fftshift(self.noiseTex)
             self.noiseTex[0][0]=0
         else:
@@ -548,6 +560,10 @@ class NoiseStim(GratingStim):
         self._needBuild = False # prevent noise from being re-built at next draw() unless a parameter is chnaged in the mean time.
         self.updateNoise()  # now choose the inital random sample.
         
+ 
+
+
+
  
 
 
