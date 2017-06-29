@@ -57,6 +57,7 @@ from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual.bufferimage import BufferImageStim
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.radial import RadialStim
+from psychopy.visual.noise import NoiseStim
 
 # stimuli derived from BaseShapeStim
 from psychopy.visual.shape import ShapeStim
