@@ -101,7 +101,7 @@ class ParamCtrls(object):
         _nonCode = ('name', 'Experiment info')
         if param.valType == 'code' and fieldName not in _nonCode:
             label += ' $'
-        self.nameCtrl = wx.StaticText(parent, -1, label, size=None,
+        self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize,
                                       style=wx.ALIGN_RIGHT)
 
         if fieldName == 'Use version':
@@ -368,7 +368,7 @@ class _BaseParamsDlg(wx.Dialog):
             localizedTitle = _translate(title)
 
         # use translated title for display
-        wx.Dialog.__init__(self, frame, -1, localizedTitle,
+        wx.Dialog.__init__(self, parent=None, id=-1, title=localizedTitle,
                            size=size, style=style)
         self.frame = frame
         self.app = frame.app

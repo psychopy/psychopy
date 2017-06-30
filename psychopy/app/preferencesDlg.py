@@ -1,6 +1,7 @@
 
 from __future__ import absolute_import, print_function
 
+from past.builtins import basestring
 from builtins import str
 from builtins import object
 import wx
@@ -446,17 +447,13 @@ class PrefCtrls(object):
             l = '['
             for e in seq:
                 # if element is a sequence, call listToString recursively.
-                if hasattr(e, '__iter__'):
-                    en = listToString(e, depth - 1) + ','
+                if isinstance(e, basestring):
+                    en = "{!r}, ".format(e)  # using !r adds '' or u'' as needed
+                elif hasattr(e, '__iter__'):  # just tuples and lists (but in Py3 str has __iter__)
+                    en = self.listToString(e, depth - 1) + ','
                 else:
-                    e = e.replace('\\', '\\\\').replace("'", "\\'")
-                    # try str() first because we don't want to append "u" if
-                    # unnecessary.
-                    try:
-                        en = "'" + str(e) + "',"
-                    except Exception:  # unicode
-                        # "u" is necessary if string is unicode.
-                        en = "u'" + str(e) + "',"
+                    e = e.replace('\\', '\\\\').replace("'", "\\'")  # in path names?
+                    en = "{!r}, ".format(e)
                 l += en
             # remove unnecessary comma
             if l[-1] == ',':
