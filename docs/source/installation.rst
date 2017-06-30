@@ -9,11 +9,11 @@ For the easiest installation download and install the Standalone package for you
 
   * Windows (all versions):
 
-    * `Download StandalonePsychoPy-1.85.1-win32.exe <https://github.com/psychopy/psychopy/releases/download/1.85.1/StandalonePsychoPy-1.85.1-win32.exe>`_
+    * `Download StandalonePsychoPy-1.85.2-win32.exe <https://github.com/psychopy/psychopy/releases/download/1.85.2/StandalonePsychoPy-1.85.2-win32.exe>`_
 
   * Mac OSX (recent versions):
 
-    * `Download StandalonePsychoPy-1.85.1-OSX_64bit.dmg <https://github.com/psychopy/psychopy/releases/download/1.85.1/StandalonePsychoPy-1.85.1-OSX_64bit.dmg>`_
+    * `Download StandalonePsychoPy-1.85.2-OSX_64bit.dmg <https://github.com/psychopy/psychopy/releases/download/1.85.2/StandalonePsychoPy-1.85.2-OSX_64bit.dmg>`_
 
   * Ubuntu or debian-based systems:
 
@@ -77,7 +77,7 @@ Needed on Windows::
 
 Needed on Mac OS X::
 
-  pip install pyobjc # takes a while!
+  pip install pyobjc-core pyobjc-framework-Quartz
 
 
 OR you could just install the subsets of packages that you want::
@@ -96,7 +96,7 @@ OR you could just install the subsets of packages that you want::
   pip install requests[security] pyosf
 
   # alternative audio (easier than pyo to install)
-  pip install cffi pysoundcard pysoundfile
+  pip install cffi pysounddevice pysoundfile
 
 Handy extra options::
 

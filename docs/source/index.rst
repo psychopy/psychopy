@@ -16,7 +16,7 @@ News
 
  - 12-14 July 2017: :ref:`PEP2` to write better Python code: more reusable, better timed, just better!
 
-**Latest version**: 1.85.1 was released Apr 2017 with initial proof-of-concept of online experiments. Beware - these are bound to be buggy so only use if you know what you're doing. And :ref:`READ THE DOCS <online>`. See the full :doc:`changelog`
+**Latest version**: 1.85.2 was released June 2017 with initial proof-of-concept of online experiments. Beware - these are bound to be buggy so only use if you know what you're doing. And :ref:`READ THE DOCS <online>`. See the full :doc:`changelog`
 
 .. title:: Home
 
