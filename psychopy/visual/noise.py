@@ -61,6 +61,7 @@ class NoiseStim(GratingStim):
     Binary, Normal, Uniform - pixel based noise samples drawn from a binary (blank and white), normal or uniform distribution respectively. Binary noise is always exactly zero mean, Normal and Uniform are approximately so.
             Parameters -    noiseElementSize - (can be a tuple) defines the size of the noise elements in the components units.
                             noiseClip the values in normally distributed noise are divided by noiseClip to limit excessively high or low values.
+                                However, values can still go out of range -1 to 1 whih will throw a soft error message high values of noiseClip are recomended if using 'Normal'
     
     Gabor, Isotropic - Effectively a dense scattering of Gabor elements with random amplitude and fixed orientation for Gabor or random orientation for Isotropic noise.
             Parameters -    noiseBaseSf - centre spatial frequency in the component units. 
@@ -451,15 +452,19 @@ class NoiseStim(GratingStim):
             Ph=numpy.random.uniform(0,2*numpy.pi,int(self._size**2))
             Ph=numpy.reshape(Ph,(int(self._size),int(self._size)))
             In=self.noiseTex*exp(1j*Ph)
-            self.tex=numpy.real(ifft2(In))
-            self.tex=ifftshift(self.tex)
-            gsd=filters.getRMScontrast(self.tex)
+            Im=numpy.real(ifft2(In))
+            Im=ifftshift(Im)
+            gsd=filters.getRMScontrast(Im)
             factor=(gsd*self.noiseClip)
-            numpy.clip(self.tex,-factor,factor,self.tex)
-            self.tex=self.tex/factor
+            numpy.clip(Im,-factor,factor,Im)
+            self.tex=Im/factor
+        elif self.noiseType in ['normal','Normal']:
+            self.tex=numpy.random.randn(int(self._sideLength[1]),int(self._sideLength[0]))/self.noiseClip
+        elif self.noiseType in ['uniform','Uniform']:
+            self.tex=2.0*numpy.random.rand(int(self._sideLength[1]),int(self._sideLength[0]))-1.0
         else:
             numpy.random.shuffle(self.noiseTex)  # pick random noise sample by shuffleing values
-            self.tex=numpy.reshape(self.noiseTex,(int(self._sideLength[1]),int(self._sideLength[0]))) #reshape to sqaure
+            self.tex=numpy.reshape(self.noiseTex,(int(self._sideLength[1]),int(self._sideLength[0])))
             
     def buildNoise(self):
         """build a new noise sample. Required to act on chnages to any noise parameters or texRes.
@@ -490,10 +495,6 @@ class NoiseStim(GratingStim):
             totalSamples=self._sideLength[0]*self._sideLength[1]
             if self.noiseType in ['binary','Binary']:
                 self.noiseTex=numpy.append(numpy.ones(int(numpy.round(totalSamples/2.0))),-1*numpy.ones(int(numpy.round(totalSamples/2.0))))
-            elif self.noiseType in ['normal', 'Normal']:
-                self.noiseTex=numpy.random.randn(int(totalSamples))/self.noiseClip
-            elif self.noiseType in ['uniform', 'Uniform']:
-                self.noiseTex=2.0*numpy.random.rand(int(totalSamples))-1.0
         elif self.noiseType in ['White','white']:
             self.noiseTex=numpy.ones((int(mysize),int(mysize)))
             self.noiseTex[0][0]=0
