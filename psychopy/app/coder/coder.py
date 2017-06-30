@@ -1078,12 +1078,13 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            try:
-                # if we can decode/encode to utf-8 then all is good
-                txt.decode('utf-8')
-            except:
-                # if not then wx conversion broke so get raw data instead
-                txt = dataObj.GetDataHere()
+            if not PY3:
+                try:
+                    # if we can decode/encode to utf-8 then all is good
+                    txt.decode('utf-8')
+                except:
+                    # if not then wx conversion broke so get raw data instead
+                    txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt)
 
     def _GetSelectedLineNumbers(self):
