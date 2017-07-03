@@ -2026,6 +2026,516 @@ MovieComponent.size.updates:constant
 MovieComponent.size.staticUpdater:None
 MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 MovieComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.order:['tex', 'mask']
+NoiseStimComponent.noiseFilterUpper.default:8.0
+NoiseStimComponent.noiseFilterUpper.categ:Filtered
+NoiseStimComponent.noiseFilterUpper.allowedVals:[]
+NoiseStimComponent.noiseFilterUpper.readOnly:False
+NoiseStimComponent.noiseFilterUpper.updates:constant
+NoiseStimComponent.noiseFilterUpper.__dict__:{'staticUpdater': None, 'categ': 'Filtered', 'val': 8.0, 'hint': u'Upper cutoff frequency', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Upper cut off frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseFilterUpper.__weakref__:None
+NoiseStimComponent.noiseFilterUpper.valType:code
+NoiseStimComponent.noiseFilterUpper.staticUpdater:None
+NoiseStimComponent.noiseFilterUpper.val:8.0
+NoiseStimComponent.noiseFilterUpper.allowedTypes:[]
+NoiseStimComponent.noiseFilterUpper.hint:Upper cutoff frequency
+NoiseStimComponent.noiseFilterUpper.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseFilterUpper.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseFilterUpper.label:Upper cut off frequency
+NoiseStimComponent.color.default:[1,1,1]
+NoiseStimComponent.color.categ:Basic
+NoiseStimComponent.color.allowedVals:[]
+NoiseStimComponent.color.readOnly:False
+NoiseStimComponent.color.updates:constant
+NoiseStimComponent.color.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '$[1,1,1]', 'hint': u'Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Color', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.color.__weakref__:None
+NoiseStimComponent.color.valType:str
+NoiseStimComponent.color.staticUpdater:None
+NoiseStimComponent.color.val:$[1,1,1]
+NoiseStimComponent.color.allowedTypes:[]
+NoiseStimComponent.color.hint:Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+NoiseStimComponent.color.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.color.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.color.label:Color
+NoiseStimComponent.colorSpace.default:'rgb'
+NoiseStimComponent.colorSpace.categ:Basic
+NoiseStimComponent.colorSpace.allowedVals:['rgb', 'dkl', 'lms', 'hsv']
+NoiseStimComponent.colorSpace.readOnly:False
+NoiseStimComponent.colorSpace.updates:constant
+NoiseStimComponent.colorSpace.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'rgb', 'hint': u'Choice of color space for the color (rgb, dkl, lms, hsv)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['rgb', 'dkl', 'lms', 'hsv'], 'label': u'Color space', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.colorSpace.__weakref__:None
+NoiseStimComponent.colorSpace.valType:str
+NoiseStimComponent.colorSpace.staticUpdater:None
+NoiseStimComponent.colorSpace.val:rgb
+NoiseStimComponent.colorSpace.allowedTypes:[]
+NoiseStimComponent.colorSpace.hint:Choice of color space for the color (rgb, dkl, lms, hsv)
+NoiseStimComponent.colorSpace.allowedUpdates:None
+NoiseStimComponent.colorSpace.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.colorSpace.label:Color space
+NoiseStimComponent.pos.default:(0, 0)
+NoiseStimComponent.pos.categ:Basic
+NoiseStimComponent.pos.allowedVals:[]
+NoiseStimComponent.pos.readOnly:False
+NoiseStimComponent.pos.updates:constant
+NoiseStimComponent.pos.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': (0, 0), 'hint': u'Position of this stimulus (e.g. [1,2] )', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Position [x,y]', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.pos.__weakref__:None
+NoiseStimComponent.pos.valType:code
+NoiseStimComponent.pos.staticUpdater:None
+NoiseStimComponent.pos.val:(0, 0)
+NoiseStimComponent.pos.allowedTypes:[]
+NoiseStimComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
+NoiseStimComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.pos.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.pos.label:Position [x,y]
+NoiseStimComponent.stopType.default:'duration (s)'
+NoiseStimComponent.stopType.categ:Basic
+NoiseStimComponent.stopType.allowedVals:['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+NoiseStimComponent.stopType.readOnly:False
+NoiseStimComponent.stopType.updates:None
+NoiseStimComponent.stopType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'duration (s)', 'hint': u'How do you want to define your end point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'], 'label': u'stop type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+NoiseStimComponent.stopType.__weakref__:None
+NoiseStimComponent.stopType.valType:str
+NoiseStimComponent.stopType.staticUpdater:None
+NoiseStimComponent.stopType.val:duration (s)
+NoiseStimComponent.stopType.allowedTypes:[]
+NoiseStimComponent.stopType.hint:How do you want to define your end point?
+NoiseStimComponent.stopType.allowedUpdates:None
+NoiseStimComponent.stopType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.stopType.label:stop type
+NoiseStimComponent.blendmode.default:'avg'
+NoiseStimComponent.blendmode.categ:Basic
+NoiseStimComponent.blendmode.allowedVals:[]
+NoiseStimComponent.blendmode.readOnly:False
+NoiseStimComponent.blendmode.updates:constant
+NoiseStimComponent.blendmode.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avg', 'hint': u'OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used if you want to generate the sum of two components)]', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'OpenGL blend mode', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.blendmode.__weakref__:None
+NoiseStimComponent.blendmode.valType:str
+NoiseStimComponent.blendmode.staticUpdater:None
+NoiseStimComponent.blendmode.val:avg
+NoiseStimComponent.blendmode.allowedTypes:[]
+NoiseStimComponent.blendmode.hint:OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used if you want to generate the sum of two components)]
+NoiseStimComponent.blendmode.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.blendmode.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.blendmode.label:OpenGL blend mode
+NoiseStimComponent.noiseBaseSf.default:8.0
+NoiseStimComponent.noiseBaseSf.categ:Gabor/Isotropic
+NoiseStimComponent.noiseBaseSf.allowedVals:[]
+NoiseStimComponent.noiseBaseSf.readOnly:False
+NoiseStimComponent.noiseBaseSf.updates:constant
+NoiseStimComponent.noiseBaseSf.__dict__:{'staticUpdater': None, 'categ': 'Gabor/Isotropic', 'val': 8.0, 'hint': u'Base spatial frequency', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Base spatial frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseBaseSf.__weakref__:None
+NoiseStimComponent.noiseBaseSf.valType:code
+NoiseStimComponent.noiseBaseSf.staticUpdater:None
+NoiseStimComponent.noiseBaseSf.val:8.0
+NoiseStimComponent.noiseBaseSf.allowedTypes:[]
+NoiseStimComponent.noiseBaseSf.hint:Base spatial frequency
+NoiseStimComponent.noiseBaseSf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseBaseSf.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseBaseSf.label:Base spatial frequency
+NoiseStimComponent.startVal.default:0.0
+NoiseStimComponent.startVal.categ:Basic
+NoiseStimComponent.startVal.allowedVals:[]
+NoiseStimComponent.startVal.readOnly:False
+NoiseStimComponent.startVal.updates:None
+NoiseStimComponent.startVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 0.0, 'hint': u'When does the component start?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Start', 'readOnly': False, 'updates': None, 'valType': 'code'}
+NoiseStimComponent.startVal.__weakref__:None
+NoiseStimComponent.startVal.valType:code
+NoiseStimComponent.startVal.staticUpdater:None
+NoiseStimComponent.startVal.val:0.0
+NoiseStimComponent.startVal.allowedTypes:[]
+NoiseStimComponent.startVal.hint:When does the component start?
+NoiseStimComponent.startVal.allowedUpdates:None
+NoiseStimComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.startVal.label:Start
+NoiseStimComponent.size.default:(0.5, 0.5)
+NoiseStimComponent.size.categ:Basic
+NoiseStimComponent.size.allowedVals:[]
+NoiseStimComponent.size.readOnly:False
+NoiseStimComponent.size.updates:constant
+NoiseStimComponent.size.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': (0.5, 0.5), 'hint': u'Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Size [w,h]', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.size.__weakref__:None
+NoiseStimComponent.size.valType:code
+NoiseStimComponent.size.staticUpdater:None
+NoiseStimComponent.size.val:(0.5, 0.5)
+NoiseStimComponent.size.allowedTypes:[]
+NoiseStimComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+NoiseStimComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.size.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.size.label:Size [w,h]
+NoiseStimComponent.noiseClip.default:3.0
+NoiseStimComponent.noiseClip.categ: Noise
+NoiseStimComponent.noiseClip.allowedVals:[]
+NoiseStimComponent.noiseClip.readOnly:False
+NoiseStimComponent.noiseClip.updates:constant
+NoiseStimComponent.noiseClip.__dict__:{'staticUpdater': None, 'categ': ' Noise', 'val': 3.0, 'hint': u'Truncate high and low values beyound stated standard deviations from mean (not used for binary or uniform noise; scales rather than clips normal noise). The higher this is the lower the final RMS contrast. If low noise may appear binary', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Number of standard deviations at which to clip noise', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseClip.__weakref__:None
+NoiseStimComponent.noiseClip.valType:code
+NoiseStimComponent.noiseClip.staticUpdater:None
+NoiseStimComponent.noiseClip.val:3.0
+NoiseStimComponent.noiseClip.allowedTypes:[]
+NoiseStimComponent.noiseClip.hint:Truncate high and low values beyound stated standard deviations from mean (not used for binary or uniform noise; scales rather than clips normal noise). The higher this is the lower the final RMS contrast. If low noise may appear binary
+NoiseStimComponent.noiseClip.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseClip.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseClip.label:Number of standard deviations at which to clip noise
+NoiseStimComponent.noiseImage.default:'None'
+NoiseStimComponent.noiseImage.categ:Image noise
+NoiseStimComponent.noiseImage.allowedVals:[]
+NoiseStimComponent.noiseImage.readOnly:False
+NoiseStimComponent.noiseImage.updates:constant
+NoiseStimComponent.noiseImage.__dict__:{'staticUpdater': None, 'categ': 'Image noise', 'val': 'None', 'hint': u'An image from which to derive the frequency spectrum for the noise. Give filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Image from which to derive noise spectrum', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.noiseImage.__weakref__:None
+NoiseStimComponent.noiseImage.valType:str
+NoiseStimComponent.noiseImage.staticUpdater:None
+NoiseStimComponent.noiseImage.val:None
+NoiseStimComponent.noiseImage.allowedTypes:[]
+NoiseStimComponent.noiseImage.hint:An image from which to derive the frequency spectrum for the noise. Give filename (including path)
+NoiseStimComponent.noiseImage.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseImage.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseImage.label:Image from which to derive noise spectrum
+NoiseStimComponent.noiseNewSample.default:'None'
+NoiseStimComponent.noiseNewSample.categ: Noise
+NoiseStimComponent.noiseNewSample.allowedVals:['None', 'Repeat', 'N-frames', 'Seconds']
+NoiseStimComponent.noiseNewSample.readOnly:False
+NoiseStimComponent.noiseNewSample.updates:constant
+NoiseStimComponent.noiseNewSample.__dict__:{'staticUpdater': None, 'categ': ' Noise', 'val': 'None', 'hint': u'How to update noise if not otherwise required by other changes (none, repeat, N-frames, Seconds)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['None', 'Repeat', 'N-frames', 'Seconds'], 'label': u'How to update noise sample', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.noiseNewSample.__weakref__:None
+NoiseStimComponent.noiseNewSample.valType:str
+NoiseStimComponent.noiseNewSample.staticUpdater:None
+NoiseStimComponent.noiseNewSample.val:None
+NoiseStimComponent.noiseNewSample.allowedTypes:[]
+NoiseStimComponent.noiseNewSample.hint:How to update noise if not otherwise required by other changes (none, repeat, N-frames, Seconds)
+NoiseStimComponent.noiseNewSample.allowedUpdates:[]
+NoiseStimComponent.noiseNewSample.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseNewSample.label:How to update noise sample
+NoiseStimComponent.noiseNewSampleWhen.default:'1'
+NoiseStimComponent.noiseNewSampleWhen.categ: Noise
+NoiseStimComponent.noiseNewSampleWhen.allowedVals:[]
+NoiseStimComponent.noiseNewSampleWhen.readOnly:False
+NoiseStimComponent.noiseNewSampleWhen.updates:constant
+NoiseStimComponent.noiseNewSampleWhen.__dict__:{'staticUpdater': None, 'categ': ' Noise', 'val': '1', 'hint': u'How often to update noise (in frames or seconds) - can be a variable, ignored if any noise characteristic is updating on every frame', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'When to update noise sample', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.noiseNewSampleWhen.__weakref__:None
+NoiseStimComponent.noiseNewSampleWhen.valType:str
+NoiseStimComponent.noiseNewSampleWhen.staticUpdater:None
+NoiseStimComponent.noiseNewSampleWhen.val:1
+NoiseStimComponent.noiseNewSampleWhen.allowedTypes:[]
+NoiseStimComponent.noiseNewSampleWhen.hint:How often to update noise (in frames or seconds) - can be a variable, ignored if any noise characteristic is updating on every frame
+NoiseStimComponent.noiseNewSampleWhen.allowedUpdates:[]
+NoiseStimComponent.noiseNewSampleWhen.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseNewSampleWhen.label:When to update noise sample
+NoiseStimComponent.noiseBWO.default:1
+NoiseStimComponent.noiseBWO.categ:Gabor/Isotropic
+NoiseStimComponent.noiseBWO.allowedVals:[]
+NoiseStimComponent.noiseBWO.readOnly:False
+NoiseStimComponent.noiseBWO.updates:constant
+NoiseStimComponent.noiseBWO.__dict__:{'staticUpdater': None, 'categ': 'Gabor/Isotropic', 'val': 1, 'hint': u'Orientation bandwidth in degrees (Gabor only) - Full width half height', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Orientation bandwidth for Gabor noise', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseBWO.__weakref__:None
+NoiseStimComponent.noiseBWO.valType:code
+NoiseStimComponent.noiseBWO.staticUpdater:None
+NoiseStimComponent.noiseBWO.val:1
+NoiseStimComponent.noiseBWO.allowedTypes:[]
+NoiseStimComponent.noiseBWO.hint:Orientation bandwidth in degrees (Gabor only) - Full width half height
+NoiseStimComponent.noiseBWO.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseBWO.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseBWO.label:Orientation bandwidth for Gabor noise
+NoiseStimComponent.noiseFilterLower.default:1.0
+NoiseStimComponent.noiseFilterLower.categ:Filtered
+NoiseStimComponent.noiseFilterLower.allowedVals:[]
+NoiseStimComponent.noiseFilterLower.readOnly:False
+NoiseStimComponent.noiseFilterLower.updates:constant
+NoiseStimComponent.noiseFilterLower.__dict__:{'staticUpdater': None, 'categ': 'Filtered', 'val': 1.0, 'hint': u'Lower cutoff frequency', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Lower cut off frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseFilterLower.__weakref__:None
+NoiseStimComponent.noiseFilterLower.valType:code
+NoiseStimComponent.noiseFilterLower.staticUpdater:None
+NoiseStimComponent.noiseFilterLower.val:1.0
+NoiseStimComponent.noiseFilterLower.allowedTypes:[]
+NoiseStimComponent.noiseFilterLower.hint:Lower cutoff frequency
+NoiseStimComponent.noiseFilterLower.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseFilterLower.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseFilterLower.label:Lower cut off frequency
+NoiseStimComponent.units.default:'from exp settings'
+NoiseStimComponent.units.categ:Basic
+NoiseStimComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
+NoiseStimComponent.units.readOnly:False
+NoiseStimComponent.units.updates:None
+NoiseStimComponent.units.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'from exp settings', 'hint': u'Units of dimensions for this stimulus', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat'], 'label': u'Units', 'readOnly': False, 'updates': None, 'valType': 'str'}
+NoiseStimComponent.units.__weakref__:None
+NoiseStimComponent.units.valType:str
+NoiseStimComponent.units.staticUpdater:None
+NoiseStimComponent.units.val:from exp settings
+NoiseStimComponent.units.allowedTypes:[]
+NoiseStimComponent.units.hint:Units of dimensions for this stimulus
+NoiseStimComponent.units.allowedUpdates:None
+NoiseStimComponent.units.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.units.label:Units
+NoiseStimComponent.contrast.default:1.0
+NoiseStimComponent.contrast.categ:Advanced
+NoiseStimComponent.contrast.allowedVals:[]
+NoiseStimComponent.contrast.readOnly:False
+NoiseStimComponent.contrast.updates:constant
+NoiseStimComponent.contrast.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 1.0, 'hint': u'Michaelson contrast of the image', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Contrast', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.contrast.__weakref__:None
+NoiseStimComponent.contrast.valType:code
+NoiseStimComponent.contrast.staticUpdater:None
+NoiseStimComponent.contrast.val:1.0
+NoiseStimComponent.contrast.allowedTypes:[]
+NoiseStimComponent.contrast.hint:Michaelson contrast of the image
+NoiseStimComponent.contrast.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.contrast.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.contrast.label:Contrast
+NoiseStimComponent.opacity.default:1
+NoiseStimComponent.opacity.categ:Basic
+NoiseStimComponent.opacity.allowedVals:[]
+NoiseStimComponent.opacity.readOnly:False
+NoiseStimComponent.opacity.updates:constant
+NoiseStimComponent.opacity.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 1, 'hint': u'Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Opacity', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.opacity.__weakref__:None
+NoiseStimComponent.opacity.valType:code
+NoiseStimComponent.opacity.staticUpdater:None
+NoiseStimComponent.opacity.val:1
+NoiseStimComponent.opacity.allowedTypes:[]
+NoiseStimComponent.opacity.hint:Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+NoiseStimComponent.opacity.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.opacity.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.opacity.label:Opacity
+NoiseStimComponent.stopVal.default:1.0
+NoiseStimComponent.stopVal.categ:Basic
+NoiseStimComponent.stopVal.allowedVals:[]
+NoiseStimComponent.stopVal.readOnly:False
+NoiseStimComponent.stopVal.updates:constant
+NoiseStimComponent.stopVal.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 1.0, 'hint': u'When does the component end? (blank is endless)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Stop', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.stopVal.__weakref__:None
+NoiseStimComponent.stopVal.valType:code
+NoiseStimComponent.stopVal.staticUpdater:None
+NoiseStimComponent.stopVal.val:1.0
+NoiseStimComponent.stopVal.allowedTypes:[]
+NoiseStimComponent.stopVal.hint:When does the component end? (blank is endless)
+NoiseStimComponent.stopVal.allowedUpdates:[]
+NoiseStimComponent.stopVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.stopVal.label:Stop
+NoiseStimComponent.durationEstim.default:
+NoiseStimComponent.durationEstim.categ:Basic
+NoiseStimComponent.durationEstim.allowedVals:[]
+NoiseStimComponent.durationEstim.readOnly:False
+NoiseStimComponent.durationEstim.updates:None
+NoiseStimComponent.durationEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected duration (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected duration (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+NoiseStimComponent.durationEstim.__weakref__:None
+NoiseStimComponent.durationEstim.valType:code
+NoiseStimComponent.durationEstim.staticUpdater:None
+NoiseStimComponent.durationEstim.val:
+NoiseStimComponent.durationEstim.allowedTypes:[]
+NoiseStimComponent.durationEstim.hint:(Optional) expected duration (s), purely for representing in the timeline
+NoiseStimComponent.durationEstim.allowedUpdates:None
+NoiseStimComponent.durationEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.durationEstim.label:Expected duration (s)
+NoiseStimComponent.interpolate.default:'nearest'
+NoiseStimComponent.interpolate.categ:Advanced
+NoiseStimComponent.interpolate.allowedVals:['linear', 'nearest']
+NoiseStimComponent.interpolate.readOnly:False
+NoiseStimComponent.interpolate.updates:constant
+NoiseStimComponent.interpolate.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'nearest', 'hint': u'How should the image be interpolated if/when rescaled', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['linear', 'nearest'], 'label': u'Interpolate', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.interpolate.__weakref__:None
+NoiseStimComponent.interpolate.valType:str
+NoiseStimComponent.interpolate.staticUpdater:None
+NoiseStimComponent.interpolate.val:nearest
+NoiseStimComponent.interpolate.allowedTypes:[]
+NoiseStimComponent.interpolate.hint:How should the image be interpolated if/when rescaled
+NoiseStimComponent.interpolate.allowedUpdates:[]
+NoiseStimComponent.interpolate.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.interpolate.label:Interpolate
+NoiseStimComponent.startEstim.default:
+NoiseStimComponent.startEstim.categ:Basic
+NoiseStimComponent.startEstim.allowedVals:[]
+NoiseStimComponent.startEstim.readOnly:False
+NoiseStimComponent.startEstim.updates:None
+NoiseStimComponent.startEstim.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u'(Optional) expected start (s), purely for representing in the timeline', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Expected start (s)', 'readOnly': False, 'updates': None, 'valType': 'code'}
+NoiseStimComponent.startEstim.__weakref__:None
+NoiseStimComponent.startEstim.valType:code
+NoiseStimComponent.startEstim.staticUpdater:None
+NoiseStimComponent.startEstim.val:
+NoiseStimComponent.startEstim.allowedTypes:[]
+NoiseStimComponent.startEstim.hint:(Optional) expected start (s), purely for representing in the timeline
+NoiseStimComponent.startEstim.allowedUpdates:None
+NoiseStimComponent.startEstim.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.startEstim.label:Expected start (s)
+NoiseStimComponent.startType.default:'time (s)'
+NoiseStimComponent.startType.categ:Basic
+NoiseStimComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
+NoiseStimComponent.startType.readOnly:False
+NoiseStimComponent.startType.updates:None
+NoiseStimComponent.startType.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'time (s)', 'hint': u'How do you want to define your start point?', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['time (s)', 'frame N', 'condition'], 'label': u'start type', 'readOnly': False, 'updates': None, 'valType': 'str'}
+NoiseStimComponent.startType.__weakref__:None
+NoiseStimComponent.startType.valType:str
+NoiseStimComponent.startType.staticUpdater:None
+NoiseStimComponent.startType.val:time (s)
+NoiseStimComponent.startType.allowedTypes:[]
+NoiseStimComponent.startType.hint:How do you want to define your start point?
+NoiseStimComponent.startType.allowedUpdates:None
+NoiseStimComponent.startType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.startType.label:start type
+NoiseStimComponent.ori.default:0
+NoiseStimComponent.ori.categ:Advanced
+NoiseStimComponent.ori.allowedVals:[]
+NoiseStimComponent.ori.readOnly:False
+NoiseStimComponent.ori.updates:constant
+NoiseStimComponent.ori.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 0, 'hint': u'Orientation of this stimulus (in deg)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Orientation', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.ori.__weakref__:None
+NoiseStimComponent.ori.valType:code
+NoiseStimComponent.ori.staticUpdater:None
+NoiseStimComponent.ori.val:0
+NoiseStimComponent.ori.allowedTypes:[]
+NoiseStimComponent.ori.hint:Orientation of this stimulus (in deg)
+NoiseStimComponent.ori.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.ori.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.ori.label:Orientation
+NoiseStimComponent.phase.default:0.0
+NoiseStimComponent.phase.categ:Advanced
+NoiseStimComponent.phase.allowedVals:[]
+NoiseStimComponent.phase.readOnly:False
+NoiseStimComponent.phase.updates:constant
+NoiseStimComponent.phase.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 0.0, 'hint': u'Spatial positioning of the image  (wraps in range 0-1.0)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Phase (in cycles)', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.phase.__weakref__:None
+NoiseStimComponent.phase.valType:code
+NoiseStimComponent.phase.staticUpdater:None
+NoiseStimComponent.phase.val:0.0
+NoiseStimComponent.phase.allowedTypes:[]
+NoiseStimComponent.phase.hint:Spatial positioning of the image  (wraps in range 0-1.0)
+NoiseStimComponent.phase.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.phase.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.phase.label:Phase (in cycles)
+NoiseStimComponent.noiseFilterOrder.default:1.0
+NoiseStimComponent.noiseFilterOrder.categ:Filtered
+NoiseStimComponent.noiseFilterOrder.allowedVals:[]
+NoiseStimComponent.noiseFilterOrder.readOnly:False
+NoiseStimComponent.noiseFilterOrder.updates:constant
+NoiseStimComponent.noiseFilterOrder.__dict__:{'staticUpdater': None, 'categ': 'Filtered', 'val': 1.0, 'hint': u'Order of filter - higher = steeper fall off, zero = no filter', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Order of filter', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseFilterOrder.__weakref__:None
+NoiseStimComponent.noiseFilterOrder.valType:code
+NoiseStimComponent.noiseFilterOrder.staticUpdater:None
+NoiseStimComponent.noiseFilterOrder.val:1.0
+NoiseStimComponent.noiseFilterOrder.allowedTypes:[]
+NoiseStimComponent.noiseFilterOrder.hint:Order of filter - higher = steeper fall off, zero = no filter
+NoiseStimComponent.noiseFilterOrder.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseFilterOrder.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseFilterOrder.label:Order of filter
+NoiseStimComponent.noiseBW.default:1
+NoiseStimComponent.noiseBW.categ:Gabor/Isotropic
+NoiseStimComponent.noiseBW.allowedVals:[]
+NoiseStimComponent.noiseBW.readOnly:False
+NoiseStimComponent.noiseBW.updates:constant
+NoiseStimComponent.noiseBW.__dict__:{'staticUpdater': None, 'categ': 'Gabor/Isotropic', 'val': 1, 'hint': u'Spatial frequency bandwidth in octaves - Full width half height', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Spatial frequency bandwidth', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseBW.__weakref__:None
+NoiseStimComponent.noiseBW.valType:code
+NoiseStimComponent.noiseBW.staticUpdater:None
+NoiseStimComponent.noiseBW.val:1
+NoiseStimComponent.noiseBW.allowedTypes:[]
+NoiseStimComponent.noiseBW.hint:Spatial frequency bandwidth in octaves - Full width half height
+NoiseStimComponent.noiseBW.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseBW.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseBW.label:Spatial frequency bandwidth
+NoiseStimComponent.texture resolution.default:128
+NoiseStimComponent.texture resolution.categ:Advanced
+NoiseStimComponent.texture resolution.allowedVals:['32', '64', '128', '256', '512']
+NoiseStimComponent.texture resolution.readOnly:False
+NoiseStimComponent.texture resolution.updates:constant
+NoiseStimComponent.texture resolution.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': '128', 'hint': u'Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['32', '64', '128', '256', '512'], 'label': u'Texture resolution', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.texture resolution.__weakref__:None
+NoiseStimComponent.texture resolution.valType:code
+NoiseStimComponent.texture resolution.staticUpdater:None
+NoiseStimComponent.texture resolution.val:128
+NoiseStimComponent.texture resolution.allowedTypes:[]
+NoiseStimComponent.texture resolution.hint:Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice
+NoiseStimComponent.texture resolution.allowedUpdates:[]
+NoiseStimComponent.texture resolution.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.texture resolution.label:Texture resolution
+NoiseStimComponent.name.default:noise
+NoiseStimComponent.name.categ:Basic
+NoiseStimComponent.name.allowedVals:[]
+NoiseStimComponent.name.readOnly:False
+NoiseStimComponent.name.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'noise', 'hint': u'Name of this component (alpha-numeric or _, no spaces)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': u'Name', 'readOnly': False, 'updates': None, 'valType': 'code'}
+NoiseStimComponent.name.__weakref__:None
+NoiseStimComponent.name.valType:code
+NoiseStimComponent.name.staticUpdater:None
+NoiseStimComponent.name.val:noise
+NoiseStimComponent.name.allowedTypes:[]
+NoiseStimComponent.name.hint:Name of this component (alpha-numeric or _, no spaces)
+NoiseStimComponent.name.allowedUpdates:None
+NoiseStimComponent.name.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.name.label:Name
+NoiseStimComponent.noiseElementSize.default:2
+NoiseStimComponent.noiseElementSize.categ:Binary/Normal/Uniform
+NoiseStimComponent.noiseElementSize.allowedVals:[]
+NoiseStimComponent.noiseElementSize.readOnly:False
+NoiseStimComponent.noiseElementSize.updates:constant
+NoiseStimComponent.noiseElementSize.__dict__:{'staticUpdater': None, 'categ': 'Binary/Normal/Uniform', 'val': 2, 'hint': u'(Binary, Normal an Uniform only) Size of noise elements', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Noise element size for pixelated noise', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseElementSize.__weakref__:None
+NoiseStimComponent.noiseElementSize.valType:code
+NoiseStimComponent.noiseElementSize.staticUpdater:None
+NoiseStimComponent.noiseElementSize.val:2
+NoiseStimComponent.noiseElementSize.allowedTypes:[]
+NoiseStimComponent.noiseElementSize.hint:(Binary, Normal an Uniform only) Size of noise elements
+NoiseStimComponent.noiseElementSize.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseElementSize.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseElementSize.label:Noise element size for pixelated noise
+NoiseStimComponent.mask.default:'None'
+NoiseStimComponent.mask.categ:Advanced
+NoiseStimComponent.mask.allowedVals:[]
+NoiseStimComponent.mask.readOnly:False
+NoiseStimComponent.mask.updates:constant
+NoiseStimComponent.mask.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'None', 'hint': u'An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Mask', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.mask.__weakref__:None
+NoiseStimComponent.mask.valType:str
+NoiseStimComponent.mask.staticUpdater:None
+NoiseStimComponent.mask.val:None
+NoiseStimComponent.mask.allowedTypes:[]
+NoiseStimComponent.mask.hint:An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)
+NoiseStimComponent.mask.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.mask.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.mask.label:Mask
+NoiseStimComponent.noiseFractalPower.default:-1
+NoiseStimComponent.noiseFractalPower.categ:Filtered
+NoiseStimComponent.noiseFractalPower.allowedVals:[]
+NoiseStimComponent.noiseFractalPower.readOnly:False
+NoiseStimComponent.noiseFractalPower.updates:constant
+NoiseStimComponent.noiseFractalPower.__dict__:{'staticUpdater': None, 'categ': 'Filtered', 'val': -1, 'hint': u"Exponent for spectral slope (A=f^Exponent) of noise negative exponents look nice. -1='pink noise', 1='white noise' (changes the spatial frequency spectrum - does not make the noise colourful)", 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Skew in frequency spectrum', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.noiseFractalPower.__weakref__:None
+NoiseStimComponent.noiseFractalPower.valType:code
+NoiseStimComponent.noiseFractalPower.staticUpdater:None
+NoiseStimComponent.noiseFractalPower.val:-1
+NoiseStimComponent.noiseFractalPower.allowedTypes:[]
+NoiseStimComponent.noiseFractalPower.hint:Exponent for spectral slope (A=f^Exponent) of noise negative exponents look nice. -1='pink noise', 1='white noise' (changes the spatial frequency spectrum - does not make the noise colourful)
+NoiseStimComponent.noiseFractalPower.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.noiseFractalPower.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseFractalPower.label:Skew in frequency spectrum
+NoiseStimComponent.sf.default:None
+NoiseStimComponent.sf.categ:Advanced
+NoiseStimComponent.sf.allowedVals:[]
+NoiseStimComponent.sf.readOnly:False
+NoiseStimComponent.sf.updates:constant
+NoiseStimComponent.sf.__dict__:{'staticUpdater': None, 'categ': 'Advanced', 'val': 'None', 'hint': u'Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3] use None to set to 1 cycle per unit length or 1 cycle per image if units=pix', 'allowedTypes': [], 'allowedUpdates': ['constant', 'set every repeat', 'set every frame'], 'allowedVals': [], 'label': u'Final spatial frequency', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+NoiseStimComponent.sf.__weakref__:None
+NoiseStimComponent.sf.valType:code
+NoiseStimComponent.sf.staticUpdater:None
+NoiseStimComponent.sf.val:None
+NoiseStimComponent.sf.allowedTypes:[]
+NoiseStimComponent.sf.hint:Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3] use None to set to 1 cycle per unit length or 1 cycle per image if units=pix
+NoiseStimComponent.sf.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+NoiseStimComponent.sf.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.sf.label:Final spatial frequency
+NoiseStimComponent.noiseType.default:'Binary'
+NoiseStimComponent.noiseType.categ: Noise
+NoiseStimComponent.noiseType.allowedVals:['Binary', 'Normal', 'Uniform', 'Gabor', 'Isotropic', 'White', 'Filtered', 'Image']
+NoiseStimComponent.noiseType.readOnly:False
+NoiseStimComponent.noiseType.updates:constant
+NoiseStimComponent.noiseType.__dict__:{'staticUpdater': None, 'categ': ' Noise', 'val': 'Binary', 'hint': u'Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, Image)', 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': ['Binary', 'Normal', 'Uniform', 'Gabor', 'Isotropic', 'White', 'Filtered', 'Image'], 'label': u'Type of noise', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+NoiseStimComponent.noiseType.__weakref__:None
+NoiseStimComponent.noiseType.valType:str
+NoiseStimComponent.noiseType.staticUpdater:None
+NoiseStimComponent.noiseType.val:Binary
+NoiseStimComponent.noiseType.allowedTypes:[]
+NoiseStimComponent.noiseType.hint:Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, Image)
+NoiseStimComponent.noiseType.allowedUpdates:[]
+NoiseStimComponent.noiseType.__class__:<class 'psychopy.app.builder.experiment.Param'>
+NoiseStimComponent.noiseType.label:Type of noise
 ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.name.default:p_port
 ParallelOutComponent.name.label:Name
