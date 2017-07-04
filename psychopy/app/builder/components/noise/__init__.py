@@ -43,7 +43,7 @@ class NoiseStimComponent(BaseVisualComponent):
                  mask='None', sf='None', interpolate='nearest',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
                  pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, contrast=1.0, texRes='128',
-                 noiseType='Binary',noiseElementSize=2,noiseBaseSf=8.0,noiseBW=1,noise_BWO=30,noiseFractalPower=-1,noiseFilterOrder=1.0,noiseFilterUpper=8.0,noiseFilterLower=1.0,noiseClip=3.0, noiseNewSample='None', noiseNewSampleWhen='1',
+                 noiseType='Binary',noiseElementSize=2,noiseBaseSf=8.0,noiseBW=1,noise_BWO=30,noiseFractalPower=0.0,noiseFilterOrder=0.0,noiseFilterUpper=8.0,noiseFilterLower=1.0,noiseClip=3.0, noiseNewSample='None', noiseNewSampleWhen='1',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,blendmode='avg',
                  startEstim='', durationEstim=''):
@@ -175,7 +175,7 @@ class NoiseStimComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['noiseBWO'], categ="Gabor/Isotropic")
          
-        msg = _translate("Exponent for spectral slope (A=f^Exponent) of noise negative exponents look nice. -1='pink noise', 1='white noise' (changes the spatial frequency spectrum - does not make the noise colourful)")
+        msg = _translate("Exponent for spectral slope (A=f^Exponent) of noise negative exponents look nice. -1='pink noise', 0='white noise' (changes the spatial frequency spectrum - does not make the noise colourful)")
         self.params['noiseFractalPower'] = Param(
             noiseFractalPower, valType='code', allowedTypes=[],
             updates='constant',
