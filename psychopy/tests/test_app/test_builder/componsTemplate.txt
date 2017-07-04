@@ -2402,7 +2402,7 @@ NoiseStimComponent.phase.hint:Spatial positioning of the image  (wraps in range 
 NoiseStimComponent.phase.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.phase.__class__:<class 'psychopy.app.builder.experiment.Param'>
 NoiseStimComponent.phase.label:Phase (in cycles)
-NoiseStimComponent.noiseFilterOrder.default:1.0
+NoiseStimComponent.noiseFilterOrder.default:0.0
 NoiseStimComponent.noiseFilterOrder.categ:Filtered
 NoiseStimComponent.noiseFilterOrder.allowedVals:[]
 NoiseStimComponent.noiseFilterOrder.readOnly:False
@@ -2491,7 +2491,7 @@ NoiseStimComponent.mask.hint:An image to define the alpha mask (ie shape)- gauss
 NoiseStimComponent.mask.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.mask.__class__:<class 'psychopy.app.builder.experiment.Param'>
 NoiseStimComponent.mask.label:Mask
-NoiseStimComponent.noiseFractalPower.default:-1
+NoiseStimComponent.noiseFractalPower.default:0.0
 NoiseStimComponent.noiseFractalPower.categ:Filtered
 NoiseStimComponent.noiseFractalPower.allowedVals:[]
 NoiseStimComponent.noiseFractalPower.readOnly:False
