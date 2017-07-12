@@ -118,6 +118,48 @@ class _baseVisualTest(object):
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
+    def test_noiseAndRaisedCos(self):
+        numpy.random.seed(1)
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        tres=128
+        elementsize=4
+        sf=None
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimagegray.jpg')
+        if win.units in ['pix']:
+            ntype='Binary'
+            size = numpy.array([128,128])
+        elif win.units in ['degFlatPos']:
+            ntype='Gabor'
+            sf=0.125
+        elif win.units in ['degFlat']:
+            ntype='Isotropic'
+            sf=0.125
+        elif win.units in ['deg']:
+            ntype='Filtered'
+            sf=0.125
+        elif win.units in ['cm']:
+            ntype='Image'
+            sf=0.25
+        else:
+            if self.contextName=='stencil':
+                ntype='White'
+            elif self.contextName=='height':
+                ntype='Uniform'
+            else:
+                ntype='Normal'
+            elementsize=1.0/8.0
+        image  = visual.NoiseStim(win=win, name='noise',units=win.units, 
+            noiseImage=fileName, mask='raisedCos',
+            ori=0, pos=(0, 0), size=size, sf=sf, phase=0,
+            color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=0.5,
+            texRes=tres,
+            noiseType=ntype, noiseElementSize=elementsize, noiseBaseSf=32.0/size[0],
+            noiseBW=0.5, noiseBWO=7, noiseFractalPower=-1,noiseFilterLower=4.0/size[0], noiseFilterUpper=16.0/size[0], noiseFilterOrder=1, noiseClip=4.0, interpolate=False, depth=-1.0)
+        image.draw()
+        utils.compareScreenshot('noiseAndRcos_%s.png' %(self.contextName), win)
+        win.flip()
+        str(image)        
     def test_envelopeBeatAndRaisedCos(self):
         win = self.win
         size = numpy.array([2.0,2.0])*self.scaleFactor
