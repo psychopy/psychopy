@@ -77,6 +77,7 @@ class ParallelOutComponent(BaseComponent):
         if self.params['address'].val == 'LabJack U3':
             code = ("from psychopy.hardware import labjacks\n"
                     "%(name)s = labjacks.U3()\n"
+                    "%(name)s.status = None\n"
                     % self.params)
             buff.writeIndentedLines(code)
         else:
