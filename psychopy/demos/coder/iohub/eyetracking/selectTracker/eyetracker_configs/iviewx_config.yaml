@@ -32,7 +32,7 @@ monitor_devices:
             # IP address of local computer
             receive_ip_address: 127.0.0.1
             # port being used by iView X SDK for receiving data from iView X
-            receive_port: 5555	            
+            receive_port: 5555
         runtime_settings:
             # The iViewX supports, dependent on 
             # model and mode, sampling rates of 50, 60, 120, 240, 200, 250, 350, 500, and 1250 Hz
