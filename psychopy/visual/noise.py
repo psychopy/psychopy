@@ -25,7 +25,6 @@ try:
     from PIL import Image
 except ImportError:
     import Image
-import cmath
 import psychopy  # so we can get the __path__
 from psychopy import logging
 from psychopy.visual import filters
