@@ -227,7 +227,7 @@ class NoiseStim(GratingStim):
         self.buildNoise()
         self._needBuild = False
         #self._needNoiseUpdate = False
-        #print self.noiseElementSize
+        #print(self.noiseElementSize)
 
     @attributeSetter
     def noiseType(self, value):
@@ -372,7 +372,6 @@ class NoiseStim(GratingStim):
         self._set('noiseType', value, log=log)
         
     def setNoiseImage(self, value, log=None):
-        print value
         self._set('noiseImage', value, log=log)
         
     def setNoiseClip(self, value, log=None):
@@ -411,7 +410,6 @@ class NoiseStim(GratingStim):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #print 'draw noise'
         if win is None:
             win = self.win
         saveBlendMode=win.blendMode
