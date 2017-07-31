@@ -2299,7 +2299,6 @@ class CoderFrame(wx.Frame):
                 dlg = dialogs.MessageDialog(self, message=msg % basefile,
                                             type='Warning')
                 if dlg.ShowModal() != wx.ID_YES:
-                    print("'Save' was canceled.")
                     failToSave = True
                 try:
                     dlg.destroy()

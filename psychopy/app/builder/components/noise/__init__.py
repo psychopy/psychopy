@@ -272,7 +272,6 @@ class NoiseStimComponent(BaseVisualComponent):
             self._forceUpdateFrames = True
         elif inits['noiseNewSample'].val in ['Seconds']:
             self._forceUpdateSeconds = True
-        print 'repeat', self._forceUpdateRepeat, 'frames', self._forceUpdateFrames, 'seconds' , self._forceUpdateSeconds
         #self._when=float(inits['Z_when'].val)
         #print self._when
 
