@@ -1682,7 +1682,7 @@ class CoderFrame(wx.Frame):
                                    _translate("&Indentation guides\t%s") % key,
                                    hint)
         self.indentGuideChk.Check(self.appData['showIndentGuides'])
-        wx.EVT_MENU(self, item.GetId(),
+        wx.EVT_MENU(self, self.indentGuideChk.GetId(),
                     self.setShowIndentGuides)
         # whitespace
         key = keyCodes['toggleWhitespace']
@@ -1691,7 +1691,7 @@ class CoderFrame(wx.Frame):
                                    _translate("&Whitespace\t%s") % key,
                                    hint)
         self.showWhitespaceChk.Check(self.appData['showWhitespace'])
-        wx.EVT_MENU(self, item.GetId(), self.setShowWhitespace)
+        wx.EVT_MENU(self, self.showWhitespaceChk.GetId(), self.setShowWhitespace)
         # EOL markers
         key = keyCodes['toggleEOLs']
         hint = _translate("Show End Of Line markers in the code")
