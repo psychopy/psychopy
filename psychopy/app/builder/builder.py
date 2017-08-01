@@ -202,7 +202,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         for item in self.contextMenuItems:
             id = self.contextIDFromItem[item]
             menu.Append(id, self.contextMenuLabels[item])
-            wx.EVT_MENU(menu, id, self.onContextSelect)
+            menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
         self.frame.PopupMenu(menu, xy)
         menu.Destroy()  # destroy to avoid mem leak
 
@@ -829,7 +829,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         menu = wx.Menu()
         id = wx.NewId()
         menu.Append(id, _localized[msg])
-        wx.EVT_MENU(menu, id, function)
+        menu.Bind(wx.EVT_MENU, function, id=id)
         # where to put the context menu
         x, y = evt.GetPosition()  # this is position relative to object
         xBtn, yBtn = evt.GetEventObject().GetPosition()
@@ -1241,13 +1241,13 @@ class BuilderFrame(wx.Frame):
             wx.ID_CLOSE,
             _translate("&Close file\t%s") % keys['close'],
             _translate("Close current experiment"))
-        wx.EVT_MENU(self, wx.ID_NEW, self.app.newBuilderFrame)
-        wx.EVT_MENU(self, exportMenu.GetId(), self.fileExport)
-        wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
+        self.Bind(wx.EVT_MENU, self.app.newBuilderFrame, id=wx.ID_NEW)
+        self.Bind(wx.EVT_MENU, self.fileExport, id=exportMenu.GetId())
+        self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
         menu.Enable(wx.ID_SAVE, False)
-        wx.EVT_MENU(self, wx.ID_SAVEAS, self.fileSaveAs)
-        wx.EVT_MENU(self, wx.ID_OPEN, self.fileOpen)
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.commandCloseFrame)
+        self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
+        self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.commandCloseFrame, id=wx.ID_CLOSE)
         item = menu.Append(
             wx.ID_PREFERENCES,
             _translate("&Preferences\t%s") % keys['preferences'])
@@ -1257,7 +1257,7 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Append(wx.ID_EXIT,
                              _translate("&Quit\t%s") % keys['quit'],
                              _translate("Terminate the program"))
-        wx.EVT_MENU(self, wx.ID_EXIT, self.quit)
+        self.Bind(wx.EVT_MENU, self.quit, id=wx.ID_EXIT)
 
         # ------------- edit ------------------------------------
         self.editMenu = wx.Menu()
@@ -1267,14 +1267,14 @@ class BuilderFrame(wx.Frame):
                                       _translate("Undo\t%s") % keys['undo'],
                                       _translate("Undo last action"),
                                       wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, wx.ID_UNDO, self.undo)
+        self.Bind(wx.EVT_MENU, self.undo, id=wx.ID_UNDO)
         self._redoLabel = menu.Append(wx.ID_REDO,
                                       _translate("Redo\t%s") % keys['redo'],
                                       _translate("Redo last action"),
                                       wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, wx.ID_REDO, self.redo)
+        self.Bind(wx.EVT_MENU, self.redo, id=wx.ID_REDO)
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keys['paste'])
-        wx.EVT_MENU(self, wx.ID_PASTE, self.paste)
+        self.Bind(wx.EVT_MENU, self.paste, id=wx.ID_PASTE)
 
         # ---_tools ---#000000#FFFFFF-----------------------------------------
         self.toolsMenu = wx.Menu()
@@ -1283,34 +1283,33 @@ class BuilderFrame(wx.Frame):
         item = menu.Append(wx.ID_ANY,
                            _translate("Monitor Center"),
                            _translate("To set information about your monitor"))
-        wx.EVT_MENU(self, item.GetId(), self.app.openMonitorCenter)
+        self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, id=item.GetId())
 
         item =  menu.Append(wx.ID_ANY,
                            _translate("Compile\t%s") % keys['compileScript'],
                            _translate("Compile the exp to a script"))
-        wx.EVT_MENU(self, item.GetId(), self.compileScript)
+        self.Bind(wx.EVT_MENU, self.compileScript, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                     _translate("Run\t%s") % keys['runScript'],
                     _translate("Run the current script"))
-        wx.EVT_MENU(self, item.GetId(), self.runFile)
+        self.Bind(wx.EVT_MENU, self.runFile, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("Stop\t%s") % keys['stopScript'],
                            _translate("Abort the current script"))
-        wx.EVT_MENU(self, item.GetId(), self.stopFile)
+        self.Bind(wx.EVT_MENU, self.stopFile, id=item.GetId())
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
                            _translate("PsychoPy updates..."),
                            _translate("Update PsychoPy to the latest, or a "
                                "specific, version"))
-        wx.EVT_MENU(self, item.GetId(), self.app.openUpdater)
+        self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
         if hasattr(self.app, 'benchmarkWizard'):
             item = menu.Append(wx.ID_ANY,
                                _translate("Benchmark wizard"),
                                _translate("Check software & hardware, generate "
                                    "report"))
-            wx.EVT_MENU(self, item.GetId(),
-                        self.app.benchmarkWizard)
+            self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
 
         # ---_view---#000000#FFFFFF-------------------------------------------
         self.viewMenu = wx.Menu()
@@ -1320,36 +1319,32 @@ class BuilderFrame(wx.Frame):
                            _translate("&Open Coder view\t%s") %
                                keys['switchToCoder'],
                            _translate("Open a new Coder view"))
-        wx.EVT_MENU(self, item.GetId(), self.app.showCoder)
+        self.Bind(wx.EVT_MENU, self.app.showCoder, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") %
                                       self.app.keys['toggleReadme'],
                            _translate("Toggle Readme"))
-        wx.EVT_MENU(self, item.GetId(), self.toggleReadme)
+        self.Bind(wx.EVT_MENU, self.toggleReadme, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("&Flow Larger\t%s") %
                                       self.app.keys['largerFlow'],
                            _translate("Larger flow items"))
-        wx.EVT_MENU(self, item.GetId(),
-                    self.flowPanel.increaseSize)
+        self.Bind(wx.EVT_MENU, self.flowPanel.increaseSize, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("&Flow Smaller\t%s") %
                                       self.app.keys['smallerFlow'],
                            _translate("Smaller flow items"))
-        wx.EVT_MENU(self, item.GetId(),
-                    self.flowPanel.decreaseSize)
+        self.Bind(wx.EVT_MENU, self.flowPanel.decreaseSize, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("&Routine Larger\t%s") %
                                       keys['largerRoutine'],
                            _translate("Larger routine items"))
-        wx.EVT_MENU(self, item.GetId(),
-                    self.routinePanel.increaseSize)
+        self.Bind(wx.EVT_MENU, self.routinePanel.increaseSize, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("&Routine Smaller\t%s") %
                                       keys['smallerRoutine'],
                            _translate("Smaller routine items"))
-        wx.EVT_MENU(self, item.GetId(),
-                    self.routinePanel.decreaseSize)
+        self.Bind(wx.EVT_MENU, self.routinePanel.decreaseSize, id=item.GetId())
 
         # ---_experiment---#000000#FFFFFF-------------------------------------
         self.expMenu = wx.Menu()
@@ -1360,42 +1355,41 @@ class BuilderFrame(wx.Frame):
                                       keys['newRoutine'],
                            _translate("Create a new routine (e.g. the trial "
                                       "definition)"))
-        wx.EVT_MENU(self, item.GetId(), self.addRoutine)
+        self.Bind(wx.EVT_MENU, self.addRoutine, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                            _translate("&Copy Routine\t%s") %
                                       keys['copyRoutine'],
                            _translate("Copy the current routine so it can be "
                                       "used in another exp"),
                            wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, item.GetId(), self.onCopyRoutine)
+        self.Bind(wx.EVT_MENU, self.onCopyRoutine, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                     _translate("&Paste Routine\t%s") % keys['pasteRoutine'],
                     _translate("Paste the Routine into the current "
                                "experiment"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, item.GetId(), self.onPasteRoutine)
+        self.Bind(wx.EVT_MENU, self.onPasteRoutine, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                     _translate("&Rename Routine\t%s") % keys['renameRoutine'],
                     _translate("Change the name of this routine"))
-        wx.EVT_MENU(self, item.GetId(), self.renameRoutine)
+        self.Bind(wx.EVT_MENU, self.renameRoutine, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                     _translate("Paste Component\t%s") % keys['pasteCompon'],
                     _translate("Paste the Component at bottom of the current "
                                "Routine"),
                     wx.ITEM_NORMAL)
-        wx.EVT_MENU(self, item.GetId(), self.onPasteCompon)
+        self.Bind(wx.EVT_MENU, self.onPasteCompon, id=item.GetId())
         menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                     _translate("Insert Routine in Flow"),
                     _translate("Select one of your routines to be inserted"
                                " into the experiment flow"))
-        wx.EVT_MENU(self, item.GetId(),
-                    self.flowPanel.onInsertRoutine)
+        self.Bind(wx.EVT_MENU, self.flowPanel.onInsertRoutine, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
                     _translate("Insert Loop in Flow"),
                     _translate("Create a new loop in your flow window"))
-        wx.EVT_MENU(self, item.GetId(), self.flowPanel.insertLoop)
+        self.Bind(wx.EVT_MENU, self.flowPanel.insertLoop, id=item.GetId())
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         # for demos we need a dict where the event ID will correspond to a
@@ -1408,7 +1402,7 @@ class BuilderFrame(wx.Frame):
                     _translate("&Unpack Demos..."),
                     _translate("Unpack demos to a writable location (so that"
                                " they can be run)"))
-        wx.EVT_MENU(self, item.GetId(), self.demosUnpack)
+        self.Bind(wx.EVT_MENU, self.demosUnpack, id=item.GetId())
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
@@ -1425,19 +1419,19 @@ class BuilderFrame(wx.Frame):
         item = menu.Append(wx.ID_ANY,
                     _translate("&PsychoPy Homepage"),
                     _translate("Go to the PsychoPy homepage"))
-        wx.EVT_MENU(self, item.GetId(), self.app.followLink)
+        self.Bind(wx.EVT_MENU, self.app.followLink, id=item.GetId())
         self.app.urls[item.GetId()] = self.app.urls['psychopyHome']
         item = menu.Append(wx.ID_ANY,
                     _translate("&PsychoPy Builder Help"),
                     _translate("Go to the online documentation for PsychoPy"
                                " Builder"))
-        wx.EVT_MENU(self, item.GetId(), self.app.followLink)
+        self.Bind(wx.EVT_MENU, self.app.followLink, id=item.GetId())
         self.app.urls[item.GetId()] = self.app.urls['builderHelp']
 
         menu.AppendSeparator()
         menu.Append(wx.ID_ABOUT, _translate(
             "&About..."), _translate("About PsychoPy"))
-        wx.EVT_MENU(self, wx.ID_ABOUT, self.app.showAbout)
+        self.Bind(wx.EVT_MENU, self.app.showAbout, id=wx.ID_ABOUT)
 
         self.SetMenuBar(menuBar)
 
@@ -1942,7 +1936,7 @@ class BuilderFrame(wx.Frame):
                     shortname.lower().startswith('readme.')):
                 continue  # ignore 'private' or README files
             self.demosMenu.Append(thisID, shortname)
-            wx.EVT_MENU(self, thisID, self.demoLoad)
+            self.Bind(wx.EVT_MENU, self.demoLoad, id=thisID)
 
     def runFile(self, event=None):
         # get abs path of experiment so it can be stored with data at end of
@@ -2211,9 +2205,9 @@ class ReadmeFrame(wx.Frame):
         item = menu.Append(-1,
                     _translate("&Toggle readme\t%s") % keys['toggleReadme'],
                     _translate("Toggle Readme"))
-        wx.EVT_MENU(self, item.GetId(), self.toggleVisible)
-        wx.EVT_MENU(self, wx.ID_SAVE, self.fileSave)
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.toggleVisible)
+        self.Bind(wx.EVT_MENU, self.toggleVisible, id=item.GetId())
+        self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
         self.SetMenuBar(menuBar)
 
     def setFile(self, filename):

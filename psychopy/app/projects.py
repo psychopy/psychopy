@@ -113,7 +113,7 @@ class ProjectsMenu(wx.Menu):
         self.userList = usersList
 
         item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
-        wx.EVT_MENU(parent, item.GetId(),  self.onAbout)
+        parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
         if not havePyosf:
             self.Append(wx.ID_ANY,
                         _translate("Requires pyosf (not installed)"))
@@ -130,7 +130,7 @@ class ProjectsMenu(wx.Menu):
         item = self.projsSubMenu.Append(wx.ID_ANY,
                                  _translate("From file...\t{}")
                                  .format(keys['projectsOpen']))
-        wx.EVT_MENU(parent, item.GetId(),  self.onOpenFile)
+        parent.Bind(wx.EVT_MENU,  self.onOpenFile, id=item.GetId())
         self.projsSubMenu.AppendSeparator()
         self.projHistory.UseMenu(self.projsSubMenu)
         try:
@@ -154,27 +154,27 @@ class ProjectsMenu(wx.Menu):
         item = self.userMenu.Append(wx.ID_ANY,
                              _translate("Log in...\t{}")
                              .format(keys['projectsLogIn']))
-        wx.EVT_MENU(parent, item.GetId(),  self.onLogIn)
+        parent.Bind(wx.EVT_MENU, self.onLogIn, id=item.GetId())
         self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
         item = self.Append(wx.ID_ANY,
                     _translate("Search OSF\t{}")
                     .format(keys['projectsFind']))
-        wx.EVT_MENU(parent, item.GetId(),  self.onSearch)
+        parent.Bind(wx.EVT_MENU, self.onSearch, id=item.GetId())
 
         # new
         item = self.Append(wx.ID_ANY,
                     _translate("New...\t{}").format(keys['projectsNew']))
-        wx.EVT_MENU(parent, item.GetId(),  self.onNew)
+        parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
 
         # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
-        # wx.EVT_MENU(parent, wxIDs.projsSync,  self.onSync)
+        # parent.Bind(wx.EVT_MENU, self.onSync, id=wxIDs.projsSync)
 
     def addToSubMenu(self, name, menu, function):
         thisId = wx.NewId()
         menu.Append(thisId, name)
-        wx.EVT_MENU(self.parent, thisId, function)
+        self.parent.Bind(wx.EVT_MENU, function, id=thisId)
 
     def addFileToHistory(self, filename):
         key = projectCatalog.addFile(filename)
@@ -396,13 +396,13 @@ class BaseFrame(wx.Frame):
         fileMenu.Append(wx.ID_CLOSE,
                         _translate("&Close View\t%s") % keyCodes['close'],
                         _translate("Close current window"))
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.closeFrame)
+        self.Bind(wx.EVT_MENU, self.closeFrame, id=wx.ID_CLOSE)
         # -------------quit
         fileMenu.AppendSeparator()
         fileMenu.Append(wx.ID_EXIT,
                         _translate("&Quit\t%s") % keyCodes['quit'],
                         _translate("Terminate the program"))
-        wx.EVT_MENU(self, wx.ID_EXIT, app.quit)
+        self.Bind(wx.EVT_MENU, app.quit, id=wx.ID_EXIT)
         return fileMenu
 
     def closeFrame(self, event=None, checkSave=True):
