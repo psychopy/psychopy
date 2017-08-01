@@ -217,13 +217,13 @@ class MainFrame(wx.Frame):
         fileMenu.Append(idMenuSave,
                         _translate('Save\tCtrl+S'),
                         _translate('Save the current monitor'))
-        wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
+        self.Bind(wx.EVT_MENU, self.onSaveMon, id=idMenuSave)
         _hint = _translate(
             'Close Monitor Center (but not other PsychoPy windows)')
         fileMenu.Append(wx.ID_CLOSE,
                         _translate('Close Monitor Center\tCtrl+W'),
                         _hint)
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
+        self.Bind(wx.EVT_MENU, self.onCloseWindow, id=wx.ID_CLOSE)
         menuBar.Append(fileMenu, _translate('&File'))
 
         # Edit
@@ -231,7 +231,7 @@ class MainFrame(wx.Frame):
         id = wx.NewId()
         _hint = _translate("Copy the current monitor's name to clipboard")
         editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
-        wx.EVT_MENU(self, id, self.onCopyMon)
+        self.Bind(wx.EVT_MENU, self.onCopyMon, id=id)
         menuBar.Append(editMenu, _translate('&Edit'))
 
         self.SetMenuBar(menuBar)

@@ -189,12 +189,12 @@ class FlowPanel(wx.ScrolledWindow):
         id = wx.NewId()
         menu.Append(id, '(new)')
         self.routinesFromID[id] = '(new)'
-        wx.EVT_MENU(menu, id, self.insertNewRoutine)
+        menu.Bind(wx.EVT_MENU, self.insertNewRoutine, id=id)
         for routine in self.frame.exp.routines:
             id = wx.NewId()
             menu.Append(id, routine)
             self.routinesFromID[id] = routine
-            wx.EVT_MENU(menu, id, self.onInsertRoutineSelect)
+            menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
         btnPos = self.btnInsertRoutine.GetRect()
         menuPos = (btnPos[0], btnPos[1] + btnPos[3])
         self.PopupMenu(menu, menuPos)
@@ -442,7 +442,7 @@ class FlowPanel(wx.ScrolledWindow):
             for item in (self.contextMenuItems):
                 id = self.contextIDFromItem[item]
                 menu.Append(id, self.contextMenuLabels[item])
-                wx.EVT_MENU(menu, id, self.onContextSelect)
+                menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
             self.frame.PopupMenu(menu, xy)
             # destroy to avoid mem leak:
             menu.Destroy()
@@ -452,7 +452,7 @@ class FlowPanel(wx.ScrolledWindow):
                     continue
                 id = self.contextIDFromItem[item]
                 menu.Append(id, self.contextMenuLabels[item])
-                wx.EVT_MENU(menu, id, self.onContextSelect)
+                menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
             self.frame.PopupMenu(menu, xy)
             # destroy to avoid mem leak:
             menu.Destroy()
