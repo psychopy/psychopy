@@ -1517,7 +1517,6 @@ class CoderFrame(wx.Frame):
                     _translate("Close current python file"))
         self.Bind(wx.EVT_MENU, self.fileNew, id=wx.ID_NEW)
         self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
-        self.Bind(wx.EVT_MENU, self.fileOpen, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.fileSaveAs, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.fileClose, id=wx.ID_CLOSE)
@@ -1671,7 +1670,7 @@ class CoderFrame(wx.Frame):
                                    _translate("&Indentation guides\t%s") % key,
                                    hint)
         self.indentGuideChk.Check(self.appData['showIndentGuides'])
-        self.Bind(wx.EVT_MENU, self.setShowIndentGuides, id=item.GetId())
+        self.Bind(wx.EVT_MENU, self.setShowIndentGuides, self.indentGuideChk)
         # whitespace
         key = keyCodes['toggleWhitespace']
         hint = _translate("Show whitespace characters in the code")
@@ -1679,7 +1678,7 @@ class CoderFrame(wx.Frame):
                                    _translate("&Whitespace\t%s") % key,
                                    hint)
         self.showWhitespaceChk.Check(self.appData['showWhitespace'])
-        self.Bind(wx.EVT_MENU, self.setShowWhitespace, id=item.GetId())
+        self.Bind(wx.EVT_MENU, self.setShowWhitespace, self.showWhitespaceChk)
         # EOL markers
         key = keyCodes['toggleEOLs']
         hint = _translate("Show End Of Line markers in the code")
@@ -2300,7 +2299,6 @@ class CoderFrame(wx.Frame):
                 dlg = dialogs.MessageDialog(self, message=msg % basefile,
                                             type='Warning')
                 if dlg.ShowModal() != wx.ID_YES:
-                    print("'Save' was canceled.")
                     failToSave = True
                 try:
                     dlg.destroy()
