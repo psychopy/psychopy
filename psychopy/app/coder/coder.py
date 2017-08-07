@@ -1319,6 +1319,10 @@ class CoderFrame(wx.Frame):
             self.appData['winX'], self.appData['winY'] = wx.DefaultPosition
         if self.appData['winY'] < 20:
             self.appData['winY'] = 20
+        # fix issue in Windows when frame was closed while iconized
+        if self.appData['winX'] == -32000:
+            self.appData['winX'], self.appData['winY'] = wx.DefaultPosition
+            self.appData['winH'], self.appData['winW'] = wx.DefaultSize
         wx.Frame.__init__(self, parent, ID, title,
                           (self.appData['winX'], self.appData['winY']),
                           size=(self.appData['winW'], self.appData['winH']))

@@ -1008,10 +1008,14 @@ class BuilderFrame(wx.Frame):
 
         # we didn't have the key or the win was minimized / invalid
         if self.frameData['winH'] == 0 or self.frameData['winW'] == 0:
-
             self.frameData['winX'], self.frameData['winY'] = (0, 0)
         if self.frameData['winY'] < 20:
             self.frameData['winY'] = 20
+        # fix issue in Windows when frame was closed while iconized
+        if self.appData['winX'] == -32000:
+            self.appData['winX'], self.appData['winY'] = wx.DefaultPosition
+            self.appData['winH'], self.appData['winW'] = wx.DefaultSize
+
         wx.Frame.__init__(self, parent=parent, id=id, title=title,
                           pos=(int(self.frameData['winX']), int(
                               self.frameData['winY'])),
