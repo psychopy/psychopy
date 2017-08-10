@@ -20,7 +20,6 @@ before_install:
   - travis_retry sudo -H pip install --upgrade -qq pip
   - travis_retry sudo -H pip install --upgrade -qq soundfile
   - travis_retry sudo -H pip install --upgrade -qq sounddevice
-# pyglet 1.2.2
   - travis_retry sudo -H pip install -qq pyglet==1.3.0b1
   - python -c 'import pyglet; print pyglet.version'
   - travis_retry sudo -H pip install -q pillow
@@ -36,7 +35,7 @@ before_install:
   - travis_retry sudo apt-get install -qq python-pandas
   - travis_retry sudo apt-get install -qq python-qt4
   - travis_retry sudo pip install -qq codecov
-  - travis_retry sudo pip install -qq future
+  - travis_retry sudo pip install -qq future json_tricks
 install:
   - travis_retry sudo apt-get install -qq flac
   - flac -version
