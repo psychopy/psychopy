@@ -1,5 +1,6 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
+dist: precise  # the default (trusty) causing problem with SSL as of Aug 2017
 language: python
 python:
   - "2.7"
