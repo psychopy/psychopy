@@ -12,6 +12,17 @@ Changelog
 PsychoPy 1.85
 ------------------------------
 
+PsychoPy 1.85.3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED:
+
+  * Problem with text stimuli on Windows not rendering if large (was a bug in pyglet, fixed in 1.3.0b1)
+  * Whitespace/indentation guides were not toggling on/off correctly in Coder #4ebbdb9c5468beebb50d817697c0665450e9a5ad
+  * Added status property to labjack U3 in Builder scripts #b4d16d3d6319d0edeb7a95e774ff60c0ea51a1cf
+  * Fix to iohub.launchHubServer() under Linux #a9392f62e5e819788e77553583b6776d5992b849
+  * Fix to config file for iViewX on ioHub #590fb20de193fd85f66655c0983107a561f3f2d1
+
 PsychoPy 1.85.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -49,7 +60,7 @@ PsychoPy 1.85.1
   * textbox v textstim demo wasn't working #b2913c12476
   * error with colors when using TextStim with blendmode='add'
   * errors in installer package:
-  
+
     * windows installer could overwrite system path setting rather than append (NSIS short-string problem came back!)
     * freetype 32 bit dll is being provided again (was in matplotlib before but disappeared?)
 
