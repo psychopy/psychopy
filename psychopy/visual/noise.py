@@ -111,6 +111,9 @@ class NoiseStim(GratingStim):
     **Notes on frequency**
     Frequencies for cutoffs etc are converted between units for you but can be counter intuitive. 1/size is always 1 cycle per image.
     For the sf (final spatial frequency) parameter itself 1/size (or None for units pix) will faithfully represent the image without further scaling.
+        
+    Filter cuttoff and Gabor/Isotropic base frequencies should not be too high you should aim to keep them below 0.5 c/pixel on the screen.
+    The function will produce an error when it can't draw the stimulus in the buffer but it may still be wrong when displayed.
     
     **Notes on orientation and phase**
     The ori parameter twists the final image so the samples in noiseType Binary, Normal or Uniform will no longer be alighned to the sides of the monitor if ori is not a multiple of 90.
@@ -464,7 +467,7 @@ class NoiseStim(GratingStim):
             self.tex=numpy.reshape(self.noiseTex,(int(self._sideLength[1]),int(self._sideLength[0])))
             
     def buildNoise(self):
-        """build a new noise sample. Required to act on chnages to any noise parameters or texRes.
+        """build a new noise sample. Required to act on changes to any noise parameters or texRes.
         """
 
         if self.units=='pix':
@@ -489,6 +492,7 @@ class NoiseStim(GratingStim):
         if self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']:
             self._sideLength=numpy.round(mysize/sampleSize)  # dummy side length for use when unpacking noise samples in updateNoise()
             self._sideLength.astype(int)
+            assert (self._sideLength[0]>1) and (self._sideLength[1]>1), "Noise sample size must result in more than 1 sample per image dimension"
             totalSamples=self._sideLength[0]*self._sideLength[1]
             if self.noiseType in ['binary','Binary']:
                 self.noiseTex=numpy.append(numpy.ones(int(numpy.round(totalSamples/2.0))),-1*numpy.ones(int(numpy.round(totalSamples/2.0))))
@@ -501,6 +505,7 @@ class NoiseStim(GratingStim):
         #    self.noiseTex=fftshift(self.noiseTex)
         #    self.noiseTex[0][0]=0
         elif self.noiseType in ['Isotropic','isotropic']:
+            assert mysf<mysize/2, "Base frequency for isotropic noise is definately too high"
             localf=mysf/mysize
             linbw=2**self.noiseBW
             lowf=2.0*localf/(linbw+1.0)
@@ -514,6 +519,7 @@ class NoiseStim(GratingStim):
             self.noiseTex=fftshift(self.noiseTex)
             self.noiseTex[0][0]=0
         elif self.noiseType in ['Gabor','gabor']:
+            assert mysf<mysize/2, "Base frequency for Gabor noise is definately too high"
             localf=mysf/mysize
             linbw=2**self.noiseBW
             lowf=2.0*localf/(linbw+1.0)
@@ -545,9 +551,12 @@ class NoiseStim(GratingStim):
         elif self.noiseType in ['filtered','Filtered']:
             pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
             self.noiseTex=numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower)
+            assert lowsf<mysize/2, "Lower cuttoff frequency for filtered noise is definately too high"
             if self.noiseFilterOrder>0.01:
                 if upsf<(mysize/2.0):
                     filter=filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                else:
+                    filter=numpy.ones((int(mysize),int(mysize)))
                 if lowsf>0:
                     filter=filter-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
                 self.noiseTex=self.noiseTex*filter
