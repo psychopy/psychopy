@@ -88,6 +88,7 @@ setup(
                       # these aren't needed, but liked
                       'psychopy_ext', 'pyfilesec', 'rusocsci',
                       'bidi',  # for right-left language conversions
+                      'future', 'json_tricks',  # for Py3 conversion (json_tricks allows saving arrays/dates in json)
                       ],
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
                       'OpenGL','OpenGL.WGL','OpenGL.raw.WGL.*',
