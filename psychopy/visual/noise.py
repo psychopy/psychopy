@@ -499,7 +499,7 @@ class NoiseStim(GratingStim):
         if self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']:
             self._sideLength = numpy.round(mysize/sampleSize)  # dummy side length for use when unpacking noise samples in updateNoise()
             self._sideLength.astype(int)
-            if ((self._sideLength[0] < 1) and (self._sideLength[1] < 2)):
+            if ((self._sideLength[0] < 2) and (self._sideLength[1] < 2)):
                 msg=('Noise sample size '
                      'must result in more than '
                      '1 sample per image dimension')
@@ -583,7 +583,7 @@ class NoiseStim(GratingStim):
             self.noiseTex = fftshift(self.noiseTex)
             self.noiseTex[0][0] = 0
         else:
-            assert False, "Noise type not recognised"
+            raise Exception('Noise type not recognised')
         self._needBuild = False # prevent noise from being re-built at next draw() unless a parameter is chnaged in the mean time.
         self.updateNoise()  # now choose the inital random sample.
         
