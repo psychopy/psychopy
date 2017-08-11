@@ -331,10 +331,16 @@ class NoiseStim(GratingStim):
     @attributeSetter
     def noiseClip(self, value):
         """Ignored for types 'Binary and Uniform'.
-            For 'Normal' noise pixel values are divided by noiseClip to limit the standard deviation of the noise values.
-            For all other noise types noiseClip determines the level at which pixel values are cliped and subsequently re-scaled so as to produce a final image appraching the desired RMS contrast.
-                High values will tend to reduce the ultimate RMS contrast but increase fidelity of appearance.
-                Low values prioritise accurate final contrast but result in a binarised or thresholded appearance.
+            For 'Normal' noise pixel values are divided by noiseClip 
+            to limit the standard deviation of the noise values.
+            For all other noise types noiseClip determines the 
+            level at which pixel values are cliped and subsequently 
+            re-scaled so as to produce a final image appraching the 
+            desired RMS contrast.
+            High values will tend to reduce the ultimate RMS 
+            contrast but increase fidelity of appearance.
+            Low values prioritise accurate final contrast
+            but result in a binarised or thresholded appearance.
         """
         
         self.__dict__['noiseClip'] = value
@@ -445,89 +451,100 @@ class NoiseStim(GratingStim):
 
             
     def updateNoise(self):
-        """Updates the noise sample. Does not change any of the noise parameters but choses a new random sample given the previously set parameters.
+        """Updates the noise sample. Does not change any of the noise parameters 
+            but choses a new random sample given the previously set parameters.
         """
 
         if not(self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']):
-            Ph=numpy.random.uniform(0,2*numpy.pi,int(self._size**2))
-            Ph=numpy.reshape(Ph,(int(self._size),int(self._size)))
-            In=self.noiseTex*exp(1j*Ph)
-            Im=numpy.real(ifft2(In))
-            Im=ifftshift(Im)
-            gsd=filters.getRMScontrast(Im)
-            factor=(gsd*self.noiseClip)
+            Ph = numpy.random.uniform(0,2*numpy.pi,int(self._size**2))
+            Ph = numpy.reshape(Ph,(int(self._size),int(self._size)))
+            In = self.noiseTex*exp(1j*Ph)
+            Im = numpy.real(ifft2(In))
+            Im = ifftshift(Im)
+            gsd = filters.getRMScontrast(Im)
+            factor = (gsd*self.noiseClip)
             numpy.clip(Im,-factor,factor,Im)
-            self.tex=Im/factor
+            self.tex = Im/factor
         elif self.noiseType in ['normal','Normal']:
-            self.tex=numpy.random.randn(int(self._sideLength[1]),int(self._sideLength[0]))/self.noiseClip
+            self.tex = numpy.random.randn(int(self._sideLength[1]),int(self._sideLength[0]))/self.noiseClip
         elif self.noiseType in ['uniform','Uniform']:
-            self.tex=2.0*numpy.random.rand(int(self._sideLength[1]),int(self._sideLength[0]))-1.0
+            self.tex = 2.0*numpy.random.rand(int(self._sideLength[1]),int(self._sideLength[0]))-1.0
         else:
             numpy.random.shuffle(self.noiseTex)  # pick random noise sample by shuffleing values
-            self.tex=numpy.reshape(self.noiseTex,(int(self._sideLength[1]),int(self._sideLength[0])))
+            self.tex = numpy.reshape(self.noiseTex,(int(self._sideLength[1]),int(self._sideLength[0])))
             
     def buildNoise(self):
         """build a new noise sample. Required to act on changes to any noise parameters or texRes.
         """
 
-        if self.units=='pix':
+        if self.units == 'pix':
             if not (self.noiseType in ['Binary','binary','Normal','normal','uniform','Uniform']):
-                mysize=numpy.max(self.size)
+                mysize = numpy.max(self.size)
             else:
-                mysize=self.size
-            sampleSize=self.noiseElementSize
-            mysf=self.__dict__['noiseBaseSf']*mysize
-            lowsf=self.noiseFilterLower*mysize
-            upsf=self.noiseFilterUpper*mysize
+                mysize = self.size
+            sampleSize = self.noiseElementSize
+            mysf = self.__dict__['noiseBaseSf']*mysize
+            lowsf = self.noiseFilterLower*mysize
+            upsf = self.noiseFilterUpper*mysize
         else:
-            mysize=self.texRes
-            pixSize=self.size/self.texRes
-            sampleSize=self.noiseElementSize/pixSize
-            mysf=self.size[0]*self.noiseBaseSf
-            lowsf=self.size[0]*self.noiseFilterLower
-            upsf=self.size[0]*self.noiseFilterUpper
+            mysize = self.texRes
+            pixSize = self.size/self.texRes
+            sampleSize = self.noiseElementSize/pixSize
+            mysf = self.size[0]*self.noiseBaseSf
+            lowsf = self.size[0]*self.noiseFilterLower
+            upsf = self.size[0]*self.noiseFilterUpper
        
-        self._size=mysize  # store for use by updateNoise()
-        self._sf=mysf
+        self._size = mysize  # store for use by updateNoise()
+        self._sf = mysf
         if self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']:
-            self._sideLength=numpy.round(mysize/sampleSize)  # dummy side length for use when unpacking noise samples in updateNoise()
+            self._sideLength = numpy.round(mysize/sampleSize)  # dummy side length for use when unpacking noise samples in updateNoise()
             self._sideLength.astype(int)
-            assert (self._sideLength[0]>1) and (self._sideLength[1]>1), "Noise sample size must result in more than 1 sample per image dimension"
-            totalSamples=self._sideLength[0]*self._sideLength[1]
+            if ((self._sideLength[0] < 1) and (self._sideLength[1] < 2)):
+                msg=('Noise sample size '
+                     'must result in more than '
+                     '1 sample per image dimension')
+                raise Exception(msg)
+            totalSamples = self._sideLength[0]*self._sideLength[1]
             if self.noiseType in ['binary','Binary']:
                 self.noiseTex=numpy.append(numpy.ones(int(numpy.round(totalSamples/2.0))),-1*numpy.ones(int(numpy.round(totalSamples/2.0))))
         elif self.noiseType in ['White','white']:
-            self.noiseTex=numpy.ones((int(mysize),int(mysize)))
-            self.noiseTex[0][0]=0
+            self.noiseTex = numpy.ones((int(mysize),int(mysize)))
+            self.noiseTex[0][0] = 0
         #elif self.noiseType in ['Coloured','coloured']:
         #    pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
         #    self.noiseTex=numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower) 
         #    self.noiseTex=fftshift(self.noiseTex)
         #    self.noiseTex[0][0]=0
         elif self.noiseType in ['Isotropic','isotropic']:
-            assert mysf<mysize/2, "Base frequency for isotropic noise is definately too high"
-            localf=mysf/mysize
-            linbw=2**self.noiseBW
-            lowf=2.0*localf/(linbw+1.0)
-            highf=linbw*lowf
-            FWF=highf-lowf
-            sigmaF=FWF/(2*numpy.sqrt(2*numpy.log(2)))
-            self.noiseTex=numpy.zeros(int(mysize**2))
-            self.noiseTex=numpy.reshape(self.noiseTex,(int(mysize),int(mysize)))
-            pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=2)
-            self.noiseTex=filters.makeGauss(pin, mean=localf, sd=sigmaF)
-            self.noiseTex=fftshift(self.noiseTex)
-            self.noiseTex[0][0]=0
+            if mysf > mysize/2:
+                msg =('Base frequency for isotropic'
+                      'noise is definitely too high.')
+                raise Exception(msg)
+            localf = mysf/mysize
+            linbw = 2**self.noiseBW
+            lowf = 2.0*localf/(linbw+1.0)
+            highf = linbw*lowf
+            FWF = highf-lowf
+            sigmaF = FWF/(2*numpy.sqrt(2*numpy.log(2)))
+            self.noiseTex = numpy.zeros(int(mysize**2))
+            self.noiseTex = numpy.reshape(self.noiseTex,(int(mysize),int(mysize)))
+            pin = filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=2)
+            self.noiseTex = filters.makeGauss(pin, mean=localf, sd=sigmaF)
+            self.noiseTex = fftshift(self.noiseTex)
+            self.noiseTex[0][0] = 0
         elif self.noiseType in ['Gabor','gabor']:
-            assert mysf<mysize/2, "Base frequency for Gabor noise is definately too high"
-            localf=mysf/mysize
-            linbw=2**self.noiseBW
-            lowf=2.0*localf/(linbw+1.0)
-            highf=linbw*lowf
-            FWF=highf-lowf
-            sigmaF=FWF/(2*numpy.sqrt(2*numpy.log(2)))
-            FWO=2.0*localf*numpy.tan(numpy.pi*self.noiseBWO/360.0)
-            sigmaO=FWO/(2*numpy.sqrt(2*numpy.log(2)))
+            if mysf > mysize/2:
+                msg =('Base frequency for Gabor'
+                      'noise is definitely too high.')
+                raise Exception(msg)
+            localf = mysf/mysize
+            linbw = 2**self.noiseBW
+            lowf = 2.0*localf/(linbw+1.0)
+            highf = linbw*lowf
+            FWF = highf-lowf
+            sigmaF = FWF/(2*numpy.sqrt(2*numpy.log(2)))
+            FWO = 2.0*localf*numpy.tan(numpy.pi*self.noiseBWO/360.0)
+            sigmaO = FWO/(2*numpy.sqrt(2*numpy.log(2)))
             self.noiseTex=numpy.zeros(int(mysize**2))
             self.noiseTex=numpy.reshape(self.noiseTex,(int(mysize),int(mysize)))
             yy, xx = numpy.mgrid[0:mysize, 0:mysize]
@@ -544,24 +561,27 @@ class NoiseStim(GratingStim):
                 im = im.convert("L")  # FORCE TO LUMINANCE
                 intensity = numpy.array(im).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
-                self.noiseTex=numpy.absolute(fft2(intensity))
+                self.noiseTex =  numpy.absolute(fft2(intensity))
             else:
-                self.noiseTex=numpy.ones((int(mysize),int(mysize)))  # if image is 'None' will make white noise as tempary measure
+                self.noiseTex = numpy.ones((int(mysize),int(mysize)))  # if image is 'None' will make white noise as tempary measure
             self.noiseTex[0][0]=0
         elif self.noiseType in ['filtered','Filtered']:
             pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
-            self.noiseTex=numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower)
-            assert lowsf<mysize/2, "Lower cuttoff frequency for filtered noise is definately too high"
-            if self.noiseFilterOrder>0.01:
+            self.noiseTex = numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower)
+            if lowsf > mysize/2:
+                msg =('Lower cuttof frequency for filtered'
+                      'noise is definitely too high.')
+                raise Exception(msg)
+            if self.noiseFilterOrder > 0.01:
                 if upsf<(mysize/2.0):
-                    filter=filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                    filter = filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
                 else:
-                    filter=numpy.ones((int(mysize),int(mysize)))
+                    filter = numpy.ones((int(mysize),int(mysize)))
                 if lowsf>0:
-                    filter=filter-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
-                self.noiseTex=self.noiseTex*filter
-            self.noiseTex=fftshift(self.noiseTex)
-            self.noiseTex[0][0]=0
+                    filter = filter-filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=lowsf/mysize, cutoff_y=lowsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
+                self.noiseTex = self.noiseTex*filter
+            self.noiseTex = fftshift(self.noiseTex)
+            self.noiseTex[0][0] = 0
         else:
             assert False, "Noise type not recognised"
         self._needBuild = False # prevent noise from being re-built at next draw() unless a parameter is chnaged in the mean time.
