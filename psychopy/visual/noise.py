@@ -502,8 +502,8 @@ class NoiseStim(GratingStim):
             if ((self._sideLength[0] < 2) and (self._sideLength[1] < 2)):
                 msg=('Noise sample size '
                      'must result in more than '
-                     '1 sample per image dimension')
-                raise Exception(msg)
+                     '1 sample per image dimension.')
+                raise ValueError(msg)
             totalSamples = self._sideLength[0]*self._sideLength[1]
             if self.noiseType in ['binary','Binary']:
                 self.noiseTex=numpy.append(numpy.ones(int(numpy.round(totalSamples/2.0))),-1*numpy.ones(int(numpy.round(totalSamples/2.0))))
@@ -517,9 +517,9 @@ class NoiseStim(GratingStim):
         #    self.noiseTex[0][0]=0
         elif self.noiseType in ['Isotropic','isotropic']:
             if mysf > mysize/2:
-                msg =('Base frequency for isotropic'
+                msg = ('Base frequency for isotropic '
                       'noise is definitely too high.')
-                raise Exception(msg)
+                raise Warning(msg)
             localf = mysf/mysize
             linbw = 2**self.noiseBW
             lowf = 2.0*localf/(linbw+1.0)
@@ -534,9 +534,9 @@ class NoiseStim(GratingStim):
             self.noiseTex[0][0] = 0
         elif self.noiseType in ['Gabor','gabor']:
             if mysf > mysize/2:
-                msg =('Base frequency for Gabor'
+                msg = ('Base frequency for Gabor '
                       'noise is definitely too high.')
-                raise Exception(msg)
+                raise Warning(msg)
             localf = mysf/mysize
             linbw = 2**self.noiseBW
             lowf = 2.0*localf/(linbw+1.0)
@@ -569,9 +569,9 @@ class NoiseStim(GratingStim):
             pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
             self.noiseTex = numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower)
             if lowsf > mysize/2:
-                msg =('Lower cuttof frequency for filtered'
+                msg = ('Lower cuttof frequency for filtered '
                       'noise is definitely too high.')
-                raise Exception(msg)
+                raise Warning(msg)
             if self.noiseFilterOrder > 0.01:
                 if upsf<(mysize/2.0):
                     filter = filters.butter2d_lp_elliptic(size=[mysize,mysize], cutoff_x=upsf/mysize, cutoff_y=upsf/mysize, n=self.noiseFilterOrder, alpha=0, offset_x=2/(mysize-1),offset_y=2/(mysize-1))
@@ -583,7 +583,7 @@ class NoiseStim(GratingStim):
             self.noiseTex = fftshift(self.noiseTex)
             self.noiseTex[0][0] = 0
         else:
-            raise Exception('Noise type not recognised')
+            raise ValueError('Noise type not recognised.')
         self._needBuild = False # prevent noise from being re-built at next draw() unless a parameter is chnaged in the mean time.
         self.updateNoise()  # now choose the inital random sample.
         
