@@ -16,7 +16,6 @@ from ..localization import _translate
 from . import experiment
 from .localizedStrings import _localized
 
-
 class BaseValidator(wx.PyValidator):
     """
     Component name validator for _BaseParamsDlg class. It depends on access
@@ -82,8 +81,7 @@ class NameValidator(BaseValidator):
             used = namespace.exists(newName)
             sameAsOldName = bool(newName == parent.params['name'].val)
             if used and not sameAsOldName:
-                msg = _translate(
-                    "That name is in use (by %s). Try another name.")
+                msg = _translate("That name is in use (by %s). Try another name.")
                 return msg % used, False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
@@ -92,8 +90,7 @@ class NameValidator(BaseValidator):
             elif namespace.isPossiblyDerivable(newName):
                 msg = _translate(namespace.isPossiblyDerivable(newName))
                 return msg, True
-            else:
-                return "", True
+            return "", True
 
     def setMessage(self, parent, message):
         parent.nameOKlabel.SetLabel(message)
@@ -182,4 +179,3 @@ class CodeSnippetValidator(BaseValidator):
         warnings = [w for w in list(self.clsWarnings.values()) if w] or ['']
         if parent.nameOKlabel:
             parent.nameOKlabel.SetLabel(warnings[0])
-

@@ -439,7 +439,7 @@ class FlowPanel(wx.ScrolledWindow):
         component = flow[compID]
         compType = component.getType()
         if compType == 'Routine':
-            for item in (self.contextMenuItems):
+            for item in self.contextMenuItems:
                 id = self.contextIDFromItem[item]
                 menu.Append(id, self.contextMenuLabels[item])
                 menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
@@ -447,7 +447,7 @@ class FlowPanel(wx.ScrolledWindow):
             # destroy to avoid mem leak:
             menu.Destroy()
         else:
-            for item in (self.contextMenuItems):
+            for item in self.contextMenuItems:
                 if item == 'rename':
                     continue
                 id = self.contextIDFromItem[item]
