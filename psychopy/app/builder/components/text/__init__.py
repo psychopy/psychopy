@@ -154,6 +154,5 @@ class TextComponent(BaseVisualComponent):
             flipStr = ''
         depth = -self.getPosInRoutine()
         code = ("    %sdepth : %.1f \n"
-                            "});\n" % (flipStr, depth)
-                            )
+                "});\n" % (flipStr, depth))
         buff.writeIndentedLines(code)

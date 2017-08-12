@@ -267,7 +267,9 @@ def getInitVals(params, target="PsychoPy"):
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
                       'dir', 'speed',
                       'contrast', 'moddepth', 'envori', 'envphase', 'envsf',
-                      'noiseClip','noiseBWO','noiseFilterUpper','noiseFilterLower','noiseBaseSf','noiseBW','noiseElementSize','noiseFilterOrder','noiseFractalPower']:
+                      'noiseClip', 'noiseBWO', 'noiseFilterUpper', 'noiseFilterLower',
+                      'noiseBaseSf', 'noiseBW', 'noiseElementSize', 'noiseFilterOrder',
+                      'noiseFractalPower']:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
         elif name in ['image', 'mask', 'envelope', 'carrier']:
@@ -300,11 +302,11 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'beat':
             inits[name].val = "False"
             inits[name].valType = 'str'
-        elif name == 'noiseImage': 
-            inits[name].val="None"
+        elif name == 'noiseImage':
+            inits[name].val = "None"
             inits[name].valType = 'str'
-        elif name == 'noiseType': 
-            inits[name].val='Binary'
+        elif name == 'noiseType':
+            inits[name].val = 'Binary'
             inits[name].valType = 'str'
         else:
             print("I don't know the appropriate default value for a '%s' "

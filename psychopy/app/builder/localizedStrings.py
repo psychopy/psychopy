@@ -11,12 +11,11 @@ Discover all _localized strings from all Builder components, etc.
 Mainly used by validators.py -- need access to _translate()d field names.
 """
 from __future__ import print_function
-
 import copy
-import os, glob
-
-from ..localization import _translate
+import os
+import glob
 from psychopy.app.builder.components._base import _localized as _localizedBase
+from ..localization import _translate
 
 _localizedDialogs = {
     # strings for all allowedVals (from all components) go here:
@@ -77,8 +76,7 @@ _localizedDialogs = {
     'error': _translate('error'),
     # Experiment info dialog:
     'Field': _translate('Field'),
-    'Default': _translate('Default'),
-}
+    'Default': _translate('Default'),}
 
 _localized = copy.copy(_localizedBase)
 _localized.update(_localizedDialogs)
