@@ -31,7 +31,7 @@ from copy import deepcopy, copy
 import numpy
 import scipy.optimize as optim
 from scipy import interpolate
-import json_tricks
+import json_tricks  # allows json to dump/load np.arrays and dates
 
 DEBUG = False
 

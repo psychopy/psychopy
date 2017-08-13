@@ -567,7 +567,6 @@ class FlowPanel(wx.ScrolledWindow):
 
         pdc.Clear()  # clear the screen
         pdc.RemoveAll()  # clear all objects (icon buttons)
-        pdc.BeginDrawing()
 
         font = self.GetFont()
 
@@ -659,7 +658,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.drawLineStart(pdc, (self.linePos[0] - gap, self.linePos[1]))
         self.drawLineEnd(pdc, (currX, self.linePos[1]))
 
-        pdc.EndDrawing()
         # refresh the visible window after drawing (using OnPaint)
         self.Refresh()
 
