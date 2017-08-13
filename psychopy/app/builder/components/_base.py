@@ -9,6 +9,7 @@ from builtins import str, object
 from past.builtins import basestring
 from psychopy.constants import FOREVER
 from ..experiment import Param, CodeGenerationException
+from ..components import getInitVals
 from ...localization import _translate
 
 # only use _localized values for label values, nothing functional
