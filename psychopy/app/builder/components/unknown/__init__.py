@@ -47,9 +47,6 @@ class UnknownComponent(BaseComponent):
     def writeFrameCode(self, buff):
         pass
 
-    def writeRoutineStartCode(self, buff):
-        pass
-
     def writeRoutineEndCode(self, buff):
         pass
 

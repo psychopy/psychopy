@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from os import path
-from .._base import BaseVisualComponent, Param, getInitVals, _translate
+from .._base import BaseVisualComponent, getInitVals, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))

@@ -248,8 +248,7 @@ class Experiment(object):
                     "  // to track the time since experiment started\n"
                     "routineTimer = new psychoJS.core.CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
-                    "\nreturn psychoJS.NEXT;"
-                    )
+                    "\nreturn psychoJS.NEXT;")
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
             script.writeIndentedLines("}")
@@ -464,19 +463,17 @@ class Experiment(object):
                     params[name] = Param(
                         val, valType=paramNode.get('valType'),
                         allowedTypes=[],
-                        hint=_translate(
-                            "This parameter is not known by this version "
-                            "of PsychoPy. It might be worth upgrading"))
+                        hint=_translate("This parameter is not known by this version "
+                                        "of PsychoPy. It might be worth upgrading"))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate(
-                        "Parameter %r is not known to this version of "
-                        "PsychoPy but has come from your experiment file "
-                        "(saved by a future version of PsychoPy?). This "
-                        "experiment may not run correctly in the current "
-                        "version.")
+                    msg = _translate("Parameter %r is not known to this version of "
+                                     "PsychoPy but has come from your experiment file "
+                                     "(saved by a future version of PsychoPy?). This "
+                                     "experiment may not run correctly in the current "
+                                     "version.")
                     logging.warn(msg % name)
                     logging.flush()
         # get the value type and update rate
@@ -651,9 +648,8 @@ class Experiment(object):
                     self.flow.append(self.routines[elementNode.get('name')])
                 else:
                     logging.error("A Routine called '{}' was on the Flow but "
-                                 "could not be found (failed rename?). You "
-                                 "may need to re-insert it"
-                                 .format(elementNode.get('name')))
+                                  "could not be found (failed rename?). You "
+                                  "may need to re-insert it".format(elementNode.get('name')))
                     logging.flush()
 
         if modifiedNames:
@@ -686,8 +682,8 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: dict of 'asb' and 'rel' paths or None
             """
-            thisFile={}
-            if len(filePath)>2 and (filePath[0] == "/" or filePath[1]==":"):
+            thisFile = {}
+            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":"):
                 thisFile['abs'] = filePath
                 thisFile['rel'] = os.path.relpath(filePath, srcRoot)
             else:
@@ -715,7 +711,7 @@ class Experiment(object):
             if not thisFile:
                 return paths
             # this file itself is valid so add to resources if not already
-            if thisFile not in (paths):
+            if thisFile not in paths:
                 paths.append(thisFile)
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
@@ -1100,10 +1096,8 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'])
                     )
         if self.params['isTrials'].val == True:
-            code += (
-                   "      thisScheduler.add(recordLoopIteration({name}));\n"
-                   .format(name=self.params['name'])
-                   )
+            code += ("      thisScheduler.add(recordLoopIteration({name}));\n"
+                     .format(name=self.params['name']))
         buff.writeIndentedLines(code)
         code = ("    }}\n"
                 "  }} catch (exception) {{\n"
@@ -1298,14 +1292,14 @@ class StairHandler(object):
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
-        if self.params['isTrials'].val == True:
+        if self.params['isTrials'].val:
             buff.writeIndentedLines("thisExp.nextEntry()\n\n")
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# staircase completed\n")
         buff.writeIndented("\n")
         # save data
-        if self.params['isTrials'].val == True:
+        if self.params['isTrials'].val:
             if self.exp.settings.params['Save excel file'].val:
                 code = ("%(name)s.saveAsExcel(filename + '.xlsx',"
                         " sheetName='%(name)s')\n")
@@ -1424,14 +1418,14 @@ class MultiStairHandler(object):
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
-        if self.params['isTrials'].val == True:
+        if self.params['isTrials'].val:
             buff.writeIndentedLines("thisExp.nextEntry()\n\n")
         # end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# all staircases completed\n")
         buff.writeIndented("\n")
         # save data
-        if self.params['isTrials'].val == True:
+        if self.params['isTrials'].val:
             if self.exp.settings.params['Save excel file'].val:
                 code = "%(name)s.saveAsExcel(filename + '.xlsx')\n"
                 buff.writeIndented(code % self.params)
@@ -1805,8 +1799,7 @@ class Flow(list):
                 "resourceScheduler.add(registerResources);\n"
                 "resourceScheduler.add(downloadResources);\n"
                 "// asynchronous approach: the resource scheduler is run in parallel to the main one\n"
-                "scheduler.add(function() { resourceScheduler.start(win); });\n"
-                )
+                "scheduler.add(function() { resourceScheduler.start(win); });\n")
         script.writeIndentedLines(code)
         code = ("\n// dialog box\n"
                 "scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));\n"
@@ -1818,8 +1811,7 @@ class Flow(list):
                 "\n"
                 "// flowScheduler gets run if the participants presses OK\n"
                 "flowScheduler.add(updateInfo); // add timeStamp\n"
-                "flowScheduler.add(experimentInit);"
-                )
+                "flowScheduler.add(experimentInit);")
         script.writeIndentedLines(code)
         # add the code for each routine
         loopStack = []
@@ -2066,8 +2058,7 @@ class Routine(list):
         code = ("//------Prepare to start Routine '{name}'-------\n"
                 "t = 0;\n"
                 "{name}Clock.reset(); // clock\n"
-                "frameN = -1;\n"
-                )
+                "frameN = -1;\n")
         buff.writeIndentedLines(code.format(name=self.name))
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
@@ -2116,14 +2107,13 @@ class Routine(list):
                 "\n// get current time\n"
                 "t = {0}Clock.getTime();\n"
                 "frameN = frameN + 1;"
-                "// number of completed frames (so 0 is the first frame)\n"
-                )
+                "// number of completed frames (so 0 is the first frame)\n")
         buff.writeIndentedLines(code.format(self.name))
         # write the code for each component during frame
         buff.writeIndentedLines('// update/draw components on each frame\n')
         # just 'normal' components
         for comp in self:
-            if ("PsychoJS" in comp.targets and comp.type != 'Static'):
+            if "PsychoJS" in comp.targets and comp.type != 'Static':
                 comp.writeFrameCodeJS(buff)
         # update static component code last
         for comp in self.getStatics():
@@ -2398,8 +2388,7 @@ class NameSpace(object):
         vars = self.user + self.builder + self.psychopy
         if numpy_count_only:
             return "%s + [%d numpy]" % (str(vars), len(self.numpy))
-        else:
-            return str(vars + self.numpy)
+        return str(vars + self.numpy)
 
     def getDerived(self, basename):
         """ buggy
@@ -2579,8 +2568,7 @@ class NameSpace(object):
         for plural, singular in list(irregular.items()):
             nn = re.compile(plural, re.IGNORECASE)
             newName = nn.sub(singular, newName)
-        if (newName.endswith('s') and
-                not newName.lower() in list(irregular.values())):
+        if newName.endswith('s') and newName.lower() not in list(irregular.values()):
             newName = newName[:-1]  # trim last 's'
         else:  # might end in s_2, so delete that s; leave S
             match = re.match(r"^(.*)s(_\d+)$", newName)
