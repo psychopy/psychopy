@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-"""Writes the current version, build platform etc to
+"""Writes the current version, build platform etc.
 """
+
 from __future__ import print_function
 from past.builtins import str
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
+
 
 def createInitFile(dist=None, version=None, sha=None):
     """Write the version file to psychopy/version.py
@@ -18,7 +20,7 @@ def createInitFile(dist=None, version=None, sha=None):
             for python setup.py bdist - writes __version__, git id (__git_sha__)
             and __build_platform__
     """
-    #get default values if None
+    # get default values if None
     if version is None:
         with open(os.path.join(thisLoc,'version')) as f:
             version = f.read()
@@ -31,15 +33,16 @@ def createInitFile(dist=None, version=None, sha=None):
                 'shaStr' : sha,
                 'platform' : platformStr,
                 }
-    #write it
+
+    # write it
     with open(os.path.join(thisLoc, 'psychopy','__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
     print('wrote init for', version, sha)
-    #and return it
+    # and return it
     return outStr
 
-template="""# Part of the PsychoPy library
+template = """# Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -79,65 +82,63 @@ if __git_sha__ == 'n/a':
     if output:
         __git_sha__ = output.strip()  # remove final linefeed
 
-# This block of code breaks when attempting to pip install on python 3 because
-# configobj is not found. Suppress the error if it involves configobj.
-try:
-    # update preferences and the user paths
-    from psychopy.preferences import prefs
-    for pathName in prefs.general['paths']:
-        sys.path.append(pathName)
+# update preferences and the user paths
+from psychopy.preferences import prefs
+for pathName in prefs.general['paths']:
+    sys.path.append(pathName)
 
-    from psychopy.tools.versionchooser import useVersion, ensureMinimal
-except ImportError as e:
-    if "configobj" not in e.msg:
-        raise
+from psychopy.tools.versionchooser import useVersion, ensureMinimal
 """
+
 
 def _getGitShaString(dist=None, sha=None):
     """If generic==True then returns empty __git_sha__ string
     """
-    shaStr='n/a'
+    shaStr = 'n/a'
     if dist is not None:
         proc = subprocess.Popen('git rev-parse --short HEAD',
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 cwd='.', shell=True)
         repo_commit, _ = proc.communicate()
-        del proc#to get rid of the background process
+        del proc  # to get rid of the background process
         if repo_commit:
-            shaStr=str(repo_commit.strip())#remove final linefeed
+            shaStr = str(repo_commit.strip())  # remove final linefeed
         else:
-            shaStr='n/a'
+            shaStr = 'n/a'
         #this looks neater but raises errors on win32
         #        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).split()[0]
         #        if output:
         #            shaStr = output
     return shaStr
 
+
 def _getPlatformString(dist=None):
     """If generic==True then returns empty __build_platform__ string
     """
     if dist=='bdist':
-        #get platform-specific info
-        if os.sys.platform=='darwin':
-            OSXver, junk, architecture = platform.mac_ver()
-            systemInfo = "OSX_%s_%s" %(OSXver, architecture)
-        elif os.sys.platform=='linux':
+        # get platform-specific info
+        if os.sys.platform == 'darwin':
+            OSXver, _, architecture = platform.mac_ver()
+            systemInfo = "OSX_%s_%s" % (OSXver, architecture)
+        elif os.sys.platform == 'linux':
             systemInfo = '%s_%s_%s' % (
                 'Linux',
                 ':'.join([x for x in platform.dist() if x != '']),
                 platform.release())
-        elif os.sys.platform=='win32':
+        elif os.sys.platform == 'win32':
             ver=os.sys.getwindowsversion()
             if len(ver[4])>0:
-                systemInfo="win32_v%i.%i.%i (%s)" %(ver[0],ver[1],ver[2],ver[4])
+                systemInfo = "win32_v%i.%i.%i (%s)" %(ver[0], ver[1], ver[2], ver[4])
             else:
-                systemInfo="win32_v%i.%i.%i" %(ver[0],ver[1],ver[2])
+                systemInfo = "win32_v%i.%i.%i" % (ver[0], ver[1], ver[2])
         else:
-            systemInfo = platform.system()+platform.release()
+            systemInfo = platform.system() + platform.release()
     else:
-        systemInfo="n/a"
+        systemInfo = "n/a"
+
     return systemInfo
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     createInitFile()
