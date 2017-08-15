@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 from builtins import object
-from past.builtins import basestring
 import sys
 import re
 import glob
@@ -22,13 +21,15 @@ except ImportError:  # if it's not there locally, try the wxPython lib
     import wx.lib.hyperlink as wxhl
 
 import psychopy
-from psychopy.constants import PY3
 from . import dialogs
 from .localization import _translate
 from psychopy import logging
 from psychopy import web
 from psychopy.constants import PY3
-io = web.io  # fixed for py2 or py3
+if PY3:
+    import io
+else:
+    import StringIO as io
 urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
@@ -127,8 +128,9 @@ class Updater(object):
         # have found 'latest'. Is it newer than running version?
         try:
             newer = self.latest['version'] > self.runningVersion
-        except KeyError:
+        except KeyError as err:
             print(self.latest)
+            raise(err)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
         if newer and not skip:
             if self.latest['lastUpdatable'] <= self.runningVersion:
