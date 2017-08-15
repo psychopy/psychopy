@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 from builtins import object
-from past.builtins import basestring
 import sys
 import re
 import glob
@@ -22,17 +21,16 @@ except ImportError:  # if it's not there locally, try the wxPython lib
     import wx.lib.hyperlink as wxhl
 
 import psychopy
-from psychopy.constants import PY3
 from . import dialogs
 from .localization import _translate
 from psychopy import logging
 from psychopy import web
-py3 = web.py3
-if py3:
+from psychopy.constants import PY3
+if PY3:
     import io
 else:
     import StringIO as io
-urllib = web.urllib  # fixed in web.py to work for py2 or py3
+urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
 
@@ -130,8 +128,9 @@ class Updater(object):
         # have found 'latest'. Is it newer than running version?
         try:
             newer = self.latest['version'] > self.runningVersion
-        except KeyError:
+        except KeyError as err:
             print(self.latest)
+            raise(err)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
         if newer and not skip:
             if self.latest['lastUpdatable'] <= self.runningVersion:
@@ -446,7 +445,10 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        zfileIsName = isinstance(zfile, basestring)
+        if PY3:
+            zfileIsName = type(zfile) == str
+        else:
+            zfileIsName = type(zfile) in (str, unicode)
         if os.path.isfile(zfile) and zfileIsName:
             # zfile is filename not an actual file
             if v is None:  # try and deduce it

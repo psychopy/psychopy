@@ -7,6 +7,9 @@ if sys.version_info[0] >= 3:
 else:
     PY3 = False
 
+import sys
+PY3 = sys.version_info[0] >= 3
+
 NOT_STARTED = 0
 PLAYING = 1
 STARTED = PLAYING
@@ -28,3 +31,4 @@ FOREVER = 1000000000  # seconds
 # tools for use with contrib.http.upload()
 PSYCHOPY_USERAGENT = ("PsychoPy: open-source Psychology & Neuroscience tools"
                       "; www.psychopy.org")
+

@@ -10,7 +10,6 @@ from builtins import range
 import time
 import os
 import locale
-import numpy as np
 
 import wx
 from wx import grid
@@ -39,9 +38,11 @@ except Exception:
     pass
 import numpy
 
+# wx4 changed EVT_GRID_CELL_CHANGE -> EVT_GRID_CELL_CHANGED
+if not hasattr(wx.grid, 'EVT_GRID_CELL_CHANGED'):
+    wx.grid.EVT_GRID_CELL_CHANGED = wx.grid.EVT_GRID_CELL_CHANGE
+
 # wx IDs for menu items
-
-
 def newIds(n):
     return [wx.NewId() for i in range(n)]
 
@@ -449,7 +450,7 @@ class MainFrame(wx.Frame):
                                           'a', 'b', 'k'],
                                     rows=['lum', 'R', 'G', 'B'])
         gammaBoxSizer.Add(self.gammaGrid)
-        grid.EVT_GRID_CELL_CHANGE(self.gammaGrid, self.onChangeGammaGrid)
+        self.gammaGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeGammaGrid)
         gammaBoxSizer.Layout()
 
         # LMS grid
@@ -460,7 +461,7 @@ class MainFrame(wx.Frame):
                                   rows=['R', 'G', 'B'])
         LMSboxSizer.Add(self.LMSgrid)
         LMSboxSizer.Layout()
-        grid.EVT_GRID_CELL_CHANGE(self.LMSgrid, self.onChangeLMSgrid)
+        self.LMSgrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeLMSgrid)
 
         # DKL grid
         DKLbox = wx.StaticBox(parent, -1, 'DKL->RGB')
@@ -470,7 +471,7 @@ class MainFrame(wx.Frame):
                                   rows=['R', 'G', 'B'])
         DKLboxSizer.Add(self.DKLgrid)
         DKLboxSizer.Layout()
-        grid.EVT_GRID_CELL_CHANGE(self.DKLgrid, self.onChangeDKLgrid)
+        self.DKLgrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeDKLgrid)
 
         calibBoxMainSizer = wx.BoxSizer(wx.VERTICAL)
         calibBoxMainSizer.AddMany([photometerBox,
@@ -1125,7 +1126,7 @@ class GammaLumValsDlg(wx.Dialog):
                                     cols=theCols,
                                     rows=['lum', 'R', 'G', 'B'])
         gammaBoxSizer.Add(self.gammaGrid)
-        grid.EVT_GRID_CELL_CHANGE(self.gammaGrid, self.onChangeGammaGrid)
+        self.gammaGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeGammaGrid)
         gammaBoxSizer.Layout()
 
         return gammaBoxSizer
