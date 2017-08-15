@@ -15,13 +15,11 @@ import sys
 import socket
 import re
 from psychopy import logging
+from psychopy.constants import PSYCHOPY_USERAGENT, PY3
 from psychopy import prefs
 
-if sys.version_info >= (3, 0):
-    py3 = True
-else:
-    py3 = False
-if py3:
+
+if PY3:
     import urllib.request
     import urllib.error
     import urllib.parse

@@ -27,12 +27,9 @@ from . import dialogs
 from .localization import _translate
 from psychopy import logging
 from psychopy import web
-py3 = web.py3
-if py3:
-    import io
-else:
-    import StringIO as io
-urllib = web.urllib  # fixed in web.py to work for py2 or py3
+from psychopy.constants import PY3
+io = web.io  # fixed for py2 or py3
+urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
 
@@ -129,7 +126,7 @@ class Updater(object):
             return -1  # failed to find out about updates
         # have found 'latest'. Is it newer than running version?
         try:
-            newer = self.latest['version'] > self.runningVersion
+        newer = self.latest['version'] > self.runningVersion
         except KeyError:
             print(self.latest)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
@@ -446,7 +443,10 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        zfileIsName = isinstance(zfile, basestring)
+        if PY3:
+            zfileIsName = type(zfile) == str
+        else:
+            zfileIsName = type(zfile) in (str, unicode)
         if os.path.isfile(zfile) and zfileIsName:
             # zfile is filename not an actual file
             if v is None:  # try and deduce it

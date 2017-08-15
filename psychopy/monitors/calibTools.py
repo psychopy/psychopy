@@ -14,7 +14,7 @@ from past.builtins import basestring
 from past.utils import old_div
 from builtins import object
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
-from psychopy import __version__, logging, hardware
+from psychopy import __version__, logging, hardware, constants
 
 try:
     import serial
@@ -37,7 +37,7 @@ DEBUG = False
 
 # set and create (if necess) the data folder
 # this will be the
-#   Linux/Mac:  ~/.PsychoPy/monitors
+#   Linux/Mac:  ~/.psychopy2/monitors
 #   win32:   <UserDocs>/Application Data/PsychoPy/monitors
 join = os.path.join
 if sys.platform == 'win32':
@@ -49,8 +49,9 @@ if sys.platform == 'win32':
         os.renames(oldMonitorFolder, monitorFolder)
 else:
     monitorFolder = join(os.environ['HOME'], '.psychopy2', 'monitors')
-# HACK! On system where `monitorFolder` contains special characters, for
-# example because the Windows profile name does, `monitorFolder` must be
+
+# HACK for Python2.7! On system where `monitorFolder` contains special characters,
+# for example because the Windows profile name does, `monitorFolder` must be
 # decoded to Unicode to prevent errors later on. However, this is not a proper
 # fix, since *everything* should be decoded to Unicode, and not just this
 # specific pathname. Right now, errors will still occur if `monitorFolder` is
