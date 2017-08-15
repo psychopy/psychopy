@@ -5,10 +5,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
+from builtins import map
+from builtins import range
 import time
 import os
 import locale
-import numpy as np
 
 import wx
 from wx import grid
@@ -37,9 +38,11 @@ except Exception:
     pass
 import numpy
 
+# wx4 changed EVT_GRID_CELL_CHANGE -> EVT_GRID_CELL_CHANGED
+if not hasattr(wx.grid, 'EVT_GRID_CELL_CHANGED'):
+    wx.grid.EVT_GRID_CELL_CHANGED = wx.grid.EVT_GRID_CELL_CHANGE
+
 # wx IDs for menu items
-
-
 def newIds(n):
     return [wx.NewId() for i in range(n)]
 
@@ -215,13 +218,13 @@ class MainFrame(wx.Frame):
         fileMenu.Append(idMenuSave,
                         _translate('Save\tCtrl+S'),
                         _translate('Save the current monitor'))
-        wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
+        self.Bind(wx.EVT_MENU, self.onSaveMon, id=idMenuSave)
         _hint = _translate(
             'Close Monitor Center (but not other PsychoPy windows)')
         fileMenu.Append(wx.ID_CLOSE,
                         _translate('Close Monitor Center\tCtrl+W'),
                         _hint)
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
+        self.Bind(wx.EVT_MENU, self.onCloseWindow, id=wx.ID_CLOSE)
         menuBar.Append(fileMenu, _translate('&File'))
 
         # Edit
@@ -229,7 +232,7 @@ class MainFrame(wx.Frame):
         id = wx.NewId()
         _hint = _translate("Copy the current monitor's name to clipboard")
         editMenu.Append(id, _translate('Copy\tCtrl+C'), _hint)
-        wx.EVT_MENU(self, id, self.onCopyMon)
+        self.Bind(wx.EVT_MENU, self.onCopyMon, id=id)
         menuBar.Append(editMenu, _translate('&Edit'))
 
         self.SetMenuBar(menuBar)
@@ -447,7 +450,7 @@ class MainFrame(wx.Frame):
                                           'a', 'b', 'k'],
                                     rows=['lum', 'R', 'G', 'B'])
         gammaBoxSizer.Add(self.gammaGrid)
-        grid.EVT_GRID_CELL_CHANGE(self.gammaGrid, self.onChangeGammaGrid)
+        self.gammaGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeGammaGrid)
         gammaBoxSizer.Layout()
 
         # LMS grid
@@ -458,7 +461,7 @@ class MainFrame(wx.Frame):
                                   rows=['R', 'G', 'B'])
         LMSboxSizer.Add(self.LMSgrid)
         LMSboxSizer.Layout()
-        grid.EVT_GRID_CELL_CHANGE(self.LMSgrid, self.onChangeLMSgrid)
+        self.LMSgrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeLMSgrid)
 
         # DKL grid
         DKLbox = wx.StaticBox(parent, -1, 'DKL->RGB')
@@ -468,7 +471,7 @@ class MainFrame(wx.Frame):
                                   rows=['R', 'G', 'B'])
         DKLboxSizer.Add(self.DKLgrid)
         DKLboxSizer.Layout()
-        grid.EVT_GRID_CELL_CHANGE(self.DKLgrid, self.onChangeDKLgrid)
+        self.DKLgrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeDKLgrid)
 
         calibBoxMainSizer = wx.BoxSizer(wx.VERTICAL)
         calibBoxMainSizer.AddMany([photometerBox,
@@ -1118,12 +1121,12 @@ class GammaLumValsDlg(wx.Dialog):
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
 
-        theCols = map(str, levels)
+        theCols = list(map(str, levels))
         self.gammaGrid = SimpleGrid(parent, id=-1,
                                     cols=theCols,
                                     rows=['lum', 'R', 'G', 'B'])
         gammaBoxSizer.Add(self.gammaGrid)
-        grid.EVT_GRID_CELL_CHANGE(self.gammaGrid, self.onChangeGammaGrid)
+        self.gammaGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.onChangeGammaGrid)
         gammaBoxSizer.Layout()
 
         return gammaBoxSizer
@@ -1146,7 +1149,7 @@ class GammaLumValsDlg(wx.Dialog):
             bob = []
             for nCol in range(self.gammaGrid.nCols):
                 bob.append(self.gammaGrid.GetCellValue(nRow, nCol))
-            data.append(map(float, bob))
+            data.append(list(map(float, bob)))
         return data
 
     def show(self):
