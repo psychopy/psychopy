@@ -489,17 +489,26 @@ class Monitor(object):
         """Fetches the calibrations for this monitor from disk, storing them
         as self.calibs
         """
+        if constants.PY3:
+            ext = ".json"
+        else:
+            ext = ".calib"
         # the name of the actual file:
-        thisFileName = os.path.join(monitorFolder, self.name + ".calib")
+        thisFileName = os.path.join(monitorFolder, self.name + ext)
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
             thisFile = open(thisFileName, 'rb')
-            self.calibs = pickle.load(thisFile)
+            if ext==".json":
+                self.calibs = json_tricks.load(thisFile, ignore_comments=False)
+            else:
+                self.calibs = pickle.load(thisFile)
             self.calibNames = sorted(self.calibs)
             thisFile.close()
-            # save JSON copies of our calibrations
-            self.saveJSON()
+            
+            if not constants.PY3:  # saving for future (not needed if we are IN future!)
+                # save JSON copies of our calibrations
+                self._saveJSON()
 
     def newCalib(self, calibName=None, width=None,
                  distance=None, gamma=None, notes=None, useBits=False,
@@ -579,15 +588,16 @@ class Monitor(object):
     def saveMon(self):
         """Saves the current dictionary of calibrations as a json file
         """
-        thisFileName = os.path.join(monitorFolder, self.name + ".calib")
-        thisFile = open(thisFileName, 'wb')
-        pickle.dump(self.calibs, thisFile)
-        thisFile.close()
+        if not constants.PY3:  # don't ever save pickle files form PY3
+            thisFileName = os.path.join(monitorFolder, self.name + ".calib")
+            thisFile = open(thisFileName, 'wb')
+            pickle.dump(self.calibs, thisFile)
+            thisFile.close()
         # also save as JSON (at the moment)
         # (When we're sure this works we should ONLY save as JSON)
-        self.saveJSON()
+        self._saveJSON()
 
-    def saveJSON(self):
+    def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")
         # convert time structs to timestamps (floats)
         for calibName in self.calibs:

@@ -773,8 +773,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.VCHome()
 
         # check for a colon to signal an indent decrease
-        prevLogical = string.split(prevLine, '#')[0]
-        prevLogical = string.strip(prevLogical)
+        prevLogical = prevLine.split('#')[0]
+        prevLogical = prevLogical.strip()
         if len(prevLogical) > 0 and prevLogical[-1] == ':':
             self.CmdKeyExecute(wx.stc.STC_CMD_TAB)
 
