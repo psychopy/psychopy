@@ -126,7 +126,7 @@ class Updater(object):
             return -1  # failed to find out about updates
         # have found 'latest'. Is it newer than running version?
         try:
-        newer = self.latest['version'] > self.runningVersion
+            newer = self.latest['version'] > self.runningVersion
         except KeyError:
             print(self.latest)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
