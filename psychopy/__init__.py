@@ -38,15 +38,14 @@ if __git_sha__ == 'n/a':
     if output:
         __git_sha__ = output.strip()  # remove final linefeed
 
-# This block of code breaks when attempting to pip install on python 3 because
-# configobj is not found. Suppress the error if it involves configobj.
+# update preferences and the user paths
 try:
-    # update preferences and the user paths
     from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
-
-    from psychopy.tools.versionchooser import useVersion, ensureMinimal
+    
+        from psychopy.tools.versionchooser import useVersion, ensureMinimal
 except ImportError as e:
-    if "configobj" not in e.msg:
+    if not any(x in str(e) for x in ["configobj", "past", "builtins"]):
         raise
+    pass

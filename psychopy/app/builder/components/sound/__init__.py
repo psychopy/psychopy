@@ -1,7 +1,8 @@
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
-
+"""
+Part of the PsychoPy library
+Copyright (C) 2015 Jonathan Peirce
+Distributed under the terms of the GNU General Public License (GPL).
+"""
 from os import path
 from .._base import BaseComponent, Param, getInitVals, _translate
 
