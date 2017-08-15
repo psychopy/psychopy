@@ -263,8 +263,6 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.pdc.Clear()  # clear the screen
         self.pdc.RemoveAll()  # clear all objects (icon buttons)
 
-        self.pdc.BeginDrawing()
-
         # work out where the component names and icons should be from name
         # lengths
         self.setFontSize(self.fontBaseSize // self.dpi, self.pdc)
@@ -302,7 +300,6 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         # the 50 allows space for labels below the time axis
         self.SetVirtualSize((self.maxWidth, yPos + 50))
-        self.pdc.EndDrawing()
         self.Refresh()  # refresh the visible window after drawing (OnPaint)
 
     def getMaxTime(self):
