@@ -79,7 +79,6 @@ setup(
                       'pyolib',
                       'requests', 'certifi',  # for up/downloading to servers
                       'pyosf',
-                      'future',
                       # for unit testing
                       'coverage',
                       # handy external science libs
@@ -91,6 +90,7 @@ setup(
                       # these aren't needed, but liked
                       'psychopy_ext', 'pyfilesec', 'rusocsci',
                       'bidi',  # for right-left language conversions
+                      'future', 'past', 'lib2to3', 'json_tricks',  # for Py3 conversion (json_tricks allows saving arrays/dates in json)
                       ],
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
                       'OpenGL','OpenGL.WGL','OpenGL.raw.WGL.*',
