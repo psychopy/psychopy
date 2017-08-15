@@ -28,7 +28,7 @@ PsychoPy 1.85.2
 
 * FIXED:
 
-  * several errors with **PsychoJS** outputs from Builder:
+  * several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
 
     * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
     * "correct" responses were being overwritten by non-responses #f903210
