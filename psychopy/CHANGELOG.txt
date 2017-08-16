@@ -9,13 +9,40 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.86
+------------------------------
+
+This is the first attempt at support for Python 3, with maintained support for Python 2.7.
+
+PsychoPy 1.85.3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ADDED:
+
+  * Standalone distributions for Python 3.6 as well as Python 2.7
+  * Using pip install now installs all the necessary dependencies, making it much easier to install to your own Python installation
+  * Noise stimuli for presenting filtered noise in vision studies (thanks Andrew Schofield)
+  * Second order stimuli for contrast modulated gratings (thanks Andrew Schofield)
+
+CHANGED:
+
+  * Image stimuli given an image of None (or blank in Builder) will now not display anything, whereas they previously showed a blank white (or colored) patch. To get that behaviour you can set the image to be `color` (in Builder) or "color" (in code).
+
+
 PsychoPy 1.85
 ------------------------------
 
 PsychoPy 1.85.3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED:
+Released: Aug 2017
+
+This release fixes several bugs but it does also add 2 new dependencies:
+
+  * `json_tricks` and `future` are bother required for this version
+  * these are paving the way for updating Python3 (which will be enabled in 1.86.x series of releases)
+
+FIXED:
 
   * Problem with text stimuli on Windows not rendering if large (was a bug in pyglet, fixed in 1.3.0b1)
   * Whitespace/indentation guides were not toggling on/off correctly in Coder #4ebbdb9c5468beebb50d817697c0665450e9a5ad
@@ -26,9 +53,11 @@ PsychoPy 1.85.3
 PsychoPy 1.85.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Released: June 2017
+
 * FIXED:
 
-  * several errors with **PsychoJS** outputs from Builder:
+  * several errors with **PsychoJS** outputs from Builder (mostly thanks to Jon Roberts at Colorado):
 
     * nReps and randomisation now being handled correctly by PsychoJS #ad9a931
     * "correct" responses were being overwritten by non-responses #f903210
@@ -41,6 +70,8 @@ PsychoPy 1.85.2
 
 PsychoPy 1.85.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released: April 2017
 
 * FIXED:
 
@@ -66,6 +97,8 @@ PsychoPy 1.85.1
 
 PsychoPy 1.85.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released: Feb 2017
 
 * ADDED:
 
@@ -95,7 +128,7 @@ PsychoPy 1.84
 PsychoPy 1.84.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Sept 2016
+Released: Sept 2016
 
 * FIXED:
 
@@ -117,7 +150,7 @@ Released Sept 2016
 PsychoPy 1.84.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Sept 2016
+Released: Sept 2016
 
 * FIXED:
 
@@ -138,7 +171,7 @@ Released Sept 2016
 PsychoPy 1.84.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Aug 2016
+Released: Aug 2016
 
 * ADDED:
 
@@ -195,7 +228,7 @@ PsychoPy 1.83
 PsychoPy 1.83.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released Feb 2016
+Released: Feb 2016
 
 * FIXED:
   * Mac Standalone was (still) not launching on some versions of OSX
@@ -208,7 +241,7 @@ released Feb 2016
 PsychoPy 1.83.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released Dec 2015 (NB 1.83.02 was never publicly released)
+Released: Dec 2015 (NB 1.83.02 was never publicly released)
 
 * FIXED:
   * problems with the Mac Standalone failing to launch on some OSX versions
@@ -224,7 +257,7 @@ released Dec 2015 (NB 1.83.02 was never publicly released)
 PsychoPy 1.83.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released Oct 2015
+Released: Oct 2015
 
 * FIXED:
   * new bug with pygame sounds giving fileName not defined
@@ -237,7 +270,7 @@ released Oct 2015
 PsychoPy 1.83.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released Oct 2015
+Released: Oct 2015
 
 * ADDED: MovieStim3 using an alternative backend that doesn’t require avbin, vlc or streamer. It just uses a couple of python libs and FFMPEG, which are relatively easy to package. Seems to have good performance too but this needs more testing
 * IMPROVED: speed to load psychopy.visual (“lazy loading” only the stimuli you use are loaded)
@@ -257,7 +290,7 @@ PsychoPy 1.82
 PsychoPy 1.82.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released Aug 2015
+Released: Aug 2015
 
     - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) #815
     - FIXED: don't have pickle file re-saving itself when it comes back from pickling #833
@@ -281,13 +314,13 @@ released Aug 2015
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Feb 2015
+Released: Feb 2015
 
 
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Feb 2015
+Released: Feb 2015
 
 * FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
 * FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
@@ -301,7 +334,7 @@ Released Feb 2015
 PsychoPy 1.82.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Jan 2015
+Released: Jan 2015
 
 * ENHANCED: slightly faster rendering of movies for high-rate HD stimuli
 * CHANGED: `pandas` is now a strict requirement for the `psychopy.data` module
@@ -327,7 +360,7 @@ PsychoPy 1.81
 PsychoPy 1.81.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Dec 2014
+Released: Dec 2014
 
 * ADDED: Sounds in Builder can now have a duration set by a variable (changing each repeat). The work on this may cause some systems to have a periodic 'tick' in the sound if they last longer than 10s (probably dependent on sound card and driver)
 * IMPROVED: RatingScale will always display a custom description ('scale') if provided by the user
@@ -343,7 +376,7 @@ Released Dec 2014
 PsychoPy 1.81.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Oct 2014
+Released: Oct 2014
 
 * FIXED: bug with gamma not being set from the Monitor file
 * FIXED: MovieStim2 warnings about dropped frames were crippling the output window
@@ -352,7 +385,7 @@ Released Oct 2014
 PsychoPy 1.81.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Oct 2014
+Released: Oct 2014
 
 * FIXED: bug with rendering of Movies from Builder (autoDraw() not working)
 * ADDED: option to use new movie backend from Builder (there is now an option to select `opencv` or `avbin` for movie rendering)
@@ -364,7 +397,7 @@ Released Oct 2014
 PsychoPy 1.81.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Sept 2014
+Released: Sept 2014
 
 * IMPROVED: cross-version compatibility:
 
@@ -442,7 +475,7 @@ PsychoPy 1.80
 PsychoPy 1.80.08
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Aug 2014
+Released: Aug 2014
 
 FIXED: bug with using numpy arrays as masks; they were being interpreted as floats but should have been bytes
 
@@ -450,14 +483,14 @@ FIXED: bug with using numpy arrays as masks; they were being interpreted as floa
 PsychoPy 1.80.07
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Aug 2014
+Released: Aug 2014
 
 FIXED: bug with timing of keys when using the `timestamped` argument
 
 PsychoPy 1.80.06
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released June 2014
+Released: June 2014
 
 * FIXED: problem with using the framebuffer object (nothing was rendered at all)
 * ENH: added support for using a stencil when the framebuffer object is turned on
@@ -465,7 +498,7 @@ Released June 2014
 PsychoPy 1.80.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released June 2014
+Released: June 2014
 
 * IMPROVED: better unit tests for visual stimuli to prevent further regressions of the issues below
 * FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully.
@@ -478,7 +511,7 @@ Released June 2014
 PsychoPy 1.80.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released April 2014
+Released: April 2014
 
 * FIXED: buglets in logging. Logging wasn't encoding unicode correctly for console targets (but file targets were OK) and some duplicate messages were occurring for stimulus autologs
 * FIXED: buglet with GratingStim/PatchStim when texture was not a square power of two (was crashing due to incorrect global variable)
@@ -487,7 +520,7 @@ Released April 2014
 PsychoPy 1.80.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released April 2014
+Released: April 2014
 
 * FIXED: Shader code was ignoring opacity setting for ImageStim
 * FIXED: Mouse clock was not the same as PsychoPy's general events clock (so out of sync) (Sol & Jeremy)
@@ -495,7 +528,7 @@ Released April 2014
 PsychoPy 1.80.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released April 2014
+Released: April 2014
 
 * FIXED: ImageStim did not use its mask on some machines (nVidia and ATI?) or did not render at all on others (intel graphics?)
 * CHANGED: Sound object now checks if the sound is a note name before checking for file names (only affects cases where the file name was something like A.wav)
@@ -508,7 +541,7 @@ Released April 2014
 PsychoPy 1.80.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Mar 2014
+Released: Mar 2014
 
 * FIXED: buglet with movie glPopAttrib() on Intel gfx cards (thanks Bryan Cort)
 * FIXED: problem trying to use FrameBufferObject (FBO) on Intel GMA graphics cards
@@ -523,7 +556,7 @@ Released Mar 2014
 PsychoPy 1.80.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Mar 2014
+Released: Mar 2014
 
 * Improvements to user interface:
 
@@ -568,7 +601,7 @@ PsychoPy 1.79
 PsychoPy 1.79.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Dec 2013
+Released: Dec 2013
 
 * FIXED: startup crash in 1.79.00
 * FIXED: long-standing memory leak in MovieStim
@@ -589,7 +622,7 @@ Released Dec 2013
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Dec 2013
+Released: Dec 2013
 
 * ADDED: attributes for some stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
@@ -663,7 +696,7 @@ PsychoPy 1.78
 PsychoPy 1.78.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Aug 2013
+Released: Aug 2013
 
 * FIXED: Image Components were showing up a pastel versions when no actual image was provided
 * FIXED: MultiStairHandler wasn't working on Builder, and had insufficient data outputs when using wide-text csv files
@@ -677,7 +710,7 @@ Released Aug 2013
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Released Aug 2013
+Released: Aug 2013
 
 * ADDED: option to preload during Builder scripts using :ref:`static`, which uses :class:`~psychopy.core.StaticPeriod` class
 * ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
@@ -698,7 +731,7 @@ PsychoPy 1.77
 PsychoPy 1.77.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released July 2013
+Released: July 2013
 
 * FIXED: problem with Builder Images appearing grey unless they were 'constant'. This is a bug that was introduced in 1.77.00 with the faster loading of images.
 * FIXED: having a monitors folder with a unicode character in the path doesn't break the app (thanks Sebastiaan Mathot)
@@ -706,7 +739,7 @@ released July 2013
 PsychoPy 1.77.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released June 2013
+Released: June 2013
 
 * Standalone package changes:
     - pytables downgraded to 2.3.5 on Win32 (to be compatible with WinXP)
@@ -717,7 +750,7 @@ released June 2013
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-released June 2013
+Released: June 2013
 
 * ADDED: preview of Sol Simpson's **ioHub** for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices. See iohub demos for example usage. This provides many advantages over previous event polling:
     - asynchronous process allows constant polling (not tied to refresh rates) in a way that won't impact the rendering of your stimuli. It even runs on a separate CPU core if possible.
@@ -813,7 +846,7 @@ PsychoPy 1.74.04
 PsychoPy 1.74.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Aug 2012)
+(Released: Aug 2012)
 
 * FIXED: the multiline text entry box in the Builder Text Component was broken (thanks Piotr Iwaniuk)
 * IMPROVED: serial (RS232) interface to fORP button box to avoid recording repeated presses (thanks Nate Vack). Does not affect use of fORP box from USB interface.
@@ -821,7 +854,7 @@ PsychoPy 1.74.03
 PsychoPy 1.74.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Aug 2012)
+(Released: Aug 2012)
 
 * FIXED: bug leading to message: `IndexError: string index out of range.` This was caused by problem saving excel files
 * FIXED: bug leading to message: `AttributeError: ImageStim instance has no attribute 'rgbPedestal'.` Was only occurring on non-shaders machines using the new ImageStim.
@@ -834,7 +867,7 @@ PsychoPy 1.74.02
 PsychoPy 1.74.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released July 2012)
+(Released: July 2012)
 
 * FIXED: the pyo package is now included in the windows Standalone distribution (making audio input available as intended)
 * FIXED: error saving excel data from numpy.int formats (Erik Kastman)
@@ -880,7 +913,7 @@ PsychoPy 1.73
 PsychoPy 1.73.06
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released April 2012)
+(Released: April 2012)
 
 * FIXED: xlsx outputs were collapsing raw data from trials with non-response
 * FIXED: monitor gamma grids are now returned as arrays rather than lists (Ariel Rokem)
@@ -892,7 +925,7 @@ PsychoPy 1.73.06
 PsychoPy 1.73.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Released March 2012)
+(Released: March 2012)
 
 * FIXED: Joystick error when calling .getHat() or .getHats() (fixed by Gary Lupyan)
 * FIXED: BufferImageStim crashing on some linux boxes (due to bug with checking version of OpenGL) (fixed by Jonas Lindelov)
@@ -909,7 +942,7 @@ PsychoPy 1.73.05
 PsychoPy 1.73.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Feb 2012)
+(Released: Feb 2012)
 
 * CHANGED: Builder scripts now silently convert division from integers to float where necessary. That means 1/3=0.333 whereas previously 1/3=0. This is done simply by adding the line `from __future__ import division` at the top of the script, which people using Coder might want to think about too.
 * FIXED: problem with loading .psydat files using misc.fromFile (thanks Becky)
@@ -918,7 +951,7 @@ PsychoPy 1.73.04
 PsychoPy 1.73.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Jan 2012)
+(Released: Jan 2012)
 
 * FIXED: problem with loops crashing during save of xlsx/csv files if conditions were empty
 * FIXED: bugs in Builder setting Dots coherence and direction parameters
@@ -927,7 +960,7 @@ PsychoPy 1.73.03
 PsychoPy 1.73.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Jan 2012)
+(Released: Jan 2012)
 
 * ADDED: loop property to MovieStim for coder only so far (thanks Ariel Rokem)
 * FIXED: buglet requesting import of pyaudio (thanks Britt for noticing and Dan Shub for fixing)
@@ -940,7 +973,7 @@ PsychoPy 1.73.02
 PsychoPy 1.73.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Jan 2012)
+(Released: Jan 2012)
 
 * CHANGED: psychopy.log has moved to psychopy.logging (Alex Holcombe's suggestion). You'll now get a deprecation warning for using psychopy.log but it will still work (for the foreseeable future)
 * ADDED: new hardware.joystick module supporting pyglet and pyjame backbends for windows and OSX. Demo in Not working on Linux yet. See demos>input
@@ -955,7 +988,7 @@ PsychoPy 1.73.00
 PsychoPy 1.72.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(rc1 released Nov 2011)
+(rc1 Released: Nov 2011)
 
 * CHANGED: gui.Dlg and gui.dlgFromDict can now take a set of choices and will convert to a choice control if this is used (thanks Manuel Ebert)
     - for gui.Dlg the `.addField()` method now has `choices` attribute
@@ -981,7 +1014,7 @@ PsychoPy 1.71
 PsychoPy 1.71.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Oct 2011)
+(Released: Oct 2011)
 
 * CHANGED: the number of stimulus-resized and frames-dropped warnings is now limited to 5 (could become a preference setting?)
 * FIXED: Builder now allows images to have size of None (or 'none' or just blank) and reverts to using the native size of the image in the file
@@ -999,7 +1032,7 @@ PsychoPy 1.71.01
 PsychoPy 1.71.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(released Sept 2011)
+(Released: Sept 2011)
 
 * CHANGED: Depth testing is now disabled. It was already being recommended that depth was controlled purely by drawing order (not depth settings) but this is now the *only* way to do that
 * CHANGED: The Builder representation of the Components onset/offset is now based on 'estimatedStart/Stop' where a value has been given. NB this does not affect the actual onset/offset of Components merely its representation on the timeline.
@@ -1030,7 +1063,7 @@ PsychoPy 1.70
 PsychoPy 1.70.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Released Aug 2011)
+(Released: Aug 2011)
 
 * FIXED: buglet with Builder (1.70.00) importing older files not quite right and corrupting the 'allowedKeys' of keyboard component
 * FIXED: buglet with SimpleImageStim. On machines with no shaders some images were being presented strangely
@@ -1039,7 +1072,7 @@ PsychoPy 1.70.01
 PsychoPy 1.70.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Released Aug 2011)
+(Released: Aug 2011)
 
 *NB This version introduces a number of changes to Builder experiment files that will prevent files from this version being opened by earlier versions of PsychoPy*
 
@@ -1093,7 +1126,7 @@ PsychoPy 1.65
 PsychoPy 1.65.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Released July 2011)
+(Released: July 2011)
 
 * FIXED Builder keyboard component was storing 'all keys' on request but not all RTs
 * FIXED Aperture Component in Builder, which was on for an entire Routine. Now supports start/stop times like other components
@@ -1109,7 +1142,7 @@ PsychoPy 1.65.02
 PsychoPy 1.65.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Released July 2011)
+(Released: July 2011)
 
 * FIXED buglets in QUEST handler (thanks Gerrit Maus)
 * FIXED absence of pygame in 1.65.00 Standalone release
@@ -1119,7 +1152,7 @@ PsychoPy 1.65.01
 PsychoPy 1.65.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Released July 2011)
+(Released: July 2011)
 
 * ADDED improved gamma correction using L=a+(b+kI)**G formula (in addition to industry-standard form). Existing gamma calibrations will continue to use old equation but new calibrations will take the new extended formula by default.
 * ADDED MultiStairHandler to run multiple interleaved staircases (also from the Builder)
@@ -1145,7 +1178,7 @@ PsychoPy 1.64
 
 PsychoPy 1.64.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Released April 2011
+Released: April 2011
 
 * ADDED option to return field names when importing a trial list (thanks Gary Lupyan)
 * ADDED Color-picker on toolbar for Coder and context menu for Builder (Jeremy Gray)
@@ -1183,14 +1216,14 @@ PsychoPy 1.63
 
 PsychoPy 1.63.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2011
+Released: Feb 2011
 
 * FIXED bug in windows prefs that prevents v1.63.03 from starting up
 * FIXED bug that prevents minolte LS100 from being found
 
 PsychoPy 1.63.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2011
+Released: Feb 2011
 
 * ADDED Interactive shell to the bottom panel of the Coder view. Choose (in prefs) one of;
     * pyShell (the default, with great tooltips and help)
@@ -1203,7 +1236,7 @@ Released Feb 2011
 
 PsychoPy 1.63.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2011
+Released: Feb 2011
 
 * ADDED clearFrames option to Window.saveMovieFrames
 * ADDED support for Spectrascan PR655/PR670
@@ -1216,7 +1249,7 @@ Released Feb 2011
 
 PsychoPy 1.63.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Released Jan 2011
+Released: Jan 2011
 
 * FIXED bug with ElementArrayStim.setFieldPos() not updating
 * FIXED mouse release problem with pyglet (since in 1.63.00)
@@ -1230,7 +1263,7 @@ Released Jan 2011
 
 PsychoPy 1.63.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Released Dec 2010
+Released: Dec 2010
 
 * **ADDED autoLog mechanism:**
     * many more messages sent, but only written when log.flush() is called
@@ -1267,7 +1300,7 @@ PsychoPy 1.62
 
 PsychoPy 1.62.02
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Released Oct 2010
+Released: Oct 2010
 
 * FIXED: problem with RadialStim causing subsequent TextStims not to be visible
 * FIXED: bug with saving StairHandler data as .xlsx
@@ -1284,7 +1317,7 @@ Released Oct 2010
 
 PsychoPy 1.62.01
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Released Sept 2010
+Released: Sept 2010
 
 * ADDED: clicking on a Routine in the Flow window brings that Routine to current focus above
 * ADDED: by setting a loop in the Flow to have 0 repeats, that part of your experiment can be skipped
@@ -1340,7 +1373,7 @@ PsychoPy 1.61
 
 PsychoPy 1.61.03
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Patch released July 2010
+Patch Released: July 2010
 
 * FIXED: harmless error messages caused by trying to get the file date/time when no file is open
 * CHANGED: movie file used in movie demo (the chimp had unknown copyright)
@@ -1351,7 +1384,7 @@ Patch released July 2010
 
 PsychoPy 1.61.02
 ~~~~~~~~~~~~~~~~~~~~~~
-Patch released June 2010
+Patch Released: June 2010
 
 * ADDED: Code Component to Builder (to insert arbitrary python code into experiments)
 * ADDED: visual.RatingScale 'stimulus' (thanks to JG). See ratingScale demo in Coder view
@@ -1361,7 +1394,7 @@ Patch released June 2010
 
 PsychoPy 1.61.01
 ~~~~~~~~~~~~~~~~~~~~~~
-Patch released May 2010
+Patch Released: May 2010
 
 * FIXED: Bug in coder spitting out lots of errors about no method BeginTextColor
 * FIXED: Buglet in rendering of pygame text withour shaders
@@ -1369,7 +1402,7 @@ Patch released May 2010
 
 PsychoPy 1.61.00
 ~~~~~~~~~~~~~~~~~~~~~~
-Released May 2010
+Released: May 2010
 
 * CHANGED: color handling substantially. Now supply color and colorSpace arguments and use setColor rather than setRGB etc. Previous methods still work but give deprecation warning.
 * ADDED: Colors can now also be specified by name (one of the X11 or web colors, e.g. 'DarkSalmon') or hex color spec (e.g. '#E9967A')
@@ -1393,27 +1426,27 @@ PsychoPy 1.60
 
 PsychoPy 1.60.04
 ~~~~~~~~~~~~~~~~~~~~~~
-Released March 2010
+Released: March 2010
 
 * FIXED build error (OS X 10.6 only)
 
 PsychoPy 1.60.03
 ~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2010
+Released: Feb 2010
 
 * FIXED buglet in gui.py converting 'false' to True in dialogs (thanks Michael MacAskill)
 * FIXED bug in winXP version introduced by fixes to the winVista version! Now both should be fine!!
 
 PsychoPy 1.60.02
 ~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2010
+Released: Feb 2010
 
 * CHANGED ext.rush() is no longer run by default on creation of a window. It seems to be causing more probs and providing little enhancement.
 * FIXED error messages from vista/7 trying to import pywintypes.dll
 
 PsychoPy 1.60.01
 ~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2010
+Released: Feb 2010
 
 * FIXED minor bug with the new psychophysicsStaircase demo (Builder)
 * FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
@@ -1425,7 +1458,7 @@ Released Feb 2010
 
 PsychoPy 1.60.00
 ~~~~~~~~~~~~~~~~~~~~~~
-Released Feb 2010
+Released: Feb 2010
 
 * simplified prefs:
        - no more site prefs (user prefs only)
@@ -1460,7 +1493,7 @@ Released Feb 2010
 
 PsychoPy 1.51.00
 ------------------------------
-(released Nov 2009)
+(Released: Nov 2009)
 
 * CHANGED: gamma handling to handle buggy graphics drivers on certain cards - see note below
 * CHANGED: coord systems for mouse events - both winTypes now provide mouse coords in the same units as the Window
@@ -1480,7 +1513,7 @@ PsychoPy 1.50
 
 PsychoPy 1.50.04
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Sep 09)
+(Released: Sep 09)
 
 * FIXED (Builder) bug with loading files (monitor fullScr incorrectly reloaded)
 * FIXED (Coder) bug with Paste in coder
@@ -1493,7 +1526,7 @@ PsychoPy 1.50.04
 
 PsychoPy 1.50.02
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Sep 09)
+(Released: Sep 09)
 
 * FIXED bug loading .psydat (files component variables were being saved but not reloaded)
 * removed debugging messages that were appearing in Coder output panel
@@ -1504,7 +1537,7 @@ PsychoPy 1.50.02
 
 PsychoPy 1.50.01
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Sep 09)
+(Released: Sep 09)
 
 * FIXED problem creating prefs file on first use
 * FIXED problem with removing (identical) routines in Flow panel
@@ -1512,7 +1545,7 @@ PsychoPy 1.50.01
 
 PsychoPy 1.50.00
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Sep 09)
+(Released: Sep 09)
 
 * ADDED A preview of the new application structure and GUI
 * ADDED performance enhancements (OS X now blocks on vblank, all platforms rush() if user has permissions)
@@ -1535,7 +1568,7 @@ PsychoPy 1.00
 
 PsychoPy 1.00.04
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Jul 09)
+(Released: Jul 09)
 
 * DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
 * CHANGED intepreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
@@ -1544,7 +1577,7 @@ PsychoPy 1.00.04
 
 PsychoPy 1.00.03
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Jul 09)
+(Released: Jul 09)
 
 * FIXED initialisation bug with SimpleImageStimulus
 * FIXED "useShaders" buglet for TextStim
@@ -1554,7 +1587,7 @@ PsychoPy 1.00.03
 
 PsychoPy 1.00.02
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Jun 09)
+(Released: Jun 09)
 
 * ADDED SimpleImageStimulus for simple blitting of raw, unscaled images
 * ADDED collection of anonymous usage stats (e.g.: OSX_10.5.6_i386 1.00.02 2009-04-27_17:26 )
@@ -1568,7 +1601,7 @@ PsychoPy 1.00.02
 
 PsychoPy 1.00.01
 ~~~~~~~~~~~~~~~~~~~~~~
-(released Feb 09)
+(Released: Feb 09)
 
 * FIXED buglet in windows standalone installer
 

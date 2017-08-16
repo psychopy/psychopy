@@ -106,7 +106,7 @@ except Exception:
 
 DEBUG = False
 IOHUB_ACTIVE = False
-
+retinaContext = None  # only needed for retina-ready displays
 
 # keep track of windows that have been opened
 # Use a list of weak references so that we don't stop the window being deleted
@@ -165,7 +165,7 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 useRetina=False,
+                 useRetina=True,
                  autoLog=True):
         """
         These attributes can only be set at initialization. See further down
@@ -238,10 +238,10 @@ class Window(object):
                 this will be enabled.
                 You can switch between left and right-eye scenes for drawing
                 operations using :func:`~psychopy.visual.Window.setBuffer`
-            useRetina : True or *False*
-                Try to use the full resolution of the Retina display (only on
-                certain Macs). By default the display's reduced resolution will
-                be used. NB when you use Retina display the initial win size
+            useRetina : *True* or False
+                In PsychoPy >1.85.3 this should always be True as pyglet
+                (or Apple) no longer allows us to create a non-retina display.
+                NB when you use Retina display the initial win size
                 request will be in the larger pixels but subsequent use of
                 units='pix' should refer to the tiny Retina pixels. Window.size
                 will give the actual size of the screen in Retina pixels
@@ -272,6 +272,14 @@ class Window(object):
         self.winHandle = None
         self.useFBO = useFBO
         self.useRetina = useRetina
+
+        if sys.platform=='darwin' and not useRetina and pyglet.version >= "1.3":
+            raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
+                             "set to useRetina=True (or remove the argument). "
+                             "Pyglet 1.3 appears to be forcing "
+                             "us to use retina on any retina-capable screen "
+                             "so setting to False has no effect.")
+
 
         self._toLog = []
         self._toCall = []
@@ -1447,36 +1455,6 @@ class Window(object):
                            samples=aa_samples, stencil_size=stencil_size, stereo=self.stereo,
                            vsync=vsync)
 
-        # monkey patches for retina display if needed
-        def retinaAttach(self, canvas):
-            """Replaces pyglet.gl.cocoa.CocoaContext.attach method
-            """
-            super(CocoaContext, self).attach(canvas)
-            self._nscontext.setView_(canvas.nsview)
-            try:
-                self._nscontext.view().setWantsBestResolutionOpenGLSurface_(1)
-            except AttributeError:
-                pass
-            self.set_current()
-
-        def retina_on_resize(self, width, height):
-            """Insert as method """
-            view = self.context._nscontext.view()
-            bounds = view.convertRectToBacking_(view.bounds()).size
-            back_width, back_height = (int(bounds.width), int(bounds.height))
-
-            GL.glViewport(0, 0, back_width, back_height)
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(0, width, 0, height, -1, 1)
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-
-        if self.useRetina and sys.platform == 'darwin':
-            from pyglet.gl.cocoa import CocoaContext
-            CocoaContext.attach = retinaAttach
-            from pyglet.window.cocoa import CocoaWindow
-            CocoaWindow.on_resize = retina_on_resize
-
         defDisp = pyglet.window.get_platform().get_default_display()
         allScrs = defDisp.get_screens()
         # Screen (from Exp Settings) is 1-indexed,
@@ -1515,16 +1493,18 @@ class Window(object):
             else:
                 self._hw_handle = self.winHandle._hwnd
         elif sys.platform == 'darwin':
+            if self.useRetina:
+                global retinaContext
+                retinaContext = self.winHandle.context._nscontext
+                view = retinaContext.view()
+                bounds = view.convertRectToBacking_(view.bounds()).size
+                self.size = (int(bounds.width), int(bounds.height))
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 self._hw_handle = self.winHandle._window.value
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 self._hw_handle = self.winHandle._nswindow.windowNumber()
-            if self.useRetina:
-                view = self.context._nscontext.view()
-                bounds = view.convertRectToBacking_(view.bounds()).size
-                self.size = (int(bounds.width), int(bounds.height))
         elif sys.platform == 'linux2':
             self._hw_handle = self.winHandle._window
 
@@ -2053,9 +2033,19 @@ def _onResize(width, height):
     Override this event handler with your own to create another
     projection, for example in perspective.
     """
+    global retinaContext
+
     if height == 0:
         height = 1
-    GL.glViewport(0, 0, width, height)
+
+    if retinaContext is not None:
+        view = retinaContext.view()
+        bounds = view.convertRectToBacking_(view.bounds()).size
+        back_width, back_height = (int(bounds.width), int(bounds.height))
+    else:
+        back_width, back_height = width, height
+
+    GL.glViewport(0, 0, back_width, back_height)
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)
