@@ -679,7 +679,7 @@ class TextureMixin(object):
                 res = tex.shape[0]
             if useShaders:
                 dataType = GL.GL_FLOAT
-        elif tex in (None, "none", "None"):
+        elif tex in (None, "none", "None", "color"):
             # 4x4 (2x2 is SUPPOSED to be fine but generates weird colors!)
             res = 1
             intensity = numpy.ones([res, res], numpy.float32)

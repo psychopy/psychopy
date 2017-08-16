@@ -237,6 +237,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     def draw(self, win=None):
         """Draw.
         """
+        if self.image in (None, "None", "none"):
+            return
+
         if win is None:
             win = self.win
         self._selectWindow(win)
@@ -265,16 +268,19 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.__dict__['image'] = self._imName = value
 
         wasLumImage = self.isLumImage
-        if value is None:
+        if value == "color":
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
-        self.isLumImage = self._createTexture(value, id=self._texID,
-                                              stim=self,
-                                              pixFormat=GL.GL_RGB,
-                                              dataType=datatype,
-                                              maskParams=self.maskParams,
-                                              forcePOW2=False)
+        if value in (None,  "None", "none"):
+            self.isLumImage = True
+        else:
+            self.isLumImage = self._createTexture(value, id=self._texID,
+                                                  stim=self,
+                                                  pixFormat=GL.GL_RGB,
+                                                  dataType=datatype,
+                                                  maskParams=self.maskParams,
+                                                  forcePOW2=False)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # set size to default
