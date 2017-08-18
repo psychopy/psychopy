@@ -14,7 +14,8 @@ while True: #this creates a never-ending loop
     fixation.draw()
     mywin.flip()
 
-    if len(event.getKeys())>0: break
+    if len(event.getKeys())>0:
+        break
     event.clearEvents()
 
 #cleanup

@@ -44,6 +44,9 @@ Building stimuli is extremely easy. All you need to do is create a
 
 That's a bit easy though. Let's make the stimulus move, at least! To do that we need to create a loop where we change the phase (or orientation, or position...) of the stimulus and then redraw. Add this code in place of the drawing code above::
 
+
+.. code-block:: python
+
     for frameN in range(200):
         grating.setPhase(0.05, '+')  # advance phase by 0.05 of a cycle
         grating.draw()
@@ -52,6 +55,8 @@ That's a bit easy though. Let's make the stimulus move, at least! To do that we 
 
 
 That ran for 200 frames (and then waited 5 seconds as well). Maybe it would be nicer to keep updating until the user hits a key instead. That's easy to add too. In the first line add :mod:`~psychopy.event` to the list of modules you'll import. Then replace the line::
+
+.. code-block:: python
 
     for frameN in range(200):
 
@@ -63,7 +68,7 @@ with the line:
 Then, within the loop (make sure it has the same indentation as the other lines) add the lines:
 
 .. literalinclude:: tutorial1.py
-   :lines: 17-18
+   :lines: 17-19
 
 the first line counts how many keys have been pressed since the last frame. If more than zero are found then we break out of the never-ending loop. The second line clears the event buffer and should always be called after you've collected the events you want (otherwise it gets full of events that we don't care about like the mouse moving around etc...).
 
