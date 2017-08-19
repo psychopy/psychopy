@@ -1845,9 +1845,10 @@ class CoderFrame(wx.Frame):
             ctrlKey = 'Ctrl+'
         tb = self.toolbar
         key = _translate("New [%s]") % self.app.keys['new']
+
         item = tb.AddSimpleTool(wx.ID_ANY, newBmp,
-                         key.replace('Ctrl+', ctrlKey),
-                         _translate("Create new python file"))
+                                key.replace('Ctrl+', ctrlKey),
+                                _translate("Create new python file"))
         tb.Bind(wx.EVT_TOOL, self.fileNew, id=item.GetId())
         key = _translate("Open [%s]") % self.app.keys['open']
         item = tb.AddSimpleTool(wx.ID_ANY, openBmp,

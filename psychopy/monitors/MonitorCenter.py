@@ -252,20 +252,20 @@ class MainFrame(wx.Frame):
         monButtonsBox = wx.BoxSizer(wx.VERTICAL)
 
         self.btnNewMon = wx.Button(parent, idBtnNewMon, _translate('New...'))
-        wx.EVT_BUTTON(self, idBtnNewMon, self.onNewMon)
+        self.Bind(wx.EVT_BUTTON, self.onNewMon, self.btnNewMon)
         monButtonsBox.Add(self.btnNewMon)
         self.btnNewMon.SetToolTipString(
             _translate("Create a new monitor"))
 
         self.btnSaveMon = wx.Button(parent, idBtnSaveMon, _translate('Save'))
-        wx.EVT_BUTTON(self, idBtnSaveMon, self.onSaveMon)
+        self.Bind(wx.EVT_BUTTON, self.onSaveMon, self.btnSaveMon)
         monButtonsBox.Add(self.btnSaveMon)
         msg = _translate("Save all calibrations for this monitor")
         self.btnSaveMon.SetToolTipString(msg)
 
         self.btnDeleteMon = wx.Button(parent, idBtnDeleteMon,
                                       _translate('Delete'))
-        wx.EVT_BUTTON(self, idBtnDeleteMon, self.onDeleteMon)
+        self.Bind(wx.EVT_BUTTON, self.onDeleteMon, self.btnDeleteMon)
         monButtonsBox.Add(self.btnDeleteMon)
         msg = _translate("Delete this monitor entirely")
         self.btnDeleteMon.SetToolTipString(msg)
@@ -278,14 +278,14 @@ class MainFrame(wx.Frame):
 
         self.btnCopyCalib = wx.Button(parent, idBtnCopyCalib,
                                       _translate('Copy...'))
-        wx.EVT_BUTTON(self, idBtnCopyCalib, self.onCopyCalib)
+        self.Bind(wx.EVT_BUTTON, self.onCopyCalib, self.btnCopyCalib)
         calibButtonsBox.Add(self.btnCopyCalib)
         msg = _translate("Creates a new calibration entry for this monitor")
         self.btnCopyCalib.SetToolTipString(msg)
 
         self.btnDeleteCalib = wx.Button(
             parent, idBtnDeleteCalib, _translate('Delete'))
-        wx.EVT_BUTTON(self, idBtnDeleteCalib, self.onDeleteCalib)
+        self.Bind(wx.EVT_BUTTON, self.onDeleteCalib, self.btnDeleteCalib)
         calibButtonsBox.Add(self.btnDeleteCalib)
         msg = _translate("Remove this calibration entry (finalized when "
                          "monitor is saved)")
@@ -394,32 +394,34 @@ class MainFrame(wx.Frame):
         #               self.onChangePhotomType)  # not needed?
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
-        wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(),
-                      self.onBtnFindPhotometer)
+        self.Bind(wx.EVT_BUTTON,
+                  self.onBtnFindPhotometer, self.btnFindPhotometer)
 
         # gamma controls
         self.btnCalibrateGamma = wx.Button(
             parent, -1, _translate("Gamma Calibration..."))
-        wx.EVT_BUTTON(self, self.btnCalibrateGamma.GetId(),
-                      self.onCalibGammaBtn)
+        self.Bind(wx.EVT_BUTTON,
+                  self.onCalibGammaBtn, self.btnCalibrateGamma)
         self.btnTestGamma = wx.Button(
             parent, -1, _translate("Gamma Test..."))
         self.btnTestGamma.Enable(False)
 
         # color controls
-        wx.EVT_BUTTON(self, self.btnTestGamma.GetId(), self.onCalibTestBtn)
+        self.Bind(wx.EVT_BUTTON,
+                  self.onCalibTestBtn, self.btnTestGamma)
         self.btnCalibrateColor = wx.Button(
             parent, -1, _translate("Chromatic Calibration..."))
         self.btnCalibrateColor.Enable(False)
-        wx.EVT_BUTTON(self, self.btnCalibrateColor.GetId(),
-                      self.onCalibColorBtn)
+        self.Bind(wx.EVT_BUTTON,
+                  self.onCalibColorBtn, self.btnCalibrateColor)
         self.btnPlotGamma = wx.Button(
             parent, -1, _translate("Plot gamma"))
-        wx.EVT_BUTTON(self, self.btnPlotGamma.GetId(), self.plotGamma)
+        self.Bind(wx.EVT_BUTTON,
+                  self.plotGamma, self.btnPlotGamma)
         self.btnPlotSpectra = wx.Button(
             parent, -1, _translate("Plot spectra"))
-        wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
-
+        self.Bind(wx.EVT_BUTTON,
+                  self.plotSpectra, self.btnPlotSpectra)
         photometerBox.AddMany([self.ctrlPhotomType, self.btnFindPhotometer,
                                self.ctrlPhotomPort, (0, 0),
                                self.comPortLabel, (0, 0),

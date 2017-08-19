@@ -77,6 +77,8 @@ class FlowPanel(wx.ScrolledWindow):
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
+        if wx.version()<"4":
+            self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
         self.pen_cache = {}
         self.brush_cache = {}
         # vars for handling mouse clicks
@@ -84,6 +86,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.dragid = -1
         self.entryPointPosList = []
         self.entryPointIDlist = []
+        self.gapsExcluded = []
         # mode can also be 'loopPoint1','loopPoint2','routinePoint'
         self.mode = 'normal'
         self.insertingRoutine = ""
@@ -169,7 +172,7 @@ class FlowPanel(wx.ScrolledWindow):
         """
         xView, yView = self.GetViewStart()
         xDelta, yDelta = self.GetScrollPixelsPerUnit()
-        r.OffsetXY(-(xView * xDelta), -(yView * yDelta))
+        r.Offset((-(xView * xDelta), -(yView * yDelta)))
 
     def onInsertRoutine(self, evt):
         """For when the insert Routine button is pressed - bring up
@@ -801,7 +804,7 @@ class FlowPanel(wx.ScrolledWindow):
             dc.SetPen(wx.Pen(wx.Colour(rgbEdge[0], rgbEdge[1],
                                        rgbEdge[2], wx.ALPHA_OPAQUE)))
             dc.SetBrush(wx.Brush(rgbFill))
-            dc.DrawRoundedRectangleRect(
+            dc.DrawRoundedRectangle(
                 rect, (4, 6, 8)[self.appData['flowSize']])
             # draw text
             dc.SetTextForeground(rgbEdge)
@@ -839,7 +842,7 @@ class FlowPanel(wx.ScrolledWindow):
                        endX - startX, max(yy) - min(yy))
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 0), style=wx.TRANSPARENT))
         # draws outline:
-        dc.DrawRoundedRectangleRect(area, curve)
+        dc.DrawRoundedRectangle(area, curve)
         dc.SetIdBounds(tmpId, area)
 
         flowsize = self.appData['flowSize']  # 0, 1, or 2
@@ -899,7 +902,7 @@ class FlowPanel(wx.ScrolledWindow):
         # try to make the loop fill brighter than the background canvas:
         dc.SetBrush(wx.Brush(wx.Colour(235, 235, 235, 250)))
 
-        dc.DrawRoundedRectangleRect(rect, (4, 6, 8)[flowsize])
+        dc.DrawRoundedRectangle(rect, (4, 6, 8)[flowsize])
         # draw text
         dc.SetTextForeground([r, g, b])
         dc.DrawText(name, x + pad / 2, y + pad / 2)
