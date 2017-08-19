@@ -16,7 +16,12 @@ from ..localization import _translate
 from . import experiment
 from .localizedStrings import _localized
 
-class BaseValidator(wx.PyValidator):
+if wx.version()<"4":
+    _ValidatorBase = wx.PyValidator
+else:
+    _ValidatorBase = wx.Validator
+
+class BaseValidator(_ValidatorBase):
     """
     Component name validator for _BaseParamsDlg class. It depends on access
     to an experiment namespace.

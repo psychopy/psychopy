@@ -11,6 +11,10 @@ import time
 import glob
 import wx
 import wx.lib.scrolledpanel as scrlpanel
+try:
+    import wx.adv as wxhl  # in wx 4
+except ImportError:
+    wxhl = wx  # in wx 3.0.2
 
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
@@ -205,6 +209,9 @@ class ProjectsMenu(wx.Menu):
             print("failed to authenticate - probably need 2FA")
         except requests.exceptions.ConnectionError:
             logging.warn("Connection error trying to connect to pyosf")
+        except requests.exceptions.ReadTimeout:
+            logging.warn("Timed out while trying to connect to pyosf")
+
         ProjectsMenu.appData['user'] = user
         if self.searchDlg:
             self.searchDlg.updateUserProjs()
@@ -299,12 +306,13 @@ class LogInDlg(wx.Dialog):
                              flag=wx.ALIGN_CENTER, border=10)
 
         # user info
-        self.fieldsSizer.Add(wx.StaticText(self,
-                                           label=_translate("OSF Username (email)")),
+        self.fieldsSizer.Add(wx.StaticText(
+            self,
+            label=_translate("OSF Username (email)")),
                              pos=(1, 0), flag=wx.ALIGN_RIGHT)
         self.username = wx.TextCtrl(self)
-        self.username.SetToolTipString(_translate("Your username on OSF "
-                                       "(the email address you used)"))
+        self.username.SetToolTip(_translate("Your username on OSF "
+                                            "(the email address you used)"))
         self.fieldsSizer.Add(self.username,
                              pos=(1, 1), flag=wx.ALIGN_LEFT)
         # pass info
@@ -312,16 +320,18 @@ class LogInDlg(wx.Dialog):
                              pos=(2, 0), flag=wx.ALIGN_RIGHT)
         self.password = wx.TextCtrl(self,
                                     style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-        self.password.SetToolTipString(_translate("Your password on OSF "
-                                       "(will be checked securely with https)"))
+        self.password.SetToolTip(
+            _translate("Your password on OSF "
+                       "(will be checked securely with https)"))
         self.fieldsSizer.Add(self.password,
                              pos=(2, 1), flag=wx.ALIGN_LEFT)
         # remember me
-        self.fieldsSizer.Add(wx.StaticText(self, label=_translate("Remember me")),
-                             pos=(3, 0), flag=wx.ALIGN_RIGHT)
+        self.fieldsSizer.Add(wx.StaticText(
+            self, label=_translate("Remember me")),
+            pos=(3, 0), flag=wx.ALIGN_RIGHT)
         self.rememberMe = wx.CheckBox(self, True)
-        self.rememberMe.SetToolTipString(_translate("We won't store your password - "
-                                         "just an authorisation token"))
+        self.rememberMe.SetToolTip(_translate("We won't store your password - "
+                                              "just an authorisation token"))
         self.fieldsSizer.Add(self.rememberMe,
                              pos=(3, 1), flag=wx.ALIGN_LEFT)
 
@@ -600,10 +610,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                                        label="", style=wx.ALIGN_CENTER)
             font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
             self.title.SetFont(font)
-        self.url = wx.HyperlinkCtrl(parent=self, id=-1,
+        self.url = wxhl.HyperlinkCtrl(parent=self, id=-1,
                                     label="https://osf.io",
                                     url="https://osf.io",
-                                    style=wx.HL_ALIGN_LEFT,
+                                    style=wxhl.HL_ALIGN_LEFT,
                                     )
         self.description = wx.StaticText(parent=self, id=-1,
                                          label=_translate(

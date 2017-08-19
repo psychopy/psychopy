@@ -32,7 +32,10 @@ for filename in pycFiles:
 
 def pilToBitmap(pil, scaleFactor=1.0):
     import wx
-    image = wx.EmptyImage(pil.size[0], pil.size[1])
+    if wx.version()<"4":
+        image = wx.EmptyImage(pil.size[0], pil.size[1])
+    else:
+        image = wx.Image(pil.size[0], pil.size[1])
 
     # set the RGB values
     if hasattr(pil, 'tobytes'):

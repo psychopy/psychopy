@@ -235,7 +235,6 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.SetBufferedDraw(False)
         self.SetViewEOL(False)
         self.SetEOLMode(wx.stc.STC_EOL_LF)
-        self.SetUseAntiAliasing(True)
         # self.SetUseHorizontalScrollBar(True)
         # self.SetUseVerticalScrollBar(True)
 
