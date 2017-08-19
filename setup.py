@@ -18,20 +18,26 @@ PY3 = version_info>=(3,0)
 
 # use pip module to parse the
 required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
-            'wxPython', 'pyglet','pygame', 'configobj',
+            'wxPython', 'pyglet', 'pygame', 'configobj',
             'soundfile', 'sounddevice',
-            'python-bidi', 'cffi', 'future', 'json_tricks',
+            'python-bidi', 'cffi',
+            'future', 'json_tricks',
             'pyosf', 'requests[security]',
-            'xlrd', 'openpyxl',
+            'xlrd', 'openpyxl',  # MS Excel
             'pyserial','pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables',
             'opencv-python',
+            'moviepy',
             ]
 # some optional dependencies
 if platform == 'darwin':
     required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
 if PY3:  # doesn't exist on py2
     required.append('pyqt5')
+# for dev you also want:
+# 'sphinx','pytest'
+# 'lxml', 'pyopengl'
+
 
 # compress psychojs to a zip file for packaging
 if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer

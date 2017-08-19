@@ -486,7 +486,7 @@ class TrialHandler(_BaseTrialHandler):
                 dataOutNew.append('ran_sum')
                 continue  # no need to do more with this one
             # then break into dataType and analysis
-            dataType, analType = string.rsplit(thisDataOut, '_', 1)
+            dataType, analType = thisDataOut.rsplit('_', 1)
             if dataType == 'all':
                 dataOutNew.extend(
                     [key + "_" + analType for key in allDataTypes])
@@ -514,7 +514,7 @@ class TrialHandler(_BaseTrialHandler):
             dataOut.append('order_raw')
         # do the necessary analysis on the data
         for thisDataOutN, thisDataOut in enumerate(dataOut):
-            dataType, analType = string.rsplit(thisDataOut, '_', 1)
+            dataType, analType = thisDataOut.rsplit('_', 1)
             if not dataType in self.data:
                 # that analysis can't be done
                 dataOutInvalid.append(thisDataOut)
@@ -1572,7 +1572,7 @@ class TrialHandlerExt(TrialHandler):
                 dataOutNew.append('ran_sum')
                 continue  # no need to do more with this one
             # then break into dataType and analysis
-            dataType, analType = string.rsplit(thisDataOut, '_', 1)
+            dataType, analType = thisDataOut.rsplit('_', 1)
             if dataType == 'all':
                 keyType = [key + "_" + analType for key in allDataTypes]
                 dataOutNew.extend(keyType)
@@ -1600,7 +1600,7 @@ class TrialHandlerExt(TrialHandler):
             dataOut.append('order_raw')
         # do the necessary analysis on the data
         for thisDataOutN, thisDataOut in enumerate(dataOut):
-            dataType, analType = string.rsplit(thisDataOut, '_', 1)
+            dataType, analType = thisDataOut.rsplit('_', 1)
             if not dataType in self.data:
                 # that analysis can't be done
                 dataOutInvalid.append(thisDataOut)

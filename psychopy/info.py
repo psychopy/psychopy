@@ -632,7 +632,7 @@ def _getHashGitHead(gdir='.'):
         return None  # no git
     git_branches = subprocess.check_output('git branch', cwd=gdir, shell=True)
     git_branch = [line.split()[1] for line in git_branches.splitlines()
-                  if line.startswith('*')]
+                  if line.startswith(b'*')]
     if len(git_branch):
         return git_branch[0] + ' ' + git_hash.strip()
     else:

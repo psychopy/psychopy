@@ -529,7 +529,7 @@ class Mouse(object):
             mouse.set_pos(newPosPix)
         else:
             if hasattr(self.win.winHandle, 'set_mouse_position'):
-                newPosPix = self.win.size / 2 + newPosPix
+                newPosPix = numpy.array(self.win.size) / 2 + newPosPix
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
             else:
@@ -555,7 +555,7 @@ class Mouse(object):
             # get position in window
             lastPosPix = numpy.array([w._mouse_x, w._mouse_y])
             # set (0,0) to centre
-            lastPosPix = lastPosPix - self.win.size / 2
+            lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
         self.lastPos = self._pix2windowUnits(lastPosPix)
         return self.lastPos
 
