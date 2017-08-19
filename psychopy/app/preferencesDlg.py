@@ -395,7 +395,10 @@ class PrefCtrls(object):
                     labels.append(opt)
             self.valueCtrl = wx.Choice(self.parent, choices=labels)
             self.valueCtrl._choices = copy.copy(options)  # internal values
-            self.valueCtrl.SetSelection(options.index(value))
+            try:
+                self.valueCtrl.SetSelection(options.index(value))
+            except:
+                pass
         elif spec.startswith('list'):  # list
             valuestring = self.listToString(value)
             self.valueCtrl = wx.TextCtrl(self.parent, -1, valuestring,

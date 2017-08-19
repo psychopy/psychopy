@@ -475,17 +475,14 @@ class PsychoPyApp(wx.App):
     def OnDrop(self, x, y, files):
         """Not clear this method ever gets called!"""
         logging.info("Got Files")
-        print(files)
 
     def MacOpenFile(self, files):
         """Not clear this method ever gets called!"""
         logging.info("Got Files")
-        print(files)
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked, and ???"""
         self.GetTopWindow().Raise()
-        print(files)
 
     def openIPythonNotebook(self, event=None):
         """Note that right now this is bad because it ceases all activity in
