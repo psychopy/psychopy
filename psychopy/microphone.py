@@ -223,7 +223,7 @@ class AudioCapture(object):
         t0 = core.getTime()
         self.recorder.run(self.savedFile, self.duration, **self.options)
 
-        self.rate = sound.pyoSndServer.getSamplingRate()
+        self.rate = sound.backend.pyoSndServer.getSamplingRate()
         if block:
             core.wait(self.duration, 0)
             if log and self.autoLog:
@@ -404,7 +404,7 @@ class AdvAudioCapture(AudioCapture):
                             ' will not be able to auto-detect onset')
         else:
             self.marker_hz = float(tone)
-            sampleRate = sound.pyoSndServer.getSamplingRate()
+            sampleRate = sound.backend.pyoSndServer.getSamplingRate()
             if sampleRate < 2 * self.marker_hz:
                 # NyquistError
                 msg = ("Recording rate (%i Hz) too slow for %i Hz-based"
@@ -1143,16 +1143,16 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
         logging.error(msg)
         raise ImportError(msg)
     if pyo.serverCreated():
-        sound.pyoSndServer.setSamplingRate(sampleRate)
+        sound.backend.pyoSndServer.setSamplingRate(sampleRate)
     else:
         # sound.init() will create pyoSndServer. We want there only
         # ever to be one server
         # will automatically use duplex=1 and stereo if poss
         sound.init(rate=sampleRate)
     if outputDevice:
-        sound.pyoSndServer.setOutputDevice(outputDevice)
+        sound.backend.pyoSndServer.setOutputDevice(outputDevice)
     if bufferSize:
-        sound.pyoSndServer.setBufferSize(bufferSize)
+        sound.backend.pyoSndServer.setBufferSize(bufferSize)
     logging.exp('%s: switch on (%dhz) took %.3fs' %
                 (__file__.strip('.py'), sampleRate, core.getTime() - t0))
 

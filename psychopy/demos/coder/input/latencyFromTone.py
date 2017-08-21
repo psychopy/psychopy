@@ -36,8 +36,8 @@ microphone.switchOn()
 mic = microphone.AdvAudioCapture()
 
 # identify the hardware microphone in use:
-names, idx = sound.pyo.pa_get_input_devices()
-inp = sound.pyo.pa_get_default_input()
+names, idx = sound.backend.pyo.pa_get_input_devices()
+inp = sound.backend.pyo.pa_get_default_input()
 msg = 'Speaker vol > 0\nAny key to start...\n\n"%s"' % names[idx.index(inp)]
 
 instr = visual.TextStim(win, msg, color=-1, height=0.05)
