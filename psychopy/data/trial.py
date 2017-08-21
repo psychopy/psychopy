@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from psychopy import logging
+from psychopy.constants import PY3
 from psychopy.tools.arraytools import shuffleArray
 from psychopy.tools.filetools import openOutputFile, genDelimiter
 from .utils import importConditions
@@ -203,9 +204,14 @@ class TrialHandler(_BaseTrialHandler):
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
 
+        if PY3:
+            method_string = "<class 'method'>"
+        else:
+            method_string = 'instancemethod'
+
         for thisAttrib in attribs:
             # can handle each attribute differently
-            if 'instancemethod' in str(type(getattr(self, thisAttrib))):
+            if method_string in str(type(getattr(self, thisAttrib))):
                 # this is a method
                 continue
             elif thisAttrib[0] == '_':
@@ -883,9 +889,15 @@ class TrialHandler2(_BaseTrialHandler):
         else:
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
+
+        if PY3:
+            method_string = "<class 'method'>"
+        else:
+            method_string = 'instancemethod'
+
         for thisAttrib in attribs:
             # can handle each attribute differently
-            if 'instancemethod' in str(type(getattr(self, thisAttrib))):
+            if method_string in str(type(getattr(self, thisAttrib))):
                 # this is a method
                 continue
             elif thisAttrib[0] == '_':
