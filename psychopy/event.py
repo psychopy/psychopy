@@ -557,7 +557,7 @@ class Mouse(object):
             # set (0,0) to centre
             lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
         self.lastPos = self._pix2windowUnits(lastPosPix)
-        return self.lastPos
+        return copy.copy(self.lastPos)
 
     def mouseMoved(self, distance=None, reset=False):
         """Determine whether/how far the mouse has moved.
@@ -739,9 +739,9 @@ class Mouse(object):
 
             # else:
             if not getTime:
-                return mouseButtons
+                return copy.copy(mouseButtons)
             else:
-                return mouseButtons, mouseTimes
+                return copy.copy(mouseButtons), copy.copy(mouseTimes)
 
     def isPressedIn(self, shape, buttons=(0, 1, 2)):
         """Returns `True` if the mouse is currently inside the shape and
