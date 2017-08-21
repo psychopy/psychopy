@@ -532,6 +532,8 @@ class Mouse(object):
                 newPosPix = numpy.array(self.win.size) / 2 + newPosPix
                 x, y = int(newPosPix[0]), int(newPosPix[1])
                 self.win.winHandle.set_mouse_position(x, y)
+                self.win.winHandle._mouse_x = x
+                self.win.winHandle._mouse_y = y
             else:
                 msg = 'mouse position could not be set (pyglet %s)'
                 logging.error(msg % pyglet.version)
