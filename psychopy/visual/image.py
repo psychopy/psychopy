@@ -237,7 +237,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     def draw(self, win=None):
         """Draw.
         """
-        if self.image in (None, "None", "none"):
+        if self.image is None or self.image == "None" or self.image == "none":
             return
 
         if win is None:
@@ -272,7 +272,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
-        if value in (None,  "None", "none"):
+        if value is None or value == "None" or value == "none":
             self.isLumImage = True
         else:
             self.isLumImage = self._createTexture(value, id=self._texID,

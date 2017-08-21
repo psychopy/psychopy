@@ -373,6 +373,13 @@ class Experiment(object):
         elif name == 'forceEndTrialOnPress':  # deprecated in v1.70.00
             params['forceEndRoutineOnPress'].val = bool(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'
+        elif name == 'forceEndRoutineOnPress':
+            if val is True:
+                val = "any click"
+            elif val is False:
+                val = "never"
+            params['forceEndRoutineOnPress'].val = val
+            return
         elif name == 'trialList':  # deprecated in v1.70.00
             params['conditions'].val = eval(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'

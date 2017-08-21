@@ -72,7 +72,7 @@ class KeyboardComponent(BaseComponent):
                          "before the onset of this component?")
         self.params['discard previous'] = Param(
             discardPrev, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant',
             hint=msg,
             label=_localized['discard previous'])
 
@@ -81,7 +81,7 @@ class KeyboardComponent(BaseComponent):
         self.params['store'] = Param(
             store, valType='str', allowedTypes=[],
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates='constant', allowedUpdates=[],
+            updates='constant',
             hint=msg,
             label=_localized['store'])
 
@@ -89,7 +89,7 @@ class KeyboardComponent(BaseComponent):
                          "(e.g end the trial)?")
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant',
             hint=msg,
             label=_localized['forceEndRoutine'])
 
@@ -97,7 +97,7 @@ class KeyboardComponent(BaseComponent):
                          "correct/incorrect?")
         self.params['storeCorrect'] = Param(
             storeCorrect, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant',
             hint=msg,
             label=_localized['storeCorrect'])
 
@@ -107,7 +107,7 @@ class KeyboardComponent(BaseComponent):
             "press.")
         self.params['correctAns'] = Param(
             correctAns, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant',
             hint=msg,
             label=_localized['correctAns'])
 
@@ -116,7 +116,7 @@ class KeyboardComponent(BaseComponent):
             "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
             syncScreenRefresh, valType='bool',
-            updates='constant', allowedUpdates=[],
+            updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
 
