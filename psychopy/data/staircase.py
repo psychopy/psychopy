@@ -28,7 +28,7 @@ from psychopy.tools.filetools import openOutputFile, genDelimiter
 from psychopy.tools.fileerrortools import handleFileCollision
 from psychopy.contrib.quest import QuestObject
 from psychopy.contrib.psi import PsiObject
-from .base import _BaseTrialHandler
+from .base import _BaseTrialHandler, _ComparisonMixin
 from .utils import _getExcelCellName
 
 try:
@@ -669,6 +669,12 @@ class StairHandler(_BaseTrialHandler):
         logging.info('saved data to %s' % f.name)
 
 
+class QuestObject_(QuestObject, _ComparisonMixin):
+    """A QuestObject that implements the == and != operators.
+    """
+    pass
+
+
 class QuestHandler(StairHandler):
     """Class that implements the Quest algorithm for quick measurement of
     psychophysical thresholds.
@@ -848,7 +854,7 @@ class QuestHandler(StairHandler):
         self._questNextIntensity = startVal
 
         # Create Quest object
-        self._quest = QuestObject(
+        self._quest = QuestObject_(
             startVal, startValSd, pThreshold, beta, delta, gamma,
             grain=grain, range=range)
 
@@ -1034,6 +1040,12 @@ class QuestHandler(StairHandler):
             self.finished = False
 
 
+class PsiObject_(PsiObject, _ComparisonMixin):
+    """A PsiObject that implements the == and != operators.
+    """
+    pass
+
+
 class PsiHandler(StairHandler):
     """Handler to implement the "Psi" adaptive psychophysical method
     (Kontsevich & Tyler, 1999).
@@ -1184,7 +1196,7 @@ class PsiHandler(StairHandler):
                 prior = None
 
         twoAFC = True if expectedMin == 0.5 else False
-        self._psi = PsiObject(
+        self._psi = PsiObject_(
             intensRange, alphaRange, betaRange, intensPrecision,
             alphaPrecision, betaPrecision, delta=delta,
             stepType=stepType, TwoAFC=twoAFC, prior=prior)

@@ -918,6 +918,15 @@ class TrialHandler2(_BaseTrialHandler):
         strRepres += ')'
         return strRepres
 
+    def __eq__(self, other):
+        # We want to ignore the RNG object when doing the comparison.
+        self_copy = copy.deepcopy(self)
+        other_copy = copy.deepcopy(other)
+        del self_copy._rng, other_copy._rng
+
+        result = super(TrialHandler2, self_copy).__eq__(other_copy)
+        return result
+
     @property
     def data(self):
         """Returns a pandas DataFrame of the trial data so far

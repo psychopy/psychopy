@@ -12,9 +12,11 @@ import weakref
 import pickle
 import os
 import sys
+import copy
 import inspect
 import codecs
 import numpy as np
+import pandas as pd
 from distutils.version import StrictVersion
 
 import psychopy
@@ -40,7 +42,41 @@ except ImportError:
 _experiments = weakref.WeakValueDictionary()
 
 
-class _BaseTrialHandler(object):
+class _ComparisonMixin(object):
+    def __eq__(self, other):
+        # NoneType and booleans, for example, don't have a .__dict__ attribute.
+        try:
+            getattr(other, '__dict__')
+        except AttributeError:
+            return False
+
+        # Check if the dictionary keys are the same before proceeding.
+        if set(self.__dict__.keys()) != set(other.__dict__.keys()):
+            return False
+
+        # Loop over all keys, implementing special handling for certain
+        # data types.
+        for key, val in self.__dict__.items():
+            if isinstance(val, np.ma.core.MaskedArray):
+                if not np.ma.allclose(val, getattr(other, key)):
+                    return False
+            elif isinstance(val, np.ndarray):
+                if not np.allclose(val, getattr(other, key)):
+                    return False
+            elif isinstance(val, (pd.DataFrame, pd.Series)):
+                if not val.equals(getattr(other, key)):
+                    return False
+            else:
+                if val != getattr(other, key):
+                    return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self == other
+
+
+class _BaseTrialHandler(_ComparisonMixin):
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
@@ -356,7 +392,7 @@ class _BaseTrialHandler(object):
         return originPath, origin
 
 
-class DataHandler(dict):
+class DataHandler(_ComparisonMixin, dict):
     """For handling data (used by TrialHandler, principally, rather than
     by users directly)
 
@@ -373,7 +409,6 @@ class DataHandler(dict):
         - dataTypes=list of keys as strings
 
     """
-
     def __init__(self, dataTypes=None, trials=None, dataShape=None):
         self.trials = trials
         self.dataTypes = []  # names will be added during addDataType
@@ -389,6 +424,27 @@ class DataHandler(dict):
         if dataTypes and self.dataShape:
             for thisType in dataTypes:
                 self.addDataType(thisType)
+
+    def __eq__(self, other):
+        # We ignore an attached TrialHandler object, otherwise we will end up
+        # in an infinite loop, as this DataHandler is attached to the
+        # TrialHandler!
+
+        from psychopy.data import TrialHandler
+
+        if isinstance(self.trials, TrialHandler):
+            self_copy = copy.deepcopy(self)
+            other_copy = copy.deepcopy(other)
+            del self_copy.trials, other_copy.trials
+            result = super(DataHandler, self_copy).__eq__(other_copy)
+
+            msg = ('TrialHandler object detected in .trials. Excluding it from '
+                   'comparison.')
+            logging.warning(msg)
+        else:
+            result = super(DataHandler, self).__eq__(other)
+
+        return result
 
     def addDataType(self, names, shape=None):
         """Add a new key to the data dictionary of particular shape if

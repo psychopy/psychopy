@@ -6,7 +6,6 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from builtins import object
 import sys
 import copy
 import pickle
@@ -14,9 +13,10 @@ import pickle
 from psychopy import logging
 from psychopy.tools.filetools import openOutputFile, genDelimiter
 from .utils import checkValidFilePath
+from .base import _ComparisonMixin
 
 
-class ExperimentHandler(object):
+class ExperimentHandler(_ComparisonMixin):
     """A container class for keeping track of multiple loops/handlers
 
     Useful for generating a single data file from an experiment with many
