@@ -99,23 +99,26 @@ class TestTrialHandler2(object):
                 trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
 
     def test_psydat_filename_collision_output2(self):
-        #create conditions
+        # create conditions
         conditions=[]
         for trialType in range(5):
             conditions.append({'trialType':trialType})
-            #create trials
+            # create trials
         trials= data.TrialHandler2(trialList=conditions, seed=100, nReps=3,
                                   method='fullRandom', autoLog=False)
-        #simulate trials
+        # simulate trials
         for thisTrial in trials:
             resp = 'resp'+str(thisTrial['trialType'])
-            randResp=random()#a unique number so we can see which track orders
+            randResp=random()  # a unique number so we can see which track orders
             trials.addData('resp', resp)
-            trials.addData('rand',randResp)
-        #test wide data outputs
-        trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)
-        # not currently testing this as column order won't match (and we've removed the columns "ran" and "order")
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(fixturesPath,'corrFullRandomTH2.csv'))
+            trials.addData('rand', randResp)
+        # test wide data outputs
+        trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'),
+                              delim=',', appendFile=False)
+        # not currently testing this as column order won't match
+        # (and we've removed the columns "ran" and "order")
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'),
+                               pjoin(fixturesPath,'corrFullRandomTH2.csv'))
 
     def test_random_data_output2(self):
         #create conditions
