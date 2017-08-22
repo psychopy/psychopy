@@ -18,6 +18,8 @@ import sys
 import os
 import weakref
 
+from psychopy.contrib.lazy_import import lazy_import
+
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -99,10 +101,8 @@ try:
 except Exception:
     havePygletMedia = False
 
-try:
-    import pygame
-except Exception:
-    pass
+# lazy_import puts pygame into the namespace but delays import until needed
+lazy_import(globals(), "import pygame")
 
 DEBUG = False
 IOHUB_ACTIVE = False
