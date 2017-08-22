@@ -264,14 +264,17 @@ class PsychoPyApp(wx.App):
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-        if hasattr(self._mainFont, 'Larger'):
-            # Font.Larger is available since wyPython version 2.9.1
-            # PsychoPy still supports 2.8 (see ensureMinimal above)
-            self._mainFont = self._mainFont.Larger()
         self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
-        self._codeFont.SetPointSize(
-            self._mainFont.GetPointSize())  # unify font size
+
+        # removed Aug 2017: on newer versions of wx (at least on mac)
+        # this looks too big
+        # if hasattr(self._mainFont, 'Larger'):
+        #     # Font.Larger is available since wyPython version 2.9.1
+        #     # PsychoPy still supports 2.8 (see ensureMinimal above)
+        #     self._mainFont = self._mainFont.Larger()
+        #     self._codeFont.SetPointSize(
+        #         self._mainFont.GetPointSize())  # unify font size
 
         # create both frame for coder/builder as necess
         if splash:

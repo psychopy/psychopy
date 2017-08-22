@@ -15,8 +15,10 @@ The first lines of code import the necessary libraries. We need lots of the Psyc
 
 .. literalinclude:: tutorial2.py
     :linenos:
-    :lineno-start: 3
-    :lines: 3-4
+    :lineno-start: 1
+    :lines: 1-4
+
+Also note that there are two ways to insert comments in Python (and you should do this often!). Using triple quotes, as in `"""Here's my comment"""`, allows you to write a comment that can span several lines. Often you need that at the start of your script to leave yourself a note about the implementation and history of what you've written. For single-line comments, as you'll see below, you can use a simple `#` to indicate that the rest of the line is a comment.
 
 The ``try:...except:...`` lines allow us to try and load a parameter file from a previous run of the experiment. If that fails (e.g. because the experiment has never been run) then create a default set of parameters. These are easy to store in a `python dictionary`_ that we'll call `expInfo`:
 
@@ -37,8 +39,8 @@ If they hit *Cancel* then we'll simply quit the script and not save the values.
 
 .. literalinclude:: tutorial2.py
    :linenos:
-   :lineno-start: 12
-   :lines: 12-16
+   :lineno-start: 11
+   :lines: 11-16
 
 Setup the information for trials
 ---------------------------------
@@ -49,15 +51,15 @@ We'll create a filename from the subject+date+".csv" (note how easy it is to con
 
 .. literalinclude:: tutorial2.py
    :linenos:
-   :lineno-start: 19
-   :lines: 19-21
+   :lineno-start: 18
+   :lines: 18-21
 
 PsychoPy allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (i.e. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials.
 
 .. literalinclude:: tutorial2.py
    :linenos:
-   :lineno-start: 24
-   :lines: 24-27
+   :lineno-start: 23
+   :lines: 23-27
 
 Build your stimuli
 ---------------------------------

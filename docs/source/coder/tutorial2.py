@@ -39,7 +39,7 @@ fixation = visual.GratingStim(win, color=-1, colorSpace='rgb',
 globalClock = core.Clock()
 trialClock = core.Clock()
 
-#display instructions and wait
+# display instructions and wait
 message1 = visual.TextStim(win, pos=[0,+3],text='Hit a key when ready.')
 message2 = visual.TextStim(win, pos=[0,-3],
     text="Then press left or right to identify the %.1f deg probe." %expInfo['refOrientation'])
@@ -50,7 +50,7 @@ win.flip()#to show our newly drawn 'stimuli'
 #pause until there's a keypress
 event.waitKeys()
 
-for thisIncrement in staircase:  # will step through the staircase
+for thisIncrement in staircase:  # will continue the staircase until it terminates!
     # set location of stimuli
     targetSide= random.choice([-1,1])  # will be either +1(right) or -1(left)
     foil.setPos([-5*targetSide, 0])
