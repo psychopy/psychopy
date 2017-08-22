@@ -39,7 +39,7 @@ class TestTrialHandler2(object):
 
         # Make sure the header line is correct
         f = open(data_filename, 'rb')
-        header = f.readline().replace('\n','')
+        header = f.readline().replace(b'\n',b'')
         f.close()
         expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
         if expected_header != header:

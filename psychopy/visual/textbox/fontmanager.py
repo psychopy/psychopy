@@ -17,10 +17,8 @@ import unicodedata as ud
 from matplotlib import font_manager
 from psychopy.core import getTime
 
-try:
-    from .textureatlas import TextureAtlas
-except Exception as e:
-    print('error importing TextureAtlas:', e)
+from .textureatlas import TextureAtlas
+
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
                        glBegin, glTexCoord2f, glVertex2f, glEnd, glDeleteLists,
                        glEndList, glTranslatef, glDeleteTextures)
@@ -149,15 +147,12 @@ class FontManager(object):
         fi_list = []
         for fp in font_paths:
             if os.path.isfile(fp) and os.path.exists(fp):
-                try:
-                    face = Face(fp)
-                    if monospace_only:
-                        if face.is_fixed_width:
-                            fi_list.append(self._createFontInfo(fp, face))
-                    else:
+                face = Face(fp)
+                if monospace_only:
+                    if face.is_fixed_width:
                         fi_list.append(self._createFontInfo(fp, face))
-                except Exception:
-                    pass
+                else:
+                    fi_list.append(self._createFontInfo(fp, face))
 
         self.font_family_styles.sort()
 
@@ -258,9 +253,9 @@ class FontManager(object):
         s = style.lower().strip()
         if s == 'regular':
             return False, False
-        if s.find('italic') >= 0 or s.find('oblique') >= 0:
+        if s.find(b'italic') >= 0 or s.find(b'oblique') >= 0:
             italic = True
-        if s.find('bold') >= 0:
+        if s.find(b'bold') >= 0:
             bold = True
         return bold, italic
 

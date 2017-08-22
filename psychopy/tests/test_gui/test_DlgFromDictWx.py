@@ -72,7 +72,7 @@ class TestDlgFromDictWx(object):
         tip = dict(participant='Tooltip')
         dlg = DlgFromDict(self.d, tip=tip, show=False)
         field = dlg.inputFields[dlg.inputFieldNames.index('participant')]
-        assert field.ToolTipString == tip['participant']
+        assert field.ToolTip.GetTip() == tip['participant']
 
 
 if __name__ == '__main__':
