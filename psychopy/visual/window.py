@@ -1498,7 +1498,7 @@ class Window(object):
                 retinaContext = self.winHandle.context._nscontext
                 view = retinaContext.view()
                 bounds = view.convertRectToBacking_(view.bounds()).size
-                self.size = (int(bounds.width), int(bounds.height))
+                self.size = numpy.array([int(bounds.width), int(bounds.height)])
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 self._hw_handle = self.winHandle._window.value
