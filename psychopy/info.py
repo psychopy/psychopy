@@ -274,7 +274,7 @@ class RunTimeInfo(dict):
         # when last rebooted?
         try:
             lastboot = shellCall("who -b").split()
-            self['systemRebooted'] = ' '.join(lastboot[2:])
+            self['systemRebooted'] = b' '.join(lastboot[2:])
         except Exception:  # windows
             sysInfo = shellCall('systeminfo').splitlines()
             lastboot = [line for line in sysInfo if line.startswith(
@@ -634,7 +634,7 @@ def _getHashGitHead(gdir='.'):
     git_branch = [line.split()[1] for line in git_branches.splitlines()
                   if line.startswith(b'*')]
     if len(git_branch):
-        return git_branch[0] + ' ' + git_hash.strip()
+        return "{} {}".format(git_branch[0], git_hash.strip())
     else:
         return '(unknown branch)'
 

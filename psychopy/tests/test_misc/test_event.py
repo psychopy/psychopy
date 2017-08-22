@@ -3,6 +3,7 @@
 
 from builtins import str
 from builtins import object
+from past.builtins import basestring
 from psychopy.visual import Window, ShapeStim
 from psychopy import event, core, monitors
 from psychopy.constants import NOT_STARTED

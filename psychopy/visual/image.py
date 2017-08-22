@@ -272,7 +272,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
-        if value is None or value == "None" or value == "none":
+        if type(value) != numpy.ndarray and value in (None, "None", "none"):
             self.isLumImage = True
         else:
             self.isLumImage = self._createTexture(value, id=self._texID,
