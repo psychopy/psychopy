@@ -168,6 +168,31 @@ class TestTrialHandlerExt(object):
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'),
                                pjoin(fixturesPath,'corrRandom.csv'))
 
-if __name__=='__main__':
+    def test_comparison_equals(self):
+        t1 = data.TrialHandlerExt([dict(foo=1)], 2)
+        t2 = data.TrialHandlerExt([dict(foo=1)], 2)
+        assert t1 == t2
+
+    def test_comparison_equals_after_iteration(self):
+        t1 = data.TrialHandlerExt([dict(foo=1)], 2)
+        t2 = data.TrialHandlerExt([dict(foo=1)], 2)
+        t1.__next__()
+        t2.__next__()
+        assert t1 == t2
+
+    def test_comparison_not_equal(self):
+        t1 = data.TrialHandlerExt([dict(foo=1)], 2)
+        t2 = data.TrialHandlerExt([dict(foo=1)], 3)
+        assert t1 != t2
+
+    def test_comparison_not_equal_after_iteration(self):
+        t1 = data.TrialHandlerExt([dict(foo=1)], 2)
+        t2 = data.TrialHandlerExt([dict(foo=1)], 3)
+        t1.__next__()
+        t2.__next__()
+        assert t1 != t2
+
+
+if __name__ == '__main__':
     import pytest
     pytest.main()

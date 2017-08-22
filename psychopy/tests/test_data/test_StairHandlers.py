@@ -325,6 +325,30 @@ class TestStairHandler(_BaseTestStairHandler):
                                       nReversals=len(step_sizes) + 1)
         assert staircase.nReversals == len(step_sizes) + 1
 
+    def test_comparison_equals(self):
+        s1 = data.StairHandler(5)
+        s2 = data.StairHandler(5)
+        assert s1 == s2
+
+    def test_comparison_equals_after_iteration(self):
+        s1 = data.StairHandler(5)
+        s2 = data.StairHandler(5)
+        s1.__next__()
+        s2.__next__()
+        assert s1 == s2
+
+    def test_comparison_not_equal(self):
+        s1 = data.StairHandler(5)
+        s2 = data.StairHandler(6)
+        assert s1 != s2
+
+    def test_comparison_not_equal_after_iteration(self):
+        s1 = data.StairHandler(5)
+        s2 = data.StairHandler(6)
+        s1.__next__()
+        s2.__next__()
+        assert s1 != s2
+
 
 class TestQuestHandler(_BaseTestStairHandler):
     """
@@ -380,6 +404,96 @@ class TestQuestHandler(_BaseTestStairHandler):
         )
         assert self.stairs._quest.x[0] == -range/2
         assert self.stairs._quest.x[-1] == range/2
+
+    def test_comparison_equals(self):
+        q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=1)
+        q2 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=1)
+        assert q1 == q2
+
+    def test_comparison_equals_after_iteration(self):
+        q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=1)
+        q2 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=1)
+        q1.__next__()
+        q2.__next__()
+        assert q1 == q2
+
+    def test_comparison_not_equal(self):
+        q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=1)
+        q2 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=2)
+        assert q1 != q2
+
+    def test_comparison_not_equal_after_iteration(self):
+        q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=1)
+        q2 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                               nTrials=20, minVal=0, maxVal=2)
+        q1.__next__()
+        q2.__next__()
+        assert q1 != q2
+
+
+class TestPsiHandler(_BaseTestStairHandler):
+    def test_comparison_equals(self):
+        p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.01)
+
+        p2 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.01)
+
+        assert p1 == p2
+
+    def test_comparison_equals_after_iteration(self):
+        p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.01)
+
+        p2 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.01)
+
+        p1.__next__()
+        p2.__next__()
+        assert p1 == p2
+
+    def test_comparison_not_equal(self):
+        p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.01)
+
+        p2 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.001)
+
+        assert p1 != p2
+
+    def test_comparison_not_equal_after_iteration(self):
+        p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.01)
+
+        p2 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                             intensPrecision=0.1, alphaPrecision=0.1,
+                             betaPrecision=0.1, delta=0.001)
+
+        p1.__next__()
+        p2.__next__()
+        assert p1 != p2
 
 
 class TestMultiStairHandler(_BaseTestMultiStairHandler):
