@@ -17,6 +17,7 @@ import inspect
 import codecs
 import numpy as np
 import pandas as pd
+import json_tricks
 from distutils.version import StrictVersion
 
 import psychopy
@@ -361,6 +362,51 @@ class _BaseTrialHandler(_ComparisonMixin):
                 ws.cell(_cell).value = val
 
         wb.save(filename=fileName)
+
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'):
+        """
+        Serialize the object to the JSON format.
+
+        Parameters
+        ----------
+        fileName: string, or None
+            the name of the file to create or append. Can include a relative or
+            absolute path. If `None`, will not write to a file, but return an
+            in-memory JSON object.
+
+        encoding : string, optional
+            The encoding to use when writing the file. This parameter will be
+            ignored if `append` is `False` and `fileName` ends with `.psydat`
+            or `.npy` (i.e. if a binary file is to be written).
+
+        fileCollisionMethod : string
+            Collision method passed to
+            :func:`~psychopy.tools.fileerrortools.handleFileCollision`. Can be
+            either of `'rename'`, `'overwrite'`, or `'fail'`.
+
+        Notes
+        -----
+        Currently, a copy of the object is created, and the copy's .origin
+        attribute is set to an empty string before serializing
+        because loading the created JSON file would sometimes fail otherwise.
+
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.origin = ''
+        msg = ('Setting attribute .origin to empty string during JSON '
+               'serialization.')
+        logging.warn(msg)
+
+        if fileName is None:
+            return json_tricks.np.dumps(self_copy)
+        else:
+            f = openOutputFile(fileName,
+                               fileCollisionMethod=fileCollisionMethod,
+                               encoding=encoding)
+            json_tricks.np.dump(self_copy, f)
 
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this
