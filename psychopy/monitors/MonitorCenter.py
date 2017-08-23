@@ -90,7 +90,7 @@ class SimpleGrid(grid.Grid):  # , wxGridAutoEditMixin):
                 self.SetCellEditor(nRow, nCol, self.numEditor)
         self.setData(data)
         # self.SetMargins(-5,-5)
-        wx.EVT_IDLE(self, self.OnIdle)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(grid.EVT_GRID_SELECT_CELL, self.onSelectCell)
 
     def OnIdle(self, evt):
@@ -209,7 +209,7 @@ class MainFrame(wx.Frame):
             except Exception:
                 pass
 
-        wx.EVT_CLOSE(self, self.onCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.updateMonList()
 
     def makeMenuBar(self):
@@ -247,7 +247,7 @@ class MainFrame(wx.Frame):
         self.ctrlMonList = wx.ListBox(parent, idCtrlMonList,
                                       choices=['iiyama571', 'sonyG500'],
                                       size=(350, 100))
-        wx.EVT_LISTBOX(self, idCtrlMonList, self.onChangeMonSelection)
+        self.Bind(wx.EVT_LISTBOX, self.onChangeMonSelection, self.ctrlMonList)
 
         monButtonsBox = wx.BoxSizer(wx.VERTICAL)
 
@@ -273,7 +273,8 @@ class MainFrame(wx.Frame):
         self.ctrlCalibList = wx.ListBox(parent, idCtrlCalibList,
                                         choices=[''],
                                         size=(350, 100))
-        wx.EVT_LISTBOX(self, idCtrlCalibList, self.onChangeCalibSelection)
+        self.Bind(wx.EVT_LISTBOX, self.onChangeCalibSelection,
+                  self.ctrlCalibList)
         calibButtonsBox = wx.BoxSizer(wx.VERTICAL)
 
         self.btnCopyCalib = wx.Button(parent, idBtnCopyCalib,
@@ -310,25 +311,23 @@ class MainFrame(wx.Frame):
                                      _translate("Screen Distance (cm):"),
                                      style=wx.ALIGN_RIGHT)
         self.ctrlScrDist = wx.TextCtrl(parent, idCtrlScrDist, "")
-        wx.EVT_TEXT(self, idCtrlScrDist, self.onChangeScrDist)
+        self.Bind(wx.EVT_TEXT, self.onChangeScrDist, self.ctrlScrDist)
 
         # scr width
         labelScrWidth = wx.StaticText(parent, -1,
                                       _translate("Screen Width (cm):"),
                                       style=wx.ALIGN_RIGHT)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
-        wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
+        self.Bind(wx.EVT_TEXT, self.onChangeScrWidth, self.ctrlScrWidth)
 
         # scr pixels
         _size = _translate("Size (pixels; Horiz,Vert):")
         labelScrPixels = wx.StaticText(parent, -1, _size,
                                        style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50, 20))
-        wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(),
-                    self.onChangeScrPixHoriz)
+        self.Bind(wx.EVT_TEXT, self.onChangeScrPixHoriz, self.ctrlScrPixHoriz)
         self.ctrlScrPixVert = wx.TextCtrl(parent, -1, '', size=(50, 20))
-        wx.EVT_TEXT(self, self.ctrlScrPixVert.GetId(),
-                    self.onChangeScrPixVert)
+        self.Bind(wx.EVT_TEXT, self.onChangeScrPixVert, self.ctrlScrPixVert)
         ScrPixelsSizer = wx.BoxSizer(wx.HORIZONTAL)
         ScrPixelsSizer.AddMany([self.ctrlScrPixHoriz, self.ctrlScrPixVert])
 
@@ -346,11 +345,11 @@ class MainFrame(wx.Frame):
         self.ctrlCalibNotes = wx.TextCtrl(parent, idCtrlCalibNotes, "",
                                           size=(150, 150),
                                           style=wx.TE_MULTILINE)
-        wx.EVT_TEXT(self, idCtrlCalibNotes, self.onChangeCalibNotes)
+        self.Bind(wx.EVT_TEXT, self.onChangeCalibNotes, self.ctrlCalibNotes)
 
         # bits++
         self.ctrlUseBits = wx.CheckBox(parent, -1, _translate('Use Bits++'))
-        wx.EVT_CHECKBOX(self, self.ctrlUseBits.GetId(), self.onChangeUseBits)
+        self.Bind(wx.EVT_CHECKBOX, self.onChangeUseBits, self.ctrlUseBits)
 
         infoBoxGrid = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
         infoBoxGrid.AddMany([
@@ -390,8 +389,7 @@ class MainFrame(wx.Frame):
                                           choices=self._photomChoices,
                                           size=_size)
 
-        # wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(),
-        #               self.onChangePhotomType)  # not needed?
+        # self.Bind(wx.EVT_CHOICE, self.onChangePhotomType, self.ctrlPhotomType)
         self.btnFindPhotometer = wx.Button(parent, -1,
                                            _translate("Get Photometer"))
         self.Bind(wx.EVT_BUTTON,
@@ -443,8 +441,8 @@ class MainFrame(wx.Frame):
             self.choiceLinearMethod.SetSelection(1)
         else:
             self.choiceLinearMethod.SetSelection(0)
-        wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(),
-                      self.onChangeLinearMethod)
+        self.Bind(wx.EVT_CHOICE, self.onChangeLinearMethod,
+                  self.choiceLinearMethod)
         gammaBoxSizer.Add(self.choiceLinearMethod, 1, wx.ALL, 2)
 
         self.gammaGrid = SimpleGrid(parent, id=-1,
@@ -1180,7 +1178,7 @@ class GammaDlg(wx.Dialog):
         # todo: make the input  tablefor manual method
         self.methodChoiceBx = wx.Choice(self, -1, choices=['auto', 'semi'])
         self.methodChoiceBx.SetStringSelection('auto')
-        wx.EVT_CHOICE(self, self.methodChoiceBx.GetId(), self.onMethodChange)
+        self.Bind(wx.EVT_CHOICE, self.onMethodChange, self.methodChoiceBx)
 
         self.ctrlUseBits = wx.CheckBox(self, -1, _translate('Use Bits++'))
         self.ctrlUseBits.SetValue(self.useBits)

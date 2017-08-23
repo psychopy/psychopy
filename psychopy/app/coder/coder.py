@@ -367,7 +367,7 @@ class UnitTestFrame(wx.Frame):
             "Report all printed output & show any new rms-test images")
         self.chkAllStdOut.SetToolTip(wx.ToolTip(_tip))
         self.chkAllStdOut.Disable()
-        wx.EVT_IDLE(self, self.onIdle)
+        self.Bind(wx.EVT_IDLE, self.onIdle)
         self.SetDefaultItem(self.btnRun)
 
         # arrange controls
@@ -2239,7 +2239,7 @@ class CoderFrame(wx.Frame):
                 initPath = ''
             dlg = wx.FileDialog(
                 self, message=_translate("Open file ..."),
-                defaultDir=initPath, style=wx.OPEN
+                defaultDir=initPath, style=wx.FD_OPEN
             )
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -2393,7 +2393,7 @@ class CoderFrame(wx.Frame):
         # open dlg
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
-            defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
+            defaultFile=filename, style=wx.FD_SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             # if the file already exists, query whether it should be
@@ -2564,7 +2564,7 @@ class CoderFrame(wx.Frame):
 
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)
-        wx.EVT_IDLE(self, None)
+        self.Bind(wx.EVT_IDLE, None)
 
         # try to run script
         try:  # try to capture any errors in the script
@@ -2604,7 +2604,7 @@ class CoderFrame(wx.Frame):
                 print('')  # just a new line
 
         self.SetEvtHandlerEnabled(True)
-        wx.EVT_IDLE(self, self.onIdle)
+        self.Bind(wx.EVT_IDLE, self.onIdle)
 
     def stopFile(self, event):
         self.toolbar.EnableTool(self.IDs.cdrBtnRun, True)
