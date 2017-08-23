@@ -655,7 +655,12 @@ class PsychoPyApp(wx.App):
             "For stimulus generation and experimental control in python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
-        info = wx.AboutDialogInfo()
+        if wx.version() >= '4.':
+            info = wx.adv.AboutDialogInfo()
+            showAbout = wx.adv.AboutBox
+        else:
+            info = wx.AboutDialogInfo()
+            showAbout = wx.AboutBox
         if wx.version() >= '3.':
             icon = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
             info.SetIcon(wx.Icon(icon, wx.BITMAP_TYPE_PNG, 128, 128))
@@ -679,7 +684,7 @@ class PsychoPyApp(wx.App):
         info.AddDocWriter('Rebecca Sharman')
         info.AddTranslator('Hiroyuki Sogo')
         if not self.testMode:
-            wx.AboutBox(info)
+            showAbout(info)
 
     def followLink(self, event=None, url=None):
         """Follow either an event id (= a key to an url defined in urls.py)

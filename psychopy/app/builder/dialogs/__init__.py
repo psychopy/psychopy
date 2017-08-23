@@ -1434,7 +1434,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditionsOrig = self.conditions
         expFolder, expName = os.path.split(self.frame.filename)
         dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                            style=wx.OPEN, defaultDir=expFolder)
+                            style=wx.FD_OPEN, defaultDir=expFolder)
         if dlg.ShowModal() == wx.ID_OK:
             newFullPath = dlg.GetPath()
             if self.conditionsFile:

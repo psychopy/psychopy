@@ -356,7 +356,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
     global app  # avoid recreating for every gui
     app = ensureWxApp()
     dlg = wx.FileDialog(None, prompt, initFilePath,
-                        initFileName, allowed, wx.SAVE)
+                        initFileName, allowed, wx.FD_SAVE)
     if dlg.ShowModal() == OK:
         # get names of images and their directory
         outName = dlg.GetFilename()
@@ -402,7 +402,7 @@ def fileOpenDlg(tryFilePath="",
     global app  # avoid recreating for every gui
     app = ensureWxApp()
     dlg = wx.FileDialog(None, prompt, tryFilePath, tryFileName, allowed,
-                        wx.OPEN | wx.FILE_MUST_EXIST | wx.MULTIPLE)
+                        wx.FD_OPEN | wx.FILE_MUST_EXIST | wx.MULTIPLE)
     if dlg.ShowModal() == OK:
         # get names of images and their directory
         fullPaths = dlg.GetPaths()

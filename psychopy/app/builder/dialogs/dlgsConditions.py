@@ -497,7 +497,7 @@ class DlgConditions(wx.Dialog):
             PREVIEW.Bind(wx.EVT_BUTTON, self.preview)
             buttons.Add(PREVIEW)
             buttons.AddSpacer(4)
-            self.SAVEAS = wx.Button(self, wx.SAVE, _translate("Save as"))
+            self.SAVEAS = wx.Button(self, wx.FD_SAVE, _translate("Save as"))
             self.SAVEAS.Bind(wx.EVT_BUTTON, self.saveAs)
             buttons.Add(self.SAVEAS)
             buttons.AddSpacer(8)
