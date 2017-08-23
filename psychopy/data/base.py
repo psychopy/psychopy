@@ -408,6 +408,10 @@ class _BaseTrialHandler(_ComparisonMixin):
                                encoding=encoding)
             json_tricks.np.dump(self_copy, f)
 
+            if f != sys.stdout:
+                f.close()
+                logging.info('Saved JSON data to %s' % f.name)
+
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this
         data file and returns both the path to that script and its contents.
