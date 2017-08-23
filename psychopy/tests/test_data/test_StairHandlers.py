@@ -1,12 +1,18 @@
 """Test StairHandler"""
+
 from __future__ import division, print_function
+
 from builtins import range
 from builtins import object
-from psychopy import data, logging
 import numpy as np
 import shutil
-from tempfile import mkdtemp
+import json_tricks
+from tempfile import mkdtemp, mkstemp
 from operator import itemgetter
+
+from psychopy import data, logging
+from psychopy.tools.filetools import fromFile
+
 
 logging.console.setLevel(logging.DEBUG)
 DEBUG = False
@@ -16,8 +22,8 @@ np.random.seed(1000)
 
 class _BaseTestStairHandler(object):
     def setup(self):
-        self.tmpFile = mkdtemp(prefix='psychopy-tests-%s' %
-                               type(self).__name__)
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
+                                      type(self).__name__)
 
         self.stairs = None
         self.responses = []
@@ -29,14 +35,14 @@ class _BaseTestStairHandler(object):
                 name='testExp',
                 savePickle=True,
                 saveWideText=True,
-                dataFileName=('%sx' % self.tmpFile)
+                dataFileName=('%sx' % self.tmp_dir)
         )
 
         if DEBUG:
-            print(self.tmpFile)
+            print(self.tmp_dir)
 
     def teardown(self):
-        shutil.rmtree(self.tmpFile)
+        shutil.rmtree(self.tmp_dir)
 
     def simulate(self):
         """
@@ -349,6 +355,57 @@ class TestStairHandler(_BaseTestStairHandler):
         s2.__next__()
         assert s1 != s2
 
+    def test_json_dump(self):
+        s = data.StairHandler(5)
+        dump = s.saveAsJson()
+
+        s.origin = ''
+        assert s == json_tricks.np.loads(dump)
+
+    def test_json_dump_with_data(self):
+        s = data.StairHandler(5)
+        s.addResponse(1)
+        s.addOtherData('foo', 'bar')
+        dump = s.saveAsJson()
+
+        s.origin = ''
+        assert s == json_tricks.np.loads(dump)
+
+    def test_json_dump_after_iteration(self):
+        s = data.StairHandler(5)
+        s.__next__()
+        dump = s.saveAsJson()
+
+        s.origin = ''
+        assert s == json_tricks.np.loads(dump)
+
+    def test_json_dump_with_data_after_iteration(self):
+        s = data.StairHandler(5)
+        s.addResponse(1)
+        s.addOtherData('foo', 'bar')
+        s.__next__()
+        dump = s.saveAsJson()
+
+        s.origin = ''
+        assert s == json_tricks.np.loads(dump)
+
+    def test_json_dump_to_file(self):
+        s = data.StairHandler(5)
+        s.saveAsJson(fileName=self.tmp_dir, fileCollisionMethod='overwrite')
+
+    def test_json_dump_and_reopen_file(self):
+        s = data.StairHandler(5)
+        s.addResponse(1)
+        s.addOtherData('foo', 'bar')
+        s.__next__()
+
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        s.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
+        s.origin = ''
+
+        s_loaded = fromFile(path)
+        assert s == s_loaded
+
 
 class TestQuestHandler(_BaseTestStairHandler):
     """
@@ -437,6 +494,63 @@ class TestQuestHandler(_BaseTestStairHandler):
         q2.__next__()
         assert q1 != q2
 
+    def test_json_dump(self):
+        q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                              nTrials=20, minVal=0, maxVal=1)
+        dump = q.saveAsJson()
+
+        q.origin = ''
+        assert q == json_tricks.np.loads(dump)
+
+    def test_json_dump_with_data(self):
+        q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                              nTrials=20, minVal=0, maxVal=1)
+        q.addResponse(1)
+        q.addOtherData('foo', 'bar')
+        dump = q.saveAsJson()
+
+        q.origin = ''
+        assert q == json_tricks.np.loads(dump)
+
+    def test_json_dump_after_iteration(self):
+        q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                              nTrials=20, minVal=0, maxVal=1)
+        q.__next__()
+        dump = q.saveAsJson()
+
+        q.origin = ''
+        assert q == json_tricks.np.loads(dump)
+
+    def test_json_dump_with_data_after_iteration(self):
+        q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                              nTrials=20, minVal=0, maxVal=1)
+        q.addResponse(1)
+        q.addOtherData('foo', 'bar')
+        q.__next__()
+        dump = q.saveAsJson()
+
+        q.origin = ''
+        assert q == json_tricks.np.loads(dump)
+
+    def test_json_dump_to_file(self):
+        q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                              nTrials=20, minVal=0, maxVal=1)
+        q.saveAsJson(fileName=self.tmp_dir, fileCollisionMethod='overwrite')
+
+    def test_json_dump_and_reopen_file(self):
+        q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
+                              nTrials=20, minVal=0, maxVal=1)
+        q.addResponse(1)
+        q.addOtherData('foo', 'bar')
+        q.__next__()
+
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
+        q.origin = ''
+
+        q_loaded = fromFile(path)
+        assert q == q_loaded
+
 
 class TestPsiHandler(_BaseTestStairHandler):
     def test_comparison_equals(self):
@@ -494,6 +608,75 @@ class TestPsiHandler(_BaseTestStairHandler):
         p1.__next__()
         p2.__next__()
         assert p1 != p2
+
+    def test_json_dump(self):
+        p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                            alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                            intensPrecision=1, alphaPrecision=1,
+                            betaPrecision=0.5, delta=0.01)
+        dump = p.saveAsJson()
+
+        p.origin = ''
+        assert p == json_tricks.np.loads(dump)
+
+    def test_json_dump_with_data(self):
+        p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                            alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                            intensPrecision=1, alphaPrecision=1,
+                            betaPrecision=0.5, delta=0.01)
+        p.addResponse(1)
+        p.addOtherData('foo', 'bar')
+        dump = p.saveAsJson()
+
+        p.origin = ''
+        assert p == json_tricks.np.loads(dump)
+
+    def test_json_dump_after_iteration(self):
+        p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                            alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                            intensPrecision=1, alphaPrecision=1,
+                            betaPrecision=0.5, delta=0.01)
+        p.__next__()
+        dump = p.saveAsJson()
+
+        p.origin = ''
+        assert p == json_tricks.np.loads(dump)
+
+    def test_json_dump_with_data_after_iteration(self):
+        p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                            alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                            intensPrecision=1, alphaPrecision=1,
+                            betaPrecision=0.5, delta=0.01)
+        p.addResponse(1)
+        p.addOtherData('foo', 'bar')
+        p.__next__()
+        dump = p.saveAsJson()
+
+        p.origin = ''
+        assert p == json_tricks.np.loads(dump)
+
+    def test_json_dump_to_file(self):
+        p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                            alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                            intensPrecision=1, alphaPrecision=1,
+                            betaPrecision=0.5, delta=0.01)
+        p.saveAsJson(fileName=self.tmp_dir, fileCollisionMethod='overwrite')
+
+    def test_json_dump_and_reopen_file(self):
+        p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
+                            alphaRange=[0.1, 10], betaRange=[0.1, 3],
+                            intensPrecision=1, alphaPrecision=1,
+                            betaPrecision=0.5, delta=0.01)
+        p.addResponse(1)
+        p.addOtherData('foo', 'bar')
+        p.__next__()
+
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        p.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
+        p.origin = ''
+
+        p_loaded = fromFile(path)
+        assert p == p_loaded
 
 
 class TestMultiStairHandler(_BaseTestMultiStairHandler):
@@ -573,7 +756,6 @@ class TestMultiStairHandler(_BaseTestMultiStairHandler):
 
         assert (self.stairs.staircases[0].data ==
                 self.stairs.staircases[1].data)
-
 
 
 def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
