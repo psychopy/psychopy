@@ -20,7 +20,7 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 # particular OS
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
-from psychopy.constants import STARTED, NOT_STARTED, FINISHED
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
 
 try:
     import pyglet
@@ -81,11 +81,20 @@ def shellCall(shellCmd, stdin='', stderr=False):
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
+    elif type(shellCmd) == bytes:
+        # safely split into cmd+list-of-args, no pipes here
+        shellCmdList = shlex.split(shellCmd.decode('utf-8'))
     elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
         return None, 'shellCmd requires a list or string'
-    proc = subprocess.Popen(shellCmdList, stdin=subprocess.PIPE,
+    bytesObjects = []
+    for obj in shellCmdList:
+        if type(obj) != bytes:
+            bytesObjects.append(obj.encode('utf-8'))
+        else:
+            bytesObjects.append(obj)
+    proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdoutData, stderrData = proc.communicate(stdin)
     del proc

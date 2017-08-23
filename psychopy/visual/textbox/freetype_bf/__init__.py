@@ -1066,6 +1066,8 @@ class Face( object ):
         face = FT_Face( )
         self._FT_Face = None
         #error = FT_New_Face( library, filename, 0, byref(face) )
+        if type(filename) != bytes:
+            filename = filename.encode('utf-8')
         u_filename = c_char_p(filename)
         error = FT_New_Face( library, u_filename, index, byref(face) )
         if error: raise FT_Exception( error )

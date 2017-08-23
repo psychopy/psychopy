@@ -110,7 +110,7 @@ def setAttribute(self, attrib, value, log,
             elif operation == '-':
                 value = oldValue - value
             elif operation == '/':
-                value = old_div(oldValue, value)
+                value = oldValue / value
             elif operation == '**':
                 value = oldValue ** value
             elif operation == '%':
