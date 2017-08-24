@@ -721,6 +721,12 @@ class TrialHandler(_BaseTrialHandler):
         df = df.convert_objects()
         return df
 
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'):
+        raise NotImplementedError('Not implemented for TrialHandler.')
+
     def addData(self, thisType, value, position=None):
         """Add data for the current trial
         """
@@ -918,6 +924,15 @@ class TrialHandler2(_BaseTrialHandler):
         strRepres += ')'
         return strRepres
 
+    def __eq__(self, other):
+        # We want to ignore the RNG object when doing the comparison.
+        self_copy = copy.deepcopy(self)
+        other_copy = copy.deepcopy(other)
+        del self_copy._rng, other_copy._rng
+
+        result = super(TrialHandler2, self_copy).__eq__(other_copy)
+        return result
+
     @property
     def data(self):
         """Returns a pandas DataFrame of the trial data so far
@@ -1107,6 +1122,12 @@ class TrialHandler2(_BaseTrialHandler):
         if f != sys.stdout:
             f.close()
             logging.info('saved wide-format data to %s' % f.name)
+
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'):
+        raise NotImplementedError('Not implemented for TrialHandler2.')
 
     def addData(self, thisType, value):
         """Add a piece of data to the current trial
@@ -1829,3 +1850,9 @@ class TrialHandlerExt(TrialHandler):
         if f != sys.stdout:
             f.close()
             logging.info('saved wide-format data to %s' % f.name)
+
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'):
+        raise NotImplementedError('Not implemented for TrialHandlerExt.')

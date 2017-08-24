@@ -12,9 +12,12 @@ import weakref
 import pickle
 import os
 import sys
+import copy
 import inspect
 import codecs
 import numpy as np
+import pandas as pd
+import json_tricks
 from distutils.version import StrictVersion
 
 import psychopy
@@ -40,7 +43,41 @@ except ImportError:
 _experiments = weakref.WeakValueDictionary()
 
 
-class _BaseTrialHandler(object):
+class _ComparisonMixin(object):
+    def __eq__(self, other):
+        # NoneType and booleans, for example, don't have a .__dict__ attribute.
+        try:
+            getattr(other, '__dict__')
+        except AttributeError:
+            return False
+
+        # Check if the dictionary keys are the same before proceeding.
+        if set(self.__dict__.keys()) != set(other.__dict__.keys()):
+            return False
+
+        # Loop over all keys, implementing special handling for certain
+        # data types.
+        for key, val in self.__dict__.items():
+            if isinstance(val, np.ma.core.MaskedArray):
+                if not np.ma.allclose(val, getattr(other, key)):
+                    return False
+            elif isinstance(val, np.ndarray):
+                if not np.allclose(val, getattr(other, key)):
+                    return False
+            elif isinstance(val, (pd.DataFrame, pd.Series)):
+                if not val.equals(getattr(other, key)):
+                    return False
+            else:
+                if val != getattr(other, key):
+                    return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self == other
+
+
+class _BaseTrialHandler(_ComparisonMixin):
     def setExp(self, exp):
         """Sets the ExperimentHandler that this handler is attached to
 
@@ -326,6 +363,55 @@ class _BaseTrialHandler(object):
 
         wb.save(filename=fileName)
 
+    def saveAsJson(self,
+                   fileName=None,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'):
+        """
+        Serialize the object to the JSON format.
+
+        Parameters
+        ----------
+        fileName: string, or None
+            the name of the file to create or append. Can include a relative or
+            absolute path. If `None`, will not write to a file, but return an
+            in-memory JSON object.
+
+        encoding : string, optional
+            The encoding to use when writing the file. This parameter will be
+            ignored if `append` is `False` and `fileName` ends with `.psydat`
+            or `.npy` (i.e. if a binary file is to be written).
+
+        fileCollisionMethod : string
+            Collision method passed to
+            :func:`~psychopy.tools.fileerrortools.handleFileCollision`. Can be
+            either of `'rename'`, `'overwrite'`, or `'fail'`.
+
+        Notes
+        -----
+        Currently, a copy of the object is created, and the copy's .origin
+        attribute is set to an empty string before serializing
+        because loading the created JSON file would sometimes fail otherwise.
+
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy.origin = ''
+        msg = ('Setting attribute .origin to empty string during JSON '
+               'serialization.')
+        logging.warn(msg)
+
+        if fileName is None:
+            return json_tricks.np.dumps(self_copy)
+        else:
+            f = openOutputFile(fileName,
+                               fileCollisionMethod=fileCollisionMethod,
+                               encoding=encoding)
+            json_tricks.np.dump(self_copy, f)
+
+            if f != sys.stdout:
+                f.close()
+                logging.info('Saved JSON data to %s' % f.name)
+
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this
         data file and returns both the path to that script and its contents.
@@ -356,7 +442,7 @@ class _BaseTrialHandler(object):
         return originPath, origin
 
 
-class DataHandler(dict):
+class DataHandler(_ComparisonMixin, dict):
     """For handling data (used by TrialHandler, principally, rather than
     by users directly)
 
@@ -373,7 +459,6 @@ class DataHandler(dict):
         - dataTypes=list of keys as strings
 
     """
-
     def __init__(self, dataTypes=None, trials=None, dataShape=None):
         self.trials = trials
         self.dataTypes = []  # names will be added during addDataType
@@ -389,6 +474,27 @@ class DataHandler(dict):
         if dataTypes and self.dataShape:
             for thisType in dataTypes:
                 self.addDataType(thisType)
+
+    def __eq__(self, other):
+        # We ignore an attached TrialHandler object, otherwise we will end up
+        # in an infinite loop, as this DataHandler is attached to the
+        # TrialHandler!
+
+        from psychopy.data import TrialHandler
+
+        if isinstance(self.trials, TrialHandler):
+            self_copy = copy.deepcopy(self)
+            other_copy = copy.deepcopy(other)
+            del self_copy.trials, other_copy.trials
+            result = super(DataHandler, self_copy).__eq__(other_copy)
+
+            msg = ('TrialHandler object detected in .trials. Excluding it from '
+                   'comparison.')
+            logging.warning(msg)
+        else:
+            result = super(DataHandler, self).__eq__(other)
+
+        return result
 
     def addDataType(self, names, shape=None):
         """Add a new key to the data dictionary of particular shape if

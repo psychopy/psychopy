@@ -15,6 +15,8 @@ import shutil
 import pickle
 import sys
 import codecs
+import json_tricks
+
 from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
 
@@ -30,17 +32,24 @@ def toFile(filename, data):
 
 
 def fromFile(filename):
-    """Load data (of any sort) from a pickle file.
-
-    Simple wrapper of the cPickle module in core python
+    """Load data from a pickle or JSON file.
     """
-    f = open(filename)
-    contents = pickle.load(f)
-    f.close()
-    # if loading an experiment file make sure we don't save further copies
-    # using __del__
-    if hasattr(contents, 'abort'):
-        contents.abort()
+
+    with open(filename) as f:
+        if filename.endswith('.psydat'):
+            contents = pickle.load(f)
+            # if loading an experiment file make sure we don't save further
+            # copies using __del__
+            if hasattr(contents, 'abort'):
+                contents.abort()
+        elif filename.endswith('json'):
+            contents = json_tricks.np.load(f)
+            # if isinstance(contents, data.TrialHandler):
+            #     contents.data.trials = contents
+        else:
+            msg = ("Don't know how to handle this file type, aborting.")
+            raise ValueError(msg)
+
     return contents
 
 
@@ -114,7 +123,8 @@ def openOutputFile(fileName, append=False, delim=None,
         genDelimiter(fileName)
 
     if not fileName.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
-                              '.TXT', '.csv', '.CSV', '.psydat', '.npy')):
+                              '.TXT', '.csv', '.CSV', '.psydat', '.npy',
+                              '.json')):
         if delim == ',':
             fileName += '.csv'
         elif delim == '\t':
@@ -166,6 +176,8 @@ def genDelimiter(fileName):
     """
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','
+    elif fileName.endswith('.json'):
+        delim = ''
     else:
         delim = '\t'
 

@@ -138,21 +138,31 @@ class TestTrialHandler2(object):
         # not currently testing this as column order won't match (and we've removed the columns "ran" and "order")
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandomTH2.csv'))
 
-if __name__=='__main__':
+    def test_comparison_equals(self):
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t2 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        assert t1 == t2
 
-    import sys
+    def test_comparison_equals_after_iteration(self):
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t2 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t1.__next__()
+        t2.__next__()
+        assert t1 == t2
 
-#    trials = data.TrialHandler2(trialList=[
-#        {'aParam':1},
-#        {'aParam':2},
-#        {'aParam':3},
-#        {'aParam':4, 'zParam':'extraValHere'}], seed=200, nReps=3, method='random')
-#    print('running:')
-#    for n, trial in enumerate(trials):
-#        print(trial)
-#    print('trials.data:')
-#    print(trials.data)
-#    trials.saveAsWideText(fileName = 'stdout')
-#
+    def test_comparison_not_equal(self):
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t2 = data.TrialHandler2([dict(foo=1)], 3, seed=1)
+        assert t1 != t2
+
+    def test_comparison_not_equal_after_iteration(self):
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t2 = data.TrialHandler2([dict(foo=1)], 3, seed=1)
+        t1.__next__()
+        t2.__next__()
+        assert t1 != t2
+
+
+if __name__ == '__main__':
     import pytest
     pytest.main()

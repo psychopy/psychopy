@@ -18,6 +18,7 @@ import pytest
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
 
+
 class TestTrialHandler(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
@@ -29,7 +30,7 @@ class TestTrialHandler(object):
     def test_underscores_in_datatype_names(self):
         trials = data.TrialHandler([], 1, autoLog=False)
         trials.data.addDataType('with_underscore')
-        for trial in trials:#need to run trials or file won't be saved
+        for trial in trials:  # need to run trials or file won't be saved
             trials.addData('with_underscore', 0)
         base_data_filename = pjoin(self.temp_dir, self.rootName)
         trials.saveAsExcel(base_data_filename)
@@ -148,6 +149,31 @@ class TestTrialHandler(object):
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandom.csv'))
 
+    def test_comparison_equals(self):
+        t1 = data.TrialHandler([dict(foo=1)], 2)
+        t2 = data.TrialHandler([dict(foo=1)], 2)
+        assert t1 == t2
+
+    def test_comparison_equals_after_iteration(self):
+        t1 = data.TrialHandler([dict(foo=1)], 2)
+        t2 = data.TrialHandler([dict(foo=1)], 2)
+        t1.__next__()
+        t2.__next__()
+        assert t1 == t2
+
+    def test_comparison_not_equal(self):
+        t1 = data.TrialHandler([dict(foo=1)], 2)
+        t2 = data.TrialHandler([dict(foo=1)], 3)
+        assert t1 != t2
+
+    def test_comparison_not_equal_after_iteration(self):
+        t1 = data.TrialHandler([dict(foo=1)], 2)
+        t2 = data.TrialHandler([dict(foo=1)], 3)
+        t1.__next__()
+        t2.__next__()
+        assert t1 != t2
+
+
 class TestMultiStairs(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
@@ -185,14 +211,15 @@ class TestMultiStairs(object):
                     dataFileName=pjoin(self.temp_dir, 'multiQuestExperiment'), autoLog=False)
         exp.addLoop(stairs)
         for intensity,condition in stairs:
-            #make data that will cause different stairs to finish different times
+            # make data that will cause different stairs to finish different times
             if random()>condition['startVal']:
                 corr=1
             else:corr=0
             stairs.addData(corr)
         stairs.saveAsExcel(pjoin(self.temp_dir, 'multiQuestOut'))
-        stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))#contains more info
+        stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))# contains more info
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     import pytest
     pytest.main()
