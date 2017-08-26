@@ -119,7 +119,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 self.params['storeCorrect'].val):
             code = ("%(name)s.keys = []  # to store response values\n"
                     "%(name)s.rt = []\n"
-			"%(name)s.status = None\n")
+                    "%(name)s.status = None\n")
             buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
