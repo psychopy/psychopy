@@ -20,6 +20,7 @@ from builtins import map
 from builtins import range
 import gettext
 import os
+import sys
 import glob
 import codecs
 from psychopy import logging, prefs
@@ -127,7 +128,12 @@ try:
 except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
-trans.install()
+
+# gettext.install() needs unicode=True to get unicode output in Python2.
+if sys.version_info[0] >= 3:
+    trans.install()
+else:
+    trans.install(unicode=True)
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:
