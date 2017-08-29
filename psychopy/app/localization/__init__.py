@@ -20,10 +20,10 @@ from builtins import map
 from builtins import range
 import gettext
 import os
-import sys
 import glob
 import codecs
 from psychopy import logging, prefs
+import psychopy.constants
 
 import wx
 
@@ -130,7 +130,7 @@ except IOError:
     trans = gettext.NullTranslations()
 
 # gettext.install() needs unicode=True to get unicode output in Python2.
-if sys.version_info[0] >= 3:
+if psychopy.constants.PY3:
     trans.install()
 else:
     trans.install(unicode=True)
