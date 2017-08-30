@@ -11,6 +11,7 @@
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 from builtins import str
+from past.builtins import basestring
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
@@ -31,6 +32,27 @@ from psychopy.contrib import tesselate
 import copy
 import numpy
 
+
+knownShapes = {
+    "cross" :  [
+        (-0.1, +0.5), # up
+        (+0.1, +0.5),
+        (+0.1, +0.1),
+        (+0.5, +0.1),  # right
+        (+0.5, -0.1),
+        (+0.1, -0.1),
+        (+0.1, -0.5),  # down
+        (-0.1, -0.5),
+        (-0.1, -0.1),
+        (-0.5, -0.1),  # left
+        (-0.5, +0.1),
+        (-0.1, +0.1),
+    ]
+    "star7" : [(0.0,0.5),(0.09,0.18),(0.39,0.31),(0.19,0.04),
+             (0.49,-0.11),(0.16,-0.12),(0.22,-0.45),(0.0,-0.2),
+             (-0.22,-0.45),(-0.16,-0.12),(-0.49,-0.11),(-0.19,0.04),
+             (-0.39,0.31),(-0.09,0.18)]
+}
 
 class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
@@ -347,6 +369,9 @@ class ShapeStim(BaseShapeStim):
     whole can be rotated, translated, or scaled dynamically
     (using .ori, .pos, .size).
 
+    Vertices can be a string, giving the name of a known set of vertices,
+    although "cross" is the only named shape available at present.
+
     Advanced shapes: `vertices` can also be a list of loops, where each loop
     is a list of points (x,y), e.g., to define a shape with a hole. Borders
     and contains() are not supported for multi-loop stimuli.
@@ -361,6 +386,7 @@ class ShapeStim(BaseShapeStim):
     is almost completely backwards compatible (see changelog). The
     old version is accessible as `psychopy.visual.BaseShapeStim`.
     """
+
     # Author: Jeremy Gray, November 2015, using psychopy.contrib.tesselate
 
     def __init__(self,
@@ -429,8 +455,13 @@ class ShapeStim(BaseShapeStim):
         # TO-DO: handle borders properly for multiloop stim like holes
         # likely requires changes in ContainerMixin to iterate over each
         # border loop
-        self.border = copy.deepcopy(newVertices)
 
+        # check if this is a name of one of our known shapes
+        if isinstance(newVertices, basestring) and newVertices in knownShapes:
+            newVertices = knownShapes[newVertices]
+
+        self.border = copy.deepcopy(newVertices)
+        
         if self.closeShape:
             # convert original vertices to triangles (= tesselation) if
             # possible. (not possible if closeShape is False, don't even try)
