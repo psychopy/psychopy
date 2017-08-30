@@ -50,6 +50,14 @@ class BaseComponent(object):
         self.parentName = parentName  # to access the routine too if needed
 
         self.params = {}
+        self.depends = []  # allows params to turn each other off/on
+        """{
+         "dependsOn": "shape",
+         "condition": "=='n vertices",
+         "param": "n vertices",
+         "true": "enable",  # what to do with param if condition is True
+         "false": "disable",  # permited: hide, show, enable, disable
+         }"""
 
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
