@@ -901,6 +901,17 @@ class Param(object):
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
 
+    def __eq__(self, other):
+        """Test for equivalence is needed for Params because what really
+        typically want to test is whether the val is the same
+        """
+        return self.val == other
+
+    def __ne__(self, other):
+        """Test for (non)equivalence is needed for Params because what really
+        typically want to test is whether the val is the same/different
+        """
+        return self.val != other
 
 class TrialHandler(object):
     """A looping experimental control object
