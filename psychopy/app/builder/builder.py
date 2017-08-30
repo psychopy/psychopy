@@ -522,7 +522,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         dlg = _Dlg(frame=self.frame,
                    title=component.params['name'].val + ' Properties',
                    params=component.params,
-                   order=component.order, helpUrl=helpUrl, editing=True)
+                   order=component.order, helpUrl=helpUrl, editing=True,
+                   depends=component.depends)
         if dlg.OK:
             if component.getStartAndDuration() != initialTimings:
                 self.redrawRoutine()  # need to refresh timings section
@@ -864,7 +865,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             _Dlg = DlgComponentProperties
         dlg = _Dlg(frame=self.frame, title=componentName + ' Properties',
                    params=newComp.params, order=newComp.order,
-                   helpUrl=helpUrl)
+                   helpUrl=helpUrl,
+                   depends=newComp.depends)
 
         compName = newComp.params['name']
         if dlg.OK:

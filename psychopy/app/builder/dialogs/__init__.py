@@ -78,6 +78,7 @@ class ParamCtrls(object):
         # try to find the experiment
         self.exp = None
         tryForExp = self.dlg
+
         while self.exp is None:
             if hasattr(tryForExp, 'frame'):
                 self.exp = tryForExp.frame.exp
@@ -350,6 +351,25 @@ class ParamCtrls(object):
         expInfoStr = repr(expInfo)
         return expInfoStr
 
+    def setChangesCallback(self, callbackFunction):
+        """Set a callback to detect any changes in this value (whether it's
+        a checkbox event or a text event etc
+
+        :param callbackFunction: the function to be called when the valueCtrl
+        changes value
+        :return:
+        """
+        if isinstance(self.valueCtrl, CodeBox):
+            self.valueCtrl.Bind(wx.stc.EVT_STC_CHANGE, callbackFunction)
+        elif isinstance(self.valueCtrl, wx.ComboBox):
+            self.valueCtrl.Bind(wx.EVT_COMBOBOX, callbackFunction)
+        elif isinstance(self.valueCtrl, wx.Choice):
+            self.valueCtrl.Bind(wx.EVT_CHOICE, callbackFunction)
+        elif isinstance(self.valueCtrl, wx.CheckBox):
+            self.valueCtrl.Bind(wx.EVT_CHECKBOX, callbackFunction)
+        else:
+            print("setChangesCallback doesn't know how to handle ctrl {}"
+                  .format(type(self.valueCtrl)))
 
 class _BaseParamsDlg(wx.Dialog):
     _style = wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.TAB_TRAVERSAL
@@ -358,7 +378,8 @@ class _BaseParamsDlg(wx.Dialog):
                  helpUrl=None, suppressTitles=True,
                  showAdvanced=False,
                  size=wx.DefaultSize,
-                 style=_style, editing=False):
+                 style=_style, editing=False,
+                 depends=[]):
 
         # translate title
         if ' Properties' in title:  # Components and Loops
@@ -387,6 +408,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.suppressTitles = suppressTitles
         self.showAdvanced = showAdvanced
         self.order = order
+        self.depends = depends
         self.data = []
         self.nameOKlabel = None
         # max( len(str(self.params[x])) for x in keys )
@@ -477,6 +499,46 @@ class _BaseParamsDlg(wx.Dialog):
             page.SetSizerAndFit(ctrls)
             page.SetAutoLayout(True)
         self.SetSizerAndFit(self.mainSizer)
+        #set up callbacks for any dependent params to update others
+        for thisDepend in self.depends:
+            paramName = thisDepend['dependsOn']
+            paramCtrl = self.paramCtrls[paramName]  # hint : ParamCtrl
+            paramCtrl.setChangesCallback(self.checkDepends)
+        self.checkDepends()
+
+    def checkDepends(self, event=None):
+        """Checks the relationships between params that depend on each other
+
+        Dependencies are a list of dicts like this (as in BaseComponent):
+        {"dependsOn": "shape",
+         "condition": "=='n vertices",
+         "param": "n vertices",
+         "true": "Enable",  # what to do with param if condition is True
+         "false": "Disable",  # permitted: hide, show, enable, disable
+        }"""
+        for thisDep in self.depends:
+            dependentCtrls = self.paramCtrls[thisDep['param']]
+            dependencyCtrls = self.paramCtrls[thisDep['dependsOn']]
+            condString = "dependencyCtrls.getValue() {}".format(thisDep['condition'])
+            if eval(condString):
+                action = thisDep['true']
+            else:
+                action = thisDep['false']
+            if action == "hide":
+                dependentCtrls.setVisible(False)
+            elif action == "show":
+                dependentCtrls.setVisible(True)
+            else:
+                # if action is "enable" then do ctrl.Enable() etc
+                for ctrlName in ['valueCtrl', 'nameCtrl', 'updatesCtrl']:
+                    # disable/enable all parts of the control
+                    if hasattr(dependentCtrls, ctrlName):
+                        evalStr = ("dependentCtrls.{}.{}()"
+                                   .format(ctrlName, action.title()))
+                        eval(evalStr)
+            self.mainSizer.Layout()
+            self.Fit()
+            self.Refresh()
 
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category
@@ -1012,7 +1074,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def __init__(self, frame, title="Loop Properties", loop=None,
                  helpUrl=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=_style):
+                 style=_style, depends=[]):
         # translate title
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
@@ -1583,11 +1645,11 @@ class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 editing=False):
+                 editing=False, depends=[]):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
-                                editing=editing)
+                                editing=editing, depends=depends)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1628,10 +1690,11 @@ class DlgExperimentProperties(_BaseParamsDlg):
 
     def __init__(self, frame, title, params, order, suppressTitles=False,
                  size=wx.DefaultSize, helpUrl=None,
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT):
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
+                 depends=[]):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, 'Experiment Settings',
-                                params, order,
+                                params, order, depends=depends,
                                 size=size, style=style, helpUrl=helpUrl)
         self.frame = frame
         self.app = frame.app
