@@ -181,7 +181,7 @@ class Dlg(QtWidgets.QDialog):
                 thisType = self.inputFieldTypes[ix]
 
                 try:
-                    if isinstance(thisType, basestring):
+                    if issubclass(thisType, basestring):
                         self.data[ix] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"
