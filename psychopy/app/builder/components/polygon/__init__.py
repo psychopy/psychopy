@@ -173,11 +173,11 @@ class PolygonComponent(BaseVisualComponent):
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
         elif vertices in ['star']:
-            code = ("%s = visual.Shape(\n" % inits['name'] +
+            code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='star',%s\n" % (inits['name'], unitsStr) +
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
         elif vertices in ['cross']:
-            code = ("%s = visual.Shape(\n" % inits['name'] +
+            code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='cross',%s\n" % (inits['name'], unitsStr) +
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
         elif vertices in ['rectangle', '4']:

@@ -126,6 +126,19 @@ class IndentingBuffer(io.StringIO):
         else:
             io.StringIO.write(self, u"{}".format(text))
 
+
+def _findParam(name, node):
+    """Searches an XML node in search of a particular param name
+
+    :param name: str indicating the name of the attribute
+    :param node: xml element/node to be searched
+    :return: None, or a parameter child node
+    """
+    for attr in node:
+        if attr.get('name') == name:
+            return attr
+
+
 class Experiment(object):
     """
     An experiment contains a single Flow and at least one
@@ -350,7 +363,7 @@ class Experiment(object):
             thisChild.set('updates', "{}".format(param.updates))
         return thisChild
 
-    def _getXMLparam(self, params, paramNode):
+    def _getXMLparam(self, params, paramNode, componentNode=None):
         """params is the dict of params of the builder component
         (e.g. stimulus) into which the parameters will be inserted
         (so the object to store the params should be created first)
@@ -359,10 +372,25 @@ class Experiment(object):
         name = paramNode.get('name')
         valType = paramNode.get('valType')
         val = paramNode.get('val')
+        # many components need web char newline replacement
         if not name == 'advancedParams':
             val = val.replace("&#10;", "\n")
+
+        # custom settings (to be used when
         if name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
+        elif name == 'nVertices':  # up to 1.85 there was no shape param
+            # if no shape param then use "n vertices" only
+            if _findParam('shape', componentNode) is None:
+                if val == '2':
+                    params['shape'].val = "line"
+                elif val == '3':
+                    params['shape'].val = "triangle"
+                elif val == '4':
+                    params['shape'].val = "rectangle"
+                else:
+                    params['shape'].val = "regular polygon..."
+            params['nVertices'].val = val
         elif name == 'startTime':  # deprecated in v1.70.00
             params['startType'].val = "{}".format('time (s)')
             params['startVal'].val = "{}".format(val)
@@ -483,6 +511,7 @@ class Experiment(object):
                                      "version.")
                     logging.warn(msg % name)
                     logging.flush()
+
         # get the value type and update rate
         if 'valType' in list(paramNode.keys()):
             params[name].valType = paramNode.get('valType')
@@ -531,7 +560,8 @@ class Experiment(object):
         # fetch exp settings
         settingsNode = root.find('Settings')
         for child in settingsNode:
-            self._getXMLparam(params=self.settings.params, paramNode=child)
+            self._getXMLparam(params=self.settings.params, paramNode=child,
+                              componentNode=settingsNode)
         # name should be saved as a settings parameter (only from 1.74.00)
         if self.settings.params['expName'].val in ['', None, 'None']:
             shortName = os.path.splitext(filenameBase)[0]
@@ -580,7 +610,8 @@ class Experiment(object):
                 # populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params,
-                                      paramNode=paramNode)
+                                      paramNode=paramNode,
+                                      componentNode=componentNode)
                 compGoodName = self.namespace.makeValid(
                     componentNode.get('name'))
                 if compGoodName != componentNode.get('name'):
