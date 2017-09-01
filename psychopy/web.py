@@ -204,7 +204,7 @@ def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
             if log:
                 logging.debug("Failed to find PAC URL '%s' " % thisPacURL)
             continue
-        pacStr = response.read()
+        pacStr = response.read().decode('utf-8')
         # find the candidate PROXY strings (valid URLS), numeric and
         # non-numeric:
         pattern = r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]"
