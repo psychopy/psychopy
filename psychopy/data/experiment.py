@@ -9,6 +9,7 @@ from builtins import str
 import sys
 import copy
 import pickle
+import weakref
 
 from psychopy import logging
 from psychopy.tools.filetools import openOutputFile, genDelimiter
@@ -27,6 +28,9 @@ class ExperimentHandler(_ComparisonMixin):
         exp = data.ExperimentHandler(name="Face Preference",version='0.1.0')
 
     """
+    
+    _instances = weakref.WeakSet()
+    
     def __init__(self,
                  name='',
                  version='',
@@ -72,6 +76,8 @@ class ExperimentHandler(_ComparisonMixin):
 
             autoLog : True (default) or False
         """
+        ExperimentHandler._instances.add(self)
+        
         self.loops = []
         self.loopsUnfinished = []
         self.name = name
@@ -99,14 +105,7 @@ class ExperimentHandler(_ComparisonMixin):
             checkValidFilePath(dataFileName, makeValid=True)
 
     def __del__(self):
-        if self.dataFileName not in ['', None]:
-            if self.autoLog:
-                logging.debug(
-                    'Saving data for %s ExperimentHandler' % self.name)
-            if self.savePickle == True:
-                self.saveAsPickle(self.dataFileName)
-            if self.saveWideText == True:
-                self.saveAsWideText(self.dataFileName + '.csv', delim=',')
+        self.close()
 
     def addLoop(self, loopHandler):
         """Add a loop such as a :class:`~psychopy.data.TrialHandler`
@@ -335,6 +334,18 @@ class ExperimentHandler(_ComparisonMixin):
         logging.info('saved data to %s' % f.name)
         self.savePickle = savePickle
         self.saveWideText = saveWideText
+        
+    def close(self):
+        if self.dataFileName not in ['', None]:
+            if self.autoLog:
+                logging.debug(
+                              'Saving data for %s ExperimentHandler' % self.name)
+            if self.savePickle == True:
+                self.saveAsPickle(self.dataFileName)
+            if self.saveWideText == True:
+                self.saveAsWideText(self.dataFileName + '.csv', delim=',')
+        self.abort()
+        self.augoLog = False
 
     def abort(self):
         """Inform the ExperimentHandler that the run was aborted.

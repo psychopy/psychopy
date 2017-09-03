@@ -21,6 +21,7 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
+from psychopy.data import experiment
 
 try:
     import pyglet
@@ -62,6 +63,10 @@ def quit():
     """
     # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
+    
+    for thisExp in experiment.ExperimentHandler._instances:
+        thisExp.close()
+    
     for thisThread in threading.enumerate():
         if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
             # this is one of our event threads - kill it and wait for success
