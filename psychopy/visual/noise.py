@@ -569,7 +569,7 @@ class NoiseStim(GratingStim):
             pin=filters.makeRadialMatrix(matrixSize=mysize, center=(0,0), radius=1.0)
             self.noiseTex = numpy.multiply(numpy.ones((int(mysize),int(mysize))),(pin)**self.noiseFractalPower)
             if lowsf > mysize/2:
-                msg = ('Lower cuttof frequency for filtered '
+                msg = ('Lower cut off frequency for filtered '
                       'noise is definitely too high.')
                 raise Warning(msg)
             if self.noiseFilterOrder > 0.01:
