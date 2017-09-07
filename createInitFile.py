@@ -88,7 +88,7 @@ try:
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
 
-        from psychopy.tools.versionchooser import useVersion, ensureMinimal
+    from psychopy.tools.versionchooser import useVersion, ensureMinimal
 except ImportError as e:
     if not any(x in str(e) for x in ["configobj", "past", "builtins"]):
         raise
