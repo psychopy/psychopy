@@ -40,7 +40,7 @@ for i in range(-1 * MR_settings['skip'], 0):
 counter = visual.TextStim(win, height=.05, pos=(0, 0), color=win.rgb + 0.5)
 output += u"  0    0.000 sync  [Start of scanning run, vol 0]\n"
 
-# launch: operator selects Scan or Test (emulate); see API docuwmentation
+# launch: operator selects Scan or Test (emulate); see API documentation
 vol = launchScan(win, MR_settings, globalClock=globalClock)
 counter.setText(u"%d volumes\n%.3f seconds" % (0, 0.0))
 counter.draw()
