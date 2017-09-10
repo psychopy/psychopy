@@ -334,10 +334,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
         self._total_frame_count = self._video_stream.get(
             cv2.CAP_PROP_FRAME_COUNT)
-        self._video_width = self._video_stream.get(
-            cv2.CAP_PROP_FRAME_WIDTH)
-        self._video_height = self._video_stream.get(
-            cv2.CAP_PROP_FRAME_HEIGHT)
+        self._video_width = int(self._video_stream.get(
+            cv2.CAP_PROP_FRAME_WIDTH))
+        self._video_height = int(self._video_stream.get(
+            cv2.CAP_PROP_FRAME_HEIGHT))
         self._format = self._video_stream.get(
             cv2.CAP_PROP_FORMAT)
         # TODO: Read depth from video source
