@@ -19,6 +19,7 @@ try:
 except ImportError:  # was here wx<4.0:
     from wx.lib import flatnotebook
 
+from .... import constants
 from .. import validators
 from ...localization import _translate
 
@@ -393,7 +394,7 @@ class CodeBox(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            if not PY3:
+            if not constants.PY3:
                 try:
                     # if we can decode/encode to utf-8 then all is good
                     txt.decode('utf-8')

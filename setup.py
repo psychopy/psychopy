@@ -14,7 +14,7 @@ from setuptools import setup, find_packages
 import os
 from sys import platform, argv, version_info
 
-PY3 = version_info>=(3,0)
+PY3 = version_info >= (3, 0)
 
 # use pip module to parse the
 required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
@@ -24,7 +24,7 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'future', 'json_tricks',
             'pyosf', 'requests[security]',
             'xlrd', 'openpyxl',  # MS Excel
-            'pyserial','pyparallel',
+            'pyserial', 'pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables',
             'opencv-python',
             'moviepy',
@@ -75,7 +75,7 @@ dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec'
 dataFiles = ['psychopy/psychojs.zip']
 
 scripts = ['psychopy/app/psychopyApp.py',
-           'psychopy_post_inst.py'] #although post_install only needs installing on win32 it needs packaging in the zip
+           'psychopy_post_inst.py']  # although post_install only needs installing on win32 it needs packaging in the zip
 if platform=='win32':
     pass
 elif platform=='darwin':
