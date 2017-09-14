@@ -39,21 +39,23 @@ In a counterbalanced design you want to control the order explicitly and you wan
 
 Now we need to create further conditions files, to specify the exact orders we want, so we'd have something like `groupA.xlsx`:
 
-=================
-condsFile
-=================
-housesBlock.xlsx
-facesBlock.xlsx
-==================
+  +------------------+
+  |  condsFile       |
+  +==================+
+  | housesBlock.xlsx |
+  +------------------+
+  | facesBlock.xlsx  |
+  +------------------+
 
 and `groupB.xlsx`:
 
-=================
-condsFile
-=================
-facesBlock.xlsx
-housesBlock.xlsx
-==================
+  +------------------+
+  |  condsFile       |
+  +==================+
+  | facesBlock.xlsx  |
+  +------------------+
+  | housesBlock.xlsx |
+  +------------------+
 
 In this case the last part of the puzzle is how to assign participants to groups. For this you *could* write a Code Component that would generate a variable for you (`if.....: groupFile = "groupB.xlsx"`) but the easiest thing is probably that you, the experimenter, chooses this outside of PsychoPy and simply tells PsychoPy which group to assign to each participant.
 
