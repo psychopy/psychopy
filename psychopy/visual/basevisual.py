@@ -1158,7 +1158,7 @@ class WindowMixin(object):
         """Switch drawing to the specified window. Calls the window's
         _setCurrent() method which handles the switch.
         """
-        self.win._setCurrent()
+        win._setCurrent()
 
     def _updateList(self):
         """The user shouldn't need this method since it gets called
