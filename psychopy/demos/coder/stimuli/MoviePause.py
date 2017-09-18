@@ -1,6 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 
 """
 Demo of pausing during playback of MovieStim3

@@ -1,4 +1,6 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 A stimulus class for playing movies (mp4, divx, avi etc...) in PsychoPy.
 Demo using the experimental movie3 stim to play a video file. Path of video

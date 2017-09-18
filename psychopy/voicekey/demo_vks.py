@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-# encoding: utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 from . signal import _BaseVoiceKeySignal

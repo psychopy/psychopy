@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 '''A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale.'''
 from __future__ import division

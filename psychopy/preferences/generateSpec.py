@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # generate .spec files for all OS's based on differences from baseNoArch.spec
 # copies & tweaks baseNoArch.spec -> write out as platform specific .spec file

@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """gamma.py placeholder file for backwards compatibility; Dec 2015
 """

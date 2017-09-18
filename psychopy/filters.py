@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """filters.py placeholder file for backwards compatibility; Dec 2015
 """

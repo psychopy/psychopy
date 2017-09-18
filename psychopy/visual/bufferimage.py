@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """Take a "screen-shot" (full or partial), save to a ImageStim()-like
 RBGA object.`"""
