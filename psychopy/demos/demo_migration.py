@@ -90,7 +90,7 @@ def convert_inline_comments(f1):
     return '\n'.join(lines)
 
 def replace_commas_etc(f1):
-    # do after shbang, encoding
+    # do after shebang, encoding
     f1 = f1.replace(',', ', ').replace(',  ', ', ')
     f1 = f1.replace('=visual', ' = visual')
     f1 = f1.replace('=data', ' = data').replace('=numpy', ' = numpy')
@@ -167,7 +167,7 @@ def demo_update_one(filename):
     f = add_win_close_quit_demo_license(f)
     f = convert_inline_comments(f)
     f = replace_xrange(f)
-    f = replace_commas_etc(f)  # do after shbang, encoding
+    f = replace_commas_etc(f)  # do after shebang, encoding
     f = replace_PatchStim(f)
     f = replace_myWin_win(f)
     f = replace_equals(f)

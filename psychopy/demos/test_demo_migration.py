@@ -10,7 +10,7 @@
       win.close() present / absent
       core.quit() present / absent
       leading comment
-      shbang, encoding
+      shebang, encoding
 """
 from __future__ import print_function
 
