@@ -6,13 +6,16 @@ from __future__ import print_function
 
 import sys, glob, os, re
 
+
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")
 coding = '# -*- coding: utf-8 -*-\n'
 demo_license = '\n# The contents of this file are in the public domain.\n'
 division = 'from __future__ import division'
 
+
 def get_contents(f1):
     return open(f1, 'rU').read()
+
 
 def reposition_division(f1):
     lines = f1.splitlines()
@@ -30,8 +33,9 @@ def reposition_division(f1):
                 break
                 
     return '\n'.join(lines)
-        
-def add_shbang_encoding_future(f1):
+
+
+def add_shebang_encoding_future(f1):
     if not f1.startswith('#!'):
         f1 = '#!/usr/bin/env python\n' + f1
     
@@ -43,22 +47,27 @@ def add_shbang_encoding_future(f1):
         f1 = f1.replace(coding, coding + division + '\n\n', 1)
     return f1
 
+
 def remove_doublesharp_trailing_whitespace(f1):
     f1 = f1.replace('##', '#')
     f1 = f1.replace('\n#\n', '\n\n')
     return '\n'.join([line.rstrip() for line in f1.splitlines()]) + '\n'
-    
+
+
 def replace_PatchStim(f1):
     return f1.replace('PatchStim', 'GratingStim')
 
+
 def replace_xrange(f1):
     return f1.replace('xrange', 'range')
-    
+
+
 def replace_myWin_win(f1):
     f1 = f1.replace('myWin', 'win')
     if 'iohub' in f1:
         f1 = f1.replace('window', 'win')
     return f1.replace('win.update()', 'win.flip')
+
 
 def add_win_close_quit_demo_license(f1):
     # remove first, then add back consistently
@@ -81,6 +90,7 @@ def add_win_close_quit_demo_license(f1):
     
     return f1
 
+
 def convert_inline_comments(f1):
     lines = f1.splitlines()
     for i, line in enumerate(lines):
@@ -88,6 +98,7 @@ def convert_inline_comments(f1):
         if '#' in line and not line.strip().startswith('#'):
             lines[i] = lines[i].replace('#', '  #').replace('   #', '  #').replace('   #', '  #')
     return '\n'.join(lines)
+
 
 def replace_commas_etc(f1):
     # do after shebang, encoding
@@ -118,9 +129,11 @@ def replace_commas_etc(f1):
     
     return f1
 
+
 def is_var_name(name):
     return all([_valid_var_re.match(n) for n in name.split('.')])
-    
+
+
 def replace_equals(f1):
     lines = f1.splitlines()
     for i, line in enumerate(lines):
@@ -133,12 +146,14 @@ def replace_equals(f1):
                 lines[i] = lines[i].replace('=  ', '=')
     return '\n'.join(lines)
 
+
 def uk_to_us_spelling(f1):
     f1 = f1.replace('centre', 'center').replace('centerd', 'centered')
     f1 = f1.replace('nitialise', 'nitialize')
     f1 = f1.replace('colour', 'color')
     f1 = f1.replace('analyse', 'analyze')
     return f1
+
 
 def split_multiline(f1):
     lines = f1.splitlines()
@@ -156,6 +171,7 @@ def split_multiline(f1):
                 lines[i] = pre + ':\n' + pre_indent + post.strip()
     return '\n'.join(lines)
 
+
 def demo_update_one(filename):
     """convert file contents to updated style etc
     """
@@ -163,7 +179,7 @@ def demo_update_one(filename):
     if not len(f.strip()):
         return ''  # eg __init__.py
     f = remove_doublesharp_trailing_whitespace(f)
-    f = add_shbang_encoding_future(f)
+    f = add_shebang_encoding_future(f)
     f = add_win_close_quit_demo_license(f)
     f = convert_inline_comments(f)
     f = replace_xrange(f)
@@ -175,6 +191,7 @@ def demo_update_one(filename):
     f = split_multiline(f)
     return f
 
+
 def demo_update_two(filename):
     """repostion division statement
     """
@@ -184,7 +201,8 @@ def demo_update_two(filename):
     #f = reposition_division(f)
     f = f + '\n'
     return f
-    
+
+
 if __name__ == '__main__':
     # run from within psychopy/demos/
     dirs = [d for d in glob.glob('coder/*') if os.path.isdir(d)]
@@ -212,5 +230,3 @@ if __name__ == '__main__':
             except Exception:
                 print(out)
                 raise
-            #"""
-            
