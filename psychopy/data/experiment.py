@@ -9,7 +9,7 @@ from builtins import str
 import sys
 import copy
 import pickle
-import weakref
+import atexit
 
 from psychopy import logging
 from psychopy.tools.filetools import openOutputFile, genDelimiter
@@ -28,8 +28,6 @@ class ExperimentHandler(_ComparisonMixin):
         exp = data.ExperimentHandler(name="Face Preference",version='0.1.0')
 
     """
-    
-    _instances = weakref.WeakSet()
     
     def __init__(self,
                  name='',
@@ -76,8 +74,6 @@ class ExperimentHandler(_ComparisonMixin):
 
             autoLog : True (default) or False
         """
-        ExperimentHandler._instances.add(self)
-        
         self.loops = []
         self.loopsUnfinished = []
         self.name = name
@@ -103,6 +99,7 @@ class ExperimentHandler(_ComparisonMixin):
         else:
             # fail now if we fail at all!
             checkValidFilePath(dataFileName, makeValid=True)
+        atexit.register(self.close)
 
     def __del__(self):
         self.close()
@@ -345,7 +342,7 @@ class ExperimentHandler(_ComparisonMixin):
             if self.saveWideText == True:
                 self.saveAsWideText(self.dataFileName + '.csv', delim=',')
         self.abort()
-        self.augoLog = False
+        self.autoLog = False
 
     def abort(self):
         """Inform the ExperimentHandler that the run was aborted.
