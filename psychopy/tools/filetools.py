@@ -13,13 +13,18 @@ from future import standard_library
 standard_library.install_aliases()
 import os
 import shutil
-import pickle
 import sys
 import codecs
 import json_tricks
 
 from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
+from psychopy.constants import PY3
+
+if PY3:
+    import pickle
+else:
+    import cPickle as pickle
 
 
 def toFile(filename, data):
@@ -35,21 +40,17 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
-
-    with open(filename) as f:
-        if filename.endswith('.psydat'):
+    if filename.endswith('.psydat'):
+        with open(filename, 'rb') as f:
             contents = pickle.load(f)
-            # if loading an experiment file make sure we don't save further
-            # copies using __del__
-            if hasattr(contents, 'abort'):
-                contents.abort()
-        elif filename.endswith('json'):
+    elif filename.endswith('.json'):
+        with open(filename, 'r') as f:
             contents = json_tricks.np.load(f)
-            # if isinstance(contents, data.TrialHandler):
-            #     contents.data.trials = contents
-        else:
-            msg = ("Don't know how to handle this file type, aborting.")
-            raise ValueError(msg)
+        # if isinstance(contents, data.TrialHandler):
+        #     contents.data.trials = contents
+    else:
+        msg = "Don't know how to handle this file type, aborting."
+        raise ValueError(msg)
 
     return contents
 
