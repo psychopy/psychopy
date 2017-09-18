@@ -15,7 +15,7 @@ The idea is to have clean code that looks and works the same way across demos, w
 
 - Standardize the top stuff to have 1) a shbang with python2 (not just python), 2) utf-8 encoding, and 3) a comment::
 
-    #!/usr/bin/env python2
+    #!/usr/bin/env python
     # -*- coding: utf-8 -*-
     """Demo name, purpose, description (1-2 sentences, although some demos need more explanation).
     """

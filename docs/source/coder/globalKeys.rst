@@ -281,7 +281,7 @@ global event keys to change the window color and quit the experiment,
 respectively.
 ::
 
-    #!/usr/bin/env python2
+    #!/usr/bin/env python
     # -*- coding: utf-8 -*-
 
     from __future__ import print_function

@@ -33,7 +33,7 @@ def reposition_division(f1):
         
 def add_shbang_encoding_future(f1):
     if not f1.startswith('#!'):
-        f1 = '#!/usr/bin/env python2\n' + f1
+        f1 = '#!/usr/bin/env python\n' + f1
     
     if '# -*- coding:' not in f1:
         f = f1.split('\n', 1)

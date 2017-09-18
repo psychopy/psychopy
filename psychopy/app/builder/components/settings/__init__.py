@@ -269,7 +269,7 @@ class SettingsComponent(object):
     def writeInitCode(self, buff, version, localDateTime):
 
         buff.write(
-            '#!/usr/bin/env python2\n'
+            '#!/usr/bin/env python\n'
             '# -*- coding: utf-8 -*-\n'
             '"""\nThis experiment was created using PsychoPy2 Experiment '
             'Builder (v%s),\n'
