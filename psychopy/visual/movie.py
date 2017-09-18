@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 """

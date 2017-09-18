@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 """Scoring script for MSU-PsychoPy version of IAT task.
 

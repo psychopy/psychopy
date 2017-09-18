@@ -1,10 +1,8 @@
 #!/usr/bin/env python2
-# encoding: utf-8
-
+# -*- coding: utf-8 -*-
 
 """Completely untested. Doesn't work at all on Mac (no parallel).
 """
-
 
 from builtins import hex
 from . signal import _BaseVoiceKeySignal

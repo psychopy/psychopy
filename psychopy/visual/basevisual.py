@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 """Provides class BaseVisualStim and mixins; subclass to get visual stimuli
 """

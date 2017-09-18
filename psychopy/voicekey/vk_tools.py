@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 """Digital signal processing functions; pyo table, file, & sample conversions
 """

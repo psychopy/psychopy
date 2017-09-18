@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 """Restrict a stimulus visibility area to a basic shape or list of vertices.
 """

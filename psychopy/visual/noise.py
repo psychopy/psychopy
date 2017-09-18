@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 """Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
 second order envelope carrier and envelope can vary independently for

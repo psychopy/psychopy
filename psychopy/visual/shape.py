@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 '''Create geometric (vector) shapes by defining vertex locations.'''
 

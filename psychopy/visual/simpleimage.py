@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 """A simple stimulus for loading images from a file and presenting at exactly
 the resolution and color in the file (subject to gamma correction if set).

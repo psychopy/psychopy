@@ -1,4 +1,6 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
 '''
 %        Maximum length sequence assuming 2,3,5 distinct values
 %

@@ -1,4 +1,6 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
 from psychopy import visual, core
 """
 Text rendering has changed a lot (for the better) under pyglet. This
