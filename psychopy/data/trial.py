@@ -1127,7 +1127,47 @@ class TrialHandler2(_BaseTrialHandler):
                    fileName=None,
                    encoding='utf-8',
                    fileCollisionMethod='rename'):
-        raise NotImplementedError('Not implemented for TrialHandler2.')
+        """
+        Serialize the object to the JSON format.
+
+        Parameters
+        ----------
+        fileName: string, or None
+            the name of the file to create or append. Can include a relative or
+            absolute path. If `None`, will not write to a file, but return an
+            in-memory JSON object.
+
+        encoding : string, optional
+            The encoding to use when writing the file. This parameter will be
+            ignored if `append` is `False` and `fileName` ends with `.psydat`
+            or `.npy` (i.e. if a binary file is to be written).
+
+        fileCollisionMethod : string
+            Collision method passed to
+            :func:`~psychopy.tools.fileerrortools.handleFileCollision`. Can be
+            either of `'rename'`, `'overwrite'`, or `'fail'`.
+
+        Notes
+        -----
+        Currently, a copy of the object is created, and the copy's .origin
+        attribute is set to an empty string before serializing
+        because loading the created JSON file would sometimes fail otherwise.
+
+        The RNG self._rng cannot be serialized as-is, so we store its state in
+        self._rng_state so we can restore it when loading.
+
+        """
+        self_copy = copy.deepcopy(self)
+        self_copy._rng_state = self_copy._rng.get_state()
+        del self_copy._rng
+
+        r = (super(TrialHandler2, self_copy)
+             .saveAsJson(fileName=fileName,
+                         encoding=encoding,
+                         fileCollisionMethod=fileCollisionMethod))
+
+        if fileName is None:
+            return r
 
     def addData(self, thisType, value):
         """Add a piece of data to the current trial

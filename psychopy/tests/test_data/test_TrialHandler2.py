@@ -7,21 +7,27 @@ import os, glob
 from os.path import join as pjoin
 import shutil
 from pytest import raises
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mkstemp
+import numpy as np
 from numpy.random import random
+import json_tricks
+import pytest
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
-import pytest
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
+
 
 class TestTrialHandler2(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
+        self.conditions = [dict(foo=1, bar=2),
+                           dict(foo=2, bar=3),
+                           dict(foo=3, bar=4)]
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
@@ -66,6 +72,7 @@ class TestTrialHandler2(object):
             # Make sure the correct number of files for the loop are there. (No overwriting by default).
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*.psydat")))
             assert matches==count, "Found %d matching files, should be %d" % (matches, count)
+
     def test_psydat_filename_collision_overwriting2(self):
         for count in [1, 10, 20]:
             trials = data.TrialHandler2([], 1, autoLog=False)
@@ -161,6 +168,78 @@ class TestTrialHandler2(object):
         t1.__next__()
         t2.__next__()
         assert t1 != t2
+
+    def test_json_dump(self):
+        t = data.TrialHandler2(self.conditions, nReps=5)
+        dump = t.saveAsJson()
+
+        t.origin = ''
+
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
+
+        assert t == t_loaded
+
+    def test_json_dump_with_data(self):
+        t = data.TrialHandler2(self.conditions, nReps=5)
+        t.addData('foo', 'bar')
+        dump = t.saveAsJson()
+
+        t.origin = ''
+
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
+
+        assert t == t_loaded
+
+    def test_json_dump_after_iteration(self):
+        t = data.TrialHandler2(self.conditions, nReps=5)
+        t.__next__()
+        dump = t.saveAsJson()
+
+        t.origin = ''
+
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
+
+        assert t == t_loaded
+
+    def test_json_dump_with_data_after_iteration(self):
+        t = data.TrialHandler2(self.conditions, nReps=5)
+        t.addData('foo', 'bar')
+        t.__next__()
+        dump = t.saveAsJson()
+
+        t.origin = ''
+
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
+
+        assert t == t_loaded
+
+    def test_json_dump_to_file(self):
+        t = data.TrialHandler2(self.conditions, nReps=5)
+        t.saveAsJson(fileName=self.temp_dir, fileCollisionMethod='overwrite')
+
+    def test_json_dump_and_reopen_file(self):
+        t = data.TrialHandler2(self.conditions, nReps=5)
+        t.addData('foo', 'bar')
+        t.__next__()
+
+        _, path = mkstemp(dir=self.temp_dir, suffix='.json')
+        t.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
+        t.origin = ''
+
+        t_loaded = fromFile(path)
+        assert t == t_loaded
 
 
 if __name__ == '__main__':
