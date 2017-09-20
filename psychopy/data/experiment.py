@@ -232,7 +232,9 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries.append(this)
         self.thisEntry = {}
 
-    def saveAsWideText(self, fileName, delim=None,
+    def saveAsWideText(self,
+                       fileName,
+                       delim=None,
                        matrixOnly=False,
                        appendFile=False,
                        encoding='utf-8',
@@ -249,12 +251,31 @@ class ExperimentHandler(_ComparisonMixin):
         which can be handy if you want to append data to an existing file
         of the same format.
 
-        encoding:
-            The encoding to use when saving a the file. Defaults to `utf-8`.
+        :Parameters:
 
-        fileCollisionMethod:
-            Collision method passed to
-            :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+            fileName:
+                if extension is not specified, '.csv' will be appended if
+                the delimiter is ',', else '.tsv' will be appended.
+                Can include path info.
+
+            delim:
+                allows the user to use a delimiter other than the default
+                tab ("," is popular with file extension ".csv")
+
+            matrixOnly:
+                outputs the data with no header row.
+
+            appendFile:
+                will add this output to the end of the specified file if
+                it already exists.
+
+            encoding:
+                The encoding to use when saving a the file.
+                Defaults to `utf-8`.
+
+            fileCollisionMethod:
+                Collision method passed to
+                :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         """
         # set default delimiter if none given
