@@ -335,12 +335,12 @@ class ExperimentHandler(_ComparisonMixin):
     def close(self):
         if self.dataFileName not in ['', None]:
             if self.autoLog:
-                logging.debug(
-                              'Saving data for %s ExperimentHandler' % self.name)
-            if self.savePickle == True:
+                msg = 'Saving data for %s ExperimentHandler' % self.name
+                logging.debug(msg)
+            if self.savePickle:
                 self.saveAsPickle(self.dataFileName)
-            if self.saveWideText == True:
-                self.saveAsWideText(self.dataFileName + '.csv', delim=',')
+            if self.saveWideText:
+                self.saveAsWideText(self.dataFileName + '.csv')
         self.abort()
         self.autoLog = False
 
