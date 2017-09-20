@@ -175,12 +175,12 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        dump_loaded = json_tricks.np.loads(dump)
-        dump_loaded._rng = np.random.RandomState()
-        dump_loaded._rng.set_state(dump_loaded._rng_state)
-        del dump_loaded._rng_state
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
 
-        assert t == dump_loaded
+        assert t == t_loaded
 
     def test_json_dump_with_data(self):
         t = data.TrialHandler2(self.conditions, nReps=5)
@@ -189,12 +189,12 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        dump_loaded = json_tricks.np.loads(dump)
-        dump_loaded._rng = np.random.RandomState()
-        dump_loaded._rng.set_state(dump_loaded._rng_state)
-        del dump_loaded._rng_state
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
 
-        assert t == dump_loaded
+        assert t == t_loaded
 
     def test_json_dump_after_iteration(self):
         t = data.TrialHandler2(self.conditions, nReps=5)
@@ -203,12 +203,12 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        dump_loaded = json_tricks.np.loads(dump)
-        dump_loaded._rng = np.random.RandomState()
-        dump_loaded._rng.set_state(dump_loaded._rng_state)
-        del dump_loaded._rng_state
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
 
-        assert t == dump_loaded
+        assert t == t_loaded
 
     def test_json_dump_with_data_after_iteration(self):
         t = data.TrialHandler2(self.conditions, nReps=5)
@@ -218,12 +218,12 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        dump_loaded = json_tricks.np.loads(dump)
-        dump_loaded._rng = np.random.RandomState()
-        dump_loaded._rng.set_state(dump_loaded._rng_state)
-        del dump_loaded._rng_state
+        t_loaded = json_tricks.np.loads(dump)
+        t_loaded._rng = np.random.RandomState()
+        t_loaded._rng.set_state(t_loaded._rng_state)
+        del t_loaded._rng_state
 
-        assert t == dump_loaded
+        assert t == t_loaded
 
     def test_json_dump_to_file(self):
         t = data.TrialHandler2(self.conditions, nReps=5)
