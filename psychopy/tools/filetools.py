@@ -16,6 +16,7 @@ import shutil
 import pickle
 import sys
 import codecs
+import numpy as np
 import json_tricks
 
 from psychopy import logging
@@ -45,10 +46,17 @@ def fromFile(filename):
                 contents.abort()
         elif filename.endswith('json'):
             contents = json_tricks.np.load(f)
-            # if isinstance(contents, data.TrialHandler):
-            #     contents.data.trials = contents
+
+            # Restore RNG if we load a TrialHandler2 object.
+            # We also need to remove the 'temporary' ._rng_state attribute that
+            # was saved with it.
+            from psychopy.data import TrialHandler2
+            if isinstance(contents, TrialHandler2):
+                contents._rng = np.random.RandomState(seed=contents.seed)
+                contents._rng.set_state(contents._rng_state)
+                del contents._rng_state
         else:
-            msg = ("Don't know how to handle this file type, aborting.")
+            msg = "Don't know how to handle this file type, aborting."
             raise ValueError(msg)
 
     return contents
