@@ -32,6 +32,13 @@ CHANGED:
 PsychoPy 1.85
 ------------------------------
 
+PsychoPy 1.85.4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There was an error building the 1.85.3 release. Rather than building a bug-fix-inly release, version 1.85.3 has accidentally included some substantial code refactoring intended for the 1.86.0 release.
+
+This version, which we will call 1.85.4 is to replace that 1.85.3 release and provides the same fixes (but not the code refactoring) that was intended in 1.85.3
+
 PsychoPy 1.85.3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
