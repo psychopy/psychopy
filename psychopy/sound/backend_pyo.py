@@ -66,7 +66,10 @@ def getDevices(kind=None):
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        devName = dev['name'].decode(osEncoding) # convert to unicode
+        try:  # convert to unicode
+            devName = dev['name'].decode(osEncoding)
+        except UnicodeEncodeError:  # if that fails try the current encoding
+            devName = dev['name']
         devs[devName] = dev
         dev['id'] = ii
     return devs
