@@ -28,8 +28,9 @@ class Line(ShapeStim):
         :class:`~psychopy.visual.ShapeStim` accepts, except
         for vertices, closeShape and fillColor.
 
-        The methods `contains` and `overlaps` are inherited from
-        `~psychopy.visual.ShapeStim`, but always return False
+        :Notes:
+
+        The methods `contains` and `overlaps` always return False
         (because a line is not a proper (2D) polygon).
         """
         # what local vars are defined (these are the init params) for use by
@@ -79,9 +80,8 @@ class Line(ShapeStim):
         """
         setAttribute(self, 'end', end, log)
 
-    # Not meaningful for a line, thus deleted
-    def contains(self):
-        pass
+    def contains(self, *args, **kwargs):
+        return False
 
-    def overlaps(self):
-        pass
+    def overlaps(self, *args):
+        return False
