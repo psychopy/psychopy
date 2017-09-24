@@ -20,7 +20,8 @@ from psychopy import logging, colors
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setAttribute
 
-import numpy
+import numpy as np
+
 
 reportNImageResizes = 5  # stop raising warning after this
 # global _nImageResizes
@@ -103,11 +104,11 @@ def polygonsOverlap(poly1, poly2):
     """
     try:  # do this using try:...except rather than hasattr() for speed
         if poly1.verticesPix.shape == (2, 2):  # Line
-            x = numpy.arange(poly1.verticesPix[:, 0][0],
-                             poly1.verticesPix[:, 0][1] + 1)
-            y = numpy.arange(poly1.verticesPix[:, 1][0],
-                             poly1.verticesPix[:, 1][1] + 1)
-            poly1_vert_pix = numpy.column_stack((x,y))
+            x = np.arange(poly1.verticesPix[:, 0][0],
+                          poly1.verticesPix[:, 0][1] + 1)
+            y = np.arange(poly1.verticesPix[:, 1][0],
+                          poly1.verticesPix[:, 1][1] + 1)
+            poly1_vert_pix = np.column_stack((x,y))
         else:
             poly1_vert_pix = poly1.verticesPix
     except Exception:
@@ -115,11 +116,11 @@ def polygonsOverlap(poly1, poly2):
 
     try:  # do this using try:...except rather than hasattr() for speed
         if poly2.verticesPix.shape == (2, 2):  # Line
-            x = numpy.arange(poly2.verticesPix[:, 0][0],
-                             poly2.verticesPix[:, 0][1] + 1)
-            y = numpy.arange(poly2.verticesPix[:, 1][0],
-                             poly2.verticesPix[:, 1][1] + 1)
-            poly2_vert_pix = numpy.column_stack((x,y))
+            x = np.arange(poly2.verticesPix[:, 0][0],
+                          poly2.verticesPix[:, 0][1] + 1)
+            y = np.arange(poly2.verticesPix[:, 1][0],
+                          poly2.verticesPix[:, 1][1] + 1)
+            poly2_vert_pix = np.column_stack((x,y))
         else:
             poly2_vert_pix = poly2.verticesPix
     except Exception:
@@ -197,14 +198,14 @@ def setColor(obj, color, colorSpace=None, operation='',
         if color.lower() in colors.colors255:
             # set rgb, color and colorSpace
             setattr(obj, rgbAttrib,
-                    numpy.array(colors.colors255[color.lower()], float))
+                    np.array(colors.colors255[color.lower()], float))
             obj.__dict__[colorSpaceAttrib] = 'named'  # e.g. 3rSpace='named'
             obj.__dict__[colorAttrib] = color  # e.g. obj.color='red'
             setTexIfNoShaders(obj)
             return
         elif color[0] == '#' or color[0:2] == '0x':
             # e.g. obj.rgb=[0,0,0]
-            setattr(obj, rgbAttrib, numpy.array(colors.hex2rgb255(color)))
+            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color)))
             obj.__dict__[colorSpaceAttrib] = 'hex'  # eg obj.colorSpace='hex'
             obj.__dict__[colorAttrib] = color  # eg Qr='#000000'
             setTexIfNoShaders(obj)
@@ -273,15 +274,15 @@ def setColor(obj, color, colorSpace=None, operation='',
         setattr(obj, rgbAttrib, newColor)
     elif colorSpace == 'dkl':
         if (win.dkl_rgb is None or
-                numpy.all(win.dkl_rgb == numpy.ones([3, 3]))):
+                np.all(win.dkl_rgb == np.ones([3, 3]))):
             dkl_rgb = None
         else:
             dkl_rgb = win.dkl_rgb
         setattr(obj, rgbAttrib, colors.dkl2rgb(
-            numpy.asarray(newColor).transpose(), dkl_rgb))
+            np.asarray(newColor).transpose(), dkl_rgb))
     elif colorSpace == 'lms':
         if (win.lms_rgb is None or
-                numpy.all(win.lms_rgb == numpy.ones([3, 3]))):
+                np.all(win.lms_rgb == np.ones([3, 3]))):
             lms_rgb = None
         elif win.monitor.getPsychopyVersion() < '1.76.00':
             logging.error("The LMS calibration for this monitor was carried"
@@ -294,7 +295,7 @@ def setColor(obj, color, colorSpace=None, operation='',
             lms_rgb = win.lms_rgb
         setattr(obj, rgbAttrib, colors.lms2rgb(newColor, lms_rgb))
     elif colorSpace == 'hsv':
-        setattr(obj, rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)))
+        setattr(obj, rgbAttrib, colors.hsv2rgb(np.asarray(newColor)))
     else:
         logging.error('Unknown colorSpace: %s' % colorSpace)
     # store name of colorSpace for future ref and for drawing
@@ -302,9 +303,11 @@ def setColor(obj, color, colorSpace=None, operation='',
     # if needed, set the texture too
     setTexIfNoShaders(obj)
 
+
 # set for groupFlipVert:
 immutables = {int, float, str, tuple, int, bool,
-              numpy.float64, numpy.float, numpy.int, numpy.long}
+              np.float64, np.float, np.int, np.long}
+
 
 def findImageFile(filename):
     """Tests whether the filename is an image file. If not will try some common
@@ -354,14 +357,14 @@ def groupFlipVert(flipList, yReflect=0):
 
     Will flip a) all psychopy.visual.xyzStim that have a setFlipVert method,
     b) the y values of .vertices, and c) items in n x 2 lists that are mutable
-    (i.e., list, numpy.array, no tuples): [[x1, y1], [x2, y2], ...]
+    (i.e., list, np.array, no tuples): [[x1, y1], [x2, y2], ...]
     """
 
     if type(flipList) != list:
         flipList = [flipList]
     for item in flipList:
-        if type(item) in (list, numpy.ndarray):
-            if type(item[0]) in (list, numpy.ndarray) and len(item[0]) == 2:
+        if type(item) in (list, np.ndarray):
+            if type(item[0]) in (list, np.ndarray) and len(item[0]) == 2:
                 for i in range(len(item)):
                     item[i][1] = 2 * yReflect - item[i][1]
             else:
@@ -379,7 +382,7 @@ def groupFlipVert(flipList, yReflect=0):
             item.setFlipVert(not item.flipVert)
         elif hasattr(item, 'vertices'):  # and lacks a setFlipVert method
             try:
-                v = item.vertices * [1, -1]  # numpy.array
+                v = item.vertices * [1, -1]  # np.array
             except Exception:
                 v = [[item.vertices[i][0], -1 * item.vertices[i][1]]
                      for i in range(len(item.vertices))]
