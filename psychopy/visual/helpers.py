@@ -106,10 +106,10 @@ def polygonsOverlap(poly1, poly2):
     try:  # do this using try:...except rather than hasattr() for speed
         if poly1.verticesPix.shape == (2, 2):  # Line
             # Interpolate pixels.
-            x = np.arange(poly1.verticesPix[:, 0][0],
-                          poly1.verticesPix[:, 0][1] + 1)
-            y = np.arange(poly1.verticesPix[:, 1][0],
-                          poly1.verticesPix[:, 1][1] + 1)
+            x = np.arange(poly1.verticesPix[0, 0],
+                          poly1.verticesPix[1, 0] + 1)
+            y = np.arange(poly1.verticesPix[0, 1],
+                          poly1.verticesPix[1, 1] + 1)
             poly1_vert_pix = np.column_stack((x,y))
         else:
             poly1_vert_pix = poly1.verticesPix
@@ -119,10 +119,10 @@ def polygonsOverlap(poly1, poly2):
     try:  # do this using try:...except rather than hasattr() for speed
         if poly2.verticesPix.shape == (2, 2):  # Line
             # Interpolate pixels.
-            x = np.arange(poly2.verticesPix[:, 0][0],
-                          poly2.verticesPix[:, 0][1] + 1)
-            y = np.arange(poly2.verticesPix[:, 1][0],
-                          poly2.verticesPix[:, 1][1] + 1)
+            x = np.arange(poly2.verticesPix[0, 0],
+                          poly2.verticesPix[1, 0] + 1)
+            y = np.arange(poly2.verticesPix[0, 1],
+                          poly2.verticesPix[1, 1] + 1)
             poly2_vert_pix = np.column_stack((x,y))
         else:
             poly2_vert_pix = poly2.verticesPix
