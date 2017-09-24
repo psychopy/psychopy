@@ -111,7 +111,7 @@ def polygonsOverlap(poly1, poly2):
             poly1_vert_pix = np.column_stack((x,y))
         else:
             poly1_vert_pix = poly1.verticesPix
-    except Exception:
+    except AttributeError:
         poly1_vert_pix = poly1
 
     try:  # do this using try:...except rather than hasattr() for speed
@@ -123,7 +123,7 @@ def polygonsOverlap(poly1, poly2):
             poly2_vert_pix = np.column_stack((x,y))
         else:
             poly2_vert_pix = poly2.verticesPix
-    except Exception:
+    except AttributeError:
         poly2_vert_pix = poly2
 
     # faster if have matplotlib tools:
