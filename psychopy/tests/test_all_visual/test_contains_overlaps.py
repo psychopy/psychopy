@@ -194,6 +194,34 @@ def test_border_contains():
         assert not s.contains(p)
 
 
-if __name__=='__main__':
-    contains_overlaps('contains')
-    contains_overlaps('overlaps')
+@pytest.mark.polygon
+def test_line_overlaps():
+    win.units = 'height'
+    circle_1 = visual.Circle(win, radius=0.25, pos=(0, 0))
+    circle_2 = visual.Circle(win, radius=0.25, pos=(0, -0.5))
+    line = visual.Line(win, start=(-1, -1), end=(1, 1))
+
+    assert line.overlaps(circle_1)
+    assert circle_1.overlaps(circle_1)
+
+    assert line.overlaps(circle_2) is False
+    assert circle_2.overlaps(line) is False
+
+
+@pytest.mark.polygon
+def test_line_contains():
+    win.units = 'height'
+    point_1 = (0, 0)
+    point_2 = (0, -0.5)
+    line = visual.Line(win, start=(-1, -1), end=(1, 1))
+
+    assert line.contains(point_1) is False
+    assert line.contains(point_2) is False
+
+
+if __name__ == '__main__':
+    test_overlaps()
+    test_contains()
+    test_border_contains()
+    test_line_overlaps()
+    test_line_contains()

@@ -30,8 +30,8 @@ class Line(ShapeStim):
 
         :Notes:
 
-        The methods `contains` and `overlaps` always return False
-        (because a line is not a proper (2D) polygon).
+        The `contains` method always return False because a line is not a
+        proper (2D) polygon.
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -81,7 +81,4 @@ class Line(ShapeStim):
         setAttribute(self, 'end', end, log)
 
     def contains(self, *args, **kwargs):
-        return False
-
-    def overlaps(self, *args):
         return False

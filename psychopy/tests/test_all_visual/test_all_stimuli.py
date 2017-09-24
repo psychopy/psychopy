@@ -418,10 +418,6 @@ class _baseVisualTest(object):
         line = visual.Line(win)
         line.start = (0, 0)
         line.end = (0.1, 0.1)
-        assert line.contains() is False
-        assert line.overlaps() is False
-        assert line.contains(0) is False
-        assert line.overlaps(line) is False
         line.draw()
         win.flip()
         "{}".format(line)  # check that str(xxx) is working

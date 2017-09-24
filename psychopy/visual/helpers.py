@@ -91,35 +91,62 @@ def polygonsOverlap(poly1, poly2):
 
     Checks if any vertex of one polygon is inside the other polygon. Same as
     the `.overlaps()` method elsewhere.
+
+    :Notes:
+
+    We implement special handling for the `Line` stimulus as it is not a
+    proper polygon.
+    We do not check for class instances because this would require importing of
+    `visual.Line`, creating a circular import. Instead, we assume that a
+    "polygon" with only two vertices is meant to specify a line.
+
     """
     try:  # do this using try:...except rather than hasattr() for speed
-        poly1 = poly1.verticesPix  # we want to access this only once
+        if poly1.verticesPix.shape == (2, 2):  # Line
+            x = numpy.arange(poly1.verticesPix[:, 0][0],
+                             poly1.verticesPix[:, 0][1] + 1)
+            y = numpy.arange(poly1.verticesPix[:, 1][0],
+                             poly1.verticesPix[:, 1][1] + 1)
+            poly1_vert_pix = numpy.column_stack((x,y))
+        else:
+            poly1_vert_pix = poly1.verticesPix
     except Exception:
-        pass
+        poly1_vert_pix = poly1
+
     try:  # do this using try:...except rather than hasattr() for speed
-        poly2 = poly2.verticesPix  # we want to access this only once
+        if poly2.verticesPix.shape == (2, 2):  # Line
+            x = numpy.arange(poly2.verticesPix[:, 0][0],
+                             poly2.verticesPix[:, 0][1] + 1)
+            y = numpy.arange(poly2.verticesPix[:, 1][0],
+                             poly2.verticesPix[:, 1][1] + 1)
+            poly2_vert_pix = numpy.column_stack((x,y))
+        else:
+            poly2_vert_pix = poly2.verticesPix
     except Exception:
-        pass
+        poly2_vert_pix = poly2
+
     # faster if have matplotlib tools:
     if haveMatplotlib:
         if matplotlib.__version__ > '1.2':
-            if any(mplPath(poly1).contains_points(poly2)):
+            if any(mplPath(poly1_vert_pix).contains_points(poly2_vert_pix)):
                 return True
-            return any(mplPath(poly2).contains_points(poly1))
+            return any(mplPath(poly2_vert_pix).contains_points(poly1_vert_pix))
         else:
             try:  # deprecated in matplotlib 1.2
-                if any(nxutils.points_inside_poly(poly1, poly2)):
+                if any(nxutils.points_inside_poly(poly1_vert_pix,
+                                                  poly2_vert_pix)):
                     return True
-                return any(nxutils.points_inside_poly(poly2, poly1))
+                return any(nxutils.points_inside_poly(poly2_vert_pix,
+                                                      poly1_vert_pix))
             except Exception:
                 pass
 
     # fall through to pure python:
-    for p1 in poly1:
-        if pointInPolygon(p1[0], p1[1], poly2):
+    for p1 in poly1_vert_pix:
+        if pointInPolygon(p1[0], p1[1], poly2_vert_pix):
             return True
-    for p2 in poly2:
-        if pointInPolygon(p2[0], p2[1], poly1):
+    for p2 in poly2_vert_pix:
+        if pointInPolygon(p2[0], p2[1], poly1_vert_pix):
             return True
     return False
 
