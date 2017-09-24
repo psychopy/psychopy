@@ -99,11 +99,13 @@ def polygonsOverlap(poly1, poly2):
     proper polygon.
     We do not check for class instances because this would require importing of
     `visual.Line`, creating a circular import. Instead, we assume that a
-    "polygon" with only two vertices is meant to specify a line.
+    "polygon" with only two vertices is meant to specify a line. Pixels between
+    the endpoints get interpolated before testing for overlap.
 
     """
     try:  # do this using try:...except rather than hasattr() for speed
         if poly1.verticesPix.shape == (2, 2):  # Line
+            # Interpolate pixels.
             x = np.arange(poly1.verticesPix[:, 0][0],
                           poly1.verticesPix[:, 0][1] + 1)
             y = np.arange(poly1.verticesPix[:, 1][0],
@@ -116,6 +118,7 @@ def polygonsOverlap(poly1, poly2):
 
     try:  # do this using try:...except rather than hasattr() for speed
         if poly2.verticesPix.shape == (2, 2):  # Line
+            # Interpolate pixels.
             x = np.arange(poly2.verticesPix[:, 0][0],
                           poly2.verticesPix[:, 0][1] + 1)
             y = np.arange(poly2.verticesPix[:, 1][0],
