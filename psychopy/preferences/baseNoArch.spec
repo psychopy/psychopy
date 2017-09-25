@@ -35,7 +35,7 @@
     # Add paths here to your custom Python modules
     paths=list(default=list())
     # choice of audio library
-    audioLib = list(default=list('pyo', 'pygame'))
+    audioLib = list(default=list('sounddevice', 'pyo', 'pygame'))
     # audio driver to use
     audioDriver = list(default=list('portaudio'))
     # audio device to use (if audioLib allows control)
