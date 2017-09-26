@@ -12,7 +12,8 @@ import pickle
 import atexit
 
 from psychopy import logging
-from psychopy.tools.filetools import openOutputFile, genDelimiter
+from psychopy.tools.filetools import (openOutputFile, genDelimiter,
+                                      genFilenameFromDelimiter)
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
 
@@ -283,9 +284,10 @@ class ExperimentHandler(_ComparisonMixin):
             delim = genDelimiter(fileName)
 
         # create the file or send to stdout
-        f = openOutputFile(
-            fileName, append=appendFile, delim=delim,
-            fileCollisionMethod=fileCollisionMethod, encoding=encoding)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        f = openOutputFile(fileName, append=appendFile,
+                           fileCollisionMethod=fileCollisionMethod,
+                           encoding=encoding)
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)

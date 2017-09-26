@@ -22,7 +22,8 @@ from distutils.version import StrictVersion
 
 import psychopy
 from psychopy import logging
-from psychopy.tools.filetools import openOutputFile, genDelimiter
+from psychopy.tools.filetools import (openOutputFile, genDelimiter,
+                                      genFilenameFromDelimiter)
 from psychopy.tools.fileerrortools import handleFileCollision
 from psychopy.tools.arraytools import extendArr
 from .utils import _getExcelCellName
@@ -131,7 +132,7 @@ class _BaseTrialHandler(_ComparisonMixin):
                 logging.info('.saveAsPickle() called but no trials completed.'
                              ' Nothing saved')
             return -1
-        # otherwise use default location
+
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
@@ -210,9 +211,10 @@ class _BaseTrialHandler(_ComparisonMixin):
             delim = genDelimiter(fileName)
 
         # create the file or send to stdout
-        f = openOutputFile(
-            fileName, append=appendFile, delim=delim,
-            fileCollisionMethod=fileCollisionMethod, encoding=encoding)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        f = openOutputFile(fileName, append=appendFile,
+                           fileCollisionMethod=fileCollisionMethod,
+                           encoding=encoding)
 
         # loop through lines in the data matrix
         for line in dataArray:

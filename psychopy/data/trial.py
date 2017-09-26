@@ -19,7 +19,8 @@ import pandas as pd
 from psychopy import logging
 from psychopy.constants import PY3
 from psychopy.tools.arraytools import shuffleArray
-from psychopy.tools.filetools import openOutputFile, genDelimiter
+from psychopy.tools.filetools import (openOutputFile, genDelimiter,
+                                      genFilenameFromDelimiter)
 from .utils import importConditions
 from .base import _BaseTrialHandler, DataHandler
 
@@ -626,9 +627,10 @@ class TrialHandler(_BaseTrialHandler):
             delim = genDelimiter(fileName)
 
         # create the file or send to stdout
-        f = openOutputFile(
-            fileName, append=appendFile, delim=delim,
-            fileCollisionMethod=fileCollisionMethod, encoding=encoding)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        f = openOutputFile(fileName, append=appendFile,
+                           fileCollisionMethod=fileCollisionMethod,
+                           encoding=encoding)
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
@@ -1106,9 +1108,10 @@ class TrialHandler2(_BaseTrialHandler):
             delim = genDelimiter(fileName)
 
         # create the file or send to stdout
-        f = openOutputFile(
-            fileName, append=appendFile, delim=delim,
-            fileCollisionMethod=fileCollisionMethod, encoding=encoding)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        f = openOutputFile(fileName, append=appendFile,
+                           fileCollisionMethod=fileCollisionMethod,
+                           encoding=encoding)
 
         # defer to pandas for actual data output. We're fetching a string
         # repr and then writeing to file ourselves
