@@ -13,14 +13,16 @@ from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp
 import numpy as np
+import pytest
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
-import pytest
+from psychopy.constants import PY3
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
+
 
 class TestTrialHandlerExt(object):
     def setup_class(self):
@@ -45,10 +47,15 @@ class TestTrialHandlerExt(object):
         assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
         # Make sure the header line is correct
-        f = open(data_filename, 'rb')
-        header = f.readline().replace(b'\n',b'')
-        f.close()
-        expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
+        # We open the file with universal newline support (PEP-278).
+        if PY3:
+            with open(data_filename, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(data_filename, 'rU') as f:
+                header = f.readline()
+
+        expected_header = u'n,with_underscore_mean,with_underscore_raw,with_underscore_std,order\n'
         if expected_header != header:
             print(base_data_filename)
             print(repr(expected_header),type(expected_header),len(expected_header))
