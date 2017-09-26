@@ -5,6 +5,7 @@ from builtins import object
 import os, shutil
 import numpy as np
 from tempfile import mkdtemp
+import pytest
 
 from psychopy import data
 from psychopy.tests import utils
@@ -51,6 +52,7 @@ class TestXLSX(object):
         utils.compareXlsxFiles(self.fullName,
                                os.path.join(fixturesPath,'corrXlsx.xlsx'))
 
+
 def test_TrialTypeImport():
     def checkEachtrial(fromCSV, fromXLSX):
         for trialN, trialCSV in enumerate(fromCSV):
@@ -75,6 +77,7 @@ def test_TrialTypeImport():
     checkEachtrial(fromCSV, fromXLSX)
     data.haveXlrd = haveXlrd  # return to what it was
 
+
 def test_ImportCondsUnicode():
     if not data.haveXlrd:
         # open pyxl thinks the right-to-left file has blanks in header
@@ -84,8 +87,9 @@ def test_ImportCondsUnicode():
                                      'right_to_left_unidcode.xlsx'))
     assert u'\u05d2\u05d9\u05dc' in fromXLSX[0]['question']
 
-if __name__=='__main__':
-    t=TestXLSX()
+
+if __name__ == '__main__':
+    t = TestXLSX()
     t.setup_class()
     t.test_TrialHandlerAndXLSX()
     t.teardown_class()
