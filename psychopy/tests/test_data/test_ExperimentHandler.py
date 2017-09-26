@@ -2,15 +2,17 @@
 
 from builtins import object
 from psychopy import data, logging
-from numpy import random
+import numpy as np
 import os, glob, shutil
-logging.console.setLevel(logging.DEBUG)
 from tempfile import mkdtemp
+
+logging.console.setLevel(logging.DEBUG)
 
 
 class TestExperimentHandler(object):
     def setup_class(self):
         self.tmpDir = mkdtemp(prefix='psychopy-tests-testExp')
+        self.random_seed = 100
 
     def teardown_class(self):
         shutil.rmtree(self.tmpDir)
@@ -39,13 +41,14 @@ class TestExperimentHandler(object):
         training = data.TrialHandler(
             trialList=conds, nReps=3, name='train',
             method='random',
-            seed=100  # Global seed - so fixed for whole experiment.
-        )
+            seed=self.random_seed)
         exp.addLoop(training)
 
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for trial in training:
-            training.addData('training.rt',random.random()*0.5+0.5)
-            if random.random() > 0.5:
+            training.addData('training.rt', rng.rand() * 0.5 + 0.5)
+            if rng.rand() > 0.5:
                 training.addData('training.key', 'left')
             else:
                 training.addData('training.key', 'right')
@@ -64,8 +67,8 @@ class TestExperimentHandler(object):
             exp.addLoop(staircase)
 
             for thisTrial in staircase:
-                id = random.random()
-                if random.random() > 0.5:
+                id = rng.rand()
+                if rng.rand() > 0.5:
                     staircase.addData(1)
                 else:
                     staircase.addData(0)
@@ -90,7 +93,7 @@ class TestExperimentHandler(object):
 
         exp.saveAsWideText(exp.dataFileName+'.csv', delim=',')
 
-        #get data file contents:
+        # get data file contents:
         contents = open(exp.dataFileName+'.csv', 'rU').read()
         assert contents == "mutable,\n[1],\n[9999],\n"
 

@@ -1,19 +1,20 @@
 """Tests for psychopy.data.DataHandler"""
 from __future__ import print_function
+
 from builtins import str
 from builtins import range
 from builtins import object
 import os, glob
 from os.path import join as pjoin
 import shutil
-from pytest import raises
 from tempfile import mkdtemp
-from numpy.random import random
+import numpy as np
+import pytest
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
-import pytest
+from psychopy.constants import PY3
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
@@ -23,6 +24,7 @@ class TestTrialHandler(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
+        self.random_seed = 100
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
@@ -41,10 +43,15 @@ class TestTrialHandler(object):
         assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
         # Make sure the header line is correct
-        f = open(data_filename, 'rb')
-        header = f.readline().replace(b'\n',b'')
-        f.close()
-        expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
+        # We open the file with universal newline support (PEP-278).
+        if PY3:
+            with open(data_filename, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(data_filename, 'rU') as f:
+                header = f.readline()
+
+        expected_header = u'n,with_underscore_mean,with_underscore_raw,with_underscore_std,order\n'
         if expected_header != header:
             print(base_data_filename)
             print(repr(expected_header),type(expected_header),len(expected_header))
@@ -98,7 +105,7 @@ class TestTrialHandler(object):
         utils.compareXlsxFiles(pjoin(self.temp_dir, 'testMultiKeyTrials.xlsx'), pjoin(fixturesPath,'corrMultiKeyTrials.xlsx'))
 
     def test_psydat_filename_collision_failure(self):
-        with raises(IOError):
+        with pytest.raises(IOError):
             for count in range(1,3):
                 trials = data.TrialHandler([], 1, autoLog=False)
                 trials.data.addDataType('trialType')
@@ -114,18 +121,21 @@ class TestTrialHandler(object):
         for trialType in range(5):
             conditions.append({'trialType':trialType})
             #create trials
-        trials= data.TrialHandler(trialList=conditions, seed=100, nReps=3,
-                                  method='fullRandom', autoLog=False)
-        #simulate trials
+        trials= data.TrialHandler(trialList=conditions, seed=self.random_seed,
+                                  nReps=3, method='fullRandom', autoLog=False)
+        # simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for thisTrial in trials:
-            resp = 'resp'+str(thisTrial['trialType'])
-            randResp=random()#a unique number so we can see which track orders
+            resp = 'resp' + str(thisTrial['trialType'])
+            randResp = rng.rand()
             trials.addData('resp', resp)
             trials.addData('rand',randResp)
-        #test summarised data outputs
+
+        # test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.tsv'), stimOut=['trialType'],appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.tsv'), pjoin(fixturesPath,'corrFullRandom.tsv'))
-        #test wide data outputs
+        # test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(fixturesPath,'corrFullRandom.csv'))
 
@@ -135,17 +145,21 @@ class TestTrialHandler(object):
         for trialType in range(5):
             conditions.append({'trialType':trialType})
             #create trials
-        trials= data.TrialHandler(trialList=conditions, seed=100, nReps=3,
-                                  method='random', autoLog=False)
-        #simulate trials
+        trials= data.TrialHandler(trialList=conditions, seed=self.random_seed,
+                                  nReps=3, method='random', autoLog=False)
+        # simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for thisTrial in trials:
-            resp = 'resp'+str(thisTrial['trialType'])
+            resp = 'resp' + str(thisTrial['trialType'])
+            randResp = rng.rand()
             trials.addData('resp', resp)
-            trials.addData('rand',random())
-        #test summarised data outputs
+            trials.addData('rand', randResp)
+
+        # test summarised data outputs
         trials.saveAsText(pjoin(self.temp_dir, 'testRandom.tsv'), stimOut=['trialType'],appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.tsv'), pjoin(fixturesPath,'corrRandom.tsv'))
-        #test wide data outputs
+        # test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandom.csv'))
 
@@ -177,6 +191,7 @@ class TestTrialHandler(object):
 class TestMultiStairs(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
+        self.random_seed = 100
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
@@ -190,10 +205,13 @@ class TestMultiStairs(object):
                     savePickle=True,
                     saveWideText=True,
                     dataFileName=pjoin(self.temp_dir, 'multiStairExperiment'), autoLog=False)
+        rng = np.random.RandomState(seed=self.random_seed)
+
         exp.addLoop(stairs)
+
         for intensity,condition in stairs:
-            #make data that will cause different stairs to finish different times
-            if random()>condition['startVal']:
+            # make data that will cause different stairs to finish different times
+            if rng.rand() > condition['startVal']:
                 corr=1
             else:corr=0
             stairs.addData(corr)
@@ -209,10 +227,12 @@ class TestMultiStairs(object):
                     savePickle=True,
                     saveWideText=True,
                     dataFileName=pjoin(self.temp_dir, 'multiQuestExperiment'), autoLog=False)
+        rng = np.random.RandomState(seed=self.random_seed)
+
         exp.addLoop(stairs)
         for intensity,condition in stairs:
             # make data that will cause different stairs to finish different times
-            if random()>condition['startVal']:
+            if rng.rand() > condition['startVal']:
                 corr=1
             else:corr=0
             stairs.addData(corr)
@@ -221,5 +241,4 @@ class TestMultiStairs(object):
 
 
 if __name__ == '__main__':
-    import pytest
     pytest.main()

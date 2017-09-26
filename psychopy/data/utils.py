@@ -14,15 +14,15 @@ import os
 import re
 import pickle
 import time
-import codecs
 import numpy as np
 import pandas as pd
+
+from collections import OrderedDict
 from distutils.version import StrictVersion
 
 from psychopy import logging
 
 try:
-    # import openpyxl
     import openpyxl
     if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
@@ -206,18 +206,18 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     def _assertValidVarNames(fieldNames, fileName):
         """screens a list of names as candidate variable names. if all
-        names are OK, return silently; else raise ImportError with msg
+        names are OK, return silently; else raise  with msg
         """
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
-            raise ImportError(msg % fileName)
+            raise ValueError(msg % fileName)
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ImportError('Conditions file %s: %s%s"%s"' %
+                raise ValueError('Conditions file %s: %s%s"%s"' %
                                   (fileName, msg, os.linesep * 2, name))
 
     if fileName in ['None', 'none', None]:
@@ -226,7 +226,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         return []
     if not os.path.isfile(fileName):
         msg = 'Conditions file not found: %s'
-        raise ImportError(msg % os.path.abspath(fileName))
+        raise ValueError(msg % os.path.abspath(fileName))
 
     def pandasToDictList(dataframe):
         """Convert a pandas dataframe to a list of dicts.
@@ -239,10 +239,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialsArr = trialsArr[np.newaxis]
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
+
         # convert the record array into a list of dicts
         trialList = []
         for trialN, trialType in enumerate(trialsArr):
-            thisTrial = {}
+            thisTrial = OrderedDict()
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
 
@@ -288,7 +289,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
             nCols = ws.max_column
             nRows = ws.max_row
-        except:
+        except Exception:
             # version openpyxl 1.5.8 (in Standalone 1.80) needs this
             nCols = ws.get_highest_column()
             nRows = ws.get_highest_row()
@@ -320,7 +321,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         try:
             trialsArr = pickle.load(f)
         except Exception:
-            raise ImportError('Could not open %s as conditions' % fileName)
+            raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
         fieldNames = trialsArr[0]  # header line first
@@ -342,9 +343,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for n in selection:
                 try:
                     assert n == int(n)
-                except Exception:
+                except AssertionError:
                     raise TypeError("importConditions() was given some "
                                     "`indices` but could not parse them")
+
     # the selection might now be a slice or a series of indices
     if isinstance(selection, slice):
         trialList = trialList[selection]

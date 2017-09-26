@@ -6,16 +6,15 @@ from builtins import object
 import os, glob
 from os.path import join as pjoin
 import shutil
-from pytest import raises
 from tempfile import mkdtemp, mkstemp
 import numpy as np
-from numpy.random import random
 import json_tricks
 import pytest
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
+from psychopy.constants import PY3
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
@@ -28,6 +27,7 @@ class TestTrialHandler2(object):
         self.conditions = [dict(foo=1, bar=2),
                            dict(foo=2, bar=3),
                            dict(foo=3, bar=4)]
+        self.random_seed = 100
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
@@ -44,10 +44,16 @@ class TestTrialHandler2(object):
         assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
         # Make sure the header line is correct
-        f = open(data_filename, 'rb')
-        header = f.readline().replace(b'\n',b'')
-        f.close()
-        expected_header = u"n,with_underscore_mean,with_underscore_raw,with_underscore_std,order"
+        # Make sure the header line is correct
+        # We open the file with universal newline support (PEP-278).
+        if PY3:
+            with open(data_filename, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(data_filename, 'rU') as f:
+                header = f.readline()
+
+        expected_header = u'n,with_underscore_mean,with_underscore_raw,with_underscore_std,order\n'
         if expected_header != header:
             print(base_data_filename)
             print(repr(expected_header),type(expected_header),len(expected_header))
@@ -96,7 +102,7 @@ class TestTrialHandler2(object):
         dat = fromFile(os.path.join(fixturesPath,'multiKeypressTrialhandler.psydat'))
 
     def test_psydat_filename_collision_failure2(self):
-        with raises(IOError):
+        with pytest.raises(IOError):
             for count in range(1,3):
                 trials = data.TrialHandler2([], 1, autoLog=False)
                 for trial in trials:#need to run trials or file won't be saved
@@ -110,61 +116,68 @@ class TestTrialHandler2(object):
         conditions=[]
         for trialType in range(5):
             conditions.append({'trialType':trialType})
-            # create trials
-        trials= data.TrialHandler2(trialList=conditions, seed=100, nReps=3,
-                                  method='fullRandom', autoLog=False)
+
+        trials = data.TrialHandler2(trialList=conditions, seed=self.random_seed,
+                                    nReps=3, method='fullRandom', autoLog=False)
+
         # simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for thisTrial in trials:
-            resp = 'resp'+str(thisTrial['trialType'])
-            randResp=random()  # a unique number so we can see which track orders
+            resp = 'resp' + str(thisTrial['trialType'])
+            randResp = rng.rand()
             trials.addData('resp', resp)
             trials.addData('rand', randResp)
+
         # test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'),
                               delim=',', appendFile=False)
-        # not currently testing this as column order won't match
-        # (and we've removed the columns "ran" and "order")
         utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'),
                                pjoin(fixturesPath,'corrFullRandomTH2.csv'))
 
     def test_random_data_output2(self):
-        #create conditions
+        # create conditions
         conditions=[]
         for trialType in range(5):
             conditions.append({'trialType':trialType})
-            #create trials
-        trials= data.TrialHandler2(trialList=conditions, seed=100, nReps=3,
-                                  method='random', autoLog=False)
+
+        trials= data.TrialHandler2(trialList=conditions, seed=self.random_seed,
+                                   nReps=3, method='random', autoLog=False)
         #simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for thisTrial in trials:
-            resp = 'resp'+str(thisTrial['trialType'])
+            resp = 'resp' + str(thisTrial['trialType'])
+            randResp = rng.rand()
             trials.addData('resp', resp)
-            trials.addData('rand',random())
-        #test wide data outputs
-        trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)
-        # not currently testing this as column order won't match (and we've removed the columns "ran" and "order")
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandomTH2.csv'))
+            trials.addData('rand', randResp)
+
+        # test wide data outputs
+        trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'),
+                              delim=',', appendFile=False)
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'),
+                               pjoin(fixturesPath,'corrRandomTH2.csv'))
 
     def test_comparison_equals(self):
-        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
-        t2 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=self.random_seed)
+        t2 = data.TrialHandler2([dict(foo=1)], 2, seed=self.random_seed)
         assert t1 == t2
 
     def test_comparison_equals_after_iteration(self):
-        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
-        t2 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=self.random_seed)
+        t2 = data.TrialHandler2([dict(foo=1)], 2, seed=self.random_seed)
         t1.__next__()
         t2.__next__()
         assert t1 == t2
 
     def test_comparison_not_equal(self):
-        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
-        t2 = data.TrialHandler2([dict(foo=1)], 3, seed=1)
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=self.random_seed)
+        t2 = data.TrialHandler2([dict(foo=1)], 3, seed=self.random_seed)
         assert t1 != t2
 
     def test_comparison_not_equal_after_iteration(self):
-        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=1)
-        t2 = data.TrialHandler2([dict(foo=1)], 3, seed=1)
+        t1 = data.TrialHandler2([dict(foo=1)], 2, seed=self.random_seed)
+        t2 = data.TrialHandler2([dict(foo=1)], 3, seed=self.random_seed)
         t1.__next__()
         t2.__next__()
         assert t1 != t2
@@ -226,8 +239,9 @@ class TestTrialHandler2(object):
         assert t == t_loaded
 
     def test_json_dump_to_file(self):
+        _, path = mkstemp(dir=self.temp_dir, suffix='.json')
         t = data.TrialHandler2(self.conditions, nReps=5)
-        t.saveAsJson(fileName=self.temp_dir, fileCollisionMethod='overwrite')
+        t.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
         t = data.TrialHandler2(self.conditions, nReps=5)
@@ -243,5 +257,4 @@ class TestTrialHandler2(object):
 
 
 if __name__ == '__main__':
-    import pytest
     pytest.main()
