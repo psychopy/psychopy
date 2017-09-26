@@ -226,8 +226,9 @@ class TestTrialHandler2(object):
         assert t == t_loaded
 
     def test_json_dump_to_file(self):
+        _, path = mkstemp(dir=self.temp_dir, suffix='.json')
         t = data.TrialHandler2(self.conditions, nReps=5)
-        t.saveAsJson(fileName=self.temp_dir, fileCollisionMethod='overwrite')
+        t.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
         t = data.TrialHandler2(self.conditions, nReps=5)

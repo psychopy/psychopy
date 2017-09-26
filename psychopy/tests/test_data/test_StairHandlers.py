@@ -391,7 +391,8 @@ class TestStairHandler(_BaseTestStairHandler):
 
     def test_json_dump_to_file(self):
         s = data.StairHandler(5)
-        s.saveAsJson(fileName=self.tmp_dir, fileCollisionMethod='overwrite')
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+        s.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
         s = data.StairHandler(5)
@@ -533,9 +534,10 @@ class TestQuestHandler(_BaseTestStairHandler):
         assert q == json_tricks.np.loads(dump)
 
     def test_json_dump_to_file(self):
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
         q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
                               nTrials=20, minVal=0, maxVal=1)
-        q.saveAsJson(fileName=self.tmp_dir, fileCollisionMethod='overwrite')
+        q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
         q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
@@ -656,11 +658,12 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.np.loads(dump)
 
     def test_json_dump_to_file(self):
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
                             betaPrecision=0.5, delta=0.01)
-        p.saveAsJson(fileName=self.tmp_dir, fileCollisionMethod='overwrite')
+        p.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
