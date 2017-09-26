@@ -920,9 +920,9 @@ class QuestHandler(StairHandler):
         """
         self._intensity()
         # Check we haven't gone out of the legal range
-        if self._nextIntensity > self.maxVal and self.maxVal is not None:
+        if self.maxVal is not None and self._nextIntensity > self.maxVal:
             self._nextIntensity = self.maxVal
-        elif self._nextIntensity < self.minVal and self.minVal is not None:
+        elif self.minVal is not None and self._nextIntensity < self.minVal:
             self._nextIntensity = self.minVal
         self._questNextIntensity = self._nextIntensity
 
