@@ -14,15 +14,15 @@ import os
 import re
 import pickle
 import time
-import codecs
 import numpy as np
 import pandas as pd
+
+from collections import OrderedDict
 from distutils.version import StrictVersion
 
 from psychopy import logging
 
 try:
-    # import openpyxl
     import openpyxl
     if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
@@ -239,10 +239,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialsArr = trialsArr[np.newaxis]
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
+
         # convert the record array into a list of dicts
         trialList = []
         for trialN, trialType in enumerate(trialsArr):
-            thisTrial = {}
+            thisTrial = OrderedDict()
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
 
@@ -288,7 +289,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
             nCols = ws.max_column
             nRows = ws.max_row
-        except:
+        except Exception:
             # version openpyxl 1.5.8 (in Standalone 1.80) needs this
             nCols = ws.get_highest_column()
             nRows = ws.get_highest_row()
@@ -342,9 +343,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for n in selection:
                 try:
                     assert n == int(n)
-                except Exception:
+                except AssertionError:
                     raise TypeError("importConditions() was given some "
                                     "`indices` but could not parse them")
+
     # the selection might now be a slice or a series of indices
     if isinstance(selection, slice):
         trialList = trialList[selection]

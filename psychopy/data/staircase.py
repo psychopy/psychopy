@@ -1391,7 +1391,7 @@ class MultiStairHandler(_BaseTrialHandler):
                 'should be a list, not a %s.' % type(self.conditions))
 
         c0 = self.conditions[0]
-        if type(c0) != dict:
+        if not isinstance(c0, dict):
             raise TypeError(
                 '`conditions` passed to MultiStairHandler should be a '
                 'list of python dictionaries, not a list of %ss.' %
