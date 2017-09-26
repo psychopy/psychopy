@@ -11,9 +11,8 @@ from builtins import object
 import os, glob
 from os.path import join as pjoin
 import shutil
-from pytest import raises
 from tempfile import mkdtemp
-from numpy.random import random
+import numpy as np
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
@@ -27,6 +26,7 @@ class TestTrialHandlerExt(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
+        self.random_seed = 100
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
@@ -109,7 +109,7 @@ class TestTrialHandlerExt(object):
                                pjoin(fixturesPath,'corrMultiKeyTrials.xlsx'))
 
     def test_psydat_filename_collision_failure(self):
-        with raises(IOError):
+        with pytest.raises(IOError):
             for count in range(1,3):
                 trials = data.TrialHandlerExt([], 1, autoLog=False)
                 trials.data.addDataType('trialType')
@@ -120,49 +120,58 @@ class TestTrialHandlerExt(object):
                 trials.saveAsPickle(base_data_filename, fileCollisionMethod='fail')
 
     def test_psydat_filename_collision_output(self):
-        #create conditions
+        # create conditions
         conditions=[]
         for trialType in range(5):
             conditions.append({'trialType':trialType})
-            #create trials
-        trials= data.TrialHandlerExt(trialList=conditions, seed=100, nReps=3,
-                                  method='fullRandom', autoLog=False)
-        #simulate trials
+
+        trials= data.TrialHandlerExt(trialList=conditions,
+                                     seed=self.random_seed,
+                                     nReps=3, method='fullRandom',
+                                     autoLog=False)
+        # simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for thisTrial in trials:
             resp = 'resp'+str(thisTrial['trialType'])
-            randResp=random()#a unique number so we can see which track orders
+            randResp = rng.rand()
             trials.addData('resp', resp)
             trials.addData('rand', randResp)
-        #test summarised data outputs              #this omits values
+
+        # test summarised data outputs              #this omits values
         trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.tsv'),
                           stimOut=['trialType'] ,appendFile=False)
         utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.tsv'),
                                pjoin(fixturesPath,'corrFullRandom.tsv'))
-        #test wide data outputs                     #this omits values
+        # test wide data outputs                     #this omits values
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'),
                               delim=',', appendFile=False)
         utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'),
                                pjoin(fixturesPath,'corrFullRandom.csv'))
 
     def test_random_data_output(self):
-        #create conditions
+        # create conditions
         conditions=[]
         for trialType in range(5):
             conditions.append({'trialType':trialType})
-            #create trials
+
         trials= data.TrialHandlerExt(trialList=conditions, seed=100, nReps=3,
                                   method='random', autoLog=False)
-        #simulate trials
+        # simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for thisTrial in trials:
             resp = 'resp'+str(thisTrial['trialType'])
+            randResp = rng.rand()
             trials.addData('resp', resp)
-            trials.addData('rand',random())
-        #test summarised data outputs      #this omits values
+            trials.addData('rand', randResp)
+
+        # test summarised data outputs      #this omits values
         trials.saveAsText(pjoin(self.temp_dir, 'testRandom.tsv'),
                           stimOut=['trialType'], appendFile=False)
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.tsv'),
                                pjoin(fixturesPath,'corrRandom.tsv'))
-        #test wide data outputs
+        # test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'),
                               delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'),
@@ -194,5 +203,4 @@ class TestTrialHandlerExt(object):
 
 
 if __name__ == '__main__':
-    import pytest
     pytest.main()
