@@ -206,18 +206,18 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     def _assertValidVarNames(fieldNames, fileName):
         """screens a list of names as candidate variable names. if all
-        names are OK, return silently; else raise ImportError with msg
+        names are OK, return silently; else raise  with msg
         """
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
-            raise ImportError(msg % fileName)
+            raise ValueError(msg % fileName)
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ImportError('Conditions file %s: %s%s"%s"' %
+                raise ValueError('Conditions file %s: %s%s"%s"' %
                                   (fileName, msg, os.linesep * 2, name))
 
     if fileName in ['None', 'none', None]:
@@ -226,7 +226,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         return []
     if not os.path.isfile(fileName):
         msg = 'Conditions file not found: %s'
-        raise ImportError(msg % os.path.abspath(fileName))
+        raise ValueError(msg % os.path.abspath(fileName))
 
     def pandasToDictList(dataframe):
         """Convert a pandas dataframe to a list of dicts.
@@ -320,7 +320,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         try:
             trialsArr = pickle.load(f)
         except Exception:
-            raise ImportError('Could not open %s as conditions' % fileName)
+            raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
         fieldNames = trialsArr[0]  # header line first
