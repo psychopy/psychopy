@@ -1116,11 +1116,11 @@ class TrialHandler2(_BaseTrialHandler):
         # defer to pandas for actual data output. We're fetching a string
         # repr and then writeing to file ourselves
         # Include header line if not matrixOnly
-        datStr = self.data.to_csv(sep=delim,
-                                  columns=self.columns,  # sets the order
-                                  header=(not matrixOnly),
-                                  index=False)
-        f.write(datStr)
+        self.data.to_csv(path_or_buf=f,
+                         sep=delim,
+                         columns=self.columns,  # sets the order
+                         header=(not matrixOnly),
+                         index=False)
 
         if f != sys.stdout:
             f.close()
