@@ -6,11 +6,16 @@ Tests for psychopy.tools.filetools
 import shutil
 import os
 import sys
+import json
+import pickle
+import pytest
+
 from builtins import zip
 from builtins import object
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mkstemp
 from psychopy.tools.filetools import (genDelimiter, handleFileCollision,
                                       genFilenameFromDelimiter, openOutputFile)
+from psychopy.constants import PY3
 
 
 def test_genDelimiter():
@@ -66,6 +71,67 @@ class TestOpenOutputFile(object):
         assert f is sys.stdout
 
 
+class TestFromFile(object):
+    def setup(self):
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
+                                      type(self).__name__)
+
+    def teardown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    def test_text(self):
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.text')
+
+        test_data = 'Test'
+        with open(path, 'w') as f:
+            f.write(test_data)
+
+        with open(path, 'r') as f:
+            loaded_data = f.read()
+
+        assert test_data == loaded_data
+
+    def test_json(self):
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
+
+        test_data = 'Test'
+        with open(path, 'w') as f:
+            json.dump(test_data, f)
+
+        with open(path, 'r') as f:
+            loaded_data = json.load(f)
+
+        assert test_data == loaded_data
+
+    def test_pickle(self):
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
+
+        test_data = 'Test'
+        with open(path, 'wb') as f:
+            pickle.dump(test_data, f)
+
+        with open(path, 'rb') as f:
+            loaded_data = pickle.load(f)
+
+        assert test_data == loaded_data
+
+    def test_cPickle(self):
+        if PY3:
+            pytest.skip('Skipping cPickle test on Python 3')
+        else:
+            import cPickle
+
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
+
+        test_data = 'Test'
+        with open(path, 'wb') as f:
+            cPickle.dump(test_data, f)
+
+        with open(path, 'rb') as f:
+            loaded_data = cPickle.load(f)
+
+        assert test_data == loaded_data
+
+
 if __name__ == '__main__':
-    import pytest
     pytest.main()

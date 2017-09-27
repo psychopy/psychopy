@@ -13,11 +13,15 @@ from future import standard_library
 standard_library.install_aliases()
 import os
 import shutil
-import pickle
 import sys
 import codecs
 import numpy as np
 import json_tricks
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
@@ -36,14 +40,15 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
-    with open(filename) as f:
-        if filename.endswith('.psydat'):
+    if filename.endswith('.psydat'):
+        with open(filename, 'rb') as f:
             contents = pickle.load(f)
             # if loading an experiment file make sure we don't save further
             # copies using __del__
             if hasattr(contents, 'abort'):
                 contents.abort()
-        elif filename.endswith('json'):
+    elif filename.endswith('.json'):
+        with open(filename, 'r') as f:
             contents = json_tricks.np.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
@@ -54,9 +59,9 @@ def fromFile(filename):
                 contents._rng = np.random.RandomState(seed=contents.seed)
                 contents._rng.set_state(contents._rng_state)
                 del contents._rng_state
-        else:
-            msg = "Don't know how to handle this file type, aborting."
-            raise ValueError(msg)
+    else:
+        msg = "Don't know how to handle this file type, aborting."
+        raise ValueError(msg)
 
     return contents
 
