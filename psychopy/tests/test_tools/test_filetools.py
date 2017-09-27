@@ -3,11 +3,12 @@
 Tests for psychopy.tools.filetools
 
 """
+import shutil
+import os
+import sys
 from builtins import zip
 from builtins import object
-import shutil
 from tempfile import mkdtemp
-import os
 from psychopy.tools.filetools import (genDelimiter, handleFileCollision,
                                       genFilenameFromDelimiter, openOutputFile)
 
@@ -39,25 +40,30 @@ class TestOpenOutputFile(object):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
         self.baseFileName = os.path.join(self.temp_dir, self.rootName)
-        self.f = None
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
 
-    def teardown_method(self, method):
-        self.f.close()
-
     def test_default_parameters(self):
-        self.f = openOutputFile(self.baseFileName)
-        assert self.f.encoding == 'utf-8'
-        assert self.f.closed is False
-        assert self.f.stream.mode == 'wb'
+        f = openOutputFile(self.baseFileName)
+        assert f.encoding == 'utf-8'
+        assert f.closed is False
+        assert f.stream.mode == 'wb'
+        f.close()
 
     def test_append(self):
-        self.f = openOutputFile(self.baseFileName, append=True)
-        assert self.f.encoding == 'utf-8'
-        assert self.f.closed is False
-        assert self.f.stream.mode == 'a'
+        f = openOutputFile(self.baseFileName, append=True)
+        assert f.encoding == 'utf-8'
+        assert f.closed is False
+        assert f.stream.mode == 'ab'
+        f.close()
+
+    def test_stdout(self):
+        f = openOutputFile(None)
+        assert f is sys.stdout
+
+        f = openOutputFile('stdout')
+        assert f is sys.stdout
 
 
 if __name__ == '__main__':

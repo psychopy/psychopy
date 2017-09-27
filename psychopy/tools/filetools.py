@@ -84,14 +84,15 @@ def mergeFolder(src, dst, pattern=None):
                 print(why)
 
 
-def openOutputFile(fileName, append=False, fileCollisionMethod='rename',
+def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
                    encoding='utf-8'):
     """Open an output file (or standard output) for writing.
 
     :Parameters:
 
-    fileName : string
-        The desired output file name.
+    fileName : None, 'stdout', or str
+        The desired output file name. If `None` or `stdout`, return
+        `sys.stdout`. Any other string will be considered a filename.
     append : bool, optional
         If ``True``, append data to an existing file; otherwise, overwrite
         it with new data.
@@ -113,9 +114,8 @@ def openOutputFile(fileName, append=False, fileCollisionMethod='rename',
         A writable file handle.
 
     """
-    if fileName == 'stdout':
-        f = sys.stdout
-        return f
+    if (fileName is None) or (fileName == 'stdout'):
+        return sys.stdout
 
     if append:
         mode = 'a'
