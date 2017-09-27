@@ -80,7 +80,7 @@ class TestFromFile(object):
         shutil.rmtree(self.tmp_dir)
 
     def test_text(self):
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.text')
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.txt')
 
         test_data = 'Test'
         with open(path, 'w') as f:
