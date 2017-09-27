@@ -1109,21 +1109,17 @@ class TrialHandler2(_BaseTrialHandler):
 
         # create the file or send to stdout
         fileName = genFilenameFromDelimiter(fileName, delim)
-        f = openOutputFile(fileName, append=appendFile,
-                           fileCollisionMethod=fileCollisionMethod,
-                           encoding=encoding)
 
-        # defer to pandas for actual data output. We're fetching a string
-        # repr and then writeing to file ourselves
-        # Include header line if not matrixOnly
-        self.data.to_csv(path_or_buf=f,
-                         sep=delim,
-                         columns=self.columns,  # sets the order
-                         header=(not matrixOnly),
-                         index=False)
+        with openOutputFile(fileName=fileName, append=appendFile,
+                            fileCollisionMethod=fileCollisionMethod,
+                            encoding=encoding) as f:
+            self.data.to_csv(path_or_buf=f,
+                             sep=delim,
+                             columns=self.columns,  # sets the order
+                             header=(not matrixOnly),
+                             index=False)
 
-        if f != sys.stdout:
-            f.close()
+        if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved wide-format data to %s' % f.name)
 
     def saveAsJson(self,

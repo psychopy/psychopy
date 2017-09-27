@@ -662,11 +662,12 @@ class StairHandler(_BaseTrialHandler):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                            fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
 
 
 class QuestObject_(QuestObject, _ComparisonMixin):
@@ -1572,11 +1573,12 @@ class MultiStairHandler(_BaseTrialHandler):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                           fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
 
     def saveAsExcel(self, fileName, matrixOnly=False, appendFile=False,
                     fileCollisionMethod='rename'):
