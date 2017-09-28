@@ -1079,7 +1079,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
 
-        wx.Dialog.__init__(self, frame, -1, localizedTitle,
+        wx.Dialog.__init__(self, None, wx.ID_ANY, localizedTitle,
                            pos, size, style)
         self.helpUrl = helpUrl
         self.frame = frame
