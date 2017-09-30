@@ -794,7 +794,7 @@ class _BaseParamsDlg(wx.Dialog):
             #    nameInfo=''
             # else:
             #    nameInfo='Need a name'
-            nameInfo = 'info here'
+            nameInfo = ''
             self.nameOKlabel = wx.StaticText(self, -1, nameInfo,
                                              style=wx.ALIGN_CENTRE)
             self.nameOKlabel.SetForegroundColour(wx.RED)
@@ -1097,6 +1097,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.conditions = None
         self.conditionsFile = None
+        self.warningsDict = {}
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
