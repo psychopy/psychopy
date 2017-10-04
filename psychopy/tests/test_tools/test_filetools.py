@@ -13,8 +13,8 @@ import pytest
 from builtins import zip
 from builtins import object
 from tempfile import mkdtemp, mkstemp
-from psychopy.tools.filetools import (genDelimiter, handleFileCollision,
-                                      genFilenameFromDelimiter, openOutputFile)
+from psychopy.tools.filetools import (genDelimiter, genFilenameFromDelimiter,
+                                      openOutputFile)
 from psychopy.constants import PY3
 
 
