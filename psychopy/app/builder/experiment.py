@@ -20,6 +20,7 @@ standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
 from builtins import object
+from collections import OrderedDict
 import re
 import os
 import xml.etree.ElementTree as xml
@@ -1076,7 +1077,7 @@ class TrialHandler(object):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec(paramName + '= %(name)s.' + paramName)\n")
+                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
         # then run the trials loop
@@ -1090,7 +1091,7 @@ class TrialHandler(object):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec(paramName + '= %(name)s.' + paramName)\n")
+                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
     def writeLoopStartCodeJS(self, buff):
