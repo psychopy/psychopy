@@ -17,7 +17,7 @@ from psychopy.tests import utils
 from psychopy.constants import PY3
 
 thisPath = os.path.split(__file__)[0]
-fixturesPath = os.path.join(thisPath,'..','data')
+fixturesPath = os.path.join(thisPath, '..', 'data')
 
 
 class TestTrialHandler(object):
@@ -374,58 +374,6 @@ class TestTrialHandlerOutput(object):
                 header = f.readline()
 
         assert header == expected_header
-
-
-class TestMultiStairs(object):
-    def setup_class(self):
-        self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
-        self.random_seed = 100
-
-    def teardown_class(self):
-        shutil.rmtree(self.temp_dir)
-
-    def test_simple(self):
-        conditions = data.importConditions(
-            pjoin(fixturesPath, 'multiStairConds.xlsx'))
-        stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
-                method='random', nTrials=20, name='simpleStairs', autoLog=False)
-        exp = data.ExperimentHandler(name='testExp',
-                    savePickle=True,
-                    saveWideText=True,
-                    dataFileName=pjoin(self.temp_dir, 'multiStairExperiment'), autoLog=False)
-        rng = np.random.RandomState(seed=self.random_seed)
-
-        exp.addLoop(stairs)
-
-        for intensity,condition in stairs:
-            # make data that will cause different stairs to finish different times
-            if rng.rand() > condition['startVal']:
-                corr=1
-            else:corr=0
-            stairs.addData(corr)
-        stairs.saveAsExcel(pjoin(self.temp_dir, 'multiStairOut'))
-        stairs.saveAsPickle(pjoin(self.temp_dir, 'multiStairOut'))#contains more info
-
-    def test_quest(self):
-        conditions = data.importConditions(
-            pjoin(fixturesPath, 'multiStairConds.xlsx'))
-        stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
-                    method='random', nTrials=20, name='QuestStairs', autoLog=False)
-        exp = data.ExperimentHandler(name='testExp',
-                    savePickle=True,
-                    saveWideText=True,
-                    dataFileName=pjoin(self.temp_dir, 'multiQuestExperiment'), autoLog=False)
-        rng = np.random.RandomState(seed=self.random_seed)
-
-        exp.addLoop(stairs)
-        for intensity,condition in stairs:
-            # make data that will cause different stairs to finish different times
-            if rng.rand() > condition['startVal']:
-                corr=1
-            else:corr=0
-            stairs.addData(corr)
-        stairs.saveAsExcel(pjoin(self.temp_dir, 'multiQuestOut'))
-        stairs.saveAsPickle(pjoin(self.temp_dir, 'multiQuestOut'))# contains more info
 
 
 if __name__ == '__main__':

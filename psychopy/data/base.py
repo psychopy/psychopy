@@ -29,7 +29,6 @@ from psychopy.tools.arraytools import extendArr
 from .utils import _getExcelCellName
 
 try:
-    # import openpyxl
     import openpyxl
     if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
