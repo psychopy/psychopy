@@ -30,6 +30,8 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'moviepy',
             ]
 # some optional dependencies
+if platform == 'win32':
+    required.extend(['pypiwin32'])
 if platform == 'darwin':
     required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
 if PY3:  # doesn't exist on py2
