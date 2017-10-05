@@ -498,10 +498,11 @@ class Monitor(object):
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            thisFile = open(thisFileName, 'rb')
             if ext==".json":
+                thisFile = open(thisFileName, 'r')
                 self.calibs = json_tricks.load(thisFile, ignore_comments=False)
             else:
+                thisFile = open(thisFileName, 'rb')
                 self.calibs = pickle.load(thisFile)
             self.calibNames = sorted(self.calibs)
             thisFile.close()
