@@ -499,13 +499,12 @@ class Monitor(object):
             self.calibNames = []
         else:
             if ext==".json":
-                thisFile = open(thisFileName, 'r')
-                self.calibs = json_tricks.load(thisFile, ignore_comments=False)
+                with open(thisFileName, 'r') as thisFile:
+                    self.calibs = json_tricks.load(thisFile, ignore_comments=False)
             else:
-                thisFile = open(thisFileName, 'rb')
-                self.calibs = pickle.load(thisFile)
+                with open(thisFileName, 'rb') as thisFile:
+                    self.calibs = pickle.load(thisFile)
             self.calibNames = sorted(self.calibs)
-            thisFile.close()
             
             if not constants.PY3:  # saving for future (not needed if we are IN future!)
                 # save JSON copies of our calibrations
@@ -591,9 +590,8 @@ class Monitor(object):
         """
         if not constants.PY3:  # don't ever save pickle files form PY3
             thisFileName = os.path.join(monitorFolder, self.name + ".calib")
-            thisFile = open(thisFileName, 'wb')
-            pickle.dump(self.calibs, thisFile)
-            thisFile.close()
+            with open(thisFileName, 'wb') as thisFile:
+                pickle.dump(self.calibs, thisFile)
         # also save as JSON (at the moment)
         # (When we're sure this works we should ONLY save as JSON)
         self._saveJSON()
