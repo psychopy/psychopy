@@ -500,7 +500,8 @@ class Monitor(object):
         else:
             if ext==".json":
                 with open(thisFileName, 'r') as thisFile:
-                    self.calibs = json_tricks.load(thisFile, ignore_comments=False)
+                    self.calibs = json_tricks.load(thisFile, ignore_comments=False,
+                                                   encoding='utf-8', preserve_order=False)
             else:
                 with open(thisFileName, 'rb') as thisFile:
                     self.calibs = pickle.load(thisFile)
