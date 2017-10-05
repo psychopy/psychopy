@@ -66,6 +66,7 @@ else:
     f = open('psychopy/__init__.py', 'r')
     vStr = f.read()
     f.close()
+installing = True
 exec(vStr)
 
 # define the extensions to compile if necess
