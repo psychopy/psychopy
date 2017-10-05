@@ -1735,10 +1735,13 @@ class TrialHandlerExt(TrialHandler):
             dataOut.remove(invalidAnal)
         return dataOut, dataAnal, dataHead
 
-    def saveAsWideText(self, fileName,
+    def saveAsWideText(self,
+                       fileName,
                        delim='\t',
                        matrixOnly=False,
-                       appendFile=True):
+                       appendFile=True,
+                       encoding='utf-8',
+                       fileCollisionMethod='rename'):
         """Write a text file with the session, stimulus, and data values
         from each trial in chronological order.
 
@@ -1778,6 +1781,14 @@ class TrialHandlerExt(TrialHandler):
                 will add this output to the end of the specified file if
                 it already exists.
 
+            fileCollisionMethod:
+                Collision method passed to
+                :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+
+            encoding:
+                The encoding to use when saving a the file.
+                Defaults to `utf-8`.
+
         """
         if self.thisTrialN < 1 and self.thisRepN < 1:
             # if both are < 1 we haven't started
@@ -1785,23 +1796,15 @@ class TrialHandlerExt(TrialHandler):
                          ' completed. Nothing saved')
             return -1
 
+        # set default delimiter if none given
+        if delim is None:
+            delim = genDelimiter(fileName)
+
         # create the file or send to stdout
-        if appendFile:
-            writeFormat = 'a'
-        else:
-            writeFormat = 'w'  # will overwrite a file
-        if fileName == 'stdout':
-            f = sys.stdout
-        elif fileName[-4:] in ('.dlm', '.DLM', '.tsv', '.TSV',
-                               '.txt', '.TXT', '.csv', '.CSV'):
-            f = codecs.open(fileName, writeFormat, encoding="utf-8")
-        else:
-            if delim == ',':
-                f = codecs.open(fileName + '.csv',
-                                writeFormat, encoding="utf-8")
-            else:
-                f = codecs.open(fileName + '.txt',
-                                writeFormat, encoding="utf-8")
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        f = openOutputFile(fileName=fileName, append=appendFile,
+                           fileCollisionMethod=fileCollisionMethod,
+                           encoding=encoding)
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
@@ -1886,7 +1889,7 @@ class TrialHandlerExt(TrialHandler):
             line = delim.join([str(trial[prm]) for prm in header])
             f.write(line + '\n')
 
-        if f != sys.stdout:
+        if (fileName is not None) and (fileName != 'stdout'):
             f.close()
             logging.info('saved wide-format data to %s' % f.name)
 
