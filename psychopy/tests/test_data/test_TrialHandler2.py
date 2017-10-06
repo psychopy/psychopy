@@ -256,5 +256,180 @@ class TestTrialHandler2(object):
         assert t == t_loaded
 
 
+class TestTrialHandler2Output(object):
+    def setup_class(self):
+        self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
+        self.random_seed = 100
+
+    def teardown_class(self):
+        shutil.rmtree(self.temp_dir)
+
+    def setup_method(self, method):
+        # create conditions
+        conditions = []
+        for trialType in range(5):
+            conditions.append({'trialType':trialType})
+
+        self.trials = data.TrialHandler2(trialList=conditions,
+                                         seed=self.random_seed,
+                                         nReps=3, method='random',
+                                         autoLog=False)
+        # simulate trials
+        rng = np.random.RandomState(seed=self.random_seed)
+
+        for thisTrial in self.trials:
+            resp = 'resp' + str(thisTrial['trialType'])
+            randResp = rng.rand()
+            self.trials.addData('resp', resp)
+            self.trials.addData('rand', randResp)
+
+    def test_output_no_filename_no_delim(self):
+        _, path = mkstemp(dir=self.temp_dir)
+        delim = None
+        self.trials.saveAsWideText(path, delim=delim)
+
+        expected_suffix = '.tsv'
+        assert os.path.isfile(path + expected_suffix)
+
+        expected_delim = '\t'
+        expected_header = self.trials.columns
+        expected_header = expected_delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path + expected_suffix, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path + expected_suffix, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+    def test_output_no_filename_comma_delim(self):
+        _, path = mkstemp(dir=self.temp_dir)
+        delim = ','
+        self.trials.saveAsWideText(path, delim=delim)
+
+        expected_suffix = '.csv'
+        assert os.path.isfile(path + expected_suffix)
+
+        expected_header = self.trials.columns
+        expected_header = delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path + expected_suffix, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path + expected_suffix, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+    def test_output_no_filename_tab_delim(self):
+        _, path = mkstemp(dir=self.temp_dir)
+        delim = '\t'
+        self.trials.saveAsWideText(path, delim=delim)
+
+        expected_suffix = '.tsv'
+        assert os.path.isfile(path + expected_suffix)
+
+        expected_header = self.trials.columns
+        expected_header = delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path + expected_suffix, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path + expected_suffix, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+    def test_output_no_filename_semicolon_delim(self):
+        _, path = mkstemp(dir=self.temp_dir)
+        delim = ';'
+        self.trials.saveAsWideText(path, delim=delim)
+
+        expected_suffix = '.txt'
+        assert os.path.isfile(path + expected_suffix)
+
+        expected_header = self.trials.columns
+        expected_header = delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path + expected_suffix, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path + expected_suffix, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+    def test_output_csv_suffix_no_delim(self):
+        _, path = mkstemp(dir=self.temp_dir, suffix='.csv')
+        delim = None
+        self.trials.saveAsWideText(path, delim=delim)
+
+        expected_delim = ','
+        expected_header = self.trials.columns
+        expected_header = expected_delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+    def test_output_arbitrary_suffix_no_delim(self):
+        _, path = mkstemp(dir=self.temp_dir, suffix='.xyz')
+        delim = None
+        self.trials.saveAsWideText(path, delim=delim)
+
+        expected_suffix = '.tsv'
+        assert os.path.isfile(path + expected_suffix)
+
+        expected_delim = '\t'
+        expected_header = self.trials.columns
+        expected_header = expected_delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path + expected_suffix, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path + expected_suffix, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+    def test_output_csv_and_semicolon(self):
+        _, path = mkstemp(dir=self.temp_dir, suffix='.csv')
+        delim = ';'
+        self.trials.saveAsWideText(path, delim=delim)
+
+        assert os.path.isfile(path)
+
+        expected_delim = ';'
+        expected_header = self.trials.columns
+        expected_header = expected_delim.join(expected_header) + '\n'
+
+        # Universal newline support.
+        if PY3:
+            with open(path, 'r', newline=None) as f:
+                header = f.readline()
+        else:
+            with open(path, 'rU') as f:
+                header = f.readline()
+
+        assert header == expected_header
+
+
 if __name__ == '__main__':
     pytest.main()

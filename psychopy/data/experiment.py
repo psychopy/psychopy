@@ -12,7 +12,8 @@ import pickle
 import atexit
 
 from psychopy import logging
-from psychopy.tools.filetools import openOutputFile, genDelimiter
+from psychopy.tools.filetools import (openOutputFile, genDelimiter,
+                                      genFilenameFromDelimiter)
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
 
@@ -283,9 +284,10 @@ class ExperimentHandler(_ComparisonMixin):
             delim = genDelimiter(fileName)
 
         # create the file or send to stdout
-        f = openOutputFile(
-            fileName, append=appendFile, delim=delim,
-            fileCollisionMethod=fileCollisionMethod, encoding=encoding)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        f = openOutputFile(fileName, append=appendFile,
+                           fileCollisionMethod=fileCollisionMethod,
+                           encoding=encoding)
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)
@@ -345,11 +347,13 @@ class ExperimentHandler(_ComparisonMixin):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                           fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
+
         self.savePickle = savePickle
         self.saveWideText = saveWideText
         
