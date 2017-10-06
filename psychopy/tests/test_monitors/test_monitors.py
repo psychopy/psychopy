@@ -3,6 +3,7 @@ import sys
 import glob
 import uuid
 from psychopy.monitors.calibTools import Monitor
+from psychopy.constants import PY3
 import numpy as np
 import pytest
 
@@ -31,7 +32,7 @@ class TestMonitorCalibration(object):
         """See if the monitor calibration file ended up in the correct location"""
         self.mon.saveMon()
         assert os.path.isfile(self.fullname + '.json')
-        if sys.version_info[0] == 2:
+        if not PY3:
             #  additionally, we should have a .calib file in python 2
             assert os.path.isfile(self.fullname + '.calib')
 
