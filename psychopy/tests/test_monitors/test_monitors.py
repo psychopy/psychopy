@@ -36,7 +36,7 @@ class TestMonitorCalibration(object):
             assert os.path.isfile(self.fullname + '.calib')
 
     def test_reload_monitor(self):
-        """Reload the monitor and verify that all """
+        """Reload the monitor and verify that all elements in each object match"""
         mon2 = Monitor(self.monitor_name)
         # test that all values in the reloaded monitor match the original instance
         for key1 in self.mon.calibs.keys():
