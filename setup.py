@@ -30,6 +30,8 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'moviepy',
             ]
 # some optional dependencies
+if platform == 'win32':
+    required.extend(['pypiwin32'])
 if platform == 'darwin':
     required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
 if PY3:  # doesn't exist on py2
@@ -66,6 +68,7 @@ else:
     f = open('psychopy/__init__.py', 'r')
     vStr = f.read()
     f.close()
+installing = True
 exec(vStr)
 
 # define the extensions to compile if necess
