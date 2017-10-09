@@ -14,6 +14,7 @@ import os
 import re
 import pickle
 import time
+import codecs
 import numpy as np
 import pandas as pd
 
@@ -21,6 +22,7 @@ from collections import OrderedDict
 from distutils.version import StrictVersion
 
 from psychopy import logging
+from psychopy.constants import PY3
 
 try:
     import openpyxl
@@ -538,4 +540,14 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     For date in the format of the current localization, do:
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
-    return time.strftime(format, time.localtime())
+    now = time.strftime(format, time.localtime())
+    if PY3:
+        return now
+    else:
+        try:
+            now_decoded = codecs.utf_8_decode(now)[0]
+        except UnicodeDecodeError:
+            # '2011_03_16_1307'
+            now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
+
+        return now_decoded
