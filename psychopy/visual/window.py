@@ -397,10 +397,11 @@ class Window(object):
             from psychopy.hardware.crs.bits import BitsPlusPlus
             self.bits = self.interface = BitsPlusPlus(self)
             self.haveBits = True
-            if hasattr(self.monitor, 'lineariseLums'):
+            if (hasattr(self.monitor, 'linearizeLums') or
+                    hasattr(self.monitor, 'lineariseLums')):
                 # rather than a gamma value we could use bits++ and provide a
                 # complete linearised lookup table using
-                # monitor.lineariseLums(lumLevels)
+                # monitor.linearizeLums(lumLevels)
                 self.__dict__['gamma'] = None
 
         self.frameClock = core.Clock()  # from psycho/core
