@@ -28,7 +28,7 @@ import pickle
 import sys
 from copy import deepcopy, copy
 
-import numpy
+import numpy as np
 import scipy.optimize as optim
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
@@ -144,9 +144,9 @@ class Monitor(object):
         """
         thisGamma = self.getGamma()
         # run the test just on this
-        array = numpy.array
+        array = np.array
         return (thisGamma is None or
-                numpy.alltrue(array(thisGamma) == array([1, 1, 1])))
+                np.alltrue(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
@@ -284,7 +284,7 @@ class Monitor(object):
         """
         gridInCurrent = 'gammaGrid' in self.currentCalib
         if (gridInCurrent and
-                not numpy.alltrue(self.getGammaGrid()[1:, 2] == 1)):
+                not np.alltrue(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
@@ -296,9 +296,9 @@ class Monitor(object):
         """
         if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
-            grid = numpy.asarray(self.currentCalib['gammaGrid'])
+            grid = np.asarray(self.currentCalib['gammaGrid'])
             if grid.shape != [4, 6]:
-                newGrid = numpy.zeros([4, 6], 'f') * numpy.nan  # start as NaN
+                newGrid = np.zeros([4, 6], 'f') * np.nan  # start as NaN
                 newGrid[:grid.shape[0], :grid.shape[1]] = grid
                 grid = self.currentCalib['gammaGrid'] = newGrid
             return grid
@@ -463,7 +463,7 @@ class Monitor(object):
         self.setNotes(notes)
         self.setPsychopyVersion(__version__)
         self.setUseBits(useBits)
-        newGrid = numpy.ones((4, 3), 'd')
+        newGrid = np.ones((4, 3), 'd')
         newGrid[:, 0] *= 0
         self.setGammaGrid(newGrid)
         self.setLineariseMethod(1)
@@ -556,7 +556,7 @@ class Monitor(object):
         ranging 0:1
         """
         linMethod = self.getLinearizeMethod()
-        desiredLums = numpy.asarray(desiredLums)
+        desiredLums = np.asarray(desiredLums)
         output = desiredLums * 0.0  # needs same size as input
 
         # gamma interpolation
@@ -713,7 +713,7 @@ class GammaCalculator(object):
         minGamma = 0.8
         maxGamma = 20.0
         gammaGuess = 2.0
-        y = numpy.asarray(y)
+        y = np.asarray(y)
         minLum = y[0]
         maxLum = y[-1]
         if self.eq == 4:
@@ -728,7 +728,7 @@ class GammaCalculator(object):
         # gamma = optim.fminbound(self.fitGammaErrFun,
         #    minGamma, maxGamma,
         #    args=(x,y, minLum, maxLum))
-        params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess),
+        params = optim.fmin_tnc(self.fitGammaErrFun, np.array(guess),
                                 approx_grad=True,
                                 args=(x, y, minLum, maxLum),
                                 bounds=bounds, messages=0)
@@ -742,12 +742,12 @@ class GammaCalculator(object):
         if self.eq == 4:
             gamma, a, k = params
             _m = gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k)
-            model = numpy.asarray(_m)
+            model = np.asarray(_m)
         else:
             gamma = params[0]
             _m = gammaFun(x, minLum, maxLum, gamma, eq=self.eq)
-            model = numpy.asarray(_m)
-        SSQ = numpy.sum((model - y)**2)
+            model = np.asarray(_m)
+        SSQ = np.sum((model - y)**2)
         return SSQ
 
 
@@ -760,14 +760,14 @@ def makeDKL2RGB(nm, powerRGB):
                                            juddVosXYZ1976_5nm)
     judd = interpolateJudd(nm)
     cones = interpolateCones(nm)
-    judd = numpy.asarray(judd)
-    cones = numpy.asarray(cones)
-    rgb_to_cones = numpy.dot(cones, numpy.transpose(powerRGB))
+    judd = np.asarray(judd)
+    cones = np.asarray(cones)
+    rgb_to_cones = np.dot(cones, np.transpose(powerRGB))
     # get LMS weights for Judd vl
-    lumwt = numpy.dot(judd[1, :], numpy.linalg.pinv(cones))
+    lumwt = np.dot(judd[1, :], np.linalg.pinv(cones))
 
     # cone weights for achromatic primary
-    dkl_to_cones = numpy.dot(rgb_to_cones, [[1, 0, 0], [1, 0, 0], [1, 0, 0]])
+    dkl_to_cones = np.dot(rgb_to_cones, [[1, 0, 0], [1, 0, 0], [1, 0, 0]])
 
     # cone weights for L-M primary
     dkl_to_cones[0, 1] = old_div(lumwt[1], lumwt[0])
@@ -781,10 +781,10 @@ def makeDKL2RGB(nm, powerRGB):
     # Now have primaries expressed as cone excitations
 
     # get coefficients for cones ->monitor
-    cones_to_rgb = numpy.linalg.inv(rgb_to_cones)
+    cones_to_rgb = np.linalg.inv(rgb_to_cones)
 
     # get coefficients for DKL cone weights to monitor
-    dkl_to_rgb = numpy.dot(cones_to_rgb, dkl_to_cones)
+    dkl_to_rgb = np.dot(cones_to_rgb, dkl_to_cones)
     # normalise each col
     dkl_to_rgb[:, 0] /= max(abs(dkl_to_rgb[:, 0]))
     dkl_to_rgb[:, 1] /= max(abs(dkl_to_rgb[:, 1]))
@@ -799,8 +799,8 @@ def makeLMS2RGB(nm, powerRGB):
     interpolateCones = interpolate.interp1d(wavelength_5nm,
                                             cones_SmithPokorny)
     coneSens = interpolateCones(nm)
-    rgb_to_cones = numpy.dot(coneSens, numpy.transpose(powerRGB))
-    cones_to_rgb = numpy.linalg.inv(rgb_to_cones)
+    rgb_to_cones = np.dot(coneSens, np.transpose(powerRGB))
+    cones_to_rgb = np.linalg.inv(rgb_to_cones)
 
     return cones_to_rgb
 
@@ -878,7 +878,7 @@ def getLumSeries(lumLevels=8,
                     "Hit a key when ready (or wait 30s)")
     message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
                                        pos=(0, -0.85), rgb=[1, -1, -1])
-    noise = numpy.random.rand(512, 512).round() * 2 - 1
+    noise = np.random.rand(512, 512).round() * 2 - 1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
                                           units='norm',
                                           sf=[old_div(winSize[0], 512.0),
@@ -917,14 +917,14 @@ def getLumSeries(lumLevels=8,
     if type(lumLevels) in (int, float):
         toTest = DACrange(lumLevels)
     else:
-        toTest = numpy.asarray(lumLevels)
+        toTest = np.asarray(lumLevels)
 
     if allGuns:
         guns = [0, 1, 2, 3]  # gun=0 is the white luminance measure
     else:
         allGuns = [0]
     # this will hold the measured luminance values
-    lumsList = numpy.zeros((len(guns), len(toTest)), 'd')
+    lumsList = np.zeros((len(guns), len(toTest)), 'd')
     # for each gun, for each value run test
     for gun in guns:
         for valN, DACval in enumerate(toTest):
@@ -963,7 +963,7 @@ def getLumSeries(lumLevels=8,
                 for thisKey in psychopy.event.getKeys():
                     if thisKey in ('q', 'Q', 'escape'):
                         myWin.close()
-                        return numpy.array([])
+                        return np.array([])
 
             elif autoMode == 'semi':
                 print("At DAC value %i" % DACval)
@@ -974,7 +974,7 @@ def getLumSeries(lumLevels=8,
                     for thisKey in psychopy.event.getKeys():
                         if thisKey in ('q', 'Q', 'escape'):
                             myWin.close()
-                            return numpy.array([])
+                            return np.array([])
                         elif thisKey in (' ', 'space'):
                             done = True
 
@@ -982,7 +982,7 @@ def getLumSeries(lumLevels=8,
     if havePhotom:
         return lumsList
     else:
-        return numpy.array([])
+        return np.array([])
 
 
 def getLumSeriesPR650(lumLevels=8,
@@ -1064,7 +1064,7 @@ def DACrange(n):
     """Returns an array of n DAC values spanning 0-255
     """
     # NB python ranges exclude final val
-    return numpy.arange(0.0, 256.0, old_div(255.0, (n - 1))).astype(numpy.uint8)
+    return np.arange(0.0, 256.0, old_div(255.0, (n - 1))).astype(np.uint8)
 
 
 def getAllMonitors():
@@ -1094,7 +1094,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
 
     """
     # scale x to be in range minLum:maxLum
-    xx = numpy.array(xx, 'd')
+    xx = np.array(xx, 'd')
     maxXX = max(xx)
     if maxXX > 2.0:
         # xx = xx * maxLum / 255.0 + minLum
@@ -1163,17 +1163,17 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     # eq2: y = (a + b * xx)**gamma
     # eq4: y = a + (b + kxx)**gamma
     if max(yy) == 255:
-        yy = old_div(numpy.asarray(yy, 'd'), 255.0)
+        yy = old_div(np.asarray(yy, 'd'), 255.0)
     elif min(yy) < 0 or max(yy) > 1:
         logging.warning(
             'User supplied values outside the expected range (0:1)')
     else:
-        yy = numpy.asarray(yy, 'd')
+        yy = np.asarray(yy, 'd')
 
     if eq == 1:
-        xx = numpy.asarray(yy)**(old_div(1.0, gamma))
+        xx = np.asarray(yy)**(old_div(1.0, gamma))
     elif eq == 2:
-        yy = numpy.asarray(yy) * (maxLum - minLum) + minLum
+        yy = np.asarray(yy) * (maxLum - minLum) + minLum
         a = minLum**(old_div(1, gamma))
         b = maxLum**(old_div(1, gamma)) - a
         xx = old_div((yy**(old_div(1, gamma)) - a), b)
