@@ -89,7 +89,7 @@ class Monitor(object):
     to be 114cm for this experiment.
 
     These can be saved to the monitor file using
-    :func:`~psychopy.monitors.Monitor.saveMon`
+    :func:`~psychopy.monitors.Monitor.save`
     or not (in which case the changes will be lost)
     """
 
@@ -516,16 +516,30 @@ class Monitor(object):
             self.setCurrent(-1)
         return 1
 
-    def saveMon(self):
-        """Saves the current dictionary of calibrations as a json file
+    def save(self):
+        """Save the current calibrations to disk.
+
+        This will write a `json` file to the `monitors` subfolder of your
+        PsychoPy configuration folder (typically `~/.psychopy2/monitors` on
+        Linux and macOS, and `%APPDATA%\psychopy2\monitors` on Windows).
+
+        Additionally saves a pickle (`.calib`) file if you are running
+        Python 2.7.
+
         """
         if not constants.PY3:  # don't ever save pickle files form PY3
             thisFileName = os.path.join(monitorFolder, self.name + ".calib")
             with open(thisFileName, 'wb') as thisFile:
                 pickle.dump(self.calibs, thisFile)
+
         # also save as JSON (at the moment)
         # (When we're sure this works we should ONLY save as JSON)
         self._saveJSON()
+
+    def saveMon(self):
+        """Equivalent of :func:`~psychopy.monitors.Monitor.save`.
+        """
+        self.save()
 
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")

@@ -24,4 +24,4 @@ if 'testMonitor' not in getAllMonitors():
                      # use _translate( ) => issues
                      notes='default (not very useful) monitor')
     defMon.setSizePix([1024, 768])
-    defMon.saveMon()
+    defMon.save()

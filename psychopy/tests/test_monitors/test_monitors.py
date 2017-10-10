@@ -30,10 +30,19 @@ class TestMonitorCalibration(object):
         for f in glob.glob(self.fullname + '.*'):
             os.remove(f)
 
-    def test_save_monitor(self):
+    def test_save(self):
         """See if the monitor calibration file ended up in the correct
         location"""
-        self.mon.saveMon()
+        self.mon.save()
+        assert os.path.isfile(self.fullname + '.json')
+        if not PY3:
+            #  additionally, we should have a .calib file in python 2
+            assert os.path.isfile(self.fullname + '.calib')
+
+    def test_saveMon(self):
+        """See if the monitor calibration file ended up in the correct
+        location"""
+        self.mon.save()
         assert os.path.isfile(self.fullname + '.json')
         if not PY3:
             #  additionally, we should have a .calib file in python 2
