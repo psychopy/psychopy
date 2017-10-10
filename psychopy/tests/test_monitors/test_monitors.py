@@ -11,11 +11,13 @@ import pytest
 @pytest.mark.monitors
 class TestMonitorCalibration(object):
     def setup_class(self):
-        self.monitor_name = str(uuid.uuid4().hex)  # generate a random monitor name
+        self.monitor_name = str(uuid.uuid4().hex)  # random monitor name
         if sys.platform == 'win32':
-            self.monitor_folder = os.path.join(os.environ['APPDATA'], 'psychopy2', 'monitors')
+            self.monitor_folder = os.path.join(os.environ['APPDATA'],
+                                               'psychopy2', 'monitors')
         else:
-            self.monitor_folder = os.path.join(os.environ['HOME'], '.psychopy2', 'monitors')
+            self.monitor_folder = os.path.join(os.environ['HOME'],
+                                               '.psychopy2', 'monitors')
         self.fullname = os.path.join(self.monitor_folder, self.monitor_name)
         self.mon = Monitor(self.monitor_name,
                            width=40,
@@ -29,7 +31,8 @@ class TestMonitorCalibration(object):
             os.remove(f)
 
     def test_save_monitor(self):
-        """See if the monitor calibration file ended up in the correct location"""
+        """See if the monitor calibration file ended up in the correct
+        location"""
         self.mon.saveMon()
         assert os.path.isfile(self.fullname + '.json')
         if not PY3:
@@ -37,15 +40,31 @@ class TestMonitorCalibration(object):
             assert os.path.isfile(self.fullname + '.calib')
 
     def test_reload_monitor(self):
-        """Reload the monitor and verify that all elements in each object match"""
+        """Reload the monitor and verify that all elements in each object
+        match"""
         mon2 = Monitor(self.monitor_name)
-        # test that all values in the reloaded monitor match the original instance
+        # test that all values in the reloaded monitor match the original
+        # instance
         for key1 in self.mon.calibs.keys():
             for key2 in self.mon.calibs[key1].keys():
-                if isinstance(self.mon.calibs[key1][key2], (np.ndarray, np.generic)):
-                    assert (self.mon.calibs[key1][key2] == mon2.calibs[key1][key2]).all()
+                if isinstance(self.mon.calibs[key1][key2],
+                              (np.ndarray, np.generic)):
+                    assert (self.mon.calibs[key1][key2] ==
+                            mon2.calibs[key1][key2]).all()
                 else:
-                    assert self.mon.calibs[key1][key2] == mon2.calibs[key1][key2]
+                    assert (self.mon.calibs[key1][key2] ==
+                            mon2.calibs[key1][key2])
+
+@pytest.mark.monitors
+def test_linearizeLums_method_1():
+    m = Monitor(name='foo')
+    m.currentCalib['gamma'] = 1
+    m.currentCalib['linearizeMethod'] = 1
+
+    desired_lums = np.array([0.1, 0.2, 0.3])
+
+    r = m.lineariseLums(desiredLums=desired_lums)
+    assert np.allclose(r, desired_lums)
 
 
 if __name__ == '__main__':
