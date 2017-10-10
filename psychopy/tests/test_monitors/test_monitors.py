@@ -64,6 +64,7 @@ class TestMonitorCalibration(object):
                     assert (self.mon.calibs[key1][key2] ==
                             mon2.calibs[key1][key2])
 
+
 @pytest.mark.monitors
 def test_linearizeLums_method_1():
     m = Monitor(name='foo')
@@ -72,8 +73,21 @@ def test_linearizeLums_method_1():
 
     desired_lums = np.array([0.1, 0.2, 0.3])
 
+    r = m.linearizeLums(desiredLums=desired_lums)
+    assert np.allclose(r, desired_lums)
+
+
+@pytest.mark.monitors
+def test_lineariseLums_method_1():
+    m = Monitor(name='foo')
+    m.currentCalib['gamma'] = 1
+    m.currentCalib['linearizeMethod'] = 1
+
+    desired_lums = np.array([0.1, 0.2, 0.3])
+
     r = m.lineariseLums(desiredLums=desired_lums)
     assert np.allclose(r, desired_lums)
+
 
 
 if __name__ == '__main__':

@@ -564,7 +564,7 @@ class Monitor(object):
         self.calibs[calibName] = deepcopy(self.currentCalib)
         self.setCurrent(calibName)
 
-    def lineariseLums(self, desiredLums, newInterpolators=False,
+    def linearizeLums(self, desiredLums, newInterpolators=False,
                       overrideGamma=None):
         """lums should be uncalibrated luminance values (e.g. a linear ramp)
         ranging 0:1
@@ -657,6 +657,14 @@ class Monitor(object):
             output = desiredLums
 
         return output
+
+    def lineariseLums(self, desiredLums, newInterpolators=False,
+                      overrideGamma=None):
+        """Equivalent of :func:`~psychopy.monitors.Monitor.linearizeLums`.
+        """
+        self.linearizeLums(desiredLums=desiredLums,
+                           newInterpolators=newInterpolators,
+                           overrideGamma=overrideGamma)
 
 
 class GammaCalculator(object):
