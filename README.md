@@ -9,7 +9,7 @@ The goal is to provide, for the busy scientist (including me!), tools to control
 
 ## Contributions
 
-To contribute, please fork the repository, hack in a feature branch, and send a pull request.  For more, see http://www.psychopy.org/developers/repository.html.
+To contribute, please fork the repository, hack in a feature branch, and send a pull request.  For more, see `CONTRIBUTING.md` and http://www.psychopy.org/developers/repository.html.
 
 ## More information
 
