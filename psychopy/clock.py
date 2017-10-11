@@ -16,13 +16,15 @@ from __future__ import division
 from builtins import object
 import time
 import sys
+from distutils.version import StrictVersion
+
 
 try:
     import pyglet
 except ImportError:
     pass  # pyglet is not installed
 
-from psychopy.constants import STARTED, NOT_STARTED, FINISHED
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
 import psychopy.logging  # Absolute import to work around circularity
 
 
@@ -283,7 +285,7 @@ def wait(secs, hogCPUperiod=0.2):
         # let's see if pyglet collected any event in meantime
         try:
             # this takes focus away from command line terminal window:
-            if pyglet.version < '1.2':
+            if StrictVersion(pyglet.version) < StrictVersion('1.2'):
                 # events for sounds/video should run independently of wait()
                 pyglet.media.dispatch_events()
         except AttributeError:
