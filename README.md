@@ -14,4 +14,5 @@ To contribute, please fork the repository, hack in a feature branch, and send a 
 ## More information
 
 - Homepage: http://www.psychopy.org
-- Mailing list: https://discourse.psychopy.org
+- Forum: https://discourse.psychopy.org
+- Issue tracker: https://github.com/psychopy/psychopy/issues
