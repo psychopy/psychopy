@@ -64,12 +64,8 @@ if sys.platform == 'win32':
         _winQPC(byref(_fcounter))
         return _fcounter.value / _qpfreq
 else:
-    curPyver = sys.version_info
-    if curPyver[0] == 2 and curPyver[1] <= 6:
-        getTime = time.time
-    else:
-        import timeit
-        getTime = timeit.default_timer
+    import timeit
+    getTime = timeit.default_timer
 
 
 class MonotonicClock(object):
