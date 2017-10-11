@@ -84,7 +84,7 @@ class StaticComponent(BaseComponent):
                 self.updatesList.remove(item)
 
     def writeInitCode(self, buff):
-        code = ("%(name)s = core.StaticPeriod(win=win, "
+        code = ("%(name)s = clock.StaticPeriod(win=win, "
                 "screenHz=expInfo['frameRate'], name='%(name)s')\n")
         buff.writeIndented(code % self.params)
 

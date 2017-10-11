@@ -22,8 +22,13 @@ try:
 except ImportError:
     pass  # pyglet is not installed
 
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED
+import psychopy.logging  # Absolute import to work around circularity
+
+
 # set the default timing mechanism
 getTime = None
+
 
 # Select the timer to use as the psychopy high resolution time base. Selection
 # is based on OS and Python version.
@@ -44,6 +49,7 @@ getTime = None
 #     2) On other OS's, if the Python version being used is 2.6 or lower,
 #        time.time is used. For Python 2.7 and above, the timeit.default_timer
 #        function is used.
+
 if sys.platform == 'win32':
     from ctypes import byref, c_int64, windll
     _fcounter = c_int64()
@@ -168,6 +174,76 @@ class CountdownTimer(Clock):
         else:
             self._countdown_duration = t
             Clock.reset(self, t)
+
+
+class StaticPeriod(object):
+    """A class to help insert a timing period that includes code to be run.
+
+    Typical usage::
+
+        fixation.draw()
+        win.flip()
+        ISI = StaticPeriod(screenHz=60)
+        ISI.start(0.5)  # start a period of 0.5s
+        stim.image = 'largeFile.bmp'  # could take some time
+        ISI.complete()  # finish the 0.5s, taking into account one 60Hz frame
+
+        stim.draw()
+        win.flip()  # the period takes into account the next frame flip
+        # time should now be at exactly 0.5s later than when ISI.start()
+        # was called
+
+    """
+    def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
+        """
+        :param screenHz: the frame rate of the monitor (leave as None if you
+            don't want this accounted for)
+        :param win: if a visual.Window is given then StaticPeriod will
+            also pause/restart frame interval recording
+        :param name: give this StaticPeriod a name for more informative
+            logging messages
+        """
+        self.status = NOT_STARTED
+        self.countdown = CountdownTimer()
+        self.name = name
+        self.win = win
+        if screenHz is None:
+            self.frameTime = 0
+        else:
+            self.frameTime = 1.0 / screenHz
+
+    def start(self, duration):
+        """Start the period. If this is called a second time, the timer will
+        be reset and starts again
+
+        :param duration: The duration of the period, in seconds.
+        """
+        self.status = STARTED
+        self.countdown.reset(duration - self.frameTime)
+        # turn off recording of frame intervals throughout static period
+        if self.win:
+            self.win.recordFrameIntervals = False
+            self._winWasRecordingIntervals = self.win.recordFrameIntervals
+
+    def complete(self):
+        """Completes the period, using up whatever time is remaining with a
+        call to wait()
+
+        :return: 1 for success, 0 for fail (the period overran)
+        """
+        self.status = FINISHED
+        timeRemaining = self.countdown.getTime()
+        if self.win:
+            self.win.recordFrameIntervals = self._winWasRecordingIntervals
+        if timeRemaining < 0:
+            msg = ('We overshot the intended duration of %s by %.4fs. The '
+                   'intervening code took too long to execute.')
+            vals = self.name, abs(timeRemaining)
+            psychopy.logging.warn(msg % vals)
+            return 0
+        else:
+            wait(timeRemaining)
+            return 1
 
 
 def wait(secs, hogCPUperiod=0.2):
