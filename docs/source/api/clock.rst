@@ -1,5 +1,5 @@
-:mod:`psychopy.core` - basic functions (clocks etc.)
+:mod:`psychopy.clock` -  Clocks and timers
 ======================================================
 
-.. automodule:: psychopy.core
+.. automodule:: psychopy.clock
     :members: getTime, getAbsTime, wait, Clock, CountdownTimer, MonotonicClock, StaticPeriod
