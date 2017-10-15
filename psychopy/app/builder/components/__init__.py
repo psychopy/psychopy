@@ -1,8 +1,12 @@
-"""Extensible set of components for the PsychoPy Builder view
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+"""Extensible set of components for the PsychoPy Builder view
+"""
 
 from __future__ import absolute_import
 from __future__ import print_function

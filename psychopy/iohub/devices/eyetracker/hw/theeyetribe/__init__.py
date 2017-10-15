@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 ioHub
 Common Eye Tracker Interface for TheEyeTribe system.

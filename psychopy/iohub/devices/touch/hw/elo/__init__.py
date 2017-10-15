@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/touch/hw/elo/__init__.py

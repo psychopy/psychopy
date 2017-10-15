@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """This is for general purpose dialogs/widgets, not particular functionality
 
 MessageDialog:

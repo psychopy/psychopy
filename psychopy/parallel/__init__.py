@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 This module provides read / write access to the parallel port for
 Linux or Windows.

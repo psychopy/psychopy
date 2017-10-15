@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
+
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library

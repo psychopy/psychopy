@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """To handle input from keyboard, mouse and joystick (joysticks require
 pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples

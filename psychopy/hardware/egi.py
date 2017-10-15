@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Interface to `EGI Netstation <http://www.egi.com/>`_
 
 This is currently a simple import of

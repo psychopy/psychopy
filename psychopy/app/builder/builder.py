@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library

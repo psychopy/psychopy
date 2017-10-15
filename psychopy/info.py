@@ -1,13 +1,14 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """This module has tools for fetching data about the system or the
 current Python process. Such info can be useful for understanding
 the context in which an experiment was run.
 """
-
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import
 from __future__ import print_function

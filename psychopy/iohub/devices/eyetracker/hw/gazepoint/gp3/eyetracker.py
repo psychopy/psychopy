@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 # ioHub Python Module
 # .. file: psychopy/iohub/devices/eyetracker/hw/gazepoint/gp3/eyetracker.py
 #

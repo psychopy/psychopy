@@ -1,9 +1,12 @@
-# set the gamma LUT using platform-specific hardware calls
-# this currently requires a pyglet window (to identify the current scr/display)
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+# set the gamma LUT using platform-specific hardware calls
+# this currently requires a pyglet window (to identify the current scr/display)
 
 from __future__ import absolute_import
 from __future__ import division

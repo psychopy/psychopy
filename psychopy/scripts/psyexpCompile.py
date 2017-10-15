@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """Compiles a Python script (*.py) form a PsychoPy Builder Experiment file (.psyexp)
 """
 from __future__ import print_function

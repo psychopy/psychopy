@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Tools to help with calibrations
 """
 from __future__ import print_function

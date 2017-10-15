@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 '''Wrapper for iViewXAPI.h
 
 Generated with:
