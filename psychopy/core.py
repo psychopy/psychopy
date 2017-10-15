@@ -75,7 +75,7 @@ def quit():
     sys.exit(0)  # quits the python session entirely
 
 
-def shellCall(shellCmd, stdin='', stderr=False, encoding='utf-8'):
+def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
     """Call a single system command with arguments, return its stdout.
     Returns stdout, stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested
@@ -91,6 +91,9 @@ def shellCall(shellCmd, stdin='', stderr=False, encoding='utf-8'):
 
     stderr : bool
         Whether to return the standard error output once execution is finished.
+
+    env : dict
+        The environment variables to set during execution.
 
     encoding : str
         The encoding to use for communication with the executed command.
@@ -109,6 +112,9 @@ def shellCall(shellCmd, stdin='', stderr=False, encoding='utf-8'):
     when running Python 2.7.
 
     """
+    if env is None:
+        env = dict()
+
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
@@ -134,14 +140,14 @@ def shellCall(shellCmd, stdin='', stderr=False, encoding='utf-8'):
             proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
-                                    encoding=encoding)
+                                    encoding=encoding, env=env)
         else:
             msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
             raise RuntimeError(msg)
     else:
         proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+                                stderr=subprocess.PIPE, env=env)
 
     stdoutData, stderrData = proc.communicate(stdin)
 
