@@ -84,8 +84,11 @@ Options:
 
         if PYTHONW != 'True':
             from psychopy import core
-            core.shellCall([sys.executable + 'w', __file__],
-                           env=dict(env, PYTHONW='True'))
+            cmd = [sys.executable + 'w', __file__]
+            if '--no-splash' in sys.argv:
+                cmd.append('--no-splash')
+
+            core.shellCall(cmd, env=dict(env, PYTHONW='True'))
             sys.exit()
         else:
             start_app()
