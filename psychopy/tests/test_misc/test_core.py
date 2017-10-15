@@ -407,8 +407,7 @@ class Test_shellCall(object):
 
         self.msg = 'echo'
 
-    @staticmethod
-    def test_invalid_argument():
+    def test_invalid_argument(self):
         with pytest.raises(TypeError):
             shellCall(12345)
 
