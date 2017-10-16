@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Install PsychoPy to your current Python dist, including requirements
 
 usage::

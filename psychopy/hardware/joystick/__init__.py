@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Control joysticks and gamepads from within PsychoPy.
 
 You do need a window (and you need to be flipping it) for the joystick to be

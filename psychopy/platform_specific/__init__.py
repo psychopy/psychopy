@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Platform specific extensions (using ctypes)"""
 from __future__ import absolute_import
 # Part of the PsychoPy library

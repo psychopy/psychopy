@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # this script replaces hashtags with a sphinx URL string (to the github issues or pull request)
 # written by Jon with regex code by Jeremy

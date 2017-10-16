@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/daq/HW/MC/constants.py

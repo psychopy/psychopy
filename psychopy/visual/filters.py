@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Various useful functions for creating filters and textures
 (e.g. for PatchStim)
 """

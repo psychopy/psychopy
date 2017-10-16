@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Migration helper script for Coder demos: Do the conversion
 
   For all demos/coder/subdir/*.py (there are ~70 or so total), write out a new file: coder_updated/subdir/*

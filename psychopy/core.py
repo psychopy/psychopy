@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library

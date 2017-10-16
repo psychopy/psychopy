@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub Python Module
 .. file: ioHub/devices/xinput/__init__.py
