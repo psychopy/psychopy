@@ -396,22 +396,59 @@ def test_quit():
 
 
 @pytest.mark.shellCall
-def test_shellCall():
-    if PY3:
-        # This call to shellCall from tests is failing from Python3
-        # but maybe it just isn't a great test anyway?!
-        # shellCall is used by PsychoPy Tools>Run and works on Py3 there!
-        pytest.xfail(reason="Failing on Py3")
-    msg = 'echo'
-    cmd = ('grep', 'findstr')[sys.platform == 'win32']
+class Test_shellCall(object):
+    def setup_class(self):
+        if sys.platform == 'win32':
+            self.cmd = 'findstr'
+            self.env_cmd = 'set'
+        else:
+            self.cmd = 'grep'
+            self.env_cmd = 'env'
 
-    for arg1 in [[cmd, msg],  cmd+' '+msg]:
-        echo = shellCall(arg1, stdin=msg)
-        assert echo == msg
-        echo, se = shellCall(arg1, stdin=msg, stderr=True)
-        assert echo == msg
-    echo, se = shellCall(12, stdin=msg)
-    assert echo is None
+        self.msg = 'echo'
+
+    def test_invalid_argument(self):
+        with pytest.raises(TypeError):
+            shellCall(12345)
+
+    def test_stdin(self):
+        echo = shellCall([self.cmd, self.msg], stdin=self.msg)
+        assert echo == self.msg
+
+        echo = shellCall(self.cmd + ' ' + self.msg, stdin=self.msg)
+        assert echo == self.msg
+
+    def test_stderr(self):
+        _, se = shellCall([self.cmd, self.msg], stderr=True)
+        assert se == ''
+
+        _, se = shellCall(self.cmd + ' ' + self.msg, stderr=True)
+        assert se == ''
+
+    def test_stdin_and_stderr(self):
+        echo, se = shellCall([self.cmd, self.msg], stdin='echo', stderr=True)
+        assert echo == self.msg
+        assert se == ''
+
+        echo, se = shellCall(self.cmd + ' ' + self.msg, stdin='echo',
+                             stderr=True)
+        assert echo == self.msg
+        assert se == ''
+
+    def test_encoding(self):
+        shellCall([self.cmd, self.msg], stdin=self.msg, encoding='utf-8')
+
+        if PY3:
+            with pytest.raises(TypeError):
+                shellCall([self.cmd, self.msg], stdin=self.msg, encoding=None)
+
+    def test_env(self):
+        echo = shellCall(self.env_cmd)
+        assert echo == ''
+
+        echo = shellCall(self.env_cmd, env=dict(FOO='1'))
+        assert echo == 'FOO=1'
+
 
 
 if __name__ == '__main__':

@@ -78,12 +78,46 @@ def quit():
     sys.exit(0)  # quits the python session entirely
 
 
-def shellCall(shellCmd, stdin='', stderr=False):
+def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
     """Call a single system command with arguments, return its stdout.
     Returns stdout, stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested
     on windows) can accept string or list as the first argument
+
+    Parameters
+    ----------
+    shellCmd : str, or iterable
+        The command to execute, and its respective arguments.
+
+    stdin : str, or None
+        Input to pass to the command.
+
+    stderr : bool
+        Whether to return the standard error output once execution is finished.
+
+    env : dict
+        The environment variables to set during execution.
+
+    encoding : str
+        The encoding to use for communication with the executed command.
+        This argument will be ignored on Python 2.7.
+
+    Notes
+    -----
+    We use ``subprocess.Popen`` to execute the command and establish
+    `stdin` and `stdout` pipes.
+    Python 2.7 always opens the pipes in text mode; however,
+    Python 3 defaults to binary mode, unless an encoding is specified.
+    To unify pipe communication across Python 2 and 3, we now provide an
+    `encoding` parameter, enforcing `utf-8` text mode by default.
+    This parameter is present from Python 3.6 onwards; using an older
+    Python 3 version will raise an exception. The parameter will be ignored
+    when running Python 2.7.
+
     """
+    if env is None:
+        env = dict()
+
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
@@ -93,16 +127,33 @@ def shellCall(shellCmd, stdin='', stderr=False):
     elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
-        return None, 'shellCmd requires a list or string'
+        msg = 'shellCmd requires a string or iterable.'
+        raise TypeError(msg)
+
     bytesObjects = []
     for obj in shellCmdList:
         if type(obj) != bytes:
             bytesObjects.append(obj.encode('utf-8'))
         else:
             bytesObjects.append(obj)
-    proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Since Python 3.6, we can use the `encoding` parameter.
+    if PY3:
+        if sys.version_info.minor >= 6:
+            proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    encoding=encoding, env=env)
+        else:
+            msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
+            raise RuntimeError(msg)
+    else:
+        proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env)
+
     stdoutData, stderrData = proc.communicate(stdin)
+
     del proc
     if stderr:
         return stdoutData.strip(), stderrData.strip()
