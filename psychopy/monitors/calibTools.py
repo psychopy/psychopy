@@ -665,9 +665,9 @@ class Monitor(object):
                       overrideGamma=None):
         """Equivalent of :func:`~psychopy.monitors.Monitor.linearizeLums`.
         """
-        self.linearizeLums(desiredLums=desiredLums,
-                           newInterpolators=newInterpolators,
-                           overrideGamma=overrideGamma)
+        return self.linearizeLums(desiredLums=desiredLums,
+                                  newInterpolators=newInterpolators,
+                                  overrideGamma=overrideGamma)
 
 
 class GammaCalculator(object):
