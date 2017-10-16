@@ -506,8 +506,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._updateVertices()
 
 
-
-
 class VonMisesDotStim(DotStim):
     """The VonMisesDotStim is a version of the random dot motion kinematogram
     where every dot has an independent direction sampled from the circular Von Mises 
@@ -543,16 +541,25 @@ class VonMisesDotStim(DotStim):
 
     @attributeSetter
     def dir(self, dir):
+        """float (degrees). direction of the coherent dots.
+        :ref:`operations <attrib-operations>` are supported.
+        """
         self.__dict__['dir'] = dir / 180 * numpy.pi
         self._dotsDir = numpy.random.vonmises(self.dir, self.kappa, self.nDots)
     
     @attributeSetter
     def kappa(self, kappa):
+        """float. kappa-parameter of the Von Mises-distribution from which the dot
+        directions are sampled. If kappa == 0.0, the dots are moving completely
+        incoherent. The higher kappa, the more coherent the dots are moving.
+        1/kappa is roughly equal to th standard deviation (sigma) of the normal
+        distribution.
+        See also https://en.wikipedia.org/wiki/Von_Mises_distribution
+        """
         self.kappa = kappa
         self._dotsDir = numpy.random.vonmises(self.dir, self.kappa, self.nDots)
 
     def _update_dotsXY(self):
-
         # Get dead dots
         if self.dotLife > 0:  # if less than zero ignore it
             # decrement. Then dots to be reborn will be negative
@@ -561,13 +568,11 @@ class VonMisesDotStim(DotStim):
             self._dotsLife[dead] = self.dotLife
         else:
             dead = numpy.zeros(self.nDots, dtype=bool)
-
         
         # update dead dots
         if sum(dead):
             self._verticesBase[dead, :] = self._newDotsXY(sum(dead))
             self._dotsDir[dead] = numpy.random.vonmises(self.dir, self.kappa, sum(dead))
-
 
         cosDots = numpy.cos(self._dotsDir)
         sinDots = numpy.sin(self._dotsDir)
@@ -580,7 +585,6 @@ class VonMisesDotStim(DotStim):
             out0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5*self.fieldSize[0])
             out1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5*self.fieldSize[1])
             outofbounds = out0 + out1
-
         elif self.fieldShape == 'circle':
             normXY = self._verticesBase / 0.5 / self.fieldSize
             outofbounds = (numpy.hypot(normXY[:, 0], normXY[:, 1]) > 1)   
@@ -588,7 +592,9 @@ class VonMisesDotStim(DotStim):
         # update any out of bound dots dots
         if sum(outofbounds):
             self._verticesBase[outofbounds, :] = self._newDotsXY(sum(outofbounds))
-            self._dotsDir[outofbounds] = numpy.random.vonmises(self.dir, self.kappa, sum(outofbounds))
+            self._dotsDir[outofbounds] = numpy.random.vonmises(self.dir, 
+                                                               self.kappa, 
+                                                               sum(outofbounds))
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()
@@ -596,12 +602,43 @@ class VonMisesDotStim(DotStim):
 
 class GoldShadlenDotStim(DotStim):
 
-    ''' This version of the Random Dot Motion-task is the one first described
+    """ This version of the Random Dot Motion-task is the one first described
     in Gold & Shadlen (2003). It is very similar to the standard random dot
     kinematogram of Britten et al. (1992), but uses 3 separate frames of dots
     that are subsequently projected. This version of the task has been used in many
     model-based fMRI-studies on perception, like Forstmann et al., (2008) and
     Mulder et al. (2012).
+
+
+    Parameters
+    ---------
+    win :
+        ``psychopy.visual.window`` that is used to render the RDK in
+    nFrames :
+        Number of frames with dots that are subsequently interspersed over time (default
+        is 3).
+    signalDots :
+        Definition of signalDots. Can be ``different``, when the indices of the signalDots 
+        are resampled on every frame (default behavior) or ``same``, in which case the set
+        of signalDots is fixed.
+    noiseDots  :
+        Behavior of the noiseDots. For 'position', noise dots take a
+        random position every frame. For 'direction' noise dots follow a
+        random, but constant direction. For 'walk' noise dots vary their
+        direction every frame, but keep a constant speed.    
+    fieldShape :
+        'sqr'* or 'circle'. Defines the envelope used to present the dots.
+        If changed while drawing, dots outside new envelope will be respawned.
+    dotLife : 
+        Int. Number of frames each dot lives for (-1=infinite).
+        Dot lives are initiated randomly from a uniform distribution
+        from 0 to dotLife. If changed while drawing, the lives of all
+        dots will be randomly initiated again.
+    nDots : 
+        Int. Number of *total* dots over all frames combined. For example, if nDots
+        is set to 300, and nFrames is set to 3, every frame consists of 100 dots.
+
+    For other parameters, see DotStim.
 
      * Gold, J. I., & Shadlen, M. N. (2003). The influence of behavioral context on
      the representation of a perceptual decision in developing oculomotor commands.
@@ -613,7 +650,7 @@ class GoldShadlenDotStim(DotStim):
      Serences, J., & Forstmann, B. U. (2011). Neural correlates of trial-to-trial
      fluctuations in response caution. The Journal of Neuroscience, 31(48), 17488–17495.
      http://doi.org/10.1523/JNEUROSCI.2924-11.2011
-     '''
+     """
 
     def __init__(self, 
                  win,
@@ -621,7 +658,7 @@ class GoldShadlenDotStim(DotStim):
                  signalDots='different',
                  noiseDots='walk',
                  fieldShape='circle',
-                 dotLife=0,
+                 dotLife=-1,
                  nDots=500,
                  *args, **kwargs):
 
@@ -647,56 +684,109 @@ class GoldShadlenDotStim(DotStim):
 
     @attributeSetter
     def fieldShape(self, fieldShape):
+        """*'sqr'* or 'circle'. Defines the envelope used to present the dots.
+        If changed while drawing, dots outside new envelope will be respawned.
+        """
         for dotstim in self.dotstims:
             dotstim.fieldShape = fieldShape
 
     @attributeSetter
     def dotSize(self, dotSize):
+        """Float specified in pixels (overridden if `element` is specified).
+        :ref:`operations <attrib-operations>` are supported."""
         for dotstim in self.dotstims:
             dotstim.dotSize = dotSize
 
     @attributeSetter
     def dotLife(self, dotLife):
+        """Int. Number of frames each dot lives for (-1=infinite).
+        Dot lives are initiated randomly from a uniform distribution
+        from 0 to dotLife. If changed while drawing, the lives of all
+        dots will be randomly initiated again.
+        :ref:`operations <attrib-operations>` are supported.
+        """
         for dotstim in self.dotstims:
             dotstim.dotLife = dotLife
 
     @attributeSetter
     def signalDots(self, signalDots):
+        """str - 'same' or *'different'*
+        If 'same' then the signal and noise dots are constant. If different
+        then the choice of which is signal and which is noise gets
+        randomised on each frame. This corresponds to Scase et al's (1996)
+        categories of RDK.
+        """
         for dotstim in self.dotstims:
             dotstim.signalDots = signalDots
 
     @attributeSetter
     def noiseDots(self, noiseDots):
+        """Str. *'direction'*, 'position' or 'walk'
+        Determines the behaviour of the noise dots, taken directly from
+        Scase et al's (1996) categories. For 'position', noise dots take a
+        random position every frame. For 'direction' noise dots follow a
+        random, but constant direction. For 'walk' noise dots vary their
+        direction every frame, but keep a constant speed.
+        """
         for dotstim in self.dotstims:
             dotstim.noiseDots = noiseDots
 
     @attributeSetter
     def element(self, element):
+        """*None* or a visual stimulus object
+        This can be any object that has a ``.draw()`` method and a
+        ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
+        DotStim assumes that the element uses pixels as units.
+        ``None`` defaults to dots.
+        See `ElementArrayStim` for a faster implementation of this idea.
+        """
         for dotstim in self.dotstims:
             dotstim.element = element
 
     @attributeSetter
     def fieldPos(self, pos):
+        """Specifying the location of the centre of the stimulus
+        using a :ref:`x,y-pair <attrib-xy>`.
+        See e.g. :class:`.ShapeStim` for more documentation / examples
+        on how to set position.
+        :ref:`operations <attrib-operations>` are supported.
+        """
         for dotstim in self.dotstims:
-            dotstim.pos = pos  # using BaseVisualStim. we'll store this as both
+            dotstim.pos = pos  # using BaseVisualStim. we'll store this as both"
 
     @attributeSetter
     def fieldSize(self, size):
+        """Specifying the size of the field of dots using a
+        :ref:`x,y-pair <attrib-xy>`.
+        See e.g. :class:`.ShapeStim` for more documentation /
+        examples on how to set position.
+        :ref:`operations <attrib-operations>` are supported.
+        """
         for dotstim in self.dotstims:
             dotstim.fieldSize = size
 
     @attributeSetter
     def coherence(self, coherence):
+        """Scalar between 0 and 1.
+        Change the coherence (%) of the DotStim. This will be rounded
+        according to the number of dots in the stimulus.
+        :ref:`operations <attrib-operations>` are supported.
+        """
         for dotstim in self.dotstims:
             dotstim.coherence = coherence
 
     @attributeSetter
     def dir(self, dir):
+        """float (degrees). direction of the coherent dots.
+        :ref:`operations <attrib-operations>` are supported.
+        """
         for dotstim in self.dotstims:
             dotstim.dir = dir
 
-
     @attributeSetter
     def speed(self, speed):
+       """float. speed of the dots (in *units*/frame).
+        :ref:`operations <attrib-operations>` are supported.
+        """
         for dotstim in self.dotstims:
             dotstim.speed = speed
