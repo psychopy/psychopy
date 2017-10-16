@@ -15,7 +15,9 @@ import shlex
 
 # some things are imported just to be accessible within core's namespace
 from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
-                            wait, monotonicClock, getAbsTime)  # pylint: disable=W0611
+                            wait, monotonicClock, getAbsTime,
+                            StaticPeriod)  # pylint: disable=W0611
+
 # always safe to call rush, even if its not going to do anything for a
 # particular OS
 from psychopy.platform_specific import rush  # pylint: disable=W0611
@@ -103,77 +105,3 @@ def shellCall(shellCmd, stdin='', stderr=False):
         return stdoutData.strip(), stderrData.strip()
     else:
         return stdoutData.strip()
-
-
-class StaticPeriod(object):
-    """A class to help insert a timing period that includes code to be run.
-
-    Typical usage::
-
-        fixation.draw()
-        win.flip()
-        ISI = StaticPeriod(screenHz=60)
-        ISI.start(0.5)  # start a period of 0.5s
-        stim.image = 'largeFile.bmp'  # could take some time
-        ISI.complete()  # finish the 0.5s, taking into account one 60Hz frame
-
-        stim.draw()
-        win.flip()  # the period takes into account the next frame flip
-        # time should now be at exactly 0.5s later than when ISI.start()
-        # was called
-
-    """
-
-    # NB - this might seem to be more sensible in the clock.py module,
-    # but that creates a circular reference with the logging module.
-
-    def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
-        """
-        :param screenHz: the frame rate of the monitor (leave as None if you
-            don't want this accounted for)
-        :param win: if a visual.Window is given then StaticPeriod will
-            also pause/restart frame interval recording
-        :param name: give this StaticPeriod a name for more informative
-            logging messages
-        """
-        self.status = NOT_STARTED
-        self.countdown = CountdownTimer()
-        self.name = name
-        self.win = win
-        if screenHz is None:
-            self.frameTime = 0
-        else:
-            self.frameTime = 1.0 / screenHz
-
-    def start(self, duration):
-        """Start the period. If this is called a second time, the timer will
-        be reset and starts again
-
-        :param duration: The duration of the period, in seconds.
-        """
-        self.status = STARTED
-        self.countdown.reset(duration - self.frameTime)
-        # turn off recording of frame intervals throughout static period
-        if self.win:
-            self.win.recordFrameIntervals = False
-            self._winWasRecordingIntervals = self.win.recordFrameIntervals
-
-    def complete(self):
-        """Completes the period, using up whatever time is remaining with a
-        call to wait()
-
-        :return: 1 for success, 0 for fail (the period overran)
-        """
-        self.status = FINISHED
-        timeRemaining = self.countdown.getTime()
-        if self.win:
-            self.win.recordFrameIntervals = self._winWasRecordingIntervals
-        if timeRemaining < 0:
-            msg = ('We overshot the intended duration of %s by %.4fs. The '
-                   'intervening code took too long to execute.')
-            vals = self.name, abs(timeRemaining)
-            logging.warn(msg % vals)
-            return 0
-        else:
-            wait(timeRemaining)
-            return 1

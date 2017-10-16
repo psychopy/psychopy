@@ -31,4 +31,4 @@ custom code :
 
 .. seealso::
     
-    API reference for :class:`~psychopy.core.StaticPeriod`
+    API reference for :class:`~psychopy.clock.StaticPeriod`
