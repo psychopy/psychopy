@@ -22,7 +22,7 @@ from .localization import _translate
 
 
 class MessageDialog(wx.Dialog):
-    """For some reason the wx built-in message dialog has issues on Mac OS X
+    """For some reason the wx built-in message dialog has issues on macOS
     (buttons don't always work) so we need to use this instead.
     """
 

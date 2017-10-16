@@ -156,7 +156,7 @@ ioHub instead of the built in PsychoPy event functionality::
             fixSpot.setPos(position)
 
         if sys.platform == 'darwin':
-            # On OS X, both x and y mouse wheel events can be detected, assuming the mouse being used
+            # On macOS, both x and y mouse wheel events can be detected, assuming the mouse being used
             # supported 2D mouse wheel motion.
             wheelPosX,wheelPosY = mouse.getScroll()
         else:

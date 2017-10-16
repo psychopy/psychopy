@@ -48,7 +48,7 @@ else:
     logging.warning("psychopy.parallel has been imported on a Mac "
                     "(which doesn't have a parallel port?)")
 
-    # OS X doesn't have a parallel port but write the class for doc purps
+    # macOS doesn't have a parallel port but write the class for doc purps
     class ParallelPort(object):
         """Class for read/write access to the parallel port on Windows & Linux
 

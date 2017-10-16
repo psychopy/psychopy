@@ -742,7 +742,7 @@ class ioHubConnection(object):
         A Process's Affinity determines which CPU's or CPU cores a process can
         run on. By default the ioHub Process can run on any CPU or CPU core.
 
-        This method is not supported on OS X at this time.
+        This method is not supported on macOS at this time.
 
         Args:
             None
@@ -765,7 +765,7 @@ class ioHubConnection(object):
         If processor_list is given as an empty list, the ioHub Process will be
         able to run on any processing unit on the computer.
 
-        This method is not supported on OS X at this time.
+        This method is not supported on macOS at this time.
 
         Args:
             processor_list (list): A list of integer values between 0 and Computer.processing_unit_count-1, where values in the list indicate processing unit indexes that the ioHub process is able to run on.

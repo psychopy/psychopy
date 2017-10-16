@@ -58,7 +58,7 @@ def getStreamLabel(sampleRate, channels, blockSize):
 
 
 class _StreamsDict(dict):
-    """Keeps track of what streams have been created. On OS X we can have
+    """Keeps track of what streams have been created. On macOS we can have
     multiple streams under portaudio but under windows we can only have one.
 
     use the instance `streams` rather than creating a new instance of this

@@ -106,7 +106,7 @@ def getBusFreq():
 def rush(value=True, realtime=False):
     """Raise the priority of the current thread / process.
 
-    Win32 and OS X only so far - on linux use os.nice(niceIncrement)
+    Win32 and macOS only so far - on linux use os.nice(niceIncrement)
 
     Set with rush(True) or rush(False).
 
@@ -289,7 +289,7 @@ def waitForVBL(screen=0, nFrames=1):
         # we have at least 5ms to go so can wait for 1ms
         while framePeriod * (top - beamPos) / top > 0.005:
             # time.sleep(0.0001)#actually it seems that time.sleep() waits too
-            # long on os x
+            # long on macOS
             beamPos = cocoa.CGDisplayBeamPosition(scrID)  # get current pos
         # now near top so poll continuously
         while beamPos < top:
@@ -310,7 +310,7 @@ def sendStayAwake():
 
     Added: v1.79.00
 
-    Currently supported on: windows, OS X
+    Currently supported on: windows, macOS
     """
     cocoa.UpdateSystemActivity(0)
 

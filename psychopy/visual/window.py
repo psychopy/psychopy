@@ -1000,7 +1000,7 @@ class Window(object):
                 quality GIF by saving PNG files and then combining them in
                 dedicated image manipulation software, such as GIMP). On
                 Windows and Linux `.mpeg` files can be created if `pymedia`
-                is installed. On OS X `.mov` files can be created if the
+                is installed. On macOS `.mov` files can be created if the
                 pyobjc-frameworks-QTKit is installed.
 
                 Unfortunately the libs used for movie generation can be flaky

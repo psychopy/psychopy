@@ -282,7 +282,7 @@ class udpServer(DatagramServer):
         try:
             num_packets = -1
             packet_data_length = -1
-            # TODO: Max packet size on OS X seems to be 8192 !!
+            # TODO: Max packet size on macOS seems to be 8192 !!
             max_size = int(MAX_PACKET_SIZE/2-20)
             packet_data = self.pack(data)
             packet_data_length = len(packet_data)

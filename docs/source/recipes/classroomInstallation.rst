@@ -5,7 +5,7 @@ Installing PsychoPy in a classroom (administrators)
 
 .. note:
 
-    This document is aimed at network administrators in teaching departments, wanting to install PsychoPy with many identical computers. It is suitable for any version of MS Windows (for OS X other solutions are available).
+    This document is aimed at network administrators in teaching departments, wanting to install PsychoPy with many identical computers. It is suitable for any version of MS Windows (for macOS other solutions are available).
     
 
 For running PsychoPy in a classroom environment it is probably preferable to have a 'partial' network installation. The PsychoPy library features frequent new releases, including bug fixes and you want to be able to update machines with these new releases. But PsychoPy depends on many other python libraries (over 200Mb in total) that tend not to change so rapidly, or at least not in ways critical to the running of experiments. If you install the whole PsychoPy application on the network then all of this data has to pass backwards and forwards, and starting the app will take even longer than normal.

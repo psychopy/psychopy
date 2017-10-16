@@ -75,7 +75,7 @@ Needed on Windows::
 
   pip install pypiwin32
 
-Needed on Mac OS X::
+Needed on macOS::
 
   pip install pyobjc-core pyobjc-framework-Quartz
 

@@ -16,7 +16,7 @@ Desc: Defines the U12 class, which makes working with a U12 much easier. The
       All low-level functions of the U12 class begin with the word
       raw. For example, the low-level function Counter can be called with 
       U12.rawCounter(). Currently, low-level functions are limited to the 
-      Exodriver (Linux and Mac OS X). You can find descriptions of the low-level
+      Exodriver (Linux and macOS). You can find descriptions of the low-level
       functions in Section 5 of the U12 User's Guide:
       
       http://labjack.com/support/u12/users-guide/5
