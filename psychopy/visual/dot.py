@@ -504,3 +504,199 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # update the pixel XY coordinates in pixels (using _BaseVisual class)
         self._updateVertices()
+
+
+
+
+class VonMisesDotStim(DotStim):
+    """The VonMisesDotStim is a version of the random dot motion kinematogram
+    where every dot has an independent direction sampled from the circular Von Mises 
+    distribution.
+
+    Instead of the ``coherence``-parameter, you can use the ``kappa``-parameter
+    to change the dispersion of the von Mises-distribution (higher values of ``kappa``
+    correspond to less disperson and a more coherent stimulus).
+
+    Unlike the Random Dot Kinematograms of Scase et al. (1996) or Gold & Shadlen (2003), 
+    in this implementation all the individual dot trajectories are independent. 
+    Also, the stimulus is much more easy on the eyes and comfortable to look at.
+
+    References:
+     * Williams, D. W., & Sekuler, R. (1984). Coherent global motion percepts from stochastic 
+     local motions. Vision Research, 24(1), 55–62. http://doi.org/10.1016/0042-6989(84)90144-5
+     * Szinte, M., Carrasco, M., Cavanagh, P., & Rolfs, M. (2015). Attentional trade-offs 
+     maintain the tracking of moving objects across saccades. Journal of Neurophysiology,
+     113(7), 2220–2231. http://doi.org/10.1152/jn.00966.2014
+     * Szinte, M., Jonikaitis, D., Rolfs, M., Cavanagh, P., & Deubel, H. (2016). Presaccadic
+     motion integration between current and future retinotopic locations of attended objects.
+     Journal of Neurophysiology, 116(4), 1592–1602. http://doi.org/10.1152/jn.00171.2016
+
+    """
+
+    def __init__(self, screen, kappa=1, *args, **kwargs):
+        self.__dict__['kappa'] = kappa
+        super(VonMisesDotStim, self).__init__(screen, *args, **kwargs)
+        
+    @attributeSetter
+    def coherence(self, coherence):   
+        self._signalDots = numpy.ones(self.nDots, dtype=bool)
+
+    @attributeSetter
+    def dir(self, dir):
+        self.__dict__['dir'] = dir / 180 * numpy.pi
+        self._dotsDir = numpy.random.vonmises(self.dir, self.kappa, self.nDots)
+    
+    @attributeSetter
+    def kappa(self, kappa):
+        self.kappa = kappa
+        self._update_dotsXY()
+
+    def _update_dotsXY(self):
+
+        # Get dead dots
+        if self.dotLife > 0:  # if less than zero ignore it
+            # decrement. Then dots to be reborn will be negative
+            self._dotsLife -= 1
+            dead = (self._dotsLife <= 0.0)
+            self._dotsLife[dead] = self.dotLife
+        else:
+            dead = numpy.zeros(self.nDots, dtype=bool)
+
+        
+        # update dead dots
+        if sum(dead):
+            self._verticesBase[dead, :] = self._newDotsXY(sum(dead))
+            self._dotsDir[dead] = numpy.random.vonmises(self.dir, self.kappa, sum(dead))
+
+
+        cosDots = numpy.cos(self._dotsDir)
+        sinDots = numpy.sin(self._dotsDir)
+
+        self._verticesBase[:, 0] += self.speed * cosDots
+        self._verticesBase[:, 1] += self.speed * sinDots
+
+        # find Out-of-bounds dots
+        if self.fieldShape in (None, 'square', 'sqr'):
+            out0 = (numpy.abs(self._verticesBase[:, 0]) > 0.5*self.fieldSize[0])
+            out1 = (numpy.abs(self._verticesBase[:, 1]) > 0.5*self.fieldSize[1])
+            outofbounds = out0 + out1
+
+        elif self.fieldShape == 'circle':
+            normXY = self._verticesBase / 0.5 / self.fieldSize
+            outofbounds = (numpy.hypot(normXY[:, 0], normXY[:, 1]) > 1)   
+
+        # update any out of bound dots dots
+        if sum(outofbounds):
+            self._verticesBase[outofbounds, :] = self._newDotsXY(sum(outofbounds))
+            self._dotsDir[outofbounds] = numpy.random.vonmises(self.dir, self.kappa, sum(outofbounds))
+
+        # update the pixel XY coordinates in pixels (using _BaseVisual class)
+        self._updateVertices()
+
+
+class GoldShadlenDotStim(DotStim):
+
+    ''' This version of the Random Dot Motion-task is the one first described
+    in Gold & Shadlen (2003). It is very similar to the standard random dot
+    kinematogram of Britten et al. (1992), but uses 3 separate frames of dots
+    that are subsequently projected. This version of the task has been used in many
+    model-based fMRI-studies on perception, like Forstmann et al., (2008) and
+    Mulder et al. (2012).
+
+     * Gold, J. I., & Shadlen, M. N. (2003). The influence of behavioral context on
+     the representation of a perceptual decision in developing oculomotor commands.
+     The Journal of Neuroscience, 23(2), 632–651.
+     * Forstmann, B. U., Dutilh, G., Brown, S., Neumann, J., Cramon, Von, D. Y.,
+     Ridderinkhof, K. R., & Wagenmakers, E.-J. (2008). Striatum and pre-SMA facilitate
+     decision-making under time pressure. Proc Natl Acad Sci USA, 105(45), 17538–17542.
+     * van Maanen, L., Brown, S. D., Eichele, T., Wagenmakers, E.-J., Ho, T.,
+     Serences, J., & Forstmann, B. U. (2011). Neural correlates of trial-to-trial
+     fluctuations in response caution. The Journal of Neuroscience, 31(48), 17488–17495.
+     http://doi.org/10.1523/JNEUROSCI.2924-11.2011
+     '''
+
+    def __init__(self, 
+                 win,
+                 nFrames=3,
+                 signalDots='different',
+                 noiseDots='walk',
+                 fieldShape='circle',
+                 dotLife=0,
+                 nDots=500,
+                 *args, **kwargs):
+
+        self.nFrames = nFrames
+        self.t = 0
+        nDots = nDots / self.nFrames
+
+        self.dotstims = []
+
+        for frame in xrange(self.nFrames):
+            self.dotstims.append(DotStim(win,
+                                         *args,
+                                         signalDots=signalDots,
+                                         noiseDots=noiseDots,
+                                         fieldShape=fieldShape,
+                                         dotLife=dotLife,
+                                         nDots=nDots,
+                                         **kwargs))
+
+    def draw(self):
+        self.dotstims[self.t % self.nFrames].draw()
+        self.t += 1
+
+    @attributeSetter
+    def fieldShape(self, fieldShape):
+        for dotstim in self.dotstims:
+            dotstim.fieldShape = fieldShape
+
+    @attributeSetter
+    def dotSize(self, dotSize):
+        for dotstim in self.dotstims:
+            dotstim.dotSize = dotSize
+
+    @attributeSetter
+    def dotLife(self, dotLife):
+        for dotstim in self.dotstims:
+            dotstim.dotLife = dotLife
+
+    @attributeSetter
+    def signalDots(self, signalDots):
+        for dotstim in self.dotstims:
+            dotstim.signalDots = signalDots
+
+    @attributeSetter
+    def noiseDots(self, noiseDots):
+        for dotstim in self.dotstims:
+            dotstim.noiseDots = noiseDots
+
+    @attributeSetter
+    def element(self, element):
+        for dotstim in self.dotstims:
+            dotstim.element = element
+
+    @attributeSetter
+    def fieldPos(self, pos):
+        for dotstim in self.dotstims:
+            dotstim.pos = pos  # using BaseVisualStim. we'll store this as both
+
+    @attributeSetter
+    def fieldSize(self, size):
+        for dotstim in self.dotstims:
+            dotstim.fieldSize = size
+
+    @attributeSetter
+    def coherence(self, coherence):
+        for dotstim in self.dotstims:
+            dotstim.coherence = coherence
+
+    @attributeSetter
+    def dir(self, dir):
+        for dotstim in self.dotstims:
+            dotstim.dir = dir
+
+
+    @attributeSetter
+    def speed(self, speed):
+        for dotstim in self.dotstims:
+            dotstim.speed = speed
