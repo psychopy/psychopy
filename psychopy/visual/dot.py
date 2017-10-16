@@ -549,7 +549,7 @@ class VonMisesDotStim(DotStim):
     @attributeSetter
     def kappa(self, kappa):
         self.kappa = kappa
-        self._update_dotsXY()
+        self._dotsDir = numpy.random.vonmises(self.dir, self.kappa, self.nDots)
 
     def _update_dotsXY(self):
 
