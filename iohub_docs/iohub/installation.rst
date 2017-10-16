@@ -7,7 +7,7 @@ Installation
     
     The documentation provided here is still up to date but the instructions
     below are only needed if you do not use the PsychoPy Standalone Installer
-    provided for Windows or OS X. Please visit the `PsychoPy <http://www.psychopy.org>`_ 
+    provided for Windows or macOS. Please visit the `PsychoPy <http://www.psychopy.org>`_
     website and follow the installation and download links to learn how to install one of these
     PsychoPy Python Distributions.
 

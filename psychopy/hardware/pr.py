@@ -53,7 +53,7 @@ class PR650(object):
             logging.console.setLevel(logging.INFO)  # will give more info
             logging.console.setLevel(logging.DEBUG)  # log all communications
 
-        If you're using a keyspan adapter (at least on OS X) be aware that
+        If you're using a keyspan adapter (at least on macOS) be aware that
         it needs a driver installed. Otherwise no ports wil be found.
 
         Also note that the attempt to connect to the PR650 must occur within

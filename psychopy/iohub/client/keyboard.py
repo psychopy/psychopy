@@ -138,8 +138,8 @@ class KeyboardEvent(ioEvent):
         * 'menu'
         * 'capslock'
         * 'numlock'
-        * 'function' (OS X only)
-        * 'modhelp' (OS X only)
+        * 'function' (macOS only)
+        * 'modhelp' (macOS only)
 
         If no modifiers were active when the event occurred, an empty list is
         returned.

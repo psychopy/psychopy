@@ -21,7 +21,7 @@ OS and Device Support
 
 * Support for the following operating Systems:
 	#. Windows XP SP3, 7, 8
-	#. Apple OS X 10.6 - 10.8.5 ( 10.9 *is not* currently supported
+	#. Apple OS X 10.6 - 10.8.5 (10.9 *is not* currently supported)
 	#. Linux 2.6+
 	
 * Monitoring of events from computer devices such as:

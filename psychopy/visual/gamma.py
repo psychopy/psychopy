@@ -159,7 +159,7 @@ def createLinearRamp(win, rampType=None):
     for the psychtoolbox
 
     rampType 0 : an 8-bit CLUT ranging 0:1
-        This is seems correct for most windows machines and older OS X systems
+        This is seems correct for most windows machines and older macOS systems
         Known to be used by:
             OSX 10.4.9 PPC with GeForceFX-5200
 
@@ -176,7 +176,7 @@ def createLinearRamp(win, rampType=None):
             OSX 10.5.8 with Geforce-9200M (MacMini)
             OSX 10.5.8 with Geforce-8800
 
-    rampType 3 : a nasty, bug-fixing 10bit CLUT for crumby OS X drivers
+    rampType 3 : a nasty, bug-fixing 10bit CLUT for crumby macOS drivers
         Craziest of them all for Snow leopard. Like rampType 2, except that
         the upper half of the table has 1/256.0 removed?!!
         Known to be used by:

@@ -49,4 +49,4 @@ skip_under_linux = pytest.mark.skipif("sys.platform == 'linux2'",
                                        reason="Cannot be tested under Linux.")
 
 skip_under_osx = pytest.mark.skipif("sys.platform == 'darwin'",
-                                       reason="Cannot be tested under OS X.")
+                                       reason="Cannot be tested under macOS.")

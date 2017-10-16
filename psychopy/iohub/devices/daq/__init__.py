@@ -63,7 +63,7 @@ class AnalogInputDevice(Device):
     
     OS Support: 
         * Measurement Computing: Windows XP SP3 and Windows 7
-        * LabJack: Only Windows XP SP3 and Windows 7 has been tested at this time, however it shuold not be a problem to use the device interface with Linux or OS X as well.
+        * LabJack: Only Windows XP SP3 and Windows 7 has been tested at this time, however it shuold not be a problem to use the device interface with Linux or macOS as well.
     """
 
     DAQ_CHANNEL_MAPPING=dict()

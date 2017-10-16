@@ -963,7 +963,7 @@ class UE9(Device):
         
         freq = old_div(freq,ScanInterval)
         
-        #packetsPerRequest needs to be a multiple of 4 for Linux/Mac OS X USB.
+        #packetsPerRequest needs to be a multiple of 4 for Linux / macOSUSB.
         #For Windows it needs to be under 11.
         if freq < 200:
             self.packetsPerRequest = 4
