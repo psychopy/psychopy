@@ -85,9 +85,13 @@ def test_lineariseLums_method_1():
 
     desired_lums = np.array([0.1, 0.2, 0.3])
 
-    r = m.lineariseLums(desiredLums=desired_lums)
+    # American spelling
+    r = m.linearizeLums(desiredLums=desired_lums)
     assert np.allclose(r, desired_lums)
 
+    # British spelling
+    r = m.lineariseLums(desiredLums=desired_lums)
+    assert np.allclose(r, desired_lums)
 
 
 if __name__ == '__main__':

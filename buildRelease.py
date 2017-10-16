@@ -1,4 +1,6 @@
-#!python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """This script is used to:
     - update the version numbers
     - update the psychopyVersions repo:

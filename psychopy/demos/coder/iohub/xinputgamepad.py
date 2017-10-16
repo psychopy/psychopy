@@ -5,7 +5,7 @@
 Demo of using XInput gamepad support from ioHub in PsychoPy.
 
 Important: An XInput compatible gamepad must be connected to the Windows PC
-    when this demo is run. As far as I know, OS X and Linux do not support
+    when this demo is run. As far as I know, macOS and Linux do not support
     XInput. Compatible gamepads include the XBox 360 gamepad for PCs, and the
     Logitech F310 and F710. The XBOX360 and F710 gamepads are wireless and
     also support the * rumble * fucntionality of the XInput API. For wireless

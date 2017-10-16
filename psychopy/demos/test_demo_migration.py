@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Migration helper script for Coder demos: test the conversion
 
   For all demos (there are ~70 or so total):

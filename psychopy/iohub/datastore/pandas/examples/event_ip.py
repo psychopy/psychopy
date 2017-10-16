@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Demonstrates how to use event dataframe columns and value matching to 
 define an interest period. An Interest Period is a temporal filter that can be used

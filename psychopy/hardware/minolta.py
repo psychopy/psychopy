@@ -1,11 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 """Minolta light-measuring devices
 See http://www.konicaminolta.com/instruments
 
 ----------
 """
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
 
 from builtins import range
 from builtins import object
@@ -57,7 +61,7 @@ class LS100(object):
             logging.console.setLevel(logging.INFO)  # more info
             logging.console.setLevel(logging.DEBUG)  # log all communications
 
-        If you're using a keyspan adapter (at least on OS X) be aware that
+        If you're using a keyspan adapter (at least on macOS) be aware that
         it needs a driver installed. Otherwise no ports wil be found.
 
         Error messages:

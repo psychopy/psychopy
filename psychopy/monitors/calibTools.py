@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Tools to help with calibrations
 """
 from __future__ import print_function
@@ -662,9 +665,9 @@ class Monitor(object):
                       overrideGamma=None):
         """Equivalent of :func:`~psychopy.monitors.Monitor.linearizeLums`.
         """
-        self.linearizeLums(desiredLums=desiredLums,
-                           newInterpolators=newInterpolators,
-                           overrideGamma=overrideGamma)
+        return self.linearizeLums(desiredLums=desiredLums,
+                                  newInterpolators=newInterpolators,
+                                  overrideGamma=overrideGamma)
 
 
 class GammaCalculator(object):

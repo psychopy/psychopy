@@ -17,6 +17,7 @@ before_install:
   - sudo apt-cache policy           # What is actually available?
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - travis_retry sudo apt-get install -qq python-pygame python-opengl
+  - travis_retry sudo -H pip install --upgrade -qq cryptography
   - travis_retry sudo -H pip install --upgrade -qq pip
   - travis_retry sudo -H pip install --upgrade -qq soundfile
   - travis_retry sudo -H pip install --upgrade -qq sounddevice

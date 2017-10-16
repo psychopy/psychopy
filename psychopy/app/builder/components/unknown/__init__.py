@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from os import path
 from .._base import BaseComponent, Param, _translate

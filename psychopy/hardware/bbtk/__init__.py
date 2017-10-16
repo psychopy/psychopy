@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
 """

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Provides a variety of introspective-type support functions for
 things like call tips and command auto completion."""
 

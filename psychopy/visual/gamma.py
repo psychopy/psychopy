@@ -1,9 +1,12 @@
-# set the gamma LUT using platform-specific hardware calls
-# this currently requires a pyglet window (to identify the current scr/display)
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+# set the gamma LUT using platform-specific hardware calls
+# this currently requires a pyglet window (to identify the current scr/display)
 
 from __future__ import absolute_import
 from __future__ import division
@@ -159,7 +162,7 @@ def createLinearRamp(win, rampType=None):
     for the psychtoolbox
 
     rampType 0 : an 8-bit CLUT ranging 0:1
-        This is seems correct for most windows machines and older OS X systems
+        This is seems correct for most windows machines and older macOS systems
         Known to be used by:
             OSX 10.4.9 PPC with GeForceFX-5200
 
@@ -176,7 +179,7 @@ def createLinearRamp(win, rampType=None):
             OSX 10.5.8 with Geforce-9200M (MacMini)
             OSX 10.5.8 with Geforce-8800
 
-    rampType 3 : a nasty, bug-fixing 10bit CLUT for crumby OS X drivers
+    rampType 3 : a nasty, bug-fixing 10bit CLUT for crumby macOS drivers
         Craziest of them all for Snow leopard. Like rampType 2, except that
         the upper half of the table has 1/256.0 removed?!!
         Known to be used by:

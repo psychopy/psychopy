@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """This is for general purpose dialogs/widgets, not particular functionality
 
 MessageDialog:
@@ -22,7 +25,7 @@ from .localization import _translate
 
 
 class MessageDialog(wx.Dialog):
-    """For some reason the wx built-in message dialog has issues on Mac OS X
+    """For some reason the wx built-in message dialog has issues on macOS
     (buttons don't always work) so we need to use this instead.
     """
 

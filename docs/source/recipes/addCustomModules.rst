@@ -28,6 +28,6 @@ On win32 the site-packages folder will be something like:
 
     C:/Program Files/PsychoPy2/lib/site-packages
     
-On OS X you need to right-click the application icon, select 'Show Package Contents' and then navigate down to Contents/Resources/lib/python2.6. Put your .pth file here, next to the various libraries.
+On macOS you need to right-click the application icon, select 'Show Package Contents' and then navigate down to Contents/Resources/lib/python2.6. Put your .pth file here, next to the various libraries.
 
 The advantage of this method is that you don't need to do the import psychopy step. The downside is that when you update PsychoPy to a new major release you'll need to repeat this step (patch updates won't affect it though).

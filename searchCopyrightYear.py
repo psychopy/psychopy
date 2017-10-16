@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """looks for lines containing 'Copyright|(C)', <last-year>, and 'Peirce'
 in all files in or below the current directory

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Load and play sounds
 
 By default PsychoPy will try to use the following Libs, in this order, for

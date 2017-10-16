@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Demonstrates how to use two Condition Variables to specify a temporal filter
 based on a start and end time. With the ConditionVariableBasedIP two columns of the

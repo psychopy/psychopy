@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/__init__.py
@@ -159,7 +161,7 @@ class Computer(object):
     increased.
 
     .. note:: Setting process affinities and manipulating process priority is not
-        currently supported on OS X.
+        currently supported on macOS.
 
     The Computer class also has methods to monitor current Computer memory
     and CPU usage. The psutil Process object can access
@@ -263,7 +265,7 @@ class Computer(object):
         """
         Returns the current processes priority as a string.
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         :return: 'normal', 'high', or 'realtime'
         """
@@ -282,7 +284,7 @@ class Computer(object):
         If level is 'normal', Python GC is also enabled.
         If level is 'high' or 'realtime', and disable_gc is True, then the Python garbage collection (GC) thread is suspended.
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         :return: Priority level of process when method returns.
         """
@@ -307,7 +309,7 @@ class Computer(object):
 
         On Linux, the process is set to a nice level of -10.
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         Args:
             disable_gc (bool): True = Turn of the Python Garbage Collector. False = Leave the Garbage Collector running. Default: True
@@ -344,7 +346,7 @@ class Computer(object):
 
         On Linux, the process is set to a nice level of 16.
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         Args:
             disable_gc (bool): True = Turn of the Python Garbage Collector. False = Leave the Garbage Collector running. Default: True
@@ -380,7 +382,7 @@ class Computer(object):
         On Linux, sets the nice level of the process back to the value being used
         prior to the call to enableRealTimePriority()
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         Return:
             None
@@ -400,7 +402,7 @@ class Computer(object):
         On Linux, sets the nice level of the process back to the value being used
         prior to the call to enableHighPriority()
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         Return:
             None
@@ -478,7 +480,7 @@ class Computer(object):
 
         **But in this case, why are you using the ioHub package at all? ;)**
 
-        This method is not supported on OS X.
+        This method is not supported on macOS.
 
         Args:
             None

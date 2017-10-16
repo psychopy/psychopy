@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/keyboard/__init__.py
@@ -154,7 +156,7 @@ class KeyboardInputEvent(DeviceEvent):
 
         #: The scan code for the keyboard event.
         #: This represents the physical key id on the keyboard layout.
-        #: The Linux and Windows ioHub interface provide's scan codes; the OS X implementation does not.
+        #: The Linux and Windows ioHub interface provide's scan codes; the macOS implementation does not.
         #: int value
         self.scan_code=0
 
