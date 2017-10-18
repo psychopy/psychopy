@@ -34,6 +34,7 @@ PsychoPy:
 * Daniel McCloy
 * Daniel Riggs
 * Daniel Schreij
+* Detlef Gausepohl
 * Eric Larson
 * Erik Kastman
 * Falmo R. Kaule
@@ -103,9 +104,11 @@ PsychoPy:
 * William Högman
 * Yaroslav Halchenko
 * Zhili Zheng
-* theodleif
+* agrant@sastrugi.cmrr.umn.edu
+* nwokedi@gmail.com
+* ramvs@ramvs-acer.staff.smu.edu.sg
 
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
 
-*Last updated on October 17, 2017 (UTC).*
+*Last updated on October 18, 2017 (UTC).*
