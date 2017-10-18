@@ -90,6 +90,7 @@ PsychoPy:
 * Pierce Edmiston
 * Pieter Moors
 * Piotr Iwaniuk
+* Ram Vibhakar Suthagar
 * Rebecca Sharman
 * Richard Höchenberger
 * Sebastiaan Mathot
@@ -106,7 +107,6 @@ PsychoPy:
 * Zhili Zheng
 * agrant@sastrugi.cmrr.umn.edu
 * nwokedi@gmail.com
-* ramvs@ramvs-acer.staff.smu.edu.sg
 
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
