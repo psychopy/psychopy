@@ -7,6 +7,7 @@
 
 import os
 import codecs
+import warnings
 from datetime import datetime
 from psychopy.core import shellCall
 
@@ -40,6 +41,10 @@ if __name__ == '__main__':
         contributions, author = tuple(line.split('\t'))
         if author != 'unknown':
             authors.append(author)
+        else:
+            msg = ('Unknown author found and skipped; please revise the output '
+                   'of `git shortlog -se` and consider amending .mailmap')
+            warnings.warn(msg)
 
     with codecs.open(authors_path, 'w', encoding='utf-8') as f:
         f.write(authors_header)

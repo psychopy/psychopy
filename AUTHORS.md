@@ -34,6 +34,7 @@ PsychoPy:
 * Daniel McCloy
 * Daniel Riggs
 * Daniel Schreij
+* Detlef Gausepohl
 * Eric Larson
 * Erik Kastman
 * Falmo R. Kaule
@@ -89,6 +90,7 @@ PsychoPy:
 * Pierce Edmiston
 * Pieter Moors
 * Piotr Iwaniuk
+* Ram Vibhakar Suthagar
 * Rebecca Sharman
 * Richard Höchenberger
 * Sebastiaan Mathot
@@ -103,9 +105,10 @@ PsychoPy:
 * William Högman
 * Yaroslav Halchenko
 * Zhili Zheng
-* theodleif
+* agrant@sastrugi.cmrr.umn.edu
+* nwokedi@gmail.com
 
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
 
-*Last updated on October 17, 2017 (UTC).*
+*Last updated on October 18, 2017 (UTC).*
