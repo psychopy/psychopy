@@ -347,7 +347,7 @@ class InstallUpdateDialog(wx.Dialog):
             msg += _translate("PsychoPy could not connect to the \n internet"
                               " to check for more recent versions.\n")
             msg += _translate("Check proxy settings in preferences.")
-        elif self.latest == self.runningVersion:
+        elif self.latest['version'] == self.runningVersion:
             msg = _translate(
                 "You are running the latest version of PsychoPy (%s)\n ") % self.runningVersion
             msg += _translate("You can revert to a previous version by "
