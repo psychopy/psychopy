@@ -93,7 +93,7 @@ class EyetrackerComponent(BaseComponent):
 
         # these might move to a more general place later, when we're always
         # planning on having iohub running
-        code = ("io_config = iohub.load(file(%('Config file')s,'r'), "
+        code = ("io_config = iohub.load(open(%('Config file')s,'r'), "
                 "Loader=iohub.Loader)\n"
                 "io = iohub.ioHubConnection(io_config)\n"
                 "eyetracker = io.getDevice('tracker')\n"

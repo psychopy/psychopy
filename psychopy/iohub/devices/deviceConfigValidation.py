@@ -351,7 +351,7 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS=dict(IOHUB_STRING=isValidString,
 # load a support_settings_values.yaml
 
 def loadYamlFile(yaml_file_path,print_file=False):
-    yaml_file_contents=load(file(yaml_file_path,'r'), Loader=Loader)
+    yaml_file_contents=load(open(yaml_file_path,'r'), Loader=Loader)
 #    if print_file:
 #        print 'yaml_file_contents:'
 #        print 'file: ',yaml_file_path

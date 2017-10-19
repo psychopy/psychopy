@@ -856,7 +856,7 @@ class ioHubConnection(object):
 
         rootScriptPath = os.path.dirname(sys.argv[0])
 
-        hub_defaults_config=load(file(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+        hub_defaults_config=load(open(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
 
 
         if ioHubConfigAbsPath is None and ioHubConfig is None:
@@ -874,7 +874,7 @@ class ioHubConnection(object):
                     return "ERROR: ioHubConfig:ioDataStore must contain both a 'experiment_info' and a 'session_info' key with a dict value each."
 
         elif ioHubConfigAbsPath  is not None and ioHubConfig is None:
-            ioHubConfig=load(file(ioHubConfigAbsPath,u'r'), Loader=Loader)
+            ioHubConfig=load(open(ioHubConfigAbsPath,u'r'), Loader=Loader)
         else:
             return "ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided."
         if ioHubConfig:
@@ -1428,7 +1428,7 @@ def launchHubServer(**kwargs):
     monitor_devices_config=None
     if kwargs.get('iohub_config_name'):
         # Load the specified iohub configuration file, converting it to a python dict.
-        io_config=load(file(kwargs.get('iohub_config_name'),'r'), Loader=Loader)
+        io_config=load(open(kwargs.get('iohub_config_name'),'r'), Loader=Loader)
         monitor_devices_config=io_config.get('monitor_devices')
 
     ioConfig=None
@@ -1582,7 +1582,7 @@ class ioHubExperimentRuntime(object):
 
         # load the experiment config settings from the experiment_config.yaml file.
         # The file must be in the same directory as the experiment script.
-        self.configuration=load(file( os.path.join(self.configFilePath,self.configFileName),u'r'), Loader=Loader)
+        self.configuration=load(open( os.path.join(self.configFilePath,self.configFileName),u'r'), Loader=Loader)
 
         import random
         random.seed(Computer.getTime()*1000.123)
@@ -1800,8 +1800,8 @@ class ioHubExperimentRuntime(object):
         Merges two iohub configuration files into one and saves it to a file
         using the path/file name in merged_save_to_path.
         """
-        base_config=load(file(base_config_file_path,'r'), Loader=Loader)
-        update_from_config=load(file(update_from_config_file_path,'r'), Loader=Loader)
+        base_config=load(open(base_config_file_path,'r'), Loader=Loader)
+        update_from_config=load(open(update_from_config_file_path,'r'), Loader=Loader)
 
 
         def merge(update, base):
@@ -1822,7 +1822,7 @@ class ioHubExperimentRuntime(object):
 
         import copy
         merged=merge(copy.deepcopy(update_from_config),base_config)
-        dump(merged,file(merged_save_to_path,'w'), Dumper=Dumper)
+        dump(merged,open(merged_save_to_path,'w'), Dumper=Dumper)
 
         return merged
 
