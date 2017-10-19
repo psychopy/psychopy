@@ -11,6 +11,7 @@ PsychoPy:
 * Alain Pitiot
 * Alex Forrence
 * Alex O. Holcombe
+* Andrea Grant
 * Andy Schofield
 * ArgetlahmSource
 * Ariel Rokem
@@ -84,6 +85,7 @@ PsychoPy:
 * Mikolaj Magnuski
 * Nate Vack
 * Nathan Nichols
+* Nwokedi C. Idika
 * Oliver Clark
 * Pablo Prietz
 * Philipp Wiesemann
@@ -105,10 +107,8 @@ PsychoPy:
 * William Högman
 * Yaroslav Halchenko
 * Zhili Zheng
-* agrant@sastrugi.cmrr.umn.edu
-* nwokedi@gmail.com
 
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
 
-*Last updated on October 18, 2017 (UTC).*
+*Last updated on October 19, 2017 (UTC).*
