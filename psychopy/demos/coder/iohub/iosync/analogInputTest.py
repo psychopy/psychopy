@@ -55,7 +55,7 @@ try:
     io.clearEvents("all")
     i=0
     print("Saving Analog Data to File. Press 'escape' Key to Quit...")
-    aout=file('analog_output.txt','w')
+    aout=open('analog_output.txt','w')
     while not kb.getKeys(keys=['escape',]):
         mcu_events = mcu.getEvents()
         for mcu_evt in mcu_events:
