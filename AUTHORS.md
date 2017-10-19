@@ -11,6 +11,7 @@ PsychoPy:
 * Alain Pitiot
 * Alex Forrence
 * Alex O. Holcombe
+* Andrea Grant
 * Andy Schofield
 * ArgetlahmSource
 * Ariel Rokem
@@ -106,7 +107,6 @@ PsychoPy:
 * William Högman
 * Yaroslav Halchenko
 * Zhili Zheng
-* agrant@sastrugi.cmrr.umn.edu
 
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
