@@ -3,14 +3,14 @@
 
 """Libraries for wizards, currently firstrun configuration and benchmark.
 """
-from __future__ import print_function
-from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
+
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import str

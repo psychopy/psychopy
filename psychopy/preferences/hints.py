@@ -6,6 +6,8 @@
 # the PsychoPy application.
 # Rebuild this file if comments in *.spec files are modified.
 
+from __future__ import absolute_import, print_function
+
 from psychopy.app.localization import _translate
 
 # baseNoArch.spec,[general],line25

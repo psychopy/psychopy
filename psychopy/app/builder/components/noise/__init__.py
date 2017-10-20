@@ -6,6 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 # This file by Andrew Schofield
 
+from __future__ import absolute_import, print_function
+
 from os import path
 from .._base import BaseVisualComponent, Param, getInitVals, _translate
 

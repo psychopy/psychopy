@@ -12,18 +12,19 @@ Important: An XInput compatible gamepad must be connected to the Windows PC
     gamepads, ensure the gamepad is turned on before you try to start the demo.
 """
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from psychopy import visual, core
 from psychopy.iohub import launchHubServer, EventConstants
+
 
 def normalizedValue2Coord(normed_position, normed_magnitude, display_coord_area):
     x = normed_position[0] * normed_magnitude
     y = normed_position[1] * normed_magnitude
     w, h = display_coord_area
     return x * (w / 2.0), y * (h / 2.0)
+
 
 if __name__ == '__main__':
     # Start the ioHub Event Server, requesting an XInput Gamepad Device to be

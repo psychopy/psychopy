@@ -12,8 +12,7 @@ Instructions: on each trial press the up/down cursor keys depending on
 the apparent direction of motion of the bars.
 """
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from builtins import next
 from builtins import range

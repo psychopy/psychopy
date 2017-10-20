@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync and LabJack U6 device are correctly connected
 to the computer running this script.
@@ -72,7 +74,8 @@ analog_input_channels = [0.1] and repetitions = 10, then 2x10 = 20 state
 changes will occur and will be used for the delay error correction calculation.
   
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 from builtins import range
 analog_input_channels=[0,1]
 repetitions=5

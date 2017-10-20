@@ -1,4 +1,6 @@
- # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync device is correctly connected to the computer
 running this script.
@@ -26,8 +28,7 @@ Analog input channels which are not connected to anything 'float'. If you want
 unused channels to be fixed at ground, connect each unused channel to the GND
 pin.
 """
-from __future__ import print_function
-
+from __future__ import absolute_import, division, print_function
 
 import time
 from psychopy import core

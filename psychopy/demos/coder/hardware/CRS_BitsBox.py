@@ -11,8 +11,7 @@ You don't need to worry about setting the high- and low-bit pixels. Just draw as
 normal and PsychoPy will do the conversions for you
 """
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from builtins import range
 from psychopy import visual, core, event, logging

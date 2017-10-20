@@ -22,7 +22,7 @@ for line in fileinput.input(file, inplace = 1):
   print line.replace(...).strip() #--> loses initial whitespace
   line.replace(....) #--> adds quote marks around line
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from builtins import str
 __author__ = 'Jeremy Gray'

@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Displays values from 8 channels ( 0 - 7 ) from the AnalogInput Device as
 configured in the iohub.config.yaml file in this directory.
@@ -6,11 +8,13 @@ configured in the iohub.config.yaml file in this directory.
 @author: Sol
 """
 
-from __future__ import print_function #for compatibility with python3
+from __future__ import absolute_import, division, print_function
+
 from builtins import range
 from psychopy import visual
 from collections import OrderedDict
 from psychopy.iohub import ioHubExperimentRuntime, EventConstants, module_directory
+
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
@@ -160,6 +164,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         ### End of experiment logic
 
 ###############################################################################
+
 
 if __name__ == "__main__":
     import sys

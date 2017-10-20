@@ -4,6 +4,8 @@
 """Provides a variety of introspective-type support functions for
 things like call tips and command auto completion."""
 
+from __future__ import absolute_import, print_function
+
 from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()

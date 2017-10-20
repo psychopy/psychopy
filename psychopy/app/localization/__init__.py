@@ -14,6 +14,7 @@ translation _translate():
 
 # Author: Jeremy Gray, July 2014
 
+from __future__ import absolute_import, print_function
 
 from builtins import str
 from builtins import map

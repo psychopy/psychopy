@@ -1,4 +1,6 @@
- # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync device is correctly connected to the computer
 running this script.
@@ -16,7 +18,7 @@ at:
 
 http://www.adafruit.com/products/1384
 """
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import range
 import time

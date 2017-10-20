@@ -14,8 +14,7 @@ joystick is accessed and there doesn't seem to be a way to get rid of those
 messages.
 """
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from psychopy import visual, core, event
 from psychopy.hardware import joystick

@@ -15,9 +15,7 @@ precise synchronised manner that will not interfere with stimulus presentation
 # Distributed under the terms of the GNU General Public License
 # (GPL version 3 or any later version).
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 import sys
 if sys.platform == 'darwin':

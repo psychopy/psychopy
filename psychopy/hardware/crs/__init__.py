@@ -15,7 +15,7 @@
 vision research.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from psychopy import logging
 from .bits import BitsSharp, BitsPlusPlus

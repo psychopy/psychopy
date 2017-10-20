@@ -7,6 +7,7 @@
 
 """Data useful for calibrations (Smith-Pokorny cone fundamentals etc...)
 """
+from __future__ import absolute_import, print_function
 
 import numpy
 

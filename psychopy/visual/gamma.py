@@ -8,8 +8,7 @@
 # set the gamma LUT using platform-specific hardware calls
 # this currently requires a pyglet window (to identify the current scr/display)
 
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import range

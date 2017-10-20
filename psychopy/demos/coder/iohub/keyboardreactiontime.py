@@ -9,7 +9,7 @@ Keyboard Reaction Time Calulation shown within a line length matching task.
 Inital Version: May 6th, 2013, Sol Simpson
 """
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from psychopy import  core,  visual
 from psychopy.iohub import launchHubServer

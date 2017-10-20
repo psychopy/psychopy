@@ -15,6 +15,7 @@ pyxid package instead (bundled with Standalone PsychoPy)::
 
 ----------
 """
+from __future__ import absolute_import, print_function
 
 from builtins import range
 from builtins import object
