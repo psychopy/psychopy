@@ -12,6 +12,7 @@ from past.builtins import basestring
 from builtins import range
 import os
 import copy
+from distutils.version import StrictVersion
 
 from psychopy import logging, colors
 
@@ -29,7 +30,7 @@ _nImageResizes = 0
 
 try:
     import matplotlib
-    if matplotlib.__version__ > '1.2':
+    if StrictVersion(matplotlib.__version__) > StrictVersion('1.2'):
         from matplotlib.path import Path as mplPath
     else:
         from matplotlib import nxutils
@@ -59,7 +60,7 @@ def pointInPolygon(x, y, poly):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if matplotlib.__version__ > '1.2':
+        if StrictVersion(matplotlib.__version__) > StrictVersion('1.2'):
             return mplPath(poly).contains_point([x, y])
         else:
             try:
@@ -131,7 +132,7 @@ def polygonsOverlap(poly1, poly2):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if matplotlib.__version__ > '1.2':
+        if StrictVersion(matplotlib.__version__) > StrictVersion('1.2'):
             if any(mplPath(poly1_vert_pix).contains_points(poly2_vert_pix)):
                 return True
             return any(mplPath(poly2_vert_pix).contains_points(poly1_vert_pix))
