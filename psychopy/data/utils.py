@@ -281,11 +281,14 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if not haveOpenpyxl:
             raise ImportError('openpyxl or xlrd is required for loading excel '
                               'files, but neither was found.')
-        if openpyxl.__version__ < "1.8":  # data_only added in 1.8
+
+        # data_only was added in 1.8
+        if StrictVersion(openpyxl.__version__) < StrictVersion('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
+
         logging.debug("Read excel file with openpyxl: {}".format(fileName))
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
