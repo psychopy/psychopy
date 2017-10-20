@@ -4,20 +4,23 @@ from __future__ import division
 
 from builtins import object
 from past.utils import old_div
-from psychopy import prefs, core
 
 import pytest
 import shutil, os
 from tempfile import mkdtemp
-from psychopy.tests import utils  # TESTS_DATA_PATH
+import numpy as np
+
+from psychopy import prefs, core
+from psychopy.tests import utils
 from psychopy import sound
+from psychopy.constants import PY3
+
+if PY3:
+    from importlib import reload
+
 origSoundPref = prefs.general['audioLib']
 
-import numpy
-
 # py.test --cov-report term-missing --cov sound.py tests/test_sound/test_sound_pyo.py
-
-from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
 
 class TestSoundDevice(object):
@@ -40,7 +43,7 @@ class TestSoundDevice(object):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_init(self):
-        for note in ['A', 440, '440', [1,2,3,4], numpy.array([1,2,3,4])]:
+        for note in ['A', 440, '440', [1,2,3,4], np.array([1,2,3,4])]:
             sound.Sound(note, secs=.1)
         with pytest.raises(ValueError):
             sound.Sound('this is not a file name')
@@ -48,7 +51,7 @@ class TestSoundDevice(object):
             sound.Sound(-1) #negative frequency makes no sense
 
         points = 100
-        snd = old_div(numpy.ones(points), 20)  # noqa
+        snd = old_div(np.ones(points), 20)  # noqa
 
         s = sound.Sound(self.testFile)  # noqa
 
