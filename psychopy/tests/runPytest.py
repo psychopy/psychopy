@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
-
-from psychopy.constants import PY3
 
 
 sources = """
@@ -2461,7 +2458,7 @@ class DictImporter(object):
 
 
 if __name__ == "__main__":
-    if PY3:
+    if sys.version_info.major >= 3:
         exec("def do_exec(co, loc): exec(co, loc)\n")
         import pickle
         sources = sources.encode("ascii") # ensure bytes
