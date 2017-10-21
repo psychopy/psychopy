@@ -9,7 +9,9 @@ python:
   - "2.7"
 
 env:
-  global: DISPLAY=:99.0
+  global:
+    - DISPLAY=:99.0
+    - AUDIODEV=null
 
 virtualenv:
   system_site_packages: true
@@ -38,6 +40,10 @@ before_install:
   - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
   # - sudo dpkg-reconfigure locales
   # - locale -a  # list available locales
+
+  - travis_retry sudo apt-get install -qq libasound2-dev alsa-utils alsa-oss
+  - sudo modprobe snd-dummy
+  - sudo lsmod
 
   # APT Python dependencies for PsychoPy
   - echo "Installing PsychoPy dependencies via apt..."
@@ -74,6 +80,9 @@ before_script:
 
 script:
   - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
+
+  # This does not work on Precise, probably because ffmpeg is outdated
+  # - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
 
 after_success:
   - coveralls
