@@ -13,7 +13,10 @@ gevent
 psutil
 msgpack-python
 pyserial
+pyparallel
 pycrsltd
+python-bidi
+cffi
 future
 json_tricks
 codecov
