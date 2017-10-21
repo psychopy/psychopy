@@ -39,7 +39,7 @@ before_install:
   - echo "Installing PsychoPy dependencies via apt..."
   - travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl
   - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas
-  - travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj python-openpyxl
+  - travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj
   - travis_retry sudo apt-get install -qq python-imaging python-mock
   - travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8
   - travis_retry sudo apt-get install -qq python-pyo python-opencv

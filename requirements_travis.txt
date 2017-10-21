@@ -8,6 +8,7 @@ opencv-python
 moviepy
 pyosf
 xlrd
+openpyxl
 gevent
 psutil
 msgpack-python
