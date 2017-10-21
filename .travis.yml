@@ -16,34 +16,33 @@ virtualenv:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install lsb-release
+  - sudo apt-get install -qq lsb-release
   - source /etc/lsb-release
   - echo ${DISTRIB_CODENAME}
   - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
   - wget -q -O- http://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
   - travis_retry sudo apt-get update -qq
-  - sudo apt-cache policy           # What is actually available?
+  - sudo apt-cache policy  # What is actually available?
 
   # APT dependencies
   - echo "Installing dependencies via apt..."
-  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
+  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri python-xlib
   - travis_retry sudo apt-get install -qq python-pygame python-opengl
-  - travis_retry sudo apt-get install -qq python-yaml python-xlib
-  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
-  - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
-  - travis_retry sudo apt-get install -qq python-pandas
-  - travis_retry sudo apt-get install -qq python-qt4
+  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas
+  - travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj python-openpyxl
+  - travis_retry sudo apt-get install -qq python-imaging python-mock
+  - travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8
+  - travis_retry sudo apt-get install -qq python-pyo libavbin0
   - travis_retry sudo apt-get install -qq flac
   - flac -version
+  - travis_retry sudo apt-get install -qq python-mock
   # - travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
   - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
   # - sudo dpkg-reconfigure locales
-  # - locale -a       # list available locales
+  # - locale -a  # list available locales
 
-  # PIP depdendencies
+  # PIP dependencies
   - echo "Installing dependencies via pip..."
-  - travis_retry sudo pip install --upgrade -force-reinstall -qq cryptography
-  - travis_retry sudo pip install --upgrade -force-reinstall -qq pip
   - travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt
   - python -c 'import pyglet; print pyglet.version'
 
@@ -55,10 +54,8 @@ before_script:
     fi;
 
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then
-      pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy;
-    fi
+  -  pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy;
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - coveralls
   - codecov
