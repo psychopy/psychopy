@@ -1,8 +1,11 @@
 urllib3[secure]
+wheel  # Allow us to install binary wheels e.g. for opencv-python
 soundfile
 sounddevice
 pyglet==1.3.0b1
 pillow
+opencv-python
+moviepy
 pyosf
 xlrd
 gevent

@@ -15,8 +15,9 @@ virtualenv:
   system_site_packages: true
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq lsb-release
+  # System setup
+  - travis_retry sudo apt-get update -qq
+  - travis_retry sudo apt-get install -qq lsb-release
   - source /etc/lsb-release
   - echo ${DISTRIB_CODENAME}
   - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
@@ -24,29 +25,35 @@ before_install:
   - travis_retry sudo apt-get update -qq
   - sudo apt-cache policy  # What is actually available?
 
-  # APT dependencies
-  - echo "Installing dependencies via apt..."
-  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri python-xlib
-  - travis_retry sudo apt-get install -qq python-pygame python-opengl
-  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas
-  - travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj python-openpyxl
-  - travis_retry sudo apt-get install -qq python-imaging python-mock
-  - travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8
-  - travis_retry sudo apt-get install -qq python-pyo libavbin0
+  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
   - travis_retry sudo apt-get install -qq flac
   - flac -version
-  - travis_retry sudo apt-get install -qq python-mock
+
+  # Locales
   # - travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
   - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
   # - sudo dpkg-reconfigure locales
   # - locale -a  # list available locales
 
-  # PIP dependencies
-  - echo "Installing dependencies via pip..."
+  # APT Python dependencies for PsychoPy
+  - echo "Installing PsychoPy dependencies via apt..."
+  - travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl
+  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas
+  - travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj python-openpyxl
+  - travis_retry sudo apt-get install -qq python-imaging python-mock
+  - travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8
+  - travis_retry sudo apt-get install -qq python-pyo python-opencv
+  - travis_retry sudo apt-get install -qq python-mock
+
+  # PIP dependencies for PsychoPy
+  - echo "Installing PsychoPy dependencies via pip..."
+  - travis_retry sudo pip install --upgrade -force-reinstall -qq pip
   - travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt
   - python -c 'import pyglet; print pyglet.version'
 
-install: true
+install:
+  - python setup.py build
+  - python setup.py install
 
 before_script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
@@ -54,7 +61,7 @@ before_script:
     fi;
 
 script:
-  -  pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy;
+  - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
 
 after_success:
   - coveralls
