@@ -25,7 +25,7 @@ before_install:
   - sudo apt-cache policy           # What is actually available?
 
   # APT dependencies
-  - echo "\nNow installing dependencies via apt...\n"
+  - echo "Installing dependencies via apt..."
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - travis_retry sudo apt-get install -qq python-pygame python-opengl
   - travis_retry sudo apt-get install -qq python-yaml python-xlib
@@ -41,7 +41,7 @@ before_install:
   # - locale -a       # list available locales
 
   # PIP depdendencies
-  - echo "\nNow installing dependencies via pip...\n"
+  - echo "Installing dependencies via pip..."
   - travis_retry sudo pip install --upgrade -force-reinstall -qq cryptography
   - travis_retry sudo pip install --upgrade -force-reinstall -qq pip
   - travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt
