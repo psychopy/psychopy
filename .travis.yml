@@ -42,24 +42,10 @@ before_install:
 
   # PIP depdendencies
   - echo "\nNow installing dependencies via pip...\n"
-  - travis_retry sudo pip install --upgrade -qq cryptography
-  - travis_retry sudo pip install --upgrade -qq pip
-  - travis_retry sudo pip install --upgrade -qq soundfile
-  - travis_retry sudo pip install --upgrade -qq sounddevice
-  - travis_retry sudo pip install --upgrade -qq pyglet==1.3.0b1
+  - travis_retry sudo pip install --upgrade -force-reinstall -qq cryptography
+  - travis_retry sudo pip install --upgrade -force-reinstall -qq pip
+  - travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt
   - python -c 'import pyglet; print pyglet.version'
-  - travis_retry sudo pip install --upgrade -qq pillow
-  #  - python -c 'import Image; print Image.PILLOW_VERSION'
-  - travis_retry sudo pip install --upgrade -qq pyosf
-  - travis_retry sudo pip install --upgrade -qq xlrd
-  - travis_retry sudo pip install --upgrade -qq gevent # Don't use apt-get (too old version of gevent)
-  - travis_retry sudo pip install --upgrade -qq psutil # Don't use apt-get (too old version of psutil)
-  - travis_retry sudo pip install --upgrade -qq msgpack-python #n ot apt-get (no permissions for universe)
-  - travis_retry sudo pip install --upgrade -qq pyserial pycrsltd
-  - travis_retry sudo pip install --upgrade -qq future
-  - travis_retry sudo pip install --upgrade -qq json_tricks
-  - travis_retry sudo pip install --upgrade -qq codecov pytest pytest-cov
-  - travis_retry sudo pip install --upgrade -qq coveralls
 
 install: true
 

@@ -1,0 +1,17 @@
+soundfile
+sounddevice
+pyglet==1.3.0b1
+pillow
+pyosf
+xlrd
+gevent
+psutil
+msgpack-python
+pyserial
+pycrsltd
+future
+json_tricks
+codecov
+pytest
+pytest-cov
+coveralls
