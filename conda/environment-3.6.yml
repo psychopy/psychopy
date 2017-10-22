@@ -7,6 +7,7 @@ dependencies:
 - backports
 - bzip2
 - cffi
+- coveralls
 - ffmpeg
 - freetype
 - future
@@ -20,7 +21,7 @@ dependencies:
 - numexpr
 - numpy
 - opencv
-- openpyxl
+- openpyxl=2.4
 - pandas
 - pillow
 - pip
@@ -28,8 +29,9 @@ dependencies:
 - pyosf
 - pyqt
 - pyserial
+- pytest
+- pytest-cov
 - pyyaml
-- qt
 - requests
 - scipy
 - setuptools
@@ -44,15 +46,14 @@ dependencies:
 - configobj
 - lzo
 - pytables
+- wxpython
 - zlib
 - pip:
   - json-tricks
   - pygame
-  - pyglet
+  - pyglet==1.3.0b1
   - pyparallel
   - python-bidi
   - sounddevice
   - soundfile
   - tables
-  - wxpython
-  - psychopy

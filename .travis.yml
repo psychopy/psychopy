@@ -86,10 +86,11 @@ before_install:
   - echo $PATH
   - which python
   - python --version
-  - python -c 'import pyglet; print pyglet.version'
-  - python -c 'import matplotlib; print matplotlib.__version__'
-  - python -c 'import PIL; print PIL.__version__'
-  - python -c 'import openpyxl; print openpyxl.__version__'
+  - python -c 'import pyglet; print(pyglet.version)'
+  - python -c 'import matplotlib; print(matplotlib.__version__)'
+  - python -c 'import PIL; print(PIL.__version__)'
+  - python -c 'import wx; print(wx.__version__)'
+  - python -c 'import openpyxl; print(openpyxl.__version__)'
 
 install:
   - python setup.py build
