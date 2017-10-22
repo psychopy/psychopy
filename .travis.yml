@@ -5,9 +5,6 @@ sudo: true
 
 language: python
 
-python:
-  - "2.7"
-
 env:
   global:
     - DISPLAY=:99.0
@@ -16,13 +13,16 @@ env:
 matrix:
   include:
     - os: linux
+      python: "2.7_with_system_site_packages"
       env: USE_ANACONDA=false
 
     - os: linux
+      python: 2.7
       env: USE_ANACONDA=true
 
-virtualenv:
-  system_site_packages: true
+    - os: linux
+      python: 3.6
+      env: USE_ANACONDA=true
 
 before_install:
   # System setup
