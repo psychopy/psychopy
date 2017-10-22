@@ -4,6 +4,9 @@
 """A central location to store information about urls
 """
 
+from __future__ import absolute_import, print_function
+
+
 urls = dict()
 
 # links based on string names

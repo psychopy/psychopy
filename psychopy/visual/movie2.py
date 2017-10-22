@@ -56,9 +56,6 @@ What does work so far:
 
 Testing has only been done on Windows and Linux so far.
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -67,6 +64,8 @@ from __future__ import division
 # Contributed by Sol Simpson, April 2014.
 # The MovieStim class was taken and rewritten to use cv2 and vlc instead
 # of avbin
+
+from __future__ import absolute_import, division, print_function
 
 # If True then, on each flip a new movie frame is displayed, the frame index,
 # flip time, and time since last movie frame flip will be printed

@@ -11,9 +11,8 @@ printed to stdout.
 Inital Version: May 6th, 2013, Sol Simpson
 """
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
-from __future__ import print_function  # for compatibility with python3
 from psychopy.iohub import launchHubServer
 
 def testWithNoKwargs():

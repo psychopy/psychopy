@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, division, print_function
+
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer, ioHubConnection, EventConstants
 from psychopy.iohub import TimeTrigger, DeviceEventTrigger

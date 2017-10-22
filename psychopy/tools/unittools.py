@@ -13,4 +13,6 @@
 # pylint: disable=W0611
 # W0611 = Unused import %s
 
+from __future__ import absolute_import, print_function
+
 from numpy import radians, degrees

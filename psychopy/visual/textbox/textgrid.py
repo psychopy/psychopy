@@ -6,9 +6,8 @@ Created on Mon Jan 07 11:18:51 2013
 
 @author: Sol
 """
-from __future__ import print_function  # for compatibility with python3
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, print_function
+
 from builtins import range
 from builtins import object
 from past.utils import old_div

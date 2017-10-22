@@ -5,6 +5,8 @@
 # (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED, FINISHED, PRESSED,
 #  RELEASED, FOREVER)
 
+from __future__ import absolute_import, print_function
+
 import sys
 if sys.version_info.major >= 3:
     PY3 = True

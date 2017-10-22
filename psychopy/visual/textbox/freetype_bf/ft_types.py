@@ -74,6 +74,8 @@ FT_F2Dot14 : A signed 2.14 fixed float type used for unit vectors.
 FT_F26Dot6 : A signed 26.6 fixed float type used for vectorial pixel
              coordinates.
 '''
+
+from __future__ import absolute_import, print_function
 from ctypes import *
 
 

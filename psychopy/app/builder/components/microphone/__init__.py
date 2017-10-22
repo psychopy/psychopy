@@ -7,6 +7,8 @@
 
 # Author: Jeremy R. Gray, 2012
 
+from __future__ import absolute_import, print_function
+
 from os import path
 from .._base import BaseComponent, Param, getInitVals, _translate
 

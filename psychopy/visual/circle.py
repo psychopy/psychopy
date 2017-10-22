@@ -9,6 +9,8 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import, print_function
+
 import psychopy  # so we can get the __path__
 
 from psychopy.visual.polygon import Polygon

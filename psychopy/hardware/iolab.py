@@ -13,10 +13,12 @@
 # insensitive somewhere
 
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import range
 from numpy import ubyte
 from psychopy import core, event, logging
+
 try:
     import ioLabs
     from ioLabs import USBBox, REPORT, COMMAND

@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync device is correctly connected to the computer
 running this script.
@@ -6,8 +8,7 @@ running this script.
 Script can be used to test the accuracy of the conversion from ioSync time
 stamps to iohub the time base.
 """
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import range
 from past.utils import old_div

@@ -7,7 +7,7 @@
 
 """Functions and classes related to file and directory handling
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from future import standard_library
 standard_library.install_aliases()

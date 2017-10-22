@@ -9,6 +9,10 @@
 #  Distributed under the terms of the new BSD license.
 #
 # -----------------------------------------------------------------------------
+
+from __future__ import absolute_import, print_function
+
+
 from builtins import range
 from builtins import object
 import pyglet.gl as gl

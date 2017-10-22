@@ -11,13 +11,15 @@ you can emulate sync pulses and user responses.
 Limitations: pyglet only; keyboard events only.
 """
 
-from builtins import range
-__author__ = 'Jeremy Gray'
+from __future__ import absolute_import, print_function
 
+from builtins import range
 import threading
 
 from psychopy import visual, event, core, logging
 from psychopy.sound import Sound  # for SyncGenerator tone
+
+__author__ = 'Jeremy Gray'
 
 
 class ResponseEmulator(threading.Thread):

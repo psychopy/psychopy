@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Demo using the ioHub Serial device, a generic interface to a serial port.
 
@@ -39,8 +42,8 @@ providing a float value for the roll, pitch, yaw reading sent.
 Demo Created: April 16th, 2014.
 By: Sol Simpson
 """
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from past.utils import old_div
 import time
 from psychopy import core

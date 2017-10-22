@@ -9,7 +9,8 @@
 
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str

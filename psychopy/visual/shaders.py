@@ -8,7 +8,7 @@
 """shaders programs for either pyglet or pygame
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from ctypes import (byref, cast, c_int, c_char, c_char_p,
                     POINTER, create_string_buffer)

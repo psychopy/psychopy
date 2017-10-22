@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync device is correctly connected to the computer
 running this script.
@@ -25,7 +27,8 @@ Each test iteration does the following(in sudo code):
 
 When the data has been collected, a plot is displayed with the results.
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 # How many request - reply iterations should be run.
 from builtins import range
 repetitions = 10000
