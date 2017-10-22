@@ -13,6 +13,14 @@ env:
     - DISPLAY=:99.0
     - AUDIODEV=null
 
+matrix:
+  include:
+    - os: linux
+      env: USE_ANACONDA=false
+
+    - os: linux
+      env: USE_ANACONDA=true
+
 virtualenv:
   system_site_packages: true
 
@@ -32,6 +40,7 @@ before_install:
   # - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
 
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
+  - travis_retry sudo apt-get install -qq libportaudio2
   - travis_retry sudo apt-get install -qq flac
   - flac -version
 
@@ -45,23 +54,43 @@ before_install:
   - sudo modprobe snd-dummy
   - sudo lsmod
 
-  # APT Python dependencies for PsychoPy
-  - echo "Installing PsychoPy dependencies via apt..."
-  - travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl
-  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas
-  - travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj
-  - travis_retry sudo apt-get install -qq python-imaging python-mock
-  - travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8
-  - travis_retry sudo apt-get install -qq python-pyo python-opencv
-  - travis_retry sudo apt-get install -qq python-mock
+  - if [ $USE_ANACONDA != "true" ]; then
+      echo "Installing PsychoPy dependencies via apt...";
+      travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl;
+      travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
+      travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj;
+      travis_retry sudo apt-get install -qq python-imaging python-mock;
+      travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8;
+      travis_retry sudo apt-get install -qq python-pyo python-opencv;
+      travis_retry sudo apt-get install -qq python-mock;
+      echo "Installing PsychoPy dependencies via pip...";
+      travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
+      travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
+    fi
+  - if [ $USE_ANACONDA == "true" ]; then
+      echo "Installing Miniconda environment...";
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      bash miniconda.sh -b -p $HOME/miniconda;
+      export PATH="$HOME/miniconda/bin:$PATH";
+      hash -r;
+      conda config --set always_yes yes --set changeps1 no;
+    fi
 
-  # PIP dependencies for PsychoPy
-  - echo "Installing PsychoPy dependencies via pip..."
-  - travis_retry sudo pip install --upgrade -force-reinstall -qq pip
-  - travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt
+  - if [ $USE_ANACONDA == "true" ]; then conda update -q conda; fi
+  - if [ $USE_ANACONDA == "true" ]; then conda info -a; fi
+  # - if [ $USE_ANACONDA == "true" ]; then conda create -q -n psychopy-conda python=$TRAVIS_PYTHON_VERSION; fi
+  - ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml
+  - if [ $USE_ANACONDA == "true" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
+  - if [ $USE_ANACONDA == "true" ]; then conda env list; fi
+  - if [ $USE_ANACONDA == "true" ]; then source activate psychopy-conda; fi
+
+  - echo $PATH
+  - which python
+  - python --version
   - python -c 'import pyglet; print pyglet.version'
   - python -c 'import matplotlib; print matplotlib.__version__'
   - python -c 'import PIL; print PIL.__version__'
+  - python -c 'import openpyxl; print openpyxl.__version__'
 
 install:
   - python setup.py build
@@ -70,7 +99,7 @@ install:
 before_script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
-    fi;
+    fi
 
 # This might come in handy once we switch to Trusty, as Xvfb on precise
 # doesn't properly support the RANDR extension
@@ -80,9 +109,6 @@ before_script:
 
 script:
   - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
-
-  # This does not work on Precise, probably because ffmpeg is outdated
-  # - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
 
 after_success:
   - coveralls
