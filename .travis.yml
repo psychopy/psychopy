@@ -78,8 +78,7 @@ before_install:
 
   - if [ $USE_ANACONDA == "true" ]; then conda update -q conda; fi
   - if [ $USE_ANACONDA == "true" ]; then conda info -a; fi
-  # - if [ $USE_ANACONDA == "true" ]; then conda create -q -n psychopy-conda python=$TRAVIS_PYTHON_VERSION; fi
-  - ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml
+  - if [ $USE_ANACONDA == "true" ]; then ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
   - if [ $USE_ANACONDA == "true" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
   - if [ $USE_ANACONDA == "true" ]; then conda env list; fi
   - if [ $USE_ANACONDA == "true" ]; then source activate psychopy-conda; fi
