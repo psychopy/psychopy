@@ -5,24 +5,24 @@ sudo: true
 
 language: python
 
-env:
-  global:
-    - DISPLAY=:99.0
-    - AUDIODEV=null
-
 matrix:
   include:
     - os: linux
       python: "2.7_with_system_site_packages"
-      env: USE_ANACONDA=false
+      env: USE_ANACONDA=false DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
       python: 2.7
-      env: USE_ANACONDA=true
+      env: USE_ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
       python: 3.6
-      env: USE_ANACONDA=true
+      env: USE_ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+
+  allow_failures:
+    - os: linux
+      python: 3.6
+      env: USE_ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
 
 before_install:
   # System setup
