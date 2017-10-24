@@ -6,5 +6,4 @@ omit =
     psychopy/demos/*
     psychopy/tests/*
     psychopy/scripts/*
-    psychopy/iohub/*
     psychopy/contrib/*
