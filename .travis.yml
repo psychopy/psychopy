@@ -91,6 +91,7 @@ before_install:
   - python -c 'import PIL; print(PIL.__version__)'
   - python -c 'import wx; print(wx.__version__)'
   - python -c 'import openpyxl; print(openpyxl.__version__)'
+  - python -c 'import tables; print(tables.__version__)'
 
 install:
   - python setup.py build
