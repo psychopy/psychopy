@@ -19,7 +19,7 @@ standard_library.install_aliases()
 from builtins import next
 from past.builtins import basestring
 from builtins import object
-from tables import *
+from tables import *  # TODO walkGroups, listNodes, getNode -> changed API
 import os
 from collections import namedtuple
 import json
