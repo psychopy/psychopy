@@ -102,8 +102,7 @@ before_script:
        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
     fi
 
-# This might come in handy once we switch to Trusty, as Xvfb on precise
-# doesn't properly support the RANDR extension
+# This might come in handy once we switch to Trusty
 #  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
 #      xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
 #    fi;
