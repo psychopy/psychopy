@@ -98,7 +98,7 @@ Video Display:
             Percent: 54.2
             Free: 7.3G
     Python:
-        exe: C: \Anaconda\python.exe
+        exe: C:\\Anaconda\\python.exe
         version: 2.7.7 |Anaconda 2.1.0 (64-bit)| (default, Jun 11 2014, 10: 40: 02) [MSC v.1500 64 bit (AMD64)]
     Packages:
         numpy: 1.9.0
@@ -128,7 +128,7 @@ Video Display:
 
         15187:
             num_threads: 3
-            exe: C: \Program Files (x86)\Notepad++\notepad++.exe
+            exe: C:\\Program Files (x86)\\Notepad++\\notepad++.exe
             name: notepad++.exe
             cpu_percent: 0.0
             cpu_affinity: [0, 1, 2, 3, 4, 5, 6, 7]
@@ -138,7 +138,7 @@ Video Display:
             nice: 32
         16656:
             num_threads: 11
-            exe: C: \Program Files (x86)\Google\Chrome\Application\chrome.exe
+            exe: C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
             name: chrome.exe
             cpu_percent: 0.0
             cpu_affinity: [0, 1, 2, 3, 4, 5, 6, 7]
@@ -148,7 +148,7 @@ Video Display:
             nice: 32
         16688:
             num_threads: 17
-            exe: C: \Anaconda\python.exe
+            exe: C:\\Anaconda\\python.exe
             name: python.exe
             cpu_percent: 75.1
             cpu_affinity: [0, 1, 2, 3, 4, 5, 6, 7]
@@ -175,6 +175,7 @@ frame_num	frame_flip_time	playback_duration	frame_num_dx	dropped_count
 20	3.484598	0.828544	1	1	0.000268	0.005463	0.033331	0.033331	24.139
 [...]
 """
+
 
 from psychopy import visual, core, event
 
