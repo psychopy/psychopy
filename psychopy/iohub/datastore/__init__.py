@@ -11,6 +11,7 @@ from pkg_resources import parse_version
 from psychopy.iohub import printExceptionDetailsToStdErr, print2err, ioHubError, DeviceEvent, EventConstants
 
 import tables
+from tables import parameters, IsDescription, Filters, StringCol, UInt32Col, UInt16Col, NodeError, NoSuchNodeError, ClosedFileError
 if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
     create_table = "createTable"
@@ -19,7 +20,6 @@ else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
-from tables import parameters
 
 
 """
@@ -74,7 +74,7 @@ class ioHubpyTablesFile(object):
 
         self.TABLES = dict()
         self._eventGroupMappings = dict()
-        self.emrtFile = open_file(self.filePath, mode = fmode)
+        self.emrtFile = open_file(self.filePath, mode=fmode)
 
         atexit.register(close_open_data_files, False)
 
@@ -91,7 +91,7 @@ class ioHubpyTablesFile(object):
             tokens = str(event_table_label[0] + event_table_label[1:].lower() + 'Event').split('_')
             return ''.join([t[0].upper() + t[1:] for t in tokens])
 
-        for event_cls_name,event_cls in event_class_dict.items():
+        for event_cls_name, event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label = event_cls.IOHUB_DATA_TABLE
                 if event_table_label not in self.TABLES:
@@ -100,8 +100,8 @@ class ioHubpyTablesFile(object):
                             self._eventGroupMappings[event_table_label],
                             eventTableLabel2ClassName(event_table_label),
                             event_cls.NUMPY_DTYPE,
-                            title = "%s Data" % (device_instance.__class__.__name__,),
-                            filters = dfilter.copy()
+                            title="%s Data" % (device_instance.__class__.__name__,),
+                            filters=dfilter.copy()
                         )
                         self.flush()
                         #print2err("----------- CREATED TABLES ENTRY ------------")
@@ -346,7 +346,6 @@ class ioHubpyTablesFile(object):
         )
         self.flush()
 
-
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
@@ -401,8 +400,8 @@ class ioHubpyTablesFile(object):
         #ioHub.print2err("createOrUpdateExperimentEntry called with: ",experimentInfoList)
         experiment_metadata = self.TABLES['EXPERIMENT_METADETA']
 
-        result = [ row for row in experiment_metadata.iterrows() if row['code'] == experimentInfoList[1] ]
-        if len(result)>0:
+        result = [row for row in experiment_metadata.iterrows() if row['code'] == experimentInfoList[1]]
+        if len(result) > 0:
             result = result[0]
             self.active_experiment_id = result['experiment_id']
             return self.active_experiment_id
@@ -415,12 +414,12 @@ class ioHubpyTablesFile(object):
 
         self.active_experiment_id = max_id + 1
         experimentInfoList[0] = self.active_experiment_id
-        experiment_metadata.append([experimentInfoList,])
+        experiment_metadata.append([experimentInfoList, ])
         self.flush()
         #ioHub.print2err("Experiment ID set to: ",self.active_experiment_id)
         return self.active_experiment_id
 
-    def createExperimentSessionEntry(self,sessionInfoDict):
+    def createExperimentSessionEntry(self, sessionInfoDict):
         #ioHub.print2err("createExperimentSessionEntry called with: ",sessionInfoDict)
         session_metadata = self.TABLES['SESSION_METADETA']
 
@@ -431,16 +430,23 @@ class ioHubpyTablesFile(object):
 
         self.active_session_id = int(max_id + 1)
 
-        values = (self.active_session_id,self.active_experiment_id,sessionInfoDict['code'],sessionInfoDict['name'],sessionInfoDict['comments'],sessionInfoDict['user_variables'])
-        session_metadata.append([values,])
+        values = (
+            self.active_session_id,
+            self.active_experiment_id,
+            sessionInfoDict['code'],
+            sessionInfoDict['name'],
+            sessionInfoDict['comments'],
+            sessionInfoDict['user_variables']
+        )
+        session_metadata.append([values, ])
         self.flush()
 
         #ioHub.print2err("Session ID set to: ",self.active_session_id)
         return self.active_session_id
 
-    def _initializeConditionVariableTable(self,experiment_id,session_id,np_dtype):
+    def _initializeConditionVariableTable(self, experiment_id, session_id, np_dtype):
         experimentConditionVariableTable = None
-        exp_session = [('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
+        exp_session = [('EXPERIMENT_ID', 'i4'), ('SESSION_ID', 'i4')]
         exp_session.extend(np_dtype)
         np_dtype = exp_session
         #print2err('np_dtype: ',np_dtype,' ',type(np_dtype))
@@ -451,33 +457,33 @@ class ioHubpyTablesFile(object):
             self.TABLES['EXP_CV'] = experimentConditionVariableTable
         except NoSuchNodeError as nsne:
             try:
-                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
+                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables, expCondTableName, self._EXP_COND_DTYPE, title='Condition Variable Values for Experiment ID %d' % (experiment_id))
                 self.TABLES['EXP_CV'] = experimentConditionVariableTable
                 self.emrtFile.flush()
             except Exception:
                 printExceptionDetailsToStdErr()
                 return False
         except Exception:
-            print2err('Error getting experimentConditionVariableTable for experiment %d, table name: %s'%(experiment_id,expCondTableName))
+            print2err('Error getting experimentConditionVariableTable for experiment %d, table name: %s' % (experiment_id, expCondTableName))
             printExceptionDetailsToStdErr()
             return False
         self._activeRunTimeConditionVariableTable = experimentConditionVariableTable
         return True
 
-    def _addRowToConditionVariableTable(self,experiment_id,session_id,data):
+    def _addRowToConditionVariableTable(self, experiment_id, session_id, data):
         if self.emrtFile and 'EXP_CV' in self.TABLES and self._EXP_COND_DTYPE is not None:
-            temp = [experiment_id,session_id]
+            temp = [experiment_id, session_id]
             temp.extend(data)
             data = temp
             try:
                 etable = self.TABLES['EXP_CV']
                 #print2err('data: ',data,' ',type(data))
 
-                for i,d in enumerate(data):
-                    if isinstance(d,(list,tuple)):
+                for i, d in enumerate(data):
+                    if isinstance(d, (list, tuple)):
                         data[i] = tuple(d)
 
-                np_array = np.array([tuple(data),],dtype=self._EXP_COND_DTYPE)
+                np_array = np.array([tuple(data), ], dtype=self._EXP_COND_DTYPE)
                 etable.append(np_array)
 
                 self.bufferedFlush()
@@ -487,10 +493,10 @@ class ioHubpyTablesFile(object):
                 printExceptionDetailsToStdErr()
         return False
 
-    def addMetaDataToFile(self,metaData):
+    def addMetaDataToFile(self, metaData):
         pass
 
-    def checkForExperimentAndSessionIDs(self,event=None):
+    def checkForExperimentAndSessionIDs(self, event=None):
         if self.active_experiment_id is None or self.active_session_id is None:
             exp_id = self.active_experiment_id
             if exp_id is None:
@@ -504,11 +510,11 @@ class ioHubpyTablesFile(object):
             return False
         return True
 
-    def checkIfSessionCodeExists(self,sessionCode):
+    def checkIfSessionCodeExists(self, sessionCode):
         if self.emrtFile:
-            sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where("experiment_id == %d"%(self.active_experiment_id,))
+            sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where("experiment_id == %d" % (self.active_experiment_id,))
             sessionCodeMatch = [sess for sess in sessionsForExperiment if sess['code'] == sessionCode]
-            if len(sessionCodeMatch)>0:
+            if len(sessionCodeMatch) > 0:
                 return True
             return False
 
@@ -528,13 +534,13 @@ class ioHubpyTablesFile(object):
             event[DeviceEvent.EVENT_EXPERIMENT_ID_INDEX] = self.active_experiment_id
             event[DeviceEvent.EVENT_SESSION_ID_INDEX] = self.active_session_id
 
-            np_array = np.array([tuple(event),],dtype=eventClass.NUMPY_DTYPE)
+            np_array = np.array([tuple(event), ], dtype=eventClass.NUMPY_DTYPE)
             etable.append(np_array)
 
             self.bufferedFlush()
 
         except Exception:
-            print2err("Error saving event: ",event)
+            print2err("Error saving event: ", event)
             printExceptionDetailsToStdErr()
 
     def _handleEvents(self, events):
@@ -560,7 +566,7 @@ class ioHubpyTablesFile(object):
                 event[DeviceEvent.EVENT_SESSION_ID_INDEX] = self.active_session_id
                 np_events.append(tuple(event))
 
-            np_array = np.array(np_events,dtype=eventClass.NUMPY_DTYPE)
+            np_array = np.array(np_events, dtype=eventClass.NUMPY_DTYPE)
             #ioHub.print2err('np_array:',np_array)
             etable.append(np_array)
 
@@ -571,7 +577,7 @@ class ioHubpyTablesFile(object):
         except Exception:
             printExceptionDetailsToStdErr()
 
-    def bufferedFlush(self,eventCount=1):
+    def bufferedFlush(self, eventCount=1):
         # if flushCounter threshold is >=0 then do some checks. If it is < 0, then
         # flush only occurs when command is sent to ioHub, so do nothing here.
         if self.flushCounter >= 0:
@@ -610,7 +616,7 @@ class ioHubpyTablesFile(object):
 
 def close_open_data_files(verbose):
     open_files = tables.file._open_files
-    clall = hasattr(open_files,'close_all')
+    clall = hasattr(open_files, 'close_all')
     if clall:
         open_files.close_all()
     else:
@@ -636,25 +642,25 @@ except Exception:
 class ClassTableMappings(IsDescription):
     class_id = UInt32Col(pos=1)
     class_type_id = UInt32Col(pos=2) # Device or Event etc.
-    class_name = StringCol(32,pos=3)
-    table_path  = StringCol(128,pos=4)
+    class_name = StringCol(32, pos=3)
+    table_path  = StringCol(128, pos=4)
 
 
 class ExperimentMetaData(IsDescription):
     experiment_id = UInt32Col(pos=1)
-    code = StringCol(24,pos=2)
-    title = StringCol(48,pos=3)
-    description  = StringCol(256,pos=4)
-    version = StringCol(6,pos=5)
+    code = StringCol(24, pos=2)
+    title = StringCol(48, pos=3)
+    description  = StringCol(256, pos=4)
+    version = StringCol(6, pos=5)
     total_sessions_to_run = UInt16Col(pos=9)
 
 class SessionMetaData(IsDescription):
     session_id = UInt32Col(pos=1)
     experiment_id = UInt32Col(pos=2)
-    code = StringCol(24,pos=3)
-    name = StringCol(48,pos=4)
-    comments  = StringCol(256,pos=5)
-    user_variables = StringCol(2048,pos=6) # will hold json encoded version of user variable dict for session
+    code = StringCol(24, pos=3)
+    name = StringCol(48, pos=4)
+    comments  = StringCol(256, pos=5)
+    user_variables = StringCol(2048, pos=6) # will hold json encoded version of user variable dict for session
 
 
 """
