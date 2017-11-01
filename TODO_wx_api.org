@@ -1,0 +1,66 @@
+* wx.AboutBox [1/1]
+** DONE psychopy/psychopy/app/_psychopyApp.py:            showAbout = wx.AboutBox
+   CLOSED: [2017-11-01 Wed 21:53]
+
+* wx.AboutDialogInfo [1/1]
+** DONE psychopy/psychopy/app/_psychopyApp.py:            info = wx.AboutDialogInfo()
+   CLOSED: [2017-11-01 Wed 21:53]
+
+* wx.CreateFileTipProvider [1/1]
+** DONE psychopy/psychopy/app/_psychopyApp.py:            tp = wx.CreateFileTipProvider(tipFile, tipIndex)
+   CLOSED: [2017-11-01 Wed 21:53]
+
+* wx.ShowTip [1/1]
+** DONE psychopy/psychopy/app/_psychopyApp.py:            showTip = wx.ShowTip(None, tp)
+   CLOSED: [2017-11-01 Wed 21:53]
+
+* wx.EmptyImage [1/1]
+** DONE psychopy/psychopy/app/builder/components/__init__.py:        image = wx.EmptyImage(pil.size[0], pil.size[1])
+   CLOSED: [2017-11-01 Wed 21:57]
+
+* wx.GetDefaultPyEncoding [1/1]
+** DONE psychopy/psychopy/app/coder/introspect.py:            command = command.encode(wx.GetDefaultPyEncoding())
+   CLOSED: [2017-11-01 Wed 22:06]
+
+* wx.PySimpleApp [4/10]
+** DONE psychopy/psychopy/tests/test_app/test_builder/test_components.py:                tmpApp = wx.PySimpleApp()
+   CLOSED: [2017-11-01 Wed 22:10]
+** DONE psychopy/psychopy/tests/test_app/test_builder/genComponsTemplate.py:    tmpApp = wx.PySimpleApp()
+   CLOSED: [2017-11-01 Wed 22:11]
+** DONE psychopy/psychopy/tests/test_app/test_builder/genComponsTemplate.py:        tmpApp = wx.PySimpleApp()
+   CLOSED: [2017-11-01 Wed 22:12]
+** DONE psychopy/psychopy/tools/wizard.py:    tmpApp = wx.PySimpleApp()
+   CLOSED: [2017-11-01 Wed 22:13]
+** TODO psychopy/psychopy/app/preferencesDlg.py:        app = wx.PySimpleApp()
+** TODO psychopy/psychopy/app/dialogs.py:        app = wx.PySimpleApp()
+** TODO psychopy/psychopy/app/localization/__init__.py:        tmpApp = wx.PySimpleApp()
+** TODO psychopy/psychopy/app/builder/dialogs/dlgsConditions.py:                app = wx.PySimpleApp()
+** TODO psychopy/psychopy/gui/wxgui.py:            return wx.PySimpleApp()
+** TODO psychopy/psychopy/iohub/util/dialogs.py:                ioHubDialog.wxapp = wx.PySimpleApp()
+
+* wx.PyValidator [0/1]
+** TODO psychopy/psychopy/app/builder/validators.py:    _ValidatorBase = wx.PyValidator
+
+* DrawRoundedRectangleRect [0/1]
+** TODO psychopy/psychopy/app/builder/flow.py:            self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
+
+* wx.lib.hyperlink [0/1]
+** TODO psychopy/psychopy/app/connections.py:    import wx.lib.hyperlink as wxhl
+
+* SetToolTipString [0/16]
+** TODO psychopy/psychopy/app/preferencesDlg.py:                ctrls.valueCtrl.SetToolTipString(_translate(hint))
+** TODO psychopy/psychopy/app/preferencesDlg.py:                ctrls.valueCtrl.SetToolTipString('')
+** TODO psychopy/psychopy/app/dialogs.py:    def SetToolTipString(self, tip):
+** TODO psychopy/psychopy/app/builder/dialogs/dlgsCode.py:                self.componentName.SetToolTipString(param.hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.valueCtrl.SetToolTipString(param.hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.startTypeCtrl.SetToolTipString(self.params['startType'].hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.stopTypeCtrl.SetToolTipString(self.params['stopType'].hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
+** TODO psychopy/psychopy/app/builder/dialogs/__init__.py:        self.durationEstimCtrl.SetToolTipString(_hnt)
+** TODO psychopy/psychopy/monitors/MonitorCenter.py:        self.btnNewMon.SetToolTipString(
+** TODO psychopy/psychopy/monitors/MonitorCenter.py:        self.btnSaveMon.SetToolTipString(msg)
+** TODO psychopy/psychopy/monitors/MonitorCenter.py:        self.btnDeleteMon.SetToolTipString(msg)
+** TODO psychopy/psychopy/monitors/MonitorCenter.py:        self.btnCopyCalib.SetToolTipString(msg)
+** TODO psychopy/psychopy/monitors/MonitorCenter.py:        self.btnDeleteCalib.SetToolTipString(msg)
