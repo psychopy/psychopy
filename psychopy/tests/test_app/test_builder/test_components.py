@@ -7,6 +7,7 @@ import pytest
 from psychopy import prefs
 from psychopy.app import builder, projects
 from psychopy.app.builder.components import getAllComponents
+from distutils.version import StrictVersion
 
 # use "python genComponsTemplate.py --out" to generate a new profile to test against
 #   = analogous to a baseline image to compare screenshots
@@ -41,7 +42,7 @@ class TestComponents(object):
             cls.allComp = getAllComponents(fetchIcons=False)
         except Exception:
             import wx
-            if wx.version() < '2.9':
+            if StrictVersion(wx.__version__) < StrictVersion('2.9'):
                 tmpApp = wx.PySimpleApp()
             else:
                 tmpApp = wx.App(False)

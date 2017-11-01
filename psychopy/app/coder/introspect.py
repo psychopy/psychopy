@@ -10,6 +10,7 @@ from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
+from distutils.version import StrictVersion
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
 __cvsid__ = "$Id: introspect.py,v 1.15 2006/06/29 22:23:19 RD Exp $"
 __revision__ = "$Revision: 1.15 $"[11:-2]
@@ -313,10 +314,11 @@ def getTokens(command):
 
     # In case the command is unicode try encoding it
     if type(command) == str:
-        try:
-            command = command.encode(wx.GetDefaultPyEncoding())
-        except UnicodeEncodeError:
-            pass  # otherwise leave it alone
+        if StrictVersion(wx.__version__) < StrictVersion('4.0a1'):
+            try:
+                command = command.encode(wx.GetDefaultPyEncoding())
+            except UnicodeEncodeError:
+                pass  # otherwise leave it alone
 
     f = io.StringIO(command)
     # tokens is a list of token tuples, each looking like:
