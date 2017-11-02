@@ -11,6 +11,7 @@ from builtins import str
 from builtins import object
 import sys
 import psychopy
+from pkg_resources import parse_version
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -315,8 +316,13 @@ class PsychoPyApp(wx.App):
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
-            tp = wx.CreateFileTipProvider(tipFile, tipIndex)
-            showTip = wx.ShowTip(None, tp)
+            if parse_version(wx.__version__) >= parse_version('4.0a1'):
+                tp = wx.adv.CreateFileTipProvider(tipFile, tipIndex)
+                showTip = wx.adv.ShowTip(None, tp)
+            else:
+                tp = wx.CreateFileTipProvider(tipFile, tipIndex)
+                showTip = wx.ShowTip(None, tp)
+
             self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
