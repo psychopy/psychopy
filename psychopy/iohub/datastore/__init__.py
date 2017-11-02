@@ -16,10 +16,12 @@ if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
     create_table = "createTable"
     create_group = "createGroup"
+	_f_get_child = "_f_getChild"
 else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
+	_f_get_child = "_f_get_child"
 
 
 """
@@ -453,7 +455,7 @@ class ioHubpyTablesFile(object):
         self._EXP_COND_DTYPE = np.dtype(np_dtype)
         try:
             expCondTableName = "EXP_CV_%d"%(experiment_id)
-            experimentConditionVariableTable = self.emrtFile.root.data_collection.condition_variables._f_getChild(expCondTableName)
+            experimentConditionVariableTable = getattr(self.emrtFile.root.data_collection.condition_variables, _f_get_child)(expCondTableName)
             self.TABLES['EXP_CV'] = experimentConditionVariableTable
         except NoSuchNodeError as nsne:
             try:
