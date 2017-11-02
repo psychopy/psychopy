@@ -19,6 +19,7 @@ import shutil
 from PIL import Image
 from os.path import join, dirname, abspath, split
 from importlib import import_module  # helps python 2.7 -> 3.x migration
+from pkg_resources import parse_version
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
                      'EyetrackerComponent']  # this one isn't ready yet
@@ -35,7 +36,7 @@ for filename in pycFiles:
 
 def pilToBitmap(pil, scaleFactor=1.0):
     import wx
-    if wx.version()<"4":
+    if parse_version(wx.__version__) < parse_version('4.0a1'):
         image = wx.EmptyImage(pil.size[0], pil.size[1])
     else:
         image = wx.Image(pil.size[0], pil.size[1])

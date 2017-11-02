@@ -22,9 +22,9 @@ if not hasattr(sys, 'frozen'):
     if haveWxVersion:
         wxversion.ensureMinimal('2.8')  # because this version has agw
 import wx
-try:
+if parse_version(wx.__version__) < parse_version('4.0a1'):
     from agw import advancedsplash as AS
-except ImportError:  # if it's not there locally, try the wxPython lib.
+else:
     import wx.lib.agw.advancedsplash as AS
 
 """ Aug 2017: for now we want to turn off warning for AddSimpleTool
@@ -660,7 +660,7 @@ class PsychoPyApp(wx.App):
             "For stimulus generation and experimental control in python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
-        if wx.version() >= '4.':
+        if parse_version(wx.__version__) >= parse_version('4.0a1'):
             info = wx.adv.AboutDialogInfo()
             showAbout = wx.adv.AboutBox
         else:

@@ -15,12 +15,13 @@ import time
 import platform
 import zipfile
 import os
+from pkg_resources import parse_version
 import wx
 import wx.lib.filebrowsebutton
-try:
-    import wx.lib.agw.hyperlink as wxhl
-except ImportError:  # if it's not there locally, try the wxPython lib
+if parse_version(wx.__version__) < parse_version('4.'):
     import wx.lib.hyperlink as wxhl
+else:
+    import wx.lib.agw.hyperlink as wxhl
 
 import psychopy
 from . import dialogs

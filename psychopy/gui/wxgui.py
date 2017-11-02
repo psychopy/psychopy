@@ -18,6 +18,7 @@ import wx
 import numpy
 import os
 from psychopy.app.localization import _translate
+from pkg_resources import parse_version
 
 OK = wx.ID_OK
 
@@ -29,7 +30,7 @@ def ensureWxApp():
         wx.Dialog(None, -1)  # not shown; FileDialog gives same exception
         return True
     except wx._core.PyNoAppError:
-        if wx.version() < '2.9':
+        if parse_version(wx.__version__) < parse_version('2.9'):
             return wx.PySimpleApp()
         else:
             return wx.App(False)
