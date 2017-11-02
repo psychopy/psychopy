@@ -22,9 +22,9 @@ if not hasattr(sys, 'frozen'):
     if haveWxVersion:
         wxversion.ensureMinimal('2.8')  # because this version has agw
 import wx
-if parse_version(wx.__version__) < parse_version('4.0a1'):
+try:
     from agw import advancedsplash as AS
-else:
+except ImportError:  # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
 
 """ Aug 2017: for now we want to turn off warning for AddSimpleTool

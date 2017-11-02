@@ -20,9 +20,9 @@ import wx
 import wx.aui
 import wx.stc
 from wx.lib import platebtn
-if parse_version(wx.__version__) < parse_version('4.'):
+try:
     from wx import PseudoDC
-else:
+except ImportError:
     from wx.adv import PseudoDC
 
 from psychopy import logging, data
@@ -78,7 +78,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
-        if wx.version()<"4":
+        if parse_version(wx.__version__) < parse_version('4.'):
             self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
         self.pen_cache = {}
         self.brush_cache = {}
