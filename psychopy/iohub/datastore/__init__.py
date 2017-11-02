@@ -16,12 +16,12 @@ if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
     create_table = "createTable"
     create_group = "createGroup"
-	_f_get_child = "_f_getChild"
+    _f_get_child = "_f_getChild"
 else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
-	_f_get_child = "_f_get_child"
+    _f_get_child = "_f_get_child"
 
 
 """
