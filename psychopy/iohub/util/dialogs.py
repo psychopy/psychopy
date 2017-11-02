@@ -18,15 +18,16 @@ from __future__ import absolute_import
 from builtins import object
 import os
 import wx
-import wx.lib.agw.genericmessagedialog as GMD     
-   
+import wx.lib.agw.genericmessagedialog as GMD
+from distutils.version import StrictVersion
+
 class ioHubDialog(object):
     wxapp=None
     def __init__(self,display_index=0):
         self.dialog=None
         self.display_index=display_index
         if ioHubDialog.wxapp is None:
-            if wx.version() < '2.9':
+            if StrictVersion(wx.__version__) < StrictVersion('2.9'):
                 ioHubDialog.wxapp = wx.PySimpleApp()
             else:
                 ioHubDialog.wxapp = wx.GetApp()

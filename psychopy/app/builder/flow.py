@@ -14,15 +14,16 @@ from builtins import str
 import re
 import sys
 
+from distutils.version import StrictVersion
 import numpy
 import wx
 import wx.aui
 import wx.stc
 from wx.lib import platebtn
-try:
-    from wx.adv import PseudoDC
-except ImportError:
+if StrictVersion(wx.__version__) < StrictVersion('4.0a1'):
     from wx import PseudoDC
+else:
+    from wx.adv import PseudoDC
 
 from psychopy import logging, data
 from psychopy.app.utils import FileDropTarget
@@ -77,7 +78,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
-        if wx.version()<"4":
+        if StrictVersion(wx.__version__) < StrictVersion('4.0a1'):
             self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
         self.pen_cache = {}
         self.brush_cache = {}

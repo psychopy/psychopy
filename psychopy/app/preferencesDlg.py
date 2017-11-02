@@ -17,6 +17,7 @@ from . import localization, dialogs
 from psychopy import logging
 from psychopy.exceptions import DependencyError
 from .localization import _translate
+from distutils.version import StrictVersion
 
 # this will be overridden by the size of the scrolled panel making the prefs
 dlgSize = (520, 600)
@@ -470,7 +471,7 @@ class PrefCtrls(object):
 
 if __name__ == '__main__':
     from psychopy import preferences
-    if wx.version() < '2.9':
+    if StrictVersion(wx.__version__) < StrictVersion('2.9'):
         app = wx.PySimpleApp()
     else:
         app = wx.App(False)
