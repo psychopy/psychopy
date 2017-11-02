@@ -19,6 +19,7 @@ from builtins import str
 from builtins import range
 import wx
 from wx.lib.newevent import NewEvent
+from distutils.version import StrictVersion
 
 from psychopy import logging
 from .localization import _translate
@@ -594,7 +595,7 @@ class ListWidget(GlobSizer):
 
 
 if __name__ == '__main__':
-    if wx.version() < '2.9':
+    if StrictVersion(wx.__version__) < StrictVersion('2.9'):
         app = wx.PySimpleApp()
     else:
         app = wx.App(False)

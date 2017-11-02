@@ -11,6 +11,7 @@ from builtins import str
 from builtins import object
 import sys
 import psychopy
+from distutils.version import StrictVersion
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -315,8 +316,12 @@ class PsychoPyApp(wx.App):
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
-            tp = wx.CreateFileTipProvider(tipFile, tipIndex)
-            showTip = wx.ShowTip(None, tp)
+            if StrictVersion(wx.__version__) >= StrictVersion('4.0a1'):
+                tp = wx.adv.CreateFileTipProvider(tipFile, tipIndex)
+                showTip = wx.adv.ShowTip(None, tp)
+            else:
+                tp = wx.CreateFileTipProvider(tipFile, tipIndex)
+                showTip = wx.ShowTip(None, tp)
             self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
@@ -654,13 +659,13 @@ class PsychoPyApp(wx.App):
             "For stimulus generation and experimental control in python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
-        if wx.version() >= '4.':
+        if StrictVersion(wx.__version__) >= StrictVersion('4.0a1'):
             info = wx.adv.AboutDialogInfo()
             showAbout = wx.adv.AboutBox
         else:
             info = wx.AboutDialogInfo()
             showAbout = wx.AboutBox
-        if wx.version() >= '3.':
+        if StrictVersion(wx.__version__) >= StrictVersion('3.0'):
             icon = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
             info.SetIcon(wx.Icon(icon, wx.BITMAP_TYPE_PNG, 128, 128))
         info.SetName('PsychoPy')

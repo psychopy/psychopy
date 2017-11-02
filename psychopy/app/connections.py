@@ -7,6 +7,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+from distutils.version import StrictVersion
 from builtins import object
 import sys
 import re
@@ -17,10 +18,10 @@ import zipfile
 import os
 import wx
 import wx.lib.filebrowsebutton
-try:
-    import wx.lib.agw.hyperlink as wxhl
-except ImportError:  # if it's not there locally, try the wxPython lib
+if StrictVersion(wx.__version__) < StrictVersion('4.0a1'):
     import wx.lib.hyperlink as wxhl
+else:
+    import wx.lib.agw.hyperlink as wxhl
 
 import psychopy
 from . import dialogs

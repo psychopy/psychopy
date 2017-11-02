@@ -25,6 +25,7 @@ import glob
 import codecs
 from psychopy import logging, prefs
 import psychopy.constants
+from distutils.version import StrictVersion
 
 import wx
 
@@ -32,7 +33,7 @@ import wx
 try:
     wx.Dialog(None, -1)
 except wx._core.PyNoAppError:
-    if wx.version() < '2.9':
+    if StrictVersion(wx.__version__) < StrictVersion('2.9'):
         tmpApp = wx.PySimpleApp()
     else:
         tmpApp = wx.App(False)

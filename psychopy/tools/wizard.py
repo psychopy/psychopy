@@ -24,8 +24,9 @@ import wx
 import numpy as np
 import platform
 import codecs
+from distutils.version import StrictVersion
 
-if wx.version() < '2.9':
+if StrictVersion(wx.__version__) < StrictVersion('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)

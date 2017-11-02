@@ -15,8 +15,9 @@ import wx
 from ..localization import _translate
 from . import experiment
 from .localizedStrings import _localized
+from distutils.version import StrictVersion
 
-if wx.version()<"4":
+if StrictVersion(wx.__version__) < StrictVersion('4.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
     _ValidatorBase = wx.Validator
