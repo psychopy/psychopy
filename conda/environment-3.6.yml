@@ -22,7 +22,7 @@ dependencies:
 - numexpr
 - numpy
 - opencv
-- openpyxl=2.4
+- openpyxl
 - pandas
 - pillow
 - pip
@@ -38,6 +38,7 @@ dependencies:
 - setuptools
 - sip
 - six
+- pytables
 - urllib3
 - wheel
 - x264
@@ -57,4 +58,3 @@ dependencies:
   - python-bidi
   - sounddevice
   - soundfile
-  - tables

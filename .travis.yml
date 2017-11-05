@@ -9,20 +9,37 @@ matrix:
   include:
     - os: linux
       python: "2.7_with_system_site_packages"
-      env: USE_ANACONDA=false DISPLAY=:99.0 AUDIODEV=null
+      env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
       python: 2.7
-      env: USE_ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
       python: 3.6
-      env: USE_ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
 
   allow_failures:
     - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
       python: 3.6
-      env: USE_ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+
 
 before_install:
   # System setup
@@ -35,7 +52,7 @@ before_install:
   - travis_retry sudo apt-get update -qq
   - sudo apt-cache policy  # What is actually available?
 
-  # This might come in handy once we switch to Trusty, as Xvfb on precise
+  # This might come in handy once we switch to Trusty, as its Xvfb
   # doesn't properly support the RANDR extension
   # - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
 
@@ -54,7 +71,7 @@ before_install:
   - sudo modprobe snd-dummy
   - sudo lsmod
 
-  - if [ $USE_ANACONDA != "true" ]; then
+  - if [ -z $ANACONDA ]; then
       echo "Installing PsychoPy dependencies via apt...";
       travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl;
       travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
@@ -67,7 +84,7 @@ before_install:
       travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
       travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
     fi
-  - if [ $USE_ANACONDA == "true" ]; then
+  - if [ -n "$ANACONDA" ]; then
       echo "Installing Miniconda environment...";
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
       bash miniconda.sh -b -p $HOME/miniconda;
@@ -76,12 +93,14 @@ before_install:
       conda config --set always_yes yes --set changeps1 no;
     fi
 
-  - if [ $USE_ANACONDA == "true" ]; then conda update -q conda; fi
-  - if [ $USE_ANACONDA == "true" ]; then conda info -a; fi
-  - if [ $USE_ANACONDA == "true" ]; then ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
-  - if [ $USE_ANACONDA == "true" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
-  - if [ $USE_ANACONDA == "true" ]; then conda env list; fi
-  - if [ $USE_ANACONDA == "true" ]; then source activate psychopy-conda; fi
+  - if [ -n "$ANACONDA" ]; then conda update -q conda; fi
+  - if [ -n "$ANACONDA" ]; then conda info -a; fi
+  - if [ -n "$ANACONDA" ]; then ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
+  - if [ -n "$ANACONDA" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
+  - if [ -n "$ANACONDA" ]; then conda env list; fi
+  - if [ -n "$ANACONDA" ]; then source activate psychopy-conda; fi
+  - if [ -n "$ANACONDA" ]; then if [ -n "$WXPYTHON" ]; then conda install wxpython=$WXPYTHON; fi; fi
+  - if [ -n "$ANACONDA" ]; then if [ -n "$OPENPYXL" ]; then conda install openpyxl=$OPENPYXL; fi; fi
 
   - echo $PATH
   - which python

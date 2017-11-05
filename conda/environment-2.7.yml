@@ -22,7 +22,7 @@ dependencies:
 - numexpr
 - numpy
 - opencv
-- openpyxl=2.4
+- openpyxl
 - pandas
 - pillow
 - pip
@@ -42,6 +42,7 @@ dependencies:
 - setuptools
 - sip
 - six
+- pytables
 - urllib3
 - wheel
 - xlrd
@@ -52,7 +53,7 @@ dependencies:
 - pytables
 - pytest
 - pytest-cov
-- wxpython=3
+- wxpython
 - zlib
 - pip:
   - et-xmlfile
@@ -64,4 +65,3 @@ dependencies:
   - python-bidi
   - sounddevice
   - soundfile
-  - tables
