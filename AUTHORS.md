@@ -95,6 +95,7 @@ PsychoPy:
 * Ram Vibhakar Suthagar
 * Rebecca Sharman
 * Richard Höchenberger
+* Robin Schubert
 * Sebastiaan Mathot
 * Sol Simpson
 * Stefan Repplinger
@@ -111,4 +112,4 @@ PsychoPy:
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
 
-*Last updated on October 19, 2017 (UTC).*
+*Last updated on November 05, 2017 (UTC).*
