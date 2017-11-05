@@ -333,6 +333,27 @@ class TestStairHandler(_BaseTestStairHandler):
                                       nReversals=len(step_sizes) + 1)
         assert staircase.nReversals == len(step_sizes) + 1
 
+    def test_applyInitialRule_False(self):
+        start_val = 10
+        step_sizes = 2
+        staircase = data.StairHandler(startVal=start_val, stepSizes=step_sizes,
+                                      nReversals=2, nUp=1, nDown=2,
+                                      applyInitialRule=False,
+                                      stepType='lin')
+
+        responses = [0, 1, 1, 0]
+        intensities = [10, 12, 12, 10]
+
+        for r in responses:
+            try:
+                staircase.__next__()
+                staircase.addResponse(r)
+            except StopIteration:
+                break
+
+        assert staircase.data == responses
+        assert staircase.intensities == intensities
+
     def test_comparison_equals(self):
         s1 = data.StairHandler(5)
         s2 = data.StairHandler(5)
