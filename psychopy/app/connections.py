@@ -18,7 +18,7 @@ import os
 from pkg_resources import parse_version
 import wx
 import wx.lib.filebrowsebutton
-if parse_version(wx.__version__) < parse_version('4.'):
+if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     import wx.lib.hyperlink as wxhl
 else:
     import wx.lib.agw.hyperlink as wxhl

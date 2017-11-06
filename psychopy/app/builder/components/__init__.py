@@ -36,7 +36,7 @@ for filename in pycFiles:
 
 def pilToBitmap(pil, scaleFactor=1.0):
     import wx
-    if parse_version(wx.__version__) < parse_version('4.0a1'):
+    if parse_version(wx.__version__) < parse_version('4.0.0a1'):
         image = wx.EmptyImage(pil.size[0], pil.size[1])
     else:
         image = wx.Image(pil.size[0], pil.size[1])

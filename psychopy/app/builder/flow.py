@@ -78,7 +78,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         # create a PseudoDC to record our drawing
         self.pdc = PseudoDC()
-        if parse_version(wx.__version__) < parse_version('4.'):
+        if parse_version(wx.__version__) < parse_version('4.0.0a1'):
             self.pdc.DrawRoundedRectangle = self.pdc.DrawRoundedRectangleRect
         self.pen_cache = {}
         self.brush_cache = {}

@@ -17,7 +17,7 @@ from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
 
-if parse_version(wx.__version__) < parse_version('4.'):
+if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
     _ValidatorBase = wx.Validator

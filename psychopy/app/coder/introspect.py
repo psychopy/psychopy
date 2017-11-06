@@ -314,7 +314,7 @@ def getTokens(command):
 
     # In case the command is unicode try encoding it
     if type(command) == str:
-        if parse_version(wx.__version__) < parse_version('4.'):
+        if parse_version(wx.__version__) < parse_version('4.0.0a1'):
             try:
                 command = command.encode(wx.GetDefaultPyEncoding())
             except UnicodeEncodeError:
