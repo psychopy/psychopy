@@ -33,11 +33,13 @@ if parse_version(tables.__version__) < parse_version('3'):
     walk_groups = "walkGroups"
     list_nodes = "listNodes"
     get_node = "getNode"
+    read_where = "readWhere"
 else:
     from tables import open_file
     walk_groups = "walk_groups"
     list_nodes = "list_nodes"
     get_node = "get_node"
+    read_where = "read_where"
 
 
 _hubFiles = []
@@ -432,7 +434,7 @@ class ExperimentDataAccessUtility(object):
                         resultSetList.append([])
 
                         for ename in event_attribute_names:
-                            resultSetList[-1].append(deviceEventTable.readWhere(wclause, field=ename))
+                            resultSetList[-1].append(getattr(deviceEventTable, read_where)(wclause, field=ename))
                         resultSetList[-1].append(wclause)
                         resultSetList[-1].append(cv)
 
@@ -473,7 +475,7 @@ class ExperimentDataAccessUtility(object):
                         wclause += " ) "
 
                     for ename in event_attribute_names:
-                        resultSetList[-1].append(deviceEventTable.readWhere(wclause, field=ename))
+                        resultSetList[-1].append(getattr(deviceEventTable, read_where)(wclause, field=ename))
                     resultSetList[-1].append(wclause)
                     resultSetList[-1].append(cv)
 
