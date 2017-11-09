@@ -692,7 +692,7 @@ try:
 
         VirtualKeyCodes.initialize()
 
-    elif sys.platform == 'linux2':
+    elif sys.platform.startswith('linux'):
         class VirtualKeyCodes(Constants):
             @classmethod
             def getName(cls,id):

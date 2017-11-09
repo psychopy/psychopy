@@ -1507,7 +1507,7 @@ class Window(object):
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 self._hw_handle = self.winHandle._nswindow.windowNumber()
-        elif sys.platform == 'linux2':
+        elif sys.platform.startswith('linux'):
             self._hw_handle = self.winHandle._window
 
         if self.useFBO:  # check for necessary extensions
