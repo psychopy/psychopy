@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from __future__ import division
 from __future__ import absolute_import
 from builtins import str
@@ -282,7 +284,7 @@ class udpServer(DatagramServer):
         try:
             num_packets = -1
             packet_data_length = -1
-            # TODO: Max packet size on OS X seems to be 8192 !!
+            # TODO: Max packet size on macOS seems to be 8192 !!
             max_size = int(MAX_PACKET_SIZE/2-20)
             packet_data = self.pack(data)
             packet_data_length = len(packet_data)
@@ -498,7 +500,7 @@ class ioServer(object):
                 experiment_datastore_config=config.get('data_store')
                 default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'datastore','default_datastore.yaml')
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
-                _dslabel,default_datastore_config=load(file(default_datastore_config_path,'r'), Loader=Loader).popitem()
+                _dslabel,default_datastore_config=load(open(default_datastore_config_path,'r'), Loader=Loader).popitem()
 
                 for default_key,default_value in default_datastore_config.items():
                     if default_key not in experiment_datastore_config:
@@ -754,7 +756,7 @@ class ioServer(object):
         #print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
         self.log("Loading Device Defaults file: %s"%(device_class_name,))
 
-        _dclass,default_device_config=load(file(dconfigPath,'r'), Loader=Loader).popitem()
+        _dclass,default_device_config=load(open(dconfigPath,'r'), Loader=Loader).popitem()
 
         #print2err("Device Defaults:\n\tdevice_class: {0}\n\tdefault_device_config:{1}\n".format(device_class_name,default_device_config))
 

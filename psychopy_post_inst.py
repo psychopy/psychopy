@@ -1,4 +1,7 @@
-from __future__ import print_function
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, print_function
 ##-----------------------------
 ##Windows post install (shortcuts etc...)
 ##-----------------------------

@@ -9,6 +9,10 @@
 '''
 Internal exception with freetype error message
 '''
+
+from __future__ import absolute_import, print_function
+
+
 class FT_Exception(Exception):
     def __init__(self, errcode, message=''):
         self.message = message

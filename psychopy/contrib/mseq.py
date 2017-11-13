@@ -51,14 +51,15 @@ run tests with:
 
 '''
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
 from builtins import map
 from builtins import range
 from past.utils import old_div
 import sys
 import numpy
+
 
 def _get_tap(baseVal, powerVal):
     """Retrieve pre-defined list of tap sequences for a given base & power, or raise ValueError.

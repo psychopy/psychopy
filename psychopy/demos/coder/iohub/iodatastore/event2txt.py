@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 This script demonstrates how to load a ioHub DataStore HDF5 file, read the
 session variable data collected via the Experiment Session Variable Dialog
@@ -8,8 +10,9 @@ tab delimited file.
 
 @author: Sol
 """
-from __future__ import print_function
-from __future__ import division
+
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
 import sys,os
 import psychopy

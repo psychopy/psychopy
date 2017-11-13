@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # We deliberately delay importing the pyparallel module until we try
 # to use it - this allows us to import the class on machines
 # which don't have it and then worry about dealing with
@@ -5,8 +8,8 @@
 
 # This is necessary to stop the local parallel.py masking the module
 # we actually want to find!
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 # We duck-type the parallel port objects
 

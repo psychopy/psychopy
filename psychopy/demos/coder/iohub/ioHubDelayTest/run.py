@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 iohub
 .. file: iohub/examples/ioHubAccessDelayTest/run.py
@@ -9,9 +12,8 @@ Changes:
     *. April, 2013: greatly improved graphics rendering time by optimizing PsychoPy stim resource usage (JG).
 
 """
-from __future__ import print_function
-from __future__ import division
 
+from __future__ import absolute_import, division, print_function
 
 from numpy import zeros
 

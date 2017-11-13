@@ -1,4 +1,5 @@
-from __future__ import print_function
+from __future__ import absolute_import, print_function
+
 # winioport.py   Provides hardware port access for Python under Windows
 # 95/98/NT/2000 
 # 

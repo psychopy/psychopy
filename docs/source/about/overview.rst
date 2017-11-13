@@ -20,7 +20,7 @@ There are many advantages to using PsychoPy, but here are some of the key ones
         - text (unicode in any truetype font)
         - shapes
         - sounds (tones, numpy arrays, wav, ogg...)
-    - Platform independent - run the same script on Win, OS X or Linux
+    - Platform independent - run the same script on Win, macOS or Linux
     - Flexible :ref:`stimulus units <units>` (degrees, cm, or pixels)
     - :ref:`coder` interface for those that like to program
     - :ref:`builder` interface for those that don't
@@ -38,6 +38,6 @@ PsychoPy supports communication via serial ports, parallel ports and compiled dr
 
 System requirements
 ----------------------
-Although PsychoPy runs on a wide variety of hardware, and on Windows, OS X or Linux, it really does benefit from a decent graphics card. Get an ATI or nVidia card that supports OpenGL 2.0. *Avoid built-in Intel graphics chips (e.g. GMA 950)*
+Although PsychoPy runs on a wide variety of hardware, and on Windows, macOS or Linux, it really does benefit from a decent graphics card. Get an ATI or nVidia card that supports OpenGL 2.0. *Avoid built-in Intel graphics chips (e.g. GMA 950)*
 
 .. _Python: http://www.python.org

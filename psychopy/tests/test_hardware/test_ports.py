@@ -52,7 +52,7 @@ def test_getLinuxSerialPorts():
     should_have = ["/dev/ttyS1","/dev/ttyACM1","/dev/ttyUSB1"]
     with nested(mock.patch("sys.platform","linux2"),
                 mock.patch("glob.iglob",globMock)):
-       assertPorts(should_have,hw.getSerialPorts())
+        assertPorts(should_have,hw.getSerialPorts())
 
 @require_mock
 def test_getDarwinSerialPorts():

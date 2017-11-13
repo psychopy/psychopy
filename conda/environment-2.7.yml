@@ -1,0 +1,67 @@
+name: anaconda-py2
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=2.7
+- backports
+- bzip2
+- cffi
+- codecov
+- coveralls
+- ffmpeg
+- freetype
+- future
+- gevent
+- greenlet
+- libffi
+- lxml
+- matplotlib
+- moviepy
+- msgpack-python
+- numexpr
+- numpy
+- opencv
+- openpyxl
+- pandas
+- pillow
+- pip
+- pixman
+- prompt_toolkit
+- psutil
+- pycparser
+- pygments
+- pyopengl
+- pyopenssl
+- pyosf
+- pyqt
+- pyserial
+- pyyaml
+- requests
+- scipy
+- setuptools
+- sip
+- six
+- pytables
+- urllib3
+- wheel
+- xlrd
+- xz
+- yaml
+- configobj
+- lzo
+- pytables
+- pytest
+- pytest-cov
+- wxpython
+- zlib
+- pip:
+  - et-xmlfile
+  - json-tricks
+  - prompt-toolkit
+  - pygame
+  - pyglet==1.3.0b1
+  - pyparallel
+  - python-bidi
+  - sounddevice
+  - soundfile

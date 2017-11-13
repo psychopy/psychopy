@@ -24,7 +24,8 @@ UPDATED MAY 2013 by Sol Simpson:
       never being found in the freetype lib. We never use it or need to,
       so just removing it was the easiest solution. ;)
 '''
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 from builtins import range
 from builtins import object
 from ctypes import *

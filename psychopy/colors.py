@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, print_function
+
 from past.builtins import basestring
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb  # pylint: disable=W0611
 import numpy

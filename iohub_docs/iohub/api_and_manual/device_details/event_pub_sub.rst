@@ -2,7 +2,7 @@
 The ioHub EventPublisher Device
 ###################################
 
-**Platforms:** Windows, OS X, Linux
+**Platforms:** Windows, macOS, Linux
 
 .. autoclass:: psychopy.iohub.devices.network.EventPublisher
     :exclude-members: clearEvents, enableEventReporting, ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES, event_buffer_length, getEvents, isReportingEvents, monitor_event_types
@@ -30,7 +30,7 @@ None at this time.
 The ioHub RemoteEventSubscriber Device
 ######################################
 
-**Platforms:** Windows, OS X, Linux
+**Platforms:** Windows, macOS, Linux
 
 .. autoclass:: psychopy.iohub.devices.network.RemoteEventSubscriber
     :exclude-members: clearEvents, enableEventReporting, ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES, event_buffer_length, getEvents, isReportingEvents, monitor_event_types

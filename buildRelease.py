@@ -1,4 +1,6 @@
-#!python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """This script is used to:
     - update the version numbers
     - update the psychopyVersions repo:
@@ -10,6 +12,7 @@
 """
 from __future__ import print_function
 from __future__ import division
+from __future__ import absolute_import
 
 from builtins import input
 import os, sys, shutil, subprocess

@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import object
 import sys
@@ -13,12 +15,13 @@ import time
 import platform
 import zipfile
 import os
+from pkg_resources import parse_version
 import wx
 import wx.lib.filebrowsebutton
-try:
-    import wx.lib.agw.hyperlink as wxhl
-except ImportError:  # if it's not there locally, try the wxPython lib
+if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     import wx.lib.hyperlink as wxhl
+else:
+    import wx.lib.agw.hyperlink as wxhl
 
 import psychopy
 from . import dialogs
@@ -344,7 +347,12 @@ class InstallUpdateDialog(wx.Dialog):
             msg += _translate("PsychoPy could not connect to the \n internet"
                               " to check for more recent versions.\n")
             msg += _translate("Check proxy settings in preferences.")
-        elif self.latest == self.runningVersion:
+        elif self.latest['version'] < self.runningVersion:
+            msg = _translate(
+                "You are running PsychoPy (%s), which is ahead of the latest"
+                " official version (%s)") % (self.runningVersion,
+                                             self.latest['version'])
+        elif self.latest['version'] == self.runningVersion:
             msg = _translate(
                 "You are running the latest version of PsychoPy (%s)\n ") % self.runningVersion
             msg += _translate("You can revert to a previous version by "

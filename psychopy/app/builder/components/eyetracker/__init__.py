@@ -1,6 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, print_function
 
 from os import path
 from .._base import BaseComponent, Param, _translate
@@ -90,7 +95,7 @@ class EyetrackerComponent(BaseComponent):
 
         # these might move to a more general place later, when we're always
         # planning on having iohub running
-        code = ("io_config = iohub.load(file(%('Config file')s,'r'), "
+        code = ("io_config = iohub.load(open(%('Config file')s,'r'), "
                 "Loader=iohub.Loader)\n"
                 "io = iohub.ioHubConnection(io_config)\n"
                 "eyetracker = io.getDevice('tracker')\n"

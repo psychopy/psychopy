@@ -8,6 +8,8 @@
 """Container for all visual-related functions and classes
 """
 
+from __future__ import absolute_import, print_function
+
 from psychopy import logging
 
 # needed for backwards-compatibility

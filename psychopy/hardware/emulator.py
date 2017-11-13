@@ -1,19 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 """Idea: Run or debug an experiment script using exactly the same code,
 i.e., for both testing and online data acquisition. To debug timing,
 you can emulate sync pulses and user responses.
 Limitations: pyglet only; keyboard events only.
 """
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, print_function
 
 from builtins import range
-__author__ = 'Jeremy Gray'
-
 import threading
 
 from psychopy import visual, event, core, logging
 from psychopy.sound import Sound  # for SyncGenerator tone
+
+__author__ = 'Jeremy Gray'
 
 
 class ResponseEmulator(threading.Thread):

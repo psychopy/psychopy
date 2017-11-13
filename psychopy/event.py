@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """To handle input from keyboard, mouse and joystick (joysticks require
 pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
@@ -9,9 +11,7 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 # 01/2011 modified by Dave Britton to get mouse event timing
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from past.builtins import basestring
 from builtins import str

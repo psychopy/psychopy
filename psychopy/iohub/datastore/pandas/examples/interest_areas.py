@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Demonstrates using Interest Areas to filter events by spatial locations. 
 

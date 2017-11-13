@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale.'''
-from __future__ import division
+"""A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale."""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import range

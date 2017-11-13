@@ -3,14 +3,14 @@
 
 """Libraries for wizards, currently firstrun configuration and benchmark.
 """
-from __future__ import print_function
-from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
+
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import str
@@ -24,8 +24,9 @@ import wx
 import numpy as np
 import platform
 import codecs
+from pkg_resources import parse_version
 
-if wx.version() < '2.9':
+if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)

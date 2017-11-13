@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """This is for general purpose dialogs/widgets, not particular functionality
 
 MessageDialog:
@@ -10,7 +13,7 @@ ListWidget:
     the user to add/remove entries. e.g. expInfo control
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from builtins import str
 from builtins import range
@@ -19,10 +22,11 @@ from wx.lib.newevent import NewEvent
 
 from psychopy import logging
 from .localization import _translate
+from pkg_resources import parse_version
 
 
 class MessageDialog(wx.Dialog):
-    """For some reason the wx built-in message dialog has issues on Mac OS X
+    """For some reason the wx built-in message dialog has issues on macOS
     (buttons don't always work) so we need to use this instead.
     """
 
@@ -591,7 +595,7 @@ class ListWidget(GlobSizer):
 
 
 if __name__ == '__main__':
-    if wx.version() < '2.9':
+    if parse_version(wx.__version__) < parse_version('2.9'):
         app = wx.PySimpleApp()
     else:
         app = wx.App(False)

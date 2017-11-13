@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/mcu/__init__.py

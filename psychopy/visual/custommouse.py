@@ -3,11 +3,12 @@
 
 """Class for more control over the mouse,
 including the pointer graphic and bounding box."""
-from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from past.utils import old_div

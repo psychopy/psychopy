@@ -4,6 +4,8 @@
 """Classes for signals to be sent upon voice-key trip events.
 """
 
+from __future__ import absolute_import, print_function
+
 import threading
 
 

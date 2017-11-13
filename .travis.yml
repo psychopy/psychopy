@@ -1,52 +1,134 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
 dist: precise  # the default (trusty) causing problem with SSL as of Aug 2017
+sudo: true
+
 language: python
-python:
-  - "2.7"
-virtualenv:
-  system_site_packages: true
+
+matrix:
+  include:
+    - os: linux
+      python: "2.7_with_system_site_packages"
+      env: DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 3.6
+      env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+
+  allow_failures:
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 2.7
+      env: ANACONDA=true WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+
+    - os: linux
+      python: 3.6
+      env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+
+
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install lsb-release
+  # System setup
+  - travis_retry sudo apt-get update -qq
+  - travis_retry sudo apt-get install -qq lsb-release
   - source /etc/lsb-release
   - echo ${DISTRIB_CODENAME}
   - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
   - wget -q -O- http://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
   - travis_retry sudo apt-get update -qq
-  - sudo apt-cache policy           # What is actually available?
-  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
-  - travis_retry sudo apt-get install -qq python-pygame python-opengl
-  - travis_retry sudo -H pip install --upgrade -qq pip
-  - travis_retry sudo -H pip install --upgrade -qq soundfile
-  - travis_retry sudo -H pip install --upgrade -qq sounddevice
-  - travis_retry sudo -H pip install -qq pyglet==1.3.0b1
-  - python -c 'import pyglet; print pyglet.version'
-  - travis_retry sudo -H pip install -q pillow
-  - travis_retry sudo -H pip install -q pyosf
-  - travis_retry sudo -H pip install -q xlrd
-#  - python -c 'import Image; print Image.PILLOW_VERSION'
-  - travis_retry sudo -H pip install -qq gevent # Don't use apt-get (too old version of gevent)
-  - travis_retry sudo apt-get install -qq python-yaml python-xlib
-  - travis_retry sudo -H pip install -qq psutil # Don't use apt-get (too old version of psutil)
-  - travis_retry sudo -H pip install -qq msgpack-python #not apt-get (no permissions for universe)
-  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
-  - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
-  - travis_retry sudo apt-get install -qq python-pandas
-  - travis_retry sudo apt-get install -qq python-qt4
-  - travis_retry sudo pip install -qq codecov
-  - travis_retry sudo pip install -qq future json_tricks
-install:
+  - sudo apt-cache policy  # What is actually available?
+
+  # This might come in handy once we switch to Trusty, as its Xvfb
+  # doesn't properly support the RANDR extension
+  # - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
+
+  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
+  - travis_retry sudo apt-get install -qq libportaudio2
   - travis_retry sudo apt-get install -qq flac
   - flac -version
-  #- travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
+
+  # Locales
+  # - travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
   - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
-  #- sudo dpkg-reconfigure locales
-  #- locale -a       # list available locales
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q pyserial pycrsltd; fi
+  # - sudo dpkg-reconfigure locales
+  # - locale -a  # list available locales
+
+  - travis_retry sudo apt-get install -qq libasound2-dev alsa-utils alsa-oss
+  - sudo modprobe snd-dummy
+  - sudo lsmod
+
+  - if [ -z $ANACONDA ]; then
+      echo "Installing PsychoPy dependencies via apt...";
+      travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl;
+      travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
+      travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj;
+      travis_retry sudo apt-get install -qq python-imaging python-mock;
+      travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8;
+      travis_retry sudo apt-get install -qq python-pyo python-opencv;
+      travis_retry sudo apt-get install -qq python-mock;
+      echo "Installing PsychoPy dependencies via pip...";
+      travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
+      travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
+    fi
+  - if [ -n "$ANACONDA" ]; then
+      echo "Installing Miniconda environment...";
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      bash miniconda.sh -b -p $HOME/miniconda;
+      export PATH="$HOME/miniconda/bin:$PATH";
+      hash -r;
+      conda config --set always_yes yes --set changeps1 no;
+    fi
+
+  - if [ -n "$ANACONDA" ]; then conda update -q conda; fi
+  - if [ -n "$ANACONDA" ]; then conda info -a; fi
+  - if [ -n "$ANACONDA" ]; then ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
+  - if [ -n "$ANACONDA" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
+  - if [ -n "$ANACONDA" ]; then conda env list; fi
+  - if [ -n "$ANACONDA" ]; then source activate psychopy-conda; fi
+  - if [ -n "$ANACONDA" ]; then if [ -n "$WXPYTHON" ]; then conda install wxpython=$WXPYTHON; fi; fi
+  - if [ -n "$ANACONDA" ]; then if [ -n "$OPENPYXL" ]; then conda install openpyxl=$OPENPYXL; fi; fi
+
+  - echo $PATH
+  - which python
+  - python --version
+  - python -c 'import pyglet; print(pyglet.version)'
+  - python -c 'import matplotlib; print(matplotlib.__version__)'
+  - python -c 'import PIL; print(PIL.__version__)'
+  - python -c 'import wx; print(wx.__version__)'
+  - python -c 'import openpyxl; print(openpyxl.__version__)'
+  - python -c 'import tables; print(tables.__version__)'
+
+install:
+  - python setup.py build
+  - python setup.py install
+
+before_script:
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
+    fi
+
+# This might come in handy once we switch to Trusty
+#  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+#      xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
+#    fi;
+
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" coverage run --rcfile=.travis_coveragerc psychopy/tests/runPytest.py -v -s -m "not needs_sound"; else { echo "TODO while avoiding duplication"; exit 1; } fi
+  - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
+
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - coveralls
   - codecov

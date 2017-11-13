@@ -21,7 +21,7 @@ you would now use:
 Check your experiment still works as expected!
 """
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from psychopy import visual, core, event, logging
 from psychopy.hardware import crs

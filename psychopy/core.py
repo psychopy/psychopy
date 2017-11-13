@@ -1,11 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import object
 import sys
@@ -15,7 +17,9 @@ import shlex
 
 # some things are imported just to be accessible within core's namespace
 from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
-                            wait, monotonicClock, getAbsTime)  # pylint: disable=W0611
+                            wait, monotonicClock, getAbsTime,
+                            StaticPeriod)  # pylint: disable=W0611
+
 # always safe to call rush, even if its not going to do anything for a
 # particular OS
 from psychopy.platform_specific import rush  # pylint: disable=W0611
@@ -73,12 +77,46 @@ def quit():
     sys.exit(0)  # quits the python session entirely
 
 
-def shellCall(shellCmd, stdin='', stderr=False):
+def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
     """Call a single system command with arguments, return its stdout.
     Returns stdout, stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested
     on windows) can accept string or list as the first argument
+
+    Parameters
+    ----------
+    shellCmd : str, or iterable
+        The command to execute, and its respective arguments.
+
+    stdin : str, or None
+        Input to pass to the command.
+
+    stderr : bool
+        Whether to return the standard error output once execution is finished.
+
+    env : dict
+        The environment variables to set during execution.
+
+    encoding : str
+        The encoding to use for communication with the executed command.
+        This argument will be ignored on Python 2.7.
+
+    Notes
+    -----
+    We use ``subprocess.Popen`` to execute the command and establish
+    `stdin` and `stdout` pipes.
+    Python 2.7 always opens the pipes in text mode; however,
+    Python 3 defaults to binary mode, unless an encoding is specified.
+    To unify pipe communication across Python 2 and 3, we now provide an
+    `encoding` parameter, enforcing `utf-8` text mode by default.
+    This parameter is present from Python 3.6 onwards; using an older
+    Python 3 version will raise an exception. The parameter will be ignored
+    when running Python 2.7.
+
     """
+    if env is None:
+        env = dict()
+
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
@@ -88,92 +126,35 @@ def shellCall(shellCmd, stdin='', stderr=False):
     elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
-        return None, 'shellCmd requires a list or string'
+        msg = 'shellCmd requires a string or iterable.'
+        raise TypeError(msg)
+
     bytesObjects = []
     for obj in shellCmdList:
         if type(obj) != bytes:
             bytesObjects.append(obj.encode('utf-8'))
         else:
             bytesObjects.append(obj)
-    proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Since Python 3.6, we can use the `encoding` parameter.
+    if PY3:
+        if sys.version_info.minor >= 6:
+            proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    encoding=encoding, env=env)
+        else:
+            msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
+            raise RuntimeError(msg)
+    else:
+        proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env)
+
     stdoutData, stderrData = proc.communicate(stdin)
+
     del proc
     if stderr:
         return stdoutData.strip(), stderrData.strip()
     else:
         return stdoutData.strip()
-
-
-class StaticPeriod(object):
-    """A class to help insert a timing period that includes code to be run.
-
-    Typical usage::
-
-        fixation.draw()
-        win.flip()
-        ISI = StaticPeriod(screenHz=60)
-        ISI.start(0.5)  # start a period of 0.5s
-        stim.image = 'largeFile.bmp'  # could take some time
-        ISI.complete()  # finish the 0.5s, taking into account one 60Hz frame
-
-        stim.draw()
-        win.flip()  # the period takes into account the next frame flip
-        # time should now be at exactly 0.5s later than when ISI.start()
-        # was called
-
-    """
-
-    # NB - this might seem to be more sensible in the clock.py module,
-    # but that creates a circular reference with the logging module.
-
-    def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
-        """
-        :param screenHz: the frame rate of the monitor (leave as None if you
-            don't want this accounted for)
-        :param win: if a visual.Window is given then StaticPeriod will
-            also pause/restart frame interval recording
-        :param name: give this StaticPeriod a name for more informative
-            logging messages
-        """
-        self.status = NOT_STARTED
-        self.countdown = CountdownTimer()
-        self.name = name
-        self.win = win
-        if screenHz is None:
-            self.frameTime = 0
-        else:
-            self.frameTime = 1.0 / screenHz
-
-    def start(self, duration):
-        """Start the period. If this is called a second time, the timer will
-        be reset and starts again
-
-        :param duration: The duration of the period, in seconds.
-        """
-        self.status = STARTED
-        self.countdown.reset(duration - self.frameTime)
-        # turn off recording of frame intervals throughout static period
-        if self.win:
-            self.win.recordFrameIntervals = False
-            self._winWasRecordingIntervals = self.win.recordFrameIntervals
-
-    def complete(self):
-        """Completes the period, using up whatever time is remaining with a
-        call to wait()
-
-        :return: 1 for success, 0 for fail (the period overran)
-        """
-        self.status = FINISHED
-        timeRemaining = self.countdown.getTime()
-        if self.win:
-            self.win.recordFrameIntervals = self._winWasRecordingIntervals
-        if timeRemaining < 0:
-            msg = ('We overshot the intended duration of %s by %.4fs. The '
-                   'intervening code took too long to execute.')
-            vals = self.name, abs(timeRemaining)
-            logging.warn(msg % vals)
-            return 0
-        else:
-            wait(timeRemaining)
-            return 1

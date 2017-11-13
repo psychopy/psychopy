@@ -23,20 +23,23 @@ from builtins import range
 import time
 import sys
 import numpy as np
+import gc
+import pytest
+
 import psychopy
 import psychopy.logging as logging
 from psychopy.visual import Window
-from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait, StaticPeriod, shellCall
+from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
+                           StaticPeriod, shellCall)
 from psychopy.clock import monotonicClock
 from psychopy.constants import PY3
-import gc
 
-import pytest
 
-def testEmptyFunction():
+def test_EmptyFunction():
     pass
 
-PRINT_TEST_RESULTS=False
+PRINT_TEST_RESULTS = False
+
 
 def printf(*args):
     if PRINT_TEST_RESULTS:
@@ -44,14 +47,17 @@ def printf(*args):
             sys.stdout(a)
         print('')
 
-py_time=None
-py_timer_name=None
+
+py_time = None
+py_timer_name = None
+
 if sys.platform == 'win32':
     py_time=time.clock
-    py_timer_name='time.clock'
+    py_timer_name = 'time.clock'
 else:
     py_time=time.time
-    py_timer_name='time.time'
+    py_timer_name = 'time.time'
+
 
 def printExceptionDetails():
     import traceback,pprint
@@ -60,8 +66,9 @@ def printExceptionDetails():
     pprint.pprint(exc_value, indent=1, width=80, depth=None)
     pprint.pprint(traceback.format_tb(exc_traceback), indent=1, width=80, depth=None)
 
+
 @pytest.mark.slow
-def testDelayDurationAccuracy(sample_size=100):
+def test_DelayDurationAccuracy(sample_size=100):
     # test with sample_size randomly selected durations between 0.05 and 1.0 msec
     durations=np.zeros((3,sample_size))
     durations[0,:]=(np.random.random_integers(50,1000,sample_size)*0.001)
@@ -108,8 +115,9 @@ def testDelayDurationAccuracy(sample_size=100):
         printf("\nDuration Difference Test: FAILED")
     printf("-------------------------------------\n")
 
+
 @pytest.mark.slow
-def testTimebaseQuality(sample_size=1000):
+def test_TimebaseQuality(sample_size=1000):
     gc.disable()
 
     callTimes=np.zeros((5,sample_size))
@@ -131,7 +139,7 @@ def testTimebaseQuality(sample_size=1000):
            core_getTime_jumpbacks+=1
 
        s=py_time()
-       x=testEmptyFunction()
+       x=test_EmptyFunction()
        e=py_time()
        callTimes[2][t]=e-s
 
@@ -186,7 +194,8 @@ def testTimebaseQuality(sample_size=1000):
 
     printf("-------------------------------------\n")
 
-def testMonotonicClock():
+
+def test_MonotonicClock():
     try:
         mc = MonotonicClock()
 
@@ -228,7 +237,8 @@ def testMonotonicClock():
 
     printf("-------------------------------------\n")
 
-def testClock():
+
+def test_Clock():
     try:
         c = Clock()
 
@@ -266,7 +276,8 @@ def testClock():
 
     printf("-------------------------------------\n")
 
-def testCountdownTimer():
+
+def test_CountdownTimer():
     try:
         cdt = CountdownTimer(5.0)
 
@@ -285,7 +296,8 @@ def testCountdownTimer():
 
     printf("-------------------------------------\n")
 
-def testWait(duration=1.55):
+
+def test_Wait(duration=1.55):
     try:
         t1=getTime()
         wait(duration)
@@ -317,11 +329,12 @@ def testWait(duration=1.55):
 
     printf("-------------------------------------\n")
 
-def testLoggingDefaultClock():
+
+def test_LoggingDefaultClock():
     try:
-        t1=logging.defaultClock.getTime()
-        t2=getTime()
-        t3=monotonicClock.getTime()
+        t1 = logging.defaultClock.getTime()
+        t2 = getTime()
+        t3 = monotonicClock.getTime()
 
         assert np.fabs(t1-t2) < 0.02
         assert np.fabs(t1-t3) < 0.02
@@ -337,8 +350,9 @@ def testLoggingDefaultClock():
 
     printf("-------------------------------------\n")
 
+
 @pytest.mark.staticperiod
-def testStaticPeriod():
+def test_StaticPeriod():
     static = StaticPeriod()
     static.start(0.1)
     wait(0.05)
@@ -350,7 +364,7 @@ def testStaticPeriod():
     win = Window(autoLog=False)
     static = StaticPeriod(screenHz=60, win=win)
     static.start(.002)
-    assert win.recordFrameIntervals == False
+    assert win.recordFrameIntervals is False
     static.complete()
     assert static._winWasRecordingIntervals == win.recordFrameIntervals
     win.close()
@@ -380,31 +394,70 @@ def test_quit():
     with pytest.raises(SystemExit):
         psychopy.core.quit()
 
-@pytest.mark.shellCall
-def test_shellCall():
-    if PY3:
-        # This call to shellCall from tests is failing from Python3
-        # but maybe it just isn't a great test anyway?!
-        # shellCall is used by PsychoPy Tools>Run and works on Py3 there!
-        pytest.xfail(reason="Failing on Py3")
-    msg = 'echo'
-    cmd = ('grep', 'findstr')[sys.platform == 'win32']
 
-    for arg1 in [[cmd, msg],  cmd+' '+msg]:
-        echo = shellCall(arg1, stdin=msg)
-        assert echo == msg
-        echo, se = shellCall(arg1, stdin=msg, stderr=True)
-        assert echo == msg
-    echo, se = shellCall(12, stdin=msg)
-    assert echo is None
+@pytest.mark.shellCall
+class Test_shellCall(object):
+    def setup_class(self):
+        if sys.platform == 'win32':
+            self.cmd = 'findstr'
+            self.env_cmd = 'set'
+        else:
+            self.cmd = 'grep'
+            self.env_cmd = 'env'
+
+        self.msg = 'echo'
+
+    def test_invalid_argument(self):
+        with pytest.raises(TypeError):
+            shellCall(12345)
+
+    def test_stdin(self):
+        echo = shellCall([self.cmd, self.msg], stdin=self.msg)
+        assert echo == self.msg
+
+        echo = shellCall(self.cmd + ' ' + self.msg, stdin=self.msg)
+        assert echo == self.msg
+
+    def test_stderr(self):
+        _, se = shellCall([self.cmd, self.msg], stderr=True)
+        assert se == ''
+
+        _, se = shellCall(self.cmd + ' ' + self.msg, stderr=True)
+        assert se == ''
+
+    def test_stdin_and_stderr(self):
+        echo, se = shellCall([self.cmd, self.msg], stdin='echo', stderr=True)
+        assert echo == self.msg
+        assert se == ''
+
+        echo, se = shellCall(self.cmd + ' ' + self.msg, stdin='echo',
+                             stderr=True)
+        assert echo == self.msg
+        assert se == ''
+
+    def test_encoding(self):
+        shellCall([self.cmd, self.msg], stdin=self.msg, encoding='utf-8')
+
+        if PY3:
+            with pytest.raises(TypeError):
+                shellCall([self.cmd, self.msg], stdin=self.msg, encoding=None)
+
+    def test_env(self):
+        echo = shellCall(self.env_cmd)
+        assert echo == ''
+
+        echo = shellCall(self.env_cmd, env=dict(FOO='1'))
+        assert echo == 'FOO=1'
+
+
 
 if __name__ == '__main__':
-    testMonotonicClock()
-    testClock()
-    testCountdownTimer()
-    testWait()
-    testLoggingDefaultClock()
-    testTimebaseQuality()
-    testStaticPeriod()
+    test_MonotonicClock()
+    test_Clock()
+    test_CountdownTimer()
+    test_Wait()
+    test_LoggingDefaultClock()
+    test_TimebaseQuality()
+    test_StaticPeriod()
     printf("\n** Next Test will Take ~ 1 minute...**\n")
-    testDelayDurationAccuracy()
+    test_DelayDurationAccuracy()

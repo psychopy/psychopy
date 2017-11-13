@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 '''Wrapper for iViewXAPI.h
 
 Generated with:
@@ -400,9 +402,8 @@ class LibraryLoader(object):
     def getplatformpaths(self, libname):
         return []
 
-# Darwin (Mac OS X)
 
-class DarwinLibraryLoader(LibraryLoader):
+class DarwinLibraryLoader(LibraryLoader):  # Darwin (macOS)
     name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
                 "%s.so", "%s.bundle", "%s"]
 
@@ -424,7 +425,7 @@ class DarwinLibraryLoader(LibraryLoader):
 
         Before commencing the standard search, the method first checks
         the bundle's ``Frameworks`` directory if the application is running
-        within a bundle (OS X .app).
+        within a bundle (macOS .app).
         '''
 
         dyld_fallback_library_path = _environ_path("DYLD_FALLBACK_LIBRARY_PATH")

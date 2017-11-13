@@ -1,11 +1,14 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """Compiles a Python script (*.py) form a PsychoPy Builder Experiment file (.psyexp)
 """
-from __future__ import print_function
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, print_function
 
 import argparse
 

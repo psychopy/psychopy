@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """iohub provides an integrated framework to interact with input and output
 devices (from keyboards and mice to eyetrackers and custom hardware) in a
 precise synchronised manner that will not interfere with stimulus presentation
@@ -13,9 +15,7 @@ precise synchronised manner that will not interfere with stimulus presentation
 # Distributed under the terms of the GNU General Public License
 # (GPL version 3 or any later version).
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 import sys
 if sys.platform == 'darwin':

@@ -8,15 +8,16 @@
 """
 Module containing validators for various parameters.
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from past.builtins import basestring
 import wx
 from ..localization import _translate
 from . import experiment
 from .localizedStrings import _localized
+from pkg_resources import parse_version
 
-if wx.version()<"4":
+if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
     _ValidatorBase = wx.Validator

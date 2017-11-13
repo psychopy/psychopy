@@ -1,13 +1,16 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Audio capture and analysis using pyo"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""Audio capture and analysis using pyo"""
+
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str

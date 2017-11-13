@@ -1,4 +1,7 @@
-﻿"""
+﻿#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
 ioHub
 .. file: ioHub/devices/experiment/__init__.py
 

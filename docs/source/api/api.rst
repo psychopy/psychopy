@@ -11,6 +11,7 @@ Contents:
 
    core
    visual
+   clock
    *
 
 .. only:: html

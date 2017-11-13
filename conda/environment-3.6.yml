@@ -1,0 +1,60 @@
+name: anaconda-py3
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=3.6
+- backports
+- bzip2
+- cffi
+- codecov
+- coveralls
+- ffmpeg
+- freetype
+- future
+- gevent
+- greenlet
+- hdf5
+- lxml
+- matplotlib
+- moviepy
+- msgpack-python
+- numexpr
+- numpy
+- opencv
+- openpyxl
+- pandas
+- pillow
+- pip
+- pyopengl
+- pyosf
+- pyqt
+- pyserial
+- pytest
+- pytest-cov
+- pyyaml
+- requests
+- scipy
+- setuptools
+- sip
+- six
+- pytables
+- urllib3
+- wheel
+- x264
+- xlrd
+- xz
+- yaml
+- configobj
+- lzo
+- pytables
+- wxpython
+- zlib
+- pip:
+  - json-tricks
+  - pygame
+  - pyglet==1.3.0b1
+  - pyparallel
+  - python-bidi
+  - sounddevice
+  - soundfile

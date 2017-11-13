@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/serial/__init__.py
@@ -496,9 +498,12 @@ class Pstbox(Serial):
     def __init__(self, *args, **kwargs):
         Serial.__init__(self, *args, **kwargs)
 
-        self._nbuttons = 5
+        self._nbuttons = 7
         # Buttons 0--4, from left to right:
         # [1, 2, 4, 8, 16]
+        # Buttons 5--6 are connected devices which generate button presses 
+        # (e.g. a refresh detector which responds when a certain luminance is 
+        # exceeded)
         self._button_bytes = 2**N.arange(self._nbuttons, dtype='uint8')
 
         self._nlamps = 5

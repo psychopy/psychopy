@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -14,6 +13,7 @@ import os
 import re
 import pickle
 import time
+import codecs
 import numpy as np
 import pandas as pd
 
@@ -21,6 +21,7 @@ from collections import OrderedDict
 from distutils.version import StrictVersion
 
 from psychopy import logging
+from psychopy.constants import PY3
 
 try:
     import openpyxl
@@ -279,11 +280,14 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if not haveOpenpyxl:
             raise ImportError('openpyxl or xlrd is required for loading excel '
                               'files, but neither was found.')
-        if openpyxl.__version__ < "1.8":  # data_only added in 1.8
+
+        # data_only was added in 1.8
+        if StrictVersion(openpyxl.__version__) < StrictVersion('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
+
         logging.debug("Read excel file with openpyxl: {}".format(fileName))
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
@@ -538,4 +542,14 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     For date in the format of the current localization, do:
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
-    return time.strftime(format, time.localtime())
+    now = time.strftime(format, time.localtime())
+    if PY3:
+        return now
+    else:
+        try:
+            now_decoded = codecs.utf_8_decode(now)[0]
+        except UnicodeDecodeError:
+            # '2011_03_16_1307'
+            now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
+
+        return now_decoded
