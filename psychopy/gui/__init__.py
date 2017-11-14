@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
+
 #  Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -11,8 +12,7 @@ This lib will attempt to use PyQt (4 or 5) if possible and will revert to
 using wxPython if PyQt is not found.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 haveQt = False  # until we find otherwise
 

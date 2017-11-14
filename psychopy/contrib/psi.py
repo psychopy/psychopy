@@ -12,7 +12,7 @@
 #
 #   Please see <http://www.gnu.org/licenses/> for a copy of the GNU General Public License.
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import range
 from builtins import object

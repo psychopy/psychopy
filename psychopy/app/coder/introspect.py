@@ -1,5 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Provides a variety of introspective-type support functions for
 things like call tips and command auto completion."""
+
+from __future__ import absolute_import, print_function
 
 from past.builtins import cmp
 from future import standard_library
@@ -14,6 +19,7 @@ import inspect
 import tokenize
 import types
 import wx
+from pkg_resources import parse_version
 
 
 def getAutoCompleteList(command='', locals=None, includeMagic=1,
@@ -308,10 +314,11 @@ def getTokens(command):
 
     # In case the command is unicode try encoding it
     if type(command) == str:
-        try:
-            command = command.encode(wx.GetDefaultPyEncoding())
-        except UnicodeEncodeError:
-            pass  # otherwise leave it alone
+        if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+            try:
+                command = command.encode(wx.GetDefaultPyEncoding())
+            except UnicodeEncodeError:
+                pass  # otherwise leave it alone
 
     f = io.StringIO(command)
     # tokens is a list of token tuples, each looking like:

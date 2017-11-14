@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Migration helper script for Coder demos: test the conversion
 
   For all demos (there are ~70 or so total):
@@ -12,7 +15,7 @@
       leading comment
       shebang, encoding
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import sys, glob, os
 

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -10,10 +13,12 @@
 # insensitive somewhere
 
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import range
 from numpy import ubyte
 from psychopy import core, event, logging
+
 try:
     import ioLabs
     from ioLabs import USBBox, REPORT, COMMAND

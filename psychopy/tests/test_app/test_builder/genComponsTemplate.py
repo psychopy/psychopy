@@ -1,8 +1,9 @@
 from __future__ import print_function
 import sys, os
 
+from pkg_resources import parse_version
 import wx
-if wx.version() < '2.9':
+if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
@@ -26,7 +27,7 @@ try:
     allComp = getAllComponents(fetchIcons=False)
 except Exception:
     import wx
-    if wx.version() < '2.9':
+    if parse_version(wx.__version__) < parse_version('2.9'):
         tmpApp = wx.PySimpleApp()
     else:
         tmpApp = wx.App(False)

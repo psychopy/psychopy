@@ -11,6 +11,9 @@
 # pylint: disable=W0611
 # W0611 = Unused import %s
 
+from __future__ import absolute_import, print_function
+
+
 from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
                                        ratioRange, shuffleArray, val2array)
 

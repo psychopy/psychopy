@@ -7,6 +7,7 @@
 
 """Functions and classes related to file and directory error handling
 """
+from __future__ import absolute_import, print_function
 
 from builtins import str
 import os

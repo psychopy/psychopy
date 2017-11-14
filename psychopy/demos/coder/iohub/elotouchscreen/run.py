@@ -1,17 +1,20 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Created on Thu Oct 03 12:50:46 2013
 
 @author: Sol
 """
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
 from psychopy import visual
 from psychopy.iohub import ioHubExperimentRuntime,EventConstants,module_directory
 import math
 import numpy as np
 import time
+
 
 class EloTouchScreenDemo(ioHubExperimentRuntime):
     """

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/util/dialogs.py
@@ -15,15 +18,16 @@ from __future__ import absolute_import
 from builtins import object
 import os
 import wx
-import wx.lib.agw.genericmessagedialog as GMD     
-   
+import wx.lib.agw.genericmessagedialog as GMD
+from pkg_resources import parse_version
+
 class ioHubDialog(object):
     wxapp=None
     def __init__(self,display_index=0):
         self.dialog=None
         self.display_index=display_index
         if ioHubDialog.wxapp is None:
-            if wx.version() < '2.9':
+            if parse_version(wx.__version__) < parse_version('2.9'):
                 ioHubDialog.wxapp = wx.PySimpleApp()
             else:
                 ioHubDialog.wxapp = wx.GetApp()

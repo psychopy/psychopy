@@ -8,7 +8,7 @@
 """Dialog classes for the Builder, including ParamCtrls
 """
 
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import str

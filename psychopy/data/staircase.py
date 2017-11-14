@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -70,6 +69,7 @@ class StairHandler(_BaseTrialHandler):
                  nTrials=0,
                  nUp=1,
                  nDown=3,  # correct responses before stim goes down
+                 applyInitialRule=True,
                  extraInfo=None,
                  method='2AFC',
                  stepType='db',
@@ -110,6 +110,11 @@ class StairHandler(_BaseTrialHandler):
             nDown:
                 The number of 'correct' (or 1) responses before the
                 staircase level decreases.
+
+            applyInitialRule : bool
+                Whether to apply a 1-up/1-down rule until the first reversal
+                point (if `True`), before switching to the specified up/down
+                rule.
 
             extraInfo:
                 A dictionary (typically) that will be stored along with
@@ -156,6 +161,7 @@ class StairHandler(_BaseTrialHandler):
         self.startVal = startVal
         self.nUp = nUp
         self.nDown = nDown
+        self.applyInitialRule = applyInitialRule
         self.extraInfo = extraInfo
         self.method = method
         self.stepType = stepType
@@ -199,7 +205,7 @@ class StairHandler(_BaseTrialHandler):
         self.maxVal = maxVal
         self.autoLog = autoLog
         # a flag for the 1-up 1-down initial rule:
-        self.initialRule = 0
+        self.initialRule = False
 
         # self.originPath and self.origin (the contents of the origin file)
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
@@ -277,7 +283,7 @@ class StairHandler(_BaseTrialHandler):
         current direction.
         """
 
-        if len(self.reversalIntensities) < 1:
+        if not self.reversalIntensities and self.applyInitialRule:
             # always using a 1-down, 1-up rule initially
             if self.data[-1] == 1:  # last answer correct
                 # got it right
@@ -298,7 +304,8 @@ class StairHandler(_BaseTrialHandler):
                 self.currentDirection = 'up'
         elif self.correctCounter >= self.nDown:
             # n right, time to go down!
-            if self.currentDirection != 'down':
+            # 'start' covers `applyInitialRule=False`.
+            if self.currentDirection not in ['start', 'down']:
                 reversal = True
             else:
                 reversal = False
@@ -306,7 +313,8 @@ class StairHandler(_BaseTrialHandler):
         elif self.correctCounter <= -self.nUp:
             # n wrong, time to go up!
             # note current direction
-            if self.currentDirection != 'up':
+            # 'start' covers `applyInitialRule=False`.
+            if self.currentDirection not in ['start', 'up']:
                 reversal = True
             else:
                 reversal = False
@@ -318,14 +326,15 @@ class StairHandler(_BaseTrialHandler):
         # add reversal info
         if reversal:
             self.reversalPoints.append(self.thisTrialN)
-            if len(self.reversalIntensities) < 1:
-                self.initialRule = 1
+            if not self.reversalIntensities and self.applyInitialRule:
+                self.initialRule = True
             self.reversalIntensities.append(self.intensities[-1])
 
         # test if we're done
         if (len(self.reversalIntensities) >= self.nReversals and
                     len(self.intensities) >= self.nTrials):
             self.finished = True
+
         # new step size if necessary
         if reversal and self._variableStep:
             if len(self.reversalIntensities) >= len(self.stepSizes):
@@ -337,8 +346,9 @@ class StairHandler(_BaseTrialHandler):
                 self.stepSizeCurrent = self.stepSizes[_sz]
 
         # apply new step size
-        if len(self.reversalIntensities) < 1 or self.initialRule == 1:
-            self.initialRule = 0  # reset the flag
+        if ((not self.reversalIntensities or self.initialRule) and
+                self.applyInitialRule):
+            self.initialRule = False  # reset the flag
             if self.data[-1] == 1:
                 self._intensityDec()
             else:
@@ -372,7 +382,7 @@ class StairHandler(_BaseTrialHandler):
                 # do stuff here for the trial
 
         """
-        if self.finished == False:
+        if not self.finished:
             # check that all 'otherData' is aligned with current trialN
             for key in self.otherData:
                 while len(self.otherData[key]) < self.thisTrialN:
@@ -662,11 +672,12 @@ class StairHandler(_BaseTrialHandler):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                            fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
 
 
 class QuestObject_(QuestObject, _ComparisonMixin):
@@ -1572,11 +1583,12 @@ class MultiStairHandler(_BaseTrialHandler):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                           fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
 
     def saveAsExcel(self, fileName, matrixOnly=False, appendFile=False,
                     fileCollisionMethod='rename'):

@@ -15,7 +15,7 @@ print("\nSystem info:")
 print(platform.platform())
 if sys.platform == 'darwin':
     OSXver, junk, architecture = platform.mac_ver()
-    print("OS X %s running on %s" % (OSXver, architecture))
+    print("macOS %s running on %s" % (OSXver, architecture))
 
 print("\nPython info")
 print(sys.executable)

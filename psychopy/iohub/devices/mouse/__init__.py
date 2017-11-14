@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/mouse/__init__.py
@@ -144,7 +146,7 @@ class MouseDevice(Device):
         method gets the current system cursor pos using ctypes.
 
         Windows only
-        TODO: Add OS X and Linux support
+        TODO: Add macOS and Linux support
         """
         if self._position is None:
             if Computer.system == 'win32':
@@ -161,7 +163,7 @@ class MouseDevice(Device):
                     self._position = [mpos.x,mpos.y]
                     self._lastPosition = self._position
             else:
-                # TODO : Handle OS X and Linux in this case.
+                # TODO : Handle macOS and Linux in this case.
                 self._position = 0.0,0.0
                 self._lastPosition = 0.0,0.0
 
@@ -390,8 +392,8 @@ class MouseInputEvent(DeviceEvent):
                      ('x_position',N.int16),    # x position of the position when the event occurred
                      ('y_position',N.int16),    # y position of the position when the event occurred
 
-                     ('scroll_dx', N.int8),  # horizontal scroll wheel position change when the event occurred (OS X only)
-                     ('scroll_x', N.int16),  # horizontal scroll wheel abs. position when the event occurred (OS X only)
+                     ('scroll_dx', N.int8),  # horizontal scroll wheel position change when the event occurred (macOS only)
+                     ('scroll_x', N.int16),  # horizontal scroll wheel abs. position when the event occurred (macOS only)
                      ('scroll_dy', N.int8),  # vertical scroll wheel position change when the event occurred
                      ('scroll_y', N.int16),  # vertical scroll wheel abs. position when the event occurred
 
@@ -426,11 +428,11 @@ class MouseInputEvent(DeviceEvent):
         self.y_position=None
         
         #: Horizontal scroll wheel position change when the event occurred.
-        #: OS X Only. Always 0 on other OS's.
+        #: macOS only. Always 0 on other OS's.
         self.scroll_dx=None
 
         #: Horizontal scroll wheel absolute position when the event occurred.
-        #: OS X Only. Always 0 on other OS's.
+        #: macOS only. Always 0 on other OS's.
         self.scroll_x=None
 
         #: Vertical scroll wheel position change when the event occurred.
@@ -505,7 +507,7 @@ class MouseScrollEvent(MouseInputEvent):
     """
     MouseScrollEvent's are generated when the scroll wheel on the 
     Mouse Device (if it has one) is moved. Vertical scrolling is supported
-    on all operating systems, horizontal scrolling is only supported on OS X.
+    on all operating systems, horizontal scrolling is only supported on macOS.
     
     Each MouseScrollEvent provides the number of units the wheel was turned 
     in each supported dimension, as well as the absolute scroll value for 

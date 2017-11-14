@@ -28,9 +28,9 @@ def run(rootScriptPathDir,configFilePath):
         tf.close()
         os.remove(configFilePath)
     else:
-        ioHubConfig=load(file(configFilePath,'r'), Loader=Loader)
+        ioHubConfig=load(open(configFilePath,'r'), Loader=Loader)
 
-    hub_defaults_config=load(file(os.path.join(psychopy.iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+    hub_defaults_config=load(open(os.path.join(psychopy.iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
     updateDict(ioHubConfig,hub_defaults_config)
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)

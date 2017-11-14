@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Control joysticks and gamepads from within PsychoPy.
 
 You do need a window (and you need to be flipping it) for the joystick to be
@@ -29,7 +32,7 @@ Typical usage::
         win.flip()  # flipping implicitly updates the joystick info
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from builtins import range
 from builtins import object

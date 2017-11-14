@@ -14,6 +14,7 @@ translation _translate():
 
 # Author: Jeremy Gray, July 2014
 
+from __future__ import absolute_import, print_function
 
 from builtins import str
 from builtins import map
@@ -24,6 +25,7 @@ import glob
 import codecs
 from psychopy import logging, prefs
 import psychopy.constants
+from pkg_resources import parse_version
 
 import wx
 
@@ -31,7 +33,7 @@ import wx
 try:
     wx.Dialog(None, -1)
 except wx._core.PyNoAppError:
-    if wx.version() < '2.9':
+    if parse_version(wx.__version__) < parse_version('2.9'):
         tmpApp = wx.PySimpleApp()
     else:
         tmpApp = wx.App(False)

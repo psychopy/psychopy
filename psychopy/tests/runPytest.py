@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
+
+
 sources = """
 eNrsvV2TI0eSIDZ3J93qIO3trnRafdzuKYlSX2ayUeiqJjkfOIIjTrN7t3c5ZBu7e5dnxTIwC8hC
 5RSQic5MdFXtLMf0rle934Me9FP0KjP9IflXfGYkgGqSMyszFdlVQGZ8eHh4eLh7eLj/r//8uzc/
@@ -2416,7 +2417,7 @@ xmyBd3J2fZxjp+ULOUhv/+e++H9Pqn4x
 import sys
 import base64
 import zlib
-import imp
+
 
 class DictImporter(object):
     def __init__(self, sources):
@@ -2455,14 +2456,15 @@ class DictImporter(object):
             res = self.sources.get(name + '.__init__')
         return res
 
+
 if __name__ == "__main__":
-    if sys.version_info >= (3, 0):
+    if sys.version_info.major >= 3:
         exec("def do_exec(co, loc): exec(co, loc)\n")
         import pickle
         sources = sources.encode("ascii") # ensure bytes
         sources = pickle.loads(zlib.decompress(base64.decodebytes(sources)))
     else:
-        import pickle as pickle
+        import cPickle as pickle
         exec("def do_exec(co, loc): exec co in loc\n")
         sources = pickle.loads(zlib.decompress(base64.decodestring(sources)))
 

@@ -16,8 +16,8 @@ ioHub is currently available for use on the following Operating Systems:
     **32-bit** is required. Even if a 64 bit OS is being used, install the 32 bit 
     version of Python and any package dependencies.
 
-.. Important:: When running ioHub on OS X, ensure that "enable access for assistive
-    devices" is selected in the OS X System Preferences and headed over to the 
+.. Important:: When running ioHub on macOS, ensure that "enable access for assistive
+    devices" is selected in the macOS System Preferences and headed over to the
     Accessibility Pane. 
 
     

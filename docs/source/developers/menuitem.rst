@@ -30,7 +30,7 @@ I also defined a key to use to as a keyboard short-cut for activating the new me
 
     self.app.keys['largerRoutine']
 
-The actual key is defined in a preference file. Because psychopy is multi-platform, you need to add info to four different .spec files, all of them being within the `psychopy/preferences/` directory, for four operating systems (Darwin, FreeBSD, Linux, Windows). For `Darwin.spec` (meaning Mac OS X), I added two lines. The first line is not merely a comment: it is also automatically used as a tooltip (in the preferences dialog, under key-bindings), and the second being the actual short-cut key to use::
+The actual key is defined in a preference file. Because psychopy is multi-platform, you need to add info to four different .spec files, all of them being within the `psychopy/preferences/` directory, for four operating systems (Darwin, FreeBSD, Linux, Windows). For `Darwin.spec` (meaning macOS), I added two lines. The first line is not merely a comment: it is also automatically used as a tooltip (in the preferences dialog, under key-bindings), and the second being the actual short-cut key to use::
 
     # increase display size of Routines
     largerRoutine = string(default='Ctrl++') # on Mac Book Pro this is good

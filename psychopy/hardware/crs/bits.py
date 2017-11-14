@@ -11,9 +11,7 @@
 #    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -264,10 +262,19 @@ class BitsPlusPlus(object):
         # do gamma correction if necessary
         if self.gammaCorrect == 'software':
             gamma = self.gamma
-            if hasattr(self.win.monitor, 'lineariseLums'):
-                lin = self.win.monitor.lineariseLums
+
+            try:
+                lin = self.win.monitor.linearizeLums
                 self.LUT[startII:endII, :] = lin(self.LUT[startII:endII, :],
                                                  overrideGamma=gamma)
+            except AttributeError:
+                try:
+                    lin = self.win.monitor.lineariseLums
+                    self.LUT[startII:endII, :] = lin(self.LUT[startII:endII, :],
+                                                     overrideGamma=gamma)
+                except AttributeError:
+                    pass
+
         # update the bits++ box with new LUT
         # get bits into correct order, shape and add to header
         # go from ubyte to uint16

@@ -1,17 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # emacs: -*- mode: python-mode; py-indent-offset: 4; tab-width: 4; indent-tabs-mode: nil -*-
 # ex: set sts=4 ts=4 sw=4 noet:
 
 """
 py.test fixtures to create an instance of PsychoPyApp for testing
 """
+
 from __future__ import print_function
+import pytest
+
 from psychopy.app import psychopyApp
+from psychopy.app._psychopyApp import PsychoPyApp
 
-def pytest_configure(config):
+
+def test_configure():
     psychopyApp._called_from_test = True
-    psychopyApp._app = psychopyApp.PsychoPyApp(testMode=True, showSplash=False)
+    psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
 
-def pytest_unconfigure(config):
+
+def test_unconfigure():
     print("D: KILLING THE APP")
-    psychopyApp._app.quit() # this currently uses sys.exit() which ends testing :-(
-    pass
+    with pytest.raises(SystemExit):
+        psychopyApp._app.quit()
+
+
+if __name__ == '__main__':
+    pytest.main()

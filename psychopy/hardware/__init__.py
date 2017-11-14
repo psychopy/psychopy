@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 from builtins import map
 from builtins import range
@@ -110,7 +112,7 @@ def findPhotometer(ports=None, device=None):
             Each port can be a string (e.g. 'COM1', ''/dev/tty.Keyspan1.1')
             or a number (for win32 comports only). If none are provided
             then PsychoPy will sweep COM0-10 on win32 and search known
-            likely port names on OS X and linux.
+            likely port names on macOS and Linux.
 
         device : string giving expected device (e.g. 'PR650', 'PR655',
             'LS110'). If this is not given then an attempt will be made

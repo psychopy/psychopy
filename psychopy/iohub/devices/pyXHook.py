@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from __future__ import absolute_import
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #

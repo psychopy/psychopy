@@ -5,6 +5,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import, print_function
 
 from builtins import map
 from builtins import range
@@ -539,7 +540,7 @@ class MainFrame(wx.Frame):
                 return 1  # return before quitting
             elif resp == wx.ID_YES:
                 # save then quit
-                self.currentMon.saveMon()
+                self.currentMon.save()
             elif resp == wx.ID_NO:
                 pass  # don't save just quit
             dlg.Destroy()
@@ -563,7 +564,7 @@ class MainFrame(wx.Frame):
                 return False  # return before quitting
             elif resp == wx.ID_YES:
                 # save then change
-                self.currentMon.saveMon()
+                self.currentMon.save()
             elif resp == wx.ID_NO:
                 pass  # don't save just change
         self.currentMonName = self.ctrlMonList.GetStringSelection()
@@ -633,7 +634,7 @@ class MainFrame(wx.Frame):
         """Saves calibration entry to location.
         Note that the calibration date will reflect the save date/time
         """
-        self.currentMon.saveMon()
+        self.currentMon.save()
         self.unSavedMonitor = False
 
     def onCopyCalib(self, event):

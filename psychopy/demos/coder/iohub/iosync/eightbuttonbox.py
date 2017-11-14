@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Test program for using ioSync with a modified SNES gamepad to create a
 msec accurate 8 button response box. The A, B, X, Y, and four directions
@@ -17,9 +19,9 @@ Since the DIN lines are set to be INPUT_PULLPUT, when a line is high (1), the
 corresponding button is NOT pressed. When the button is pressed, the line
 that button is connected to goes low ( 0 )
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 from builtins import object
-import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
 

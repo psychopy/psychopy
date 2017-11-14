@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync device is correctly connected to the computer
 running this script.
@@ -12,7 +14,7 @@ Wiring:
 
 DOUT_0 to DIN_8
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from builtins import range
 repetitions=10

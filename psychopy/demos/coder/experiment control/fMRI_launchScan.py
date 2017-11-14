@@ -7,10 +7,9 @@ real scan, or emulate sync pulses. Emulation is to allow debugging script timing
 offline, without requiring a scanner (or a hardware sync pulse generator).
 """
 
-from __future__ import division
-from __future__ import print_function
-
 # Author: Jeremy R. Gray
+
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import range

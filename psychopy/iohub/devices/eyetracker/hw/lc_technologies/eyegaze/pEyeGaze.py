@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 ioHub
 ioHub Common Eye Tracker Interface
@@ -402,9 +405,8 @@ class LibraryLoader(object):
     def getplatformpaths(self, libname):
         return []
 
-# Darwin (Mac OS X)
 
-class DarwinLibraryLoader(LibraryLoader):
+class DarwinLibraryLoader(LibraryLoader):  # Darwin (macOS)
     name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
                 "%s.so", "%s.bundle", "%s"]
 

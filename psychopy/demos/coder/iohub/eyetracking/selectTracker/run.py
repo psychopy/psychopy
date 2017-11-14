@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 eye_tracker/run.py
 
@@ -11,6 +13,9 @@ Eye Tracker hardware used.
 
 Inital Version: May 6th, 2013, Sol Simpson
 """
+
+from __future__ import absolute_import, division, print_function
+
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
 from psychopy.iohub import (EventConstants, EyeTrackerConstants, 

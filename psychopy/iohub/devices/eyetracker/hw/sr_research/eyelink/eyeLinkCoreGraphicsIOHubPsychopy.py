@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 ioHub Common Eye Tracker Interface for EyeLink(C) Systems.  
 EyeLink(C) calibration graphics implemented using PsychoPy.

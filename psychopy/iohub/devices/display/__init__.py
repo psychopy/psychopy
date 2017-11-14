@@ -1,4 +1,6 @@
-﻿# coding=utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 ioHub
 .. file: ioHub/devices/display/__init__.py
@@ -54,7 +56,7 @@ class Display(Device):
         self._coord2pix=None
         self._pix2coord=None
 
-        if sys.platform == 'linux2':
+        if sys.startswith('linux'):
             self._xwindow=None
 
         if Display._computer_display_runtime_info_list is None:
@@ -660,7 +662,7 @@ class Display(Device):
                                        width=dwidth, distance=ddist, gamma=1.0)
 
             psychoMonitor.setSizePix(list(self.getPixelResolution()))
-            psychoMonitor.saveMon()
+            psychoMonitor.save()
 
         self._psychopy_monitor=psychoMonitor
         return True

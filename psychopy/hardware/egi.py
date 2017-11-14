@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Interface to `EGI Netstation <http://www.egi.com/>`_
 
 This is currently a simple import of
@@ -18,10 +21,12 @@ For an example see the demos menu of the PsychoPy Coder
 For further documentation see the pynetstation website
 
 """
-from __future__ import absolute_import
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, print_function
 
 from psychopy import logging
 try:

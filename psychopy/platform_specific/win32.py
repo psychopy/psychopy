@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -14,6 +17,8 @@
 # define THREAD_PRIORITY_ABOVE_NORMAL    1
 # define THREAD_PRIORITY_HIGHEST         2
 # define THREAD_PRIORITY_TIME_CRITICAL   15
+
+from __future__ import absolute_import, print_function
 
 import os
 
@@ -89,7 +94,7 @@ def sendStayAwake():
 
     Added: v1.79.00
 
-    Currently supported on: windows, OS X.
+    Currently supported on: windows, macOS.
     """
     code = ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
     success = windll.SetThreadExecutionState(code)

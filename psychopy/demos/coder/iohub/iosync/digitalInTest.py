@@ -1,4 +1,6 @@
- # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 This demo requires that an ioSync device is correctly connected to the computer
 running this script. Some switches or buttons also need to be connected to
@@ -33,7 +35,8 @@ IMPORTANT: Input voltage to a digital input pin must be between 0.0 V and 3.3 V
 or you may damage the Teensy 3. The Teensy 3.1 supports digital inputs up to
 5 V.
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer

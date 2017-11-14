@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Install PsychoPy to your current Python dist, including requirements
 
 usage::
@@ -26,14 +28,24 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables',
-            'opencv-python',
-            'moviepy',
-            ]
+            'moviepy']
+
+# `opencv` package should be installed via conda instead
+# cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
+if 'CONDA_PREFIX' not in os.environ:
+    required.append('opencv-python')
+
 # some optional dependencies
+if platform == 'win32':
+    required.extend(['pypiwin32'])
 if platform == 'darwin':
     required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
-if PY3:  # doesn't exist on py2
+
+# `pyqt` package should be installed via conda instead
+# cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
+if PY3 and ('CONDA_PREFIX' not in os.environ):
     required.append('pyqt5')
+
 # for dev you also want:
 # 'sphinx','pytest'
 # 'lxml', 'pyopengl'
@@ -66,6 +78,7 @@ else:
     f = open('psychopy/__init__.py', 'r')
     vStr = f.read()
     f.close()
+installing = True
 exec(vStr)
 
 # define the extensions to compile if necess
