@@ -1,13 +1,13 @@
 from __future__ import division
-from psychopy.sound._base import apodize, HammingWindow
+from psychopy.sound._base import apodize, HanningWindow
 from psychopy.constants import FINISHED
 import numpy as np
 
 import psychopy.sound.backend_sounddevice as sd
 
 """
-We need to test that the new block-by-block hamming works the same as the
-(simpler) method of adding the hamming window to the initial complete array
+We need to test that the new block-by-block hanning works the same as the
+(simpler) method of adding the hanning window to the initial complete array
 (using the apodize function)
 """
 
@@ -22,11 +22,11 @@ plotting = False
 if plotting:
     import matplotlib.pyplot as plt
 
-def test_HammingSmallBlock():
+def test_HanningSmallBlock():
     blockSize = 64
     snd1 = apodize(sndArray, sampleRate)  # is 5 ms
     sndDev = sd.SoundDeviceSound(thisFreq, sampleRate=sampleRate, secs=secs,
-                                 hamming=True, blockSize=blockSize)
+                                 hanning=True, blockSize=blockSize)
     snd2 = []
     while sndDev.status != FINISHED:
         block = sndDev._nextBlock()
