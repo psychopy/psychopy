@@ -48,7 +48,7 @@ def apodize(soundArray, sampleRate):
     return soundArray
 
 
-class HanningWindow(object):
+class HammingWindow(object):
     def __init__(self, winSecs, soundSecs, sampleRate):
         """
 
@@ -122,7 +122,7 @@ class _SoundBase(object):
     # def _setSndFromFile(self, fileName):
     # def _setSndFromArray(self, thisArray):
 
-    def setSound(self, value, secs=0.5, octave=4, hanning=True, log=True):
+    def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during
@@ -162,11 +162,11 @@ class _SoundBase(object):
             if value < 37 or value > 20000:
                 msg = 'Sound: bad requested frequency %.0f'
                 raise ValueError(msg % value)
-            self._setSndFromFreq(value, secs, hanning=hanning)
+            self._setSndFromFreq(value, secs, hamming=hamming)
         if isinstance(value, basestring):
             if value.capitalize() in knownNoteNames:
                 self._setSndFromNote(value.capitalize(), secs, octave,
-                                     hanning=hanning)
+                                     hamming=hamming)
             else:
                 # try finding a file
                 self.fileName = None
@@ -194,15 +194,15 @@ class _SoundBase(object):
                 logging.exp("Set %s sound=%s" % (self.name, value), obj=self)
             self.status = NOT_STARTED
 
-    def _setSndFromNote(self, thisNote, secs, octave, hanning=True):
+    def _setSndFromNote(self, thisNote, secs, octave, hamming=True):
         # note name -> freq -> sound
         freqA = 440.0
         thisOctave = octave - 4
         mult = 2.0**(stepsFromA[thisNote] / 12.)
         thisFreq = freqA * mult * 2.0 ** thisOctave
-        self._setSndFromFreq(thisFreq, secs, hanning=hanning)
+        self._setSndFromFreq(thisFreq, secs, hamming=hamming)
 
-    def _setSndFromFreq(self, thisFreq, secs, hanning=True):
+    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         # note freq -> array -> sound
         if secs < 0:
             # want infinite duration - create 1 sec sound and loop it
@@ -212,7 +212,7 @@ class _SoundBase(object):
         outArr = numpy.arange(0.0, 1.0, 1.0 / nSamples)
         outArr *= 2 * numpy.pi * thisFreq * secs
         outArr = numpy.sin(outArr)
-        if hanning and nSamples > 30:
+        if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
 

@@ -14,7 +14,7 @@ from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
 from psychopy.exceptions import SoundFormatError
-from ._base import _SoundBase, HanningWindow
+from ._base import _SoundBase, HammingWindow
 
 import sounddevice as sd
 import soundfile as sf
@@ -236,7 +236,7 @@ class SoundDeviceSound(_SoundBase):
                  volume=1.0, loops=0,
                  sampleRate=44100, blockSize=128,
                  preBuffer=-1,
-                 hanning=True,
+                 hamming=True,
                  startTime=0, stopTime=-1,
                  name='', autoLog=True):
         """
@@ -254,7 +254,7 @@ class SoundDeviceSound(_SoundBase):
                            - -1 means store all
                            - 0 (no buffer) means stream from disk
                            - potentially we could buffer a few secs(!?)
-        :param hanning: boolean (True to smooth the onset/offset)
+        :param hamming: boolean (True to smooth the onset/offset)
         :param startTime: for sound files this controls the start of snippet
         :param stopTime: for sound files this controls the end of snippet
         :param name: string for logging purposes
@@ -282,12 +282,12 @@ class SoundDeviceSound(_SoundBase):
         self.sourceType = 'unknown'  # set to be file, array or freq
         self.sndFile = None
         self.sndArr = None
-        self.hanning = hanning
-        self._hanningWindow = None  # will be created during setSound
+        self.hamming = hamming
+        self._hammingWindow = None  # will be created during setSound
 
         # setSound (determines sound type)
         self.setSound(value, secs=self.secs, octave=self.octave,
-                      hanning=self.hanning)
+                      hamming=self.hamming)
         self.status = NOT_STARTED
 
     @property
@@ -304,7 +304,7 @@ class SoundDeviceSound(_SoundBase):
         elif val == -1:
             self.__dict__['channels'] = -1
 
-    def setSound(self, value, secs=0.5, octave=4, hanning=None, log=True):
+    def setSound(self, value, secs=0.5, octave=4, hamming=None, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during
@@ -331,7 +331,7 @@ class SoundDeviceSound(_SoundBase):
                 octave (8) is generally painful
         """
         # start with the base class method
-        _SoundBase.setSound(self, value, secs, octave, hanning, log)
+        _SoundBase.setSound(self, value, secs, octave, hamming, log)
         try:
             label, s = streams.getStream(sampleRate=self.sampleRate,
                                          channels=self.channels,
@@ -352,15 +352,15 @@ class SoundDeviceSound(_SoundBase):
             self.blockSize = s.blockSize
         self.streamLabel = label
 
-        if hanning is None:
-            hanning = self.hanning
+        if hamming is None:
+            hamming = self.hamming
         else:
-            self.hanning = hanning
-        if hanning:
+            self.hamming = hamming
+        if hamming:
             # 5ms or 15th of stimulus (for short sounds)
-            hannDur = min(0.005,  # 5ms
+            hammDur = min(0.005,  # 5ms
                           self.secs / 15.0)  # 15th of stim
-            self._hanningWindow = HanningWindow(winSecs=hannDur,
+            self._hammingWindow = HammingWindow(winSecs=hammDur,
                                                 soundSecs=self.secs,
                                                 sampleRate=self.sampleRate)
 
@@ -397,7 +397,7 @@ class SoundDeviceSound(_SoundBase):
             self.sndFile.close()
             self._setSndFromArray(sndArr)
 
-    def _setSndFromFreq(self, thisFreq, secs, hanning=True):
+    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         self.freq = thisFreq
         self.secs = secs
         self.sourceType = 'freq'
@@ -505,8 +505,8 @@ class SoundDeviceSound(_SoundBase):
             raise IOError("SoundDeviceSound._nextBlock doesn't correctly handle"
                           "{!r} sounds yet".format(self.sourceType))
 
-        if self._hanningWindow:
-            thisWin = self._hanningWindow.nextBlock(self.t, self.blockSize)
+        if self._hammingWindow:
+            thisWin = self._hammingWindow.nextBlock(self.t, self.blockSize)
             if thisWin is not None:
                 if len(block) == len(thisWin):
                     block *= thisWin
