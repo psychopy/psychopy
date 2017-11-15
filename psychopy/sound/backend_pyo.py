@@ -231,7 +231,7 @@ class SoundPyo(_SoundBase):
 
     def __init__(self, value="C", secs=0.5, octave=4, stereo=True,
                  volume=1.0, loops=0, sampleRate=44100, bits=16,
-                 hamming=True, start=0, stop=-1,
+                 hanning=True, start=0, stop=-1,
                  name='', autoLog=True):
         """
         value: can be a number, string or an array:
@@ -244,9 +244,9 @@ class SoundPyo(_SoundBase):
             * Or by giving an Nx2 numpy array of floats (-1:1) you can
               specify the sound yourself as a waveform
 
-            By default, a Hamming window (5ms duration) will be applied to a
+            By default, a Hanning window (5ms duration) will be applied to a
             generated tone, so that onset and offset are smoother (to avoid
-            clicking). To disable the Hamming window, set `hamming=False`.
+            clicking). To disable the Hanning window, set `hanning=False`.
 
         secs:
             Duration of a tone. Not used for sounds from a file.
@@ -279,7 +279,7 @@ class SoundPyo(_SoundBase):
 
         bits: has no effect for the pyo backend
 
-        hamming: whether to apply a Hamming window (5ms) for generated tones.
+        hanning: whether to apply a Hanning window (5ms) for generated tones.
             Not applied to sounds from files.
         """
         global pyoSndServer
@@ -305,7 +305,7 @@ class SoundPyo(_SoundBase):
         # -1 for infinite or a number of loops
         self.requestedLoops = self.loops = int(loops)
 
-        self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
+        self.setSound(value=value, secs=secs, octave=octave, hanning=hanning)
         self.needsUpdate = False
 
     def play(self, loops=None, autoStop=True, log=True):

@@ -38,18 +38,17 @@ knownNoteNames = sorted(stepsFromA.keys())
 
 
 def apodize(soundArray, sampleRate):
-    """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
+    """Apply a Hanning window (5ms) to reduce a sound's 'click' onset / offset
     """
     hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
-    hammingWindow = numpy.hamming(2 * hwSize + 1)
+    hanningWindow = numpy.hanning(2 * hwSize + 1)
     soundArray = copy.copy(soundArray)
-    soundArray[:hwSize] *= hammingWindow[:hwSize]
-    for i in range(2):
-        soundArray[-hwSize:] *= hammingWindow[hwSize + 1:]
+    soundArray[:hwSize] *= hanningWindow[:hwSize]
+    soundArray[-hwSize:] *= hanningWindow[hwSize + 1:]
     return soundArray
 
 
-class HammingWindow(object):
+class HanningWindow(object):
     def __init__(self, winSecs, soundSecs, sampleRate):
         """
 
@@ -62,25 +61,25 @@ class HammingWindow(object):
         self.winSamples = int(round(sampleRate*winSecs))
         self.soundSecs = soundSecs
         self.soundSamples = int(round(sampleRate*soundSecs))
-        self.startWindow = numpy.hamming(self.winSamples*2)[0:self.winSamples]
-        self.endWindow = numpy.hamming(self.winSamples*2)[self.winSamples:]
+        self.startWindow = numpy.hanning(self.winSamples*2)[0:self.winSamples]
+        self.endWindow = numpy.hanning(self.winSamples*2)[self.winSamples:]
         self.finalWinStart = self.soundSamples-self.winSamples
 
     def nextBlock(self, t, blockSize):
         """Returns a block to be multiplied with the current sound block or 1.0
 
         :param t: current position in time (secs)
-        :param blockSize: block size for the sound needing the hamming window
+        :param blockSize: block size for the sound needing the hanning window
         :return: numpy array of length blockSize
         """
         startSample = int(t*self.sampleRate)
         if startSample < self.winSamples:
-            # we're in beginning hamming window (start of sound)
+            # we're in beginning hanning window (start of sound)
             # 2 options:
             #  - block is fully within window
             #  - block starts in window but ends after window
             block = numpy.ones(blockSize)
-            winEndII = min(self.winSamples,  # if block goes beyond hamm win
+            winEndII = min(self.winSamples,  # if block goes beyond hann win
                            startSample+blockSize)  # if block shorter
             blockEndII = min(self.winSamples-startSample,  # if block beyond
                              blockSize)  # if block shorter
@@ -88,7 +87,7 @@ class HammingWindow(object):
         elif startSample >= self.soundSamples:
             block = None  # the sound has finished (shouldn't have got here!)
         elif startSample >= self.finalWinStart-blockSize:
-            # we're in final hamming window (end of sound)
+            # we're in final hanning window (end of sound)
             # More complicated, with 3 options:
             #  - block starts before win
             #  - start/end during win
@@ -96,7 +95,7 @@ class HammingWindow(object):
             block = numpy.ones(blockSize)
             blockStartII = max(self.finalWinStart-startSample,
                          0)  # if block start inside window
-            blockEndII = min(blockSize,  # if block ends in hamm win
+            blockEndII = min(blockSize,  # if block ends in hann win
                              self.soundSamples-startSample)  # ends after snd
             winStartII = max(0,  # current block ends in win but starts before
                              startSample-self.finalWinStart)
@@ -123,7 +122,7 @@ class _SoundBase(object):
     # def _setSndFromFile(self, fileName):
     # def _setSndFromArray(self, thisArray):
 
-    def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
+    def setSound(self, value, secs=0.5, octave=4, hanning=True, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during
@@ -163,11 +162,11 @@ class _SoundBase(object):
             if value < 37 or value > 20000:
                 msg = 'Sound: bad requested frequency %.0f'
                 raise ValueError(msg % value)
-            self._setSndFromFreq(value, secs, hamming=hamming)
+            self._setSndFromFreq(value, secs, hanning=hanning)
         if isinstance(value, basestring):
             if value.capitalize() in knownNoteNames:
                 self._setSndFromNote(value.capitalize(), secs, octave,
-                                     hamming=hamming)
+                                     hanning=hanning)
             else:
                 # try finding a file
                 self.fileName = None
@@ -195,15 +194,15 @@ class _SoundBase(object):
                 logging.exp("Set %s sound=%s" % (self.name, value), obj=self)
             self.status = NOT_STARTED
 
-    def _setSndFromNote(self, thisNote, secs, octave, hamming=True):
+    def _setSndFromNote(self, thisNote, secs, octave, hanning=True):
         # note name -> freq -> sound
         freqA = 440.0
         thisOctave = octave - 4
         mult = 2.0**(stepsFromA[thisNote] / 12.)
         thisFreq = freqA * mult * 2.0 ** thisOctave
-        self._setSndFromFreq(thisFreq, secs, hamming=hamming)
+        self._setSndFromFreq(thisFreq, secs, hanning=hanning)
 
-    def _setSndFromFreq(self, thisFreq, secs, hamming=True):
+    def _setSndFromFreq(self, thisFreq, secs, hanning=True):
         # note freq -> array -> sound
         if secs < 0:
             # want infinite duration - create 1 sec sound and loop it
@@ -213,7 +212,7 @@ class _SoundBase(object):
         outArr = numpy.arange(0.0, 1.0, 1.0 / nSamples)
         outArr *= 2 * numpy.pi * thisFreq * secs
         outArr = numpy.sin(outArr)
-        if hamming and nSamples > 30:
+        if hanning and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
         self._setSndFromArray(outArr)
 
