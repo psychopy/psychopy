@@ -244,9 +244,9 @@ class SoundPyo(_SoundBase):
             * Or by giving an Nx2 numpy array of floats (-1:1) you can
               specify the sound yourself as a waveform
 
-            By default, a Hamming window (5ms duration) will be applied to a
+            By default, a Hanning window (5ms duration) will be applied to a
             generated tone, so that onset and offset are smoother (to avoid
-            clicking). To disable the Hamming window, set `hamming=False`.
+            clicking). To disable the Hanning window, set `hamming=False`.
 
         secs:
             Duration of a tone. Not used for sounds from a file.
@@ -279,7 +279,7 @@ class SoundPyo(_SoundBase):
 
         bits: has no effect for the pyo backend
 
-        hamming: whether to apply a Hamming window (5ms) for generated tones.
+        hamming: whether to apply a Hanning window (5ms) for generated tones.
             Not applied to sounds from files.
         """
         global pyoSndServer
