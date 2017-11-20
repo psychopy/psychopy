@@ -279,7 +279,11 @@ class SoundPyo(_SoundBase):
 
         bits: has no effect for the pyo backend
 
-        hamming: whether to apply a Hanning window (5ms) for generated tones.
+        hamming: boolean (default True) to indicate if the sound should
+            be apodized (i.e., the onset and offset smoothly ramped up from
+            down to zero). The function apodize uses a Hanning window, but
+            arguments named 'hamming' are preserved so that existing code
+            is not broken by the change from Hamming to Hanning internally.
             Not applied to sounds from files.
         """
         global pyoSndServer

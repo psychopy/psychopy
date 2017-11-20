@@ -147,6 +147,13 @@ class _SoundBase(object):
                 Middle octave of a piano is 4. Most computers won't
                 output sounds in the bottom octave (1) and the top
                 octave (8) is generally painful
+
+            hamming: boolean (default True) to indicate if the sound should
+                be apodized (i.e., the onset and offset smoothly ramped up from
+                down to zero). The function apodize uses a Hanning window, but
+                arguments named 'hamming' are preserved so that existing code
+                is not broken by the change from Hamming to Hanning internally.
+                Not applied to sounds from files.
         """
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None
