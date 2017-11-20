@@ -400,12 +400,12 @@ class _BaseTrialHandler(_ComparisonMixin):
         logging.warn(msg)
 
         if (fileName is None) or (fileName == 'stdout'):
-            return json_tricks.np.dumps(self_copy)
+            return json_tricks.dumps(self_copy)
         else:
             with openOutputFile(fileName=fileName,
                                 fileCollisionMethod=fileCollisionMethod,
                                 encoding=encoding) as f:
-                json_tricks.np.dump(self_copy, f)
+                json_tricks.dump(self_copy, f)
 
             logging.info('Saved JSON data to %s' % f.name)
 

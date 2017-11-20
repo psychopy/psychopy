@@ -49,7 +49,7 @@ def fromFile(filename):
                 contents.abort()
     elif filename.endswith('.json'):
         with open(filename, 'r') as f:
-            contents = json_tricks.np.load(f)
+            contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
             # We also need to remove the 'temporary' ._rng_state attribute that
