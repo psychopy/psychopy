@@ -383,7 +383,7 @@ class TestStairHandler(_BaseTestStairHandler):
         dump = s.saveAsJson()
 
         s.origin = ''
-        assert s == json_tricks.np.loads(dump)
+        assert s == json_tricks.loads(dump)
 
     def test_json_dump_with_data(self):
         s = data.StairHandler(5)
@@ -392,7 +392,7 @@ class TestStairHandler(_BaseTestStairHandler):
         dump = s.saveAsJson()
 
         s.origin = ''
-        assert s == json_tricks.np.loads(dump)
+        assert s == json_tricks.loads(dump)
 
     def test_json_dump_after_iteration(self):
         s = data.StairHandler(5)
@@ -400,7 +400,7 @@ class TestStairHandler(_BaseTestStairHandler):
         dump = s.saveAsJson()
 
         s.origin = ''
-        assert s == json_tricks.np.loads(dump)
+        assert s == json_tricks.loads(dump)
 
     def test_json_dump_with_data_after_iteration(self):
         s = data.StairHandler(5)
@@ -410,7 +410,7 @@ class TestStairHandler(_BaseTestStairHandler):
         dump = s.saveAsJson()
 
         s.origin = ''
-        assert s == json_tricks.np.loads(dump)
+        assert s == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
         s = data.StairHandler(5)
@@ -524,7 +524,7 @@ class TestQuestHandler(_BaseTestStairHandler):
         dump = q.saveAsJson()
 
         q.origin = ''
-        assert q == json_tricks.np.loads(dump)
+        assert q == json_tricks.loads(dump)
 
     def test_json_dump_with_data(self):
         q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
@@ -534,7 +534,7 @@ class TestQuestHandler(_BaseTestStairHandler):
         dump = q.saveAsJson()
 
         q.origin = ''
-        assert q == json_tricks.np.loads(dump)
+        assert q == json_tricks.loads(dump)
 
     def test_json_dump_after_iteration(self):
         q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
@@ -543,7 +543,7 @@ class TestQuestHandler(_BaseTestStairHandler):
         dump = q.saveAsJson()
 
         q.origin = ''
-        assert q == json_tricks.np.loads(dump)
+        assert q == json_tricks.loads(dump)
 
     def test_json_dump_with_data_after_iteration(self):
         q = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
@@ -554,7 +554,7 @@ class TestQuestHandler(_BaseTestStairHandler):
         dump = q.saveAsJson()
 
         q.origin = ''
-        assert q == json_tricks.np.loads(dump)
+        assert q == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
         _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
@@ -657,7 +657,7 @@ class TestPsiHandler(_BaseTestStairHandler):
         dump = p.saveAsJson()
 
         p.origin = ''
-        assert p == json_tricks.np.loads(dump)
+        assert p == json_tricks.loads(dump)
 
     def test_json_dump_with_data(self):
         if _travisTesting:
@@ -672,7 +672,7 @@ class TestPsiHandler(_BaseTestStairHandler):
         dump = p.saveAsJson()
 
         p.origin = ''
-        assert p == json_tricks.np.loads(dump)
+        assert p == json_tricks.loads(dump)
 
     def test_json_dump_after_iteration(self):
         if _travisTesting:
@@ -686,7 +686,7 @@ class TestPsiHandler(_BaseTestStairHandler):
         dump = p.saveAsJson()
 
         p.origin = ''
-        assert p == json_tricks.np.loads(dump)
+        assert p == json_tricks.loads(dump)
 
     def test_json_dump_with_data_after_iteration(self):
         if _travisTesting:
@@ -702,7 +702,7 @@ class TestPsiHandler(_BaseTestStairHandler):
         dump = p.saveAsJson()
 
         p.origin = ''
-        assert p == json_tricks.np.loads(dump)
+        assert p == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
         if _travisTesting:

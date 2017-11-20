@@ -188,7 +188,7 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        t_loaded = json_tricks.np.loads(dump)
+        t_loaded = json_tricks.loads(dump)
         t_loaded._rng = np.random.RandomState()
         t_loaded._rng.set_state(t_loaded._rng_state)
         del t_loaded._rng_state
@@ -202,7 +202,7 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        t_loaded = json_tricks.np.loads(dump)
+        t_loaded = json_tricks.loads(dump)
         t_loaded._rng = np.random.RandomState()
         t_loaded._rng.set_state(t_loaded._rng_state)
         del t_loaded._rng_state
@@ -216,7 +216,7 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        t_loaded = json_tricks.np.loads(dump)
+        t_loaded = json_tricks.loads(dump)
         t_loaded._rng = np.random.RandomState()
         t_loaded._rng.set_state(t_loaded._rng_state)
         del t_loaded._rng_state
@@ -231,7 +231,7 @@ class TestTrialHandler2(object):
 
         t.origin = ''
 
-        t_loaded = json_tricks.np.loads(dump)
+        t_loaded = json_tricks.loads(dump)
         t_loaded._rng = np.random.RandomState()
         t_loaded._rng.set_state(t_loaded._rng_state)
         del t_loaded._rng_state
