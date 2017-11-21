@@ -136,7 +136,8 @@ class Updater(object):
             raise(err)
         skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
         if newer and not skip:
-            if self.latest['lastUpdatable'] <= self.runningVersion:
+            if (parse_version(self.latest['lastUpdatable'])
+                    <= parse_version(self.runningVersion)):
                 # go to the updating window
                 confirmDlg = SuggestUpdateDialog(
                     self.latest, self.runningVersion)
@@ -347,7 +348,8 @@ class InstallUpdateDialog(wx.Dialog):
             msg += _translate("PsychoPy could not connect to the \n internet"
                               " to check for more recent versions.\n")
             msg += _translate("Check proxy settings in preferences.")
-        elif self.latest['version'] < self.runningVersion:
+        elif (parse_version(self.latest['version'])
+                  < parse_version(self.runningVersion)):
             msg = _translate(
                 "You are running PsychoPy (%s), which is ahead of the latest"
                 " official version (%s)") % (self.runningVersion,
@@ -362,7 +364,8 @@ class InstallUpdateDialog(wx.Dialog):
                 "PsychoPy v%(latest)s is available\nYou are running v%(running)s")
             msg = txt % {'latest': self.latest['version'],
                          'running': self.runningVersion}
-            if self.latest['lastUpdatable'] <= self.runningVersion:
+            if (parse_version(self.latest['lastUpdatable'])
+                                  <= parse_version(self.runningVersion)):
                 msg += _translate("\nYou can update to the latest version automatically")
             else:
                 msg += _translate("\nYou cannot update to the latest version "
