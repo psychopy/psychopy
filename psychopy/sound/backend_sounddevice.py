@@ -254,7 +254,12 @@ class SoundDeviceSound(_SoundBase):
                            - -1 means store all
                            - 0 (no buffer) means stream from disk
                            - potentially we could buffer a few secs(!?)
-        :param hamming: boolean (True to smooth the onset/offset)
+        :param hamming: boolean (default True) to indicate if the sound should
+                        be apodized (i.e., the onset and offset smoothly ramped up from
+                        down to zero). The function apodize uses a Hanning window, but
+                        arguments named 'hamming' are preserved so that existing code
+                        is not broken by the change from Hamming to Hanning internally.
+                        Not applied to sounds from files.
         :param startTime: for sound files this controls the start of snippet
         :param stopTime: for sound files this controls the end of snippet
         :param name: string for logging purposes
