@@ -12,6 +12,10 @@ PsychoPy is unique in giving you a choice of interface: use the **Builder interf
 News
 ====================
 
+:red:`3-day workshop` **Programming Experiments in Python: 16-18 April 2018**
+
+Learn to program in Python (with a particular focus on the PsychoPy libraries) at this `3-day Python workshop <http://www.psychopy.org/resources/workshops.html>`_ in Nottingham, taught be the creators of PsychoPy.
+
 **PsychoPy is going Professional and Online!**
 
 We're delighted to announce that `The Wellcome Trust <http://www.wellcome.ac.uk>`_ has granted us a sum of money that will allow us to hire a full-time developer, meaning that we will become more professional than ever and, critically, also funding for `Ilixa Ltd. <http://www.ilixa.com>`_ to complete the job of building the online experiment system that many of you have been waiting for! See the `discourse post <https://discourse.psychopy.org/t/wellcome-trust-funding-psychopy-is-going-properly-online/>`_ for further details of what we're planning.

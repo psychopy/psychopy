@@ -7,7 +7,7 @@ The following workshop is currently planned for 2018:
 
  - 16-18 Apr 2018: :ref:`PEP1`
 
-(Details below, booking site will be online soon)
+You can now `book your place on this 3 day Python workshop <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2018-programming-experiments-in-python-beginners>`_
 
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another applications and haven't gotten around to it. These workshops, run by the creators of PsychoPy, will get you off the ground with building and analysing your experiments using Python.
 
