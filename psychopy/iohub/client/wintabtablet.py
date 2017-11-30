@@ -4,6 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
+from builtins import str
 from collections import deque
 import math
 import numpy as np
@@ -50,7 +51,7 @@ class PenSampleEvent(ioEvent):
 
     def __init__(self, ioe_array, device):
         super(PenSampleEvent, self).__init__(ioe_array, device)
-        for efname, efvalue in PenSampleEvent._attrib_index.items():
+        for efname, efvalue in list(PenSampleEvent._attrib_index.items()):
             if efvalue >= 0:
                 setattr(self, '_' + efname, ioe_array[efvalue])
         self._velocity = 0.0
@@ -96,7 +97,7 @@ class PenSampleEvent(ioEvent):
 
     @property
     def status(self):
-        return [v for k, v in self.STATES.items() if self._status & k == k]
+        return [v for k, v in list(self.STATES.items()) if self._status & k == k]
 
     @property
     def tilt(self):
@@ -203,7 +204,7 @@ class WintabTablet(ioHubDeviceView):
             self._hw_model = wthw['ModelInfo']
 
             # Add extra axis info
-            for axis in self._axis.values():
+            for axis in list(self._axis.values()):
                 axis['range'] = axis['max'] - axis['min']
                 axis['supported'] = axis['range'] != 0
 
@@ -280,7 +281,7 @@ class WintabTablet(ioHubDeviceView):
         kb_state = self.getCurrentDeviceState()
         self._reporting = kb_state.get('reporting_events')
 
-        for etype, event_arrays in kb_state.get('events').items():
+        for etype, event_arrays in list(kb_state.get('events').items()):
             ddeque = deque(maxlen=self._event_buffer_length)
             et_queue = self._events.setdefault(etype, ddeque)
 
@@ -323,7 +324,7 @@ class WintabTablet(ioHubDeviceView):
     def clearEvents(self, event_type=None, filter_id=None):
         result = self._clearEventsRPC(event_type=event_type,
                                       filter_id=filter_id)
-        for etype, elist in self._events.items():
+        for etype, elist in list(self._events.items()):
             if event_type is None or event_type == etype:
                 elist.clear()
         return result

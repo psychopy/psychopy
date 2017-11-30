@@ -6,6 +6,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import os
 import sys
 import time
@@ -214,10 +217,10 @@ class ioHubDevices(object):
         self._devicesByName.get(name)
 
     def getAll(self):
-        return self._devicesByName.values()
+        return list(self._devicesByName.values())
 
     def getNames(self):
-        return self._devicesByName.keys()
+        return list(self._devicesByName.keys())
 
 class ioHubConnection(object):
     """ioHubConnection is responsible for creating, sending requests to, and
@@ -604,7 +607,7 @@ class ioHubConnection(object):
         trial = trials.trialList[0]
         self._cv_order = cv_order
         if cv_order is None:
-            self._cv_order = trial.keys()
+            self._cv_order = list(trial.keys())
 
         trial_condition_types = []
 
@@ -614,7 +617,7 @@ class ioHubConnection(object):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
                 numpy_dtype = (cond_name, 'i4')
-            elif isinstance(cond_val, long):
+            elif isinstance(cond_val, int):
                 numpy_dtype = (cond_name, 'i8')
             elif isinstance(cond_val, float):
                 numpy_dtype = (cond_name, 'f8')
@@ -647,7 +650,7 @@ class ioHubConnection(object):
             data = list(cv_row.values())
 
         for i, d in enumerate(data):
-            if isinstance(d, unicode):
+            if isinstance(d, str):
                 data[i] = d.encode('utf-8')
 
         cvt_rpc = ('RPC', 'extendConditionVariableTable',
@@ -885,7 +888,7 @@ class ioHubConnection(object):
                 # short hand device spec is being used. Convert dict of
                 # devices in a list of device dicts.
                 devs = ioHubConfig.get('monitor_devices')
-                devsList = [{dname: dc} for dname, dc in devs.iteritems()]
+                devsList = [{dname: dc} for dname, dc in list(devs.items())]
                 ioHubConfig['monitor_devices'] = devsList
 
             import tempfile
@@ -1032,8 +1035,8 @@ class ioHubConnection(object):
         """
         # get the list of devices registered with the ioHub
         for device_config_dict in monitor_devices_config:
-            device_class_name = device_config_dict.keys()[0]
-            device_config = device_config_dict.values()[0]
+            device_class_name = list(device_config_dict.keys())[0]
+            device_config = list(device_config_dict.values())[0]
             if device_config.get('enable', True) is True:
                 try:
                     self._addDeviceView(device_class_name, device_config)
@@ -1062,7 +1065,7 @@ class ioHubConnection(object):
             DeviceConstants.addClassMapping(dev_cls)
 
             device_event_ids = []
-            for ev in evt_cls_list.values():
+            for ev in list(evt_cls_list.values()):
                 if ev.EVENT_TYPE_ID:
                     device_event_ids.append(ev.EVENT_TYPE_ID)
             EventConstants.addClassMappings(device_event_ids, evt_cls_list)
@@ -1355,7 +1358,7 @@ class ioEvent(object):
     @property
     def dict(self):
         d = {}
-        for k in self._attrib_index.keys():
+        for k in list(self._attrib_index.keys()):
             d[k] = getattr(self, k)
         return d
 

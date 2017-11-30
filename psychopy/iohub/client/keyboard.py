@@ -4,6 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
+from builtins import str
 from collections import deque
 import time
 
@@ -43,7 +44,7 @@ class KeyboardEvent(ioEvent):
 
     def __init__(self, ioe_array):
         super(KeyboardEvent, self).__init__(ioe_array)
-        for aname, aindex, in self._attrib_index.items():
+        for aname, aindex, in list(self._attrib_index.items()):
             setattr(self, '_%s'%aname, ioe_array[aindex])
         self._modifiers = kb_mod_codes2labels(self._modifiers)
 
@@ -172,7 +173,7 @@ class Keyboard(ioHubDeviceView):
                                          'clearEvents')
 
     def _clearLocalEvents(self,  event_type=None):
-        for etype, elist in self._events.items():
+        for etype, elist in list(self._events.items()):
             if event_type is None:
                 elist.clear()
             elif event_type == etype:
@@ -192,10 +193,10 @@ class Keyboard(ioHubDeviceView):
 
         akeyix = KeyboardEvent._attrib_index['key']
         iotimeix = DeviceEvent.EVENT_HUB_TIME_INDEX
-        for _, (key_array, _) in pressed_keys.items():
+        for _, (key_array, _) in list(pressed_keys.items()):
             self._pressed_keys[key_array[akeyix]] = key_array[iotimeix]
 
-        for etype, event_arrays in kb_state.get('events').items():
+        for etype, event_arrays in list(kb_state.get('events').items()):
             ddeque = deque(maxlen=self._event_buffer_length)
             evts = [self._type2class[etype](e) for e in event_arrays]
             self._events.setdefault(etype, ddeque).extend(evts)
@@ -283,7 +284,7 @@ class Keyboard(ioHubDeviceView):
         self._syncDeviceState()
 
         ecount = 0
-        for elist in self._events.values():
+        for elist in list(self._events.values()):
             ecount += len(elist)
         if ecount == 0:
             return []

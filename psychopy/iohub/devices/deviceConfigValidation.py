@@ -8,8 +8,10 @@ from __future__ import division, absolute_import
 # support_settings_values.yaml (which must be in the same directory as the
 # Device class) to ensure all entries for the device setting are valid values.
 
+from past.builtins import basestring
 import socket
 import os
+import numbers  # numbers.Integral is like (int, long) but supports Py3
 
 from .. import _pkgroot
 from ..util import yload, yLoader, module_directory
@@ -302,7 +304,7 @@ def isValidFloat(config_param_name, value, constraints):
 
 
 def isValidInt(config_param_name, value, constraints):
-    if isinstance(value, (int, long)):
+    if isinstance(value, numbers.Integral):
         constraints.setdefault('min', MIN_VALID_INT_VALUE)
         constraints.setdefault('max', MAX_VALID_INT_VALUE)
         minv = int(constraints.get('min'))
@@ -431,7 +433,7 @@ def buildConfigParamValidatorMapping(
         device_setting_validation_dict,
         param_validation_func_mapping,
         parent_name):
-    for param_name, param_config in device_setting_validation_dict.iteritems():
+    for param_name, param_config in list(device_setting_validation_dict.items()):
         current_param_path = None
         if parent_name is None:
             current_param_path = param_name
@@ -478,7 +480,7 @@ def validateConfigDictToFuncMapping(
         current_device_config,
         parent_param_path):
     validation_results = dict(errors=[], not_found=[])
-    for config_param, config_value in current_device_config.iteritems():
+    for config_param, config_value in list(current_device_config.items()):
         if parent_param_path is None:
             current_param_path = config_param
         else:
@@ -533,7 +535,7 @@ def validateDeviceConfiguration(
     device_settings_validation_dict = loadYamlFile(
         validation_file_path, print_file=True)
     device_settings_validation_dict = device_settings_validation_dict[
-        device_settings_validation_dict.keys()[0]]
+        list(device_settings_validation_dict.keys())[0]]
 
     param_validation_func_mapping = dict()
     parent_config_param_path = None

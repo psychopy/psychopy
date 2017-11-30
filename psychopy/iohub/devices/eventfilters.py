@@ -5,6 +5,8 @@
 from __future__ import division, absolute_import
 from __future__ import print_function
 
+from past.builtins import basestring
+from builtins import object
 import numpy as np
 from collections import deque
 
@@ -43,7 +45,7 @@ class DeviceEventFilter(object):
         self._input_events = []
         self._output_events = []
 
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             setattr(self, key, value)
 
         self._enabled = False
