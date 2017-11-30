@@ -1,24 +1,63 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
+from __future__ import division
 import os
 import atexit
+import numpy as np
+from builtins import str
+from builtins import object
+from pkg_resources import parse_version
+from psychopy.iohub import printExceptionDetailsToStdErr, print2err, ioHubError, DeviceEvent, EventConstants
 
 import tables
-from tables import UInt32Col, StringCol, UInt16Col
-import numpy as np
+if parse_version(tables.__version__) < parse_version('3'):
+    from tables import openFile as open_file
+    create_table = "createTable"
+    create_group = "createGroup"
+else:
+    from tables import open_file
+    create_table = "create_table"
+    create_group = "create_group"
+from tables import parameters
 
-from ..errors import print2err, printExceptionDetailsToStdErr, ioHubError
-from ..constants import EventConstants
-from ..devices import DeviceEvent
 
-DATA_FILE_TITLE = 'ioHub DataStore - Experiment Data File.'
-FILE_VERSION = '1.2'
+"""
+ioHub
+.. file: ioHub/datastore/__init__.py
+
+Copyright (C) 2012-2013 iSolver Software Solutions
+Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
+
+.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
+.. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
+"""
+
+
+parameters.MAX_NUMEXPR_THREADS = None
+"""The maximum number of threads that PyTables should use internally in
+Numexpr.  If `None`, it is automatically set to the number of cores in
+your machine. In general, it is a good idea to set this to the number of
+cores in your machine or, when your machine has many of them (e.g. > 4),
+perhaps one less than this. < S. Simpson Note: These are 'not' GIL bound
+threads and therefore actually improve performance > """
+
+parameters.MAX_BLOSC_THREADS = None
+"""The maximum number of threads that PyTables should use internally in
+Blosc.  If `None`, it is automatically set to the number of cores in
+your machine. In general, it is a good idea to set this to the number of
+cores in your machine or, when your machine has many of them (e.g. > 4),
+perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
+threads and therefore actually improve performance > """
+
+DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
+FILE_VERSION = '0.8.1.1'
 SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'November 24th, 2016'
 
@@ -41,7 +80,8 @@ class DataStoreFile:
         self._eventCounter = 0
 
         self.TABLES = dict()
-        self.emrtFile = tables.openFile(self.filePath, mode=fmode)
+        self._eventGroupMappings = dict()
+        self.emrtFile = open_file(self.filePath, mode = fmode)
 
         atexit.register(close_open_data_files, False)
 
@@ -57,7 +97,7 @@ class DataStoreFile:
         self.emrtFile.SCHEMA_DESIGNER = SCHEMA_AUTHORS
         self.emrtFile.SCHEMA_MODIFIED = SCHEMA_MODIFIED_DATE
 
-        # CREATE GROUPS
+        #CREATE GROUPS
         froot = self.emrtFile.root
         ttitle = 'ioHub DeviceEvent Class to DataStore Table Mappings.'
         self.TABLES['CLASS_TABLE_MAPPINGS'] = self.emrtFile.createTable(froot,
@@ -65,27 +105,48 @@ class DataStoreFile:
                                                         ClassTableMappings,
                                                         title=ttitle)
 
-        ttitle = 'Data Collected using the ioHub Event Framework.'
-        self.emrtFile.createGroup(froot, 'data_collection', title=ttitle)
+        #getattr(self.emrtFile, create_group)(self.emrtFile.root, 'analysis', title='Data Analysis Files, notebooks, scripts and saved results tables.')
+
+        self.TABLES['CLASS_TABLE_MAPPINGS'] = getattr(self.emrtFile, create_table)(
+            self.emrtFile.root,
+            'class_table_mapping',
+            ClassTableMappings,
+            title='Mapping of ioHub DeviceEvent Classes to ioHub DataStore Tables.'
+        )
+
+        getattr(self.emrtFile, create_group)(
+            self.emrtFile.root,
+            'data_collection',
+            title='Data Collected using the ioHub Event Framework.'
+        )
         self.flush()
 
-        datcol_node = self.emrtFile.root.data_collection
+        getattr(self.emrtFile, create_group)(
+            self.emrtFile.root.data_collection,
+            'events',
+            title='Data Collected using the ioHub Event Framework.'
+        )
 
-        ttitle = 'All Saved ioHub Device Events.'
-        self.emrtFile.createGroup(datcol_node, 'events', title=ttitle)
-
-        ttitle = "Experiment Session DV and IV's Values."
-        self.emrtFile.createGroup(datcol_node, 'condition_variables',
-                                  title=ttitle)
+        getattr(self.emrtFile, create_group)(
+            self.emrtFile.root.data_collection,
+            'condition_variables',
+            title="Experiment Session DV and IV's Values."
+        )
         self.flush()
 
-        self.TABLES['EXPERIMENT_METADETA'] = self.emrtFile.createTable(
-            datcol_node, 'experiment_meta_data',
-            ExperimentMetaData, title='Experiment Metadata.')
-        self.TABLES['SESSION_METADETA'] = self.emrtFile.createTable(
-            datcol_node, 'session_meta_data',
-            SessionMetaData, title='Session MetaData.')
 
+        self.TABLES['EXPERIMENT_METADETA'] = getattr(self.emrtFile, create_table)(
+            self.emrtFile.root.data_collection,
+            'experiment_meta_data',
+            ExperimentMetaData,
+            title='Information About Experiments Saved to This ioHub DataStore File.'
+        )
+        self.TABLES['SESSION_METADETA'] = getattr(self.emrtFile, create_table)(
+            self.emrtFile.root.data_collection,
+            'session_meta_data',
+            SessionMetaData,
+            title='Information About Sessions Saved to This ioHub DataStore File.'
+        )
         self.flush()
 
     def loadTableMappings(self):
@@ -181,25 +242,25 @@ class DataStoreFile:
                             self.eventTableLabel2ClassName(event_table_label)))
                     print2err('----------------------------------------------')
 
-    def addClassMapping(self, ioClass, ctable):
+    def addClassMapping(self,ioClass,ctable):
         names = [
             x['class_id'] for x in self.TABLES['CLASS_TABLE_MAPPINGS'].where(
                 '(class_id == %d)' %
                 (ioClass.EVENT_TYPE_ID))]
-        if len(names) == 0:
+        if len(names)==0:
             trow = self.TABLES['CLASS_TABLE_MAPPINGS'].row
             trow['class_id'] = ioClass.EVENT_TYPE_ID
-            trow['class_type_id'] = 1  # Device or Event etc.
+            trow['class_type_id'] = 1 # Device or Event etc.
             trow['class_name'] = ioClass.__name__
-            trow['table_path'] = ctable._v_pathname
+            trow['table_path']  = ctable._v_pathname
             trow.append()
             self.flush()
 
-    def createOrUpdateExperimentEntry(self, experimentInfoList):
+    def createOrUpdateExperimentEntry(self,experimentInfoList):
         experiment_metadata = self.TABLES['EXPERIMENT_METADETA']
         result = [row for row in experiment_metadata.iterrows() if row[
             'code'] == experimentInfoList[1]]
-        if len(result) > 0:
+        if len(result)>0:
             result = result[0]
             self.active_experiment_id = result['experiment_id']
             return self.active_experiment_id
@@ -209,11 +270,11 @@ class DataStoreFile:
             max_id = np.amax(id_col)
         self.active_experiment_id = max_id + 1
         experimentInfoList[0] = self.active_experiment_id
-        experiment_metadata.append([experimentInfoList, ])
+        experiment_metadata.append([experimentInfoList,])
         self.flush()
         return self.active_experiment_id
 
-    def createExperimentSessionEntry(self, sessionInfoDict):
+    def createExperimentSessionEntry(self,sessionInfoDict):
         session_metadata = self.TABLES['SESSION_METADETA']
         max_id = 0
         id_col = session_metadata.col('session_id')
@@ -227,7 +288,7 @@ class DataStoreFile:
             sessionInfoDict['name'],
             sessionInfoDict['comments'],
             sessionInfoDict['user_variables'])
-        session_metadata.append([values, ])
+        session_metadata.append([values,])
         self.flush()
         return self.active_session_id
 
@@ -235,7 +296,7 @@ class DataStoreFile:
             self, experiment_id, session_id, np_dtype):
         expcv_table = None
         expcv_node = self.emrtFile.root.data_collection.condition_variables
-        exp_session = [('EXPERIMENT_ID', 'i4'), ('SESSION_ID', 'i4')]
+        exp_session = [('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
         exp_session.extend(np_dtype)
         np_dtype = []
         for npctype in exp_session:
@@ -253,13 +314,8 @@ class DataStoreFile:
             self.TABLES['EXP_CV'] = expcv_table
         except tables.NoSuchNodeError:
             try:
-                expcv_table = self.emrtFile.createTable(
-                    expcv_node,
-                    expCondTableName,
-                    self._EXP_COND_DTYPE,
-                    title='Condition Variable Values for Experiment ID %d' %
-                    (experiment_id))
-                self.TABLES['EXP_CV'] = expcv_table
+                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
+                self.TABLES['EXP_CV'] = experimentConditionVariableTable
                 self.emrtFile.flush()
             except Exception:
                 printExceptionDetailsToStdErr()
@@ -278,13 +334,13 @@ class DataStoreFile:
         if self._EXP_COND_DTYPE is None:
             return False
         if self.emrtFile and 'EXP_CV' in self.TABLES:
-            temp = [experiment_id, session_id]
+            temp = [experiment_id,session_id]
             temp.extend(data)
             data = temp
             try:
                 etable = self.TABLES['EXP_CV']
-                for i, d in enumerate(data):
-                    if isinstance(d, (list, tuple)):
+                for i,d in enumerate(data):
+                    if isinstance(d,(list,tuple)):
                         data[i] = tuple(d)
                 np_array = np.array([tuple(data), ],
                                     dtype=self._EXP_COND_DTYPE)
@@ -295,10 +351,10 @@ class DataStoreFile:
                 printExceptionDetailsToStdErr()
         return False
 
-    def addMetaDataToFile(self, metaData):
+    def addMetaDataToFile(self,metaData):
         pass
 
-    def checkForExperimentAndSessionIDs(self, event=None):
+    def checkForExperimentAndSessionIDs(self,event=None):
         if self.active_experiment_id is None or self.active_session_id is None:
             exp_id = self.active_experiment_id
             if exp_id is None:
@@ -309,13 +365,13 @@ class DataStoreFile:
             return False
         return True
 
-    def checkIfSessionCodeExists(self, sessionCode):
+    def checkIfSessionCodeExists(self,sessionCode):
         if self.emrtFile:
             sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where(
                 'experiment_id == %d' % (self.active_experiment_id,))
             sessionCodeMatch = [
                 sess for sess in sessionsForExperiment if sess['code'] == sessionCode]
-            if len(sessionCodeMatch) > 0:
+            if len(sessionCodeMatch)>0:
                 return True
             return False
 
@@ -360,7 +416,7 @@ class DataStoreFile:
         except Exception:
             printExceptionDetailsToStdErr()
 
-    def bufferedFlush(self, eventCount=1):
+    def bufferedFlush(self,eventCount=1):
         """
         If flushCounter threshold is >=0 then do some checks. If it is < 0,
         then flush only occurs when command is sent to ioHub,
@@ -402,7 +458,7 @@ class DataStoreFile:
 
 def close_open_data_files(verbose):
     open_files = tables.file._open_files
-    clall = hasattr(open_files, 'close_all')
+    clall = hasattr(open_files,'close_all')
     if clall:
         open_files.close_all()
     else:
@@ -417,33 +473,33 @@ def close_open_data_files(verbose):
                 print2err('done')
 
 
-registered_close_open_data_files = True
-atexit.register(close_open_data_files, False)
+    registered_close_open_data_files = True
+    atexit.register(close_open_data_files, False)
 
 ## ---------------------- Pytable Definitions ------------------- ##
 
 
 class ClassTableMappings(tables.IsDescription):
     class_id = UInt32Col(pos=1)
-    class_type_id = UInt32Col(pos=2)  # Device or Event etc.
-    class_name = StringCol(32, pos=3)
-    table_path = StringCol(128, pos=4)
+    class_type_id = UInt32Col(pos=2) # Device or Event etc.
+    class_name = StringCol(32,pos=3)
+    table_path  = StringCol(128,pos=4)
 
 
 class ExperimentMetaData(tables.IsDescription):
     experiment_id = UInt32Col(pos=1)
-    code = StringCol(24, pos=2)
-    title = StringCol(48, pos=3)
-    description = StringCol(256, pos=4)
-    version = StringCol(6, pos=5)
+    code = StringCol(24,pos=2)
+    title = StringCol(48,pos=3)
+    description  = StringCol(256,pos=4)
+    version = StringCol(6,pos=5)
     total_sessions_to_run = UInt16Col(pos=9)
 
 
 class SessionMetaData(tables.IsDescription):
     session_id = UInt32Col(pos=1)
     experiment_id = UInt32Col(pos=2)
-    code = StringCol(24, pos=3)
-    name = StringCol(48, pos=4)
-    comments = StringCol(256, pos=5)
+    code = StringCol(24,pos=3)
+    name = StringCol(48,pos=4)
+    comments  = StringCol(256,pos=5)
     # will hold json encoded version of user variable dict for session
     user_variables = StringCol(2048, pos=6)
