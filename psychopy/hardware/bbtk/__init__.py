@@ -61,7 +61,11 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """Send a break event to reset the box if needed
         (can be done by setting sendBreak=true at __init__)
         """
-        self.com.sendBreak()
+        try:
+            self.com.send_break()
+        except AttributeError:
+            self.com.sendBreak()  # not sure when this was deprecated
+
 
     def isAwake(self):
         """Checks that the black box returns "BBTK;\n" when probed with "CONN"
@@ -122,7 +126,8 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         self.sendMessage(smoothStr)
 
     def clearMemory(self):
-        """
+        """Clear the stored data from a previous run.
+        This should be done before collecting a further timing data
         """
         self.sendMessage('SPIE')
         self.pause()
@@ -157,7 +162,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
 
     def recordStimulusData(self, duration):
         """Record data for a given duration (seconds) and return a list of
-        events that occured in that period.
+        events that occurred in that period.
         """
         # we aren't in a time-critical period so flush messages
         self.sendMessage("DSCM")
@@ -255,4 +260,4 @@ if __name__ == "__main__":
 
     BBTK.clearRAM()
     time.sleep(2)
-    print('leftovers: %s' % BBTK.com.read(BBTK.com.inWaiting()))
+    print('leftovers: %s' % BBTK.com.read(BBTK.com.in_waiting()))
