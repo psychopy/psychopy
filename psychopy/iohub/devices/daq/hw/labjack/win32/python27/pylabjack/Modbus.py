@@ -4,9 +4,6 @@
 # Last Modified: 12/3/2009
 
 from __future__ import with_statement
-from __future__ import division
-from builtins import range
-from past.utils import old_div
 from threading import Lock
 
 from struct import pack, unpack #, unpack_from  # unpack_from is new in 2.5
@@ -105,7 +102,7 @@ def readHoldingRegistersResponse(packet, payloadFormat=None):
         raise ModbusException("Packet length not valid. Expected %s, Got %s\n\nThe packet you received: %s" % (payloadLength + HEADER_LENGTH, len(packet), repr(packet)))
 
     if payloadFormat is None:
-        payloadFormat = '>' + 'H' * (old_div(payloadLength,2))
+        payloadFormat = '>' + 'H' * (payloadLength/2)
 
     # When we write '>s', we mean a variable-length string.
     # We just didn't know the length when we wrote it.
@@ -164,7 +161,7 @@ def readInputRegistersResponse(packet, payloadFormat=None):
         raise ModbusException("Packet length not valid.")
 
     if payloadFormat is None:
-        payloadFormat = '>' + 'H' * (old_div(payloadLength,2))
+        payloadFormat = '>' + 'H' * (payloadLength/2)
 
     # When we write '>s', we mean a variable-length string.
     # We just didn't know the length when we wrote it.
@@ -285,7 +282,7 @@ def calcNumberOfRegistersAndFormat(addr, numReg = None):
 
     if numReg:
         if (numReg%minNumReg) == 0:
-            return (numReg, '>' + ( format * (old_div(numReg,minNumReg)) ))
+            return (numReg, '>' + ( format * (numReg/minNumReg) ))
         else:
             raise ModbusException("For address %s, the number of registers must be divisible by %s" % (addr, minNumReg))
     else:
