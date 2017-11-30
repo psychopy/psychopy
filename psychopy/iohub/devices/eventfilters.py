@@ -3,6 +3,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
+from __future__ import print_function
 
 import numpy as np
 from collections import deque
@@ -3558,7 +3559,7 @@ if __name__ == '__main__':
         knot_pos='center',
         inplace=True)
 
-    print 'FIRST SOURCE EVENT ID:', events[0]['event_id']
+    print('FIRST SOURCE EVENT ID:', events[0]['event_id'])
     for e in events:
         r = mx_filter.add(e['x_position'])
         filtered_x = None
@@ -3570,4 +3571,4 @@ if __name__ == '__main__':
         if r:
             _junk, filtered_y = r
 
-        print 'filtered values: ', filtered_x, filtered_y
+        print('filtered values: ', filtered_x, filtered_y)

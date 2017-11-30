@@ -3,6 +3,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
+from __future__ import print_function
 
 import gc
 import sys
@@ -365,8 +366,8 @@ class Computer(object):
                     [0, 1, 6, 7],
                     [Computer.currentProcessID, Computer.iohub_process_id])
         else:
-            print 'autoAssignAffinities does not support %d processors.' % (
-            cpu_count,)
+            print('autoAssignAffinities does not support %d processors.' % (
+            cpu_count,))
 
     @staticmethod
     def getCurrentProcessAffinity():

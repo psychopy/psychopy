@@ -5,6 +5,7 @@
 
 """Collection of functions and classes to fix various encoding problems on
 multiple platforms with python."""
+from __future__ import print_function
 
 import codecs
 import locale
@@ -25,8 +26,8 @@ def complain(message):
     sys.__stderr__, so that the user has a higher chance to see them.
 
     """
-    print >> sys.__stderr__, (
-        isinstance(message, str) and message or repr(message))
+    print((
+        isinstance(message, str) and message or repr(message)), file=sys.__stderr__)
 
 
 def fix_default_encoding():

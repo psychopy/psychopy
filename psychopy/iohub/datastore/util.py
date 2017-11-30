@@ -2,6 +2,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
+from __future__ import print_function
 
 from tables import *
 import os
@@ -41,7 +42,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
                                allowed="HDF files (*.hdf5)")
 
     if filePathList is None:
-        print ' Data File Selection Cancelled.'
+        print(' Data File Selection Cancelled.')
         return None
 
     return filePathList[0]
@@ -136,7 +137,7 @@ class ExperimentDataAccessUtility(object):
         try:
             self.hdfFile = openHubFile(hdfFilePath, hdfFileName, mode)
         except Exception as e:
-            print e
+            print(e)
             raise ExperimentDataAccessException(e)
 
         self.getExperimentMetaData()
@@ -156,22 +157,22 @@ class ExperimentDataAccessUtility(object):
             for group in hubFile.walkGroups('/'):
                 for table in hubFile.listNodes(group, classname='Table'):
                     if table.name == tableName:
-                        print '------------------'
-                        print 'Path:', table
-                        print 'Table name:', table.name
-                        print 'Number of rows in table:', table.nrows
-                        print 'Number of cols in table:', len(table.colnames)
-                        print 'Attribute name := type, shape:'
+                        print('------------------')
+                        print('Path:', table)
+                        print('Table name:', table.name)
+                        print('Number of rows in table:', table.nrows)
+                        print('Number of cols in table:', len(table.colnames))
+                        print('Attribute name := type, shape:')
                         for name in table.colnames:
-                            print '\t', name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape)
-                        print '------------------'
+                            print('\t', name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape))
+                        print('------------------')
                         return
 
     def printHubFileStructure(self):
         """Print to stdout the current global structure of the loaded DataStore
         File."""
         if self.hdfFile:
-            print self.hdfFile
+            print(self.hdfFile)
 
     def getExperimentMetaData(self):
         """Returns the the metadata for the experiment the datStore file is
@@ -302,8 +303,8 @@ class ExperimentDataAccessUtility(object):
                     cond = '(type == %d)' % (event_type_id)
                     if condition_str:
                         cond += ' & ' + condition_str
-                    events_by_type[event_type_id] = self.hdfFile.getNode(
-                        event_mapping_info.table_path).where(cond).next()
+                    events_by_type[event_type_id] = next(self.hdfFile.getNode(
+                        event_mapping_info.table_path).where(cond))
                 except StopIteration:
                     pass
             return events_by_type

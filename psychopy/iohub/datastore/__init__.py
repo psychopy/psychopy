@@ -144,7 +144,7 @@ class DataStoreFile():
                         self.flush()
                     except tables.NodeError:
                         self.TABLES[event_table_label] = self.groupNodeForEvent(event_cls)._f_get_child(self.eventTableLabel2ClassName(event_table_label))
-                    except Exception, e:
+                    except Exception as e:
                         print2err('---------------ERROR------------------')
                         print2err(
                             'Exception %s in iohub.datastore.updateDataStoreStructure:' %
