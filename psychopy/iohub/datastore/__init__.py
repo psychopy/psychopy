@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+#  -*- coding: utf-8 -*-
+#
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, print_function
 
 import os
 import atexit
@@ -21,7 +23,7 @@ SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'November 24th, 2016'
 
 
-class DataStoreFile():
+class DataStoreFile:
     def __init__(self, fileName, folderPath, fmode='a', iohub_settings=None):
         self.fileName = fileName
         self.folderPath = folderPath
@@ -359,11 +361,11 @@ class DataStoreFile():
             printExceptionDetailsToStdErr()
 
     def bufferedFlush(self, eventCount=1):
-        '''
+        """
         If flushCounter threshold is >=0 then do some checks. If it is < 0,
         then flush only occurs when command is sent to ioHub,
         so do nothing here.
-        '''
+        """
         if self.flushCounter >= 0:
             if self.flushCounter == 0:
                 self.flush()

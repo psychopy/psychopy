@@ -48,7 +48,7 @@ class Display(Device):
         self._coord2pix = None
         self._pix2coord = None
 
-        if sys.platform == 'linux2':
+        if sys.platform.startswith('linux'):
             self._xwindow = None
 
         if Display._computer_display_runtime_info_list is None:

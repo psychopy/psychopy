@@ -392,7 +392,7 @@ class MouseDevice(Device):
 if Computer.platform == 'win32':
     from .win32 import Mouse
 
-elif Computer.platform == 'linux2':
+elif Computer.platform.startswith('linux'):
     from .linux2 import Mouse
 
 elif Computer.platform == 'darwin':

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#  -*- coding: utf-8 -*-
+
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -607,7 +610,7 @@ if sys.platform == 'win32':
 
     VirtualKeyCodes.initialize()
 
-elif sys.platform == 'linux2':
+elif sys.platform.startswith('linux'):
     class VirtualKeyCodes(Constants):
         @classmethod
         def getName(cls, cid):

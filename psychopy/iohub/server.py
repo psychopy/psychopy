@@ -691,7 +691,7 @@ class ioServer(object):
                         hookManager.KeyAll = dkeyboard._nativeEventCallback
                         hookManager.HookKeyboard()
 
-            elif Computer.platform == 'linux2':
+            elif Computer.platform.startswith('linux'):
                 from .devices import pyXHook
                 if hookManager is None:
                     # iohub.log("Creating pyXHook Monitors....")
@@ -926,7 +926,7 @@ class ioServer(object):
         try:
             self._running = False
 
-            if Computer.platform == 'linux2':
+            if Computer.platform.startswith('linux'):
                 if self._hookManager:
                     self._hookManager.cancel()
 

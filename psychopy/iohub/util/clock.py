@@ -25,7 +25,7 @@ else:
         def _getTime():
             _winQPC(byref(_fcounter))
             return _fcounter.value / _qpfreq
-    elif sys.platform == 'linux2':
+    elif sys.platform.startswith('linux'):
         from ctypes import byref, c_long, CDLL, Structure
         libc = CDLL('libc.so.6')
         CLOCK_MONOTONIC = 1

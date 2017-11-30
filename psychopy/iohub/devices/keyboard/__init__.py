@@ -102,7 +102,7 @@ class ioHubKeyboardDevice(Device):
 
 if Computer.platform == 'win32':
     from win32 import Keyboard
-elif Computer.platform == 'linux2':
+elif Computer.platform.startswith('linux'):
     from linux2 import Keyboard
 elif Computer.platform == 'darwin':
     from darwin import Keyboard
