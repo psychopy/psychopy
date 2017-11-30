@@ -118,13 +118,13 @@ class BzrError(Exception):
 
     def __unicode__(self):
         u = self._format()
-        if isinstance(u, str):
+        if isinstance(u, bytes):
             # Try decoding the str using the default encoding.
             u = unicode(u)
         elif not isinstance(u, unicode):
             # Try to make a unicode object from it, because __unicode__ must
             # return a unicode object.
-            u = unicode(u)
+            u = u'{}'.format(u)
         return u
 
     def __str__(self):

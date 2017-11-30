@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 
+from builtins import object
 import sys
 from .. import _ispkg
 

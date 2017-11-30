@@ -62,7 +62,7 @@ SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'November 24th, 2016'
 
 
-class DataStoreFile:
+class DataStoreFile(object):
     def __init__(self, fileName, folderPath, fmode='a', iohub_settings=None):
         self.fileName = fileName
         self.folderPath = folderPath
@@ -191,10 +191,10 @@ class DataStoreFile:
             shuffle=False,
             fletcher32=False)
 
-        for event_cls_name, event_cls in event_class_dict.iteritems():
+        for event_cls_name, event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label = event_cls.IOHUB_DATA_TABLE
-                if event_table_label not in self.TABLES.keys():
+                if event_table_label not in list(self.TABLES.keys()):
                     try:
                         self.TABLES[event_table_label] = self.emrtFile.createTable(
                             self.groupNodeForEvent(event_cls),
@@ -300,7 +300,7 @@ class DataStoreFile:
         exp_session.extend(np_dtype)
         np_dtype = []
         for npctype in exp_session:
-            if isinstance(npctype[0], unicode):
+            if isinstance(npctype[0], str):
                 nv = [str(npctype[0]),]
                 nv.extend(npctype[1:])
                 np_dtype.append(tuple(nv))
@@ -465,7 +465,7 @@ def close_open_data_files(verbose):
         are_open_files = len(open_files) > 0
         if verbose and are_open_files:
             print2err('Closing remaining open data files:')
-        for fileh in open_files.keys():
+        for fileh in list(open_files.keys()):
             if verbose:
                 print2err('%s...' % (open_files[fileh].filename,))
             open_files[fileh].close()

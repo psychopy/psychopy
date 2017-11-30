@@ -153,7 +153,7 @@ def launchHubServer(**kwargs):
     experiment_info = kwargs.get('experiment_info')
     if experiment_info:
         del kwargs['experiment_info']
-        for k, v in experiment_info.items():
+        for k, v in list(experiment_info.items()):
             if k in ['code', 'title', 'description', 'version']:
                 experiment_info[k] = u"{}".format(v)
         if experiment_info.get('code'):
@@ -169,7 +169,7 @@ def launchHubServer(**kwargs):
     session_info = kwargs.get('session_info')
     if session_info:
         del kwargs['session_info']
-        for k, v in session_info.items():
+        for k, v in list(session_info.items()):
             if k in ['code', 'name', 'comments']:
                 session_info[k] = u"{}".format(v)
             elif k == 'user_variables':
@@ -220,7 +220,7 @@ def launchHubServer(**kwargs):
     if isinstance(device_dict,(list,tuple)):
         tempdict_ = {}
         for ddict in device_dict:
-            tempdict_[ddict.keys()[0]] = ddict.values()[0]
+            tempdict_[list(ddict.keys())[0]] = list(ddict.values())[0]
         device_dict = tempdict_
         
     device_dict.update(kwargs)
@@ -234,7 +234,7 @@ def launchHubServer(**kwargs):
         return '%s.%s' % (func.__module__, func.__name__)
 
     def configfuncs2str(config):
-        for k, v in config.items():
+        for k, v in list(config.items()):
             if isinstance(v, dict):
                 configfuncs2str(v)
             if isFunction(v):
@@ -269,8 +269,8 @@ def launchHubServer(**kwargs):
     iohub_config = dict()
     def_ioconf = readConfig(os.path.join(IOHUB_DIRECTORY,u'default_config.yaml'))
     # Add remaining defined devices to the device list.
-    for class_name, device_config in device_dict.iteritems():
-        if class_name in def_ioconf.keys():
+    for class_name, device_config in device_dict.items():
+        if class_name in list(def_ioconf.keys()):
             # not a device, a top level iohub config param
             iohub_config[class_name] = device_config
         else:

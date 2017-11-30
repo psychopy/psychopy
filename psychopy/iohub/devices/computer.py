@@ -7,6 +7,8 @@
 from __future__ import division, absolute_import
 from __future__ import print_function
 
+from past.builtins import basestring
+from builtins import object
 import gc
 import sys
 

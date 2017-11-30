@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 
+from builtins import object
 import sys
 import os
 import inspect
@@ -136,7 +137,7 @@ import copy
 
 
 def updateDict(add_to, add_from):
-    for key, value in add_from.iteritems():
+    for key, value in add_from.items():
         if key not in add_to:
             add_to[key] = copy.deepcopy(value)
         elif isinstance(value, dict) and isinstance(add_to[key], dict):
@@ -273,7 +274,7 @@ class NumPyRingBuffer(object):
     def __setitem__(self, indexs, v):
         if isinstance(indexs, (list, tuple)):
             for i in indexs:
-                if isinstance(i, (int, long)):
+                if isinstance(i, (int, int)):
                     i = i + self._index
                     self._npa[i % self.max_size] = v
                     self._npa[(i % self.max_size) + self.max_size] = v
@@ -298,7 +299,7 @@ class NumPyRingBuffer(object):
                             (start %
                              self.max_size) + self.max_size, (stop %
                                                               self.max_size) + self.max_size, i.step)] = v
-        elif isinstance(indexs, (int, long)):
+        elif isinstance(indexs, (int, int)):
             i = indexs + self._index
             self._npa[i % self.max_size] = v
             self._npa[(i % self.max_size) + self.max_size] = v
@@ -335,12 +336,12 @@ class NumPyRingBuffer(object):
         if isinstance(indexs, (list, tuple)):
             rarray = []
             for i in indexs:
-                if isinstance(i, (int, long)):
+                if isinstance(i, (int, int)):
                     rarray.append(current_array[i])
                 elif isinstance(i, slice):
                     rarray.extend(current_array[i])
             return numpy.asarray(rarray, dtype=self._dtype)
-        elif isinstance(indexs, (int, long, slice)):
+        elif isinstance(indexs, (int, int, slice)):
             return current_array[indexs]
         else:
             raise TypeError()
