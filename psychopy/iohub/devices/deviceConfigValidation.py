@@ -433,7 +433,7 @@ def buildConfigParamValidatorMapping(
         device_setting_validation_dict,
         param_validation_func_mapping,
         parent_name):
-    for param_name, param_config in list(device_setting_validation_dict.items()):
+    for param_name, param_config in device_setting_validation_dict.items():
         current_param_path = None
         if parent_name is None:
             current_param_path = param_name
@@ -480,7 +480,7 @@ def validateConfigDictToFuncMapping(
         current_device_config,
         parent_param_path):
     validation_results = dict(errors=[], not_found=[])
-    for config_param, config_value in list(current_device_config.items()):
+    for config_param, config_value in current_device_config.items():
         if parent_param_path is None:
             current_param_path = config_param
         else:

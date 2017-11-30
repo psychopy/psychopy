@@ -138,7 +138,7 @@ import copy
 
 
 def updateDict(add_to, add_from):
-    for key, value in list(add_from.items()):
+    for key, value in add_from.items():
         if key not in add_to:
             add_to[key] = copy.deepcopy(value)
         elif isinstance(value, dict) and isinstance(add_to[key], dict):

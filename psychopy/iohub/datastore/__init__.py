@@ -191,7 +191,7 @@ class DataStoreFile(object):
             shuffle=False,
             fletcher32=False)
 
-        for event_cls_name, event_cls in list(event_class_dict.items()):
+        for event_cls_name, event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label = event_cls.IOHUB_DATA_TABLE
                 if event_table_label not in list(self.TABLES.keys()):
