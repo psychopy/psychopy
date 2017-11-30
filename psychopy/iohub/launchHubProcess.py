@@ -50,11 +50,11 @@ def run(rootScriptPathDir, configFilePath):
             tf.close()
             os.remove(configFilePath)
         else:
-            ioHubConfig = yload(file(configFilePath, 'r'), Loader=yLoader)
+            ioHubConfig = yload(open(configFilePath, 'r'), Loader=yLoader)
 
         hub_config_path = os.path.join(IOHUB_DIRECTORY, 'default_config.yaml')
 
-        hub_defaults_config = yload(file(hub_config_path, 'r'), Loader=yLoader)
+        hub_defaults_config = yload(open(hub_config_path, 'r'), Loader=yLoader)
         updateDict(ioHubConfig, hub_defaults_config)
 
         s = ioServer(rootScriptPathDir, ioHubConfig)

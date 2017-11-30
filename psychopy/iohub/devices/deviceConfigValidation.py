@@ -416,7 +416,7 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
 
 
 def loadYamlFile(yaml_file_path, print_file=False):
-    yaml_file_contents = yload(file(yaml_file_path, 'r'), Loader=yLoader)
+    yaml_file_contents = yload(open(yaml_file_path, 'r'), Loader=yLoader)
 #    if print_file:
 #        print 'yaml_file_contents:'
 #        print 'file: ',yaml_file_path

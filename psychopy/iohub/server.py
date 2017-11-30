@@ -536,7 +536,7 @@ class ioServer(object):
                 def_ds_conf_path = os.path.join(IOHUB_DIRECTORY,
                                                 'datastore',
                                                 'default_datastore.yaml')
-                _, def_ds_conf = yload(file(def_ds_conf_path, 'r'),
+                _, def_ds_conf = yload(open(def_ds_conf_path, 'r'),
                                        Loader=yLoader).popitem()
                 for dkey, dvalue in def_ds_conf.iteritems():
                     if dkey not in ds_conf:
@@ -759,7 +759,7 @@ class ioServer(object):
 
         self.log('Loading Device Defaults file: %s' % (dev_cls_name,))
 
-        _dconf = yload(file(dev_conf_pth, 'r'), Loader=yLoader)
+        _dconf = yload(open(dev_conf_pth, 'r'), Loader=yLoader)
         _, def_dev_conf = _dconf.popitem()
 
         self.processDeviceConfigDictionary(dev_mod_pth, dev_cls_name, dev_conf,

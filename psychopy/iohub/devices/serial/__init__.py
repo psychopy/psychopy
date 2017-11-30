@@ -508,7 +508,7 @@ class Pstbox(Serial):
     def __init__(self, *args, **kwargs):
         Serial.__init__(self, *args, **kwargs)
 
-        self._nbuttons = 5
+        self._nbuttons = 7
         # Buttons 0--4, from left to right:
         # [1, 2, 4, 8, 16]
         self._button_bytes = 2**N.arange(self._nbuttons, dtype='uint8')

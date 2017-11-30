@@ -694,7 +694,7 @@ class Display(Device):
                 psychopy_monitor_name, width=dwidth, distance=ddist, gamma=1.0)
 
             psychoMonitor.setSizePix(list(self.getPixelResolution()))
-            psychoMonitor.saveMon()
+            psychoMonitor.save()
 
         self._psychopy_monitor = psychoMonitor
         return True

@@ -189,7 +189,7 @@ class FileDialog(ioHubDialog):
         dstyle = 0
 
         if openFile is True:
-            dstyle = dstyle | wx.OPEN
+            dstyle = dstyle | wx.FD_OPEN
         if allowMultipleSelections is True:
             dstyle = dstyle | wx.MULTIPLE
         if allowChangingDirectories is True:

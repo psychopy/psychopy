@@ -346,7 +346,7 @@ class ioHubExperimentRuntime(object):
             merged_save_to_path):
         """Merges two iohub configuration files into one and saves it to a file
         using the path/file name in merged_save_to_path."""
-        base_config = yload(file(base_config_file_path, 'r'), Loader=yLoader)
+        base_config = yload(open(base_config_file_path, 'r'), Loader=yLoader)
         update_from_config = yload(
             file(
                 update_from_config_file_path,
