@@ -340,11 +340,11 @@ class ioHubConnection(object):
         optional as_type property to the method. Valid values for as_type are
         the following str values:
 
-                * 'list': Each event is a list of ordered attributes.
-                * 'namedtuple': Each event is converted to a namedtuple object.
-                * 'dict': Each event converted to a dict object.
-                * 'object': Each event is converted to a DeviceEvent subclass
-                            based on the event's type.
+            * 'list': Each event is a list of ordered attributes.
+            * 'namedtuple': Each event is converted to a namedtuple object.
+            * 'dict': Each event converted to a dict object.
+            * 'object': Each event is converted to a DeviceEvent subclass
+                        based on the event's type.
 
         Args:
             device_label (str): Name of device to retrieve events for.
@@ -519,12 +519,12 @@ class ioHubConnection(object):
         'check_hub_interval' seconds, being buffered so they can be accessed
         after the wait duration. This is done for two reasons:
 
-                * The iohub server's global and device level event buffers
-                  do not start to drop events if one of the (circular) event
-                  buffers becomes full during the wait duration.
-                * The number of events in the iohub process event buffers does
-                  not becaome too large, which could result in a longer than
-                  normal getEvents() call time.
+            * The iohub server's global and device level event buffers
+              do not start to drop events if one of the (circular) event
+              buffers becomes full during the wait duration.
+            * The number of events in the iohub process event buffers does
+              not becaome too large, which could result in a longer than
+              normal getEvents() call time.
 
         Args:
             delay (float): The sec.msec delay until method returns.
@@ -937,7 +937,7 @@ class ioHubConnection(object):
                              '%.6f' % Computer.global_clock.getLastResetTime(),
                              rootScriptPath,
                              ioHubConfigAbsPath,
-                             str(Computer.current_process.pid)]
+                             "{}".format(Computer.current_process.pid)]
 
         # To enable coverage in the iohub process, set the iohub\default_config
         # setting 'coverage_env_var' to the name of the coverage
@@ -951,7 +951,7 @@ class ioHubConnection(object):
 
         envars = dict(os.environ)
         if coverage_env_var not in [None, 'None']:
-            coverage_env_var = str(coverage_env_var)
+            coverage_env_var = "{}".format(coverage_env_var)
             cov_config_path = os.path.join(IOHUB_DIRECTORY, coverage_env_var)
             if os.path.exists(cov_config_path):
                 print("Coverage enabled for ioHub Server Process.")
@@ -995,7 +995,7 @@ class ioHubConnection(object):
         # Save ioHub ProcessID to file so next time it is started,
         # it can be checked and killed if necessary
         iopFile = open(iopFileName, 'w')
-        iopFile.write('ioHub PID: ' + str(Computer.iohub_process_id))
+        iopFile.write("ioHub PID: {}".format(Computer.iohub_process_id))
         iopFile.flush()
         iopFile.close()
 
@@ -1045,7 +1045,7 @@ class ioHubConnection(object):
         """Add an iohub device view to self.devices"""
         try:
             name = dev_config.get('name', dev_cls_name.lower())
-            dev_cls_name = str(dev_cls_name)
+            dev_cls_name = "{}".format(dev_cls_name)
             dev_name = dev_cls_name.lower()
             cls_name_start = dev_name.rfind('.')
             dev_mod_pth = '%s.devices.' % _pkgroot

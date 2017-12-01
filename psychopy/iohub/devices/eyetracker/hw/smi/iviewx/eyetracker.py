@@ -1163,7 +1163,7 @@ class _iViewConfigMappings(object):
             _iViewConfigMappings.target_type[
                 calibration_config.get(
                     'target_type', 'CIRCLE_TARGET')])
-        calibration_struct.targetFilename = b''
+        calibration_struct.targetFilename = ''
 
         if calibration_config['target_type'] in [
                 'CIRCLE_TARGET_V2', 'CIRCLE_TARGET']:
