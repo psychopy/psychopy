@@ -152,13 +152,21 @@ def _setPluginPathEnviron():
     nSteps = 0
     last = dllPath
     while nSteps < 4:
+        if last is None:
+            return 0
         last = split(last)[0]
         pluginPath = join(last, 'plugins')
         if os.path.isdir(pluginPath):
             os.environ['VLC_PLUGIN_PATH'] = pluginPath
-            break
+            return 1
         nSteps += 1
-_setPluginPathEnviron()
+    # if we got here we never found a path
+    return 0
+
+OK = _setPluginPathEnviron()
+if not OK:
+    logging.warn("Failed to set VLC plugins path. This is only important for "
+                 "MovieStim2 movies (the OpenCV backend)")
 
 
 class MovieStim2(BaseVisualStim, ContainerMixin):
