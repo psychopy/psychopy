@@ -23,6 +23,7 @@ from .util import NumPyRingBuffer as RingBuffer
 
 MAX_PACKET_SIZE = 64 * 1024
 
+defTimeout = 0.1
 
 class SocketConnection(object): # pylint: disable=too-many-instance-attributes
     def __init__(
@@ -34,7 +35,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
             rcvBufferLength=1492,
             broadcast=False,
             blocking=0,
-            timeout=0):
+            timeout=defTimeout):
         self._local_port = local_port
         self._local_host = local_host
         self._remote_host = remote_host
@@ -51,7 +52,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
         self.feed = self.unpacker.feed
         self.unpack = self.unpacker.unpack
 
-    def initSocket(self, broadcast=False, blocking=0, timeout=0):
+    def initSocket(self, broadcast=False, blocking=0, timeout=defTimeout):
         if Computer.is_iohub_process is True:
             from gevent import socket
         else:
@@ -101,15 +102,16 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
 class UDPClientConnection(SocketConnection):
     def __init__(self, remote_host='127.0.0.1', remote_port=9000,
                  rcvBufferLength=MAX_PACKET_SIZE, broadcast=False,
-                 blocking=1, timeout=None):
+                 blocking=1, timeout=defTimeout):
         SocketConnection.__init__(self, remote_host=remote_host,
                                   remote_port=remote_port,
                                   rcvBufferLength=rcvBufferLength,
                                   broadcast=broadcast,
                                   blocking=blocking,
                                   timeout=timeout)
+        self.sock.settimeout(timeout)
 
-    def initSocket(self, broadcast=False, blocking=1, timeout=None):
+    def initSocket(self, broadcast=False, blocking=1, timeout=defTimeout):
         if Computer.is_iohub_process is True:
             from gevent import socket
         else:
