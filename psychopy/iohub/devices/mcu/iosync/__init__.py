@@ -320,7 +320,7 @@ class MCU(Device):
             replies = self._mcu.getRequestReplies(True)
             for reply in replies:
                 rid = reply.getID()
-                if rid in self._request_dict.keys():
+                if rid in self._request_dict:
                     self._response_dict[rid] = reply
                     del self._request_dict[rid]
 

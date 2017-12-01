@@ -107,7 +107,7 @@ class InterestPeriodDefinition(object):
         return temp_target
 
     def _extract_criteria_match(self, source, criteria, return_cols, exact):
-        col = criteria.keys()[0]  # eventually we'll want to allow for
+        col = list(criteria.keys())[0]  # eventually we'll want to allow for
         val = criteria[col]      # multiple criteria matches
 
         if exact:
@@ -118,7 +118,7 @@ class InterestPeriodDefinition(object):
         if not isinstance(return_cols, dict):
             return_cols = dict(zip(return_cols, return_cols))
 
-        keep_cols = return_cols.keys()
+        keep_cols = list(return_cols.keys())
         matches = source[is_match][keep_cols].rename(columns=return_cols)
 
         return matches

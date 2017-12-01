@@ -107,7 +107,7 @@ class Touch(TouchDevice):
         """Send the underlying touch screen device a query request and return
         the response."""
         self._query(query_type, *args, **kwargs)
-        if query_type in RESPONSE_PACKET_TYPES.keys():
+        if query_type in RESPONSE_PACKET_TYPES:
             stime = getTime()
             while getTime() - stime < 0.10:
                 self._poll()
@@ -123,7 +123,7 @@ class Touch(TouchDevice):
         """Send the underlying touch screen device a command and return the
         response."""
         self._command(cmd_type, *args, **kwargs)
-        if cmd_type in RESPONSE_PACKET_TYPES.keys():
+        if cmd_type in RESPONSE_PACKET_TYPES:
             stime = getTime()
             while getTime() - stime < 0.010:
                 self._poll()

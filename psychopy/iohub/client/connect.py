@@ -270,7 +270,7 @@ def launchHubServer(**kwargs):
     def_ioconf = readConfig(os.path.join(IOHUB_DIRECTORY,u'default_config.yaml'))
     # Add remaining defined devices to the device list.
     for class_name, device_config in device_dict.items():
-        if class_name in list(def_ioconf.keys()):
+        if class_name in def_ioconf:
             # not a device, a top level iohub config param
             iohub_config[class_name] = device_config
         else:

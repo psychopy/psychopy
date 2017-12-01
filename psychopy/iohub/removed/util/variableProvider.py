@@ -250,7 +250,7 @@ class ExperimentVariableProvider(object):
 
             blockList = []
             for pbn in self.practiceBlockValues:
-                if pbn in tempBlockDict.keys():
+                if pbn in tempBlockDict:
                     blockList.append(
                         TrialSetProvider(
                             tempBlockDict[pbn],

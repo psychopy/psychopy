@@ -1355,7 +1355,7 @@ class ioEvent(object):
     @property
     def dict(self):
         d = {}
-        for k in list(self._attrib_index.keys()):
+        for k in self._attrib_index:
             d[k] = getattr(self, k)
         return d
 

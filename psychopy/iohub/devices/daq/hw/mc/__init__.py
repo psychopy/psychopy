@@ -59,7 +59,7 @@ class AnalogInput(AnalogInputDevice):
             print2err(
                 'AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter.' %
                 (self.model_name, str(
-                    self._SUPPORTED_MODELS.keys()),))
+                    list(self._SUPPORTED_MODELS.keys())),))
             raise ioDeviceError(
                 self, 'AnalogInput Model not supported: %s' %
                 (self.model_name))
@@ -71,7 +71,7 @@ class AnalogInput(AnalogInputDevice):
             print2err(
                 'AnalogInput Model %s has no block transfer size specified. Supported models are %s, using model_name parameter.' %
                 (self.model_name, str(
-                    self._SAMPLE_BLOCK_TRANSFER_SIZE.keys()),))
+                    list(self._SAMPLE_BLOCK_TRANSFER_SIZE.keys())),))
             raise ioDeviceError(
                 self, 'AnalogInput Model not supported: %s' %
                 (self.model_name))
@@ -82,7 +82,7 @@ class AnalogInput(AnalogInputDevice):
             print2err(
                 'AnalogInput gain value [%s] is not supported. Supported gain values are %s, using the gain parameter.' %
                 (str(
-                    self._DAQ_GAIN_OPTIONS.keys()),
+                    list(self._DAQ_GAIN_OPTIONS.keys())),
                  ))
             raise ioDeviceError(
                 self, 'AnalogInput gain not supported: %s' %

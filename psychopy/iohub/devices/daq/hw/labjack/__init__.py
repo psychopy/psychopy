@@ -39,7 +39,7 @@ class AnalogInput(AnalogInputDevice):
 
         self._labjack = None
 
-        if self.model_name in self._SUPPORTED_MODELS.keys():
+        if self.model_name in self._SUPPORTED_MODELS:
             try:
                 self._labjack = self._SUPPORTED_MODELS[self.model_name]()
                 self._calibration_data = self._labjack.getCalibrationData()
@@ -65,7 +65,7 @@ class AnalogInput(AnalogInputDevice):
             print2err(
                 'AnalogInput Model %s is not supported. Supported models are %s, using model_name parameter.' %
                 (self.model_name, str(
-                    self._SUPPORTED_MODELS.keys()),))
+                    list(self._SUPPORTED_MODELS.keys())),))
             raise ioDeviceError(
                 self, 'AnalogInput Model not supported: %s' %
                 (self.model_name))
@@ -100,7 +100,7 @@ class AnalogInput(AnalogInputDevice):
         logged_time = Computer.getTime()
         start_pre, start_post, analog_data = labjack_data
 
-        #=print2err ('ain_keys: ',analog_data.keys())
+        #=print2err ('ain_keys: ', list(analog_data.keys()))
 
         str_proto = 'AIN%d'
         channel_index_list = range(self.input_channel_count)

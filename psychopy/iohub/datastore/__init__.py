@@ -194,7 +194,7 @@ class DataStoreFile(object):
         for event_cls_name, event_cls in event_class_dict.items():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label = event_cls.IOHUB_DATA_TABLE
-                if event_table_label not in list(self.TABLES.keys()):
+                if event_table_label not in self.TABLES:
                     try:
                         self.TABLES[event_table_label] = self.emrtFile.createTable(
                             self.groupNodeForEvent(event_cls),
@@ -465,7 +465,7 @@ def close_open_data_files(verbose):
         are_open_files = len(open_files) > 0
         if verbose and are_open_files:
             print2err('Closing remaining open data files:')
-        for fileh in list(open_files.keys()):
+        for fileh in open_files:
             if verbose:
                 print2err('%s...' % (open_files[fileh].filename,))
             open_files[fileh].close()

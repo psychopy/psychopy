@@ -676,7 +676,7 @@ class EyeTracker(EyeTrackerDevice):
                 event = copy.deepcopy((self._kbEventQueue.pop(0)))
                 ke = KeyboardPressEvent.createEventAsNamedTuple(event)
                 key = ke.key.upper()
-                if key in key_mappings.keys():
+                if key in key_mappings:
                     del self._kbEventQueue[:]
                     return key_mappings[key]
             gevent.sleep(0.02)

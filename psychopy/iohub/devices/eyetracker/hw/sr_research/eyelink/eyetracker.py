@@ -1104,13 +1104,13 @@ class EyeTracker(EyeTrackerDevice):
                     vd = {u'FILTER_ALL': str(v)}
                     v = vd
 
-                fkeys = [str(k) for k in v.keys()]
+                fkeys = [str(k) for k in v]
                 if 'FILTER_ALL' in fkeys:
-                    for k in all_filters.keys():
+                    for k in all_filters:
                         all_filters[k] = str(v[u'FILTER_ALL'])
                 else:
                     for k in fkeys:
-                        if k in all_filters.keys():
+                        if k in all_filters:
                             all_filters[k]=str(v[k])
                 self._setSampleFilterLevel(all_filters)
             elif pkey == 'sampling_rate':

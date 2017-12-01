@@ -85,7 +85,7 @@ for t, trial in enumerate(trials):
             event_type_id=EventConstants.KEYBOARD_RELEASE)
 
         for ke in key_events:
-            if ke.key in key_mapping.keys():
+            if ke.key in key_mapping:
                 key_pressed = ke
                 break
             elif ke.key == 'ESCAPE':

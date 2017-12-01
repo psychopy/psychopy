@@ -569,7 +569,7 @@ class T3MC(object):
                     if remaining_byte_count > 0:
                         remaining_bytes = [
                             ord(c) for c in self._serial_port.read(remaining_byte_count)]
-                    if request_id in EVENT_TYPE_2_CLASS.keys():
+                    if request_id in EVENT_TYPE_2_CLASS:
                         event = EVENT_TYPE_2_CLASS[request_id](
                             request_id, time_bytes, remaining_bytes)
                         self._rx_events.append(event)

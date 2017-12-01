@@ -219,7 +219,7 @@ class EventConstants(Constants):
                     cls._classes[event_class] = event_id
                     break
 
-            if event_id not in cls._classes.keys():
+            if event_id not in cls._classes:
                 print2err('\t*** ERROR ADDING EVENT CLASSS MAPPING:',
                           ' Could not find class: ',
                           event_constant_string, ' = ', event_id)
