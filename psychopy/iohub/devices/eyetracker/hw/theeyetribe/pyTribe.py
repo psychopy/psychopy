@@ -194,7 +194,7 @@ class TheEyeTribe(object):
             if request_type == u'get':
                 if msg.get('values', {}).get('frame'):
                     return self.processSample(msg)
-                for k, v in msg.get('values', {}).iteritems():
+                for k, v in msg.get('values', {}).items():
                     #print2err('* Updating client.tracker_state[{0}] = {1}'.format(k,v))
                     self.tracker_state[k] = v
                     return True
@@ -233,7 +233,7 @@ class TheEyeTribe(object):
         resolution is.
         """
         send_values = {}
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if k not in self.tracker_set_values:
                 print2err('**setTrackerMsg warning": Invalid tracker set value key \
                     [{0}] with value [{1}]. Ignoring'.format(k, v))

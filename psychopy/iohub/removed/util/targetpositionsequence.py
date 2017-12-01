@@ -748,7 +748,7 @@ class TargetPosSequenceStim(object):
 
     def _addDeviceEvents(self, device_event_dict={}):
         dev_event_buffer = self.targetdata[-1]['events']
-        for dev, dev_events in dev_event_buffer.iteritems():
+        for dev, dev_events in dev_event_buffer.items():
             if dev in device_event_dict:
                 dev_events.extend(device_event_dict[dev])
             else:
@@ -859,7 +859,7 @@ class TargetPosSequenceStim(object):
 
             # create a dict of device labels as keys, device events as value
             devlabel_events = {}
-            for k, v in events.iteritems():
+            for k, v in events.items():
                 devlabel_events[k.getName()] = v
 
             samples = devlabel_events.get('tracker', [])

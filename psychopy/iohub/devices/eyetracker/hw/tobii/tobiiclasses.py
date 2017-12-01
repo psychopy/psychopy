@@ -52,7 +52,7 @@ class BrowserEvent(object):
         TRACKER_FOUND=1,
         TRACKER_UPDATE=2,
         TRACKER_REMOVED=3)
-    _event_types.update([(v, k) for k, v in _event_types.iteritems()])
+    _event_types.update([(v, k) for k, v in _event_types.items()])
     event_type = _event_types['BROWSER_EVENT']
 
     def __init__(self, tobii_event_type, tracker_info):
@@ -83,7 +83,7 @@ class TrackerRemovedEvent(BrowserEvent):
 
 class EyeTrackerEvent(object):
     _event_types = dict(TRACKER_EVENT=0, EYE_TRACKER_CREATED=1)
-    _event_types.update([(v, k) for k, v in _event_types.iteritems()])
+    _event_types.update([(v, k) for k, v in _event_types.items()])
     event_type = _event_types['TRACKER_EVENT']
 
     def __init__(self, tracker_object):

@@ -336,7 +336,7 @@ class EyeTracker(EyeTrackerDevice):
 
             if len(sample_values) > 1:
                 print2err('** Warning: Received Sample with extra values:')
-                for k, v in sample_values.iteritems():
+                for k, v in sample_values.items():
                     if k != 'frame':
                         print2err(k, ' : ', v)
 

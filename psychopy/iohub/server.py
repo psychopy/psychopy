@@ -219,7 +219,7 @@ class udpServer(DatagramServer):
 
             dev = None
             if dclass.find('.') > 0:
-                for dname, dev in ioServer.deviceDict.iteritems():
+                for dname, dev in ioServer.deviceDict.items():
                     if dname.endswith(dclass):
                         dev = ioServer.deviceDict.get(dname, None)
                         break
@@ -276,7 +276,7 @@ class udpServer(DatagramServer):
             dclass = request.pop(0)
             data = None
             if dclass in ['EyeTracker', 'DAQ']:
-                for dname, hdevice in ioServer.deviceDict.iteritems():
+                for dname, hdevice in ioServer.deviceDict.items():
                     if dname.endswith(dclass):
                         data = hdevice._getRPCInterface()
                         break
@@ -538,7 +538,7 @@ class ioServer(object):
                                                 'default_datastore.yaml')
                 _, def_ds_conf = yload(open(def_ds_conf_path, 'r'),
                                        Loader=yLoader).popitem()
-                for dkey, dvalue in def_ds_conf.iteritems():
+                for dkey, dvalue in def_ds_conf.items():
                     if dkey not in ds_conf:
                         ds_conf[dkey] = dvalue
 
@@ -563,7 +563,7 @@ class ioServer(object):
         # built device list and config from initial yaml config settings
         try:
             for iodevice in config.get('monitor_devices', ()):
-                for dev_cls_name, dev_conf in iodevice.iteritems():
+                for dev_cls_name, dev_conf in iodevice.items():
                     self.createNewMonitoredDevice(dev_cls_name, dev_conf)
         except Exception:
             print2err('Error during device creation ....')
@@ -588,7 +588,7 @@ class ioServer(object):
 
     def processDeviceConfigDictionary(self, dev_mod_path, dev_cls_name,
                                       dev_conf, def_dev_conf):
-        for dparam, dvalue in def_dev_conf.iteritems():
+        for dparam, dvalue in def_dev_conf.items():
             if dparam not in dev_conf:
                 if isinstance(dvalue, (dict, OrderedDict)):
                     sub_param = dict()
@@ -604,7 +604,7 @@ class ioServer(object):
                                                           dev_cls_name,
                                                           dev_conf)
 
-            for err_type, err_list in dev_conf_errors.iteritems():
+            for err_type, err_list in dev_conf_errors.items():
                 if len(err_list) > 0:
                     device_errors = self._all_dev_conf_errors.get(dev_mod_path,
                                                                   {})
@@ -770,7 +770,7 @@ class ioServer(object):
             print2err('ERROR: DEVICE CONFIG ERRORS FOUND! ',
                       'IOHUB NOT LOADING DEVICE: ', dev_mod_pth)
             dev_conf_errors = self._all_dev_conf_errors[dev_mod_pth]
-            for err_type, errors in dev_conf_errors.iteritems():
+            for err_type, errors in dev_conf_errors.items():
                 print2err('%s count %d:' % (err_type, len(errors)))
                 for error in errors:
                     print2err('\t{0}'.format(error))

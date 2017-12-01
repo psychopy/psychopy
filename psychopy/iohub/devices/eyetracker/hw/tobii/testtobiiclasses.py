@@ -22,7 +22,7 @@ if __name__ == '__main__':
         print 'Success: ', tracker_info
         print '\tDetails:'
         for k, v in TobiiTrackerBrowser.getTrackerDetails(
-                tracker_info.product_id).iteritems():
+                tracker_info.product_id).items():
             print '\t', k, ':', v
     else:
         print 'ERROR: No Tracker Found.'
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     tobii_tracker = TobiiTracker()
     print '\tCreated a Connected Tobii Tracker OK.'
     print '\tDetails:'
-    for k, v in tobii_tracker.getTrackerDetails().iteritems():
+    for k, v in tobii_tracker.getTrackerDetails().items():
         print '\t\t{0}  {1}'.format(k, v)
 
     print ''

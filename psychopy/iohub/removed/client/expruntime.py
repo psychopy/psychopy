@@ -355,7 +355,7 @@ class ioHubExperimentRuntime(object):
 
         def merge(update, base):
             if isinstance(update, dict) and isinstance(base, dict):
-                for k, v in base.iteritems():
+                for k, v in base.items():
                     if k not in update:
                         update[k] = v
                     else:
@@ -478,7 +478,7 @@ class ioHubExperimentRuntime(object):
                 tempdict = allSessionDialogVariables
                 tempdict['user_variables'] = self.sessionUserVariables
 
-            for key, value in allSessionDialogVariables.iteritems():
+            for key, value in allSessionDialogVariables.items():
                 if key in self.experimentSessionDefaults:
                     # (u''+value).encode('utf-8')
                     self.experimentSessionDefaults[key] = value

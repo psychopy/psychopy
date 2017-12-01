@@ -495,7 +495,7 @@ class DeviceEventTrigger(Trigger):
                 foundEvent = False
             else:
                 for (attrname,
-                     conds) in self.event_attribute_conditions.iteritems():
+                     conds) in self.event_attribute_conditions.items():
                     if isinstance(
                             conds, (list, tuple)) and getattr(
                             event, attrname) in conds:

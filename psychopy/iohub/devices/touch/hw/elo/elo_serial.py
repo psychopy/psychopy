@@ -74,7 +74,7 @@ class ResponsePacket(SmartSetPacket):
 
     def asdict(self):
         rd = dict()
-        for k, v in self.__dict__.iteritems():
+        for k, v in self.__dict__.items():
             if k[0] != '_':
                 rd[k] = v
         return rd
@@ -2075,7 +2075,7 @@ RESPONSE_PACKET_TYPES[ResponseTouch.PACKET_TYPE_CHAR] = ResponseTouch
 
 
 def loadPacketNames():
-    classes = [(name, obj) for name, obj in globals().iteritems()
+    classes = [(name, obj) for name, obj in globals().items()
                if hasattr(obj, 'PACKET_TYPE_CHAR')]
 
     for name, obj in classes:

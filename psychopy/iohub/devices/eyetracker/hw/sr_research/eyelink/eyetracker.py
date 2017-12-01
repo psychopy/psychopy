@@ -112,7 +112,7 @@ class EyeTracker(EyeTrackerDevice):
             eyelink = self._eyelink
             calibration_config = tracker_config.get('calibration', None)
             if calibration_config:
-                for cal_key, cal_val in calibration_config.iteritems():
+                for cal_key, cal_val in calibration_config.items():
                     if cal_key == 'auto_pace':
                         if cal_val is True:
                             eyelink.enableAutoCalibration()
@@ -1096,7 +1096,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
     def _setRuntimeSettings(self, runtimeSettings):
-        for pkey, v in runtimeSettings.iteritems():
+        for pkey, v in runtimeSettings.items():
             if pkey == 'sample_filtering':
                 all_filters={'FILTER_FILE': 'FILTER_LEVEL_2',
                              'FILTER_ONLINE': 'FILTER_LEVEL_OFF'}
@@ -1118,7 +1118,7 @@ class EyeTracker(EyeTrackerDevice):
             elif pkey == 'track_eyes':
                 self._setEyesToTrack(v)
             elif pkey == 'vog_settings':
-                for vog_key, vog_val in v.iteritems():
+                for vog_key, vog_val in v.items():
                     if vog_key == 'pupil_measure_types':
                         self._eyelink.sendCommand(
                             'pupil_size_diameter = %s' %
@@ -1534,7 +1534,7 @@ _eyeLinkCalibrationResultDict[27] = 'ABORTED_BY_USER'
 
 if 1 not in _EYELINK_HOST_MODES:
     t = dict(_EYELINK_HOST_MODES)
-    for k, v in t.iteritems():
+    for k, v in t.items():
         _EYELINK_HOST_MODES[v] = k
 
 

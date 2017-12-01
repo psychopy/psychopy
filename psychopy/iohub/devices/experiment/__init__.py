@@ -200,7 +200,7 @@ class LogEvent(DeviceEvent):
         from psychopy.logging import _levelNames
         _psychopyAvailable = True
 
-        for lln, llv in _levelNames.iteritems():
+        for lln, llv in _levelNames.items():
             if isinstance(lln, basestring):
                 _levelNames[lln] = llv
                 _levelNames[llv] = lln
@@ -311,6 +311,6 @@ class LogEvent(DeviceEvent):
         return cls.namedTupleClass(*valueList)
 
 if not hasattr(LogEvent, 'CRITICAL'):
-    for lln, llv in LogEvent._levelNames.iteritems():
+    for lln, llv in LogEvent._levelNames.items():
         if isinstance(lln, basestring):
             setattr(LogEvent, lln, llv)

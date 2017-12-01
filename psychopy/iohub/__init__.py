@@ -10,6 +10,7 @@ import sys
 
 from .errors import print2err, printExceptionDetailsToStdErr
 from .util import module_directory, fix_encoding
+
 fix_encoding.fix_encoding()
 
 if sys.platform == 'darwin':
@@ -36,3 +37,14 @@ except ImportError:
               'ioHub functionality will be disabled.')
 except Exception: # pylint: disable=broad-except
     printExceptionDetailsToStdErr()
+
+lazyImports = """
+from {pkgroot}.client.connect import launchHubServer
+from {pkgroot}.devices.computer import Computer
+""".format(pkgroot=_pkgroot)
+
+try:
+    from psychopy.contrib.lazy_import import lazy_import
+    lazy_import(globals(), lazyImports)
+except Exception:
+    exec(lazyImports)

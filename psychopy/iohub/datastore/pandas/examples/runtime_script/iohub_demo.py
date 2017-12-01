@@ -109,7 +109,7 @@ for t, trial in enumerate(trials):
     trial['TRIAL_START'] = tstart_flip_time
     trial['TRIAL_END'] = tend_flip_time
 
-    for k, v in trial.iteritems():
+    for k, v in trial.items():
         print k, v, type(v)
     print '---'
     io.sendMessageEvent(

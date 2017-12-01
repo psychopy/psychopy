@@ -471,7 +471,7 @@ class TobiiPsychopyCalibrationGraphics(object):
 
                 cal_stats = dict()
                 for (
-                        targ_x, targ_y), eye_cal_result_list in cal_data_dict.iteritems():
+                        targ_x, targ_y), eye_cal_result_list in cal_data_dict.items():
                     left_stats = dict(
                         pos_sample_count=0,
                         invalid_sample_count=0,
