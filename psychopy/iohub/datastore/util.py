@@ -17,23 +17,28 @@ import json
 
 from ..errors import print2err
 
-global _hubFiles
+from pkg_resources import parse_version
+import tables
+if parse_version(tables.__version__) < parse_version('3'):
+    from tables import openFile as open_file
+    walk_groups = "walkGroups"
+    list_nodes = "listNodes"
+    get_node = "getNode"
+else:
+    from tables import open_file
+    walk_groups = "walk_groups"
+    list_nodes = "list_nodes"
+    get_node = "get_node"
 
-try:
-    len(_hubFiles)
-except Exception:
-    _hubFiles = []
 
-try:
-    _translate("xxxx")
-except: 
-    _translate = lambda x: x
+_hubFiles = []
 
-def openHubFile(filepath,filename,mode):
-    """Open an HDF5 DataStore file and register it so that it is closed even on
-    interpreter crash."""
+def openHubFile(filepath, filename, mode):
+    """
+    Open an HDF5 DataStore file and register it so that it is closed even on interpreter crash.
+    """
     global _hubFiles
-    hubFile=openFile(os.path.join(filepath,filename), mode)
+    hubFile = open_file(os.path.join(filepath, filename), mode)
     _hubFiles.append(hubFile)
     return hubFile
 
@@ -43,12 +48,16 @@ def displayDataFileSelectionDialog(starting_dir=None):
     processing."""
     from psychopy.gui.qtgui import fileOpenDlg
 
-    filePathList = fileOpenDlg(starting_dir,
-                               prompt=_translate("Select file to open"),
-                               allowed="HDF files (*.hdf5)")
+    fdlg = FileDialog(
+        message="Select a ioHub DataStore File",
+        defaultDir=starting_dir,
+        fileTypes=FileDialog.IODATA_FILES,
+        display_index=0)
 
-    if filePathList is None:
-        print(' Data File Selection Cancelled.')
+    status, filePathList = fdlg.show()
+
+    if status != FileDialog.OK_RESULT:
+        print(" Data File Selection Cancelled.")
         return None
 
     return filePathList[0]
@@ -61,13 +70,13 @@ def displayEventTableSelectionDialog(
         default=u'Select'):
     from psychopy import gui
     if default not in list_values:
-        list_values.insert(0,default)
+        list_values.insert(0, default)
     else:
         list_values.remove(list_values)
-        list_values.insert(0,default)
+        list_values.insert(0, default)
 
-    selection_dict=dict(list_label=list_values)
-    dlg_info=dict(selection_dict)
+    selection_dict = dict(list_label=list_values)
+    dlg_info = dict(selection_dict)
     infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
     if not infoDlg.OK:
         return None
@@ -131,17 +140,17 @@ class ExperimentDataAccessUtility(object):
             object: the created instance of the ExperimentDataAccessUtility, ready to get your data!
 
         """
-        self.hdfFilePath=hdfFilePath
-        self.hdfFileName=hdfFileName
-        self.mode=mode
-        self.hdfFile=None
+        self.hdfFilePath = hdfFilePath
+        self.hdfFileName = hdfFileName
+        self.mode = mode
+        self.hdfFile = None
 
-        self._experimentCode=experimentCode
-        self._sessionCodes=sessionCodes
-        self._lastWhereClause=None
+        self._experimentCode = experimentCode
+        self._sessionCodes = sessionCodes
+        self._lastWhereClause = None
 
         try:
-            self.hdfFile=openHubFile(hdfFilePath,hdfFileName,mode)
+            self.hdfFile = openHubFile(hdfFilePath, hdfFileName, mode)
         except Exception as e:
             print(e)
             raise ExperimentDataAccessException(e)
@@ -159,9 +168,9 @@ class ExperimentDataAccessUtility(object):
 
         """
         if self.hdfFile:
-            hubFile=self.hdfFile
-            for group in hubFile.walkGroups('/'):
-                for table in hubFile.listNodes(group, classname='Table'):
+            hubFile = self.hdfFile
+            for group in getattr(hubFile, walk_groups)("/"):
+                for table in getattr(hubFile, listNodes)(group, classname='Table'):
                     if table.name == tableName:
                         print('------------------')
                         print('Path:', table)
@@ -170,7 +179,7 @@ class ExperimentDataAccessUtility(object):
                         print('Number of cols in table:', len(table.colnames))
                         print('Attribute name := type, shape:')
                         for name in table.colnames:
-                            print('\t',name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape))
+                            print('\t', name, ':= %s, %s' % (table.coldtypes[name], table.coldtypes[name].shape))
                         print('------------------')
                         return
 
@@ -188,34 +197,33 @@ class ExperimentDataAccessUtility(object):
 
         """
         if self.hdfFile:
-            expcols=self.hdfFile.root.data_collection.experiment_meta_data.colnames
+            expcols = self.hdfFile.root.data_collection.experiment_meta_data.colnames
             if 'sessions' not in expcols:
                 expcols.append('sessions')
             ExperimentMetaDataInstance = namedtuple(
                 'ExperimentMetaDataInstance', expcols)
             experiments=[]
             for e in self.hdfFile.root.data_collection.experiment_meta_data:
-                self._experimentID=e['experiment_id']
-                a_exp=list(e[:])
+                self._experimentID = e['experiment_id']
+                a_exp = list(e[:])
                 a_exp.append(self.getSessionMetaData())
                 experiments.append(ExperimentMetaDataInstance(*a_exp))
             return experiments
 
-    def getSessionMetaData(self,sessions=None):
-        """Returns the the metadata associated with the experiment session
-        codes in use.
+    def getSessionMetaData(self, sessions=None):
+        """
+        Returns the the metadata associated with the experiment session codes in use.
 
         **Docstr TBC.**
 
         """
         if self.hdfFile:
             if sessions is None:
-                sessions=[]
+                sessions = []
 
-            sessionCodes=self._sessionCodes
-            sesscols=self.hdfFile.root.data_collection.session_meta_data.colnames
-            SessionMetaDataInstance = namedtuple(
-                'SessionMetaDataInstance', sesscols)
+            sessionCodes = self._sessionCodes
+            sesscols = self.hdfFile.root.data_collection.session_meta_data.colnames
+            SessionMetaDataInstance = namedtuple('SessionMetaDataInstance', sesscols)
             for r in self.hdfFile.root.data_collection.session_meta_data:
                 if (len(sessionCodes) == 0 or r['code'] in sessionCodes) and r[
                         'experiment_id'] == self._experimentID:
@@ -224,37 +232,39 @@ class ExperimentDataAccessUtility(object):
                     sessions.append(SessionMetaDataInstance(*rcpy))
             return sessions
 
-    def getTableForPath(self,path):
-        """Given a valid table path within the DataStore file, return the
-        accociated table."""
-        self.hdfFile.getNode(path)
+    def getTableForPath(self, path):
+        """
+        Given a valid table path within the DataStore file, return the accociated table.
+        """
+        getattr(self.hdfFile, get_node)(path)
 
-    def getEventTable(self,event_type):
-        """Returns the DataStore table that contains events of the specified
-        type.
+    def getEventTable(self, event_type):
+        """
+        Returns the DataStore table that contains events of the specified type.
 
         **Docstr TBC.**
 
         """
         if self.hdfFile:
-            klassTables=self.hdfFile.root.class_table_mapping
-            event_column=None
-            event_value=None
+            klassTables = self.hdfFile.root.class_table_mapping
+            deviceEventTable = None
+            event_column = None
+            event_value = None
 
-            if isinstance(event_type,basestring):
-                if event_type.find('Event')>=0:
-                    event_column='class_name'
-                    event_value=event_type
+            if isinstance(event_type, basestring):
+                if event_type.find('Event') >= 0:
+                    event_column = 'class_name'
+                    event_value = event_type
                 else:
-                    event_value=''
-                    tokens=event_type.split('_')
+                    event_value = ''
+                    tokens = event_type.split('_')
                     for t in tokens:
-                        event_value+=t[0].upper()+t[1:].lower()
-                    event_value=event_type+'Event'
-                event_value='"%s"'%(event_value)
+                        event_value += t[0].upper()+t[1:].lower()
+                    event_value = event_type+'Event'
+                event_value = '"%s"' % (event_value)
             elif isinstance(event_type, numbers.Integral):
-                event_column='class_id'
-                event_value=event_type
+                event_column = 'class_id'
+                event_value = event_type
             else:
                 print2err(
                     'getEventTable error: event_type arguement must be a string or and int')
@@ -274,9 +284,9 @@ class ExperimentDataAccessUtility(object):
                     len(result))
                 return None
 
-            tablePathString=result[0][3]
-            return self.hdfFile.getNode(tablePathString)
-
+            tablePathString = result[0][3]
+            return getattr(self.hdfFile, get_node)(tablePathString)
+        return None
 
     def getEventMappingInformation(self):
         """Returns details on how ioHub Event Types are mapped to tables within
@@ -288,7 +298,7 @@ class ExperimentDataAccessUtility(object):
                 'EventTableMapping',
                 self.hdfFile.root.class_table_mapping.colnames)
             for row in class_2_table[:]:
-                eventMappings[row['class_id']]=EventTableMapping(*row)
+                eventMappings[row['class_id']] = EventTableMapping(*row)
             return eventMappings
         return None
 
@@ -301,9 +311,9 @@ class ExperimentDataAccessUtility(object):
         that type.
 
         """
-        eventTableMappings=self.getEventMappingInformation()
+        eventTableMappings = self.getEventMappingInformation()
         if eventTableMappings:
-            events_by_type=dict()
+            events_by_type = dict()
             for event_type_id, event_mapping_info in eventTableMappings.items():
                 try:
                     cond = '(type == %d)' % (event_type_id)
@@ -330,38 +340,37 @@ class ExperimentDataAccessUtility(object):
         """
         **Docstr TBC.**
         """
-        cv_group=self.hdfFile.root.data_collection.condition_variables
-        ecv = 'EXP_CV_%d' % (self._experimentID,)
+        cv_group = self.hdfFile.root.data_collection.condition_variables
+        ecv = "EXP_CV_%d" % (self._experimentID,)
         if ecv in cv_group._v_leaves:
-            ecvTable=cv_group._v_leaves[ecv]
+            ecvTable = cv_group._v_leaves[ecv]
             return ecvTable.colnames
         return None
 
-    def getConditionVariables(self,filter=None):
+    def getConditionVariables(self, filter=None):
         """
         **Docstr TBC.**
         """
         if filter is None:
-            session_ids=[]
+            session_ids = []
             for s in self.getExperimentMetaData()[0].sessions:
                 session_ids.append(s.session_id)
-            filter=dict(session_id=(' in ',session_ids))
+            filter = dict(session_id=(' in ', session_ids))
 
-        ConditionSetInstance=None
+        ConditionSetInstance = None
 
         for conditionVarName, conditionVarComparitor in filter.items():
             avComparison, value = conditionVarComparitor
 
-            cv_group=self.hdfFile.root.data_collection.condition_variables
-            cvrows=[]
-            ecv = 'EXP_CV_%d' % (self._experimentID,)
+            cv_group = self.hdfFile.root.data_collection.condition_variables
+            cvrows = []
+            ecv = "EXP_CV_%d" % (self._experimentID,)
             if ecv in cv_group._v_leaves:
-                ecvTable=cv_group._v_leaves[ecv]
+                ecvTable = cv_group._v_leaves[ecv]
 
                 if ConditionSetInstance is None:
-                    colnam=ecvTable.colnames
-                    ConditionSetInstance = namedtuple(
-                        'ConditionSetInstance', colnam)
+                    colnam = ecvTable.colnames
+                    ConditionSetInstance = namedtuple('ConditionSetInstance', colnam)
 
                 cvrows.extend(
                     [
@@ -377,31 +386,31 @@ class ExperimentDataAccessUtility(object):
                                 conditionVarComparitor in filter.items()])])
         return cvrows
 
-    def getValuesForVariables(self,cv, value, cvNames):
+    def getValuesForVariables(self, cv, value, cvNames):
         """
         **Docstr TBC.**
         """
 
-        if isinstance(value,(list,tuple)):
-            resolvedValues=[]
+        if isinstance(value, (list, tuple)):
+            resolvedValues = []
             for v in value:
                 if isinstance(value, basestring) and value.startswith(
                         '@') and value.endswith('@'):
                     value=value[1:-1]
                     if value in cvNames:
-                        resolvedValues.append(getattr(cv,v))
+                        resolvedValues.append(getattr(cv, v))
                     else:
                         raise ExperimentDataAccessException(
                             'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                                 v, cvNames))
                         return None
-                elif isinstance(value,basestring):
+                elif isinstance(value, basestring):
                     resolvedValues.append(value)
             return resolvedValues
-        elif isinstance(value,basestring) and value.startswith('@') and value.endswith('@'):
-            value=value[1:-1]
+        elif isinstance(value, basestring) and value.startswith('@') and value.endswith('@'):
+            value = value[1:-1]
             if value in cvNames:
-                return getattr(cv,value)
+                return getattr(cv, value)
             else:
                 raise ExperimentDataAccessException(
                     'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
@@ -434,19 +443,18 @@ class ExperimentDataAccessUtility(object):
             Values for the specified event type and event attribute columns which match the provided experiment condition variable filter, starting condition filer, and ending condition filter criteria.
         """
         if self.hdfFile:
-            klassTables=self.hdfFile.root.class_table_mapping
+            klassTables = self.hdfFile.root.class_table_mapping
 
-            deviceEventTable=None
+            deviceEventTable = None
 
             result = [
                 row.fetch_all_fields() for row in klassTables.where(
                     '(class_id == %d) & (class_type_id == 1)' %
                     (event_type_id))]
             if len(result) is not 1:
-                raise ExperimentDataAccessException(
-                    'event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.')
-            tablePathString=result[0][3]
-            deviceEventTable=self.hdfFile.getNode(tablePathString)
+                raise ExperimentDataAccessException("event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.")
+            tablePathString = result[0][3]
+            deviceEventTable = getattr(self.hdfFile, get_node)(tablePathString)
 
             for ename in event_attribute_names:
                 if ename not in deviceEventTable.colnames:
@@ -455,25 +463,25 @@ class ExperimentDataAccessUtility(object):
                         (deviceEventTable.title, event_attribute_names))
                     return None
 
-            resultSetList=[]
+            resultSetList = []
 
-            csier=list(event_attribute_names)
+            csier = list(event_attribute_names)
             csier.append('query_string')
             csier.append('condition_set')
-            EventAttributeResults=namedtuple('EventAttributeResults',csier)
+            EventAttributeResults = namedtuple('EventAttributeResults', csier)
 
             if deviceEventTable is not None:
-                if not isinstance(event_attribute_names, (list,tuple)):
-                    event_attribute_names=[event_attribute_names,]
+                if not isinstance(event_attribute_names, (list, tuple)):
+                    event_attribute_names = [event_attribute_names, ]
 
-                filteredConditionVariableList=None
+                filteredConditionVariableList = None
                 if conditionVariablesFilter is None:
                     filteredConditionVariableList= self.getConditionVariables()
                 else:
                     filteredConditionVariableList = self.getConditionVariables(
                         conditionVariablesFilter)
 
-                cvNames=self.getConditionVariableNames()
+                cvNames = self.getConditionVariableNames()
 
                 # no futher where clause building needed; get reseults and
                 # return
@@ -553,7 +561,7 @@ class ExperimentDataAccessUtility(object):
 
             return None
 
-    def getEventIterator(self,event_type):
+    def getEventIterator(self, event_type):
         """
         **Docstr TBC.**
 
@@ -573,11 +581,11 @@ class ExperimentDataAccessUtility(object):
             _hubFiles.remove(self.hdfFile)
         self.hdfFile.close()
 
-        self.experimentCodes=None
-        self.hdfFilePath=None
-        self.hdfFileName=None
-        self.mode=None
-        self.hdfFile=None
+        self.experimentCodes = None
+        self.hdfFilePath = None
+        self.hdfFileName = None
+        self.mode = None
+        self.hdfFile = None
 
     def __del__(self):
         try:

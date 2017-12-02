@@ -14,8 +14,8 @@ from builtins import object
 from pkg_resources import parse_version
 from psychopy.iohub import printExceptionDetailsToStdErr, print2err, ioHubError, DeviceEvent, EventConstants
 
-from tables import parameters, IsDescription, Filters, StringCol, UInt32Col, UInt16Col, NodeError, NoSuchNodeError, ClosedFileError
 import tables
+from tables import parameters, IsDescription, Filters, StringCol, UInt32Col, UInt16Col, NodeError, NoSuchNodeError, ClosedFileError
 if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
     create_table = "createTable"
@@ -148,17 +148,16 @@ class DataStoreFile(object):
         )
         self.flush()
 
-    def loadTableMappings(self):
-        # create meta-data tables
-        datcol_node = self.emrtFile.root.data_collection
-        self.TABLES[
-            'EXPERIMENT_METADETA'] = datcol_node.experiment_meta_data
-        self.TABLES[
-            'SESSION_METADETA'] = datcol_node.session_meta_data
-        self.TABLES[
-            'CLASS_TABLE_MAPPINGS'] = self.emrtFile.root.class_table_mapping
-
-        # Note: Event Tables are added to self.TABLES during runtime.
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'serial', title='Serial Interface Events.')
+        self.flush()
 
     @staticmethod
     def eventTableLabel2ClassName(event_table_label):
@@ -269,7 +268,7 @@ class DataStoreFile(object):
             max_id = np.amax(id_col)
         self.active_experiment_id = max_id + 1
         experimentInfoList[0] = self.active_experiment_id
-        experiment_metadata.append([experimentInfoList,])
+        experiment_metadata.append([experimentInfoList, ])
         self.flush()
         return self.active_experiment_id
 
@@ -280,14 +279,16 @@ class DataStoreFile(object):
         if len(id_col) > 0:
             max_id = np.amax(id_col)
         self.active_session_id = int(max_id + 1)
+
         values = (
             self.active_session_id,
             self.active_experiment_id,
             sessionInfoDict['code'],
             sessionInfoDict['name'],
             sessionInfoDict['comments'],
-            sessionInfoDict['user_variables'])
-        session_metadata.append([values,])
+            sessionInfoDict['user_variables']
+        )
+        session_metadata.append([values, ])
         self.flush()
         return self.active_session_id
 
@@ -313,7 +314,7 @@ class DataStoreFile(object):
             self.TABLES['EXP_CV'] = expcv_table
         except tables.NoSuchNodeError:
             try:
-                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
+                experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables, expCondTableName, self._EXP_COND_DTYPE, title='Condition Variable Values for Experiment ID %d' % (experiment_id))
                 self.TABLES['EXP_CV'] = experimentConditionVariableTable
                 self.emrtFile.flush()
             except Exception:
@@ -338,8 +339,10 @@ class DataStoreFile(object):
             data = temp
             try:
                 etable = self.TABLES['EXP_CV']
-                for i,d in enumerate(data):
-                    if isinstance(d,(list,tuple)):
+                #print2err('data: ',data,' ',type(data))
+
+                for i, d in enumerate(data):
+                    if isinstance(d, (list, tuple)):
                         data[i] = tuple(d)
                 np_array = np.array([tuple(data), ],
                                     dtype=self._EXP_COND_DTYPE)
@@ -350,10 +353,10 @@ class DataStoreFile(object):
                 printExceptionDetailsToStdErr()
         return False
 
-    def addMetaDataToFile(self,metaData):
+    def addMetaDataToFile(self, metaData):
         pass
 
-    def checkForExperimentAndSessionIDs(self,event=None):
+    def checkForExperimentAndSessionIDs(self, event=None):
         if self.active_experiment_id is None or self.active_session_id is None:
             exp_id = self.active_experiment_id
             if exp_id is None:
@@ -364,7 +367,7 @@ class DataStoreFile(object):
             return False
         return True
 
-    def checkIfSessionCodeExists(self,sessionCode):
+    def checkIfSessionCodeExists(self, sessionCode):
         if self.emrtFile:
             sessionsForExperiment = self.emrtFile.root.data_collection.session_meta_data.where(
                 'experiment_id == %d' % (self.active_experiment_id,))
@@ -383,11 +386,12 @@ class DataStoreFile(object):
             etable = self.TABLES[eventClass.IOHUB_DATA_TABLE]
             event[DeviceEvent.EVENT_EXPERIMENT_ID_INDEX] = self.active_experiment_id
             event[DeviceEvent.EVENT_SESSION_ID_INDEX] = self.active_session_id
+
             np_array = np.array([tuple(event), ], dtype=eventClass.NUMPY_DTYPE)
             etable.append(np_array)
             self.bufferedFlush()
         except Exception:
-            print2err('Error saving event: ', event)
+            print2err("Error saving event: ", event)
             printExceptionDetailsToStdErr()
 
     def _handleEvents(self, events):
@@ -408,6 +412,7 @@ class DataStoreFile(object):
                 np_events.append(tuple(event))
 
             np_array = np.array(np_events, dtype=eventClass.NUMPY_DTYPE)
+            #ioHub.print2err('np_array:',np_array)
             etable.append(np_array)
             self.bufferedFlush(len(np_events))
         except ioHubError as e:
@@ -457,7 +462,7 @@ class DataStoreFile(object):
 
 def close_open_data_files(verbose):
     open_files = tables.file._open_files
-    clall = hasattr(open_files,'close_all')
+    clall = hasattr(open_files, 'close_all')
     if clall:
         open_files.close_all()
     else:
@@ -471,7 +476,11 @@ def close_open_data_files(verbose):
             if verbose:
                 print2err('done')
 
-
+try:
+    global registered_close_open_data_files
+    if registered_close_open_data_files is True:
+        pass
+except Exception:
     registered_close_open_data_files = True
     atexit.register(close_open_data_files, False)
 
@@ -481,24 +490,69 @@ def close_open_data_files(verbose):
 class ClassTableMappings(tables.IsDescription):
     class_id = UInt32Col(pos=1)
     class_type_id = UInt32Col(pos=2) # Device or Event etc.
-    class_name = StringCol(32,pos=3)
-    table_path  = StringCol(128,pos=4)
+    class_name = StringCol(32, pos=3)
+    table_path  = StringCol(128, pos=4)
 
 
 class ExperimentMetaData(tables.IsDescription):
     experiment_id = UInt32Col(pos=1)
-    code = StringCol(24,pos=2)
-    title = StringCol(48,pos=3)
-    description  = StringCol(256,pos=4)
-    version = StringCol(6,pos=5)
+    code = StringCol(24, pos=2)
+    title = StringCol(48, pos=3)
+    description  = StringCol(256, pos=4)
+    version = StringCol(6, pos=5)
     total_sessions_to_run = UInt16Col(pos=9)
 
 
 class SessionMetaData(tables.IsDescription):
     session_id = UInt32Col(pos=1)
     experiment_id = UInt32Col(pos=2)
-    code = StringCol(24,pos=3)
-    name = StringCol(48,pos=4)
-    comments  = StringCol(256,pos=5)
-    # will hold json encoded version of user variable dict for session
-    user_variables = StringCol(2048, pos=6)
+    code = StringCol(24, pos=3)
+    name = StringCol(48, pos=4)
+    comments  = StringCol(256, pos=5)
+    user_variables = StringCol(2048, pos=6) # will hold json encoded version of user variable dict for session
+
+
+"""
+# NEEDS TO BE COMPLETED
+class ParticipantMetaData(IsDescription):
+    participant_id = UInt32Col(pos=1)
+    participant_code = StringCol(8,pos=2)
+
+# NEEDS TO BE COMPLETED
+class SiteMetaData(IsDescription):
+    site_id = UInt32Col(pos=1)
+    site_code = StringCol(8,pos=2)
+
+# NEEDS TO BE COMPLETED
+class MemberMetaData(IsDescription):
+    member_id =UInt32Col(pos=1)
+    username = StringCol(16,pos=2)
+    password = StringCol(16,pos=3)
+    email = StringCol(32,pos=4)
+    secretPhrase = StringCol(64,pos=5)
+    dateAdded = Int64Col(pos=6)
+
+# NEEDS TO BE COMPLETED
+class DeviceInformation(IsDescription):
+    device_id = UInt32Col(pos=1)
+    device_code = StringCol(7,pos=2)
+    name =StringCol(32,pos=3)
+    manufacturer =StringCol(32,pos=3)
+
+# NEEDS TO BE COMPLETED
+class CalibrationAreaInformation(IsDescription):
+    cal_id = UInt32Col(pos=1)
+
+# NEEDS TO BE COMPLETED
+class EyeTrackerInformation(IsDescription):
+    et_id = UInt32Col(pos=1)
+
+# NEEDS TO BE COMPLETED
+class EyeTrackerSessionConfiguration(IsDescription):
+    et_config_id = UInt32Col(pos=1)
+
+# NEEDS TO BE COMPLETED
+class ApparatusSetupMetaData(IsDescription):
+    app_setup_id = UInt32Col(pos=1)
+
+"""
