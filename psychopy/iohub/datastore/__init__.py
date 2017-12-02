@@ -20,10 +20,12 @@ if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
     create_table = "createTable"
     create_group = "createGroup"
+    f_get_child = "_f_getChild"
 else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
+   _f_get_child = "_f_get_child"
 
 
 """
@@ -308,11 +310,10 @@ class DataStoreFile(object):
                 np_dtype.append(npctype)
         self._EXP_COND_DTYPE = np.dtype(np_dtype)
         try:
-            expCondTableName = 'EXP_CV_%d' % (experiment_id)
-            expcv_table = expcv_node._f_getChild(
-                expCondTableName)
-            self.TABLES['EXP_CV'] = expcv_table
-        except tables.NoSuchNodeError:
+            expCondTableName = "EXP_CV_%d"%(experiment_id)
+            experimentConditionVariableTable = getattr(self.emrtFile.root.data_collection.condition_variables, _f_get_child)(expCondTableName)
+            self.TABLES['EXP_CV'] = experimentConditionVariableTable
+        except NoSuchNodeError as nsne:
             try:
                 experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables, expCondTableName, self._EXP_COND_DTYPE, title='Condition Variable Values for Experiment ID %d' % (experiment_id))
                 self.TABLES['EXP_CV'] = experimentConditionVariableTable
