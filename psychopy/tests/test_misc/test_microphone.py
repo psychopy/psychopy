@@ -140,7 +140,7 @@ class TestMicrophoneNoSound(object):
     def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
         with open(filename, 'wb') as fd:
-            fd.write('x')
+            fd.write(b'x')
         with pytest.raises(SoundFileError):
             readWavFile(filename)
 

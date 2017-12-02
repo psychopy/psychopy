@@ -273,7 +273,7 @@ class RunTimeInfo(dict):
         # when last rebooted?
         try:
             lastboot = shellCall("who -b").split()
-            self['systemRebooted'] = b' '.join(lastboot[2:])
+            self['systemRebooted'] = ' '.join(lastboot[2:])
         except Exception:  # windows
             sysInfo = shellCall('systeminfo').splitlines()
             lastboot = [line for line in sysInfo if line.startswith(
