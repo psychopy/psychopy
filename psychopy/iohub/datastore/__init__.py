@@ -14,6 +14,7 @@ from builtins import object
 from pkg_resources import parse_version
 from psychopy.iohub import printExceptionDetailsToStdErr, print2err, ioHubError, DeviceEvent, EventConstants
 
+from tables import parameters, IsDescription, Filters, StringCol, UInt32Col, UInt16Col, NodeError, NoSuchNodeError, ClosedFileError
 import tables
 if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
@@ -23,7 +24,6 @@ else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
-from tables import parameters
 
 
 """
@@ -67,8 +67,8 @@ class DataStoreFile(object):
         self.folderPath = folderPath
         self.filePath = os.path.join(folderPath, fileName)
 
-        if iohub_settings.get('multiple_sessions', True)  is False:
-            fmode='w'
+        if iohub_settings.get('multiple_sessions', True) is False:
+            fmode = 'w'
 
         self.settings = iohub_settings
 
@@ -80,7 +80,7 @@ class DataStoreFile(object):
 
         self.TABLES = dict()
         self._eventGroupMappings = dict()
-        self.emrtFile = open_file(self.filePath, mode = fmode)
+        self.emrtFile = open_file(self.filePath, mode=fmode)
 
         atexit.register(close_open_data_files, False)
 
@@ -259,7 +259,7 @@ class DataStoreFile(object):
         experiment_metadata = self.TABLES['EXPERIMENT_METADETA']
         result = [row for row in experiment_metadata.iterrows() if row[
             'code'] == experimentInfoList[1]]
-        if len(result)>0:
+        if len(result) > 0:
             result = result[0]
             self.active_experiment_id = result['experiment_id']
             return self.active_experiment_id
@@ -273,7 +273,7 @@ class DataStoreFile(object):
         self.flush()
         return self.active_experiment_id
 
-    def createExperimentSessionEntry(self,sessionInfoDict):
+    def createExperimentSessionEntry(self, sessionInfoDict):
         session_metadata = self.TABLES['SESSION_METADETA']
         max_id = 0
         id_col = session_metadata.col('session_id')
