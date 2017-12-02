@@ -134,11 +134,12 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
             expVal = expVal.value
             # intercept lists-of-floats, which might mismatch by rounding error
             isListableFloatable = False
-            if str(expVal).startswith('['):
-                expValList = eval(str(expVal))
+            if u"{}".format(expVal).startswith('['):
+                expValList = eval(u"{}".format(expVal))
                 try:
                     expVal = np.array(expValList, dtype=float)
-                    actVal = np.array(eval(str(actVal)), dtype=float) # should go through if expVal does...
+                    actVal = np.array(eval(u"{}".format(actVal)),
+                                      dtype=float) # should go through if expVal does...
                     isListableFloatable = True
                 except Exception:
                     pass # non-list+float-able at this point = default

@@ -356,9 +356,8 @@ class _BaseTrialHandler(_ComparisonMixin):
                     # if it can convert to a number (from numpy) then do it
                     val = float(entry)
                 except Exception:
-                    val = str(entry)
-                _cell = _getExcelCellName(col=colN, row=lineN)
-                ws.cell(_cell).value = val
+                    val = u"{}".format(entry)
+                ws.cell(column=colN+1, row=lineN+1, value=val)
 
         wb.save(filename=fileName)
 
