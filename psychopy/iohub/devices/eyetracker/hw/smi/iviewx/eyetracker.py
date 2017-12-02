@@ -1123,7 +1123,7 @@ class _iViewConfigMappings(object):
         NINE_POINTS=9,
         THIRTEEN_POINTS=13)
     graphics_env = dict(INTERNAL=1, EXTERNAL=0)
-    auto_pace = dict(True=1, False=0, Yes=1, No=0, On=1, Off=0)
+    auto_pace = {'True': 1, 'False': 0, 'Yes': 1, 'No': 0, 'On': 1, 'Off': 0}
     pacing_speed = dict(SLOW=0, FAST=1)
     target_type = dict(IMAGE=0, CIRCLE_TARGET=1, CIRCLE_TARGET_V2=2, CROSS=3)
 
