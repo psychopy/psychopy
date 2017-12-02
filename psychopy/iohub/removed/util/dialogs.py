@@ -14,7 +14,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 import os
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
-
+from pkg_resources import parse_version
 
 class ioHubDialog(object):
     wxapp = None
@@ -23,7 +23,7 @@ class ioHubDialog(object):
         self.dialog = None
         self.display_index = display_index
         if ioHubDialog.wxapp is None:
-            if wx.version() < '2.9':
+            if parse_version(wx.version()) < parse_version('2.9'):
                 ioHubDialog.wxapp = wx.PySimpleApp()
             else:
                 ioHubDialog.wxapp = wx.GetApp()
