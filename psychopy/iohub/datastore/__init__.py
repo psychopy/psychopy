@@ -6,7 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
-from __future__ import division
 import os
 import atexit
 import numpy as np
