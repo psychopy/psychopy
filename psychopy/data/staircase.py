@@ -604,46 +604,46 @@ class StairHandler(_BaseTrialHandler):
 
         # write the data
         # reversals data
-        ws.cell('A1').value = 'Reversal Intensities'
-        ws.cell('B1').value = 'Reversal Indices'
+        ws['A1'] = 'Reversal Intensities'
+        ws['B1'] = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            _cell = _getExcelCellName(col=0, row=revN + 1)  # col 0
-            ws.cell(_cell).value = str(revIntens)
-            _cell = _getExcelCellName(col=1, row=revN + 1)  # col 1
-            ws.cell(_cell).value = str(self.reversalPoints[revN])
+            ws.cell(column=1, row=revN+2,
+                    value=u"{}".format(revIntens))
+            ws.cell(column=2, row=revN+2,
+                    value=u"{}".format(self.reversalPoints[revN]))
 
         # trials data
-        ws.cell('C1').value = 'All Intensities'
-        ws.cell('D1').value = 'All Responses'
+        ws['C1'] = 'All Intensities'
+        ws['D1'] = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
-            ws.cell(_getExcelCellName(col=2, row=intenN + 1)
-                    ).value = str(intensity)
-            ws.cell(_getExcelCellName(col=3, row=intenN + 1)
-                    ).value = str(self.data[intenN])
+            ws.cell(column=3, row=intenN+2,
+                    value=u"{}".format(intensity))
+            ws.cell(column=4, row=intenN+2,
+                    value=u"{}".format(self.data[intenN]))
 
         # add other data
-        col = 4
+        col = 5
         if self.otherData is not None:
             # for varName in self.otherData:
             for key, val in list(self.otherData.items()):
-                ws.cell(_getExcelCellName(col=col, row=0)
-                        ).value = str(key)
+                ws.cell(column=col, row=1,
+                        value=u"{}".format(key))
                 for oDatN in range(len(self.otherData[key])):
-                    ws.cell(
-                        _getExcelCellName(col=col, row=oDatN + 1)
-                    ).value = str(self.otherData[key][oDatN])
+                    ws.cell(colummn=col, row=oDatN+2,
+                            value=u"{}".format(self.otherData[key][oDatN]))
                 col += 1
 
         # add self.extraInfo
         if self.extraInfo is not None and not matrixOnly:
-            ws.cell(_getExcelCellName(col=startingCol,
-                                      row=0)).value = 'extraInfo'
-            rowN = 1
+            ws.cell(column=startingCol, row=1,
+                    value='extraInfo')
+            rowN = 2
             for key, val in list(self.extraInfo.items()):
-                _cell = _getExcelCellName(col=col, row=rowN)
-                ws.cell(_cell).value = str(key) + u':'
+                ws.cell(column=col, row=rowN,
+                        value=u"{}:".format(key))
                 _cell = _getExcelCellName(col=col+1, row=rowN)
-                ws.cell(_cell).value = str(val)
+                ws.cell(column=col+2, row=rowN+1,
+                        value=u"{}".format(val))
                 rowN += 1
 
 

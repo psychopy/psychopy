@@ -31,7 +31,7 @@ mcu.iosync.MCU:
     #    'COMx', where x is the serial port number, usually ranging between 1 
     #    and 32. For example, COM6 would indicate the MCU to be used is 
     #    to serial port 6. 
-    #    For Linux and macOS, serial ports are usually specified as ... TBC
+    #    For Linux and OS X, serial ports are usually specified as ... TBC
     #    To autodetect an ioSync, set to 'auto'.
     serial_port: auto
 

@@ -9,17 +9,9 @@ To learn about the low-level functions, please see Section 5.2 of the UE9 User's
 
 http://labjack.com/support/ue9/users-guide/5.2 
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from .LabJackPython import *
+from LabJackPython import *
 
-import struct, socket, select, configparser
+import struct, socket, select, ConfigParser
 from datetime import datetime
 
 def openAllUE9():
@@ -266,7 +258,7 @@ class UE9(Device):
                     listen = True
         s.close()
         
-        for ip, data in list(ue9s.items()):
+        for ip, data in ue9s.items():
             data = list(struct.unpack("B"*38, data))
             ue9 = { 'LocalID' : data[8], 'PowerLevel' : data[9] , 'IPAddress' : parseIpAddress(data[10:14]), 'Gateway' : parseIpAddress(data[14:18]), 'Subnet' : parseIpAddress(data[18:23]), 'PortA' : struct.unpack("<H", struct.pack("BB", *data[22:24]))[0], 'PortB' : struct.unpack("<H", struct.pack("BB", *data[24:26]))[0], 'DHCPEnabled' : bool(data[26]), 'ProductID' : data[27], 'MACAddress' : "%02X:%02X:%02X:%02X:%02X:%02X" % (data[33], data[32], data[31], data[30], data[29], data[28]), 'SerialNumber' : struct.unpack("<I", struct.pack("BBBB", data[28], data[29], data[30], 0x10))[0], 'HWVersion' : "%s.%02d" % (data[35], data[34]), 'CommFWVersion' : "%s.%02d" % (data[37], data[36])}
             ue9s[ip] = ue9
@@ -567,7 +559,7 @@ class UE9(Device):
             return { "%s Direction" % self.digitalPorts[result[3]] : result[4], "%s State" % self.digitalPorts[result[3]] : result [5] }
         elif result[2] == 4:
             #Analog In
-            ain = old_div(float((result[6] << 16) + (result[5] << 8) + result[4]), 256)
+            ain = float((result[6] << 16) + (result[5] << 8) + result[4]) / 256
             return { "AIN%s" % result[3] : ain }
         elif result[2] == 5:
             #Analog Out
@@ -879,36 +871,36 @@ class UE9(Device):
 
         if ScanFrequency != None or SampleFrequency != None:
             if ScanFrequency == None:
-                ScanFrequency = old_div(SampleFrequency,NumChannels)
+                ScanFrequency = SampleFrequency/NumChannels
             
             if ScanFrequency >= 11.5:
                 DivideClockBy256 = False
                 if ScanFrequency >= 733:
                     InternalStreamClockFrequency = 1
-                    ScanInterval = old_div(48000000,ScanFrequency)
+                    ScanInterval = 48000000/ScanFrequency
                 elif ScanFrequency >= 367:
                     InternalStreamClockFrequency = 3
-                    ScanInterval = old_div(24000000,ScanFrequency)
+                    ScanInterval = 24000000/ScanFrequency
                 elif ScanFrequency >= 61.1:
                     InternalStreamClockFrequency = 0
-                    ScanInterval = old_div(4000000,ScanFrequency)
+                    ScanInterval = 4000000/ScanFrequency
                 else:
                     InternalStreamClockFrequency = 2
-                    ScanInterval = old_div(750000,ScanFrequency)
+                    ScanInterval = 750000/ScanFrequency
             else:
                 DivideClockBy256 = True
                 if ScanFrequency >= 2.87:
                     InternalStreamClockFrequency = 1
-                    ScanInterval = old_div((old_div(48000000,256)),ScanFrequency)
+                    ScanInterval = (48000000/256)/ScanFrequency
                 elif ScanFrequency >= 1.44:
                     InternalStreamClockFrequency = 3
-                    ScanInterval = old_div((old_div(24000000,256)),ScanFrequency)
+                    ScanInterval = (24000000/256)/ScanFrequency
                 elif ScanFrequency >= 0.239:
                     InternalStreamClockFrequency = 0
-                    ScanInterval = old_div((old_div(4000000,256)),ScanFrequency)
+                    ScanInterval = (4000000/256)/ScanFrequency
                 else:
                     InternalStreamClockFrequency = 2
-                    ScanInterval = old_div((old_div(750000,256)),ScanFrequency)
+                    ScanInterval = (750000/256)/ScanFrequency
         
         SamplesPerPacket = 16
 
@@ -961,7 +953,7 @@ class UE9(Device):
         if DivideClockBy256:
             freq /= 256
         
-        freq = old_div(freq,ScanInterval)
+        freq = freq/ScanInterval
         
         #packetsPerRequest needs to be a multiple of 4 for Linux/Mac OS X USB.
         #For Windows it needs to be under 11.
@@ -1044,7 +1036,7 @@ class UE9(Device):
                 e = ord(result[11+offset])
                 if e != 0:
                     errors += 1
-                    if self.debug: print(e)
+                    if self.debug: print e
                 i+=1
             
             if len(result) == 0  and self.ethernet == False:
@@ -1067,7 +1059,7 @@ class UE9(Device):
                     resultBuffer = resultBuffer[(numBytes * self.packetsPerRequest):]
                 else:
                     curTime = datetime.now()
-                    timeElapsed = (curTime-startTime).seconds + old_div(float((curTime-startTime).microseconds),1000000)
+                    timeElapsed = (curTime-startTime).seconds + float((curTime-startTime).microseconds)/1000000
                     if timeElapsed > 1.10:
                         newTimeLoop = True
                         if packetsInBuffer < 4:
@@ -1242,7 +1234,7 @@ class UE9(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 4 + (old_div(numSPIBytes,2))
+        command[2] = 4 + (numSPIBytes/2)
         command[3] = 0x3A
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1266,7 +1258,7 @@ class UE9(Device):
         
         command[14:] = SPIBytes
         
-        result = self._writeRead(command, 8+numSPIBytes, [ 0xF8, 1+(old_div(numSPIBytes,2)), 0x3A ])
+        result = self._writeRead(command, 8+numSPIBytes, [ 0xF8, 1+(numSPIBytes/2), 0x3A ])
                 
         return result[8:]
 
@@ -1301,7 +1293,7 @@ class UE9(Device):
         if UARTEnable:
             command[7] |= ( 1 << 6 )
         
-        BaudFactor = (2**16) - old_div(48000000,(2 * DesiredBaud))
+        BaudFactor = (2**16) - 48000000/(2 * DesiredBaud)
         t = struct.pack("<H", BaudFactor)
         command[8] = ord(t[0])
         command[9] = ord(t[1])
@@ -1352,7 +1344,7 @@ class UE9(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 1 + ( old_div(numBytes,2) )
+        command[2] = 1 + ( numBytes/2 )
         command[3] = 0x15
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1425,7 +1417,7 @@ class UE9(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 4 + (old_div(numBytes,2))
+        command[2] = 4 + (numBytes/2)
         command[3] = 0x3B
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1454,7 +1446,7 @@ class UE9(Device):
             NumI2CBytesToReceive = NumI2CBytesToReceive+1
             oddResponse = True
         
-        result = self._writeRead(command, 12+NumI2CBytesToReceive, [0xF8, (3+(old_div(NumI2CBytesToReceive,2))), 0x3B])
+        result = self._writeRead(command, 12+NumI2CBytesToReceive, [0xF8, (3+(NumI2CBytesToReceive/2)), 0x3B])
                 
         if len(result) > 12:
             if oddResponse:
@@ -1715,7 +1707,7 @@ class UE9(Device):
               object. Useful for saving the setup of your UE9.
         """
         # Make a new configuration file
-        parser = configparser.SafeConfigParser()
+        parser = ConfigParser.SafeConfigParser()
         
         # Change optionxform so that options preserve their case.
         parser.optionxform = str
