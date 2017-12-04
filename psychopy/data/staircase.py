@@ -10,7 +10,6 @@ from builtins import next
 from past.builtins import basestring
 from past.builtins import str
 from builtins import range
-from past.utils import old_div
 import string
 import sys
 import os
@@ -398,7 +397,7 @@ class StairHandler(_BaseTrialHandler):
         """increment the current intensity and reset counter
         """
         if self.stepType == 'db':
-            self._nextIntensity *= 10.0**(old_div(self.stepSizeCurrent, 20.0))
+            self._nextIntensity *= 10.0**(self.stepSizeCurrent/20.0)
         elif self.stepType == 'log':
             self._nextIntensity *= 10.0**self.stepSizeCurrent
         elif self.stepType == 'lin':
@@ -412,7 +411,7 @@ class StairHandler(_BaseTrialHandler):
         """decrement the current intensity and reset counter
         """
         if self.stepType == 'db':
-            self._nextIntensity /= 10.0**(old_div(self.stepSizeCurrent, 20.0))
+            self._nextIntensity /= 10.0**(self.stepSizeCurrent/20.0)
         if self.stepType == 'log':
             self._nextIntensity /= 10.0**self.stepSizeCurrent
         elif self.stepType == 'lin':

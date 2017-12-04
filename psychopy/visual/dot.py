@@ -18,7 +18,6 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import range
-from past.utils import old_div
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -284,7 +283,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if not 0 <= coherence <= 1:
             raise ValueError('DotStim.coherence must be between 0 and 1')
         _cohDots = coherence * self.nDots
-        self.__dict__['coherence'] = old_div(round(_cohDots), self.nDots)
+        self.__dict__['coherence'] = round(_cohDots)/self.nDots
         self._signalDots = numpy.zeros(self.nDots, dtype=bool)
         self._signalDots[0:int(self.coherence * self.nDots)] = True
         # for 'direction' method we need to update the direction of the number

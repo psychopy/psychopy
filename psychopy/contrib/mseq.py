@@ -56,7 +56,6 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 from builtins import map
 from builtins import range
-from past.utils import old_div
 import sys
 import numpy
 
@@ -264,7 +263,7 @@ def _test():
                         if base == 5 and power == 2:
                             print(' *** skipping assert 5 ^ 2 (fails) ***')
                         else:
-                            assert max_abs_auto < old_div(1.,(seq_len-2)) or max_abs_auto < .10 
+                            assert max_abs_auto < 1.0/(seq_len-2) or max_abs_auto < .10
                     else: 
                         print()
     print('2,3,5 ok; skipped auto-corr for 5^2 (fails on 0.4545); completely skipped 2^%d and higher' % (powers[2][-1] +1))
