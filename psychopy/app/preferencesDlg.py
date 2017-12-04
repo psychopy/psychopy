@@ -384,7 +384,7 @@ class PrefCtrls(object):
                         for thisDevName in devs:
                             if thisDevName not in options:
                                 options.append(thisDevName)
-                except DependencyError:
+                except ValueError:
                     pass
             else:
                 options = spec.replace("option(", "").replace("'", "")

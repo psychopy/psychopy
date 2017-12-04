@@ -26,7 +26,7 @@ for ori in range(90, 180, 30):
 
 # organize them with the trial handler
 trials = data.TrialHandler(stimList, 10,
-                           extraInfo={'participant': "Nobody", 'session': 1})
+                           extraInfo={'participant': "Nobody", 'session':'001'})
 
 # run the experiment
 nDone = 0

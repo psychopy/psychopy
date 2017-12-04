@@ -135,8 +135,13 @@ class TestComponents(object):
                         'SettingsComponent.Use version.__dict__' in line):
                         # versions available on travis-ci are only local
                         continue
+                    origMatch = line+'\n' in target
+                    lineAlt = (line.replace(":\'", ":u'")
+                                    .replace("\\\\","\\")
+                                    .replace("\\'", "'"))
                     # start checking params
-                    if not line+'\n' in target:
+                    if not (line+'\n' in target
+                            or lineAlt+'\n' in target):
                         # mismatch, so report on the tag from orig file
                         # match checks tag + multi-line, because line is multi-line and target is whole file
                         tag = line.split(':',1)[0]

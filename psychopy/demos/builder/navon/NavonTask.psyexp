@@ -9,7 +9,7 @@
     <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
-    <Param name="Experiment info" val="{'participant':'', 'gender (m/f)':'', 'age':'', 'session':03}" valType="code" updates="None"/>
+    <Param name="Experiment info" val="{'participant':'', 'gender (m/f)':'', 'age':'', 'session':'03'}" valType="code" updates="None"/>
     <Param name="Save excel file" val="True" valType="bool" updates="None"/>
     <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
     <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
