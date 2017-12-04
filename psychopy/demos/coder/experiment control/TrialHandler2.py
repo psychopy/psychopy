@@ -21,7 +21,8 @@ for ori in range(90, 180, 30):
         stimList.append({'sf':sf, 'ori':ori})
 
 # organize them with the trial handler
-trials = data.TrialHandler2(stimList, 10, extraInfo= {'participant':"Nobody", 'session':1})
+trials = data.TrialHandler2(stimList, 10,
+                            extraInfo= {'participant':"Nobody", 'session':'001'})
 
 # run the experiment
 nDone = 0
