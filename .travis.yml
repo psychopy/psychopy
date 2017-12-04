@@ -28,9 +28,6 @@ matrix:
       env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
 
   allow_failures:
-    - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
       python: 2.7
