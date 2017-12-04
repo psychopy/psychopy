@@ -44,7 +44,6 @@ By: Sol Simpson
 """
 from __future__ import absolute_import, division, print_function
 
-from past.utils import old_div
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
@@ -77,7 +76,7 @@ while not kb.getEvents():
 etime = core.getTime()
 ser.enableEventReporting(False)
 print()
-print("Received approx. %.2f events / second."%(old_div(event_count,(etime-stime))))
+print("Received approx. %.2f events / second."%(event_count/(etime-stime)))
 io.quit()
 ## EOD
 

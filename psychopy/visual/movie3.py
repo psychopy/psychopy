@@ -31,7 +31,6 @@ movie is long then audio will be huge and currently the whole thing gets
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
-from past.utils import old_div
 reportNDroppedFrames = 10
 
 import os
@@ -112,7 +111,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")
             retraceRate = 60.0
-        self._retraceInterval = old_div(1.0, retraceRate)
+        self._retraceInterval = 1.0/retraceRate
         self.filename = filename
         self.loop = loop
         self.flipVert = flipVert
@@ -203,7 +202,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             # size, duration, fps
         # mov.audio has attributes
             # duration, fps (aka sampleRate), to_soundarray()
-        self._frameInterval = old_div(1.0, self._mov.fps)
+        self._frameInterval = 1.0/self._mov.fps
         self.duration = self._mov.duration
         self.filename = filename
         self._updateFrameTexture()
@@ -308,7 +307,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self._onEos()
         elif self._numpyFrame is not None:
             if self._nextFrameT > (self._videoClock.getTime() -
-                                   old_div(self._retraceInterval, 2.0)):
+                                   self._retraceInterval/2.0):
                 return None
         self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         useSubTex = self.useTexSubImage2D

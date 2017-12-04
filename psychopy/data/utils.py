@@ -8,7 +8,6 @@ standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from past.builtins import basestring
-from past.utils import old_div
 import os
 import re
 import pickle
@@ -519,7 +518,7 @@ def functionFromStaircase(intensities, responses, bins=10):
             binnedResp.append(np.mean(theseResps))
             nPoints.append(len(theseResps))
     else:
-        pointsPerBin = old_div(len(intensities), float(bins))
+        pointsPerBin = len(intensities)/bins)
         for binN in range(bins):
             start = int(round(binN * pointsPerBin))
             stop = int(round((binN + 1) * pointsPerBin))
