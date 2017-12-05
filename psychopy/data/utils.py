@@ -518,7 +518,7 @@ def functionFromStaircase(intensities, responses, bins=10):
             binnedResp.append(np.mean(theseResps))
             nPoints.append(len(theseResps))
     else:
-        pointsPerBin = len(intensities)/bins)
+        pointsPerBin = len(intensities)/bins
         for binN in range(bins):
             start = int(round(binN * pointsPerBin))
             stop = int(round((binN + 1) * pointsPerBin))
