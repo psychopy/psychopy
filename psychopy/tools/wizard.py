@@ -12,11 +12,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
+from builtins import map, str, range, object
 from pyglet.gl import gl_info
 import os
 import sys
@@ -32,7 +28,7 @@ else:
     tmpApp = wx.App(False)
 from psychopy.app.localization import _translate
 from psychopy import (info, data, visual, gui, core, __version__,
-                      prefs, event)
+                      prefs, event, constants)
 
 # set values, using a form that poedit can discover:
 _localized = {
@@ -97,7 +93,7 @@ class BaseWizard(object):
         warn = False
         if freeRAM == 'unknown':
             if totalRAM != 'unknown':
-                totalRAM = "%.1fG" % (old_div(totalRAM, 1024.))
+                totalRAM = "%.1fG" % (totalRAM/1024.0)
             txt = _translate(
                 'could not assess available physical RAM; total %s')
             msg = txt % totalRAM
@@ -106,12 +102,12 @@ class BaseWizard(object):
             txt = _translate(
                 'physical RAM available for configuration test '
                 '(of %.1fG total)')
-            msg = txt % (old_div(totalRAM, 1024.))
+            msg = txt % (totalRAM/1024.)
             if freeRAM < 300:  # in M
                 txt = _translate(
                     'Warning: low available physical RAM for '
                     'configuration test (of %.1fG total)')
-                msg = txt % (old_div(totalRAM, 1024.))
+                msg = txt % (totalRAM/1024.)
                 warn = True
             report.append(('available memory', str(freeRAM) + 'M',
                            msg, warn))
@@ -320,6 +316,11 @@ class BaseWizard(object):
             if sys.platform == 'win32':
                 packages.append('pywin32')
                 packages.append('winioport')
+
+            if constants.PY3:
+                pkgError = ModuleNotFoundError
+            else:
+                pkgError = ImportError
             for pkg in packages:
                 try:
                     if pkg == 'PIL':
@@ -328,24 +329,25 @@ class BaseWizard(object):
                     # elif pkg == 'lxml':
                     #
                     elif pkg == 'pp':
-                        exec('import pp; ver = pp.version')
+                        import pp
+                        ver = pp.version
                     elif pkg == 'pynetstation':
-                        exec('from psychopy.hardware import egi')
+                        from psychopy.hardware import egi
                         ver = 'import ok'
                     elif pkg == 'pyserial':
-                        exec('import serial')
+                        import serial
                         ver = serial.VERSION
                     elif pkg == 'pywin32':
-                        exec('import win32api')
+                        import win32api
                         ver = 'import ok'
                     else:
                         exec('import ' + pkg)
                         try:
                             ver = eval(pkg + '.__version__')
                         except Exception:
-                            ver = 'import ok'
+                            ver = 'imported but no version info'
                     report.append((pkg, ver, '', False))
-                except (ImportError, AttributeError):
+                except (pkgError, AttributeError):
                     msg = _translate('could not import package %s')
                     report.append((pkg, '&nbsp;&nbsp;--', msg % pkg, False))
 
@@ -675,7 +677,7 @@ class BenchmarkWizard(BaseWizard):
         for k, v, m, w in diagnostics:
             # list of tuples --> dict, ignore msg m, warning w
             info[k] = v
-        fps = old_div(1000., float(info['visual sync (refresh)'].split()[0]))
+        fps = 1000.0/float(info['visual sync (refresh)'].split()[0])
 
         itemsList = [('Benchmark', '', '', False)]
         itemsList.append(('benchmark version', '0.1', _translate(
