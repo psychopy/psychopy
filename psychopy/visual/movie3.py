@@ -35,7 +35,7 @@ reportNDroppedFrames = 10
 
 import os
 
-from psychopy import logging
+from psychopy import logging, prefs #adding prefs to be able to check sound lib -JK
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
@@ -213,16 +213,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         """
         status = self.status
         if status != PLAYING:
-            if self._audioStream is not None:
+            self.status = PLAYING #moved this to get better audio behavior - JK
+            #Added extra check to prevent audio doubling - JK
+            if self._audioStream is not None and self._audioStream.status is not PLAYING: 
                 self._audioStream.play()
             if status == PAUSED:
-                if self.getCurrentFrameTime() < 0:
+                if self.getCurrentFrameTime() < 0: #Check for valid timestamp, correct if needed -JK
                     self._audioSeek(0)
                 else:
                     self._audioSeek(self.getCurrentFrameTime())
-            self.status = PLAYING
             self._videoClock.reset(-self.getCurrentFrameTime())
-
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s playing" % (self.name),
                                    level=logging.EXP, obj=self)
@@ -236,7 +236,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if self.status == PLAYING:
             self.status = PAUSED
             if self._audioStream:
-                self._audioStream.stop()
+                if prefs.general['audioLib'] == ['sounddevice']:
+                    self._audioStream.pause() #sounddevice has a "pause" function -JK
+                else:
+                    self._audioStream.stop()
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s paused" %
                                    (self.name), level=logging.EXP, obj=self)
@@ -294,11 +297,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         return self._nextFrameT - self._frameInterval
 
     def _updateFrameTexture(self):
-        if self._nextFrameT is None:
-            # movie has no current position, need to reset the clock
-            # to zero in order to have the timing logic work
-            # otherwise the video stream would skip frames until the
-            # time since creating the movie object has passed
+        if self._nextFrameT is None or self._nextFrameT < 0:
+            # movie has no current position (or invalid position -JK), 
+            # need to reset the clock to zero in order to have the 
+            # timing logic work otherwise the video stream would skip 
+            # frames until the time since creating the movie object has passed
             self._videoClock.reset()
             self._nextFrameT = 0
 
@@ -438,16 +441,20 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
 
     def _audioSeek(self, t):
         sound = self.sound
-        # for sound we need to extract the array again and just begin at new
-        # loc
         if self._audioStream is None:
             return  # do nothing
-        self._audioStream.stop()
-        sndArray = self._mov.audio.to_soundarray()
-        startIndex = int(t * self._mov.audio.fps)
-        self._audioStream = sound.Sound(
-            sndArray[startIndex:, :], sampleRate=self._mov.audio.fps)
-        self._audioStream.play()
+        #check if sounddevice  is being used. If so we can use seek. If not we have to 
+        #reload the audio stream and begin at the new loc
+        if prefs.general['audioLib'] == ['sounddevice']:
+            self._audioStream.seek(t)
+        else:
+            self._audioStream.stop()
+            sndArray = self._mov.audio.to_soundarray()
+            startIndex = int(t * self._mov.audio.fps)
+            self._audioStream = sound.Sound(
+                sndArray[startIndex:, :], sampleRate=self._mov.audio.fps)
+            if self.status != PAUSED: #Allows for seeking while paused - JK
+                self._audioStream.play()
 
     def _getAudioStreamTime(self):
         return self._audio_stream_clock.getTime()
