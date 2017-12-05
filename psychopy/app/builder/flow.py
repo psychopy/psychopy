@@ -17,7 +17,6 @@ import sys
 from pkg_resources import parse_version
 import numpy
 import wx
-import wx.aui
 import wx.stc
 from wx.lib import platebtn
 try:
