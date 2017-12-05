@@ -11,7 +11,6 @@ stamps to iohub the time base.
 from __future__ import absolute_import, division, print_function
 
 from builtins import range
-from past.utils import old_div
 repetitions = 1000
 
 import numpy as np
@@ -42,7 +41,7 @@ for i in range(repetitions):
                 print("ERROR: Got REsponse %d; looking for %d"%(response['id'] ,request['id'] ))
                 response = None
             results[i][0] = response['tx_time']*1000.0
-            results[i][1] = response.get('iohub_time', (old_div((response['rx_time']*1000.0+response['tx_time']*1000.0),2.0)))
+            results[i][1] = response.get('iohub_time', (response['rx_time']*1000.0+response['tx_time']*1000.0)/2.0)
             results[i][2] = response['rx_time']*1000.0
 
 
