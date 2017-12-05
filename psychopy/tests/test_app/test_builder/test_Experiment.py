@@ -299,7 +299,7 @@ class TestExpt(object):
         #load the data
         print("searching..." +datafileBase)
         print(glob.glob(datafileBase+'*'))
-        f = open(datafileBase+".csv", 'rU')
+        f = open(datafileBase+".csv", 'rb')
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
         assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
