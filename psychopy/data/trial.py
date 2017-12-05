@@ -719,7 +719,7 @@ class TrialHandler(_BaseTrialHandler):
 
         # Converts numbers to numeric, such as float64, boolean to bool.
         # Otherwise they all are "object" type, i.e. strings
-        df = df.convert_objects()
+        # df = df.convert_objects()
         return df
 
     def saveAsJson(self,
