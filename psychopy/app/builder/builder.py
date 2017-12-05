@@ -2031,13 +2031,13 @@ class BuilderFrame(wx.Frame):
         self.bldrBtnRun.Enable(True)
         self.bldrBtnStop.Enable(False)
         # update the output window and show it
-        text = ""
+        text = u""
         if self.scriptProcess.IsInputAvailable():
             stream = self.scriptProcess.GetInputStream()
-            text += stream.read()
+            text += u"{}".format(stream.read())
         if self.scriptProcess.IsErrorAvailable():
             stream = self.scriptProcess.GetErrorStream()
-            text += stream.read()
+            text += u"{}".format(stream.read())
         if len(text):
             # if some text hadn't yet been written (possible?)
             self.stdoutFrame.write(text)
@@ -2048,6 +2048,7 @@ class BuilderFrame(wx.Frame):
         # then return stdout to its org location
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
+        self.scriptProcess.Destroy()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel

@@ -47,6 +47,7 @@ class TestMultiStairHandler(object):
 
         # contains more info
         stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiStairOut'))
+        exp.close()
 
     def test_quest(self):
         conditions = data.importConditions(
@@ -74,7 +75,7 @@ class TestMultiStairHandler(object):
 
         # contains more info
         stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestOut'))
-
+        exp.close()
 
 if __name__ == '__main__':
     pytest.main()
