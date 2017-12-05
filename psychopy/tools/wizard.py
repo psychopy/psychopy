@@ -323,8 +323,8 @@ class BaseWizard(object):
             for pkg in packages:
                 try:
                     if pkg == 'PIL':
-                        exec('import PIL.Image')
-                        ver = PIL.Image.VERSION
+                        import PIL
+                        ver = PIL.__version__
                     # elif pkg == 'lxml':
                     #
                     elif pkg == 'pp':
