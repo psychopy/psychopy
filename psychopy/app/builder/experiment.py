@@ -360,7 +360,7 @@ class Experiment(object):
         thisChild = xml.SubElement(parent, thisType)
         thisChild.set('name', name)
         if hasattr(param, 'val'):
-            thisChild.set('val', "{}".format(param.val).replace("\n", "&#10;"))
+            thisChild.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
         if hasattr(param, 'valType'):
             thisChild.set('valType', param.valType)
         if hasattr(param, 'updates'):
