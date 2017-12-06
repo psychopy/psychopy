@@ -268,12 +268,12 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         with open(fileName, 'rU') as fileUniv:
             # use pandas reader, which can handle commas in fields, etc
             trialsArr = pd.read_csv(fileUniv, encoding='utf-8')
-            logging.debug("Read csv file with pandas: {}".format(fileName))
+            logging.debug(u"Read csv file with pandas: {}".format(fileName))
             trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
         trialsArr = pd.read_excel(fileName)
-        logging.debug("Read excel file with pandas: {}".format(fileName))
+        logging.debug(u"Read excel file with pandas: {}".format(fileName))
         trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith('.xlsx'):
@@ -288,7 +288,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
 
-        logging.debug("Read excel file with openpyxl: {}".format(fileName))
+        logging.debug(u"Read excel file with openpyxl: {}".format(fileName))
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
             nCols = ws.max_column
