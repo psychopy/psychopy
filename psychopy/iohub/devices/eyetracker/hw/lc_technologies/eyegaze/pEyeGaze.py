@@ -1,24 +1,17 @@
-"""
-ioHub
-ioHub Common Eye Tracker Interface
-.. file: ioHub/devices/eyetracker/hw/lc_technologies/eyegaze/pEyeGaze.py
-
-Copyright (C) 2012-2013 XXXXXXXX, iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson + contributors
-"""
+"""ioHub Common Eye Tracker Interface for LC Technologies Eye Trackers"""
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 
 # Begin preamble
 
-from past.builtins import cmp
-from builtins import str
-from past.builtins import basestring
-from builtins import object
-import ctypes, os, sys
+import ctypes
+import os
+import sys
 from ctypes import *
 
-_EYEGAZE_DIR='C:\\EyeGaze\\'
+_EYEGAZE_DIR = 'C:\\EyeGaze\\'
 os.environ['PATH'] = _EYEGAZE_DIR + ';' + os.environ['PATH']
 
 _int_types = (c_int16, c_int32)
@@ -33,11 +26,13 @@ for t in _int_types:
 del t
 del _int_types
 
+
 class c_void(Structure):
     # c_void_p is a buggy return type, converting to int, so
     # POINTER(None) == c_void_p is actually written as
     # POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
+
 
 def POINTER(obj):
     p = ctypes.POINTER(obj)
@@ -54,7 +49,9 @@ def POINTER(obj):
 
     return p
 
-class UserString(object):
+
+class UserString:
+
     def __init__(self, seq):
         if isinstance(seq, basestring):
             self.data = seq
@@ -62,12 +59,19 @@ class UserString(object):
             self.data = seq.data[:]
         else:
             self.data = str(seq)
+
     def __str__(self): return str(self.data)
+
     def __repr__(self): return repr(self.data)
+
     def __int__(self): return int(self.data)
-    def __long__(self): return int(self.data)
+
+    def __long__(self): return long(self.data)
+
     def __float__(self): return float(self.data)
+
     def __complex__(self): return complex(self.data)
+
     def __hash__(self): return hash(self.data)
 
     def __cmp__(self, string):
@@ -75,13 +79,17 @@ class UserString(object):
             return cmp(self.data, string.data)
         else:
             return cmp(self.data, string)
+
     def __contains__(self, char):
         return char in self.data
 
     def __len__(self): return len(self.data)
+
     def __getitem__(self, index): return self.__class__(self.data[index])
+
     def __getslice__(self, start, end):
-        start = max(start, 0); end = max(end, 0)
+        start = max(start, 0)
+        end = max(end, 0)
         return self.__class__(self.data[start:end])
 
     def __add__(self, other):
@@ -91,24 +99,30 @@ class UserString(object):
             return self.__class__(self.data + other)
         else:
             return self.__class__(self.data + str(other))
+
     def __radd__(self, other):
         if isinstance(other, basestring):
             return self.__class__(other + self.data)
         else:
             return self.__class__(str(other) + self.data)
+
     def __mul__(self, n):
-        return self.__class__(self.data*n)
+        return self.__class__(self.data * n)
     __rmul__ = __mul__
+
     def __mod__(self, args):
         return self.__class__(self.data % args)
 
     # the following methods are defined in alphabetical order:
     def capitalize(self): return self.__class__(self.data.capitalize())
+
     def center(self, width, *args):
         return self.__class__(self.data.center(width, *args))
+
     def count(self, sub, start=0, end=sys.maxsize):
         return self.data.count(sub, start, end)
-    def decode(self, encoding=None, errors=None): # XXX improve this?
+
+    def decode(self, encoding=None, errors=None):  # XXX improve this?
         if encoding:
             if errors:
                 return self.__class__(self.data.decode(encoding, errors))
@@ -116,7 +130,8 @@ class UserString(object):
                 return self.__class__(self.data.decode(encoding))
         else:
             return self.__class__(self.data.decode())
-    def encode(self, encoding=None, errors=None): # XXX improve this?
+
+    def encode(self, encoding=None, errors=None):  # XXX improve this?
         if encoding:
             if errors:
                 return self.__class__(self.data.encode(encoding, errors))
@@ -124,58 +139,97 @@ class UserString(object):
                 return self.__class__(self.data.encode(encoding))
         else:
             return self.__class__(self.data.encode())
+
     def endswith(self, suffix, start=0, end=sys.maxsize):
         return self.data.endswith(suffix, start, end)
+
     def expandtabs(self, tabsize=8):
         return self.__class__(self.data.expandtabs(tabsize))
+
     def find(self, sub, start=0, end=sys.maxsize):
         return self.data.find(sub, start, end)
+
     def index(self, sub, start=0, end=sys.maxsize):
         return self.data.index(sub, start, end)
+
     def isalpha(self): return self.data.isalpha()
+
     def isalnum(self): return self.data.isalnum()
+
     def isdecimal(self): return self.data.isdecimal()
+
     def isdigit(self): return self.data.isdigit()
+
     def islower(self): return self.data.islower()
+
     def isnumeric(self): return self.data.isnumeric()
+
     def isspace(self): return self.data.isspace()
+
     def istitle(self): return self.data.istitle()
+
     def isupper(self): return self.data.isupper()
+
     def join(self, seq): return self.data.join(seq)
+
     def ljust(self, width, *args):
         return self.__class__(self.data.ljust(width, *args))
+
     def lower(self): return self.__class__(self.data.lower())
-    def lstrip(self, chars=None): return self.__class__(self.data.lstrip(chars))
+
+    def lstrip(
+        self, chars=None): return self.__class__(
+        self.data.lstrip(chars))
+
     def partition(self, sep):
         return self.data.partition(sep)
+
     def replace(self, old, new, maxsplit=-1):
         return self.__class__(self.data.replace(old, new, maxsplit))
+
     def rfind(self, sub, start=0, end=sys.maxsize):
         return self.data.rfind(sub, start, end)
+
     def rindex(self, sub, start=0, end=sys.maxsize):
         return self.data.rindex(sub, start, end)
+
     def rjust(self, width, *args):
         return self.__class__(self.data.rjust(width, *args))
+
     def rpartition(self, sep):
         return self.data.rpartition(sep)
-    def rstrip(self, chars=None): return self.__class__(self.data.rstrip(chars))
+
+    def rstrip(
+        self, chars=None): return self.__class__(
+        self.data.rstrip(chars))
+
     def split(self, sep=None, maxsplit=-1):
         return self.data.split(sep, maxsplit)
+
     def rsplit(self, sep=None, maxsplit=-1):
         return self.data.rsplit(sep, maxsplit)
+
     def splitlines(self, keepends=0): return self.data.splitlines(keepends)
+
     def startswith(self, prefix, start=0, end=sys.maxsize):
         return self.data.startswith(prefix, start, end)
+
     def strip(self, chars=None): return self.__class__(self.data.strip(chars))
+
     def swapcase(self): return self.__class__(self.data.swapcase())
+
     def title(self): return self.__class__(self.data.title())
+
     def translate(self, *args):
         return self.__class__(self.data.translate(*args))
+
     def upper(self): return self.__class__(self.data.upper())
+
     def zfill(self, width): return self.__class__(self.data.zfill(width))
 
+
 class MutableString(UserString):
-    """mutable string objects
+    """mutable string objects.
 
     Python strings are immutable objects.  This has the advantage, that
     strings may be used as dictionary keys.  If this property isn't needed
@@ -188,34 +242,48 @@ class MutableString(UserString):
     __hash__ method inherited from UserString.  This would lead to
     errors that would be very hard to track down.
 
-    A faster and better solution is to rewrite your program using lists."""
-    def __init__(self, string=""):
+    A faster and better solution is to rewrite your program using lists.
+
+    """
+
+    def __init__(self, string=''):
         self.data = string
+
     def __hash__(self):
-        raise TypeError("unhashable type (it is mutable)")
+        raise TypeError('unhashable type (it is mutable)')
+
     def __setitem__(self, index, sub):
         if index < 0:
             index += len(self.data)
-        if index < 0 or index >= len(self.data): raise IndexError
-        self.data = self.data[:index] + sub + self.data[index+1:]
+        if index < 0 or index >= len(self.data):
+            raise IndexError
+        self.data = self.data[:index] + sub + self.data[index + 1:]
+
     def __delitem__(self, index):
         if index < 0:
             index += len(self.data)
-        if index < 0 or index >= len(self.data): raise IndexError
-        self.data = self.data[:index] + self.data[index+1:]
+        if index < 0 or index >= len(self.data):
+            raise IndexError
+        self.data = self.data[:index] + self.data[index + 1:]
+
     def __setslice__(self, start, end, sub):
-        start = max(start, 0); end = max(end, 0)
+        start = max(start, 0)
+        end = max(end, 0)
         if isinstance(sub, UserString):
-            self.data = self.data[:start]+sub.data+self.data[end:]
+            self.data = self.data[:start] + sub.data + self.data[end:]
         elif isinstance(sub, basestring):
-            self.data = self.data[:start]+sub+self.data[end:]
+            self.data = self.data[:start] + sub + self.data[end:]
         else:
-            self.data =  self.data[:start]+str(sub)+self.data[end:]
+            self.data = self.data[:start] + str(sub) + self.data[end:]
+
     def __delslice__(self, start, end):
-        start = max(start, 0); end = max(end, 0)
+        start = max(start, 0)
+        end = max(end, 0)
         self.data = self.data[:start] + self.data[end:]
+
     def immutable(self):
         return UserString(self.data)
+
     def __iadd__(self, other):
         if isinstance(other, UserString):
             self.data += other.data
@@ -224,17 +292,19 @@ class MutableString(UserString):
         else:
             self.data += str(other)
         return self
+
     def __imul__(self, n):
         self.data *= n
         return self
+
 
 class String(MutableString, Union):
 
     _fields_ = [('raw', POINTER(c_char)),
                 ('data', c_char_p)]
 
-    def __init__(self, obj=""):
-        if isinstance(obj, basestring):
+    def __init__(self, obj=''):
+        if isinstance(obj, (str, unicode, UserString)):
             self.data = str(obj)
         else:
             self.raw = obj
@@ -272,6 +342,7 @@ class String(MutableString, Union):
             return String.from_param(obj._as_parameter_)
     from_param = classmethod(from_param)
 
+
 def ReturnString(obj, func=None, arguments=None):
     return String.from_param(obj)
 
@@ -282,31 +353,38 @@ def ReturnString(obj, func=None, arguments=None):
 #
 # Non-primitive return values wrapped with UNCHECKED won't be
 # typechecked, and will be converted to c_void_p.
+
+
 def UNCHECKED(type):
-    if (hasattr(type, "_type_") and isinstance(type._type_, str)
-        and type._type_ != "P"):
+    if (hasattr(type, '_type_') and isinstance(type._type_, str)
+            and type._type_ != 'P'):
         return type
     else:
         return c_void_p
 
 # ctypes doesn't have direct support for variadic functions, so we have to write
 # our own wrapper class
+
+
 class _variadic_function(object):
-    def __init__(self,func,restype,argtypes):
-        self.func=func
-        self.func.restype=restype
-        self.argtypes=argtypes
+
+    def __init__(self, func, restype, argtypes):
+        self.func = func
+        self.func.restype = restype
+        self.argtypes = argtypes
+
     def _as_parameter_(self):
         # So we can pass this variadic function as a function pointer
         return self.func
-    def __call__(self,*args):
-        fixed_args=[]
-        i=0
+
+    def __call__(self, *args):
+        fixed_args = []
+        i = 0
         for argtype in self.argtypes:
             # Typecheck what we can
             fixed_args.append(argtype.from_param(args[i]))
-            i+=1
-        return self.func(*fixed_args+list(args[i:]))
+            i += 1
+        return self.func(*fixed_args + list(args[i:]))
 
 # End preamble
 
@@ -349,21 +427,27 @@ _libdirs = []
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-import os.path, re, sys, glob
+import os.path
+import re
+import sys
+import glob
 import ctypes
 import ctypes.util
 
+
 def _environ_path(name):
     if name in os.environ:
-        return os.environ[name].split(":")
+        return os.environ[name].split(':')
     else:
         return []
 
-class LibraryLoader(object):
-    def __init__(self):
-        self.other_dirs=[]
 
-    def load_library(self,libname):
+class LibraryLoader(object):
+
+    def __init__(self):
+        self.other_dirs = []
+
+    def load_library(self, libname):
         """Given the name of a library, load it."""
         paths = self.getpaths(libname)
 
@@ -371,9 +455,9 @@ class LibraryLoader(object):
             if os.path.exists(path):
                 return self.load(path)
 
-        raise ImportError("%s not found." % libname)
+        raise ImportError('%s not found.' % libname)
 
-    def load(self,path):
+    def load(self, path):
         """Given a path to a library, load it."""
         try:
             # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
@@ -387,7 +471,7 @@ class LibraryLoader(object):
         except OSError as e:
             raise ImportError(e)
 
-    def getpaths(self,libname):
+    def getpaths(self, libname):
         """Return a list of paths where the library might be found."""
         if os.path.isabs(libname):
             yield libname
@@ -397,18 +481,20 @@ class LibraryLoader(object):
                 yield path
 
             path = ctypes.util.find_library(libname)
-            if path: yield path
+            if path:
+                yield path
 
     def getplatformpaths(self, libname):
         return []
 
 # Darwin (Mac OS X)
 
-class DarwinLibraryLoader(LibraryLoader):
-    name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
-                "%s.so", "%s.bundle", "%s"]
 
-    def getplatformpaths(self,libname):
+class DarwinLibraryLoader(LibraryLoader):
+    name_formats = ['lib%s.dylib', 'lib%s.so', 'lib%s.bundle', '%s.dylib',
+                    '%s.so', '%s.bundle', '%s']
+
+    def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
             names = [libname]
         else:
@@ -416,9 +502,9 @@ class DarwinLibraryLoader(LibraryLoader):
 
         for dir in self.getdirs(libname):
             for name in names:
-                yield os.path.join(dir,name)
+                yield os.path.join(dir, name)
 
-    def getdirs(self,libname):
+    def getdirs(self, libname):
         '''Implements the dylib search as specified in Apple documentation:
 
         http://developer.apple.com/documentation/DeveloperTools/Conceptual/
@@ -429,7 +515,8 @@ class DarwinLibraryLoader(LibraryLoader):
         within a bundle (OS X .app).
         '''
 
-        dyld_fallback_library_path = _environ_path("DYLD_FALLBACK_LIBRARY_PATH")
+        dyld_fallback_library_path = _environ_path(
+            'DYLD_FALLBACK_LIBRARY_PATH')
         if not dyld_fallback_library_path:
             dyld_fallback_library_path = [os.path.expanduser('~/lib'),
                                           '/usr/local/lib', '/usr/lib']
@@ -437,13 +524,13 @@ class DarwinLibraryLoader(LibraryLoader):
         dirs = []
 
         if '/' in libname:
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
         else:
-            dirs.extend(_environ_path("LD_LIBRARY_PATH"))
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('LD_LIBRARY_PATH'))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
 
         dirs.extend(self.other_dirs)
-        dirs.append(".")
+        dirs.append('.')
         dirs.append(os.path.dirname(__file__))
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
@@ -458,6 +545,7 @@ class DarwinLibraryLoader(LibraryLoader):
 
 # Posix
 
+
 class PosixLibraryLoader(LibraryLoader):
     _ld_so_cache = None
 
@@ -470,19 +558,22 @@ class PosixLibraryLoader(LibraryLoader):
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
         directories = []
-        for name in ("LD_LIBRARY_PATH",
-                     "SHLIB_PATH", # HPUX
-                     "LIBPATH", # OS/2, AIX
-                     "LIBRARY_PATH", # BE/OS
-                    ):
+        for name in ('LD_LIBRARY_PATH',
+                     'SHLIB_PATH',  # HPUX
+                     'LIBPATH',  # OS/2, AIX
+                     'LIBRARY_PATH',  # BE/OS
+                     ):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
-        directories.append(".")
+        directories.append('.')
         directories.append(os.path.dirname(__file__))
 
-        try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
-        except IOError: pass
+        try:
+            directories.extend([dir.strip()
+                                for dir in open('/etc/ld.so.conf')])
+        except IOError:
+            pass
 
         directories.extend(['/lib', '/usr/lib', '/lib64', '/usr/lib64'])
 
@@ -491,7 +582,7 @@ class PosixLibraryLoader(LibraryLoader):
         ext_re = re.compile(r'\.s[ol]$')
         for dir in directories:
             try:
-                for path in glob.glob("%s/*.s[ol]*" % dir):
+                for path in glob.glob('%s/*.s[ol]*' % dir):
                     file = os.path.basename(path)
 
                     # Index by filename
@@ -514,27 +605,34 @@ class PosixLibraryLoader(LibraryLoader):
             self._create_ld_so_cache()
 
         result = self._ld_so_cache.get(libname)
-        if result: yield result
+        if result:
+            yield result
 
         path = ctypes.util.find_library(libname)
-        if path: yield os.path.join("/lib",path)
+        if path:
+            yield os.path.join('/lib', path)
 
 # Windows
 
+
 class _WindowsLibrary(object):
+
     def __init__(self, path):
         self.cdll = ctypes.cdll.LoadLibrary(path)
         self.windll = ctypes.windll.LoadLibrary(path)
 
     def __getattr__(self, name):
-        try: return getattr(self.cdll,name)
+        try:
+            return getattr(self.cdll, name)
         except AttributeError:
-            try: return getattr(self.windll,name)
+            try:
+                return getattr(self.windll, name)
             except AttributeError:
                 raise
 
+
 class WindowsLibraryLoader(LibraryLoader):
-    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
+    name_formats = ['%s.dll', 'lib%s.dll', '%slib.dll']
 
     def load_library(self, libname):
         try:
@@ -555,7 +653,7 @@ class WindowsLibraryLoader(LibraryLoader):
                 except WindowsError:
                     result = None
             if result is None:
-                raise ImportError("%s not found." % libname)
+                raise ImportError('%s not found.' % libname)
         return result
 
     def load(self, path):
@@ -577,12 +675,13 @@ class WindowsLibraryLoader(LibraryLoader):
 # the Ctypesgen maintainers.
 
 loaderclass = {
-    "darwin":   DarwinLibraryLoader,
-    "cygwin":   WindowsLibraryLoader,
-    "win32":    WindowsLibraryLoader
+    'darwin': DarwinLibraryLoader,
+    'cygwin': WindowsLibraryLoader,
+    'win32': WindowsLibraryLoader
 }
 
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
+
 
 def add_library_search_dirs(other_dirs):
     loader.other_dirs = other_dirs
@@ -595,18 +694,20 @@ del loaderclass
 
 # Begin libraries
 
-_libs["lctigaze"] = load_library("lctigaze")
+_libs['lctigaze'] = load_library('lctigaze')
 
 # 1 libraries
 # End libraries
 
 # No modules
 
-NULL = None # <built-in>
+NULL = None  # <built-in>
 
-PVOID = POINTER(None) # <input>: 54
+PVOID = POINTER(None)  # <input>: 54
 
 # <input>: 72
+
+
 class struct__BITMAPINFOHEADER(Structure):
     pass
 
@@ -637,9 +738,11 @@ struct__BITMAPINFOHEADER._fields_ = [
     ('biClrImportant', c_ulong),
 ]
 
-BITMAPINFOHEADER = struct__BITMAPINFOHEADER # <input>: 72
+BITMAPINFOHEADER = struct__BITMAPINFOHEADER  # <input>: 72
 
 # <input>: 79
+
+
 class struct__RGBQUAD(Structure):
     pass
 
@@ -656,9 +759,11 @@ struct__RGBQUAD._fields_ = [
     ('rgbReserved', c_ubyte),
 ]
 
-RGBQUAD = struct__RGBQUAD # <input>: 79
+RGBQUAD = struct__RGBQUAD  # <input>: 79
 
 # <input>: 84
+
+
 class struct__BITMAPINFO(Structure):
     pass
 
@@ -671,13 +776,17 @@ struct__BITMAPINFO._fields_ = [
     ('bmiColors', RGBQUAD * 1),
 ]
 
-BITMAPINFO = struct__BITMAPINFO # <input>: 84
+BITMAPINFO = struct__BITMAPINFO  # <input>: 84
 
 # <input>: 176
+
+
 class struct__stEgData(Structure):
     pass
 
 # <input>: 91
+
+
 class struct__stEgControl(Structure):
     pass
 
@@ -754,6 +863,8 @@ struct__stEgData._fields_ = [
 ]
 
 # <input>: 231
+
+
 class struct__stEyeImageInfo(Structure):
     pass
 
@@ -820,7 +931,8 @@ if hasattr(_libs['lctigaze'], 'EgExit'):
 
 # <input>: 275
 if hasattr(_libs['lctigaze'], 'EgGetApplicationStartTimeSec'):
-    EgGetApplicationStartTimeSec = _libs['lctigaze'].EgGetApplicationStartTimeSec
+    EgGetApplicationStartTimeSec = _libs[
+        'lctigaze'].EgGetApplicationStartTimeSec
     EgGetApplicationStartTimeSec.argtypes = []
     EgGetApplicationStartTimeSec.restype = c_double
 
@@ -869,13 +981,31 @@ if hasattr(_libs['lctigaze'], 'EgLogFileClose'):
 # <input>: 297
 if hasattr(_libs['lctigaze'], 'EgSetScreenDimensions'):
     EgSetScreenDimensions = _libs['lctigaze'].EgSetScreenDimensions
-    EgSetScreenDimensions.argtypes = [POINTER(struct__stEgControl), c_int, c_int, c_int, c_int, c_int, c_int, c_int, c_int]
+    EgSetScreenDimensions.argtypes = [
+        POINTER(struct__stEgControl),
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int]
     EgSetScreenDimensions.restype = None
 
 # <input>: 307
 if hasattr(_libs['lctigaze'], 'EgInitScreenDimensions'):
     EgInitScreenDimensions = _libs['lctigaze'].EgInitScreenDimensions
-    EgInitScreenDimensions.argtypes = [POINTER(struct__stEgControl), c_int, c_int, c_int, c_int, c_int, c_int, c_int, c_int]
+    EgInitScreenDimensions.argtypes = [
+        POINTER(struct__stEgControl),
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        c_int]
     EgInitScreenDimensions.restype = None
 
 # <input>: 317
@@ -897,92 +1027,117 @@ if hasattr(_libs['lctigaze'], 'EgUpdateWindowParameters'):
     EgUpdateWindowParameters.restype = None
 
 # <input>: 328
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'EgWindowPixFromMonMm'):
         continue
     EgWindowPixFromMonMm = _lib.EgWindowPixFromMonMm
-    EgWindowPixFromMonMm.argtypes = [POINTER(c_int), POINTER(c_int), c_float, c_float]
+    EgWindowPixFromMonMm.argtypes = [
+        POINTER(c_int), POINTER(c_int), c_float, c_float]
     EgWindowPixFromMonMm.restype = None
     break
 
 # <input>: 333
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'MonMmFromEgWindowPix'):
         continue
     MonMmFromEgWindowPix = _lib.MonMmFromEgWindowPix
-    MonMmFromEgWindowPix.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int, c_int]
+    MonMmFromEgWindowPix.argtypes = [
+        POINTER(c_float),
+        POINTER(c_float),
+        POINTER(c_float),
+        c_int,
+        c_int]
     MonMmFromEgWindowPix.restype = None
     break
 
 # <input>: 339
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'EgMonitorPixFromMonMm'):
         continue
     EgMonitorPixFromMonMm = _lib.EgMonitorPixFromMonMm
-    EgMonitorPixFromMonMm.argtypes = [POINTER(c_int), POINTER(c_int), c_float, c_float]
+    EgMonitorPixFromMonMm.argtypes = [
+        POINTER(c_int), POINTER(c_int), c_float, c_float]
     EgMonitorPixFromMonMm.restype = None
     break
 
 # <input>: 344
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'MonMmFromEgMonitorPix'):
         continue
     MonMmFromEgMonitorPix = _lib.MonMmFromEgMonitorPix
-    MonMmFromEgMonitorPix.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int, c_int]
+    MonMmFromEgMonitorPix.argtypes = [
+        POINTER(c_float),
+        POINTER(c_float),
+        POINTER(c_float),
+        c_int,
+        c_int]
     MonMmFromEgMonitorPix.restype = None
     break
 
 # <input>: 350
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'EgMonitorPixFromEgWindowPix'):
         continue
     EgMonitorPixFromEgWindowPix = _lib.EgMonitorPixFromEgWindowPix
-    EgMonitorPixFromEgWindowPix.argtypes = [POINTER(c_int), POINTER(c_int), c_int, c_int]
+    EgMonitorPixFromEgWindowPix.argtypes = [
+        POINTER(c_int), POINTER(c_int), c_int, c_int]
     EgMonitorPixFromEgWindowPix.restype = None
     break
 
 # <input>: 355
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'EgWindowPixFromEgMonitorPix'):
         continue
     EgWindowPixFromEgMonitorPix = _lib.EgWindowPixFromEgMonitorPix
-    EgWindowPixFromEgMonitorPix.argtypes = [POINTER(c_int), POINTER(c_int), c_int, c_int]
+    EgWindowPixFromEgMonitorPix.argtypes = [
+        POINTER(c_int), POINTER(c_int), c_int, c_int]
     EgWindowPixFromEgMonitorPix.restype = None
     break
 
 # <input>: 360
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'GdsPixFromMonMm'):
         continue
     GdsPixFromMonMm = _lib.GdsPixFromMonMm
-    GdsPixFromMonMm.argtypes = [POINTER(c_int), POINTER(c_int), c_float, c_float]
+    GdsPixFromMonMm.argtypes = [
+        POINTER(c_int),
+        POINTER(c_int),
+        c_float,
+        c_float]
     GdsPixFromMonMm.restype = None
     break
 
 # <input>: 365
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'MonMmFromGdsPix'):
         continue
     MonMmFromGdsPix = _lib.MonMmFromGdsPix
-    MonMmFromGdsPix.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int, c_int]
+    MonMmFromGdsPix.argtypes = [
+        POINTER(c_float),
+        POINTER(c_float),
+        POINTER(c_float),
+        c_int,
+        c_int]
     MonMmFromGdsPix.restype = None
     break
 
 # <input>: 371
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'ScaleEgMonPixFromMm'):
         continue
     ScaleEgMonPixFromMm = _lib.ScaleEgMonPixFromMm
-    ScaleEgMonPixFromMm.argtypes = [POINTER(c_int), POINTER(c_int), c_float, c_float]
+    ScaleEgMonPixFromMm.argtypes = [
+        POINTER(c_int), POINTER(c_int), c_float, c_float]
     ScaleEgMonPixFromMm.restype = None
     break
 
 # <input>: 376
-for _lib in _libs.values():
+for _lib in _libs.itervalues():
     if not hasattr(_lib, 'ScaleEgMonMmFromPix'):
         continue
     ScaleEgMonMmFromPix = _lib.ScaleEgMonMmFromPix
-    ScaleEgMonMmFromPix.argtypes = [POINTER(c_float), POINTER(c_float), c_int, c_int]
+    ScaleEgMonMmFromPix.argtypes = [
+        POINTER(c_float), POINTER(c_float), c_int, c_int]
     ScaleEgMonMmFromPix.restype = None
     break
 
@@ -998,43 +1153,47 @@ if hasattr(_libs['lctigaze'], 'EgEyeImageDisplay'):
     EgEyeImageDisplay.argtypes = [c_int, c_int, c_int, c_int, c_int, PVOID]
     EgEyeImageDisplay.restype = None
 
-enum_anon_1 = c_int # <input>: 450
+enum_anon_1 = c_int  # <input>: 450
 
-EG_CALIBRATE_DISABILITY_APP = 0 # <input>: 450
+EG_CALIBRATE_DISABILITY_APP = 0  # <input>: 450
 
-EG_CALIBRATE_NONDISABILITY_APP = (EG_CALIBRATE_DISABILITY_APP + 1) # <input>: 450
+EG_CALIBRATE_NONDISABILITY_APP = (
+    EG_CALIBRATE_DISABILITY_APP +
+    1)  # <input>: 450
 
-enum_anon_2 = c_int # <input>: 453
+enum_anon_2 = c_int  # <input>: 453
 
-CAL_KEY_COMMAND_ESCAPE = 0 # <input>: 453
+CAL_KEY_COMMAND_ESCAPE = 0  # <input>: 453
 
-CAL_KEY_COMMAND_RESTART = (CAL_KEY_COMMAND_ESCAPE + 1) # <input>: 453
+CAL_KEY_COMMAND_RESTART = (CAL_KEY_COMMAND_ESCAPE + 1)  # <input>: 453
 
-CAL_KEY_COMMAND_SKIP = (CAL_KEY_COMMAND_RESTART + 1) # <input>: 453
+CAL_KEY_COMMAND_SKIP = (CAL_KEY_COMMAND_RESTART + 1)  # <input>: 453
 
-CAL_KEY_COMMAND_ACCEPT = (CAL_KEY_COMMAND_SKIP + 1) # <input>: 453
+CAL_KEY_COMMAND_ACCEPT = (CAL_KEY_COMMAND_SKIP + 1)  # <input>: 453
 
-CAL_KEY_COMMAND_RETRIEVE = (CAL_KEY_COMMAND_ACCEPT + 1) # <input>: 453
+CAL_KEY_COMMAND_RETRIEVE = (CAL_KEY_COMMAND_ACCEPT + 1)  # <input>: 453
 
-CAL_KEY_COMMAND_SPACE = (CAL_KEY_COMMAND_RETRIEVE + 1) # <input>: 453
+CAL_KEY_COMMAND_SPACE = (CAL_KEY_COMMAND_RETRIEVE + 1)  # <input>: 453
 
-_BITMAPINFOHEADER = struct__BITMAPINFOHEADER # <input>: 72
+_BITMAPINFOHEADER = struct__BITMAPINFOHEADER  # <input>: 72
 
-_RGBQUAD = struct__RGBQUAD # <input>: 79
+_RGBQUAD = struct__RGBQUAD  # <input>: 79
 
-_BITMAPINFO = struct__BITMAPINFO # <input>: 84
+_BITMAPINFO = struct__BITMAPINFO  # <input>: 84
 
-_stEgData = struct__stEgData # <input>: 176
+_stEgData = struct__stEgData  # <input>: 176
 
-_stEgControl = struct__stEgControl # <input>: 91
+_stEgControl = struct__stEgControl  # <input>: 91
 
-_stEyeImageInfo = struct__stEyeImageInfo # <input>: 231
+_stEyeImageInfo = struct__stEyeImageInfo  # <input>: 231
 
 # No inserted files
 
-######## From EgConfig.h >>>>>>>
+# From EgConfig.h >>>>>>>
 #
-## <input>: 14
+# <input>: 14
+
+
 class struct__stEgConfig(Structure):
     pass
 
@@ -1047,17 +1206,20 @@ struct__stEgConfig._fields_ = [
     ('bEyefollower', c_int),
 ]
 #
-## <input>: 24
+# <input>: 24
 if hasattr(_libs['lctigaze'], 'EgGetConfig'):
     EgGetConfig = _libs['lctigaze'].EgGetConfig
-    EgGetConfig.argtypes = [POINTER(struct__stEgControl), POINTER(struct__stEgConfig), c_int]
+    EgGetConfig.argtypes = [
+        POINTER(struct__stEgControl),
+        POINTER(struct__stEgConfig),
+        c_int]
     EgGetConfig.restype = c_int
 
-_stEgConfig = struct__stEgConfig # <input>: 14
+_stEgConfig = struct__stEgConfig  # <input>: 14
 
-######## From EgConfig.h <<<<<<<<<
+# From EgConfig.h <<<<<<<<<
 
-######## From lcttimer.h >>>>>>>
+# From lcttimer.h >>>>>>>
 
 # double lct_TimerRead(unsigned int *puiProcessorSpeedMHz);
 
@@ -1072,94 +1234,96 @@ if hasattr(_libs['lctigaze'], 'ReadProcSpeed'):
     ReadProcSpeed.argtypes = []
     ReadProcSpeed.restype = c_double
 
-######## From lcttimer.h <<<<<<<<<
+# From lcttimer.h <<<<<<<<<
 #
-## defines
+# defines
 #
-EG_COMM_TYPE_LOCAL  =0    # Single computer configuration.
-EG_COMM_TYPE_SOCKET =1    # 2 computers, comm over TCP/IP.
-EG_COMM_TYPE_SERIAL =2    # 2 computers, comm over TCP/IP.
+EG_COMM_TYPE_LOCAL = 0    # Single computer configuration.
+EG_COMM_TYPE_SOCKET = 1    # 2 computers, comm over TCP/IP.
+EG_COMM_TYPE_SERIAL = 2    # 2 computers, comm over TCP/IP.
 
-EG_MESSAGE_TYPE_GAZEINFO      = 0
+EG_MESSAGE_TYPE_GAZEINFO = 0
 EG_MESSAGE_TYPE_MOUSEPOSITION = 1
-EG_MESSAGE_TYPE_MOUSEBUTTON   = 2
+EG_MESSAGE_TYPE_MOUSEBUTTON = 2
 EG_MESSAGE_TYPE_KEYBD_COMMAND = 3
 EG_MESSAGE_TYPE_MOUSERELATIVE = 4
-EG_MESSAGE_TYPE_VERGENCE      = 5
-EG_MESSAGE_TYPE_IMAGEDATA     = 81
+EG_MESSAGE_TYPE_VERGENCE = 5
+EG_MESSAGE_TYPE_IMAGEDATA = 81
 
-EG_MESSAGE_TYPE_CALIBRATE            =  10
-EG_MESSAGE_TYPE_WORKSTATION_QUERY    =  11
-EG_MESSAGE_TYPE_WORKSTATION_RESPONSE =  12
-EG_MESSAGE_TYPE_CLEAR_SCREEN         =  13
-EG_MESSAGE_TYPE_SET_COLOR            =  14
-EG_MESSAGE_TYPE_SET_DIAMETER        =   15
-EG_MESSAGE_TYPE_DRAW_CIRCLE         =   16
-EG_MESSAGE_TYPE_DRAW_CROSS          =   17
-EG_MESSAGE_TYPE_DISPLAYTEXT          = 18
-EG_MESSAGE_TYPE_CALIBRATION_COMPLETE =  19
-EG_MESSAGE_TYPE_CALIBRATION_ABORTED  =  20
-EG_MESSAGE_TYPE_TRACKING_ACTIVE      =  22
-EG_MESSAGE_TYPE_TRACKING_INACTIVE =     23
-EG_MESSAGE_TYPE_VOICE_ACTIVE    =       24
-EG_MESSAGE_TYPE_VOICE_INACTIVE =        25
+EG_MESSAGE_TYPE_CALIBRATE = 10
+EG_MESSAGE_TYPE_WORKSTATION_QUERY = 11
+EG_MESSAGE_TYPE_WORKSTATION_RESPONSE = 12
+EG_MESSAGE_TYPE_CLEAR_SCREEN = 13
+EG_MESSAGE_TYPE_SET_COLOR = 14
+EG_MESSAGE_TYPE_SET_DIAMETER = 15
+EG_MESSAGE_TYPE_DRAW_CIRCLE = 16
+EG_MESSAGE_TYPE_DRAW_CROSS = 17
+EG_MESSAGE_TYPE_DISPLAYTEXT = 18
+EG_MESSAGE_TYPE_CALIBRATION_COMPLETE = 19
+EG_MESSAGE_TYPE_CALIBRATION_ABORTED = 20
+EG_MESSAGE_TYPE_TRACKING_ACTIVE = 22
+EG_MESSAGE_TYPE_TRACKING_INACTIVE = 23
+EG_MESSAGE_TYPE_VOICE_ACTIVE = 24
+EG_MESSAGE_TYPE_VOICE_INACTIVE = 25
 
-EG_MESSAGE_TYPE_BEGIN_SENDING_DATA  =   30
-EG_MESSAGE_TYPE_STOP_SENDING_DATA   =   31
-EG_MESSAGE_TYPE_CLOSE_AND_RECYCLE =     32
-EG_MESSAGE_TYPE_FILE_OPEN        =      33
-EG_MESSAGE_TYPE_FILE_WRITE_HEADER  =    34
-EG_MESSAGE_TYPE_FILE_APPENDTEXT   =    35
-EG_MESSAGE_TYPE_FILE_START_RECORDING =  36
-EG_MESSAGE_TYPE_FILE_STOP_RECORDING  =  37
-EG_MESSAGE_TYPE_FILE_MARK_EVENT  =      38
-EG_MESSAGE_TYPE_FILE_CLOSE   =          39
-EG_MESSAGE_TYPE_CALIBRATE_ABORT   =     21
-EG_MESSAGE_TYPE_BEGIN_SENDING_VERGENCE =40
+EG_MESSAGE_TYPE_BEGIN_SENDING_DATA = 30
+EG_MESSAGE_TYPE_STOP_SENDING_DATA = 31
+EG_MESSAGE_TYPE_CLOSE_AND_RECYCLE = 32
+EG_MESSAGE_TYPE_FILE_OPEN = 33
+EG_MESSAGE_TYPE_FILE_WRITE_HEADER = 34
+EG_MESSAGE_TYPE_FILE_APPENDTEXT = 35
+EG_MESSAGE_TYPE_FILE_START_RECORDING = 36
+EG_MESSAGE_TYPE_FILE_STOP_RECORDING = 37
+EG_MESSAGE_TYPE_FILE_MARK_EVENT = 38
+EG_MESSAGE_TYPE_FILE_CLOSE = 39
+EG_MESSAGE_TYPE_CALIBRATE_ABORT = 21
+EG_MESSAGE_TYPE_BEGIN_SENDING_VERGENCE = 40
 EG_MESSAGE_TYPE_STOP_SENDING_VERGENCE = 41
 
-EG_EVENT_NONE     =         0
-EG_EVENT_MOUSEPOSITION =    1
-EG_EVENT_MOUSERELATIVE =    2
-EG_EVENT_MOUSEBUTTON  =     3
+EG_EVENT_NONE = 0
+EG_EVENT_MOUSEPOSITION = 1
+EG_EVENT_MOUSERELATIVE = 2
+EG_EVENT_MOUSEBUTTON = 3
 EG_EVENT_KEYBOARD_COMMAND = 4
-EG_EVENT_UPDATE_EYE_IMAGE=  5
-EG_EVENT_TRACKING_ACTIVE =  6
-EG_EVENT_TRACKING_INACTIVE =7
-EG_EVENT_VOICE_ACTIVE =     8
-EG_EVENT_VOICE_INACTIVE =   9
+EG_EVENT_UPDATE_EYE_IMAGE = 5
+EG_EVENT_TRACKING_ACTIVE = 6
+EG_EVENT_TRACKING_INACTIVE = 7
+EG_EVENT_VOICE_ACTIVE = 8
+EG_EVENT_VOICE_INACTIVE = 9
 
-EG_ERROR_EYEGAZE_ALREADY_INITIALIZED =     9101
-EG_ERROR_TRACKING_TERMINATED =             9102
-EG_ERROR_MEMORY_ALLOC_FAILED  =            9103
-EG_ERROR_LCT_COMM_OPEN_FAILED  =           9104
+EG_ERROR_EYEGAZE_ALREADY_INITIALIZED = 9101
+EG_ERROR_TRACKING_TERMINATED = 9102
+EG_ERROR_MEMORY_ALLOC_FAILED = 9103
+EG_ERROR_LCT_COMM_OPEN_FAILED = 9104
 
 
-## User added functionality
+# User added functionality
 
 from ctypes import create_string_buffer as StringBuffer
-from ctypes import create_unicode_buffer  as UnicodeBuffer
+from ctypes import create_unicode_buffer as UnicodeBuffer
 
-_CAMERA_IMAGE_POSITIONS=('NOT_USED','UPPER_RIGHT','UPPER_LEFT')
-_COMM_CHANNEL_TYPES=dict(LOCAL=EG_COMM_TYPE_LOCAL,SOCKET=EG_COMM_TYPE_SOCKET,
-                         SERIAL=EG_COMM_TYPE_SERIAL)
+_CAMERA_IMAGE_POSITIONS = ('NOT_USED', 'UPPER_RIGHT', 'UPPER_LEFT')
+_COMM_CHANNEL_TYPES = dict(
+    LOCAL=EG_COMM_TYPE_LOCAL,
+    SOCKET=EG_COMM_TYPE_SOCKET,
+    SERIAL=EG_COMM_TYPE_SERIAL)
+
 
 def initializeEyeGazeDevice(iohub_display, iohub_device_config):
-    """
-    Initiale and connect to the EyeGaze eye tracker.
-    """
-    stEgControl= _stEgControl()
+    """Initiale and connect to the EyeGaze eye tracker."""
+    stEgControl = _stEgControl()
 
     # Tell Eyegaze the length of the Eyegaze
     # data ring buffer
-    stEgControl.iNDataSetsInRingBuffer = iohub_device_config.get('event_buffer_length',32)
+    stEgControl.iNDataSetsInRingBuffer = iohub_device_config.get(
+        'event_buffer_length', 32)
 
     # Tell Eyegaze not to begin image
     # processing yet (so no past gazepoint
     # data samples will have accumulated
     # in the ring buffer when the tracking
     # loop begins).
-    stEgControl.bTrackingActive = False;
+    stEgControl.bTrackingActive = False
 
     # Tell the image processing software what
     # the physical screen dimensions are
@@ -1171,7 +1335,7 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     # Tell Eyegaze not to display the full
     # 640x480 camera image in a separate
     # window.
-    v= iohub_device_config.get('display_camera_image',False)
+    v = iohub_device_config.get('display_camera_image', False)
     stEgControl.bEgCameraDisplayActive = v
 
     # Tell Eyegaze that the location for the
@@ -1179,15 +1343,17 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     # corner
     # 1 -- upper right corner
     # 2 -- upper left corner
-    v= iohub_device_config.get('camera_image_screen_position','UPPER_RIGHT')
+    v = iohub_device_config.get('camera_image_screen_position', 'UPPER_RIGHT')
     try:
-        v=_CAMERA_IMAGE_POSITIONS.index(v)
+        v = _CAMERA_IMAGE_POSITIONS.index(v)
         stEgControl.iEyeImagesScreenPos = v
     except Exception:
-        print2err('EyeGaze ERROR: Camera Image Position value invalid. Given {0}, must be one of {1}'.format(v,_CAMERA_IMAGE_POSITIONS))
-        stEgControl.iEyeImagesScreenPos=0
+        print2err(
+            'EyeGaze ERROR: Camera Image Position value invalid. Given {0}, must be one of {1}'.format(
+                v, _CAMERA_IMAGE_POSITIONS))
+        stEgControl.iEyeImagesScreenPos = 0
 
-    stEgControl.iVisionSelect=0; # Set this reserved variable to 0
+    stEgControl.iVisionSelect = 0  # Set this reserved variable to 0
 
     # The communications type may be set to one of three values. Please see
     # the documentation regarding the different values for communication type.
@@ -1199,24 +1365,27 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     # stEgControl.pszCommName = "127.0.0.1"; // Eyegaze server IP address
     # for EG_COMM_TYPE_SOCKET
 
-    host_conn=iohub_device_config.get('host_connection',None)
+    host_conn = iohub_device_config.get('host_connection', None)
     if host_conn:
-        conn_type=host_conn.get('type',None)
-        conn_param=host_conn.get('parameter',None)
+        conn_type = host_conn.get('type', None)
+        conn_param = host_conn.get('parameter', None)
 
     if conn_type not in _COMM_CHANNEL_TYPES:
-        print2err("ERROR: EyeGaze connection_settings comm_type (first list element) must be one of {0}. Received: {1}.".format(_COMM_CHANNEL_TYPES,conn_type))
-        print2err("..... USING DEFAULT SETTING OF LOCAL")
-        conn_type='LOCAL'
+        print2err(
+            'ERROR: EyeGaze connection_settings comm_type (first list element) must be one of {0}. Received: {1}.'.format(
+                _COMM_CHANNEL_TYPES,
+                conn_type))
+        print2err('..... USING DEFAULT SETTING OF LOCAL')
+        conn_type = 'LOCAL'
 
-    stEgControl.iCommType = _COMM_CHANNEL_TYPES[conn_type];
+    stEgControl.iCommType = _COMM_CHANNEL_TYPES[conn_type]
 
-    if conn_type not in ['SOCKET','SERIAL']:
-        if conn_param is None or len(conn_param)==0:
-            stEgControl.pszCommName=None
+    if conn_type not in ['SOCKET', 'SERIAL']:
+        if conn_param is None or len(conn_param) == 0:
+            stEgControl.pszCommName = None
         else:
-            stEgControl.pszCommName=UnicodeBuffer(conn_param)
+            stEgControl.pszCommName = UnicodeBuffer(conn_param)
 
     # Create the Eyegaze image processing thread
-    result=EgInit(byref(stEgControl))
+    result = EgInit(byref(stEgControl))
     return stEgControl

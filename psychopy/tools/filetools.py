@@ -7,17 +7,21 @@
 
 """Functions and classes related to file and directory handling
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from future import standard_library
 standard_library.install_aliases()
 import os
 import shutil
-import pickle
 import sys
 import codecs
 import numpy as np
 import json_tricks
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
@@ -36,16 +40,16 @@ def toFile(filename, data):
 def fromFile(filename):
     """Load data from a pickle or JSON file.
     """
-
-    with open(filename) as f:
-        if filename.endswith('.psydat'):
+    if filename.endswith('.psydat'):
+        with open(filename, 'rb') as f:
             contents = pickle.load(f)
             # if loading an experiment file make sure we don't save further
             # copies using __del__
             if hasattr(contents, 'abort'):
                 contents.abort()
-        elif filename.endswith('json'):
-            contents = json_tricks.np.load(f)
+    elif filename.endswith('.json'):
+        with open(filename, 'r') as f:
+            contents = json_tricks.load(f)
 
             # Restore RNG if we load a TrialHandler2 object.
             # We also need to remove the 'temporary' ._rng_state attribute that
@@ -55,9 +59,9 @@ def fromFile(filename):
                 contents._rng = np.random.RandomState(seed=contents.seed)
                 contents._rng.set_state(contents._rng_state)
                 del contents._rng_state
-        else:
-            msg = "Don't know how to handle this file type, aborting."
-            raise ValueError(msg)
+    else:
+        msg = "Don't know how to handle this file type, aborting."
+        raise ValueError(msg)
 
     return contents
 
@@ -85,25 +89,23 @@ def mergeFolder(src, dst, pattern=None):
                 print(why)
 
 
-def openOutputFile(fileName, append=False, delim=None,
-                   fileCollisionMethod='rename', encoding='utf-8'):
+def openOutputFile(fileName=None, append=False, fileCollisionMethod='rename',
+                   encoding='utf-8'):
     """Open an output file (or standard output) for writing.
 
     :Parameters:
 
-    fileName : string
-        The desired output file name.
+    fileName : None, 'stdout', or str
+        The desired output file name. If `None` or `stdout`, return
+        `sys.stdout`. Any other string will be considered a filename.
     append : bool, optional
         If ``True``, append data to an existing file; otherwise, overwrite
         it with new data.
         Defaults to ``True``, i.e. appending.
-    delim : string, optional
-        The delimiting character(s) between values. For a CSV file, this
-        would be a comma. For a TSV file, it would be ``\t``.
-        Defaults to ``None``.
     fileCollisionMethod : string, optional
-        How to handle filename collisions. This is ignored if ``append``
-        is set to ``True``.
+        How to handle filename collisions. Valid values are `'rename'`,
+        `'overwrite'`, and `'fail'`.
+        This parameter is ignored if ``append``  is set to ``True``.
         Defaults to `rename`.
     encoding : string, optional
         The encoding to use when writing the file. This parameter will be
@@ -116,55 +118,35 @@ def openOutputFile(fileName, append=False, delim=None,
     f : file
         A writable file handle.
 
-    :Notes:
-
-    If no known filename extension is given, and the delimiter is a comma,
-    the extension ``.csv`` will be chosen automatically. If the extension
-    is unknown and the delimiter is a tab, the extension will be
-    ``.tsv``. ``.txt`` will be chosen otherwise.
     """
-
-    if fileName == 'stdout':
-        f = sys.stdout
-        return f
-
-    if delim is None:
-        genDelimiter(fileName)
-
-    if not fileName.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
-                              '.TXT', '.csv', '.CSV', '.psydat', '.npy',
-                              '.json')):
-        if delim == ',':
-            fileName += '.csv'
-        elif delim == '\t':
-            fileName += '.tsv'
-        else:
-            fileName += '.txt'
+    if (fileName is None) or (fileName == 'stdout'):
+        return sys.stdout
 
     if append:
-        writeFormat = 'a'
+        mode = 'a'
     else:
         if fileName.endswith(('.psydat', '.npy')):
-            writeFormat = 'wb'
+            mode = 'wb'
         else:
-            writeFormat = 'w'
+            mode = 'w'
 
         # Rename the output file if a file of that name already exists
-        #  and it should not be appended.
+        # and it should not be appended.
         if os.path.exists(fileName) and not append:
             fileName = handleFileCollision(
                 fileName,
-                fileCollisionMethod=fileCollisionMethod
-            )
+                fileCollisionMethod=fileCollisionMethod)
 
     # Do not use encoding when writing a binary file.
-    if 'b' in writeFormat:
+    if 'b' in mode:
         encoding = None
 
-    if os.path.exists(fileName) and writeFormat in ['w', 'wb']:
-        logging.warning('Data file, %s will be overwritten!' % fileName)
+    if os.path.exists(fileName) and mode in ['w', 'wb']:
+        logging.warning('Data file %s will be overwritten!' % fileName)
 
-    f = codecs.open(fileName, writeFormat, encoding=encoding)
+    # The file wil always be opened in binary writing mode,
+    # see https://docs.python.org/2/library/codecs.html#codecs.open
+    f = codecs.open(fileName, mode=mode, encoding=encoding)
     return f
 
 
@@ -182,12 +164,27 @@ def genDelimiter(fileName):
         A delimiter picked based on the supplied filename. This will be
         ``,`` if the filename extension is ``.csv``, and a tabulator
         character otherwise.
+
     """
     if fileName.endswith(('.csv', '.CSV')):
         delim = ','
-    elif fileName.endswith('.json'):
-        delim = ''
     else:
         delim = '\t'
 
     return delim
+
+
+def genFilenameFromDelimiter(filename, delim):
+    # If no known filename extension was specified, derive a one from the
+    # delimiter.
+    if not filename.endswith(('.dlm', '.DLM', '.tsv', '.TSV', '.txt',
+                              '.TXT', '.csv', '.CSV', '.psydat', '.npy',
+                              '.json')):
+        if delim == ',':
+            filename += '.csv'
+        elif delim == '\t':
+            filename += '.tsv'
+        else:
+            filename += '.txt'
+
+    return filename

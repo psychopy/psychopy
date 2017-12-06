@@ -1,17 +1,16 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 """This module has tools for fetching data about the system or the
 current Python process. Such info can be useful for understanding
 the context in which an experiment was run.
 """
 
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
-
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 import sys
@@ -274,7 +273,7 @@ class RunTimeInfo(dict):
         # when last rebooted?
         try:
             lastboot = shellCall("who -b").split()
-            self['systemRebooted'] = b' '.join(lastboot[2:])
+            self['systemRebooted'] = ' '.join(lastboot[2:])
         except Exception:  # windows
             sysInfo = shellCall('systeminfo').splitlines()
             lastboot = [line for line in sysInfo if line.startswith(

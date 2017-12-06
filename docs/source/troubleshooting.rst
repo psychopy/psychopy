@@ -78,7 +78,7 @@ Cleaning preferences and app data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Every time you shut down PsychoPy (by normal means) your current preferences and the state of the application (the location and state of the windows) are saved to disk. If PsychoPy is crashing during startup you may need to edit those files or delete them completely. 
 
-On OS X and Linux the files are::
+On macOS and Linux the files are::
     
     ~/.psychopy2/appData.cfg
     ~/.psychopy2/userPrefs.cfg

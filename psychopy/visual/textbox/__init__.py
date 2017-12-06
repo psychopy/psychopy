@@ -1,11 +1,13 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Created on Thu Mar 21 18:38:35 2013
 
 @author: Sol
 """
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
 from past.builtins import basestring
 from builtins import object

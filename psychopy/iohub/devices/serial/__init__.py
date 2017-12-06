@@ -1,37 +1,30 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
-.. file: ioHub/devices/serial/__init__.py
-
-Copyright (C) 2012-2014 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-"""
-from builtins import chr
-from builtins import str
-from builtins import range
-from psychopy.iohub import OrderedDict, print2err, printExceptionDetailsToStdErr, Computer, EXP_SCRIPT_DIRECTORY
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 import serial
-from .. import Device, DeviceEvent
-from ...constants import DeviceConstants, EventConstants
 import numpy as N
+from ... import EXP_SCRIPT_DIRECTORY
+from .. import Device, DeviceEvent, Computer
+from ...errors import print2err, printExceptionDetailsToStdErr
+from ...constants import DeviceConstants, EventConstants
 getTime = Computer.getTime
 
 
 class Serial(Device):
-    """
-    A general purpose serial input interface device. Configuration options
-    are used to define how the serial input data should be parsed, and what
-    conditions create a serial input event to be generated.
+    """A general purpose serial input interface device.
+
+    Configuration options are used to define how the serial input data
+    should be parsed, and what conditions create a serial input event to
+    be generated.
+
     """
     _bytesizes = {
         5: serial.FIVEBITS,
         6: serial.SIXBITS,
         7: serial.SEVENBITS,
         8: serial.EIGHTBITS,
-        }
+    }
 
     _parities = {
         'NONE': serial.PARITY_NONE,
@@ -48,10 +41,10 @@ class Serial(Device):
     }
 
     DEVICE_TIMEBASE_TO_SEC = 1.0
-    _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32),]
-    EVENT_CLASS_NAMES = ['SerialInputEvent','SerialByteChangeEvent']
+    _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32), ]
+    EVENT_CLASS_NAMES = ['SerialInputEvent', 'SerialByteChangeEvent']
     DEVICE_TYPE_ID = DeviceConstants.SERIAL
-    DEVICE_TYPE_STRING = "SERIAL"
+    DEVICE_TYPE_STRING = 'SERIAL'
     _serial_slots = [
         'port', 'baud', 'bytesize', 'parity', 'stopbits', '_serial',
         '_timeout', '_rx_buffer', '_parser_config', '_parser_state',
@@ -70,12 +63,13 @@ class Serial(Device):
                 self.port = pports[0]
                 if len(pports) > 1:
                     print2err(
-                        "Warning: Serial device port configuration set "
+                        'Warning: Serial device port configuration set '
                         "to 'auto'.\nMultiple serial ports found:\n",
-                        pports, "\n** Using port ", self.port
+                        pports, '\n** Using port ', self.port
                     )
         self.baud = self.getConfiguration().get('baud')
-        self.bytesize = self._bytesizes[self.getConfiguration().get('bytesize')]
+        self.bytesize = self._bytesizes[
+            self.getConfiguration().get('bytesize')]
         self.parity = self._parities[self.getConfiguration().get('parity')]
         self.stopbits = self._stopbits[self.getConfiguration().get('stopbits')]
 
@@ -115,7 +109,8 @@ class Serial(Device):
             #          the return time of the latest serial.read() is used.
             # Each event returned by the function generates a SerialInputEvent
             # with the data field = the dict data value.
-            import importlib, sys
+            import importlib
+            import sys
             try:
                 #print2err("EXP_SCRIPT_DIRECTORY: ",EXP_SCRIPT_DIRECTORY)
                 if EXP_SCRIPT_DIRECTORY not in sys.path:
@@ -125,15 +120,15 @@ class Serial(Device):
                 self._custom_parser = getattr(mod, func_name)
             except Exception:
                 print2err(
-                    "ioHub Serial Device Error: could not load "
-                    "custom_parser function: ", custom_parser_func_str)
+                    'ioHub Serial Device Error: could not load '
+                    'custom_parser function: ', custom_parser_func_str)
                 printExceptionDetailsToStdErr()
 
             if self._custom_parser:
-                self._custom_parser_kwargs = self._parser_config.get('parser_kwargs',{})
+                self._custom_parser_kwargs = self._parser_config.get(
+                    'parser_kwargs', {})
         else:
             self._byte_diff_mode = self._parser_config.get('byte_diff')
-
 
         if self._byte_diff_mode:
             self._rx_buffer = None
@@ -148,15 +143,13 @@ class Serial(Device):
 
     @classmethod
     def findPorts(cls):
-        """
-        Finds serial ports that are available.
-        """
+        """Finds serial ports that are available."""
         import os
         available = []
         if os.name == 'nt':  # Windows
             for i in range(1, 256):
                 try:
-                    sport = 'COM'+str(i)
+                    sport = 'COM' + str(i)
                     s = serial.Serial(sport)
                     available.append(sport)
                     s.close()
@@ -167,7 +160,7 @@ class Serial(Device):
             available = [port[0] for port in list_ports.comports()]
 
         if len(available) < 1:
-            print2err("Error: unable to find any serial ports on the computer.")
+            print2err('Error: unable to find any serial ports on the computer.')
             return []
         return available
 
@@ -181,7 +174,7 @@ class Serial(Device):
             self._parser_state = dict(parsed_event='')
             parser_state = self._parser_state
 
-            fixed_length = parser_config.setdefault('fixed_length',None)
+            fixed_length = parser_config.setdefault('fixed_length', None)
             if fixed_length:
                 parser_state['bytes_needed'] = fixed_length
             else:
@@ -189,13 +182,13 @@ class Serial(Device):
 
             prefix = parser_config.setdefault('prefix', None)
             if prefix == r'\n':
-               parser_config['prefix'] = '\n'
+                parser_config['prefix'] = '\n'
             elif prefix == r'\t':
-               parser_config['prefix'] = '\t'
+                parser_config['prefix'] = '\t'
             elif prefix == r'\r':
-               parser_config['prefix'] = '\r'
+                parser_config['prefix'] = '\r'
             elif prefix == r'\r\n':
-               parser_config['prefix'] = '\r\n'
+                parser_config['prefix'] = '\r\n'
 
             if prefix:
                 parser_state['prefix_found'] = False
@@ -204,13 +197,13 @@ class Serial(Device):
 
             delimiter = parser_config.setdefault('delimiter', None)
             if delimiter == r'\n':
-               parser_config['delimiter'] = '\n'
-            elif delimiter  == r'\t':
-               parser_config['delimiter'] = '\t'
+                parser_config['delimiter'] = '\n'
+            elif delimiter == r'\t':
+                parser_config['delimiter'] = '\t'
             elif delimiter == r'\r':
-               parser_config['delimiter'] = '\r'
+                parser_config['delimiter'] = '\r'
             elif delimiter == r'\r\n':
-               parser_config['delimiter'] = '\r\n'
+                parser_config['delimiter'] = '\r\n'
             if delimiter:
                 parser_state['delimiter_found'] = False
             else:
@@ -228,15 +221,16 @@ class Serial(Device):
         return self.isConnected()
 
     def isConnected(self):
-        return self._serial != None
+        return self._serial is not None
 
     def getDeviceTime(self):
         return getTime()
 
     def getSecTime(self):
-        """
-        Returns current device time in sec.msec format.
+        """Returns current device time in sec.msec format.
+
         Relies on a functioning getDeviceTime() method.
+
         """
         return self.getTime()
 
@@ -265,24 +259,28 @@ class Serial(Device):
         return Device.enableEventReporting(self, enabled)
 
     def isReportingEvents(self):
-        """
-        Returns whether a Device is currently reporting events to the ioHub Process.
+        """Returns whether a Device is currently reporting events to the ioHub
+        Process.
 
         Args: None
 
         Returns:
             (bool): Current reporting state.
+
         """
         return Device.isReportingEvents(self)
 
     def _connectSerial(self):
-        self._serial = serial.Serial(self.port, self.baud, timeout=self._timeout)
+        self._serial = serial.Serial(
+            self.port, self.baud, timeout=self._timeout)
         if self._serial is None:
-            raise ValueError("Error: Serial Port Connection Failed: %d"%(self.port))
+            raise ValueError(
+                'Error: Serial Port Connection Failed: %d' %
+                (self.port))
         self._serial.flushInput()
         inBytes = self._serial.inWaiting()
         if inBytes > 0:
-          self._serial.read(inBytes)
+            self._serial.read(inBytes)
         if self._byte_diff_mode:
             self._rx_buffer = None
         else:
@@ -323,52 +321,57 @@ class Serial(Device):
     def _createSerialEvent(self, logged_time, read_time, event_data):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
-        elist=[0, 0, 0, Computer._getNextEventID(),
-               EventConstants.SERIAL_INPUT,
-               read_time,
-               logged_time,
-               read_time,
-               confidence_interval,
-               0.0,
-               0,
-               self.port,
-               event_data
-            ]
+        elist = [0, 0, 0, Device._getNextEventID(),
+                 EventConstants.SERIAL_INPUT,
+                 read_time,
+                 logged_time,
+                 read_time,
+                 confidence_interval,
+                 0.0,
+                 0,
+                 self.port,
+                 event_data
+                 ]
         self._addNativeEventToBuffer(elist)
         self._resetParserState()
 
     def _createMultiByteSerialEvent(self, logged_time, read_time):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
-        elist=[0, 0, 0, Computer._getNextEventID(),
-               EventConstants.SERIAL_INPUT,
-               read_time,
-               logged_time,
-               read_time,
-               confidence_interval,
-               0.0,
-               0,
-               self.port,
-               self._parser_state['parsed_event']
-            ]
+        elist = [0, 0, 0, Device._getNextEventID(),
+                 EventConstants.SERIAL_INPUT,
+                 read_time,
+                 logged_time,
+                 read_time,
+                 confidence_interval,
+                 0.0,
+                 0,
+                 self.port,
+                 self._parser_state['parsed_event']
+                 ]
         self._addNativeEventToBuffer(elist)
         self._resetParserState()
 
-    def _createByteChangeSerialEvent(self, logged_time, read_time, prev_byte, new_byte):
+    def _createByteChangeSerialEvent(
+            self,
+            logged_time,
+            read_time,
+            prev_byte,
+            new_byte):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
-        elist=[0, 0, 0, Computer._getNextEventID(),
-               EventConstants.SERIAL_BYTE_CHANGE,
-               read_time,
-               logged_time,
-               read_time,
-               confidence_interval,
-               0.0,
-               0,
-               self.port,
-               ord(prev_byte),
-               ord(new_byte)
-            ]
+        elist = [0, 0, 0, Device._getNextEventID(),
+                 EventConstants.SERIAL_BYTE_CHANGE,
+                 read_time,
+                 logged_time,
+                 read_time,
+                 confidence_interval,
+                 0.0,
+                 0,
+                 self.port,
+                 ord(prev_byte),
+                 ord(new_byte)
+                 ]
         self._addNativeEventToBuffer(elist)
 
     def _poll(self):
@@ -385,27 +388,31 @@ class Serial(Device):
                     read_time = getTime()
                     if newrx:
                         try:
-                            serial_events = self._custom_parser(read_time, newrx,
-                                                            parser_state,
-                                                            **self._custom_parser_kwargs)
+                            serial_events = self._custom_parser(
+                                read_time, newrx, parser_state, **self._custom_parser_kwargs)
 
                             for evt in serial_events:
-                                if type(evt) == dict:
+                                if isinstance(evt, dict):
                                     evt_time = evt.get('time', read_time)
-                                    evt_data = evt.get('data', "NO DATA FIELD IN EVENT DICT.")
-                                    self._createSerialEvent(logged_time, evt_time, evt_data)
+                                    evt_data = evt.get(
+                                        'data', 'NO DATA FIELD IN EVENT DICT.')
+                                    self._createSerialEvent(
+                                        logged_time, evt_time, evt_data)
                                 else:
-                                    print2err("ioHub Serial Device Error: Events returned from custom parser must be dict's. Skipping: ",str(evt))
+                                    print2err(
+                                        "ioHub Serial Device Error: Events returned from custom parser must be dict's. Skipping: ",
+                                        str(evt))
 
                         except Exception:
-                            print2err("ioHub Serial Device Error: Exception during parsing function call.")
-                            import traceback, sys
+                            print2err(
+                                'ioHub Serial Device Error: Exception during parsing function call.')
+                            import traceback
+                            import sys
                             traceback.print_exc(file=sys.stderr)
-                            print2err("---")
+                            print2err('---')
 
                 elif self._byte_diff_mode:
                     rx = self.read()
-
                     read_time = getTime()
                     for c in rx:
                         if self._rx_buffer is not None and c != self._rx_buffer:
@@ -422,44 +429,51 @@ class Serial(Device):
                     delimiter = self._parser_config['delimiter']
 
                     if parser_state['prefix_found'] is False:
-                        if prefix and rx_buffer and len(rx_buffer) >= len(prefix):
+                        if prefix and rx_buffer and len(
+                                rx_buffer) >= len(prefix):
                             pindex = rx_buffer.find(prefix)
                             if pindex >= 0:
-                                rx_buffer = rx_buffer[pindex+len(prefix):]
+                                rx_buffer = rx_buffer[pindex + len(prefix):]
                                 parser_state['prefix_found'] = True
 
                     if parser_state['delimiter_found'] is False:
-                        if delimiter and self._rx_buffer and len(rx_buffer) >= len(delimiter):
+                        if delimiter and self._rx_buffer and len(
+                                rx_buffer) >= len(delimiter):
                             dindex = rx_buffer.find(delimiter)
                             if dindex >= 0:
                                 parser_state['delimiter_found'] = True
                                 sindex = dindex
-                                eindex = dindex+len(delimiter)
-                                parser_state['parsed_event'] += rx_buffer[:sindex]
+                                eindex = dindex + len(delimiter)
+                                parser_state[
+                                    'parsed_event'] += rx_buffer[:sindex]
                                 if len(rx_buffer) > eindex:
                                     rx_buffer = rx_buffer[eindex:]
                                 else:
                                     rx_buffer = ''
                                 self._rx_buffer = rx_buffer
-                                self._createMultiByteSerialEvent(logged_time, read_time)
+                                self._createMultiByteSerialEvent(
+                                    logged_time, read_time)
                                 return True
 
                     if parser_state['bytes_needed'] > 0 and rx_buffer:
                         rxlen = len(rx_buffer)
                         #takebytes = rxlen - parser_state['bytes_needed']
                         if rxlen > parser_state['bytes_needed']:
-                            parser_state['parsed_event'] += rx_buffer[:parser_state['bytes_needed']]
+                            parser_state[
+                                'parsed_event'] += rx_buffer[:parser_state['bytes_needed']]
                             parser_state['bytes_needed'] = 0
-                            rx_buffer = rx_buffer[parser_state['bytes_needed']:]
+                            rx_buffer = rx_buffer[
+                                parser_state['bytes_needed']:]
                         else:
                             parser_state['parsed_event'] += rx_buffer
                             parser_state['bytes_needed'] -= rxlen
                             rx_buffer = ''
 
                         if parser_state['bytes_needed'] == 0:
-                                self._rx_buffer = rx_buffer
-                                self._createMultiByteSerialEvent(logged_time, read_time)
-                                return True
+                            self._rx_buffer = rx_buffer
+                            self._createMultiByteSerialEvent(
+                                logged_time, read_time)
+                            return True
 
                     self._rx_buffer = rx_buffer
             else:
@@ -467,10 +481,10 @@ class Serial(Device):
             self._last_poll_time = read_time
             return True
         except Exception as e:
-            print2err("--------------------------------")
-            print2err("ERROR in Serial._poll: ",e)
+            print2err('--------------------------------')
+            print2err('ERROR in Serial._poll: ', e)
             printExceptionDetailsToStdErr()
-            print2err("---------------------")
+            print2err('---------------------')
 
     def _close(self):
         self.setConnectionState(False)
@@ -478,10 +492,8 @@ class Serial(Device):
 
 
 class Pstbox(Serial):
-    """
-    Provides convenient access to the PST Serial Response Box.
-    """
-    EVENT_CLASS_NAMES = ['PstboxButtonEvent',]
+    """Provides convenient access to the PST Serial Response Box."""
+    EVENT_CLASS_NAMES = ['PstboxButtonEvent', ]
     DEVICE_TYPE_ID = DeviceConstants.PSTBOX
     DEVICE_TYPE_STRING = 'PSTBOX'
     # Only add new attributes for the subclass, the device metaclass
@@ -496,7 +508,7 @@ class Pstbox(Serial):
     def __init__(self, *args, **kwargs):
         Serial.__init__(self, *args, **kwargs)
 
-        self._nbuttons = 5
+        self._nbuttons = 7
         # Buttons 0--4, from left to right:
         # [1, 2, 4, 8, 16]
         self._button_bytes = 2**N.arange(self._nbuttons, dtype='uint8')
@@ -533,8 +545,7 @@ class Pstbox(Serial):
         self._state = state
 
     def getState(self):
-        """
-        Return the current state of the response box.
+        """Return the current state of the response box.
 
         Returns
         -------
@@ -558,8 +569,7 @@ class Pstbox(Serial):
         return self._state
 
     def getLampState(self):
-        """
-        Return the current state of the lamps.
+        """Return the current state of the lamps.
 
         Returns
         -------
@@ -580,8 +590,7 @@ class Pstbox(Serial):
         return self._lamp_state
 
     def setLampState(self, state):
-        """
-        Change the state of the lamps (on/off).
+        """Change the state of the lamps (on/off).
 
         Parameters
         ----------
@@ -611,8 +620,7 @@ class Pstbox(Serial):
         self._update_state()
 
     def getStreamingState(self):
-        """
-        Get the current streaming state.
+        """Get the current streaming state.
 
         Returns
         -------
@@ -627,8 +635,7 @@ class Pstbox(Serial):
         return self._streaming_state
 
     def setStreamingState(self, state):
-        """
-        Switch on or off streaming mode.
+        """Switch on or off streaming mode.
 
         If streaming mode is disabled, the box will not send anything
         to the computer.
@@ -647,8 +654,7 @@ class Pstbox(Serial):
         self._update_state()
 
     def getButtonQueryState(self):
-        """
-        Get the current button query state.
+        """Get the current button query state.
 
         If the box is not querying buttons, no button presses will
         be reported.
@@ -666,8 +672,7 @@ class Pstbox(Serial):
         return self._button_query_state
 
     def setButtonQueryState(self, state):
-        """
-        Switch on or off button querying.
+        """Switch on or off button querying.
 
         Parameters
         ----------
@@ -701,7 +706,7 @@ class Pstbox(Serial):
             # Handles when data rx does not match either N.where within the try
             return
         events = [
-            0, 0, 0, Computer._getNextEventID(),
+            0, 0, 0, Device._getNextEventID(),
             EventConstants.PSTBOX_BUTTON,
             read_time,
             logged_time,
@@ -718,9 +723,10 @@ class Pstbox(Serial):
 
 class SerialInputEvent(DeviceEvent):
     _newDataTypes = [
-            ('port', N.str, 32),
-            ('data', N.str, 256)
-            ]
+        ('port', N.str, 32),
+        ('data', N.str, 256)
+    ]
+    PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.SERIAL_INPUT
     EVENT_TYPE_STRING = 'SERIAL_INPUT'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
@@ -732,10 +738,11 @@ class SerialInputEvent(DeviceEvent):
 
 class SerialByteChangeEvent(DeviceEvent):
     _newDataTypes = [
-            ('port', N.str, 32),
-            ('prev_byte', N.uint8),
-            ('current_byte', N.uint8)
-            ]
+        ('port', N.str, 32),
+        ('prev_byte', N.uint8),
+        ('current_byte', N.uint8)
+    ]
+    PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.SERIAL_BYTE_CHANGE
     EVENT_TYPE_STRING = 'SERIAL_BYTE_CHANGE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
@@ -755,11 +762,12 @@ class PstboxButtonEvent(DeviceEvent):
         ('button_event', N.str, 7)
     ]
 
+    PARENT_DEVICE = Pstbox
     EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
     EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
-    IOHUB_DATA_TABLE = EVENT_TYPE_STRING    
-
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
 
     __slots__ = [e[0] for e in _newDataTypes]
+
     def __init__(self, *args, **kwargs):
         DeviceEvent.__init__(self, *args, **kwargs)

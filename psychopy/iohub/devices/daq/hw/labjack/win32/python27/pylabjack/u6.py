@@ -10,20 +10,9 @@ Guide:
 
 http://labjack.com/support/u6/users-guide/5.2
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import hex
-from builtins import chr
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from .LabJackPython import *
+from LabJackPython import *
 
-import struct, configparser
+import struct, ConfigParser
 
 def openAllU6():
     """
@@ -257,9 +246,9 @@ class U6(Device):
         #command[9-25] = Reserved 
         try:
             result = self._writeRead(command, 38, [0xF8, 0x10, 0x08])
-        except LabJackException as e:
+        except LabJackException, e:
             if e.errorCode is 4:
-                print("NOTE: ConfigU6 returned an error of 4. This probably means you are using U6 with a *really old* firmware. Please upgrade your U6's firmware as soon as possible.")
+                print "NOTE: ConfigU6 returned an error of 4. This probably means you are using U6 with a *really old* firmware. Please upgrade your U6's firmware as soon as possible."
                 result = self._writeRead(command, 38, [0xF8, 0x10, 0x08], checkBytes = False)
             else:
                 raise e
@@ -422,7 +411,7 @@ class U6(Device):
 
         if len(sendBuffer) % 2:
             sendBuffer += [0]
-        sendBuffer[2] = old_div(len(sendBuffer), 2) - 3
+        sendBuffer[2] = len(sendBuffer) / 2 - 3
         
         if readLen % 2:
             readLen += 1
@@ -441,7 +430,7 @@ class U6(Device):
         
             if rcvBuffer[3] != 0x00:
                 raise LabJackException("Got incorrect command bytes")
-        except LowlevelErrorException as e:
+        except LowlevelErrorException, e:
             if isinstance(commandlist[0], list):
                 culprit = commandlist[0][ (rcvBuffer[7] -1) ]
             else:
@@ -619,10 +608,10 @@ class U6(Device):
                 if ScanFrequency < 25:
                     SamplesPerPacket = ScanFrequency
                 DivideClockBy256 = True
-                ScanInterval = old_div(15625,ScanFrequency)
+                ScanInterval = 15625/ScanFrequency
             else:
                 DivideClockBy256 = False
-                ScanInterval = old_div(4000000,ScanFrequency)
+                ScanInterval = 4000000/ScanFrequency
         
         # Force Scan Interval into correct range
         ScanInterval = min( ScanInterval, 65535 )
@@ -673,13 +662,13 @@ class U6(Device):
         if DivideClockBy256:
             freq /= 256
         
-        freq = old_div(freq,ScanInterval)
+        freq = freq/ScanInterval
         
         if SamplesPerPacket < 25:
             #limit to one packet
             self.packetsPerRequest = 1
         else:
-            self.packetsPerRequest = max(1, int(old_div(freq,SamplesPerPacket)))
+            self.packetsPerRequest = max(1, int(freq/SamplesPerPacket))
             self.packetsPerRequest = min(self.packetsPerRequest, 48)
     
     def processStreamData(self, result, numBytes = None):
@@ -830,7 +819,7 @@ class U6(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 4 + (old_div(numSPIBytes,2))
+        command[2] = 4 + (numSPIBytes/2)
         command[3] = 0x3A
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -854,7 +843,7 @@ class U6(Device):
         
         command[14:] = SPIBytes
         
-        result = self._writeRead(command, 8+numSPIBytes, [ 0xF8, 1+(old_div(numSPIBytes,2)), 0x3A ])
+        result = self._writeRead(command, 8+numSPIBytes, [ 0xF8, 1+(numSPIBytes/2), 0x3A ])
         
         return { 'NumSPIBytesTransferred' : result[7], 'SPIBytes' : result[8:] }
     
@@ -890,7 +879,7 @@ class U6(Device):
             command[7] |= (1 << 6)
         
         if DesiredBaud != None:
-            BaudFactor = (2**16) - old_div(48000000,(2 * DesiredBaud))   
+            BaudFactor = (2**16) - 48000000/(2 * DesiredBaud)   
         
         t = struct.pack("<H", BaudFactor)
         command[8] = ord(t[0])
@@ -920,7 +909,7 @@ class U6(Device):
         command = [ 0 ] * (8+numBytes)
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 1 + (old_div(numBytes,2))
+        command[2] = 1 + (numBytes/2)
         command[3] = 0x15
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -980,7 +969,7 @@ class U6(Device):
         command = [ 0 ] * (14+numBytes)
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 4 + (old_div(numBytes,2))
+        command[2] = 4 + (numBytes/2)
         command[3] = 0x3B
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1011,7 +1000,7 @@ class U6(Device):
             NumI2CBytesToReceive = NumI2CBytesToReceive+1
             oddResponse = True
         
-        result = self._writeRead(command, (12+NumI2CBytesToReceive), [0xF8, (3+(old_div(NumI2CBytesToReceive,2))), 0x3B])
+        result = self._writeRead(command, (12+NumI2CBytesToReceive), [0xF8, (3+(NumI2CBytesToReceive/2)), 0x3B])
         
         if NumI2CBytesToReceive != 0:
             return { 'AckArray' : result[8:12], 'I2CBytes' : result[12:] }
@@ -1085,7 +1074,7 @@ class U6(Device):
         <ainDiffOffset: -2.46886488446,...>
         """
         if self.debug is True:
-            print("Calibration data retrieval")
+            print "Calibration data retrieval"
         
         self.calInfo.nominal = False
         
@@ -1205,7 +1194,7 @@ class U6(Device):
         Desc: Converts binary voltage to an analog value.
         """
         if not is16Bits:
-            bits = old_div(float(bytesVoltage),256)
+            bits = float(bytesVoltage)/256
         else:
             bits = float(bytesVoltage)
 
@@ -1246,7 +1235,7 @@ class U6(Device):
         """
         bits = ( volts * self.calInfo.dacSlope[dacNumber] ) + self.calInfo.dacOffset[dacNumber]
         if not is16Bits:
-            bits = old_div(bits,256)
+            bits = bits/256
         
         return int(bits)
 
@@ -1461,7 +1450,7 @@ class U6(Device):
         Desc: Takes a configuration and puts it into a ConfigParser object.
         """
         # Make a new configuration file
-        parser = configparser.SafeConfigParser()
+        parser = ConfigParser.SafeConfigParser()
         
         # Change optionxform so that options preserve their case.
         parser.optionxform = str
@@ -1479,10 +1468,10 @@ class U6(Device):
         
         dirs, states = self.getFeedback( PortDirRead(), PortStateRead() )
         
-        for key, value in list(dirs.items()):
+        for key, value in dirs.items():
             parser.set(section, "%s Directions" % key, str(value))
             
-        for key, value in list(states.items()):
+        for key, value in states.items():
             parser.set(section, "%s States" % key, str(value))
             
         # DACs
@@ -1504,7 +1493,7 @@ class U6(Device):
         parser.add_section(section)
         
         timerclockconfig = self.configTimerClock()
-        for key, value in list(timerclockconfig.items()):
+        for key, value in timerclockconfig.items():
             parser.set(section, key, str(value))
         
         # Timers / Counters
@@ -1512,7 +1501,7 @@ class U6(Device):
         parser.add_section(section)
         
         ioconfig = self.configIO()
-        for key, value in list(ioconfig.items()):
+        for key, value in ioconfig.items():
             parser.set(section, key, str(value))
             
         
@@ -1632,7 +1621,7 @@ class FeedbackCommand(object):
     def handle(self, input):
         return None
 
-validChannels = list(range(144))
+validChannels = range(144)
 class AIN(FeedbackCommand):
     '''
     Analog Input Feedback command
@@ -2129,7 +2118,7 @@ class Timer(FeedbackCommand):
     [ 12314 ]
     """
     def __init__(self, timer, UpdateReset = False, Value=0, Mode = None):
-        if timer not in list(range(4)):
+        if timer not in range(4):
             raise LabJackException("Timer should be 0-3.")
         if UpdateReset and Value == None:
             raise LabJackException("UpdateReset set but no value.")
@@ -2320,7 +2309,7 @@ class TimerConfig(FeedbackCommand):
     """
     def __init__(self, timer, TimerMode, Value=0):
         '''Creates command bytes for configuring a Timer'''
-        if timer not in list(range(4)):
+        if timer not in range(4):
             raise LabJackException("Timer should be 0-3.")
         
         if TimerMode > 14 or TimerMode < 0:

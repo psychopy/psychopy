@@ -18,6 +18,10 @@ from psychopy import prefs
 from psychopy import logging, tools, web
 from psychopy.constants import PY3
 
+if PY3:
+    from importlib import reload
+
+
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
 VERSIONSDIR = os.path.join(USERDIR, VER_SUBDIR)

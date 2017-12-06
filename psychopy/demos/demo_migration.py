@@ -1,8 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Migration helper script for Coder demos: Do the conversion
 
   For all demos/coder/subdir/*.py (there are ~70 or so total), write out a new file: coder_updated/subdir/*
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import sys, glob, os, re
 

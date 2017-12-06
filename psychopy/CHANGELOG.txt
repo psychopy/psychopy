@@ -7,22 +7,28 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
-:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
+CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 PsychoPy 1.86
 ------------------------------
 
 This is the first attempt at support for Python 3, with maintained support for Python 2.7.
 
-PsychoPy 1.85.3
+PsychoPy 1.86.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(not yet released)
 
 ADDED:
 
   * Standalone distributions for Python 3.6 as well as Python 2.7
-  * Using pip install now installs all the necessary dependencies, making it much easier to install to your own Python installation
+  * Using `pip install psychopy` now installs all the necessary dependencies, making it much easier to install to your own Python installation
   * Noise stimuli for presenting filtered noise in vision studies (thanks Andrew Schofield)
   * Second order stimuli for contrast modulated gratings (thanks Andrew Schofield)
+  * Builder: Mouse now allows stimuli to be "clickable" turning them in to buttons
+  * Builder: ShapeStim now handles additional shapes, like Cross (also takes names for shapes rather than just n vertices)
+  * Monitors calibration files can now be saved/loaded in JSON format
+
 
 CHANGED:
 
@@ -34,6 +40,8 @@ PsychoPy 1.85
 
 PsychoPy 1.85.4
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released: Sept 2017
 
 There was an error building the 1.85.3 release. Rather than building a bug-fix-inly release, version 1.85.3 has accidentally included some substantial code refactoring intended for the 1.86.0 release.
 
@@ -335,7 +343,7 @@ Released: Feb 2015
 * FIXED: problem with stimuli (e.g. shapes) not appearing if a texture had just been created and not yet drawn
 * FIXED: pygame sound engine complained about "global variable loops not defined"
 * ENHANCED: Filename collision handling for ExperimentHandler (Richard Höchenberger)
-* :blue:`CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)`
+* CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)
 
 
 PsychoPy 1.82.00
@@ -412,13 +420,13 @@ Released: Sept 2014
     * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX')` to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
 
 * IMPROVED: better unit tests for visual stimuli to prevent future bugs
-* :blue:`FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction`
+* CHANGED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
 * IMPROVED: Can now select a subset of conditions in Builder loops and in `data.importConditions()` function (thanks Mike MacAskill for help)
 * IMPROVED: In Builder, loops that don't reflect trials (e.g. stimuli within a trial or blocks of trials) can be flagged as such, resulting in neater data files
 * ADDED: support for additional hardware:
 
     * basic support for interacting with BlackBoxToolkit v2 psychopy.hardware.bbtk
-    * :blue:`added basic support for CRS Bits# in psychopy.hardware.crs. New way to interface with Bits++ as well, using a class rather than a Window argument. See demo in demos>hardware`
+    * CHANGED: added basic support for CRS Bits# in psychopy.hardware.crs. New way to interface with Bits++ as well, using a class rather than a Window argument. See demo in demos>hardware
     * labjack digital outputs can be used as a Parallel Port Component in Builder
     * the screen rendering can now include a warping step to simulate spherical, cylindrical or custom warping (Jay Borseth)
     * the screen now supports 'frame packing' whereby sequential frames can be packed into one, as the red, green and blue channels for monochrome high-rate projectors (Jay Borseth)
@@ -576,7 +584,7 @@ Released: Mar 2014
 * ADDED: new visual unit options: 'degFlatPos' and 'degFlat' provide more accurate conversions from degrees to pixels for drawing stimuli (although they're more accurate, accounting for the flat screen, they may look strange because 1 degree gets larger with greater eccentricity on a flat screen). The previous unit 'deg' still exists and remains default as, for many studies, these are expected
 * ADDED: wider support for the functions `contains` and `overlaps`. Most stimuli now have these methods. Also they can now be used irrespective of whether the stimulus and other object have the same units (they used only to work for units of pix)
 * ADDED: support for other shapes in the Aperture stimulus (and its Builder Component). You can either specify the number of vertices `nVert` and a `size` to get a regular polygon aperture, or you can provide a set of arbitrary vertices as your `shape` argument
-* :blue:`CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.`
+* CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.
 * IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames` option is still advised for brief stimuli
 * IMPROVED: there are now fewer irrelevant lines in the log file as stimuli are initially created
 * IMPROVED: Staircase loops in Builder now initialise just before the staircase is run, rather than at the start of the experiment. This means they can be controlled by an outer loop and, effectively, restarted
@@ -591,16 +599,16 @@ Released: Mar 2014
 
 *psychopy.visual.RatingScale Changes* :
 
-* :blue:`CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels`
-* :blue:`CHANGED: skipping a rating now adds None as the final element in the history`
-* :blue:`CHANGED: the default minTime is shorter, now 0.4s`
-* :blue:`CHANGED: more info in the log when creating a rating scale object`
-* :blue:`CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)`
-* :blue:`CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label`
-* :blue:`CHANGED: renamed several parameters: stretchHoriz -> stretch, textSizeFactor -> textSize, ticksAboveLine -> tickHeight, displaySizeFactor -> size, markerStyle -> marker, customMarker -> marker`
-* :blue:`CHANGED: removed showScale: now use scale=None (instead of showScale=False)`
-* :blue:`CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)`
-* :blue:`CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as now done in the coder demo)`
+* CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels
+* CHANGED: skipping a rating now adds None as the final element in the history
+* CHANGED: the default minTime is shorter, now 0.4s
+* CHANGED: more info in the log when creating a rating scale object
+* CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)
+* CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label
+* CHANGED: renamed several parameters: stretchHoriz -> stretch, textSizeFactor -> textSize, ticksAboveLine -> tickHeight, displaySizeFactor -> size, markerStyle -> marker, customMarker -> marker
+* CHANGED: removed showScale: now use scale=None (instead of showScale=False)
+* CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)
+* CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as now done in the coder demo)
 
 PsychoPy 1.79
 ------------------------------

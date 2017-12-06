@@ -7,7 +7,7 @@
 
 """Functions and classes related to array handling
 """
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from past.utils import old_div

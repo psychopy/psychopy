@@ -1,10 +1,13 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Created on Sat May 25 00:09:01 2013
 
 @author: Sol
 """
-from __future__ import print_function  # for compatibility with python3
+from __future__ import absolute_import, print_function
+
 from builtins import range
 from builtins import object
 from textwrap import TextWrapper

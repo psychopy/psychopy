@@ -8,7 +8,7 @@
 """Dialog classes for the Builder Code component
 """
 
-from __future__ import (absolute_import, print_function, division)
+from __future__ import absolute_import, division, print_function
 from builtins import str
 
 import keyword
@@ -37,7 +37,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         # translate title
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
-        wx.Dialog.__init__(self, frame, -1, localizedTitle,
+        wx.Dialog.__init__(self, None, -1, localizedTitle,
                            size=size, style=style)
         self.frame = frame
         self.app = frame.app
@@ -45,6 +45,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.params = params  # dict
         self.order = order
         self.title = title
+        self.warningsDict = {}  # to store warnings for all fields
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
         self.codeGuiElements = {}

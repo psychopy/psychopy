@@ -69,12 +69,10 @@ from command line:
 %POSSIBILITY OF SUCH DAMAGE.
 """
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import range
-from past.utils import old_div
 import numpy
 import sys
 import time
@@ -127,8 +125,8 @@ def mseqSearch(baseVal, powerVal, shift=0, max_time=10):
                 ms[i] = (sum(weights*register) + baseVal) % baseVal
                 register = numpy.append(ms[i], register[:-1])
             
-            foo = sum(ms[:old_div(seq,2)] == ms[old_div(seq,2):seq])
-            if foo == old_div(seq,2): # first half same as last half
+            foo = sum(ms[:seq//2] == ms[seq//2:seq])
+            if foo == seq//2: # first half same as last half
                 noContinue = True
                 register = numpy.array([1 for i in range(powerVal)])
                 break
@@ -186,4 +184,4 @@ if __name__=='__main__':
             for a in ac_10:
                 print("%.3f" % a, end='')
             print()
-            assert max(ac_10) < old_div(1.,(len(ms) - 3)) or max(ac_10) < .10
+            assert max(ac_10) < 1./(len(ms) - 3) or max(ac_10) < .10

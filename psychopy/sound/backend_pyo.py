@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import map
 from psychopy import prefs, exceptions
 from sys import platform
@@ -190,7 +194,7 @@ def init(rate=44100, stereo=True, buffer=128):
             return -1
 
         # create the instance of the server:
-        if platform in ['darwin', 'linux2']:
+        if platform == 'darwin' or platform.startswith('linux'):
             # for mac/linux we set the backend using the server audio param
             pyoSndServer = Server(sr=rate, nchnls=maxChnls,
                                   buffersize=buffer, audio=audioDriver)
@@ -240,9 +244,9 @@ class SoundPyo(_SoundBase):
             * Or by giving an Nx2 numpy array of floats (-1:1) you can
               specify the sound yourself as a waveform
 
-            By default, a Hamming window (5ms duration) will be applied to a
+            By default, a Hanning window (5ms duration) will be applied to a
             generated tone, so that onset and offset are smoother (to avoid
-            clicking). To disable the Hamming window, set `hamming=False`.
+            clicking). To disable the Hanning window, set `hamming=False`.
 
         secs:
             Duration of a tone. Not used for sounds from a file.
@@ -275,7 +279,11 @@ class SoundPyo(_SoundBase):
 
         bits: has no effect for the pyo backend
 
-        hamming: whether to apply a Hamming window (5ms) for generated tones.
+        hamming: boolean (default True) to indicate if the sound should
+            be apodized (i.e., the onset and offset smoothly ramped up from
+            down to zero). The function apodize uses a Hanning window, but
+            arguments named 'hamming' are preserved so that existing code
+            is not broken by the change from Hamming to Hanning internally.
             Not applied to sounds from files.
         """
         global pyoSndServer

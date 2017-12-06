@@ -1,11 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 """PhotoResearch spectrophotometers
 See http://www.photoresearch.com/
 
 --------
 """
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import absolute_import, print_function
 
 from builtins import str
 from builtins import range
@@ -53,7 +58,7 @@ class PR650(object):
             logging.console.setLevel(logging.INFO)  # will give more info
             logging.console.setLevel(logging.DEBUG)  # log all communications
 
-        If you're using a keyspan adapter (at least on OS X) be aware that
+        If you're using a keyspan adapter (at least on macOS) be aware that
         it needs a driver installed. Otherwise no ports wil be found.
 
         Also note that the attempt to connect to the PR650 must occur within

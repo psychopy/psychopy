@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Tools to help with calibrations
 """
-from __future__ import print_function
-from __future__ import division
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -28,7 +32,7 @@ import pickle
 import sys
 from copy import deepcopy, copy
 
-import numpy
+import numpy as np
 import scipy.optimize as optim
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
@@ -62,76 +66,6 @@ if isinstance(monitorFolder, bytes):
 if not os.path.isdir(monitorFolder):
     os.makedirs(monitorFolder)
 
-pr650code = {'OK': '000\r\n',  # this is returned after measure
-             '18': 'Light Low',  # these is returned at beginning of data
-             '10': 'Light Low',
-             '00': 'OK'}
-
-
-def findPR650(ports=None):
-    """DEPRECATED (as of v.1.60.01).
-    Use :func:`psychopy.hardware.findPhotometer()` instead, which
-    finds a wider range of devices
-    """
-    logging.error("DEPRECATED (as of v.1.60.01). Use "
-                  "psychopy.hardware.findPhotometer() instead, "
-                  "which finds a wider range of devices")
-
-    if ports is None:
-        if sys.platform == 'darwin':
-            ports = []
-            # try some known entries in /dev/tty. used by keyspan
-            # keyspan twin adapter is usually USA28X13P1.1
-            ports.extend(glob.glob('/dev/tty.USA*'))
-            # some are Keyspan.1 or Keyserial.1
-            ports.extend(glob.glob('/dev/tty.Key*'))
-            # some are Keyspan.1 or Keyserial.1
-            ports.extend(glob.glob('/dev/tty.modem*'))
-            if len(ports) == 0:
-                logging.error("couldn't find likely serial port in "
-                              "/dev/tty.* Check for serial port name "
-                              "manually, check drivers installed etc...")
-        elif sys.platform == 'win32':
-            ports = list(range(20))
-    elif type(ports) in (int, float):
-        ports = [ports]  # so that we can iterate
-    pr650 = None
-    logging.info('scanning serial ports...\n\t')
-    logging.console.flush()
-    for thisPort in ports:
-        logging.info(str(thisPort))
-        logging.console.flush()
-        pr650 = Photometer(port=thisPort, meterType="PR650", verbose=False)
-        if pr650.OK:
-            logging.info(' ...OK\n')
-            logging.console.flush()
-            break
-        else:
-            pr650 = None
-            logging.info('...Nope!\n\t')
-            logging.console.flush()
-    return pr650
-
-
-class Photometer(object):
-    """Photometer class is deprecated (as of v.1.60.00):
-
-    Import explicit flavour of photometer as needed e.g.::
-
-        from psychopy.hardware.pr import PR650
-        from psychopy.hardware.minolta import LS100
-
-    Or simply::
-
-        from psychopy import hardware
-        photometer = hardware.findPhotometer()
-    """
-
-    def __init__(self, port, meterType="PR650", verbose=True):
-        super(Monitor, self).__init__()
-        logging.error(self.__doc__)
-        sys.exit()
-
 
 class Monitor(object):
     """Creates a monitor object for storing calibration details.
@@ -159,7 +93,7 @@ class Monitor(object):
     to be 114cm for this experiment.
 
     These can be saved to the monitor file using
-    :func:`~psychopy.monitors.Monitor.saveMon`
+    :func:`~psychopy.monitors.Monitor.save`
     or not (in which case the changes will be lost)
     """
 
@@ -214,9 +148,9 @@ class Monitor(object):
         """
         thisGamma = self.getGamma()
         # run the test just on this
-        array = numpy.array
+        array = np.array
         return (thisGamma is None or
-                numpy.alltrue(array(thisGamma) == array([1, 1, 1])))
+                np.alltrue(array(thisGamma) == array([1, 1, 1])))
 
 # functions to set params of current calibration
     def setSizePix(self, pixels):
@@ -354,7 +288,7 @@ class Monitor(object):
         """
         gridInCurrent = 'gammaGrid' in self.currentCalib
         if (gridInCurrent and
-                not numpy.alltrue(self.getGammaGrid()[1:, 2] == 1)):
+                not np.alltrue(self.getGammaGrid()[1:, 2] == 1)):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
@@ -366,9 +300,9 @@ class Monitor(object):
         """
         if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
-            grid = numpy.asarray(self.currentCalib['gammaGrid'])
+            grid = np.asarray(self.currentCalib['gammaGrid'])
             if grid.shape != [4, 6]:
-                newGrid = numpy.zeros([4, 6], 'f') * numpy.nan  # start as NaN
+                newGrid = np.zeros([4, 6], 'f') * np.nan  # start as NaN
                 newGrid[:grid.shape[0], :grid.shape[1]] = grid
                 grid = self.currentCalib['gammaGrid'] = newGrid
             return grid
@@ -498,13 +432,14 @@ class Monitor(object):
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            thisFile = open(thisFileName, 'rb')
             if ext==".json":
-                self.calibs = json_tricks.load(thisFile, ignore_comments=False)
+                with open(thisFileName, 'r') as thisFile:
+                    self.calibs = json_tricks.load(thisFile, ignore_comments=False,
+                                                   encoding='utf-8', preserve_order=False)
             else:
-                self.calibs = pickle.load(thisFile)
+                with open(thisFileName, 'rb') as thisFile:
+                    self.calibs = pickle.load(thisFile)
             self.calibNames = sorted(self.calibs)
-            thisFile.close()
             
             if not constants.PY3:  # saving for future (not needed if we are IN future!)
                 # save JSON copies of our calibrations
@@ -532,7 +467,7 @@ class Monitor(object):
         self.setNotes(notes)
         self.setPsychopyVersion(__version__)
         self.setUseBits(useBits)
-        newGrid = numpy.ones((4, 3), 'd')
+        newGrid = np.ones((4, 3), 'd')
         newGrid[:, 0] *= 0
         self.setGammaGrid(newGrid)
         self.setLineariseMethod(1)
@@ -585,17 +520,30 @@ class Monitor(object):
             self.setCurrent(-1)
         return 1
 
-    def saveMon(self):
-        """Saves the current dictionary of calibrations as a json file
+    def save(self):
+        """Save the current calibrations to disk.
+
+        This will write a `json` file to the `monitors` subfolder of your
+        PsychoPy configuration folder (typically `~/.psychopy2/monitors` on
+        Linux and macOS, and `%APPDATA%\psychopy2\monitors` on Windows).
+
+        Additionally saves a pickle (`.calib`) file if you are running
+        Python 2.7.
+
         """
         if not constants.PY3:  # don't ever save pickle files form PY3
             thisFileName = os.path.join(monitorFolder, self.name + ".calib")
-            thisFile = open(thisFileName, 'wb')
-            pickle.dump(self.calibs, thisFile)
-            thisFile.close()
+            with open(thisFileName, 'wb') as thisFile:
+                pickle.dump(self.calibs, thisFile)
+
         # also save as JSON (at the moment)
         # (When we're sure this works we should ONLY save as JSON)
         self._saveJSON()
+
+    def saveMon(self):
+        """Equivalent of :func:`~psychopy.monitors.Monitor.save`.
+        """
+        self.save()
 
     def _saveJSON(self):
         thisFileName = os.path.join(monitorFolder, self.name + ".json")
@@ -620,13 +568,13 @@ class Monitor(object):
         self.calibs[calibName] = deepcopy(self.currentCalib)
         self.setCurrent(calibName)
 
-    def lineariseLums(self, desiredLums, newInterpolators=False,
+    def linearizeLums(self, desiredLums, newInterpolators=False,
                       overrideGamma=None):
         """lums should be uncalibrated luminance values (e.g. a linear ramp)
         ranging 0:1
         """
         linMethod = self.getLinearizeMethod()
-        desiredLums = numpy.asarray(desiredLums)
+        desiredLums = np.asarray(desiredLums)
         output = desiredLums * 0.0  # needs same size as input
 
         # gamma interpolation
@@ -646,9 +594,10 @@ class Monitor(object):
                     # scale to 0:1
                     lumsPre[gun, :] = (old_div((lumsPre[gun, :] - lumsPre[gun, 0]),
                                        (lumsPre[gun, -1] - lumsPre[gun, 0])))
-                    self._gammaInterpolator.append(interp1d(lumsPre[gun, :],
-                                                            levelsPre,
-                                                            kind='linear'))
+                    self._gammaInterpolator.append(
+                        interpolate.interp1d(lumsPre[gun, :],
+                                             levelsPre,
+                                             kind='linear'))
                     # interpFunc = Interpolation.InterpolatingFunction(
                     #    (lumsPre[gun,:],), levelsPre)
                     # polyFunc = interpFunc.fitPolynomial(3)
@@ -675,7 +624,7 @@ class Monitor(object):
 
             # get the min,max lums
             gammaGrid = self.getGammaGrid()
-            if gammaGrid != None:
+            if gammaGrid is not None:
                 # if we have info about min and max luminance then use it
                 minLum = gammaGrid[1, 0]
                 maxLum = gammaGrid[1:4, 1]
@@ -692,8 +641,8 @@ class Monitor(object):
                 # just do the calculation using gamma
                 minLum = 0
                 maxLumR, maxLumG, maxLumB, maxLumWhite = 1, 1, 1, 1
-                gamma = self.gamma
-                gammaWhite = num.average(self.gamma)
+                gamma = self.currentCalib['gamma']
+                gammaWhite = np.average(gamma)
 
             # get the inverse gamma
             if len(desiredLums.shape) > 1:
@@ -712,6 +661,14 @@ class Monitor(object):
             output = desiredLums
 
         return output
+
+    def lineariseLums(self, desiredLums, newInterpolators=False,
+                      overrideGamma=None):
+        """Equivalent of :func:`~psychopy.monitors.Monitor.linearizeLums`.
+        """
+        return self.linearizeLums(desiredLums=desiredLums,
+                                  newInterpolators=newInterpolators,
+                                  overrideGamma=overrideGamma)
 
 
 class GammaCalculator(object):
@@ -783,7 +740,7 @@ class GammaCalculator(object):
         minGamma = 0.8
         maxGamma = 20.0
         gammaGuess = 2.0
-        y = numpy.asarray(y)
+        y = np.asarray(y)
         minLum = y[0]
         maxLum = y[-1]
         if self.eq == 4:
@@ -798,7 +755,7 @@ class GammaCalculator(object):
         # gamma = optim.fminbound(self.fitGammaErrFun,
         #    minGamma, maxGamma,
         #    args=(x,y, minLum, maxLum))
-        params = optim.fmin_tnc(self.fitGammaErrFun, numpy.array(guess),
+        params = optim.fmin_tnc(self.fitGammaErrFun, np.array(guess),
                                 approx_grad=True,
                                 args=(x, y, minLum, maxLum),
                                 bounds=bounds, messages=0)
@@ -812,12 +769,12 @@ class GammaCalculator(object):
         if self.eq == 4:
             gamma, a, k = params
             _m = gammaFun(x, minLum, maxLum, gamma, eq=self.eq, a=a, k=k)
-            model = numpy.asarray(_m)
+            model = np.asarray(_m)
         else:
             gamma = params[0]
             _m = gammaFun(x, minLum, maxLum, gamma, eq=self.eq)
-            model = numpy.asarray(_m)
-        SSQ = numpy.sum((model - y)**2)
+            model = np.asarray(_m)
+        SSQ = np.sum((model - y)**2)
         return SSQ
 
 
@@ -830,14 +787,14 @@ def makeDKL2RGB(nm, powerRGB):
                                            juddVosXYZ1976_5nm)
     judd = interpolateJudd(nm)
     cones = interpolateCones(nm)
-    judd = numpy.asarray(judd)
-    cones = numpy.asarray(cones)
-    rgb_to_cones = numpy.dot(cones, numpy.transpose(powerRGB))
+    judd = np.asarray(judd)
+    cones = np.asarray(cones)
+    rgb_to_cones = np.dot(cones, np.transpose(powerRGB))
     # get LMS weights for Judd vl
-    lumwt = numpy.dot(judd[1, :], numpy.linalg.pinv(cones))
+    lumwt = np.dot(judd[1, :], np.linalg.pinv(cones))
 
     # cone weights for achromatic primary
-    dkl_to_cones = numpy.dot(rgb_to_cones, [[1, 0, 0], [1, 0, 0], [1, 0, 0]])
+    dkl_to_cones = np.dot(rgb_to_cones, [[1, 0, 0], [1, 0, 0], [1, 0, 0]])
 
     # cone weights for L-M primary
     dkl_to_cones[0, 1] = old_div(lumwt[1], lumwt[0])
@@ -851,10 +808,10 @@ def makeDKL2RGB(nm, powerRGB):
     # Now have primaries expressed as cone excitations
 
     # get coefficients for cones ->monitor
-    cones_to_rgb = numpy.linalg.inv(rgb_to_cones)
+    cones_to_rgb = np.linalg.inv(rgb_to_cones)
 
     # get coefficients for DKL cone weights to monitor
-    dkl_to_rgb = numpy.dot(cones_to_rgb, dkl_to_cones)
+    dkl_to_rgb = np.dot(cones_to_rgb, dkl_to_cones)
     # normalise each col
     dkl_to_rgb[:, 0] /= max(abs(dkl_to_rgb[:, 0]))
     dkl_to_rgb[:, 1] /= max(abs(dkl_to_rgb[:, 1]))
@@ -869,8 +826,8 @@ def makeLMS2RGB(nm, powerRGB):
     interpolateCones = interpolate.interp1d(wavelength_5nm,
                                             cones_SmithPokorny)
     coneSens = interpolateCones(nm)
-    rgb_to_cones = numpy.dot(coneSens, numpy.transpose(powerRGB))
-    cones_to_rgb = numpy.linalg.inv(rgb_to_cones)
+    rgb_to_cones = np.dot(coneSens, np.transpose(powerRGB))
+    cones_to_rgb = np.linalg.inv(rgb_to_cones)
 
     return cones_to_rgb
 
@@ -948,7 +905,7 @@ def getLumSeries(lumLevels=8,
                     "Hit a key when ready (or wait 30s)")
     message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
                                        pos=(0, -0.85), rgb=[1, -1, -1])
-    noise = numpy.random.rand(512, 512).round() * 2 - 1
+    noise = np.random.rand(512, 512).round() * 2 - 1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
                                           units='norm',
                                           sf=[old_div(winSize[0], 512.0),
@@ -987,14 +944,14 @@ def getLumSeries(lumLevels=8,
     if type(lumLevels) in (int, float):
         toTest = DACrange(lumLevels)
     else:
-        toTest = numpy.asarray(lumLevels)
+        toTest = np.asarray(lumLevels)
 
     if allGuns:
         guns = [0, 1, 2, 3]  # gun=0 is the white luminance measure
     else:
         allGuns = [0]
     # this will hold the measured luminance values
-    lumsList = numpy.zeros((len(guns), len(toTest)), 'd')
+    lumsList = np.zeros((len(guns), len(toTest)), 'd')
     # for each gun, for each value run test
     for gun in guns:
         for valN, DACval in enumerate(toTest):
@@ -1033,7 +990,7 @@ def getLumSeries(lumLevels=8,
                 for thisKey in psychopy.event.getKeys():
                     if thisKey in ('q', 'Q', 'escape'):
                         myWin.close()
-                        return numpy.array([])
+                        return np.array([])
 
             elif autoMode == 'semi':
                 print("At DAC value %i" % DACval)
@@ -1044,7 +1001,7 @@ def getLumSeries(lumLevels=8,
                     for thisKey in psychopy.event.getKeys():
                         if thisKey in ('q', 'Q', 'escape'):
                             myWin.close()
-                            return numpy.array([])
+                            return np.array([])
                         elif thisKey in (' ', 'space'):
                             done = True
 
@@ -1052,7 +1009,7 @@ def getLumSeries(lumLevels=8,
     if havePhotom:
         return lumsList
     else:
-        return numpy.array([])
+        return np.array([])
 
 
 def getLumSeriesPR650(lumLevels=8,
@@ -1134,7 +1091,7 @@ def DACrange(n):
     """Returns an array of n DAC values spanning 0-255
     """
     # NB python ranges exclude final val
-    return numpy.arange(0.0, 256.0, old_div(255.0, (n - 1))).astype(numpy.uint8)
+    return np.arange(0.0, 256.0, old_div(255.0, (n - 1))).astype(np.uint8)
 
 
 def getAllMonitors():
@@ -1164,7 +1121,7 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
 
     """
     # scale x to be in range minLum:maxLum
-    xx = numpy.array(xx, 'd')
+    xx = np.array(xx, 'd')
     maxXX = max(xx)
     if maxXX > 2.0:
         # xx = xx * maxLum / 255.0 + minLum
@@ -1233,17 +1190,17 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     # eq2: y = (a + b * xx)**gamma
     # eq4: y = a + (b + kxx)**gamma
     if max(yy) == 255:
-        yy = old_div(numpy.asarray(yy, 'd'), 255.0)
+        yy = old_div(np.asarray(yy, 'd'), 255.0)
     elif min(yy) < 0 or max(yy) > 1:
         logging.warning(
             'User supplied values outside the expected range (0:1)')
     else:
-        yy = numpy.asarray(yy, 'd')
+        yy = np.asarray(yy, 'd')
 
     if eq == 1:
-        xx = numpy.asarray(yy)**(old_div(1.0, gamma))
+        xx = np.asarray(yy)**(old_div(1.0, gamma))
     elif eq == 2:
-        yy = numpy.asarray(yy) * (maxLum - minLum) + minLum
+        yy = np.asarray(yy) * (maxLum - minLum) + minLum
         a = minLum**(old_div(1, gamma))
         b = maxLum**(old_div(1, gamma)) - a
         xx = old_div((yy**(old_div(1, gamma)) - a), b)

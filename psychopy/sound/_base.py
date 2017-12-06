@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import range
 from past.builtins import basestring
 from builtins import object
@@ -34,14 +38,13 @@ knownNoteNames = sorted(stepsFromA.keys())
 
 
 def apodize(soundArray, sampleRate):
-    """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
+    """Apply a Hanning window (5ms) to reduce a sound's 'click' onset / offset
     """
     hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
-    hammingWindow = numpy.hamming(2 * hwSize + 1)
+    hanningWindow = numpy.hanning(2 * hwSize + 1)
     soundArray = copy.copy(soundArray)
-    soundArray[:hwSize] *= hammingWindow[:hwSize]
-    for i in range(2):
-        soundArray[-hwSize:] *= hammingWindow[hwSize + 1:]
+    soundArray[:hwSize] *= hanningWindow[:hwSize]
+    soundArray[-hwSize:] *= hanningWindow[hwSize + 1:]
     return soundArray
 
 
@@ -58,25 +61,25 @@ class HammingWindow(object):
         self.winSamples = int(round(sampleRate*winSecs))
         self.soundSecs = soundSecs
         self.soundSamples = int(round(sampleRate*soundSecs))
-        self.startWindow = numpy.hamming(self.winSamples*2)[0:self.winSamples]
-        self.endWindow = numpy.hamming(self.winSamples*2)[self.winSamples:]
+        self.startWindow = numpy.hanning(self.winSamples*2)[0:self.winSamples]
+        self.endWindow = numpy.hanning(self.winSamples*2)[self.winSamples:]
         self.finalWinStart = self.soundSamples-self.winSamples
 
     def nextBlock(self, t, blockSize):
         """Returns a block to be multiplied with the current sound block or 1.0
 
         :param t: current position in time (secs)
-        :param blockSize: block size for the sound needing the hamming window
+        :param blockSize: block size for the sound needing the hanning window
         :return: numpy array of length blockSize
         """
         startSample = int(t*self.sampleRate)
         if startSample < self.winSamples:
-            # we're in beginning hamming window (start of sound)
+            # we're in beginning hanning window (start of sound)
             # 2 options:
             #  - block is fully within window
             #  - block starts in window but ends after window
             block = numpy.ones(blockSize)
-            winEndII = min(self.winSamples,  # if block goes beyond hamm win
+            winEndII = min(self.winSamples,  # if block goes beyond hann win
                            startSample+blockSize)  # if block shorter
             blockEndII = min(self.winSamples-startSample,  # if block beyond
                              blockSize)  # if block shorter
@@ -84,7 +87,7 @@ class HammingWindow(object):
         elif startSample >= self.soundSamples:
             block = None  # the sound has finished (shouldn't have got here!)
         elif startSample >= self.finalWinStart-blockSize:
-            # we're in final hamming window (end of sound)
+            # we're in final hanning window (end of sound)
             # More complicated, with 3 options:
             #  - block starts before win
             #  - start/end during win
@@ -92,7 +95,7 @@ class HammingWindow(object):
             block = numpy.ones(blockSize)
             blockStartII = max(self.finalWinStart-startSample,
                          0)  # if block start inside window
-            blockEndII = min(blockSize,  # if block ends in hamm win
+            blockEndII = min(blockSize,  # if block ends in hann win
                              self.soundSamples-startSample)  # ends after snd
             winStartII = max(0,  # current block ends in win but starts before
                              startSample-self.finalWinStart)
@@ -144,6 +147,13 @@ class _SoundBase(object):
                 Middle octave of a piano is 4. Most computers won't
                 output sounds in the bottom octave (1) and the top
                 octave (8) is generally painful
+
+            hamming: boolean (default True) to indicate if the sound should
+                be apodized (i.e., the onset and offset smoothly ramped up from
+                down to zero). The function apodize uses a Hanning window, but
+                arguments named 'hamming' are preserved so that existing code
+                is not broken by the change from Hamming to Hanning internally.
+                Not applied to sounds from files.
         """
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None

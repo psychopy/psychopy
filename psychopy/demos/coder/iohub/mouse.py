@@ -10,8 +10,7 @@ Abbrieviated: May 2013, Jon Peirce
 Updated July, 2013, Sol, Added timeouts
 """
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import sys
 
@@ -82,7 +81,7 @@ while not kb_events:
         fixSpot.setPos(position)
 
     if sys.platform == 'darwin':
-        # On OS X, both x and y mouse wheel events can be detected, assuming the mouse being used
+        # On macOS, both x and y mouse wheel events can be detected, assuming the mouse being used
         # supported 2D mouse wheel motion.
         wheelPosX, wheelPosY = mouse.getScroll()
     else:

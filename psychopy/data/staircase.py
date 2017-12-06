@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -11,7 +10,6 @@ from builtins import next
 from past.builtins import basestring
 from past.builtins import str
 from builtins import range
-from past.utils import old_div
 import string
 import sys
 import os
@@ -70,6 +68,7 @@ class StairHandler(_BaseTrialHandler):
                  nTrials=0,
                  nUp=1,
                  nDown=3,  # correct responses before stim goes down
+                 applyInitialRule=True,
                  extraInfo=None,
                  method='2AFC',
                  stepType='db',
@@ -110,6 +109,11 @@ class StairHandler(_BaseTrialHandler):
             nDown:
                 The number of 'correct' (or 1) responses before the
                 staircase level decreases.
+
+            applyInitialRule : bool
+                Whether to apply a 1-up/1-down rule until the first reversal
+                point (if `True`), before switching to the specified up/down
+                rule.
 
             extraInfo:
                 A dictionary (typically) that will be stored along with
@@ -156,6 +160,7 @@ class StairHandler(_BaseTrialHandler):
         self.startVal = startVal
         self.nUp = nUp
         self.nDown = nDown
+        self.applyInitialRule = applyInitialRule
         self.extraInfo = extraInfo
         self.method = method
         self.stepType = stepType
@@ -199,7 +204,7 @@ class StairHandler(_BaseTrialHandler):
         self.maxVal = maxVal
         self.autoLog = autoLog
         # a flag for the 1-up 1-down initial rule:
-        self.initialRule = 0
+        self.initialRule = False
 
         # self.originPath and self.origin (the contents of the origin file)
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
@@ -277,7 +282,7 @@ class StairHandler(_BaseTrialHandler):
         current direction.
         """
 
-        if len(self.reversalIntensities) < 1:
+        if not self.reversalIntensities and self.applyInitialRule:
             # always using a 1-down, 1-up rule initially
             if self.data[-1] == 1:  # last answer correct
                 # got it right
@@ -298,7 +303,8 @@ class StairHandler(_BaseTrialHandler):
                 self.currentDirection = 'up'
         elif self.correctCounter >= self.nDown:
             # n right, time to go down!
-            if self.currentDirection != 'down':
+            # 'start' covers `applyInitialRule=False`.
+            if self.currentDirection not in ['start', 'down']:
                 reversal = True
             else:
                 reversal = False
@@ -306,7 +312,8 @@ class StairHandler(_BaseTrialHandler):
         elif self.correctCounter <= -self.nUp:
             # n wrong, time to go up!
             # note current direction
-            if self.currentDirection != 'up':
+            # 'start' covers `applyInitialRule=False`.
+            if self.currentDirection not in ['start', 'up']:
                 reversal = True
             else:
                 reversal = False
@@ -318,14 +325,15 @@ class StairHandler(_BaseTrialHandler):
         # add reversal info
         if reversal:
             self.reversalPoints.append(self.thisTrialN)
-            if len(self.reversalIntensities) < 1:
-                self.initialRule = 1
+            if not self.reversalIntensities and self.applyInitialRule:
+                self.initialRule = True
             self.reversalIntensities.append(self.intensities[-1])
 
         # test if we're done
         if (len(self.reversalIntensities) >= self.nReversals and
                     len(self.intensities) >= self.nTrials):
             self.finished = True
+
         # new step size if necessary
         if reversal and self._variableStep:
             if len(self.reversalIntensities) >= len(self.stepSizes):
@@ -337,8 +345,9 @@ class StairHandler(_BaseTrialHandler):
                 self.stepSizeCurrent = self.stepSizes[_sz]
 
         # apply new step size
-        if len(self.reversalIntensities) < 1 or self.initialRule == 1:
-            self.initialRule = 0  # reset the flag
+        if ((not self.reversalIntensities or self.initialRule) and
+                self.applyInitialRule):
+            self.initialRule = False  # reset the flag
             if self.data[-1] == 1:
                 self._intensityDec()
             else:
@@ -372,7 +381,7 @@ class StairHandler(_BaseTrialHandler):
                 # do stuff here for the trial
 
         """
-        if self.finished == False:
+        if not self.finished:
             # check that all 'otherData' is aligned with current trialN
             for key in self.otherData:
                 while len(self.otherData[key]) < self.thisTrialN:
@@ -388,7 +397,7 @@ class StairHandler(_BaseTrialHandler):
         """increment the current intensity and reset counter
         """
         if self.stepType == 'db':
-            self._nextIntensity *= 10.0**(old_div(self.stepSizeCurrent, 20.0))
+            self._nextIntensity *= 10.0**(self.stepSizeCurrent/20.0)
         elif self.stepType == 'log':
             self._nextIntensity *= 10.0**self.stepSizeCurrent
         elif self.stepType == 'lin':
@@ -402,7 +411,7 @@ class StairHandler(_BaseTrialHandler):
         """decrement the current intensity and reset counter
         """
         if self.stepType == 'db':
-            self._nextIntensity /= 10.0**(old_div(self.stepSizeCurrent, 20.0))
+            self._nextIntensity /= 10.0**(self.stepSizeCurrent/20.0)
         if self.stepType == 'log':
             self._nextIntensity /= 10.0**self.stepSizeCurrent
         elif self.stepType == 'lin':
@@ -594,46 +603,46 @@ class StairHandler(_BaseTrialHandler):
 
         # write the data
         # reversals data
-        ws.cell('A1').value = 'Reversal Intensities'
-        ws.cell('B1').value = 'Reversal Indices'
+        ws['A1'] = 'Reversal Intensities'
+        ws['B1'] = 'Reversal Indices'
         for revN, revIntens in enumerate(self.reversalIntensities):
-            _cell = _getExcelCellName(col=0, row=revN + 1)  # col 0
-            ws.cell(_cell).value = str(revIntens)
-            _cell = _getExcelCellName(col=1, row=revN + 1)  # col 1
-            ws.cell(_cell).value = str(self.reversalPoints[revN])
+            ws.cell(column=1, row=revN+2,
+                    value=u"{}".format(revIntens))
+            ws.cell(column=2, row=revN+2,
+                    value=u"{}".format(self.reversalPoints[revN]))
 
         # trials data
-        ws.cell('C1').value = 'All Intensities'
-        ws.cell('D1').value = 'All Responses'
+        ws['C1'] = 'All Intensities'
+        ws['D1'] = 'All Responses'
         for intenN, intensity in enumerate(self.intensities):
-            ws.cell(_getExcelCellName(col=2, row=intenN + 1)
-                    ).value = str(intensity)
-            ws.cell(_getExcelCellName(col=3, row=intenN + 1)
-                    ).value = str(self.data[intenN])
+            ws.cell(column=3, row=intenN+2,
+                    value=u"{}".format(intensity))
+            ws.cell(column=4, row=intenN+2,
+                    value=u"{}".format(self.data[intenN]))
 
         # add other data
-        col = 4
+        col = 5
         if self.otherData is not None:
             # for varName in self.otherData:
             for key, val in list(self.otherData.items()):
-                ws.cell(_getExcelCellName(col=col, row=0)
-                        ).value = str(key)
+                ws.cell(column=col, row=1,
+                        value=u"{}".format(key))
                 for oDatN in range(len(self.otherData[key])):
-                    ws.cell(
-                        _getExcelCellName(col=col, row=oDatN + 1)
-                    ).value = str(self.otherData[key][oDatN])
+                    ws.cell(colummn=col, row=oDatN+2,
+                            value=u"{}".format(self.otherData[key][oDatN]))
                 col += 1
 
         # add self.extraInfo
         if self.extraInfo is not None and not matrixOnly:
-            ws.cell(_getExcelCellName(col=startingCol,
-                                      row=0)).value = 'extraInfo'
-            rowN = 1
+            ws.cell(column=startingCol, row=1,
+                    value='extraInfo')
+            rowN = 2
             for key, val in list(self.extraInfo.items()):
-                _cell = _getExcelCellName(col=col, row=rowN)
-                ws.cell(_cell).value = str(key) + u':'
+                ws.cell(column=col, row=rowN,
+                        value=u"{}:".format(key))
                 _cell = _getExcelCellName(col=col+1, row=rowN)
-                ws.cell(_cell).value = str(val)
+                ws.cell(column=col+2, row=rowN+1,
+                        value=u"{}".format(val))
                 rowN += 1
 
 
@@ -662,11 +671,12 @@ class StairHandler(_BaseTrialHandler):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                            fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
 
 
 class QuestObject_(QuestObject, _ComparisonMixin):
@@ -920,9 +930,9 @@ class QuestHandler(StairHandler):
         """
         self._intensity()
         # Check we haven't gone out of the legal range
-        if self._nextIntensity > self.maxVal and self.maxVal is not None:
+        if self.maxVal is not None and self._nextIntensity > self.maxVal:
             self._nextIntensity = self.maxVal
-        elif self._nextIntensity < self.minVal and self.minVal is not None:
+        elif self.minVal is not None and self._nextIntensity < self.minVal:
             self._nextIntensity = self.minVal
         self._questNextIntensity = self._nextIntensity
 
@@ -1391,7 +1401,7 @@ class MultiStairHandler(_BaseTrialHandler):
                 'should be a list, not a %s.' % type(self.conditions))
 
         c0 = self.conditions[0]
-        if type(c0) != dict:
+        if not isinstance(c0, dict):
             raise TypeError(
                 '`conditions` passed to MultiStairHandler should be a '
                 'list of python dictionaries, not a list of %ss.' %
@@ -1572,11 +1582,12 @@ class MultiStairHandler(_BaseTrialHandler):
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
-        logging.info('saved data to %s' % f.name)
+        with openOutputFile(fileName=fileName, append=False,
+                           fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
+        if (fileName is not None) and (fileName != 'stdout'):
+            logging.info('saved data to %s' % f.name)
 
     def saveAsExcel(self, fileName, matrixOnly=False, appendFile=False,
                     fileCollisionMethod='rename'):

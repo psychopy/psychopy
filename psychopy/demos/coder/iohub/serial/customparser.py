@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Demo using a custom serial rx parser to generate ioHub Serial Device events.
 
@@ -8,7 +11,8 @@ custom parser function that the ioHub Serial device uses during runtime.
 serial device receives back as rx data. **
 
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 import time
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer

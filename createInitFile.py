@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Writes the current version, build platform etc.
 """
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 from past.builtins import str
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
@@ -83,16 +85,12 @@ if __git_sha__ == 'n/a':
         __git_sha__ = output.strip()  # remove final linefeed
 
 # update preferences and the user paths
-try:
+if 'installing' not in locals():
     from psychopy.preferences import prefs
     for pathName in prefs.general['paths']:
         sys.path.append(pathName)
-
+    
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
-except ImportError as e:
-    if not any(x in str(e) for x in ["configobj", "past", "builtins"]):
-        raise
-    pass
 """
 
 

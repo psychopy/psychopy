@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import division, absolute_import
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #
 # Copyright (C) 2008 Tim Alexander <dragonfyre13@gmail.com>
@@ -32,15 +32,16 @@ from __future__ import absolute_import
 #    Daniel Folkinshteyn <nanotube@users.sf.net>
 #    So if there are any bugs, they are probably my fault. :)
 #
+
 #   January 2013: File modified by
 #      Sol Simpson (sol@isolver-software.com), with some cleanup done and
 #      modifications made so it integrated with the ioHub module more effecively
 #     ( but therefore making this version not useful for general application usage)
 #
-# March, 2013: -Fixed an existing bug that caused capslock not to have an effect,
+#   March, 2013: -Fixed an existing bug that caused capslock not to have an effect,
 #              -Added tracking of what keys are pressed and how many auto repeat
 #              press events each has received.
-# April, 2013: - Modified to directly return ioHub device event arrays
+#   April, 2013: - Modified to directly return ioHub device event arrays
 #             - optimized keysym lookup by loading into a dict cache
 #             - started adding support for reporting unicode keys
 
@@ -51,19 +52,18 @@ import ctypes as ct
 from Xlib import X, display
 from Xlib.ext import record
 from Xlib.protocol import rq
-from .. import print2err
-from ..devices import Computer
-from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
 from . import xlib as _xlib
+
+from .computer import Computer
+from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
+from ..errors import print2err
 
 jdumps = lambda x: str(x)
 try:
     import ujson
-
     jdumps = ujson.dumps
 except Exception:
     import json
-
     jdumps = json.dumps
 
 getTime = Computer.getTime
@@ -71,6 +71,7 @@ getTime = Computer.getTime
 #######################################################################
 ########################START CLASS DEF################################
 #######################################################################
+
 
 def event2json(event):
     """
@@ -111,7 +112,7 @@ def event2json(event):
                        state=event.state,
                        detail=event.detail))
 
-#xlib modifier constants to iohub str constants
+# xlib modifier constants to iohub str constants
 key_mappings = {'num_lock': 'numlock',
                 'caps_lock': 'capslock',
                 'scroll_lock': 'scrolllock',
@@ -123,22 +124,25 @@ key_mappings = {'num_lock': 'numlock',
                 'control_r': 'rctrl',
                 'super_l': 'lcmd',
                 'super_r': 'rcmd'
-}
+                }
 
 
 class HookManager(threading.Thread):
-    """
-    Creates a seperate thread that starts the Xlib Record functionality,
-    capturing keyboard and mouse events and transmitting them
-    to the associated callback functions set.
-    """
+    """Creates a seperate thread that starts the Xlib Record functionality,
+    capturing keyboard and mouse events and transmitting them to the associated
+    callback functions set."""
     DEVICE_TIME_TO_SECONDS = 0.001
-    evt_types = [X.KeyRelease, X.KeyPress, X.ButtonRelease, X.ButtonPress, X.MotionNotify]
+    evt_types = [
+        X.KeyRelease,
+        X.KeyPress,
+        X.ButtonRelease,
+        X.ButtonPress,
+        X.MotionNotify]
 
     def __init__(self, log_event_details=False):
         threading.Thread.__init__(self)
         self.finished = threading.Event()
-
+        self._running = False
         self.log_events = log_event_details
         self.log_events_file = None
 
@@ -154,7 +158,6 @@ class HookManager(threading.Thread):
         self.MouseAllMotion = lambda x: True
         self.contextEventMask = [X.KeyPress, X.MotionNotify]
 
-
         # Used to hold any keys currently pressed and the repeat count
         # of each key.
         self.key_states = dict()
@@ -168,7 +171,7 @@ class HookManager(threading.Thread):
         self.ioHubMouseButtonMapping = {1: 'MOUSE_BUTTON_LEFT',
                                         2: 'MOUSE_BUTTON_MIDDLE',
                                         3: 'MOUSE_BUTTON_RIGHT'
-        }
+                                        }
         self.pressedMouseButtons = 0
         self.scroll_y = 0
 
@@ -190,13 +193,15 @@ class HookManager(threading.Thread):
         self._xkey_evt.send_event = 0
         self._xkey_evt.subwindow = 0
         self._xkey_evt.display = self._xdisplay
-        self._xkey_evt.root = self._xroot  #', Window),
-        self._xkey_evt.subwindow = 0  #', Window)
+        self._xkey_evt.root = self._xroot  # ', Window),
+        self._xkey_evt.subwindow = 0  # ', Window)
 
     def run(self):
+        self._running = True
         # Check if the extension is present
-        if not self.record_dpy.has_extension("RECORD"):
-            print2err("RECORD extension not found. ioHub can not use python Xlib. Exiting....")
+        if not self.record_dpy.has_extension('RECORD'):
+            print2err(
+                'RECORD extension not found. ioHub can not use python Xlib. Exiting....')
             return False
 
         # Create a recording context; we only want key and mouse events
@@ -204,25 +209,27 @@ class HookManager(threading.Thread):
             0,
             [record.AllClients],
             [{
-                 'core_requests': (0, 0),
-                 'core_replies': (0, 0),
-                 'ext_requests': (0, 0, 0, 0),
-                 'ext_replies': (0, 0, 0, 0),
-                 'delivered_events': (0, 0),
-                 'device_events': tuple(self.contextEventMask),  #(X.KeyPress, X.ButtonPress),
-                 'errors': (0, 0),
-                 'client_started': False,
-                 'client_died': False,
-             }])
+                'core_requests': (0, 0),
+                'core_replies': (0, 0),
+                'ext_requests': (0, 0, 0, 0),
+                'ext_replies': (0, 0, 0, 0),
+                'delivered_events': (0, 0),
+                # (X.KeyPress, X.ButtonPress),
+                'device_events': tuple(self.contextEventMask),
+                'errors': (0, 0),
+                'client_started': False,
+                'client_died': False,
+            }])
 
         if self.log_events:
             import datetime
 
-            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
-            with open("x11_events_{0}.log".format(cdate), "w") as self.log_events_file:
+            cdate = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
+            with open('x11_events_{0}.log'.format(cdate), 'w') as self.log_events_file:
                 # Enable the context; this only returns after a call to record_disable_context,
                 # while calling the callback function in the meantime
-                self.record_dpy.record_enable_context(self.ctx, self.processevents)
+                self.record_dpy.record_enable_context(
+                    self.ctx, self.processevents)
                 # Finally free the context
                 self.record_dpy.record_free_context(self.ctx)
         else:
@@ -232,6 +239,7 @@ class HookManager(threading.Thread):
 
     def cancel(self):
         self.finished.set()
+        self._running = False
         self.local_dpy.record_disable_context(self.ctx)
         self.local_dpy.flush()
         self._xlib.XCloseDisplay(self._xdisplay)
@@ -255,10 +263,11 @@ class HookManager(threading.Thread):
         return self.key_states
 
     def isKeyPressed(self, key_str_id):
-        """
-        Returns 0 if key is not pressed, otherwise a
+        """Returns 0 if key is not pressed, otherwise a.
+
         possitive int, representing the auto repeat count ( return val - 1)
         of key press events that have occurred for the key.
+
         """
         return self.key_states.get(key_str_id, 0)
 
@@ -279,7 +288,8 @@ class HookManager(threading.Thread):
         if reply.category != record.FromServer:
             return
         if reply.client_swapped:
-            print2err("pyXlib: * received swapped protocol data, cowardly ignored")
+            print2err(
+                'pyXlib: * received swapped protocol data, cowardly ignored')
             return
         if not len(reply.data) or ord(reply.data[0]) < 2:
             # not an event
@@ -287,7 +297,8 @@ class HookManager(threading.Thread):
         data = reply.data
 
         while len(data):
-            event, data = rq.EventField(None).parse_binary_value(data, self.record_dpy.display, None, None)
+            event, data = rq.EventField(None).parse_binary_value(
+                data, self.record_dpy.display, None, None)
 
             if self.log_events_file and event.type in self.evt_types:
                 self.log_events_file.write(event2json(event) + '\n')
@@ -315,6 +326,7 @@ class HookManager(threading.Thread):
                 # bogus info).
                 hookevent = self.mousemoveevent(event)
                 self.MouseAllMotion(hookevent)
+
     def buttonpressevent(self, event):
         r = self.makemousehookevent(event)
         return r
@@ -333,22 +345,28 @@ class HookManager(threading.Thread):
         keycode = kb_event.detail
 
         # get char string for keyboard event.
-        _xlib.XGetInputFocus(self._xdisplay, ct.byref(self._cwin), ct.byref(self._revert_to_return))
+        _xlib.XGetInputFocus(
+            self._xdisplay, ct.byref(
+                self._cwin), ct.byref(
+                self._revert_to_return))
         self._xkey_evt.window = self._cwin
         self._xkey_evt.type = kb_event.type
         # >>> How many of these event fields really need to be filled in for XLookupString to work?
-        self._xkey_evt.time = kb_event.time  #', Time),
-        self._xkey_evt.x = kb_event.event_x  #', c_int),
-        self._xkey_evt.y = kb_event.event_y  #', c_int),
-        self._xkey_evt.x_root = kb_event.root_x  #', c_int),
-        self._xkey_evt.y_root = kb_event.root_y  #', c_int),
-        self._xkey_evt.state = kb_event.state  #', c_uint),
-        self._xkey_evt.keycode = keycode  #', c_uint),
-        self._xkey_evt.same_screen = kb_event.same_screen  #', c_int),
+        self._xkey_evt.time = kb_event.time  # ', Time),
+        self._xkey_evt.x = kb_event.event_x  # ', c_int),
+        self._xkey_evt.y = kb_event.event_y  # ', c_int),
+        self._xkey_evt.x_root = kb_event.root_x  # ', c_int),
+        self._xkey_evt.y_root = kb_event.root_y  # ', c_int),
+        self._xkey_evt.state = kb_event.state  # ', c_uint),
+        self._xkey_evt.keycode = keycode  # ', c_uint),
+        self._xkey_evt.same_screen = kb_event.same_screen  # ', c_int),
         # <<<
 
-        count = _xlib.XLookupString(ct.byref(self._xkey_evt), self._charbuf, 16, ct.byref(self._keysym),
-                                    ct.byref(self._compose))
+        count = _xlib.XLookupString(
+            ct.byref(
+                self._xkey_evt), self._charbuf, 16, ct.byref(
+                self._keysym), ct.byref(
+                self._compose))
         char = ''
         ucat = ''
         if count > 0:
@@ -379,8 +397,11 @@ class HookManager(threading.Thread):
                 key = key_mappings[key]
             elif count > 0:
                 self._xkey_evt.state = 0
-                count = _xlib.XLookupString(ct.byref(self._xkey_evt), self._charbuf, 16,
-                                            ct.byref(self._keysym), ct.byref(self._tmp_compose))
+                count = _xlib.XLookupString(
+                    ct.byref(
+                        self._xkey_evt), self._charbuf, 16, ct.byref(
+                        self._keysym), ct.byref(
+                        self._tmp_compose))
                 key = ''
                 if count > 0:
                     key = u'' + self._charbuf[0:count]
@@ -390,12 +411,9 @@ class HookManager(threading.Thread):
 
         return keycode, keysym, key, char
 
-
     def makekeyhookevent(self, event):
-        """
-        Creates a ioHub keyboard event in list format, completing as much
-        as possible from within pyXHook.
-        """
+        """Creates a ioHub keyboard event in list format, completing as much as
+        possible from within pyXHook."""
         key_code, keysym, key, char = self.getKeyChar(event)
 
         event_type_id = EventConstants.KEYBOARD_PRESS
@@ -424,36 +442,39 @@ class HookManager(threading.Thread):
                 if is_mod_id:
                     modifier_key_state += is_mod_id
 
-        #return event to iohub
+        # return event to iohub
         return [[0,
                  0,
-                 0,  #device id (not currently used)
-                 0,  #to be assigned by ioHub server# Computer._getNextEventID(),
+                 0,  # device id (not currently used)
+                 0,  # to be assigned by ioHub server# Device._getNextEventID(),
                  event_type_id,
                  event.time * self.DEVICE_TIME_TO_SECONDS,
                  event.iohub_logged_time,
                  event.iohub_logged_time,
-                 0.0,  # confidence interval not set for keybaord or mouse devices.
+                 0.0,
+                 # confidence interval not set for keybaord or mouse devices.
                  0.0,  # delay not set for keybaord or mouse devices.
                  0,  # filter level not used
                  auto_repeat_count,  # auto_repeat
-                 key_code,  #scan / Keycode of event.
+                 key_code,  # scan / Keycode of event.
                  keysym,  # KeyID / VK code for key pressed
                  0,  # unicode value for char, otherwise, 0
-                 key,  #psychpy key event val
-                 modifier_key_state,  # The logical state of the button and modifier keys just before the event.
+                 key,  # psychpy key event val
+                 modifier_key_state,
+                 # The logical state of the button and modifier keys just
+                 # before the event.
                  int(self._cwin.value),
-                 char,  # utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
+                 char,
+                 # utf-8 encoded char or label for the key. (depending on
+                 # whether it is a visible char or not)
                  0.0,
                  0
-                ], ]
-
+                 ], ]
 
     def makemousehookevent(self, event):
-        """
-        Creates an incomplete ioHub keyboard event in list format. It is incomplete
-        as some of the elements of the array are filled in by the ioHub server when
-        it receives the events.
+        """Creates an incomplete ioHub keyboard event in list format. It is
+        incomplete as some of the elements of the array are filled in by the
+        ioHub server when it receives the events.
 
         For event attributes see: http://python-xlib.sourceforge.net/doc/html/python-xlib_13.html
 
@@ -487,6 +508,7 @@ class HookManager(threading.Thread):
         For KeyPress and KeyRelease, this is the keycode of the event key.
         For ButtonPress and ButtonRelease, this is the button of the event.
         For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
+
         """
         px, py = event.root_x, event.root_y
         event_type_id = 0
@@ -494,7 +516,10 @@ class HookManager(threading.Thread):
         event_detail = []
         dy = 0
 
-        _xlib.XGetInputFocus(self._xdisplay, ct.byref(self._cwin), ct.byref(self._revert_to_return))
+        _xlib.XGetInputFocus(
+            self._xdisplay, ct.byref(
+                self._cwin), ct.byref(
+                self._revert_to_return))
 
         if event.type == 6:
             if event.state < 128:
@@ -545,7 +570,9 @@ class HookManager(threading.Thread):
         currentButton = 0
         pressed = 0
         currentButtonID = 0
-        if event.type in [4, 5] and event_type_id != EventConstants.MOUSE_SCROLL:
+        if event.type in [
+                4,
+                5] and event_type_id != EventConstants.MOUSE_SCROLL:
 
             currentButton = self.ioHubMouseButtonMapping.get(event.detail)
             currentButtonID = MouseConstants.getID(currentButton)
@@ -559,26 +586,27 @@ class HookManager(threading.Thread):
 
         return [[0,
                  0,
-                 0,  #device id (not currently used)
-                 0,  #to be assigned by ioHub server# Computer._getNextEventID(),
+                 0,  # device id (not currently used)
+                 0,  # to be assigned by ioHub server# Device._getNextEventID(),
                  event_type_id,
                  event.time * self.DEVICE_TIME_TO_SECONDS,
                  event.iohub_logged_time,
                  event.iohub_logged_time,
-                 0.0,  # confidence interval not set for keybaord or mouse devices.
+                 0.0,
+                 # confidence interval not set for keybaord or mouse devices.
                  0.0,  # delay not set for keybaord or mouse devices.
                  0,  # filter level not used
-                 display_index,  #event.DisplayIndex,
+                 display_index,  # event.DisplayIndex,
                  pressed,
                  currentButtonID,
                  self.pressedMouseButtons,
-                 px,  #mouse x pos
+                 px,  # mouse x pos
                  py,  # mouse y post
-                 0,  #scroll_dx not supported
-                 0,  #scroll_x
+                 0,  # scroll_dx not supported
+                 0,  # scroll_x
                  dy,
                  self.scroll_y,
-                 0,  #mod state, filled in when event received by iohub
+                 0,  # mod state, filled in when event received by iohub
                  int(self._cwin.value)], ]
         # TO DO: Implement multimonitor location based on mouse location support.
         # Currently always uses monitor index 0

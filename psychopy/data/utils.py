@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from past.builtins import basestring
-from past.utils import old_div
 import os
 import re
 import pickle
@@ -17,12 +15,14 @@ import time
 import codecs
 import numpy as np
 import pandas as pd
+
+from collections import OrderedDict
 from distutils.version import StrictVersion
 
 from psychopy import logging
+from psychopy.constants import PY3
 
 try:
-    # import openpyxl
     import openpyxl
     if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
@@ -206,18 +206,18 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     def _assertValidVarNames(fieldNames, fileName):
         """screens a list of names as candidate variable names. if all
-        names are OK, return silently; else raise ImportError with msg
+        names are OK, return silently; else raise  with msg
         """
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
-            raise ImportError(msg % fileName)
+            raise ValueError(msg % fileName)
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ImportError('Conditions file %s: %s%s"%s"' %
+                raise ValueError('Conditions file %s: %s%s"%s"' %
                                   (fileName, msg, os.linesep * 2, name))
 
     if fileName in ['None', 'none', None]:
@@ -226,7 +226,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         return []
     if not os.path.isfile(fileName):
         msg = 'Conditions file not found: %s'
-        raise ImportError(msg % os.path.abspath(fileName))
+        raise ValueError(msg % os.path.abspath(fileName))
 
     def pandasToDictList(dataframe):
         """Convert a pandas dataframe to a list of dicts.
@@ -239,10 +239,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialsArr = trialsArr[np.newaxis]
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
+
         # convert the record array into a list of dicts
         trialList = []
         for trialN, trialType in enumerate(trialsArr):
-            thisTrial = {}
+            thisTrial = OrderedDict()
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
 
@@ -266,29 +267,32 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         with open(fileName, 'rU') as fileUniv:
             # use pandas reader, which can handle commas in fields, etc
             trialsArr = pd.read_csv(fileUniv, encoding='utf-8')
-            logging.debug("Read csv file with pandas: {}".format(fileName))
+            logging.debug(u"Read csv file with pandas: {}".format(fileName))
             trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
         trialsArr = pd.read_excel(fileName)
-        logging.debug("Read excel file with pandas: {}".format(fileName))
+        logging.debug(u"Read excel file with pandas: {}".format(fileName))
         trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith('.xlsx'):
         if not haveOpenpyxl:
             raise ImportError('openpyxl or xlrd is required for loading excel '
                               'files, but neither was found.')
-        if openpyxl.__version__ < "1.8":  # data_only added in 1.8
+
+        # data_only was added in 1.8
+        if StrictVersion(openpyxl.__version__) < StrictVersion('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
         ws = wb.worksheets[0]
-        logging.debug("Read excel file with openpyxl: {}".format(fileName))
+
+        logging.debug(u"Read excel file with openpyxl: {}".format(fileName))
         try:
             # in new openpyxl (2.3.4+) get_highest_xx is deprecated
             nCols = ws.max_column
             nRows = ws.max_row
-        except:
+        except Exception:
             # version openpyxl 1.5.8 (in Standalone 1.80) needs this
             nCols = ws.get_highest_column()
             nRows = ws.get_highest_row()
@@ -320,7 +324,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         try:
             trialsArr = pickle.load(f)
         except Exception:
-            raise ImportError('Could not open %s as conditions' % fileName)
+            raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
         fieldNames = trialsArr[0]  # header line first
@@ -342,9 +346,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for n in selection:
                 try:
                     assert n == int(n)
-                except Exception:
+                except AssertionError:
                     raise TypeError("importConditions() was given some "
                                     "`indices` but could not parse them")
+
     # the selection might now be a slice or a series of indices
     if isinstance(selection, slice):
         trialList = trialList[selection]
@@ -513,7 +518,7 @@ def functionFromStaircase(intensities, responses, bins=10):
             binnedResp.append(np.mean(theseResps))
             nPoints.append(len(theseResps))
     else:
-        pointsPerBin = old_div(len(intensities), float(bins))
+        pointsPerBin = len(intensities)/bins
         for binN in range(bins):
             start = int(round(binN * pointsPerBin))
             stop = int(round((binN + 1) * pointsPerBin))
@@ -536,4 +541,14 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
     For date in the format of the current localization, do:
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
-    return time.strftime(format, time.localtime())
+    now = time.strftime(format, time.localtime())
+    if PY3:
+        return now
+    else:
+        try:
+            now_decoded = codecs.utf_8_decode(now)[0]
+        except UnicodeDecodeError:
+            # '2011_03_16_1307'
+            now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
+
+        return now_decoded

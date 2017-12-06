@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 ################
 # see notes at bottom for requirements
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 import glob
 import os
 import sys
 from sys import platform
 from distutils.core import setup
+from distutils.version import StrictVersion
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
@@ -38,7 +39,8 @@ frameworks.extend(opencvLibs)
 
 import macholib
 #print("~"*60 + "macholib verion: "+macholib.__version__)
-if macholib.__version__ <= "1.7":
+
+if StrictVersion(macholib.__version__) <= StrictVersion('1.7'):
     print("Applying macholib patch...")
     import macholib.dyld
     import macholib.MachOGraph

@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, print_function
+
 from builtins import str
 from builtins import object
 import os
@@ -8,6 +13,7 @@ from psychopy import logging
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 from psychopy.app.builder.experiment import _numpyImports, _numpyRandomImports
 from psychopy.app.projects import projectCatalog
+from psychopy.constants import PY3
 try:
     from pyosf import remote
 except ImportError:
@@ -439,12 +445,18 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeStartCode(self, buff):
+
+        if not PY3:
+            decodingInfo = ".decode(sys.getfilesystemencoding())"
+        else:
+            decodingInfo = ""
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
-                "_thisDir = os.path.dirname(os.path.abspath(__file__))."
-                "decode(sys.getfilesystemencoding())\n"
+                "_thisDir = os.path.dirname(os.path.abspath(__file__))"
+                "{decoding}\n"
                 "os.chdir(_thisDir)\n\n"
-                "# Store info about the experiment session\n")
+                "# Store info about the experiment session\n"
+                .format(decoding=decodingInfo))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:

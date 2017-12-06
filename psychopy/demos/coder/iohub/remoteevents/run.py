@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 pub_sub_device/run.py
 
@@ -14,7 +16,7 @@ RemoteEventSubscriber subscribes to only KeyboardPressEvents, and KeyboardCharEv
     
 Inital Version: July 17th, 2013, Sol Simpson
 """
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from psychopy.iohub import (ioHubExperimentRuntime, MessageDialog,
                             module_directory,Computer)

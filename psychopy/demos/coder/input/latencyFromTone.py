@@ -8,8 +8,7 @@ external latency testing (e.g., BlackBox Toolkit) by providing visual-tone synch
 key lines: 29, 50, 61: mic = microphone.AdvAudioCapture(), mic.record(), mic.getOnset()
 """
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from builtins import range
 from psychopy import microphone, sound, core, visual, event

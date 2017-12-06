@@ -1,4 +1,8 @@
-from __future__ import division
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
 from builtins import object
 import sys
@@ -58,7 +62,7 @@ def getStreamLabel(sampleRate, channels, blockSize):
 
 
 class _StreamsDict(dict):
-    """Keeps track of what streams have been created. On OS X we can have
+    """Keeps track of what streams have been created. On macOS we can have
     multiple streams under portaudio but under windows we can only have one.
 
     use the instance `streams` rather than creating a new instance of this
@@ -250,7 +254,12 @@ class SoundDeviceSound(_SoundBase):
                            - -1 means store all
                            - 0 (no buffer) means stream from disk
                            - potentially we could buffer a few secs(!?)
-        :param hamming: boolean (True to smooth the onset/offset)
+        :param hamming: boolean (default True) to indicate if the sound should
+                        be apodized (i.e., the onset and offset smoothly ramped up from
+                        down to zero). The function apodize uses a Hanning window, but
+                        arguments named 'hamming' are preserved so that existing code
+                        is not broken by the change from Hamming to Hanning internally.
+                        Not applied to sounds from files.
         :param startTime: for sound files this controls the start of snippet
         :param stopTime: for sound files this controls the end of snippet
         :param name: string for logging purposes

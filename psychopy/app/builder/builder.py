@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
@@ -5,9 +8,7 @@ Copyright (C) 2015 Jonathan Peirce
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import range, object, str
 import wx
@@ -21,7 +22,7 @@ try:
     from wx.adv import PseudoDC
 except ImportError:
     from wx import PseudoDC
-
+from pkg_resources import parse_version
 import sys
 import os
 import glob
@@ -36,11 +37,10 @@ from ..localization import _translate
 from . import experiment, components
 from .. import stdOutRich, dialogs
 from .. import projects
-from psychopy import logging
+from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
-
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 
@@ -2000,8 +2000,10 @@ class BuilderFrame(wx.Frame):
             command = '"%s" -u "%s"' % (sys.executable, fullPath)
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #   self.scriptProcess)
-            self.scriptProcessID = wx.Execute(
-                command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.scriptProcess)
+            if hasattr(wx, "EXEC_NOHIDE"):
+                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
+            else:
+                _opts = wx.EXEC_ASYNC | wx.EXEC_HIDE_CONSOLE  # renamed in wx 4
         else:
             # for unix this signifies a space in a filename
             fullPath = fullPath.replace(' ', '\ ')
@@ -2010,8 +2012,9 @@ class BuilderFrame(wx.Frame):
             # the quotes would break a unix system command
             command = '%s -u %s' % (pythonExec, fullPath)
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-            self.scriptProcessID = wx.Execute(command, _opts,
-                                              self.scriptProcess)
+        # launch the command
+        self.scriptProcessID = wx.Execute(command, _opts,
+                                          self.scriptProcess)
         self.bldrBtnRun.Enable(False)
         self.bldrBtnStop.Enable(True)
 
@@ -2030,13 +2033,11 @@ class BuilderFrame(wx.Frame):
         self.bldrBtnRun.Enable(True)
         self.bldrBtnStop.Enable(False)
         # update the output window and show it
-        text = ""
+        text = u""
         if self.scriptProcess.IsInputAvailable():
-            stream = self.scriptProcess.GetInputStream()
-            text += stream.read()
+            text += extractText(self.scriptProcess.GetInputStream())
         if self.scriptProcess.IsErrorAvailable():
-            stream = self.scriptProcess.GetErrorStream()
-            text += stream.read()
+            text += extractText(self.scriptProcess.GetErrorStream())
         if len(text):
             # if some text hadn't yet been written (possible?)
             self.stdoutFrame.write(text)
@@ -2047,6 +2048,7 @@ class BuilderFrame(wx.Frame):
         # then return stdout to its org location
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
+        self.scriptProcess.Destroy()
 
     def onCopyRoutine(self, event=None):
         """copy the current routine from self.routinePanel
@@ -2359,3 +2361,14 @@ class ExportFileDialog(wx.Dialog):
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
+
+def extractText(stream):
+    """Take a byte stream (or any file object of type b?) and return
+
+    :param stream: stream from wx.Process or any byte stream from a file
+    :return: text converted to unicode ready for appending to wx text view
+    """
+    if constants.PY3:
+        return stream.read().decode('utf-8')
+    else:
+        return stream.read()

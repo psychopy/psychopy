@@ -4,6 +4,8 @@
 # generate .spec files for all OS's based on differences from baseNoArch.spec
 # copies & tweaks baseNoArch.spec -> write out as platform specific .spec file
 
+from __future__ import absolute_import, print_function
+
 import os
 
 startPath = os.getcwd()

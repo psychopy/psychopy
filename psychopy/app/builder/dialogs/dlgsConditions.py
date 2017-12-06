@@ -8,7 +8,7 @@
 """Conditions-file preview and mini-editor for the Builder
 """
 
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, division, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -19,6 +19,7 @@ import sys
 import pickle
 import wx
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
+from pkg_resources import parse_version
 
 from psychopy import gui
 from .. experiment import _valid_var_re, _nonalphanumeric_re
@@ -121,7 +122,7 @@ class DlgConditions(wx.Dialog):
         except wx._core.PyNoAppError:  # only needed during development?
             self.madeApp = True
             global app
-            if wx.version() < '2.9':
+            if parse_version(wx.__version__) < parse_version('2.9'):
                 app = wx.PySimpleApp()
             else:
                 app = wx.App(False)

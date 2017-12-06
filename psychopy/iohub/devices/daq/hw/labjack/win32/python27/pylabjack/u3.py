@@ -16,21 +16,12 @@ Section Number Mapping:
 4 = Private Helper Functions
 
 """
-from __future__ import absolute_import
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import chr
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
-from .LabJackPython import *
-import struct, configparser
+from LabJackPython import *
+import struct, ConfigParser
 
 FIO0, FIO1, FIO2, FIO3, FIO4, FIO5, FIO6, FIO7, \
 EIO0, EIO1, EIO2, EIO3, EIO4, EIO5, EIO6, EIO7, \
-CIO0, CIO1, CIO2, CIO3 = list(range(20))
+CIO0, CIO1, CIO2, CIO3 = range(20)
 
 def openAllU3():
     """
@@ -734,7 +725,7 @@ class U3(Device):
         sendBuffer, readLen = self._buildBuffer(sendBuffer, readLen, commandlist)
         if len(sendBuffer) % 2:
             sendBuffer += [0]
-        sendBuffer[2] = old_div(len(sendBuffer), 2) - 3
+        sendBuffer[2] = len(sendBuffer) / 2 - 3
         
         if readLen % 2:
             readLen += 1
@@ -754,7 +745,7 @@ class U3(Device):
         
             if rcvBuffer[3] != 0x00:
                 raise LabJackException("Got incorrect command bytes")
-        except LowlevelErrorException as e:
+        except LowlevelErrorException, e:
             if isinstance(commandlist[0], list):
                 culprit = commandlist[0][ (rcvBuffer[7] -1) ]
             else:
@@ -991,10 +982,10 @@ class U3(Device):
                 if ScanFrequency < 25:
                     SamplesPerPacket = ScanFrequency
                 DivideClockBy256 = True
-                ScanInterval = old_div(15625,ScanFrequency)
+                ScanInterval = 15625/ScanFrequency
             else:
                 DivideClockBy256 = False
-                ScanInterval = old_div(4000000,ScanFrequency)
+                ScanInterval = 4000000/ScanFrequency
         
         # Force Scan Interval into correct range
         ScanInterval = min( ScanInterval, 65535 )
@@ -1049,13 +1040,13 @@ class U3(Device):
         if DivideClockBy256:
             freq /= 256
         
-        freq = old_div(freq,ScanInterval)
+        freq = freq/ScanInterval
         
         if SamplesPerPacket < 25:
             #limit to one packet
             self.packetsPerRequest = 1
         else:
-            self.packetsPerRequest = max(1, int(old_div(freq,SamplesPerPacket)))
+            self.packetsPerRequest = max(1, int(freq/SamplesPerPacket))
             self.packetsPerRequest = min(self.packetsPerRequest, 48)
     streamConfig.section = 2
     
@@ -1222,7 +1213,7 @@ class U3(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 4 + (old_div(numSPIBytes,2))
+        command[2] = 4 + (numSPIBytes/2)
         command[3] = 0x3A
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1246,7 +1237,7 @@ class U3(Device):
         
         command[14:] = SPIBytes
         
-        result = self._writeRead(command, 8+numSPIBytes, [ 0xF8, 1+(old_div(numSPIBytes,2)), 0x3A ])
+        result = self._writeRead(command, 8+numSPIBytes, [ 0xF8, 1+(numSPIBytes/2), 0x3A ])
                 
         return result[8:]
     spi.section = 2
@@ -1292,9 +1283,9 @@ class U3(Device):
         
         #command[8] = Reserved
         if olderHardware:
-            command[9] = (2**8) - old_div(self.timerClockBase,DesiredBaud)
+            command[9] = (2**8) - self.timerClockBase/DesiredBaud
         else:
-            BaudFactor = (2**16) - old_div(48000000,(2 * DesiredBaud))
+            BaudFactor = (2**16) - 48000000/(2 * DesiredBaud)
             t = struct.pack("<H", BaudFactor)
             command[8] = ord(t[0])
             command[9] = ord(t[1])
@@ -1357,7 +1348,7 @@ class U3(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 1 + ( old_div(numBytes,2) )
+        command[2] = 1 + ( numBytes/2 )
         command[3] = 0x15
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1444,7 +1435,7 @@ class U3(Device):
         
         #command[0] = Checksum8
         command[1] = 0xF8
-        command[2] = 4 + (old_div(numBytes,2))
+        command[2] = 4 + (numBytes/2)
         command[3] = 0x3B
         #command[4] = Checksum16 (LSB)
         #command[5] = Checksum16 (MSB)
@@ -1473,7 +1464,7 @@ class U3(Device):
             NumI2CBytesToReceive = NumI2CBytesToReceive+1
             oddResponse = True
         
-        result = self._writeRead(command, 12+NumI2CBytesToReceive, [0xF8, (3+(old_div(NumI2CBytesToReceive,2))), 0x3B])
+        result = self._writeRead(command, 12+NumI2CBytesToReceive, [0xF8, (3+(NumI2CBytesToReceive/2)), 0x3B])
                 
         if len(result) > 12:
             if oddResponse:
@@ -1595,9 +1586,9 @@ class U3(Device):
                     reading = diffR * hvSlope / self.calData['lvSESlope'] + hvOffset
                     return reading
                 else:
-                    return (bits * 0.000074463) * (old_div(0.000314, 0.000037231)) + -10.3
+                    return (bits * 0.000074463) * (0.000314 / 0.000037231) + -10.3
             else:
-                raise Exception("Can't do differential on high voltage channels")
+                raise Exception, "Can't do differential on high voltage channels"
     binaryToCalibratedAnalogVoltage.section = 3
     
     def binaryToCalibratedAnalogTemperature(self, bytesTemperature):
@@ -1679,7 +1670,7 @@ class U3(Device):
             self.calData['hvAIN1Offset'] = toDouble(calData[8:16])
             self.calData['hvAIN2Offset'] = toDouble(calData[16:24])
             self.calData['hvAIN3Offset'] = toDouble(calData[24:32])
-        except LowlevelErrorException as ex:
+        except LowlevelErrorException, ex:
             if ex.errorCode != 26:
                 #not an invalid block error, so do not disregard
                 raise ex
@@ -1746,7 +1737,7 @@ class U3(Device):
               object. Useful for saving the setup of your U3.
         """
         # Make a new configuration file
-        parser = configparser.SafeConfigParser()
+        parser = ConfigParser.SafeConfigParser()
         
         # Change optionxform so that options preserve their case.
         parser.optionxform = str
@@ -1769,10 +1760,10 @@ class U3(Device):
         parser.set(section, "FIOs Analog", str( self.readRegister(50590) ))
         parser.set(section, "EIOs Analog", str( self.readRegister(50591) ))
         
-        for key, value in list(dirs.items()):
+        for key, value in dirs.items():
             parser.set(section, "%s Directions" % key, str(value))
             
-        for key, value in list(states.items()):
+        for key, value in states.items():
             parser.set(section, "%s States" % key, str(value))
             
         # DACs
@@ -1794,7 +1785,7 @@ class U3(Device):
         parser.add_section(section)
         
         timerclockconfig = self.configTimerClock()
-        for key, value in list(timerclockconfig.items()):
+        for key, value in timerclockconfig.items():
             parser.set(section, key, str(value))
         
         # Timers / Counters
@@ -1971,7 +1962,7 @@ class AIN(FeedbackCommand):
         self.longSettling = LongSettling
         self.quickSample = QuickSample
         
-        validChannels = list(range(16)) + [30, 31]
+        validChannels = range(16) + [30, 31]
         if PositiveChannel not in validChannels:
             raise Exception("Invalid Positive Channel specified")
         if NegativeChannel not in validChannels:

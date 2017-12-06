@@ -1,4 +1,10 @@
-# /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Headers/Events.h
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+
+# /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/
+# HIToolbox.framework/Headers/Events.h
 
 QZ_ESCAPE = 0x35
 QZ_F1 = 0x7A
@@ -74,14 +80,14 @@ QZ_DOWN = 0x7D
 QZ_RIGHT = 0x7C
 QZ_KP0 = 0x52
 QZ_KP_PERIOD = 0x41
-QZ_F1=145 #Keycode on Apple wireless kb
-QZ_F2=144 #Keycode on Apple wireless kb
-QZ_F3=160 #Keycode on Apple wireless kb
-QZ_F4=131 #Keycode on Apple wireless kb
+QZ_F1 = 145  # Keycode on Apple wireless kb
+QZ_F2 = 144  # Keycode on Apple wireless kb
+QZ_F3 = 160  # Keycode on Apple wireless kb
+QZ_F4 = 131  # Keycode on Apple wireless kb
 
-code2label={}
-for k,v in list(locals().items()):
+code2label = {}
+for k, v in locals().items():
     if k.startswith('QZ_'):
-        klabel = u''+k[3:].lower()
+        klabel = u'' + k[3:].lower()
         code2label[klabel] = v
         code2label[v] = klabel

@@ -7,8 +7,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import str
@@ -47,10 +46,6 @@ if sys.platform == 'win32':
         haveAvbin = False
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
-    except Exception as e:
-        # WindowsError on some systems
-        # AttributeError if using avbin5 from pyglet 1.2?
-        haveAvbin = False
     except AttributeError:
         # avbin is not found, causing exception in pyglet 1.2??
         # (running psychopy 1.81 standalone on windows 7):
@@ -61,6 +56,11 @@ if sys.platform == 'win32':
         # AttributeError: 'NoneType' object has no attribute
         # 'avbin_get_version'
         haveAvbin = False
+    except Exception:
+        # WindowsError on some systems
+        # AttributeError if using avbin5 from pyglet 1.2?
+        haveAvbin = False
+
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event
@@ -397,10 +397,11 @@ class Window(object):
             from psychopy.hardware.crs.bits import BitsPlusPlus
             self.bits = self.interface = BitsPlusPlus(self)
             self.haveBits = True
-            if hasattr(self.monitor, 'lineariseLums'):
+            if (hasattr(self.monitor, 'linearizeLums') or
+                    hasattr(self.monitor, 'lineariseLums')):
                 # rather than a gamma value we could use bits++ and provide a
                 # complete linearised lookup table using
-                # monitor.lineariseLums(lumLevels)
+                # monitor.linearizeLums(lumLevels)
                 self.__dict__['gamma'] = None
 
         self.frameClock = core.Clock()  # from psycho/core
@@ -998,7 +999,7 @@ class Window(object):
                 quality GIF by saving PNG files and then combining them in
                 dedicated image manipulation software, such as GIMP). On
                 Windows and Linux `.mpeg` files can be created if `pymedia`
-                is installed. On OS X `.mov` files can be created if the
+                is installed. On macOS `.mov` files can be created if the
                 pyobjc-frameworks-QTKit is installed.
 
                 Unfortunately the libs used for movie generation can be flaky
@@ -1506,7 +1507,7 @@ class Window(object):
             except Exception:
                 # pyglet 1.2 with 64bit python?
                 self._hw_handle = self.winHandle._nswindow.windowNumber()
-        elif sys.platform == 'linux2':
+        elif sys.platform.startswith('linux'):
             self._hw_handle = self.winHandle._window
 
         if self.useFBO:  # check for necessary extensions

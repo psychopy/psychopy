@@ -1,8 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Part of the PsychoPy library
 Copyright (C) 2015 Jonathan Peirce
 Distributed under the terms of the GNU General Public License (GPL).
 """
+
+from __future__ import absolute_import, print_function
+
 from builtins import str
 from os import path
 from .._base import BaseComponent, Param, _translate
@@ -84,7 +90,7 @@ class StaticComponent(BaseComponent):
                 self.updatesList.remove(item)
 
     def writeInitCode(self, buff):
-        code = ("%(name)s = core.StaticPeriod(win=win, "
+        code = ("%(name)s = clock.StaticPeriod(win=win, "
                 "screenHz=expInfo['frameRate'], name='%(name)s')\n")
         buff.writeIndented(code % self.params)
 

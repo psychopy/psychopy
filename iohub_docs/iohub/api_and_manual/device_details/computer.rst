@@ -2,7 +2,7 @@
 The ioHub Computer Device
 ############################
 
-**Platforms:** Windows, OS X, Linux
+**Platforms:** Windows, macOS, Linux
 
 .. autoclass:: psychopy.iohub.devices.Computer
     :exclude-members:  processingUnitCount, system, globalClock, currentProcess, currentProcessID, inHighPriorityMode, ioHubServerProcess, ioHubServerProcessID, isIoHubProcess

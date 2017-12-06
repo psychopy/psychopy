@@ -1,4 +1,8 @@
-from __future__ import print_function
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, print_function
+
 # We deliberately delay importing the inpout32 module until we try
 # to use it - this allows us to import the class on machines
 # which don't have it and then worry about dealing with

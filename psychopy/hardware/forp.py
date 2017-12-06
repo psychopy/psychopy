@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
 """fORP fibre optic (MR-compatible) response devices by CurrentDesigns:
 http://www.curdes.com/
 This class is only useful when the fORP is connected via the serial port.
@@ -7,11 +14,9 @@ E.g., use a Keyboard component, and typically listen for Allowed keys
 ``'1', '2', '3', '4', '5'``. Or use ``event.getKeys()``.
 """
 
-# Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
-
 # Jeremy Gray and Dan Grupe developed the asKeys and baud parameters
+
+from __future__ import absolute_import, print_function
 
 from builtins import object
 from psychopy import logging, event

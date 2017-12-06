@@ -8,7 +8,7 @@
 """Dialog classes for the Builder, including ParamCtrls
 """
 
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, division, print_function
 
 from builtins import map
 from builtins import str
@@ -397,6 +397,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.helpUrl = helpUrl
         self.params = params  # dict
         self.title = title
+        self.warningsDict = {}  # to store warnings for all fields
         if (not editing and
                 title != 'Experiment Settings' and
                 'name' in self.params):
@@ -793,12 +794,11 @@ class _BaseParamsDlg(wx.Dialog):
             #    nameInfo=''
             # else:
             #    nameInfo='Need a name'
-            nameInfo = 'info here'
+            nameInfo = ''
             self.nameOKlabel = wx.StaticText(self, -1, nameInfo,
-                                             size=(300, 100),
                                              style=wx.ALIGN_CENTRE)
             self.nameOKlabel.SetForegroundColour(wx.RED)
-            self.mainSizer.Add(self.nameOKlabel, flag=wx.ALIGN_CENTRE)
+            self.mainSizer.Add(self.nameOKlabel, 0, flag=wx.ALIGN_CENTRE|wx.ALL, border=3)
         # add buttons for OK and Cancel
         buttons = wx.StdDialogButtonSizer()
         # help button if we know the url
@@ -822,8 +822,8 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Realize()
         # add to sizer
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT | wx.ALL, border=2)
-        self.mainSizer.Layout()
         self.SetSizerAndFit(self.mainSizer)
+        self.mainSizer.Layout()
         # move the position to be v near the top of screen and
         # to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
@@ -1079,7 +1079,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
 
-        wx.Dialog.__init__(self, frame, -1, localizedTitle,
+        wx.Dialog.__init__(self, None, wx.ID_ANY, localizedTitle,
                            pos, size, style)
         self.helpUrl = helpUrl
         self.frame = frame
@@ -1097,6 +1097,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.conditions = None
         self.conditionsFile = None
+        self.warningsDict = {}
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')

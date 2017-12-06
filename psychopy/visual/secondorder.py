@@ -10,15 +10,13 @@ orienation, frequencyand phase. Also does beat stimuli. """
 # Addtional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import, print_function
+
 # Requires shaders if you don't have them it will just throw and error.
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-
-from __future__ import absolute_import
-from __future__ import division
-
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes

@@ -1,21 +1,14 @@
-"""
-ioHub
-Common Eye Tracker Interface
-.. file: ioHub/devices/eyeTracker/hw/sr_research/eyelink/__init__.py
+"""ioHub Common Eye Tracker Interface for EyeLink(C) Systems"""
+ # Part of the psychopy.iohub library.
+ # Copyright (C) 2012-2016 iSolver Software Solutions
+ # Distributed under the terms of the GNU General Public License (GPL).
+from ......util import addDirectoryToPythonPath
+from ..... import Computer
 
-Copyright (C) 2012-2013 iSolver Software Solutions
+if Computer.platform == 'win32' and Computer.pybits == 32:
+    addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
 
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-"""
-from __future__ import absolute_import
-
-from psychopy.iohub.util import addDirectoryToPythonPath
-
-addDirectoryToPythonPath('devices/eyetracker/hw/sr_research/eyelink')
-
-from .eyetracker import (EyeTracker, MonocularEyeSampleEvent, BinocularEyeSampleEvent,
-                        FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
-                        SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)
+from .eyetracker import (EyeTracker, MonocularEyeSampleEvent,
+                        BinocularEyeSampleEvent, FixationStartEvent,
+                        FixationEndEvent, SaccadeStartEvent,
+                        SaccadeEndEvent, BlinkStartEvent,BlinkEndEvent)

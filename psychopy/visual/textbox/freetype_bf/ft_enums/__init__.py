@@ -94,7 +94,8 @@ TT_NAME_IDS: Possible values of the `name' identifier field in the name
              records of the TTF `name' table.  These values are platform
              independent.
 '''
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 from .ft_fstypes import *
 from .ft_face_flags import *
 from .ft_encodings import *

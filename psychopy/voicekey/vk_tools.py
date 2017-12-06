@@ -4,7 +4,8 @@
 """Digital signal processing functions; pyo table, file, & sample conversions
 """
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 import os
 import sys
 import time
@@ -146,12 +147,12 @@ def tone(freq=440, sec=2, rate=44100, vol=.99):
 
 
 def apodize(data, ms=5, rate=44100):
-    """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset.
+    """Apply a Hanning window (5ms) to reduce a sound's 'click' onset / offset.
     """
     hw_size = int(min(rate // (1000 / ms), len(data) // 15))
-    hamming_window = np.hamming(2 * hw_size + 1)
-    data[:hw_size] *= hamming_window[:hw_size]
-    data[-hw_size:] *= hamming_window[-hw_size:]
+    hanning_window = np.hanning(2 * hw_size + 1)
+    data[:hw_size] *= hanning_window[:hw_size]
+    data[-hw_size:] *= hanning_window[-hw_size:]
     return data
 
 

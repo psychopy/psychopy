@@ -13,7 +13,7 @@ waiting duration, e.g. `core.wait(10, hogCPUperiod=10)`.
 
 """
 
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 from psychopy import core, event, visual
 
 

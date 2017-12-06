@@ -1,15 +1,15 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Created on Mon Jan 07 11:18:51 2013
 
 @author: Sol
 """
-from __future__ import print_function  # for compatibility with python3
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, print_function
+
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import numpy as np
 from weakref import proxy
 from psychopy import core
@@ -228,11 +228,11 @@ class TextGrid(object):
                         active_text_style_dlist(c) for c in line_ords]
 
                 glTranslatef(cline._trans_left * cell_width, -
-                             int(old_div(line_spacing, 2.0) + cline._trans_top * cell_height), 0)
+                             int(line_spacing/2.0 + cline._trans_top * cell_height), 0)
                 glCallLists(line_length, GL_UNSIGNED_INT,
                             line_display_list[0:line_length].ctypes)
                 glTranslatef(-line_length * cell_width - cline._trans_left * cell_width, -
-                             cell_height + int(old_div(line_spacing, 2.0) + cline._trans_top * cell_height), 0)
+                             cell_height + int(line_spacing/2.0 + cline._trans_top * cell_height), 0)
 
                 ###
             glPopMatrix()

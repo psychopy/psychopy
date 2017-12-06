@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
+
 from past.builtins import basestring
 
 import os
@@ -32,7 +35,8 @@ try:
 except ImportError:
     havePyosf = False
 
-usersList = wx.FileHistory(maxFiles=10, idBase=wx.NewId())
+
+usersList = wx.FileHistory(maxFiles=10, idBase=12300)
 
 projectsFolder = os.path.join(prefs.paths['userPrefsDir'], 'projects')
 
@@ -89,7 +93,7 @@ class ProjectCatalog(dict):
 projectCatalog = ProjectCatalog()
 
 # Projects FileHistory sub-menu
-idBase = wx.NewId()
+idBase=12400
 projHistory = wx.FileHistory(maxFiles=16, idBase=idBase)
 projHistory.idBase = idBase
 for key in projectCatalog:
@@ -176,9 +180,8 @@ class ProjectsMenu(wx.Menu):
         # parent.Bind(wx.EVT_MENU, self.onSync, id=wxIDs.projsSync)
 
     def addToSubMenu(self, name, menu, function):
-        thisId = wx.NewId()
-        menu.Append(thisId, name)
-        self.parent.Bind(wx.EVT_MENU, function, id=thisId)
+        item = menu.Append(wx.ID_ANY, name)
+        self.parent.Bind(wx.EVT_MENU, function, id=item.GetId())
 
     def addFileToHistory(self, filename):
         key = projectCatalog.addFile(filename)

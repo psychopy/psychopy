@@ -1,10 +1,14 @@
-"""To build simple dialogues etc. (requires wxPython)
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import
+"""To build simple dialogues etc. (requires wxPython)
+"""
+
+from __future__ import absolute_import, print_function
 
 from builtins import str
 from builtins import super
@@ -14,6 +18,7 @@ import wx
 import numpy
 import os
 from psychopy.app.localization import _translate
+from pkg_resources import parse_version
 
 OK = wx.ID_OK
 
@@ -25,7 +30,7 @@ def ensureWxApp():
         wx.Dialog(None, -1)  # not shown; FileDialog gives same exception
         return True
     except wx._core.PyNoAppError:
-        if wx.version() < '2.9':
+        if parse_version(wx.__version__) < parse_version('2.9'):
             return wx.PySimpleApp()
         else:
             return wx.App(False)

@@ -4,27 +4,25 @@
 """This stimulus class defines a field of dots with an update rule that
 determines how they change on every call to the .draw() method.
 """
-from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-
 
 # Bugfix by Andrew Schofield.
 # Replaces out of bounds but still live dots at opposite edge of aperture instead of randomly within the field. This stops the concentration of dots at one side of field when lifetime is long.
 # Update the dot direction immediately for 'walk' as otherwise when the coherence varies some signal dots will inherit the random directions of previous walking dots.
 # Provide a visible wrapper function to refresh all the dot locations so that the whole field can be more easily refreshed between trials.
 
+from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import range
-from past.utils import old_div
+
+# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
+# other calls to pyglet or pyglet submodules, otherwise it may not get picked
+# up by the pyglet GL engine and have no effect.
+# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -285,7 +283,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if not 0 <= coherence <= 1:
             raise ValueError('DotStim.coherence must be between 0 and 1')
         _cohDots = coherence * self.nDots
-        self.__dict__['coherence'] = old_div(round(_cohDots), self.nDots)
+        self.__dict__['coherence'] = round(_cohDots)/self.nDots
         self._signalDots = numpy.zeros(self.nDots, dtype=bool)
         self._signalDots[0:int(self.coherence * self.nDots)] = True
         # for 'direction' method we need to update the direction of the number

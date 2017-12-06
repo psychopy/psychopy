@@ -42,7 +42,7 @@ Building stimuli is extremely easy. All you need to do is create a
 
 .. note:: **For those new to Python.** Did you notice that the grating and the fixation stimuli both call :mod:`~psychopy.visual.GratingStim` but have different arguments? One of the nice features about python is that you can select which arguments to set. GratingStim has over 15 arguments that can be set, but the others just take on default values if they aren't needed.
 
-That's a bit easy though. Let's make the stimulus move, at least! To do that we need to create a loop where we change the phase (or orientation, or position...) of the stimulus and then redraw. Add this code in place of the drawing code above::
+That's a bit easy though. Let's make the stimulus move, at least! To do that we need to create a loop where we change the phase (or orientation, or position...) of the stimulus and then redraw. Add this code in place of the drawing code above:
 
 
 .. code-block:: python
@@ -54,7 +54,7 @@ That's a bit easy though. Let's make the stimulus move, at least! To do that we 
         mywin.update()
 
 
-That ran for 200 frames (and then waited 5 seconds as well). Maybe it would be nicer to keep updating until the user hits a key instead. That's easy to add too. In the first line add :mod:`~psychopy.event` to the list of modules you'll import. Then replace the line::
+That ran for 200 frames (and then waited 5 seconds as well). Maybe it would be nicer to keep updating until the user hits a key instead. That's easy to add too. In the first line add :mod:`~psychopy.event` to the list of modules you'll import. Then replace the line:
 
 .. code-block:: python
 
@@ -72,8 +72,7 @@ Then, within the loop (make sure it has the same indentation as the other lines)
 
 the first line counts how many keys have been pressed since the last frame. If more than zero are found then we break out of the never-ending loop. The second line clears the event buffer and should always be called after you've collected the events you want (otherwise it gets full of events that we don't care about like the mouse moving around etc...).
 
-Your `finished script <https://raw.githubusercontent.com/psychopy/psychopy/master/docs/source/coder/tutorial1.py>`_
- should look something like this:
+Your `finished script <https://raw.githubusercontent.com/psychopy/psychopy/master/docs/source/coder/tutorial1.py>`_ should look something like this:
 
 .. literalinclude:: tutorial1.py
     :linenos:

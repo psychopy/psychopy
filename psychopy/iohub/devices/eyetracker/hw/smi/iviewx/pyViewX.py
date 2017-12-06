@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-'''Wrapper for iViewXAPI.h
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+
+"""Wrapper for iViewXAPI.h.
 
 Generated with:
 ctypesgen.py -a --insert-file=prepend_contents.py --cpp=cl -E -l iViewXAPI -o iViewXAPI.py iViewXAPI.h
 
 Do not modify this file.
-'''
 
-from builtins import str
-from builtins import object
-__docformat__ =  'restructuredtext'
+"""
+
+__docformat__ = 'restructuredtext'
 
 # Begin preamble
 
-import ctypes, os, sys
+import ctypes
+import os
+import sys
 from ctypes import *
 
 _int_types = (c_int16, c_int32)
@@ -28,11 +33,13 @@ for t in _int_types:
 del t
 del _int_types
 
+
 class c_void(Structure):
     # c_void_p is a buggy return type, converting to int, so
     # POINTER(None) == c_void_p is actually written as
     # POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', c_int)]
+
 
 def POINTER(obj):
     p = ctypes.POINTER(obj)
@@ -49,10 +56,11 @@ def POINTER(obj):
 
     return p
 
+
 def String(python_base_str):
     return c_char_p(str(python_base_str))
 
-#class UserString:
+# class UserString:
 #    def __init__(self, seq):
 #        if isinstance(seq, basestring):
 #            self.data = seq
@@ -172,7 +180,7 @@ def String(python_base_str):
 #    def upper(self): return self.__class__(self.data.upper())
 #    def zfill(self, width): return self.__class__(self.data.zfill(width))
 #
-#class MutableString(UserString):
+# class MutableString(UserString):
 #    """mutable string objects
 #
 #    Python strings are immutable objects.  This has the advantage, that
@@ -226,7 +234,7 @@ def String(python_base_str):
 #        self.data *= n
 #        return self
 #
-#class String(MutableString, Union):
+# class String(MutableString, Union):
 #
 #    _fields_ = [('raw', POINTER(c_char)),
 #                ('data', c_char_p)]
@@ -270,7 +278,7 @@ def String(python_base_str):
 #            return String.from_param(obj._as_parameter_)
 #    from_param = classmethod(from_param)
 #
-#def ReturnString(obj, func=None, arguments=None):
+# def ReturnString(obj, func=None, arguments=None):
 #    return String.from_param(obj)
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
@@ -280,31 +288,38 @@ def String(python_base_str):
 #
 # Non-primitive return values wrapped with UNCHECKED won't be
 # typechecked, and will be converted to c_void_p.
+
+
 def UNCHECKED(type):
-    if (hasattr(type, "_type_") and isinstance(type._type_, str)
-        and type._type_ != "P"):
+    if (hasattr(type, '_type_') and isinstance(type._type_, str)
+            and type._type_ != 'P'):
         return type
     else:
         return c_void_p
 
 # ctypes doesn't have direct support for variadic functions, so we have to write
 # our own wrapper class
+
+
 class _variadic_function(object):
-    def __init__(self,func,restype,argtypes):
-        self.func=func
-        self.func.restype=restype
-        self.argtypes=argtypes
+
+    def __init__(self, func, restype, argtypes):
+        self.func = func
+        self.func.restype = restype
+        self.argtypes = argtypes
+
     def _as_parameter_(self):
         # So we can pass this variadic function as a function pointer
         return self.func
-    def __call__(self,*args):
-        fixed_args=[]
-        i=0
+
+    def __call__(self, *args):
+        fixed_args = []
+        i = 0
         for argtype in self.argtypes:
             # Typecheck what we can
             fixed_args.append(argtype.from_param(args[i]))
-            i+=1
-        return self.func(*fixed_args+list(args[i:]))
+            i += 1
+        return self.func(*fixed_args + list(args[i:]))
 
 # End preamble
 
@@ -347,21 +362,27 @@ _libdirs = []
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-import os.path, re, sys, glob
+import os.path
+import re
+import sys
+import glob
 import ctypes
 import ctypes.util
 
+
 def _environ_path(name):
     if name in os.environ:
-        return os.environ[name].split(":")
+        return os.environ[name].split(':')
     else:
         return []
 
-class LibraryLoader(object):
-    def __init__(self):
-        self.other_dirs=[]
 
-    def load_library(self,libname):
+class LibraryLoader(object):
+
+    def __init__(self):
+        self.other_dirs = []
+
+    def load_library(self, libname):
         """Given the name of a library, load it."""
         paths = self.getpaths(libname)
 
@@ -369,9 +390,9 @@ class LibraryLoader(object):
             if os.path.exists(path):
                 return self.load(path)
 
-        raise ImportError("%s not found." % libname)
+        raise ImportError('%s not found.' % libname)
 
-    def load(self,path):
+    def load(self, path):
         """Given a path to a library, load it."""
         try:
             # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
@@ -385,7 +406,7 @@ class LibraryLoader(object):
         except OSError as e:
             raise ImportError(e)
 
-    def getpaths(self,libname):
+    def getpaths(self, libname):
         """Return a list of paths where the library might be found."""
         if os.path.isabs(libname):
             yield libname
@@ -395,18 +416,20 @@ class LibraryLoader(object):
                 yield path
 
             path = ctypes.util.find_library(libname)
-            if path: yield path
+            if path:
+                yield path
 
     def getplatformpaths(self, libname):
         return []
 
 # Darwin (Mac OS X)
 
-class DarwinLibraryLoader(LibraryLoader):
-    name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
-                "%s.so", "%s.bundle", "%s"]
 
-    def getplatformpaths(self,libname):
+class DarwinLibraryLoader(LibraryLoader):
+    name_formats = ['lib%s.dylib', 'lib%s.so', 'lib%s.bundle', '%s.dylib',
+                    '%s.so', '%s.bundle', '%s']
+
+    def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
             names = [libname]
         else:
@@ -414,9 +437,9 @@ class DarwinLibraryLoader(LibraryLoader):
 
         for dir in self.getdirs(libname):
             for name in names:
-                yield os.path.join(dir,name)
+                yield os.path.join(dir, name)
 
-    def getdirs(self,libname):
+    def getdirs(self, libname):
         '''Implements the dylib search as specified in Apple documentation:
 
         http://developer.apple.com/documentation/DeveloperTools/Conceptual/
@@ -427,7 +450,8 @@ class DarwinLibraryLoader(LibraryLoader):
         within a bundle (OS X .app).
         '''
 
-        dyld_fallback_library_path = _environ_path("DYLD_FALLBACK_LIBRARY_PATH")
+        dyld_fallback_library_path = _environ_path(
+            'DYLD_FALLBACK_LIBRARY_PATH')
         if not dyld_fallback_library_path:
             dyld_fallback_library_path = [os.path.expanduser('~/lib'),
                                           '/usr/local/lib', '/usr/lib']
@@ -435,13 +459,13 @@ class DarwinLibraryLoader(LibraryLoader):
         dirs = []
 
         if '/' in libname:
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
         else:
-            dirs.extend(_environ_path("LD_LIBRARY_PATH"))
-            dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path('LD_LIBRARY_PATH'))
+            dirs.extend(_environ_path('DYLD_LIBRARY_PATH'))
 
         dirs.extend(self.other_dirs)
-        dirs.append(".")
+        dirs.append('.')
         dirs.append(os.path.dirname(__file__))
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
@@ -456,6 +480,7 @@ class DarwinLibraryLoader(LibraryLoader):
 
 # Posix
 
+
 class PosixLibraryLoader(LibraryLoader):
     _ld_so_cache = None
 
@@ -468,19 +493,22 @@ class PosixLibraryLoader(LibraryLoader):
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
         directories = []
-        for name in ("LD_LIBRARY_PATH",
-                     "SHLIB_PATH", # HPUX
-                     "LIBPATH", # OS/2, AIX
-                     "LIBRARY_PATH", # BE/OS
-                    ):
+        for name in ('LD_LIBRARY_PATH',
+                     'SHLIB_PATH',  # HPUX
+                     'LIBPATH',  # OS/2, AIX
+                     'LIBRARY_PATH',  # BE/OS
+                     ):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
-        directories.append(".")
+        directories.append('.')
         directories.append(os.path.dirname(__file__))
 
-        try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
-        except IOError: pass
+        try:
+            directories.extend([dir.strip()
+                                for dir in open('/etc/ld.so.conf')])
+        except IOError:
+            pass
 
         directories.extend(['/lib', '/usr/lib', '/lib64', '/usr/lib64'])
 
@@ -489,7 +517,7 @@ class PosixLibraryLoader(LibraryLoader):
         ext_re = re.compile(r'\.s[ol]$')
         for dir in directories:
             try:
-                for path in glob.glob("%s/*.s[ol]*" % dir):
+                for path in glob.glob('%s/*.s[ol]*' % dir):
                     file = os.path.basename(path)
 
                     # Index by filename
@@ -512,24 +540,30 @@ class PosixLibraryLoader(LibraryLoader):
             self._create_ld_so_cache()
 
         result = self._ld_so_cache.get(libname)
-        if result: yield result
+        if result:
+            yield result
 
         path = ctypes.util.find_library(libname)
-        if path: yield os.path.join("/lib",path)
+        if path:
+            yield os.path.join('/lib', path)
 
 # Windows
 
+
 class _WindowsLibrary(object):
+
     def __init__(self, path):
         self.windll = ctypes.windll.LoadLibrary(path)
 
     def __getattr__(self, name):
-        try: return getattr(self.windll,name)
+        try:
+            return getattr(self.windll, name)
         except AttributeError:
             raise
 
+
 class WindowsLibraryLoader(LibraryLoader):
-    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
+    name_formats = ['%s.dll', 'lib%s.dll', '%slib.dll']
 
     def load_library(self, libname):
         try:
@@ -550,7 +584,7 @@ class WindowsLibraryLoader(LibraryLoader):
                 except WindowsError:
                     result = None
             if result is None:
-                raise ImportError("%s not found." % libname)
+                raise ImportError('%s not found.' % libname)
         return result
 
     def load(self, path):
@@ -572,12 +606,13 @@ class WindowsLibraryLoader(LibraryLoader):
 # the Ctypesgen maintainers.
 
 loaderclass = {
-    "darwin":   DarwinLibraryLoader,
-    "cygwin":   WindowsLibraryLoader,
-    "win32":    WindowsLibraryLoader
+    'darwin': DarwinLibraryLoader,
+    'cygwin': WindowsLibraryLoader,
+    'win32': WindowsLibraryLoader
 }
 
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
+
 
 def add_library_search_dirs(other_dirs):
     loader.other_dirs = other_dirs
@@ -592,64 +627,66 @@ add_library_search_dirs([])
 
 # Begin libraries
 
-_libs["iViewXAPI"] = load_library("iViewXAPI")
+_libs['iViewXAPI'] = load_library('iViewXAPI')
 
 # 1 libraries
 # End libraries
 
 # No modules
 
-enum_ETDevice = c_int # <input>: 153
+enum_ETDevice = c_int  # <input>: 153
 
-NONE = 0 # <input>: 153
+NONE = 0  # <input>: 153
 
-RED = 1 # <input>: 153
+RED = 1  # <input>: 153
 
-REDm = 2 # <input>: 153
+REDm = 2  # <input>: 153
 
-HiSpeed = 3 # <input>: 153
+HiSpeed = 3  # <input>: 153
 
-MRI = 4 # <input>: 153
+MRI = 4  # <input>: 153
 
-HED = 5 # <input>: 153
+HED = 5  # <input>: 153
 
-ETG = 6 # <input>: 153
+ETG = 6  # <input>: 153
 
-Custom = 7 # <input>: 153
+Custom = 7  # <input>: 153
 
-enum_ETApplication = c_int # <input>: 173
+enum_ETApplication = c_int  # <input>: 173
 
-iViewX = 0 # <input>: 173
+iViewX = 0  # <input>: 173
 
-iViewXOEM = 1 # <input>: 173
+iViewXOEM = 1  # <input>: 173
 
-enum_FilterType = c_int # <input>: 189
+enum_FilterType = c_int  # <input>: 189
 
-Average = 0 # <input>: 189
+Average = 0  # <input>: 189
 
-enum_FilterAction = c_int # <input>: 204
+enum_FilterAction = c_int  # <input>: 204
 
-Query = 0 # <input>: 204
+Query = 0  # <input>: 204
 
-Set = 1 # <input>: 204
+Set = 1  # <input>: 204
 
-enum_CalibrationStatusEnum = c_int # <input>: 222
+enum_CalibrationStatusEnum = c_int  # <input>: 222
 
-calibrationUnknown = 0 # <input>: 222
+calibrationUnknown = 0  # <input>: 222
 
-calibrationInvalid = 1 # <input>: 222
+calibrationInvalid = 1  # <input>: 222
 
-calibrationValid = 2 # <input>: 222
+calibrationValid = 2  # <input>: 222
 
-calibrationInProgress = 3 # <input>: 222
+calibrationInProgress = 3  # <input>: 222
 
-enum_REDGeometryEnum = c_int # <input>: 242
+enum_REDGeometryEnum = c_int  # <input>: 242
 
-monitorIntegrated = 0 # <input>: 242
+monitorIntegrated = 0  # <input>: 242
 
-standalone = 1 # <input>: 242
+standalone = 1  # <input>: 242
 
 # <input>: 258
+
+
 class struct_SystemInfoStruct(Structure):
     pass
 
@@ -675,6 +712,8 @@ struct_SystemInfoStruct._fields_ = [
 ]
 
 # <input>: 294
+
+
 class struct_CalibrationPointStruct(Structure):
     pass
 
@@ -690,6 +729,8 @@ struct_CalibrationPointStruct._fields_ = [
 ]
 
 # <input>: 315
+
+
 class struct_EyeDataStruct(Structure):
     pass
 
@@ -711,6 +752,8 @@ struct_EyeDataStruct._fields_ = [
 ]
 
 # <input>: 344
+
+
 class struct_SampleStruct(Structure):
     pass
 
@@ -728,6 +771,8 @@ struct_SampleStruct._fields_ = [
 ]
 
 # <input>: 368
+
+
 class struct_SampleStruct32(Structure):
     pass
 
@@ -745,6 +790,8 @@ struct_SampleStruct32._fields_ = [
 ]
 
 # <input>: 392
+
+
 class struct_EventStruct(Structure):
     pass
 
@@ -768,6 +815,8 @@ struct_EventStruct._fields_ = [
 ]
 
 # <input>: 426
+
+
 class struct_EventStruct32(Structure):
     pass
 
@@ -791,6 +840,8 @@ struct_EventStruct32._fields_ = [
 ]
 
 # <input>: 466
+
+
 class struct_EyePositionStruct(Structure):
     pass
 
@@ -814,6 +865,8 @@ struct_EyePositionStruct._fields_ = [
 ]
 
 # <input>: 499
+
+
 class struct_TrackingStatusStruct(Structure):
     pass
 
@@ -831,6 +884,8 @@ struct_TrackingStatusStruct._fields_ = [
 ]
 
 # <input>: 522
+
+
 class struct_AccuracyStruct(Structure):
     pass
 
@@ -848,6 +903,8 @@ struct_AccuracyStruct._fields_ = [
 ]
 
 # <input>: 545
+
+
 class struct_CalibrationStruct(Structure):
     pass
 
@@ -877,6 +934,8 @@ struct_CalibrationStruct._fields_ = [
 ]
 
 # <input>: 587
+
+
 class struct_REDGeometryStruct(Structure):
     pass
 
@@ -908,6 +967,8 @@ struct_REDGeometryStruct._fields_ = [
 ]
 
 # <input>: 656
+
+
 class struct_ImageStruct(Structure):
     pass
 
@@ -925,6 +986,8 @@ struct_ImageStruct._fields_ = [
 ]
 
 # <input>: 678
+
+
 class struct_DateStruct(Structure):
     pass
 
@@ -940,6 +1003,8 @@ struct_DateStruct._fields_ = [
 ]
 
 # <input>: 697
+
+
 class struct_AOIRectangleStruct(Structure):
     pass
 
@@ -957,6 +1022,8 @@ struct_AOIRectangleStruct._fields_ = [
 ]
 
 # <input>: 719
+
+
 class struct_AOIStruct(Structure):
     pass
 
@@ -981,19 +1048,31 @@ struct_AOIStruct._fields_ = [
     ('eye', c_char),
 ]
 
-pDLLSetCalibrationPoint = WINFUNCTYPE(UNCHECKED(c_int), struct_CalibrationPointStruct) # <input>: 750
+pDLLSetCalibrationPoint = WINFUNCTYPE(
+    UNCHECKED(c_int),
+    struct_CalibrationPointStruct)  # <input>: 750
 
-pDLLSetAOIHit = WINFUNCTYPE(UNCHECKED(c_int), c_int) # <input>: 756
+pDLLSetAOIHit = WINFUNCTYPE(UNCHECKED(c_int), c_int)  # <input>: 756
 
-pDLLSetSample = WINFUNCTYPE(UNCHECKED(c_int), struct_SampleStruct) # <input>: 762
+pDLLSetSample = WINFUNCTYPE(
+    UNCHECKED(c_int),
+    struct_SampleStruct)  # <input>: 762
 
-pDLLSetEvent = WINFUNCTYPE(UNCHECKED(c_int), struct_EventStruct) # <input>: 768
+pDLLSetEvent = WINFUNCTYPE(
+    UNCHECKED(c_int),
+    struct_EventStruct)  # <input>: 768
 
-pDLLSetEyeImage = WINFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 773
+pDLLSetEyeImage = WINFUNCTYPE(
+    UNCHECKED(c_int),
+    struct_ImageStruct)  # <input>: 773
 
-pDLLSetSceneVideo = WINFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 778
+pDLLSetSceneVideo = WINFUNCTYPE(
+    UNCHECKED(c_int),
+    struct_ImageStruct)  # <input>: 778
 
-pDLLSetTrackingMonitor = WINFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 783
+pDLLSetTrackingMonitor = WINFUNCTYPE(
+    UNCHECKED(c_int),
+    struct_ImageStruct)  # <input>: 783
 
 # <input>: 798
 if hasattr(_libs['iViewXAPI'], 'iV_AbortCalibration'):
@@ -1099,7 +1178,8 @@ if hasattr(_libs['iViewXAPI'], 'iV_DisableGazeDataFilter'):
 
 # <input>: 1054
 if hasattr(_libs['iViewXAPI'], 'iV_DisableProcessorHighPerformanceMode'):
-    DisableProcessorHighPerformanceMode = _libs['iViewXAPI'].iV_DisableProcessorHighPerformanceMode
+    DisableProcessorHighPerformanceMode = _libs[
+        'iViewXAPI'].iV_DisableProcessorHighPerformanceMode
     DisableProcessorHighPerformanceMode.argtypes = []
     DisableProcessorHighPerformanceMode.restype = c_int
 
@@ -1129,7 +1209,8 @@ if hasattr(_libs['iViewXAPI'], 'iV_EnableGazeDataFilter'):
 
 # <input>: 1113
 if hasattr(_libs['iViewXAPI'], 'iV_EnableProcessorHighPerformanceMode'):
-    EnableProcessorHighPerformanceMode = _libs['iViewXAPI'].iV_EnableProcessorHighPerformanceMode
+    EnableProcessorHighPerformanceMode = _libs[
+        'iViewXAPI'].iV_EnableProcessorHighPerformanceMode
     EnableProcessorHighPerformanceMode.argtypes = []
     EnableProcessorHighPerformanceMode.restype = c_int
 
@@ -1160,7 +1241,8 @@ if hasattr(_libs['iViewXAPI'], 'iV_GetCalibrationParameter'):
 # <input>: 1188
 if hasattr(_libs['iViewXAPI'], 'iV_GetCalibrationPoint'):
     GetCalibrationPoint = _libs['iViewXAPI'].iV_GetCalibrationPoint
-    GetCalibrationPoint.argtypes = [c_int, POINTER(struct_CalibrationPointStruct)]
+    GetCalibrationPoint.argtypes = [
+        c_int, POINTER(struct_CalibrationPointStruct)]
     GetCalibrationPoint.restype = c_int
 
 # <input>: 1202
@@ -1171,8 +1253,10 @@ if hasattr(_libs['iViewXAPI'], 'iV_GetCalibrationStatus'):
 
 # <input>: 1216
 if hasattr(_libs['iViewXAPI'], 'iV_GetCurrentCalibrationPoint'):
-    GetCurrentCalibrationPoint = _libs['iViewXAPI'].iV_GetCurrentCalibrationPoint
-    GetCurrentCalibrationPoint.argtypes = [POINTER(struct_CalibrationPointStruct)]
+    GetCurrentCalibrationPoint = _libs[
+        'iViewXAPI'].iV_GetCurrentCalibrationPoint
+    GetCurrentCalibrationPoint.argtypes = [
+        POINTER(struct_CalibrationPointStruct)]
     GetCurrentCalibrationPoint.restype = c_int
 
 # <input>: 1228
@@ -1411,7 +1495,8 @@ if hasattr(_libs['iViewXAPI'], 'iV_SetEventCallback'):
 
 # <input>: 1757
 if hasattr(_libs['iViewXAPI'], 'iV_SetEventDetectionParameter'):
-    SetEventDetectionParameter = _libs['iViewXAPI'].iV_SetEventDetectionParameter
+    SetEventDetectionParameter = _libs[
+        'iViewXAPI'].iV_SetEventDetectionParameter
     SetEventDetectionParameter.argtypes = [c_int, c_int]
     SetEventDetectionParameter.restype = c_int
 
@@ -1453,7 +1538,8 @@ if hasattr(_libs['iViewXAPI'], 'iV_SetSceneVideoCallback'):
 
 # <input>: 1853
 if hasattr(_libs['iViewXAPI'], 'iV_SetTrackingMonitorCallback'):
-    SetTrackingMonitorCallback = _libs['iViewXAPI'].iV_SetTrackingMonitorCallback
+    SetTrackingMonitorCallback = _libs[
+        'iViewXAPI'].iV_SetTrackingMonitorCallback
     SetTrackingMonitorCallback.argtypes = [pDLLSetTrackingMonitor]
     SetTrackingMonitorCallback.restype = c_int
 
@@ -1529,37 +1615,37 @@ if hasattr(_libs['iViewXAPI'], 'iV_Validate'):
     Validate.argtypes = []
     Validate.restype = c_int
 
-SystemInfoStruct = struct_SystemInfoStruct # <input>: 258
+SystemInfoStruct = struct_SystemInfoStruct  # <input>: 258
 
-CalibrationPointStruct = struct_CalibrationPointStruct # <input>: 294
+CalibrationPointStruct = struct_CalibrationPointStruct  # <input>: 294
 
-EyeDataStruct = struct_EyeDataStruct # <input>: 315
+EyeDataStruct = struct_EyeDataStruct  # <input>: 315
 
-SampleStruct = struct_SampleStruct # <input>: 344
+SampleStruct = struct_SampleStruct  # <input>: 344
 
-SampleStruct32 = struct_SampleStruct32 # <input>: 368
+SampleStruct32 = struct_SampleStruct32  # <input>: 368
 
-EventStruct = struct_EventStruct # <input>: 392
+EventStruct = struct_EventStruct  # <input>: 392
 
-EventStruct32 = struct_EventStruct32 # <input>: 426
+EventStruct32 = struct_EventStruct32  # <input>: 426
 
-EyePositionStruct = struct_EyePositionStruct # <input>: 466
+EyePositionStruct = struct_EyePositionStruct  # <input>: 466
 
-TrackingStatusStruct = struct_TrackingStatusStruct # <input>: 499
+TrackingStatusStruct = struct_TrackingStatusStruct  # <input>: 499
 
-AccuracyStruct = struct_AccuracyStruct # <input>: 522
+AccuracyStruct = struct_AccuracyStruct  # <input>: 522
 
-CalibrationStruct = struct_CalibrationStruct # <input>: 545
+CalibrationStruct = struct_CalibrationStruct  # <input>: 545
 
-REDGeometryStruct = struct_REDGeometryStruct # <input>: 587
+REDGeometryStruct = struct_REDGeometryStruct  # <input>: 587
 
-ImageStruct = struct_ImageStruct # <input>: 656
+ImageStruct = struct_ImageStruct  # <input>: 656
 
-DateStruct = struct_DateStruct # <input>: 678
+DateStruct = struct_DateStruct  # <input>: 678
 
-AOIRectangleStruct = struct_AOIRectangleStruct # <input>: 697
+AOIRectangleStruct = struct_AOIRectangleStruct  # <input>: 697
 
-AOIStruct = struct_AOIStruct # <input>: 719
+AOIStruct = struct_AOIStruct  # <input>: 719
 
 # Begin inserted files
 
@@ -1567,7 +1653,7 @@ AOIStruct = struct_AOIStruct # <input>: 719
 
 # File: prepend_contents.py
 # Contents of this file is added to the end of the ctypesgen created file for the iViewAPI
-#  python ctypes wrapper.  
+#  python ctypes wrapper.
 
 
 from ctypes import create_string_buffer as StringBuffer
@@ -1585,81 +1671,80 @@ from ctypes import create_string_buffer as StringBuffer
 
 
 #
-## Useful ctype defintions with user meaning:
-#    
-from  ctypes import c_longlong
+# Useful ctype defintions with user meaning:
+#
+from ctypes import c_longlong
 EyeTrackerTimestamp = c_longlong
 
 
 #
-## Not sure why, but defines are not being generated, so mannnually adding them
+# Not sure why, but defines are not being generated, so mannnually adding them
 #  here based on these .h file defines
 #
 
 
-
-#define RET_SUCCESS													1
-#define RET_NO_VALID_DATA											2
-#define RET_CALIBRATION_ABORTED										3
-#define RET_SERVER_IS_RUNNING										4
-#define RET_CALIBRATION_NOT_IN_PROGRESS								5
-#define RET_WINDOW_IS_OPEN											11
-#define RET_WINDOW_IS_CLOSED										12
-RET_SUCCESS=1
-RET_NO_VALID_DATA=2
-RET_CALIBRATION_ABORTED=3
+# define RET_SUCCESS													1
+# define RET_NO_VALID_DATA											2
+# define RET_CALIBRATION_ABORTED										3
+# define RET_SERVER_IS_RUNNING										4
+# define RET_CALIBRATION_NOT_IN_PROGRESS								5
+# define RET_WINDOW_IS_OPEN											11
+# define RET_WINDOW_IS_CLOSED										12
+RET_SUCCESS = 1
+RET_NO_VALID_DATA = 2
+RET_CALIBRATION_ABORTED = 3
 RET_SERVER_IS_RUNNING = 4
 RET_CALIBRATION_NOT_IN_PROGRESS = 5
 RET_WINDOW_IS_OPEN = 11
 RET_WINDOW_IS_CLOSED = 12
 
-#define ERR_COULD_NOT_CONNECT										100
-#define ERR_NOT_CONNECTED											101
-#define ERR_NOT_CALIBRATED											102
-#define ERR_NOT_VALIDATED											103
-#define ERR_EYETRACKING_APPLICATION_NOT_RUNNING						104
-#define ERR_WRONG_COMMUNICATION_PARAMETER							105
-#define ERR_WRONG_DEVICE											111
-#define ERR_WRONG_PARAMETER											112
-#define ERR_WRONG_CALIBRATION_METHOD								113
-#define ERR_CALIBRATION_TIMEOUT										114
-#define ERR_TRACKING_NOT_STABLE										115
-#define ERR_CREATE_SOCKET											121
-#define ERR_CONNECT_SOCKET											122
-#define ERR_BIND_SOCKET												123
-#define ERR_DELETE_SOCKET											124
-#define ERR_NO_RESPONSE_FROM_IVIEWX									131
-#define ERR_INVALID_IVIEWX_VERSION									132
-#define ERR_WRONG_IVIEWX_VERSION									133
-#define ERR_ACCESS_TO_FILE											171
-#define ERR_SOCKET_CONNECTION										181
-#define ERR_EMPTY_DATA_BUFFER										191	
-#define ERR_RECORDING_DATA_BUFFER									192	
-#define ERR_FULL_DATA_BUFFER										193	
-#define ERR_IVIEWX_IS_NOT_READY										194		
-#define ERR_IVIEWX_NOT_FOUND										201	
-#define ERR_IVIEWX_PATH_NOT_FOUND									202	
-#define ERR_IVIEWX_ACCESS_DENIED									203
-#define ERR_IVIEWX_ACCESS_INCOMPLETE								204
-#define ERR_IVIEWX_OUT_OF_MEMORY									205
-#define ERR_CAMERA_NOT_FOUND										211
-#define ERR_WRONG_CAMERA											212
-#define ERR_WRONG_CAMERA_PORT										213
-#define ERR_COULD_NOT_OPEN_PORT										220
-#define ERR_COULD_NOT_CLOSE_PORT									221
-#define ERR_AOI_ACCESS												222
-#define ERR_AOI_NOT_DEFINED											223
-#define ERR_FEATURE_NOT_LICENSED									250
-#define ERR_DEPRECATED_FUNCTION										300
-#define ERR_INITIALIZATION											400
+# define ERR_COULD_NOT_CONNECT										100
+# define ERR_NOT_CONNECTED											101
+# define ERR_NOT_CALIBRATED											102
+# define ERR_NOT_VALIDATED											103
+# define ERR_EYETRACKING_APPLICATION_NOT_RUNNING						104
+# define ERR_WRONG_COMMUNICATION_PARAMETER							105
+# define ERR_WRONG_DEVICE											111
+# define ERR_WRONG_PARAMETER											112
+# define ERR_WRONG_CALIBRATION_METHOD								113
+# define ERR_CALIBRATION_TIMEOUT										114
+# define ERR_TRACKING_NOT_STABLE										115
+# define ERR_CREATE_SOCKET											121
+# define ERR_CONNECT_SOCKET											122
+# define ERR_BIND_SOCKET												123
+# define ERR_DELETE_SOCKET											124
+# define ERR_NO_RESPONSE_FROM_IVIEWX									131
+# define ERR_INVALID_IVIEWX_VERSION									132
+# define ERR_WRONG_IVIEWX_VERSION									133
+# define ERR_ACCESS_TO_FILE											171
+# define ERR_SOCKET_CONNECTION										181
+# define ERR_EMPTY_DATA_BUFFER										191
+# define ERR_RECORDING_DATA_BUFFER									192
+# define ERR_FULL_DATA_BUFFER										193
+# define ERR_IVIEWX_IS_NOT_READY										194
+# define ERR_IVIEWX_NOT_FOUND										201
+# define ERR_IVIEWX_PATH_NOT_FOUND									202
+# define ERR_IVIEWX_ACCESS_DENIED									203
+# define ERR_IVIEWX_ACCESS_INCOMPLETE								204
+# define ERR_IVIEWX_OUT_OF_MEMORY									205
+# define ERR_CAMERA_NOT_FOUND										211
+# define ERR_WRONG_CAMERA											212
+# define ERR_WRONG_CAMERA_PORT										213
+# define ERR_COULD_NOT_OPEN_PORT										220
+# define ERR_COULD_NOT_CLOSE_PORT									221
+# define ERR_AOI_ACCESS												222
+# define ERR_AOI_NOT_DEFINED											223
+# define ERR_FEATURE_NOT_LICENSED									250
+# define ERR_DEPRECATED_FUNCTION										300
+# define ERR_INITIALIZATION											400
 ERR_COULD_NOT_CONNECT = 100
-ERR_NOT_CONNECTED =  101
+ERR_NOT_CONNECTED = 101
 ERR_NOT_CALIBRATED = 102
 ERR_NOT_VALIDATED = 103
-ERR_EYETRACKING_APPLICATION_NOT_RUNNING	= 104
-ERR_WRONG_COMMUNICATION_PARAMETER =105
+ERR_EYETRACKING_APPLICATION_NOT_RUNNING = 104
+ERR_WRONG_COMMUNICATION_PARAMETER = 105
 ERR_WRONG_DEVICE = 111
-ERR_WRONG_PARAMETER = 	112
+ERR_WRONG_PARAMETER = 112
 ERR_WRONG_CALIBRATION_METHOD = 113
 ERR_CALIBRATION_TIMEOUT = 114
 ERR_TRACKING_NOT_STABLE = 115
@@ -1668,16 +1753,16 @@ ERR_CONNECT_SOCKET = 122
 ERR_BIND_SOCKET = 123
 ERR_DELETE_SOCKET = 124
 ERR_NO_RESPONSE_FROM_IVIEWX = 131
-ERR_INVALID_IVIEWX_VERSION =	 132
+ERR_INVALID_IVIEWX_VERSION = 132
 ERR_WRONG_IVIEWX_VERSION = 133
 ERR_ACCESS_TO_FILE = 171
 ERR_SOCKET_CONNECTION = 181
-ERR_EMPTY_DATA_BUFFER = 191	
-ERR_RECORDING_DATA_BUFFER = 192	
-ERR_FULL_DATA_BUFFER = 193	
-ERR_IVIEWX_IS_NOT_READY = 194		
-ERR_IVIEWX_NOT_FOUND = 201	
-ERR_IVIEWX_PATH_NOT_FOUND = 202	
+ERR_EMPTY_DATA_BUFFER = 191
+ERR_RECORDING_DATA_BUFFER = 192
+ERR_FULL_DATA_BUFFER = 193
+ERR_IVIEWX_IS_NOT_READY = 194
+ERR_IVIEWX_NOT_FOUND = 201
+ERR_IVIEWX_PATH_NOT_FOUND = 202
 ERR_IVIEWX_ACCESS_DENIED = 203
 ERR_IVIEWX_ACCESS_INCOMPLETE = 204
 ERR_IVIEWX_OUT_OF_MEMORY = 205
@@ -1687,56 +1772,56 @@ ERR_WRONG_CAMERA_PORT = 213
 ERR_COULD_NOT_OPEN_PORT = 220
 ERR_COULD_NOT_CLOSE_PORT = 221
 ERR_AOI_ACCESS = 222
-ERR_AOI_NOT_DEFINED = 	223
+ERR_AOI_NOT_DEFINED = 223
 ERR_FEATURE_NOT_LICENSED = 250
 ERR_DEPRECATED_FUNCTION = 300
-ERR_INITIALIZATION = 	400
+ERR_INITIALIZATION = 400
 
 #
-# With these defines it is possible to setup the logging status 
-# for the function "iV_Log". With "iV_Log" it is possible to observe the 
-# communication between a users application and iView X and/or function 
-# calls. Log levels can be combined (e.g. LOG_BUG | LOG_IV_COMMAND | LOG_ETCOM). 
+# With these defines it is possible to setup the logging status
+# for the function "iV_Log". With "iV_Log" it is possible to observe the
+# communication between a users application and iView X and/or function
+# calls. Log levels can be combined (e.g. LOG_BUG | LOG_IV_COMMAND | LOG_ETCOM).
 #
-# 
-#define LOG_LEVEL_BUG					1	
-#define LOG_LEVEL_iV_FCT				2	
-#define LOG_LEVEL_ALL_FCT				4	
-#define LOG_LEVEL_IV_COMMAND			8	
-#define LOG_LEVEL_RECV_IV_COMMAND		16	
-LOG_LEVEL_BUG=1	
-LOG_LEVEL_iV_FCT=2	
-LOG_LEVEL_ALL_FCT=4	
-LOG_LEVEL_IV_COMMAND=8	
-LOG_LEVEL_RECV_IV_COMMAND=16	
+#
+# define LOG_LEVEL_BUG					1
+# define LOG_LEVEL_iV_FCT				2
+# define LOG_LEVEL_ALL_FCT				4
+# define LOG_LEVEL_IV_COMMAND			8
+# define LOG_LEVEL_RECV_IV_COMMAND		16
+LOG_LEVEL_BUG = 1
+LOG_LEVEL_iV_FCT = 2
+LOG_LEVEL_ALL_FCT = 4
+LOG_LEVEL_IV_COMMAND = 8
+LOG_LEVEL_RECV_IV_COMMAND = 16
 
 
 #
-# With ET_PARAM_ and function "iV_SetTrackingParameter" it is possible 
-# to change iView X tracking parameters, for example pupil threshold and 
+# With ET_PARAM_ and function "iV_SetTrackingParameter" it is possible
+# to change iView X tracking parameters, for example pupil threshold and
 # corneal reflex thresholds, eye image contours, and other parameters.
-# 
-# Important note: This function can strongly affect tracking stability of 
-# your iView X system. Only experienced users should use this function. 
 #
-#define ET_PARAM_EYE_LEFT				0
-#define ET_PARAM_EYE_RIGHT				1
-#define ET_PARAM_EYE_BOTH				2
-#define ET_PARAM_PUPIL_THRESHOLD		0
-#define ET_PARAM_REFLEX_THRESHOLD		1
-#define ET_PARAM_SHOW_AOI				2
-#define ET_PARAM_SHOW_CONTOUR			3
-#define ET_PARAM_SHOW_PUPIL				4
-#define ET_PARAM_SHOW_REFLEX			5
-#define ET_PARAM_DYNAMIC_THRESHOLD		6
-#define ET_PARAM_PUPIL_AREA				11
-#define ET_PARAM_PUPIL_PERIMETER		12
-#define ET_PARAM_PUPIL_DENSITY			13
-#define ET_PARAM_REFLEX_PERIMETER		14
-#define ET_PARAM_REFLEX_PUPIL_DISTANCE	15
-#define ET_PARAM_MONOCULAR				16
-#define ET_PARAM_SMARTBINOCULAR			17
-#define ET_PARAM_BINOCULAR				18
+# Important note: This function can strongly affect tracking stability of
+# your iView X system. Only experienced users should use this function.
+#
+# define ET_PARAM_EYE_LEFT				0
+# define ET_PARAM_EYE_RIGHT				1
+# define ET_PARAM_EYE_BOTH				2
+# define ET_PARAM_PUPIL_THRESHOLD		0
+# define ET_PARAM_REFLEX_THRESHOLD		1
+# define ET_PARAM_SHOW_AOI				2
+# define ET_PARAM_SHOW_CONTOUR			3
+# define ET_PARAM_SHOW_PUPIL				4
+# define ET_PARAM_SHOW_REFLEX			5
+# define ET_PARAM_DYNAMIC_THRESHOLD		6
+# define ET_PARAM_PUPIL_AREA				11
+# define ET_PARAM_PUPIL_PERIMETER		12
+# define ET_PARAM_PUPIL_DENSITY			13
+# define ET_PARAM_REFLEX_PERIMETER		14
+# define ET_PARAM_REFLEX_PUPIL_DISTANCE	15
+# define ET_PARAM_MONOCULAR				16
+# define ET_PARAM_SMARTBINOCULAR			17
+# define ET_PARAM_BINOCULAR				18
 
 ET_PARAM_EYE_LEFT = 0
 ET_PARAM_EYE_RIGHT = 1
@@ -1745,8 +1830,8 @@ ET_PARAM_PUPIL_THRESHOLD = 0
 ET_PARAM_REFLEX_THRESHOLD = 1
 ET_PARAM_SHOW_AOI = 2
 ET_PARAM_SHOW_CONTOUR = 3
-ET_PARAM_SHOW_PUPIL =4
-ET_PARAM_SHOW_REFLEX =	5
+ET_PARAM_SHOW_PUPIL = 4
+ET_PARAM_SHOW_REFLEX = 5
 ET_PARAM_DYNAMIC_THRESHOLD = 6
 ET_PARAM_PUPIL_AREA = 11
 ET_PARAM_PUPIL_PERIMETER = 12
@@ -1758,16 +1843,24 @@ ET_PARAM_SMARTBINOCULAR = 17
 ET_PARAM_BINOCULAR = 18
 
 #
-# The enumeration ETDevice can be used in connection with 
-# "iV_GetSystemInfo" to get information about which type of device is 
+# The enumeration ETDevice can be used in connection with
+# "iV_GetSystemInfo" to get information about which type of device is
 # connected to iView X. It is part of the "SystemInfoStruct".
-# (NONE = 0, RED = 1, REDm=2 HiSpeed = 3, MRI/MEG = 4, HED = 5, ETG = 6, Custom = 7) 
+# (NONE = 0, RED = 1, REDm=2 HiSpeed = 3, MRI/MEG = 4, HED = 5, ETG = 6, Custom = 7)
 #
 # Creating the enum as a dict for utility..
-etDeviceTypes= dict(NONE=0, RED=1, REDm=2, HiSpeed=3, MRI=4, HED=5, ETG=6, Custom=7)
+etDeviceTypes = dict(
+    NONE=0,
+    RED=1,
+    REDm=2,
+    HiSpeed=3,
+    MRI=4,
+    HED=5,
+    ETG=6,
+    Custom=7)
 
-for k,v in list(etDeviceTypes.items()):
-    etDeviceTypes[v]=k
+for k, v in etDeviceTypes.items():
+    etDeviceTypes[v] = k
 
 
 ############
@@ -1775,11 +1868,11 @@ for k,v in list(etDeviceTypes.items()):
 #/**
 #* @enum ETApplication
 #*
-#* @brief ETApplication can be used to start iView X or iView X OEM 
-#* (eyetracking-server) application dependent to the used eye tracking 
-#* device. Set this as a parameter in @ref iV_Start function. 
+#* @brief ETApplication can be used to start iView X or iView X OEM
+#* (eyetracking-server) application dependent to the used eye tracking
+#* device. Set this as a parameter in @ref iV_Start function.
 #*/
-etApplication = dict(iViewX = 0, iViewXOEM = 1)
+etApplication = dict(iViewX=0, iViewXOEM=1)
 
 
 #/**
@@ -1788,12 +1881,12 @@ etApplication = dict(iViewX = 0, iViewXOEM = 1)
 #* @brief FilterType can be used to select the filter that is used
 #* with @ref iV_ConfigureFilter
 #*/
-etFilterType= dict(
-	#//! left and right gaze data channels are averaged
-	#//! the type of the parameter data from @ref iV_ConfigureFilter has to be converted to int*
-	#//! The value of data can be [0;1] where 0 means averaging is disabled and 1 means averaging is enabled
-	Average_Disabled = c_int(0),
-	Average_Enabled = c_int(1))
+etFilterType = dict(
+    #//! left and right gaze data channels are averaged
+    #//! the type of the parameter data from @ref iV_ConfigureFilter has to be converted to int*
+    #//! The value of data can be [0;1] where 0 means averaging is disabled and 1 means averaging is enabled
+    Average_Disabled=c_int(0),
+    Average_Enabled=c_int(1))
 
 
 #/**
@@ -1803,47 +1896,46 @@ etFilterType= dict(
 #* when calling @ref iV_ConfigureFilter
 #*/
 etFilterAction = dict(
-	#//! query the current filter status
-	Query = c_int(0),
-	#//! configure filter parameters
-	Set = c_int(1))
+    #//! query the current filter status
+    Query=c_int(0),
+    #//! configure filter parameters
+    Set=c_int(1))
 
 
 #/**
 #* @enum CalibrationStatusEnum
 #*
-#* @brief This enum provides information about the eyetracking-server calibration status. If the 
-#* device is not calibrated the eyetracking-server won't deliver valid gaze data. Use the functions 
-#* @ref iV_GetCalibrationStatus to retrieve the calibration status and 
-#* @ref iV_Calibrate to perform a calibration. 
-#*/ 
+#* @brief This enum provides information about the eyetracking-server calibration status. If the
+#* device is not calibrated the eyetracking-server won't deliver valid gaze data. Use the functions
+#* @ref iV_GetCalibrationStatus to retrieve the calibration status and
+#* @ref iV_Calibrate to perform a calibration.
+#*/
 etCalibrationStatusEnum = dict(
-	#//! calibration status is unknown (i.e. if the connection is not established) 
-	calibrationUnknown = 0, 
-	
-	#//! the device is not calibrated and will not deliver valid gaze data 
-	calibrationInvalid = 1, 
-	
-	#//! the device is calibrated and will deliver valid gaze data 
-	calibrationValid = 2, 
-	
-	#//! the device is currently performing a calibration 
-	calibrationInProgress = 3)
+    #//! calibration status is unknown (i.e. if the connection is not established)
+    calibrationUnknown=0,
+
+    #//! the device is not calibrated and will not deliver valid gaze data
+    calibrationInvalid=1,
+
+    #//! the device is calibrated and will deliver valid gaze data
+    calibrationValid=2,
+
+    #//! the device is currently performing a calibration
+    calibrationInProgress=3)
 
 #/**
 #* @enum REDGeometryEnum
-#* 
+#*
 #* @brief uses to the define the content of @ref REDGeometryStruct
 #*/
 etREDGeometryEnum = dict(
-	#//! use monitor integrated mode
-	monitorIntegrated = 0,
-	#//! use standalone mode
-	standalone = 1)
+    #//! use monitor integrated mode
+    monitorIntegrated=0,
+    #//! use standalone mode
+    standalone=1)
 
 
 # End "prepend_contents.py"
 
 # 1 inserted files
 # End inserted files
-

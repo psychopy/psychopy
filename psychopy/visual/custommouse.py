@@ -3,14 +3,14 @@
 
 """Class for more control over the mouse,
 including the pointer graphic and bounding box."""
-from __future__ import division
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
-from past.utils import old_div
 import os
 
 import psychopy  # so we can get the __path__
@@ -213,25 +213,25 @@ class CustomMouse(MinimalStim):
         elif self.leftLimit is None:
             self.leftLimit = -1
             if self.win.units == 'pix':
-                self.leftLimit = old_div(self.win.size[0], -2.)
+                self.leftLimit = self.win.size[0] / -2.
         if type(rightLimit) in (int, float):
             self.rightLimit = rightLimit
         elif self.rightLimit is None:
             self.rightLimit = .99
             if self.win.units == 'pix':
-                self.rightLimit = old_div(self.win.size[0], 2.) - 5
+                self.rightLimit = self.win.size[0] / 2.0 - 5
         if type(topLimit) in (int, float):
             self.topLimit = topLimit
         elif self.topLimit is None:
             self.topLimit = 1
             if self.win.units == 'pix':
-                self.topLimit = old_div(self.win.size[1], 2.)
+                self.topLimit = self.win.size[1] / 2.0
         if type(bottomLimit) in (int, float):
             self.bottomLimit = bottomLimit
         elif self.bottomLimit is None:
             self.bottomLimit = -0.98
             if self.win.units == 'pix':
-                self.bottomLimit = old_div(self.win.size[1], -2.) + 10
+                self.bottomLimit = self.win.size[1] / -2.0 + 10
 
         self.box = psychopy.visual.ShapeStim(
             self.win, vertices=[[self.leftLimit, self.topLimit],

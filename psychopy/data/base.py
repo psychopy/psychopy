@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from future import standard_library
 standard_library.install_aliases()
@@ -22,13 +22,13 @@ from distutils.version import StrictVersion
 
 import psychopy
 from psychopy import logging
-from psychopy.tools.filetools import openOutputFile, genDelimiter
+from psychopy.tools.filetools import (openOutputFile, genDelimiter,
+                                      genFilenameFromDelimiter)
 from psychopy.tools.fileerrortools import handleFileCollision
 from psychopy.tools.arraytools import extendArr
 from .utils import _getExcelCellName
 
 try:
-    # import openpyxl
     import openpyxl
     if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
@@ -131,14 +131,14 @@ class _BaseTrialHandler(_ComparisonMixin):
                 logging.info('.saveAsPickle() called but no trials completed.'
                              ' Nothing saved')
             return -1
-        # otherwise use default location
+
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
 
-        f = openOutputFile(fileName, append=False,
-                           fileCollisionMethod=fileCollisionMethod)
-        pickle.dump(self, f)
-        f.close()
+        with openOutputFile(fileName=fileName, append=False,
+                            fileCollisionMethod=fileCollisionMethod) as f:
+            pickle.dump(self, f)
+
         logging.info('saved data to %s' % f.name)
 
     def saveAsText(self, fileName,
@@ -210,25 +210,24 @@ class _BaseTrialHandler(_ComparisonMixin):
             delim = genDelimiter(fileName)
 
         # create the file or send to stdout
-        f = openOutputFile(
-            fileName, append=appendFile, delim=delim,
-            fileCollisionMethod=fileCollisionMethod, encoding=encoding)
+        fileName = genFilenameFromDelimiter(fileName, delim)
+        with openOutputFile(fileName=fileName, append=appendFile,
+                            fileCollisionMethod=fileCollisionMethod,
+                            encoding=encoding) as f:
+            # loop through lines in the data matrix
+            for line in dataArray:
+                for cellN, entry in enumerate(line):
+                    # surround in quotes to prevent effect of delimiter
+                    if delim in str(entry):
+                        f.write(u'"%s"' % str(entry))
+                    else:
+                        f.write(str(entry))
+                    if cellN < (len(line) - 1):
+                        f.write(delim)
+                f.write("\n")  # add an EOL at end of each line
 
-        # loop through lines in the data matrix
-        for line in dataArray:
-            for cellN, entry in enumerate(line):
-                # surround in quotes to prevent effect of delimiter
-                if delim in str(entry):
-                    f.write(u'"%s"' % str(entry))
-                else:
-                    f.write(str(entry))
-                if cellN < (len(line) - 1):
-                    f.write(delim)
-            f.write("\n")  # add an EOL at end of each line
-        if f != sys.stdout:
-            f.close()
-            if self.autoLog:
-                logging.info('saved data to %s' % f.name)
+        if (fileName is not None) and (fileName != 'stdout') and self.autoLog:
+            logging.info('saved data to %s' % f.name)
 
     def printAsText(self, stimOut=None,
                     dataOut=('all_mean', 'all_std', 'all_raw'),
@@ -357,9 +356,8 @@ class _BaseTrialHandler(_ComparisonMixin):
                     # if it can convert to a number (from numpy) then do it
                     val = float(entry)
                 except Exception:
-                    val = str(entry)
-                _cell = _getExcelCellName(col=colN, row=lineN)
-                ws.cell(_cell).value = val
+                    val = u"{}".format(entry)
+                ws.cell(column=colN+1, row=lineN+1, value=val)
 
         wb.save(filename=fileName)
 
@@ -400,17 +398,15 @@ class _BaseTrialHandler(_ComparisonMixin):
                'serialization.')
         logging.warn(msg)
 
-        if fileName is None:
-            return json_tricks.np.dumps(self_copy)
+        if (fileName is None) or (fileName == 'stdout'):
+            return json_tricks.dumps(self_copy)
         else:
-            f = openOutputFile(fileName,
-                               fileCollisionMethod=fileCollisionMethod,
-                               encoding=encoding)
-            json_tricks.np.dump(self_copy, f)
+            with openOutputFile(fileName=fileName,
+                                fileCollisionMethod=fileCollisionMethod,
+                                encoding=encoding) as f:
+                json_tricks.dump(self_copy, f)
 
-            if f != sys.stdout:
-                f.close()
-                logging.info('Saved JSON data to %s' % f.name)
+            logging.info('Saved JSON data to %s' % f.name)
 
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this

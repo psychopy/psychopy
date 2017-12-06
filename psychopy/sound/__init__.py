@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Load and play sounds
 
 By default PsychoPy will try to use the following Libs, in this order, for
@@ -44,7 +47,8 @@ preferable.
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
 from builtins import str
 import sys
 import os

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -20,6 +23,7 @@ standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
 from builtins import object
+from collections import OrderedDict
 import re
 import os
 import xml.etree.ElementTree as xml
@@ -356,7 +360,7 @@ class Experiment(object):
         thisChild = xml.SubElement(parent, thisType)
         thisChild.set('name', name)
         if hasattr(param, 'val'):
-            thisChild.set('val', "{}".format(param.val).replace("\n", "&#10;"))
+            thisChild.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
         if hasattr(param, 'valType'):
             thisChild.set('valType', param.valType)
         if hasattr(param, 'updates'):
@@ -1076,7 +1080,7 @@ class TrialHandler(object):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec(paramName + '= %(name)s.' + paramName)\n")
+                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
         # then run the trials loop
@@ -1090,7 +1094,7 @@ class TrialHandler(object):
             code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
                     "if %(name)s != None:\n"
                     "    for paramName in %(name)s:\n"
-                    "        exec(paramName + '= %(name)s.' + paramName)\n")
+                    "        exec('{} = %(name)s[paramName]'.format(paramName))\n")
             buff.writeIndentedLines(code % {'name': self.thisName})
 
     def writeLoopStartCodeJS(self, buff):
