@@ -37,11 +37,10 @@ from ..localization import _translate
 from . import experiment, components
 from .. import stdOutRich, dialogs
 from .. import projects
-from psychopy import logging
+from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
-
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 
@@ -2033,11 +2032,9 @@ class BuilderFrame(wx.Frame):
         # update the output window and show it
         text = u""
         if self.scriptProcess.IsInputAvailable():
-            stream = self.scriptProcess.GetInputStream()
-            text += u"{}".format(stream.read())
+            text += extractText(self.scriptProcess.GetInputStream())
         if self.scriptProcess.IsErrorAvailable():
-            stream = self.scriptProcess.GetErrorStream()
-            text += u"{}".format(stream.read())
+            text += extractText(self.scriptProcess.GetErrorStream())
         if len(text):
             # if some text hadn't yet been written (possible?)
             self.stdoutFrame.write(text)
@@ -2361,3 +2358,14 @@ class ExportFileDialog(wx.Dialog):
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
+
+def extractText(stream):
+    """Take a byte stream (or any file object of type b?) and return
+
+    :param stream: stream from wx.Process or any byte stream from a file
+    :return: text converted to unicode ready for appending to wx text view
+    """
+    if constants.PY3:
+        return stream.read().decode('utf-8')
+    else:
+        return stream.read()
