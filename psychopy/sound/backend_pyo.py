@@ -21,6 +21,7 @@ except ImportError as err:
     # convert this import error to our own, pyo probably not installed
     raise exceptions.DependencyError(repr(err))
 
+import atexit
 import sys
 import threading
 pyoSndServer = None
@@ -213,6 +214,10 @@ def init(rate=44100, stereo=True, buffer=128):
         pyoSndServer.boot()
     core.wait(0.5)  # wait for server to boot before starting te sound stream
     pyoSndServer.start()
+    
+    #atexit is filo, will call stop then shutdown upon closing
+    atexit.register(pyoSndServer.shutdown)
+    atexit.register(pyoSndServer.stop)
     try:
         Sound()  # test creation, no play
     except pyo.PyoServerStateException:
