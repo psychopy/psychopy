@@ -7,14 +7,9 @@ Download
 
 For the easiest installation download and install the Standalone package for your system:
 
-  * Windows (all versions):
+The latest stable release (the version we recommend you install is 1.85.4, although on win32 1.85.3 is the same) and you can get that here:
 
-    * `Download StandalonePsychoPy-1.85.2-win32.exe <https://github.com/psychopy/psychopy/releases/download/1.85.2/StandalonePsychoPy-1.85.2-win32.exe>`_
-
-  * Mac OSX (recent versions):
-
-    * `Download StandalonePsychoPy-1.85.2-OSX_64bit.dmg <https://github.com/psychopy/psychopy/releases/download/1.85.2/StandalonePsychoPy-1.85.2-OSX_64bit.dmg>`_
-
+  * `PsychoPy 1.85.4 <https://github.com/psychopy/psychopy/releases>`_
   * Ubuntu or debian-based systems:
 
     * `sudo apt-get install psychopy`
