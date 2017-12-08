@@ -2513,7 +2513,7 @@ class CoderFrame(wx.Frame):
             if hasattr(wx, "EXEC_NOHIDE"):
                 _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
             else:
-                _opts = wx.EXEC_ASYNC | wx.EXEC_HIDE_CONSOLE  # renamed in wx 4
+                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
             fullPath = fullPath.replace(' ', '\ ')
             pythonExec = sys.executable.replace(' ', '\ ')
