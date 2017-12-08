@@ -2025,7 +2025,6 @@ class BuilderFrame(wx.Frame):
         success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID, wx.SIGKILL)  # kill it aggressively
-        self.onProcessEnded(event=None)
 
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
