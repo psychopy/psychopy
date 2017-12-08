@@ -169,7 +169,7 @@ class PsychoPyApp(wx.App):
             splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
             splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
                                        timeout=3000,
-                                       style=AS.AS_TIMEOUT | wx.FRAME_SHAPED,
+                                       agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        shadowcolour=wx.RED)  # transparency?
             splash.SetTextPosition((10, 240))
             splash.SetText(_translate("  Loading libraries..."))
