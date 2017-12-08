@@ -1480,12 +1480,29 @@ class Window(object):
             style = None
         else:
             style = 'borderless'
-        self.winHandle = pyglet.window.Window(width=w, height=h,
-                                              caption="PsychoPy",
-                                              fullscreen=self._isFullScr,
-                                              config=config,
-                                              screen=thisScreen,
-                                              style=style)
+        try:
+            self.winHandle = pyglet.window.Window(
+                    width=w, height=h,
+                    caption="PsychoPy",
+                    fullscreen=self._isFullScr,
+                    config=config,
+                    screen=thisScreen,
+                    style=style)
+        except pyglet.gl.ContextException:
+            # turn off the shadow window an try again
+            pyglet.options['shadow_window'] = False
+            self.winHandle = pyglet.window.Window(
+                    width=w, height=h,
+                    caption="PsychoPy",
+                    fullscreen=self._isFullScr,
+                    config=config,
+                    screen=thisScreen,
+                    style=style)
+            logging.warning("Pyglet shadow_window has been turned off. This is "
+                            "only an issue for you if you need multiple "
+                            "stimulus windows, in which case update your "
+                            "graphics card and/or graphics drivers.")
+
         if sys.platform == 'win32':
             # pyHook window hwnd maps to:
             # pyglet 1.14 -> window._hwnd
