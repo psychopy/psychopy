@@ -1153,7 +1153,7 @@ class BuilderFrame(wx.Frame):
         self.bldrBtnSave = tb.AddSimpleTool(-1, saveBmp,
                                             _translate("Save [%s]") % keys['save'],
                                             _translate("Save current experiment file"))
-        self.bldrBtnSave.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnSave.Id, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, self.bldrBtnSave)
         item = tb.AddSimpleTool(wx.ID_ANY, saveAsBmp,
                                 _translate("Save As... [%s]") % keys['saveAs'],
@@ -1197,7 +1197,7 @@ class BuilderFrame(wx.Frame):
                                             _translate("Stop [%s]") % keys['stopScript'],
                                             _translate("Stop experiment"))
         tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
-        self.bldrBtnStop.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         tb.Realize()
 
     def makeMenus(self):
@@ -1793,7 +1793,7 @@ class BuilderFrame(wx.Frame):
             newVal = self.getIsModified()
         else:
             self.isModified = newVal
-        self.bldrBtnSave.Enable(newVal)
+        self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
 
     def getIsModified(self):
@@ -1890,7 +1890,7 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._undoLabel.SetText(label)
-        self.bldrBtnUndo.Enable(enable)
+        self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
         # check redo
@@ -1904,7 +1904,7 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._redoLabel.SetText(label)
-        self.bldrBtnRedo.Enable(enable)
+        self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
@@ -2015,8 +2015,8 @@ class BuilderFrame(wx.Frame):
         # launch the command
         self.scriptProcessID = wx.Execute(command, _opts,
                                           self.scriptProcess)
-        self.bldrBtnRun.Enable(False)
-        self.bldrBtnStop.Enable(True)
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
 
     def stopFile(self, event=None):
         """Kills script processes"""
@@ -2030,8 +2030,8 @@ class BuilderFrame(wx.Frame):
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
-        self.bldrBtnRun.Enable(True)
-        self.bldrBtnStop.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         # update the output window and show it
         text = u""
         if self.scriptProcess.IsInputAvailable():
