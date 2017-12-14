@@ -335,7 +335,25 @@ class ParamCtrls(object):
 
         returns: list of dicts of {Field:'', Default:''}
         """
-        expInfo = eval(expInfoStr)
+        try:
+            expInfo = eval(expInfoStr)
+        except SyntaxError:
+            """under Python3 {'participant':'', 'session':02} raises an error because 
+            ints can't have leading zeros. We will check for those and correct them
+            tests = ["{'participant':'', 'session':02}",
+                    "{'participant':'', 'session':02}",
+                    "{'participant':'', 'session': 0043}",
+                    "{'participant':'', 'session':02, 'id':009}",
+                    ]
+                    """
+            def entryToString(match):
+                entry = match.group(0)
+                digits = re.split(r": *", entry)[1]
+                return ':{}'.format(repr(digits))
+            # 0 or more spaces, 1-5 zeros, 0 or more digits:
+            pattern = re.compile(r": *0{1,5}\d*")
+            expInfo = eval(re.sub(pattern, entryToString, expInfoStr))
+            
         listOfDicts = []
         for field, default in list(expInfo.items()):
             listOfDicts.append({'Field': field, 'Default': default})
@@ -379,7 +397,8 @@ class _BaseParamsDlg(wx.Dialog):
                  showAdvanced=False,
                  size=wx.DefaultSize,
                  style=_style, editing=False,
-                 depends=[]):
+                 depends=[],
+                 timeout=None):
 
         # translate title
         if ' Properties' in title:  # Components and Loops
@@ -397,6 +416,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.helpUrl = helpUrl
         self.params = params  # dict
         self.title = title
+        self.timeout = timeout
         self.warningsDict = {}  # to store warnings for all fields
         if (not editing and
                 title != 'Experiment Settings' and
@@ -831,9 +851,21 @@ class _BaseParamsDlg(wx.Dialog):
 
         # self.paramCtrls['name'].valueCtrl.SetFocus()
         # do show and process return
-        retVal = self.ShowModal()
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.autoTerminate)
+            timeout.Start()
+        retVal = self.Show()
         self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
+
+    def autoTerminate(self, event=None, retval=1):
+        """Terminates the dialog early, for use with a timeout
+
+        :param event: an optional wx.EVT
+        :param retval: an optional int to pass to EndModal()
+        :return:
+        """
+        self.EndModal(retval)
 
     def Validate(self, *args, **kwargs):
         """Validate form data and disable OK button if validation fails.
@@ -1692,11 +1724,13 @@ class DlgExperimentProperties(_BaseParamsDlg):
     def __init__(self, frame, title, params, order, suppressTitles=False,
                  size=wx.DefaultSize, helpUrl=None,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 depends=[]):
+                 depends=[],
+                 timeout=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, 'Experiment Settings',
                                 params, order, depends=depends,
-                                size=size, style=style, helpUrl=helpUrl)
+                                size=size, style=style, helpUrl=helpUrl,
+                                timeout=timeout)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1776,6 +1810,9 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.SetPosition((builderPos[0] + 200, 20))
 
         # do show and process return
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.autoTerminate)
+            timeout.Start()
         retVal = self.ShowModal()
         if retVal == wx.ID_OK:
             self.OK = True

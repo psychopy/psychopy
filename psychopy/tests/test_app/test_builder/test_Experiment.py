@@ -10,7 +10,7 @@ import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests
+from psychopy import core, tests, prefs
 import pytest
 import locale
 from lxml import etree
@@ -29,6 +29,11 @@ import numpy
 
 allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
 
+app = PsychoPyApp(testMode=True, showSplash=False)
+app.newBuilderFrame()
+
+def teardown():
+    app.quit()
 
 def _filterout_legal(lines):
     """Ignore first 5 lines: header info, version, date can differ no problem
@@ -384,9 +389,6 @@ class Test_ExptComponents(object):
 
     @classmethod
     def setup_class(cls):
-        psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
-        app = psychopyApp._app
-        app.newBuilderFrame()
         cls.builder = app.getAllFrames("builder")[-1] # the most recent builder frame created
         cls.exp = cls.builder.exp
         cls.here = path.abspath(path.dirname(__file__))
@@ -433,3 +435,24 @@ class Test_ExptComponents(object):
         # compile the temp file to .pyc, catching error msgs (including no file at all):
         py_compile.compile(filepath, doraise=True)
         return filepath + 'c'
+
+
+def test_BuilderFrame():
+    """Tests of the Builder frame. We can call dialog boxes using
+    a timeout (will simulate OK being pressed)
+    """
+    builderView = app.newBuilderFrame()
+    """
+    In python3 001 is a syntax error and needs to be converted
+    to '001' but our old demos (pre 1.85) used this in expInfo
+    dictionaries like {"participant':001}
+    This tests that our fix is working
+    """
+
+    expfile = path.join(prefs.paths['tests'],
+                        'data', 'test001EntryImporting.psyexp')
+    builderView.fileOpen(filename=expfile)
+    builderView.setExperimentSettings(timeout=1000)
+    builderView.isModified = False
+    #assert exp == 5
+    del builderView

@@ -2105,7 +2105,7 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()
         self.app.coder.gotoLine(filename, lineNumber)
 
-    def setExperimentSettings(self, event=None):
+    def setExperimentSettings(self, event=None, timeout=None):
         """Defines ability to save experiment settings
         """
         component = self.exp.settings
@@ -2117,7 +2117,8 @@ class BuilderFrame(wx.Frame):
         title = '%s Properties' % self.exp.getExpName()
         dlg = DlgExperimentProperties(frame=self, title=title,
                                       params=component.params,
-                                      helpUrl=helpUrl, order=component.order)
+                                      helpUrl=helpUrl, order=component.order,
+                                      timeout=timeout)
         if dlg.OK:
             self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
