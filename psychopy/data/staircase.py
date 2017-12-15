@@ -858,9 +858,6 @@ class QuestHandler(StairHandler):
             maxVal=maxVal, name=name, autoLog=autoLog)
 
         self.stopInterval = stopInterval
-
-        startVal = startVal
-        startValSd = startValSd
         self._questNextIntensity = startVal
 
         # Create Quest object
@@ -888,7 +885,6 @@ class QuestHandler(StairHandler):
         if intensity is None:
             intensity = self._questNextIntensity
         else:
-            intensity = intensity
             # Update the intensity.
             #
             # During the first trial, self.intensities will be of length 0,
