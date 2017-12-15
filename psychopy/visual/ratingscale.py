@@ -1010,7 +1010,10 @@ class RatingScale(MinimalStim):
         _tickStretch = self.tickMarks/self.hStretchTotal
         adjValue = value - self.offsetHoriz
         markerPos = adjValue * _tickStretch + self.tickMarks/2.0
-        rounded = round(markerPos * self.scaledPrecision)
+        # We need float value in getRating(), but round() returns
+        # numpy.float64 if argument is numpy.float64 in Python3.
+        # So we have to convert return value of round() to float.
+        rounded = float(round(markerPos * self.scaledPrecision))
         return rounded/self.scaledPrecision
 
     def _getMarkerFromTick(self, tick):
