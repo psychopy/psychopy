@@ -76,6 +76,7 @@ _localized = {
 
 scriptTarget = "PsychoPy"  # need a  global variable so that
 
+
 class CodeGenerationException(Exception):
     """
     Exception thrown by a component when it is unable to generate its code.
@@ -1661,7 +1662,7 @@ class Flow(list):
         # treat expInfo as likely to be constant; also treat its keys as
         # constant because its handy to make a short-cut in code:
         # exec(key+'=expInfo[key]')
-        expInfo = eval(self.exp.settings.params['Experiment info'].val)
+        expInfo = self.exp.settings.getInfo()
         keywords = self.exp.namespace.nonUserBuilder[:]
         keywords.extend(['expInfo'] + list(expInfo.keys()))
         reserved = set(keywords).difference({'random', 'rand'})
