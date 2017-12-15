@@ -29,11 +29,6 @@ import numpy
 
 allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
 
-app = PsychoPyApp(testMode=True, showSplash=False)
-app.newBuilderFrame()
-
-def teardown():
-    app.quit()
 
 def _filterout_legal(lines):
     """Ignore first 5 lines: header info, version, date can differ no problem
@@ -376,20 +371,16 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
 
-class Test_ExptComponents(object):
+class Test_App(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
-    def test_all_components(self):
-        for compName, compClass in list(allComponents.items()):
-            if compName in ['SettingsComponent']:
-                continue
-            thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
-            self._checkCompileWith(thisComp)
-
     @classmethod
     def setup_class(cls):
-        cls.builder = app.getAllFrames("builder")[-1] # the most recent builder frame created
+        cls.app = PsychoPyApp(testMode=True, showSplash=False)
+        cls.app.newBuilderFrame()
+
+        cls.builder = cls.app.getAllFrames("builder")[-1] # the most recent builder frame created
         cls.exp = cls.builder.exp
         cls.here = path.abspath(path.dirname(__file__))
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
@@ -397,13 +388,33 @@ class Test_ExptComponents(object):
         cls.testRoutine = cls.exp.routines['testRoutine']
         cls.exp.flow.addRoutine(cls.testRoutine, 0)
 
-    def setup(self):
-        # dirs and files:
-        pass
-
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
+        cls.app.quit()
+        del cls.app
+
+    def test_all_components(self):
+        for compName, compClass in list(allComponents.items()):
+            if compName in ['SettingsComponent']:
+                continue
+            thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
+            self._checkCompileWith(thisComp)
+
+    def test_BuilderFrame(self):
+        """Tests of the Builder frame. We can call dialog boxes using
+        a timeout (will simulate OK being pressed)
+        """
+        builderView = Test_App.app.newBuilderFrame()
+
+        expfile = path.join(prefs.paths['tests'],
+                            'data', 'test001EntryImporting.psyexp')
+        builderView.fileOpen(filename=expfile)
+        builderView.setExperimentSettings(timeout=1000)
+        builderView.isModified = False
+        #assert exp == 5
+        del builderView
+
 
 #    def _send_OK_after(self):
 #        #this is supposed to help with sending button clicks but not working
@@ -435,24 +446,3 @@ class Test_ExptComponents(object):
         # compile the temp file to .pyc, catching error msgs (including no file at all):
         py_compile.compile(filepath, doraise=True)
         return filepath + 'c'
-
-
-def test_BuilderFrame():
-    """Tests of the Builder frame. We can call dialog boxes using
-    a timeout (will simulate OK being pressed)
-    """
-    builderView = app.newBuilderFrame()
-    """
-    In python3 001 is a syntax error and needs to be converted
-    to '001' but our old demos (pre 1.85) used this in expInfo
-    dictionaries like {"participant':001}
-    This tests that our fix is working
-    """
-
-    expfile = path.join(prefs.paths['tests'],
-                        'data', 'test001EntryImporting.psyexp')
-    builderView.fileOpen(filename=expfile)
-    builderView.setExperimentSettings(timeout=1000)
-    builderView.isModified = False
-    #assert exp == 5
-    del builderView

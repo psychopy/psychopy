@@ -23,4 +23,5 @@ json_tricks
 codecov
 pytest
 pytest-cov
+pytest-xdist
 coveralls

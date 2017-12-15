@@ -124,7 +124,7 @@ before_script:
 #    fi;
 
 script:
-  - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
+  - pytest --cov-config .travis_coveragerc --cov=psychopy --dist=loadscope -n 2 -v -s -m "not needs_sound" psychopy
 
 after_success:
   - coveralls
