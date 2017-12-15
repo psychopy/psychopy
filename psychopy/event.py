@@ -148,6 +148,10 @@ def _onPygletKey(symbol, modifiers, emulated=False):
             return
         useText = False
         thisKey = thisKey.lstrip('_').lstrip('NUM_')
+        # Pyglet 1.3.0 returns 'enter' when Return key (0xFF0D) is pressed 
+        # in Python3.  So we have to replace 'enter' with 'return'.
+        if thisKey == 'enter':
+            thisKey = 'return'
         keySource = 'Keypress'
     _keyBuffer.append((thisKey, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, thisKey))
