@@ -7,6 +7,7 @@ from builtins import str
 from builtins import object
 import os
 import wx
+import re
 from .._base import BaseComponent, Param, _translate
 import psychopy
 from psychopy import logging
@@ -249,6 +250,42 @@ class SettingsComponent(object):
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
 
+    def getInfo(self):
+        """Rather than converting the value of params['Experiment Info']
+        into a dict from a string (which can lead to errors) use this function
+        :return: expInfo as a dict
+        """
+        infoStr = self.params['Experiment info'].val.strip()
+        if len(infoStr) == 0:
+            return {}
+        try:
+            d = eval(infoStr)
+        except SyntaxError:
+            """under Python3 {'participant':'', 'session':02} raises an error because 
+            ints can't have leading zeros. We will check for those and correct them
+            tests = ["{'participant':'', 'session':02}",
+                    "{'participant':'', 'session':02}",
+                    "{'participant':'', 'session': 0043}",
+                    "{'participant':'', 'session':02, 'id':009}",
+                    ]
+                    """
+
+            def entryToString(match):
+                entry = match.group(0)
+                digits = re.split(r": *", entry)[1]
+                return ':{}'.format(repr(digits))
+
+            # 0 or more spaces, 1-5 zeros, 0 or more digits:
+            pattern = re.compile(r": *0{1,5}\d*")
+            try:
+                d = eval(re.sub(pattern, entryToString, infoStr))
+            except SyntaxError:  # still a syntax error, possibly caused by user
+                msg = ('Builder Expt: syntax error in '
+                              '"Experiment info" settings (expected a dict)')
+                logging.error(msg)
+                raise AttributeError(msg)
+        return d
+
     def getType(self):
         return self.__class__.__name__
 
@@ -465,17 +502,8 @@ class SettingsComponent(object):
             code = ("expName = %s  # from the Builder filename that created"
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
-        expInfo = self.params['Experiment info'].val.strip()
-        if not len(expInfo):
-            expInfo = '{}'
-        try:
-            expInfoDict = eval('dict(' + expInfo + ')')
-        except SyntaxError:
-            logging.error('Builder Expt: syntax error in '
-                          '"Experiment info" settings (expected a dict)')
-            raise AttributeError('Builder: error in "Experiment info"'
-                                 ' settings (expected a dict)')
-        buff.writeIndented("expInfo = %s\n" % expInfo)
+        expInfoDict = self.getInfo()
+        buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
                 "dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n"

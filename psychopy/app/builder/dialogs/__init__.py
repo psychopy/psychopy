@@ -335,25 +335,8 @@ class ParamCtrls(object):
 
         returns: list of dicts of {Field:'', Default:''}
         """
-        try:
-            expInfo = eval(expInfoStr)
-        except SyntaxError:
-            """under Python3 {'participant':'', 'session':02} raises an error because 
-            ints can't have leading zeros. We will check for those and correct them
-            tests = ["{'participant':'', 'session':02}",
-                    "{'participant':'', 'session':02}",
-                    "{'participant':'', 'session': 0043}",
-                    "{'participant':'', 'session':02, 'id':009}",
-                    ]
-                    """
-            def entryToString(match):
-                entry = match.group(0)
-                digits = re.split(r": *", entry)[1]
-                return ':{}'.format(repr(digits))
-            # 0 or more spaces, 1-5 zeros, 0 or more digits:
-            pattern = re.compile(r": *0{1,5}\d*")
-            expInfo = eval(re.sub(pattern, entryToString, expInfoStr))
-            
+        expInfo = self.exp.settings.getInfo()
+
         listOfDicts = []
         for field, default in list(expInfo.items()):
             listOfDicts.append({'Field': field, 'Default': default})
