@@ -172,7 +172,7 @@ class Experiment(object):
         self.psychopyVersion = __version__
         # What libs are needed (make sound come first)
         self.psychopyLibs = ['sound', 'gui', 'visual', 'core',
-                             'data', 'event', 'logging']
+                             'data', 'event', 'logging', 'clock']
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving

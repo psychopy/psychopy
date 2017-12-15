@@ -403,7 +403,7 @@ class TrialHandler(_BaseTrialHandler):
             thisLine = []
             lines.append(thisLine)
             # write a header line
-            for heading in stimOut + dataHead:
+            for heading in list(stimOut) + dataHead:
                 if heading == 'ran_sum':
                     heading = 'n'
                 elif heading == 'order_raw':

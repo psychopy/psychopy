@@ -320,13 +320,25 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
 
     elif fileName.endswith('.pkl'):
-        f = open(fileName, 'rU')  # is U needed?
+        f = open(fileName, 'rb')
+        # Converting newline characters.
+        if PY3:
+            # 'b' is necessary in Python3 because byte object is 
+            # returned when file is opened in binary mode.
+            buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+        else:
+            buffer = f.read().replace('\r\n','\n').replace('\r','\n')
         try:
-            trialsArr = pickle.load(f)
+            trialsArr = pickle.loads(buffer)
         except Exception:
             raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
+        if PY3:
+            # In Python3, strings returned by pickle() is unhashable.
+            # So, we have to convert them to str.
+            trialsArr = [[str(item) if isinstance(item, str) else item
+                          for item in row] for row in trialsArr]
         fieldNames = trialsArr[0]  # header line first
         _assertValidVarNames(fieldNames, fileName)
         for row in trialsArr[1:]:

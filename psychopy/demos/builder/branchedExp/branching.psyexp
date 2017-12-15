@@ -8,7 +8,7 @@
     <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
-    <Param name="Experiment info" val="{'participant':'ID01', 'session':001}" valType="code" updates="None"/>
+    <Param name="Experiment info" val="{'participant':'ID01', 'session':'001'}" valType="code" updates="None"/>
     <Param name="Save excel file" val="True" valType="bool" updates="None"/>
     <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
