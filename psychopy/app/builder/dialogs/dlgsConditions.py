@@ -25,6 +25,8 @@ from psychopy import gui
 from .. experiment import _valid_var_re, _nonalphanumeric_re
 from ...localization import _translate
 
+from psychopy.constants import PY3
+
 darkblue = wx.Colour(30, 30, 150, 255)
 darkgrey = wx.Colour(65, 65, 65, 255)
 white = wx.Colour(255, 255, 255, 255)
@@ -59,7 +61,7 @@ class DlgConditions(wx.Dialog):
     def __init__(self, grid=None, fileName=False, parent=None, title='',
                  trim=True, fixed=False, hasHeader=True, gui=True,
                  extraRows=0, extraCols=0,
-                 clean=True, pos=None, preview=True,
+                 clean=True, pos=wx.DefaultPosition, preview=True,
                  _restore=None, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT):
         self.parent = parent  # gets the conditionsFile info
@@ -457,7 +459,7 @@ class DlgConditions(wx.Dialog):
             # data matrix on top, buttons below
             self.border = wx.FlexGridSizer(2, 1)
         else:
-            self.border = wx.FlexGridSizer(4)
+            self.border = wx.FlexGridSizer(4, 1, wx.Size(0,0))
         self.border.Add(self.sizer, proportion=1,
                         flag=wx.ALL | wx.EXPAND, border=8)
 
@@ -623,8 +625,15 @@ class DlgConditions(wx.Dialog):
             if fullPathList:
                 fileName = fullPathList[0]  # wx.MULTIPLE -> list
         if os.path.isfile(fileName) and fileName.endswith('.pkl'):
-            f = open(fileName)
-            contents = pickle.load(f)
+            f = open(fileName, 'rb')
+            # Converting newline characters.
+            if PY3:
+                # 'b' is necessary in Python3 because byte object is 
+                # returned when file is opened in binary mode.
+                buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+            else:
+                buffer = f.read().replace('\r\n','\n').replace('\r','\n')
+            contents = pickle.loads(buffer)
             f.close()
             if self.parent:
                 self.parent.conditionsFile = fileName

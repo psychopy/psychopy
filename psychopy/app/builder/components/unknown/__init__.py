@@ -30,6 +30,7 @@ class UnknownComponent(BaseComponent):
         self.exp = exp  # so we can access the experiment if necess
         self.parentName = parentName  # to access the routine too if needed
         self.params = {}
+        self.depends = []
         _hint = _translate("Name of this component (alpha-numeric or _, "
                            "no spaces)")
         self.params['name'] = Param(name, valType='code',
