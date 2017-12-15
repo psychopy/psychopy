@@ -1,8 +1,7 @@
 from __future__ import print_function
 from past.builtins import execfile
 from builtins import object
-from psychopy.app import psychopyApp
-from psychopy.app._psychopyApp import PsychoPyApp
+
 import psychopy.app.builder.experiment
 from os import path
 import os, shutil, glob, sys
@@ -371,41 +370,38 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
 
+
 class Test_App(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
-    @classmethod
-    def setup_class(cls):
-        cls.app = PsychoPyApp(testMode=True, showSplash=False)
-        cls.app.newBuilderFrame()
+    @pytest.mark.usefixtures('pytest_namespace')
+    def setup(self):
+        self.app = pytest.app
 
-        cls.builder = cls.app.getAllFrames("builder")[-1] # the most recent builder frame created
-        cls.exp = cls.builder.exp
-        cls.here = path.abspath(path.dirname(__file__))
-        cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
-        cls.exp.addRoutine('testRoutine')
-        cls.testRoutine = cls.exp.routines['testRoutine']
-        cls.exp.flow.addRoutine(cls.testRoutine, 0)
+        self.builder = self.app.newBuilderFrame()
+        self.exp = self.builder.exp
+        self.here = path.abspath(path.dirname(__file__))
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
+        self.exp.addRoutine('testRoutine')
+        self.testRoutine = self.exp.routines['testRoutine']
+        self.exp.flow.addRoutine(self.testRoutine, 0)
 
-    @classmethod
-    def teardown_class(cls):
-        shutil.rmtree(cls.tmp_dir, ignore_errors=True)
-        cls.app.quit()
-        del cls.app
+    def teardown(self):
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
-    def test_all_components(self):
-        for compName, compClass in list(allComponents.items()):
-            if compName in ['SettingsComponent']:
-                continue
-            thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
-            self._checkCompileWith(thisComp)
+    # def test_all_components(self):
+    #     for compName, compClass in list(allComponents.items()):
+    #         if compName in ['SettingsComponent']:
+    #             continue
+    #         thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
+    #         self._checkCompileWith(thisComp)
 
     def test_BuilderFrame(self):
         """Tests of the Builder frame. We can call dialog boxes using
         a timeout (will simulate OK being pressed)
         """
-        builderView = Test_App.app.newBuilderFrame()
+        builderView = self.app.newBuilderFrame()
 
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
