@@ -140,7 +140,7 @@ class SerialDevice(object):
         """
         # send a command to the device and check the response matches what
         # you expect; then return True or False
-        raise NotImplemented
+        raise NotImplementedError
 
     def pause(self):
         """Pause for a default period for this device
