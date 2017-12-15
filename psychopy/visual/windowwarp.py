@@ -199,7 +199,7 @@ class Warper(object):
         elif self.warp == 'warpfile':
             self.projectionWarpfile()
         else:
-            raise 'Unknown warp specification'
+            raise ValueError('Unknown warp specification: %s' % self.warp)
 
     def projectionNone(self):
         """No warp, same projection as original PsychoPy

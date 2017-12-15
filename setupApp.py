@@ -24,7 +24,7 @@ packageData = []
 requires = []
 
 if platform != 'darwin':
-    raise "As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle"
+    raise RuntimeError("As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle")
 
 import bdist_mpkg
 import py2app
