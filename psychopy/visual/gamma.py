@@ -68,6 +68,9 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     parameter nAttemps allows the user to determine how many attempts should
     be made before failing
     """
+
+    LUTlength = newRamp.shape[1]
+
     if newRamp.shape[0] != 3 and newRamp.shape[1] == 3:
         newRamp = numpy.ascontiguousarray(newRamp.transpose())
     if sys.platform == 'win32':
@@ -83,7 +86,6 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
 
     if sys.platform == 'darwin':
         newRamp = (newRamp).astype(numpy.float32)
-        LUTlength = newRamp.shape[1]
         try:
             _screenID = pygletWindow._screen.id  # pyglet1.2alpha1
         except AttributeError:
@@ -98,7 +100,7 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     if sys.platform.startswith('linux') and not _TravisTesting:
         newRamp = (65535 * newRamp).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
-            pygletWindow._x_display, pygletWindow._x_screen_id, 256,
+            pygletWindow._x_display, pygletWindow._x_screen_id, LUTlength,
             newRamp[0, :].ctypes,
             newRamp[1, :].ctypes,
             newRamp[2, :].ctypes)
@@ -110,11 +112,14 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
 
 
 def getGammaRamp(pygletWindow):
-    """Ramp will be returned as 3x256 array in range 0:1
+    """Ramp will be returned as 3xN array in range 0:1
     """
+
+    rampSize = getGammaRampSize(pygletWindow)
+
     if sys.platform == 'win32':
         # init R, G, and B ramps
-        origramps = numpy.empty((3, 256), dtype=numpy.uint16)
+        origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = windll.gdi32.GetDeviceGammaRamp(
             0xFFFFFFFF & pygletWindow._dc, origramps.ctypes)  # FB 504
         if not success:
@@ -123,14 +128,14 @@ def getGammaRamp(pygletWindow):
 
     if sys.platform == 'darwin':
         # init R, G, and B ramps
-        origramps = numpy.empty((3, 256), dtype=numpy.float32)
+        origramps = numpy.empty((3, rampSize), dtype=numpy.float32)
         n = numpy.empty([1], dtype=numpy.int)
         try:
             _screenID = pygletWindow._screen.id  # pyglet1.2alpha1
         except AttributeError:
             _screenID = pygletWindow._screen._cg_display_id  # pyglet1.2
         error = carbon.CGGetDisplayTransferByTable(
-            _screenID, 256,
+            _screenID, rampSize,
             origramps[0, :].ctypes,
             origramps[1, :].ctypes,
             origramps[2, :].ctypes, n.ctypes)
@@ -138,9 +143,9 @@ def getGammaRamp(pygletWindow):
             raise AssertionError('CGSetDisplayTransferByTable failed')
 
     if sys.platform.startswith('linux'):
-        origramps = numpy.empty((3, 256), dtype=numpy.uint16)
+        origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = xf86vm.XF86VidModeGetGammaRamp(
-            pygletWindow._x_display, pygletWindow._x_screen_id, 256,
+            pygletWindow._x_display, pygletWindow._x_screen_id, rampSize,
             origramps[0, :].ctypes,
             origramps[1, :].ctypes,
             origramps[2, :].ctypes)
@@ -211,7 +216,8 @@ def createLinearRamp(win, rampType=None):
             rampType = 0
 
     if rampType == 0:
-        ramp = numpy.linspace(0.0, 1.0, num=256)
+        rampSize = getGammaRampSize(win)
+        ramp = numpy.linspace(0.0, 1.0, num=rampSize)
     elif rampType == 1:
         ramp = numpy.linspace(1/256.0, 1.0, num=256)
     elif rampType == 2:
@@ -221,3 +227,29 @@ def createLinearRamp(win, rampType=None):
         ramp[512:] = ramp[512:] - 1/256.0
     logging.info('Using gamma ramp type: %i' % rampType)
     return ramp
+
+
+def getGammaRampSize(pygletWindow):
+    """Returns the size of each channel of the gamma ramp."""
+
+    if sys.platform == 'win32':
+        pass
+
+    elif sys.platform == 'darwin':
+        pass
+
+    elif sys.platform.startswith('linux'):
+
+        rampSize = ctypes.c_int()
+
+        success = xf86vm.XF86VidModeGetGammaRampSize(
+            pygletWindow._x_display,
+            pygletWindow._x_screen_id,
+            ctypes.byref(rampSize)
+        )
+
+        assert success, 'XF86VidModeGetGammaRampSize failed'
+
+        rampSize = rampSize.value
+
+    return rampSize
