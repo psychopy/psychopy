@@ -473,8 +473,8 @@ class TestQuestHandler(_BaseTestStairHandler):
         self.simulate()
         self.checkSimulationResults()
 
-        assert self.startVal == startVal
-        assert self.startValSd == startValSd
+        assert self.stairs.startVal == startVal
+        assert self.stairs.startValSd == startValSd
 
         assert np.allclose(self.stairs.mean(), mean)
         assert np.allclose(self.stairs.mode(), mode)
