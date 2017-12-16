@@ -857,6 +857,8 @@ class QuestHandler(StairHandler):
             method=method, stepType='lin', minVal=minVal,
             maxVal=maxVal, name=name, autoLog=autoLog)
 
+        self.startVal = startVal
+        self.startValSd = startValSd
         self.stopInterval = stopInterval
         self._questNextIntensity = startVal
 
