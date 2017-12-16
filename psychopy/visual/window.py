@@ -1137,7 +1137,7 @@ class Window(object):
             openWindows.remove(self)
         except Exception:
             pass
-        if not self.useNativeGamma and self.origGammaRamp is not None:
+        if self.origGammaRamp is not None:
             setGammaRamp(self.winHandle, self.origGammaRamp)
         try:
             self.mouseVisible = True
@@ -1305,20 +1305,22 @@ class Window(object):
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
+
+        # try to retrieve previous so we can reset later
+        try:
+            self.origGammaRamp = getGammaRamp(self.winHandle)
+        except Exception:
+            self.origGammaRamp = None
+
         # then try setting it
         if self.useNativeGamma:
             if self.autoLog:
                 logging.info('Using gamma table of operating system')
         else:
-            # try to retrieve previous so we can reset later
-            try:
-                self.origGammaRamp = getGammaRamp(self.winHandle)
-            except Exception:
-                self.origGammaRamp = None
-
             if self.autoLog:
                 logging.info('Using gamma: self.gamma' + str(self.gamma))
             self.gamma = gammaVal  # using either pygame or bits++
+
 
     @attributeSetter
     def gamma(self, gamma):
