@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-16 13:44+0900\n"
-"PO-Revision-Date: 2017-12-16 14:18+0900\n"
+"POT-Creation-Date: 2017-12-18 16:47+0900\n"
+"PO-Revision-Date: 2017-12-18 16:47+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -68,15 +68,15 @@ msgstr "アプリケーションを終了します"
 
 #: psychopy/app/_psychopyApp.py:175
 msgid "  Loading libraries..."
-msgstr "ライブラリをロード中..."
+msgstr " ライブラリをロード中..."
 
 #: psychopy/app/_psychopyApp.py:182
 msgid "  Loading PsychoPy2..."
-msgstr "PsychoPy2をロード中..."
+msgstr " PsychoPy2をロード中..."
 
 #: psychopy/app/_psychopyApp.py:281
 msgid "  Creating frames..."
-msgstr "ウィンドウを準備中..."
+msgstr " ウィンドウを準備中..."
 
 #: psychopy/app/_psychopyApp.py:310
 msgid "Compatibility information"
@@ -98,7 +98,7 @@ msgid ""
 msgstr ""
 "Pythonによる刺激作成および実験制御アプリケーション\n"
 "PsychoPyはあなたからのフィードバックを求めています。不具合を見つけたら\n"
-"psychopy-users@googlegroups.com に御連絡ください。"
+"psychopy-users@googlegroups.com に御連絡ください"
 
 #: psychopy/app/builder/builder.py:67
 #: psychopy/app/builder/localizedStrings.py:79
@@ -582,7 +582,7 @@ msgid "About PsychoPy"
 msgstr "PsychoPyについて"
 
 #: psychopy/app/builder/builder.py:1503
-#: psychopy/app/builder/dialogs/__init__.py:1514
+#: psychopy/app/builder/dialogs/__init__.py:1515
 #: psychopy/app/coder/coder.py:2246
 msgid "Open file ..."
 msgstr "ファイルを開く..."
@@ -782,7 +782,7 @@ msgstr "刺激の位置を指定します (例:[1,2])"
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
-"刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2])"
+"刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
 #: psychopy/app/builder/components/_base.py:541
 #: psychopy/app/builder/components/envelopegrating/__init__.py:67
@@ -886,7 +886,7 @@ msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); "
 "right-click checks syntax"
 msgstr ""
-"Routineが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック "
+"Routineが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック"
 
 #: psychopy/app/builder/components/code/__init__.py:59
 msgid ""
@@ -1133,7 +1133,7 @@ msgstr ""
 
 #: psychopy/app/builder/components/envelopegrating/__init__.py:88
 msgid "Contrast of background carrier"
-msgstr "背景となるキャリアのコントラストを指定します。"
+msgstr "背景となるキャリアのコントラストを指定します"
 
 #: psychopy/app/builder/components/envelopegrating/__init__.py:96
 msgid ""
@@ -1191,7 +1191,7 @@ msgstr "変調エンベロープの回転角度を指定します(0から360の�
 
 #: psychopy/app/builder/components/envelopegrating/__init__.py:169
 msgid "Modulation depth of modulation envelope"
-msgstr "変調エンベロープによる変調幅を指定します。"
+msgstr "変調エンベロープによる変調幅を指定します"
 
 #: psychopy/app/builder/components/envelopegrating/__init__.py:177
 msgid ""
@@ -1206,8 +1206,8 @@ msgid ""
 "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
 "combining a beat with the carrier image or numpy array at point of display"
 msgstr ""
-"OpenGLのブレンドモードを指定します。avgはPsychoPyの標準モードです。addはビー"
-"トをキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です。"
+"OpenGLのブレンドモードを指定します avgはPsychoPyの標準モードです addはビート"
+"をキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です"
 
 #: psychopy/app/builder/components/eyetracker/__init__.py:16
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
@@ -1293,7 +1293,7 @@ msgid ""
 "circle, None or a filename (including path)"
 msgstr ""
 "αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
-"ど)。"
+"ど)"
 
 #: psychopy/app/builder/components/image/__init__.py:75
 msgid "Resolution of the mask if one is used."
@@ -1428,7 +1428,7 @@ msgstr "視覚刺激に対する反応時間計測をスクリーンのフリッ
 msgid ""
 "Microphone: basic sound capture (fixed onset & duration), okay for spoken "
 "words"
-msgstr "Microphone: 録音を行います(開始時刻と録音時間は固定) "
+msgstr "Microphone: 録音を行います(開始時刻と録音時間は固定)"
 
 #: psychopy/app/builder/components/microphone/__init__.py:21
 msgid "Stereo"
@@ -1438,7 +1438,7 @@ msgstr "ステレオ"
 msgid "Record two channels (stereo) or one (mono, smaller file)"
 msgstr ""
 "チェックするとステレオ録音、チェックを外すとモノラル録音(ファイルサイズ小)を"
-"します "
+"します"
 
 #: psychopy/app/builder/components/microphone/__init__.py:53
 msgid "The duration of the recording in seconds; blank = 0 sec"
@@ -1480,12 +1480,16 @@ msgid ""
 "If the mouse button is already down when we startchecking then wait for it "
 "to be released beforerecording as a new click."
 msgstr ""
+"ルーチン開始時にすでにマウスのボタンが押されていた場合、ボタンがいったん離さ"
+"れてからボタン押しのチェックを開始します"
 
 #: psychopy/app/builder/components/mouse/__init__.py:99
 msgid ""
 "A comma-separated list of your stimulus names that can be \"clicked\" by the "
 "participant. e.g. target, foil"
 msgstr ""
+"クリックの判定対象となる刺激名(例: target, foil)をカンマ区切りのリストで指定"
+"します"
 
 #: psychopy/app/builder/components/mouse/__init__.py:109
 msgid ""
@@ -1493,6 +1497,9 @@ msgid ""
 "for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
 "clickable objects have all these params."
 msgstr ""
+"クリックしたと判定された刺激のパラメータ(例: name, text)のうち、クリック時の"
+"値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げた"
+"パラメータを全て持っていなければいけません"
 
 #: psychopy/app/builder/components/movie/__init__.py:16
 msgid "Movie: play movie files"
@@ -1533,16 +1540,12 @@ msgid "Image from which to derive noise spectrum"
 msgstr "ノイズスペクトルを取得する画像"
 
 #: psychopy/app/builder/components/noise/__init__.py:23
-#, fuzzy
-#| msgid "Envelope spatial frequency"
 msgid "Final spatial frequency"
-msgstr "エンベロープの空間周波数"
+msgstr "最終的な空間周波数"
 
 #: psychopy/app/builder/components/noise/__init__.py:25
-#, fuzzy
-#| msgid "Carrier contrast"
 msgid "Contrast"
-msgstr "キャリアのコントラスト"
+msgstr "コントラスト"
 
 #: psychopy/app/builder/components/noise/__init__.py:28
 msgid "Type of noise"
@@ -1558,16 +1561,12 @@ msgstr "周波数スペクトルの歪度"
 
 #: psychopy/app/builder/components/noise/__init__.py:31
 #: psychopy/app/builder/components/noise/__init__.py:159
-#, fuzzy
-#| msgid "Carrier spatial frequency"
 msgid "Base spatial frequency"
-msgstr "キャリアの空間周波数"
+msgstr "ベースの空間周波数"
 
 #: psychopy/app/builder/components/noise/__init__.py:32
-#, fuzzy
-#| msgid "Spatial frequency"
 msgid "Spatial frequency bandwidth"
-msgstr "空間周波数"
+msgstr "空間周波数の帯域幅"
 
 #: psychopy/app/builder/components/noise/__init__.py:33
 msgid "Orientation bandwidth for Gabor noise"
@@ -1578,10 +1577,8 @@ msgid "Order of filter"
 msgstr "フィルタの次元"
 
 #: psychopy/app/builder/components/noise/__init__.py:35
-#, fuzzy
-#| msgid "Spatial frequency"
 msgid "Upper cut off frequency"
-msgstr "空間周波数"
+msgstr "遮断周波数(高周波数側)"
 
 #: psychopy/app/builder/components/noise/__init__.py:36
 msgid "Lower cut off frequency"
@@ -1600,16 +1597,11 @@ msgid "When to update noise sample"
 msgstr "ノイズサンプルの更新タイミング"
 
 #: psychopy/app/builder/components/noise/__init__.py:74
-#, fuzzy
-#| msgid ""
-#| "An image to define the alpha mask (ie shape)- gauss, circle... or a "
-#| "filename (including path)"
 msgid ""
 "An image from which to derive the frequency spectrum for the noise. Give "
 "filename (including path)"
 msgstr ""
-"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
-"ど)。"
+"ノイズの周波数スペクトルを得るために使用する画像のファイル名を指定します"
 
 #: psychopy/app/builder/components/noise/__init__.py:100
 msgid "Michaelson contrast of the image"
@@ -1620,31 +1612,32 @@ msgid ""
 "Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3] use "
 "None to set to 1 cycle per unit length or 1 cycle per image if units=pix"
 msgstr ""
+"最終的な空間周波数を1次元または2次元(例えば4や[2,3])で指定します 単位長につき"
+"1周期(pix指定時には画像につき1周期)を指定する場合はNoneを使用出来ます"
 
 #: psychopy/app/builder/components/noise/__init__.py:116
-#, fuzzy
-#| msgid ""
-#| "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
 msgid "Spatial positioning of the image  (wraps in range 0-1.0)"
-msgstr "グレーティングの位相を指定します (0.0から1.0の範囲に丸められます)"
+msgstr "画像の位置を指定します (0.0から1.0の範囲に丸められます)"
 
 #: psychopy/app/builder/components/noise/__init__.py:143
 msgid ""
 "Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
 "Image)"
 msgstr ""
+"ノイズの種類 (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
+"Image)"
 
 #: psychopy/app/builder/components/noise/__init__.py:151
 msgid "(Binary, Normal an Uniform only) Size of noise elements"
-msgstr ""
+msgstr "ノイズ要素のサイズ (Binary, Normal an Uniformの場合のみ)"
 
 #: psychopy/app/builder/components/noise/__init__.py:167
 msgid "Spatial frequency bandwidth in octaves - Full width half height"
-msgstr ""
+msgstr "空間周波数帯域をオクターブで指定します (半値幅)"
 
 #: psychopy/app/builder/components/noise/__init__.py:175
 msgid "Orientation bandwidth in degrees (Gabor only) - Full width half height"
-msgstr ""
+msgstr "方位の帯域幅を角度で指定します (半値幅, Gaborのみ)"
 
 #: psychopy/app/builder/components/noise/__init__.py:183
 msgid ""
@@ -1652,20 +1645,20 @@ msgid ""
 "nice. -1='pink noise', 0='white noise' (changes the spatial frequency "
 "spectrum - does not make the noise colourful)"
 msgstr ""
+"ノイズのスペクトルスロープの指数(A=f^Exponent) -1=ピンクノイズ, 0=ホワイトノ"
+"イズ"
 
 #: psychopy/app/builder/components/noise/__init__.py:191
 msgid "Order of filter - higher = steeper fall off, zero = no filter"
-msgstr ""
+msgstr "フィルタの次数 高次元なほど急峻となり,ゼロならフィルタなしとなります"
 
 #: psychopy/app/builder/components/noise/__init__.py:199
-#, fuzzy
-#| msgid "Spatial frequency"
 msgid "Upper cutoff frequency"
-msgstr "空間周波数"
+msgstr "遮断周波数(高周波数側)"
 
 #: psychopy/app/builder/components/noise/__init__.py:207
 msgid "Lower cutoff frequency"
-msgstr ""
+msgstr "遮断周波数(低周波数側)"
 
 #: psychopy/app/builder/components/noise/__init__.py:215
 msgid ""
@@ -1674,30 +1667,32 @@ msgid ""
 "noise). The higher this is the lower the final RMS contrast. If low noise "
 "may appear binary"
 msgstr ""
+"平均値から指定した値より離れている値を切り捨てます (binaryまたはuniformノイズ"
+"では使用されず、normalノイズでは切り捨てではなくスケーリングされます) この値"
+"を高くするほど最終的なRMSコントラストは低下します 値を低くするとbinaryノイズ"
+"のような見た目になります"
 
 #: psychopy/app/builder/components/noise/__init__.py:223
 msgid ""
 "How to update noise if not otherwise required by other changes (none, "
 "repeat, N-frames, Seconds)"
-msgstr ""
+msgstr "自動的なノイズ更新の方法(None, repeat, N-frames, Seconds)"
 
 #: psychopy/app/builder/components/noise/__init__.py:231
 msgid ""
 "How often to update noise (in frames or seconds) - can be a variable, "
 "ignored if any noise characteristic is updating on every frame"
 msgstr ""
+"ノイズ更新の頻度(フレーム数または秒) フレーム毎にノイズ特性が更新される場合は"
+"無視されます"
 
 #: psychopy/app/builder/components/noise/__init__.py:239
-#, fuzzy
-#| msgid ""
-#| "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
-#| "combining a beat with the carrier image or numpy array at point of display"
 msgid ""
 "OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used "
 "if you want to generate the sum of two components)]"
 msgstr ""
-"OpenGLのブレンドモードを指定します。avgはPsychoPyの標準モードです。addはビー"
-"トをキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です。"
+"OpenGLのブレンドモードを指定します。avgはPsychoPyの標準モードです。addは複数"
+"の成分を合成したい場合に便利です。"
 
 #: psychopy/app/builder/components/parallelOut/__init__.py:17
 msgid "Parallel out: send signals from the parallel port"
@@ -1796,12 +1791,12 @@ msgstr "輪郭線の幅"
 
 #: psychopy/app/builder/components/polygon/__init__.py:65
 msgid "How many vertices in your regular polygon?"
-msgstr ""
+msgstr "正多角形の頂点数を指定します"
 
 #: psychopy/app/builder/components/polygon/__init__.py:73
 msgid ""
 "What shape is this? With 'regular polygon...' you can set number of vertices"
-msgstr ""
+msgstr "形状を選択します regular polygonを選んだ場合は頂点数を指定できます"
 
 #: psychopy/app/builder/components/polygon/__init__.py:84
 #: psychopy/app/builder/components/polygon/__init__.py:102
@@ -1902,7 +1897,7 @@ msgstr "反応時間を記録"
 
 #: psychopy/app/builder/components/ratingScale/__init__.py:43
 msgid "Customize everything :"
-msgstr "全てをカスタマイズ"
+msgstr "全てをカスタマイズ:"
 
 #: psychopy/app/builder/components/ratingScale/__init__.py:91
 msgid ""
@@ -2205,7 +2200,7 @@ msgstr "プロジェクトID (例: 5bqpc)"
 
 #: psychopy/app/builder/components/settings/__init__.py:245
 msgid "Place the HTML files will be saved locally "
-msgstr "HTMLファイルがローカルに保存される場所"
+msgstr "HTMLファイルがローカルに保存される場所 "
 
 #: psychopy/app/builder/components/settings/__init__.py:249
 msgid ""
@@ -2365,7 +2360,7 @@ msgid "Envelope"
 msgstr "エンベロープ"
 
 #: psychopy/app/builder/dialogs/__init__.py:809
-#: psychopy/app/builder/dialogs/__init__.py:1774
+#: psychopy/app/builder/dialogs/__init__.py:1775
 #: psychopy/app/builder/dialogs/dlgsCode.py:100
 #: psychopy/app/builder/dialogs/dlgsConditions.py:514
 msgid " Help "
@@ -2377,7 +2372,7 @@ msgid "Go to online help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
 #: psychopy/app/builder/dialogs/__init__.py:815
-#: psychopy/app/builder/dialogs/__init__.py:1778
+#: psychopy/app/builder/dialogs/__init__.py:1779
 #: psychopy/app/builder/dialogs/dlgsCode.py:103
 #: psychopy/app/builder/dialogs/dlgsConditions.py:519 psychopy/gui/qtgui.py:77
 #: psychopy/gui/wxgui.py:67 psychopy/monitors/MonitorCenter.py:1105
@@ -2386,7 +2381,7 @@ msgid " OK "
 msgstr " OK "
 
 #: psychopy/app/builder/dialogs/__init__.py:823
-#: psychopy/app/builder/dialogs/__init__.py:1781
+#: psychopy/app/builder/dialogs/__init__.py:1782
 #: psychopy/app/builder/dialogs/dlgsCode.py:106
 #: psychopy/app/builder/dialogs/dlgsConditions.py:527 psychopy/gui/qtgui.py:78
 #: psychopy/gui/wxgui.py:68 psychopy/monitors/MonitorCenter.py:1107
@@ -2411,16 +2406,16 @@ msgstr "その名前は使用されています(%s) 名前を変更してくだ�
 msgid "Name must be alpha-numeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です スペースを含んではいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1290
-#: psychopy/app/builder/dialogs/__init__.py:1439
+#: psychopy/app/builder/dialogs/__init__.py:1291
+#: psychopy/app/builder/dialogs/__init__.py:1440
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1362
+#: psychopy/app/builder/dialogs/__init__.py:1363
 msgid "No parameters set (select a file above)"
 msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1429
+#: psychopy/app/builder/dialogs/__init__.py:1430
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
@@ -2429,28 +2424,28 @@ msgstr ""
 "%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
-#: psychopy/app/builder/dialogs/__init__.py:1438
-#: psychopy/app/builder/dialogs/__init__.py:1645
+#: psychopy/app/builder/dialogs/__init__.py:1439
+#: psychopy/app/builder/dialogs/__init__.py:1646
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1535
+#: psychopy/app/builder/dialogs/__init__.py:1536
 msgid "Could not read conditions from:\n"
 msgstr "条件を読み込めません\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1544
+#: psychopy/app/builder/dialogs/__init__.py:1545
 msgid "Configuration error in conditions file"
 msgstr "条件ファイルにエラーがあります"
 
-#: psychopy/app/builder/dialogs/__init__.py:1548
+#: psychopy/app/builder/dialogs/__init__.py:1549
 msgid "Bad condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1634
+#: psychopy/app/builder/dialogs/__init__.py:1635
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1635
+#: psychopy/app/builder/dialogs/__init__.py:1636
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
@@ -2458,7 +2453,7 @@ msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1775
+#: psychopy/app/builder/dialogs/__init__.py:1776
 msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
@@ -2626,8 +2621,8 @@ msgid ""
 "This parameter is not known by this version of PsychoPy. It might be worth "
 "upgrading"
 msgstr ""
-"このパラメータは現在のPsychoPyのバージョンでは定義されていません。新しいバー"
-"ジョンに更新すると解決する可能性があります。"
+"このパラメータは現在のPsychoPyのバージョンでは定義されていません 新しいバー"
+"ジョンに更新すると解決する可能性があります"
 
 #: psychopy/app/builder/experiment.py:512
 #, python-format
@@ -2695,8 +2690,8 @@ msgid ""
 "stimuli within a trial. It alters how data files are output"
 msgstr ""
 "このLoopが試行のブロックを作成するものではなく試行を繰り返すためのものであれ"
-"ばチェックしてください。\n"
-"チェックの有無でデータの出力形式が変わります。"
+"ばチェックしてください\n"
+"チェックの有無でデータの出力形式が変わります"
 
 #: psychopy/app/builder/experiment.py:1252
 msgid "(Minimum) number of trials in the staircase"
@@ -2772,7 +2767,7 @@ msgstr "ユーザーが使用済み"
 #: psychopy/app/builder/experiment.py:2435
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
-"this、these、continue、Clock、componentを名前に含まないようにしてください"
+" this、these、continue、Clock、componentを名前に含まないようにしてください"
 
 #: psychopy/app/builder/experiment.py:2436
 msgid "Builder variable"
@@ -3499,7 +3494,7 @@ msgstr "後で"
 #: psychopy/app/connections.py:183
 #, python-format
 msgid "You are running the latest version of PsychoPy (%s). "
-msgstr "最新バージョンのPsychoPy (%s)を利用中です"
+msgstr "最新バージョンのPsychoPy (%s)を利用中です "
 
 #: psychopy/app/connections.py:209
 #, python-format
@@ -3568,12 +3563,12 @@ msgstr "PsychoPyの更新"
 
 #: psychopy/app/connections.py:304
 msgid " Auto-update (will fetch latest version)"
-msgstr "自動更新(最新バージョンを取得します)"
+msgstr " 自動更新(最新バージョンを取得します)"
 
 #: psychopy/app/connections.py:313
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
 msgstr ""
-"以下のZipファイルを使用 (拡張子.zipの配布ファイルをダウンロードしてください)"
+" 以下のZipファイルを使用 (拡張子.zipの配布ファイルをダウンロードしてください)"
 
 #: psychopy/app/connections.py:324
 msgid "Install"
@@ -3607,9 +3602,11 @@ msgstr "「設定」のプロキシの設定を確認してください"
 #: psychopy/app/connections.py:354
 #, python-format
 msgid ""
-"You are running PsychoPy (%s), which is ahead of the latest official version "
-"(%s)"
+"You are running PsychoPy (%(running)s), which is ahead of the latest "
+"official version (%(latest)s)"
 msgstr ""
+"PsychoPy %(running)s を実行中です 公式の最新バージョン(%(latest)s)より新しい"
+"バージョンです"
 
 #: psychopy/app/connections.py:359
 #, python-format
@@ -4224,11 +4221,11 @@ msgstr "Open Science Frameworkにログインするためにはpyosfパッケー
 
 #: psychopy/app/projects.py:376
 msgid "Successful authentication"
-msgstr "認証に成功しました。"
+msgstr "認証に成功しました"
 
 #: psychopy/app/projects.py:381
 msgid "Failed to Authenticate. Check username/password"
-msgstr "認証に失敗しました。ユーザー名とパスワードを確認してください。"
+msgstr "認証に失敗しました ユーザー名とパスワードを確認してください"
 
 #: psychopy/app/projects.py:410
 #, python-format
@@ -4269,9 +4266,9 @@ msgid ""
 "\n"
 "Go to menu item Projects>Users>"
 msgstr ""
-"ログインしていません。\n"
+"ログインしていません\n"
 "\n"
-"メニューの「プロジェクト」>「ユーザー」からログインしてください。"
+"メニューの「プロジェクト」>「ユーザー」からログインしてください"
 
 #: psychopy/app/projects.py:523
 msgid "Searching projects for user {} ..."
@@ -4343,7 +4340,7 @@ msgstr "準備完了"
 
 #: psychopy/app/projects.py:867
 msgid "Status: "
-msgstr "状態:"
+msgstr "状態: "
 
 #: psychopy/app/projects.py:903
 msgid "Title:"
@@ -4359,7 +4356,7 @@ msgstr ""
 
 #: psychopy/app/projects.py:908
 msgid "Description:"
-msgstr "説明"
+msgstr "説明:"
 
 #: psychopy/app/projects.py:912
 msgid "Tags (comma separated):"
@@ -4629,7 +4626,7 @@ msgstr ""
 
 #: psychopy/monitors/MonitorCenter.py:1001
 msgid "Try again. Cover the lens fully and press OK"
-msgstr "再実行します。レンズを完全に塞いでOKを押してください。"
+msgstr "再実行します レンズを完全に塞いでOKを押してください"
 
 #: psychopy/monitors/MonitorCenter.py:1005
 #, python-format
@@ -4655,7 +4652,7 @@ msgstr "ガンマ補正"
 
 #: psychopy/monitors/MonitorCenter.py:1188
 msgid "Number of calibration points:"
-msgstr "キャリブレーション点の数"
+msgstr "キャリブレーション点の数:"
 
 #: psychopy/monitors/MonitorCenter.py:1192
 msgid "Screen number (primary is 1)"
@@ -4773,7 +4770,7 @@ msgstr "Coderのシェルウィンドウで使用するシェルを指定しま�
 
 #: psychopy/preferences/hints.py:87
 msgid "newline for python files: unix = \\n, dos = \\r\\n"
-msgstr "Pythonファイルの改行コードを指定します  (unix=\\n, dos=\\r\\n)"
+msgstr "Pythonファイルの改行コードを指定します (unix=\\n, dos=\\r\\n)"
 
 #: psychopy/preferences/hints.py:90
 msgid "whether to automatically reload a previously open experiment"
@@ -5327,8 +5324,7 @@ msgstr "ビデオカードドライバ"
 #: psychopy/tools/wizard.py:400
 #, python-format
 msgid "This page was auto-generated by the PsychoPy configuration wizard on %s"
-msgstr ""
-"このページはPsychoPy設定ウィザードによって %s に自動生成されたものです。"
+msgstr "このページはPsychoPy設定ウィザードによって %s に自動生成されたものです"
 
 #: psychopy/tools/wizard.py:410
 msgid "Configuration problem"
@@ -5475,7 +5471,7 @@ msgstr ""
 "</p></p>使用中のビデオカード(%(card)s)のデバイスドライバは\n"
 "PsychoPyの実行に必須のハイパフォーマンス機能をサポートしていません\n"
 "多くの場合、ビデオカードの製造元から新しいドライバを無料で入手する\n"
-"ことが出来ます。\n"
+"ことが出来ます\n"
 "<p><strong>ドライバのアップデートするには:</strong><li>管理者の権限が必要で"
 "す。</li><li>Windowsの場合、Windowsの更新機能(Windows Update)では\n"
 "新しいドライバが見つからない場合があります。</li><li>NVIDIA製のカードの場合"
@@ -5504,7 +5500,7 @@ msgstr "致命的な問題:"
 
 #: psychopy/tools/wizard.py:570
 msgid "We'll go through a series of configuration checks in about 10 seconds. "
-msgstr "これから約10秒間、さまざまな設定項目をテストします"
+msgstr "これから約10秒間、さまざまな設定項目をテストします "
 
 #: psychopy/tools/wizard.py:574
 msgid "Note: The display will switch to full-screen mode and will "
@@ -5518,16 +5514,16 @@ msgstr "元に戻ります 確認中は何も操作する必要はありませ�
 msgid ""
 "Optional: For best results, please quit all email programs, web-browsers, "
 msgstr ""
-"オプション：最良の結果を得るために、Eメール用アプリケーションやwebブラウザ、"
+"オプション：最良の結果を得るために, Eメール用アプリケーションやwebブラウザ, "
 
 #: psychopy/tools/wizard.py:581
 msgid "Dropbox, backup or sync services, and others."
 msgstr ""
-"Dropboxやバックアップ、同期サービス等のアプリケーションを停止してください"
+"Dropboxやバックアップ, 同期サービス等のアプリケーションを停止してください"
 
 #: psychopy/tools/wizard.py:583
 msgid "Click OK to start, or Cancel to skip."
-msgstr "OKを押すと開始、キャンセルを押すとテストをスキップします"
+msgstr "OKを押すと開始, キャンセルを押すとテストをスキップします"
 
 #: psychopy/tools/wizard.py:585
 msgid "Full details"
@@ -5536,7 +5532,7 @@ msgstr "詳細なテスト"
 #: psychopy/tools/wizard.py:590
 msgid "Click OK for more information, or Cancel to skip."
 msgstr ""
-"さらなる情報を表示する場合はOK、スキップする場合はキャンセルをクリックしてく"
+"さらなる情報を表示する場合はOK, スキップする場合はキャンセルをクリックしてく"
 "ださい"
 
 #: psychopy/tools/wizard.py:619
