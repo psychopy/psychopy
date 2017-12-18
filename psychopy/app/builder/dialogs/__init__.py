@@ -837,7 +837,7 @@ class _BaseParamsDlg(wx.Dialog):
         if self.timeout is not None:
             timeout = wx.CallLater(self.timeout, self.autoTerminate)
             timeout.Start()
-        retVal = self.Show()
+        retVal = self.ShowModal()
         self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
 
@@ -1089,7 +1089,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def __init__(self, frame, title="Loop Properties", loop=None,
                  helpUrl=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=_style, depends=[]):
+                 style=_style, depends=[], timeout=None):
         # translate title
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
@@ -1102,6 +1102,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.app = frame.app
         self.dpi = self.app.dpi
         self.params = {}
+        self.timeout = timeout
         self.panel = wx.Panel(self, -1)
         self.globalCtrls = {}
         self.constantsCtrls = {}
