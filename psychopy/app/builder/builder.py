@@ -22,7 +22,7 @@ try:
     from wx.adv import PseudoDC
 except ImportError:
     from wx import PseudoDC
-
+from pkg_resources import parse_version
 import sys
 import os
 import glob
@@ -37,11 +37,10 @@ from ..localization import _translate
 from . import experiment, components
 from .. import stdOutRich, dialogs
 from .. import projects
-from psychopy import logging
+from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
-
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 
@@ -1154,7 +1153,7 @@ class BuilderFrame(wx.Frame):
         self.bldrBtnSave = tb.AddSimpleTool(-1, saveBmp,
                                             _translate("Save [%s]") % keys['save'],
                                             _translate("Save current experiment file"))
-        self.bldrBtnSave.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnSave.Id, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, self.bldrBtnSave)
         item = tb.AddSimpleTool(wx.ID_ANY, saveAsBmp,
                                 _translate("Save As... [%s]") % keys['saveAs'],
@@ -1198,7 +1197,7 @@ class BuilderFrame(wx.Frame):
                                             _translate("Stop [%s]") % keys['stopScript'],
                                             _translate("Stop experiment"))
         tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
-        self.bldrBtnStop.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         tb.Realize()
 
     def makeMenus(self):
@@ -1794,7 +1793,7 @@ class BuilderFrame(wx.Frame):
             newVal = self.getIsModified()
         else:
             self.isModified = newVal
-        self.bldrBtnSave.Enable(newVal)
+        self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
 
     def getIsModified(self):
@@ -1891,7 +1890,7 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._undoLabel.SetText(label)
-        self.bldrBtnUndo.Enable(enable)
+        self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
         # check redo
@@ -1905,7 +1904,7 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._redoLabel.SetText(label)
-        self.bldrBtnRedo.Enable(enable)
+        self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
@@ -2001,8 +2000,10 @@ class BuilderFrame(wx.Frame):
             command = '"%s" -u "%s"' % (sys.executable, fullPath)
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #   self.scriptProcess)
-            self.scriptProcessID = wx.Execute(
-                command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.scriptProcess)
+            if hasattr(wx, "EXEC_NOHIDE"):
+                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
+            else:
+                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
             # for unix this signifies a space in a filename
             fullPath = fullPath.replace(' ', '\ ')
@@ -2011,10 +2012,11 @@ class BuilderFrame(wx.Frame):
             # the quotes would break a unix system command
             command = '%s -u %s' % (pythonExec, fullPath)
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-            self.scriptProcessID = wx.Execute(command, _opts,
-                                              self.scriptProcess)
-        self.bldrBtnRun.Enable(False)
-        self.bldrBtnStop.Enable(True)
+        # launch the command
+        self.scriptProcessID = wx.Execute(command, _opts,
+                                          self.scriptProcess)
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
 
     def stopFile(self, event=None):
         """Kills script processes"""
@@ -2023,21 +2025,18 @@ class BuilderFrame(wx.Frame):
         success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID, wx.SIGKILL)  # kill it aggressively
-        self.onProcessEnded(event=None)
 
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
-        self.bldrBtnRun.Enable(True)
-        self.bldrBtnStop.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         # update the output window and show it
         text = u""
         if self.scriptProcess.IsInputAvailable():
-            stream = self.scriptProcess.GetInputStream()
-            text += u"{}".format(stream.read())
+            text += extractText(self.scriptProcess.GetInputStream())
         if self.scriptProcess.IsErrorAvailable():
-            stream = self.scriptProcess.GetErrorStream()
-            text += u"{}".format(stream.read())
+            text += extractText(self.scriptProcess.GetErrorStream())
         if len(text):
             # if some text hadn't yet been written (possible?)
             self.stdoutFrame.write(text)
@@ -2106,7 +2105,7 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()
         self.app.coder.gotoLine(filename, lineNumber)
 
-    def setExperimentSettings(self, event=None):
+    def setExperimentSettings(self, event=None, timeout=None):
         """Defines ability to save experiment settings
         """
         component = self.exp.settings
@@ -2118,7 +2117,8 @@ class BuilderFrame(wx.Frame):
         title = '%s Properties' % self.exp.getExpName()
         dlg = DlgExperimentProperties(frame=self, title=title,
                                       params=component.params,
-                                      helpUrl=helpUrl, order=component.order)
+                                      helpUrl=helpUrl, order=component.order,
+                                      timeout=timeout)
         if dlg.OK:
             self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
@@ -2361,3 +2361,14 @@ class ExportFileDialog(wx.Dialog):
         sizer.Add(btnsizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.SetSizerAndFit(sizer)
+
+def extractText(stream):
+    """Take a byte stream (or any file object of type b?) and return
+
+    :param stream: stream from wx.Process or any byte stream from a file
+    :return: text converted to unicode ready for appending to wx text view
+    """
+    if constants.PY3:
+        return stream.read().decode('utf-8')
+    else:
+        return stream.read()

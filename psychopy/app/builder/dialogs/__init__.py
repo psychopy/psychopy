@@ -335,7 +335,8 @@ class ParamCtrls(object):
 
         returns: list of dicts of {Field:'', Default:''}
         """
-        expInfo = eval(expInfoStr)
+        expInfo = self.exp.settings.getInfo()
+
         listOfDicts = []
         for field, default in list(expInfo.items()):
             listOfDicts.append({'Field': field, 'Default': default})
@@ -379,7 +380,8 @@ class _BaseParamsDlg(wx.Dialog):
                  showAdvanced=False,
                  size=wx.DefaultSize,
                  style=_style, editing=False,
-                 depends=[]):
+                 depends=[],
+                 timeout=None):
 
         # translate title
         if ' Properties' in title:  # Components and Loops
@@ -397,6 +399,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.helpUrl = helpUrl
         self.params = params  # dict
         self.title = title
+        self.timeout = timeout
         self.warningsDict = {}  # to store warnings for all fields
         if (not editing and
                 title != 'Experiment Settings' and
@@ -831,9 +834,21 @@ class _BaseParamsDlg(wx.Dialog):
 
         # self.paramCtrls['name'].valueCtrl.SetFocus()
         # do show and process return
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.autoTerminate)
+            timeout.Start()
         retVal = self.ShowModal()
         self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
+
+    def autoTerminate(self, event=None, retval=1):
+        """Terminates the dialog early, for use with a timeout
+
+        :param event: an optional wx.EVT
+        :param retval: an optional int to pass to EndModal()
+        :return:
+        """
+        self.EndModal(retval)
 
     def Validate(self, *args, **kwargs):
         """Validate form data and disable OK button if validation fails.
@@ -1074,7 +1089,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def __init__(self, frame, title="Loop Properties", loop=None,
                  helpUrl=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=_style, depends=[]):
+                 style=_style, depends=[], timeout=None):
         # translate title
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
@@ -1087,6 +1102,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.app = frame.app
         self.dpi = self.app.dpi
         self.params = {}
+        self.timeout = timeout
         self.panel = wx.Panel(self, -1)
         self.globalCtrls = {}
         self.constantsCtrls = {}
@@ -1692,11 +1708,13 @@ class DlgExperimentProperties(_BaseParamsDlg):
     def __init__(self, frame, title, params, order, suppressTitles=False,
                  size=wx.DefaultSize, helpUrl=None,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 depends=[]):
+                 depends=[],
+                 timeout=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, 'Experiment Settings',
                                 params, order, depends=depends,
-                                size=size, style=style, helpUrl=helpUrl)
+                                size=size, style=style, helpUrl=helpUrl,
+                                timeout=timeout)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1776,6 +1794,9 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.SetPosition((builderPos[0] + 200, 20))
 
         # do show and process return
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.autoTerminate)
+            timeout.Start()
         retVal = self.ShowModal()
         if retVal == wx.ID_OK:
             self.OK = True

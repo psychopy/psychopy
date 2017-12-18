@@ -38,6 +38,28 @@ CHANGED:
 PsychoPy 1.85
 ------------------------------
 
+PsychoPy 1.85.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A bug-fix release to solve a few machine-specific issues.
+
+* FIXED:
+
+  * on some computers the data weren't being saved if user pressed 'Esc' during experiment. #193ce541
+  * fix for the "Unable to share contexts" error on machines that don't support OpenGL shadow_window #a1c29d3a
+  * pyo not always closing properly #1614
+  * problem with non-ascii characters in conditions file name #32204a200
+  * loading of preferences was failing if the audio backend wasn't a valid option #c2d11477b5
+  * Builder demo images_blocks had wrong units for images #1601
+  * no longer tell people to upgrade if their version is *newer* than the "latest" #1567
+  * added support for newer PST box in ioHub (with 7 buttons not 5) #b9534a28896
+  * Monitor.linearizeLums() was raising an error due to a change in import name
+  * stimuli not switching correctly to desired window in multi-window setups #1514
+  * opencv movie backend had an error that `'float' object cannot be interpreted as an index` #1510
+  * cedrus box had error `AttributeError: 'ResponseDevice' object has no attribute 'status'` #1493
+  * retina displays had some bad scaling. Now strongly recommend using `retina=True` #08163f78a9c8ab9b
+
+
 PsychoPy 1.85.4
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

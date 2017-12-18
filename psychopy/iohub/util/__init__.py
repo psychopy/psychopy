@@ -202,15 +202,15 @@ class NumPyRingBuffer(object):
 
         for i in xrange(25):
             ring_buffer.append(i)
-            print '-------'
-            print 'Ring Buffer Stats:'
-            print '\tWindow size: ',len(ring_buffer)
-            print '\tMin Value: ',ring_buffer.min()
-            print '\tMax Value: ',ring_buffer.max()
-            print '\tMean Value: ',ring_buffer.mean()
-            print '\tStandard Deviation: ',ring_buffer.std()
-            print '\tFirst 3 Elements: ',ring_buffer[:3]
-            print '\tLast 3 Elements: ',ring_buffer[-3:]
+            print('-------')
+            print('Ring Buffer Stats:')
+            print('\tWindow size: ',len(ring_buffer))
+            print('\tMin Value: ',ring_buffer.min())
+            print('\tMax Value: ',ring_buffer.max())
+            print('\tMean Value: ',ring_buffer.mean())
+            print('\tStandard Deviation: ',ring_buffer.std())
+            print('\tFirst 3 Elements: ',ring_buffer[:3])
+            print('\tLast 3 Elements: ',ring_buffer[-3:])
 
     """
 

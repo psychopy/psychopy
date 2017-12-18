@@ -2132,7 +2132,10 @@ class CoderFrame(wx.Frame):
 
         # is the file still there
         if os.path.isfile(filename):
-            doc.SetText(open(filename).read().decode('utf8'))
+            if PY3:
+                doc.SetText(open(filename).read())
+            else:
+                doc.SetText(open(filename).read().decode('utf8'))
             doc.fileModTime = os.path.getmtime(filename)
             doc.EmptyUndoBuffer()
             doc.Colourise(0, -1)
@@ -2510,15 +2513,19 @@ class CoderFrame(wx.Frame):
             command = '"%s" -u "%s"' % (sys.executable, fullPath)
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #    self.scriptProcess)
-            self.scriptProcessID = wx.Execute(
-                command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.scriptProcess)
+            if hasattr(wx, "EXEC_NOHIDE"):
+                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
+            else:
+                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
             fullPath = fullPath.replace(' ', '\ ')
             pythonExec = sys.executable.replace(' ', '\ ')
             # the quotes would break a unix system command
             command = '%s -u %s' % (pythonExec, fullPath)
-            self.scriptProcessID = wx.Execute(
-                command, wx.EXEC_ASYNC, self.scriptProcess)
+            _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
+        # launch the command
+        self.scriptProcessID = wx.Execute(command, _opts,
+                                          self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.cdrBtnRun, False)
         self.toolbar.EnableTool(self.IDs.cdrBtnStop, True)
 

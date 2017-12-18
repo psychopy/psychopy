@@ -407,7 +407,7 @@ def fileOpenDlg(tryFilePath="",
     global app  # avoid recreating for every gui
     app = ensureWxApp()
     dlg = wx.FileDialog(None, prompt, tryFilePath, tryFileName, allowed,
-                        wx.FD_OPEN | wx.FILE_MUST_EXIST | wx.MULTIPLE)
+                        wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE)
     if dlg.ShowModal() == OK:
         # get names of images and their directory
         fullPaths = dlg.GetPaths()

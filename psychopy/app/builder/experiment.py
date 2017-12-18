@@ -76,6 +76,7 @@ _localized = {
 
 scriptTarget = "PsychoPy"  # need a  global variable so that
 
+
 class CodeGenerationException(Exception):
     """
     Exception thrown by a component when it is unable to generate its code.
@@ -172,7 +173,7 @@ class Experiment(object):
         self.psychopyVersion = __version__
         # What libs are needed (make sound come first)
         self.psychopyLibs = ['sound', 'gui', 'visual', 'core',
-                             'data', 'event', 'logging']
+                             'data', 'event', 'logging', 'clock']
         _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
         self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
@@ -360,7 +361,7 @@ class Experiment(object):
         thisChild = xml.SubElement(parent, thisType)
         thisChild.set('name', name)
         if hasattr(param, 'val'):
-            thisChild.set('val', "{}".format(param.val).replace("\n", "&#10;"))
+            thisChild.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
         if hasattr(param, 'valType'):
             thisChild.set('valType', param.valType)
         if hasattr(param, 'updates'):
@@ -1661,7 +1662,7 @@ class Flow(list):
         # treat expInfo as likely to be constant; also treat its keys as
         # constant because its handy to make a short-cut in code:
         # exec(key+'=expInfo[key]')
-        expInfo = eval(self.exp.settings.params['Experiment info'].val)
+        expInfo = self.exp.settings.getInfo()
         keywords = self.exp.namespace.nonUserBuilder[:]
         keywords.extend(['expInfo'] + list(expInfo.keys()))
         reserved = set(keywords).difference({'random', 'rand'})

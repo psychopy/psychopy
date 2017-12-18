@@ -169,7 +169,7 @@ class PsychoPyApp(wx.App):
             splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
             splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
                                        timeout=3000,
-                                       style=AS.AS_TIMEOUT | wx.FRAME_SHAPED,
+                                       agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        shadowcolour=wx.RED)  # transparency?
             splash.SetTextPosition((10, 240))
             splash.SetText(_translate("  Loading libraries..."))
@@ -467,6 +467,7 @@ class PsychoPyApp(wx.App):
         thisFrame.Show(True)
         thisFrame.Raise()
         self.SetTopWindow(thisFrame)
+        return thisFrame
 
     def showBuilder(self, event=None, fileList=()):
         # have to reimport because it is ony local to __init__ so far
@@ -643,7 +644,9 @@ class PsychoPyApp(wx.App):
                 self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
-        sys.exit()
+        self.Destroy()
+        if not self.testMode:
+            sys.exit()  # sys exit during pytest will end testing?
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg
