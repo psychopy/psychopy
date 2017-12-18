@@ -215,14 +215,18 @@ def createLinearRamp(win, rampType=None):
         else:  # for win32 and linux this is sensible, not clear about Vista and Windows7
             rampType = 0
 
+    rampSize = getGammaRampSize(win)
+
     if rampType == 0:
-        rampSize = getGammaRampSize(win)
         ramp = numpy.linspace(0.0, 1.0, num=rampSize)
     elif rampType == 1:
+        assert rampSize == 256
         ramp = numpy.linspace(1/256.0, 1.0, num=256)
     elif rampType == 2:
+        assert rampSize == 1024
         ramp = numpy.linspace(0, 1023.0/1024, num=1024)
     elif rampType == 3:
+        assert rampSize == 1024
         ramp = numpy.linspace(0, 1023.0/1024, num=1024)
         ramp[512:] = ramp[512:] - 1/256.0
     logging.info('Using gamma ramp type: %i' % rampType)
@@ -233,12 +237,21 @@ def getGammaRampSize(pygletWindow):
     """Returns the size of each channel of the gamma ramp."""
 
     if sys.platform == 'win32':
-        pass
+
+        # windows documentation (for SetDeviceGammaRamp) seems to indicate that
+        # the LUT size is always 256
+        rampSize = 256
 
     elif sys.platform == 'darwin':
-        pass
 
-    elif sys.platform.startswith('linux'):
+        try:
+            _screenID = pygletWindow._screen.id  # pyglet1.2alpha1
+        except AttributeError:
+            _screenID = pygletWindow._screen._cg_display_id  # pyglet1.2
+
+        rampSize = carbon.CGDisplayGammaTableCapacity(_screenID)
+
+    elif sys.platform.startswith('linux') and not _TravisTesting:
 
         rampSize = ctypes.c_int()
 
@@ -251,5 +264,14 @@ def getGammaRampSize(pygletWindow):
         assert success, 'XF86VidModeGetGammaRampSize failed'
 
         rampSize = rampSize.value
+
+    else:
+
+        assert _TravisTesting
+
+        rampSize = 256
+
+    if rampSize == 0:
+        raise RuntimeError("Gamma ramp size is reported as 0.")
 
     return rampSize
