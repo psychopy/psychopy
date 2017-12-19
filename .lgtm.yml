@@ -1,5 +1,5 @@
-# This configuration file contains configuration that enables Psychopy to be
-# analysed by lgtm.com (see https://lgtm.com/projects/g/psychopy/psychopy)
+# This file contains configuration that re-enables PsychoPy analysis on
+# lgtm.com (see https://lgtm.com/projects/g/psychopy/psychopy)
 #
 # More details on configuration options:
 # https://lgtm.com/docs/lgtm/lgtm-configuration-file
