@@ -1,0 +1,17 @@
+# This configuration file contains configuration that enables Psychopy to be
+# analysed by lgtm.com (see https://lgtm.com/projects/g/psychopy/psychopy)
+#
+# More details on configuration options:
+# https://lgtm.com/docs/lgtm/lgtm-configuration-file
+
+extraction:
+  python: 
+    prepare: 
+      packages: 
+        - python-wxtools
+        - libgtk-3-dev
+        - mesa-common-dev
+        - libglu1-mesa-dev
+        - libgstreamer1.0-dev
+        - libgstreamer-plugins-base1.0-dev
+        - libwebkitgtk-3.0-dev
