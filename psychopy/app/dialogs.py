@@ -30,7 +30,8 @@ class MessageDialog(wx.Dialog):
     (buttons don't always work) so we need to use this instead.
     """
 
-    def __init__(self, parent=None, message='', type='Warning', title=None):
+    def __init__(self, parent=None, message='', type='Warning', title=None,
+                 timeout=None):
         # select and localize a title
         if not title:
             title = type
@@ -71,6 +72,7 @@ class MessageDialog(wx.Dialog):
         sizer.Add(btnSizer, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
         self.Center()
         self.SetSizerAndFit(sizer)
+        self.timeout = timeout
 
     def onButton(self, event):
         self.EndModal(event.GetId())
@@ -78,6 +80,14 @@ class MessageDialog(wx.Dialog):
     def onEscape(self, event):
         self.EndModal(wx.ID_CANCEL)
 
+    def onEnter(self, event=None):
+        self.EndModal(wx.ID_OK)
+
+    def ShowModal(self):
+        if self.timeout:
+            timeout = wx.CallLater(self.timeout, self.onEnter)
+            timeout.Start()
+        return wx.Dialog.ShowModal(self)
 
 # Event for GlobSizer-----------------------------------------------------
 (GBSizerExLayoutEvent, EVT_GBSIZEREX_LAYOUT) = NewEvent()
