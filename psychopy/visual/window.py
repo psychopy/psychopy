@@ -81,12 +81,6 @@ try:
 except ImportError:
     import Image
 
-if sys.platform == 'win32' and not haveAvbin:
-    logging.error(
-        """avbin.dll failed to load. Try importing psychopy.visual
-        as the first library (before anything that uses scipy)
-        and make sure that avbin is installed.""".replace('    ', ' '))
-
 import numpy
 
 from psychopy.core import rush
