@@ -314,9 +314,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                 return None
         try:
             self._numpyFrame = self._mov.get_frame(self._nextFrameT) 
-        except:
+        except OSError:
             if self.autoLog:
-                self.win.logOnFlip("Frame %s not found, moving one frame & trying again" % (str(self._nextFrameT)), level=logging.WARNING, obj=self)
+                logging.warning("Frame {} not found, moving one frame and trying again" 
+                    .format(self._nextFrameT), obj=self)
             self._nextFrameT += self._frameInterval
             self._updateFrameTexture()
         useSubTex = self.useTexSubImage2D
