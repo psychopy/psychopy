@@ -13,7 +13,8 @@ import pytest
 
 from psychopy.app import psychopyApp
 from psychopy.app._psychopyApp import PsychoPyApp
-
+from PIL import Image
+Image.DEBUG = False
 
 def test_configure():
     psychopyApp._called_from_test = True
