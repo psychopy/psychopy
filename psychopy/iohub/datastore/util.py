@@ -405,7 +405,6 @@ class ExperimentDataAccessUtility(object):
                         raise ExperimentDataAccessException(
                             'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                                 v, cvNames))
-                        return None
                 elif isinstance(value, basestring):
                     resolvedValues.append(value)
             return resolvedValues
@@ -417,7 +416,6 @@ class ExperimentDataAccessUtility(object):
                 raise ExperimentDataAccessException(
                     'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                         value, cvNames))
-                return None
         else:
             raise ExperimentDataAccessException(
                 'Unhandled value type !: {0} is not a valid type for value {1}'.format(
@@ -463,7 +461,6 @@ class ExperimentDataAccessUtility(object):
                     raise ExperimentDataAccessException(
                         'getEventAttribute: %s does not have a column named %s' %
                         (deviceEventTable.title, event_attribute_names))
-                    return None
 
             resultSetList = []
 
