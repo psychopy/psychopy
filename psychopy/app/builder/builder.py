@@ -1522,8 +1522,8 @@ class BuilderFrame(wx.Frame):
             try:
                 self.exp.loadFromXML(filename)
             except Exception:
-                print("Failed to load %s. Please send the following to"
-                      " the PsychoPy user list" % filename)
+                print(u"Failed to load {}. Please send the following to"
+                      u" the PsychoPy user list".format(filename))
                 traceback.print_exc()
                 logging.flush()
             self.resetUndoStack()

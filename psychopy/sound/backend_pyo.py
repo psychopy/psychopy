@@ -73,7 +73,8 @@ def getDevices(kind=None):
         dev = allDevs[ii]
         try:  # convert to unicode
             devName = dev['name'].decode(osEncoding)
-        except UnicodeEncodeError:  # if that fails try the current encoding
+        except (UnicodeEncodeError, AttributeError):
+            # if that fails try the current encoding
             devName = dev['name']
         devs[devName] = dev
         dev['id'] = ii

@@ -48,6 +48,10 @@ class StdOutRich(wx.richtext.RichTextCtrl):
             inStr = inStr.decode()
 
         for thisLine in inStr.splitlines(True):
+            try:
+                thisLine = thisLine.replace("\t", "    ")
+            except Exception as e:
+                self.WriteText(str(e))
             if len(re.findall('".*", line.*', thisLine)) > 0:
                 # this line contains a file/line location so write as URL
                 # self.BeginStyle(self.urlStyle)  # this should be done with
