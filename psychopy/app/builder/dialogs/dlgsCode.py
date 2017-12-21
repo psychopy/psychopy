@@ -32,7 +32,8 @@ class DlgCodeComponentProperties(wx.Dialog):
 
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
-                 style=_style, editing=False, depends=[]):
+                 style=_style, editing=False, depends=[],
+                 timeout=None):
 
         # translate title
         localizedTitle = title.replace(' Properties',
@@ -45,6 +46,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.params = params  # dict
         self.order = order
         self.title = title
+        self.timeout = timeout
         self.warningsDict = {}  # to store warnings for all fields
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
@@ -110,6 +112,9 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
 
+        if self.timeout:
+            timeout = wx.CallLater(self.timeout, self.onEnter)
+            timeout.Start()
         # do show and process return
         ret = self.ShowModal()
 
@@ -121,6 +126,9 @@ class DlgCodeComponentProperties(wx.Dialog):
             # TODO: check syntax of code from each code section tab??
         else:
             self.OK = False
+
+    def onEnter(self, evt=None, retval=wx.ID_OK):
+        self.EndModal(retval)
 
     def checkName(self, event=None):
         """

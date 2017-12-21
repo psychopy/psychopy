@@ -1662,11 +1662,13 @@ class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 editing=False, depends=[]):
+                 editing=False, depends=[],
+                 timeout=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
-                                editing=editing, depends=depends)
+                                editing=editing, depends=depends,
+                                timeout=timeout)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
