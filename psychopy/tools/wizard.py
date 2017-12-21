@@ -123,9 +123,12 @@ class BaseWizard(object):
             'prefs.html#application-settings-app">Preferences -> App</a>')
         report.append(('locale', items['systemLocale'], msg, False))
         msg = ''
-        if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
-            msg = _translate('Warning: python 2.6 or 2.7 required; '
-                             '2.5 is not supported but might work')
+        v = parse_version
+        thisV = v(items['pythonVersion'])
+        if (thisV < v('2.7') or (v('3.0') <= thisV < v('3.6'))
+            ):
+            msg = _translate("Warning: python 2.7 or 3.6 are recommended; "
+                             "2.6 and 3.5 might work. Others probably won't.")
             warn = True
         if 'EPD' in items['pythonFullVersion']:
             msg += ' Enthought Python Distribution'
