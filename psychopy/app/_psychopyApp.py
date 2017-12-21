@@ -123,10 +123,12 @@ class _Showgui_Hack(object):
         if not os.path.isfile(noopPath):
             code = """from psychopy import gui
                 dlg = gui.Dlg().Show()  # non-blocking
-                try: dlg.Destroy()  # might as well
-                except Exception: pass""".replace('    ', '')
+                try: 
+                    dlg.Destroy()  # might as well
+                except Exception: 
+                    pass"""
             with open(noopPath, 'wb') as fd:
-                fd.write(code)
+                fd.write(bytes(code))
         # append 'w' for pythonw seems not needed
         core.shellCall([sys.executable, noopPath])
 
