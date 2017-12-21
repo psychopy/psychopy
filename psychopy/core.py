@@ -130,20 +130,12 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
         msg = 'shellCmd requires a string or iterable.'
         raise TypeError(msg)
 
-    # subprocess.Popen() reqires str object in Windows
     cmdObjects = []
-    if sys.platform == 'win32':
-        for obj in shellCmdList:
-            if type(obj) != bytes:
-                cmdObjects.append(obj)
-            else:
-                cmdObjects.append(obj.decode('utf-8'))
-    else:
-        for obj in shellCmdList:
-            if type(obj) != bytes:
-                cmdObjects.append(obj.encode('utf-8'))
-            else:
-                cmdObjects.append(obj)
+    for obj in shellCmdList:
+        if type(obj) != bytes:
+            cmdObjects.append(obj)
+        else:
+            cmdObjects.append(obj.decode('utf-8'))
 
     # Since Python 3.6, we can use the `encoding` parameter.
     if PY3:
