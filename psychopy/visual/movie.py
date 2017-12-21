@@ -53,10 +53,10 @@ from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 if sys.platform == 'win32' and not haveAvbin:
-    logging.error("avbin.dll failed to load. "
-                  "Try importing psychopy.visual as the first library "
-                  "(before anything that uses scipy) "
-                  "and make sure that avbin is installed.")
+    logging.warning("avbin.dll failed to load. "
+                    "Try importing psychopy.visual as the first library "
+                    "(before anything that uses scipy) or use a different"
+                    "movie backend (e.g. moviepy).")
 
 import numpy
 try:

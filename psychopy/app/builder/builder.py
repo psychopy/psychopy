@@ -1551,7 +1551,7 @@ class BuilderFrame(wx.Frame):
         self.setIsModified(False)
         # if export on save then we should have an html file to update
         if self.htmlPath:
-            self.fileExport(filePath=self.htmlPath)
+            self.fileExport(htmlPath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
