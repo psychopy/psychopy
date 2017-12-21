@@ -27,7 +27,7 @@ required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'pyosf', 'requests[security]',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
-            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables',
+            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
             'moviepy']
 
 # `opencv` package should be installed via conda instead
