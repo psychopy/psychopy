@@ -57,9 +57,9 @@ class Test_BuilderFrame(object):
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
         builderView.fileOpen(filename=expfile)
-        builderView.setExperimentSettings(timeout=1000)
+        builderView.setExperimentSettings(timeout=500)
         builderView.isModified = False
-        #assert exp == 5
+        builderView.closeFrame()
         del builderView
 
     def _checkCompileWith(self, thisComp):
@@ -93,3 +93,15 @@ class Test_BuilderFrame(object):
         dlg = MessageDialog(message="Just a test", timeout=500)
         ok = dlg.ShowModal()
         assert ok == wx.ID_OK
+
+    def test_ComponentDialogs(self):
+        """Test the message dialog
+        """
+        builderView = self.app.newBuilderFrame()
+        componsPanel = builderView.componentButtons
+        for thisComponName in list(componsPanel.components):
+            # simulate clicking the button for each component
+            assert componsPanel.onClick(thisComponName, timeout=500)
+        builderView.isModified = False
+        builderView.closeFrame()
+        del builderView, componsPanel
