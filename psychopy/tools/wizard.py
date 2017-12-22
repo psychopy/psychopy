@@ -328,9 +328,6 @@ class BaseWizard(object):
                         ver = PIL.__version__
                     # elif pkg == 'lxml':
                     #
-                    elif pkg == 'pp':
-                        import pp
-                        ver = pp.version
                     elif pkg == 'pynetstation':
                         from psychopy.hardware import egi
                         ver = 'import ok'

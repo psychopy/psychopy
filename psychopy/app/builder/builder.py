@@ -834,9 +834,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.PopupMenu(menu, (x + xBtn, y + yBtn))
         menu.Destroy()  # destroy to avoid mem leak
 
-    def onClick(self, evt):
+    def onClick(self, evt, timeout=None):
         """
         Defines left-click behavior for builder views components panel
+        :param: evt can be a wx.Event OR a component class name (MouseComponent)
         """
         # get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
@@ -848,7 +849,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         # get component name
-        newClassStr = self.componentFromID[evt.GetId()]
+        if hasattr(evt, "GetId()"):
+            newClassStr = self.componentFromID[evt.GetId()]
+        else:
+            newClassStr = evt
         componentName = newClassStr.replace('Component', '')
         newCompClass = self.components[newClassStr]
         newComp = newCompClass(parentName=currRoutine.name,
@@ -866,7 +870,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         dlg = _Dlg(frame=self.frame, title=componentName + ' Properties',
                    params=newComp.params, order=newComp.order,
                    helpUrl=helpUrl,
-                   depends=newComp.depends)
+                   depends=newComp.depends,
+                   timeout=timeout)
 
         compName = newComp.params['name']
         if dlg.OK:
@@ -1522,8 +1527,8 @@ class BuilderFrame(wx.Frame):
             try:
                 self.exp.loadFromXML(filename)
             except Exception:
-                print("Failed to load %s. Please send the following to"
-                      " the PsychoPy user list" % filename)
+                print(u"Failed to load {}. Please send the following to"
+                      u" the PsychoPy user list".format(filename))
                 traceback.print_exc()
                 logging.flush()
             self.resetUndoStack()
