@@ -400,10 +400,8 @@ class Test_shellCall(object):
     def setup_class(self):
         if sys.platform == 'win32':
             self.cmd = 'findstr'
-            self.env_cmd = 'set'
         else:
             self.cmd = 'grep'
-            self.env_cmd = 'env'
 
         self.msg = 'echo'
 
@@ -437,18 +435,6 @@ class Test_shellCall(object):
 
     def test_encoding(self):
         shellCall([self.cmd, self.msg], stdin=self.msg, encoding='utf-8')
-
-        if PY3:
-            with pytest.raises(TypeError):
-                shellCall([self.cmd, self.msg], stdin=self.msg, encoding=None)
-
-    def test_env(self):
-        echo = shellCall(self.env_cmd)
-        assert echo == ''
-
-        echo = shellCall(self.env_cmd, env=dict(FOO='1'))
-        assert echo == 'FOO=1'
-
 
 
 if __name__ == '__main__':

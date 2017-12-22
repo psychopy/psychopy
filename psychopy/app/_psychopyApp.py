@@ -12,6 +12,7 @@ from builtins import object
 import sys
 import psychopy
 from pkg_resources import parse_version
+from psychopy.constants import PY3
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -362,7 +363,11 @@ class PsychoPyApp(wx.App):
         reportPath = os.path.join(
             self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         if os.path.exists(reportPath):
-            report = open(reportPath, 'r').read()
+            if PY3:
+                report = open(reportPath, 'r', encoding='utf-8').read()
+            else:
+                import codecs
+                report = codecs.open(reportPath, 'r', encoding='utf-8').read()
             if 'Configuration problem' in report:
                 # fatal error was encountered (currently only if bad drivers)
                 # ensure wizard will be triggered again:
