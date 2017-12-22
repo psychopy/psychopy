@@ -436,10 +436,6 @@ class Test_shellCall(object):
     def test_encoding(self):
         shellCall([self.cmd, self.msg], stdin=self.msg, encoding='utf-8')
 
-        if PY3:
-            with pytest.raises(TypeError):
-                shellCall([self.cmd, self.msg], stdin=self.msg, encoding=None)
-
 
 if __name__ == '__main__':
     test_MonotonicClock()
