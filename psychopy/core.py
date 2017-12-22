@@ -115,7 +115,7 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
     when running Python 2.7.
 
     """
-    if encoding == None:
+    if encoding is None:
         encoding = locale.getpreferredencoding()
     
     if type(shellCmd) == str:
