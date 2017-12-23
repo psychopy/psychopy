@@ -25,7 +25,7 @@ else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
-   _f_get_child = "_f_get_child"
+    _f_get_child = "_f_get_child"
 
 
 """
