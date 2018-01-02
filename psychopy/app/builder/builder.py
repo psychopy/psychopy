@@ -849,11 +849,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         # get component name
-        if hasattr(evt, "GetId()"):
+        if hasattr(evt, "GetId"):
             newClassStr = self.componentFromID[evt.GetId()]
         else:
             newClassStr = evt
-        componentName = newClassStr.replace('Component', '')
         newCompClass = self.components[newClassStr]
         newComp = newCompClass(parentName=currRoutine.name,
                                exp=self.frame.exp)
@@ -863,11 +862,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             helpUrl = None
         # create component template
-        if componentName == 'Code':
+        if newClassStr == 'Code':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
-        dlg = _Dlg(frame=self.frame, title=componentName + ' Properties',
+        dlg = _Dlg(frame=self.frame,
+                   title= '{} Properties'.format(newComp.params['name']),
                    params=newComp.params, order=newComp.order,
                    helpUrl=helpUrl,
                    depends=newComp.depends,
