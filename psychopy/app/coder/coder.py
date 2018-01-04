@@ -1057,7 +1057,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 newText = newText + lineText
             else:
                 newText = newText + "#" + lineText
-        self._ReplaceSelectedLines(newText)
+        self._ReplaceSelectedLines(newText, deselect=True)
 
     def uncommentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1070,7 +1070,17 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             elif len(lineText) >= 1 and lineText[:1] == "#":
                 lineText = lineText[1:]
             newText = newText + lineText
-        self._ReplaceSelectedLines(newText)
+        self._ReplaceSelectedLines(newText, deselect=True)
+
+    def toggleCommentLines(self):
+        # used for the comment/uncomment machinery from ActiveGrid
+        try:
+            if self.GetLine(self._GetSelectedLineNumbers()[0])[0] == '#':
+                self.uncommentLines()
+            else:
+                self.commentLines()
+        except IndexError:
+            pass
 
     def Paste(self, event=None):
         dataObj = wx.TextDataObject()
@@ -1112,14 +1122,14 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         selEnd = self.PositionFromLine(self.LineFromPosition(endPos) + 1)
         return selStart, selEnd
 
-    def _ReplaceSelectedLines(self, text):
+    def _ReplaceSelectedLines(self, text, deselect=True):
         # used for the comment/uncomment machinery from ActiveGrid
         if len(text) == 0:
             return
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         self.SetSelection(selStart, selEnd)
         self.ReplaceSelection(text)
-        self.SetSelection(selStart + len(text), selStart)
+        self.SetSelection(selStart, selStart + len(text))
 
     def analyseScript(self):
         # analyse the file
@@ -1575,6 +1585,13 @@ class CoderFrame(wx.Frame):
                     _translate("Un-comment selected lines"),
                     wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.uncommentSelected, id=item.GetId())
+
+        item = menu.Append(wx.ID_ANY,
+                    _translate("Toggle comment\t%s") % keyCodes['toggle comment'],
+                    _translate("Toggle commenting of selected lines"),
+                    wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.toggleComments, id=item.GetId())
+
         item = menu.Append(wx.ID_ANY,
                     _translate("Toggle fold\t%s") % keyCodes['fold'],
                     _translate("Toggle folding of top level"),
@@ -2667,6 +2684,9 @@ class CoderFrame(wx.Frame):
 
     def uncommentSelected(self, event):
         self.currentDoc.uncommentLines()
+
+    def toggleComments(self, event):
+        self.currentDoc.toggleCommentLines()
 
     def foldAll(self, event):
         self.currentDoc.FoldAll()
