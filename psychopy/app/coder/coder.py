@@ -1053,11 +1053,13 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             oneSharp = bool(len(lineText) > 1 and lineText[0] == '#')
             # todo: is twoSharp ever True when oneSharp is not?
             twoSharp = bool(len(lineText) > 2 and lineText[:2] == '##')
-            if oneSharp or twoSharp:
+            lastLine = bool(lineNo == self.GetLineCount() - 1
+                            and self.GetLineLength(lineNo) == 0)
+            if oneSharp or twoSharp or lastLine:
                 newText = newText + lineText
             else:
                 newText = newText + "#" + lineText
-        self._ReplaceSelectedLines(newText, deselect=True)
+        self._ReplaceSelectedLines(newText)
 
     def uncommentLines(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1070,17 +1072,45 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             elif len(lineText) >= 1 and lineText[:1] == "#":
                 lineText = lineText[1:]
             newText = newText + lineText
-        self._ReplaceSelectedLines(newText, deselect=True)
+        self._ReplaceSelectedLines(newText)
+
+    def HashtagCounter(self, text, nTags=0):
+        # Hashtag counter - counts lines beginning with hashtags in selected text
+        for lines in text.splitlines():
+            if lines.startswith('#'):
+                nTags += 1
+        return nTags
 
     def toggleCommentLines(self):
-        # used for the comment/uncomment machinery from ActiveGrid
+        # toggle comment
+        startText, endText = self._GetPositionsBoundingSelectedLines()
+        nLines = len(self._GetSelectedLineNumbers())
+        nHashtags = self.HashtagCounter(self.GetTextRange(startText, endText))
+        passDec = False # pass decision - only pass  if line is blank
+        # Test decision criteria, and catch devision errors
+        # when caret starts at line with no text, or at beginning of line...
         try:
-            if self.GetLine(self._GetSelectedLineNumbers()[0])[0] == '#':
-                self.uncommentLines()
+            devCrit, decVal = .6, nHashtags / nLines # Decision criteria and value
+        except ZeroDivisionError:
+            if self.LineLength(self.GetCurrentLine()) == 1:
+                self._ReplaceSelectedLines('#')
+                devCrit, decVal, passDec = 1,0, True
             else:
-                self.commentLines()
-        except IndexError:
-            pass
+                self.CharRightExtend() # Move caret so line is counted
+                devCrit, decVal = .6, nHashtags / len(self._GetSelectedLineNumbers())
+        newText = ''
+        # Add or remove hashtags from selected text, but pass if # added tp blank line
+        if decVal < devCrit and passDec == False:
+            for lineNo in self._GetSelectedLineNumbers():
+                lineText = self.GetLine(lineNo)
+                newText = newText + '#' + lineText
+        elif decVal >= devCrit and passDec == False:
+            for lineNo in self._GetSelectedLineNumbers():
+                lineText = self.GetLine(lineNo)
+                if lineText.startswith('#'):
+                    lineText = lineText[1:]
+                newText = newText + lineText
+        self._ReplaceSelectedLines(newText)
 
     def Paste(self, event=None):
         dataObj = wx.TextDataObject()
@@ -1104,6 +1134,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         start = self.LineFromPosition(selStart)
         end = self.LineFromPosition(selEnd)
+        if selEnd == self.GetTextLength():
+            end += 1
         return list(range(start, end))
 
     def _GetPositionsBoundingSelectedLines(self):
@@ -1111,25 +1143,31 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         startPos = self.GetCurrentPos()
         endPos = self.GetAnchor()
         if startPos > endPos:
-            temp = endPos
-            endPos = startPos
-            startPos = temp
+            startPos, endPos = endPos, startPos
         if endPos == self.PositionFromLine(self.LineFromPosition(endPos)):
-            # If it's at the very beginning of a line, use the line above it
-            # as the ending line
+        # If it's at the very beginning of a line, use the line above it
+        # as the ending line
             endPos = endPos - 1
         selStart = self.PositionFromLine(self.LineFromPosition(startPos))
         selEnd = self.PositionFromLine(self.LineFromPosition(endPos) + 1)
         return selStart, selEnd
 
-    def _ReplaceSelectedLines(self, text, deselect=True):
+    def _ReplaceSelectedLines(self, text):
         # used for the comment/uncomment machinery from ActiveGrid
+        # If multi line selection - keep lines selected
+        # For single lines, move to next line and select that line
         if len(text) == 0:
             return
-        selStart, selEnd = self._GetPositionsBoundingSelectedLines()
-        self.SetSelection(selStart, selEnd)
-        self.ReplaceSelection(text)
-        self.SetSelection(selStart, selStart + len(text))
+        if len(text.splitlines()) > 1:
+            selStart, selEnd = self._GetPositionsBoundingSelectedLines()
+            self.SetSelection(selStart, selEnd)
+            self.ReplaceSelection(text)
+            self.SetSelection(selStart, selStart + len(text))
+        else:
+            selStart, selEnd = self._GetPositionsBoundingSelectedLines()
+            self.SetSelection(selStart, selEnd)
+            self.ReplaceSelection(text)
+            self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
 
     def analyseScript(self):
         # analyse the file
