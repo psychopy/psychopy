@@ -51,7 +51,7 @@ dependencies:
 - wxpython
 - zlib
 - pip:
-  - json-tricks
+  - json-tricks==3.8.0
   - pygame
   - pyglet==1.3.0b1
   - pyparallel
