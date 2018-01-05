@@ -175,6 +175,8 @@
     comment = string(default="Ctrl+'")
     # Coder: remove # from start of line(s)
     uncomment = string(default="Ctrl+Shift+'")
+    # Coder: add or remove # from start of line(s)
+    toggle comment = string(default="Ctrl+/")
     # Coder: fold this block of code
     fold = string(default='Ctrl+Home')
 

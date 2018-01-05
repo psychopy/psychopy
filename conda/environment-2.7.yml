@@ -57,7 +57,7 @@ dependencies:
 - zlib
 - pip:
   - et-xmlfile
-  - json-tricks
+  - json-tricks==3.8.0
   - prompt-toolkit
   - pygame
   - pyglet==1.3.0b1

@@ -152,7 +152,11 @@ class StaticComponent(BaseComponent):
                 compName = update['compName']
                 fieldName = update['fieldName']
                 routine = self.exp.routines[update['routine']]
-                prms = routine.getComponentFromName(str(compName)).params
+                if hasattr(compName, 'params'):
+                    prms = compName.params  # it's already a compon so get params
+                else:
+                    # it's a name so get compon and then get params
+                    prms = self.exp.getComponentFromName(bytes(compName)).params
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],
