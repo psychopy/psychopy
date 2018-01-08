@@ -24,7 +24,7 @@ required = ['requests[security]',
             'wxPython', 'pyglet', 'pygame', 'configobj',
             'soundfile', 'sounddevice',
             'python-bidi', 'cffi',
-            'future', 'json_tricks==3.8.0',
+            'future', 'json_tricks',
             'pyosf',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',

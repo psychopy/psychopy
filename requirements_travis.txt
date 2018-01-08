@@ -19,7 +19,7 @@ pycrsltd
 python-bidi
 cffi
 future
-json_tricks==3.8.0
+json_tricks
 codecov
 pytest
 pytest-cov
