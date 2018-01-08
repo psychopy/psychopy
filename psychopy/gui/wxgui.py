@@ -69,7 +69,7 @@ class Dlg(wx.Dialog):
         style = style | wx.RESIZE_BORDER
         global app  # avoid recreating for every gui
         app = ensureWxApp()
-        super().__init__(parent=None, id=-1, title=title, style=style)
+        super().__init__(parent=None, id=-1, title=title, style=style, pos=self.pos)
         self.inputFields = []
         self.inputFieldTypes = []
         self.inputFieldNames = []
