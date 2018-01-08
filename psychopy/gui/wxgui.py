@@ -62,12 +62,14 @@ class Dlg(wx.Dialog):
     """
 
     def __init__(self, title=_translate('PsychoPy dialogue'),
-                 pos=None, size=wx.DefaultSize,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  labelButtonOK=_translate(" OK "),
                  labelButtonCancel=_translate(" Cancel ")):
         style = style | wx.RESIZE_BORDER
         global app  # avoid recreating for every gui
+        if pos is None:
+            pos = wx.DefaultPosition
         app = ensureWxApp()
         super().__init__(parent=None, id=-1, title=title, style=style, pos=pos)
         self.inputFields = []
