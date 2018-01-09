@@ -8,7 +8,7 @@
 """These are probably going to get used a lot so translate them once and reuse
 """
 
-from psychopy.localization import _translate
+from ..localization import _translate
 
 _localized = {
     # for BaseComponent:
