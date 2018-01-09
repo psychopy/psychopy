@@ -211,7 +211,7 @@ class RatingScaleComponent(BaseComponent):
             # clean it up a little, remove win=*, leading / trailing typos
             orig = self.params['customize_everything'].val
             custom = re.sub(r"[\\s,]*win=[^,]*,", '', orig)
-            init_str += ', ' + custom.lstrip('(, ').strip('), ')
+            init_str += ', ' + custom.lstrip('(, ').strip(', ')
         else:
             if self.params['marker'].val:
                 init_str += ', marker=%s' % repr(self.params['marker'].val)
