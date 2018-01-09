@@ -6,7 +6,7 @@ import pytest
 
 from psychopy import prefs
 from psychopy.app import builder, projects
-from psychopy.app.builder.components import getAllComponents
+from psychopy.experiment.components import getAllComponents
 from pkg_resources import parse_version
 
 # use "python genComponsTemplate.py --out" to generate a new profile to test against

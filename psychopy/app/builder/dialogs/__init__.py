@@ -18,6 +18,9 @@ import copy
 import numpy
 import re
 import wx
+
+import psychopy.experiment.utils
+
 try:
     from wx.lib.agw import flatnotebook
 except ImportError:  # was here wx<4.0:
@@ -35,7 +38,6 @@ from psychopy.tools import versionchooser as vc
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 from ..localizedStrings import _localizedDialogs as _localized
 
@@ -973,7 +975,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         # set display font based on presence of $ (without \$)?
         font = strBox.GetFont()
-        if _unescapedDollarSign_re.search(val):
+        if psychopy.experiment.utils.unescapedDollarSign_re.search(val):
             strBox.SetFont(self.app._codeFont)
         else:
             strBox.SetFont(self.app._mainFont)

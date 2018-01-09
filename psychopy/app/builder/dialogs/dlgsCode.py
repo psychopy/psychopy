@@ -23,8 +23,6 @@ from .... import constants
 from .. import validators
 from ...localization import _translate
 
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
-
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER

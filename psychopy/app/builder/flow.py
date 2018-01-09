@@ -44,9 +44,6 @@ white = wx.Colour(255, 255, 255, 255)
 darkblue = wx.Colour(30, 30, 150, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
-# regular expression to check for unescaped '$' to indicate code:
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
-
 
 class FlowPanel(wx.ScrolledWindow):
 

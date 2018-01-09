@@ -8,7 +8,7 @@ if parse_version(wx.__version__) < parse_version('2.9'):
 else:
     tmpApp = wx.App(False)
 from psychopy.app import builder, projects
-from psychopy.app.builder.components import getAllComponents
+from psychopy.experiment.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
 
