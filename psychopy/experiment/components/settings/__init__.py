@@ -12,11 +12,11 @@ from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 from psychopy.constants import PY3
+from psychopy.projects import projectCatalog
 try:
     from pyosf import remote
 except ImportError:
     pass
-
 
 # for creating html output folders:
 import shutil
