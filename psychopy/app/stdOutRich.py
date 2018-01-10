@@ -47,7 +47,10 @@ class StdOutRich(wx.richtext.RichTextCtrl):
 
         # if it comes form a stdout in Py3 then convert to unicode
         if type(inStr) == bytes:
-            inStr = inStr.decode(_prefEncoding)
+            try:
+                inStr = inStr.decode('utf-8')
+            except UnicodeDecodeError:
+                inStr = inStr.decode(_prefEncoding)
 
         for thisLine in inStr.splitlines(True):
             try:
