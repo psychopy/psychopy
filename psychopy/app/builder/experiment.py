@@ -710,6 +710,18 @@ class Experiment(object):
     def getExpName(self):
         return self.settings.params['expName'].val
 
+    def getComponentFromName(self, name):
+        """Searches all the Routines in the Experiment for a matching Comp name
+
+        :param name: str name of a component
+        :return: a component class or None
+        """
+        for routine in self.routines.values():
+            comp = routine.getComponentFromName(name)
+            if comp:
+                return comp
+        return None
+
     def getResourceFiles(self):
         """Returns a list of known files needed for the experiment
         Interrogates each loop looking for conditions files and each

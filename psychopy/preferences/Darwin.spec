@@ -43,7 +43,7 @@
     # audio driver to use
     audioDriver = list(default=list('coreaudio', 'portaudio'))
     # audio device to use (if audioLib allows control)
-    audioDevice = list(default=list('auto'))
+    audioDevice = list(default=list('default'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
     # a list of parallel ports
@@ -175,6 +175,8 @@
     comment = string(default="Ctrl+'")
     # Coder: remove # from start of line(s)
     uncomment = string(default="Ctrl+Shift+'")
+    # Coder: add or remove # from start of line(s)
+    toggle comment = string(default="Ctrl+/")
     # Coder: fold this block of code
     fold = string(default='Ctrl+Home')
 
