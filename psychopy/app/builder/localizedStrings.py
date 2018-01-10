@@ -15,8 +15,8 @@ from __future__ import absolute_import, print_function
 import copy
 import os
 import glob
-from psychopy.experiment.localization import _localized as _localizedBase
-from ..localization import _translate
+from psychopy.localization import _localized as _localizedBase
+from psychopy.localization import _translate
 
 _localizedDialogs = {
     # strings for all allowedVals (from all components) go here:

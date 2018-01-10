@@ -16,7 +16,7 @@ from psychopy import logging
 from psychopy.constants import FOREVER
 from ..params import Param
 from psychopy.experiment.utils import CodeGenerationException
-from ..localization import _translate, _localized
+from psychopy.localization import _translate, _localized
 
 
 class BaseComponent(object):

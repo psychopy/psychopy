@@ -29,9 +29,9 @@ from future import standard_library
 import psychopy
 from psychopy import constants
 from psychopy.constants import PY3
+from psychopy.localization import _translate
 from .components.settings import _numpyImports, _numpyRandomImports
 from .utils import nonalphanumeric_re, valid_var_re
-from ..localization import _translate
 
 standard_library.install_aliases()
 

@@ -33,7 +33,7 @@ from os.path import join, abspath, dirname
 from PIL import Image
 import numpy
 
-from ..localization import _translate
+from psychopy.localization import _translate
 
 from ... import experiment
 from .. import stdOutRich, dialogs
