@@ -3,6 +3,9 @@ import sys, os
 
 from pkg_resources import parse_version
 import wx
+
+import psychopy.projects
+
 if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
@@ -119,4 +122,4 @@ for compName in sorted(allComp):
 #return mismatches
 
 # revert project catalog to original
-projects.ProjectCatalog = origProjectCatalog
+psychopy.projects.ProjectCatalog = origProjectCatalog
