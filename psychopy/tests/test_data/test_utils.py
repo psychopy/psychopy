@@ -35,7 +35,7 @@ class Test_utilsClass:
         assert utils._getExcelCellName(2, 1) == 'C2'
 
     def test_importTrialTypes(self):
-        filename = os.path.join(fixturesPath, 'trialTypes.xlsx')
+        filename = os.path.join(fixturesPath, 'dataTest.xlsx')
         expected_cond = utils.OrderedDict(
             [('text', 'red'),
              ('congruent', 1),
@@ -57,3 +57,4 @@ class Test_utilsClass:
 
 if __name__ == '__main__':
     pytest.main()
+
