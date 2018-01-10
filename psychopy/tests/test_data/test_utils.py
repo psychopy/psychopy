@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import pytest
 from psychopy.data import utils
 
 thisDir, _ = os.path.split(os.path.abspath(__file__))
@@ -53,3 +54,6 @@ class Test_utilsClass:
         assert utils.indicesFromString("6") == [6]
         assert utils.indicesFromString("6::2") == slice(6, None, 2)
         assert utils.indicesFromString("1,4,8") == [1, 4, 8]
+
+if __name__ == '__main__':
+    pytest.main()
