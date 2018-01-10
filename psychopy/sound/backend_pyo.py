@@ -42,9 +42,9 @@ def _bestDriver(devNames, devIDs):
         for devN, devString in enumerate(devNames):
             logging.info(u'Examining for {}'.format(devString))
             try:
-                ds = devString.decode(osEncoding).encode('utf-8').lower()
-                if prefDriver.encode('utf-8').lower() in ds:
-                    audioDriver = devString.decode(osEncoding).encode('utf-8')
+                ds = devString.lower()
+                if prefDriver.lower() in ds:
+                    audioDriver = devString
                     outputID = devIDs[devN]
                     logging.info(u'Success: {}'.format(devString))
                     # we found a driver don't look for others
@@ -391,7 +391,7 @@ class SoundPyo(_SoundBase):
             self.terminator = threading.Timer(duration, self._onEOS)
             self.terminator.start()
         if log and self.autoLog:
-            logging.exp("Sound %s started" % (self.name), obj=self)
+            logging.exp(u"Sound %s started" % (self.name), obj=self)
         return self
 
     def _onEOS(self):
@@ -412,7 +412,7 @@ class SoundPyo(_SoundBase):
             pass
         self.status = STOPPED
         if log and self.autoLog:
-            logging.exp("Sound %s stopped" % (self.name), obj=self)
+            logging.exp(u"Sound %s stopped" % (self.name), obj=self)
 
     def _updateSnd(self):
         self.needsUpdate = False
@@ -432,7 +432,7 @@ class SoundPyo(_SoundBase):
             self._sndTable.setSound(self.fileName,
                                     start=self.startTime, stop=self.stopTime)
         except Exception:
-            msg = ('Could not open sound file `%s` using pyo; not found '
+            msg = (u'Could not open sound file `%s` using pyo; not found '
                    'or format not supported.')
             logging.error(msg % fileName)
             raise TypeError(msg % fileName)
