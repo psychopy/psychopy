@@ -7,8 +7,10 @@ import wx
 import sys
 import re
 import wx.richtext
+import locale
 from .localization import _translate
 
+_prefEncoding = locale.getpreferredencoding()
 
 class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
@@ -45,7 +47,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
 
         # if it comes form a stdout in Py3 then convert to unicode
         if type(inStr) == bytes:
-            inStr = inStr.decode()
+            inStr = inStr.decode(_prefEncoding)
 
         for thisLine in inStr.splitlines(True):
             try:
