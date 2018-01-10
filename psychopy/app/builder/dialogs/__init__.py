@@ -1125,14 +1125,14 @@ class DlgLoopProperties(_BaseParamsDlg):
 
         # create default instances of the diff loop types
         # for 'random','sequential', 'fullRandom'
-        self.trialHandler = experiment.TrialHandler(
+        self.trialHandler = experiment.loops.TrialHandler(
             exp=self.exp, name=oldLoopName, loopType='random',
             nReps=5, conditions=[])
         # for staircases:
-        self.stairHandler = experiment.StairHandler(
+        self.stairHandler = experiment.loops.StairHandler(
             exp=self.exp, name=oldLoopName, nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5)
-        self.multiStairHandler = experiment.MultiStairHandler(
+        self.multiStairHandler = experiment.loops.MultiStairHandler(
             exp=self.exp, name=oldLoopName, nReps=50, stairType='simple',
             switchStairs='random', conditions=[], conditionsFile='')
 

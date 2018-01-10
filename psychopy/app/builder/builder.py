@@ -571,7 +571,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # need to update views)
         initialTimings = component.getStartAndDuration()
         # create the dialog
-        if isinstance(component, components.code.CodeComponent):
+        if hasattr(component, 'type') and component.type.lower() == 'code':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
@@ -918,7 +918,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             helpUrl = None
         # create component template
-        if newClassStr == 'Code':
+        if newClassStr == 'CodeComponent':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
