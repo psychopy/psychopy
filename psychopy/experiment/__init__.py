@@ -18,7 +18,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 
-from .params import getCodeFromParamStr
+from .params import getCodeFromParamStr, Param
 from .components import getInitVals, getComponents, getAllComponents
 from ._experiment import Experiment
 from .utils import unescapedDollarSign_re, valid_var_re, \

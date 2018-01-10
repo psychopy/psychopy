@@ -19,7 +19,7 @@ import gettext
 import os
 import glob
 import codecs
-from psychopy import logging, prefs
+from psychopy import logging, prefs, constants
 
 import wx
 
@@ -124,7 +124,11 @@ try:
 except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
-trans.install(unicode=True)
+
+if constants.PY3:
+    trans.install()
+else:
+    trans.install(unicode=True)
 
 # PsychoPy app uses a nonstandard name _translate (instead of _)
 # A dependency overwrites _ somewhere, clobbering use of _ as global:

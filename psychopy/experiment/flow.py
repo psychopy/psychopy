@@ -9,6 +9,7 @@
 """
 
 from __future__ import absolute_import, print_function
+from past.builtins import basestring
 
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr

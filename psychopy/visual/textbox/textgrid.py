@@ -231,6 +231,7 @@ class TextGrid(object):
                              int(line_spacing/2.0 + cline._trans_top * cell_height), 0)
                 glCallLists(line_length, GL_UNSIGNED_INT,
                             line_display_list[0:line_length].ctypes)
+                cline._trans_left = 0
                 glTranslatef(-line_length * cell_width - cline._trans_left * cell_width, -
                              cell_height + int(line_spacing/2.0 + cline._trans_top * cell_height), 0)
 

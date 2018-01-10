@@ -30,7 +30,7 @@ from psychopy import data, __version__, logging
 from psychopy.experiment.exports import IndentingBuffer, NameSpace
 from psychopy.experiment.flow import Flow
 from psychopy.experiment.loops import TrialHandler, LoopInitiator, \
-    LoopTerminator
+    LoopTerminator, StairHandler, MultiStairHandler
 from psychopy.experiment.params import _findParam, Param
 from psychopy.experiment.routine import Routine
 
