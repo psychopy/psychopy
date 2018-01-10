@@ -12,6 +12,8 @@ from __future__ import absolute_import, print_function
 
 from past.builtins import basestring
 import wx
+
+import psychopy.experiment.utils
 from ..localization import _translate
 from . import experiment
 from .localizedStrings import _localized
@@ -155,7 +157,7 @@ class CodeSnippetValidator(BaseValidator):
 
         field = self.fieldName
         msg, OK = '', True  # until we find otherwise
-        codeWanted = experiment._unescapedDollarSign_re.search(val)
+        codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:

@@ -3,12 +3,15 @@ import sys, os
 
 from pkg_resources import parse_version
 import wx
+
+import psychopy.projects
+
 if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
-from psychopy.app import builder, projects
-from psychopy.app.builder.components import getAllComponents
+from psychopy.app import builder, projects, experiment
+from psychopy.experiment.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
 
@@ -37,7 +40,7 @@ except Exception:
         pass  # not needed if can't import it
     allComp = getAllComponents(fetchIcons=False)
 
-exp = builder.experiment.Experiment()
+exp = experiment.Experiment()
 relPath = os.path.join(os.path.split(__file__)[0], 'componsTemplate.txt')
 
 if not '--out' in sys.argv:
@@ -55,7 +58,7 @@ if not '--out' in sys.argv:
 else:
     outfile = open(relPath,'w')
 
-param = builder.experiment.Param('', '')  # want its namespace
+param = experiment.Param('', '')  # want its namespace
 ignore = ['__doc__', '__init__', '__module__', '__str__']
 if not '--out' in sys.argv:
     # these are for display only (cosmetic) but no harm in gathering initially:
@@ -119,4 +122,4 @@ for compName in sorted(allComp):
 #return mismatches
 
 # revert project catalog to original
-projects.ProjectCatalog = origProjectCatalog
+psychopy.projects.ProjectCatalog = origProjectCatalog

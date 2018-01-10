@@ -1,20 +1,15 @@
 from __future__ import print_function
-from past.builtins import execfile
 from builtins import object
 
-import psychopy.app.builder.experiment
+import psychopy.experiment
 from os import path
-import os, shutil, glob, sys
+import shutil
 import py_compile
-import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests, prefs
+from psychopy import prefs
 import pytest
 import locale
-from lxml import etree
-import numpy
-
 
 # Jeremy Gray March 2011
 
@@ -26,7 +21,7 @@ import numpy
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
-allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
+allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 import wx
 
 class Test_BuilderFrame(object):

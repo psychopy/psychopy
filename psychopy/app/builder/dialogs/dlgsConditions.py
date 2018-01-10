@@ -22,7 +22,7 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 from pkg_resources import parse_version
 
 from psychopy import gui
-from .. experiment import _valid_var_re, _nonalphanumeric_re
+from psychopy.experiment.utils import valid_var_re, nonalphanumeric_re
 from ...localization import _translate
 
 from psychopy.constants import PY3
@@ -260,7 +260,7 @@ class DlgConditions(wx.Dialog):
                     field.SetValue(self.colName(c))
                 field.SetForegroundColour(darkblue)  # dark blue
                 # or (self.parent and
-                if not _valid_var_re.match(field.GetValue()):
+                if not valid_var_re.match(field.GetValue()):
                     # self.parent.exp.namespace.exists(field.GetValue()) ):
                     # was always red when preview .xlsx file -- in
                     # namespace already is fine
@@ -298,8 +298,8 @@ class DlgConditions(wx.Dialog):
             else:
                 msg, enable = self.parent._checkName(name=name)
         else:
-            if (name and not _valid_var_re.match(name)
-                    or not _valid_var_re.match(event.GetString())):
+            if (name and not valid_var_re.match(name)
+                    or not valid_var_re.match(event.GetString())):
                 msg, enable = _translate(
                     "Name must be alpha-numeric or _, no spaces"), False
             else:
@@ -572,7 +572,7 @@ class DlgConditions(wx.Dialog):
                     newName = self.parent.exp.namespace.makeValid(
                         paramName, prefix='param')
                     adjustedNames = True
-            elif not _valid_var_re.match(paramName):
+            elif not valid_var_re.match(paramName):
                 msg, enable = _translate(
                     "Name must be alpha-numeric or _, no spaces"), False
                 newName = _nonalphanumeric_re.sub('_', newName)

@@ -2,7 +2,7 @@ from __future__ import print_function
 from past.builtins import execfile
 from builtins import object
 
-import psychopy.app.builder.experiment
+import psychopy.experiment
 from os import path
 import os, shutil, glob, sys
 import py_compile
@@ -26,7 +26,7 @@ import numpy
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
-allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
+allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 
 
 def _filterout_legal(lines):
@@ -56,7 +56,7 @@ def _diff_file(a, b):
 class TestExpt(object):
     @classmethod
     def setup_class(cls):
-        cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
+        cls.exp = psychopy.experiment.Experiment() # create once, not every test
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def setup(self):
@@ -82,7 +82,7 @@ class TestExpt(object):
 
         # get schema
 
-        schema_name = path.join(self.exp.prefsPaths['appDir'], 'builder', 'experiment.xsd');
+        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd');
         schema_root = etree.parse(schema_name)
         schema = etree.XMLSchema(schema_root)
 

@@ -18,6 +18,9 @@ import copy
 import numpy
 import re
 import wx
+
+import psychopy.experiment.utils
+
 try:
     from wx.lib.agw import flatnotebook
 except ImportError:  # was here wx<4.0:
@@ -35,7 +38,6 @@ from psychopy.tools import versionchooser as vc
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 from ..localizedStrings import _localizedDialogs as _localized
 
@@ -973,7 +975,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         # set display font based on presence of $ (without \$)?
         font = strBox.GetFont()
-        if _unescapedDollarSign_re.search(val):
+        if psychopy.experiment.utils.unescapedDollarSign_re.search(val):
             strBox.SetFont(self.app._codeFont)
         else:
             strBox.SetFont(self.app._mainFont)
@@ -1123,14 +1125,14 @@ class DlgLoopProperties(_BaseParamsDlg):
 
         # create default instances of the diff loop types
         # for 'random','sequential', 'fullRandom'
-        self.trialHandler = experiment.TrialHandler(
+        self.trialHandler = experiment.loops.TrialHandler(
             exp=self.exp, name=oldLoopName, loopType='random',
             nReps=5, conditions=[])
         # for staircases:
-        self.stairHandler = experiment.StairHandler(
+        self.stairHandler = experiment.loops.StairHandler(
             exp=self.exp, name=oldLoopName, nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5)
-        self.multiStairHandler = experiment.MultiStairHandler(
+        self.multiStairHandler = experiment.loops.MultiStairHandler(
             exp=self.exp, name=oldLoopName, nReps=50, stairType='simple',
             switchStairs='random', conditions=[], conditionsFile='')
 

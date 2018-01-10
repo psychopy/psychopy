@@ -21,9 +21,7 @@ except ImportError:  # was here wx<4.0:
 
 from .... import constants
 from .. import validators
-from ...localization import _translate
-
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
+from psychopy.localization import _translate
 
 
 class DlgCodeComponentProperties(wx.Dialog):
