@@ -152,9 +152,9 @@ class PsychoPyApp(wx.App):
         self.SetAppName('PsychoPy2')
 
         # import localization after wx:
-        from psychopy.app import localization  # needed by splash screen
+        from psychopy import localization  # needed by splash screen
         self.localization = localization
-        self.locale = localization.wxlocale
+        self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
 
         # set default paths and prefs
