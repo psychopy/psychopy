@@ -33,6 +33,7 @@ import threading
 import bdb
 import pickle
 import py_compile
+import locale
 
 from . import psychoParser, introspect
 from .. import stdOutRich, dialogs
@@ -1123,7 +1124,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             if not PY3:
                 try:
                     # if we can decode/encode to utf-8 then all is good
-                    txt.decode('utf-8')
+                    txt.encode('utf-8')
                 except:
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
