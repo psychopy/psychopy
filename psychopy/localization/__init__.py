@@ -23,17 +23,22 @@ from psychopy import logging, prefs, constants
 
 import wx
 
-# need a wx App for wx.Locale:
-try:
-    wx.Dialog(None, -1)
-except wx._core.PyNoAppError:
-    if wx.version() < '2.9':
-        tmpApp = wx.PySimpleApp()
+def setLocaleWX():
+    """Sets up the locale for the wx application. Only call this after the app
+    has been created and initialised (it is called by PsychoPyApp.OnInit())
+
+    :return: wx.Locale object
+    """
+    # set locale for wx app (before splash screen):
+    if locale.IsAvailable(languageID):
+        wxlocale = wx.Locale(languageID)
     else:
-        tmpApp = wx.App(False)
+        wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+    return wxlocale
 
 # Get a dict of locale aliases from wx.Locale() -- same cross-platform
 # (Win 7, Mac 10.9)
+# this DOESN'T need the app to be instantiated
 locale = wx.Locale()
 aliases = {u'English (U.S.)': 'en_US'}
 # set defaults because locale.GetLanguageInfo(0) can return None on some
@@ -107,12 +112,6 @@ languageID, lang = getID()
 #        v = winmap[val]
 # else: v=val
 # locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
-
-# set locale before splash screen:
-if locale.IsAvailable(languageID):
-    wxlocale = wx.Locale(languageID)
-else:
-    wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
 
 # ideally rewrite the following using wxlocale only:
 path = os.path.join(os.path.dirname(__file__), '..',
