@@ -2230,12 +2230,21 @@ class CoderFrame(wx.Frame):
                                              readonly=readonly)
             # load text from document
             if os.path.isfile(filename):
-                with open(filename, 'rU') as f:
+                try:
                     if PY3:
-                        self.currentDoc.SetText(f.read())
+                        with open(filename, 'rU', encoding='utf8') as f:
+                            self.currentDoc.SetText(f.read())
+                            self.currentDoc.newlines = f.newlines
                     else:
-                        self.currentDoc.SetText(f.read().decode('utf8'))
-                    self.currentDoc.newlines = f.newlines
+                        with open(filename, 'rU') as f:
+                            self.currentDoc.SetText(f.read().decode('utf8'))
+                            self.currentDoc.newlines = f.newlines
+                except UnicodeDecodeError:
+                    dlg = dialogs.MessageDialog(self, message=_translate(
+                        'Failed to open {}. Make sure that encoding of '
+                        'the file is utf-8.').format(filename), type='Info')
+                    dlg.ShowModal()
+                    dlg.Destroy()
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
             else:
