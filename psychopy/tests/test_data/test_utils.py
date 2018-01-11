@@ -4,6 +4,7 @@
 import os
 import pytest
 from psychopy.data import utils
+from psychopy.constants import PY3
 
 thisDir, _ = os.path.split(os.path.abspath(__file__))
 fixturesPath = os.path.join(thisDir, '..', 'data')
@@ -11,7 +12,12 @@ fixturesPath = os.path.join(thisDir, '..', 'data')
 class Test_utilsClass:
 
     def test_importConditions(self):
-        fileName = os.path.join(fixturesPath, 'trialTypes.xlsx')
+        fileName_xlsx = os.path.join(fixturesPath, 'trialTypes.xlsx')
+        fileName_xls = os.path.join(fixturesPath, 'trialTypes.xls')
+        fileName_csv = os.path.join(fixturesPath, 'trialTypes.csv')
+        fileName_pkl = os.path.join(fixturesPath, 'trialTypes.pkl')
+        fileName_docx = os.path.join(fixturesPath, 'trialTypes.docx')
+
         expected_cond = utils.OrderedDict(
             [('text', 'red'),
              ('congruent', 1),
@@ -19,7 +25,7 @@ class Test_utilsClass:
              ('letterColor', 'red'),
              ('n', 2),
              ('float', 1.1)])
-        conds = utils.importConditions(fileName)
+        conds = utils.importConditions(fileName_xlsx)
         assert conds[0] == expected_cond
 
         # test for None in filename with _assertValidVarNames
@@ -28,19 +34,26 @@ class Test_utilsClass:
         # Test value error for non-existent file
         with pytest.raises(ValueError) as errMsg:
             utils.importConditions(fileName='raiseErrorfileName')
-        assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg)
+        assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg.value)
         # Check file extensions in nested pandasToDictList()
-        conds = utils.importConditions(os.path.join(fixturesPath, 'trialTypes.csv'))
+        conds = utils.importConditions(fileName_csv)
         assert conds[0] == expected_cond
-        conds = utils.importConditions(os.path.join(fixturesPath, 'trialTypes.xls'))
+        conds = utils.importConditions(fileName_xls)
         assert conds[0] == expected_cond
-        conds = utils.importConditions(os.path.join(fixturesPath, 'trialTypes.pkl'))
-        assert conds[0] == expected_cond
+
+        if PY3:
+            conds = utils.importConditions(fileName_pkl)
+            assert conds[0] == expected_cond
+        else:
+            with pytest.raises((IOError)) as errMsg:
+                utils.importConditions(fileName_pkl)
+            assert ('Could not open %s as conditions' % fileName_pkl) == str(errMsg.value)
+
         # trialTypes.pkl saved in list of list format (see trialTypes.docx)
         # test assertion for invalid file type
         with pytest.raises(IOError) as errMsg:
-            utils.importConditions(os.path.join(fixturesPath, 'trialTypes.docx'))
-        assert ('Your conditions file should be an ''xlsx, csv or pkl file') in str(errMsg)
+            utils.importConditions(fileName_docx)
+        assert ('Your conditions file should be an ''xlsx, csv or pkl file') == str(errMsg.value)
 
     def test_isValidVariableName(self):
         assert utils.isValidVariableName('Name') == (True, '')
@@ -103,16 +116,8 @@ class Test_utilsClass:
         assert len(utils.functionFromStaircase(intensities, responses, binUniq)[2]) == len([1]*bin10)
 
     def test_getDateStr(self):
-        from psychopy.constants import PY3
         import time
         assert utils.getDateStr() == time.strftime("%Y_%b_%d_%H%M", time.localtime())
-        # Test decoding exception
-        if PY3:
-            pass
-        else:
-            with pytest.raises(UnicodeDecodeError):
-                utils.getDateStr()
-
 
 if __name__ == '__main__':
     pytest.main()
