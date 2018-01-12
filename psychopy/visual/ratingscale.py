@@ -894,7 +894,7 @@ class RatingScale(MinimalStim):
                 vertPosTmp = -2 * self.textSizeSmall * self.size + self.offsetVert
             for i, label in enumerate(self.labelTexts):
                 # need all labels for tick position, i
-                if label:  # skip '' placeholders, no need to create them
+                if label or label is not None: # 'is not None' allows creation of '0' (zero or false) labels
                     txtStim = TextStim(
                         win=self.win, text=str(label), font=textFont,
                         pos=[self.tickPositions[i // self.autoRescaleFactor],
