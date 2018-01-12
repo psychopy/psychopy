@@ -9,25 +9,18 @@
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map
-from builtins import str
-from builtins import range
-from past.builtins import basestring
-from builtins import object
-import sys
+import ctypes
 import os
+import sys
 import weakref
 
-from psychopy.contrib.lazy_import import lazy_import
+from builtins import map
+from builtins import object
+from builtins import range
+from builtins import str
+from past.builtins import basestring
 
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import pyglet
-pyglet.options['debug_gl'] = False
-GL = pyglet.gl
-import ctypes
+from psychopy.contrib.lazy_import import lazy_import
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
@@ -63,7 +56,7 @@ if sys.platform == 'win32':
 
 
 import psychopy  # so we can get the __path__
-from psychopy import core, platform_specific, logging, prefs, monitors, event
+from psychopy import core, platform_specific, logging, prefs, monitors
 import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -87,7 +80,7 @@ from psychopy.core import rush
 
 reportNDroppedFrames = 5  # stop raising warning after this
 
-from psychopy.visual.gamma import getGammaRamp, setGammaRamp, setGamma
+from psychopy.visual.backends.gamma import getGammaRamp, setGammaRamp
 # import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 from . import shaders as _shaders
 try:
@@ -268,14 +261,6 @@ class Window(object):
         self.useFBO = useFBO
         self.useRetina = useRetina
 
-        if sys.platform=='darwin' and not useRetina and pyglet.version >= "1.3":
-            raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
-                             "set to useRetina=True (or remove the argument). "
-                             "Pyglet 1.3 appears to be forcing "
-                             "us to use retina on any retina-capable screen "
-                             "so setting to False has no effect.")
-
-
         self._toLog = []
         self._toCall = []
         # settings for the monitor: local settings (if available) override
@@ -370,6 +355,14 @@ class Window(object):
         if winType is None:  # choose the default windowing
             winType = prefs.general['winType']
         self.winType = winType
+
+        # setup the context
+        self.backend = backend.()
+        # check whether shaders are supported
+        # also will need to check for ARB_float extension,
+        # but that should be done after context is created
+        self._haveShaders = self.backend.supportsShaders()
+
         self._setupGL()
 
         self.blendMode = self.blendMode
@@ -562,21 +555,7 @@ class Window(object):
         """Make this window current. If useFBO=True, the framebuffer is bound
         after the context switch.
         """
-        if self != globalVars.currWindow and self.winType == 'pyglet':
-            self.winHandle.switch_to()
-            globalVars.currWindow = self
-
-            # if we are using an FBO, bind it
-            if self.useFBO:
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        self.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-
-                # NB - check if we need these
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                GL.glEnable(GL.GL_STENCIL_TEST)
+        self.backend.setCurrent()
 
     def onResize(self, width, height):
         """A default resize event handler.
@@ -634,9 +613,7 @@ class Window(object):
         Dispatches events for all pyglet windows. Used by iohub 2.0
         psychopy kb event integration.
         """
-        wins = pyglet.window.get_platform().get_default_display().get_windows()
-        for win in wins:
-            win.dispatch_events()
+        self.backend.dispatchEvents()
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
@@ -681,37 +658,7 @@ class Window(object):
         # call this before flip() whether FBO was used or not
         self._afterFBOrender()
 
-        if self.winType == "pyglet":
-            # make sure this is current context
-            if globalVars.currWindow != self:
-                self.winHandle.switch_to()
-                globalVars.currWindow = self
-
-            GL.glTranslatef(0.0, 0.0, -5.0)
-
-            for dispatcher in self._eventDispatchers:
-                try:
-                    dispatcher.dispatch_events()
-                except:
-                    dispatcher._dispatch_events()
-
-            # this might need to be done even more often than once per frame?
-            self.winHandle.dispatch_events()
-
-            # for pyglet 1.1.4 you needed to call media.dispatch for
-            # movie updating
-            if pyglet.version < '1.2':
-                pyglet.media.dispatch_events()  # for sounds to be processed
-            if flipThisFrame:
-                self.winHandle.flip()
-        else:
-            if pygame.display.get_init():
-                if flipThisFrame:
-                    pygame.display.flip()
-                # keeps us in synch with system event queue
-                pygame.event.pump()
-            else:
-                core.quit()  # we've unitialised pygame so quit
+        self.backend.swapBuffers()
 
         if self.useFBO:
             if flipThisFrame:
@@ -1330,12 +1277,8 @@ class Window(object):
                    "happen. Use the setGamma() function of the bits box "
                    "instead")
             raise DeprecationWarning(msg)
-        elif self.winType == 'pygame':
-            pygame.display.set_gamma(self.gamma[0],
-                                     self.gamma[1],
-                                     self.gamma[2])
-        elif self.winType == 'pyglet':
-            self.winHandle.setGamma(self.winHandle, self.gamma)
+            
+        self.backend.gamma = gamma
 
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1345,6 +1288,7 @@ class Window(object):
 
     @attributeSetter
     def gammaRamp(self, newRamp):
+        self.backend.gammaRamp = newRamp
         if self.winType == 'pyglet':
             self.winHandle.setGammaRamp(self.winHandle, newRamp)
         else:  # pyglet
@@ -1413,183 +1357,13 @@ class Window(object):
                             (requested, actual))
             self.size = numpy.array(actual)
 
-    def _setupPyglet(self):
-
-        self.winType = "pyglet"
-        if self.allowStencil:
-            stencil_size = 8
-        else:
-            stencil_size = 0
-        vsync = 0
-
-        # provide warning if stereo buffers are requested but unavailable
-        if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
-            logging.warning('A stereo window was requested but the graphics '
-                            'card does not appear to support GL_STEREO')
-            self.stereo = False
-
-        # multisampling
-        sample_buffers = 0
-        aa_samples = 0
-
-        if self.multiSample:
-            sample_buffers = 1
-            # get maximum number of samples the driver supports
-            max_samples = (GL.GLint)()
-            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
-
-            if (self.numSamples >= 2) and (self.numSamples <= max_samples.value):
-                # NB - also check if divisible by two and integer?
-                aa_samples = self.numSamples
-            else:
-                logging.warning('Invalid number of MSAA samples provided, must be '
-                                'integer greater than two. Disabling.')
-                self.multiSample = False
-
-        # options that the user might want
-        config = GL.Config(depth_size=8, double_buffer=True, sample_buffers=sample_buffers,
-                           samples=aa_samples, stencil_size=stencil_size, stereo=self.stereo,
-                           vsync=vsync)
-
-        defDisp = pyglet.window.get_platform().get_default_display()
-        allScrs = defDisp.get_screens()
-        # Screen (from Exp Settings) is 1-indexed,
-        # so the second screen is Screen 1
-        if len(allScrs) < int(self.screen) + 1:
-            logging.warn("Requested an unavailable screen number - "
-                         "using first available.")
-            thisScreen = allScrs[0]
-        else:
-            thisScreen = allScrs[self.screen]
-            if self.autoLog:
-                logging.info('configured pyglet screen %i' % self.screen)
-        # if fullscreen check screen size
-        if self._isFullScr:
-            self._checkMatchingSizes(self.size, [thisScreen.width,
-                                                 thisScreen.height])
-            w = h = None
-        else:
-            w, h = self.size
-        if self.allowGUI:
-            style = None
-        else:
-            style = 'borderless'
-        try:
-            self.winHandle = pyglet.window.Window(
-                    width=w, height=h,
-                    caption="PsychoPy",
-                    fullscreen=self._isFullScr,
-                    config=config,
-                    screen=thisScreen,
-                    style=style)
-        except pyglet.gl.ContextException:
-            # turn off the shadow window an try again
-            pyglet.options['shadow_window'] = False
-            self.winHandle = pyglet.window.Window(
-                    width=w, height=h,
-                    caption="PsychoPy",
-                    fullscreen=self._isFullScr,
-                    config=config,
-                    screen=thisScreen,
-                    style=style)
-            logging.warning("Pyglet shadow_window has been turned off. This is "
-                            "only an issue for you if you need multiple "
-                            "stimulus windows, in which case update your "
-                            "graphics card and/or graphics drivers.")
-
-        if sys.platform == 'win32':
-            # pyHook window hwnd maps to:
-            # pyglet 1.14 -> window._hwnd
-            # pyglet 1.2a -> window._view_hwnd
-            if pyglet.version > "1.2":
-                self._hw_handle = self.winHandle._view_hwnd
-            else:
-                self._hw_handle = self.winHandle._hwnd
-        elif sys.platform == 'darwin':
-            if self.useRetina:
-                global retinaContext
-                retinaContext = self.winHandle.context._nscontext
-                view = retinaContext.view()
-                bounds = view.convertRectToBacking_(view.bounds()).size
-                self.size = numpy.array([int(bounds.width), int(bounds.height)])
-            try:
-                # python 32bit (1.4. or 1.2 pyglet)
-                self._hw_handle = self.winHandle._window.value
-            except Exception:
-                # pyglet 1.2 with 64bit python?
-                self._hw_handle = self.winHandle._nswindow.windowNumber()
-        elif sys.platform.startswith('linux'):
-            self._hw_handle = self.winHandle._window
-
-        if self.useFBO:  # check for necessary extensions
-            if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
-                msg = ("Trying to use a framebuffer object but "
-                       "GL_EXT_framebuffer_object is not supported. Disabled")
-                logging.warn(msg)
-                self.useFBO = False
-            if not GL.gl_info.have_extension('GL_ARB_texture_float'):
-                msg = ("Trying to use a framebuffer object but "
-                       "GL_ARB_texture_float is not supported. Disabling")
-                logging.warn(msg)
-                self.useFBO = False
-        # add these methods to the pyglet window
-        self.winHandle.setGamma = setGamma
-        self.winHandle.setGammaRamp = setGammaRamp
-        self.winHandle.getGammaRamp = getGammaRamp
-        self.winHandle.set_vsync(True)
-        self.winHandle.on_text = event._onPygletText
-        self.winHandle.on_key_press = event._onPygletKey
-        self.winHandle.on_mouse_press = event._onPygletMousePress
-        self.winHandle.on_mouse_release = event._onPygletMouseRelease
-        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
-        if not self.allowGUI:
-            # make mouse invisible. Could go further and make it 'exclusive'
-            # (but need to alter x,y handling then)
-            self.winHandle.set_mouse_visible(False)
-        self.winHandle.on_resize = _onResize  # avoid circular reference
-        if not self.pos:
-            # work out where the centre should be
-            self.pos = [(thisScreen.width - self.size[0]) / 2,
-                        (thisScreen.height - self.size[1]) / 2]
-        if not self._isFullScr:
-            # add the necessary amount for second screen
-            self.winHandle.set_location(int(self.pos[0] + thisScreen.x),
-                                        int(self.pos[1] + thisScreen.y))
-
-        try:  # to load an icon for the window
-            iconFile = os.path.join(psychopy.prefs.paths['resources'],
-                                    'psychopy.ico')
-            icon = pyglet.image.load(filename=iconFile)
-            self.winHandle.set_icon(icon)
-        except Exception:
-            pass  # doesn't matter
-
-        # Code to allow iohub to know id of any psychopy windows created
-        # so kb and mouse event filtering by window id can be supported.
-        #
-        # If an iohubConnection is active, give this window os handle to
-        # to the ioHub server. If windows were already created before the
-        # iohub was active, also send them to iohub.
-        #
-        if IOHUB_ACTIVE:
-            from psychopy.iohub.client import ioHubConnection
-            if ioHubConnection.ACTIVE_CONNECTION:
-                winhwnds = []
-                for w in openWindows:
-                    winhwnds.append(w()._hw_handle)
-                if self._hw_handle not in winhwnds:
-                    winhwnds.append(self._hw_handle)
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.registerPygletWindowHandles(*winhwnds)
 
     def _setupPygame(self):
         # we have to do an explicit import of pyglet.gl from pyglet
         # (only when using pygame backend)
         # Not clear why it's needed but otherwise drawing is corrupt. Using a
         # pyglet Window presumably gets around the problem
-        import pyglet.gl as GL
 
-        self.winType = "pygame"
         # pygame.mixer.pre_init(22050,16,2)  # set the values to initialise
         # sound system if it gets used
         pygame.init()
@@ -1632,24 +1406,6 @@ class Window(object):
         pygame.display.set_gamma(1.0)  # this will be set appropriately later
 
     def _setupGL(self):
-        if self.winType == 'pygame':
-            try:
-                pygame
-            except Exception:
-                logging.warning('Requested pygame backend but pygame ,'
-                                'is not installed or not fully working')
-                self.winType = 'pyglet'
-
-        # setup the context
-        if self.winType == "pygame":
-            self._setupPygame()
-        elif self.winType == "pyglet":
-            self._setupPyglet()
-        # check whether shaders are supported
-        # also will need to check for ARB_float extension,
-        # but that should be done after context is created
-        self._haveShaders = (self.winType == 'pyglet' and
-                             pyglet.gl.gl_info.get_version() >= '2.0')
 
         # setup screen color
         self.color = self.color  # call attributeSetter
@@ -1790,10 +1546,7 @@ class Window(object):
             ``win.mouseVisible = False``
             ``win.mouseVisible = True``
         """
-        if self.winType == 'pygame':
-            wasVisible = pygame.mouse.set_visible(visibility)
-        elif self.winType == 'pyglet':
-            self.winHandle.set_mouse_visible(visibility)
+        self.backend.setMouseVisbility(visibility)
         self.__dict__['mouseVisible'] = visibility
 
     def setMouseVisible(self, visibility, log=None):

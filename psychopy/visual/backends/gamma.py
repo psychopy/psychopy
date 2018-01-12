@@ -41,7 +41,7 @@ elif sys.platform.startswith('linux'):
 _TravisTesting = os.environ.get('TRAVIS') == 'true'  # in Travis-CI testing
 
 
-def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
+def setGamma(pygletWindow=None, newGamma=1.0, rampType=None, xDisplay=None):
     # make sure gamma is 3x1 array
     if type(newGamma) in [float, int]:
         newGamma = numpy.tile(newGamma, [3, 1])
@@ -59,7 +59,7 @@ def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
     setGammaRamp(pygletWindow, newLUT)
 
 
-def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
+def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None):
     """Sets the hardware look-up table, using platform-specific functions.
     For use with pyglet windows only (pygame has its own routines for this).
     Ramp should be provided as 3x256 or 3x1024 array in range 0:1.0
@@ -76,7 +76,7 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
         newRamp.byteswap(True)
         for n in range(nAttempts):
             success = windll.gdi32.SetDeviceGammaRamp(
-                0xFFFFFFFF & pygletWindow._dc, newRamp.ctypes)  # FB 504
+                0xFFFFFFFF & screenID, newRamp.ctypes)  # FB 504
             if success:
                 break
         assert success, 'SetDeviceGammaRamp failed'
@@ -84,12 +84,8 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     if sys.platform == 'darwin':
         newRamp = (newRamp).astype(numpy.float32)
         LUTlength = newRamp.shape[1]
-        try:
-            _screenID = pygletWindow._screen.id  # pyglet1.2alpha1
-        except AttributeError:
-            _screenID = pygletWindow._screen._cg_display_id  # pyglet1.2
         error = carbon.CGSetDisplayTransferByTable(
-            _screenID, LUTlength,
+            screenID, LUTlength,
             newRamp[0, :].ctypes,
             newRamp[1, :].ctypes,
             newRamp[2, :].ctypes)
@@ -98,10 +94,10 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     if sys.platform.startswith('linux') and not _TravisTesting:
         newRamp = (65535 * newRamp).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
-            pygletWindow._x_display, pygletWindow._x_screen_id, 256,
-            newRamp[0, :].ctypes,
-            newRamp[1, :].ctypes,
-            newRamp[2, :].ctypes)
+                xDisplay, screenID, 256,
+                newRamp[0, :].ctypes,
+                newRamp[1, :].ctypes,
+                newRamp[2, :].ctypes)
         assert success, 'XF86VidModeSetGammaRamp failed'
 
     elif _TravisTesting:

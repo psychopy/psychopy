@@ -1122,7 +1122,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             txt = dataObj.GetText()
             if not PY3:
                 try:
-                    # if we can decode/encode to utf-8 then all is good
+                    # if we can decode from utf-8 then all is good
                     txt.decode('utf-8')
                 except:
                     # if not then wx conversion broke so get raw data instead
