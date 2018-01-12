@@ -1130,16 +1130,14 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             self.ReplaceSelection(txt)
 
     def increaseFontSize(self):
-        Zoom = self.GetZoom()
-        self.SetZoom(Zoom + 1)
+        self.SetZoom(self.GetZoom() + 1)
 
     def decreaseFontSize(self):
         # Minimum zoom set to - 6
-        Zoom = self.GetZoom()
-        if Zoom == -6:
-            self.SetZoom(Zoom)
+        if self.GetZoom() == -6:
+            self.SetZoom(self.GetZoom())
         else:
-            self.SetZoom(Zoom - 1)
+            self.SetZoom(self.GetZoom() - 1)
 
     def _GetSelectedLineNumbers(self):
         # used for the comment/uncomment machinery from ActiveGrid
