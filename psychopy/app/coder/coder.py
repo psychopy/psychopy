@@ -33,6 +33,7 @@ import threading
 import bdb
 import pickle
 import py_compile
+import locale
 
 from . import psychoParser, introspect
 from .. import stdOutRich, dialogs
@@ -1120,7 +1121,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            if not PY3:
+            # dealing with unicode error in wx3 for Mac
+            if wx.__version__[0] == '3' and sys.platform == 'darwin':
                 try:
                     # if we can decode/encode to utf-8 then all is good
                     txt.decode('utf-8')
@@ -2248,12 +2250,21 @@ class CoderFrame(wx.Frame):
                                              readonly=readonly)
             # load text from document
             if os.path.isfile(filename):
-                with open(filename, 'rU') as f:
+                try:
                     if PY3:
-                        self.currentDoc.SetText(f.read())
+                        with open(filename, 'rU', encoding='utf8') as f:
+                            self.currentDoc.SetText(f.read())
+                            self.currentDoc.newlines = f.newlines
                     else:
-                        self.currentDoc.SetText(f.read().decode('utf8'))
-                    self.currentDoc.newlines = f.newlines
+                        with open(filename, 'rU') as f:
+                            self.currentDoc.SetText(f.read().decode('utf8'))
+                            self.currentDoc.newlines = f.newlines
+                except UnicodeDecodeError:
+                    dlg = dialogs.MessageDialog(self, message=_translate(
+                        'Failed to open {}. Make sure that encoding of '
+                        'the file is utf-8.').format(filename), type='Info')
+                    dlg.ShowModal()
+                    dlg.Destroy()
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
             else:
