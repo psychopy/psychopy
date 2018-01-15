@@ -1121,10 +1121,11 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            if not PY3 and dataObj.GetFormat().GetType() != wx.DF_UNICODETEXT:
+            # dealing with unicode error in wx3 for Mac
+            if wx.__version__[0] == '3' and sys.platform == 'darwin':
                 try:
                     # if we can decode/encode to utf-8 then all is good
-                    txt.encode('utf-8')
+                    txt.decode('utf-8')
                 except:
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
