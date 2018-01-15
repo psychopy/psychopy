@@ -1121,13 +1121,15 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            if not PY3:
+            if not PY3 and dataObj.GetFormat().GetType() != wx.DF_UNICODETEXT:
                 try:
                     # if we can decode/encode to utf-8 then all is good
                     txt.encode('utf-8')
                 except:
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
+            else:
+                print("pass!")
             self.ReplaceSelection(txt)
 
     def _GetSelectedLineNumbers(self):
