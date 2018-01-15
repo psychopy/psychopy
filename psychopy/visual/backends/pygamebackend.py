@@ -5,19 +5,24 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""
+"""A Backend class defines the core low-level functions required by a Window
+class, such as the ability to create an OpenGL context and flip the window.
+
+Users simply call visual.Window(..., winType='pyglet') and the winType is then
+used by backends.getBackend(winType) which will locate the appropriate class
+and initialize an instance using the attributes of the Window.
 """
 
 from __future__ import absolute_import, print_function
 from builtins import object
 
 import pygame
-from ._base import _BaseBackend
+from ._base import BaseBackend
 from psychopy import core
 from psychopy.tools.attributetools import attributeSetter
 
 
-class WindowBackend(_BaseBackend):
+class PygameBackend(BaseBackend):
     """Backends provide the underlying functionality of the window. They need to
     be able to provide an OpenGL rendering context and the ability to swap
     buffers and set gamma etc. Backend classes are not usually used directly by
@@ -36,9 +41,11 @@ class WindowBackend(_BaseBackend):
         """
         pass
 
-    def swapBuffers(self):
+    def swapBuffers(self, flipThisFrame=True):
         """Do the actual flipping of the buffers (Window will take care of
         additional things like timestamping. Keep this methods as short as poss
+
+        :param flipThisFrame: has no effect on this backend
         """
         if pygame.display.get_init():
             if flipThisFrame:

@@ -58,6 +58,7 @@ if sys.platform == 'win32':
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors
 import psychopy.event
+from . import backends
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
@@ -244,6 +245,7 @@ class Window(object):
         # __repr__
         self._initParams = dir()
         self._closed = False
+        self.backend = None  # this will be set later
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
 
@@ -357,11 +359,33 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backend.()
+        self.backend = backends.getBackend(win=self)
+        self.winHandle = self.backend.winHandle
+        global GL
+        GL = self.backend.GL
+
+        # Code to allow iohub to know id of any psychopy windows created
+        # so kb and mouse event filtering by window id can be supported.
+        #
+        # If an iohubConnection is active, give this window os handle to
+        # to the ioHub server. If windows were already created before the
+        # iohub was active, also send them to iohub.
+        #
+        if IOHUB_ACTIVE:
+            from psychopy.iohub.client import ioHubConnection
+            if ioHubConnection.ACTIVE_CONNECTION:
+                winhwnds = []
+                for w in openWindows:
+                    winhwnds.append(w()._hw_handle)
+                if win._hw_handle not in winhwnds:
+                    winhwnds.append(win._hw_handle)
+                conn = ioHubConnection.ACTIVE_CONNECTION
+                conn.registerPygletWindowHandles(*winhwnds)
+
         # check whether shaders are supported
         # also will need to check for ARB_float extension,
         # but that should be done after context is created
-        self._haveShaders = self.backend.supportsShaders()
+        self._haveShaders = self.backend.shadersSupported
 
         self._setupGL()
 
@@ -571,7 +595,7 @@ class Window(object):
         """
         # this has to be external so that pyglet can use it too without
         # circular referencing
-        _onResize(width, height)
+        self.backend.onResize(width, height)
 
     def logOnFlip(self, msg, level, obj=None):
         """Send a log message that should be time-stamped at the next .flip()
@@ -658,7 +682,7 @@ class Window(object):
         # call this before flip() whether FBO was used or not
         self._afterFBOrender()
 
-        self.backend.swapBuffers()
+        self.backend.swapBuffers(flipThisFrame)
 
         if self.useFBO:
             if flipThisFrame:
@@ -1211,9 +1235,8 @@ class Window(object):
             raise ValueError(msg % colorSpace)
 
         # if it is None then this will be done during window setup
-        if self.winHandle is not None:
-            if self.winType == 'pyglet':
-                self.winHandle.switch_to()
+        if self.backend is not None:
+            self.backend.setCurrent()  # make sure this window is active
             GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
 
     def setRGB(self, newRGB):
@@ -1438,9 +1461,6 @@ class Window(object):
 
         # identify gfx card vendor
         self.glVendor = GL.gl_info.get_vendor().lower()
-
-        if pyglet.version < "1.2" and sys.platform == 'darwin':
-            platform_specific.syncSwapBuffers(1)
 
         requestedFBO = self.useFBO
         if self._haveShaders:  # do this after setting up FrameBufferObject
@@ -1786,35 +1806,3 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg=msg,
                                msDelay=0.)
 
-
-def _onResize(width, height):
-    """A default resize event handler.
-
-    This default handler updates the GL viewport to cover the entire
-    window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
-    window space.  The bottom-left corner is (0, 0) and the top-right
-    corner is the width and height of the :class:`~psychopy.visual.Window`
-    in pixels.
-
-    Override this event handler with your own to create another
-    projection, for example in perspective.
-    """
-    global retinaContext
-
-    if height == 0:
-        height = 1
-
-    if retinaContext is not None:
-        view = retinaContext.view()
-        bounds = view.convertRectToBacking_(view.bounds()).size
-        back_width, back_height = (int(bounds.width), int(bounds.height))
-    else:
-        back_width, back_height = width, height
-
-    GL.glViewport(0, 0, back_width, back_height)
-    GL.glMatrixMode(GL.GL_PROJECTION)
-    GL.glLoadIdentity()
-    GL.glOrtho(-1, 1, -1, 1, -1, 1)
-    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
-    GL.glMatrixMode(GL.GL_MODELVIEW)
-    GL.glLoadIdentity()

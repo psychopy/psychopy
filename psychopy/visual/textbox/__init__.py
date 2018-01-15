@@ -964,12 +964,12 @@ class TextBox(object):
         if not self._draw_start_dlist:
             dl_index = glGenLists(1)
             glNewList(dl_index, GL_COMPILE)
-            glViewport(0, 0, self._window.winHandle.screen.width,
-                       self._window.winHandle.screen.height)
+            glViewport(0, 0, self._window.size[0],
+                       self._window.size[1])
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
-            glOrtho(0, self._window.winHandle.screen.width, 0,
-                    self._window.winHandle.screen.height, -1, 1)
+            glOrtho(0, self._window.size[0], 0,
+                    self._window.size[1], -1, 1)
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
             glDisable(GL_DEPTH_TEST)

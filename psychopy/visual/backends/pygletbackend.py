@@ -5,18 +5,25 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""
+"""A Backend class defines the core low-level functions required by a Window
+class, such as the ability to create an OpenGL context and flip the window.
+
+Users simply call visual.Window(..., winType='pyglet') and the winType is then
+used by backends.getBackend(winType) which will locate the appropriate class
+and initialize an instance using the attributes of the Window.
 """
 
 from __future__ import absolute_import, print_function
-from builtins import object
 import sys
+import os
 import numpy as np
 
-from psychopy import logging
+import psychopy
+from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
-from .gamma import setGamma, setGammaRamp
+from .gamma import setGamma, setGammaRamp, getGammaRamp
 from .. import globalVars
+from ._base import BaseBackend
 
 import pyglet
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -26,7 +33,9 @@ import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
-class WindowBackend(object):
+
+class PygletBackend(BaseBackend):
+    GL = GL
 
     def __init__(self, win):
         """Set up the backend window according the params of the PsychoPy win
@@ -50,7 +59,7 @@ class WindowBackend(object):
                 'card does not appear to support GL_STEREO')
             win.stereo = False
 
-        if sys.platform=='darwin' and not useRetina and pyglet.version >= "1.3":
+        if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
             raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
                              "set to useRetina=True (or remove the argument). "
                              "Pyglet 1.3 appears to be forcing "
@@ -167,6 +176,10 @@ class WindowBackend(object):
                        "GL_ARB_texture_float is not supported. Disabling")
                 logging.warn(msg)
                 win.useFBO = False
+
+        if pyglet.version < "1.2" and sys.platform == 'darwin':
+            platform_specific.syncSwapBuffers(1)
+
         # add these methods to the pyglet window
         self.winHandle.setGamma = setGamma
         self.winHandle.setGammaRamp = setGammaRamp
@@ -199,30 +212,20 @@ class WindowBackend(object):
         except Exception:
             pass  # doesn't matter
 
-        # Code to allow iohub to know id of any psychopy windows created
-        # so kb and mouse event filtering by window id can be supported.
-        #
-        # If an iohubConnection is active, give this window os handle to
-        # to the ioHub server. If windows were already created before the
-        # iohub was active, also send them to iohub.
-        #
-        if IOHUB_ACTIVE:
-            from psychopy.iohub.client import ioHubConnection
-            if ioHubConnection.ACTIVE_CONNECTION:
-                winhwnds = []
-                for w in openWindows:
-                    winhwnds.append(w()._hw_handle)
-                if win._hw_handle not in winhwnds:
-                    winhwnds.append(win._hw_handle)
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.registerPygletWindowHandles(*winhwnds)
 
     @property
     def shadersSupported(self):
         # on pyglet shaders are fine so just check GL>2.0
         return pyglet.gl.gl_info.get_version() >= '2.0'
 
-    def swapBuffers(self, win):
+    def swapBuffers(self, flipThisFrame=True):
+        """Performs various hardware events around the window flip and then
+        performs the actual flip itself (assuming that flipThisFrame is true)
+
+        :param flipThisFrame: setting this to False treats this as a frame but
+            doesn't actually trigger the flip itself (e.g. because the device
+            needs multiple rendered frames per flip)
+        """
         # make sure this is current context
         if globalVars.currWindow != self:
             self.winHandle.switch_to()
@@ -230,7 +233,7 @@ class WindowBackend(object):
 
         GL.glTranslatef(0.0, 0.0, -5.0)
 
-        for dispatcher in self._eventDispatchers:
+        for dispatcher in self.win._eventDispatchers:
             try:
                 dispatcher.dispatch_events()
             except:
@@ -243,7 +246,7 @@ class WindowBackend(object):
         # movie updating
         if pyglet.version < '1.2':
             pyglet.media.dispatch_events()  # for sounds to be processed
-        if win.flipThisFrame:
+        if flipThisFrame:
             self.winHandle.flip()
 
     def setMouseVisibility(self, visibility):
@@ -254,12 +257,12 @@ class WindowBackend(object):
 
         :return: None
         """
-        if self != globalVars.currWindow and self.winType == 'pyglet':
+        if self != globalVars.currWindow:
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
             # if we are using an FBO, bind it
-            if self.useFBO:
+            if self.win.useFBO:
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
                                         self.frameBuffer)
                 GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
@@ -278,6 +281,9 @@ class WindowBackend(object):
         wins = pyglet.window.get_platform().get_default_display().get_windows()
         for win in wins:
             win.dispatch_events()
+
+    def onResize(self, width, height):
+        _onResize(width, height)
 
     @attributeSetter
     def gamma(self, gamma):
@@ -314,3 +320,36 @@ class WindowBackend(object):
         other platforms"""
         if sys.platform.startswith('linux'):
             return self.winHandle._x_display
+
+
+def _onResize(width, height):
+    """A default resize event handler.
+
+    This default handler updates the GL viewport to cover the entire
+    window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
+    window space.  The bottom-left corner is (0, 0) and the top-right
+    corner is the width and height of the :class:`~psychopy.visual.Window`
+    in pixels.
+
+    Override this event handler with your own to create another
+    projection, for example in perspective.
+    """
+    global retinaContext
+
+    if height == 0:
+        height = 1
+
+    if retinaContext is not None:
+        view = retinaContext.view()
+        bounds = view.convertRectToBacking_(view.bounds()).size
+        back_width, back_height = (int(bounds.width), int(bounds.height))
+    else:
+        back_width, back_height = width, height
+
+    GL.glViewport(0, 0, back_width, back_height)
+    GL.glMatrixMode(GL.GL_PROJECTION)
+    GL.glLoadIdentity()
+    GL.glOrtho(-1, 1, -1, 1, -1, 1)
+    # GL.gluPerspective(90, 1.0 * width / height, 0.1, 100.0)
+    GL.glMatrixMode(GL.GL_MODELVIEW)
+    GL.glLoadIdentity()
