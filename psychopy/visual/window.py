@@ -1152,7 +1152,7 @@ class Window(object):
                 if IOHUB_ACTIVE and _hw_handle:
                     from psychopy.iohub.client import ioHubConnection
                     conn = ioHubConnection.ACTIVE_CONNECTION
-                    conn.unregisterPygletWindowHandles(_hw_handle)
+                    conn.unregisterWindowHandles(_hw_handle)
             except Exception:
                 pass
         else:
@@ -1580,7 +1580,7 @@ class Window(object):
                 if self._hw_handle not in winhwnds:
                     winhwnds.append(self._hw_handle)
                 conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.registerPygletWindowHandles(*winhwnds)
+                conn.registerWindowHandles(*winhwnds)
 
     def _setupPygame(self):
         # we have to do an explicit import of pyglet.gl from pyglet
