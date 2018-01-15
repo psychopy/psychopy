@@ -1128,8 +1128,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 except:
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
-            else:
-                print("pass!")
             self.ReplaceSelection(txt)
 
     def _GetSelectedLineNumbers(self):
