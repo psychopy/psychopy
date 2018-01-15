@@ -13,14 +13,14 @@ from sys import platform
 from psychopy import core, logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from ._base import _SoundBase
-
 try:
     import pyo
     import sounddevice
 except ImportError as err:
     # convert this import error to our own, pyo probably not installed
     raise exceptions.DependencyError(repr(err))
+
+from ._base import _SoundBase
 
 import atexit
 import sys

@@ -33,6 +33,7 @@ import threading
 import bdb
 import pickle
 import py_compile
+import locale
 
 from . import psychoParser, introspect
 from .. import stdOutRich, dialogs
@@ -1120,7 +1121,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            if not PY3:
+            # dealing with unicode error in wx3 for Mac
+            if wx.__version__[0] == '3' and sys.platform == 'darwin':
                 try:
                     # if we can decode from utf-8 then all is good
                     txt.decode('utf-8')
@@ -1128,6 +1130,16 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt)
+
+    def increaseFontSize(self):
+        self.SetZoom(self.GetZoom() + 1)
+
+    def decreaseFontSize(self):
+        # Minimum zoom set to - 6
+        if self.GetZoom() == -6:
+            self.SetZoom(self.GetZoom())
+        else:
+            self.SetZoom(self.GetZoom() - 1)
 
     def _GetSelectedLineNumbers(self):
         # used for the comment/uncomment machinery from ActiveGrid
@@ -1158,15 +1170,12 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         # For single lines, move to next line and select that line
         if len(text) == 0:
             return
+        selStart, selEnd = self._GetPositionsBoundingSelectedLines()
+        self.SetSelection(selStart, selEnd)
+        self.ReplaceSelection(text)
         if len(text.splitlines()) > 1:
-            selStart, selEnd = self._GetPositionsBoundingSelectedLines()
-            self.SetSelection(selStart, selEnd)
-            self.ReplaceSelection(text)
             self.SetSelection(selStart, selStart + len(text))
         else:
-            selStart, selEnd = self._GetPositionsBoundingSelectedLines()
-            self.SetSelection(selStart, selEnd)
-            self.ReplaceSelection(text)
             self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
 
     def analyseScript(self):
@@ -1606,53 +1615,53 @@ class CoderFrame(wx.Frame):
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("&Find\t%s") % keyCodes['find'])
+                           _translate("&Find\t%s") % keyCodes['find'])
         self.Bind(wx.EVT_MENU, self.OnFindOpen, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Find &Next\t%s") % keyCodes['findAgain'])
+                           _translate("Find &Next\t%s") % keyCodes['findAgain'])
         self.Bind(wx.EVT_MENU, self.OnFindNext, id=item.GetId())
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("Comment\t%s") % keyCodes['comment'],
-                    _translate("Comment selected lines"),
-                    wx.ITEM_NORMAL)
+                           _translate("Comment\t%s") % keyCodes['comment'],
+                           _translate("Comment selected lines"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.commentSelected, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Uncomment\t%s") % keyCodes['uncomment'],
-                    _translate("Un-comment selected lines"),
-                    wx.ITEM_NORMAL)
+                           _translate("Uncomment\t%s") % keyCodes['uncomment'],
+                           _translate("Un-comment selected lines"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.uncommentSelected, id=item.GetId())
 
         item = menu.Append(wx.ID_ANY,
-                    _translate("Toggle comment\t%s") % keyCodes['toggle comment'],
-                    _translate("Toggle commenting of selected lines"),
-                    wx.ITEM_NORMAL)
+                           _translate("Toggle comment\t%s") % keyCodes['toggle comment'],
+                           _translate("Toggle commenting of selected lines"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.toggleComments, id=item.GetId())
 
         item = menu.Append(wx.ID_ANY,
-                    _translate("Toggle fold\t%s") % keyCodes['fold'],
-                    _translate("Toggle folding of top level"),
-                    wx.ITEM_NORMAL)
+                           _translate("Toggle fold\t%s") % keyCodes['fold'],
+                           _translate("Toggle folding of top level"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.foldAll, id=item.GetId())
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("Indent selection\t%s") % keyCodes['indent'],
-                    _translate("Increase indentation of current line"),
-                    wx.ITEM_NORMAL)
+                           _translate("Indent selection\t%s") % keyCodes['indent'],
+                           _translate("Increase indentation of current line"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.indent, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Dedent selection\t%s") % keyCodes['dedent'],
-                    _translate("Decrease indentation of current line"),
-                    wx.ITEM_NORMAL)
+                           _translate("Dedent selection\t%s") % keyCodes['dedent'],
+                           _translate("Decrease indentation of current line"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.dedent, id=item.GetId())
         hnt = _translate("Try to indent to the correct position w.r.t. "
                          "last line")
         item = menu.Append(wx.ID_ANY,
-                    _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
-                    hnt,
-                    wx.ITEM_NORMAL)
+                           _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
+                           hnt,
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.smartIndent, id=item.GetId())
 
         menu.AppendSeparator()
@@ -1667,6 +1676,17 @@ class CoderFrame(wx.Frame):
                     wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.redo, id=wx.ID_REDO)
 
+        menu.AppendSeparator()
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Enlarge font\t%s") % self.app.keys['enlargeFont'],
+                           _translate("Increase font size"),
+                           wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.bigFont, id=item.GetId())
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Shrink font\t%s") % self.app.keys['shrinkFont'],
+                           _translate("Decrease font size"),
+                           wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.smallFont, id=item.GetId())
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1675,8 +1695,8 @@ class CoderFrame(wx.Frame):
         menu = self.toolsMenu
         menuBar.Append(self.toolsMenu, _translate('&Tools'))
         item = menu.Append(wx.ID_ANY,
-                    _translate("Monitor Center"),
-                    _translate("To set information about your monitor"))
+                           _translate("Monitor Center"),
+                           _translate("To set information about your monitor"))
         self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, id=item.GetId())
         # self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto,
         #   "Analyse on file save/open",
@@ -1690,32 +1710,32 @@ class CoderFrame(wx.Frame):
         # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
 
         self.IDs.cdrRun = menu.Append(wx.ID_ANY,
-                    _translate("Run\t%s") % keyCodes['runScript'],
-                    _translate("Run the current script")).GetId()
+                                      _translate("Run\t%s") % keyCodes['runScript'],
+                                      _translate("Run the current script")).GetId()
         self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
         self.IDs.cdrStop = menu.Append(wx.ID_ANY,
-                    _translate("Stop\t%s") % keyCodes['stopScript'],
-                    _translate("Stop the current script")).GetId()
+                                       _translate("Stop\t%s") % keyCodes['stopScript'],
+                                       _translate("Stop the current script")).GetId()
         self.Bind(wx.EVT_MENU, self.stopFile, id=self.IDs.cdrStop)
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("PsychoPy updates..."),
-                    _translate("Update PsychoPy to the latest, or a specific, version"))
+                           _translate("PsychoPy updates..."),
+                           _translate("Update PsychoPy to the latest, or a specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Benchmark wizard"),
-                    _translate("Check software & hardware, generate report"))
+                           _translate("Benchmark wizard"),
+                           _translate("Check software & hardware, generate report"))
         self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("csv from psydat"),
-                    _translate("Create a .csv file from an existing .psydat file"))
+                           _translate("csv from psydat"),
+                           _translate("Create a .csv file from an existing .psydat file"))
         self.Bind(wx.EVT_MENU, self.app.csvFromPsydat, id=item.GetId())
 
         if self.appPrefs['debugMode']:
             item = menu.Append(wx.ID_ANY,
-                        _translate("Unit &testing...\tCtrl-T"),
-                        _translate("Show dialog to run unit tests"))
+                               _translate("Unit &testing...\tCtrl-T"),
+                               _translate("Show dialog to run unit tests"))
         self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
 
         # ---_view---#000000#FFFFFF-------------------------------------------
@@ -1728,25 +1748,25 @@ class CoderFrame(wx.Frame):
         hint = _translate("Shows guides in the editor for your "
                           "indentation level")
         self.indentGuideChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("&Indentation guides\t%s") % key,
-                                   hint)
+                                                   _translate("&Indentation guides\t%s") % key,
+                                                   hint)
         self.indentGuideChk.Check(self.appData['showIndentGuides'])
         self.Bind(wx.EVT_MENU, self.setShowIndentGuides, self.indentGuideChk)
         # whitespace
         key = keyCodes['toggleWhitespace']
         hint = _translate("Show whitespace characters in the code")
         self.showWhitespaceChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("&Whitespace\t%s") % key,
-                                   hint)
+                                                      _translate("&Whitespace\t%s") % key,
+                                                      hint)
         self.showWhitespaceChk.Check(self.appData['showWhitespace'])
         self.Bind(wx.EVT_MENU, self.setShowWhitespace, self.showWhitespaceChk)
         # EOL markers
         key = keyCodes['toggleEOLs']
         hint = _translate("Show End Of Line markers in the code")
         self.showEOLsChk = menu.AppendCheckItem(
-                                           wx.ID_ANY,
-                                           _translate("Show &EOLs\t%s") % key,
-                                           hint)
+            wx.ID_ANY,
+            _translate("Show &EOLs\t%s") % key,
+            hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
 
@@ -1756,24 +1776,24 @@ class CoderFrame(wx.Frame):
         hint = _translate("Shows the output and shell panes (and starts "
                           "capturing stdout)")
         self.outputChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("Show &Output/Shell\t%s") % key,
-                                   hint)
+                                              _translate("Show &Output/Shell\t%s") % key,
+                                              hint)
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
         hint = _translate("Provides help functions and attributes of classes"
                           " in your script")
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("&Source Assistant"),
-                                   hint)
+                                                  _translate("&Source Assistant"),
+                                                  hint)
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
         menu.AppendSeparator()
         key = self.app.keys['switchToBuilder']
         item = menu.Append(wx.ID_ANY,
-                    _translate("Go to &Builder view\t%s") % key,
-                    _translate("Go to the Builder view"))
+                           _translate("Go to &Builder view\t%s") % key,
+                           _translate("Go to the Builder view"))
         self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
         # self.viewMenu.Append(self.IDs.openShell,
         #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
@@ -2230,12 +2250,21 @@ class CoderFrame(wx.Frame):
                                              readonly=readonly)
             # load text from document
             if os.path.isfile(filename):
-                with open(filename, 'rU') as f:
+                try:
                     if PY3:
-                        self.currentDoc.SetText(f.read())
+                        with open(filename, 'rU', encoding='utf8') as f:
+                            self.currentDoc.SetText(f.read())
+                            self.currentDoc.newlines = f.newlines
                     else:
-                        self.currentDoc.SetText(f.read().decode('utf8'))
-                    self.currentDoc.newlines = f.newlines
+                        with open(filename, 'rU') as f:
+                            self.currentDoc.SetText(f.read().decode('utf8'))
+                            self.currentDoc.newlines = f.newlines
+                except UnicodeDecodeError:
+                    dlg = dialogs.MessageDialog(self, message=_translate(
+                        'Failed to open {}. Make sure that encoding of '
+                        'the file is utf-8.').format(filename), type='Info')
+                    dlg.ShowModal()
+                    dlg.Destroy()
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
             else:
@@ -2725,6 +2754,12 @@ class CoderFrame(wx.Frame):
 
     def toggleComments(self, event):
         self.currentDoc.toggleCommentLines()
+
+    def bigFont(self, event):
+        self.currentDoc.increaseFontSize()
+
+    def smallFont(self, event):
+        self.currentDoc.decreaseFontSize()
 
     def foldAll(self, event):
         self.currentDoc.FoldAll()
