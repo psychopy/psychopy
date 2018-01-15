@@ -230,7 +230,7 @@ class RatingScaleComponent(BaseComponent):
             choices = str(self.params['categoryChoices'].val)
             if self.params['visualAnalogScale'].val:
                 init_str += (", low=0, high=1, precision=100, "
-                             "showValue=False, markerExpansion=0")
+                             "showValue=False")
                 if not self.params['marker'].val:
                     init_str += ", marker='glow'"
             elif len(choices):
