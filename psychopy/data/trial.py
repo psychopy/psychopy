@@ -77,9 +77,7 @@ class TrialHandler(_BaseTrialHandler):
 
             nReps: number of repeats for all conditions
 
-            nTrials: Number of trials to present. If picking fewer trials than
-                    given in conditions list of stimuli, randomisation selects the
-                    n number of trials given.
+            nTrials: Number of trials to present per repetition.
 
             method: *'random',* 'sequential', or 'fullRandom'
                 'sequential' obviously presents the conditions in the order
