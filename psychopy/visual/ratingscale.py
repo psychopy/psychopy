@@ -1304,8 +1304,6 @@ class RatingScale(MinimalStim):
         # restore in case it turned gray, etc
         self.resetMarker = str(self.marker)
         self.resetMarker = self.resetMarker.replace('Window(...)', 'self.win')
-        self.resetMarker = self.resetMarker.replace('white', 'red')
-
         # placed by subject or markerStart: show on screen
         self.markerPlaced = False
         # placed by subject is actionable: show value, singleClick
