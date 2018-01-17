@@ -265,10 +265,11 @@ class PygletBackend(BaseBackend):
             self.winHandle.switch_to()
             globalVars.currWindow = self
 
+            win = self.win  # it's a weakref so faster to call just once
             # if we are using an FBO, bind it
-            if self.win.useFBO:
+            if hasattr(win, 'frameBuffer'):
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        self.frameBuffer)
+                                        win.frameBuffer)
                 GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
                 GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
 
@@ -292,7 +293,8 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
-        setGamma(self.screenID, gamma, xDisplay=self.xDisplay)
+        if gamma is not None:
+            setGamma(self.screenID, gamma, xDisplay=self.xDisplay)
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
@@ -324,6 +326,26 @@ class PygletBackend(BaseBackend):
         other platforms"""
         if sys.platform.startswith('linux'):
             return self.winHandle._x_display
+
+    def close(self):
+        """Close the window and uninitialize the resources
+        """
+        _hw_handle = None
+        try:
+            _hw_handle = self._hw_handle
+            self.winHandle.close()
+        except Exception:
+            pass
+        # If iohub is running, inform it to stop looking for this win id
+        # when filtering kb and mouse events (if the filter is enabled of
+        # course)
+        try:
+            if IOHUB_ACTIVE and _hw_handle:
+                from psychopy.iohub.client import ioHubConnection
+                conn = ioHubConnection.ACTIVE_CONNECTION
+                conn.unregisterWindowHandles(_hw_handle)
+        except Exception:
+            pass
 
 
 def _onResize(width, height):

@@ -105,6 +105,11 @@ class PygameBackend(BaseBackend):
         else:
             core.quit()  # we've unitialised pygame so quit
 
+    def close(self):
+        """Close the window and uninitialize the resources
+        """
+        pygame.display.quit()
+
     @property
     def shadersSupported(self):
         """This is a read-only property indicating whether or not this backend

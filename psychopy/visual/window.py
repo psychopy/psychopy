@@ -1103,32 +1103,13 @@ class Window(object):
         except Exception:
             pass
         if not self.useNativeGamma and self.origGammaRamp is not None:
-            setGammaRamp(self.winHandle, self.origGammaRamp)
+            self.backend.gammaRamp = self.origGammaRamp
         try:
             self.mouseVisible = True
         except Exception:
             # can cause unimportant "'NoneType' object is not callable"
             pass
-        if self.winType == 'pyglet':
-            _hw_handle = None
-            try:
-                _hw_handle = self._hw_handle
-                self.winHandle.close()
-            except Exception:
-                pass
-            # If iohub is running, inform it to stop looking for this win id
-            # when filtering kb and mouse events (if the filter is enabled of
-            # course)
-            try:
-                if IOHUB_ACTIVE and _hw_handle:
-                    from psychopy.iohub.client import ioHubConnection
-                    conn = ioHubConnection.ACTIVE_CONNECTION
-                    conn.unregisterWindowHandles(_hw_handle)
-            except Exception:
-                pass
-        else:
-            # pygame.quit()
-            pygame.display.quit()
+        self.backend.close()
 
         try:
             if self.bits is not None:

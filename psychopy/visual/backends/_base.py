@@ -129,3 +129,7 @@ class BaseBackend(object):
         think about it!
         """
         self.__dict__['win'] = weakref.ref(win)
+
+    @property
+    def autoLog(self):
+        return self.win.autoLog

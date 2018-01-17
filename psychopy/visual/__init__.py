@@ -32,6 +32,8 @@ from .window import Window, getMsPerFrame, openWindows
 #        'GratingStim': "psychopy.visual.grating:GratingStim",
 # })
 
+from psychopy.constants import STOPPED, FINISHED, PLAYING, NOT_STARTED
+
 lazyImports = """
 # stimuli derived from object or MinimalStim
 from psychopy.visual.aperture import Aperture  # uses BaseShapeStim, ImageStim
