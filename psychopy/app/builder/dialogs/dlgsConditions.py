@@ -458,6 +458,8 @@ class DlgConditions(wx.Dialog):
         if wx.version()[0] == '2':
             # data matrix on top, buttons below
             self.border = wx.FlexGridSizer(2, 1)
+        elif wx.version()[0] == '3':
+            self.border = wx.FlexGridSizer(4)
         else:
             self.border = wx.FlexGridSizer(4, 1, wx.Size(0,0))
         self.border.Add(self.sizer, proportion=1,
