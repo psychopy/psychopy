@@ -1124,7 +1124,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             # dealing with unicode error in wx3 for Mac
             if wx.__version__[0] == '3' and sys.platform == 'darwin':
                 try:
-                    # if we can decode/encode to utf-8 then all is good
+                    # if we can decode from utf-8 then all is good
                     txt.decode('utf-8')
                 except:
                     # if not then wx conversion broke so get raw data instead
