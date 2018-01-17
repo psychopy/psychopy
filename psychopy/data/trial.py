@@ -59,6 +59,7 @@ class TrialHandler(_BaseTrialHandler):
     def __init__(self,
                  trialList,
                  nReps,
+                 nTrials=None,
                  method='random',
                  dataTypes=None,
                  extraInfo=None,
@@ -75,6 +76,8 @@ class TrialHandler(_BaseTrialHandler):
                 excel/csv file using :func:`~psychopy.data.importConditions`
 
             nReps: number of repeats for all conditions
+
+            nTrials: Number of trials to present per repetition.
 
             method: *'random',* 'sequential', or 'fullRandom'
                 'sequential' obviously presents the conditions in the order
@@ -138,7 +141,7 @@ class TrialHandler(_BaseTrialHandler):
         """
         self.name = name
         self.autoLog = autoLog
-
+        self.nTrials = nTrials
         if trialList in (None, []):  # user wants an empty trialList
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
@@ -153,8 +156,12 @@ class TrialHandler(_BaseTrialHandler):
         for n, entry in enumerate(self.trialList):
             if type(entry) == dict:
                 self.trialList[n] = TrialType(entry)
+
         self.nReps = int(nReps)
-        self.nTotal = self.nReps * len(self.trialList)
+        if self.nTrials == None:
+            self.nTotal = self.nReps * len(self.trialList)
+        else:
+            self.nTotal = self.nReps * self.nTrials
         self.nRemaining = self.nTotal  # subtract 1 each trial
         self.method = method
         self.thisRepN = 0  # records which repetition or pass we are on
@@ -279,7 +286,7 @@ class TrialHandler(_BaseTrialHandler):
             msg = 'Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s'
             vals = (self.method, len(indices), self.nReps, str(self.seed))
             logging.exp(msg % vals)
-        return sequenceIndices
+        return sequenceIndices[:self.nTotal] # return all, unless nTrials defined
 
     def _makeIndices(self, inputArray):
         """
@@ -336,8 +343,11 @@ class TrialHandler(_BaseTrialHandler):
         self.thisTrialN += 1  # number of trial this pass
         self.thisN += 1  # number of trial in total
         self.nRemaining -= 1
-        if self.thisTrialN == len(self.trialList):
+        if self.thisTrialN == len(self.trialList) and self.nTrials == None:
             # start a new repetition
+            self.thisTrialN = 0
+            self.thisRepN += 1
+        elif self.thisTrialN == self.nTrials and self.nTrials != None:
             self.thisTrialN = 0
             self.thisRepN += 1
         if self.thisRepN >= self.nReps:
