@@ -33,6 +33,7 @@ import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
+retinaContext = None  # it will be set to an actual context if needed
 
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
