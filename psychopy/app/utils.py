@@ -34,6 +34,7 @@ class FileDropTarget(wx.FileDropTarget):
             else:
                 logging.warning(
                     'dropped file ignored: did not end in .psyexp or .py')
+        return True
 
 
 class WindowFrozen(object):
