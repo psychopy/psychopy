@@ -132,4 +132,10 @@ class BaseBackend(object):
 
     @property
     def autoLog(self):
+        """If the window has logging turned on then backend should too"""
         return self.win.autoLog
+
+    @property
+    def name(self):
+        """Name of the backend is only used for logging purposes"""
+        return "{}_backend".format(self.win.name)
