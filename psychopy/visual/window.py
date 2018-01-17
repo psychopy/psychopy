@@ -1499,7 +1499,7 @@ class Window(object):
             ``win.mouseVisible = False``
             ``win.mouseVisible = True``
         """
-        self.backend.setMouseVisbility(visibility)
+        self.backend.setMouseVisibility(visibility)
         self.__dict__['mouseVisible'] = visibility
 
     def setMouseVisible(self, visibility, log=None):
