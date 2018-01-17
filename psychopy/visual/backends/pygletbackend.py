@@ -35,16 +35,20 @@ GL = pyglet.gl
 
 
 class PygletBackend(BaseBackend):
-    GL = GL
+    """The pyglet backend is the most used backend. It has no dependencies
+    or C libs that need compiling, but may not be as fast or efficient as libs
+    like GLFW.
+    """
+    GL = pyglet.gl
 
     def __init__(self, win):
         """Set up the backend window according the params of the PsychoPy win
 
-        Before PsychoPy 1.90.0 this code was executed in Window._setupPyglet()
+        Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
 
         :param: win is a PsychoPy Window (usually not fully created yet)
         """
-        self.win = win  # converted to/from a weakref by parent class
+        BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
 
         if win.allowStencil:
             stencil_size = 8

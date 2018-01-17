@@ -16,30 +16,79 @@ and initialize an instance using the attributes of the Window.
 from __future__ import absolute_import, print_function
 from builtins import object
 
+import os
+import sys
 import pygame
 from ._base import BaseBackend
-from psychopy import core
+import psychopy
+from psychopy import core, platform_specific
 from psychopy.tools.attributetools import attributeSetter
+
+try:
+    import pyglet
+    GL = pyglet.gl
+except ImportError:
+    import OpenGL
+    GL = OpenGL
 
 
 class PygameBackend(BaseBackend):
-    """Backends provide the underlying functionality of the window. They need to
-    be able to provide an OpenGL rendering context and the ability to swap
-    buffers and set gamma etc. Backend classes are not usually used directly by
-    users. The Window class provides all the key functionality that you need.
-
-    To create a new backend subclass this and override (at least) all the
-    methods that are marked with NotImplemented errors
-
-    Use an attribute self.winHandle to point to the actual window in your
-    underlying lib
-
+    """The pygame backend is built on SDL for cross-platform controls
     """
+    GL = GL
 
-    def __init__(self):
-        """Create the window here
+    def __init__(self, win):
+        """Set up the backend window according the params of the PsychoPy win
+
+        Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
+
+        :param: win is a PsychoPy Window (usually not fully created yet)
         """
-        pass
+        BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
+
+        # pygame.mixer.pre_init(22050,16,2)  # set the values to initialise
+        # sound system if it gets used
+        pygame.init()
+        if win.allowStencil:
+            pygame.display.gl_set_attribute(pygame.locals.GL_STENCIL_SIZE, 8)
+
+        try:  # to load an icon for the window
+            iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
+            icon = pygame.image.load(iconFile)
+            pygame.display.set_icon(icon)
+        except Exception:
+            pass  # doesn't matter
+
+        # these are ints stored in pygame.locals
+        winSettings = pygame.OPENGL | pygame.DOUBLEBUF
+        if win._isFullScr:
+            winSettings = winSettings | pygame.FULLSCREEN
+            # check screen size if full screen
+            scrInfo = pygame.display.Info()
+            win._checkMatchingSizes(win.size, [scrInfo.current_w,
+                                                 scrInfo.current_h])
+        elif not win.pos:
+            # centre video
+            os.environ['SDL_VIDEO_CENTERED'] = "1"
+        else:
+            os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (win.pos[0],
+                                                            win.pos[1])
+        if sys.platform == 'win32':
+            os.environ['SDL_VIDEODRIVER'] = 'windib'
+        if not win.allowGUI:
+            winSettings = winSettings | pygame.NOFRAME
+            self.setMouseVisibility(False)
+            pygame.display.set_caption('PsychoPy (NB use with allowGUI=False '
+                                       'when running properly)')
+        else:
+            self.setMouseVisibility(True)
+            pygame.display.set_caption('PsychoPy')
+        self.winHandle = pygame.display.set_mode(win.size.astype('i'),
+                                                 winSettings)
+        pygame.display.set_gamma(1.0)  # this will be set appropriately later
+
+        if sys.platform == 'darwin':
+            platform_specific.syncSwapBuffers(1)
 
     def swapBuffers(self, flipThisFrame=True):
         """Do the actual flipping of the buffers (Window will take care of
@@ -51,39 +100,37 @@ class PygameBackend(BaseBackend):
             if flipThisFrame:
                 pygame.display.flip()
             # keeps us in synch with system event queue
-            pygame.event.pump()
+            self.dispatchEvents()
         else:
             core.quit()  # we've unitialised pygame so quit
 
-    @attributeSetter
-    def gamma(self, gamma):
-        """Set the gamma table for the graphics card
-
-        :param gamma:
-        """
-        self.__dict__['gamma'] = gamma
-        raise NotImplementedError(
-                "Backend is has failed to override a necessary method")
-
     @property
     def shadersSupported(self):
-        """A method to determine
-        """
-        raise NotImplementedError(
-                "Backend is has failed to override a necessary method")
-        # return False  # or True! duh!
+        """This is a read-only property indicating whether or not this backend
+        supports OpenGL shaders"""
+        return False
 
     def setMouseVisibility(self, visibility):
-        """Set the visibility of hte mouse to the new value
+        """Set visibility of the mouse to True or False"""
+        pygame.mouse.set_visible(visibility)
 
-        :param visibility: True/False or 1/0
+    # Optional, depending on backend needs
+
+    def dispatchEvents(self):
+        """This method is not needed for all backends but for engines with an
+        event loop it may be needed to pump for new events (e.g. pyglet)
         """
-        raise NotImplementedError(
-                "Backend is has failed to override a necessary method")
+        pygame.event.pump()
+
+    def onResize(self, width, height):
+        """This does nothing; not supported by our pygame backend at the moment
+        """
+        pass  # the pygame window doesn't currently support resizing
 
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
+        # use pygame's own function for this
         self.winHandle.set_gamma(gamma[0], gamma[1], gamma[2])
 
     @attributeSetter
@@ -91,5 +138,6 @@ class PygameBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
+        # use pygame's own function for this
         self.winHandle.set_gamma_ramp(
                 gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])

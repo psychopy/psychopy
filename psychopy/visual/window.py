@@ -1381,53 +1381,6 @@ class Window(object):
             self.size = numpy.array(actual)
 
 
-    def _setupPygame(self):
-        # we have to do an explicit import of pyglet.gl from pyglet
-        # (only when using pygame backend)
-        # Not clear why it's needed but otherwise drawing is corrupt. Using a
-        # pyglet Window presumably gets around the problem
-
-        # pygame.mixer.pre_init(22050,16,2)  # set the values to initialise
-        # sound system if it gets used
-        pygame.init()
-        if self.allowStencil:
-            pygame.display.gl_set_attribute(pygame.locals.GL_STENCIL_SIZE, 8)
-
-        try:  # to load an icon for the window
-            iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
-            icon = pygame.image.load(iconFile)
-            pygame.display.set_icon(icon)
-        except Exception:
-            pass  # doesn't matter
-
-        # these are ints stored in pygame.locals
-        winSettings = pygame.OPENGL | pygame.DOUBLEBUF
-        if self._isFullScr:
-            winSettings = winSettings | pygame.FULLSCREEN
-            # check screen size if full screen
-            scrInfo = pygame.display.Info()
-            self._checkMatchingSizes(self.size, [scrInfo.current_w,
-                                                 scrInfo.current_h])
-        elif not self.pos:
-            # centre video
-            os.environ['SDL_VIDEO_CENTERED'] = "1"
-        else:
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (self.pos[0],
-                                                            self.pos[1])
-        if sys.platform == 'win32':
-            os.environ['SDL_VIDEODRIVER'] = 'windib'
-        if not self.allowGUI:
-            winSettings = winSettings | pygame.NOFRAME
-            self.mouseVisible = False  # call attributeSetter
-            pygame.display.set_caption('PsychoPy (NB use with allowGUI=False '
-                                       'when running properly)')
-        else:
-            self.mouseVisible = True  # call attributeSetter
-            pygame.display.set_caption('PsychoPy')
-        self.winHandle = pygame.display.set_mode(self.size.astype('i'),
-                                                 winSettings)
-        pygame.display.set_gamma(1.0)  # this will be set appropriately later
-
     def _setupGL(self):
 
         # setup screen color
