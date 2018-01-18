@@ -1,6 +1,6 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-dist: precise  # the default (trusty) causing problem with SSL as of Aug 2017
+dist: trusty
 sudo: true
 
 language: python
@@ -8,7 +8,7 @@ language: python
 matrix:
   include:
     - os: linux
-      python: "2.7_with_system_site_packages"
+      python: 2.7
       env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
@@ -41,8 +41,7 @@ before_install:
 
   # This might come in handy once we switch to Trusty, as its Xvfb
   # doesn't properly support the RANDR extension
-  # - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
-
+  - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
   - travis_retry sudo apt-get install -qq libportaudio2
   - travis_retry sudo apt-get install -qq flac
@@ -62,15 +61,15 @@ before_install:
   - if [ -z $ANACONDA ]; then
       echo "Installing PsychoPy dependencies via apt...";
       travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl;
-      travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
+      travis_retry sudo apt-get install -qq python-numpy python-scipy python-pandas;
       travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj;
       travis_retry sudo apt-get install -qq python-imaging python-mock;
       travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8;
       travis_retry sudo apt-get install -qq python-pyo python-opencv;
       travis_retry sudo apt-get install -qq python-mock;
       echo "Installing PsychoPy dependencies via pip...";
-      travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
-      travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
+      pip install --upgrade -qq pip;
+      pip install --upgrade -qq -r requirements_travis.txt;
     fi
   - if [ -n "$ANACONDA" ]; then
       echo "Installing Miniconda environment...";
@@ -110,9 +109,9 @@ before_script:
     fi
 
 # This might come in handy once we switch to Trusty
-#  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-#      xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
-#    fi;
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+      xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
+    fi;
 
 script:
   - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
