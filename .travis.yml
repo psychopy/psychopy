@@ -46,6 +46,7 @@ before_install:
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
   - travis_retry sudo apt-get install -qq libportaudio2
   - travis_retry sudo apt-get install -qq flac
+  - travis_retry sudo apt-get install -qq ffmpeg
   - flac -version
 
   # Locales
