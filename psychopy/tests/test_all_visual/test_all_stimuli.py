@@ -17,8 +17,14 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 
+# are we testing on Travis and is it Anaconda or system python?
+_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
+_anacondaTesting = bool("{}".format(os.environ.get('ANACONDA')).lower() == 'true')
+# the ffmpeg doesn't seem to work on Travis system python (using 12.04)
+# upgrading to trusty (14.04) we could get ffmpeg to work but then test_bitsShaders
+# stopped working on conda and system python setup would even build with all the
+# dependencies. It was test environment hell! (sorry, it's been a bad day)
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -370,6 +376,8 @@ class _baseVisualTest(object):
         win = self.win
         if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
+        elif _travisTesting and not _anacondaTesting:
+            pytest.skip("Travis with system Python doesn't seem to have a working ffmpeg")
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
