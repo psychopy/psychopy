@@ -71,6 +71,7 @@ before_install:
       echo "Installing PsychoPy dependencies via pip...";
       travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
       travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
+      travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements.txt;
     fi
   - if [ -n "$ANACONDA" ]; then
       echo "Installing Miniconda environment...";
