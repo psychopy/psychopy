@@ -8,7 +8,7 @@ language: python
 matrix:
   include:
     - os: linux
-      python: "2.7_with_system_site_packages"
+      python: 2.7
       env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
