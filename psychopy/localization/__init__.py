@@ -74,7 +74,7 @@ for line in codecs.open(mappings, 'rU', 'utf8').readlines():
     reverseMap[name] = can
 
 # what are the available translations? available languages on the OS?
-expr = os.path.join(os.path.dirname(__file__), '..', 'locale', '*')
+expr = os.path.join(os.path.dirname(__file__), '..', 'app', 'locale', '*')
 available = sorted(map(os.path.basename, glob.glob(expr)))
 sysAvail = [str(l) for l in codeFromWxId.values()  # installed language packs
             if l and locale.IsAvailable(wxIdFromCode[l])]
