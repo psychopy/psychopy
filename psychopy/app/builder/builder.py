@@ -2371,11 +2371,9 @@ class ExportFileDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-
-        warning = wx.StaticText(
-            self, wx.ID_ANY,
-            "Warning, HTML outputs are under development.\n"
-            "They are here purely for testing at the moment.")
+        msg = ("Warning, HTML outputs are under development.\n"
+               "They are here purely for testing at the moment.")
+        warning = wx.StaticText(self, wx.ID_ANY, _translate(msg))
         warning.SetForegroundColour((200, 0, 0))
         sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 
