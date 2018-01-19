@@ -4,6 +4,8 @@ from builtins import map
 from builtins import range
 from builtins import object
 from past.utils import old_div
+
+import os
 from psychopy.visual import RatingScale, Window, shape, TextStim
 from psychopy import event, core
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
