@@ -68,12 +68,14 @@ class DlgCodeComponentProperties(wx.Dialog):
         for idx, pkey in enumerate(self.order):
             param = self.params.get(pkey)
             if pkey == 'name':
-                self.nameLabel = wx.StaticText(self, wx.ID_ANY, param.label)
+                self.nameLabel = wx.StaticText(self, wx.ID_ANY,
+                                               _translate(param.label))
                 _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
                 self.componentName = wx.TextCtrl(self, wx.ID_ANY,
                                                  str(param.val),
                                                  style=_style)
-                self.componentName.SetToolTipString(param.hint)
+                self.componentName.SetToolTipString(
+                        _translate(param.hint))
                 self.componentName.SetValidator(validators.NameValidator())
                 self.nameOKlabel = wx.StaticText(self, -1, '',
                                                  style=wx.ALIGN_RIGHT)

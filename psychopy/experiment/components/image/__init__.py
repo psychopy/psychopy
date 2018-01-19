@@ -8,7 +8,8 @@
 from __future__ import absolute_import, print_function
 
 from os import path
-from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals
+from psychopy.localization import _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -42,7 +43,6 @@ class ImageComponent(BaseVisualComponent):
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
-
         self.type = 'Image'
         self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "http://www.psychopy.org/builder/components/image.html"
