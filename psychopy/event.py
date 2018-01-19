@@ -696,7 +696,6 @@ class Mouse(object):
             if self.win:  # use default window if we don't have one
                 w = self.win.winHandle
             else:
-                print('xx')
                 plat = pyglet.window.get_platform()
                 w = plat.get_default_display().get_windows()[0]
             w.set_mouse_visible(visible)
