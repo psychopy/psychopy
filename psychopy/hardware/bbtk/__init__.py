@@ -86,7 +86,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """
         self.sendMessage(b"FIRM")
         self.pause()
-        return self.getResponse(timeout=0.5).replace(";", "")
+        return self.getResponse(timeout=1.0).replace(b";", b"")
 
     def setEventThresholds(self, threshList=()):
         """This takes some time (requires switching the BBTK to STM mode)
@@ -96,7 +96,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         time.sleep(5)  # it takes quite a while to switch to this mode
         for threshVal in threshList:
             time.sleep(0.5)
-            self.sendMessage(str(threshVal))
+            self.sendMessage(threshVal) # threshVal must be byte, not str
 
     def getEventThresholds(self):
         self.sendMessage(b"GEPV")
@@ -105,7 +105,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         if reply == '':
             return []
         else:
-            reply = reply.replace(';\n', '').split(',')
+            reply = reply.replace(b';\n', b'').split(b',')
         return reply
 
     def setSmoothing(self, smoothStr):
@@ -132,10 +132,10 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         self.pause()
         reply = self.getResponse(timeout=10)
         # should return either FRMT or ESEC to indicate it started
-        if reply.startswith('FRMT'):
+        if reply.startswith(b'FRMT'):
             logging.info("BBTK.clearMemory(): "
                          "Starting full format of BBTK memory")
-        elif reply.startswith('ESEC'):
+        elif reply.startswith(b'ESEC'):
             logging.info("BBTK.clearMemory(): "
                          "Starting quick erase of BBTK memory")
         else:
@@ -147,7 +147,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         # now wait until we get told 'DONE'
         self.com.timeout = 20
         retVal = self.com.readline()
-        if retVal.startswith("DONE"):
+        if retVal.startswith(b"DONE"):
             logging.info("BBTK.clearMemory(): completed")
             # we aren't in a time-critical period so flush messages
             logging.flush()
@@ -183,7 +183,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         foundDataStart = False
         t0 = time.time()
         while not foundDataStart and time.time() - t0 < timeout:
-            if self.com.readline().startswith('SDAT'):
+            if self.com.readline().startswith(b'SDAT'):
                 foundDataStart = True
                 logging.info("BBTK.getEvents() found data. Processing...")
                 logging.flush()  # we aren't in a time-critical period
@@ -210,7 +210,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             else:
                 for n in evtChannels:
                     if state[n] != lastState[n]:
-                        if state[n] == '1':
+                        if chr(state[n]) =='1':
                             evt = evtChannels[n] + "_on"
                         else:
                             evt = evtChannels[n] + "_off"
@@ -231,7 +231,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         self.com.readline()[:-2]  # samples recorded (ignore)
         while True:
             line = self.com.readline()
-            if line.startswith('EDAT'):  # end of data stream
+            if line.startswith(b'EDAT'):  # end of data stream
                 break
             events.extend(parseEventsLine(line, lastState))
             lastState = events[-1]['state']
