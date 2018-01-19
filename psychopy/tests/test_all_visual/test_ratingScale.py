@@ -11,6 +11,8 @@ from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
 from psychopy.tests import utils
 import pytest, copy
 
+_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
+
 """define RatingScale configurations, test the logic
 
     .draw() is to pick up coverage, not do a visual test (see test_all_visual).
@@ -294,7 +296,10 @@ class Test_class_RatingScale(object):
         h = r.getHistory()
         assert h[0] == (None, 0)
         assert h[-1][0] == 1
-        assert 0.001 < h[-1][1] < 0.03
+        if _travisTesting:
+            assert 0.001 < h[-1][1] < 0.05  # travis virtual machines not great
+        else:
+            assert 0.001 < h[-1][1] < 0.03
 
     def test_labels_False(self):
         for anchor in [None, 'a']:
