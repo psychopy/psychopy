@@ -507,7 +507,7 @@ class TextBox(object):
 
     def getGlyphPositionForTextIndex(self, char_index):
         """
-        For the provided char_index, which is the index of one chatacter in
+        For the provided char_index, which is the index of one character in
         the current text being displayed by the TextBox ( getDisplayedText() ),
         return the bounding box position, width, and height for the associated
         glyph drawn to the screen. This factors in the glyphs position within

@@ -303,7 +303,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             # timing logic work otherwise the video stream would skip 
             # frames until the time since creating the movie object has passed
             self._videoClock.reset()
-            self._nextFrameT = 0
+            self._nextFrameT = 0.0
 
         # only advance if next frame (half of next retrace rate)
         if self._nextFrameT > self.duration:
@@ -312,7 +312,14 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             if self._nextFrameT > (self._videoClock.getTime() -
                                    self._retraceInterval/2.0):
                 return None
-        self._numpyFrame = self._mov.get_frame(self._nextFrameT)
+        try:
+            self._numpyFrame = self._mov.get_frame(self._nextFrameT) 
+        except OSError:
+            if self.autoLog:
+                logging.warning("Frame {} not found, moving one frame and trying again" 
+                    .format(self._nextFrameT), obj=self)
+            self._nextFrameT += self._frameInterval
+            self._updateFrameTexture()
         useSubTex = self.useTexSubImage2D
         if self._texID is None:
             self._texID = GL.GLuint()

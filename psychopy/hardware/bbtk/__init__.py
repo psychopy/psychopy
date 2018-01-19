@@ -35,10 +35,10 @@ evtChannels = {
 class BlackBoxToolkit(serialdevice.SerialDevice):
     """A base class for serial devices, to be sub-classed by specific devices
     """
-    name = 'BlackBoxToolkit'
-    longName = "BlackBoxToolkit 2"
+    name = b'BlackBoxToolkit'
+    longName = b"BlackBoxToolkit 2"
     # list of supported devices (if more than one supports same protocol)
-    driverFor = ["BlackBoxToolkit 2"]
+    driverFor = [b"BlackBoxToolkit 2"]
 
     def __init__(self, port=None, sendBreak=False):
         # if we're trying to send the break signal then presumably the device
@@ -49,9 +49,9 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             checkAwake = True
         # run initialisation; parity = enable parity checking
         super(BlackBoxToolkit, self).__init__(port,
-                                              baudrate=460800, eol="\n",
+                                              baudrate=230400, eol="\r\n",
                                               parity='N',
-                                              pauseDuration=0.5,
+                                              pauseDuration=1.0,  # 1 second pause!! slow device
                                               checkAwake=checkAwake)
         if sendBreak:
             self.sendBreak()
@@ -66,26 +66,25 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         except AttributeError:
             self.com.sendBreak()  # not sure when this was deprecated
 
-
     def isAwake(self):
         """Checks that the black box returns "BBTK;\n" when probed with "CONN"
         """
         self.pause()
-        self.sendMessage('CONN')
+        self.sendMessage(b'CONN')
         self.pause()
         reply = self.getResponse(timeout=1.0)
-        return reply == 'BBTK;\n'
+        return reply == b'BBTK;\n'
 
     def showAbout(self):
         """Will show the 'about' screen on the LCD panel for 2 seconds
         """
         self.pause()
-        self.sendMessage('ABOU')
+        self.sendMessage(b'ABOU')
 
     def getFirmware(self):
         """Returns the firmware version in YYYYMMDD format
         """
-        self.sendMessage("FIRM")
+        self.sendMessage(b"FIRM")
         self.pause()
         return self.getResponse(timeout=0.5).replace(";", "")
 
@@ -93,14 +92,14 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """This takes some time (requires switching the BBTK to STM mode)
         """
         time.sleep(1.0)
-        self.sendMessage('SEPV')
+        self.sendMessage(b'SEPV')
         time.sleep(5)  # it takes quite a while to switch to this mode
         for threshVal in threshList:
             time.sleep(0.5)
             self.sendMessage(str(threshVal))
 
     def getEventThresholds(self):
-        self.sendMessage("GEPV")
+        self.sendMessage(b"GEPV")
         self.pause()
         reply = self.getResponse(timeout=5.0)
         if reply == '':
@@ -121,7 +120,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         The channel orders are these (from BBTKv2 manual):
             [mic1 mic2 opto4 opto3 opto2 opto1 n/a n/a]
         """
-        self.sendMessage('SMOO')
+        self.sendMessage(b'SMOO')
         self.pause()
         self.sendMessage(smoothStr)
 
@@ -129,7 +128,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """Clear the stored data from a previous run.
         This should be done before collecting a further timing data
         """
-        self.sendMessage('SPIE')
+        self.sendMessage(b'SPIE')
         self.pause()
         reply = self.getResponse(timeout=10)
         # should return either FRMT or ESEC to indicate it started
@@ -165,16 +164,16 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         events that occurred in that period.
         """
         # we aren't in a time-critical period so flush messages
-        self.sendMessage("DSCM")
+        self.sendMessage(b"DSCM")
         logging.flush()
         time.sleep(5.0)
-        self.sendMessage("TIML")
+        self.sendMessage(b"TIML")
         logging.flush()
         self.pause()
         # BBTK expects this in microsecs
-        self.sendMessage("%i" % int(duration * 1000000), autoLog=False)
+        self.sendMessage(b"%i" % int(duration * 1000000), autoLog=False)
         self.pause()
-        self.sendMessage("RUDS")
+        self.sendMessage(b"RUDS")
         logging.flush()
 
     def getEvents(self, timeout=10):

@@ -29,12 +29,13 @@ import glob
 import copy
 import traceback
 import codecs
-import re
+from os.path import join, abspath, dirname
+from PIL import Image
 import numpy
 
-from ..localization import _translate
+from psychopy.localization import _translate
 
-from . import experiment, components
+from ... import experiment
 from .. import stdOutRich, dialogs
 from .. import projects
 from psychopy import logging, constants
@@ -43,7 +44,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
-
+from psychopy.experiment import components
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -57,9 +58,6 @@ darkgrey = wx.Colour(65, 65, 65, 255)
 white = wx.Colour(255, 255, 255, 255)
 darkblue = wx.Colour(30, 30, 150, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-
-# regular expression to check for unescaped '$' to indicate code:
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 # _localized separates internal (functional) from displayed strings
 # long form here allows poedit string discovery
@@ -82,6 +80,64 @@ _localized = {
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')}
 
+
+def pilToBitmap(pil, scaleFactor=1.0):
+    if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+        image = wx.EmptyImage(pil.size[0], pil.size[1])
+    else:
+        image = wx.Image(pil.size[0], pil.size[1])
+
+    # set the RGB values
+    if hasattr(pil, 'tobytes'):
+        image.SetData(pil.convert("RGB").tobytes())
+        image.SetAlphaBuffer(pil.convert("RGBA").tobytes()[3::4])
+    else:
+        image.SetData(pil.convert("RGB").tostring())
+        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+
+    image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
+    return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
+
+
+def getIcons(filename=None):
+    """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image.
+    The latter has a plus sign added over the top.
+
+    png files work best, but anything that wx.Image can import should be fine
+    """
+    componsDir = abspath(dirname(components.__file__))
+    icons = {}
+    if filename is None:
+        filename = join(componsDir, 'base.png')
+
+    # get the low-res version first
+    im = Image.open(filename)
+    icons['24'] = pilToBitmap(im, scaleFactor=0.5)
+    icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
+    # try to find a 128x128 version
+    filename128 = filename[:-4]+'128.png'
+    if False: # TURN OFF FOR NOW os.path.isfile(filename128):
+        im = Image.open(filename128)
+    else:
+        im = Image.open(filename)
+    icons['48'] = pilToBitmap(im)
+    # add the plus sign
+    add = Image.open(join(componsDir, 'add.png'))
+    im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
+    # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
+    #               im.size[0], im.size[1]], mask=add)
+    icons['48add'] = pilToBitmap(im)
+
+    return icons
+
+# load the icons for all the components
+compons = experiment.getAllComponents()
+componIcons = {}
+for thisName, thisCompon in compons.items():
+    if thisName in components.iconFiles:
+        componIcons[thisName] = getIcons(components.iconFiles[thisName])
+    else:
+        componIcons[thisName] = getIcons(None)
 
 class RoutineCanvas(wx.ScrolledWindow):
     """Represents a single routine (used as page in RoutinesNotebook)"""
@@ -427,7 +483,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        thisIcon = components.icons[component.getType()]["{}".format(
+        thisIcon = componIcons[component.getType()]["{}".format(
             self.iconSize)]  # getType index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
@@ -515,7 +571,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # need to update views)
         initialTimings = component.getStartAndDuration()
         # create the dialog
-        if isinstance(component, components.code.CodeComponent):
+        if hasattr(component, 'type') and component.type.lower() == 'code':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
@@ -754,10 +810,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             if redundant in name:
                 shortName = name.replace(redundant, "")
         if self.app.prefs.app['largeIcons']:
-            thisIcon = components.icons[name][
+            thisIcon = componIcons[name][
                 '48add']  # index 1 is the 'add' icon
         else:
-            thisIcon = components.icons[name][
+            thisIcon = componIcons[name][
                 '24add']  # index 1 is the 'add' icon
         btn = wx.BitmapButton(self, -1, thisIcon,
                               size=(thisIcon.GetWidth() + 10,
@@ -834,9 +890,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.PopupMenu(menu, (x + xBtn, y + yBtn))
         menu.Destroy()  # destroy to avoid mem leak
 
-    def onClick(self, evt):
+    def onClick(self, evt, timeout=None):
         """
         Defines left-click behavior for builder views components panel
+        :param: evt can be a wx.Event OR a component class name (MouseComponent)
         """
         # get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
@@ -848,8 +905,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         # get component name
-        newClassStr = self.componentFromID[evt.GetId()]
-        componentName = newClassStr.replace('Component', '')
+        if hasattr(evt, "GetId"):
+            newClassStr = self.componentFromID[evt.GetId()]
+        else:
+            newClassStr = evt
         newCompClass = self.components[newClassStr]
         newComp = newCompClass(parentName=currRoutine.name,
                                exp=self.frame.exp)
@@ -859,14 +918,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             helpUrl = None
         # create component template
-        if componentName == 'Code':
+        if newClassStr == 'CodeComponent':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
-        dlg = _Dlg(frame=self.frame, title=componentName + ' Properties',
+        dlg = _Dlg(frame=self.frame,
+                   title= '{} Properties'.format(newComp.params['name']),
                    params=newComp.params, order=newComp.order,
                    helpUrl=helpUrl,
-                   depends=newComp.depends)
+                   depends=newComp.depends,
+                   timeout=timeout)
 
         compName = newComp.params['name']
         if dlg.OK:
@@ -1522,8 +1583,8 @@ class BuilderFrame(wx.Frame):
             try:
                 self.exp.loadFromXML(filename)
             except Exception:
-                print("Failed to load %s. Please send the following to"
-                      " the PsychoPy user list" % filename)
+                print(u"Failed to load {}. Please send the following to"
+                      u" the PsychoPy user list".format(filename))
                 traceback.print_exc()
                 logging.flush()
             self.resetUndoStack()
@@ -1551,7 +1612,7 @@ class BuilderFrame(wx.Frame):
         self.setIsModified(False)
         # if export on save then we should have an html file to update
         if self.htmlPath:
-            self.fileExport(filePath=self.htmlPath)
+            self.fileExport(htmlPath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
