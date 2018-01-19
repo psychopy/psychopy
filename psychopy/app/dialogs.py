@@ -560,7 +560,6 @@ class ListWidget(GlobSizer):
         """The plus button has been pressed
         """
         btn = self.FindItem(event.GetEventObject())
-
         row, col = btn.GetPos()
         self.InsertRow(row)
         newEntry = {}
