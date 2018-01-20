@@ -8,7 +8,7 @@
 
 from __future__ import absolute_import, print_function
 
-from psychopy.app.localization import _translate
+from psychopy.localization import _translate
 
 # baseNoArch.spec,[general],line25
 _translate("which system to use as a backend for drawing")

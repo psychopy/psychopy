@@ -88,7 +88,6 @@ def setAttribute(self, attrib, value, log,
             # attribute is not set yet. Set it to None to skip
             # operation and just set value.
             oldValue = None
-            value = value
 
         # Apply operation except for the case when new or old value
         # are None or string-like

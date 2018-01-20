@@ -12,6 +12,7 @@ from builtins import object
 import sys
 import psychopy
 from pkg_resources import parse_version
+from psychopy.constants import PY3
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -123,10 +124,12 @@ class _Showgui_Hack(object):
         if not os.path.isfile(noopPath):
             code = """from psychopy import gui
                 dlg = gui.Dlg().Show()  # non-blocking
-                try: dlg.Destroy()  # might as well
-                except Exception: pass""".replace('    ', '')
+                try: 
+                    dlg.Destroy()  # might as well
+                except Exception: 
+                    pass"""
             with open(noopPath, 'wb') as fd:
-                fd.write(code)
+                fd.write(bytes(code))
         # append 'w' for pythonw seems not needed
         core.shellCall([sys.executable, noopPath])
 
@@ -149,9 +152,9 @@ class PsychoPyApp(wx.App):
         self.SetAppName('PsychoPy2')
 
         # import localization after wx:
-        from psychopy.app import localization  # needed by splash screen
+        from psychopy import localization  # needed by splash screen
         self.localization = localization
-        self.locale = localization.wxlocale
+        self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
 
         # set default paths and prefs
@@ -360,7 +363,11 @@ class PsychoPyApp(wx.App):
         reportPath = os.path.join(
             self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         if os.path.exists(reportPath):
-            report = open(reportPath, 'r').read()
+            if PY3:
+                report = open(reportPath, 'r', encoding='utf-8').read()
+            else:
+                import codecs
+                report = codecs.open(reportPath, 'r', encoding='utf-8').read()
             if 'Configuration problem' in report:
                 # fatal error was encountered (currently only if bad drivers)
                 # ensure wizard will be triggered again:
@@ -467,6 +474,7 @@ class PsychoPyApp(wx.App):
         thisFrame.Show(True)
         thisFrame.Raise()
         self.SetTopWindow(thisFrame)
+        return thisFrame
 
     def showBuilder(self, event=None, fileList=()):
         # have to reimport because it is ony local to __init__ so far
@@ -643,7 +651,9 @@ class PsychoPyApp(wx.App):
                 self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
-        sys.exit()
+        self.Destroy()
+        if not self.testMode:
+            sys.exit()  # sys exit during pytest will end testing?
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg

@@ -1,7 +1,7 @@
 # PsychoPy
 [![Travis-CI status](https://img.shields.io/travis/psychopy/psychopy.svg)](https://travis-ci.org/psychopy/psychopy)
 [![Coveralls status](https://img.shields.io/coveralls/psychopy/psychopy.svg)](https://coveralls.io/r/psychopy/psychopy)
-[![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://travis-ci.org/psychopy/psychopy)
+[![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://pypi.python.org/pypi/PsychoPy)
 
 PsychoPy is an open-source package for creating psychology stimuli in Python (A real and free alternative to Matlab). PsychoPy combines the graphical strengths of OpenGL with the easy Python syntax to give psychophysics a free and simple stimulus presentation and control package.
 

@@ -1,0 +1,169 @@
+af_ZA AFK
+am_ET AMH
+ar_SA ARA
+ar_LB ARB
+ar_EG ARE العربية  (Arabic)
+ar_DZ ARG
+ar_BH ARH
+ar_IQ ARI
+ar_JO ARJ
+ar_KW ARK
+ar_LY ARL
+ar_MA ARM
+ar_OM ARO
+ar_QA ARQ
+ar_SY ARS
+ar_TN ART
+ar_AE ARU
+ar_YE ARY
+as_IN ASM
+ba_RU BAS
+be_BY BEL
+bg_BG BGR
+bn_BD BNG
+bn_IN BNG
+bo_CN BOB
+br_FR BRE
+ca_ES CAT
+zh_CN CHS 中文  (Chinese, simplified)
+zh_TW CHT 台語  (Chinese, traditional)
+co_FR COS
+cs_CZ CSY čeština  (Czech)
+cy_GB CYM
+da_DK DAN dansk  (Danish)
+de_AT DEA
+de_LI DEC
+de_LU DEL
+de_CH DES
+de_DE DEU Deutsch  (German)
+el_GR ELL ελληνικά  (Greek)
+en_AU ENA
+en_CB ENB
+en_CA ENC
+en_SG ENE
+en_GB ENG English  (U. K.)
+en_IE ENI
+en_JM ENJ
+en_BZ ENL
+en_MY ENM
+en_IN ENN
+en_PH ENP
+en_ZA ENS
+en_TT ENT
+en_US ENU English  (U. S.)
+en_ZW ENW
+en_NZ ENZ English  (New Zealand)
+es_PA ESA
+es_BO ESB
+es_CR ESC
+es_DO ESD
+es_SV ESE
+es_EC ESF
+es_GT ESG
+es_HN ESH
+es_NI ESI
+es_CL ESL
+es_MX ESM
+es_ES ESN español  (Spanish)
+es_CO ESO
+es_PE ESR
+es_AR ESS
+es_US EST
+es_PR ESU
+es_VE ESV
+es_UY ESY
+es_PY ESZ
+et_EE ETI
+eu_ES EUQ
+fa_IR FAR
+fi_FI FIN suomi  (Finnish)
+fo_FO FOS
+fr_FR FRA français  (French)
+fr_BE FRB
+fr_CA FRC
+fr_LU FRL
+fr_MC FRM
+fr_CH FRS
+fy_NL FYN
+gd_GB GLA
+gl_ES GLC
+gu_IN GUJ
+he_IL HEB עברית  (Hebrew)
+hi_IN HIN हिन्दी  (Hindi)
+hr_BA HRB
+hr_HR HRV
+hu_HU HUN magyar  (Hungarian)
+hy_AM HYE
+ig_NG IBO
+ii_CN III
+id_ID IND
+ga_IE IRE
+is_IS ISL
+it_IT ITA italiano  (Italian)
+it_CH ITS
+ja_JP JPN 日本語  (Japanese)
+kl_GL KAL
+ka_GE KAT
+kn_IN KDI
+km_KH KHM
+rw_RW KIN
+kk_KZ KKZ
+ko_KR KOR 한국어  (Korean)
+ky_KG KYR
+lo_LA LAO
+lb_LU LBX
+lt_LT LTH
+lv_LV LVI
+mr_IN MAR
+mk_MK MKI
+mt_MT MLT
+mn_MN MON
+mi_NZ MRI
+ms_BN MSB
+ms_MY MSL Bahasa melayu  (Malay)
+ml_IN MYM
+ne_NP NEP
+nl_BE NLB
+nl_NL NLD Nederlands  (Dutch)
+nn_NO NON Norsk  (Norwegian)
+nb_NO NOR
+ns_ZA NSO
+oc_FR OCI
+or_IN ORI
+pa_IN PAN
+ps_AF PAS
+pl_PL PLK polski  (Polish)
+pt_BR PTB
+pt_PT PTG português  (Portuguese)
+rm_CH RMC
+ro_RO ROM limba română  (Romanian)
+ru_RU RUS Русский язык  (Russian)
+sa_IN SAN
+si_LK SIN
+sk_SK SKY
+sl_SI SLV
+se_NO SME
+se_SE SMF
+se_FI SMG
+sq_AL SQI
+sv_SE SVE Svenska  (Swedish)
+sv_FI SVF
+sw_KE SWK
+ta_IN TAM
+te_IN TEL
+th_TH THA
+tr_TR TRK Türkçe  (Turkish)
+tn_ZA TSN
+tt_RU TTT
+tk_TM TUK
+ug_CN UIG
+uk_UA UKR Українська  (Ukrainian)
+ur_PK URD
+vi_VN VIT
+wo_SN WOL
+xh_ZA XHO
+yo_NG YOR
+zh_HK ZHH
+zh_SG ZHI
+zh_MO ZHM
+zu_ZA ZUL

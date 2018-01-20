@@ -1,6 +1,7 @@
-# better excel file reading for pandas
-# doesn’t write files, but can read xls and xlsx
+
 pyserial
 pyparallel
 egi
 iolabs
+pylink
+pyfilesec

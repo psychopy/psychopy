@@ -24,13 +24,13 @@ if parse_version(tables.__version__) < parse_version('3'):
     walk_groups = "walkGroups"
     list_nodes = "listNodes"
     get_node = "getNode"
-	read_where = "readWhere"
+    read_where = "readWhere"
 else:
     from tables import open_file
     walk_groups = "walk_groups"
     list_nodes = "list_nodes"
     get_node = "get_node"
-	read_where = "read_where"
+    read_where = "read_where"
 
 
 _hubFiles = []
@@ -405,7 +405,6 @@ class ExperimentDataAccessUtility(object):
                         raise ExperimentDataAccessException(
                             'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                                 v, cvNames))
-                        return None
                 elif isinstance(value, basestring):
                     resolvedValues.append(value)
             return resolvedValues
@@ -417,7 +416,6 @@ class ExperimentDataAccessUtility(object):
                 raise ExperimentDataAccessException(
                     'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                         value, cvNames))
-                return None
         else:
             raise ExperimentDataAccessException(
                 'Unhandled value type !: {0} is not a valid type for value {1}'.format(
@@ -463,7 +461,6 @@ class ExperimentDataAccessUtility(object):
                     raise ExperimentDataAccessException(
                         'getEventAttribute: %s does not have a column named %s' %
                         (deviceEventTable.title, event_attribute_names))
-                    return None
 
             resultSetList = []
 

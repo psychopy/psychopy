@@ -1,16 +1,15 @@
 from __future__ import print_function
 from past.builtins import execfile
 from builtins import object
-from psychopy.app import psychopyApp
-from psychopy.app._psychopyApp import PsychoPyApp
-import psychopy.app.builder.experiment
+
+import psychopy.experiment
 from os import path
 import os, shutil, glob, sys
 import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests
+from psychopy import core, tests, prefs
 import pytest
 import locale
 from lxml import etree
@@ -27,7 +26,7 @@ import numpy
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
-allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
+allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 
 
 def _filterout_legal(lines):
@@ -57,7 +56,7 @@ def _diff_file(a, b):
 class TestExpt(object):
     @classmethod
     def setup_class(cls):
-        cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
+        cls.exp = psychopy.experiment.Experiment() # create once, not every test
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def setup(self):
@@ -83,7 +82,7 @@ class TestExpt(object):
 
         # get schema
 
-        schema_name = path.join(self.exp.prefsPaths['appDir'], 'builder', 'experiment.xsd');
+        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd');
         schema_root = etree.parse(schema_name)
         schema = etree.XMLSchema(schema_root)
 
@@ -370,66 +369,3 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
-
-class Test_ExptComponents(object):
-    """This test fetches all standard components and checks that, with default
-    settings, they can be added to a Routine and result in a script that compiles
-    """
-    def test_all_components(self):
-        for compName, compClass in list(allComponents.items()):
-            if compName in ['SettingsComponent']:
-                continue
-            thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
-            self._checkCompileWith(thisComp)
-
-    @classmethod
-    def setup_class(cls):
-        psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
-        app = psychopyApp._app
-        app.newBuilderFrame()
-        cls.builder = app.getAllFrames("builder")[-1] # the most recent builder frame created
-        cls.exp = cls.builder.exp
-        cls.here = path.abspath(path.dirname(__file__))
-        cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
-        cls.exp.addRoutine('testRoutine')
-        cls.testRoutine = cls.exp.routines['testRoutine']
-        cls.exp.flow.addRoutine(cls.testRoutine, 0)
-
-    def setup(self):
-        # dirs and files:
-        pass
-
-    @classmethod
-    def teardown_class(cls):
-        shutil.rmtree(cls.tmp_dir, ignore_errors=True)
-
-#    def _send_OK_after(self):
-#        #this is supposed to help with sending button clicks but not working
-#        def clickOK():
-#            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-#            self.builder.ProcessEvent(clickEvent)
-#        wx.CallAfter(clickOK)
-
-    def _checkCompileWith(self, thisComp):
-        """Adds the component to the current Routine and makes sure it still
-        compiles
-        """
-        filename = thisComp.params['name'].val+'.py'
-        filepath = path.join(self.tmp_dir, filename)
-
-        self.testRoutine.addComponent(thisComp)
-        #make sure the mouse code compiles
-
-        # generate a script, similar to 'lastrun.py':
-        buff = self.exp.writeScript() # is a StringIO object
-        script = buff.getvalue()
-        assert len(script) > 1500 # default empty script is ~2200 chars
-
-        # save the script:
-        f = codecs.open(filepath, 'w', 'utf-8')
-        f.write(script)
-        f.close()
-
-        # compile the temp file to .pyc, catching error msgs (including no file at all):
-        py_compile.compile(filepath, doraise=True)
-        return filepath + 'c'

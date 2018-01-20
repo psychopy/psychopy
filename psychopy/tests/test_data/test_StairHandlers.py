@@ -473,6 +473,9 @@ class TestQuestHandler(_BaseTestStairHandler):
         self.simulate()
         self.checkSimulationResults()
 
+        assert self.stairs.startVal == startVal
+        assert self.stairs.startValSd == startValSd
+
         assert np.allclose(self.stairs.mean(), mean)
         assert np.allclose(self.stairs.mode(), mode)
         assert np.allclose(self.stairs.quantile(), quantile)

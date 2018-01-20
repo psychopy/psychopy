@@ -177,7 +177,7 @@ class ColorCAL(object):
 
         """
         # use a long timeout for measurement:
-        val = self.sendMessage('MES', timeout=5)
+        val = self.sendMessage(b'MES', timeout=5)
         vals = val.split(',')
         ok = (vals[0] == 'OK00')
         # transform raw x,y,z by calibration matrix
@@ -206,7 +206,7 @@ class ColorCAL(object):
         Other values will be a string or None.
 
         """
-        val = self.sendMessage('IDR').split(',')
+        val = self.sendMessage(b'IDR').split(',')
         ok = (val[0] == 'OK00')
         if ok:
             firmware = val[2]
@@ -247,7 +247,7 @@ class ColorCAL(object):
 
             ColorCAL.getNeedsCalibrateZero()
         """
-        val = self.sendMessage("UZC", timeout=1.0)
+        val = self.sendMessage(b"UZC", timeout=1.0)
         if val == 'OK00':
             pass
         elif val == 'ER11':

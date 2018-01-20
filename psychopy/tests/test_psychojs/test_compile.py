@@ -16,7 +16,7 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
-from psychopy.app.builder import experiment
+from psychopy import experiment
 from os.path import split, join, expanduser
 import codecs
 
