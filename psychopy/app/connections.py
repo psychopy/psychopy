@@ -25,7 +25,7 @@ else:
 
 import psychopy
 from . import dialogs
-from .localization import _translate
+from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
 from psychopy.constants import PY3

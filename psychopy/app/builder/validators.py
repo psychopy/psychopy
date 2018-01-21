@@ -14,7 +14,7 @@ from past.builtins import basestring
 import wx
 
 import psychopy.experiment.utils
-from ..localization import _translate
+from psychopy.localization import _translate
 from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version

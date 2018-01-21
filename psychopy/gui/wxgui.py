@@ -17,7 +17,7 @@ from psychopy import logging
 import wx
 import numpy
 import os
-from psychopy.app.localization import _translate
+from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 OK = wx.ID_OK
