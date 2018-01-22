@@ -100,7 +100,8 @@ def getDevices(kind=None):
     """
     inputs, outputs = get_devices_infos()
     if kind is None:
-        allDevs = inputs.update(outputs)
+        allDevs = inputs.copy()
+        allDevs.update(outputs)
     elif kind=='output':
         allDevs = outputs
     else:
