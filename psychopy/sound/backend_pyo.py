@@ -23,7 +23,6 @@ except ImportError as err:
 from ._base import _SoundBase
 
 import atexit
-import sys
 import threading
 pyoSndServer = None
 
@@ -33,7 +32,6 @@ def _bestDriver(devNames, devIDs):
     preferredDrivers = prefs.general['audioDriver']
     outputID = None
     audioDriver = None
-    osEncoding = sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
         logging.info(u'Looking for {}'.format(prefDriver))
         if prefDriver.lower() == 'directsound':
@@ -100,7 +98,6 @@ def getDevices(kind=None):
 
     The dict keys are names and items are dicts of properties
     """
-    osEncoding = sys.getfilesystemencoding()
     inputs, outputs = get_devices_infos()
     if kind is None:
         allDevs = inputs.update(outputs)
@@ -111,11 +108,7 @@ def getDevices(kind=None):
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        try:  # convert to unicode
-            devName = dev['name'].decode(osEncoding)
-        except (UnicodeEncodeError, AttributeError):
-            # if that fails try the current encoding
-            devName = dev['name']
+        devName = dev['name']
         devs[devName] = dev
         dev['id'] = ii
     return devs
