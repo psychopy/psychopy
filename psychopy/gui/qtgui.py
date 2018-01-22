@@ -26,7 +26,7 @@ import string
 import os
 import sys
 import json
-from psychopy.app.localization import _translate
+from psychopy.localization import _translate
 
 OK = QtWidgets.QDialogButtonBox.Ok
 

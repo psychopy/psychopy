@@ -161,12 +161,12 @@ class MouseComponent(BaseComponent):
                      "%(name)s.leftButton = []\n"
                      "%(name)s.midButton = []\n"
                      "%(name)s.rightButton = []\n"
-                     "%(name)s.time = []\n"
-                     "gotValidClick = False\n")
+                     "%(name)s.time = []\n")
         if self.params['clickable'].val:
             for clickableObjParam in self._clickableParamsList:
                 code += "%(name)s.clicked_{} = []\n".format(clickableObjParam)
 
+        code += "gotValidClick = False  # until a click is received\n"
         buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
@@ -254,9 +254,10 @@ class MouseComponent(BaseComponent):
             code += ("%s.time.append(%s.getTime())\n" %
                      (self.params['name'], self.clockStr))
             buff.writeIndentedLines(code)
-            # also write code about clicked objects if needed.
-            if self.params['clickable'].val:
-                self._writeClickableObjectsCode(buff)
+
+        # also write code about clicked objects if needed.
+        if self.params['clickable'].val:
+            self._writeClickableObjectsCode(buff)
 
         # does the response end the trial?
         if forceEnd == 'any click':
