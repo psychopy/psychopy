@@ -168,10 +168,10 @@ def versionOptions(local=True):
     To get patch level versions, use availableVersions().
     """
     majorMinor = sorted(
-        list({'.'.join(v.split('.')[:2])
+        list({b'.'.join(v.split(b'.')[:2])
               for v in availableVersions(local=local)}),
         reverse=True)
-    major = sorted(list({v.split('.')[0] for v in majorMinor}), reverse=True)
+    major = sorted(list({v.split(b'.')[0] for v in majorMinor}), reverse=True)
     special = ['latest']
     return special + major + majorMinor
 
@@ -200,7 +200,7 @@ def _remoteVersions(forceCheck=False):
             pass
         else:
             if PY3:
-                allTags = [line.split('refs/tags/')[1]
+                allTags = [line.split('refs/tags/')[1].encode()
                            for line in tagInfo.decode().splitlines()
                            if '^{}' not in line]
             else:
