@@ -8,7 +8,7 @@ import sys
 import re
 import wx.richtext
 import locale
-from .localization import _translate
+from psychopy.localization import _translate
 
 _prefEncoding = locale.getpreferredencoding()
 

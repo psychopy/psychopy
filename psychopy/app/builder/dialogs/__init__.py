@@ -32,7 +32,7 @@ from .. validators import NameValidator, CodeSnippetValidator
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from psychopy import data, logging
-from ...localization import _translate
+from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
 
 

@@ -21,7 +21,7 @@ import wx
 from wx.lib.newevent import NewEvent
 
 from psychopy import logging
-from .localization import _translate
+from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 
