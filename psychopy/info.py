@@ -228,9 +228,6 @@ class RunTimeInfo(dict):
     def _setSystemInfo(self):
         """System info
         """
-        # system encoding
-        osEncoding = sys.getfilesystemencoding()
-
         # machine name
         self['systemHostName'] = platform.node()
 
@@ -329,12 +326,12 @@ class RunTimeInfo(dict):
             self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
             try:
                 # requires pyo svn r1024 or higher:
-                inp, out = pyo.pa_get_devices_infos()
+                import psychopy.sound.backend_pyo_utils
+                inp, out = psychopy.sound.backend_pyo_utils.get_devices_infos()
                 for devList in [inp, out]:
                     for key in devList:
                         if isinstance(devList[key]['name'], str):
-                            devList[key]['name'] = devList[
-                                key]['name'].decode(osEncoding)
+                            devList[key]['name'] = devList[key]['name']
                 self['systemPyo.InputDevices'] = inp
                 self['systemPyo.OutputDevices'] = out
             except AttributeError:
