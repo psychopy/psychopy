@@ -114,7 +114,7 @@ languageID, lang = getID()
 # locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
 
 # ideally rewrite the following using wxlocale only:
-path = os.path.join(os.path.dirname(__file__), '..',
+path = os.path.join(os.path.dirname(__file__), '..', 'app',
                     'locale', lang, 'LC_MESSAGE') + os.sep
 mofile = os.path.join(path, 'messages.mo')
 try:

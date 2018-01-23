@@ -39,7 +39,7 @@ from . import psychoParser, introspect
 from .. import stdOutRich, dialogs
 from .. import projects
 from psychopy import logging
-from ..localization import _translate
+from psychopy.localization import _translate
 from ..utils import FileDropTarget
 from psychopy.constants import PY3
 

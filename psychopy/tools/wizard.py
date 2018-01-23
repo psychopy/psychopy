@@ -26,7 +26,7 @@ if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
-from psychopy.app.localization import _translate
+from psychopy.localization import _translate
 from psychopy import (info, data, visual, gui, core, __version__,
                       prefs, event, constants)
 

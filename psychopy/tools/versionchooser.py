@@ -33,7 +33,7 @@ _remoteVersionsCache = []
 
 # ideally want localization for error messages
 # but don't want to have the lib/ depend on app/, drat
-# from psychopy.app.localization import _translate  # ideal
+# from psychopy.localization import _translate  # ideal
 def _translate(string):
     """placeholder (non)function
     """
