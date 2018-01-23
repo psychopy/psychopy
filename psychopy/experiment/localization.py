@@ -8,4 +8,4 @@
 """These are probably going to get used a lot so translate them once and reuse
 """
 
-from ..localization import _translate
+from psychopy.localization import _translate

@@ -23,7 +23,7 @@ from pkg_resources import parse_version
 
 from psychopy import gui
 from psychopy.experiment.utils import valid_var_re, nonalphanumeric_re
-from ...localization import _translate
+from psychopy.localization import _translate
 
 from psychopy.constants import PY3
 

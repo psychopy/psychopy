@@ -28,7 +28,7 @@ from psychopy import logging, data
 from psychopy.app.utils import FileDropTarget
 from .dialogs import DlgLoopProperties
 from .. import dialogs
-from ..localization import _translate
+from psychopy.localization import _translate
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)

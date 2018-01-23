@@ -13,10 +13,10 @@ import platform
 import re
 import copy
 
-from . import localization, dialogs
-from psychopy import logging
+from . import dialogs
+from psychopy import logging, localization
 from psychopy.exceptions import DependencyError
-from .localization import _translate
+from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 # this will be overridden by the size of the scrolled panel making the prefs

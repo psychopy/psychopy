@@ -41,7 +41,7 @@ warnings.filterwarnings(message='.*AddTool.*', action='ignore')
 warnings.filterwarnings(message='.*SetToolTip.*', action='ignore')
 
 
-from .localization import _translate
+from psychopy.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown
 # e.g. coder and builder are imported during app.__init__ because they
 # take a while
