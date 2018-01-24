@@ -11,15 +11,31 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
 from builtins import object
 import os
 import glob
 import threading
-import urllib.request, urllib.error, urllib.parse
+
+if PY3:
+    import urllib.request
+    import urllib.error
+    import urllib.parse
+else:
+    import urllib2
+    # import urllib.request, urllib.error, urllib.parse
+
+    class FakeURLlib(object):
+
+        def __init__(self, lib):
+            self.request = lib
+            self.error = lib
+            self.parse = lib
+    urllib = FakeURLlib(urllib2)
+
 import json
 import numpy as np
 from scipy.io import wavfile
