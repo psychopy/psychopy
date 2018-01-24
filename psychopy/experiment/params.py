@@ -17,7 +17,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 
 from __future__ import absolute_import, print_function
-from future import standard_library
+# from future import standard_library
 from past.builtins import basestring
 from builtins import object
 
@@ -25,7 +25,7 @@ import re
 
 from . import utils
 
-standard_library.install_aliases()
+# standard_library.install_aliases()
 
 
 def _findParam(name, node):
