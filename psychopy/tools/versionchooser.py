@@ -255,7 +255,7 @@ def currentTag():
     """Returns the current tag name from the version repository
     """
     cmd = 'git describe --always --tag'.split()
-    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR).split(b'-')[0]
+    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR).decode('UTF-8').split('-')[0]
     return tag
 
 
