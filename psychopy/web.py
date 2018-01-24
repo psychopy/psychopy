@@ -27,7 +27,7 @@ if PY3:
     import urllib.parse
 else:
     import urllib2
-    import urllib.request, urllib.error, urllib.parse
+    # import urllib.request, urllib.error, urllib.parse
 
     class FakeURLlib(object):
 
