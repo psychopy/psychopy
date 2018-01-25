@@ -31,7 +31,6 @@ evtChannels = {
     11: "Mic1",
 }
 
-
 class BlackBoxToolkit(serialdevice.SerialDevice):
     """A base class for serial devices, to be sub-classed by specific devices
     """
@@ -245,17 +244,8 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
     def setResponse(self, sensor=None, outputPin = None, duration = None,
                     responseTime=None, nTrials=None, setSmoothing = True,
                     responseDuration = None):
-        """
-        Method to create response to stimulus using BBTK (DSCAR)
-        :param duration: duration in seconds of data collection
-        :param responseTime: Time from zero you would like the response
-        :param nTrials: Number of trials for completion
-        """
-        # Create sensor code triggers
 
-        # TODO: catch errors for key errors, add multiple sensors and outputpins
-
-
+        # Create sensor and outputPin dicts
         sensorDict = dict(zip(
             ['keypad4', 'keypad3', 'keypad2', 'keypad1', 'opto4',
              'opto3', 'opto2', 'opto1', 'ttlin2', 'ttlin1', 'mic2','mic1'],
@@ -263,7 +253,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         outputDict = dict(
             zip(['actclose4', 'actclose3', 'actclose2', 'actclose1', 'ttlout2', 'ttlout1', 'sounder2', 'sounder1'],
                 [0, 1, 2, 3, 4, 5, 6, 7]))
-
+        # Check parameters
         if sensor is None:
             print("Setting BBTK pattern matching to 'INDI' - respond to any trigger")
         if isinstance(sensor, tuple) and len(sensor)>3 or isinstance(sensor, tuple) and len(sensor)>3:
@@ -280,7 +270,6 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             raise ValueError("Please provide a time (in seconds) for the Robot Key Actuator to respond.")
         if responseDuration is None:
             raise ValueError("Please provide a duration (in seconds) for the Robot Key Actuator to respond.")
-
         # Create sensor code
         sensorCodes = dict(zip(['sensor1', 'sensor2', 'sensor3'], ['9' * 12, '9' * 12, '9' * 12]))
         if sensor is not None:
@@ -291,7 +280,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             else:
                 sensorCodes['sensor1'] = '000000000000'[:sensorDict[sensor.lower()]] \
                                          + '1' + '000000000000'[sensorDict[sensor.lower()] + 1:]
-
+        # Create output codes
         if isinstance(outputPin, tuple) or isinstance(outputPin, list):
             outputCode = '00000000'
             for outputs in outputPin:
@@ -304,6 +293,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             responseT=int(responseTime * 1000000),
             output=outputCode,
             responseD=int(responseDuration * 1000000))*nTrials
+        # Begin sending BBTK commands
         if setSmoothing:
             #remove smoothing
             self.setSmoothing('0'*8)
@@ -330,8 +320,6 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         self.pause()
         self.sendMessage(b'RUCR')  # run sequennce
         self.pause()
-
-        def _checkResponseInputs(self):
 
 if __name__ == "__main__":
 
