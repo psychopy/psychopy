@@ -266,16 +266,16 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
                 [0, 1, 2, 3, 4, 5, 6, 7]))
         # Check parameters
         if sensor is None:
-            print("Setting BBTK pattern matching to 'INDI' - respond to any trigger")
+            logging.info("Setting BBTK pattern matching to 'INDI' - respond to any trigger")
         if isinstance(sensor, tuple) and len(sensor)>3 or isinstance(sensor, tuple) and len(sensor)>3:
             raise ValueError("You can only set 3 sensor values. You have provided {} values.".format(len(sensor)))
-        if sensor not in sensorDict.keys():
-            raise KeyError("{} is not a valid sensor name - see BBTK handbook  for valid sensor names".format(sensor))
+        if sensor not in sensorDict.keys() and sensor is not None:
+            raise KeyError("{} is not a valid sensor name - see BBTK handbook for valid sensor names".format(sensor))
         if outputPin is None:
             raise ValueError("outputPin argument requires string e.g., 'TTLout1'")
         if isinstance(outputPin, tuple) and len(outputPin)>8 or isinstance(outputPin, list) and len(outputPin)>8:
             raise ValueError("You can only set 8 sensor values. You have provided {} values.".format(len(outputPin)))
-        if outputPin not in outputDict.keys():
+        if outputPin not in outputDict.keys() and outputPin is not None:
             raise KeyError("{} is not a valid output pin name - see BBTK handbook for valid output names".format(outputPin))
         if responseTime is None:
             raise ValueError("Please provide a time (in seconds) for the Robot Key Actuator to respond.")
