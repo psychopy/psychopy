@@ -242,6 +242,97 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         logging.flush()  # we aren't in a time-critical period
         return events
 
+    def setResponse(self, sensor=None, outputPin = None, duration = None,
+                    responseTime=None, nTrials=None, setSmoothing = True,
+                    responseDuration = None):
+        """
+        Method to create response to stimulus using BBTK (DSCAR)
+        :param duration: duration in seconds of data collection
+        :param responseTime: Time from zero you would like the response
+        :param nTrials: Number of trials for completion
+        """
+        # Create sensor code triggers
+
+        # TODO: catch errors for key errors, add multiple sensors and outputpins
+
+
+        sensorDict = dict(zip(
+            ['keypad4', 'keypad3', 'keypad2', 'keypad1', 'opto4',
+             'opto3', 'opto2', 'opto1', 'ttlin2', 'ttlin1', 'mic2','mic1'],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]))
+        outputDict = dict(
+            zip(['actclose4', 'actclose3', 'actclose2', 'actclose1', 'ttlout2', 'ttlout1', 'sounder2', 'sounder1'],
+                [0, 1, 2, 3, 4, 5, 6, 7]))
+
+        if sensor is None:
+            print("Setting BBTK pattern matching to 'INDI' - respond to any trigger")
+        if isinstance(sensor, tuple) and len(sensor)>3 or isinstance(sensor, tuple) and len(sensor)>3:
+            raise ValueError("You can only set 3 sensor values. You have provided {} values.".format(len(sensor)))
+        if sensor not in sensorDict.keys():
+            raise KeyError("{} is not a valid sensor name - see BBTK handbook  for valid sensor names".format(sensor))
+        if outputPin is None:
+            raise ValueError("outputPin argument requires string e.g., 'TTLout1'")
+        if isinstance(outputPin, tuple) and len(outputPin)>8 or isinstance(outputPin, list) and len(outputPin)>8:
+            raise ValueError("You can only set 8 sensor values. You have provided {} values.".format(len(outputPin)))
+        if outputPin not in outputDict.keys():
+            raise KeyError("{} is not a valid output pin name - see BBTK handbook for valid output names".format(outputPin))
+        if responseTime is None:
+            raise ValueError("Please provide a time (in seconds) for the Robot Key Actuator to respond.")
+        if responseDuration is None:
+            raise ValueError("Please provide a duration (in seconds) for the Robot Key Actuator to respond.")
+
+        # Create sensor code
+        sensorCodes = dict(zip(['sensor1', 'sensor2', 'sensor3'], ['9' * 12, '9' * 12, '9' * 12]))
+        if sensor is not None:
+            if isinstance(sensor, tuple) or isinstance(sensor, list):
+                for n, sensors in enumerate(sensor, 1):
+                    sensorCodes['{}{}'.format('sensor', str(n))] \
+                        = '000000000000'[:sensorDict[sensors.lower()]] + '1' + '000000000000'[sensorDict[sensors.lower()]+1:]
+            else:
+                sensorCodes['sensor1'] = '000000000000'[:sensorDict[sensor.lower()]] \
+                                         + '1' + '000000000000'[sensorDict[sensor.lower()] + 1:]
+
+        if isinstance(outputPin, tuple) or isinstance(outputPin, list):
+            outputCode = '00000000'
+            for outputs in outputPin:
+                outputCode = outputCode[:outputDict[outputs.lower()]] + '1' + outputCode[outputDict[outputs.lower()]+1:]
+        else:
+            outputCode = '00000000'[:outputDict[outputPin.lower()]] + '1' + '00000000'[outputDict[outputPin.lower()]+1:]
+        # Create trialList for BBTK trials
+        trialList = '{input},{responseT},{output},{responseD}\r\n'.format(
+            input=','.join(sensorCodes.values()),
+            responseT=int(responseTime * 1000000),
+            output=outputCode,
+            responseD=int(responseDuration * 1000000))*nTrials
+        if setSmoothing:
+            #remove smoothing
+            self.setSmoothing('0'*8)
+            self.pause()
+        # Send instructions to program BBTK
+        self.sendMessage(b'PDCR')  # program DSCAR
+        self.pause()
+        self.sendMessage(b'STYP') # Type of response
+        self.pause()
+        if sensor is None:
+            self.sendMessage(b'INDI')  # Set to respond to any trigger
+        else:
+            self.sendMessage(b'PATT')  # Set to exact port trigger match
+        self.pause()
+        if duration:
+            self.sendMessage(b'TIML')
+            self.pause()
+            self.sendMessage(b"%i" % int(duration * 1000000))
+            self.pause()
+        if nTrials:
+            self.sendMessage(trialList)
+            time.sleep(5)
+        self.sendMessage(b'PCCR')  # Sequence complete
+        self.pause()
+        self.sendMessage(b'RUCR')  # run sequennce
+        self.pause()
+
+        def _checkResponseInputs(self):
+
 if __name__ == "__main__":
 
     logging.console.setLevel(logging.DEBUG)
