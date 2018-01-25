@@ -12,7 +12,6 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 from builtins import range
 from past.builtins import basestring
-import copy
 import sys
 import numpy
 
@@ -813,7 +812,7 @@ class RatingScale(MinimalStim):
             if markerColor is None or not isValidColor(markerColor):
                 markerColor = 'White'
             self.marker = PatchStim(win=self.win, units='norm',
-                                    tex='sin', mask='gauss',
+                                    tex=None, mask='gauss',
                                     color=markerColor, opacity=0.85,
                                     autoLog=False,
                                     name=self.name + '.markerGlow')
@@ -858,7 +857,6 @@ class RatingScale(MinimalStim):
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
         # save initial state, restore on reset
-        self.markerOrig = copy.copy(self.marker)
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
@@ -1304,7 +1302,8 @@ class RatingScale(MinimalStim):
         # ratingScale instance is used by a subject
         self.noResponse = True
         # restore in case it turned gray, etc
-        self.marker = copy.copy(self.markerOrig)
+        self.resetMarker = str(self.marker)
+        self.resetMarker = self.resetMarker.replace('Window(...)', 'self.win')
         # placed by subject or markerStart: show on screen
         self.markerPlaced = False
         # placed by subject is actionable: show value, singleClick

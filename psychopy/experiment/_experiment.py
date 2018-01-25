@@ -36,10 +36,11 @@ from psychopy.experiment.routine import Routine
 
 from .components import getComponents, getAllComponents
 
-from ..localization import _translate
+from psychopy.localization import _translate
 import locale
 
 standard_library.install_aliases()
+from collections import OrderedDict
 
 
 class Experiment(object):

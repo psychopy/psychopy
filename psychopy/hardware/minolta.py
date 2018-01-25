@@ -153,7 +153,7 @@ class LS100(object):
                 time.sleep(0.2)
                 for n in range(10):
                     # set to use absolute measurements
-                    reply = self.sendMessage('MDS,04')
+                    reply = self.sendMessage(b'MDS,04')
                     if reply[0:2] == 'OK':
                         self.OK = True
                         break
@@ -174,13 +174,13 @@ class LS100(object):
 
         See user manual for other modes
         """
-        reply = self.sendMessage('MDS,%s' % mode)
+        reply = self.sendMessage(b'MDS,%s' % mode)
         return self.checkOK(reply)
 
     def measure(self):
         """Measure the current luminance and set .lastLum to this value
         """
-        reply = self.sendMessage('MES')
+        reply = self.sendMessage(b'MES')
         if self.checkOK(reply):
             lum = float(reply.split()[-1])
             return lum
@@ -195,7 +195,7 @@ class LS100(object):
     def clearMemory(self):
         """Clear the memory of the device from previous measurements
         """
-        reply = self.sendMessage('CLE')
+        reply = self.sendMessage(b'CLE')
         ok = self.checkOK(reply)
         return ok
 

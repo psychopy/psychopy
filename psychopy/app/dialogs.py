@@ -21,7 +21,7 @@ import wx
 from wx.lib.newevent import NewEvent
 
 from psychopy import logging
-from .localization import _translate
+from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 
@@ -560,7 +560,7 @@ class ListWidget(GlobSizer):
         """The plus button has been pressed
         """
         btn = self.FindItem(event.GetEventObject())
-        row, col = btn.GetPosTuple()
+        row, col = btn.GetPos()
         self.InsertRow(row)
         newEntry = {}
         for fieldName in self.fieldNames:
@@ -573,7 +573,7 @@ class ListWidget(GlobSizer):
         """Called when the minus button is pressed.
         """
         btn = self.FindItem(event.GetEventObject())
-        row, col = btn.GetPosTuple()
+        row, col = btn.GetPos()
         self.DeleteRow(row)
         self.Layout()
         self.parent.Fit()

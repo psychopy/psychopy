@@ -25,7 +25,7 @@ else:
 
 import psychopy
 from . import dialogs
-from .localization import _translate
+from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
 from psychopy.constants import PY3
@@ -351,9 +351,9 @@ class InstallUpdateDialog(wx.Dialog):
         elif (parse_version(self.latest['version'])
                   < parse_version(self.runningVersion)):
             msg = _translate(
-                "You are running PsychoPy (%s), which is ahead of the latest"
-                " official version (%s)") % (self.runningVersion,
-                                             self.latest['version'])
+                "You are running PsychoPy (%(running)s), which is ahead of "
+                "the latest official version (%(latest)s)") % {
+                'running':self.runningVersion, 'latest':self.latest['version']}
         elif self.latest['version'] == self.runningVersion:
             msg = _translate(
                 "You are running the latest version of PsychoPy (%s)\n ") % self.runningVersion

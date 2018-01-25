@@ -74,7 +74,7 @@ try:
              'Preference Dialog of \n# the PsychoPy application.\n')
     fp.write('# Rebuild this file if comments in *.spec files '
              'are modified.\n\n')
-    fp.write('from psychopy.app.localization import _translate\n\n')
+    fp.write('from psychopy.localization import _translate\n\n')
 except Exception:
     # If hints.py could not be opend as a writable file, output to STDOUT.
     fp = sys.stdout
