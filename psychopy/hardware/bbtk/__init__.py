@@ -241,10 +241,21 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         logging.flush()  # we aren't in a time-critical period
         return events
 
-    def setResponse(self, sensor=None, outputPin = None, duration = None,
+    def setResponse(self, sensor=None, outputPin = None, testDuration = None,
                     responseTime=None, nTrials=None, setSmoothing = True,
                     responseDuration = None):
+        """
+        Sets Digi Stim Capture and Response (DSCAR) for BBTK.
 
+        :param sensor: Takes string for single sensor, and tuple or list of strings for multiple sensors
+        :param outputPin: Takes string for single output, and tuple or list of strings for multiple outputs
+        :param testDuration: The duration of the testing session in seconds
+        :param responseTime: Time in seconds from stimulus capture that robotic actuator should respond
+        :param nTrials: Number of trials for testing session
+        :param setSmoothing: For use with CRT monitors - Defaults to False for common LCD screens
+        :param responseDuration: Time in seconds that robotic actuator should stay activated for each response
+        :return:
+        """
         # Create sensor and outputPin dicts
         sensorDict = dict(zip(
             ['keypad4', 'keypad3', 'keypad2', 'keypad1', 'opto4',
@@ -293,6 +304,10 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             responseT=int(responseTime * 1000000),
             output=outputCode,
             responseD=int(responseDuration * 1000000))*nTrials
+        # Write trials to disk for records
+        saveTrials = open('trialList.txt', 'w')
+        saveTrials.write(trialList)
+        saveTrials.close()
         # Begin sending BBTK commands
         if setSmoothing:
             #remove smoothing
@@ -308,10 +323,10 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         else:
             self.sendMessage(b'PATT')  # Set to exact port trigger match
         self.pause()
-        if duration:
+        if testDuration:
             self.sendMessage(b'TIML')
             self.pause()
-            self.sendMessage(b"%i" % int(duration * 1000000))
+            self.sendMessage(b"%i" % int(testDuration * 1000000))
             self.pause()
         if nTrials:
             self.sendMessage(trialList)
