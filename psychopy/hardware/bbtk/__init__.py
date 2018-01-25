@@ -242,7 +242,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         return events
 
     def setResponse(self, sensor=None, outputPin = None, testDuration = None,
-                    responseTime=None, nTrials=None, setSmoothing = True,
+                    responseTime=None, nTrials=None, setSmoothing = False,
                     responseDuration = None):
         """
         Sets Digi Stim Capture and Response (DSCAR) for BBTK.
@@ -309,7 +309,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         saveTrials.write(trialList)
         saveTrials.close()
         # Begin sending BBTK commands
-        if setSmoothing:
+        if setSmoothing == False:
             #remove smoothing
             self.setSmoothing('0'*8)
             self.pause()
