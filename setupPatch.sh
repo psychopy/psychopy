@@ -6,6 +6,6 @@ python setup.py egg_info
 python setup.py bdist_wheel
 
 echo register with;
-echo python setup.py register
+echo twine upload
 
 mv dist/* ../dist
