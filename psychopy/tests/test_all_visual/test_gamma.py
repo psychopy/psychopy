@@ -82,7 +82,12 @@ def test_setGammaRamp():
 
     win = visual.Window([600,600], autoLog=False)
 
-    desiredRamp = numpy.tile(visual.gamma.createLinearRamp(win=win.winHandle), (3, 1))
+    desiredRamp = numpy.tile(
+        visual.gamma.createLinearRamp(
+            screenID=win.backend.screenID,
+            xDisplay=win.backend.xDisplay),
+        (3, 1)
+    )
 
     if numpy.all(testGamma == 1.0) == False:
         # correctly handles 1 or 3x1 gamma vals
@@ -93,7 +98,10 @@ def test_setGammaRamp():
     for n in range(5):
         win.flip()
 
-    setRamp = visual.gamma.getGammaRamp(pygletWindow=win.winHandle)
+    setRamp = visual.gamma.getGammaRamp(
+        screenID=win.backend.screenID,
+        xDisplay=win.backend.xDisplay
+    )
 
     win.close()
 
