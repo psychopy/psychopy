@@ -21,9 +21,7 @@ except ImportError:  # was here wx<4.0:
 
 from .... import constants
 from .. import validators
-from ...localization import _translate
-
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
+from psychopy.localization import _translate
 
 
 class DlgCodeComponentProperties(wx.Dialog):
@@ -32,7 +30,8 @@ class DlgCodeComponentProperties(wx.Dialog):
 
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
-                 style=_style, editing=False, depends=[]):
+                 style=_style, editing=False, depends=[],
+                 timeout=None):
 
         # translate title
         localizedTitle = title.replace(' Properties',
@@ -45,6 +44,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.params = params  # dict
         self.order = order
         self.title = title
+        self.timeout = timeout
         self.warningsDict = {}  # to store warnings for all fields
         # keep localized title to update dialog's properties later.
         self.localizedTitle = localizedTitle
@@ -68,12 +68,14 @@ class DlgCodeComponentProperties(wx.Dialog):
         for idx, pkey in enumerate(self.order):
             param = self.params.get(pkey)
             if pkey == 'name':
-                self.nameLabel = wx.StaticText(self, wx.ID_ANY, param.label)
+                self.nameLabel = wx.StaticText(self, wx.ID_ANY,
+                                               _translate(param.label))
                 _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
                 self.componentName = wx.TextCtrl(self, wx.ID_ANY,
                                                  str(param.val),
                                                  style=_style)
-                self.componentName.SetToolTipString(param.hint)
+                self.componentName.SetToolTipString(
+                        _translate(param.hint))
                 self.componentName.SetValidator(validators.NameValidator())
                 self.nameOKlabel = wx.StaticText(self, -1, '',
                                                  style=wx.ALIGN_RIGHT)
@@ -110,6 +112,9 @@ class DlgCodeComponentProperties(wx.Dialog):
 
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.helpButton)
 
+        if self.timeout:
+            timeout = wx.CallLater(self.timeout, self.onEnter)
+            timeout.Start()
         # do show and process return
         ret = self.ShowModal()
 
@@ -121,6 +126,9 @@ class DlgCodeComponentProperties(wx.Dialog):
             # TODO: check syntax of code from each code section tab??
         else:
             self.OK = False
+
+    def onEnter(self, evt=None, retval=wx.ID_OK):
+        self.EndModal(retval)
 
     def checkName(self, event=None):
         """

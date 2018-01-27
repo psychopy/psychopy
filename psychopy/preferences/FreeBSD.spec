@@ -175,8 +175,14 @@
     comment = string(default="Ctrl+'")
     # Coder: remove # from start of line(s)
     uncomment = string(default="Ctrl+Shift+'")
+    # Coder: add or remove # from start of line(s)
+    toggle comment = string(default="Ctrl+/")
     # Coder: fold this block of code
     fold = string(default='Ctrl+Home')
+    # Coder: increase font size this block of code
+    enlargeFont = string(default='Ctrl+=')
+    # Coder: decrease font size this block of code
+    shrinkFont = string(default='Ctrl+-')
 
     # Coder: check for basic syntax errors
     analyseCode = string(default='F4')

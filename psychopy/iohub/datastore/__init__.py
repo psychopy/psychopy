@@ -25,7 +25,7 @@ else:
     from tables import open_file
     create_table = "create_table"
     create_group = "create_group"
-   _f_get_child = "_f_get_child"
+    _f_get_child = "_f_get_child"
 
 
 """
@@ -477,13 +477,8 @@ def close_open_data_files(verbose):
             if verbose:
                 print2err('done')
 
-try:
-    global registered_close_open_data_files
-    if registered_close_open_data_files is True:
-        pass
-except Exception:
-    registered_close_open_data_files = True
-    atexit.register(close_open_data_files, False)
+registered_close_open_data_files = True
+atexit.register(close_open_data_files, False)
 
 ## ---------------------- Pytable Definitions ------------------- ##
 
