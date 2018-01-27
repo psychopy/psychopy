@@ -97,6 +97,9 @@ def test_setGammaRamp():
 
     win.close()
 
+    # can't get/set LUT in travis
+    utils.skip_under_travis()
+
     assert numpy.allclose(desiredRamp, setRamp, atol=1.0 / desiredRamp.shape[1])
 
 

@@ -142,7 +142,7 @@ def getGammaRamp(pygletWindow):
         if error:
             raise AssertionError('CGSetDisplayTransferByTable failed')
 
-    if sys.platform.startswith('linux'):
+    if sys.platform.startswith('linux') and not _TravisTesting:
         origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = xf86vm.XF86VidModeGetGammaRamp(
             pygletWindow._x_display, pygletWindow._x_screen_id, rampSize,
@@ -152,6 +152,10 @@ def getGammaRamp(pygletWindow):
         if not success:
             raise AssertionError('XF86VidModeGetGammaRamp failed')
         origramps = origramps/65535.0  # rescale to 0:1
+
+    elif _TravisTesting:
+        logging.warn("It looks like we're running in the Travis-CI testing "
+                     "environment. Hardware gamma table cannot be retrieved")
 
     return origramps
 
