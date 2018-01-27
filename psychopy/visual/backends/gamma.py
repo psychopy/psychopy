@@ -148,6 +148,7 @@ def getGammaRamp(screenID, xDisplay=None):
     elif _TravisTesting:
         logging.warn("It looks like we're running in the Travis-CI testing "
                      "environment. Hardware gamma table cannot be retrieved")
+        origramps = None
 
     return origramps
 
