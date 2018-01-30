@@ -6,24 +6,29 @@
 # remove editable installation
 $pips = @("pip2", "pip3")
 $pyN = @("27", "36")
-$pyPaths = @("C:\Python27\", "C:\Program Files\Python36\")
+$pyPaths = @("C:\Python27\", "C:\PROGRA~1\Python36\")
 $names = @("PsychoPy2", "PsychoPy2_PY3")
 # get PsychoPy version from file
 $v = [Io.File]::ReadAllText("C:\Users\lpzjwp\code\psychopy\git\version").Trim()
 
-for ($i=1; $i -lt 2; $i++) {
+for ($i=1; $i -lt 3; $i++) {
     & $pips[$i] uninstall psychopy -y
     # install the current version to site-packages
-    & $hhhhpy /I /Y psychopy\*.txt $pyPaths[$i]
+    & xcopy /I /Y psychopy\*.txt $pyPaths[$i]
     & xcopy /Y C:\Windows\System32\avbin.dll $pyPaths[$i]\avbin.dll
     if ($i -eq '1') {
         xcopy /Y C:\Windows\System32\py*27.dll C:\Python27
     }
     # build the installer
-    makensis.exe /v2 /DPRODUCT_VERSION=$v /DPYPATH=$pyPaths[$i] /DPRODUCT_NAME=$names[$i] buildCompleteInstaller.nsi
+    $thisPath = $pyPaths[$i]
+    $thisName = $names[$i]
+    $cmdStr = 'makensis.exe /v2 /DPRODUCT_VERSION='$v' /DPYPATH='$thisPath' /DPRODUCT_NAME='$thisName' buildCompleteInstaller.nsi'
+    $cmdStr = "makensis.exe /v2 /DPRODUCT_VERSION={0} /DPRODUCT_NAME={1} /DPYPATH={2} buildCompleteInstaller.nsi" -f $v, $thisName, $thisPath
+    echo $cmdStr
+    Invoke-Expression $cmdStr
     # "C:\Program Files\Caphyon\Advanced Installer 13.1\bin\x86\AdvancedInstaller.com" /rebuild PsychoPy_AdvancedInstallerProj.aip
 
-    # moving files to ..\dist
+    echo 'moving files to ..\dist'
 
     # uninstall psychopy from site-packages
     & $pips[$i] uninstall psychopy -y

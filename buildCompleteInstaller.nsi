@@ -1,12 +1,12 @@
 
 ; HM NIS Edit Wizard helper defines
-!define PRODUCT_VERSION "1.90.dev1"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
+
 
 ; Modern User Interface v2 ------
 !include "MUI2.nsh"
@@ -64,7 +64,7 @@ Function .onInit
   IfSilent +3
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
   "A version of ${PRODUCT_NAME} is already installed. $\n$\nClick `OK` to remove the \
-  previous version or `Cancel` to cancel this upgrade. \
+  previous version or `Cancel` to cancel this upgrade." \
   IDOK uninst
   Abort
 
