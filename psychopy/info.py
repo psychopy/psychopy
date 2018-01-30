@@ -326,8 +326,8 @@ class RunTimeInfo(dict):
             self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
             try:
                 # requires pyo svn r1024 or higher:
-                import psychopy.sound.backend_pyo_utils
-                inp, out = psychopy.sound.backend_pyo_utils.get_devices_infos()
+                import psychopy.sound
+                inp, out = psychopy.sound.get_devices_infos()
                 for devList in [inp, out]:
                     for key in devList:
                         if isinstance(devList[key]['name'], str):

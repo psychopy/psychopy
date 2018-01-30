@@ -93,7 +93,7 @@ class AudioCapture(object):
         def run(self, filename, sec, sampletype=0, buffering=16,
                 chnl=0, chnls=2):
             self.running = True
-            # chnl from psychopy.sound.backend_pyo_utils.get_input_devices()
+            # chnl from psychopy.sound.backend.get_input_devices()
             inputter = pyo.Input(chnl=chnl, mul=1)
             self.recorder = pyo.Record(inputter, filename, chnls=chnls,
                                        fileformat=0, sampletype=sampletype,

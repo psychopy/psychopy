@@ -83,7 +83,7 @@ class _BaseVoiceKey(object):
                     stopping
 
                 'chnl_in' : microphone channel;
-                    see psychopy.sound.backend_pyo_utils.get_input_devices()
+                    see psychopy.sound.backend.get_input_devices()
 
                 'chnl_out': not implemented; output device to use
 
