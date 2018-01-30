@@ -1,7 +1,5 @@
 
 ; HM NIS Edit Wizard helper defines
-!define PRODUCT_NAME "PsychoPy2"
-!define PRODUCT_VERSION "1.85.4"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
@@ -46,8 +44,8 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "StandalonePsychoPy-${PRODUCT_VERSION}-win32.exe"
-InstallDir "$PROGRAMFILES\PsychoPy2"
+OutFile "Standalone${PRODUCT_NAME}-${PRODUCT_VERSION}-win32.exe"
+InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 ;InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
@@ -58,14 +56,16 @@ RequestExecutionLevel admin
 Function .onInit
 
   ReadRegStr $R0 HKLM \
-  "Software\Microsoft\Windows\CurrentVersion\Uninstall\PsychoPy2" \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" \
   "UninstallString"
   StrCmp $R0 "" done
 
   IfSilent +3
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-  "A version of PsychoPy2 is already installed. $\n$\nClick `OK` to remove the \
-  previous version or `Cancel` to cancel this upgrade." \
+  "A version of ${PRODUCT_NAME} is already installed. $\n$\nClick `OK` to remove the \
+  previous version or `Cancel` to cancel this upgrade. \
+  \
+  WAIT UNTIL UNINSTALL COMPLETES BEFORE CONTINUING" \
   IDOK uninst
   Abort
 
@@ -85,14 +85,14 @@ Section "PsychoPy" SEC01
   Var /GLOBAL AppDir
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\psychopy\app"
 
-  File /r /x *.pyo /x *.chm /x Editra /x doc "C:\python27\*.*"
+  File /r /x *.pyo /x *.chm /x Editra /x doc "${PYPATH}*.*"
 ; avbin to system32
   !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
 
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\PsychoPy2.lnk" \
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" \
       "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
   !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -142,7 +142,7 @@ Section Uninstall
   ;shortcuts
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\www.psychopy.org.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\PsychoPy2.lnk"
+  Delete "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk"
   RMDir /r "$SMPROGRAMS\$ICONS_GROUP"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
