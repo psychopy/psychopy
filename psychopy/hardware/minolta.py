@@ -121,7 +121,8 @@ class LS100(object):
             'ER30\r\n': 'Photometer battery exhausted', }
 
         # try to open the port
-        if sys.platform in ['darwin', 'win32']:
+        _linux = sys.platform.startswith('linux')
+        if sys.platform in ('darwin', 'win32') or _linux:
             try:
                 self.com = serial.Serial(self.portString)
             except Exception:
@@ -131,7 +132,7 @@ class LS100(object):
         else:
             msg = "I don't know how to handle serial ports on %s"
             self._error(msg % sys.platform)
-        # setup the params for PR650 comms
+        # setup the params for comms
         if self.OK:
             self.com.close()  # not sure why this helps but on win32 it does!!
             # this is a slightly odd characteristic of the Minolta LS100

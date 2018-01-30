@@ -40,6 +40,7 @@ from psychopy.localization import _translate
 import locale
 
 # standard_library.install_aliases()
+from collections import OrderedDict
 
 
 class Experiment(object):

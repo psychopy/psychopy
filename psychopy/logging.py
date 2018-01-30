@@ -38,6 +38,7 @@ from __future__ import absolute_import, print_function
 from builtins import object
 from past.builtins import basestring
 from os import path
+import atexit
 import sys
 import codecs
 import locale
@@ -294,6 +295,8 @@ def flush(logger=root):
     """Send current messages in the log to all targets
     """
     logger.flush()
+# make sure this function gets called as python closes
+atexit.register(flush)
 
 
 def critical(msg, t=None, obj=None):
