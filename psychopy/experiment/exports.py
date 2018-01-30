@@ -24,7 +24,7 @@ import re
 
 from builtins import object
 from builtins import str
-from future import standard_library
+# from future import standard_library
 
 import psychopy
 from psychopy import constants
@@ -33,7 +33,7 @@ from psychopy.localization import _translate
 from .components.settings import _numpyImports, _numpyRandomImports
 from .utils import nonalphanumeric_re, valid_var_re
 
-standard_library.install_aliases()
+# standard_library.install_aliases()
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 

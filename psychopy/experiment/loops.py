@@ -18,14 +18,14 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 from builtins import object
-from future import standard_library
+# from future import standard_library
 
 from psychopy.experiment import getInitVals
 from psychopy.localization import _localized, _translate
 from psychopy.experiment.params import Param
 from .components import getInitVals, getAllComponents
 
-standard_library.install_aliases()
+# standard_library.install_aliases()
 
 
 class TrialHandler(object):
