@@ -1102,8 +1102,12 @@ class Window(object):
             openWindows.remove(self)
         except Exception:
             pass
-        if not self.useNativeGamma and self.origGammaRamp is not None:
-            self.backend.gammaRamp = self.origGammaRamp
+        if self.origGammaRamp is not None:
+            setGammaRamp(
+                screenID=self.backend.screenID,
+                newRamp=self.origGammaRamp,
+                xDisplay=self.backend.xDisplay
+            )
         try:
             self.mouseVisible = True
         except Exception:
@@ -1205,7 +1209,7 @@ class Window(object):
                  colorAttrib='color')
 
         # These spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv', 'hex']:
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
@@ -1250,20 +1254,25 @@ class Window(object):
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
+
+        # try to retrieve previous so we can reset later
+        try:
+            self.origGammaRamp = getGammaRamp(
+                screenID=self.backend.screenID,
+                xDisplay=self.backend.xDisplay
+            )
+        except Exception:
+            self.origGammaRamp = None
+
         # then try setting it
         if self.useNativeGamma:
             if self.autoLog:
                 logging.info('Using gamma table of operating system')
         else:
-            # try to retrieve previous so we can reset later
-            try:
-                self.origGammaRamp = getGammaRamp(self.winHandle)
-            except Exception:
-                self.origGammaRamp = None
-
             if self.autoLog:
                 logging.info('Using gamma: self.gamma' + str(self.gamma))
             self.gamma = gammaVal  # using either pygame or bits++
+
 
     @attributeSetter
     def gamma(self, gamma):

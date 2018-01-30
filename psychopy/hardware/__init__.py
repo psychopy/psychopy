@@ -115,7 +115,7 @@ def findPhotometer(ports=None, device=None):
             likely port names on macOS and Linux.
 
         device : string giving expected device (e.g. 'PR650', 'PR655',
-            'LS110'). If this is not given then an attempt will be made
+            'LS100', 'LS110'). If this is not given then an attempt will be made
             to find a device of any type, but this often fails
 
     :returns:
