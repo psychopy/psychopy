@@ -22,7 +22,6 @@ for ($i=1; $i -lt 3; $i++) {
     # build the installer
     $thisPath = $pyPaths[$i]
     $thisName = $names[$i]
-    $cmdStr = 'makensis.exe /v2 /DPRODUCT_VERSION='$v' /DPYPATH='$thisPath' /DPRODUCT_NAME='$thisName' buildCompleteInstaller.nsi'
     $cmdStr = "makensis.exe /v2 /DPRODUCT_VERSION={0} /DPRODUCT_NAME={1} /DPYPATH={2} buildCompleteInstaller.nsi" -f $v, $thisName, $thisPath
     echo $cmdStr
     Invoke-Expression $cmdStr
