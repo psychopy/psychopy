@@ -19,6 +19,7 @@ from builtins import object
 import os
 import glob
 import threading
+from psychopy.constants import PY3
 
 if PY3:
     import urllib.request
