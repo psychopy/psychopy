@@ -7,14 +7,9 @@ Download
 
 For the easiest installation download and install the Standalone package for your system:
 
-  * Windows (all versions):
+The latest stable release (the version we recommend you install is 1.85.4, although on win32 1.85.3 is the same) and you can get that here:
 
-    * `Download StandalonePsychoPy-1.85.2-win32.exe <https://github.com/psychopy/psychopy/releases/download/1.85.2/StandalonePsychoPy-1.85.2-win32.exe>`_
-
-  * Mac OSX (recent versions):
-
-    * `Download StandalonePsychoPy-1.85.2-OSX_64bit.dmg <https://github.com/psychopy/psychopy/releases/download/1.85.2/StandalonePsychoPy-1.85.2-OSX_64bit.dmg>`_
-
+  * `PsychoPy 1.85.4 <https://github.com/psychopy/psychopy/releases>`_
   * Ubuntu or debian-based systems:
 
     * `sudo apt-get install psychopy`
@@ -96,7 +91,7 @@ OR you could just install the subsets of packages that you want::
   pip install requests[security] pyosf
 
   # alternative audio (easier than pyo to install)
-  pip install cffi pysounddevice pysoundfile
+  pip install cffi sounddevice pysoundfile
 
 Handy extra options::
 
@@ -169,3 +164,26 @@ After you have `enabled the overlay <http://wiki.gentoo.org/wiki/Overlay>`_ simp
 
 
 .. _download : https://github.com/psychopy/psychopy/releases
+
+Developers
+~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure you have Python 3.6 and the latest version of pip installed::
+
+  python --version
+  pip --version
+
+Next, follow instructions `here <http://www.psychopy.org/developers/repository.com>`_ to fork and fetch the latest version of the PsychoPy repository.
+
+From the directory where you cloned the latest PsychoPy repository (i.e., where setup.py resides), run::
+
+  pip install -e .
+
+This will install all PsychoPy dependencies to your default Python distribution (which should be Python 3.6). Next, you should create a new PsychoPy shortcut linking your newly installed dependencies to your current version of PsychoPy in the cloned repository. To do this, simply create a new .BAT file containing::
+
+"C:\PATH_TO_PYTHON3.6\python.exe C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp.py"
+
+Alternatively, you can run the psychopyApp.py from the command line::
+
+  python C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp
+

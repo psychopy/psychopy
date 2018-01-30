@@ -29,12 +29,13 @@ import glob
 import copy
 import traceback
 import codecs
-import re
+from os.path import join, abspath, dirname
+from PIL import Image
 import numpy
 
-from ..localization import _translate
+from psychopy.localization import _translate
 
-from . import experiment, components
+from ... import experiment
 from .. import stdOutRich, dialogs
 from .. import projects
 from psychopy import logging, constants
@@ -43,7 +44,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties)
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
-
+from psychopy.experiment import components
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -57,9 +58,6 @@ darkgrey = wx.Colour(65, 65, 65, 255)
 white = wx.Colour(255, 255, 255, 255)
 darkblue = wx.Colour(30, 30, 150, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-
-# regular expression to check for unescaped '$' to indicate code:
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 # _localized separates internal (functional) from displayed strings
 # long form here allows poedit string discovery
@@ -82,6 +80,64 @@ _localized = {
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')}
 
+
+def pilToBitmap(pil, scaleFactor=1.0):
+    if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+        image = wx.EmptyImage(pil.size[0], pil.size[1])
+    else:
+        image = wx.Image(pil.size[0], pil.size[1])
+
+    # set the RGB values
+    if hasattr(pil, 'tobytes'):
+        image.SetData(pil.convert("RGB").tobytes())
+        image.SetAlphaBuffer(pil.convert("RGBA").tobytes()[3::4])
+    else:
+        image.SetData(pil.convert("RGB").tostring())
+        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+
+    image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
+    return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
+
+
+def getIcons(filename=None):
+    """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image.
+    The latter has a plus sign added over the top.
+
+    png files work best, but anything that wx.Image can import should be fine
+    """
+    componsDir = abspath(dirname(components.__file__))
+    icons = {}
+    if filename is None:
+        filename = join(componsDir, 'base.png')
+
+    # get the low-res version first
+    im = Image.open(filename)
+    icons['24'] = pilToBitmap(im, scaleFactor=0.5)
+    icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
+    # try to find a 128x128 version
+    filename128 = filename[:-4]+'128.png'
+    if False: # TURN OFF FOR NOW os.path.isfile(filename128):
+        im = Image.open(filename128)
+    else:
+        im = Image.open(filename)
+    icons['48'] = pilToBitmap(im)
+    # add the plus sign
+    add = Image.open(join(componsDir, 'add.png'))
+    im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
+    # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
+    #               im.size[0], im.size[1]], mask=add)
+    icons['48add'] = pilToBitmap(im)
+
+    return icons
+
+# load the icons for all the components
+compons = experiment.getAllComponents()
+componIcons = {}
+for thisName, thisCompon in compons.items():
+    if thisName in components.iconFiles:
+        componIcons[thisName] = getIcons(components.iconFiles[thisName])
+    else:
+        componIcons[thisName] = getIcons(None)
 
 class RoutineCanvas(wx.ScrolledWindow):
     """Represents a single routine (used as page in RoutinesNotebook)"""
@@ -427,7 +483,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
-        thisIcon = components.icons[component.getType()]["{}".format(
+        thisIcon = componIcons[component.getType()]["{}".format(
             self.iconSize)]  # getType index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
@@ -515,7 +571,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         # need to update views)
         initialTimings = component.getStartAndDuration()
         # create the dialog
-        if isinstance(component, components.code.CodeComponent):
+        if hasattr(component, 'type') and component.type.lower() == 'code':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
@@ -754,10 +810,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             if redundant in name:
                 shortName = name.replace(redundant, "")
         if self.app.prefs.app['largeIcons']:
-            thisIcon = components.icons[name][
+            thisIcon = componIcons[name][
                 '48add']  # index 1 is the 'add' icon
         else:
-            thisIcon = components.icons[name][
+            thisIcon = componIcons[name][
                 '24add']  # index 1 is the 'add' icon
         btn = wx.BitmapButton(self, -1, thisIcon,
                               size=(thisIcon.GetWidth() + 10,
@@ -834,9 +890,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.PopupMenu(menu, (x + xBtn, y + yBtn))
         menu.Destroy()  # destroy to avoid mem leak
 
-    def onClick(self, evt):
+    def onClick(self, evt, timeout=None):
         """
         Defines left-click behavior for builder views components panel
+        :param: evt can be a wx.Event OR a component class name (MouseComponent)
         """
         # get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
@@ -848,8 +905,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         # get component name
-        newClassStr = self.componentFromID[evt.GetId()]
-        componentName = newClassStr.replace('Component', '')
+        if hasattr(evt, "GetId"):
+            newClassStr = self.componentFromID[evt.GetId()]
+        else:
+            newClassStr = evt
         newCompClass = self.components[newClassStr]
         newComp = newCompClass(parentName=currRoutine.name,
                                exp=self.frame.exp)
@@ -859,14 +918,16 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             helpUrl = None
         # create component template
-        if componentName == 'Code':
+        if newClassStr == 'CodeComponent':
             _Dlg = DlgCodeComponentProperties
         else:
             _Dlg = DlgComponentProperties
-        dlg = _Dlg(frame=self.frame, title=componentName + ' Properties',
+        dlg = _Dlg(frame=self.frame,
+                   title= '{} Properties'.format(newComp.params['name']),
                    params=newComp.params, order=newComp.order,
                    helpUrl=helpUrl,
-                   depends=newComp.depends)
+                   depends=newComp.depends,
+                   timeout=timeout)
 
         compName = newComp.params['name']
         if dlg.OK:
@@ -1153,7 +1214,7 @@ class BuilderFrame(wx.Frame):
         self.bldrBtnSave = tb.AddSimpleTool(-1, saveBmp,
                                             _translate("Save [%s]") % keys['save'],
                                             _translate("Save current experiment file"))
-        self.bldrBtnSave.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnSave.Id, False)
         tb.Bind(wx.EVT_TOOL, self.fileSave, self.bldrBtnSave)
         item = tb.AddSimpleTool(wx.ID_ANY, saveAsBmp,
                                 _translate("Save As... [%s]") % keys['saveAs'],
@@ -1197,7 +1258,7 @@ class BuilderFrame(wx.Frame):
                                             _translate("Stop [%s]") % keys['stopScript'],
                                             _translate("Stop experiment"))
         tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
-        self.bldrBtnStop.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         tb.Realize()
 
     def makeMenus(self):
@@ -1522,8 +1583,8 @@ class BuilderFrame(wx.Frame):
             try:
                 self.exp.loadFromXML(filename)
             except Exception:
-                print("Failed to load %s. Please send the following to"
-                      " the PsychoPy user list" % filename)
+                print(u"Failed to load {}. Please send the following to"
+                      u" the PsychoPy user list".format(filename))
                 traceback.print_exc()
                 logging.flush()
             self.resetUndoStack()
@@ -1551,7 +1612,7 @@ class BuilderFrame(wx.Frame):
         self.setIsModified(False)
         # if export on save then we should have an html file to update
         if self.htmlPath:
-            self.fileExport(filePath=self.htmlPath)
+            self.fileExport(htmlPath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1793,7 +1854,7 @@ class BuilderFrame(wx.Frame):
             newVal = self.getIsModified()
         else:
             self.isModified = newVal
-        self.bldrBtnSave.Enable(newVal)
+        self.toolbar.EnableTool(self.bldrBtnSave.Id, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
 
     def getIsModified(self):
@@ -1890,7 +1951,7 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._undoLabel.SetText(label)
-        self.bldrBtnUndo.Enable(enable)
+        self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
         # check redo
@@ -1904,7 +1965,7 @@ class BuilderFrame(wx.Frame):
             label = txt % fmt
             enable = True
         self._redoLabel.SetText(label)
-        self.bldrBtnRedo.Enable(enable)
+        self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
     def demosUnpack(self, event=None):
@@ -2003,7 +2064,7 @@ class BuilderFrame(wx.Frame):
             if hasattr(wx, "EXEC_NOHIDE"):
                 _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
             else:
-                _opts = wx.EXEC_ASYNC | wx.EXEC_HIDE_CONSOLE  # renamed in wx 4
+                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
             # for unix this signifies a space in a filename
             fullPath = fullPath.replace(' ', '\ ')
@@ -2015,8 +2076,8 @@ class BuilderFrame(wx.Frame):
         # launch the command
         self.scriptProcessID = wx.Execute(command, _opts,
                                           self.scriptProcess)
-        self.bldrBtnRun.Enable(False)
-        self.bldrBtnStop.Enable(True)
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
 
     def stopFile(self, event=None):
         """Kills script processes"""
@@ -2025,13 +2086,12 @@ class BuilderFrame(wx.Frame):
         success = wx.Kill(self.scriptProcessID, wx.SIGTERM)
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID, wx.SIGKILL)  # kill it aggressively
-        self.onProcessEnded(event=None)
 
     def onProcessEnded(self, event=None):
         """The script/exp has finished running
         """
-        self.bldrBtnRun.Enable(True)
-        self.bldrBtnStop.Enable(False)
+        self.toolbar.EnableTool(self.bldrBtnRun.Id, True)
+        self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
         # update the output window and show it
         text = u""
         if self.scriptProcess.IsInputAvailable():
@@ -2106,7 +2166,7 @@ class BuilderFrame(wx.Frame):
         self.app.showCoder()
         self.app.coder.gotoLine(filename, lineNumber)
 
-    def setExperimentSettings(self, event=None):
+    def setExperimentSettings(self, event=None, timeout=None):
         """Defines ability to save experiment settings
         """
         component = self.exp.settings
@@ -2118,7 +2178,8 @@ class BuilderFrame(wx.Frame):
         title = '%s Properties' % self.exp.getExpName()
         dlg = DlgExperimentProperties(frame=self, title=title,
                                       params=component.params,
-                                      helpUrl=helpUrl, order=component.order)
+                                      helpUrl=helpUrl, order=component.order,
+                                      timeout=timeout)
         if dlg.OK:
             self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
@@ -2310,11 +2371,9 @@ class ExportFileDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-
-        warning = wx.StaticText(
-            self, wx.ID_ANY,
-            "Warning, HTML outputs are under development.\n"
-            "They are here purely for testing at the moment.")
+        msg = ("Warning, HTML outputs are under development.\n"
+               "They are here purely for testing at the moment.")
+        warning = wx.StaticText(self, wx.ID_ANY, _translate(msg))
         warning.SetForegroundColour((200, 0, 0))
         sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 

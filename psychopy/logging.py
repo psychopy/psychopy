@@ -38,9 +38,12 @@ from __future__ import absolute_import, print_function
 from builtins import object
 from past.builtins import basestring
 from os import path
+import atexit
 import sys
 import codecs
+import locale
 from psychopy import clock
+from psychopy.constants import PY3
 
 _packagePath = path.split(__file__)[0]
 
@@ -76,6 +79,7 @@ _levelNames = {
     'DEBUG': DEBUG,
     'NOTSET': NOTSET}
 
+_prefEncoding = locale.getpreferredencoding()
 
 def getLevel(level):
     """Return the textual representation of logging level 'level'.
@@ -190,7 +194,10 @@ class LogFile(object):
         """
         # find the current stdout if we're the console logger
         if self.stream == 'stdout':
-            stream = sys.stdout
+            if PY3:
+                stream = sys.stdout
+            else:
+                stream = codecs.getwriter(_prefEncoding)(sys.stdout)
         else:
             stream = self.stream
         stream.write(txt)
@@ -288,6 +295,8 @@ def flush(logger=root):
     """Send current messages in the log to all targets
     """
     logger.flush()
+# make sure this function gets called as python closes
+atexit.register(flush)
 
 
 def critical(msg, t=None, obj=None):

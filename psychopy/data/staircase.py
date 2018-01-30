@@ -3,8 +3,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import zip
 from builtins import next
 from past.builtins import basestring
@@ -857,10 +857,9 @@ class QuestHandler(StairHandler):
             method=method, stepType='lin', minVal=minVal,
             maxVal=maxVal, name=name, autoLog=autoLog)
 
+        self.startVal = startVal
+        self.startValSd = startValSd
         self.stopInterval = stopInterval
-
-        startVal = startVal
-        startValSd = startValSd
         self._questNextIntensity = startVal
 
         # Create Quest object
@@ -888,7 +887,6 @@ class QuestHandler(StairHandler):
         if intensity is None:
             intensity = self._questNextIntensity
         else:
-            intensity = intensity
             # Update the intensity.
             #
             # During the first trial, self.intensities will be of length 0,

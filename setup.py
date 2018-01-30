@@ -19,15 +19,16 @@ from sys import platform, argv, version_info
 PY3 = version_info >= (3, 0)
 
 # use pip module to parse the
-required = ['numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
+required = ['requests[security]',
+            'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'wxPython', 'pyglet', 'pygame', 'configobj',
             'soundfile', 'sounddevice',
             'python-bidi', 'cffi',
             'future', 'json_tricks',
-            'pyosf', 'requests[security]',
+            'pyosf',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
-            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables',
+            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
             'moviepy']
 
 # `opencv` package should be installed via conda instead

@@ -18,6 +18,9 @@ import copy
 import numpy
 import re
 import wx
+
+import psychopy.experiment.utils
+
 try:
     from wx.lib.agw import flatnotebook
 except ImportError:  # was here wx<4.0:
@@ -29,13 +32,12 @@ from .. validators import NameValidator, CodeSnippetValidator
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from psychopy import data, logging
-from ...localization import _translate
+from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
 
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 from ..localizedStrings import _localizedDialogs as _localized
 
@@ -100,6 +102,7 @@ class ParamCtrls(object):
         if type(param.val) == numpy.ndarray:
             initial = param.val.tolist()  # convert numpy arrays to lists
         _nonCode = ('name', 'Experiment info')
+        label = _translate(label)
         if param.valType == 'code' and fieldName not in _nonCode:
             label += ' $'
         self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize,
@@ -190,7 +193,7 @@ class ParamCtrls(object):
                            'scaleDescription', 'Begin Routine')
             if fieldName in focusFields:
                 self.valueCtrl.SetFocus()
-        self.valueCtrl.SetToolTipString(param.hint)
+        self.valueCtrl.SetToolTipString(_translate(param.hint))
         if len(param.allowedVals) == 1 or param.readOnly:
             self.valueCtrl.Disable()  # visible but can't be changed
 
@@ -335,7 +338,8 @@ class ParamCtrls(object):
 
         returns: list of dicts of {Field:'', Default:''}
         """
-        expInfo = eval(expInfoStr)
+        expInfo = self.exp.settings.getInfo()
+
         listOfDicts = []
         for field, default in list(expInfo.items()):
             listOfDicts.append({'Field': field, 'Default': default})
@@ -379,7 +383,8 @@ class _BaseParamsDlg(wx.Dialog):
                  showAdvanced=False,
                  size=wx.DefaultSize,
                  style=_style, editing=False,
-                 depends=[]):
+                 depends=[],
+                 timeout=None):
 
         # translate title
         if ' Properties' in title:  # Components and Loops
@@ -397,6 +402,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.helpUrl = helpUrl
         self.params = params  # dict
         self.title = title
+        self.timeout = timeout
         self.warningsDict = {}  # to store warnings for all fields
         if (not editing and
                 title != 'Experiment Settings' and
@@ -618,15 +624,18 @@ class _BaseParamsDlg(wx.Dialog):
         _choices = list(map(_translate, startTypeParam.allowedVals))
         self.startTypeCtrl = wx.Choice(parent, choices=_choices)
         self.startTypeCtrl.SetStringSelection(_translate(startTypeParam.val))
-        self.startTypeCtrl.SetToolTipString(self.params['startType'].hint)
+        self.startTypeCtrl.SetToolTipString(
+                _translate(self.params['startType'].hint))
         # the value to be used as the start/stop
         _start = str(startValParam.val)
         self.startValCtrl = wx.TextCtrl(parent, -1, _start)
-        self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
+        self.startValCtrl.SetToolTipString(
+                _translate(self.params['startVal'].hint))
         # the value to estimate start/stop if not numeric
         _est = str(self.params['startEstim'].val)
         self.startEstimCtrl = wx.TextCtrl(parent, -1, _est)
-        self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
+        self.startEstimCtrl.SetToolTipString(
+                _translate(self.params['startEstim'].hint))
         # add the controls to a new line
         startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         startSizer.Add(self.startTypeCtrl)
@@ -660,15 +669,17 @@ class _BaseParamsDlg(wx.Dialog):
         _choices = list(map(_translate, stopTypeParam.allowedVals))
         self.stopTypeCtrl = wx.Choice(parent, choices=_choices)
         self.stopTypeCtrl.SetStringSelection(_translate(stopTypeParam.val))
-        self.stopTypeCtrl.SetToolTipString(self.params['stopType'].hint)
+        self.stopTypeCtrl.SetToolTipString(
+                _translate(self.params['stopType'].hint))
         # the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent, -1, str(stopValParam.val))
-        self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
+        self.stopValCtrl.SetToolTipString(
+                _translate(self.params['stopVal'].hint))
         # the value to estimate start/stop if not numeric
         _est = str(self.params['durationEstim'].val)
         self.durationEstimCtrl = wx.TextCtrl(parent, -1, _est)
-        _hnt = self.params['durationEstim'].hint
-        self.durationEstimCtrl.SetToolTipString(_hnt)
+        self.durationEstimCtrl.SetToolTipString(
+                _translate(self.params['durationEstim'].hint))
         # add the controls to a new line
         stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
         stopSizer.Add(self.stopTypeCtrl)
@@ -831,9 +842,21 @@ class _BaseParamsDlg(wx.Dialog):
 
         # self.paramCtrls['name'].valueCtrl.SetFocus()
         # do show and process return
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.autoTerminate)
+            timeout.Start()
         retVal = self.ShowModal()
         self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
+
+    def autoTerminate(self, event=None, retval=1):
+        """Terminates the dialog early, for use with a timeout
+
+        :param event: an optional wx.EVT
+        :param retval: an optional int to pass to EndModal()
+        :return:
+        """
+        self.EndModal(retval)
 
     def Validate(self, *args, **kwargs):
         """Validate form data and disable OK button if validation fails.
@@ -958,7 +981,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         # set display font based on presence of $ (without \$)?
         font = strBox.GetFont()
-        if _unescapedDollarSign_re.search(val):
+        if psychopy.experiment.utils.unescapedDollarSign_re.search(val):
             strBox.SetFont(self.app._codeFont)
         else:
             strBox.SetFont(self.app._mainFont)
@@ -1074,7 +1097,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def __init__(self, frame, title="Loop Properties", loop=None,
                  helpUrl=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=_style, depends=[]):
+                 style=_style, depends=[], timeout=None):
         # translate title
         localizedTitle = title.replace(' Properties',
                                        _translate(' Properties'))
@@ -1087,6 +1110,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.app = frame.app
         self.dpi = self.app.dpi
         self.params = {}
+        self.timeout = timeout
         self.panel = wx.Panel(self, -1)
         self.globalCtrls = {}
         self.constantsCtrls = {}
@@ -1107,14 +1131,14 @@ class DlgLoopProperties(_BaseParamsDlg):
 
         # create default instances of the diff loop types
         # for 'random','sequential', 'fullRandom'
-        self.trialHandler = experiment.TrialHandler(
+        self.trialHandler = experiment.loops.TrialHandler(
             exp=self.exp, name=oldLoopName, loopType='random',
             nReps=5, conditions=[])
         # for staircases:
-        self.stairHandler = experiment.StairHandler(
+        self.stairHandler = experiment.loops.StairHandler(
             exp=self.exp, name=oldLoopName, nReps=50, nReversals='',
             stepSizes='[0.8,0.8,0.4,0.4,0.2]', stepType='log', startVal=0.5)
-        self.multiStairHandler = experiment.MultiStairHandler(
+        self.multiStairHandler = experiment.loops.MultiStairHandler(
             exp=self.exp, name=oldLoopName, nReps=50, stairType='simple',
             switchStairs='random', conditions=[], conditionsFile='')
 
@@ -1646,11 +1670,13 @@ class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 editing=False, depends=[]):
+                 editing=False, depends=[],
+                 timeout=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
-                                editing=editing, depends=depends)
+                                editing=editing, depends=depends,
+                                timeout=timeout)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1692,11 +1718,13 @@ class DlgExperimentProperties(_BaseParamsDlg):
     def __init__(self, frame, title, params, order, suppressTitles=False,
                  size=wx.DefaultSize, helpUrl=None,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
-                 depends=[]):
+                 depends=[],
+                 timeout=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, 'Experiment Settings',
                                 params, order, depends=depends,
-                                size=size, style=style, helpUrl=helpUrl)
+                                size=size, style=style, helpUrl=helpUrl,
+                                timeout=timeout)
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
@@ -1776,6 +1804,9 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.SetPosition((builderPos[0] + 200, 20))
 
         # do show and process return
+        if self.timeout is not None:
+            timeout = wx.CallLater(self.timeout, self.autoTerminate)
+            timeout.Start()
         retVal = self.ShowModal()
         if retVal == wx.ID_OK:
             self.OK = True

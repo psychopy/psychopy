@@ -13,10 +13,10 @@ import platform
 import re
 import copy
 
-from . import localization, dialogs
-from psychopy import logging
+from . import dialogs
+from psychopy import logging, localization
 from psychopy.exceptions import DependencyError
-from .localization import _translate
+from psychopy.localization import _translate
 from pkg_resources import parse_version
 
 # this will be overridden by the size of the scrolled panel making the prefs
@@ -384,7 +384,7 @@ class PrefCtrls(object):
                         for thisDevName in devs:
                             if thisDevName not in options:
                                 options.append(thisDevName)
-                except ValueError:
+                except (ValueError, OSError, DependencyError):
                     pass
             else:
                 options = spec.replace("option(", "").replace("'", "")

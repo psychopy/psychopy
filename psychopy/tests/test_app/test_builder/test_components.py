@@ -6,7 +6,8 @@ import pytest
 
 from psychopy import prefs
 from psychopy.app import builder, projects
-from psychopy.app.builder.components import getAllComponents
+from psychopy.experiment import getAllComponents
+from psychopy import experiment
 from pkg_resources import parse_version
 
 # use "python genComponsTemplate.py --out" to generate a new profile to test against
@@ -33,7 +34,7 @@ ignoreParallelOutAddresses = True
 class TestComponents(object):
     @classmethod
     def setup_class(cls):
-        cls.exp = builder.experiment.Experiment() # create once, not every test
+        cls.exp = experiment.Experiment() # create once, not every test
         cls.here = os.path.abspath(os.path.dirname(__file__))
         cls.baselineProfile = os.path.join(cls.here, profile)
 
@@ -80,7 +81,7 @@ class TestComponents(object):
                 # handle multi-line default values, eg TextComponent.text.default
                 targetTag[t] += '\n' + line  # previous t value
 
-        param = builder.experiment.Param('', '')  # want its namespace
+        param = experiment.Param('', '')  # want its namespace
         ignore = ['__doc__', '__init__', '__module__', '__str__', 'next',
                   '__unicode__', '__native__', '__nonzero__', '__long__']
 

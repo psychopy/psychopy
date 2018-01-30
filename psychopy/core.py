@@ -14,6 +14,7 @@ import sys
 import threading
 import subprocess
 import shlex
+import locale
 
 # some things are imported just to be accessible within core's namespace
 from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
@@ -77,7 +78,7 @@ def quit():
     sys.exit(0)  # quits the python session entirely
 
 
-def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
+def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
     """Call a single system command with arguments, return its stdout.
     Returns stdout, stderr if stderr is True.
     Handles simple pipes, passing stdin to shellCmd (pipes are untested
@@ -114,9 +115,9 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
     when running Python 2.7.
 
     """
-    if env is None:
-        env = dict()
-
+    if encoding is None:
+        encoding = locale.getpreferredencoding()
+    
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
@@ -129,17 +130,17 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
         msg = 'shellCmd requires a string or iterable.'
         raise TypeError(msg)
 
-    bytesObjects = []
+    cmdObjects = []
     for obj in shellCmdList:
         if type(obj) != bytes:
-            bytesObjects.append(obj.encode('utf-8'))
+            cmdObjects.append(obj)
         else:
-            bytesObjects.append(obj)
+            cmdObjects.append(obj.decode('utf-8'))
 
     # Since Python 3.6, we can use the `encoding` parameter.
     if PY3:
         if sys.version_info.minor >= 6:
-            proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
+            proc = subprocess.Popen(cmdObjects, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
                                     encoding=encoding, env=env)
@@ -147,7 +148,7 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding='utf-8'):
             msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
             raise RuntimeError(msg)
     else:
-        proc = subprocess.Popen(bytesObjects, stdin=subprocess.PIPE,
+        proc = subprocess.Popen(cmdObjects, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env)
 
