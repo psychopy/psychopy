@@ -35,6 +35,7 @@ for i in 0 1; do
     echo "Opening disk image for app"
     hdiutil detach "/Volumes/PsychoPy" -quiet
     hdiutil attach "../dist/StandalonePsychoPy--64bit.dmg"
+    osascript -e "set Volume 0.5"
     say -v Karen "password"
     sudo rm -R "/Volumes/PsychoPy/${names[$i]}.app"
     echo "cp -R ../dist/${names[$i]}.app /Volumes/PsychoPy"
@@ -47,4 +48,6 @@ for i in 0 1; do
 
 done
 
+osascript -e "set Volume 0.5"
 say -v Karen "all done"
+osascript -e "set Volume 3"
