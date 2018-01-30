@@ -37,7 +37,7 @@ for i in 0 1; do
     hdiutil attach "../dist/StandalonePsychoPy--64bit.dmg"
     osascript -e "set Volume 0.5"
     say -v Karen "password"
-    sudo rm -R "/Volumes/PsychoPy/${names[$i]}.app"
+    sudo rm -R /Volumes/PsychoPy/PsychoPy2*
     echo "cp -R ../dist/${names[$i]}.app /Volumes/PsychoPy"
     cp -R "../dist/${names[$i]}.app" "/Volumes/PsychoPy"
     hdiutil detach "/Volumes/PsychoPy"
