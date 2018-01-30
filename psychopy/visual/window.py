@@ -1209,7 +1209,7 @@ class Window(object):
                  colorAttrib='color')
 
         # These spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv', 'hex']:
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
