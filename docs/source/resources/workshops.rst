@@ -28,7 +28,7 @@ For queries about any of these please email me at `jonathan.peirce at nottingham
 PEP1: Programming Experiments in Python (Beginners)
 ---------------------------------------------------------
 
-`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-programming-experiments-in-python-beginners>`_
+`Book onto Programming Experiments in Python workshop now <http://store.nottingham.ac.uk/conferences-and-events/conferences/schools-and-departments/psychology/pep-2018-programming-experiments-in-python-beginners>`_
 
 Details
 ~~~~~~~~~~~~

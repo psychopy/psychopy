@@ -15,8 +15,8 @@ Future enhancements:
 Author Jeremy Gray
 """
 from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import zip
 from builtins import str
 from builtins import range

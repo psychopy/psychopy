@@ -333,7 +333,7 @@ class PygletBackend(BaseBackend):
         """
         _hw_handle = None
         try:
-            _hw_handle = self._hw_handle
+            _hw_handle = self.win._hw_handle
             self.winHandle.close()
         except Exception:
             pass
