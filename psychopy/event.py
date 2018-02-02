@@ -1136,8 +1136,7 @@ def _onGLFWKey(*args, **kwargs):
     # TODO - support for key emulation
     win_ptr, key, scancode, action, modifiers = args
     global useText
-
-    keyTime = psychopy.core.getTime()
+    
     if key == glfw.KEY_UNKNOWN:
         useText = True
         return
