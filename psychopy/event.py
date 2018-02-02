@@ -36,31 +36,42 @@ try:
     havePyglet = True
 except ImportError:
     havePyglet = False
+try:
+    from .visual.backends import glfw
+    haveGLFW = True
+except ImportError:
+    haveGLFW = False
+
 if havePygame:
     usePygame = True  # will become false later if win not initialised
 else:
     usePygame = False
+
+if haveGLFW:
+    useGLFW = True
+else:
+    useGLFW = False
 
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
 from psychopy.constants import NOT_STARTED
 
-
-if havePyglet:
+if havePyglet or haveGLFW:
     # importing from mouse takes ~250ms, so do it now
-    from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
-    from pyglet.window.key import (
-        MOD_SHIFT,
-        MOD_CTRL,
-        MOD_ALT,
-        MOD_CAPSLOCK,
-        MOD_NUMLOCK,
-        MOD_WINDOWS,
-        MOD_COMMAND,
-        MOD_OPTION,
-        MOD_SCROLLLOCK
-    )
+    if havePyglet:
+        from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
+        from pyglet.window.key import (
+            MOD_SHIFT,
+            MOD_CTRL,
+            MOD_ALT,
+            MOD_CAPSLOCK,
+            MOD_NUMLOCK,
+            MOD_WINDOWS,
+            MOD_COMMAND,
+            MOD_OPTION,
+            MOD_SCROLLLOCK
+        )
 
     _keyBuffer = []
     mouseButtons = [0, 0, 0]
@@ -77,6 +88,55 @@ if havePyglet:
     # global eventThread
     # eventThread = _EventDispatchThread()
     # eventThread.start()
+
+    # GLFW keycodes for special characters
+    _glfw_keycodes_ = {
+        glfw.KEY_SPACE: 'space',
+        glfw.KEY_ESCAPE: 'esc',
+        glfw.KEY_ENTER: 'return',
+        glfw.KEY_TAB: 'tab',
+        glfw.KEY_BACKSPACE: 'backspace',
+        glfw.KEY_INSERT: 'insert',
+        glfw.KEY_DELETE: 'delete',
+        glfw.KEY_RIGHT: 'right',
+        glfw.KEY_LEFT: 'left',
+        glfw.KEY_DOWN: 'down',
+        glfw.KEY_UP: 'up',
+        glfw.KEY_PAGE_UP: 'pageup',
+        glfw.KEY_PAGE_DOWN: 'pagedn',
+        glfw.KEY_HOME: 'home',
+        glfw.KEY_END: 'end',
+        glfw.KEY_CAPS_LOCK: 'capslock',
+        glfw.KEY_SCROLL_LOCK: 'scrolllock',
+        glfw.KEY_NUM_LOCK: 'numlock',
+        glfw.KEY_PRINT_SCREEN: 'printscreen',
+        glfw.KEY_PAUSE: 'pause',
+        glfw.KEY_F1: 'f1',
+        glfw.KEY_F2: 'f2',
+        glfw.KEY_F3: 'f3',
+        glfw.KEY_F4: 'f4',
+        glfw.KEY_F5: 'f5',
+        glfw.KEY_F6: 'f6',
+        glfw.KEY_F7: 'f7',
+        glfw.KEY_F8: 'f8',
+        glfw.KEY_F9: 'f9',
+        glfw.KEY_F10: 'f10',
+        glfw.KEY_F11: 'f11',
+        glfw.KEY_F12: 'f12',
+        glfw.KEY_F13: 'f13',
+        glfw.KEY_F14: 'f14',
+        glfw.KEY_F15: 'f15',
+        glfw.KEY_F16: 'f16',
+        glfw.KEY_F17: 'f17',
+        glfw.KEY_F18: 'f18',
+        glfw.KEY_F19: 'f19',
+        glfw.KEY_F20: 'f20',
+        glfw.KEY_F21: 'f21',
+        glfw.KEY_F22: 'f22',
+        glfw.KEY_F23: 'f23',
+        glfw.KEY_F24: 'f24',
+        glfw.KEY_F25: 'f25',
+    }
 
 useText = False  # By default _onPygletText is not used
 
@@ -343,6 +403,12 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
             # then pyglet is running - just use this
             keys = _keyBuffer
             # _keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
+
+    elif haveGLFW:
+        # 'poll_events' is called when a window is flipped, all the callbacks
+        # populate the buffer
+        if len(_keyBuffer) > 0:
+            keys = _keyBuffer
 
     if keyList is None:
         _keyBuffer = []  # clear buffer entirely
@@ -1059,6 +1125,117 @@ class _GlobalEventKeys(MutableMapping):
 
         del self[key, modifiers]
 
+
+def _onGLFWKey(*args, **kwargs):
+    """Callback for key/character events for the GLFW backend.
+
+    :return:
+    """
+    keyTime = psychopy.core.getTime()  # get timestamp
+
+    # TODO - support for key emulation
+    win_ptr, key, scancode, action, modifiers = args
+    global useText
+
+    keyTime = psychopy.core.getTime()
+    if key == glfw.KEY_UNKNOWN:
+        useText = True
+        return
+    useText = False
+
+    # get the printable name, always make lowercase
+    key_name = glfw.get_key_name(key, scancode)
+
+    # if there is no localized key name or space
+    if key_name is None or key_name == ' ':
+        try:
+            key_name = _glfw_keycodes_[key]
+        except KeyError:
+            pass
+    else:
+        key_name = key_name.lower()
+
+    # TODO - modifier integration
+    keySource = 'Keypress'
+    _keyBuffer.append((key_name, modifiers, keyTime))  # tuple
+    logging.data("%s: %s" % (keySource, key_name))
+
+def _onGLFWText(*args, **kwargs):
+    """Handle unicode character events if _onGLFWKey() cannot.
+
+    :return:
+    """
+    keyTime = psychopy.core.getTime()  # get timestamp
+
+
+
+    # TODO - support for key emulation
+    win_ptr, codepoint, modifiers = args
+    # win = glfw.get_window_user_pointer(win_ptr)
+    text = chr(codepoint)  # convert to unicode character (Python 3.0)
+    global useText
+    if not useText:  # _onPygletKey has handled the input
+        return
+    print("got funny char")
+    keySource = 'KeyPress'
+    _keyBuffer.append((text, keyTime))
+    logging.data("%s: %s" % (keySource, text))
+
+def _onGLFWMouseButton(*args, **kwargs):
+    """Callback for mouse press events. Both press and release actions are
+    handled by this function as they both invoke the same callback.
+
+    """
+    global mouseButtons, mouseClick, mouseTimes
+    now = psychopy.core.getTime()
+    win_ptr, button, action, modifier = args
+    # win = glfw.get_window_user_pointer(win_ptr)
+
+    # get current position of the mouse
+    # this might not be at the exact location of the mouse press
+    x, y = glfw.get_cursor_pos(win_ptr)
+
+    # process actions
+    if action == glfw.PRESS:
+        if button == glfw.MOUSE_BUTTON_LEFT:
+            mouseButtons[0] = 1
+            mouseTimes[0] = now - mouseClick[0].getLastResetTime()
+        elif button == glfw.MOUSE_BUTTON_MIDDLE:
+            mouseButtons[1] = 1
+            mouseTimes[1] = now - mouseClick[1].getLastResetTime()
+        elif button == glfw.MOUSE_BUTTON_RIGHT:
+            mouseButtons[2] = 1
+            mouseTimes[2] = now - mouseClick[2].getLastResetTime()
+    elif action == glfw.RELEASE:
+        if button == glfw.MOUSE_BUTTON_LEFT:
+            mouseButtons[0] = 0
+        elif button == glfw.MOUSE_BUTTON_MIDDLE:
+            mouseButtons[1] = 0
+        elif button == glfw.MOUSE_BUTTON_RIGHT:
+            mouseButtons[2] = 0
+
+def _onGLFWMouseScroll(*args, **kwargs):
+    """Callback for mouse scrolling events. For most computer mice with scroll
+    wheels, only the vertical (Y-offset) is relevant.
+
+    """
+    window_ptr, x_offset, y_offset = args
+    global mouseWheelRel
+    mouseWheelRel = mouseWheelRel + numpy.array([x_offset, y_offset])
+    msg = "Mouse: wheel shift=(%i,%i)"
+    logging.data(msg % (x_offset, y_offset))
+
+def _getGLFWJoystickButtons(*args, **kwargs):
+    """
+    :return:
+    """
+    pass
+
+def _getGLFWJoystickAxes(*args, **kwargs):
+    """
+    :return:
+    """
+    pass
 
 if havePyglet:
     globalKeys = _GlobalEventKeys()

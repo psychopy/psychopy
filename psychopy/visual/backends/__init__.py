@@ -21,6 +21,8 @@ def getBackend(win):
     """
     if win.winType == 'pyglet':
         from .pygletbackend import PygletBackend as Backend
+    elif win.winType == 'glfw':
+        from .glfwbackend import GLFWBackend as Backend
     elif win.winType == 'pygame':
         from .pygamebackend import PygameBackend as Backend
     else:

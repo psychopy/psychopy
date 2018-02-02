@@ -1516,6 +1516,31 @@ class Window(object):
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'mouseVisible', visibility, log)
 
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+                'arrow' : Default pointer
+                'ibeam' : Indicates text can be edited
+            'crosshair' : Crosshair with hot-spot at center
+                 'hand' : A pointing hand
+              'hresize' : Double arrows pointing horizontally
+              'vresize' : Double arrows pointing vertically
+
+        Requires the GLFW backend, otherwise this function does nothing! Note,
+        on Windows the 'crosshair' option is XORed with the background color. It
+        will not be visible when placed over 50% grey fields.
+
+        :param name: str, type of standard cursor to use
+        :return:
+
+        """
+        pass
+
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
         """Measures the actual fps for the screen.
