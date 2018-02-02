@@ -130,14 +130,17 @@ def getIcons(filename=None):
 
     return icons
 
-# load the icons for all the components
-compons = experiment.getAllComponents()
-componIcons = {}
-for thisName, thisCompon in compons.items():
-    if thisName in components.iconFiles:
-        componIcons[thisName] = getIcons(components.iconFiles[thisName])
-    else:
-        componIcons[thisName] = getIcons(None)
+def getAllIcons(folderList=()):
+    """load the icons for all the components
+    """
+    compons = experiment.getAllComponents(folderList)
+    componIcons = {}
+    for thisName, thisCompon in compons.items():
+        if thisName in components.iconFiles:
+            componIcons[thisName] = getIcons(components.iconFiles[thisName])
+        else:
+            componIcons[thisName] = getIcons(None)
+    return componIcons
 
 class RoutineCanvas(wx.ScrolledWindow):
     """Represents a single routine (used as page in RoutinesNotebook)"""
@@ -483,6 +486,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
 
         iconYOffset = (6, 6, 0)[self.drawSize]
+        componIcons = getAllIcons(self.app.prefs.builder['componentsFolders'])
         thisIcon = componIcons[component.getType()]["{}".format(
             self.iconSize)]  # getType index 0 is main icon
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
@@ -804,6 +808,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def addComponentButton(self, name, panel):
         """Create a component button and add it to a specific panel's sizer
         """
+        componIcons = getAllIcons(self.app.prefs.builder['componentsFolders'])
         thisComp = self.components[name]
         shortName = name
         for redundant in ['component', 'Component']:

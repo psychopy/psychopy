@@ -13,8 +13,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import range
 from builtins import object
 import os
@@ -716,7 +716,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """
         self.sendMessage(b'$Beep=[%i, %.4f]\r' % (freq, dur))
 
-    def getVideoLine(self, lineN, nPixels, timeout=1.0, nAttempts=10):
+    def getVideoLine(self, lineN, nPixels, timeout=10.0, nAttempts=10):
         """Return the r,g,b values for a number of pixels on a particular
         video line
 

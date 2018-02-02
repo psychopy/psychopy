@@ -91,7 +91,7 @@ OR you could just install the subsets of packages that you want::
   pip install requests[security] pyosf
 
   # alternative audio (easier than pyo to install)
-  pip install cffi pysounddevice pysoundfile
+  pip install cffi sounddevice pysoundfile
 
 Handy extra options::
 
