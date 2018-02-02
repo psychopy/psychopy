@@ -184,8 +184,6 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """Look for a string that matches SDAT;\n.........EDAT;\n
         and process it as events
         """
-        # Check buffer size
-
         foundDataStart = False
         t0 = time.time()
         while not foundDataStart and time.time() - t0 < timeout:
