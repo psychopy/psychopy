@@ -123,12 +123,16 @@ class Joystick(object):
 
             # error checks
             if not joys:  # if the list is empty, no joysticks were found
-                logging.error("No joysticks were found by the GLFW runtime. "
-                              "Check connections and try again.")
+                error_msg = ("No joysticks were found by the GLFW runtime. "
+                             "Check connections and try again.")
+                logging.error(error_msg)
+                raise RuntimeError(error_msg)
             elif id not in joys:
-                logging.error("You don't have that many joysticks attached "
-                              "(remember that the first joystick has id=0 "
-                              "etc...)")
+                error_msg = ("You don't have that many joysticks attached "
+                             "(remember that the first joystick has id=0 "
+                             "etc...)")
+                logging.error(error_msg)
+                raise RuntimeError(error_msg)
 
             self._device = id  # just need the ID for GLFW
             self.name = glfw.get_joystick_name(self._device).decode("utf-8")
