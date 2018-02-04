@@ -83,43 +83,11 @@ class GLFWBackend(BaseBackend):
 
         # TODO - retina support
 
-        # set window hints
-        if win.multiSample:
-            # get maximum number of samples the driver supports
-            max_samples = (GL.GLint)()
-            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
-            # check if power of 2 and less than GL_MAX_SAMPLES
-            if (win.numSamples & (win.numSamples - 1)) == 0 \
-                    and win.numSamples < max_samples.value:
-                glfw.window_hint(glfw.SAMPLES, win.numSamples)
-            else:
-                logging.warning(
-                    'Invalid number of MSAA samples provided, must be '
-                    'power of two. Disabling.')
-                win.multiSample = False
-                win.numSamples = 0
-                glfw.window_hint(glfw.SAMPLES, 0)
-
-        glfw.window_hint(glfw.DEPTH_BITS, 8)
-        if win.allowStencil:
-            glfw.window_hint(glfw.STENCIL_BITS, 8)
-        else:
-            glfw.window_hint(glfw.STENCIL_BITS, 0)
-
-        # color depth
-        win.red_bits = int(kwargs.get('red_bits', 8))
-        win.green_bits = int(kwargs.get('green_bits', 8))
-        win.blue_bits = int(kwargs.get('blue_bits', 8))
-
-        glfw.window_hint(glfw.RED_BITS, win.red_bits)
-        glfw.window_hint(glfw.GREEN_BITS, win.green_bits)
-        glfw.window_hint(glfw.BLUE_BITS, win.blue_bits)
-
-        # window appearance and behaviour hints
-        if not win.allowGUI:
-            glfw.window_hint(glfw.DECORATED, 0)
-
-        glfw.window_hint(glfw.AUTO_ICONIFY, 0)
+        # window framebuffer configuration
+        win.bpc = kwargs.get('bpc', (8, 8, 8))  # nearly all displays use 8 bpc
+        win.refreshHz = int(kwargs.get('refreshHz', 60))
+        win.depthBits = int(kwargs.get('depthBits', 8))
+        win.stencilBits = int(kwargs.get('stencilBits', 8))
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -132,28 +100,80 @@ class GLFWBackend(BaseBackend):
             if win.autoLog:
                 logging.info('configured GLFW screen %i' % win.screen)
 
-        # get the window size
+        # find a matching video mode (can we even support this configuration?)
+        is_supported = False
+        for vidmode in glfw.get_video_modes(this_screen):
+            _size, _bpc, _hz = vidmode
+            if win._isFullScr:  # size and refresh rate are ignored if windowed
+                has_size = _size == tuple(win.size)
+                has_hz = _hz == win.refreshHz
+            else:
+                has_size = has_hz = True
+            has_bpc = _bpc == tuple(win.bpc)
+            if has_size and has_bpc and has_hz:
+                is_supported = True
+                break
+
         if win._isFullScr:
             use_display = this_screen
-            # If fullscreen, we configure the window to use the current video
-            # mode of the monitor it will appear on.
-            _size, _color_bits, _refresh_rate = glfw.get_video_mode(this_screen)
-            # check if there was a size mismatch, warn the user
-            if win.size[0] != _size[0] or win.size[1] != _size[1]:
-                logging.warning(
-                    ("User requested fullscreen with size %s, but screen is "
-                     "actually %s. Using actual size.") % (win.size, _size))
-                win.size = _size  # set the window size to match the vidmode
         else:
-            # Use the 'size' parameter to specify the dimensions of the window.
             use_display = None
-            _size = win.size
+
+        if not is_supported:
+            # the requested video mode is not supported, use current
+            logging.warning(
+                ("The specified video mode in not supported by this display, "
+                 "using native mode ..."))
+            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
+            logging.warning(
+                ("Using video mode: size={}, bpc={}, hz={} ".format(
+                    _size, _bpc, _hz)))
+            win.bpc = _bpc
+            win.refreshHz = _hz
+            win.size = _size
+
+        glfw.window_hint(glfw.RED_BITS, win.bpc[0])
+        glfw.window_hint(glfw.GREEN_BITS, win.bpc[1])
+        glfw.window_hint(glfw.BLUE_BITS, win.bpc[2])
+        glfw.window_hint(glfw.REFRESH_RATE, win.refreshHz)
+
+        # setup multisampling
+        msaa_samples = 0
+        if win.multiSample:
+            max_samples = (GL.GLint)()
+            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
+            if not (win.numSamples & (win.numSamples - 1)) == 0:
+                # power of two?
+                logging.warning(
+                    'Invalid number of MSAA samples provided, must be '
+                    'power of two. Disabling.')
+            elif not 0 < win.numSamples < max_samples.value:
+                # check if within range
+                logging.warning(
+                    'Invalid number of MSAA samples provided, outside of valid '
+                    'range. Disabling.')
+            else:
+                msaa_samples = win.numSamples
+
+        win.multiSample = msaa_samples > 0
+        glfw.window_hint(glfw.SAMPLES, msaa_samples)
+
+        glfw.window_hint(glfw.DEPTH_BITS, win.depthBits)
+        if win.allowStencil:
+            glfw.window_hint(glfw.STENCIL_BITS, win.stencilBits)
+        else:
+            glfw.window_hint(glfw.STENCIL_BITS, 0)
+
+        # window appearance and behaviour hints
+        if not win.allowGUI:
+            glfw.window_hint(glfw.DECORATED, 0)
+        glfw.window_hint(glfw.AUTO_ICONIFY, 0)
 
         # window title
         title_text = "PsychoPy (GLFW)"
         # create the window
-        self.winHandle = glfw.create_window(width=_size[0],
-                                            height=_size[1],
+        self.winHandle = glfw.create_window(width=win.size[0],
+                                            height=win.size[1],
                                             title=title_text,
                                             monitor=use_display,
                                             share=share_context)
@@ -304,7 +324,6 @@ class GLFWBackend(BaseBackend):
         :return:
         """
         pass
-
 
     def onResize(self, width, height):
         _onResize(width, height)

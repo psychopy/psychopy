@@ -13,7 +13,7 @@ from __future__ import absolute_import, print_function
 
 from psychopy import logging
 
-def getBackend(win):
+def getBackend(win, *args, **kwargs):
     """Retrieve the apprpriate backend
 
     :param winType:
@@ -29,5 +29,5 @@ def getBackend(win):
         raise AttributeError("User requested Window with winType='{}' but "
                              "there is no backend definition to match that "
                              "winType.".format(win.winType))
-    return Backend(win)
+    return Backend(win, *args, **kwargs)
 

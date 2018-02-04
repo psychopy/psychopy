@@ -155,7 +155,9 @@ class Window(object):
                  checkTiming=True,
                  useFBO=False,
                  useRetina=True,
-                 autoLog=True):
+                 autoLog=True,
+                 *args,
+                 **kwargs):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -359,7 +361,7 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self)
+        self.backend = backends.getBackend(win=self, *args, **kwargs)
         self.winHandle = self.backend.winHandle
         global GL
         GL = self.backend.GL
