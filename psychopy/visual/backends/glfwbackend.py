@@ -76,7 +76,12 @@ class GLFWBackend(BaseBackend):
                 'Cannot share a context with a non-GLFW window. Disabling.')
             share_context = None
 
-        # TODO - retina support, I have no idea if it will still work with GLFW
+        if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
+            raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
+                             "set to useRetina=True (or remove the argument). "
+                             "Pyglet 1.3 appears to be forcing "
+                             "us to use retina on any retina-capable screen "
+                             "so setting to False has no effect.")
 
         # window framebuffer configuration
         win.bpc = kwargs.get('bpc', (8, 8, 8))  # nearly all displays use 8 bpc
@@ -199,6 +204,9 @@ class GLFWBackend(BaseBackend):
         # representation.
         glfw.set_window_user_pointer(self.winHandle, win)
         glfw.make_context_current(self.winHandle)  # ready to use
+
+        # set the window size to the framebuffer size
+        win.size = np.array(glfw.get_framebuffer_size(self.winHandle))
 
         if win.useFBO:  # check for necessary extensions
             if not glfw.extension_supported('GL_EXT_framebuffer_object'):
@@ -357,8 +365,8 @@ class GLFWBackend(BaseBackend):
         """
         self.__dict__['gammaRamp'] = gammaRamp
 
-        # get the current monitor
         if gammaRamp is not None:
+            # get the current monitor
             monitor = glfw.get_monitors()[0]
             cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
 
@@ -420,7 +428,12 @@ def _onResize(width, height):
     if height == 0:
         height = 1
 
-    # TODO - figure out retina support
+    if retinaContext is not None:
+        view = retinaContext.view()
+        bounds = view.convertRectToBacking_(view.bounds()).size
+        back_width, back_height = (int(bounds.width), int(bounds.height))
+    else:
+        back_width, back_height = width, height
 
     GL.glViewport(0, 0, width, height)
     GL.glMatrixMode(GL.GL_PROJECTION)
