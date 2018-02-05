@@ -353,7 +353,41 @@ class GLFWBackend(BaseBackend):
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
         if gamma is not None:
-            glfw.set_gamma(self.winHandle, gamma)
+            self.setGamma(gamma)
+
+    def setGamma(self, gamma):
+        """Set the gamma for this window.
+
+        :param gamma:
+        :return:
+        """
+        # make sure gamma is 3x1 array
+        if type(gamma) in [float, int]:
+            newGamma = np.tile(gamma, [3, 1])
+        elif type(gamma) in [list, tuple]:
+            newGamma = np.array(gamma)
+            newGamma.shape = [3, 1]
+        elif type(gamma) is np.ndarray:
+            gamma.shape = [3, 1]
+
+        # get current monitor gamma settings
+        monitor = glfw.get_window_monitor(self.winHandle)
+        cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
+
+        # get the gamma ramps for each color channel
+        red_ramp = cur_gamma_ramp[0]
+        green_ramp = cur_gamma_ramp[1]
+        blue_ramp = cur_gamma_ramp[2]
+        size = max(len(red_ramp), len(green_ramp), len(blue_ramp))
+
+        # create linear LUT
+        newLUT = np.tile(np.linspace(0, 1, num=size), (3, 1))
+
+        if np.all(gamma == 1.0) == False:
+            # correctly handles 1 or 3x1 gamma vals
+            newLUT = newLUT ** (1.0 / np.array(gamma))
+
+        self.setGammaRamp(newLUT)
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
@@ -364,19 +398,29 @@ class GLFWBackend(BaseBackend):
         :return:
         """
         self.__dict__['gammaRamp'] = gammaRamp
-
         if gammaRamp is not None:
-            # get the current monitor
-            monitor = glfw.get_monitors()[0]
-            cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
+            self.setGammaRamp(gammaRamp)
 
-            red_ramp = cur_gamma_ramp[0]
-            green_ramp = cur_gamma_ramp[1]
-            blue_ramp = cur_gamma_ramp[2]
-            size = max(len(red_ramp), len(green_ramp), len(blue_ramp))
-            if size == gammaRamp.shape[1]:
-                new_ramp = (gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])
-                glfw.set_gamma_ramp(monitor, new_ramp)
+    def setGammaRamp(self, gammaRamp):
+        """Set the hardware CLUT to use the specified ramp. This is a custom
+        function for doing so using GLFW.
+
+        :param gammaRamp:
+        :return:
+
+        """
+        monitor = glfw.get_window_monitor(self.winHandle)
+        cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
+
+        # get the gamma ramps for each color channel
+        red_ramp = cur_gamma_ramp[0]
+        green_ramp = cur_gamma_ramp[1]
+        blue_ramp = cur_gamma_ramp[2]
+        size = max(len(red_ramp), len(green_ramp), len(blue_ramp))
+
+        if size == gammaRamp.shape[1]:
+            new_ramp = (gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])
+            glfw.set_gamma_ramp(monitor, new_ramp)
 
     @property
     def screenID(self):
