@@ -1306,6 +1306,8 @@ class Window(object):
         self.backend.gammaRamp = newRamp
         if self.winType == 'pyglet':
             self.winHandle.setGammaRamp(self.winHandle, newRamp)
+        elif self.winType == 'glfw':
+            pass
         else:  # pyglet
             self.winHandle.set_gamma_ramp(
                 newRamp[:, 0], newRamp[:, 1], newRamp[:, 2])

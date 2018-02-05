@@ -185,6 +185,8 @@ def _onPygletKey(symbol, modifiers, emulated=False):
 
     5AM Solutions 2016: Add the keyboard modifier flags to the key buffer.
 
+    M Cutone 2018: Added GLFW backend support.
+
     """
     global useText
 

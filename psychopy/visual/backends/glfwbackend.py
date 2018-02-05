@@ -54,6 +54,8 @@ class GLFWBackend(BaseBackend):
     to access the glfw3 API. Uses Pyglet as an OpenGL loader so it must be
     installed.
 
+    M Cutone 2018: Initial work on GLFW backend.
+
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
 
@@ -74,14 +76,7 @@ class GLFWBackend(BaseBackend):
                 'Cannot share a context with a non-GLFW window. Disabling.')
             share_context = None
 
-        # provide warning if stereo buffers are requested but unavailable
-        if win.stereo and not glfw.extension_supported('GL_STEREO'):
-            logging.warning(
-                'A stereo window was requested but the graphics '
-                'card does not appear to support GL_STEREO')
-            win.stereo = False
-
-        # TODO - retina support
+        # TODO - retina support, I have no idea if it will still work with GLFW
 
         # window framebuffer configuration
         win.bpc = kwargs.get('bpc', (8, 8, 8))  # nearly all displays use 8 bpc
@@ -94,14 +89,14 @@ class GLFWBackend(BaseBackend):
         if len(allScrs) < int(win.screen) + 1:
             logging.warn("Requested an unavailable screen number - "
                          "using first available.")
-            this_screen = allScrs[0]
-        else:
-            this_screen = allScrs[win.screen]
-            if win.autoLog:
-                logging.info('configured GLFW screen %i' % win.screen)
+            win.screen = 0
+
+        this_screen = allScrs[win.screen]
+        if win.autoLog:
+            logging.info('configured GLFW screen %i' % win.screen)
 
         # find a matching video mode (can we even support this configuration?)
-        is_supported = False
+        vidmode_is_supported = False
         for vidmode in glfw.get_video_modes(this_screen):
             _size, _bpc, _hz = vidmode
             if win._isFullScr:  # size and refresh rate are ignored if windowed
@@ -111,58 +106,79 @@ class GLFWBackend(BaseBackend):
                 has_size = has_hz = True
             has_bpc = _bpc == tuple(win.bpc)
             if has_size and has_bpc and has_hz:
-                is_supported = True
+                vidmode_is_supported = True
                 break
+
+        if not vidmode_is_supported:
+            # the requested video mode is not supported, use current
+            logging.warning(
+                ("The specified video mode is not supported by this display, "
+                 "using native mode ..."))
+            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
+            logging.warning(
+                ("Overriding user video settings: size {} -> {}, bpc {} -> "
+                 "{}, refreshHz {} -> {}".format(tuple(win.size),
+                                                 _size,
+                                                 tuple(win.bpc),
+                                                 _bpc,
+                                                 win.refreshHz,
+                                                 _hz)))
+            # change the window settings
+            win.bpc = _bpc
+            win.refreshHz = _hz
+            win.size = _size
 
         if win._isFullScr:
             use_display = this_screen
         else:
             use_display = None
 
-        if not is_supported:
-            # the requested video mode is not supported, use current
-            logging.warning(
-                ("The specified video mode in not supported by this display, "
-                 "using native mode ..."))
-            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
-            logging.warning(
-                ("Using video mode: size={}, bpc={}, hz={} ".format(
-                    _size, _bpc, _hz)))
-            win.bpc = _bpc
-            win.refreshHz = _hz
-            win.size = _size
-
-        glfw.window_hint(glfw.RED_BITS, win.bpc[0])
-        glfw.window_hint(glfw.GREEN_BITS, win.bpc[1])
-        glfw.window_hint(glfw.BLUE_BITS, win.bpc[2])
-        glfw.window_hint(glfw.REFRESH_RATE, win.refreshHz)
+        # configure stereo
+        use_stereo = 0
+        if win.stereo:
+            # provide warning if stereo buffers are requested but unavailable
+            if not glfw.extension_supported('GL_STEREO'):
+                logging.warning(
+                    'A stereo window was requested but the graphics '
+                    'card does not appear to support GL_STEREO')
+                win.stereo = False
+            else:
+                use_stereo = 1
 
         # setup multisampling
+        # This enables multisampling on the window backbuffer, not on other
+        # framebuffers.
         msaa_samples = 0
         if win.multiSample:
             max_samples = (GL.GLint)()
             GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
-            if not (win.numSamples & (win.numSamples - 1)) == 0:
+            if (win.numSamples & (win.numSamples - 1)) != 0:
                 # power of two?
                 logging.warning(
                     'Invalid number of MSAA samples provided, must be '
                     'power of two. Disabling.')
-            elif not 0 < win.numSamples < max_samples.value:
+            elif 0 > win.numSamples > max_samples.value:
                 # check if within range
                 logging.warning(
                     'Invalid number of MSAA samples provided, outside of valid '
                     'range. Disabling.')
             else:
                 msaa_samples = win.numSamples
-
         win.multiSample = msaa_samples > 0
-        glfw.window_hint(glfw.SAMPLES, msaa_samples)
 
-        glfw.window_hint(glfw.DEPTH_BITS, win.depthBits)
+        # disable stencil buffer
         if win.allowStencil:
-            glfw.window_hint(glfw.STENCIL_BITS, win.stencilBits)
-        else:
-            glfw.window_hint(glfw.STENCIL_BITS, 0)
+            win.stencilBits = 0
+
+        # set buffer configuration hints
+        glfw.window_hint(glfw.RED_BITS, win.bpc[0])
+        glfw.window_hint(glfw.GREEN_BITS, win.bpc[1])
+        glfw.window_hint(glfw.BLUE_BITS, win.bpc[2])
+        glfw.window_hint(glfw.REFRESH_RATE, win.refreshHz)
+        glfw.window_hint(glfw.STEREO, use_stereo)
+        glfw.window_hint(glfw.SAMPLES, msaa_samples)
+        glfw.window_hint(glfw.STENCIL_BITS, win.stencilBits)
+        glfw.window_hint(glfw.DEPTH_BITS, win.depthBits)
 
         # window appearance and behaviour hints
         if not win.allowGUI:
@@ -170,7 +186,8 @@ class GLFWBackend(BaseBackend):
         glfw.window_hint(glfw.AUTO_ICONIFY, 0)
 
         # window title
-        title_text = "PsychoPy (GLFW)"
+        title_text = str(kwargs.get('winTitle', "PsychoPy (GLFW)"))
+
         # create the window
         self.winHandle = glfw.create_window(width=win.size[0],
                                             height=win.size[1],
@@ -202,22 +219,18 @@ class GLFWBackend(BaseBackend):
         glfw.set_key_callback(self.winHandle, event._onGLFWKey)
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
-        # add these methods to the pyglet window
-        #self.winHandle.setGamma = setGamma
-        #self.winHandle.setGammaRamp = setGammaRamp
-        #self.winHandle.getGammaRamp = getGammaRamp
-
         # enable vsync, GLFW has additional setting for this that might be
         # useful.
         glfw.swap_interval(1)
+        #win.setGamma = self.setGamma
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
+        win.close = self.close
 
-        #if not win.allowGUI:
-            # make mouse invisible. Could go further and make it 'exclusive'
-            # (but need to alter x,y handling then)
-        #    self.winHandle.set_mouse_visible(False)
+        if not win.allowGUI:
+            self.setMouseVisibility(False)
+
         #self.winHandle.on_resize = _onResize  # avoid circular reference
         #if not win.pos:
         #    # work out where the centre should be
@@ -296,7 +309,7 @@ class GLFWBackend(BaseBackend):
             glfw.set_cursor(self.winHandle, _CURSORS_['arrow'])
 
     def setCurrent(self):
-        """Sets this window to be the current rendering target
+        """Sets this window to be the current rendering target.
 
         :return: None
 
@@ -330,14 +343,32 @@ class GLFWBackend(BaseBackend):
 
     @attributeSetter
     def gamma(self, gamma):
-        pass
+        self.__dict__['gamma'] = gamma
+        if gamma is not None:
+            glfw.set_gamma(self.winHandle, gamma)
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
-        """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
+        """Sets the hardware CLUT using a specified Nx3 array of floats 0:1.
+        Array must have a number of rows equal to 2^max(bpc).
 
+        :param gammaRamp:
+        :return:
         """
-        pass
+        self.__dict__['gammaRamp'] = gammaRamp
+
+        # get the current monitor
+        if gammaRamp is not None:
+            monitor = glfw.get_monitors()[0]
+            cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
+
+            red_ramp = cur_gamma_ramp[0]
+            green_ramp = cur_gamma_ramp[1]
+            blue_ramp = cur_gamma_ramp[2]
+            size = max(len(red_ramp), len(green_ramp), len(blue_ramp))
+            if size == gammaRamp.shape[1]:
+                new_ramp = (gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])
+                glfw.set_gamma_ramp(monitor, new_ramp)
 
     @property
     def screenID(self):
@@ -350,7 +381,7 @@ class GLFWBackend(BaseBackend):
         """On X11 systems this returns the XDisplay being used and None on all
         other platforms"""
         if sys.platform.startswith('linux'):
-            return self.winHandle._x_display
+            return self.screen
 
     def close(self):
         """Close the window and uninitialize the resources
@@ -371,7 +402,6 @@ class GLFWBackend(BaseBackend):
                 conn.unregisterWindowHandles(_hw_handle)
         except Exception:
             pass
-
 
 def _onResize(width, height):
     """A default resize event handler.
