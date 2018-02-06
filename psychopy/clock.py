@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 from builtins import object
 import time
 import sys
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 
 try:
@@ -283,7 +283,7 @@ def wait(secs, hogCPUperiod=0.2):
         # let's see if pyglet collected any event in meantime
         try:
             # this takes focus away from command line terminal window:
-            if StrictVersion(pyglet.version) < StrictVersion('1.2'):
+            if parse_version(pyglet.version) < parse_version('1.2'):
                 # events for sounds/video should run independently of wait()
                 pyglet.media.dispatch_events()
         except AttributeError:
