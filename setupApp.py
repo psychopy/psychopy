@@ -7,7 +7,7 @@ import os
 import sys
 from sys import platform
 from distutils.core import setup
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
@@ -40,7 +40,7 @@ frameworks.extend(opencvLibs)
 import macholib
 #print("~"*60 + "macholib verion: "+macholib.__version__)
 
-if StrictVersion(macholib.__version__) <= StrictVersion('1.7'):
+if parse_version(macholib.__version__) <= parse_version('1.7'):
     print("Applying macholib patch...")
     import macholib.dyld
     import macholib.MachOGraph
@@ -63,7 +63,8 @@ includes = ['Tkinter', 'tkFileDialog',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
             ]
-packages = ['wx', 'pyglet', 'pygame', 'psychopy', 'pytz',
+packages = ['wx', 'psychopy',
+            'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
             'moviepy', 'imageio',
             'cffi','pycparser',

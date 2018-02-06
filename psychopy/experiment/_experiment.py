@@ -559,7 +559,15 @@ class Experiment(object):
                     if paramNode.get('name') == 'conditions':
                         param = loop.params['conditions']
                         # e.g. param.val=[{'ori':0},{'ori':3}]
-                        param.val = eval('%s' % (param.val))
+                        try:
+                            param.val = eval('%s' % (param.val))
+                        except SyntaxError:
+                            # This can occur if Python2.7 conditions string
+                            # contained long ints (e.g. 8L) and these can't be
+                            # parsed by Py3. But allow the file to carry on
+                            # loading and the conditions will still be loaded
+                            # from the xlsx file
+                            pass
                 # get condition names from within conditionsFile, if any:
                 try:
                     # psychophysicsstaircase demo has no such param

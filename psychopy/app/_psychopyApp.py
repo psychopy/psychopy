@@ -13,6 +13,7 @@ import sys
 import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
+from . import urls
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -136,20 +137,34 @@ class _Showgui_Hack(object):
 
 class PsychoPyApp(wx.App):
 
-    def __init__(self, arg=0, **kwargs):
-        wx.App.__init__(self, arg)
-        self.onInit(**kwargs)
-
-    def onInit(self, showSplash=True, testMode=False):
+    def __init__(self, arg=0, testMode=False, **kwargs):
+        """With a wx.App some things get done here, before App.__init__
+        then some further code is launched in OnInit() which occurs after
         """
-        :Parameters:
-
-          testMode: bool
-            If set to True then startup wizard won't appear and stdout/stderr
-            won't be redirected to the Coder
-        """
+        self.coder = None
         self.version = psychopy.__version__
-        self.SetAppName('PsychoPy2')
+        # set default paths and prefs
+        self.prefs = psychopy.prefs
+
+        self.keys = self.prefs.keys
+        self.prefs.pageCurrent = 0  # track last-viewed page, can return there
+        self.IDs = IDStore()
+        self.urls = urls.urls
+        self.quitting = False
+        # check compatibility with last run version (before opening windows)
+        self.firstRun = False
+        self.testMode = testMode
+
+        if self.prefs.app['debugMode']:
+            logging.console.setLevel(logging.DEBUG)
+        # indicates whether we're running for testing purposes
+        self.osf_session = None
+
+        self.copiedRoutine = None
+        self.copiedCompon = None
+        self._allFrames = []  # ordered; order updated with self.onNewTopWindow
+
+        wx.App.__init__(self, arg)
 
         # import localization after wx:
         from psychopy import localization  # needed by splash screen
@@ -157,13 +172,17 @@ class PsychoPyApp(wx.App):
         self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
 
-        # set default paths and prefs
-        self.prefs = psychopy.prefs
-        if self.prefs.app['debugMode']:
-            logging.console.setLevel(logging.DEBUG)
-        # indicates whether we're running for testing purposes
-        self.testMode = testMode
-        self.osf_session = None
+        self.onInit(testMode=testMode, **kwargs)
+
+    def onInit(self, showSplash=True, testMode=False):
+        """This is launched immediately *after* the app initialises with wx
+        :Parameters:
+
+          testMode: bool
+            If set to True then startup wizard won't appear and stdout/stderr
+            won't be redirected to the Coder
+        """
+        self.SetAppName('PsychoPy2')
 
         if showSplash:
             # show splash screen
@@ -185,14 +204,7 @@ class PsychoPyApp(wx.App):
             splash.SetText(_translate("  Loading PsychoPy2..."))
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
-        from psychopy.app import coder, builder, dialogs, urls
-        self.keys = self.prefs.keys
-        self.prefs.pageCurrent = 0  # track last-viewed page, can return there
-        self.IDs = IDStore()
-        self.urls = urls.urls
-        self.quitting = False
-        # check compatibility with last run version (before opening windows)
-        self.firstRun = False
+        from psychopy.app import coder, builder, dialogs
 
         if '--firstrun' in sys.argv:
             del sys.argv[sys.argv.index('--firstrun')]
@@ -232,13 +244,14 @@ class PsychoPyApp(wx.App):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
             exps = []
+
         # then override the prev files by command options and passed files
         if len(sys.argv) > 1:
             if sys.argv[1] == __name__:
-                # program was executed as "python.exe PsychoPyIDE.py %1'
+                # program was executed as "python.exe psychopyApp.py %1'
                 args = sys.argv[2:]
             else:
-                # program was executed as "PsychoPyIDE.py %1'
+                # program was executed as "psychopyApp.py %1'
                 args = sys.argv[1:]
             # choose which frame to start with
             if args[0] in ['builder', '--builder', '-b']:
@@ -282,10 +295,6 @@ class PsychoPyApp(wx.App):
         # create both frame for coder/builder as necess
         if splash:
             splash.SetText(_translate("  Creating frames..."))
-        self.coder = None
-        self.copiedRoutine = None
-        self.copiedCompon = None
-        self._allFrames = []  # ordered; order updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
@@ -338,13 +347,15 @@ class PsychoPyApp(wx.App):
 
         # doing this once subsequently enables the app to open & switch among
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
-        if wx.version() >= '3.0' and sys.platform == 'darwin':
-            _Showgui_Hack()  # returns ~immediately, no display
-            # focus stays in never-land, so bring back to the app:
-            if mainFrame in ['both', 'builder']:
-                self.showBuilder()
-            else:
-                self.showCoder()
+        v = parse_version
+        if sys.platform == 'darwin':
+            if v('3.0') <= v(wx.version()) <v('4.0'):
+                _Showgui_Hack()  # returns ~immediately, no display
+                # focus stays in never-land, so bring back to the app:
+                if mainFrame in ['both', 'builder']:
+                    self.showBuilder()
+                else:
+                    self.showCoder()
 
         return True
 
@@ -453,7 +464,7 @@ class PsychoPyApp(wx.App):
 
     def showCoder(self, event=None, fileList=None):
         # have to reimport because it is ony local to __init__ so far
-        from psychopy.app import coder
+        from . import coder
         if self.coder is None:
             title = "PsychoPy2 Coder (IDE) (v%s)"
             self.coder = coder.CoderFrame(None, -1,
@@ -466,7 +477,7 @@ class PsychoPyApp(wx.App):
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
-        from psychopy.app.builder.builder import BuilderFrame
+        from .builder.builder import BuilderFrame
         title = "PsychoPy2 Experiment Builder (v%s)"
         thisFrame = BuilderFrame(None, -1,
                                          title=title % self.version,
@@ -506,9 +517,18 @@ class PsychoPyApp(wx.App):
         """Not clear this method ever gets called!"""
         logging.info("Got Files")
 
-    def MacOpenFile(self, files):
-        """Not clear this method ever gets called!"""
-        logging.info("Got Files")
+    def MacOpenFile(self, fileName):
+        if fileName.endswith('psychopyApp.py'):
+            # in wx4 on mac this is called erroneously by App.__init__
+            # if called like `python psychopyApp.py`
+            return
+        logging.debug('PsychoPyApp: Received Mac file dropped event')
+        if fileName.endswith('.py'):
+            if self.coder is None:
+                self.showCoder()
+            self.coder.setCurrentDoc(fileName)
+        elif fileName.endswith('.psyexp'):
+            self.newBuilderFrame(fileName=fileName)
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked, and ???"""
@@ -565,15 +585,6 @@ class PsychoPyApp(wx.App):
         self.monCenter = MonitorCenter.MainFrame(
             None, 'PsychoPy2 Monitor Center')
         self.monCenter.Show(True)
-
-    def MacOpenFile(self, fileName):
-        logging.debug('PsychoPyApp: Received Mac file dropped event')
-        if fileName.endswith('.py'):
-            if self.coder is None:
-                self.showCoder()
-            self.coder.setCurrentDoc(fileName)
-        elif fileName.endswith('.psyexp'):
-            self.newBuilderFrame(fileName=fileName)
 
     def terminateHubProcess(self):
         """
