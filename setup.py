@@ -60,11 +60,8 @@ if ('-noJS' in argv) or not exists('psychojs'):
     pass
 else:
     import shutil
-    try:
-        shutil.make_archive(join('psychopy', 'psychojs'),
-                            'zip', 'psychojs')
-    except OSError:
-        pass  # if
+    shutil.make_archive(join('psychopy', 'psychojs'),
+                        'zip', 'psychojs')
 
 # regenerate __init__.py only if we're in the source repos (not in a source zip file)
 try:
