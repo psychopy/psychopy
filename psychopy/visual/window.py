@@ -155,7 +155,9 @@ class Window(object):
                  checkTiming=True,
                  useFBO=False,
                  useRetina=True,
-                 autoLog=True):
+                 autoLog=True,
+                 *args,
+                 **kwargs):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -359,7 +361,7 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self)
+        self.backend = backends.getBackend(win=self, *args, **kwargs)
         self.winHandle = self.backend.winHandle
         global GL
         GL = self.backend.GL
@@ -1098,6 +1100,9 @@ class Window(object):
         """
         self._closed = True
 
+        self.backend.close()  # moved here, dereferencing the window prevents
+                              # backend specific actions to take place
+
         try:
             openWindows.remove(self)
         except Exception:
@@ -1113,7 +1118,6 @@ class Window(object):
         except Exception:
             # can cause unimportant "'NoneType' object is not callable"
             pass
-        self.backend.close()
 
         try:
             if self.bits is not None:
@@ -1304,6 +1308,8 @@ class Window(object):
         self.backend.gammaRamp = newRamp
         if self.winType == 'pyglet':
             self.winHandle.setGammaRamp(self.winHandle, newRamp)
+        elif self.winType == 'glfw':
+            pass
         else:  # pyglet
             self.winHandle.set_gamma_ramp(
                 newRamp[:, 0], newRamp[:, 1], newRamp[:, 2])
@@ -1515,6 +1521,31 @@ class Window(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'mouseVisible', visibility, log)
+
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+                'arrow' : Default pointer
+                'ibeam' : Indicates text can be edited
+            'crosshair' : Crosshair with hot-spot at center
+                 'hand' : A pointing hand
+              'hresize' : Double arrows pointing horizontally
+              'vresize' : Double arrows pointing vertically
+
+        Requires the GLFW backend, otherwise this function does nothing! Note,
+        on Windows the 'crosshair' option is XORed with the background color. It
+        will not be visible when placed over 50% grey fields.
+
+        :param name: str, type of standard cursor to use
+        :return:
+
+        """
+        pass
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
