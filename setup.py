@@ -14,6 +14,7 @@ usage::
 from setuptools import setup, find_packages
 ################
 import os
+from os.path import exists, join
 from sys import platform, argv, version_info
 
 
@@ -54,11 +55,16 @@ if PY3 and ('CONDA_PREFIX' not in os.environ):
 
 
 # compress psychojs to a zip file for packaging
-if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer
+# only takes 0.5s but could skip if you prefer
+if ('-noJS' in argv) or not exists('psychojs'):
     pass
 else:
     import shutil
-    shutil.make_archive(os.path.join('psychopy', 'psychojs'), 'zip', 'psychojs')
+    try:
+        shutil.make_archive(join('psychopy', 'psychojs'),
+                            'zip', 'psychojs')
+    except OSError:
+        pass  # if
 
 # regenerate __init__.py only if we're in the source repos (not in a source zip file)
 try:
