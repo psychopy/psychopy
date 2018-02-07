@@ -25,7 +25,7 @@ from .gamma import setGamma, setGammaRamp, getGammaRamp
 from .. import globalVars
 from ._base import BaseBackend
 
-from . import glfw
+import glfw
 # initialize the GLFW library on import
 if not glfw.init():
     raise RuntimeError("Failed to initialize GLFW. Check if GLFW "
@@ -234,10 +234,13 @@ class GLFWBackend(BaseBackend):
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
-        win.close = self.close
 
         if not win.allowGUI:
             self.setMouseVisibility(False)
+
+        # gamma functions in the main window need to be disabled for now
+        win._setupGamma = self._setupGamma
+        win.origGammaRamp = self.getGammaRamp()  # retain original gamma ramp
 
         #self.winHandle.on_resize = _onResize  # avoid circular reference
         #if not win.pos:
@@ -370,18 +373,8 @@ class GLFWBackend(BaseBackend):
         elif type(gamma) is np.ndarray:
             gamma.shape = [3, 1]
 
-        # get current monitor gamma settings
-        monitor = glfw.get_window_monitor(self.winHandle)
-        cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
-
-        # get the gamma ramps for each color channel
-        red_ramp = cur_gamma_ramp[0]
-        green_ramp = cur_gamma_ramp[1]
-        blue_ramp = cur_gamma_ramp[2]
-        size = max(len(red_ramp), len(green_ramp), len(blue_ramp))
-
         # create linear LUT
-        newLUT = np.tile(np.linspace(0, 1, num=size), (3, 1))
+        newLUT = np.tile(np.linspace(0, 1, num=self.getGammaRampSize()), (3, 1))
 
         if np.all(gamma == 1.0) == False:
             # correctly handles 1 or 3x1 gamma vals
@@ -389,9 +382,19 @@ class GLFWBackend(BaseBackend):
 
         self.setGammaRamp(newLUT)
 
+    def getGammaRamp(self):
+        # get the current gamma ramp
+        monitor = glfw.get_window_monitor(self.winHandle)
+        currentGammaRamp = glfw.get_gamma_ramp(monitor)
+
+        return np.asarray(currentGammaRamp, dtype=np.float32)
+
+    def _setupGamma(self, gammaVal):
+        pass
+
     @attributeSetter
     def gammaRamp(self, gammaRamp):
-        """Sets the hardware CLUT using a specified Nx3 array of floats 0:1.
+        """Sets the hardware CLUT using a specified 3xN array of floats 0:1.
         Array must have a number of rows equal to 2^max(bpc).
 
         :param gammaRamp:
@@ -410,23 +413,34 @@ class GLFWBackend(BaseBackend):
 
         """
         monitor = glfw.get_window_monitor(self.winHandle)
-        cur_gamma_ramp = glfw.get_gamma_ramp(monitor)
+
+        if self.getGammaRampSize() == gammaRamp.shape[1]:
+            new_ramp = (gammaRamp[0, :], gammaRamp[1, :], gammaRamp[2, :])
+            glfw.set_gamma_ramp(monitor, new_ramp)
+
+    def getGammaRampSize(self):
+        """Get the gamma ramp size for the current display. The size of the ramp
+        depends on the bits-per-color of the current video mode.
+
+        :return:
+        """
+        monitor = glfw.get_window_monitor(self.winHandle)
+        currentGammaRamp = glfw.get_gamma_ramp(monitor)
 
         # get the gamma ramps for each color channel
-        red_ramp = cur_gamma_ramp[0]
-        green_ramp = cur_gamma_ramp[1]
-        blue_ramp = cur_gamma_ramp[2]
-        size = max(len(red_ramp), len(green_ramp), len(blue_ramp))
+        red_ramp = currentGammaRamp[0]
+        green_ramp = currentGammaRamp[1]
+        blue_ramp = currentGammaRamp[2]
 
-        if size == gammaRamp.shape[1]:
-            new_ramp = (gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])
-            glfw.set_gamma_ramp(monitor, new_ramp)
+        return max(len(red_ramp), len(green_ramp), len(blue_ramp))
 
     @property
     def screenID(self):
         """Return the window's screen ID.
         """
-        return self.screen
+        win = glfw.get_window_user_pointer(self.winHandle)
+
+        return win.screen
 
     @property
     def xDisplay(self):
@@ -441,7 +455,10 @@ class GLFWBackend(BaseBackend):
         _hw_handle = None
         try:
             _hw_handle = self.win._hw_handle
-            glfw.destroy_window(self.winHandle)
+            # We need to call this when closing a window, however the window
+            # object is None at this point! So the GLFW window object lives on.
+            win = glfw.get_window_user_pointer(self.winHandle)
+            glfw.destroy_window(win)
         except Exception:
             pass
         # If iohub is running, inform it to stop looking for this win id

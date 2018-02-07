@@ -49,7 +49,7 @@ except Exception:
     havePyglet = False
 
 try:
-    from psychopy.visual.backends import glfw
+    import glfw
     haveGLFW = True
 except ImportError:
     print("failed to import GLFW.")

@@ -37,7 +37,7 @@ try:
 except ImportError:
     havePyglet = False
 try:
-    from .visual.backends import glfw
+    import glfw
     haveGLFW = True
 except ImportError:
     haveGLFW = False
@@ -88,55 +88,55 @@ if havePyglet or haveGLFW:
     # global eventThread
     # eventThread = _EventDispatchThread()
     # eventThread.start()
-
-    # GLFW keycodes for special characters
-    _glfw_keycodes_ = {
-        glfw.KEY_SPACE: 'space',
-        glfw.KEY_ESCAPE: 'esc',
-        glfw.KEY_ENTER: 'return',
-        glfw.KEY_TAB: 'tab',
-        glfw.KEY_BACKSPACE: 'backspace',
-        glfw.KEY_INSERT: 'insert',
-        glfw.KEY_DELETE: 'delete',
-        glfw.KEY_RIGHT: 'right',
-        glfw.KEY_LEFT: 'left',
-        glfw.KEY_DOWN: 'down',
-        glfw.KEY_UP: 'up',
-        glfw.KEY_PAGE_UP: 'pageup',
-        glfw.KEY_PAGE_DOWN: 'pagedn',
-        glfw.KEY_HOME: 'home',
-        glfw.KEY_END: 'end',
-        glfw.KEY_CAPS_LOCK: 'capslock',
-        glfw.KEY_SCROLL_LOCK: 'scrolllock',
-        glfw.KEY_NUM_LOCK: 'numlock',
-        glfw.KEY_PRINT_SCREEN: 'printscreen',
-        glfw.KEY_PAUSE: 'pause',
-        glfw.KEY_F1: 'f1',
-        glfw.KEY_F2: 'f2',
-        glfw.KEY_F3: 'f3',
-        glfw.KEY_F4: 'f4',
-        glfw.KEY_F5: 'f5',
-        glfw.KEY_F6: 'f6',
-        glfw.KEY_F7: 'f7',
-        glfw.KEY_F8: 'f8',
-        glfw.KEY_F9: 'f9',
-        glfw.KEY_F10: 'f10',
-        glfw.KEY_F11: 'f11',
-        glfw.KEY_F12: 'f12',
-        glfw.KEY_F13: 'f13',
-        glfw.KEY_F14: 'f14',
-        glfw.KEY_F15: 'f15',
-        glfw.KEY_F16: 'f16',
-        glfw.KEY_F17: 'f17',
-        glfw.KEY_F18: 'f18',
-        glfw.KEY_F19: 'f19',
-        glfw.KEY_F20: 'f20',
-        glfw.KEY_F21: 'f21',
-        glfw.KEY_F22: 'f22',
-        glfw.KEY_F23: 'f23',
-        glfw.KEY_F24: 'f24',
-        glfw.KEY_F25: 'f25',
-    }
+    if haveGLFW:
+        # GLFW keycodes for special characters
+        _glfw_keycodes_ = {
+            glfw.KEY_SPACE: 'space',
+            glfw.KEY_ESCAPE: 'esc',
+            glfw.KEY_ENTER: 'return',
+            glfw.KEY_TAB: 'tab',
+            glfw.KEY_BACKSPACE: 'backspace',
+            glfw.KEY_INSERT: 'insert',
+            glfw.KEY_DELETE: 'delete',
+            glfw.KEY_RIGHT: 'right',
+            glfw.KEY_LEFT: 'left',
+            glfw.KEY_DOWN: 'down',
+            glfw.KEY_UP: 'up',
+            glfw.KEY_PAGE_UP: 'pageup',
+            glfw.KEY_PAGE_DOWN: 'pagedn',
+            glfw.KEY_HOME: 'home',
+            glfw.KEY_END: 'end',
+            glfw.KEY_CAPS_LOCK: 'capslock',
+            glfw.KEY_SCROLL_LOCK: 'scrolllock',
+            glfw.KEY_NUM_LOCK: 'numlock',
+            glfw.KEY_PRINT_SCREEN: 'printscreen',
+            glfw.KEY_PAUSE: 'pause',
+            glfw.KEY_F1: 'f1',
+            glfw.KEY_F2: 'f2',
+            glfw.KEY_F3: 'f3',
+            glfw.KEY_F4: 'f4',
+            glfw.KEY_F5: 'f5',
+            glfw.KEY_F6: 'f6',
+            glfw.KEY_F7: 'f7',
+            glfw.KEY_F8: 'f8',
+            glfw.KEY_F9: 'f9',
+            glfw.KEY_F10: 'f10',
+            glfw.KEY_F11: 'f11',
+            glfw.KEY_F12: 'f12',
+            glfw.KEY_F13: 'f13',
+            glfw.KEY_F14: 'f14',
+            glfw.KEY_F15: 'f15',
+            glfw.KEY_F16: 'f16',
+            glfw.KEY_F17: 'f17',
+            glfw.KEY_F18: 'f18',
+            glfw.KEY_F19: 'f19',
+            glfw.KEY_F20: 'f20',
+            glfw.KEY_F21: 'f21',
+            glfw.KEY_F22: 'f22',
+            glfw.KEY_F23: 'f23',
+            glfw.KEY_F24: 'f24',
+            glfw.KEY_F25: 'f25',
+        }
 
 useText = False  # By default _onPygletText is not used
 

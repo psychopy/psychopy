@@ -37,7 +37,7 @@ except ImportError:
     checkPygletDuringWait = False
 
 try:
-    from psychopy.visual.backends import glfw
+    import glfw
     haveGLFW = True
 except ImportError:
     haveGLFW = False

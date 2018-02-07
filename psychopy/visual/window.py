@@ -1100,6 +1100,9 @@ class Window(object):
         """
         self._closed = True
 
+        self.backend.close()  # moved here, dereferencing the window prevents
+                              # backend specific actions to take place
+
         try:
             openWindows.remove(self)
         except Exception:
@@ -1115,7 +1118,6 @@ class Window(object):
         except Exception:
             # can cause unimportant "'NoneType' object is not callable"
             pass
-        self.backend.close()
 
         try:
             if self.bits is not None:
