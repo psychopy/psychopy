@@ -11,7 +11,6 @@
 from __future__ import absolute_import, print_function
 
 from psychopy.visual import filters
-from psychopy.visual.backends import gamma
 # absolute essentials (nearly all experiments will need these)
 from .basevisual import BaseVisualStim
 # non-private helpers
