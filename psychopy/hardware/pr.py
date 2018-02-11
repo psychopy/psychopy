@@ -120,13 +120,13 @@ class PR650(object):
             logging.info("Successfully opened %s" % self.portString)
             time.sleep(0.1)  # wait while establish connection
             # turn on the backlight as feedback
-            reply = self.sendMessage('b1\n')
+            reply = self.sendMessage(b'b1\n')
             if reply != self.codes['OK']:
                 self._error("PR650 isn't communicating")
 
         if self.OK:
             # set command to make sure using right units etc...
-            reply = self.sendMessage('s01,,,,,,01,1')
+            reply = self.sendMessage(b's01,,,,,,01,1')
 
     def _error(self, msg):
         self.OK = False
@@ -164,12 +164,12 @@ class PR650(object):
         issued to retrieve info about that measurement.
         """
         t1 = time.clock()
-        reply = self.sendMessage('m0\n', timeOut)  # measure and hold data
+        reply = self.sendMessage(b'm0\n', timeOut)  # measure and hold data
         # using the hold data method the PR650 we can get interogate it
         # several times for a single measurement
 
         if reply == self.codes['OK']:
-            raw = self.sendMessage('d2')
+            raw = self.sendMessage(b'd2')
             xyz = raw.split(',')  # parse into words
             self.lastQual = str(xyz[0])
             if self.codes[self.lastQual] == 'OK':
@@ -216,7 +216,7 @@ class PR650(object):
         be passed to ``.parseSpectrumOutput()``. It's more efficient to
         parse R,G,B strings at once than each individually.
         """
-        raw = self.sendMessage('d5')  # returns a list where each list
+        raw = self.sendMessage(b'd5')  # returns a list where each list
         if parse:
             # skip the first 2 entries (info)
             return self.parseSpectrumOutput(raw[2:])
@@ -356,18 +356,18 @@ class PR655(PR650):
     def startRemoteMode(self):
         """Sets the Colorimeter into remote mode
         """
-        reply = self.sendMessage('PHOTO', timeout=10.0)
+        reply = self.sendMessage(b'PHOTO', timeout=10.0)
 
     def getDeviceType(self):
         """Return the device type (e.g. 'PR-655' or 'PR-670')
         """
-        reply = self.sendMessage('D111')  # returns errCode,
+        reply = self.sendMessage(b'D111')  # returns errCode,
         return _stripLineEnds(reply.split(',')[-1])  # last element
 
     def getDeviceSN(self):
         """Return the device serial number
         """
-        reply = self.sendMessage('D110')  # returns errCode,
+        reply = self.sendMessage(b'D110')  # returns errCode,
         return _stripLineEnds(reply.split(',')[-1])  # last element
 
     def sendMessage(self, message, timeout=0.5, DEBUG=False):
@@ -416,7 +416,7 @@ class PR655(PR650):
             :func:`~PR655.measure` automatically populates pr655.lastTristim
             with just the tristimulus coordinates
         """
-        result = self.sendMessage('D2')
+        result = self.sendMessage(b'D2')
         return result.split(',')
 
     def getLastUV(self):
@@ -429,7 +429,7 @@ class PR655(PR650):
             :func:`~PR655.measure` automatically populates pr655.lastUV
             with [u,v]
         """
-        result = self.sendMessage('D3')
+        result = self.sendMessage(b'D3')
         return result.split(',')
 
     def getLastXY(self):
@@ -443,7 +443,7 @@ class PR655(PR650):
             :func:`~PR655.measure` automatically populates pr655.lastXY
             with [x,y]
         """
-        result = self.sendMessage('D1')
+        result = self.sendMessage(b'D1')
         return result.split(',')
 
     def getLastSpectrum(self, parse=True):
@@ -460,7 +460,7 @@ class PR655(PR650):
             be passed to :func:`~PR655.parseSpectrumOutput`. It's more
             efficient to parse R,G,B strings at once than each individually.
         """
-        raw = self.sendMessage('D5')  # returns a list where each list
+        raw = self.sendMessage(b'D5')  # returns a list where each list
         if parse:
             # skip the first 2 entries (info)
             return self.parseSpectrumOutput(raw[2:])
@@ -479,7 +479,7 @@ class PR655(PR650):
             :func:`~PR655.measure` automatically populates
             pr655.lastColorTemp with the color temp in Kelvins
         """
-        result = self.sendMessage('D4')
+        result = self.sendMessage(b'D4')
         return result.split(',')
 
     def measure(self, timeOut=30.0):
@@ -492,7 +492,7 @@ class PR655(PR650):
             - `.lastCIExy`
             - `.lastCIEuv`
         """
-        reply = self.sendMessage('M0', timeout=30)
+        reply = self.sendMessage(b'M0', timeout=30)
         self.measured = True
         CIEuv = self.getLastUV()
         CIExy = self.getLastXY()

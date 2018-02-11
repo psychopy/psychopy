@@ -7,8 +7,8 @@ things like call tips and command auto completion."""
 from __future__ import absolute_import, print_function
 
 from past.builtins import cmp
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import str
 __author__ = "Patrick K. O'Brien <pobrien@orbtech.com>"
 __cvsid__ = "$Id: introspect.py,v 1.15 2006/06/29 22:23:19 RD Exp $"

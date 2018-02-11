@@ -10,25 +10,18 @@
 
 from __future__ import absolute_import, print_function
 
-from psychopy import logging
-
-# needed for backwards-compatibility
-from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
-                                STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
-
+from psychopy.visual import filters
+from psychopy.visual.backends import gamma
+# absolute essentials (nearly all experiments will need these)
+from .basevisual import BaseVisualStim
+# non-private helpers
+from .helpers import pointInPolygon, polygonsOverlap
+from .image import ImageStim
+from .text import TextStim
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 
-# non-private helpers
-from .helpers import pointInPolygon, polygonsOverlap
-
-# absolute essentials (nearly all experiments will need these)
-from .basevisual import BaseVisualStim
-from .image import ImageStim
-from .text import TextStim
-
-from psychopy.visual import gamma  # done in window anyway
-from psychopy.visual import filters
+# needed for backwards-compatibility
 
 # need absolute imports within lazyImports
 
@@ -38,6 +31,8 @@ from psychopy.visual import filters
 # apipkg.initpkg(__name__, {
 #        'GratingStim': "psychopy.visual.grating:GratingStim",
 # })
+
+from psychopy.constants import STOPPED, FINISHED, PLAYING, NOT_STARTED
 
 lazyImports = """
 # stimuli derived from object or MinimalStim

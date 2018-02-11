@@ -3,8 +3,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from past.builtins import basestring
@@ -17,14 +17,14 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 from psychopy import logging
 from psychopy.constants import PY3
 
 try:
     import openpyxl
-    if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
+    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -281,7 +281,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                               'files, but neither was found.')
 
         # data_only was added in 1.8
-        if StrictVersion(openpyxl.__version__) < StrictVersion('1.8'):
+        if parse_version(openpyxl.__version__) < parse_version('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="1.85.6">
+<PsychoPy2experiment encoding="utf-8" version="1.90.dev1">
   <Settings>
     <Param name="expName" updates="None" val="MentalRot" valType="str"/>
     <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
@@ -21,22 +21,19 @@
     <Param name="Save csv file" updates="None" val="False" valType="bool"/>
     <Param name="Save excel file" updates="None" val="False" valType="bool"/>
     <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
-    <Param name="expName" updates="None" val="MentalRot" valType="str"/>
     <Param name="logging level" updates="None" val="exp" valType="code"/>
-    <Param name="blendMode" updates="None" val="avg" valType="str"/>
-    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
-    <Param name="Units" updates="None" val="height" valType="str"/>
-    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="OSF Project ID" updates="None" val="" valType="str"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
     <Param name="Saved data folder" updates="None" val="" valType="code"/>
-    <Param name="Screen" updates="None" val="1" valType="num"/>
   </Settings>
   <Routines>
     <Routine name="plot_data">
       <CodeComponent name="plot_data_array">
         <Param name="name" updates="None" val="plot_data_array" valType="code"/>
         <Param name="Begin Experiment" updates="constant" val="from matplotlib import pyplot&amp;#10;import pandas as pd" valType="extendedCode"/>
-        <Param name="name" updates="None" val="plot_data_array" valType="code"/>
         <Param name="Begin Routine" updates="constant" val="def plotYX(yaxis, xaxis, description=''):&amp;#10;    pyplot.grid(True)&amp;#10;    pyplot.title(description)&amp;#10;    pyplot.xlabel('Angle')&amp;#10;    pyplot.ylabel('Response time (s)')&amp;#10;    pyplot.xlim([0, 315])&amp;#10;    #slope,inter = np.polyfit(xaxis[:5],yaxis[:5],1)&amp;#10;    pyplot.plot(xaxis, yaxis) #, xaxis[:5], np.array(xaxis[:5]) * slope + inter)&amp;#10;    pyplot.draw()&amp;#10;    pyplot.show()&amp;#10;&amp;#10;filename = 'mental_rotation_data.csv'&amp;#10;with open(filename, 'wb') as fd:&amp;#10;    fd.write(data_string)&amp;#10;&amp;#10;data = pd.read_csv(filename)&amp;#10;data = data[data['rt'] &lt; 4]  # trim RT at 4 sec&amp;#10;mrt = data.loc[:,'rt']&amp;#10;correct = data.loc[:, 'corr']&amp;#10;angle = data.loc[:, 'angle']&amp;#10;&amp;#10;dfsum = data.groupby('angle', as_index=False).mean()&amp;#10;m = dfsum.loc[:, 'rt']&amp;#10;a = dfsum.loc[:, 'angle']&amp;#10;&amp;#10;scored_data = zip(a, m)&amp;#10;print('average time (sec) at each rotation:')&amp;#10;print &quot;  0  45  90  135 180 225 270 315&quot;&amp;#10;print &quot;--&gt; %s &lt;--&quot; % repr([round(i,3) for i in m]).strip('[]').replace(',', '  ')&amp;#10;print &quot;\n% correct        :&quot;, 100 * correct.mean()&amp;#10;print &quot;overall speed (s):&quot;, mrt.mean()&amp;#10;&amp;#10;plotYX(m, a)&amp;#10;&amp;#10;with open(filename, 'a+b') as fd:&amp;#10;    fd.write('\n\n' + repr(scored_data))" valType="extendedCode"/>
+        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
       </CodeComponent>
@@ -63,25 +60,15 @@
         <Param name="flip" updates="constant" val="" valType="str"/>
       </TextComponent>
       <CodeComponent name="code_4">
-        <Param name="Begin Experiment" updates="constant" val="" valType="extendedCode"/>
         <Param name="name" updates="None" val="code_4" valType="code"/>
+        <Param name="Begin Experiment" updates="constant" val="" valType="extendedCode"/>
         <Param name="Begin Routine" updates="constant" val="if trials.thisN == 4 and expInfo['participant'] == 'JRG':    &amp;#10;    trials.finished = True" valType="extendedCode"/>
+        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
-        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
       </CodeComponent>
     </Routine>
     <Routine name="Intructions_1">
-      <StaticComponent name="ISI_2">
-        <Param name="name" updates="None" val="ISI_2" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopVal" updates="constant" val="0.5" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="code" updates="None" val="" valType="code"/>
-      </StaticComponent>
       <TextComponent name="text_4">
         <Param name="name" updates="None" val="text_4" valType="code"/>
         <Param name="startType" updates="None" val="time (s)" valType="str"/>
@@ -333,8 +320,8 @@
       <CodeComponent name="code">
         <Param name="name" updates="None" val="code" valType="code"/>
         <Param name="Begin Experiment" updates="constant" val="" valType="extendedCode"/>
-        <Param name="name" updates="None" val="code" valType="code"/>
         <Param name="Begin Routine" updates="constant" val="if same == 'n':&amp;#10;    limage = 'F.png'&amp;#10;    rimage = 'FR.png'&amp;#10;    if random() &gt; .5:&amp;#10;       rimage, limage = limage, rimage&amp;#10;else:&amp;#10;    limage = rimage = 'F.png'&amp;#10;    if random() &gt; .5:&amp;#10;        limage = rimage = 'FR.png'" valType="extendedCode"/>
+        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
       </CodeComponent>
@@ -502,8 +489,10 @@
       <Param name="conditions" updates="None" val="[{'angle': 0, 'rightori': 0, 'leftori': 0, 'same': 'n'}, {'angle': 0, 'rightori': 0, 'leftori': 0, 'same': 'y'}, {'angle': 45, 'rightori': 45, 'leftori': 0, 'same': 'n'}, {'angle': 45, 'rightori': 45, 'leftori': 0, 'same': 'y'}, {'angle': 90, 'rightori': 90, 'leftori': 0, 'same': 'n'}, {'angle': 90, 'rightori': 90, 'leftori': 0, 'same': 'y'}, {'angle': 135, 'rightori': 135, 'leftori': 0, 'same': 'n'}, {'angle': 135, 'rightori': 135, 'leftori': 0, 'same': 'y'}, {'angle': 180, 'rightori': 180, 'leftori': 0, 'same': 'n'}, {'angle': 180, 'rightori': 180, 'leftori': 0, 'same': 'y'}, {'angle': 225, 'rightori': 225, 'leftori': 0, 'same': 'n'}, {'angle': 225, 'rightori': 225, 'leftori': 0, 'same': 'y'}, {'angle': 270, 'rightori': 270, 'leftori': 0, 'same': 'n'}, {'angle': 270, 'rightori': 270, 'leftori': 0, 'same': 'y'}, {'angle': 315, 'rightori': 315, 'leftori': 0, 'same': 'n'}, {'angle': 315, 'rightori': 315, 'leftori': 0, 'same': 'y'}]" valType="str"/>
       <Param name="conditionsFile" updates="None" val="MentalRot.csv" valType="str"/>
       <Param name="endPoints" updates="None" val="[0, 1]" valType="num"/>
-      <Param name="conditions" updates="None" val="[{'angle': 0, 'rightori': 0, 'leftori': 0, 'same': u'n'}, {'angle': 0, 'rightori': 0, 'leftori': 0, 'same': u'y'}, {'angle': 45, 'rightori': 45, 'leftori': 0, 'same': u'n'}, {'angle': 45, 'rightori': 45, 'leftori': 0, 'same': u'y'}, {'angle': 90, 'rightori': 90, 'leftori': 0, 'same': u'n'}, {'angle': 90, 'rightori': 90, 'leftori': 0, 'same': u'y'}, {'angle': 135, 'rightori': 135, 'leftori': 0, 'same': u'n'}, {'angle': 135, 'rightori': 135, 'leftori': 0, 'same': u'y'}, {'angle': 180, 'rightori': 180, 'leftori': 0, 'same': u'n'}, {'angle': 180, 'rightori': 180, 'leftori': 0, 'same': u'y'}, {'angle': 225, 'rightori': 225, 'leftori': 0, 'same': u'n'}, {'angle': 225, 'rightori': 225, 'leftori': 0, 'same': u'y'}, {'angle': 270, 'rightori': 270, 'leftori': 0, 'same': u'n'}, {'angle': 270, 'rightori': 270, 'leftori': 0, 'same': u'y'}, {'angle': 315, 'rightori': 315, 'leftori': 0, 'same': u'n'}, {'angle': 315, 'rightori': 315, 'leftori': 0, 'same': u'y'}]" valType="str"/>
-      <Param name="Selected rows" updates="None" val="" valType="code"/>
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
+      <Param name="loopType" updates="None" val="random" valType="str"/>
+      <Param name="random seed" updates="None" val="" valType="code"/>
+      <Param name="isTrials" updates="None" val="True" valType="bool"/>
     </LoopInitiator>
     <Routine name="Trial"/>
     <Routine name="pause"/>

@@ -33,7 +33,7 @@ _remoteVersionsCache = []
 
 # ideally want localization for error messages
 # but don't want to have the lib/ depend on app/, drat
-# from psychopy.app.localization import _translate  # ideal
+# from psychopy.localization import _translate  # ideal
 def _translate(string):
     """placeholder (non)function
     """
@@ -183,7 +183,7 @@ def _localVersions(forceCheck=False):
             return [psychopy.__version__]
         else:
             cmd = 'git tag'
-            tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR)
+            tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR).decode('UTF-8')
             allTags = tagInfo.splitlines()
             _localVersionsCache = sorted(allTags, reverse=True)
     return _localVersionsCache
@@ -238,7 +238,6 @@ def fullVersion(partial):
     # expects availableVersions() return a reverse-sorted list
     if partial in ('', 'latest', None):
         return latestVersion()
-
     for tag in availableVersions(local=False):
         if tag.startswith(partial):
             return tag
@@ -256,7 +255,7 @@ def currentTag():
     """Returns the current tag name from the version repository
     """
     cmd = 'git describe --always --tag'.split()
-    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR).split('-')[0]
+    tag = subprocess.check_output(cmd, cwd=VERSIONSDIR).decode('UTF-8').split('-')[0]
     return tag
 
 
@@ -273,7 +272,7 @@ def _checkout(requestedVersion):
         msg = _translate("Couldn't find version {} locally. Trying github...")
         logging.info(msg.format(requestedVersion))
         subprocess.check_output('git fetch github --tags'.split(),
-                                cwd=VERSIONSDIR)
+                                cwd=VERSIONSDIR).decode('UTF-8')
         # is requested here now? forceCheck to refresh cache
         if requestedVersion not in _localVersions(forceCheck=True):
             msg = _translate("{} is not currently available.")
@@ -284,7 +283,7 @@ def _checkout(requestedVersion):
     cmd = ['git', 'checkout', requestedVersion]
     out = subprocess.check_output(cmd,
                                   stderr=subprocess.STDOUT,
-                                  cwd=VERSIONSDIR)
+                                  cwd=VERSIONSDIR).decode('UTF-8')
     logging.debug(out)
     logging.exp('Success:  ' + ' '.join(cmd))
     return requestedVersion
@@ -299,7 +298,7 @@ def _clone(requestedVersion):
     cmd = ('git clone -o github https://github.com/psychopy/versions ' +
            VER_SUBDIR)
     print(cmd)
-    subprocess.check_output(cmd.split(), cwd=USERDIR)
+    subprocess.check_output(cmd.split(), cwd=USERDIR).decode('UTF-8')
 
     return _checkout(requestedVersion)
 
@@ -309,7 +308,7 @@ def _gitPresent():
     """
     try:
         gitvers = subprocess.check_output('git --version'.split(),
-                                          stderr=subprocess.PIPE)
+                                          stderr=subprocess.PIPE).decode('UTF-8')
     except (CalledProcessError, OSError):
         gitvers = ''
     return bool(gitvers.startswith('git version'))

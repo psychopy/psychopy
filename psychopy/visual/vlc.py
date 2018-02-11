@@ -43,8 +43,8 @@ C{get_instance} method of L{MediaPlayer} and L{MediaListPlayer}.
 """
 from __future__ import absolute_import, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import bytes
 from builtins import map
 from builtins import str

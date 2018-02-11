@@ -31,16 +31,15 @@ evtChannels = {
     11: "Mic1",
 }
 
-
 class BlackBoxToolkit(serialdevice.SerialDevice):
     """A base class for serial devices, to be sub-classed by specific devices
     """
-    name = 'BlackBoxToolkit'
-    longName = "BlackBoxToolkit 2"
+    name = b'BlackBoxToolkit'
+    longName = b"BlackBoxToolkit 2"
     # list of supported devices (if more than one supports same protocol)
-    driverFor = ["BlackBoxToolkit 2"]
+    driverFor = [b"BlackBoxToolkit 2"]
 
-    def __init__(self, port=None, sendBreak=False):
+    def __init__(self, port=None, sendBreak=False, bufferSize = 262144):
         # if we're trying to send the break signal then presumably the device
         # is sleeping
         if sendBreak:
@@ -49,13 +48,18 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             checkAwake = True
         # run initialisation; parity = enable parity checking
         super(BlackBoxToolkit, self).__init__(port,
-                                              baudrate=460800, eol="\n",
+                                              baudrate=230400, eol="\r\n",
                                               parity='N',
-                                              pauseDuration=0.5,
+                                              pauseDuration=1.0,  # 1 second pause!! slow device
                                               checkAwake=checkAwake)
         if sendBreak:
             self.sendBreak()
             time.sleep(3.0)  # give time to reset
+
+        try: # set buffer size - can make proportional to size of data (32 bytes per line * events)+1000
+            self.com.set_buffer_size(bufferSize)
+        except Exception:
+            logging.warning("Could not set buffer size. The default buffer size for Windows is 4096 bytes.")
 
     def sendBreak(self):
         """Send a break event to reset the box if needed
@@ -66,47 +70,46 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         except AttributeError:
             self.com.sendBreak()  # not sure when this was deprecated
 
-
     def isAwake(self):
         """Checks that the black box returns "BBTK;\n" when probed with "CONN"
         """
         self.pause()
-        self.sendMessage('CONN')
+        self.sendMessage(b'CONN')
         self.pause()
         reply = self.getResponse(timeout=1.0)
-        return reply == 'BBTK;\n'
+        return reply == b'BBTK;\n'
 
     def showAbout(self):
         """Will show the 'about' screen on the LCD panel for 2 seconds
         """
         self.pause()
-        self.sendMessage('ABOU')
+        self.sendMessage(b'ABOU')
 
     def getFirmware(self):
         """Returns the firmware version in YYYYMMDD format
         """
-        self.sendMessage("FIRM")
+        self.sendMessage(b"FIRM")
         self.pause()
-        return self.getResponse(timeout=0.5).replace(";", "")
+        return self.getResponse(timeout=1.0).replace(b";", b"")
 
     def setEventThresholds(self, threshList=()):
         """This takes some time (requires switching the BBTK to STM mode)
         """
         time.sleep(1.0)
-        self.sendMessage('SEPV')
+        self.sendMessage(b'SEPV')
         time.sleep(5)  # it takes quite a while to switch to this mode
         for threshVal in threshList:
             time.sleep(0.5)
-            self.sendMessage(str(threshVal))
+            self.sendMessage(threshVal) # threshVal must be byte, not str
 
     def getEventThresholds(self):
-        self.sendMessage("GEPV")
+        self.sendMessage(b"GEPV")
         self.pause()
         reply = self.getResponse(timeout=5.0)
         if reply == '':
             return []
         else:
-            reply = reply.replace(';\n', '').split(',')
+            reply = reply.replace(b';\n', b'').split(b',')
         return reply
 
     def setSmoothing(self, smoothStr):
@@ -121,7 +124,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         The channel orders are these (from BBTKv2 manual):
             [mic1 mic2 opto4 opto3 opto2 opto1 n/a n/a]
         """
-        self.sendMessage('SMOO')
+        self.sendMessage(b'SMOO')
         self.pause()
         self.sendMessage(smoothStr)
 
@@ -129,14 +132,14 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         """Clear the stored data from a previous run.
         This should be done before collecting a further timing data
         """
-        self.sendMessage('SPIE')
+        self.sendMessage(b'SPIE')
         self.pause()
         reply = self.getResponse(timeout=10)
         # should return either FRMT or ESEC to indicate it started
-        if reply.startswith('FRMT'):
+        if reply.startswith(b'FRMT'):
             logging.info("BBTK.clearMemory(): "
                          "Starting full format of BBTK memory")
-        elif reply.startswith('ESEC'):
+        elif reply.startswith(b'ESEC'):
             logging.info("BBTK.clearMemory(): "
                          "Starting quick erase of BBTK memory")
         else:
@@ -148,7 +151,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         # now wait until we get told 'DONE'
         self.com.timeout = 20
         retVal = self.com.readline()
-        if retVal.startswith("DONE"):
+        if retVal.startswith(b"DONE"):
             logging.info("BBTK.clearMemory(): completed")
             # we aren't in a time-critical period so flush messages
             logging.flush()
@@ -165,16 +168,16 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         events that occurred in that period.
         """
         # we aren't in a time-critical period so flush messages
-        self.sendMessage("DSCM")
+        self.sendMessage(b"DSCM")
         logging.flush()
         time.sleep(5.0)
-        self.sendMessage("TIML")
+        self.sendMessage(b"TIML")
         logging.flush()
         self.pause()
         # BBTK expects this in microsecs
-        self.sendMessage("%i" % int(duration * 1000000), autoLog=False)
+        self.sendMessage(b"%i" % int(duration * 1000000), autoLog=False)
         self.pause()
-        self.sendMessage("RUDS")
+        self.sendMessage(b"RUDS")
         logging.flush()
 
     def getEvents(self, timeout=10):
@@ -184,7 +187,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         foundDataStart = False
         t0 = time.time()
         while not foundDataStart and time.time() - t0 < timeout:
-            if self.com.readline().startswith('SDAT'):
+            if self.com.readline().startswith(b'SDAT'):
                 foundDataStart = True
                 logging.info("BBTK.getEvents() found data. Processing...")
                 logging.flush()  # we aren't in a time-critical period
@@ -211,7 +214,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             else:
                 for n in evtChannels:
                     if state[n] != lastState[n]:
-                        if state[n] == '1':
+                        if chr(state[n]) =='1':
                             evt = evtChannels[n] + "_on"
                         else:
                             evt = evtChannels[n] + "_off"
@@ -226,13 +229,13 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         lastState = None
         # try to read from port
         self.pause()
-        self.com.timeout = 2.0
+        self.com.timeout = 5.0
         nEvents = int(self.com.readline()[:-2])  # last two chars are ;\n
         self.com.readline()[:-2]  # microseconds recorded (ignore)
         self.com.readline()[:-2]  # samples recorded (ignore)
         while True:
             line = self.com.readline()
-            if line.startswith('EDAT'):  # end of data stream
+            if line.startswith(b'EDAT'):  # end of data stream
                 break
             events.extend(parseEventsLine(line, lastState))
             lastState = events[-1]['state']
@@ -242,6 +245,137 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             logging.warning(msg % (len(events), nEvents))
         logging.flush()  # we aren't in a time-critical period
         return events
+
+    def setResponse(self, sensor=None, outputPin = None, testDuration = None,
+                    responseTime=None, nTrials=None, setSmoothing = False,
+                    responseDuration = None):
+        """
+        Sets Digi Stim Capture and Response (DSCAR) for BBTK.
+
+        :param sensor: Takes string for single sensor, and tuple or list of strings for multiple sensors
+        :param outputPin: Takes string for single output, and tuple or list of strings for multiple outputs
+        :param testDuration: The duration of the testing session in seconds
+        :param responseTime: Time in seconds from stimulus capture that robotic actuator should respond
+        :param nTrials: Number of trials for testing session
+        :param setSmoothing: For use with CRT monitors - Defaults to False for common LCD screens. Mic smoothing active.
+        :param responseDuration: Time in seconds that robotic actuator should stay activated for each response
+        """
+        # Check sensor and output param casing
+        allowedListTypes = (type(()), type([]))
+        noneTypes = ['',None, 'None', 'none', False]
+        logging.info("Converting sensor and output names to lower case.")
+        if sensor in noneTypes:
+            sensor = None
+        if outputPin in noneTypes:
+            outputPin = None
+        if not sensor is None and type(sensor) in allowedListTypes:
+            sensor = [sensors.lower() for sensors in sensor]
+        elif not sensor is None:
+            sensor = sensor.lower()
+        if not outputPin is None and type(outputPin) in allowedListTypes:
+            outputPin = [outputs.lower() for outputs in outputPin]
+        elif not outputPin is None:
+            outputPin = outputPin.lower()
+        # Create sensor and outputPin dicts
+        sensorDict = dict(zip(
+            ['keypad4', 'keypad3', 'keypad2', 'keypad1', 'opto4',
+             'opto3', 'opto2', 'opto1', 'ttlin2', 'ttlin1', 'mic2','mic1'],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]))
+        outputDict = dict(
+            zip(['actclose4', 'actclose3', 'actclose2', 'actclose1', 'ttlout2', 'ttlout1', 'sounder2', 'sounder1'],
+                [0, 1, 2, 3, 4, 5, 6, 7]))
+        # Check sensor parameters
+        if sensor is None:
+            logging.info("Setting BBTK pattern matching to 'INDI' - respond to any trigger")
+        if type(sensor) in allowedListTypes and len(sensor) > 3:
+            raise ValueError("You can only set 3 sensor values. You have provided {} values.".format(len(sensor)))
+        if type(sensor) in allowedListTypes:
+            for sensors in sensor:
+                if not sensors in sensorDict.keys():
+                    raise KeyError(
+                        "{} is not a valid sensor name. Choose from the following: {}".format(sensors, list(sensorDict.keys())))
+            if len(sensor) != len(set(sensor)):
+                raise ValueError("Duplicate sensors are not allowed. Please use unique sensor names. E.g., {}"
+                                 .format(list(set(sensor))))
+        if not type(sensor) in allowedListTypes and not sensor in sensorDict.keys() and not sensor is None:
+            raise KeyError("{} is not a valid sensor name. Choose from the following: {}".format(sensor, list(sensorDict.keys())))
+        # Check output pin parameters
+        if outputPin is None:
+            raise ValueError("None values not accepted as outputs. OutputPin argument requires string e.g., 'TTLout1'.")
+        if type(outputPin) in allowedListTypes and len(outputPin) > 8:
+            raise ValueError("You can only set 8 sensor values. You have provided {} values.".format(len(outputPin)))
+        if type(outputPin) in allowedListTypes:
+            for outputs in outputPin:
+                if not outputs in outputDict.keys():
+                    raise KeyError(
+                        "{} is not a valid output pin name. Choose from the following: {}".format(outputs, list(outputDict.keys())))
+            if len(outputPin) != len(set(outputPin)):
+                raise ValueError("Duplicate output pins are not allowed. Please use unique output pin names. E.g., {}"
+                                 .format(list(set(outputPin))))
+        if not type(outputPin) in allowedListTypes and not outputPin in outputDict.keys():
+            raise KeyError("{} is not a valid output pin name. Choose from the following: {}".format(outputPin, list(outputDict.keys())))
+        # Check timing parameters
+        if testDuration is None:
+            raise ValueError("Please provide a test time duration (in seconds)")
+        if responseTime is None:
+            raise ValueError("Please provide a time (in seconds) for the Robot Key Actuator to respond.")
+        if responseDuration is None:
+            raise ValueError("Please provide a duration (in seconds) for the Robot Key Actuator to respond.")
+        # Create sensor code
+        sensorCodes = dict(zip(['sensor1', 'sensor2', 'sensor3'], ['9' * 12, '9' * 12, '9' * 12]))
+        if not sensor is None:
+           if type(sensor) in allowedListTypes:
+                for n, sensors in enumerate(sensor, 1):
+                    sensorCodes['{}{}'.format('sensor', str(n))] \
+                        = '000000000000'[:sensorDict[sensors.lower()]] + '1' + '000000000000'[sensorDict[sensors.lower()]+1:]
+           else:
+               sensorCodes['sensor1'] = '000000000000'[:sensorDict[sensor.lower()]] \
+                                         + '1' + '000000000000'[sensorDict[sensor.lower()] + 1:]
+        # Create output codes
+        if outputPin in allowedListTypes:
+            outputCode = '00000000'
+            for outputs in outputPin:
+                outputCode = outputCode[:outputDict[outputs.lower()]] + '1' + outputCode[outputDict[outputs.lower()]+1:]
+        else:
+            outputCode = '00000000'[:outputDict[outputPin.lower()]] + '1' + '00000000'[outputDict[outputPin.lower()]+1:]
+        # Create trialList for BBTK trials
+        trialList = '{input},{responseT},{output},{responseD}\r\n'.format(
+            input=','.join(sensorCodes.values()),
+            responseT=int(responseTime * 1000000),
+            output=outputCode,
+            responseD=int(responseDuration * 1000000))*nTrials
+        # Write trials to disk for records
+        saveTrials = open('trialList.txt', 'w')
+        saveTrials.write(trialList)
+        saveTrials.close()
+        # Begin sending BBTK commands
+        if setSmoothing == False:
+            #remove smoothing for optos, but keep mic smoothing - refer to BBTK handbook re: mic smoothing latency
+            logging.info("Opto sensor smoothing removed.  Mic1 and Mic2 smoothing still active.")
+            self.setSmoothing('11000000')
+            self.pause()
+        # Send instructions to program BBTK
+        self.sendMessage(b'PDCR')  # program DSCAR
+        self.pause()
+        self.sendMessage(b'STYP') # Type of response
+        self.pause()
+        if sensor is None:
+            self.sendMessage(b'INDI')  # Set to respond to any trigger
+        else:
+            self.sendMessage(b'PATT')  # Set to exact port trigger match
+        self.pause()
+        if testDuration:
+            self.sendMessage(b'TIML')
+            self.pause()
+            self.sendMessage(b"%i" % int(testDuration * 1000000))
+            self.pause()
+        if nTrials:
+            self.sendMessage(trialList)
+            time.sleep(5)
+        self.sendMessage(b'PCCR')  # Sequence complete
+        self.pause()
+        self.sendMessage(b'RUCR')  # run sequennce
+        self.pause()
 
 if __name__ == "__main__":
 

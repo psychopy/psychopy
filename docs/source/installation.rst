@@ -91,7 +91,7 @@ OR you could just install the subsets of packages that you want::
   pip install requests[security] pyosf
 
   # alternative audio (easier than pyo to install)
-  pip install cffi pysounddevice pysoundfile
+  pip install cffi sounddevice pysoundfile
 
 Handy extra options::
 
@@ -164,3 +164,26 @@ After you have `enabled the overlay <http://wiki.gentoo.org/wiki/Overlay>`_ simp
 
 
 .. _download : https://github.com/psychopy/psychopy/releases
+
+Developers
+~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure you have Python 3.6 and the latest version of pip installed::
+
+  python --version
+  pip --version
+
+Next, follow instructions `here <http://www.psychopy.org/developers/repository.com>`_ to fork and fetch the latest version of the PsychoPy repository.
+
+From the directory where you cloned the latest PsychoPy repository (i.e., where setup.py resides), run::
+
+  pip install -e .
+
+This will install all PsychoPy dependencies to your default Python distribution (which should be Python 3.6). Next, you should create a new PsychoPy shortcut linking your newly installed dependencies to your current version of PsychoPy in the cloned repository. To do this, simply create a new .BAT file containing::
+
+"C:\PATH_TO_PYTHON3.6\python.exe C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp.py"
+
+Alternatively, you can run the psychopyApp.py from the command line::
+
+  python C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp
+
