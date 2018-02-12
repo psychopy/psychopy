@@ -328,6 +328,9 @@ class PygletBackend(BaseBackend):
         setGammaRamp(self.screenID, gammaRamp, nAttempts=3,
                      xDisplay=self.xDisplay)
 
+    def getRamp(self):
+        return getGammaRamp(self.screenID, self.xDisplay)
+
     @property
     def screenID(self):
         """Returns the screen ID or device context (depending on the platform)
