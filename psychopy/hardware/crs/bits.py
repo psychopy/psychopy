@@ -819,8 +819,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 self._warnTesting()
             else:
                 self.mode = prevMode
-                self.win.winHandle.setGammaRamp(
-                    self.win.winHandle, self.config.identityLUT)
+                self.win.gammaRamp = self.config.identityLUT
                 msg = "Bits# config matches current system: %s on %s"
                 logging.info(msg % (self.config.gfxCard, self.config.os))
                 return 1
@@ -834,9 +833,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 logging.info("The current LUT didn't work as identity. "
                              "We'll try to find a working one.")
             else:
-                getRamp = self.win.winHandle.getGammaRamp
-                _winh = self.win.winHandle
-                self.config.identityLUT = getRamp(_winh).transpose()
+                self.config.identityLUT = self.win.backend.getRamp().transpose()
                 self.config.save()
                 self.mode = prevMode
                 logging.info("We found a LUT and it worked as identity")
