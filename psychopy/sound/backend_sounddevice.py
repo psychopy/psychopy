@@ -294,7 +294,6 @@ class SoundDeviceSound(_SoundBase):
         self.setSound(value, secs=self.secs, octave=self.octave,
                       hamming=self.hamming)
         self.status = NOT_STARTED
-        self.timeArray = []
     @property
     def stereo(self):
         return self.__dict__['stereo']
