@@ -364,6 +364,11 @@ class GLFWBackend(BaseBackend):
         :param gamma:
         :return:
         """
+        win = glfw.get_window_user_pointer(self.winHandle)
+        # if not fullscreen, we get an access violation (bug?)
+        if not win._isFullScr:
+            return None
+
         # make sure gamma is 3x1 array
         if type(gamma) in [float, int]:
             newGamma = np.tile(gamma, [3, 1])
@@ -384,10 +389,16 @@ class GLFWBackend(BaseBackend):
 
     def getGammaRamp(self):
         # get the current gamma ramp
-        monitor = glfw.get_window_monitor(self.winHandle)
-        currentGammaRamp = glfw.get_gamma_ramp(monitor)
+        win = glfw.get_window_user_pointer(self.winHandle)
 
-        return np.asarray(currentGammaRamp, dtype=np.float32)
+        # if not fullscreen, we get an access violation (bug?)
+        if win._isFullScr:
+            monitor = glfw.get_window_monitor(self.winHandle)
+            currentGammaRamp = glfw.get_gamma_ramp(monitor)
+
+            return np.asarray(currentGammaRamp, dtype=np.float32)
+        else:
+            return None
 
     def _setupGamma(self, gammaVal):
         pass
@@ -412,11 +423,15 @@ class GLFWBackend(BaseBackend):
         :return:
 
         """
-        monitor = glfw.get_window_monitor(self.winHandle)
+        win = glfw.get_window_user_pointer(self.winHandle)
 
-        if self.getGammaRampSize() == gammaRamp.shape[1]:
-            new_ramp = (gammaRamp[0, :], gammaRamp[1, :], gammaRamp[2, :])
-            glfw.set_gamma_ramp(monitor, new_ramp)
+        # if not fullscreen, we get an access violation
+        if win._isFullScr:
+            monitor = glfw.get_window_monitor(self.winHandle)
+
+            if self.getGammaRampSize() == gammaRamp.shape[1]:
+                new_ramp = (gammaRamp[0, :], gammaRamp[1, :], gammaRamp[2, :])
+                glfw.set_gamma_ramp(monitor, new_ramp)
 
     def getGammaRampSize(self):
         """Get the gamma ramp size for the current display. The size of the ramp
@@ -424,15 +439,21 @@ class GLFWBackend(BaseBackend):
 
         :return:
         """
-        monitor = glfw.get_window_monitor(self.winHandle)
-        currentGammaRamp = glfw.get_gamma_ramp(monitor)
+        # get the current gamma ramp
+        win = glfw.get_window_user_pointer(self.winHandle)
 
-        # get the gamma ramps for each color channel
-        red_ramp = currentGammaRamp[0]
-        green_ramp = currentGammaRamp[1]
-        blue_ramp = currentGammaRamp[2]
+        if win._isFullScr:
+            monitor = glfw.get_window_monitor(self.winHandle)
+            currentGammaRamp = glfw.get_gamma_ramp(monitor)
 
-        return max(len(red_ramp), len(green_ramp), len(blue_ramp))
+            # get the gamma ramps for each color channel
+            red_ramp = currentGammaRamp[0]
+            green_ramp = currentGammaRamp[1]
+            blue_ramp = currentGammaRamp[2]
+
+            return max(len(red_ramp), len(green_ramp), len(blue_ramp))
+        else:
+            return None
 
     @property
     def screenID(self):

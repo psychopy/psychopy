@@ -10,12 +10,10 @@ Text rendering has changed a lot (for the better) under pyglet. This
 script shows you the new way to specify fonts.
 """
 #create a window to draw in
-myWin = visual.Window(size=(1920, 1200), allowGUI=True, fullscr=True, screen=0, units='pix', winType='glfw')
+myWin = visual.Window(size=(800, 600), allowGUI=True, fullscr=False, screen=0, units='pix', winType='glfw')
 print(myWin.getActualFrameRate())
 myWin.recordFrameIntervals = True
 gr = visual.GratingStim(myWin, size=(265, 256), sf=0.03)
-
-print(myWin.gamma)
 
 myWin.gamma = np.asarray((1.0, 1.0, 1.0))
 
