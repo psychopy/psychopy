@@ -390,15 +390,15 @@ class GLFWBackend(BaseBackend):
     def getGammaRamp(self):
         # get the current gamma ramp
         win = glfw.get_window_user_pointer(self.winHandle)
-
         # if not fullscreen, we get an access violation (bug?)
-        if win._isFullScr:
-            monitor = glfw.get_window_monitor(self.winHandle)
-            currentGammaRamp = glfw.get_gamma_ramp(monitor)
-
-            return np.asarray(currentGammaRamp, dtype=np.float32)
-        else:
+        if not win._isFullScr:
             return None
+
+        monitor = glfw.get_window_monitor(self.winHandle)
+        currentGammaRamp = glfw.get_gamma_ramp(monitor)
+
+        return np.asarray(currentGammaRamp, dtype=np.float32)
+
 
     def _setupGamma(self, gammaVal):
         pass
@@ -426,12 +426,14 @@ class GLFWBackend(BaseBackend):
         win = glfw.get_window_user_pointer(self.winHandle)
 
         # if not fullscreen, we get an access violation
-        if win._isFullScr:
-            monitor = glfw.get_window_monitor(self.winHandle)
+        if not win._isFullScr:
+            return None
 
-            if self.getGammaRampSize() == gammaRamp.shape[1]:
-                new_ramp = (gammaRamp[0, :], gammaRamp[1, :], gammaRamp[2, :])
-                glfw.set_gamma_ramp(monitor, new_ramp)
+        monitor = glfw.get_window_monitor(self.winHandle)
+
+        if self.getGammaRampSize() == gammaRamp.shape[1]:
+            new_ramp = (gammaRamp[0, :], gammaRamp[1, :], gammaRamp[2, :])
+            glfw.set_gamma_ramp(monitor, new_ramp)
 
     def getGammaRampSize(self):
         """Get the gamma ramp size for the current display. The size of the ramp
@@ -442,18 +444,17 @@ class GLFWBackend(BaseBackend):
         # get the current gamma ramp
         win = glfw.get_window_user_pointer(self.winHandle)
 
-        if win._isFullScr:
-            monitor = glfw.get_window_monitor(self.winHandle)
-            currentGammaRamp = glfw.get_gamma_ramp(monitor)
-
-            # get the gamma ramps for each color channel
-            red_ramp = currentGammaRamp[0]
-            green_ramp = currentGammaRamp[1]
-            blue_ramp = currentGammaRamp[2]
-
-            return max(len(red_ramp), len(green_ramp), len(blue_ramp))
-        else:
+        if not win._isFullScr:
             return None
+        monitor = glfw.get_window_monitor(self.winHandle)
+        currentGammaRamp = glfw.get_gamma_ramp(monitor)
+
+        # get the gamma ramps for each color channel
+        red_ramp = currentGammaRamp[0]
+        green_ramp = currentGammaRamp[1]
+        blue_ramp = currentGammaRamp[2]
+
+        return max(len(red_ramp), len(green_ramp), len(blue_ramp))
 
     @property
     def screenID(self):
