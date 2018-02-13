@@ -1108,11 +1108,15 @@ class Window(object):
         except Exception:
             pass
         if self.origGammaRamp is not None:
-            setGammaRamp(
-                screenID=self.backend.screenID,
-                newRamp=self.origGammaRamp,
-                xDisplay=self.backend.xDisplay
-            )
+            if self.winType in ('pyglet', 'pygame'):
+                setGammaRamp(
+                    screenID=self.backend.screenID,
+                    newRamp=self.origGammaRamp,
+                    xDisplay=self.backend.xDisplay
+                )
+            elif self.winType == 'glfw':
+                self.backend.setGammaRamp(self.origGammaRamp)
+
         try:
             self.mouseVisible = True
         except Exception:
@@ -1261,10 +1265,13 @@ class Window(object):
 
         # try to retrieve previous so we can reset later
         try:
-            self.origGammaRamp = getGammaRamp(
-                screenID=self.backend.screenID,
-                xDisplay=self.backend.xDisplay
-            )
+            if self.winType in ('pyglet', 'pygame'):
+                self.origGammaRamp = getGammaRamp(
+                    screenID=self.backend.screenID,
+                    xDisplay=self.backend.xDisplay
+                )
+            elif self.winType == 'glfw':
+                self.origGammaRamp = self.backend.getGammaRamp()
         except Exception:
             self.origGammaRamp = None
 

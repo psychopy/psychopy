@@ -399,7 +399,6 @@ class GLFWBackend(BaseBackend):
 
         return np.asarray(currentGammaRamp, dtype=np.float32)
 
-
     def _setupGamma(self, gammaVal):
         pass
 
@@ -424,7 +423,6 @@ class GLFWBackend(BaseBackend):
 
         """
         win = glfw.get_window_user_pointer(self.winHandle)
-
         # if not fullscreen, we get an access violation
         if not win._isFullScr:
             return None
@@ -443,7 +441,6 @@ class GLFWBackend(BaseBackend):
         """
         # get the current gamma ramp
         win = glfw.get_window_user_pointer(self.winHandle)
-
         if not win._isFullScr:
             return None
         monitor = glfw.get_window_monitor(self.winHandle)
