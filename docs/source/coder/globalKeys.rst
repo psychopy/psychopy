@@ -122,7 +122,7 @@ Check that the global event key was successfully added.
 
     >>> event.globalKeys
     <_GlobalEventKeys :
-        [A] -> 'myfunc' <function myfunc at 0x10669ba28>
+        [A] -> 'myfunc2' <function myfunc2 at 0x10669ba28>
         [CTRL] + [ALT] + [B] -> 'my name' <function myfunc2 at 0x112eecb90>
     >
 
