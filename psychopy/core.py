@@ -36,6 +36,11 @@ except ImportError:
     havePyglet = False
     checkPygletDuringWait = False
 
+try:
+    import glfw
+    haveGLFW = True
+except ImportError:
+    haveGLFW = False
 
 runningThreads = []  # just for backwards compatibility?
 openWindows = []  # visual.Window updates this, event.py and clock.py use it
@@ -74,6 +79,10 @@ def quit():
             thisThread.stop()
             while thisThread.running == 0:
                 pass  # wait until it has properly finished polling
+
+    # call terminate() on GLFW if available
+    if haveGLFW:
+        glfw.terminate()
 
     sys.exit(0)  # quits the python session entirely
 

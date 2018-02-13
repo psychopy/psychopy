@@ -94,7 +94,7 @@ def getComponents(folder=None, fetchIcons=True):
     """
     if folder is None:
         pth = folder = dirname(__file__)
-        pkg = 'psychopy.app.builder.components'
+        pkg = 'psychopy.experiment.components'
     else:
         # default shared location is often not actually a folder
         if not os.path.isdir(folder):
@@ -140,9 +140,9 @@ def getComponents(folder=None, fetchIcons=True):
 
         # importlib.import_module eases 2.7 -> 3.x migration
         if cmpfile.endswith('.py'):
-            explicit_rel_path = 'psychopy.experiment.components.' + cmpfile[:-3]
+            explicit_rel_path = pkg + '.' + cmpfile[:-3]
         else:
-            explicit_rel_path = 'psychopy.experiment.components.' + cmpfile
+            explicit_rel_path = pkg + '.' + cmpfile
         module = import_module(explicit_rel_path, package=pkg)
         # check for orphaned pyc files (__file__ is not a .py file)
         if module.__file__.endswith('.pyc'):
