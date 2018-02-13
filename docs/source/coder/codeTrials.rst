@@ -8,7 +8,7 @@ TrialHandler
 
 This is what underlies the random and sequential loop types in :ref:`builder`, they work using the :term:`method of constants`. The trialHandler presents a predetermined list of conditions in either a sequential or random (without replacement) order.
 
-see :class:`TrialHandler` for more details.
+see :class:`~psychopy.data.TrialHandler` for more details.
 
 StairHandler
 ============
