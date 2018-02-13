@@ -108,6 +108,7 @@ class PygameBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+
         pygame.display.quit()
 
     @property
@@ -137,7 +138,7 @@ class PygameBackend(BaseBackend):
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
         # use pygame's own function for this
-        self.winHandle.set_gamma(gamma[0], gamma[1], gamma[2])
+        pygame.display.set_gamma(gamma[0], gamma[1], gamma[2])
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
@@ -145,5 +146,5 @@ class PygameBackend(BaseBackend):
         """
         self.__dict__['gammaRamp'] = gammaRamp
         # use pygame's own function for this
-        self.winHandle.set_gamma_ramp(
+        pygame.display.set_gamma_ramp(
                 gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])

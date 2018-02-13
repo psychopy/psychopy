@@ -2,6 +2,8 @@ from builtins import range
 from psychopy import visual, monitors
 import numpy
 
+import psychopy.visual.backends.pygletbackend
+
 from psychopy.tests import utils
 
 def test_low_gamma():
@@ -83,7 +85,7 @@ def test_setGammaRamp():
     win = visual.Window([600,600], autoLog=False)
 
     desiredRamp = numpy.tile(
-        visual.gamma.createLinearRamp(
+        psychopy.visual.backends.pygletbackend.createLinearRamp(
             screenID=win.backend.screenID,
             xDisplay=win.backend.xDisplay),
         (3, 1)
@@ -98,7 +100,7 @@ def test_setGammaRamp():
     for n in range(5):
         win.flip()
 
-    setRamp = visual.gamma.getGammaRamp(
+    setRamp = psychopy.visual.backends.pygletbackend.getGammaRamp(
         screenID=win.backend.screenID,
         xDisplay=win.backend.xDisplay
     )
