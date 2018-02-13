@@ -12,7 +12,7 @@ key/modifiers combination) was pressed.
 
 PsychoPy fully automatically monitors and processes key presses during most
 portions of the experimental run, for example during
-`core.wait()` periods, or when calling `win.flip()`. If a global
+:func:`core.wait()` periods, or when calling :func:`win.flip()`. If a global
 event key press is detected, the specified function will be run
 immediately. You are not required to manually poll and check for key
 presses. This can be particularly useful to implement a global
@@ -26,13 +26,13 @@ All active global event keys are stored in `event.globalKeys`.
 Adding a global event key (simple)
 ----------------------------------
 First, let's ensure no global event keys are currently set by calling
-func:`event.globalKeys.clear`.
+:func:`event.globalKeys.clear`.
 ::
     >>> from psychopy import event
     >>> event.globalKeys.clear()
 
 To add a new global event key, you need to invoke
-func:`event.globalKeys.add`. This function has two required arguments: the
+:func:`event.globalKeys.add`. This function has two required arguments: the
 key name, and the function to associate with that key.
 ::
     >>> key = 'a'
