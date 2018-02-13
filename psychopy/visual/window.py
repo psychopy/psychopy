@@ -13,6 +13,7 @@ import ctypes
 import os
 import sys
 import weakref
+import atexit
 
 from builtins import map
 from builtins import object
@@ -451,6 +452,16 @@ class Window(object):
         self.autoLog = autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
+
+        # Make sure this window's close method is called when exiting, even in
+        # the event of an error we should be able to restore the original gamma
+        # table. Note that a reference to this window object will live in this
+        # function, preventing it from being garbage collected.
+        def close_on_exit():
+            if self._closed is False:
+                self.close()
+
+        atexit.register(close_on_exit)
 
     def __del__(self):
         if self._closed is False:
