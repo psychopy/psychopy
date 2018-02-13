@@ -379,6 +379,16 @@ class PrefCtrls(object):
                 value = value[0]
                 try:
                     from psychopy import sound
+                    if sound.audioLib == 'pyo':
+                        warnDlg = dialogs.MessageDialog(parent=parent,
+                                  type='Info',
+                                  title=_translate('Audio library info'),
+                                  message=_translate("Using Pyo as audio "
+                                          "library may cause runtime error"
+                                          "when terminating python process.\n"
+                                          "Consider using sounddevice instead.")
+                            )
+                        warnDlg.ShowModal()
                     if hasattr(sound, 'getDevices'):
                         devs = sound.getDevices('output')
                         for thisDevName in devs:
