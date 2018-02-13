@@ -27,6 +27,34 @@ import threading
 pyoSndServer = None
 audioDriver = None
 
+def _bestDriver(devNames, devIDs):
+    """Find ASIO or Windows sound drivers
+    """
+    preferredDrivers = prefs.general['audioDriver']
+    outputID = None
+    audioDriver = None
+    for prefDriver in preferredDrivers:
+        logging.info(u'Looking for {}'.format(prefDriver))
+        if prefDriver.lower() == 'directsound':
+            prefDriver = u'Primary Sound'
+        # look for that driver in available devices
+        for devN, devString in enumerate(devNames):
+            logging.info(u'Examining for {}'.format(devString))
+            try:
+                ds = devString.lower()
+                if prefDriver.lower() in ds:
+                    audioDriver = devString
+                    outputID = devIDs[devN]
+                    logging.info(u'Success: {}'.format(devString))
+                    # we found a driver don't look for others
+                    return audioDriver, outputID
+            except (UnicodeDecodeError, UnicodeEncodeError):
+                logging.info(u'Failed: {}'.format(devString))
+                logging.warn('find best sound driver - could not '
+                             'interpret unicode in driver name')
+    else:
+        return None, None
+
 def get_devices_infos():
     devices = sounddevice.query_devices()
     in_devices = {}
@@ -68,36 +96,6 @@ def get_input_devices():
             ids.append(id)
     return (names, ids)
 
-
-def _bestDriver(devNames, devIDs):
-    """Find ASIO or Windows sound drivers
-    """
-    preferredDrivers = prefs.general['audioDriver']
-    outputID = None
-    audioDriver = None
-    for prefDriver in preferredDrivers:
-        logging.info(u'Looking for {}'.format(prefDriver))
-        if prefDriver.lower() == 'directsound':
-            prefDriver = u'Primary Sound'
-        # look for that driver in available devices
-        for devN, devString in enumerate(devNames):
-            logging.info(u'Examining for {}'.format(devString))
-            try:
-                ds = devString.lower()
-                if prefDriver.lower() in ds:
-                    audioDriver = devString
-                    outputID = devIDs[devN]
-                    logging.info(u'Success: {}'.format(devString))
-                    # we found a driver don't look for others
-                    return audioDriver, outputID
-            except (UnicodeDecodeError, UnicodeEncodeError):
-                logging.info(u'Failed: {}'.format(devString))
-                logging.warn('find best sound driver - could not '
-                             'interpret unicode in driver name')
-    else:
-        return None, None
-
-
 def getDevices(kind=None):
     """Returns a dict of dict of audio devices of sepcified `kind`
 
@@ -118,6 +116,7 @@ def getDevices(kind=None):
         devs[devName] = dev
         dev['id'] = ii
     return devs
+
 
 # these will be controlled by sound.__init__.py
 defaultInput = None
