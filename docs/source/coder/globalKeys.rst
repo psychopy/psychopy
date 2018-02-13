@@ -69,7 +69,7 @@ This output tells us that
 .. note::
 
    Pressing the key won't do anything unless a :class:`psychopy.visual.Window`
-   is created and and its :func:~`psychopy.visual.Window.flip` method or
+   is created and and its :func:`psychopy.visual.Window.flip` method or
    :func:`psychopy.core.wait` are called.
 
 Adding a global event key (advanced)
@@ -84,7 +84,7 @@ create the dummy function:
     ...
 
 Next, compile some positional and keyword arguments and a custom name for this
-event. Positional arguments must be passed as tists or uples, and keyword
+event. Positional arguments must be passed as lists or tuples, and keyword
 arguments as dictionaries.
 ::
 
