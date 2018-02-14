@@ -304,9 +304,9 @@ class Experiment(object):
             params['forceEndRoutineOnPress'].val = bool(val)
             return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'forceEndRoutineOnPress':
-            if val is True:
+            if val == 'True':
                 val = "any click"
-            elif val is False:
+            elif val == 'False':
                 val = "never"
             params['forceEndRoutineOnPress'].val = val
             return
