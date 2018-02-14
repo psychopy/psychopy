@@ -49,12 +49,46 @@ _CURSORS_ = {
 
 
 class GLFWBackend(BaseBackend):
-    """
-    GLFW (Graphics Library Framework) backend using the 'glfw' ctypes library
-    to access the glfw3 API. Uses Pyglet as an OpenGL loader so it must be
-    installed.
+    """GLFW (Graphics Library Framework) backend class
 
-    M Cutone 2018: Initial work on GLFW backend.
+    Overview:
+
+        GLFW (Graphics Library Framework) backend using the 'glfw' ctypes
+        library to access the glfw3 API (https://http://www.glfw.org/). GLFW
+        shared libraries must be installed prior to using this backend. Pyglet
+        is used as an OpenGL loader so it must be installed.
+
+        Additional keyword arguments can be passed to the GLFW backend when
+        creating a new window, allowing for advanced video mode and context
+        configuration.
+
+    Video Modes:
+
+        You can set the video mode for a full screen window by explicitly
+        specifying bits per color (bpc), refresh rate (refreshHz) and size
+        (size) when creating a new window. If the video mode is supported, the
+        specified screen for the window will be set to that video mode. These
+        options have no effect for non-full screen windows. If an invalid video
+        mode is specified, a warning is printed and the native video mode of the
+        display is used.
+
+        You can see which video modes are available for a given display through
+        your operating system's graphics settings.
+
+    Context Sharing:
+
+        Specifying a window with the 'share' argument enables context sharing.
+        This allows data (textures, array buffers, etc.) to be shared across
+        windows. This is useful for multi-window setups where stimuli objects
+        might be used on multiple windows.
+
+    Known Issues:
+
+        1. screenID does not report the X11 display number on linux.
+
+    Revision History (Major Changes):
+
+        M. Cutone 2018: Initial work on GLFW backend.
 
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
@@ -64,7 +98,13 @@ class GLFWBackend(BaseBackend):
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
 
-        :param: win is a PsychoPy Window (usually not fully created yet)
+        :param win: a PsychoPy Window (usually not fully created yet)
+        :param share: a PsychoPy Window to share a context with
+        :param bpc: list-like, bits per color (R, G, B)
+        :param refreshHz: int, refresh rate
+        :param depthBits: int, framebuffer depth bits
+        :param stencilBits: int, framebuffer stencil bits
+        :param winTitle: str, optional window title
 
         """
         BaseBackend.__init__(self, win)
