@@ -378,13 +378,15 @@ class PrefCtrls(object):
                 options = copy.copy(value)
                 value = value[0]
                 try:
-                    from psychopy import sound
-                    if hasattr(sound, 'getDevices'):
-                        devs = sound.getDevices('output')
-                        for thisDevName in devs:
+                    # getting device name using sounddevice
+                    import sounddevice
+                    devices = sounddevice.query_devices()
+                    for device in devices:
+                        if device['max_output_channels'] > 0:
+                            thisDevName = device['name']
                             if thisDevName not in options:
                                 options.append(thisDevName)
-                except (ValueError, OSError, DependencyError):
+                except (ValueError, OSError, ImportError):
                     pass
             else:
                 options = spec.replace("option(", "").replace("'", "")
