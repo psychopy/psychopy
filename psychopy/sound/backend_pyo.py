@@ -15,17 +15,17 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 try:
     import pyo
-    import sounddevice
 except ImportError as err:
     # convert this import error to our own, pyo probably not installed
     raise exceptions.DependencyError(repr(err))
 
 from ._base import _SoundBase
+import sounddevice
 
 import atexit
-import sys
 import threading
 pyoSndServer = None
+audioDriver = None
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
@@ -33,7 +33,6 @@ def _bestDriver(devNames, devIDs):
     preferredDrivers = prefs.general['audioDriver']
     outputID = None
     audioDriver = None
-    osEncoding = sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
         logging.info(u'Looking for {}'.format(prefDriver))
         if prefDriver.lower() == 'directsound':
@@ -75,6 +74,7 @@ def get_devices_infos():
             out_devices[id] = param
     return (in_devices, out_devices)
 
+
 def get_output_devices():
     devices = sounddevice.query_devices()
     names = []
@@ -84,6 +84,7 @@ def get_output_devices():
             names.append(device['name'])
             ids.append(id)
     return (names, ids)
+
 
 def get_input_devices():
     devices = sounddevice.query_devices()
@@ -100,10 +101,10 @@ def getDevices(kind=None):
 
     The dict keys are names and items are dicts of properties
     """
-    osEncoding = sys.getfilesystemencoding()
     inputs, outputs = get_devices_infos()
     if kind is None:
-        allDevs = inputs.update(outputs)
+        allDevs = inputs.copy()
+        allDevs.update(outputs)
     elif kind=='output':
         allDevs = outputs
     else:
@@ -111,14 +112,11 @@ def getDevices(kind=None):
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        try:  # convert to unicode
-            devName = dev['name'].decode(osEncoding)
-        except (UnicodeEncodeError, AttributeError):
-            # if that fails try the current encoding
-            devName = dev['name']
+        devName = dev['name']
         devs[devName] = dev
         dev['id'] = ii
     return devs
+
 
 # these will be controlled by sound.__init__.py
 defaultInput = None

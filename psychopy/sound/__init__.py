@@ -74,6 +74,7 @@ for thisLibName in prefs.general['audioLib']:
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
             pyoSndServer = backend.pyoSndServer
+            audioDriver = backend.audioDriver
         elif thisLibName == 'sounddevice':
             from . import backend_sounddevice as backend
             Sound = backend.SoundDeviceSound
