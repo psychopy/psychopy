@@ -32,11 +32,13 @@ Support and training providers
 
 Software projects aren't just about code. A great deal of work is done by the community in terms of supporting each other.
 
-You can see the most `active posters on the users list <https://groups.google.com/forum/#!aboutgroup/psychopy-users>`_ and those `answering PsychoPy questions on StackOverflow here <http://stackoverflow.com/tags/psychopy/info>`_ but notable examples that have done a fantastic job of supporting users:
+You can see the most `active posters on the user forum <https://discourse.psychopy.org/u?period=all`_ and those `answering PsychoPy questions on StackOverflow here <http://stackoverflow.com/tags/psychopy/info>`_ but notable examples that have done a fantastic job of supporting users:
+
     * Jeremy Gray (USA)
     * Mike MacAskill (New Zealand)
     * Jonas Lindeløv (Denmark)
     * Richard Höchenberger (Germany)
+
 If you need PsychoPy/Python workshop then these might be good people to contact (according to where you are) but please understand that we need to charge for running workshops because it takes us away form our "day jobs"
 
 Funding

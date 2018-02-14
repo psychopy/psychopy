@@ -20,8 +20,8 @@ import os
 import glob
 import codecs
 from psychopy import logging, prefs, constants
-
 import wx
+import locale as locale_pkg
 
 def setLocaleWX():
     """Sets up the locale for the wx application. Only call this after the app
@@ -30,10 +30,16 @@ def setLocaleWX():
     :return: wx.Locale object
     """
     # set locale for wx app (before splash screen):
+    encod = locale_pkg.getpreferredencoding(do_setlocale=False)
     if locale.IsAvailable(languageID):
         wxlocale = wx.Locale(languageID)
     else:
         wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+    # wx.Locale on Py2.7/wx3.0 seems to delete the preferred encoding (utf-8)
+    # Check if that happened and reinstate if needed.
+    if locale_pkg.getpreferredencoding(do_setlocale=False) == '':
+        locale_pkg.setlocale(locale_pkg.LC_ALL,
+                             "{}.{}".format(codeFromWxId[languageID], encod))
     return wxlocale
 
 # Get a dict of locale aliases from wx.Locale() -- same cross-platform

@@ -261,9 +261,11 @@ def wait(secs, hogCPUperiod=0.2):
 
     If you want to suppress checking for pyglet events during the wait,
     do this once::
+
         core.checkPygletDuringWait = False
 
     and from then on you can do::
+
         core.wait(sec)
 
     This will preserve terminal-window focus during command line usage.
