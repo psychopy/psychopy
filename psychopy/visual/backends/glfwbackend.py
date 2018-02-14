@@ -70,10 +70,15 @@ class GLFWBackend(BaseBackend):
         BaseBackend.__init__(self, win)
 
         # window to share a context with
-        share_context = kwargs.get('share', None)
-        if share_context is not None and win.winType != 'glfw':
-            logging.warning(
-                'Cannot share a context with a non-GLFW window. Disabling.')
+        share_win = kwargs.get('share', None)
+        if share_win is not None:
+            if share_win.winType == 'glfw':
+                share_context = share_win.winHandle
+            else:
+                logging.warning(
+                    'Cannot share a context with a non-GLFW window. Disabling.')
+                share_context = None
+        else:
             share_context = None
 
         if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
@@ -238,10 +243,7 @@ class GLFWBackend(BaseBackend):
         if not win.allowGUI:
             self.setMouseVisibility(False)
 
-        # gamma functions in the main window need to be disabled for now
-        win._setupGamma = self._setupGamma
-        win.origGammaRamp = self.getGammaRamp()  # retain original gamma ramp
-
+        #glfw.set_window_size_callback(self.winHandle, _onResize)
         #self.winHandle.on_resize = _onResize  # avoid circular reference
         #if not win.pos:
         #    # work out where the centre should be
@@ -364,6 +366,11 @@ class GLFWBackend(BaseBackend):
         :param gamma:
         :return:
         """
+        win = glfw.get_window_user_pointer(self.winHandle)
+        # if not fullscreen, we get an access violation (bug?)
+        if not win._isFullScr:
+            return None
+
         # make sure gamma is 3x1 array
         if type(gamma) in [float, int]:
             newGamma = np.tile(gamma, [3, 1])
@@ -384,6 +391,11 @@ class GLFWBackend(BaseBackend):
 
     def getGammaRamp(self):
         # get the current gamma ramp
+        win = glfw.get_window_user_pointer(self.winHandle)
+        # if not fullscreen, we get an access violation (bug?)
+        if not win._isFullScr:
+            return None
+
         monitor = glfw.get_window_monitor(self.winHandle)
         currentGammaRamp = glfw.get_gamma_ramp(monitor)
 
@@ -412,6 +424,11 @@ class GLFWBackend(BaseBackend):
         :return:
 
         """
+        win = glfw.get_window_user_pointer(self.winHandle)
+        # if not fullscreen, we get an access violation
+        if not win._isFullScr:
+            return None
+
         monitor = glfw.get_window_monitor(self.winHandle)
 
         if self.getGammaRampSize() == gammaRamp.shape[1]:
@@ -424,6 +441,10 @@ class GLFWBackend(BaseBackend):
 
         :return:
         """
+        # get the current gamma ramp
+        win = glfw.get_window_user_pointer(self.winHandle)
+        if not win._isFullScr:
+            return None
         monitor = glfw.get_window_monitor(self.winHandle)
         currentGammaRamp = glfw.get_gamma_ramp(monitor)
 

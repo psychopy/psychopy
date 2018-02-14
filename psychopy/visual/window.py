@@ -13,6 +13,7 @@ import ctypes
 import os
 import sys
 import weakref
+import atexit
 
 from builtins import map
 from builtins import object
@@ -451,6 +452,16 @@ class Window(object):
         self.autoLog = autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
+
+        # Make sure this window's close method is called when exiting, even in
+        # the event of an error we should be able to restore the original gamma
+        # table. Note that a reference to this window object will live in this
+        # function, preventing it from being garbage collected.
+        def close_on_exit():
+            if self._closed is False:
+                self.close()
+
+        atexit.register(close_on_exit)
 
     def __del__(self):
         if self._closed is False:
@@ -1108,11 +1119,15 @@ class Window(object):
         except Exception:
             pass
         if self.origGammaRamp is not None:
-            setGammaRamp(
-                screenID=self.backend.screenID,
-                newRamp=self.origGammaRamp,
-                xDisplay=self.backend.xDisplay
-            )
+            if self.winType in ('pyglet', 'pygame'):
+                setGammaRamp(
+                    screenID=self.backend.screenID,
+                    newRamp=self.origGammaRamp,
+                    xDisplay=self.backend.xDisplay
+                )
+            elif self.winType == 'glfw':
+                self.backend.setGammaRamp(self.origGammaRamp)
+
         try:
             self.mouseVisible = True
         except Exception:
@@ -1261,10 +1276,13 @@ class Window(object):
 
         # try to retrieve previous so we can reset later
         try:
-            self.origGammaRamp = getGammaRamp(
-                screenID=self.backend.screenID,
-                xDisplay=self.backend.xDisplay
-            )
+            if self.winType in ('pyglet', 'pygame'):
+                self.origGammaRamp = getGammaRamp(
+                    screenID=self.backend.screenID,
+                    xDisplay=self.backend.xDisplay
+                )
+            elif self.winType == 'glfw':
+                self.origGammaRamp = self.backend.getGammaRamp()
         except Exception:
             self.origGammaRamp = None
 
