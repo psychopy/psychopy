@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-15 15:11+0900\n"
-"PO-Revision-Date: 2018-02-15 15:16+0900\n"
+"POT-Creation-Date: 2018-02-15 15:55+0900\n"
+"PO-Revision-Date: 2018-02-15 15:56+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -25,7 +25,7 @@ msgstr "PsychoPy"
 
 #: psychopy/app/Resources/psychopy.desktop:7
 msgid "Psychology software in Python"
-msgstr "Python で心理学実験ソフトウェア"
+msgstr "Pythonベースの心理学実験ソフトウェア"
 
 #: psychopy/app/Resources/psychopy.desktop:11
 msgid "psychopy"
@@ -4785,71 +4785,84 @@ msgstr "パッチサイズ (スクリーンに対する比):"
 msgid "PsychoPy Monitor Center"
 msgstr "PsychoPy モニターセンター"
 
-#: psychopy/preferences/hints.py:14
+#: psychopy/preferences/hints.py:9
 msgid "which system to use as a backend for drawing"
 msgstr "刺激描画に使用するライブラリを指定します"
 
-#: psychopy/preferences/hints.py:17
+#: psychopy/preferences/hints.py:12
 msgid "the default units for windows and visual stimuli"
 msgstr "標準でウィンドウと視覚刺激に適用する単位を指定します"
 
-#: psychopy/preferences/hints.py:20
+#: psychopy/preferences/hints.py:15
 msgid "full screen is best for accurate timing"
 msgstr "フルスクリーンにすると正確なタイミングで描画されます"
 
-#: psychopy/preferences/hints.py:23
+#: psychopy/preferences/hints.py:18
 msgid "enable subjects to use the mouse and GUIs during experiments"
 msgstr "マウスとGUIを使用可能にします"
 
-#: psychopy/preferences/hints.py:26
+#: psychopy/preferences/hints.py:21
 msgid "'version' is for internal usage, not for the user"
 msgstr "'version'は内部向けの設定項目で、ユーザー向けではありません"
 
-#: psychopy/preferences/hints.py:29
+#: psychopy/preferences/hints.py:24
 msgid "Add paths here to your custom Python modules"
 msgstr "標準外のPythonモジュールへのパスを追加します"
 
-#: psychopy/preferences/hints.py:32
+#: psychopy/preferences/hints.py:27
 msgid "choice of audio library"
 msgstr "使用するオーディオライブラリを指定します"
 
-#: psychopy/preferences/hints.py:35
+#: psychopy/preferences/hints.py:30
 msgid "audio driver to use"
 msgstr "使用するオーディオドライバのリストを指定します"
 
-#: psychopy/preferences/hints.py:38
+#: psychopy/preferences/hints.py:33
+msgid "audio device to use (if audioLib allows control)"
+msgstr ""
+"使用するオーディオデバイス (オーディオライブラリが制御可能な場合のみ有効)"
+
+#: psychopy/preferences/hints.py:36
 msgid "path to flac (lossless audio compression) on this operating system"
 msgstr "flac(ロスレスオーディオ圧縮ライブラリ)へのパスを指定します"
 
-#: psychopy/preferences/hints.py:41
+#: psychopy/preferences/hints.py:39
 msgid "a list of parallel ports"
 msgstr "パラレルポートのリストを指定します"
 
-#: psychopy/preferences/hints.py:44
+#: psychopy/preferences/hints.py:42
+msgid "Shutdown keys, following the pyglet naming scheme."
+msgstr "実験の強制終了キーを指定します (pygletのキー名で指定)"
+
+#: psychopy/preferences/hints.py:45
+msgid "Modifier keys for shutdown keys"
+msgstr "強制中断キーと同時押しする修飾キーを指定します"
+
+#: psychopy/preferences/hints.py:48
 msgid "display tips when starting PsychoPy"
 msgstr "PsychoPy起動時にTIPSを表示します"
 
-#: psychopy/preferences/hints.py:47
+#: psychopy/preferences/hints.py:51
 msgid "size of icons in the Coder and Builder toolbars (top of window)"
 msgstr "CoderとBuilderのツールバーで大きなアイコンを表示します"
 
-#: psychopy/preferences/hints.py:50
+#: psychopy/preferences/hints.py:54
 msgid "what windows to display when PsychoPy starts"
 msgstr "PsychoPy起動時に表示するウィンドウを指定します"
 
-#: psychopy/preferences/hints.py:53
+#: psychopy/preferences/hints.py:57
 msgid "reset preferences to defaults on next restart of PsychoPy"
 msgstr "次回PsychoPy起動時に設定を初期値にリセットします"
 
-#: psychopy/preferences/hints.py:56
+#: psychopy/preferences/hints.py:60
 msgid "save any unsaved preferences before closing the window"
 msgstr "ウィンドウを閉じる前に未保存の設定を保存します"
 
-#: psychopy/preferences/hints.py:59
+#: psychopy/preferences/hints.py:63
 msgid "enable features for debugging PsychoPy itself, including unit-tests"
 msgstr "PsychoPyのデバッグ用の機能を有効にします(ユニットテストを含む)"
 
-#: psychopy/preferences/hints.py:62
+#: psychopy/preferences/hints.py:66
 msgid ""
 "language to use in menus etc; not all translations are available. Select a "
 "value, then restart the app."
@@ -4857,66 +4870,66 @@ msgstr ""
 "メニュー等の表示に使用する言語; 変更は再起動後に有効になります\n"
 "翻訳済みではない言語もあります"
 
-#: psychopy/preferences/hints.py:66
+#: psychopy/preferences/hints.py:70
 msgid ""
 "open Coder files as read-only (allows running without accidental changes)"
 msgstr ""
 "ファイルを読み込み専用で開きます(誤って変更したまま実行することを防ぎます)"
 
-#: psychopy/preferences/hints.py:69
+#: psychopy/preferences/hints.py:73
 msgid "a list of font names; the first one found on the system will be used"
 msgstr "フォント名のリストを指定します; 最初に見つかったフォントが使用されます"
 
-#: psychopy/preferences/hints.py:72
+#: psychopy/preferences/hints.py:76
 msgid "Font size (in pts) takes an integer between 6 and 24"
 msgstr "フォントサイズを6から24の整数で指定します"
 
-#: psychopy/preferences/hints.py:75
+#: psychopy/preferences/hints.py:79
 msgid "activate the source assistant panel"
 msgstr "起動時にソースアシスタントを表示します"
 
-#: psychopy/preferences/hints.py:78
+#: psychopy/preferences/hints.py:82
 msgid "activate the output and shell panels"
 msgstr "起動時に出力とシェルパネルを開きます"
 
-#: psychopy/preferences/hints.py:81
+#: psychopy/preferences/hints.py:85
 msgid "reload previously opened files after start"
 msgstr "最後に開いたファイルを起動時に開きます"
 
-#: psychopy/preferences/hints.py:84
+#: psychopy/preferences/hints.py:88
 msgid "for coder shell window, which shell to use"
 msgstr "Coderのシェルウィンドウで使用するシェルを指定します"
 
-#: psychopy/preferences/hints.py:87
+#: psychopy/preferences/hints.py:91
 msgid "newline for python files: unix = \\n, dos = \\r\\n"
 msgstr "Pythonファイルの改行コードを指定します (unix=\\n, dos=\\r\\n)"
 
-#: psychopy/preferences/hints.py:90
+#: psychopy/preferences/hints.py:94
 msgid "whether to automatically reload a previously open experiment"
 msgstr "起動時に前回開いていた実験を自動的に開くか否かを指定します"
 
-#: psychopy/preferences/hints.py:94
+#: psychopy/preferences/hints.py:98
 msgid ""
 "if False will create scripts with an 'easier' but more cluttered namespace"
 msgstr "チェックを外すと扱いやすい代わりに雑然とした名前空間となります"
 
-#: psychopy/preferences/hints.py:97
+#: psychopy/preferences/hints.py:101
 msgid "folder names for custom components; expects a comma-separated list"
 msgstr ""
 "カスタムBuilderコンポーネントのフォルダ名を指定します(カンマ区切りのリストで"
 "指定)"
 
-#: psychopy/preferences/hints.py:100
+#: psychopy/preferences/hints.py:104
 msgid "a list of components to hide (eg, because you never use them)"
 msgstr ""
 "非表示にするコンポーネントのリストを指定します (使用しないものなどを記述して"
 "ください)"
 
-#: psychopy/preferences/hints.py:103
+#: psychopy/preferences/hints.py:107
 msgid "where the Builder demos are located on this computer (after unpacking)"
 msgstr "Builderのデモを展開した位置(デモ展開後のみ有効)"
 
-#: psychopy/preferences/hints.py:107
+#: psychopy/preferences/hints.py:111
 msgid ""
 "name of the folder where subject data should be saved (relative to the "
 "script)"
@@ -4924,34 +4937,34 @@ msgstr ""
 "実験データが保存されるフォルダ名を指定します(スクリプトからの相対パスで指定し"
 "ます)"
 
-#: psychopy/preferences/hints.py:110
+#: psychopy/preferences/hints.py:114
 msgid "Panels arrangement: topFlow = Flow on top, Components on left"
 msgstr ""
 "ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置され"
 "ます"
 
-#: psychopy/preferences/hints.py:113
+#: psychopy/preferences/hints.py:117
 msgid "Display text in a floating window that describes the experiment"
 msgstr "実験のReadmeを常に表示します"
 
-#: psychopy/preferences/hints.py:116
+#: psychopy/preferences/hints.py:120
 msgid "Upper limit on how many components can be in favorites"
 msgstr "お気に入りに表示されるコンポーネント数の上限を指定します"
 
-#: psychopy/preferences/hints.py:119
+#: psychopy/preferences/hints.py:123
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
 msgstr ""
 "利用状況の送信と自動更新に使用するHTTPプロキシを指定します; 書式はhost: port"
 "です"
 
-#: psychopy/preferences/hints.py:123
+#: psychopy/preferences/hints.py:127
 msgid ""
 "override the above proxy settings with values found in the environment (if "
 "possible)"
 msgstr ""
 "自動的にプロキシ設定を検出できる場合は上記の設定より自動設定を優先します"
 
-#: psychopy/preferences/hints.py:126
+#: psychopy/preferences/hints.py:130
 msgid ""
 "allow PsychoPy to send anonymous usage stats; please allow if possible, it "
 "helps PsychoPy's development"
@@ -4959,175 +4972,219 @@ msgstr ""
 "匿名で利用状況のデータを送信します; PsychoPy開発の参考とするため出来れば"
 "チェックしてください"
 
-#: psychopy/preferences/hints.py:129
+#: psychopy/preferences/hints.py:133
 msgid "allow PsychoPy to check for new features and bug fixes"
 msgstr "PsychoPyにバグ修正や新機能の追加といった更新の確認を許可します"
 
-#: psychopy/preferences/hints.py:132
+#: psychopy/preferences/hints.py:136
 msgid "max time to wait for a connection response"
 msgstr "ネットワーク接続のタイムアウト時間を指定します"
 
-#: psychopy/preferences/hints.py:135
+#: psychopy/preferences/hints.py:139
 msgid "open an existing file"
 msgstr "既存のファイルを開きます"
 
-#: psychopy/preferences/hints.py:138
+#: psychopy/preferences/hints.py:142
 msgid "start a new experiment or script"
 msgstr "新しいファイルを作成します"
 
-#: psychopy/preferences/hints.py:141
+#: psychopy/preferences/hints.py:145
 msgid "save a Builder or Coder file"
 msgstr "ファイルを保存します"
 
-#: psychopy/preferences/hints.py:144
+#: psychopy/preferences/hints.py:148
 msgid "save a Builder or Coder file under a new name"
 msgstr "ファイルを別名で保存します"
 
-#: psychopy/preferences/hints.py:147
+#: psychopy/preferences/hints.py:151
 msgid "Coder: print the file"
 msgstr "Coder: ファイルを印刷します"
 
-#: psychopy/preferences/hints.py:150
+#: psychopy/preferences/hints.py:154
 msgid "close the Builder or Coder window"
 msgstr "ウィンドウを閉じます"
 
-#: psychopy/preferences/hints.py:153
+#: psychopy/preferences/hints.py:157
 msgid "end the application (PsychoPy)"
 msgstr "アプリケーションを終了します"
 
-#: psychopy/preferences/hints.py:156
+#: psychopy/preferences/hints.py:160
 msgid "open the preferences dialog"
 msgstr "設定ダイアログを開きます"
 
-#: psychopy/preferences/hints.py:159
+#: psychopy/preferences/hints.py:163
+msgid "export Builder experiment to HTML"
+msgstr "Builderの実験をHTMLへエクスポートします"
+
+#: psychopy/preferences/hints.py:166
 msgid "Coder: cut"
 msgstr "Coder: 切り取り"
 
-#: psychopy/preferences/hints.py:162
+#: psychopy/preferences/hints.py:169
 msgid "Coder: copy"
 msgstr "Coder: コピー"
 
-#: psychopy/preferences/hints.py:165
+#: psychopy/preferences/hints.py:172
 msgid "Coder: paste"
 msgstr "Coder: 貼り付け"
 
-#: psychopy/preferences/hints.py:168
+#: psychopy/preferences/hints.py:175
 msgid "Coder: duplicate"
 msgstr "Coder: 行の複製"
 
-#: psychopy/preferences/hints.py:171
+#: psychopy/preferences/hints.py:178
 msgid "Coder: indent code by one level (4 spaces)"
 msgstr "Coder: インデントを1段階増やします(半角スペース4個)"
 
-#: psychopy/preferences/hints.py:174
+#: psychopy/preferences/hints.py:181
 msgid "Coder: reduce indentation by one level (4 spaces)"
 msgstr "Coder: インデントを1段階減らします(半角スペース4個)"
 
-#: psychopy/preferences/hints.py:177
+#: psychopy/preferences/hints.py:184
 msgid "Coder: indent to fit python syntax"
 msgstr "Coder: インデントをPythonの文法に合わせます"
 
-#: psychopy/preferences/hints.py:180
+#: psychopy/preferences/hints.py:187
 msgid "Coder: find"
 msgstr "Coder: 文字列を検索します"
 
-#: psychopy/preferences/hints.py:183
+#: psychopy/preferences/hints.py:190
 msgid "Coder: find again"
 msgstr "Coder: 次を検索します"
 
-#: psychopy/preferences/hints.py:186
+#: psychopy/preferences/hints.py:193
 msgid "Coder: undo"
 msgstr "Coder: 直前の動作を元に戻します"
 
-#: psychopy/preferences/hints.py:189
+#: psychopy/preferences/hints.py:196
 msgid "Coder: redo"
 msgstr "Coder: 直前の動作を繰り返します"
 
-#: psychopy/preferences/hints.py:192
+#: psychopy/preferences/hints.py:199
 msgid "Coder: add a # to the start of the line(s)"
 msgstr "Coder: 行の先頭に#を挿入します"
 
-#: psychopy/preferences/hints.py:195
+#: psychopy/preferences/hints.py:202
 msgid "Coder: remove # from start of line(s)"
 msgstr "Coder: 行の先頭から#を取り除きます"
 
-#: psychopy/preferences/hints.py:198
+#: psychopy/preferences/hints.py:205
+msgid "Coder: add or remove # from start of line(s)"
+msgstr "Coder: 行の先頭から#を取り除きます"
+
+#: psychopy/preferences/hints.py:208
 msgid "Coder: fold this block of code"
 msgstr "Coder: コードブロックを折りたたみます"
 
-#: psychopy/preferences/hints.py:201
+#: psychopy/preferences/hints.py:211
+msgid "Coder: increase font size this block of code"
+msgstr "Coder: フォントを大きくします"
+
+#: psychopy/preferences/hints.py:214
+msgid "Coder: decrease font size this block of code"
+msgstr "Coder: フォントを小さくします"
+
+#: psychopy/preferences/hints.py:217
 msgid "Coder: check for basic syntax errors"
 msgstr "Coder: 基本的な文法エラーをチェックします"
 
-#: psychopy/preferences/hints.py:205
+#: psychopy/preferences/hints.py:221
 msgid ""
 "convert a Builder .psyexp script into a python script and open it in the "
 "Coder"
 msgstr "Builderの.psyexpファイルをPythonのスクリプトに変換してCoderで開きます"
 
-#: psychopy/preferences/hints.py:208
+#: psychopy/preferences/hints.py:224
 msgid "launch a script, Builder or Coder, or run unit-tests"
 msgstr "実験やスクリプト、ユニットテストを実行します"
 
-#: psychopy/preferences/hints.py:211
+#: psychopy/preferences/hints.py:227
 msgid "attempt to interrupt and halt a running script"
 msgstr "実行中のスクリプトの停止を試みます"
 
-#: psychopy/preferences/hints.py:214
+#: psychopy/preferences/hints.py:230
 msgid "Coder: show / hide white-space dots"
 msgstr "Coder: 空白文字を示す点の表示を切り替えます"
 
-#: psychopy/preferences/hints.py:217
+#: psychopy/preferences/hints.py:233
 msgid "Coder: show / hide end of line characters"
 msgstr "Coder: 改行文字の表示を切り替えます"
 
-#: psychopy/preferences/hints.py:220
+#: psychopy/preferences/hints.py:236
 msgid "Coder: show / hide indentation level lines"
 msgstr "Coder: インデントガイドの表示を切り替えます"
 
-#: psychopy/preferences/hints.py:223
+#: psychopy/preferences/hints.py:239
 msgid "Builder: create a new routine"
 msgstr "Builder: 新しいRoutineを作成します"
 
-#: psychopy/preferences/hints.py:226
+#: psychopy/preferences/hints.py:242
 msgid "Builder: copy an existing routine"
 msgstr "Builder: Routineをコピーします"
 
-#: psychopy/preferences/hints.py:229
+#: psychopy/preferences/hints.py:245
 msgid "Builder: paste the copied routine"
 msgstr "Builder: コピーしたRoutineを貼り付けます"
 
-#: psychopy/preferences/hints.py:232
+#: psychopy/preferences/hints.py:248
+msgid "Builder: paste the copied component"
+msgstr "Builder: コピーしたComponentを貼り付けます"
+
+#: psychopy/preferences/hints.py:251
 msgid "Coder: show / hide the output panel"
 msgstr "Coder: 出力パネルの表示を切り替えます"
 
-#: psychopy/preferences/hints.py:235
+#: psychopy/preferences/hints.py:254
+msgid "Builder: rename an existing routine"
+msgstr "Builder: Routineの名前を変更します"
+
+#: psychopy/preferences/hints.py:257
 msgid "switch to Builder window from Coder"
 msgstr "Builderへ切り替えます"
 
-#: psychopy/preferences/hints.py:238
+#: psychopy/preferences/hints.py:260
 msgid "switch to Coder window from Builder"
 msgstr "Builderへ切り替えます"
 
-#: psychopy/preferences/hints.py:241
+#: psychopy/preferences/hints.py:263
 msgid "increase display size in Flow"
 msgstr "Flowのアイテム表示を大きくします"
 
-#: psychopy/preferences/hints.py:244
+#: psychopy/preferences/hints.py:266
 msgid "decrease display size in Flow"
 msgstr "Flowのアイテム表示を小さくします"
 
-#: psychopy/preferences/hints.py:247
+#: psychopy/preferences/hints.py:269
 msgid "increase display size of Routines"
 msgstr "Routineのアイテム表示を大きくします"
 
-#: psychopy/preferences/hints.py:250
+#: psychopy/preferences/hints.py:272
 msgid "decrease display size of Routines"
 msgstr "Routineのアイテム表示を小さくします"
 
-#: psychopy/preferences/hints.py:253
+#: psychopy/preferences/hints.py:275
 msgid "show or hide the readme (info) for this experiment if possible"
 msgstr "この実験のReadmeの表示を(可能であれば)切り替えます"
+
+#: psychopy/preferences/hints.py:278
+msgid "Projects: Log in"
+msgstr "Projects: ログインします"
+
+#: psychopy/preferences/hints.py:281
+msgid "Projects: Sync project"
+msgstr "Projects: プロジェクトを同期します"
+
+#: psychopy/preferences/hints.py:284
+msgid "Projects: Find projects"
+msgstr "Projects: プロジェクトを検索します"
+
+#: psychopy/preferences/hints.py:287
+msgid "Projects: Open project"
+msgstr "Projects: プロジェクトを開きます"
+
+#: psychopy/preferences/hints.py:290
+msgid "Projects: Create new project"
+msgstr "Projects: プロジェクトを新規作成します"
 
 #: psychopy/tools/versionchooser.py:75
 msgid ""
