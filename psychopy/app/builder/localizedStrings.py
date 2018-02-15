@@ -77,7 +77,16 @@ _localizedDialogs = {
     'error': _translate('error'),
     # Experiment info dialog:
     'Field': _translate('Field'),
-    'Default': _translate('Default'),}
+    'Default': _translate('Default'),
+    # Mouse:
+    'any click': _translate('any click'),
+    'valid click': _translate('valid click'),
+    # Polygon:
+    'line': _translate('line'),
+    'triangle': _translate('triangle'),
+    'rectangle': _translate('rectangle'),
+    'cross': _translate('cross'),
+    'regular polygon...': _translate('regular polygon...'),}
 
 _localized = copy.copy(_localizedBase)
 _localized.update(_localizedDialogs)
