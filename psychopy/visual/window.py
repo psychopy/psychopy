@@ -1158,6 +1158,7 @@ class Window(object):
         if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             if hasattr(self, '_shaders'):
+                self._progSignedFrag = self._shaders['signedColor']
                 self._progSignedTex = self._shaders['signedTex']
                 self._progSignedTexMask = self._shaders['signedTexMask']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D']
@@ -1165,11 +1166,16 @@ class Window(object):
         elif blendMode == 'add':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
             if hasattr(self, '_shaders'):
+                self._progSignedFrag = self._shaders['signedColor_adding']
                 self._progSignedTex = self._shaders['signedTex_adding']
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
                 tmp = self._shaders['signedTexMask1D_adding']
                 self._progSignedTexMask1D = tmp
                 self._progImageStim = self._shaders['imageStim_adding']
+        else:
+            raise ValueError("Window blendMode should be set to 'avg' or 'add'"
+                             " but we received the value {}"
+                             .format(repr(blendMode)))
 
     def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1451,6 +1457,10 @@ class Window(object):
         self._progFBOtoFrame = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragFBOtoFrame)
         self._shaders = {}
+        self._shaders['signedColor'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColor)
+        self._shaders['signedColor_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColor_adding)
         self._shaders['signedTex'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColorTex)
         self._shaders['signedTexMask'] = _shaders.compileProgram(

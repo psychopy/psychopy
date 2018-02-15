@@ -710,7 +710,6 @@ class TextStim(BaseVisualStim, ColorMixin):
             GL.glColor4f(desiredRGB[0], desiredRGB[1],
                          desiredRGB[2], self.opacity)
 
-            # self.win._progSignedTex)
             GL.glUseProgram(self.win._progSignedTexFont)
             # GL.glUniform3iv(GL.glGetUniformLocation(
             #       self.win._progSignedTexFont, "rgb"), 1,
