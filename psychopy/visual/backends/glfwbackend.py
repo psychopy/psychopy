@@ -159,12 +159,12 @@ class GLFWBackend(BaseBackend):
                 vidmode_is_supported = True
                 break
 
+        _size, _bpc, _hz = glfw.get_video_mode(this_screen)
         if not vidmode_is_supported:
             # the requested video mode is not supported, use current
             logging.warning(
                 ("The specified video mode is not supported by this display, "
                  "using native mode ..."))
-            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
             logging.warning(
                 ("Overriding user video settings: size {} -> {}, bpc {} -> "
                  "{}, refreshHz {} -> {}".format(tuple(win.size),
@@ -285,14 +285,21 @@ class GLFWBackend(BaseBackend):
 
         #glfw.set_window_size_callback(self.winHandle, _onResize)
         #self.winHandle.on_resize = _onResize  # avoid circular reference
-        #if not win.pos:
-        #    # work out where the centre should be
-        #    win.pos = [(thisScreen.width - win.size[0]) / 2,
-        #                (thisScreen.height - win.size[1]) / 2]
-        #if not win._isFullScr:
-        #    # add the necessary amount for second screen
-        #   self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
-        #                                int(win.pos[1] + thisScreen.y))
+
+        # Set the position of the window if not fullscreen. Using multiple
+        # non-fullscreen windows on different monitors may result in timing
+        # issues.
+        if not win._isFullScr:
+            # work out where the centre should be
+            if not win.pos:
+                win.pos = [(_size[0] - win.size[0]) / 2.0,
+                           (_size[1] - win.size[1]) / 2.0]
+
+            # get the virtual position of the monitor
+            _px, _py = glfw.get_monitor_pos(this_screen)
+            glfw.set_window_pos(self.winHandle,
+                                int(win.pos[0] + _px),
+                                int(win.pos[1] + _py))
 
     @property
     def shadersSupported(self):
