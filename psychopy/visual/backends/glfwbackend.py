@@ -156,6 +156,8 @@ class GLFWBackend(BaseBackend):
         win.refreshHz = int(kwargs.get('refreshHz', 60))
         win.depthBits = int(kwargs.get('depthBits', 8))
         win.stencilBits = int(kwargs.get('stencilBits', 8))
+
+        # TODO - make waitBlanking set this too, independent right now
         win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
