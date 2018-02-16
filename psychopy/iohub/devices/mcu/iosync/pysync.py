@@ -9,10 +9,10 @@ to provide a low cost solution for digital and analog inputs, as well as digital
 outputs.
 
 Be sure to use Teensiduno to compile and upload the ioSync sketch to the Teensy 3
-which will be used. Otherwise the pySync interface will not fucntion.
+which will be used. Otherwise the pySync interface will not function.
 
 ioSync uses a majority of the Teensy 3 pins, including the ones on the bottom
-of the Teensy 3 accessable via the solder pads.
+of the Teensy 3 accessible via the solder pads.
 
 ioSync Teensy 3 Pin Assignment
 ===============================
@@ -706,7 +706,7 @@ class TimeSyncState(object):
 #        return float(r)
 
     def getAccuracy(self):
-        """Current accuracy of the time syncronization, as calculated as the.
+        """Current accuracy of the time synchronization, as calculated as the.
 
         average of the last 10 round trip time sync request - response delays
         divided by two.

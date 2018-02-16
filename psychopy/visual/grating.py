@@ -259,7 +259,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
         with a transparency given by its opacity. Opaque stimuli will hide other stimuli
-        transparent stimuli wont. Add performs the aritmetic sum of the new stimulus and the ones
+        transparent stimuli won't. Add performs the arithmetic sum of the new stimulus and the ones
         already present.
 
         """

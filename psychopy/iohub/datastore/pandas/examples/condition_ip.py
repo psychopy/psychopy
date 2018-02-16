@@ -24,7 +24,7 @@ print
 # time >= an IP start time and <= an IP end time would be kept after
 # filtering with the IP. When a ConditionVariableBasedIP is used, you
 # provide the exp_data.condition_variables data frame and the name of the
-# condition values column that wil be used to read the ip start and end times from.
+# condition values column that will be used to read the ip start and end times from.
 #
 ip = ConditionVariableBasedIP(
     name='cv_ip',

@@ -205,7 +205,7 @@ def createLinearRamp(screenID, rampType=None, xDisplay=None):
                     rampType = 3
                 else:
                     rampType = 1
-            else:  # is ATI or unkown manufacturer, default to (1:256)/256
+            else:  # is ATI or unknown manufacturer, default to (1:256)/256
                 # this is certainly correct for radeon2600 on 10.5.8 and
                 # radeonX1600 on 10.4.9
                 rampType = 1

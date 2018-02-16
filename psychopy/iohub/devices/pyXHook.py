@@ -128,7 +128,7 @@ key_mappings = {'num_lock': 'numlock',
 
 
 class HookManager(threading.Thread):
-    """Creates a seperate thread that starts the Xlib Record functionality,
+    """Creates a separate thread that starts the Xlib Record functionality,
     capturing keyboard and mouse events and transmitting them to the associated
     callback functions set."""
     DEVICE_TIME_TO_SECONDS = 0.001
@@ -452,8 +452,8 @@ class HookManager(threading.Thread):
                  event.iohub_logged_time,
                  event.iohub_logged_time,
                  0.0,
-                 # confidence interval not set for keybaord or mouse devices.
-                 0.0,  # delay not set for keybaord or mouse devices.
+                 # confidence interval not set for keyboard or mouse devices.
+                 0.0,  # delay not set for keyboard or mouse devices.
                  0,  # filter level not used
                  auto_repeat_count,  # auto_repeat
                  key_code,  # scan / Keycode of event.
@@ -593,8 +593,8 @@ class HookManager(threading.Thread):
                  event.iohub_logged_time,
                  event.iohub_logged_time,
                  0.0,
-                 # confidence interval not set for keybaord or mouse devices.
-                 0.0,  # delay not set for keybaord or mouse devices.
+                 # confidence interval not set for keyboard or mouse devices.
+                 0.0,  # delay not set for keyboard or mouse devices.
                  0,  # filter level not used
                  display_index,  # event.DisplayIndex,
                  pressed,

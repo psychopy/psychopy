@@ -965,7 +965,7 @@ class UE9(Device):
         if self.ethernet:
             self.streamPacketSize = 46
         else:
-            #USB stream packets have an additonal 2 bytes [0, 0] appended to the end
+            #USB stream packets have an additional 2 bytes [0, 0] appended to the end
             self.streamPacketSize = 48
 
     def streamStart(self, clearData=False):

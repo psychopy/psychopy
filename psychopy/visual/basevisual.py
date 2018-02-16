@@ -574,7 +574,7 @@ class ContainerMixin(object):
         if hasattr(self, 'border'):
             poly = self._borderPix  # e.g., outline vertices
         else:
-            poly = self.verticesPix  # e.g., tesselated vertices
+            poly = self.verticesPix  # e.g., tessellated vertices
 
         return pointInPolygon(xy[0], xy[1], poly=poly)
 

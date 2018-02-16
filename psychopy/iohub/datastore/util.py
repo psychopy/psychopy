@@ -482,7 +482,7 @@ class ExperimentDataAccessUtility(object):
 
                 cvNames = self.getConditionVariableNames()
 
-                # no futher where clause building needed; get reseults and
+                # no further where clause building needed; get reseults and
                 # return
                 if startConditions is None and endConditions is None:
                     for cv in filteredConditionVariableList:
@@ -566,7 +566,7 @@ class ExperimentDataAccessUtility(object):
             event_type
 
         Returns:
-            (interator): An interator providing access to each matching event  as a numpy recarray.
+            (iterator): An iterator providing access to each matching event  as a numpy recarray.
         """
         return self.getEventTable(event_type).iterrows()
 

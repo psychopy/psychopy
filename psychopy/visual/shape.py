@@ -381,7 +381,7 @@ class ShapeStim(BaseShapeStim):
     and contains() are not supported for multi-loop stimuli.
 
     `windingRule` is an advanced feature to allow control over the GLU
-    tesselator winding rule (default: GLU_TESS_WINDING_ODD). This is relevant
+    tessellator winding rule (default: GLU_TESS_WINDING_ODD). This is relevant
     only for self-crossing or multi-loop shapes. Cannot be set dynamically.
 
     See Coder demo > stimuli > shapes.py
@@ -454,7 +454,7 @@ class ShapeStim(BaseShapeStim):
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def _initVertices(self, newVertices):
-        """Set the .vertices and .border to new values, invoking tesselation.
+        """Set the .vertices and .border to new values, invoking tessellation.
         """
         # TO-DO: handle borders properly for multiloop stim like holes
         # likely requires changes in ContainerMixin to iterate over each
@@ -484,11 +484,11 @@ class ShapeStim(BaseShapeStim):
                                    tesselate.default_winding_rule)
 
         if not self.closeShape or tessVertices == []:
-            # probably got a line if tesselate returned []
+            # probably got a line if tessellate returned []
             initVertices = newVertices
             self.closeShape = False
         elif len(tessVertices) % 3:
-            raise tesselate.TesselateError("Could not properly tesselate")
+            raise tessellate.TesselateError("Could not properly tessellate")
         else:
             initVertices = tessVertices
         self.__dict__['vertices'] = numpy.array(initVertices, float)
@@ -527,7 +527,7 @@ class ShapeStim(BaseShapeStim):
         frame and then update the screen again.
         """
         # mostly copied from BaseShapeStim. Uses GL_TRIANGLES and depends on
-        # two arrays of vertices: tesselated (for fill) & original (for
+        # two arrays of vertices: tessellated (for fill) & original (for
         # border) keepMatrix is needed by Aperture, although Aperture
         # currently relies on BaseShapeStim instead
 

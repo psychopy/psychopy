@@ -50,10 +50,10 @@ class Mouse(MouseDevice):
                             'libXfixes.so.3.1.0')
                     except Exception:
                         print2err(
-                            'ERROR: Mouse._xfixsdll is None. libXfixes.so cound not be found')
+                            'ERROR: Mouse._xfixsdll is None. libXfixes.so could not be found')
             except Exception:
                 print2err(
-                    'ERROR: Mouse._xdll is None. libX11.so cound not be found')
+                    'ERROR: Mouse._xdll is None. libX11.so could not be found')
 
         Mouse._xdisplay = xlib.XOpenDisplay(None)
         Mouse._xscreen_count = xlib.XScreenCount(Mouse._xdisplay)

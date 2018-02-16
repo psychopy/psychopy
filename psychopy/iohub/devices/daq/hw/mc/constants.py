@@ -36,7 +36,7 @@ ALREADYACTIVE = 22    # A background process is already in progress */
 PAGEOVERRUN = 23    # DMA transfer crossed page boundary, may have gaps in data */
 BADRATE = 24    # Inavlid sampling rate specified */
 COMPATMODE = 25    # Board switches set for "compatible" mode */
-TRIGSTATE = 26    # Incorrect intial trigger state D0 must=TTL low) */
+TRIGSTATE = 26    # Incorrect initial trigger state D0 must=TTL low) */
 ADSTATUSHUNG = 27    # A/D is not responding */
 TOOFEW = 28    # Too few samples before trigger occurred */
 OVERRUN = 29    # Data lost due to overrun, rate too high */
@@ -62,7 +62,7 @@ NOT9513CTR = 48    # This board does not have a 9513 counter */
 BADTRIGTYPE = 49    # Invalid trigger type */
 BADTRIGVALUE = 50    # Invalid trigger value */
 BADOPTION = 52    # Invalid option specified for this function */
-BADPRETRIGCOUNT = 53    # Invalid pre-trigger count sepcified */
+BADPRETRIGCOUNT = 53    # Invalid pre-trigger count specified */
 BADDIVIDER = 55    # Invalid fout divider value */
 BADSOURCE = 56    # Invalid source value  */
 BADCOMPARE = 57    # Invalid compare value */
@@ -108,13 +108,13 @@ NOTSIMULCONF = 96    # Not configured for simultaneous update */
 EVENODDMISMATCH = 97    # Even channel in odd slot in the queue */
 M1RATEWARNING = 98    # DAS16/M1 sample rate too fast */
 NOTRS485 = 99    # Board is not an RS-485 board */
-NOTDOSFUNC = 100    # This function not avaliable in DOS */
-RANGEMISMATCH = 101    # Unipolar and Bipolar can not be used together in A/D que */
+NOTDOSFUNC = 100    # This function not available in DOS */
+RANGEMISMATCH = 101    # Unipolar and Bipolar can not be used together in A/D queue */
 CLOCKTOOSLOW = 102    # Sample rate too fast for clock jumper setting */
 BADCALFACTORS = 103    # Cal factors were out of expected range of values */
 BADCONFIGTYPE = 104    # Invalid configuration type information requested */
 BADCONFIGITEM = 105    # Invalid configuration item specified */
-NOPCMCIABOARD = 106    # Can't acces PCMCIA board */
+NOPCMCIABOARD = 106    # Can't access PCMCIA board */
 NOBACKGROUND = 107    # Board does not support background I/O */
 STRINGTOOSHORT = 108    # String passed to cbGetBoardName is to short */
 CONVERTEXTMEM = 109    # Convert data option not allowed with external memory */
@@ -412,7 +412,7 @@ EXTMEMORY = 0x0800     # Send data to memory board ia DT-Connect */
 
 BURSTMODE = 0x1000     # Enable burst mode */
 
-NOTODINTS = 0x2000     # Disbale time-of-day interrupts */
+NOTODINTS = 0x2000     # Disable time-of-day interrupts */
 
 EXTTRIGGER = 0x4000      # A/D is triggered externally */
 

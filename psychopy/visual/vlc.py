@@ -106,7 +106,7 @@ else:
             return b
 
 # Internal guard to prevent internal classes to be directly
-# instanciated.
+# instantiated.
 _internal_guard = object()
 
 def find_lib():
@@ -193,7 +193,7 @@ except NameError:  # no long in Python 3+
     _Ints =  int
 _Seqs = (list, tuple)
 
-# Default instance. It is used to instanciate classes directly in the
+# Default instance. It is used to instantiate classes directly in the
 # OO-wrapper.
 _default_instance = None
 
@@ -3113,7 +3113,7 @@ class MediaPlayer(_Ctype):
         @note: Any change will take be effect only after playback is stopped and
         restarted. Audio output cannot be changed while playing.
         @param psz_name: name of audio output, use psz_name of See L{AudioOutput}.
-        @return: 0 if function succeded, -1 on error.
+        @return: 0 if function succeeded, -1 on error.
         '''
         return libvlc_audio_output_set(self, str_to_bytes(psz_name))
 
@@ -3381,7 +3381,7 @@ def libvlc_event_type_name(event_type):
     return f(event_type)
 
 def libvlc_log_get_context(ctx):
-    '''Gets debugging informations about a log message: the name of the VLC module
+    '''Gets debugging information about a log message: the name of the VLC module
     emitting the message and the message location within the source code.
     The returned module name and file name will be NULL if unknown.
     The returned line number will similarly be zero if unknown.
@@ -3395,9 +3395,9 @@ def libvlc_log_get_context(ctx):
     return f(ctx)
 
 def libvlc_log_get_object(ctx, id):
-    '''Gets VLC object informations about a log message: the type name of the VLC
+    '''Gets VLC object information about a log message: the type name of the VLC
     object emitting the message, the object header if any and a temporaly-unique
-    object identifier. These informations are mainly meant for B{manual}
+    object identifier. These information are mainly meant for B{manual}
     troubleshooting.
     The returned type name may be "generic" if unknown, but it cannot be NULL.
     The returned header will be NULL if unset; in current versions, the header
@@ -3672,7 +3672,7 @@ def libvlc_media_set_meta(p_md, e_meta, psz_value):
 
 def libvlc_media_save_meta(p_md):
     '''Save the meta previously set.
-    @param p_md: the media desriptor.
+    @param p_md: the media descriptor.
     @return: true if the write operation was successful.
     '''
     f = _Cfunctions.get('libvlc_media_save_meta', None) or \
@@ -5403,7 +5403,7 @@ def libvlc_audio_output_set(p_mi, psz_name):
     restarted. Audio output cannot be changed while playing.
     @param p_mi: media player.
     @param psz_name: name of audio output, use psz_name of See L{AudioOutput}.
-    @return: 0 if function succeded, -1 on error.
+    @return: 0 if function succeeded, -1 on error.
     '''
     f = _Cfunctions.get('libvlc_audio_output_set', None) or \
         _Cfunction('libvlc_audio_output_set', ((1,), (1,),), None,
