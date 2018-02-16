@@ -104,6 +104,7 @@ class GLFWBackend(BaseBackend):
         :param refreshHz: int, refresh rate
         :param depthBits: int, framebuffer depth bits
         :param stencilBits: int, framebuffer stencil bits
+        :param swapInterval: int, screen updates before swapping buffers
         :param winTitle: str, optional window title
 
         """
@@ -133,6 +134,7 @@ class GLFWBackend(BaseBackend):
         win.refreshHz = int(kwargs.get('refreshHz', 60))
         win.depthBits = int(kwargs.get('depthBits', 8))
         win.stencilBits = int(kwargs.get('stencilBits', 8))
+        win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -274,8 +276,7 @@ class GLFWBackend(BaseBackend):
 
         # enable vsync, GLFW has additional setting for this that might be
         # useful.
-        glfw.swap_interval(1)
-        #win.setGamma = self.setGamma
+        glfw.swap_interval(win.swapInterval)
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
@@ -285,6 +286,8 @@ class GLFWBackend(BaseBackend):
 
         #glfw.set_window_size_callback(self.winHandle, _onResize)
         #self.winHandle.on_resize = _onResize  # avoid circular reference
+
+        # TODO - handle window resizing
 
         # Set the position of the window if not fullscreen. Using multiple
         # non-fullscreen windows on different monitors may result in timing
