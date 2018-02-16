@@ -104,12 +104,6 @@ class GLFWBackend(BaseBackend):
         Always check inter-display timings empirically (using a photo-diode,
         oscilloscope or some other instrument)!
 
-Using multiple
-        # windows on different monitors may result in timing issues. This can be
-        # corrected by selecting a primary window/monitor and setting
-        # 'swapInterval=0' for windows on other displays. You must figure out
-        # how to synchronize the displays.
-
     Known Issues:
 
         1. screenID does not report the X11 display number on linux.
