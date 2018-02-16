@@ -295,7 +295,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         if win is None:
             win = self.win
-        saveBlendMode=win.blendMode
+        saveBlendMode = win.blendMode
         win.setBlendMode(self.blendmode, log=False)
         self._selectWindow(win)
 

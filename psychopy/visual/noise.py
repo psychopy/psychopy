@@ -176,7 +176,8 @@ class NoiseStim(GratingStim):
                              color=color, colorSpace=colorSpace,
                              contrast=contrast, opacity=opacity,
                              depth=depth, interpolate=interpolate,
-                             name=name, autoLog=autoLog, autoDraw=autoDraw,blendmode=blendmode,
+                             name=name, autoLog=autoLog, autoDraw=autoDraw,
+                             blendmode=blendmode,
                              maskParams=None)
         # use shaders if available by default, this is a good thing
         self.__dict__['useShaders'] = win._haveShaders
@@ -196,6 +197,7 @@ class NoiseStim(GratingStim):
         #self.interpolate = interpolate
         #del self._texID  # created by GratingStim.__init__
 
+        self.blendmode=blendmode
         self.mask = mask
         #self.tex = tex
         self.texRes=int(texRes)
@@ -214,7 +216,6 @@ class NoiseStim(GratingStim):
             self.noiseClip=float(noiseClip)
         else:
             self.noiseClip=noiseClip
-        self.blendmode=blendmode
         
         # print(self.CMphase)
         #self._shaderProg = _shaders.compileProgram(
@@ -347,15 +348,7 @@ class NoiseStim(GratingStim):
         self.__dict__['noiseClip'] = value
         self._needUpdate = True
         self._needBuild = True
-        
-    @attributeSetter
-    def blendMode(self, value):
-        """Sets the openGL blend mode
-        """
-        
-        self.__dict__['blendMode'] = value
-        self._needUpdate = True
-    
+
     @attributeSetter
     def texRes(self, value):
         """Power-of-two int. Sets the resolution of the mask and texture.
@@ -422,8 +415,8 @@ class NoiseStim(GratingStim):
         """
         if win is None:
             win = self.win
-        saveBlendMode=win.blendMode
-        win.blendMode=self.blendMode
+        saveBlendMode = win.blendMode
+        win.setBlendMode(self.blendmode, log=False)
         self._selectWindow(win)
 
         #do scaling
@@ -448,7 +441,7 @@ class NoiseStim(GratingStim):
 
         #return the view to previous state
         GL.glPopMatrix()
-        win.blendMode=saveBlendMode
+        win.setBlendMode(saveBlendMode, log=False)
 
             
     def updateNoise(self):
