@@ -82,6 +82,34 @@ class GLFWBackend(BaseBackend):
         windows. This is useful for multi-window setups where stimuli objects
         might be used on multiple windows.
 
+    Multi-Display Timing:
+
+        If using multiple displays, waiting for multiple retraces may cause a
+        reduction in overall frame rate. Do the following to prevent this:
+
+            1. Pick a display as your primary screen.
+            2. When creating a window for your primary screen, set
+               swapInterval=1 (default anyways).
+            3. Create windows for all other displays with swapInterval=0.
+
+        In most cases, drawing across all displays will be synchronized with
+        your primary display. However, there is no guarantee vertical retraces
+        occur simultaneously across multiple monitors. Therefore, stimulus onset
+        times may differ slightly after 'flip' is called. In some cases visual
+        artifacts my arise that affect your data (temporal disparities in a
+        haploscope affect perceived depth). If multi-display synchronization is
+        absolutely critical, check if your hardware supports 'gen-lock' or some
+        other synchronization method.
+
+        Always check inter-display timings empirically (using a photo-diode,
+        oscilloscope or some other instrument)!
+
+Using multiple
+        # windows on different monitors may result in timing issues. This can be
+        # corrected by selecting a primary window/monitor and setting
+        # 'swapInterval=0' for windows on other displays. You must figure out
+        # how to synchronize the displays.
+
     Known Issues:
 
         1. screenID does not report the X11 display number on linux.
@@ -280,7 +308,6 @@ class GLFWBackend(BaseBackend):
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
-
         if not win.allowGUI:
             self.setMouseVisibility(False)
 
@@ -289,16 +316,13 @@ class GLFWBackend(BaseBackend):
 
         # TODO - handle window resizing
 
-        # Set the position of the window if not fullscreen. Using multiple
-        # non-fullscreen windows on different monitors may result in timing
-        # issues.
-        if not win._isFullScr:
+        # Set the position of the window if not fullscreen.
+        if not win.pos:
             # work out where the centre should be
-            if not win.pos:
-                win.pos = [(_size[0] - win.size[0]) / 2.0,
-                           (_size[1] - win.size[1]) / 2.0]
-
-            # get the virtual position of the monitor
+            win.pos = [(_size[0] - win.size[0]) / 2.0,
+                       (_size[1] - win.size[1]) / 2.0]
+        if not win._isFullScr:
+            # get the virtual position of the monitor, apply offset to pos
             _px, _py = glfw.get_monitor_pos(this_screen)
             glfw.set_window_pos(self.winHandle,
                                 int(win.pos[0] + _px),
