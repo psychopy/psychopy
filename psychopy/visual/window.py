@@ -82,7 +82,6 @@ from psychopy.core import rush
 
 reportNDroppedFrames = 5  # stop raising warning after this
 
-from psychopy.visual.backends.gamma import getGammaRamp, setGammaRamp
 # import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 from . import shaders as _shaders
 try:
@@ -1118,15 +1117,6 @@ class Window(object):
             openWindows.remove(self)
         except Exception:
             pass
-        if self.origGammaRamp is not None:
-            if self.winType in ('pyglet', 'pygame'):
-                setGammaRamp(
-                    screenID=self.backend.screenID,
-                    newRamp=self.origGammaRamp,
-                    xDisplay=self.backend.xDisplay
-                )
-            elif self.winType == 'glfw':
-                self.backend.setGammaRamp(self.origGammaRamp)
 
         try:
             self.mouseVisible = True
@@ -1261,7 +1251,6 @@ class Window(object):
         given that the user might have specified an explicit value, or maybe
         gave a Monitor
         """
-        self.origGammaRamp = None
         # determine which gamma value to use (or native ramp)
         if gammaVal is not None:
             self._checkGamma()
@@ -1273,18 +1262,6 @@ class Window(object):
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
-
-        # try to retrieve previous so we can reset later
-        try:
-            if self.winType in ('pyglet', 'pygame'):
-                self.origGammaRamp = getGammaRamp(
-                    screenID=self.backend.screenID,
-                    xDisplay=self.backend.xDisplay
-                )
-            elif self.winType == 'glfw':
-                self.origGammaRamp = self.backend.getGammaRamp()
-        except Exception:
-            self.origGammaRamp = None
 
         # then try setting it
         if self.useNativeGamma:
@@ -1313,7 +1290,7 @@ class Window(object):
                    "instead")
             raise DeprecationWarning(msg)
 
-        self.backend.gamma = gamma
+        self.backend.gamma = self.__dict__['gamma']
 
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1324,13 +1301,6 @@ class Window(object):
     @attributeSetter
     def gammaRamp(self, newRamp):
         self.backend.gammaRamp = newRamp
-        if self.winType == 'pyglet':
-            self.winHandle.setGammaRamp(self.winHandle, newRamp)
-        elif self.winType == 'glfw':
-            pass
-        else:  # pyglet
-            self.winHandle.set_gamma_ramp(
-                newRamp[:, 0], newRamp[:, 1], newRamp[:, 2])
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
