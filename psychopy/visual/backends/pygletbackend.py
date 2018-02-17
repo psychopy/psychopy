@@ -217,10 +217,11 @@ class PygletBackend(BaseBackend):
         except Exception:
             pass  # doesn't matter
 
-        # store properties of the window
+        # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
         self._origGammaRamp = self.getGammaRamp()
         self._rampSize = getGammaRampSize(self.screenID, self.xDisplay)
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
 
     @property
@@ -347,7 +348,8 @@ class PygletBackend(BaseBackend):
         """
 
         # restore the gamma ramp that was active when window was opened
-        self.gammaRamp = self._origGammaRamp
+        if not self._TravisTesting:
+            self.gammaRamp = self._origGammaRamp
 
         _hw_handle = None
         try:
