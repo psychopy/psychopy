@@ -484,11 +484,11 @@ class ShapeStim(BaseShapeStim):
                                    tesselate.default_winding_rule)
 
         if not self.closeShape or tessVertices == []:
-            # probably got a line if tessellate returned []
+            # probably got a line if tesselate returned []
             initVertices = newVertices
             self.closeShape = False
         elif len(tessVertices) % 3:
-            raise tessellate.TesselateError("Could not properly tessellate")
+            raise tesselate.TesselateError("Could not properly tesselate")
         else:
             initVertices = tessVertices
         self.__dict__['vertices'] = numpy.array(initVertices, float)
@@ -527,7 +527,7 @@ class ShapeStim(BaseShapeStim):
         frame and then update the screen again.
         """
         # mostly copied from BaseShapeStim. Uses GL_TRIANGLES and depends on
-        # two arrays of vertices: tessellated (for fill) & original (for
+        # two arrays of vertices: tesselated (for fill) & original (for
         # border) keepMatrix is needed by Aperture, although Aperture
         # currently relies on BaseShapeStim instead
 
