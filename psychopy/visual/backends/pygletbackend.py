@@ -21,7 +21,7 @@ import numpy as np
 import psychopy
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
-from .gamma import setGamma, setGammaRamp, getGammaRamp
+from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
 
@@ -217,6 +217,12 @@ class PygletBackend(BaseBackend):
         except Exception:
             pass  # doesn't matter
 
+        # store properties of the system
+        self._driver = pyglet.gl.gl_info.get_renderer()
+        self._origGammaRamp = self.getGammaRamp()
+        self._rampSize = getGammaRampSize(self.screenID, self.xDisplay)
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
+
 
     @property
     def shadersSupported(self):
@@ -295,7 +301,13 @@ class PygletBackend(BaseBackend):
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
         if gamma is not None:
-            setGamma(self.screenID, gamma, xDisplay=self.xDisplay)
+            setGamma(
+                screenID=self.screenID,
+                newGamma=gamma,
+                rampSize=self._rampSize,
+                driver=self._driver,
+                xDisplay=self.xDisplay
+            )
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
@@ -304,6 +316,9 @@ class PygletBackend(BaseBackend):
         self.__dict__['gammaRamp'] = gammaRamp
         setGammaRamp(self.screenID, gammaRamp, nAttempts=3,
                      xDisplay=self.xDisplay)
+
+    def getGammaRamp(self):
+        return getGammaRamp(self.screenID, self.xDisplay)
 
     @property
     def screenID(self):
@@ -331,6 +346,11 @@ class PygletBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+
+        # restore the gamma ramp that was active when window was opened
+        if not self._TravisTesting:
+            self.gammaRamp = self._origGammaRamp
+
         _hw_handle = None
         try:
             _hw_handle = self.win._hw_handle
