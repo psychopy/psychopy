@@ -15,6 +15,104 @@ import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
 
+def cielab2rgb(lab, whiteXYZ=None, conversionMatrix=None, clip=False):
+    """Transform CIEL*a*b* (1976) color space coordinates to RGB tristimulus
+    values.
+
+    CIEL*a*b* are first transformed into CIE XYZ (1931) color space, then the
+    RGB conversion is applied. By default, the sRGB conversion matrix is used
+    (BT.709) with a reference D65 white point. You may specify your own RGB
+    conversion matrix and white point (in CIE XYZ) appropriate for your display.
+
+    :param lab: tuple, list or ndarray
+        1-, 2-, 3-D vector of CIEL*a*b* coordinates to convert. The last
+        dimension should be length-3 in all cases specifying a single
+        coordinate.
+
+    :param whiteXYZ: tuple, list or ndarray
+        1-D vector coordinate of the white point in CIE-XYZ color space. Must be
+        the same white point needed by the conversion matrix. The default
+        white point is D65 if None is specified, defined as:
+
+            X, Y, Z = 0.9505, 1.0000, 1.0890
+
+    :param conversionMatrix: tuple, list or ndarray
+        3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
+        matrix is sRGB with a D65 white point if None is specified.
+
+    :param clip: boolean
+        Make all output values representable by the display. However, colors
+        outside of the display's gamut may not be valid!
+
+    :return: array of RGB tristimulus values, or None
+
+    """
+    # convert to numpy array if list or tuple
+    if isinstance(lab, (list, tuple,)):
+        lab = numpy.asarray(lab)
+
+    # conversion routine requires a Nx3 gamut of L*a*b* colors
+    orig_shape = lab.shape
+    orig_dim = lab.ndim
+    if orig_dim == 1 and orig_shape[0] == 3:
+        lab = numpy.array(lab, ndmin=2)  # force 2D
+    elif orig_dim == 2 and orig_shape[1] == 3:
+        pass  # perfect, nop
+    elif orig_dim == 3 and orig_shape[2] == 3:
+        lab = numpy.reshape(lab, (-1, 3))  # make Nx3
+    else:
+        raise ValueError(
+            "Invalid input dimensions or shape for CIELAB coordinates.")
+
+    if conversionMatrix is None:
+        # XYZ -> sRGB conversion matrix, assumes D65 white point
+        #   See: https://en.wikipedia.org/wiki/SRGB
+        conversionMatrix = numpy.asarray([[3.2406, -0.9689, 0.0557],
+                                          [-1.5372, 1.8758, -0.2040],
+                                          [-0.4986, 0.0415, 1.0570]])
+
+    if whiteXYZ is None:
+        # D65 white point in CIE-XYZ color space
+        #   See: https://en.wikipedia.org/wiki/SRGB
+        whiteXYZ = numpy.asarray([0.9505, 1.0000, 1.0890])
+
+    L = lab[:, 0]  # lightness
+    a = lab[:, 1]  # green (-)  <-> red (+)
+    b = lab[:, 2]  # blue (-) <-> yellow (+)
+
+    # uses reverse transformation found here:
+    #   https://en.wikipedia.org/wiki/Lab_color_space
+    def inv_f(val, wp):
+        delta = 6.0 / 29.0
+        if val > (delta ** 3.0):
+            f = val ** 3.0
+        else:
+            f = (val - 4.0 / 29.0) * (3.0 * delta ** 2.0)
+        return f * wp
+    inv_f = numpy.vectorize(inv_f)
+
+    # convert Lab to CIE-XYZ color space
+    xyz_array = numpy.zeros(lab.shape)
+    wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
+    s = (L + 16.0) / 116.0
+    xyz_array[:, 0] = inv_f(s + (a / 500.0), wht_x)
+    xyz_array[:, 1] = inv_f(s, wht_y)
+    xyz_array[:, 2] = inv_f(s - (b / 200.0), wht_z)
+
+    # convert to sRGB using the specified conversion matrix
+    rgb_out = numpy.dot(xyz_array, conversionMatrix)
+
+    # clip unrepresentable colors if requested
+    if clip:
+        rgb_out = numpy.clip(rgb_out, 0.0, 1.0)
+
+    # make the output match the dimensions/shape of input
+    if orig_dim == 1:
+        rgb_out = rgb_out[0]
+    elif orig_dim == 3:
+        rgb_out = numpy.reshape(rgb_out, orig_shape)
+
+    return rgb_out
 
 def dkl2rgb(dkl, conversionMatrix=None):
     """Convert from DKL color space (Derrington, Krauskopf & Lennie) to RGB.
