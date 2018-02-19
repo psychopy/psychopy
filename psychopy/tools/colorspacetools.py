@@ -112,7 +112,8 @@ def cielab2rgb(lab, whiteXYZ=None, conversionMatrix=None, clip=False):
     elif orig_dim == 3:
         rgb_out = numpy.reshape(rgb_out, orig_shape)
 
-    return rgb_out
+    return rgb_out * 2.0 - 1.0
+
 
 def dkl2rgb(dkl, conversionMatrix=None):
     """Convert from DKL color space (Derrington, Krauskopf & Lennie) to RGB.
