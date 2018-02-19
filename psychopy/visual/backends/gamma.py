@@ -85,7 +85,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None):
         newRamp.byteswap(True)
         for n in range(nAttempts):
             success = windll.gdi32.SetDeviceGammaRamp(
-                0xFFFFFFFF & screenID, newRamp.ctypes)  # FB 504
+                screenID, newRamp.ctypes)  # FB 504
             if success:
                 break
         assert success, 'SetDeviceGammaRamp failed'
@@ -123,7 +123,7 @@ def getGammaRamp(screenID, xDisplay=None):
         # init R, G, and B ramps
         origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = windll.gdi32.GetDeviceGammaRamp(
-            0xFFFFFFFF & screenID, origramps.ctypes)  # FB 504
+            screenID, origramps.ctypes)  # FB 504
         if not success:
             raise AssertionError('GetDeviceGammaRamp failed')
         origramps = origramps/65535.0  # rescale to 0:1
