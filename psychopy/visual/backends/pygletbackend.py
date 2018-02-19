@@ -24,7 +24,6 @@ from psychopy.tools.attributetools import attributeSetter
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
-import codecs
 
 import pyglet
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -331,7 +330,7 @@ class PygletBackend(BaseBackend):
             if constants.PY3:
                 _screenID = int.from_bytes(scrBytes, byteorder='little')
             else:
-                _screenID = int(codecs.encode(scrBytes, 'hex'), 16)
+                _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1
