@@ -312,8 +312,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             win = self.win
         self._selectWindow(win)
 
-        _prog = self.win._progSignedFrag
-        GL.glUseProgram(_prog)
+        if win._haveShaders:
+            _prog = self.win._progSignedFrag
+            GL.glUseProgram(_prog)
         # will check if it needs updating (check just once)
         vertsPix = self.verticesPix
         nVerts = vertsPix.shape[0]
@@ -358,7 +359,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             else:
                 GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glUseProgram(0)
+        if win._haveShaders:
+            GL.glUseProgram(0)
         if not keepMatrix:
             GL.glPopMatrix()
 
@@ -544,9 +546,9 @@ class ShapeStim(BaseShapeStim):
             win.setScale('pix')
 
         # setup the shaderprogram
-
-        _prog = self.win._progSignedFrag
-        GL.glUseProgram(_prog)
+        if win._haveShaders:
+            _prog = self.win._progSignedFrag
+            GL.glUseProgram(_prog)
 
         # load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -588,6 +590,7 @@ class ShapeStim(BaseShapeStim):
             GL.glDrawArrays(gl_line, 0, self._borderPix.shape[0])
 
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glUseProgram(0)
+        if win._haveShaders:
+            GL.glUseProgram(0)
         if not keepMatrix:
             GL.glPopMatrix()
