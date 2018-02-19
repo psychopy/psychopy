@@ -667,7 +667,7 @@ class Window(object):
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
-                # need blit the frambuffer object to the actual back buffer
+                # need blit the framebuffer object to the actual back buffer
 
                 # unbind the framebuffer as the render target
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
@@ -1333,7 +1333,7 @@ class Window(object):
             # windowPerCM = windowPerPIX / CMperPIX
             #             = (window/winPIX) / (scrCm/scrPIX)
             if self.scrWidthCM in [0, None] or self.scrWidthPIX in [0, None]:
-                logging.error('you didnt give the width of the screen (pixels'
+                logging.error('you did not give the width of the screen (pixels'
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
@@ -1344,7 +1344,7 @@ class Window(object):
             #              = winPerCM * tan(pi/180) * distance
             if ((self.scrWidthCM in [0, None]) or
                     (self.scrWidthPIX in [0, None])):
-                logging.error('you didnt give the width of the screen (pixels'
+                logging.error('you did not give the width of the screen (pixels'
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()

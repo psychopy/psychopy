@@ -384,7 +384,7 @@ class ShapeStim(BaseShapeStim):
     and contains() are not supported for multi-loop stimuli.
 
     `windingRule` is an advanced feature to allow control over the GLU
-    tesselator winding rule (default: GLU_TESS_WINDING_ODD). This is relevant
+    tessellator winding rule (default: GLU_TESS_WINDING_ODD). This is relevant
     only for self-crossing or multi-loop shapes. Cannot be set dynamically.
 
     See Coder demo > stimuli > shapes.py
@@ -457,7 +457,7 @@ class ShapeStim(BaseShapeStim):
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def _initVertices(self, newVertices):
-        """Set the .vertices and .border to new values, invoking tesselation.
+        """Set the .vertices and .border to new values, invoking tessellation.
         """
         # TO-DO: handle borders properly for multiloop stim like holes
         # likely requires changes in ContainerMixin to iterate over each

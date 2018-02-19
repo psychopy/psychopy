@@ -133,10 +133,10 @@ class Display(Device):
         Supported types match the PsychoPy unit_types for Monitors, with the
         exception of the height option:
 
-        * pix   : Equivelent names for this type are *pixel* and *pixels*.
-        * cm    : There are no equivelent alternatives to this coordinate type name.
-        * norm  : Equivelent names for this type are *normalize* and *normalized*.
-        * deg   : Equivelent names for this type are *degree* and *degrees*.
+        * pix   : Equivalent names for this type are *pixel* and *pixels*.
+        * cm    : There are no equivalent alternatives to this coordinate type name.
+        * norm  : Equivalent names for this type are *normalize* and *normalized*.
+        * deg   : Equivalent names for this type are *degree* and *degrees*.
 
         Please refer to the psychoPy documentation for a detailed description of
         coordinate type.

@@ -546,7 +546,7 @@ class U3(Device):
                                                      quickSample=False)
         
         Args: posChannel, the positive channel to read from.
-              negChannel, the negitive channel to read from.
+              negChannel, the negative channel to read from.
               longSettle, set to True for longSettle
               quickSample, set to True for quickSample
         

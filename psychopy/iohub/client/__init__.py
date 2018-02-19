@@ -266,7 +266,7 @@ class ioHubConnection(object):
         self.udp_client = None
 
         # the dynamically generated object that contains an attribute for
-        # each device registed for monitoring with the ioHub server so
+        # each device registered for monitoring with the ioHub server so
         # that devices can be accessed experiment process side by device name.
         self.devices = ioHubDevices(self)
 

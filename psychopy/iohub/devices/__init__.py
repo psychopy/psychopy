@@ -331,9 +331,9 @@ class Device(ioObject):
         contents.
 
         Args:
-            event_type_id (int): If specified, provides the ioHub DeviceEvent ID for which events should be returned for.  Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class atttributes of EventConstants.
+            event_type_id (int): If specified, provides the ioHub DeviceEvent ID for which events should be returned for.  Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class attributes of EventConstants.
 
-            clearEvents (int): Can be used to indicate if the events being returned should also be removed from the device event buffer. True (the defualt) indicates to remove events being returned. False results in events being left in the device event buffer.
+            clearEvents (int): Can be used to indicate if the events being returned should also be removed from the device event buffer. True (the default) indicates to remove events being returned. False results in events being left in the device event buffer.
 
             asType (str): Optional kwarg giving the object type to return events as. Valid values are 'namedtuple' (the default), 'dict', 'list', or 'object'.
 
@@ -437,7 +437,7 @@ class Device(ioObject):
 
 
         Args:
-            enabled (bool):  True (default) == Start to report device events to the ioHub Process. False == Stop Reporting Events to the ioHub Process. Most Device types automatically start sending events to the ioHUb Process, however some devices like the EyeTracker and AnlogInput device's do not. The setting to control this behavour is 'auto_report_events'
+            enabled (bool):  True (default) == Start to report device events to the ioHub Process. False == Stop Reporting Events to the ioHub Process. Most Device types automatically start sending events to the ioHUb Process, however some devices like the EyeTracker and AnlogInput device's do not. The setting to control this behavior is 'auto_report_events'
 
         Returns:
             bool: The current reporting state.
@@ -657,7 +657,7 @@ class Device(ioObject):
         but not exceeding a device_timer.interval 0.001 seconds (a polling rate of 1000 Hz).
         For example, if a device sends events at an average rate of 60 Hz,
         or once every 16.667 msec, then the polling rate could be set to the
-        equivelent of a 120 - 240 Hz. Expressed in sec.msec format,
+        equivalent of a 120 - 240 Hz. Expressed in sec.msec format,
         as is required for the device_timer.interval setting, this would equal about
         0.008 to 0.004 seconds.
 
@@ -810,7 +810,7 @@ class DeviceEvent(ioObject):
         ('device_id', np.uint8),
         # CUrrrently not used, but will be in the future for device types that
         # support > one instance of that device type to be enabled
-        # during an experiment. Currenly only one device of a given type
+        # during an experiment. Currently only one device of a given type
         # can be used in an experiment.
 
         # The id assigned to the current device event instance. Every device
@@ -890,7 +890,7 @@ class DeviceEvent(ioObject):
         #: 0 indicates no experiment has been defined.
         self.experiment_id = None
 
-        #: The ioHub DataStore session ID assigned for teh current experiment run.
+        #: The ioHub DataStore session ID assigned for the current experiment run.
         #: Each time the experiment script is run, a new session id is generated for use
         #: by the ioHub DataStore within the hdf5 file.
         self.session_id = None
@@ -910,7 +910,7 @@ class DeviceEvent(ioObject):
 
         #: If the device that generates an event type also time stamps
         #: the events, this field is the time of the event as given by the device,
-        #: converted to sec.msec-usec for consistancy with all other device times.
+        #: converted to sec.msec-usec for consistency with all other device times.
         #: If the device that generates the event does not time stamp
         #: events, then the device_time is set to the logged_time for the event.
         self.device_time = None
@@ -931,7 +931,7 @@ class DeviceEvent(ioObject):
 
         #: This property attempts to give a sense of the amount to which
         #: the event time may be off relative to the true time the event
-        #: may have become available to te ioHub Process.
+        #: may have become available to the ioHub Process.
         #: confidence_interval is calculated differently depending
         #: on the device and perhaps event types. In general though, the
         #: smaller the confidence_interval, the more accurate the

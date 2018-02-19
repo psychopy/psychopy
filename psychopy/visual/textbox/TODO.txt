@@ -33,7 +33,7 @@
 8) Document differences between TextStim and TextBoxStim.
 
 9) Look into improving initial textstim init and first draw() call time.
-    Can currently take 2-3 sec for only one fontstim type. Inital load time is 
+    Can currently take 2-3 sec for only one fontstim type. Initial load time is 
     about 1 - 2 seconds per TTF file loaded.!
 
 10) NOTE: TextBox relies on knowing possible font setting combinations before

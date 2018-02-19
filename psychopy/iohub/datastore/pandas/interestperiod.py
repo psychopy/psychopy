@@ -328,7 +328,7 @@ class ConditionVariableBasedIP(InterestPeriodDefinition):
                     self.end_col_name: 'end_time'})
 
             for a_critera in self._criteria:
-                # TODO: Support filtering of cond_var rows based on critera
+                # TODO: Support filtering of cond_var rows based on criteria
                 pass
 
             # Add ip identifier cols

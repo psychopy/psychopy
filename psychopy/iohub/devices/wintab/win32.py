@@ -362,7 +362,7 @@ WTX_XBTNMASK = 4  # Extended button mask; 1.1
 WTX_EXPKEYS = 5  # ExpressKeys; 1.3
 
 
-# Tablet releated class definitions
+# Tablet related class definitions
 
 import ctypes
 

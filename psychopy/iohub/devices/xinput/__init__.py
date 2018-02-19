@@ -43,7 +43,7 @@ class XInputDevice(Device):
 
 class Gamepad(XInputDevice):
     """The ioHub xinput.Gamepad Device supports monitoring events from a
-    Windows XInput complient device. Due to the nature of the XInput interface,
+    Windows XInput compliant device. Due to the nature of the XInput interface,
     these events can be provided regardless of whether a PsychoPy Window is
     currently created or has focus.
 
@@ -197,8 +197,8 @@ class Gamepad(XInputDevice):
 
         * time : float. The sec.msecusec time when the thumbstick states being reported were read.
         * confidence_interval : float. The sec.msecusec difference between the device poll that contained the event data being used, and the previous device poll time. Therefore, it is possible that the device event time reported could have been between the time reported and reported time - confidence_interval.
-        * left_stick: (x, y, magnitude). The state of the left thumbstick as a tuple of three float values, each with 12 bit resolution. x and y can range between -1.0 and 1.0, representing the position each dimention of the current thumbstick position (- values are leftward or downward, + values are rightward or upward). The magnitude can be between 0.0 and 1.0, representing the amount the thumbstick has been moved in the combined 2D movement space. 0.0 equals no movement, 1.0 equals the thumbstick being pushed fully to the edge of motion.
-        * right_stick: (x, y, magnitude). The state of the right thumbstick as a tuple of three float values, each with 12 bit resolution. x and y can range between -1.0 and 1.0,  representing the position each dimention of the current thumbstick position (- values are leftward or downward, + values are rightward or upward). The magnitude can be between 0.0 and 1.0, representing the amount the thumbstick has been moved in the combined 2D movement space. 0.0 equals no movement, 1.0 equals the thumbstick being pushed fully to the edge of motion.
+        * left_stick: (x, y, magnitude). The state of the left thumbstick as a tuple of three float values, each with 12 bit resolution. x and y can range between -1.0 and 1.0, representing the position each dimension of the current thumbstick position (- values are leftward or downward, + values are rightward or upward). The magnitude can be between 0.0 and 1.0, representing the amount the thumbstick has been moved in the combined 2D movement space. 0.0 equals no movement, 1.0 equals the thumbstick being pushed fully to the edge of motion.
+        * right_stick: (x, y, magnitude). The state of the right thumbstick as a tuple of three float values, each with 12 bit resolution. x and y can range between -1.0 and 1.0,  representing the position each dimension of the current thumbstick position (- values are leftward or downward, + values are rightward or upward). The magnitude can be between 0.0 and 1.0, representing the amount the thumbstick has been moved in the combined 2D movement space. 0.0 equals no movement, 1.0 equals the thumbstick being pushed fully to the edge of motion.
 
         Args:
             None
@@ -257,7 +257,7 @@ class Gamepad(XInputDevice):
         The percentage provided for each vibration motor indicates how string the
         motor should be enabled relative to the full range of vitration strengths supported.
 
-        This method runs asyncronously to the PsychoPy experiment script, so
+        This method runs asynchronously to the PsychoPy experiment script, so
         regardless of the duration set, the method returns when the vibration
         command has been issued to the device by the ioHub Process.
 
@@ -270,7 +270,7 @@ class Gamepad(XInputDevice):
 
             highFrequencyValue (float): Percentage that the high frequency rumble motor should be set to within it's possible output range. 0.0 is Off. 100.0 is full power. The underlying rumble API uses 16 bit resolution values for setting rumble state.
 
-            duration (float): sec.msec duration that the rumble settings should be acctive for. When the duration had passed, the rumble states are set to 0. REgardless of the duration value, the method is run asyncronously and returns to the PsychoPy script as soon as the sate changes have been issues to the native device.
+            duration (float): sec.msec duration that the rumble settings should be acctive for. When the duration had passed, the rumble states are set to 0. REgardless of the duration value, the method is run asynchronously and returns to the PsychoPy script as soon as the sate changes have been issues to the native device.
 
         Returns:
             (float,float): (command_return_time, command_call_duration), where command_return_time is the sec.msec time that the call to the native device to update vibration setting returned to the ioHub process, and command_call_duration is the sec.msec time taken for the native device call to return to the ioHub process.

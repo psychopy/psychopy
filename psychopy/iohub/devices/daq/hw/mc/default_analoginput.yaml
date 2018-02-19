@@ -14,9 +14,9 @@ daq.hw.mc.AnalogInput:
     name: ain
 
     # The device number to assign to the Analog Input device. 
-    #   When using a Measurment Computing Analog Input device this 
+    #   When using a Measurement Computing Analog Input device this 
     #   number should match the device id assigned to the MC hardware when 
-    #   the Measurment Computing Instacal program was run for the device.
+    #   the Measurement Computing Instacal program was run for the device.
     # 
     device_number: 0
 
@@ -56,7 +56,7 @@ daq.hw.mc.AnalogInput:
     options: 0
 
     # device_timer: Devices that require polling to read any new native events
-    #   that have become available must specifiy a device_timer property, with an
+    #   that have become available must specify a device_timer property, with an
     #   interval sub proerty that specifies how frequently the device would be polled
     #   by the ioHub Server. The time is specified in sec.msec format and is a 'requested'
     #   polling interval. The actual polling interval will vary from this somewhat, the 
@@ -108,7 +108,7 @@ daq.hw.mc.AnalogInput:
     event_buffer_length: 1024
 
     # input_channel_count: The number of analog to digital channels to monitor
-    #   in parrallel. Currently this value is fixed at 8 channels.
+    #   in parallel. Currently this value is fixed at 8 channels.
     #
     input_channel_count: 8
 

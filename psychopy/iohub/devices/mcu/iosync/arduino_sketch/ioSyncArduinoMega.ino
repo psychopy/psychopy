@@ -12,7 +12,7 @@ TODO:
 - Allow setting digital inputs as INPUT or PULLUP_INPUTs (MUST change # define and recompile right now). ** Look into the bootloader cli
   from here:https://www.pjrc.com/teensy/loader_cli.html Maybe different hex files can be made for different iosync setups.
   If current running program is not the one selected / needed by user, the use cli to upload the right one.
-- Switch digital input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
+- Switch digital input reads to use interrupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
 - Expand keyboard event generation to support any keys supported by Teensiduno.
 - Add support for setting what EXT_LED should be doing. Right now it does nothing. Perhaps have different alternatives that can be set:
      - flash when iosync program starts on t3 hw. (current mode)
