@@ -25,7 +25,7 @@ _localized = {'name': _translate('Name'),
               'saveVarState': _translate('Save variable'),}
 
 class VariableComponent(BaseComponent):
-    """An event class for presenting sound stimuli"""
+    """An class for creating variables in builder"""
     def __init__(self, exp, parentName,
                  name='var_1', startExpValue = None,
                  startRoutineValue=None, saveVarState = 'final',
@@ -33,7 +33,6 @@ class VariableComponent(BaseComponent):
         super(VariableComponent, self).__init__(
             exp, parentName, name)
         categories = ['Custom']
-        self.exp.requirePsychopyLibs(['event']) # because we will save variables using event
         self.type = 'Variable'
         self.url = "http://www.psychopy.org/builder/components/variable.html"
     #     # params
