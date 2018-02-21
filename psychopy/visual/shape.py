@@ -447,7 +447,8 @@ class ShapeStim(BaseShapeStim):
 
         self.closeShape = closeShape
         self.windingRule = windingRule
-        self._initVertices(vertices)
+        self._vertDimensions = numpy.array(vertices.shape)
+        self.vertices = vertices
 
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
@@ -458,7 +459,7 @@ class ShapeStim(BaseShapeStim):
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
-    def _initVertices(self, newVertices):
+    def _tesselate(self, newVertices):
         """Set the .vertices and .border to new values, invoking tessellation.
         """
         # TO-DO: handle borders properly for multiloop stim like holes
@@ -470,7 +471,6 @@ class ShapeStim(BaseShapeStim):
             newVertices = knownShapes[newVertices]
 
         self.border = copy.deepcopy(newVertices)
-        
         if self.closeShape:
             # convert original vertices to triangles (= tesselation) if
             # possible. (not possible if closeShape is False, don't even try)
@@ -496,7 +496,7 @@ class ShapeStim(BaseShapeStim):
             raise tesselate.TesselateError("Could not properly tesselate")
         else:
             initVertices = tessVertices
-        self.__dict__['vertices'] = numpy.array(initVertices, float)
+        self.__dict__['_tesselVertices'] = numpy.array(initVertices, float)
 
     @attributeSetter
     def vertices(self, newVerts):
@@ -507,13 +507,13 @@ class ShapeStim(BaseShapeStim):
 
         :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
-        self._initVertices(newVerts)
-
         # Check shape
+        self.__dict__['vertices'] = newVerts
         vsh = self.vertices.shape
         if not (vsh == (2,) or (len(vsh) == 2 and vsh[1] == 2)):
             raise ValueError("New value for setXYs should be 2x1 or Nx2")
         self._needVertexUpdate = True
+        self._tesselate(self.vertices)
 
     @property
     def verticesPix(self):
