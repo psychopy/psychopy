@@ -260,17 +260,14 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
-        elif name == 'startValue':
+        elif name == 'a_startExpValue':
             inits[name].val = "1"
             inits[name].valType = 'code'
-        elif name == 'currentValue':
+        elif name == 'b_startRoutineValue':
             inits[name].val = "1"
             inits[name].valType = 'code'
-        elif name == 'modifier':
-            inits[name].val = "2"
-            inits[name].valType = 'code'
-        elif name == 'modOperator':
-            inits[name].val = "*"
+        elif name == 'c_startFrameValue':
+            inits[name].val = "1"
             inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
