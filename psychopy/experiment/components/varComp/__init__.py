@@ -113,7 +113,7 @@ class VariableComponent(BaseComponent):
         """Write the code that will be called at the end of the routine
         """
         inits = self.params
-        code = ("# adding data to trialHandler%s\n" % inits['name'])
+        code = ("# adding data to trialHandler\n" % inits['name'])
         buff.writeIndented(code)
         if inits['saveVarState'] in ['final', 'routine'] and inits['c_startFrameValue'].updates == 'set every frame':
             if inits['c_startFrameValue']:
