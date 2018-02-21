@@ -191,7 +191,7 @@ def main():
             io.clearEvents('all')
             io.quit()
 
-# Misc. constaints for ioSync
+# Misc. constraints for ioSync
 MAX_RAW = 2.0 ** 16
 MAX_LUX = 15.0 # in k lux
 MAX_AIN_V = 3.3

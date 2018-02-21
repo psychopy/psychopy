@@ -7,7 +7,7 @@ orienation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce.
-# Addtional code provided by Andrew Schofield
+# Additional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -64,7 +64,7 @@ class EnvelopeGrating(GratingStim):
     env2 = EnvelopeGrating(win,ori=0, carrier=noise, envelope='sin',
             mask = None, sf=1, envsf=4, size=1, contrast=0.5,
             moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0)
-            # If noise is some numpy array contaning random values gives a
+            # If noise is some numpy array containing random values gives a
             # patch of noise with a low freqeuncy sinewave envelope
     env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin',
             mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5,
@@ -79,7 +79,7 @@ class EnvelopeGrating(GratingStim):
 
     contrast controls the contrast of the carrier and moddepth the modulation
     depth of the envelope. contrast and moddepth must work together, for moddepth=1 the max carrier
-    contrast is 0.5 otherwise the displayable raneg will be exceeded. If moddepth < 1 higher contrasts can be accomodated.
+    contrast is 0.5 otherwise the displayable raneg will be exceeded. If moddepth < 1 higher contrasts can be accommodated.
 
     Opacity controls the transparency of the whole stimulus.
 
@@ -289,7 +289,7 @@ class EnvelopeGrating(GratingStim):
     #
     #    Can the 'avg' or 'add'. Average (avg) places the new stimulus over the old one
     #    with a transparency given by its opacity. Opaque stimuli will hide other stimuli
-    #    transparent stimuli wont. Add performs the aritmetic sum of the new stimulus and the ones
+    #    transparent stimuli won't. Add performs the arithmetic sum of the new stimulus and the ones
     #    already present.
     #
     #    """

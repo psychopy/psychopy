@@ -27,7 +27,7 @@ class VisualAngleCalc(object):
         positions.
 
         Note: The information for display_size_mm,display_res_pix, and default
-        eye_distance_mm could all be read automatically when openning a ioDataStore
+        eye_distance_mm could all be read automatically when opening a ioDataStore
         file. This automation should be implemented in a future release.
 
         """
@@ -49,7 +49,7 @@ class VisualAngleCalc(object):
         pixel to angle calculations on all elements of the provided pixel
         position numpy arrays in one numpy call.
 
-        The convertion process can use either a fixed eye to calibration
+        The conversion process can use either a fixed eye to calibration
         plane distance, or a numpy array of eye distances passed as
         eye_distance_mm. In this case the eye distance array must be the same
         length as pixel_x, pixel_y arrays.

@@ -507,7 +507,7 @@ class Computer(object):
 
         * The Python interpreter does not apply an offset to the times
         returned based on when the timer module being used was loaded or
-        when the timer fucntion first called was first called.
+        when the timer function first called was first called.
         * The timer implementation used must be monotonic and report elapsed
         time between calls, 'not' CPU usage time.
         * The timer implementation must provide a resolution of 50 usec or

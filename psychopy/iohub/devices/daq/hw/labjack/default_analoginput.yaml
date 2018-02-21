@@ -33,15 +33,15 @@ daq.hw.labjack.AnalogInput:
     #
     channel_sampling_rate: 1000
 
-    # resolution_index: The resolution index to set the device to when aquiring
+    # resolution_index: The resolution index to set the device to when acquiring
     #   the analog input signals. Please refer to your device's documentation 
-    #   for a detailed explaination of what resolution_index does.
+    #   for a detailed explanation of what resolution_index does.
     #
     resolution_index: 1
 
-    # settling_factor: The settling_factor to set the device to when aquiring
+    # settling_factor: The settling_factor to set the device to when acquiring
     #    the analog input signals. Please refer to your device's documentation
-    #    for a detailed explaination of what settling_factor does.
+    #    for a detailed explanation of what settling_factor does.
     #
     settling_factor: 1
 
@@ -100,7 +100,7 @@ daq.hw.labjack.AnalogInput:
     event_buffer_length: 1024
 
     # input_channel_count: The number of analog to digital channels to monitor
-    #   in parrallel. Currently this value is fixed at 8 channels.
+    #   in parallel. Currently this value is fixed at 8 channels.
     #
     input_channel_count: 8
 

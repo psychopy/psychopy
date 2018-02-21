@@ -112,7 +112,7 @@ if __name__ == '__main__':
         for s in session_metadata:
            sesion_meta_data_dict[s.session_id]=s
 
-    # Open a file to save the tab delimited ouput to.
+    # Open a file to save the tab delimited output to.
     #
     log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection)
     with open(log_file_name,'w') as output_file:

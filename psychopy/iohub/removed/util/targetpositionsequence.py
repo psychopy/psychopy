@@ -805,7 +805,7 @@ class TargetPosSequenceStim(object):
                                 expansionduration=0.50
                               )
 
-        To do a similar animation as the pervious example, but also have the
+        To do a similar animation as the previous example, but also have the
         target contract back to it's original size over 0.75 seconds::
 
         targetsequence.display(
@@ -1130,7 +1130,7 @@ class ValidationProcedure(object):
     4) The data collected during the validation target sequence is used to
        calculate accuracy information for each target position presented.
        The raw data as well as the computed accuracy data is available via the
-       ValidationProcedure class. Calculated measures are provided seperately
+       ValidationProcedure class. Calculated measures are provided separately
        for each target position and include:
 
            a) An array of the samples used for the accuracy calculation. The

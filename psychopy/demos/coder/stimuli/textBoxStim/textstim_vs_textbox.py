@@ -185,7 +185,7 @@ for stim1, stim2 in stim_draw_orders:
         if fcount>=max_flip_count:
             break
     
-    # Print a comparision of the TextBox and TextStim performance.
+    # Print a comparison of the TextBox and TextStim performance.
     #
     print()
     print('-------Text Draw Duration Test---------')
