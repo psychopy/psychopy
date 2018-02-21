@@ -454,7 +454,9 @@ class GLFWBackend(BaseBackend):
             gamma.shape = [3, 1]
 
         # create linear LUT
-        newLUT = createLinearRamp(rampSize=self.getGammaRampSize())
+        newLUT = np.tile(
+            createLinearRamp(rampSize=self.getGammaRampSize()), (3, 1)
+        )
         if np.all(gamma == 1.0) == False:
             # correctly handles 1 or 3x1 gamma vals
             newLUT = newLUT ** (1.0 / np.array(gamma))
