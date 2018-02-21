@@ -447,7 +447,6 @@ class ShapeStim(BaseShapeStim):
 
         self.closeShape = closeShape
         self.windingRule = windingRule
-        self._vertDimensions = numpy.array(vertices.shape)
         self.vertices = vertices
 
         # remove deprecated params (from ShapeStim.__init__):
