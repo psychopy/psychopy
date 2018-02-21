@@ -15,16 +15,12 @@ and initialize an instance using the attributes of the Window.
 
 from __future__ import absolute_import, print_function
 import sys
-import os
 import numpy as np
-import os
-import psychopy
-from psychopy import logging, event, platform_specific
+from psychopy import logging, event
 from psychopy.tools.attributetools import attributeSetter
 from .gamma import setGamma, setGammaRamp, getGammaRamp
 from .. import globalVars
 from ._base import BaseBackend
-
 from PIL import Image
 
 import glfw
