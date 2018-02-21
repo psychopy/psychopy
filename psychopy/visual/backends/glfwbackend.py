@@ -17,13 +17,15 @@ from __future__ import absolute_import, print_function
 import sys
 import os
 import numpy as np
-
+import os
 import psychopy
 from psychopy import logging, event, platform_specific
 from psychopy.tools.attributetools import attributeSetter
 from .gamma import setGamma, setGammaRamp, getGammaRamp
 from .. import globalVars
 from ._base import BaseBackend
+
+from PIL import Image
 
 import glfw
 # initialize the GLFW library on import
@@ -46,6 +48,8 @@ _CURSORS_ = {
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
     'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
+# load window icon
+_WINDOW_ICON_ = Image.open('psychopy/monitors/psychopy.ico')
 
 
 class GLFWBackend(BaseBackend):
@@ -270,6 +274,9 @@ class GLFWBackend(BaseBackend):
                                             title=title_text,
                                             monitor=use_display,
                                             share=share_context)
+
+        # set the window icon
+        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
 
         # The window's user pointer maps the Python Window object to its GLFW
         # representation.
