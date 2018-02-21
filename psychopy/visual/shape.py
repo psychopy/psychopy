@@ -28,6 +28,7 @@ from psychopy import logging
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.tools.attributetools import (attributeSetter, logAttrib,
                                            setAttribute)
+from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
 from psychopy.visual.helpers import setColor
@@ -507,10 +508,8 @@ class ShapeStim(BaseShapeStim):
         :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
         # Check shape
-        self.__dict__['vertices'] = newVerts
-        vsh = self.vertices.shape
-        if not (vsh == (2,) or (len(vsh) == 2 and vsh[1] == 2)):
-            raise ValueError("New value for setXYs should be 2x1 or Nx2")
+        self.__dict__['vertices'] = val2array(newVerts, withNone=True,
+                                              withScalar=True, length=2)
         self._needVertexUpdate = True
         self._tesselate(self.vertices)
 
