@@ -15,15 +15,13 @@ and initialize an instance using the attributes of the Window.
 
 from __future__ import absolute_import, print_function
 import sys
-import os
 import numpy as np
-
-import psychopy
-from psychopy import logging, event, platform_specific
+from psychopy import logging, event
 from psychopy.tools.attributetools import attributeSetter
-from .gamma import setGamma, setGammaRamp, getGammaRamp
+from .gamma import createLinearRamp
 from .. import globalVars
 from ._base import BaseBackend
+from PIL import Image
 
 import glfw
 # initialize the GLFW library on import
@@ -46,6 +44,8 @@ _CURSORS_ = {
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
     'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
+# load window icon
+_WINDOW_ICON_ = Image.open('psychopy/monitors/psychopy.ico')
 
 
 class GLFWBackend(BaseBackend):
@@ -271,6 +271,9 @@ class GLFWBackend(BaseBackend):
                                             monitor=use_display,
                                             share=share_context)
 
+        # set the window icon
+        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+
         # The window's user pointer maps the Python Window object to its GLFW
         # representation.
         glfw.set_window_user_pointer(self.winHandle, win)
@@ -451,8 +454,9 @@ class GLFWBackend(BaseBackend):
             gamma.shape = [3, 1]
 
         # create linear LUT
-        newLUT = np.tile(np.linspace(0, 1, num=self.getGammaRampSize()), (3, 1))
-
+        newLUT = np.tile(
+            createLinearRamp(rampSize=self.getGammaRampSize()), (3, 1)
+        )
         if np.all(gamma == 1.0) == False:
             # correctly handles 1 or 3x1 gamma vals
             newLUT = newLUT ** (1.0 / np.array(gamma))
