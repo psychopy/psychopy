@@ -1240,39 +1240,3 @@ def _getGLFWJoystickAxes(*args, **kwargs):
 
 if havePyglet:
     globalKeys = _GlobalEventKeys()
-
-class Variable(object):
-    """
-    A class for tracking variable values
-    """
-    def __init__(self,
-                 win=None):
-        super(Variable, self).__init__()
-        self.win = win
-
-    def setValues(self, startValue = None, currentValue = None, valueModifier = None, modOperator = None, endValue = None):
-        """
-        Set values at beginning of routine - so base variables exist
-        """
-        self.startValue = startValue
-        self.currentValue = currentValue
-        self.valueModifier = valueModifier
-        self.modOperator = modOperator
-        self.endVal = endValue
-
-    @property
-    def getStartVal(self):
-        return self.startValue
-
-    def modifyValue(self, currentValue=None):
-        """
-        Upack values from tuple - current value, and modifiers
-        :return: modified current value
-        """
-        calculate = "%s%s%s" % (currentValue, self.modOperator, self.valueModifier)
-        self.currentValue = eval(calculate)
-        return self.currentValue
-
-    @property
-    def getCurrentVal(self):
-        return self.currentValue
