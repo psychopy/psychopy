@@ -22,7 +22,7 @@
 #      prefName1 = type(value1, value2, ..., default='___')
 
 # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
-
+#
 
 # General settings
 [general]
