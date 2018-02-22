@@ -15,7 +15,11 @@ import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
 
-def cielab2rgb(lab, whiteXYZ=None, conversionMatrix=None, clip=False):
+def cielab2rgb(lab,
+               whiteXYZ=None,
+               conversionMatrix=None,
+               gammaCorrect=False,
+               clip=False):
     """Transform CIEL*a*b* (1976) color space coordinates to RGB tristimulus
     values.
 
@@ -28,22 +32,20 @@ def cielab2rgb(lab, whiteXYZ=None, conversionMatrix=None, clip=False):
         1-, 2-, 3-D vector of CIEL*a*b* coordinates to convert. The last
         dimension should be length-3 in all cases specifying a single
         coordinate.
-
     :param whiteXYZ: tuple, list or ndarray
         1-D vector coordinate of the white point in CIE-XYZ color space. Must be
         the same white point needed by the conversion matrix. The default
         white point is D65 if None is specified, defined as:
-
             X, Y, Z = 0.9505, 1.0000, 1.0890
-
     :param conversionMatrix: tuple, list or ndarray
         3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
         matrix is sRGB with a D65 white point if None is specified.
-
+    :param gammaCorrect: boolean
+        Apply sRGB gamma correction if True, otherwise RGB values are left
+        linear.
     :param clip: boolean
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
-
     :return: array of RGB tristimulus values, or None
 
     """
@@ -66,10 +68,11 @@ def cielab2rgb(lab, whiteXYZ=None, conversionMatrix=None, clip=False):
 
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
-        #   See: https://en.wikipedia.org/wiki/SRGB
-        conversionMatrix = numpy.asarray([[3.2406, -0.9689, 0.0557],
-                                          [-1.5372, 1.8758, -0.2040],
-                                          [-0.4986, 0.0415, 1.0570]])
+        conversionMatrix = numpy.asmatrix([
+            [3.24096994, -1.53738318, -0.49861076],
+            [-0.96924364, 1.8759675, 0.04155506],
+            [0.05563008, -0.20397696, 1.05697151]
+        ])
 
     if whiteXYZ is None:
         # D65 white point in CIE-XYZ color space
@@ -82,25 +85,39 @@ def cielab2rgb(lab, whiteXYZ=None, conversionMatrix=None, clip=False):
 
     # uses reverse transformation found here:
     #   https://en.wikipedia.org/wiki/Lab_color_space
-    def inv_f(val, wp):
+    def inv_f(val):
         delta = 6.0 / 29.0
-        if val > (delta ** 3.0):
+        if val > delta:
             f = val ** 3.0
         else:
-            f = (val - 4.0 / 29.0) * (3.0 * delta ** 2.0)
-        return f * wp
+            f = (val - (4.0 / 29.0)) * (3.0 * delta ** 2.0)
+        return f
     inv_f = numpy.vectorize(inv_f)
 
     # convert Lab to CIE-XYZ color space
     xyz_array = numpy.zeros(lab.shape)
     wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
     s = (L + 16.0) / 116.0
-    xyz_array[:, 0] = inv_f(s + (a / 500.0), wht_x)
-    xyz_array[:, 1] = inv_f(s, wht_y)
-    xyz_array[:, 2] = inv_f(s - (b / 200.0), wht_z)
+    xyz_array[:, 0] = inv_f(s + (a / 500.0)) * wht_x
+    xyz_array[:, 1] = inv_f(s) * wht_y
+    xyz_array[:, 2] = inv_f(s - (b / 200.0)) * wht_z
 
     # convert to sRGB using the specified conversion matrix
-    rgb_out = numpy.dot(xyz_array, conversionMatrix)
+    rgb_out = numpy.asarray(numpy.dot(xyz_array, conversionMatrix.T))
+
+    # apply sRGB gamma correction if requested
+    if gammaCorrect:
+        def gamma_correct(c):
+            a = 0.055
+            if c <= 0.0031308:
+                return c * 12.92
+            else:
+                return (1.0 + a) * c ** (1.0 / 2.4) - a
+        gamma_correct = numpy.vectorize(gamma_correct)
+
+        rgb_out[:, 0] = gamma_correct(rgb_out[:, 0])
+        rgb_out[:, 1] = gamma_correct(rgb_out[:, 1])
+        rgb_out[:, 2] = gamma_correct(rgb_out[:, 2])
 
     # clip unrepresentable colors if requested
     if clip:
