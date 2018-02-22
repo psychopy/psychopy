@@ -551,7 +551,7 @@ class MainFrame(wx.Frame):
     def onChangeMonSelection(self, event):
         if self.unSavedMonitor:
             if self.currentMonName == self.ctrlMonList.GetStringSelection():
-                # it didnt' really change
+                # it didn't really change
                 return 1
             # warn user that data will be lost
             msg = _translate('Save changes to monitor?')

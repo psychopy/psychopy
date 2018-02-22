@@ -67,7 +67,7 @@ positions = PositionGrid(
 # the first position).
 positions.randomize()
 
-# Specifiy the Triggers to use to move from target point to point during
+# Specify the Triggers to use to move from target point to point during
 # the validation sequence....
 
 # Use DeviceEventTrigger to create a keyboard char event trigger

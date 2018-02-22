@@ -5,7 +5,7 @@
 Demo of basic mouse handling from the ioHub (a separate asynchronous process for
 fetching and processing events from hardware; mice, keyboards, eyetrackers).
 
-Inital Version: May 6th, 2013, Sol Simpson
+Initial Version: May 6th, 2013, Sol Simpson
 Abbrieviated: May 2013, Jon Peirce
 Updated July, 2013, Sol, Added timeouts
 """

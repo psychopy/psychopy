@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
         if 'A' in pressed_buttons:
             # Rumble the pad, 50% low frequency motor, 25% high frequency
-            # motor, for 1 second. Method is asyncronous, in that it returns
+            # motor, for 1 second. Method is asynchronous, in that it returns
             # as soon as the ioHub Server has responded that the rumble request
             # was received and started.
             rt, rd = gamepad.setRumble(50.0, 25.0, 1.0)

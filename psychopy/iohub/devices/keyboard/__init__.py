@@ -187,7 +187,7 @@ class KeyboardInputEvent(DeviceEvent):
         self.key_id = 0
 
         #: The utf-8 coe point for the key present, if it has one and can be determined. 0 otherwise.
-        #: This value is, in most cases, calulated by taking the event.key value,
+        #: This value is, in most cases, calculated by taking the event.key value,
         #: determining if it is a unicode utf-8 encoded char, and if so, calling the
         #: Python built in function unichr(event.key).
         #: int value between 0 and 2**16.

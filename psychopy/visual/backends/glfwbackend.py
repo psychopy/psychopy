@@ -15,15 +15,13 @@ and initialize an instance using the attributes of the Window.
 
 from __future__ import absolute_import, print_function
 import sys
-import os
 import numpy as np
-
-import psychopy
-from psychopy import logging, event, platform_specific
+from psychopy import logging, event
 from psychopy.tools.attributetools import attributeSetter
-from .gamma import setGamma, setGammaRamp, getGammaRamp
+from .gamma import createLinearRamp
 from .. import globalVars
 from ._base import BaseBackend
+from PIL import Image
 
 import glfw
 # initialize the GLFW library on import
@@ -46,6 +44,8 @@ _CURSORS_ = {
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
     'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
+# load window icon
+_WINDOW_ICON_ = Image.open('psychopy/monitors/psychopy.ico')
 
 
 class GLFWBackend(BaseBackend):
@@ -82,6 +82,28 @@ class GLFWBackend(BaseBackend):
         windows. This is useful for multi-window setups where stimuli objects
         might be used on multiple windows.
 
+    Multi-Display Timing:
+
+        If using multiple displays, waiting for multiple retraces may cause a
+        reduction in overall frame rate. Do the following to prevent this:
+
+            1. Pick a display as your primary screen.
+            2. When creating a window for your primary screen, set
+               swapInterval=1 (default anyways).
+            3. Create windows for all other displays with swapInterval=0.
+
+        In most cases, drawing across all displays will be synchronized with
+        your primary display. However, there is no guarantee vertical retraces
+        occur simultaneously across multiple monitors. Therefore, stimulus onset
+        times may differ slightly after 'flip' is called. In some cases visual
+        artifacts my arise that affect your data (temporal disparities in a
+        haploscope affect perceived depth). If multi-display synchronization is
+        absolutely critical, check if your hardware supports 'gen-lock' or some
+        other synchronization method.
+
+        Always check inter-display timings empirically (using a photo-diode,
+        oscilloscope or some other instrument)!
+
     Known Issues:
 
         1. screenID does not report the X11 display number on linux.
@@ -104,6 +126,7 @@ class GLFWBackend(BaseBackend):
         :param refreshHz: int, refresh rate
         :param depthBits: int, framebuffer depth bits
         :param stencilBits: int, framebuffer stencil bits
+        :param swapInterval: int, screen updates before swapping buffers
         :param winTitle: str, optional window title
 
         """
@@ -134,6 +157,9 @@ class GLFWBackend(BaseBackend):
         win.depthBits = int(kwargs.get('depthBits', 8))
         win.stencilBits = int(kwargs.get('stencilBits', 8))
 
+        # TODO - make waitBlanking set this too, independent right now
+        win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
+
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
         if len(allScrs) < int(win.screen) + 1:
@@ -159,12 +185,12 @@ class GLFWBackend(BaseBackend):
                 vidmode_is_supported = True
                 break
 
+        _size, _bpc, _hz = glfw.get_video_mode(this_screen)
         if not vidmode_is_supported:
             # the requested video mode is not supported, use current
             logging.warning(
                 ("The specified video mode is not supported by this display, "
                  "using native mode ..."))
-            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
             logging.warning(
                 ("Overriding user video settings: size {} -> {}, bpc {} -> "
                  "{}, refreshHz {} -> {}".format(tuple(win.size),
@@ -245,6 +271,9 @@ class GLFWBackend(BaseBackend):
                                             monitor=use_display,
                                             share=share_context)
 
+        # set the window icon
+        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+
         # The window's user pointer maps the Python Window object to its GLFW
         # representation.
         glfw.set_window_user_pointer(self.winHandle, win)
@@ -274,25 +303,29 @@ class GLFWBackend(BaseBackend):
 
         # enable vsync, GLFW has additional setting for this that might be
         # useful.
-        glfw.swap_interval(1)
-        #win.setGamma = self.setGamma
+        glfw.swap_interval(win.swapInterval)
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
-
         if not win.allowGUI:
             self.setMouseVisibility(False)
 
         #glfw.set_window_size_callback(self.winHandle, _onResize)
         #self.winHandle.on_resize = _onResize  # avoid circular reference
-        #if not win.pos:
-        #    # work out where the centre should be
-        #    win.pos = [(thisScreen.width - win.size[0]) / 2,
-        #                (thisScreen.height - win.size[1]) / 2]
-        #if not win._isFullScr:
-        #    # add the necessary amount for second screen
-        #   self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
-        #                                int(win.pos[1] + thisScreen.y))
+
+        # TODO - handle window resizing
+
+        # Set the position of the window if not fullscreen.
+        if not win.pos:
+            # work out where the centre should be
+            win.pos = [(_size[0] - win.size[0]) / 2.0,
+                       (_size[1] - win.size[1]) / 2.0]
+        if not win._isFullScr:
+            # get the virtual position of the monitor, apply offset to pos
+            _px, _py = glfw.get_monitor_pos(this_screen)
+            glfw.set_window_pos(self.winHandle,
+                                int(win.pos[0] + _px),
+                                int(win.pos[1] + _py))
 
     @property
     def shadersSupported(self):
@@ -421,8 +454,9 @@ class GLFWBackend(BaseBackend):
             gamma.shape = [3, 1]
 
         # create linear LUT
-        newLUT = np.tile(np.linspace(0, 1, num=self.getGammaRampSize()), (3, 1))
-
+        newLUT = np.tile(
+            createLinearRamp(rampSize=self.getGammaRampSize()), (3, 1)
+        )
         if np.all(gamma == 1.0) == False:
             # correctly handles 1 or 3x1 gamma vals
             newLUT = newLUT ** (1.0 / np.array(gamma))

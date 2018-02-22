@@ -342,7 +342,7 @@ class AnalogInput(AnalogInputDevice):
         # ioHub time.
 
         # TODO: Note that this timing logic assumes that samples start being created
-        # by the device sometime **during** the call to the start scan fucntion of
+        # by the device sometime **during** the call to the start scan function of
         # the device. This is an **assumption only**.
         # The actual delay from when the start scan method is called and when the first
         # sample event is received from the device should be checked and used if possible to

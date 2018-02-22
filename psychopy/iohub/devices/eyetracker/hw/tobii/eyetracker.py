@@ -222,7 +222,7 @@ class EyeTracker(EyeTrackerDevice):
         return EyeTrackerConstants.EYETRACKER_ERROR
 
     def enableEventReporting(self, enabled=True):
-        """enableEventReporting is functionaly identical to the eye tracker
+        """enableEventReporting is functionally identical to the eye tracker
         device specific enableEventReporting method."""
 
         try:
@@ -310,7 +310,7 @@ class EyeTracker(EyeTrackerDevice):
         In general, the y or vertical component of each eyes gaze position should
         be the same value, since in typical user populations the two eyes are
         yoked vertically when they move. Therefore any difference between the
-        two eyes in the y dimention is likely due to eye tracker error.
+        two eyes in the y dimension is likely due to eye tracker error.
 
         Differences between the x, or horizontal component of the gaze position,
         indicate that the participant is being reported as looking behind or

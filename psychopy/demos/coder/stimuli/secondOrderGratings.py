@@ -15,7 +15,7 @@ noise = np.random.random([128, 128]) * 2.0 - 1  # might want higher res for big 
 # env1 Bottom right:: Unmodulated roataing carrier sf=8 ori=45:: moddepth=0.
 # env2 Bottom left:: 100% modulated noise, envelope drifitng and rotating envsf=8
 # env3 Top right:: 100% modulated sin carrier, envelope and carrier rotate in
-#   oposite directions (envelope orientation appears slower than grating below
+#   opposite directions (envelope orientation appears slower than grating below
 #   but it you track the orientation its not
 # env4 Top Left:: 100% beat, envsf=4 but is beat so lookslike 8. Envelope is
 #   drifitng at same speed as env1

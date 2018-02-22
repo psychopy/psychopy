@@ -186,10 +186,10 @@ class ioHubTimeSyncConnection(UDPClientConnection):
 
 
 class ioHubTimeGreenSyncManager(Greenlet):
-    """The time syncronization manager class used within an ioHub Server when a
+    """The time synchronization manager class used within an ioHub Server when a
     ioHubRemoteEventSubscriber device is running.
 
-    The time syncronization manager monitors and calculates the ongoing
+    The time synchronization manager monitors and calculates the ongoing
     offset and drift between the local ioHub instance and a remote ioHub
     instance running on another computer that is publishing events that
     are being received by the local ioHubRemoteEventSubscriber.
@@ -317,7 +317,7 @@ class TimeSyncState(object):
         return self.offsets.mean()
 
     def getAccuracy(self):
-        """Current accuracy of the time syncronization, as calculated as the.
+        """Current accuracy of the time synchronization, as calculated as the.
 
         average of the last 10 round trip time sync request - response delays
         divided by two.

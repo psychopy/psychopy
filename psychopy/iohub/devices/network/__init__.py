@@ -24,7 +24,7 @@ class EventPublisher(Device):
     tcp/ip. (a list of event types that the EventPublisher Device will publish
     can be specified in the EventPublisher device config settings).
 
-    Other than specifiying that a EventPublisher device is desired
+    Other than specifying that a EventPublisher device is desired
     during the experiment by adding the device configuration to the
     experiment's iohub_config.yaml, nothing else needs to be done during
     the experiment runtime. The EventPublisher device automatically
@@ -114,7 +114,7 @@ class EventPublisher(Device):
 class RemoteEventSubscriber(Device):
     """The RemoteEventSubscriber Device allows the ioHub Server it is running
     in to receive ioHub events from networked remote ioHub Server instances
-    running on seperate computers. The remote ioHub Server must be running an
+    running on separate computers. The remote ioHub Server must be running an
     instance the EventPublisher device for RemoteEventSubscriber to receive
     events from that ioHub Server instance.
 

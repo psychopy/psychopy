@@ -30,7 +30,7 @@ class AnalogInputDevice(Device):
     The ioHub provides a simple common interface to all supported models,
     providing digital sample events for 8 single ended channels of
     simultaneously sampled analog inputs. Currently the input channel count
-    is fixed at 8 channels, although you do not neeed to use all channels
+    is fixed at 8 channels, although you do not need to use all channels
     that are being recorded obviously.
 
     All device interfaces have been written to use the 'data streaming'
@@ -42,7 +42,7 @@ class AnalogInputDevice(Device):
     in this example. All supported devices have been tested to ensure they support
     a sampling rate of up to 1000 Hz for each of the 8 channels being monitored.
 
-    Note that the U6 and USB-1616FS support 1000 Hz and are of heigh enough quality
+    Note that the U6 and USB-1616FS support 1000 Hz and are of high enough quality
     for samples to settle well within the maximum suggested 1 msec sampling interval.
     However the USB-1208FS, being a less expensive device, can not setting within
     this fast of time period, so you will see distortion in sample readings following
