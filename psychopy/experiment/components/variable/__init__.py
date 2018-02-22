@@ -147,5 +147,5 @@ class VariableComponent(BaseComponent):
                 code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
             elif inits['saveVarState'] == 'every frame': # Then save all values
                 code += "   thisExp.addData(fields, %s_container[fields])" % inits['name']
-          buff.writeIndentedLines(code)
+            buff.writeIndentedLines(code)
 
