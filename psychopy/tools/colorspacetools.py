@@ -15,6 +15,59 @@ import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
 
+
+def srgbTF(rgb, reverse=False):
+    """Apply sRGB transfer function (or gamma) to RGB values.
+
+    By default the transfer function converts linear RGB to sRGB as defined by
+    ITU-R BT.709.
+
+    :param linearRGB: tuple, list or ndarray of floats
+        Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
+        specifying RBG values.
+    :param reverse: boolean
+        If True, the reverse transfer function will convert sRGB -> linear RGB
+    :return:
+
+    """
+    # handle the various data types and shapes we might get as input
+    if isinstance(rgb, (list, tuple,)):
+        rgb = numpy.asarray(rgb)
+
+    orig_shape = rgb.shape
+    orig_dim = rgb.ndim
+    if orig_dim == 1 and orig_shape[0] == 3:
+        rgb = numpy.array(rgb, ndmin=2)
+    elif orig_dim == 2 and orig_shape[1] == 3:
+        pass
+    elif orig_dim == 3 and orig_shape[2] == 3:
+        rgb = numpy.reshape(rgb, (-1, 3))
+    else:
+        raise ValueError(
+            "Invalid input dimensions or shape for linear RGB gamut.")
+
+    # apply the sRGB TF
+    if not reverse:
+        # applies the sRGB (Rec. 709) transfer function (linear RGB -> sRGB)
+        to_return = numpy.where(
+            rgb <= 0.0031308,
+            rgb * 12.92,
+            (1.0 + 0.055) * rgb ** (1.0 / 2.4) - 0.055)
+    else:
+        # do the inverse (sRGB -> linear RGB)
+        to_return = numpy.where(
+            rgb <= 0.04045,
+            rgb / 12.92,
+            ((rgb + 0.055) / 1.055) ** 2.4)
+
+    if orig_dim == 1:
+        to_return = to_return[0]
+    elif orig_dim == 3:
+        to_return = numpy.reshape(to_return, orig_shape)
+
+    return to_return
+
+
 def cielab2rgb(lab,
                whiteXYZ=None,
                conversionMatrix=None,
@@ -97,27 +150,17 @@ def cielab2rgb(lab,
     # convert Lab to CIE-XYZ color space
     xyz_array = numpy.zeros(lab.shape)
     wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
+    delta = 6.0 / 29.0
     s = (L + 16.0) / 116.0
     xyz_array[:, 0] = inv_f(s + (a / 500.0)) * wht_x
     xyz_array[:, 1] = inv_f(s) * wht_y
     xyz_array[:, 2] = inv_f(s - (b / 200.0)) * wht_z
-
     # convert to sRGB using the specified conversion matrix
     rgb_out = numpy.asarray(numpy.dot(xyz_array, conversionMatrix.T))
 
     # apply sRGB gamma correction if requested
     if gammaCorrect:
-        def gamma_correct(c):
-            a = 0.055
-            if c <= 0.0031308:
-                return c * 12.92
-            else:
-                return (1.0 + a) * c ** (1.0 / 2.4) - a
-        gamma_correct = numpy.vectorize(gamma_correct)
-
-        rgb_out[:, 0] = gamma_correct(rgb_out[:, 0])
-        rgb_out[:, 1] = gamma_correct(rgb_out[:, 1])
-        rgb_out[:, 2] = gamma_correct(rgb_out[:, 2])
+        rgb_out = srgbTF(rgb_out)
 
     # clip unrepresentable colors if requested
     if clip:
