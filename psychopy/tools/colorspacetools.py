@@ -19,12 +19,15 @@ from psychopy.tools.coordinatetools import sph2cart
 def srgbTF(rgb, reverse=False):
     """Apply sRGB transfer function (or gamma) to RGB values.
 
-    :param linearRGB: tuple, list or ndarray of floats
+    Input values must have been transformed using a conversion matrix derived
+    from sRGB primaries relative to D65.
+
+    :param rgb: tuple, list or ndarray of floats
         Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
         specifying RBG values.
     :param reverse: boolean
         If True, the reverse transfer function will convert sRGB -> linear RGB
-    :return:
+    :return: ndarray with same shape as input
 
     """
     # handle the various data types and shapes we might get as input
@@ -41,11 +44,11 @@ def srgbTF(rgb, reverse=False):
         rgb = numpy.reshape(rgb, (-1, 3))
     else:
         raise ValueError(
-            "Invalid input dimensions or shape for linear RGB gamut.")
+            "Invalid input dimensions or shape for input RGB gamut.")
 
     # apply the sRGB TF
     if not reverse:
-        # applies the sRGB (Rec. 709) transfer function (linear RGB -> sRGB)
+        # applies the sRGB transfer function (linear RGB -> sRGB)
         to_return = numpy.where(
             rgb <= 0.0031308,
             rgb * 12.92,
@@ -64,6 +67,51 @@ def srgbTF(rgb, reverse=False):
 
     return to_return
 
+
+def rec709TF(rgb):
+    """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
+
+    This transfer function is defined in the ITU-R BT.709 (2015) recommendation
+    document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
+    commonly used with HDTV televisions. Input values must have been transformed
+    using a conversion matrix derived from CIE-xy (1931) primaries,
+        R, G, B = [[0.64, 0.33], [0.30, 0.60], [0.15, 0.06]]
+    with a reference white point at,
+        W = [0.327, 0.329]
+    :param rgb: tuple, list or ndarray of floats
+        Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
+        specifying RBG values.
+    :return: ndarray with same shape as input
+
+    """
+    # handle the various data types and shapes we might get as input
+    if isinstance(rgb, (list, tuple,)):
+        rgb = numpy.asarray(rgb)
+
+    orig_shape = rgb.shape
+    orig_dim = rgb.ndim
+    if orig_dim == 1 and orig_shape[0] == 3:
+        rgb = numpy.array(rgb, ndmin=2)
+    elif orig_dim == 2 and orig_shape[1] == 3:
+        pass
+    elif orig_dim == 3 and orig_shape[2] == 3:
+        rgb = numpy.reshape(rgb, (-1, 3))
+    else:
+        raise ValueError(
+            "Invalid input dimensions or shape for input RGB gamut.")
+
+    # applies the Rec.709 transfer function (linear RGB -> Rec.709 RGB)
+    # mdc - I didn't compute the inverse for this one.
+    to_return = numpy.where(rgb >= 0.018,
+                            1.099 * rgb ** 0.45 - 0.099,
+                            4.5 * rgb)
+
+    if orig_dim == 1:
+        to_return = to_return[0]
+    elif orig_dim == 3:
+        to_return = numpy.reshape(to_return, orig_shape)
+
+    return to_return
 
 def cielab2rgb(lab,
                whiteXYZ=None,
@@ -168,7 +216,7 @@ def cielab2rgb(lab,
     elif orig_dim == 3:
         rgb_out = numpy.reshape(rgb_out, orig_shape)
 
-    return rgb_out * 2.0 - 1.0
+    return rgb_out
 
 
 def dkl2rgb(dkl, conversionMatrix=None):
