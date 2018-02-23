@@ -19,9 +19,6 @@ from psychopy.tools.coordinatetools import sph2cart
 def srgbTF(rgb, reverse=False):
     """Apply sRGB transfer function (or gamma) to RGB values.
 
-    By default the transfer function converts linear RGB to sRGB as defined by
-    ITU-R BT.709.
-
     :param linearRGB: tuple, list or ndarray of floats
         Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
         specifying RBG values.
