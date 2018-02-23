@@ -150,7 +150,6 @@ def cielab2rgb(lab,
     # convert Lab to CIE-XYZ color space
     xyz_array = numpy.zeros(lab.shape)
     wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
-    delta = 6.0 / 29.0
     s = (L + 16.0) / 116.0
     xyz_array[:, 0] = inv_f(s + (a / 500.0)) * wht_x
     xyz_array[:, 1] = inv_f(s) * wht_y
