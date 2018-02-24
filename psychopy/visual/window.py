@@ -55,6 +55,17 @@ if sys.platform == 'win32':
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
 
+    # for pyglet 1.3
+    if not haveAvbin:
+        try:
+            from pyglet.media.sources import avbin
+            haveAvbin = True
+        except ImportError:
+            haveAvbin = False
+        except AttributeError:
+            haveAvbin = False
+        except Exception:
+            haveAvbin = False
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors
