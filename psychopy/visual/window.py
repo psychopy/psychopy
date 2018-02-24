@@ -1263,7 +1263,7 @@ class Window(object):
             self.useNativeGamma = False
         elif not self.monitor.gammaIsDefault():
             if self.monitor.getGamma() is not None:
-                self.__dict__['gamma'] = self.monitor.getGamma()
+                gammaVal = self.monitor.getGamma()
                 self.useNativeGamma = False
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
