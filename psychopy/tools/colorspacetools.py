@@ -16,6 +16,38 @@ from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
 
 
+def unpackColors(colors):
+    """Reshape an array of color values to Nx3 format.
+
+    Many color conversion routines operate on color data in Nx3 format, where
+    rows are color space coordinates. 1x3 and NxNx3 input are converted to Nx3
+    format.
+
+    :param colors:
+        Nx3 or NxNx3 array of colors, last dim must be size == 3 specifying each
+        color coordinate.
+    :return: Nx3 ndarray of converted colors, original shape, original dims
+
+    """
+    # handle the various data types and shapes we might get as input
+    if isinstance(colors, (list, tuple,)):
+        colors = numpy.asarray(colors)
+
+    orig_shape = colors.shape
+    orig_dim = colors.ndim
+    if orig_dim == 1 and orig_shape[0] == 3:
+        colors = numpy.array(colors, ndmin=2)
+    elif orig_dim == 2 and orig_shape[1] == 3:
+        pass
+    elif orig_dim == 3 and orig_shape[2] == 3:
+        colors = numpy.reshape(colors, (-1, 3))
+    else:
+        raise ValueError(
+            "Invalid input dimensions or shape for input colors.")
+
+    return colors, orig_shape, orig_dim
+
+
 def srgbTF(rgb, reverse=False):
     """Apply sRGB transfer function (or gamma) to RGB values.
 
@@ -30,21 +62,7 @@ def srgbTF(rgb, reverse=False):
     :return: ndarray with same shape as input
 
     """
-    # handle the various data types and shapes we might get as input
-    if isinstance(rgb, (list, tuple,)):
-        rgb = numpy.asarray(rgb)
-
-    orig_shape = rgb.shape
-    orig_dim = rgb.ndim
-    if orig_dim == 1 and orig_shape[0] == 3:
-        rgb = numpy.array(rgb, ndmin=2)
-    elif orig_dim == 2 and orig_shape[1] == 3:
-        pass
-    elif orig_dim == 3 and orig_shape[2] == 3:
-        rgb = numpy.reshape(rgb, (-1, 3))
-    else:
-        raise ValueError(
-            "Invalid input dimensions or shape for input RGB gamut.")
+    rgb, orig_shape, orig_dim = unpackColors(rgb)
 
     # apply the sRGB TF
     if not reverse:
@@ -73,32 +91,15 @@ def rec709TF(rgb):
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
     document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
-    commonly used with HDTV televisions. Input values must have been transformed
-    using a conversion matrix derived from CIE-xy (1931) primaries,
-        R, G, B = [[0.64, 0.33], [0.30, 0.60], [0.15, 0.06]]
-    with a reference white point at,
-        W = [0.327, 0.329]
+    commonly used with HDTV televisions.
+
     :param rgb: tuple, list or ndarray of floats
         Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
         specifying RBG values.
     :return: ndarray with same shape as input
 
     """
-    # handle the various data types and shapes we might get as input
-    if isinstance(rgb, (list, tuple,)):
-        rgb = numpy.asarray(rgb)
-
-    orig_shape = rgb.shape
-    orig_dim = rgb.ndim
-    if orig_dim == 1 and orig_shape[0] == 3:
-        rgb = numpy.array(rgb, ndmin=2)
-    elif orig_dim == 2 and orig_shape[1] == 3:
-        pass
-    elif orig_dim == 3 and orig_shape[2] == 3:
-        rgb = numpy.reshape(rgb, (-1, 3))
-    else:
-        raise ValueError(
-            "Invalid input dimensions or shape for input RGB gamut.")
+    rgb, orig_shape, orig_dim = unpackColors(rgb)
 
     # applies the Rec.709 transfer function (linear RGB -> Rec.709 RGB)
     # mdc - I didn't compute the inverse for this one.
@@ -112,6 +113,7 @@ def rec709TF(rgb):
         to_return = numpy.reshape(to_return, orig_shape)
 
     return to_return
+
 
 def cielab2rgb(lab,
                whiteXYZ=None,
@@ -147,22 +149,7 @@ def cielab2rgb(lab,
     :return: array of RGB tristimulus values, or None
 
     """
-    # convert to numpy array if list or tuple
-    if isinstance(lab, (list, tuple,)):
-        lab = numpy.asarray(lab)
-
-    # conversion routine requires a Nx3 gamut of L*a*b* colors
-    orig_shape = lab.shape
-    orig_dim = lab.ndim
-    if orig_dim == 1 and orig_shape[0] == 3:
-        lab = numpy.array(lab, ndmin=2)  # force 2D
-    elif orig_dim == 2 and orig_shape[1] == 3:
-        pass  # perfect, nop
-    elif orig_dim == 3 and orig_shape[2] == 3:
-        lab = numpy.reshape(lab, (-1, 3))  # make Nx3
-    else:
-        raise ValueError(
-            "Invalid input dimensions or shape for CIELAB coordinates.")
+    lab, orig_shape, orig_dim = unpackColors(lab)
 
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
@@ -216,7 +203,7 @@ def cielab2rgb(lab,
     elif orig_dim == 3:
         rgb_out = numpy.reshape(rgb_out, orig_shape)
 
-    return rgb_out
+    return rgb_out * 2.0 - 1.0
 
 
 def dkl2rgb(dkl, conversionMatrix=None):
