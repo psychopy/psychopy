@@ -860,22 +860,24 @@ def makeXYZ2RGB(red_xy,
 
     """
     # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
-    mat_xyY_primaries = np.asarray((
+    mat_xyY_primaries = np.asmatrix((
         (red_xy[0], red_xy[1], 1.0 - red_xy[0] - red_xy[1]),
         (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
         (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
-    ))
+    )).T
     # convert white point to CIE-XYZ
-    whtp_XYZ = np.dot(
-        1.0 / whitePoint_xy[1],
-        np.asarray((whitePoint_xy[0],
-                    whitePoint_xy[1],
-                    1.0 - whitePoint_xy[0] - whitePoint_xy[1]))
-    )
+    whtp_XYZ = np.asmatrix(
+        np.dot(1.0 / whitePoint_xy[1],
+            np.asarray((
+                whitePoint_xy[0],
+                whitePoint_xy[1],
+                1.0 - whitePoint_xy[0] - whitePoint_xy[1])
+            )
+        )
+    ).T
     # compute the final matrix (sRGB -> XYZ)
-    to_return = np.dot(
-        np.diag(np.dot(whtp_XYZ, np.linalg.inv(mat_xyY_primaries))),
-        mat_xyY_primaries)
+    to_return = mat_xyY_primaries * np.diag(
+        (np.linalg.inv(mat_xyY_primaries) * whtp_XYZ).A1)
 
     if not reverse:  # for XYZ -> sRGB conversion matrix (we usually want this!)
         return np.linalg.inv(to_return)
