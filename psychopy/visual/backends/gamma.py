@@ -198,13 +198,17 @@ def createLinearRamp(rampType=None, rampSize=256, driver=None):
     if rampType is None:
 
         # try to determine rampType from heuristics including sys info
-        if driver is not None:
 
-            osxVer = platform.mac_ver()[0]  # '' on non-Mac
+        osxVer = platform.mac_ver()[0]  # '' on non-Mac
 
-            # try to deduce ramp type
-            if osxVer:
-                osxVerTuple = _versionTuple(osxVer)
+        # OSX
+        if osxVer:
+            osxVerTuple = _versionTuple(osxVer)
+
+            # driver provided
+            if driver is not None:
+
+                # nvidia
                 if 'NVIDIA' in driver:
                     # leopard nVidia cards don't finish at 1.0!
                     if _versionTuple("10.5") < osxVerTuple < _versionTuple("10.6"):
@@ -214,14 +218,20 @@ def createLinearRamp(rampType=None, rampSize=256, driver=None):
                         rampType = 3
                     else:
                         rampType = 1
+
+                # non-nvidia
                 else:  # is ATI or unkown manufacturer, default to (1:256)/256
                     # this is certainly correct for radeon2600 on 10.5.8 and
                     # radeonX1600 on 10.4.9
                     rampType = 1
-            else:  # is ATI or unknown manufacturer, default to (1:256)/256
+
+            # no driver info given
+            else:  # is ATI or unkown manufacturer, default to (1:256)/256
                 # this is certainly correct for radeon2600 on 10.5.8 and
                 # radeonX1600 on 10.4.9
                 rampType = 1
+
+        # win32 or linux
         else:  # for win32 and linux this is sensible, not clear about Vista and Windows7
             rampType = 0
 
