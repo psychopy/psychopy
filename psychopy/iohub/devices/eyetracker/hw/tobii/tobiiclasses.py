@@ -258,7 +258,7 @@ class TobiiTrackerBrowser(object):
                 pass
 
 
-# Tobii Eye Tracker and Time Syncronization Services
+# Tobii Eye Tracker and Time Synchronization Services
 
 class TobiiTracker(object):
     LEFT = 0

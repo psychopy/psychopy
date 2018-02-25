@@ -13,6 +13,7 @@ import ctypes
 import os
 import sys
 import weakref
+import atexit
 
 from builtins import map
 from builtins import object
@@ -81,7 +82,6 @@ from psychopy.core import rush
 
 reportNDroppedFrames = 5  # stop raising warning after this
 
-from psychopy.visual.backends.gamma import getGammaRamp, setGammaRamp
 # import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 from . import shaders as _shaders
 try:
@@ -155,7 +155,9 @@ class Window(object):
                  checkTiming=True,
                  useFBO=False,
                  useRetina=True,
-                 autoLog=True):
+                 autoLog=True,
+                 *args,
+                 **kwargs):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -359,7 +361,7 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self)
+        self.backend = backends.getBackend(win=self, *args, **kwargs)
         self.winHandle = self.backend.winHandle
         global GL
         GL = self.backend.GL
@@ -449,6 +451,16 @@ class Window(object):
         self.autoLog = autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
+
+        # Make sure this window's close method is called when exiting, even in
+        # the event of an error we should be able to restore the original gamma
+        # table. Note that a reference to this window object will live in this
+        # function, preventing it from being garbage collected.
+        def close_on_exit():
+            if self._closed is False:
+                self.close()
+
+        atexit.register(close_on_exit)
 
     def __del__(self):
         if self._closed is False:
@@ -655,7 +667,7 @@ class Window(object):
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
-                # need blit the frambuffer object to the actual back buffer
+                # need blit the framebuffer object to the actual back buffer
 
                 # unbind the framebuffer as the render target
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
@@ -925,9 +937,9 @@ class Window(object):
         if buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         else:
-            GL.glReadBuffer(GL.GL_FRONT)
             if self.useFBO:
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glReadBuffer(GL.GL_FRONT)
 
         # fetch the data with glReadPixels
         # pyglet.gl stores the data in a ctypes buffer
@@ -1098,22 +1110,19 @@ class Window(object):
         """
         self._closed = True
 
+        self.backend.close()  # moved here, dereferencing the window prevents
+                              # backend specific actions to take place
+
         try:
             openWindows.remove(self)
         except Exception:
             pass
-        if self.origGammaRamp is not None:
-            setGammaRamp(
-                screenID=self.backend.screenID,
-                newRamp=self.origGammaRamp,
-                xDisplay=self.backend.xDisplay
-            )
+
         try:
             self.mouseVisible = True
         except Exception:
             # can cause unimportant "'NoneType' object is not callable"
             pass
-        self.backend.close()
 
         try:
             if self.bits is not None:
@@ -1139,6 +1148,7 @@ class Window(object):
         if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             if hasattr(self, '_shaders'):
+                self._progSignedFrag = self._shaders['signedColor']
                 self._progSignedTex = self._shaders['signedTex']
                 self._progSignedTexMask = self._shaders['signedTexMask']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D']
@@ -1146,11 +1156,16 @@ class Window(object):
         elif blendMode == 'add':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
             if hasattr(self, '_shaders'):
+                self._progSignedFrag = self._shaders['signedColor_adding']
                 self._progSignedTex = self._shaders['signedTex_adding']
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
                 tmp = self._shaders['signedTexMask1D_adding']
                 self._progSignedTexMask1D = tmp
                 self._progImageStim = self._shaders['imageStim_adding']
+        else:
+            raise ValueError("Window blendMode should be set to 'avg' or 'add'"
+                             " but we received the value {}"
+                             .format(repr(blendMode)))
 
     def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1242,7 +1257,6 @@ class Window(object):
         given that the user might have specified an explicit value, or maybe
         gave a Monitor
         """
-        self.origGammaRamp = None
         # determine which gamma value to use (or native ramp)
         if gammaVal is not None:
             self._checkGamma()
@@ -1254,15 +1268,6 @@ class Window(object):
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
-
-        # try to retrieve previous so we can reset later
-        try:
-            self.origGammaRamp = getGammaRamp(
-                screenID=self.backend.screenID,
-                xDisplay=self.backend.xDisplay
-            )
-        except Exception:
-            self.origGammaRamp = None
 
         # then try setting it
         if self.useNativeGamma:
@@ -1291,7 +1296,7 @@ class Window(object):
                    "instead")
             raise DeprecationWarning(msg)
 
-        self.backend.gamma = gamma
+        self.backend.gamma = self.__dict__['gamma']
 
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1302,11 +1307,6 @@ class Window(object):
     @attributeSetter
     def gammaRamp(self, newRamp):
         self.backend.gammaRamp = newRamp
-        if self.winType == 'pyglet':
-            self.winHandle.setGammaRamp(self.winHandle, newRamp)
-        else:  # pyglet
-            self.winHandle.set_gamma_ramp(
-                newRamp[:, 0], newRamp[:, 1], newRamp[:, 2])
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
@@ -1333,7 +1333,7 @@ class Window(object):
             # windowPerCM = windowPerPIX / CMperPIX
             #             = (window/winPIX) / (scrCm/scrPIX)
             if self.scrWidthCM in [0, None] or self.scrWidthPIX in [0, None]:
-                logging.error('you didnt give the width of the screen (pixels'
+                logging.error('you did not give the width of the screen (pixels'
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
@@ -1344,7 +1344,7 @@ class Window(object):
             #              = winPerCM * tan(pi/180) * distance
             if ((self.scrWidthCM in [0, None]) or
                     (self.scrWidthPIX in [0, None])):
-                logging.error('you didnt give the width of the screen (pixels'
+                logging.error('you did not give the width of the screen (pixels'
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
@@ -1427,6 +1427,10 @@ class Window(object):
         self._progFBOtoFrame = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragFBOtoFrame)
         self._shaders = {}
+        self._shaders['signedColor'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColor)
+        self._shaders['signedColor_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColor_adding)
         self._shaders['signedTex'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColorTex)
         self._shaders['signedTexMask'] = _shaders.compileProgram(
@@ -1515,6 +1519,31 @@ class Window(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'mouseVisible', visibility, log)
+
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+                'arrow' : Default pointer
+                'ibeam' : Indicates text can be edited
+            'crosshair' : Crosshair with hot-spot at center
+                 'hand' : A pointing hand
+              'hresize' : Double arrows pointing horizontally
+              'vresize' : Double arrows pointing vertically
+
+        Requires the GLFW backend, otherwise this function does nothing! Note,
+        on Windows the 'crosshair' option is XORed with the background color. It
+        will not be visible when placed over 50% grey fields.
+
+        :param name: str, type of standard cursor to use
+        :return:
+
+        """
+        pass
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):

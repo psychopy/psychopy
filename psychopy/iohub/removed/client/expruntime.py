@@ -37,7 +37,7 @@ class ioHubExperimentRuntime(object):
     # Not going to correct this classes code format (pylint, pep8)
     # since it is on its way out..
     """The ioHubExperimentRuntime class brings together several aspects of the
-    ioHub Event Monitoring Framework, making it simplier to define and manage
+    ioHub Event Monitoring Framework, making it simpler to define and manage
     experiments that use multiple ioHub Device types, particularly when using
     more complicated devices such as the Eye Tracker or Analog Input Device.
 
@@ -94,7 +94,7 @@ class ioHubExperimentRuntime(object):
 
         #: The devices attribute is a short cut to the ioHubConnection
         #: instance's .devices attribute. i.e. self.devices = self.hub.devices.
-        #: A refernce to the Computer class is also added to the devices
+        #: A reference to the Computer class is also added to the devices
         #: attribute, so when using the ioHubConnection devices attribute,
         #: the ioHub Computer class can be accessed using self.devices.computer;
         #: It does not need to be imported by your script.
@@ -154,7 +154,7 @@ class ioHubExperimentRuntime(object):
 
     def run(self, *sys_argv):
         """The run method must be overwritten by your subclass of
-        ioHubExperimentRuntime, and would include the equivelent logic to what
+        ioHubExperimentRuntime, and would include the equivalent logic to what
         would be added to the main starting script in a procedural PsychoPy
         script.
 
@@ -263,7 +263,7 @@ class ioHubExperimentRuntime(object):
         passed into the method will be reflected in the data values saved to
         the ioHub DataStore.
 
-        Note that the same dict object that is passed into the method as an arguement
+        Note that the same dict object that is passed into the method as an argument
         must be returned by the method as the result.
 
         Args:
@@ -282,7 +282,7 @@ class ioHubExperimentRuntime(object):
         passed into the method will be reflected in the data values saved to
         the ioHub DataStore for the session.
 
-        Note that the same dict object that is passed into the method as an arguement
+        Note that the same dict object that is passed into the method as an argument
         must be returned by the method as the result.
 
         Args:

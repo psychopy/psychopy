@@ -344,7 +344,7 @@ class GlyphMetrics( object ):
     width = property( lambda self: self._FT_Glyph_Metrics.width,
        doc = '''The glyph's width.''' )
 
-    height = property( lambda self: self._FT_Glyph_Metrics.heigth,
+    height = property( lambda self: self._FT_Glyph_Metrics.height,
        doc = '''The glyph's height.''' )
 
     horiBearingX = property( lambda self: self._FT_Glyph_Metrics.horiBearingX,

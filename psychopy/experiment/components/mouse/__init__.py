@@ -20,9 +20,9 @@ tooltip = _translate('Mouse: query mouse position and buttons')
 _localized = {'saveMouseState': _translate('Save mouse state'),
               'forceEndRoutineOnPress': _translate('End Routine on press'),
               'timeRelativeTo': _translate('Time relative to'),
-              'Clickable stimuli': 'Clickable stimuli',
-              'Store params for clicked': 'Store params for clicked',
-              'New clicks only': 'New clicks only'}
+              'Clickable stimuli': _translate('Clickable stimuli'),
+              'Store params for clicked': _translate('Store params for clicked'),
+              'New clicks only': _translate('New clicks only')}
 
 
 class MouseComponent(BaseComponent):

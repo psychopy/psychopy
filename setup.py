@@ -14,14 +14,16 @@ usage::
 from setuptools import setup, find_packages
 ################
 import os
+from os.path import exists, join
 from sys import platform, argv, version_info
+
 
 PY3 = version_info >= (3, 0)
 
 # use pip module to parse the
 required = ['requests[security]',
             'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
-            'wxPython', 'pyglet', 'pygame', 'configobj',
+            'wxPython', 'pyglet', 'pygame', 'configobj', 'pyopengl',
             'soundfile', 'sounddevice',
             'python-bidi', 'cffi',
             'future', 'json_tricks',
@@ -53,11 +55,13 @@ if PY3 and ('CONDA_PREFIX' not in os.environ):
 
 
 # compress psychojs to a zip file for packaging
-if '-noJS' in argv:  # only takes 0.5s but could skip if you prefer
+# only takes 0.5s but could skip if you prefer
+if ('-noJS' in argv) or not exists('psychojs'):
     pass
 else:
     import shutil
-    shutil.make_archive(os.path.join('psychopy', 'psychojs'), 'zip', 'psychojs')
+    shutil.make_archive(join('psychopy', 'psychojs'),
+                        'zip', 'psychojs')
 
 # regenerate __init__.py only if we're in the source repos (not in a source zip file)
 try:
@@ -85,18 +89,22 @@ exec(vStr)
 # define the extensions to compile if necess
 packages = find_packages()
 # for the source dist this doesn't work - use the manifest.in file
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx', '.zip']
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
+                  '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
 dataFiles = ['psychopy/psychojs.zip']
 
+# post_install only needs installing on win32 but needs packaging in the zip
 scripts = ['psychopy/app/psychopyApp.py',
-           'psychopy_post_inst.py']  # although post_install only needs installing on win32 it needs packaging in the zip
+           'psychopy_post_inst.py']
 if platform=='win32':
     pass
 elif platform=='darwin':
     dataExtensions.extend(['*.icns'])
 elif platform=='posix':
-    dataFiles += [('share/applications', ['psychopy/app/Resources/psychopy.desktop']),
-                  ('share/pixmaps', ['psychopy/app/Resources/psychopy.png'])]
+    dataFiles += [('share/applications',
+                   ['psychopy/app/Resources/psychopy.desktop']),
+                  ('share/pixmaps',
+                   ['psychopy/app/Resources/psychopy.png'])]
 
 
 setup(name="PsychoPy",
@@ -111,9 +119,10 @@ setup(name="PsychoPy",
     install_requires = required,
     # metadata
     version = __version__,
-    description = "Psychophysics toolkit for Python",
-    long_description = "PsychoPy uses OpenGL and Python to create a toolkit" + \
-        " for running psychology/neuroscience/psychophysics experiments",
+    description = "Psychology experiment software in Python",
+    long_description = ("PsychoPy uses OpenGL and Python to create a toolkit "
+                        "for running psychology/neuroscience/psychophysics "
+                        "experiments"),
     author= __author__,
     author_email= __author_email__,
     maintainer_email= __maintainer_email__,
@@ -130,3 +139,4 @@ setup(name="PsychoPy",
 #remove unwanted info about this system post-build
 if writeNewInit:
     createInitFile.createInitFile(dist=None)
+

@@ -9,12 +9,22 @@ Changelog
 
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
-PsychoPy 1.86
+PsychoPy 1.90
 ------------------------------
 
-This is the first attempt at support for Python 3, with maintained support for Python 2.7.
+This is a very major refactor of many parts of the PsychoPy code. Treat very
+carefully for the first few bug-fix releases as there are likely to be errors
+some of which could be catastrophic to your data!!
 
-PsychoPy 1.86.0
+This is the first attempt at support for Python 3, with maintained support for
+Python 2.7. Note that both are available as Standalone packages for Win and Mac.
+The Python3.6 version is labelled as Py3 in the download file.
+
+Stick to Python 2.7 if you want your script to break less. If you upgrade to
+Python 3 then you'll need to change any print statements to include brackets
+and you may also get some new errors springing up about unicode/bytes objects.
+
+PsychoPy 1.90.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (not yet released)

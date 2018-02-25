@@ -484,7 +484,7 @@ class RatingScale(MinimalStim):
             else:
                 self.markerStart = None
                 self.markerPlaced = False
-        else:  # float(markerStart) suceeded
+        else:  # float(markerStart) succeeded
             self.markerPlacedAt = self.markerStart
             self.markerPlaced = True
         # default markerStart = 0 if needed but otherwise unspecified:

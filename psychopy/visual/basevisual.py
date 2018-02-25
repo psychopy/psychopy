@@ -499,7 +499,9 @@ class ContainerMixin(object):
         if hasattr(self, 'flipVert') and self.flipVert:
             flip[1] = -1 # True=(-1), False->(+1)
 
-        if hasattr(self, 'vertices'):
+        if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
+            verts = self._tesselVertices
+        elif hasattr(self, 'vertices'):
             verts = self.vertices
         else:
             verts = self._verticesBase

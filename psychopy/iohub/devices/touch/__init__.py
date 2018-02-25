@@ -18,7 +18,7 @@ class TouchDevice(Device):
     positional data is returned using the OS desktop pixel bounds for the given
     display.
 
-    Touch Events are generated independantly of other device events, including
+    Touch Events are generated independently of other device events, including
     a mouse device. Therefore touch data can be used in parallel to mouse data.
 
     """

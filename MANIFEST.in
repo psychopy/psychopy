@@ -1,3 +1,4 @@
+include LICENSE
 recursive-include psychopy *.txt
 recursive-include psychopy *.zip
 

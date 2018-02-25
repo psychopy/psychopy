@@ -61,22 +61,22 @@ class NoiseStim(GratingStim):
     Binary, Normal, Uniform - pixel based noise samples drawn from a binary (blank and white), normal or uniform distribution respectively. Binary noise is always exactly zero mean, Normal and Uniform are approximately so.
             Parameters -    noiseElementSize - (can be a tuple) defines the size of the noise elements in the components units.
                             noiseClip the values in normally distributed noise are divided by noiseClip to limit excessively high or low values.
-                                However, values can still go out of range -1 to 1 whih will throw a soft error message high values of noiseClip are recomended if using 'Normal'
+                                However, values can still go out of range -1 to 1 whih will throw a soft error message high values of noiseClip are recommended if using 'Normal'
     
     Gabor, Isotropic - Effectively a dense scattering of Gabor elements with random amplitude and fixed orientation for Gabor or random orientation for Isotropic noise.
             Parameters -    noiseBaseSf - centre spatial frequency in the component units. 
-                            noiseBW - spatial frequency bandwidth full width half hight in octaves.
+                            noiseBW - spatial frequency bandwidth full width half height in octaves.
                             ori - centre orientation for Gabor noise (works as for gratingStim so twists the final image at render time).
                             noiseBWO - orientation bandwidth for Gabor noise full width half height in degrees.
 
             In practice the desired amplitude spectrum for the noise is built in Fourier space with a random phase spectrum. DC term is set to zero - ie zero mean.
         
-    Filtered - A noise sample that has been filtered with a low, high or bandpass Butterworth filter. The inital sample can have its spectrum skewed towards low or high frequencies
+    Filtered - A noise sample that has been filtered with a low, high or bandpass Butterworth filter. The initial sample can have its spectrum skewed towards low or high frequencies
             The contrast of the noise falls by half its maximum (3dB) at the cutoff frequencies.
             Parameters -    noiseFilterUpper - upper cutoff frequency - if greater than texRes/2 cycles per image low pass filter used.
                             noiseFilterLower - Lower cutoff frequency - if zero low pass filter used.
                             noiseFilterOrder - The order of the filter controls the steepness of the falloff outside the passband is zero no filter is applied.
-                            noiseFractalPower - spectrum = f^noiseFractalPower  - determines the spatial frequency bias of the intial noise sample. 0 = flat spectrum, negative = low frequency bias, postive = high frequency bias, -1 = fractal or brownian noise.
+                            noiseFractalPower - spectrum = f^noiseFractalPower  - determines the spatial frequency bias of the initial noise sample. 0 = flat spectrum, negative = low frequency bias, positive = high frequency bias, -1 = fractal or brownian noise.
                             noiseClip - determines clipping values and rescaling factor such that final rms contrast is close to that requested by contrast parameter while keeping pixel values in range -1, 1.  
 
     White - A short cut to obtain noise with a flat, unfiltered spectrum
@@ -92,7 +92,7 @@ class NoiseStim(GratingStim):
             In practice the desired amplitude spectrum is taken from the image and paired with a random phase spectrum. DC term is set to zero - ie zero mean
             
     **Updating noise samples and timing**
-    The noise is rebuilt at next call of the draw function whenever a paramter starting 'noise' is notionally changed even if the value does not actually change every time. eg. setting a paramter to update every frame will cause a new noise sample on every frame but see below.
+    The noise is rebuilt at next call of the draw function whenever a parameter starting 'noise' is notionally changed even if the value does not actually change every time. eg. setting a parameter to update every frame will cause a new noise sample on every frame but see below.
     A rebuild can also be forced at any time using the buildNoise() function.
     The updateNoise() function can be used at any time to produce a new random saple of noise without doing a full build. ie it is quicker than a full build.
     Both buildNoise and updateNoise can be slow for large samples. 
@@ -102,8 +102,8 @@ class NoiseStim(GratingStim):
 
     **Notes on size**
     If units = pix and noiseType = Binary, Normal or Uniform will make noise sample of requested size.
-    If units = pix and noiseType is Gabor, Isotropic, Filtered, White, Coloured or Image will make sqaure noise sample with side length equal that of the largest dimetions requested.
-    if units is not pix will make sqaure noise sample with side length equal to texRes then rescale to present.
+    If units = pix and noiseType is Gabor, Isotropic, Filtered, White, Coloured or Image will make square noise sample with side length equal that of the largest dimetions requested.
+    if units is not pix will make square noise sample with side length equal to texRes then rescale to present.
     
     **Notes on interpolation**
     For pixel based noise interpolation = nearest is usually best.
@@ -176,7 +176,8 @@ class NoiseStim(GratingStim):
                              color=color, colorSpace=colorSpace,
                              contrast=contrast, opacity=opacity,
                              depth=depth, interpolate=interpolate,
-                             name=name, autoLog=autoLog, autoDraw=autoDraw,blendmode=blendmode,
+                             name=name, autoLog=autoLog, autoDraw=autoDraw,
+                             blendmode=blendmode,
                              maskParams=None)
         # use shaders if available by default, this is a good thing
         self.__dict__['useShaders'] = win._haveShaders
@@ -196,6 +197,7 @@ class NoiseStim(GratingStim):
         #self.interpolate = interpolate
         #del self._texID  # created by GratingStim.__init__
 
+        self.blendmode=blendmode
         self.mask = mask
         #self.tex = tex
         self.texRes=int(texRes)
@@ -214,7 +216,6 @@ class NoiseStim(GratingStim):
             self.noiseClip=float(noiseClip)
         else:
             self.noiseClip=noiseClip
-        self.blendmode=blendmode
         
         # print(self.CMphase)
         #self._shaderProg = _shaders.compileProgram(
@@ -277,7 +278,7 @@ class NoiseStim(GratingStim):
         
     @attributeSetter
     def noiseBW(self, value):
-        """Spatial frequency bandwith for Gabor or Isotropic noise, full width at half height in octaves
+        """Spatial frequency bandwidth for Gabor or Isotropic noise, full width at half height in octaves
         """
         
         self.__dict__['noiseBW'] = value
@@ -286,7 +287,7 @@ class NoiseStim(GratingStim):
         
     @attributeSetter
     def noiseBWO(self, value):
-        """Orientaion bandwith for Gabor noise, full width at half height in degrees
+        """Orientaion bandwidth for Gabor noise, full width at half height in degrees
         """
         
         self.__dict__['noiseBWO'] = value
@@ -347,15 +348,7 @@ class NoiseStim(GratingStim):
         self.__dict__['noiseClip'] = value
         self._needUpdate = True
         self._needBuild = True
-        
-    @attributeSetter
-    def blendMode(self, value):
-        """Sets the openGL blend mode
-        """
-        
-        self.__dict__['blendMode'] = value
-        self._needUpdate = True
-    
+
     @attributeSetter
     def texRes(self, value):
         """Power-of-two int. Sets the resolution of the mask and texture.
@@ -422,8 +415,8 @@ class NoiseStim(GratingStim):
         """
         if win is None:
             win = self.win
-        saveBlendMode=win.blendMode
-        win.blendMode=self.blendMode
+        saveBlendMode = win.blendMode
+        win.setBlendMode(self.blendmode, log=False)
         self._selectWindow(win)
 
         #do scaling
@@ -448,7 +441,7 @@ class NoiseStim(GratingStim):
 
         #return the view to previous state
         GL.glPopMatrix()
-        win.blendMode=saveBlendMode
+        win.setBlendMode(saveBlendMode, log=False)
 
             
     def updateNoise(self):
@@ -586,7 +579,7 @@ class NoiseStim(GratingStim):
         else:
             raise ValueError('Noise type not recognised.')
         self._needBuild = False # prevent noise from being re-built at next draw() unless a parameter is chnaged in the mean time.
-        self.updateNoise()  # now choose the inital random sample.
+        self.updateNoise()  # now choose the initial random sample.
         
  
 

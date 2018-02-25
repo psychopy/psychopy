@@ -39,7 +39,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
     # list of supported devices (if more than one supports same protocol)
     driverFor = [b"BlackBoxToolkit 2"]
 
-    def __init__(self, port=None, sendBreak=False):
+    def __init__(self, port=None, sendBreak=False, bufferSize = 262144):
         # if we're trying to send the break signal then presumably the device
         # is sleeping
         if sendBreak:
@@ -55,6 +55,11 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         if sendBreak:
             self.sendBreak()
             time.sleep(3.0)  # give time to reset
+
+        try: # set buffer size - can make proportional to size of data (32 bytes per line * events)+1000
+            self.com.set_buffer_size(bufferSize)
+        except Exception:
+            logging.warning("Could not set buffer size. The default buffer size for Windows is 4096 bytes.")
 
     def sendBreak(self):
         """Send a break event to reset the box if needed
@@ -224,7 +229,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         lastState = None
         # try to read from port
         self.pause()
-        self.com.timeout = 2.0
+        self.com.timeout = 5.0
         nEvents = int(self.com.readline()[:-2])  # last two chars are ;\n
         self.com.readline()[:-2]  # microseconds recorded (ignore)
         self.com.readline()[:-2]  # samples recorded (ignore)
@@ -252,10 +257,25 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         :param testDuration: The duration of the testing session in seconds
         :param responseTime: Time in seconds from stimulus capture that robotic actuator should respond
         :param nTrials: Number of trials for testing session
-        :param setSmoothing: For use with CRT monitors - Defaults to False for common LCD screens
+        :param setSmoothing: For use with CRT monitors - Defaults to False for common LCD screens. Mic smoothing active.
         :param responseDuration: Time in seconds that robotic actuator should stay activated for each response
-        :return:
         """
+        # Check sensor and output param casing
+        allowedListTypes = (type(()), type([]))
+        noneTypes = ['',None, 'None', 'none', False]
+        logging.info("Converting sensor and output names to lower case.")
+        if sensor in noneTypes:
+            sensor = None
+        if outputPin in noneTypes:
+            outputPin = None
+        if not sensor is None and type(sensor) in allowedListTypes:
+            sensor = [sensors.lower() for sensors in sensor]
+        elif not sensor is None:
+            sensor = sensor.lower()
+        if not outputPin is None and type(outputPin) in allowedListTypes:
+            outputPin = [outputs.lower() for outputs in outputPin]
+        elif not outputPin is None:
+            outputPin = outputPin.lower()
         # Create sensor and outputPin dicts
         sensorDict = dict(zip(
             ['keypad4', 'keypad3', 'keypad2', 'keypad1', 'opto4',
@@ -264,35 +284,55 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         outputDict = dict(
             zip(['actclose4', 'actclose3', 'actclose2', 'actclose1', 'ttlout2', 'ttlout1', 'sounder2', 'sounder1'],
                 [0, 1, 2, 3, 4, 5, 6, 7]))
-        # Check parameters
+        # Check sensor parameters
         if sensor is None:
             logging.info("Setting BBTK pattern matching to 'INDI' - respond to any trigger")
-        if isinstance(sensor, tuple) and len(sensor)>3 or isinstance(sensor, tuple) and len(sensor)>3:
+        if type(sensor) in allowedListTypes and len(sensor) > 3:
             raise ValueError("You can only set 3 sensor values. You have provided {} values.".format(len(sensor)))
-        if sensor not in sensorDict.keys() and sensor is not None:
-            raise KeyError("{} is not a valid sensor name - see BBTK handbook for valid sensor names".format(sensor))
+        if type(sensor) in allowedListTypes:
+            for sensors in sensor:
+                if not sensors in sensorDict.keys():
+                    raise KeyError(
+                        "{} is not a valid sensor name. Choose from the following: {}".format(sensors, list(sensorDict.keys())))
+            if len(sensor) != len(set(sensor)):
+                raise ValueError("Duplicate sensors are not allowed. Please use unique sensor names. E.g., {}"
+                                 .format(list(set(sensor))))
+        if not type(sensor) in allowedListTypes and not sensor in sensorDict.keys() and not sensor is None:
+            raise KeyError("{} is not a valid sensor name. Choose from the following: {}".format(sensor, list(sensorDict.keys())))
+        # Check output pin parameters
         if outputPin is None:
-            raise ValueError("outputPin argument requires string e.g., 'TTLout1'")
-        if isinstance(outputPin, tuple) and len(outputPin)>8 or isinstance(outputPin, list) and len(outputPin)>8:
+            raise ValueError("None values not accepted as outputs. OutputPin argument requires string e.g., 'TTLout1'.")
+        if type(outputPin) in allowedListTypes and len(outputPin) > 8:
             raise ValueError("You can only set 8 sensor values. You have provided {} values.".format(len(outputPin)))
-        if outputPin not in outputDict.keys() and outputPin is not None:
-            raise KeyError("{} is not a valid output pin name - see BBTK handbook for valid output names".format(outputPin))
+        if type(outputPin) in allowedListTypes:
+            for outputs in outputPin:
+                if not outputs in outputDict.keys():
+                    raise KeyError(
+                        "{} is not a valid output pin name. Choose from the following: {}".format(outputs, list(outputDict.keys())))
+            if len(outputPin) != len(set(outputPin)):
+                raise ValueError("Duplicate output pins are not allowed. Please use unique output pin names. E.g., {}"
+                                 .format(list(set(outputPin))))
+        if not type(outputPin) in allowedListTypes and not outputPin in outputDict.keys():
+            raise KeyError("{} is not a valid output pin name. Choose from the following: {}".format(outputPin, list(outputDict.keys())))
+        # Check timing parameters
+        if testDuration is None:
+            raise ValueError("Please provide a test time duration (in seconds)")
         if responseTime is None:
             raise ValueError("Please provide a time (in seconds) for the Robot Key Actuator to respond.")
         if responseDuration is None:
             raise ValueError("Please provide a duration (in seconds) for the Robot Key Actuator to respond.")
         # Create sensor code
         sensorCodes = dict(zip(['sensor1', 'sensor2', 'sensor3'], ['9' * 12, '9' * 12, '9' * 12]))
-        if sensor is not None:
-            if isinstance(sensor, tuple) or isinstance(sensor, list):
+        if not sensor is None:
+           if type(sensor) in allowedListTypes:
                 for n, sensors in enumerate(sensor, 1):
                     sensorCodes['{}{}'.format('sensor', str(n))] \
                         = '000000000000'[:sensorDict[sensors.lower()]] + '1' + '000000000000'[sensorDict[sensors.lower()]+1:]
-            else:
-                sensorCodes['sensor1'] = '000000000000'[:sensorDict[sensor.lower()]] \
+           else:
+               sensorCodes['sensor1'] = '000000000000'[:sensorDict[sensor.lower()]] \
                                          + '1' + '000000000000'[sensorDict[sensor.lower()] + 1:]
         # Create output codes
-        if isinstance(outputPin, tuple) or isinstance(outputPin, list):
+        if outputPin in allowedListTypes:
             outputCode = '00000000'
             for outputs in outputPin:
                 outputCode = outputCode[:outputDict[outputs.lower()]] + '1' + outputCode[outputDict[outputs.lower()]+1:]
@@ -310,8 +350,9 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         saveTrials.close()
         # Begin sending BBTK commands
         if setSmoothing == False:
-            #remove smoothing
-            self.setSmoothing('0'*8)
+            #remove smoothing for optos, but keep mic smoothing - refer to BBTK handbook re: mic smoothing latency
+            logging.info("Opto sensor smoothing removed.  Mic1 and Mic2 smoothing still active.")
+            self.setSmoothing('11000000')
             self.pause()
         # Send instructions to program BBTK
         self.sendMessage(b'PDCR')  # program DSCAR

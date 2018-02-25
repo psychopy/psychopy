@@ -167,7 +167,7 @@ class EyeTracker(EyeTrackerDevice):
             self._eyelink.openDataFile(self._host_edf_name + '.EDF')
 
             # Creates a fileTransferDialog class that will be used when a connection is closed and
-            # a native EDF file needs to be transfered from Host to Experiment
+            # a native EDF file needs to be transferred from Host to Experiment
             # PC.
             EyeTracker._eyelink.progressUpdate = self._fileTransferProgressUpdate
         except Exception:
@@ -338,7 +338,7 @@ class EyeTracker(EyeTrackerDevice):
         procedure. Currently, only the default starting_state value of
         EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE is supported.
 
-        The current implemntation does not support displaying of the eye camera
+        The current implementation does not support displaying of the eye camera
         images on the Camera Setup screen, the screen is blank.
 
         When runSetupProcedure is called, the following keys can be used on either the
@@ -411,7 +411,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def enableEventReporting(self, enabled=True):
         """enableEventReporting is the device type independent method that is
-        equivelent to the EyeTracker specific setRecordingState method."""
+        equivalent to the EyeTracker specific setRecordingState method."""
         try:
             enabled = EyeTrackerDevice.enableEventReporting(self, enabled)
             return self.setRecordingState(enabled)
@@ -556,7 +556,7 @@ class EyeTracker(EyeTrackerDevice):
 
                     # hubtime calculation needs to be finished / improved.
                     # - offset should be an integration of 1% to handle noise / spikes in
-                    #   calulation
+                    #   calculation
                     # - need to handle drift between clocks
 
                     if ne.isBinocular():

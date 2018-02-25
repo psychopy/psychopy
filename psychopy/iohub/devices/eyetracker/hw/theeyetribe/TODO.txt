@@ -22,7 +22,7 @@ Still TODO for eyetribe interface:
 
 - create framework for monitoring and handling error codes from the eyetribe.
 
-- handle situtations:
+- handle situations:
     - eyetribe can not be connected at startup
     - eye tribe is disonnected during runtime of experiment
     - eyetribe does not send samples when it is set to.
