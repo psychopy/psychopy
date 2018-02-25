@@ -185,6 +185,9 @@ class LogFile(object):
     def setLevel(self, level):
         """Set a new minimal level for the log file/stream
         """
+        if type(level) is not int:
+            raise TypeError("LogFile.setLevel() should be given an int, which"
+                            "is usually one of logging.INFO (not logging.info)")
         self.level = level
         self.logger._calcLowestTarget()
 
