@@ -48,7 +48,7 @@ def unpackColors(colors):
     return colors, orig_shape, orig_dim
 
 
-def srgbTF(rgb, reverse=False):
+def srgbTF(rgb, reverse=False, **kwargs):
     """Apply sRGB transfer function (or gamma) to RGB values.
 
     Input values must have been transformed using a conversion matrix derived
@@ -86,7 +86,7 @@ def srgbTF(rgb, reverse=False):
     return to_return
 
 
-def rec709TF(rgb):
+def rec709TF(rgb, **kwargs):
     """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
@@ -139,14 +139,16 @@ def cielab2rgb(lab,
         white point is D65 if None is specified, defined as:
             X, Y, Z = 0.9505, 1.0000, 1.0890
     :param conversionMatrix: tuple, list or ndarray
-        3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
-        matrix is sRGB with a D65 white point if None is specified.
+        3x3 conversion matrix to transform CIE-XYZ to linear RGB values. The
+        default matrix is sRGB with a D65 white point if None is specified.
     :param transferFunc: pyfunc or None
         Signature of the transfer function to use. If None, values are kept as
-        linear RGB. The transfer function must be appropriate for the conversion
-        matrix supplied. Additional arguments to 'transferFunc' can be passed by
-        specifying them as keyword arguments. See applicable gamma functions
-        'srgbTF' and 'rec709TF'.
+        linear RGB (it's assumed your display is gamma corrected via the
+        hardware CLUT). The TF must be appropriate for the conversion matrix
+        supplied (default is sRGB). Additional arguments to 'transferFunc' can
+        be passed by specifying them as keyword arguments. Gamma functions that
+        ship with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
+        information.
     :param clip: boolean
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
