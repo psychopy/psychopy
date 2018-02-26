@@ -55,7 +55,7 @@ def srgbTF(rgb, reverse=False):
     from sRGB primaries relative to D65.
 
     :param rgb: tuple, list or ndarray of floats
-        Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
+        Nx3 or NxNx3 array of linear RGB values, last dim must be size == 3
         specifying RBG values.
     :param reverse: boolean
         If True, the reverse transfer function will convert sRGB -> linear RGB
@@ -94,7 +94,7 @@ def rec709TF(rgb):
     commonly used with HDTV televisions.
 
     :param rgb: tuple, list or ndarray of floats
-        Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
+        Nx3 or NxNx3 array of linear RGB values, last dim must be size == 3
         specifying RBG values.
     :return: ndarray with same shape as input
 
@@ -118,8 +118,9 @@ def rec709TF(rgb):
 def cielab2rgb(lab,
                whiteXYZ=None,
                conversionMatrix=None,
-               gammaCorrect=False,
-               clip=False):
+               transferFunc=None,
+               clip=False,
+               **kwargs):
     """Transform CIEL*a*b* (1976) color space coordinates to RGB tristimulus
     values.
 
@@ -140,9 +141,12 @@ def cielab2rgb(lab,
     :param conversionMatrix: tuple, list or ndarray
         3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
         matrix is sRGB with a D65 white point if None is specified.
-    :param gammaCorrect: boolean
-        Apply sRGB gamma correction if True, otherwise RGB values are left
-        linear.
+    :param transferFunc: pyfunc or None
+        Signature of the transfer function to use. If None, values are kept as
+        linear RGB. The transfer function must be appropriate for the conversion
+        matrix supplied. Additional arguments to 'transferFunc' can be passed by
+        specifying them as keyword arguments. See applicable gamma functions
+        'srgbTF' and 'rec709TF'.
     :param clip: boolean
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
@@ -179,9 +183,10 @@ def cielab2rgb(lab,
         return f
     inv_f = numpy.vectorize(inv_f)
 
+    wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
+
     # convert Lab to CIE-XYZ color space
     xyz_array = numpy.zeros(lab.shape)
-    wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
     s = (L + 16.0) / 116.0
     xyz_array[:, 0] = inv_f(s + (a / 500.0)) * wht_x
     xyz_array[:, 1] = inv_f(s) * wht_y
@@ -190,8 +195,8 @@ def cielab2rgb(lab,
     rgb_out = numpy.asarray(numpy.dot(xyz_array, conversionMatrix.T))
 
     # apply sRGB gamma correction if requested
-    if gammaCorrect:
-        rgb_out = srgbTF(rgb_out)
+    if transferFunc is not None:
+        rgb_out = transferFunc(rgb_out, **kwargs)
 
     # clip unrepresentable colors if requested
     if clip:
