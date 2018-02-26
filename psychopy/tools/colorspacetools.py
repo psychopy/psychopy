@@ -170,6 +170,7 @@ def cielab2rgb(lab,
 
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
+        # mdc - computed using makeXYZ2RGB with sRGB primaries
         conversionMatrix = numpy.asmatrix([
             [3.24096994, -1.53738318, -0.49861076],
             [-0.96924364, 1.8759675, 0.04155506],
@@ -184,26 +185,28 @@ def cielab2rgb(lab,
     L = lab[:, 0]  # lightness
     a = lab[:, 1]  # green (-)  <-> red (+)
     b = lab[:, 2]  # blue (-) <-> yellow (+)
-
-    # uses reverse transformation found here:
-    #   https://en.wikipedia.org/wiki/Lab_color_space
-    def inv_f(val):
-        delta = 6.0 / 29.0
-        if val > delta:
-            f = val ** 3.0
-        else:
-            f = (val - (4.0 / 29.0)) * (3.0 * delta ** 2.0)
-        return f
-    inv_f = numpy.vectorize(inv_f)
-
     wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
 
     # convert Lab to CIE-XYZ color space
+    # uses reverse transformation found here:
+    #   https://en.wikipedia.org/wiki/Lab_color_space
     xyz_array = numpy.zeros(lab.shape)
     s = (L + 16.0) / 116.0
-    xyz_array[:, 0] = inv_f(s + (a / 500.0)) * wht_x
-    xyz_array[:, 1] = inv_f(s) * wht_y
-    xyz_array[:, 2] = inv_f(s - (b / 200.0)) * wht_z
+    xyz_array[:, 0] = s + (a / 500.0)
+    xyz_array[:, 1] = s
+    xyz_array[:, 2] = s - (b / 200.0)
+
+    # evaluate the inverse f-function
+    delta = 6.0 / 29.0
+    xyz_array = numpy.where(xyz_array > delta,
+                            xyz_array ** 3.0,
+                            (xyz_array - (4.0 / 29.0)) * (3.0 * delta ** 2.0))
+
+    # multiply in white values
+    xyz_array[:, 0] *= wht_x
+    xyz_array[:, 1] *= wht_y
+    xyz_array[:, 2] *= wht_z
+
     # convert to sRGB using the specified conversion matrix
     rgb_out = numpy.asarray(numpy.dot(xyz_array, conversionMatrix.T))
 
