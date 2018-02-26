@@ -15,7 +15,7 @@
 # The syntax of this file is as expected by ConfigObj (not python):
 # - Put a tooltip in a comment just prior to the line:
 # - Each line should have a default= ___, and it should appear as the last item on the line
-
+#
 #   [section_name]
 #      # comment lines not right above a pref are not used in tooltips
 #      # the tooltip for prefName1 goes here, on the line right above its spec
@@ -238,3 +238,4 @@
     projectsOpen = string(default='Ctrl+Alt+O')
     # Projects: Create new project
     projectsNew = string(default='Ctrl+Alt+N')
+
