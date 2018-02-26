@@ -126,8 +126,11 @@ def cielab2rgb(lab,
 
     CIEL*a*b* are first transformed into CIE XYZ (1931) color space, then the
     RGB conversion is applied. By default, the sRGB conversion matrix is used
-    (BT.709) with a reference D65 white point. You may specify your own RGB
-    conversion matrix and white point (in CIE XYZ) appropriate for your display.
+    with a reference D65 white point. You may specify your own RGB conversion
+    matrix and white point (in CIE XYZ) appropriate for your display.
+
+    Parameters
+    ----------
 
     :param lab: tuple, list or ndarray
         1-, 2-, 3-D vector of CIEL*a*b* coordinates to convert. The last
@@ -147,12 +150,20 @@ def cielab2rgb(lab,
         hardware CLUT). The TF must be appropriate for the conversion matrix
         supplied (default is sRGB). Additional arguments to 'transferFunc' can
         be passed by specifying them as keyword arguments. Gamma functions that
-        ship with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
+        come with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
         information.
     :param clip: boolean
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
     :return: array of RGB tristimulus values, or None
+
+    Example
+    -------
+
+    import psychopy.tools.colorspacetools as cst
+    cielabColor = (53.0, -20.0, 0.0)  # greenish color (L*, a*, b*)
+    # convert a CIEL*a*b* color to signed RGB with sRGB transfer function
+    rgbColor = cst.cielab2rgb(cielabColor, transferFunc=cst.srgbTF)
 
     """
     lab, orig_shape, orig_dim = unpackColors(lab)
