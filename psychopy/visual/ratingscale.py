@@ -1300,6 +1300,10 @@ class RatingScale(MinimalStim):
         """
         # only resets things that are likely to have changed when the
         # ratingScale instance is used by a subject
+        # reset label color if using hover
+        if self.markerStyle == 'hover':
+            for labels in self.labels:
+                labels.setColor(self.textColor, log=False)
         self.noResponse = True
         # restore in case it turned gray, etc
         self.resetMarker = str(self.marker)
