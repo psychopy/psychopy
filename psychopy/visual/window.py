@@ -274,7 +274,7 @@ class Window(object):
         # this will get overridden once the window is created
         self.winHandle = None
         self.useFBO = useFBO
-        self.useRetina = useRetina
+        self.useRetina = useRetina and sys.platform == 'darwin'
 
         self._toLog = []
         self._toCall = []
