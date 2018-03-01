@@ -466,10 +466,6 @@ class ShapeStim(BaseShapeStim):
         # likely requires changes in ContainerMixin to iterate over each
         # border loop
 
-        # check if this is a name of one of our known shapes
-        if isinstance(newVertices, basestring) and newVertices in knownShapes:
-            newVertices = knownShapes[newVertices]
-
         self.border = copy.deepcopy(newVertices)
         if self.closeShape:
             # convert original vertices to triangles (= tesselation) if
@@ -507,6 +503,10 @@ class ShapeStim(BaseShapeStim):
 
         :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
+        # check if this is a name of one of our known shapes
+        if isinstance(newVerts, basestring) and newVerts in knownShapes:
+            newVerts = knownShapes[newVerts]
+
         # Check shape
         self.__dict__['vertices'] = val2array(newVerts, withNone=True,
                                               withScalar=True, length=2)
