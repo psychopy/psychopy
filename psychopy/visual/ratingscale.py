@@ -1267,7 +1267,6 @@ class RatingScale(MinimalStim):
                 self.targetWord.setColor(self.textColor, log=False)
                 # self.targetWord.setHeight(self.textSizeSmall, log=False)
             self.wasNearLine = mouseNearLine
-
         # decision time = sec from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.clock.getTime()
