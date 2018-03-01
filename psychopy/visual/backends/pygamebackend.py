@@ -58,7 +58,7 @@ class PygameBackend(BaseBackend):
             pygame.display.set_icon(icon)
         except Exception:
             pass  # doesn't matter
-
+        win.useRetina = False
         # these are ints stored in pygame.locals
         winSettings = pygame.OPENGL | pygame.DOUBLEBUF
         if win._isFullScr:
