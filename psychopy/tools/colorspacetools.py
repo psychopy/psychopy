@@ -48,14 +48,14 @@ def unpackColors(colors):
     return colors, orig_shape, orig_dim
 
 
-def srgbTF(rgb, reverse=False):
+def srgbTF(rgb, reverse=False, **kwargs):
     """Apply sRGB transfer function (or gamma) to RGB values.
 
     Input values must have been transformed using a conversion matrix derived
     from sRGB primaries relative to D65.
 
     :param rgb: tuple, list or ndarray of floats
-        Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
+        Nx3 or NxNx3 array of linear RGB values, last dim must be size == 3
         specifying RBG values.
     :param reverse: boolean
         If True, the reverse transfer function will convert sRGB -> linear RGB
@@ -86,7 +86,7 @@ def srgbTF(rgb, reverse=False):
     return to_return
 
 
-def rec709TF(rgb):
+def rec709TF(rgb, **kwargs):
     """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
@@ -94,7 +94,7 @@ def rec709TF(rgb):
     commonly used with HDTV televisions.
 
     :param rgb: tuple, list or ndarray of floats
-        Nx3 or NxNx3 gamut of linear RGB values, last dim must be size == 3
+        Nx3 or NxNx3 array of linear RGB values, last dim must be size == 3
         specifying RBG values.
     :return: ndarray with same shape as input
 
@@ -118,15 +118,19 @@ def rec709TF(rgb):
 def cielab2rgb(lab,
                whiteXYZ=None,
                conversionMatrix=None,
-               gammaCorrect=False,
-               clip=False):
+               transferFunc=None,
+               clip=False,
+               **kwargs):
     """Transform CIEL*a*b* (1976) color space coordinates to RGB tristimulus
     values.
 
     CIEL*a*b* are first transformed into CIE XYZ (1931) color space, then the
     RGB conversion is applied. By default, the sRGB conversion matrix is used
-    (BT.709) with a reference D65 white point. You may specify your own RGB
-    conversion matrix and white point (in CIE XYZ) appropriate for your display.
+    with a reference D65 white point. You may specify your own RGB conversion
+    matrix and white point (in CIE XYZ) appropriate for your display.
+
+    Parameters
+    ----------
 
     :param lab: tuple, list or ndarray
         1-, 2-, 3-D vector of CIEL*a*b* coordinates to convert. The last
@@ -138,21 +142,35 @@ def cielab2rgb(lab,
         white point is D65 if None is specified, defined as:
             X, Y, Z = 0.9505, 1.0000, 1.0890
     :param conversionMatrix: tuple, list or ndarray
-        3x3 conversion matrix to transform CIE-XYZ to RGB values. The default
-        matrix is sRGB with a D65 white point if None is specified.
-    :param gammaCorrect: boolean
-        Apply sRGB gamma correction if True, otherwise RGB values are left
-        linear.
+        3x3 conversion matrix to transform CIE-XYZ to linear RGB values. The
+        default matrix is sRGB with a D65 white point if None is specified.
+    :param transferFunc: pyfunc or None
+        Signature of the transfer function to use. If None, values are kept as
+        linear RGB (it's assumed your display is gamma corrected via the
+        hardware CLUT). The TF must be appropriate for the conversion matrix
+        supplied (default is sRGB). Additional arguments to 'transferFunc' can
+        be passed by specifying them as keyword arguments. Gamma functions that
+        come with PsychoPy are 'srgbTF' and 'rec709TF', see their docs for more
+        information.
     :param clip: boolean
         Make all output values representable by the display. However, colors
         outside of the display's gamut may not be valid!
     :return: array of RGB tristimulus values, or None
+
+    Example
+    -------
+
+    import psychopy.tools.colorspacetools as cst
+    cielabColor = (53.0, -20.0, 0.0)  # greenish color (L*, a*, b*)
+    # convert a CIEL*a*b* color to signed RGB with sRGB transfer function
+    rgbColor = cst.cielab2rgb(cielabColor, transferFunc=cst.srgbTF)
 
     """
     lab, orig_shape, orig_dim = unpackColors(lab)
 
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
+        # mdc - computed using makeXYZ2RGB with sRGB primaries
         conversionMatrix = numpy.asmatrix([
             [3.24096994, -1.53738318, -0.49861076],
             [-0.96924364, 1.8759675, 0.04155506],
@@ -167,31 +185,34 @@ def cielab2rgb(lab,
     L = lab[:, 0]  # lightness
     a = lab[:, 1]  # green (-)  <-> red (+)
     b = lab[:, 2]  # blue (-) <-> yellow (+)
-
-    # uses reverse transformation found here:
-    #   https://en.wikipedia.org/wiki/Lab_color_space
-    def inv_f(val):
-        delta = 6.0 / 29.0
-        if val > delta:
-            f = val ** 3.0
-        else:
-            f = (val - (4.0 / 29.0)) * (3.0 * delta ** 2.0)
-        return f
-    inv_f = numpy.vectorize(inv_f)
+    wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
 
     # convert Lab to CIE-XYZ color space
+    # uses reverse transformation found here:
+    #   https://en.wikipedia.org/wiki/Lab_color_space
     xyz_array = numpy.zeros(lab.shape)
-    wht_x, wht_y, wht_z = whiteXYZ  # white point in CIE-XYZ color space
     s = (L + 16.0) / 116.0
-    xyz_array[:, 0] = inv_f(s + (a / 500.0)) * wht_x
-    xyz_array[:, 1] = inv_f(s) * wht_y
-    xyz_array[:, 2] = inv_f(s - (b / 200.0)) * wht_z
+    xyz_array[:, 0] = s + (a / 500.0)
+    xyz_array[:, 1] = s
+    xyz_array[:, 2] = s - (b / 200.0)
+
+    # evaluate the inverse f-function
+    delta = 6.0 / 29.0
+    xyz_array = numpy.where(xyz_array > delta,
+                            xyz_array ** 3.0,
+                            (xyz_array - (4.0 / 29.0)) * (3.0 * delta ** 2.0))
+
+    # multiply in white values
+    xyz_array[:, 0] *= wht_x
+    xyz_array[:, 1] *= wht_y
+    xyz_array[:, 2] *= wht_z
+
     # convert to sRGB using the specified conversion matrix
     rgb_out = numpy.asarray(numpy.dot(xyz_array, conversionMatrix.T))
 
     # apply sRGB gamma correction if requested
-    if gammaCorrect:
-        rgb_out = srgbTF(rgb_out)
+    if transferFunc is not None:
+        rgb_out = transferFunc(rgb_out, **kwargs)
 
     # clip unrepresentable colors if requested
     if clip:
