@@ -159,8 +159,9 @@ class PygletBackend(BaseBackend):
                 retinaContext = self.winHandle.context._nscontext
                 view = retinaContext.view()
                 bounds = view.convertRectToBacking_(view.bounds()).size
-                win.size = np.array(
-                        [int(bounds.width), int(bounds.height)])
+                if win.size[0] == bounds.width:
+                    win.useRetina = False  # the screen is not a retina display
+                win.size = np.array([int(bounds.width), int(bounds.height)])
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 win._hw_handle = self.winHandle._window.value

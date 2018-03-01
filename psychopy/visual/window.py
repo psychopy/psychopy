@@ -1334,12 +1334,17 @@ class Window(object):
         stimulus drawing but this is now handled by the stimuli themselves and
         the window should aways be left in units of 'pix'
         """
+        if self.useRetina:
+            retinaScale = 2.0
+        else:
+            retinaScale = 1.0
+        # then unit-specific changes
         if units == "norm":
             thisScale = numpy.array([1.0, 1.0])
         elif units == "height":
             thisScale = numpy.array([2.0 * self.size[1] / self.size[0], 2.0])
         elif units in ["pix", "pixels"]:
-            thisScale = 2.0 / numpy.array(self.size)
+            thisScale = 2.0 / numpy.array(self.size) * retinaScale
         elif units == "cm":
             # windowPerCM = windowPerPIX / CMperPIX
             #             = (window/winPIX) / (scrCm/scrPIX)
@@ -1348,7 +1353,7 @@ class Window(object):
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            thisScale = ((numpy.array([2.0, 2.0]) / self.size)
+            thisScale = ((numpy.array([2.0, 2.0]) / self.size * retinaScale)
                         / (self.scrWidthCM / self.scrWidthPIX))
         elif units in ["deg", "degs"]:
             # windowPerDeg = winPerCM * CMperDEG
@@ -1359,12 +1364,12 @@ class Window(object):
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            cmScale = ((numpy.array([2.0, 2.0]) / self.size) /
+            cmScale = ((numpy.array([2.0, 2.0]) / self.size) * retinaScale /
                        (self.scrWidthCM / self.scrWidthPIX))
             thisScale = cmScale * 0.017455 * self.scrDistCM
         elif units == "stroke_font":
             lw = 2 * font.letterWidth
-            thisScale = numpy.array([lw, lw] / self.size / 38.0)
+            thisScale = numpy.array([lw, lw] / self.size * retinaScale / 38.0)
         # actually set the scale as appropriate
         # allows undoing of a previous scaling procedure
         thisScale = thisScale / numpy.asarray(prevScale)
