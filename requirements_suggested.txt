@@ -1,4 +1,4 @@
-
+python-vlc  # only for MovieStim2
 pyserial
 pyparallel
 egi
