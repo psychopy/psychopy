@@ -62,6 +62,7 @@ includes = ['Tkinter', 'tkFileDialog',
             'pysoundcard', 'soundfile', 'sounddevice',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
+            'vlc',  # install with pip install python-vlc
             ]
 packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
@@ -95,7 +96,7 @@ if sys.version_info.major >= 3:
     packages.extend(['PyQt5'])
 else:
     # not available or not working under Python3:
-    includes.extend(['UserString', 'ioLabs', 'FileDialog', 'vlc'])
+    includes.extend(['UserString', 'ioLabs', 'FileDialog'])
     packages.extend(['PyQt4', 'labjack', 'rusocsci'])
     # is available but py2app can't seem to find it:
     packages.extend(['OpenGL'])
@@ -106,7 +107,7 @@ setup(
             includes=includes,
             packages=packages,
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
-                      'OpenGL','OpenGL.WGL','OpenGL.raw.WGL.*',
+                      'libsz.2.dylib',
                       # 'stringprep',
                       'functools32',
                       ],  # anything we need to forcibly exclude?
