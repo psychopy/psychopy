@@ -15,7 +15,7 @@ try:
     import soundfile as sndfile
 except ImportError as err:
     # convert this import error to our own, pysoundcard probably not installed
-    raise exceptions.DependencyError(repr(origMsg))
+    raise exceptions.DependencyError(repr(err.msg))
 
 import numpy
 from os import path
