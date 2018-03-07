@@ -1280,6 +1280,12 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             else:
                 # we have an image; calculate the size in `units` that matches
                 # original pixel size
+                # also scale for retina display (virtual pixels are bigger)
+                if self.win.useRetina:
+                    winSize = self.win.size / 2
+                else:
+                    winSize = self.win.size
+                # then handle main scale
                 if self.units == 'pix':
                     value = numpy.array(self._origSize)
                 elif self.units in ('deg', 'degFlatPos', 'degFlat'):
@@ -1289,9 +1295,9 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
                     value = pix2deg(array(self._origSize, float),
                                     self.win.monitor)
                 elif self.units == 'norm':
-                    value = 2 * array(self._origSize, float) / self.win.size
+                    value = 2 * array(self._origSize, float) / winSize
                 elif self.units == 'height':
-                    value = array(self._origSize, float) / self.win.size[1]
+                    value = array(self._origSize, float) / winSize[1]
                 elif self.units == 'cm':
                     value = pix2cm(array(self._origSize, float),
                                    self.win.monitor)

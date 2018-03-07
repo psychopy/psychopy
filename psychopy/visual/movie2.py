@@ -89,6 +89,8 @@ from psychopy import core, logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
+from psychopy.clock import Clock
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 import ctypes
 import numpy
@@ -105,7 +107,7 @@ if hasattr(cv2, 'cv'):
     cv2.CAP_PROP_POS_AVI_RATIO = cv2.cv.CV_CAP_PROP_POS_AVI_RATIO
 
 try:
-    from . import vlc
+    import vlc
 except Exception as err:
     if sys.maxsize == 9223372036854775807:
         bits = 64
@@ -115,9 +117,8 @@ except Exception as err:
         raise OSError("Failed to import vlc module for MovieStim2.\n"
           "You're using %i-bit python. Is your VLC install the same?" % bits)
     else:
-        print("WARNING: vlc could not be loaded. Is it installed?")
-from psychopy.clock import Clock
-from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+        raise err
+
 
 # these are used internally by the MovieStim2 class but need to be kept
 # separate to prevent circular references with vlc's event handler
