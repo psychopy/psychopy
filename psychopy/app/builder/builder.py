@@ -1687,7 +1687,8 @@ class BuilderFrame(wx.Frame):
             expPath = os.path.split(self.filename)[0]
             htmlPath = os.path.join(expPath, settingsHTMLpath)
         # present dialog box
-        dlg = ExportFileDialog(self, wx.ID_ANY, title="Export HTML file",
+        dlg = ExportFileDialog(self, wx.ID_ANY,
+                               title=_translate("Export HTML file"),
                                filePath=htmlPath)
         retVal = dlg.ShowModal()
         # then save the actual script
@@ -2376,15 +2377,15 @@ class ExportFileDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-        msg = ("Warning, HTML outputs are under development.\n"
+        msg = _translate("Warning, HTML outputs are under development.\n"
                "They are here purely for testing at the moment.")
-        warning = wx.StaticText(self, wx.ID_ANY, _translate(msg))
+        warning = wx.StaticText(self, wx.ID_ANY, msg)
         warning.SetForegroundColour((200, 0, 0))
         sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        label = wx.StaticText(self, wx.ID_ANY, "Filepath:")
+        label = wx.StaticText(self, wx.ID_ANY, _translate("Filepath:"))
         box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
         if len(filePath) > 70:
             filePath = filePath[:20]+"....."+filePath[-40:]
@@ -2396,7 +2397,7 @@ class ExportFileDialog(wx.Dialog):
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         self.exportOnSave = wx.CheckBox(self, wx.ID_ANY,
-                                        label="Continuously export on save")
+                                        label=_translate("Continuously export on save"))
         self.exportOnSave.Disable()
         self.exportOnSave.SetHelpText("[NOT implemented yet]"
                                       "Tick this if you want the HTML file to export"

@@ -13,6 +13,7 @@ import ctypes
 import os
 import sys
 import weakref
+import atexit
 
 from builtins import map
 from builtins import object
@@ -54,6 +55,17 @@ if sys.platform == 'win32':
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
 
+    # for pyglet 1.3
+    if not haveAvbin:
+        try:
+            from pyglet.media.sources import avbin
+            haveAvbin = True
+        except ImportError:
+            haveAvbin = False
+        except AttributeError:
+            haveAvbin = False
+        except Exception:
+            haveAvbin = False
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors
@@ -81,7 +93,6 @@ from psychopy.core import rush
 
 reportNDroppedFrames = 5  # stop raising warning after this
 
-from psychopy.visual.backends.gamma import getGammaRamp, setGammaRamp
 # import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 from . import shaders as _shaders
 try:
@@ -263,7 +274,7 @@ class Window(object):
         # this will get overridden once the window is created
         self.winHandle = None
         self.useFBO = useFBO
-        self.useRetina = useRetina
+        self.useRetina = useRetina and sys.platform == 'darwin'
 
         self._toLog = []
         self._toCall = []
@@ -451,6 +462,16 @@ class Window(object):
         self.autoLog = autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
+
+        # Make sure this window's close method is called when exiting, even in
+        # the event of an error we should be able to restore the original gamma
+        # table. Note that a reference to this window object will live in this
+        # function, preventing it from being garbage collected.
+        def close_on_exit():
+            if self._closed is False:
+                self.close()
+
+        atexit.register(close_on_exit)
 
     def __del__(self):
         if self._closed is False:
@@ -657,7 +678,7 @@ class Window(object):
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
-                # need blit the frambuffer object to the actual back buffer
+                # need blit the framebuffer object to the actual back buffer
 
                 # unbind the framebuffer as the render target
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
@@ -927,9 +948,9 @@ class Window(object):
         if buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         else:
-            GL.glReadBuffer(GL.GL_FRONT)
             if self.useFBO:
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glReadBuffer(GL.GL_FRONT)
 
         # fetch the data with glReadPixels
         # pyglet.gl stores the data in a ctypes buffer
@@ -1107,12 +1128,7 @@ class Window(object):
             openWindows.remove(self)
         except Exception:
             pass
-        if self.origGammaRamp is not None:
-            setGammaRamp(
-                screenID=self.backend.screenID,
-                newRamp=self.origGammaRamp,
-                xDisplay=self.backend.xDisplay
-            )
+
         try:
             self.mouseVisible = True
         except Exception:
@@ -1143,6 +1159,7 @@ class Window(object):
         if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             if hasattr(self, '_shaders'):
+                self._progSignedFrag = self._shaders['signedColor']
                 self._progSignedTex = self._shaders['signedTex']
                 self._progSignedTexMask = self._shaders['signedTexMask']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D']
@@ -1150,11 +1167,16 @@ class Window(object):
         elif blendMode == 'add':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
             if hasattr(self, '_shaders'):
+                self._progSignedFrag = self._shaders['signedColor_adding']
                 self._progSignedTex = self._shaders['signedTex_adding']
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
                 tmp = self._shaders['signedTexMask1D_adding']
                 self._progSignedTexMask1D = tmp
                 self._progImageStim = self._shaders['imageStim_adding']
+        else:
+            raise ValueError("Window blendMode should be set to 'avg' or 'add'"
+                             " but we received the value {}"
+                             .format(repr(blendMode)))
 
     def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1246,7 +1268,6 @@ class Window(object):
         given that the user might have specified an explicit value, or maybe
         gave a Monitor
         """
-        self.origGammaRamp = None
         # determine which gamma value to use (or native ramp)
         if gammaVal is not None:
             self._checkGamma()
@@ -1258,15 +1279,6 @@ class Window(object):
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
-
-        # try to retrieve previous so we can reset later
-        try:
-            self.origGammaRamp = getGammaRamp(
-                screenID=self.backend.screenID,
-                xDisplay=self.backend.xDisplay
-            )
-        except Exception:
-            self.origGammaRamp = None
 
         # then try setting it
         if self.useNativeGamma:
@@ -1295,7 +1307,7 @@ class Window(object):
                    "instead")
             raise DeprecationWarning(msg)
 
-        self.backend.gamma = gamma
+        self.backend.gamma = self.__dict__['gamma']
 
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -1306,13 +1318,6 @@ class Window(object):
     @attributeSetter
     def gammaRamp(self, newRamp):
         self.backend.gammaRamp = newRamp
-        if self.winType == 'pyglet':
-            self.winHandle.setGammaRamp(self.winHandle, newRamp)
-        elif self.winType == 'glfw':
-            pass
-        else:  # pyglet
-            self.winHandle.set_gamma_ramp(
-                newRamp[:, 0], newRamp[:, 1], newRamp[:, 2])
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
@@ -1329,37 +1334,42 @@ class Window(object):
         stimulus drawing but this is now handled by the stimuli themselves and
         the window should aways be left in units of 'pix'
         """
+        if self.useRetina:
+            retinaScale = 2.0
+        else:
+            retinaScale = 1.0
+        # then unit-specific changes
         if units == "norm":
             thisScale = numpy.array([1.0, 1.0])
         elif units == "height":
             thisScale = numpy.array([2.0 * self.size[1] / self.size[0], 2.0])
         elif units in ["pix", "pixels"]:
-            thisScale = 2.0 / numpy.array(self.size)
+            thisScale = 2.0 / numpy.array(self.size) * retinaScale
         elif units == "cm":
             # windowPerCM = windowPerPIX / CMperPIX
             #             = (window/winPIX) / (scrCm/scrPIX)
             if self.scrWidthCM in [0, None] or self.scrWidthPIX in [0, None]:
-                logging.error('you didnt give the width of the screen (pixels'
+                logging.error('you did not give the width of the screen (pixels'
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            thisScale = ((numpy.array([2.0, 2.0]) / self.size)
+            thisScale = ((numpy.array([2.0, 2.0]) / self.size * retinaScale)
                         / (self.scrWidthCM / self.scrWidthPIX))
         elif units in ["deg", "degs"]:
             # windowPerDeg = winPerCM * CMperDEG
             #              = winPerCM * tan(pi/180) * distance
             if ((self.scrWidthCM in [0, None]) or
                     (self.scrWidthPIX in [0, None])):
-                logging.error('you didnt give the width of the screen (pixels'
+                logging.error('you did not give the width of the screen (pixels'
                               ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            cmScale = ((numpy.array([2.0, 2.0]) / self.size) /
+            cmScale = ((numpy.array([2.0, 2.0]) / self.size) * retinaScale /
                        (self.scrWidthCM / self.scrWidthPIX))
             thisScale = cmScale * 0.017455 * self.scrDistCM
         elif units == "stroke_font":
             lw = 2 * font.letterWidth
-            thisScale = numpy.array([lw, lw] / self.size / 38.0)
+            thisScale = numpy.array([lw, lw] / self.size * retinaScale / 38.0)
         # actually set the scale as appropriate
         # allows undoing of a previous scaling procedure
         thisScale = thisScale / numpy.asarray(prevScale)
@@ -1433,6 +1443,10 @@ class Window(object):
         self._progFBOtoFrame = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragFBOtoFrame)
         self._shaders = {}
+        self._shaders['signedColor'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColor)
+        self._shaders['signedColor_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColor_adding)
         self._shaders['signedTex'] = _shaders.compileProgram(
             _shaders.vertSimple, _shaders.fragSignedColorTex)
         self._shaders['signedTexMask'] = _shaders.compileProgram(

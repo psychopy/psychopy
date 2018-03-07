@@ -16,7 +16,7 @@ win = visual.Window((600, 600), allowGUI=False,
 # Initialize
 gabor_shape = visual.GratingStim(win, mask='gauss', sf=3)
 dotPatch = visual.DotStim(win, color='black',
-    dotLife=5,  # lifetime of a dot in frames (if this is long density artefacts can occur in the stimulus)
+    dotLife=5,  # lifetime of a dot in frames (if this is long density artifacts can occur in the stimulus)
     signalDots='different',  # are the signal and noise dots 'different' or 'same' popns (see Scase et al)
     noiseDots='direction',  # do the noise dots follow random- 'walk', 'direction', or 'position'
     fieldPos=[0.0, 0.0], nDots=40, fieldSize=3,

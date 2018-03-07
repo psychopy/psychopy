@@ -2507,7 +2507,7 @@ class U12(object):
 
         >>> dev = U12()
         >>> dev.getFirmwareVersion()
-        >>> Unkown error
+        >>> Unknown error
         """
         
         # Check ID number
@@ -2965,7 +2965,7 @@ def getErrorString(errorcode):
 
     >>> dev = U12()
     >>> dev.getErrorString(1)
-    >>> Unkown error
+    >>> Unknown error
     """
     errorString = ctypes.c_char_p(" "*50)
     staticLib.GetErrorString(errorcode, errorString)

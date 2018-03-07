@@ -31,7 +31,7 @@ class ioHubPandasDataView(object):
 
     @property
     def hdf_store(self):
-        """A pandas.HDFStore object openned using the datastore_file file path
+        """A pandas.HDFStore object opened using the datastore_file file path
         provided on __init__. The HDFStore file is open until the
         ioHubPandasDataView is gc'ed or until self.close() is called.
 
@@ -74,7 +74,7 @@ class ioHubPandasDataView(object):
     @property
     def experiment_meta_data(self):
         """A DataFrame containing the experiment meta data stored in the
-        ioDataStore file that was openned.
+        ioDataStore file that was opened.
 
         Read-only.
 
@@ -90,7 +90,7 @@ class ioHubPandasDataView(object):
     @property
     def session_meta_data(self):
         """A DataFrame containing the session meta data for each experiment
-        session / run that is stored in the ioDataStore file that was openned.
+        session / run that is stored in the ioDataStore file that was opened.
 
         Read-only.
 

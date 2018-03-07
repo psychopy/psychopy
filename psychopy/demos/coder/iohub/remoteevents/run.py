@@ -14,7 +14,7 @@ RemoteEventSubscriber subscribes to only KeyboardPressEvents, and KeyboardCharEv
     environment to be able to use the EventPublisher and / or RemoteEventSubscriber
     devices. The pyzmq website is https://github.com/zeromq/pyzmq
     
-Inital Version: July 17th, 2013, Sol Simpson
+Initial Version: July 17th, 2013, Sol Simpson
 """
 from __future__ import absolute_import, division, print_function
 

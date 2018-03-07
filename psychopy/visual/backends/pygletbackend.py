@@ -19,9 +19,9 @@ import os
 import numpy as np
 
 import psychopy
-from psychopy import logging, event, platform_specific
+from psychopy import logging, event, platform_specific, constants
 from psychopy.tools.attributetools import attributeSetter
-from .gamma import setGamma, setGammaRamp, getGammaRamp
+from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
 
@@ -42,7 +42,7 @@ class PygletBackend(BaseBackend):
     """
     GL = pyglet.gl
 
-    def __init__(self, win):
+    def __init__(self, win, *args, **kwargs):
         """Set up the backend window according the params of the PsychoPy win
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
@@ -159,8 +159,9 @@ class PygletBackend(BaseBackend):
                 retinaContext = self.winHandle.context._nscontext
                 view = retinaContext.view()
                 bounds = view.convertRectToBacking_(view.bounds()).size
-                win.size = np.array(
-                        [int(bounds.width), int(bounds.height)])
+                if win.size[0] == bounds.width:
+                    win.useRetina = False  # the screen is not a retina display
+                win.size = np.array([int(bounds.width), int(bounds.height)])
             try:
                 # python 32bit (1.4. or 1.2 pyglet)
                 win._hw_handle = self.winHandle._window.value
@@ -216,6 +217,12 @@ class PygletBackend(BaseBackend):
             self.winHandle.set_icon(icon)
         except Exception:
             pass  # doesn't matter
+
+        # store properties of the system
+        self._driver = pyglet.gl.gl_info.get_renderer()
+        self._origGammaRamp = self.getGammaRamp()
+        self._rampSize = getGammaRampSize(self.screenID, self.xDisplay)
+        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
 
     @property
@@ -295,7 +302,13 @@ class PygletBackend(BaseBackend):
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
         if gamma is not None:
-            setGamma(self.screenID, gamma, xDisplay=self.xDisplay)
+            setGamma(
+                screenID=self.screenID,
+                newGamma=gamma,
+                rampSize=self._rampSize,
+                driver=self._driver,
+                xDisplay=self.xDisplay
+            )
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
@@ -305,13 +318,20 @@ class PygletBackend(BaseBackend):
         setGammaRamp(self.screenID, gammaRamp, nAttempts=3,
                      xDisplay=self.xDisplay)
 
+    def getGammaRamp(self):
+        return getGammaRamp(self.screenID, self.xDisplay)
+
     @property
     def screenID(self):
         """Returns the screen ID or device context (depending on the platform)
         for the current Window
         """
         if sys.platform == 'win32':
-            _screenID = self.winHandle._dc
+            scrBytes = self.winHandle._dc
+            if constants.PY3:
+                _screenID = int.from_bytes(scrBytes, byteorder='little')
+            else:
+                _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1
@@ -331,6 +351,11 @@ class PygletBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+
+        # restore the gamma ramp that was active when window was opened
+        if not self._TravisTesting:
+            self.gammaRamp = self._origGammaRamp
+
         _hw_handle = None
         try:
             _hw_handle = self.win._hw_handle

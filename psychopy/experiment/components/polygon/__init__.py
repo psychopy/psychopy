@@ -26,7 +26,7 @@ _localized = {'nVertices': _translate('Num. vertices'),
               'lineWidth': _translate('Line width'),
               'interpolate': _translate('Interpolate'),
               'size': _translate("Size [w,h]"),
-              'shape': "Shape"}
+              'shape': _translate("Shape")}
 
 
 class PolygonComponent(BaseVisualComponent):

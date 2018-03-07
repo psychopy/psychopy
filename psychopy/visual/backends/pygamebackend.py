@@ -37,7 +37,7 @@ class PygameBackend(BaseBackend):
     """
     GL = GL
 
-    def __init__(self, win):
+    def __init__(self, win, *args, **kwargs):
         """Set up the backend window according the params of the PsychoPy win
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
@@ -58,7 +58,7 @@ class PygameBackend(BaseBackend):
             pygame.display.set_icon(icon)
         except Exception:
             pass  # doesn't matter
-
+        win.useRetina = False
         # these are ints stored in pygame.locals
         winSettings = pygame.OPENGL | pygame.DOUBLEBUF
         if win._isFullScr:
@@ -137,7 +137,7 @@ class PygameBackend(BaseBackend):
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
         # use pygame's own function for this
-        self.winHandle.set_gamma(gamma[0], gamma[1], gamma[2])
+        pygame.display.set_gamma(gamma[0], gamma[1], gamma[2])
 
     @attributeSetter
     def gammaRamp(self, gammaRamp):
@@ -145,5 +145,5 @@ class PygameBackend(BaseBackend):
         """
         self.__dict__['gammaRamp'] = gammaRamp
         # use pygame's own function for this
-        self.winHandle.set_gamma_ramp(
+        pygame.display.set_gamma_ramp(
                 gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])

@@ -11,7 +11,7 @@ with the Eye Tracker Technology chosen at the start of the demo via a
 drop down list. Exact same demo script is used regardless of the
 Eye Tracker hardware used.
 
-Inital Version: May 6th, 2013, Sol Simpson
+Initial Version: May 6th, 2013, Sol Simpson
 Updated: July 30th, Sol
 """
 
@@ -130,7 +130,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                      pos=(0,0 ),size=(66,66),color='green',
                                                         units=coord_type)
 
-        # Create a Text Stim for use on /instuction/ type screens.
+        # Create a Text Stim for use on /instruction/ type screens.
         # Current units assume pix.
         instructions_text_stim = visual.TextStim(window, text='', pos = [0,0],
                                     height=24, color=[-1,-1,-1], colorSpace='rgb',

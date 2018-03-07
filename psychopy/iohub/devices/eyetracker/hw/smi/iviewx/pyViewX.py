@@ -1671,7 +1671,7 @@ from ctypes import create_string_buffer as StringBuffer
 
 
 #
-# Useful ctype defintions with user meaning:
+# Useful ctype definitions with user meaning:
 #
 from ctypes import c_longlong
 EyeTrackerTimestamp = c_longlong

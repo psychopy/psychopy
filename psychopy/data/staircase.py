@@ -628,7 +628,7 @@ class StairHandler(_BaseTrialHandler):
                 ws.cell(column=col, row=1,
                         value=u"{}".format(key))
                 for oDatN in range(len(self.otherData[key])):
-                    ws.cell(colummn=col, row=oDatN+2,
+                    ws.cell(column=col, row=oDatN+2,
                             value=u"{}".format(self.otherData[key][oDatN]))
                 col += 1
 

@@ -186,7 +186,7 @@ class SerialDevice(object):
         elif length > 1:
             retVal = self.com.readlines()
         else:  # was -1?
-            retVal = self.com.read(self.com.inWaiting)
+            retVal = self.com.read(self.com.inWaiting())
         return retVal
 
     def __del__(self):

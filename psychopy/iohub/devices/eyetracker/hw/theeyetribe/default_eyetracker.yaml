@@ -158,7 +158,7 @@ eyetracker.hw.theyetribe.EyeTracker:
     
     runtime_settings:
         # The supported sampling rates for TheEyeTribe are model dependent.
-        # Using a defualt of 30 Hz, with the assumption it is the most common.
+        # Using a default of 30 Hz, with the assumption it is the most common.
         sampling_rate: 30
 
         # TheEyeTribe supports BINOCULAR tracking mode only.
@@ -173,7 +173,7 @@ eyetracker.hw.theyetribe.EyeTracker:
     
     # The below parameters are not used by the TheEyeTribe common eye tracker
     # interface implementation. They can be ignored an left out of your
-    # device configuration, or you can complete any ones that are relevent for FYI
+    # device configuration, or you can complete any ones that are relevant for FYI
     # purposes only at this time.
     device_number: 0
     
