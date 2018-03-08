@@ -5,7 +5,9 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Python script to compile a psyexp->python file.
+"""Python script to compile a psyexp->python file optionally with a specific version
+
+Usage: python compileScript <psyexp_file> [--version]
 """
 
 if __name__ != "__main__":
