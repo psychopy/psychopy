@@ -222,8 +222,8 @@ class StaticPeriod(object):
         self.countdown.reset(duration - self.frameTime)
         # turn off recording of frame intervals throughout static period
         if self.win:
-            self.win.recordFrameIntervals = False
             self._winWasRecordingIntervals = self.win.recordFrameIntervals
+            self.win.recordFrameIntervals = False
 
     def complete(self):
         """Completes the period, using up whatever time is remaining with a
