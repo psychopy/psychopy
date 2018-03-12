@@ -20,7 +20,7 @@
 #      # comment lines not right above a pref are not used in tooltips
 #      # the tooltip for prefName1 goes here, on the line right above its spec
 #      prefName1 = type(value1, value2, ..., default='___')
-
+#
 # NOT_IMPLEMENTED defaultTimeUnits = option('sec', 'frames', default='sec')
 
 
