@@ -260,6 +260,15 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
+        elif name == 'a_startExpValue':
+            inits[name].val = "None"
+            inits[name].valType = 'code'
+        elif name == 'b_startRoutineValue':
+            inits[name].val = "None"
+            inits[name].valType = 'code'
+        elif name == 'c_startFrameValue':
+            inits[name].val = "None"
+            inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %
