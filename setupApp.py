@@ -31,7 +31,7 @@ import py2app
 resources = glob.glob('psychopy/app/Resources/*')
 resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
-              "libevent.dylib", "libffi.dylib", "libportaudio.dylib",
+              "libevent.dylib", "libffi.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
@@ -68,6 +68,7 @@ packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
             'moviepy', 'imageio',
+            '_sounddevice_data', '_soundfile_data',
             'cffi','pycparser',
             'PIL',  # 'Image',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
