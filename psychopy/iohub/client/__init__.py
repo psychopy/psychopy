@@ -20,6 +20,7 @@ try:
     import psychopy.logging as psycho_logging
 except ImportError:
     psycho_logging = None
+from past.builtins import basestring
 from ..lazy_import import lazy_import
 from .. import _pkgroot, IOHUB_DIRECTORY
 from ..util import yload, yLoader
@@ -611,7 +612,7 @@ class ioHubConnection(object):
 
         for cond_name in self._cv_order:
             cond_val = trial[cond_name]
-            if isinstance(cond_val, str):
+            if isinstance(cond_val, basestring):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
                 numpy_dtype = (cond_name, 'i4')
@@ -1016,7 +1017,6 @@ class ioHubConnection(object):
         timeout_time = Computer.getTime() + timeout_duration
         while hubonline is False and Computer.getTime() < timeout_time:
             r = self._sendToHubServer(['GET_IOHUB_STATUS', ])
-
             if r:
                 hubonline = r[1] == 'RUNNING'
             time.sleep(0.1)
@@ -1140,7 +1140,7 @@ class ioHubConnection(object):
                     elif type(items) not in [dict, list, int, float, bool] and not items is None:
                         result[ind] = str(items, 'utf-8')
                     elif type(items) is dict:
-                        result[ind] = {str(keys, 'utf-8'): vals for keys,vals in items.items()}
+                        result[ind] = {str(keys, 'utf-8'): vals for keys, vals in items.items()}
             else:
                 result = str(result, 'utf-8')
         return result
@@ -1278,7 +1278,7 @@ class ioHubConnection(object):
             if isIterable(d0):
                 return False
             else:
-                if isinstance(d0, str) and d0.find('ERROR') >= 0:
+                if isinstance(d0, basestring) and d0.find('ERROR') >= 0:
                     return data
                 return False
         else:

@@ -20,6 +20,7 @@ try:
 except ImportError:
     pass
 
+from past.builtins import basestring, unicode
 from . import _pkgroot
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
@@ -30,7 +31,6 @@ from .constants import DeviceConstants, EventConstants
 from .devices import DeviceEvent, import_device
 from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
-from psychopy import constants
 getTime = Computer.getTime
 
 MAX_PACKET_SIZE = 64 * 1024
@@ -59,9 +59,7 @@ class udpServer(DatagramServer):
         self.feed(request)
         request = self.unpack()
         # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
-        request_type = request.pop(0)
-        if constants.PY3: # convert bytes to string for compatibility
-            request_type = str(request_type, 'utf-8')
+        request_type = unicode(request.pop(0), 'utf-8') # convert bytes to string for compatibility
         if request_type == 'SYNC_REQ':
             self.sendResponse(['SYNC_REPLY', getTime()], replyTo)
             return True
@@ -90,7 +88,7 @@ class udpServer(DatagramServer):
 
             result = None
             try:
-                result = getattr(self, str(callable_name, 'utf-8'))
+                result = getattr(self, unicode(callable_name, 'utf-8'))
             except Exception:
                 print2err('RPC_ATTRIBUTE_ERROR')
                 printExceptionDetailsToStdErr()
@@ -197,9 +195,7 @@ class udpServer(DatagramServer):
             return False
 
     def handleExperimentDeviceRequest(self, request, replyTo):
-        request_type = request.pop(0)
-        if constants.PY3: # convert bytes to string for compatibility
-            request_type = str(request_type, 'utf-8')
+        request_type = unicode(request.pop(0), 'utf-8') # convert bytes to string for compatibility
         io_dev_dict = ioServer.deviceDict
         if request_type == 'EVENT_TX':
             exp_events = request.pop(0)
@@ -209,8 +205,8 @@ class udpServer(DatagramServer):
             self.sendResponse(('EVENT_TX_RESULT', len(exp_events)), replyTo)
             return True
         elif request_type == 'DEV_RPC':
-            dclass = str(request.pop(0), 'utf-8')
-            dmethod = str(request.pop(0), 'utf-8')
+            dclass = unicode(request.pop(0), 'utf-8')
+            dmethod = unicode(request.pop(0), 'utf-8')
             args = None
             kwargs = None
             if len(request) == 1:
@@ -277,8 +273,7 @@ class udpServer(DatagramServer):
                 return False
 
         elif request_type == 'GET_DEV_INTERFACE':
-            dclass = request.pop(0)
-            dclass = str(dclass, 'utf-8')
+            dclass = unicode(request.pop(0), 'utf-8')
             data = None
             if dclass in ['EyeTracker', 'DAQ']:
                 for dname, hdevice in ioServer.deviceDict.items():
