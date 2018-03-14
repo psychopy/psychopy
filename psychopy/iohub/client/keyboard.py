@@ -13,7 +13,7 @@ from ..devices import DeviceEvent, Computer
 from ..util import win32MessagePump
 from ..devices.keyboard import KeyboardInputEvent
 from ..constants import EventConstants, KeyboardConstants
-
+from psychopy import constants
 #pylint: disable=protected-access
 
 getTime = Computer.getTime
@@ -50,7 +50,7 @@ class KeyboardEvent(ioEvent):
 
     @property
     def key(self):
-        return self._key
+        return str(self._key, 'utf-8')
 
     @property
     def char(self):
@@ -61,7 +61,7 @@ class KeyboardEvent(ioEvent):
         :return: unicode, '' if no char value is available for the event.
 
         """
-        return self._char
+        return str(self._char, 'utf-8')
 
     @property
     def modifiers(self):
@@ -89,9 +89,9 @@ class KeyboardEvent(ioEvent):
 
     def __str__(self):
         return '%s, key: %s char: %s, modifiers: %s' % (
-            ioEvent.__str__(self), self.key,
-            self.char,
-            str(self.modifiers))
+            ioEvent.__str__(self), str(self.key, 'utf-8'),
+            str(self.char, 'utf-8'),
+            str(self.modifiers, 'utf-8'))
 
     def __eq__(self, v):
         if isinstance(v, KeyboardEvent):
@@ -190,7 +190,6 @@ class Keyboard(ioHubDeviceView):
         self._reporting = kb_state.get('reporting_events')
         pressed_keys = kb_state.get('pressed_keys')
         self._pressed_keys.clear()
-
         akeyix = KeyboardEvent._attrib_index['key']
         iotimeix = DeviceEvent.EVENT_HUB_TIME_INDEX
         for _, (key_array, _) in list(pressed_keys.items()):
@@ -214,6 +213,8 @@ class Keyboard(ioHubDeviceView):
         :return: dict
         """
         self._syncDeviceState()
+        if constants.PY3:
+            self._pressed_keys = {str(keys, 'utf-8'): vals for keys, vals in self._pressed_keys.items()}
         return self._pressed_keys
 
     @property
@@ -288,7 +289,6 @@ class Keyboard(ioHubDeviceView):
             ecount += len(elist)
         if ecount == 0:
             return []
-
         def filterEvent(e):
             r1 = (keys is None or e.key in keys)
             r2 = (chars is None or e.char in chars)
@@ -314,7 +314,6 @@ class Keyboard(ioHubDeviceView):
         if clear is True:
             for e in return_events:
                 self._events[e._type].remove(e)
-
         return return_events
 
     def getPresses(self, keys=None, chars=None, mods=None, clear=True):
