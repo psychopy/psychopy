@@ -37,7 +37,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
         # IP address of local computer
         receive_ip_address: 127.0.0.1
         # port being used by iView X SDK for receiving data from iView X
-        receive_port: 5555	            
+        receive_port: 5555
 
     runtime_settings:
 
