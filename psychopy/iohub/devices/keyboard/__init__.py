@@ -232,6 +232,9 @@ class KeyboardInputEvent(DeviceEvent):
         char_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('char')
         event_value_list[char_value_index] = event_value_list[
             char_value_index].decode('utf-8')
+        key_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('key')
+        event_value_list[key_value_index] = event_value_list[
+            key_value_index].decode('utf-8')
 
     @classmethod
     def createEventAsDict(cls, values):
@@ -269,7 +272,6 @@ class KeyboardPressEvent(KeyboardInputEvent):
 
     def __init__(self, *args, **kwargs):
         KeyboardInputEvent.__init__(self, *args, **kwargs)
-
 
 class KeyboardReleaseEvent(KeyboardInputEvent):
     """A KeyboardReleaseEvent is generated when a key the keyboard is released.
