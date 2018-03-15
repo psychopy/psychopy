@@ -66,7 +66,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
         # IP address of local computer
         receive_ip_address: IOHUB_IP_ADDRESS_V4
         # port being used by iView X SDK for receiving data from iView X
-        receive_port: 	            
+        receive_port:
             IOHUB_INT:
                 min: 1
                 max: 9999
