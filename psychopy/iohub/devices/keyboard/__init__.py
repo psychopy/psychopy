@@ -101,11 +101,11 @@ class ioHubKeyboardDevice(Device):
         Device._close(self)
 
 if Computer.platform == 'win32':
-    from win32 import Keyboard
+    from .win32 import Keyboard
 elif Computer.platform.startswith('linux'):
-    from linux2 import Keyboard
+    from .linux2 import Keyboard
 elif Computer.platform == 'darwin':
-    from darwin import Keyboard
+    from .darwin import Keyboard
 
 ############# OS independent Keyboard Event classes ####################
 
