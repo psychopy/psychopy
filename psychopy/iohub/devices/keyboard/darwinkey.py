@@ -86,7 +86,8 @@ QZ_F3 = 160  # Keycode on Apple wireless kb
 QZ_F4 = 131  # Keycode on Apple wireless kb
 
 code2label = {}
-for k, v in locals().items():
+# need tp copy locals for py3
+for k, v in locals().copy().items():
     if k.startswith('QZ_'):
         klabel = u'' + k[3:].lower()
         code2label[klabel] = v
