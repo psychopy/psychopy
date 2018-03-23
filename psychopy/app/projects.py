@@ -261,8 +261,8 @@ class LogInDlg(wx.Dialog):
             label=_translate("OSF Username (email)")),
                              pos=(1, 0), flag=wx.ALIGN_RIGHT)
         self.username = wx.TextCtrl(self)
-        self.username.SetToolTip(_translate("Your username on OSF "
-                                            "(the email address you used)"))
+        self.username.SetToolTip(wx.ToolTip(_translate("Your username on OSF "
+                                            "(the email address you used)")))
         self.fieldsSizer.Add(self.username,
                              pos=(1, 1), flag=wx.ALIGN_LEFT)
         # pass info
@@ -270,9 +270,9 @@ class LogInDlg(wx.Dialog):
                              pos=(2, 0), flag=wx.ALIGN_RIGHT)
         self.password = wx.TextCtrl(self,
                                     style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-        self.password.SetToolTip(
+        self.password.SetToolTip(wx.ToolTip(
             _translate("Your password on OSF "
-                       "(will be checked securely with https)"))
+                       "(will be checked securely with https)")))
         self.fieldsSizer.Add(self.password,
                              pos=(2, 1), flag=wx.ALIGN_LEFT)
         # remember me
