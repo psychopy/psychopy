@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -120,14 +120,28 @@ class GLFWBackend(BaseBackend):
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
 
-        :param win: a PsychoPy Window (usually not fully created yet)
-        :param share: a PsychoPy Window to share a context with
-        :param bpc: list-like, bits per color (R, G, B)
-        :param refreshHz: int, refresh rate
-        :param depthBits: int, framebuffer depth bits
-        :param stencilBits: int, framebuffer stencil bits
-        :param swapInterval: int, screen updates before swapping buffers
-        :param winTitle: str, optional window title
+        Parameters
+        ----------
+        win : psychopy.visual.Window instance
+            PsychoPy Window (usually not fully created yet).
+        share : psychopy.visual.Window instance
+            PsychoPy Window to share a context with
+        bpc : array_like
+            Bits per color (R, G, B).
+        refreshHz : int
+            Refresh rate in Hertz.
+        depthBits : int,
+            Framebuffer (back buffer) depth bits.
+        stencilBits : int
+            Framebuffer (back buffer) stencil bits.
+        swapInterval : int
+            Screen updates before swapping buffers.
+        winTitle : str
+            Optional window title string.
+        *args
+            Additional position arguments.
+        **kwargs
+            Additional keyword arguments.
 
         """
         BaseBackend.__init__(self, win)
