@@ -45,7 +45,7 @@ _CURSORS_ = {
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
     'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
 # load window icon
-_WINDOW_ICON_ = Image.open('psychopy/monitors/psychopy.ico')
+# _WINDOW_ICON_ = Image.open('psychopy/monitors/psychopy.ico')
 
 
 class GLFWBackend(BaseBackend):
@@ -272,7 +272,7 @@ class GLFWBackend(BaseBackend):
                                             share=share_context)
 
         # set the window icon
-        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+        #glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
 
         # The window's user pointer maps the Python Window object to its GLFW
         # representation.
