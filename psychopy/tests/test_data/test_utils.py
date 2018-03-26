@@ -119,6 +119,13 @@ class Test_utilsClass:
         import time
         assert utils.getDateStr() == time.strftime("%Y_%b_%d_%H%M", time.localtime())
 
+    def test_import_blankColumns(self):
+        fileName_blanks = os.path.join(fixturesPath, 'trialsBlankCols.xlsx')
+        conds = utils.importConditions(fileName_blanks)
+        assert len(conds) == 6
+        assert len(list(conds[0].keys())) == 6
+
+
 if __name__ == '__main__':
     pytest.main()
 
