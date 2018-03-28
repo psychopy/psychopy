@@ -392,6 +392,8 @@ class SettingsComponent(object):
 
         # write info.php file
         folder = self.exp.expPath
+        if '.psyexp' in folder:
+            folder = folder.split('.psyexp')[0]+'//..'
         if not os.path.isdir(folder):
             os.mkdir(folder)
         # get OSF projcet info if there was a project id
@@ -446,9 +448,12 @@ class SettingsComponent(object):
             if self.params['JS libs'].val == 'packaged':
                 copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
                 copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
-
             # always copy server.php
-            shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
+            try:
+                shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
+            except FileNotFoundError:
+                open(jsPath+'/server.php', 'wb').close()
+                shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
         else:
             jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
             # copy over JS libs if needed
@@ -466,10 +471,51 @@ class SettingsComponent(object):
         header = template.format(
                    name = self.params['expName'].val, # prevent repr() conversion
                    params = self.params)
-        buff.write(header)
+
+        # HTML no longer written to .js file. Create new index page.
+        if '.psyexp' in self.exp.expPath:
+            folder = os.path.dirname(self.exp.expPath)
+        else:
+            folder = self.exp.expPath
+        with open(folder + "/index.html", 'wb') as html:
+            html.write(header.encode())
+        html.close()
+
+        # Write header comment
+        code = ("/******************\n"
+               "%s.js\n"
+               "*******************/\n\n")
+        buff.writeIndentedLines(code % self.params['expName'].val)
+        # Import modules
+        code = ("// Importing standard modules...\n"
+                "import * as util from 'js/util';\n"
+                "import Scheduler from 'js/Scheduler'; \n"
+                "import visual from 'js/visual';\n"
+                "import Window from 'js/Window';\n"
+                "import TextStim from 'js/TextStim';\n"
+                "import PsychoJS from 'js/PsychoJS';\n"
+                "import Color from 'js/Color';\n"
+                "import ExperimentHandler from 'js/ExperimentHandler';\n"
+                "import TrialHandler from 'js/TrialHandler';\n"
+                "import ResourceManager from 'js/ResourceManager';\n"
+                "import {BuilderKeyResponse} from 'js/EventManager';\n"
+                "import {MonotonicClock, Clock, CountdownTimer} from 'js/Clock';\n"
+                "\n"
+                "// init psychoJS and set up the window:\n"
+                "const psychoJS = new PsychoJS({debug: true});\n"
+                "const _ = psychoJS;\n"
+                "setupWin();\n"
+                "\n"
+                "// store info about the experiment session:\n"
+                "_.expName = %(expName)s;  // from the Builder filename that created this script\n"
+                "_.expInfo = {'participant':'', 'session':'01'};\n"
+                "\n" % self.params)
+        buff.writeIndentedLines(code)
+
+    def writeExpSetupCodeJS(self, buff):
 
         # write the code to set up experiment
-        buff.setIndentLevel(4, relative=False)
+        buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
         # check where to save data variables
         if self.params['OSF Project ID'].val:
@@ -480,6 +526,7 @@ class SettingsComponent(object):
             projID = 'undefined'
         code = template.format(
                         params=self.params,
+                        name = self.params['expName'].val,
                         saveType=saveType,
                         projID=projID,
                         loggingLevel = self.params['logging level'].val.upper(),
@@ -666,12 +713,12 @@ class SettingsComponent(object):
         abbrevFunc = ("\nfunction abbrevNames(thisTrial) {\n"
                 "  return function () {\n"
                 "    // abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)\n"
-                "    if (thisTrial != undefined) {\n"
-                "      for (paramName in thisTrial) {\n"
-                "        window[paramName] = thisTrial[paramName];\n"
+                "    if (typeof thisTrial !== 'undefined') {\n"
+                "      for (let paramName in thisTrial) {\n"
+                "        psychoJS[paramName] = thisTrial[paramName];\n"
                 "      }\n"
-                "    }\n"
-                "    return psychoJS.NEXT;\n"
+                "    }\n\n"
+                "    return Scheduler.Event.NEXT;\n"
                 "  };\n"
                 "}\n"
                 )
@@ -679,24 +726,17 @@ class SettingsComponent(object):
         recordLoopIterationFunc = ("\nfunction recordLoopIteration(currentLoop) {\n"
                     "  return function () {\n"
                     "    currentLoop.updateAttributesAtBegin();\n"
-                    "    thisExp.nextEntry();\n"
-                    "    return psychoJS.NEXT;\n"
+                    "    psychoJS.experiment.nextEntry();\n"
+                    "    return Scheduler.Event.NEXT;\n"
                     "  }\n"
                     "}\n"
                 )
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
-                    "    thisExp.save();\n"
-                    "    win.close()\n"
-                    "    psychoJS.core.quit();\n"
-                    "    return psychoJS.QUIT;\n"
+                    "  psychoJS.experiment.save();\n"
+                    "  _.window.close()\n"
+                    "  psychoJS.quit();\n"
+                    "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)
         buff.setIndentLevel(-1)
-        footer = ("\n"
-                  "        run();\n"
-                  "      });\n"
-                  "    </script>\n\n"
-                  "  </body>\n"
-                  "</html>")
-        buff.writeIndentedLines(footer)

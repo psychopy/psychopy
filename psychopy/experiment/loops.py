@@ -190,20 +190,20 @@ class TrialHandler(object):
         code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  try {{\n"
-                "    {params[name]} = new psychoJS.data.TrialHandler({{nReps:{params[nReps]}, method:{params[loopType]},\n"
-                "      extraInfo:expInfo, originPath:undefined,\n"
-                "      trialList:psychoJS.data.importConditions({params[conditionsFile]}),\n"
+                "    _.{params[name]} = new TrialHandler({{nReps:{params[nReps]}, method:{params[loopType]},\n"
+                "      extraInfo:_.expInfo, originPath:undefined,\n"
+                "      trialList:TrialHandler.importConditions(psychoJS.resourceManager, {params[conditionsFile]}),\n"
                 "      seed:{seed}, name:'{params[name]}'}});\n"
-                "    thisExp.addLoop({params[name]}); // add the loop to the experiment\n"
-                "    {thisName} = {params[name]}.trialList[{params[name]}.trialSequence[0]]; // so we can initialise stimuli with some values\n"
+                "    psychoJS.experiment.addLoop(_.{params[name]}); // add the loop to the experiment\n"
+                "    let {thisName} = _.{params[name]}.getTrial(0); // so we can initialise stimuli with some values\n"
                 "    // abbreviate parameter names if possible (e.g. rgb={thisName}.rgb)\n"
                 "    abbrevNames({thisName});\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("    // Schedule each of the trials in the list to occur\n"
-                "    for (var i = 0; i < {params[name]}.trialSequence.length; ++i) {{\n"
-                "      {thisName} = {params[name]}.trialList[{params[name]}.trialSequence[i]];\n"
+                "    for (var i = 0; i < _.{params[name]}.trialSequence.length; ++i) {{\n"
+                "      let {thisName} = _.{params[name]}.getTrial(i);\n\n"
                 "      thisScheduler.add(abbrevNames({thisName}));\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
@@ -229,7 +229,7 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'])
                     )
         if self.params['isTrials'].val == True:
-            code += ("      thisScheduler.add(recordLoopIteration({name}));\n"
+            code += ("      thisScheduler.add(recordLoopIteration(_.{name}));\n"
                      .format(name=self.params['name']))
         buff.writeIndentedLines(code)
         code = ("    }}\n"
@@ -237,7 +237,7 @@ class TrialHandler(object):
                 "    console.log(exception);\n"
                 "  }}\n"
                 "\n"
-                "  return psychoJS.NEXT;\n"
+                "  return Scheduler.Event.NEXT;\n"
                 "}}\n"
                 .format())
         buff.writeIndentedLines(code)
@@ -284,15 +284,15 @@ class TrialHandler(object):
         # Just within the loop advance data line if loop is whole trials
         code = ("\nfunction {params[name]}LoopEnd() {{\n"
                 "  // get names of stimulus parameters\n"
-                "  if (psychoJS.isEmpty({params[name]}.trialList)) {{ // XXX equiv of : in ([], [None], None)\n"
-                "    params = [];\n"
+                "  if (util.isEmpty(_.{params[name]}.trialList)) {{ // XXX equiv of : in ([], [None], None)\n"
+                "    _.params = [];\n"
                 "  }}\n"
                 "  else {{\n"
-                "    params = Object.keys({params[name]}.trialList[0]);\n"
+                "    _.params = Object.keys(_.{params[name]}.trialList[0]);\n"
                 "  }}\n\n"
                 "  // save data for this loop\n"
-                "  thisExp.loopEnded({params[name]});\n"
-                "  return psychoJS.NEXT;\n"
+                "  psychoJS.experiment.loopEnded(_.{params[name]});\n"
+                "  return Scheduler.Event.NEXT;\n"
                 "  }}\n"
                 .format(params=self.params))
         buff.writeIndentedLines(code)

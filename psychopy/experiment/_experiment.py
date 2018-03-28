@@ -144,7 +144,9 @@ class Experiment(object):
             script.oneIndent = "  "  # use 2 spaces rather than python 4
             self.settings.writeInitCodeJS(script,
                                           self.psychopyVersion, localDateTime)
+            self.flow.writeFlowSchedulerJS(script)
             self.settings.writeWindowCodeJS(script)
+            self.settings.writeExpSetupCodeJS(script)
 
             # initialise the components for all Routines in a single function
             script.writeIndentedLines("\nfunction experimentInit() {")
@@ -159,14 +161,14 @@ class Experiment(object):
 
             # create globalClock etc
             code = ("\n// Create some handy timers\n"
-                    "globalClock = new psychoJS.core.Clock();"
+                    "_.globalClock = new Clock();"
                     "  // to track the time since experiment started\n"
-                    "routineTimer = new psychoJS.core.CountdownTimer();"
+                    "_.routineTimer = new CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
-                    "\nreturn psychoJS.NEXT;")
+                    "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
-            script.writeIndentedLines("}")
+            script.writeIndentedLines("}\n")
 
             # This differs to the Python script. We can loop through all
             # Routines once (whether or not they get used) because we're using
@@ -177,12 +179,10 @@ class Experiment(object):
                 thisRoutine.writeRoutineBeginCodeJS(script)
                 thisRoutine.writeEachFrameCodeJS(script)
                 thisRoutine.writeRoutineEndCodeJS(script)
-            # loao resources files (images, csv files etc
-            self.flow.writeResourcesCodeJS(script)
-            # create the run() function and schedulers
-            self.flow.writeBodyJS(script)  # functions for loops and for scheduler
+            # load resources files (images, csv files etc
+            self.flow.writeLoopHandlerJS(script)
+            # self.flow.writeResourcesCodeJS(script)
             self.settings.writeEndCodeJS(script)
-
         return script
 
     def saveToXML(self, filename):
