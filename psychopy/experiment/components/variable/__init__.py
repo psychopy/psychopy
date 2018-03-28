@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import absolute_import, print_function
 
 from os import path
-from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
+from psychopy.experiment.components import BaseComponent, Param, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -19,19 +19,23 @@ tooltip = _translate('Variable: create a new variable')
 
 # only use _localized values for label values, nothing functional:
 _localized = {'name': _translate('Name'),
-              'a_startExpValue': _translate('Initial value'),
-              'b_startRoutineValue': _translate('Routine start value'),
-              'c_startFrameValue': _translate('Frame start value'),
-              'saveVarState': _translate('Save variable'),}
+              'startExpValue': _translate('Experiment start value'),
+              'startRoutineValue': _translate('Routine start value'),
+              'startFrameValue': _translate('Frame start value'),
+              'saveStartExp': _translate('Save exp start value'),
+              'saveStartRoutine': _translate('Save routine start value'),
+              'saveFrameValue': _translate('Save frame value'),
+              'saveEndRoutine': _translate('Save routine end value'),
+              'saveEndExp': _translate('Save exp end value')}
 
 
 class VariableComponent(BaseComponent):
-    """An class for creating variables in builder"""
+    """An class for creating variables in builder."""
 
     def __init__(self, exp, parentName,
-                 name='var_1', startExpValue = None,
-                 startRoutineValue=None, saveVarState = 'final',
-                 startFrameValue = None):
+                 name='var1', startExpValue = None,
+                 startRoutineValue=None,
+                 startFrameValue=None):
 
         super(VariableComponent, self).__init__(
             exp, parentName, name)
@@ -39,113 +43,142 @@ class VariableComponent(BaseComponent):
         categories = ['Custom']
         self.type = 'Variable'
         self.url = "http://www.psychopy.org/builder/components/variable.html"
+        self.order += ['startExpValue', 'saveStartExp', 'startRoutineValue', 'saveStartRoutine', 'startFrameValue',
+                       'saveFrameValue', 'saveEndRoutine', 'saveEndExp']
         # set parameters
         hnt = _translate("The start value. A variable can be set to any value.")
-        self.params['a_startExpValue'] = Param(
+        self.params['startExpValue'] = Param(
             startExpValue, valType='code', allowedTypes=[], updates='constant',
-            allowedUpdates=['constant'],
             hint=hnt,
-            label=_localized['a_startExpValue'])
-        hnt = _translate("Set the value for the beginning of each routine."
-                         "Can be constant or updated at the beginning of every routine. ")
-        self.params['b_startRoutineValue'] = Param(
+            label=_localized['startExpValue'])
+        hnt = _translate("Set the value for the beginning of each routine.")
+        self.params['startRoutineValue'] = Param(
             startRoutineValue, valType='code', allowedTypes=[], updates='constant',
-            allowedUpdates=['constant', 'routine'],
             hint=hnt,
-            label=_localized['b_startRoutineValue'])
-        hnt = _translate("Set the value for the beginning of every screen refresh. "
-                         "Can be constant or updated at the beginning of every routine or screen refresh.")
-        self.params['c_startFrameValue'] = Param(
-            startFrameValue, valType='code', allowedTypes=[], updates='constant',
-            allowedUpdates=['constant', 'routine', 'set every frame'],
+            label=_localized['startRoutineValue'])
+        hnt = _translate("Set the value for the beginning of every screen refresh.")
+        self.params['startFrameValue'] = Param(
+            startFrameValue, valType='code', allowedTypes=[],
             hint=hnt,
-            label=_localized['c_startFrameValue'])
-        hnt = _translate(
-            "How should the variable state be stored? "
-            "Start values are stored by default. Choose to store values from every routine, or "
-            "store and save a list of every value for every frame. If saving the final value, "
-            "the final value will be taken from the routine, if no frame values were created. "
-            "If frame values were created, the final frame value will be stored.")
-        self.params['saveVarState'] = Param(
-            saveVarState, valType='str',
-            allowedVals=['final', 'routine', 'every frame', 'never'],
+            label=_localized['startFrameValue'])
+        # Save options
+        hnt = _translate('Save the experiment start value in data file.')
+        self.params['saveStartExp'] = Param(
+            False, valType='bool',
+            updates='constant',
             hint=hnt,
-            label=_localized['saveVarState'])
+            label=_localized['saveStartExp'])
+        hnt = _translate('Save the experiment end value in data file.')
+        self.params['saveEndExp'] = Param(
+            False, valType='bool',
+            updates='constant',
+            hint=hnt,
+            label=_localized['saveEndExp'])
+        hnt = _translate('Save the routine start value in data file.')
+        self.params['saveStartRoutine'] = Param(
+            False, valType='bool',
+            updates='constant',
+            hint=hnt,
+            label=_localized['saveStartRoutine'])
+        hnt = _translate('Save the routine end value in data file.')
+        self.params['saveEndRoutine'] = Param(
+            False, valType='bool',
+            updates='constant',
+            hint=hnt,
+            label=_localized['saveEndRoutine'])
+        hnt = _translate('Save choice of frame value in data file.')
+        self.params['saveFrameValue'] = Param(
+            False, valType='bool',
+            updates='last',
+            allowedUpdates=['first', 'last', 'average'],
+            hint=hnt,
+            label=_localized['saveFrameValue'])
 
     def writeInitCode(self, buff):
-        """Write initialisation code
+        """Write variable initialisation code.
         """
-        inits = getInitVals(self.params)
-        code = ("# set values for %s\n" % inits['name'])
-        code += ("%s = %s\n" % (inits['name'], inits['a_startExpValue'].val))
-        code += ("# Create variable dict for storage of values and fill with start value.\n")
-        code += ("%s_container = dict(zip(['startValue', 'routineValues', 'frameValues'],[%s,'',[]]))\n"
-                % (inits['name'], inits['a_startExpValue']))
+        code = ("# Set experiment start values for variable component %(name)s\n"
+                "%(name)s = %(startExpValue)s\n" % self.params)
         buff.writeIndented(code)
-
+    #
     def writeRoutineStartCode(self, buff):
-        """Write the code that will be called at the start of the routine
+        """Write the code that will be called at the start of the routine.
         """
-        inits = self.params
-        code = ("# set Routine values for %s\n" % inits['name'])
-        buff.writeIndented(code)
-        if not inits['b_startRoutineValue'].val in ['', None, 'None']:
-            if inits['b_startRoutineValue'].updates == 'routine':
-                code = ("%s = %s\n" % (inits['name'], inits['b_startRoutineValue']))
-                code += ("# Reset container dict and fill with start and routine values.\n")
-                code += ("%s_container = dict(zip(['startValue', 'routineValues', 'frameValues'],[%s,%s,[]]))"
-                        % (inits['name'], inits['a_startExpValue'], inits['b_startRoutineValue']))
-                buff.writeIndentedLines(code)
+        code = ("%(name)s = %(startRoutineValue)s  # Set routine start values for %(name)s\n" % self.params)
+        if self.params['saveStartRoutine'] == True:
+            code += ("thisExp.addData('routineStartVal', %(name)s)  # Save exp start value\n" % self.params)
+        # Create new container at beginning of each routine, to ensure frame data is cleared between trials
+        if self.params['saveFrameValue'] == True:
+            code += ("%(name)sContainer = []  # Create %(name)s container for frame values\n" % self.params)
+        buff.writeIndentedLines(code)
 
     def writeFrameCode(self, buff):
-        """Write the code that will be called at the start of the frame
+        """Write the code that will be called at the start of the frame.
         """
-        inits = self.params
-        if not inits['c_startFrameValue'].val in ['', None, 'None']:
-            code = ("# set Frame values for %s\n" % inits['name'])
-            if inits['c_startFrameValue'].updates == 'set every frame':
-                code += ("%s = %s\n" % (inits['name'], inits['c_startFrameValue']))
-                buff.writeIndentedLines(code)
-        if inits['saveVarState'] in ['every frame', 'final'] and not inits['c_startFrameValue'].val in ['', None, 'None']:
-            code = ("# storing Frame values for %s\n" % inits['name'])
-            code += ("%s_container['frameValues'].append(%s)" % (inits['name'], inits['name']))
-            buff.writeIndentedLines(code)
+        basestring = (str, bytes)
+        # Create dict for hold start and end types and converting them from types to variables
+        timeTypeDict = {'time (s)': 't', 'frame N': 'frameN', 'condition': self.params['startVal'].val,
+                        'duration (s)': 't','duration (frames)': 'frameN'}
+        # Useful values for string creation
+        startType = timeTypeDict[self.params['startType'].val]
+        endType = timeTypeDict[self.params['stopType'].val]
+        startTime = self.params['startVal'].val
+        # Create default string
+        frameCode = ("%(name)s = %(startFrameValue)s  # Set frame start values for %(name)s\n" % self.params)
+        if self.params['saveFrameValue'] == True:
+            frameCode += ("%(name)sContainer.append(%(name)s)  # Save frame values\n" % self.params)
+        # Check for start or end values, and commence conditional timing string creation
+        if self.params['startVal'].val or self.params['stopVal'].val:
+            if self.params['startType'].val == 'time (s)':
+                # if startVal is an empty string then set to be 0.0
+                if (isinstance(self.params['startVal'].val, basestring) and
+                        not self.params['startVal'].val.strip()):
+                    self.params['startVal'].val = '0.0'
+
+            # Begin string construction for start values
+            if startType == 't':
+                code = (('if ' + startType + ' >= %(startVal)s') % self.params)
+            elif startType == 'frameN':
+                code = (('if ' + startType + ' >= %(startVal)s') % self.params)
+            elif self.params['startType'].val == 'condition':
+                code = ('if bool(%(startVal)s)' % self.params)
+
+            # Begin string construction for end values
+            if not self.params['stopVal'].val:
+                code += (':\n' % self.params)
+            # Duration types must be calculated
+            elif u'duration' in self.params['stopType'].val:
+                if 'frame' in self.params['startType'].val and 'frame' in self.params['stopType'].val \
+                        or '(s)' in self.params['startType'].val and '(s)' in self.params['stopType'].val:
+                    endTime = str((float(startTime) + float(self.params['stopVal'].val)))
+                else:  # do not add mismatching value types
+                    endTime = self.params['stopVal'].val
+                code += (' and ' + endType + ' <= ' + endTime + ':\n' % (self.params))
+            elif endType == 't' :
+                code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
+            elif endType == 'frameN' :
+                code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
+            elif self.params['stopType'].val == 'condition':
+                code += (' and bool(%(stopVal)s):\n' % self.params)
+            code += ''.join(['    ' + lines + '\n' for lines in frameCode.splitlines()])
+        else:
+            code = frameCode
+        buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
-        """Write the code that will be called at the end of the routine
+        """Write the code that will be called at the end of the routine.
         """
-        inits = self.params
-        noneTypes = ['', None, 'None']
-        if inits['saveVarState'].val != 'never':
-            code = ("# adding data from %s to trialHandler\n" % inits['name'])
-            code += "for fields in %s_container:\n" % inits['name'] # start addData loop
-            if inits['saveVarState'] == 'final':
-                if not inits['c_startFrameValue'].val in noneTypes and not inits['b_startRoutineValue'].val in noneTypes:
-                    code += "   if fields == 'frameValues':\n"
-                    code += "       thisExp.addData(fields, %s_container[fields][-1])\n" % inits['name']
-                    code += "   else:\n"
-                    code += "       thisExp.addData(fields, %s_container[fields])" % inits['name']
-                elif not inits['c_startFrameValue'].val in noneTypes and inits['b_startRoutineValue'].val in noneTypes:
-                    code += "   if fields == 'frameValues':\n"
-                    code += "       thisExp.addData(fields, %s_container[fields][-1])\n" % inits['name']
-                    code += "   elif fields != 'routineValues': # because routine not defined.\n"
-                    code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
-                elif inits['c_startFrameValue'].val in noneTypes and not inits['b_startRoutineValue'].val in noneTypes:
-                    code += "   if fields != 'frameValues': # because frame not defined\n"
-                    code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
-                elif inits['c_startFrameValue'].val in noneTypes and inits['b_startRoutineValue'].val in noneTypes:
-                    code += "   if not fields in ['routineValues', 'frameValues']: # because neither defined.\n"
-                    code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
-            elif inits['saveVarState'] == 'routine' and not inits['b_startRoutineValue'].val in noneTypes:
-                code += "   if fields != 'frameValues':\n"
-                code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
-            elif inits['saveVarState'] == 'routine' and inits['b_startRoutineValue'].val in noneTypes:
-                code += "   if not fields in ['routineValues', 'frameValues']: # because neither defined or requested.\n"
-                code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
-            elif inits['saveVarState'] == 'every frame' and inits['c_startFrameValue'].val in noneTypes:
-                code += "   if fields != 'frameValues': # because no values for frame defined.\n"
-                code += "       thisExp.addData(fields, %s_container[fields])\n" % inits['name']
-            elif inits['saveVarState'] == 'every frame': # Then save all values
-                code += "   thisExp.addData(fields, %s_container[fields])" % inits['name']
-            buff.writeIndentedLines(code)
-
+        code = ''
+        if self.params['saveStartExp'] == True:
+            code += ("thisExp.addData('expStartVal', %(startExpValue)s)  # Save exp start value\n" % self.params)
+        if self.params['saveEndRoutine'] == True:
+            code = ("thisExp.addData('routineEndVal', %(name)s)  # Save end routine value\n" % self.params)
+        if self.params['saveFrameValue'] == True and self.params['saveFrameValue'].updates == 'last':
+            code += ("thisExp.addData('frameEndVal', %(name)sContainer[-1])  # Save end frame value\n" % self.params)
+        elif self.params['saveFrameValue'] == True and self.params['saveFrameValue'].updates == 'first':
+            code += ("thisExp.addData('frameStartVal', %(name)sContainer[0])  # Save start frame value\n" % self.params)
+        elif self.params['saveFrameValue'] == True and self.params['saveFrameValue'].updates == 'average':
+            code += ("thisExp.addData('meanFrameVal', average(%(name)sContainer))  # Save average frame value\n" % self.params)
+        if self.params['saveEndExp'] == True:
+            code += ("thisExp.addData('endExpVal', %(name)s)  # Save end experiment value\n" % self.params)
+        buff.writeIndentedLines(code)
