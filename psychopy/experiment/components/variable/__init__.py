@@ -122,7 +122,7 @@ class VariableComponent(BaseComponent):
         # Useful values for string creation
         startType = timeTypeDict[self.params['startType'].val]
         endType = timeTypeDict[self.params['stopType'].val]
-        startTime = self.params['startVal'].val
+        code = ''
         # Create default string
         frameCode = ("%(name)s = %(startFrameValue)s  # Set frame start values for %(name)s\n" % self.params)
         if self.params['saveFrameValue'] == True:
@@ -150,7 +150,7 @@ class VariableComponent(BaseComponent):
             elif u'duration' in self.params['stopType'].val:
                 if 'frame' in self.params['startType'].val and 'frame' in self.params['stopType'].val \
                         or '(s)' in self.params['startType'].val and '(s)' in self.params['stopType'].val:
-                    endTime = str((float(startTime) + float(self.params['stopVal'].val)))
+                    endTime = str((float(self.params['startVal'].val) + float(self.params['stopVal'].val)))
                 else:  # do not add mismatching value types
                     endTime = self.params['stopVal'].val
                 code += (' and ' + endType + ' <= ' + endTime + ':\n' % (self.params))
