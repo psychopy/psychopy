@@ -31,13 +31,13 @@ Released April 2018
 
 ADDED:
 
-  * "Variable" Component to Builder to make it easier to create/save simple variables #1769
   * Option to move Y position of `RatingScale` in code #1776
   * Added option of providing extra arguments to `scipy.optimize` functions when fitting from `psychopy.data` #1772
 
 FIXED:
 
   * Problem with icon path in GLFW backend on linux #bbf51521664
+  * PUINT didn't exist in older `win32` package but was expected by `pyglet`
   * Better handling of conditions file with empty columns (from Excel adding them or from missing headers)
   * Several fixes to ioHub in Python3
   * Mouse reporting incorrect position when using Mac Retina display #54ced9c2644e
