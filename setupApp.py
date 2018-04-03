@@ -87,7 +87,7 @@ packages = ['wx', 'psychopy',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
             'psychopy_ext', 'pyfilesec',
-            'bidi',  # for right-left language conversions
+            'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
