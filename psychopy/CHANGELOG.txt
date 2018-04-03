@@ -24,10 +24,30 @@ Stick to Python 2.7 if you want your script to break less. If you upgrade to
 Python 3 then you'll need to change any print statements to include brackets
 and you may also get some new errors springing up about unicode/bytes objects.
 
+PsychoPy 1.90.1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released April 2018
+
+ADDED:
+
+  * Option to move Y position of `RatingScale` in code #1776
+  * Added option of providing extra arguments to `scipy.optimize` functions when fitting from `psychopy.data` #1772
+
+FIXED:
+
+  * Problem with icon path in GLFW backend on linux #bbf51521664
+  * PUINT didn't exist in older `win32` package but was expected by `pyglet`
+  * Better handling of conditions file with empty columns (from Excel adding them or from missing headers)
+  * Several fixes to ioHub in Python3
+  * Mouse reporting incorrect position when using Mac Retina display #54ced9c2644e
+  * `sounddevice` was failing to find `portaudio.dylib` on Mac
+
+
 PsychoPy 1.90.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(not yet released)
+Released March 2018
 
 ADDED:
 
@@ -38,7 +58,6 @@ ADDED:
   * Builder: Mouse now allows stimuli to be "clickable" turning them in to buttons
   * Builder: ShapeStim now handles additional shapes, like Cross (also takes names for shapes rather than just n vertices)
   * Monitors calibration files can now be saved/loaded in JSON format
-
 
 CHANGED:
 

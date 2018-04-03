@@ -629,7 +629,10 @@ class Mouse(object):
             # get position in window
             lastPosPix = numpy.array([w._mouse_x, w._mouse_y])
             # set (0,0) to centre
-            lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
+            if self.win.useRetina:
+                lastPosPix = lastPosPix*2 - numpy.array(self.win.size) / 2
+            else:
+                lastPosPix = lastPosPix - numpy.array(self.win.size) / 2
         self.lastPos = self._pix2windowUnits(lastPosPix)
         return copy.copy(self.lastPos)
 

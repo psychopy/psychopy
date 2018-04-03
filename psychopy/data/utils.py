@@ -268,11 +268,17 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             # use pandas reader, which can handle commas in fields, etc
             trialsArr = pd.read_csv(fileUniv, encoding='utf-8')
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
+            unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+            trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+            logging.debug(u"Clearing unnamed columns from {}".format(fileName))
             trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
         trialsArr = pd.read_excel(fileName)
         logging.debug(u"Read excel file with pandas: {}".format(fileName))
+        unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+        trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+        logging.debug(u"Clearing unnamed columns from {}".format(fileName))
         trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith('.xlsx'):
