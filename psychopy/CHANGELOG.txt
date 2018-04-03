@@ -39,7 +39,7 @@ FIXED:
   * Problem with icon path in GLFW backend on linux #bbf51521664
   * PUINT didn't exist in older `win32` package but was expected by `pyglet`
   * Better handling of conditions file with empty columns (from Excel adding them or from missing headers)
-  * Several fixes to ioHub in Python3
+  * Several fixes to ioHub in Python3 #1770 #1771 and #1775
   * Mouse reporting incorrect position when using Mac Retina display #54ced9c2644e
   * `sounddevice` was failing to find `portaudio.dylib` on Mac
 
