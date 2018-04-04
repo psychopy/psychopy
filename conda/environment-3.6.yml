@@ -51,6 +51,7 @@ dependencies:
 - wxpython
 - zlib
 - pip:
+  - arabic_reshaper
   - json-tricks
   - pygame
   - pyglet==1.3.0b1
