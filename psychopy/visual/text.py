@@ -95,8 +95,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  wrapWidth=None,
                  flipHoriz=False,
                  flipVert=False,
-                 bidirectional=False,
-                 arabicReshape=False,
+                 languageStyle='LTR',
                  name=None,
                  autoLog=None):
         """
@@ -113,20 +112,28 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         unchanged shapes are as fast as usual. This includes ``pos``,
         ``opacity`` etc.
 
-        The following two attributes can only be set at initialization. See
+        The following attribute can only be set at initialization (see
         further down for a list of attributes which can be changed after
-        initialization.
+        initialization):
+
+        **languageStyle**
+            Apply settings to correctly display content from some languages
+            that are written right-to-left. Currently there are three (case-
+            insensitive) values for this parameter:
+            ``'LTR'`` is the default, for typical left-to-right, Latin-style
+            languages.
+            ``'RTL'`` will correctly display text in right-to-left languages
+             such as Hebrew. By applying the bidirectional algorithm, it
+             allows mixing portions of left-to-right content (such as numbers
+             or Latin script) within the string.
+            ``'Arabic'`` applies the bidirectional algorithm but additionally
+            will _reshape_ Arabic characters so they appear in the cursive,
+            linked form that depends on neighbouring characters, rather than
+            in their isolated form. May also be applied in other scripts,
+            such as Farsi or Urdu, that use Arabic-style alphabets.
 
         :Parameters:
 
-            bidirectional : True or False
-                Correct the direction of text in right-to-left languages
-                (e.g. Hebrew, Arabic).
-            arabicReshape : True or False
-                Reshape characters in Arabic (and Farsi, Urdu, etc), so that
-                they appear in their correct form depending on their context,
-                 rather than in their isolated form. This will usually need
-                 to be applied along with setting ``bidirectional = True``
         """
 
         # what local vars are defined (these are the init params) for use by
@@ -157,8 +164,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['ori'] = ori
         self.__dict__['flipHoriz'] = flipHoriz
         self.__dict__['flipVert'] = flipVert
-        self.__dict__['bidirectional'] = bidirectional
-        self.__dict__['arabicReshape'] = arabicReshape
+        self.__dict__['languageStyle'] = languageStyle
         self._pygletTextObj = None
         self.__dict__['pos'] = numpy.array(pos, float)
 
@@ -307,13 +313,19 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             return
         if text is not None:
             text = str(text)  # make sure we have unicode object to render
-            if self.arabicReshape:
+
+            # deal with some international text issues.
+            style = self.languageStyle.lower()  # be flexible with case
+            if style == 'rtl' or style == 'arabic':
+                # deal with right-to-left text presentation by applying the
+                # bidirectional algorithm:
+                text = bidi_algorithm.get_display(text)
+            if style == 'arabic':
                 # reshape Arabic characters from their isolated form so that
                 # they flow and join correctly to their neighbours:
                 text = arabic_reshaper.reshape(text)
-            if self.bidirectional:
-                # deal with right-to-left text presentation:
-                text = bidi_algorithm.get_display(text)
+            # no action needed for default 'ltr' (left-to-right) option
+
             self.__dict__['text'] = text
 
         if self.useShaders:
