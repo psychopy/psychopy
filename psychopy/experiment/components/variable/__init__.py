@@ -33,9 +33,9 @@ class VariableComponent(BaseComponent):
     """An class for creating variables in builder."""
 
     def __init__(self, exp, parentName,
-                 name='var1', startExpValue = None,
-                 startRoutineValue=None,
-                 startFrameValue=None):
+                 name='var1', startExpValue = '',
+                 startRoutineValue='',
+                 startFrameValue=''):
 
         super(VariableComponent, self).__init__(
             exp, parentName, name)
@@ -67,32 +67,37 @@ class VariableComponent(BaseComponent):
             False, valType='bool',
             updates='constant',
             hint=hnt,
-            label=_localized['saveStartExp'])
+            label=_localized['saveStartExp'],
+            categ='Save')
         hnt = _translate('Save the experiment end value in data file.')
         self.params['saveEndExp'] = Param(
             False, valType='bool',
             updates='constant',
             hint=hnt,
-            label=_localized['saveEndExp'])
+            label=_localized['saveEndExp'],
+            categ='Save')
         hnt = _translate('Save the routine start value in data file.')
         self.params['saveStartRoutine'] = Param(
             False, valType='bool',
             updates='constant',
             hint=hnt,
-            label=_localized['saveStartRoutine'])
+            label=_localized['saveStartRoutine'],
+            categ='Save')
         hnt = _translate('Save the routine end value in data file.')
         self.params['saveEndRoutine'] = Param(
-            False, valType='bool',
+            True, valType='bool',
             updates='constant',
             hint=hnt,
-            label=_localized['saveEndRoutine'])
+            label=_localized['saveEndRoutine'],
+            categ='Save')
         hnt = _translate('Save choice of frame value in data file.')
         self.params['saveFrameValue'] = Param(
-            False, valType='bool',
-            updates='last',
-            allowedUpdates=['first', 'last', 'average'],
+            'nothing', valType='str',
+            allowedVals=['first', 'last', 'average', 'nothing'],
+            updates='constant',
             hint=hnt,
-            label=_localized['saveFrameValue'])
+            label=_localized['saveFrameValue'],
+            categ='Save')
 
     def writeInitCode(self, buff):
         """Write variable initialisation code.
