@@ -7,6 +7,7 @@ Demo of text rendering in pyglet, including:
 - unicode
 - rotating text
 - mirror-image
+- bidirectional and reshaped Arabic/Farsi text
 """
 
 from __future__ import division
@@ -55,6 +56,27 @@ mirror = visual.TextStim(win, text="mirror mirror",
     units='norm', height=0.12, color='Silver',
     pos=[0, -0.5], alignHoriz='center',
     flipHoriz=True)
+# By default, right-to-left languages like Hebrew are often shown in
+# reversed order. Additonally, Arabic-based text by default is shown
+# with characters in their isolated form, rather than flowing correctly
+# into their neighbours:
+raw_Farsi = visual.TextStim(win,
+    text=u'Raw Farsi text: \n \u200E خوش آمدید 1999',
+    units='norm', height = 0.06, color='DarkRed',
+    pos=(-0.9, 0.8), font='Arial',
+    wrapWidth = 1.0, alignHoriz = 'left',
+    bidirectional = False,
+    arabicReshape = False)
+# We correct these issues by setting bidriectional = True (sufficient
+# for Hebrew) and/or arabicReshape = True (needed for languages based
+# on the Arabic alphabet):
+corrected_Farsi = visual.TextStim(win,
+    text=u'Reshaped & bidirectional: \n \u200E خوش آمدید 1999',
+    units='norm', height = 0.06, color = 'DarkRed',
+    pos=(-0.9, 0.6), font='Arial',
+    wrapWidth = 1.0, alignHoriz = 'left',
+    bidirectional = True,
+    arabicReshape = True)
 trialClock = core.Clock()
 t = lastFPSupdate = 0
 
@@ -66,6 +88,8 @@ while not event.getKeys():
     rotating.draw()
     unicodeStuff.draw()
     longSentence.draw()
+    raw_Farsi.draw()
+    corrected_Farsi.draw()
 
     # update the fps text every second
     if t - lastFPSupdate > 1:

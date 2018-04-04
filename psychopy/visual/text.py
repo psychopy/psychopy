@@ -34,6 +34,12 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
     ContainerMixin)
 
+# for displaying right-to-left (possibly bidirectional) text correctly:
+from bidi import algorithm as bidi_algorithm # sufficient for Hebrew
+# extra step needed to reshape Arabic/Farsi characters depending on
+# their neighbours:
+import arabic_reshaper
+
 import numpy
 
 try:
@@ -89,6 +95,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  wrapWidth=None,
                  flipHoriz=False,
                  flipVert=False,
+                 bidirectional=False,
+                 arabicReshape=False,
                  name=None,
                  autoLog=None):
         """
@@ -104,6 +112,21 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         In general, other attributes which merely affect the presentation of
         unchanged shapes are as fast as usual. This includes ``pos``,
         ``opacity`` etc.
+
+        The following two attributes can only be set at initialization. See
+        further down for a list of attributes which can be changed after
+        initialization.
+
+        :Parameters:
+
+            bidirectional : True or False
+                Correct the direction of text in right-to-left languages
+                (e.g. Hebrew, Arabic).
+            arabicReshape : True or False
+                Reshape characters in Arabic (and Farsi, Urdu, etc), so that
+                they appear in their correct form depending on their context,
+                 rather than in their isolated form. This will usually need
+                 to be applied along with setting ``bidirectional = True``
         """
 
         # what local vars are defined (these are the init params) for use by
@@ -134,6 +157,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['ori'] = ori
         self.__dict__['flipHoriz'] = flipHoriz
         self.__dict__['flipVert'] = flipVert
+        self.__dict__['bidirectional'] = bidirectional
+        self.__dict__['arabicReshape'] = arabicReshape
         self._pygletTextObj = None
         self.__dict__['pos'] = numpy.array(pos, float)
 
@@ -274,13 +299,23 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """The text to be rendered. Use \\\\n to make new lines.
 
         Issues: May be slow, and pyglet has a memory leak when setting text.
-        For these reasons, check and only update the text if it has changed.
-        So scripts can safely set the text on every frame, no need to check.
+        For these reasons, this function checks so that it only updates the
+        text if it has changed. So scripts can safely set the text on every
+        frame, with no need to check if it has actually altered.
         """
-        if text == self.text:
+        if text == self.text: # only update for a change
             return
-        if text != None:  # make sure we have unicode object to render
-            self.__dict__['text'] = str(text)
+        if text is not None:
+            text = str(text)  # make sure we have unicode object to render
+            if self.arabicReshape:
+                # reshape Arabic characters from their isolated form so that
+                # they flow and join correctly to their neighbours:
+                text = arabic_reshaper.reshape(text)
+            if self.bidirectional:
+                # deal with right-to-left text presentation:
+                text = bidi_algorithm.get_display(text)
+            self.__dict__['text'] = text
+
         if self.useShaders:
             self._setTextShaders(text)
         else:
@@ -584,7 +619,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def bold(self, value):
-        """Make the text bold (True, False). Better to use a bold font name).
+        """Make the text bold (True, False) (better to use a bold font name).
         """
         self.__dict__['bold'] = value
         self.font = self.font  # call attributeSetter
