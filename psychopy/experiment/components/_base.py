@@ -350,19 +350,35 @@ class BaseComponent(object):
             loggingStr = ', log=False'
         else:
             loggingStr = ''
+
+        if target == 'PsychoPy':
+            if paramName == 'color':
+                buff.writeIndented("%s.setColor(%s, colorSpace=%s" %
+                                   (compName, params['color'], params['colorSpace']))
+                buff.write("%s)%s\n" % (loggingStr, endStr))
+            elif paramName == 'sound':
+                stopVal = params['stopVal'].val
+                if stopVal in ['', None, -1, 'None']:
+                    stopVal = '-1'
+                buff.writeIndented("%s.setSound(%s, secs=%s)%s\n" %
+                                   (compName, params['sound'], stopVal, endStr))
+            else:
+                buff.writeIndented("%s.set%s(%s%s)%s\n" %
+                                   (compName, paramCaps, val, loggingStr, endStr))
+        elif target == 'PsychoJS':
         # write the line
-        if paramName == 'color':
-            buff.writeIndented("_.%s.setColor(new Color(_.%s)" % (compName, params['color']))
-            buff.write("%s)%s\n" % (loggingStr, endStr))
-        elif paramName == 'sound':
-            stopVal = params['stopVal'].val
-            if stopVal in ['', None, -1, 'None']:
-                stopVal = '-1'
-            buff.writeIndented("_.%s.setSound(%s, secs=%s)%s\n" %
-                               (compName, params['sound'], stopVal, endStr))
-        else:
-            buff.writeIndented("_.%s.set%s(_.%s%s)%s\n" %
-                               (compName, paramCaps, val, loggingStr, endStr))
+            if paramName == 'color':
+                buff.writeIndented("_.%s.setColor(new Color(_.%s)" % (compName, params['color']))
+                buff.write("%s)%s\n" % (loggingStr, endStr))
+            elif paramName == 'sound':
+                stopVal = params['stopVal'].val
+                if stopVal in ['', None, -1, 'None']:
+                    stopVal = '-1'
+                buff.writeIndented("_.%s.setSound(%s, secs=%s)%s\n" %
+                                   (compName, params['sound'], stopVal, endStr))
+            else:
+                buff.writeIndented("_.%s.set%s(_.%s%s)%s\n" %
+                                   (compName, paramCaps, val, loggingStr, endStr))
 
     def checkNeedToUpdate(self, updateType):
         """Determine whether this component has any parameters set to repeat
