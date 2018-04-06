@@ -145,7 +145,7 @@ class MessageEvent(DeviceEvent):
         #:
         #:      msg_offset=actual_event_iohub_time - iohub_message_time
         #:
-        #: where actual_event_iohub_time is the time the event occured that is being
+        #: where actual_event_iohub_time is the time the event occurred that is being
         #: represented by the Message event; and iohub_message_time is either the
         #: time provided to the Experiment Message creation methods to be used as the
         #: Message time stamp, or is the time that the Message Event actually requested the

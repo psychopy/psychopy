@@ -84,8 +84,9 @@ def test_setGammaRamp():
 
     desiredRamp = numpy.tile(
         visual.gamma.createLinearRamp(
-            screenID=win.backend.screenID,
-            xDisplay=win.backend.xDisplay),
+            rampSize=win.backend._rampSize,
+            driver=win.backend._driver
+        ),
         (3, 1)
     )
 
@@ -98,10 +99,7 @@ def test_setGammaRamp():
     for n in range(5):
         win.flip()
 
-    setRamp = visual.gamma.getGammaRamp(
-        screenID=win.backend.screenID,
-        xDisplay=win.backend.xDisplay
-    )
+    setRamp = win.backend.getGammaRamp()
 
     win.close()
 

@@ -12,7 +12,10 @@ import numpy as np
 from builtins import str
 from builtins import object
 from pkg_resources import parse_version
-from psychopy.iohub import printExceptionDetailsToStdErr, print2err, ioHubError, DeviceEvent, EventConstants
+from ..server import DeviceEvent
+from ..constants import EventConstants
+from ..errors import ioHubError, printExceptionDetailsToStdErr, print2err
+
 
 import tables
 from tables import parameters, IsDescription, Filters, StringCol, UInt32Col, UInt16Col, NodeError, NoSuchNodeError, ClosedFileError

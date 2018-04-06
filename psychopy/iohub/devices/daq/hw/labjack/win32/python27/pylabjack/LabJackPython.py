@@ -340,7 +340,7 @@ class Device(object):
                 eGetBuff = list()
                 eGetBuff = eGetRaw(self.handle, LJ_ioRAW_IN, 0, len(tempBuff), tempBuff)[1]
 
-                #parse the modbus response out (reponse is the Modbus extended low=level function)
+                #parse the modbus response out (response is the Modbus extended low=level function)
                 retBuff = list()
                 if len(eGetBuff) >= 9 and eGetBuff[1] == 0xF8 and eGetBuff[3] == 0x07:
                     #figuring out the length of the modbus response
@@ -397,14 +397,14 @@ class Device(object):
     
     def _parseReadRegisterResponse(self, response, numBytes, addr, format, numReg = None):
         """
-        self._parseReadRegisterReponse(reponse, numBytes, addr, format)
+        self._parseReadRegisterReponse(response, numBytes, addr, format)
 
         Takes a "Read Register" response and converts it to a value
 
         returns the value
         """
         if len(response) != numBytes:
-            raise LabJackException(9001, "Got incorrect number of bytes from device. Expected %s bytes, got %s bytes. The packet recieved was: %s" % (numBytes, len(response),response))
+            raise LabJackException(9001, "Got incorrect number of bytes from device. Expected %s bytes, got %s bytes. The packet received was: %s" % (numBytes, len(response),response))
 
         if isinstance(response, list):
             packFormat = ">" + "B" * numBytes
@@ -687,7 +687,7 @@ class Device(object):
         """
         Name: Device.breakupPackets
         Args: packets, a string or list of packets
-              numBytesPerPacket, how big each packe is
+              numBytesPerPacket, how big each packet is
         Desc: This function will break up a list into smaller chunks and return
               each chunk one at a time.
         
@@ -1489,7 +1489,7 @@ def openLabJack(deviceType, connectionType, firstFound = True, pAddress = None, 
     handle = None
 
     if connectionType == LJ_ctLJSOCKET:
-        # LJSocket handles work indepenent of OS
+        # LJSocket handles work independent of OS
         handle = _openLabJackUsingLJSocket(deviceType, firstFound, pAddress, LJSocket, handleOnly )
     elif os.name == 'posix' and connectionType == LJ_ctUSB:
         # Linux/Mac need to work in the low level driver.
@@ -1822,7 +1822,7 @@ def GoOne(Handle):
 def eGet(Handle, IOType, Channel, pValue, x1):
     """Perform one call to the LabJack Device
     
-    eGet is equivilent to an AddRequest followed by a GoOne.
+    eGet is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -1869,7 +1869,7 @@ def eGet(Handle, IOType, Channel, pValue, x1):
 def eGetRaw(Handle, IOType, Channel, pValue, x1):
     """Perform one call to the LabJack Device as a raw command
     
-    eGetRaw is equivilent to an AddRequest followed by a GoOne.
+    eGetRaw is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -1955,7 +1955,7 @@ def eGetRaw(Handle, IOType, Channel, pValue, x1):
 def eGetS(Handle, pIOType, Channel, pValue, x1):
     """Perform one call to the LabJack Device
     
-    eGet is equivilent to an AddRequest followed by a GoOne.
+    eGet is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -1995,7 +1995,7 @@ def eGetS(Handle, pIOType, Channel, pValue, x1):
 def eGetSS(Handle, pIOType, pChannel, pValue, x1):
     """Perform one call to the LabJack Device
     
-    eGet is equivilent to an AddRequest followed by a GoOne.
+    eGet is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -2045,7 +2045,7 @@ def eGetRawS(Handle, pIOType, Channel, pValue, x1):
 def ePut(Handle, IOType, Channel, Value, x1):
     """Put one value to the LabJack device
     
-    ePut is equivilent to an AddRequest followed by a GoOne.
+    ePut is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -2087,7 +2087,7 @@ def ePut(Handle, IOType, Channel, Value, x1):
 def ePutS(Handle, pIOType, Channel, Value, x1):
     """Put one value to the LabJack device
     
-    ePut is equivilent to an AddRequest followed by a GoOne.
+    ePut is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -2130,7 +2130,7 @@ def ePutS(Handle, pIOType, Channel, Value, x1):
 def ePutSS(Handle, pIOType, pChannel, Value, x1):
     """Put one value to the LabJack device
     
-    ePut is equivilent to an AddRequest followed by a GoOne.
+    ePut is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -2173,7 +2173,7 @@ def ePutSS(Handle, pIOType, pChannel, Value, x1):
 def GetResult(Handle, IOType, Channel):
     """Put one value to the LabJack device
     
-    ePut is equivilent to an AddRequest followed by a GoOne.
+    ePut is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -2213,7 +2213,7 @@ def GetResult(Handle, IOType, Channel):
 def GetResultS(Handle, pIOType, Channel):
     """Put one value to the LabJack device
     
-    ePut is equivilent to an AddRequest followed by a GoOne.
+    ePut is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -2253,7 +2253,7 @@ def GetResultS(Handle, pIOType, Channel):
 def GetResultSS(Handle, pIOType, pChannel):
     """Put one value to the LabJack device
     
-    ePut is equivilent to an AddRequest followed by a GoOne.
+    ePut is equivalent to an AddRequest followed by a GoOne.
     
     For Windows Only
     
@@ -3177,11 +3177,11 @@ LJ_ioADD_STREAM_DAC = 207
 # data into as X1.  This array needs to be an array of doubles. Therefore, the array needs to be 8 * number of
 # requested data points in byte length. What is returned depends on the StreamWaitMode.  If None, this function will only return
 # data available at the time of the call.  You therefore must call GetResult() for this function to retrieve the actually number
-# of points retreived.  If Pump or Sleep, it will return only when the appropriate number of points have been read or no
+# of points retrieved.  If Pump or Sleep, it will return only when the appropriate number of points have been read or no
 # new points arrive within 100ms.  Since there is this timeout, you still need to use GetResult() to determine if the timeout
-# occured.  If AllOrNone, you again need to check GetResult.
+# occurred.  If AllOrNone, you again need to check GetResult.
 
-# You can also retreive the entire scan by passing LJ_chALL_CHANNELS.  In this case, the Value determines the number of SCANS 
+# You can also retrieve the entire scan by passing LJ_chALL_CHANNELS.  In this case, the Value determines the number of SCANS 
 # returned, and therefore, the array must be 8 * number of scans requested * number of channels in each scan.  Likewise
 # GetResult() will return the number of scans, not the number of data points returned.
 
@@ -3264,7 +3264,7 @@ LJ_chSTREAM_COMMUNICATION_TIMEOUT = 21
 # The layout of cal ants are defined in the users guide for each device.
 # When the LJ_chCAL_CONSTANTS special channel is used with PUT_CONFIG, a
 # special value (0x4C6C) must be passed in to the Value parameter. This makes it
-# more difficult to accidently erase the cal constants.  In all other cases the Value
+# more difficult to accidentally erase the cal constants.  In all other cases the Value
 # parameter is ignored.
 LJ_chCAL_CONSTANTS = 400 # UE9 + U3 + U6
 LJ_chUSER_MEM = 402 # UE9 + U3 + U6
@@ -3446,7 +3446,7 @@ LJ_tc48MHZ_DIV = 26   # U3: Hardware Version 1.21 or higher
 # stream wait modes
 LJ_swNONE = 1  # no wait, return whatever is available
 LJ_swALL_OR_NONE = 2 # no wait, but if all points requested aren't available, return none.
-LJ_swPUMP = 11 # wait and pump the message pump.  Prefered when called from primary thread (if you don't know
+LJ_swPUMP = 11 # wait and pump the message pump.  Preferred when called from primary thread (if you don't know
                # if you are in the primary thread of your app then you probably are.  Do not use in worker
                # secondary threads (i.e. ones without a message pump).
 LJ_swSLEEP = 12 # wait by sleeping (don't do this in the primary thread of your app, or it will temporarily 
@@ -3465,7 +3465,7 @@ LJ_swSLEEP = 12 # wait by sleeping (don't do this in the primary thread of your 
 LJ_ioSWDT_CONFIG = 507 # UE9 + U3 + U6 - Use with LJ_chSWDT_ENABLE or LJ_chSWDT_DISABLE
 LJ_ioSWDT_STROKE = 508 # UE9 - Used when SWDT_STRICT_ENABLE is turned on to renew the watchdog.
 
-LJ_chSWDT_ENABLE = 5200 # UE9 + U3 + U6 - used with LJ_ioSWDT_CONFIG to enable watchdog.  Value paramter is number of seconds to trigger
+LJ_chSWDT_ENABLE = 5200 # UE9 + U3 + U6 - used with LJ_ioSWDT_CONFIG to enable watchdog.  Value parameter is number of seconds to trigger
 LJ_chSWDT_DISABLE = 5201 # UE9 + U3 + U6 - used with LJ_ioSWDT_CONFIG to disable watchdog.
 
 # Used with LJ_io_PUT_CONFIG

@@ -15,7 +15,7 @@ try:
     import soundfile as sndfile
 except ImportError as err:
     # convert this import error to our own, pysoundcard probably not installed
-    raise exceptions.DependencyError(repr(origMsg))
+    raise exceptions.DependencyError(repr(err.msg))
 
 import numpy
 from os import path
@@ -114,7 +114,7 @@ class SoundPySoundCard(_SoundBase):
 
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100,
                  bits=None, name='', autoLog=True, loops=0, bufferSize=128,
-                 volume=1):
+                 volume=1, stereo=True):
         """Create a sound and get ready to play
 
         :parameters:
@@ -164,6 +164,9 @@ class SoundPySoundCard(_SoundBase):
 
             volume: 0-1.0
 
+            stereo:
+                currently serves no purpose (exists for backwards
+                compatibility)
         """
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog

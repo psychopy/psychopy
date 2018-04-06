@@ -71,5 +71,5 @@ monitor_devices:
                      contract_only: True        
         runtime_settings:
             # The supported sampling rates for Tobii are model dependent. 
-            # Using a defualt of 60 Hz, with the assumption it is the most common.
+            # Using a default of 60 Hz, with the assumption it is the most common.
             sampling_rate: 120

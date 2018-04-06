@@ -48,6 +48,11 @@ def compareScreenshot(fileName, win, crit=5.0):
         expected = Image.open(fileName)
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
+        # for retina displays the frame data is 4x bigger than expected
+        if win.useRetina and imgDat.shape[0] == expDat.shape[0]*4:
+            frame = frame.resize(expected.size, resample=Image.LANCZOS)
+            imgDat = np.array(frame.getdata())
+            crit += 5  # be more relaxed because of the interpolation
         rms = np.std(imgDat-expDat)
         filenameLocal = fileName.replace('.png','_local.png')
         if rms >= crit/2:

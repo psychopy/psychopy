@@ -374,7 +374,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
                      GL.GL_MODULATE)  # ?? do we need this - think not!
 
-        if not self.status == PAUSED:
+        if self.status == PLAYING:
             self._nextFrameT += self._frameInterval
 
     def draw(self, win=None):

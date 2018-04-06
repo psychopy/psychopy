@@ -316,6 +316,17 @@ class PsychoPyApp(wx.App):
                                           args=(True,))
         versionsThread.start()
 
+        # if we have imageio then try to download ffmpeg
+        try:
+            import imageio
+            haveImageio = True
+        except:
+            haveImageio = False
+        if haveImageio:
+            # download() returns immediately if we have it already
+            ffmpegDownloader = threading.Thread(target=imageio.plugins.ffmpeg.download)
+            ffmpegDownloader.start()
+
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
         if not ok and not self.firstRun and not self.testMode:

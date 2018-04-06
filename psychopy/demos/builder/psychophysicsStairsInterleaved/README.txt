@@ -13,7 +13,7 @@ Notes
 
     2) To decide whether the stimulus appears on the left or right a Code Component called `setSide`has been used to determine which is the correct key to press and the position of the grating.
 
-    3) The fixation point goes off between trials to alert the subject that the next trial is occuring
+    3) The fixation point goes off between trials to alert the subject that the next trial is occurring
     
     4) Right now the experiment uses seconds for timing (for simplicity) but to be precise N frames would be better, particularly for the grating stimulus duration.
     

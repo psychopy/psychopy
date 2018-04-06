@@ -84,7 +84,7 @@ class EyeTracker(EyeTrackerDevice):
         the eyetracker hardware.
 
         Note that a connection to the eye tracking hardware is automatically
-        openned when the ioHub Server process is started. So there is no need to
+        opened when the ioHub Server process is started. So there is no need to
         call this method at the start of your experiment. Doing so will have no
         effect on the connection state.
 
@@ -283,7 +283,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def setRecordingState(self, recording):
         """The setRecordingState method is used to start or stop the recording
-        and transmition of eye data from the eye tracking device.
+        and transmission of eye data from the eye tracking device.
 
         Args:
             recording (bool): if True, the eye tracker will start recordng data.; false = stop recording data.

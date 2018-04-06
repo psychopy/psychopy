@@ -18,7 +18,8 @@ tooltip = _translate('Movie: play movie files')
 # only use _localized values for label values, nothing functional:
 _localized = {'movie': _translate('Movie file'),
               'forceEndRoutine': _translate('Force end of Routine'),
-              'backend': _translate('backend')}
+              'backend': _translate('backend'),
+              'No audio': _translate('No audio')}
 
 
 class MovieComponent(BaseVisualComponent):
@@ -64,12 +65,12 @@ class MovieComponent(BaseVisualComponent):
             label=_localized['backend'])
 
         # todo: msg = _translate(...)
-        msg = ("Prevent the audio stream from being loaded/processed "
+        msg = _translate("Prevent the audio stream from being loaded/processed "
                "(moviepy and opencv only)")
         self.params["No audio"] = Param(
             noAudio, valType='bool',
             hint=msg,
-            label='No audio')
+            label=_localized['No audio'])
 
         msg = _translate("Should the end of the movie cause the end of "
                          "the routine (e.g. trial)?")

@@ -41,7 +41,7 @@ serial.Serial:
         byte_diff: False
 
     # device_timer: Devices that require polling to read any new native events
-    #   that have become available must specifiy a device_timer property, with an
+    #   that have become available must specify a device_timer property, with an
     #   interval sub property that specifies how frequently the device would be polled
     #   by the ioHub Server. The time is specified in sec.msec format and is a 'requested'
     #   polling interval. The actual polling interval will vary from this somewhat, the 

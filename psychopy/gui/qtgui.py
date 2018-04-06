@@ -10,7 +10,7 @@
 from __future__ import absolute_import, print_function
 
 from builtins import str
-from past.builtins import basestring
+from past.builtins import unicode
 try:
     from PyQt4 import QtGui
     QtWidgets = QtGui  # in qt4 these were all in one package
@@ -182,7 +182,7 @@ class Dlg(QtWidgets.QDialog):
                 thisType = self.inputFieldTypes[ix]
 
                 try:
-                    if issubclass(thisType, basestring):
+                    if thisType in (str, unicode, bytes):
                         self.data[ix] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"

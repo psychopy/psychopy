@@ -123,7 +123,7 @@ Video Display:
                 GL_STEREO: False
     Processes: [Only Saved if SAVE_PER_PROCESS_DATA = True]
 
-        [Each user accessable process running on the computer will be output]
+        [Each user accessible process running on the computer will be output]
         [Example output for 3 processes: ]
 
         15187:

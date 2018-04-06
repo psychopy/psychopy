@@ -222,8 +222,8 @@ class StaticPeriod(object):
         self.countdown.reset(duration - self.frameTime)
         # turn off recording of frame intervals throughout static period
         if self.win:
-            self.win.recordFrameIntervals = False
             self._winWasRecordingIntervals = self.win.recordFrameIntervals
+            self.win.recordFrameIntervals = False
 
     def complete(self):
         """Completes the period, using up whatever time is remaining with a
@@ -261,9 +261,11 @@ def wait(secs, hogCPUperiod=0.2):
 
     If you want to suppress checking for pyglet events during the wait,
     do this once::
+
         core.checkPygletDuringWait = False
 
     and from then on you can do::
+
         core.wait(sec)
 
     This will preserve terminal-window focus during command line usage.

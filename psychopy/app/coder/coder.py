@@ -35,7 +35,7 @@ import pickle
 import py_compile
 import locale
 
-from . import psychoParser, introspect
+from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import projects
 from psychopy import logging
@@ -864,106 +864,107 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-
-        if self.coder.prefs['showSourceAsst']:
-            # check current word including .
-            if charBefore == ord('('):
-                startPos = self.WordStartPosition(caretPos - 2, True)
-                endPos = caretPos - 1
-            else:
-                startPos = self.WordStartPosition(caretPos, True)
-                endPos = self.WordEndPosition(caretPos, True)
-            # extend starPos back to beginning of class separated by .
-            while self.GetCharAt(startPos - 1) == ord('.'):
-                startPos = self.WordStartPosition(startPos - 1, True)
-            # now retrieve word
-            currWord = self.GetTextRange(startPos, endPos)
-
-            # lookfor word in dictionary
-            if currWord in self.autoCompleteDict:
-                helpText = self.autoCompleteDict[currWord]['help']
-                thisIs = self.autoCompleteDict[currWord]['is']
-                thisType = self.autoCompleteDict[currWord]['type']
-                thisAttrs = self.autoCompleteDict[currWord]['attrs']
-                if type(thisIs) == str:  # if this is a module
-                    searchFor = thisIs
-                else:
-                    searchFor = currWord
-            else:
-                helpText = None
-                thisIs = None
-                thisAttrs = None
-                thisType = None
-                searchFor = currWord
-
-            if self.prevWord != currWord:
-                # if we have a class or function then use introspect (because
-                # it retrieves args as well as __doc__)
-                if thisType is not 'instance':
-                    wd, kwArgs, helpText = introspect.getCallTip(
-                        searchFor, locals=self.locals)
-                # then pass all info to sourceAsst
-                # for an instance inclue known attrs
-                self.updateSourceAsst(
-                    currWord, thisIs, helpText, thisType, thisAttrs)
-
-                self.prevWord = currWord  # update for next time
-
-    def updateSourceAsst(self, currWord, thisIs, helpText, thisType=None,
-                         knownAttrs=None):
-            # update the source assistant window
-        sa = self.coder.sourceAsstWindow
-        assert isinstance(sa, wx.richtext.RichTextCtrl)
-        # clear the buffer
-        sa.Clear()
-
-        # add current symbol
-        sa.BeginBold()
-        sa.WriteText('Symbol: ')
-        sa.BeginTextColour('BLUE')
-        sa.WriteText(currWord + '\n')
-        sa.EndTextColour()
-        sa.EndBold()
-
-        # add expected type
-        sa.BeginBold()
-        sa.WriteText('is: ')
-        sa.EndBold()
-        if thisIs:
-            sa.WriteText(str(thisIs) + '\n')
-        else:
-            sa.WriteText('\n')
-
-        # add expected type
-        sa.BeginBold()
-        sa.WriteText('type: ')
-        sa.EndBold()
-        if thisIs:
-            sa.WriteText(str(thisType) + '\n')
-        else:
-            sa.WriteText('\n')
-
-        # add help text
-        sa.BeginBold()
-        sa.WriteText('Help:\n')
-        sa.EndBold()
-        if helpText:
-            sa.WriteText(helpText + '\n')
-        else:
-            sa.WriteText('\n')
-
-        # add attrs
-        sa.BeginBold()
-        sa.WriteText('Known methods:\n')
-        sa.EndBold()
-        if knownAttrs:
-            if len(knownAttrs) > 500:
-                sa.WriteText('\ttoo many to list (i.e. more than 500)!!\n')
-            else:
-                for thisAttr in knownAttrs:
-                    sa.WriteText('\t' + thisAttr + '\n')
-        else:
-            sa.WriteText('\n')
+    #
+    # The code to handle the Source Assistant (using introspect) was broken and removed in 1.90.0
+    #     if self.coder.prefs['showSourceAsst']:
+    #         # check current word including .
+    #         if charBefore == ord('('):
+    #             startPos = self.WordStartPosition(caretPos - 2, True)
+    #             endPos = caretPos - 1
+    #         else:
+    #             startPos = self.WordStartPosition(caretPos, True)
+    #             endPos = self.WordEndPosition(caretPos, True)
+    #         # extend starPos back to beginning of class separated by .
+    #         while self.GetCharAt(startPos - 1) == ord('.'):
+    #             startPos = self.WordStartPosition(startPos - 1, True)
+    #         # now retrieve word
+    #         currWord = self.GetTextRange(startPos, endPos)
+    #
+    #         # lookfor word in dictionary
+    #         if currWord in self.autoCompleteDict:
+    #             helpText = self.autoCompleteDict[currWord]['help']
+    #             thisIs = self.autoCompleteDict[currWord]['is']
+    #             thisType = self.autoCompleteDict[currWord]['type']
+    #             thisAttrs = self.autoCompleteDict[currWord]['attrs']
+    #             if type(thisIs) == str:  # if this is a module
+    #                 searchFor = thisIs
+    #             else:
+    #                 searchFor = currWord
+    #         else:
+    #             helpText = None
+    #             thisIs = None
+    #             thisAttrs = None
+    #             thisType = None
+    #             searchFor = currWord
+    #
+    #         if self.prevWord != currWord:
+    #             # if we have a class or function then use introspect (because
+    #             # it retrieves args as well as __doc__)
+    #             if thisType is not 'instance':
+    #                 wd, kwArgs, helpText = introspect.getCallTip(
+    #                     searchFor, locals=self.locals)
+    #             # then pass all info to sourceAsst
+    #             # for an instance inclue known attrs
+    #             self.updateSourceAsst(
+    #                 currWord, thisIs, helpText, thisType, thisAttrs)
+    #
+    #             self.prevWord = currWord  # update for next time
+    #
+    # def updateSourceAsst(self, currWord, thisIs, helpText, thisType=None,
+    #                      knownAttrs=None):
+    #         # update the source assistant window
+    #     sa = self.coder.sourceAsstWindow
+    #     assert isinstance(sa, wx.richtext.RichTextCtrl)
+    #     # clear the buffer
+    #     sa.Clear()
+    #
+    #     # add current symbol
+    #     sa.BeginBold()
+    #     sa.WriteText('Symbol: ')
+    #     sa.BeginTextColour('BLUE')
+    #     sa.WriteText(currWord + '\n')
+    #     sa.EndTextColour()
+    #     sa.EndBold()
+    #
+    #     # add expected type
+    #     sa.BeginBold()
+    #     sa.WriteText('is: ')
+    #     sa.EndBold()
+    #     if thisIs:
+    #         sa.WriteText(str(thisIs) + '\n')
+    #     else:
+    #         sa.WriteText('\n')
+    #
+    #     # add expected type
+    #     sa.BeginBold()
+    #     sa.WriteText('type: ')
+    #     sa.EndBold()
+    #     if thisIs:
+    #         sa.WriteText(str(thisType) + '\n')
+    #     else:
+    #         sa.WriteText('\n')
+    #
+    #     # add help text
+    #     sa.BeginBold()
+    #     sa.WriteText('Help:\n')
+    #     sa.EndBold()
+    #     if helpText:
+    #         sa.WriteText(helpText + '\n')
+    #     else:
+    #         sa.WriteText('\n')
+    #
+    #     # add attrs
+    #     sa.BeginBold()
+    #     sa.WriteText('Known methods:\n')
+    #     sa.EndBold()
+    #     if knownAttrs:
+    #         if len(knownAttrs) > 500:
+    #             sa.WriteText('\ttoo many to list (i.e. more than 500)!!\n')
+    #         else:
+    #             for thisAttr in knownAttrs:
+    #                 sa.WriteText('\t' + thisAttr + '\n')
+    #     else:
+    #         sa.WriteText('\n')
 
     def OnMarginClick(self, evt):
         # fold and unfold as needed
@@ -1178,6 +1179,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         else:
             self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
 
+    # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
         # analyse the file
         buffer = io.StringIO()
@@ -1191,7 +1193,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             successfulParse = False
         buffer.close()
 
-        # if we parsed the tokens then process them
+    #     # if we parsed the tokens then process them
         if successfulParse:
             # import the libs used by the script
             if self.coder.modulesLoaded:
@@ -1813,10 +1815,12 @@ class CoderFrame(wx.Frame):
         folders = glob.glob(os.path.join(self.paths['demos'], 'coder', '*'))
         for folder in folders:
             # if it isn't a folder then skip it
-            if not os.path.isdir(folder):
+            if (not os.path.isdir(folder)):
                 continue
             # otherwise create a submenu
             folderDisplayName = os.path.split(folder)[-1]
+            if folderDisplayName.startswith('_'):
+                continue  # don't include private folders
             if folderDisplayName in _localized:
                 folderDisplayName = _localized[folderDisplayName]
             submenu = wx.Menu()
@@ -1835,7 +1839,7 @@ class CoderFrame(wx.Frame):
                     # file is just "run" so get shortname from directory name
                     # instead
                     shortname = thisFile.split(os.path.sep)[-2]
-                if shortname.startswith('_'):
+                elif shortname.startswith('_'):
                     continue  # remove any 'private' files
                 item = submenu.Append(wx.ID_ANY, shortname)
                 thisID = item.GetId()
@@ -2881,7 +2885,10 @@ class CoderFrame(wx.Frame):
         # "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py"
         tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ', 1)
         filename = tmpFilename.split('File "', 1)[1]
-        lineNumber = int(tmpLineNumber.split(',')[0])
+        if PY3:
+            lineNumber = int(tmpLineNumber.split()[0])
+        else:
+            lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename, lineNumber)
 
     def onUnitTests(self, evt=None):

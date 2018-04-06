@@ -24,7 +24,7 @@ except NameError:
 
 import unicodedata
 
-from darwinkey import code2label
+from .darwinkey import code2label
 
 #print2err("code2label: ",code2label)
 carbon_path = ctypes.util.find_library('Carbon')

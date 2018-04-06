@@ -62,11 +62,13 @@ includes = ['Tkinter', 'tkFileDialog',
             'pysoundcard', 'soundfile', 'sounddevice',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
+            'vlc',  # install with pip install python-vlc
             ]
 packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
             'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
             'moviepy', 'imageio',
+            '_sounddevice_data','_soundfile_data',
             'cffi','pycparser',
             'PIL',  # 'Image',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
@@ -85,7 +87,7 @@ packages = ['wx', 'psychopy',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
             'psychopy_ext', 'pyfilesec',
-            'bidi',  # for right-left language conversions
+            'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
@@ -95,7 +97,7 @@ if sys.version_info.major >= 3:
     packages.extend(['PyQt5'])
 else:
     # not available or not working under Python3:
-    includes.extend(['UserString', 'ioLabs', 'FileDialog', 'vlc'])
+    includes.extend(['UserString', 'ioLabs', 'FileDialog'])
     packages.extend(['PyQt4', 'labjack', 'rusocsci'])
     # is available but py2app can't seem to find it:
     packages.extend(['OpenGL'])
@@ -106,7 +108,7 @@ setup(
             includes=includes,
             packages=packages,
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
-                      'OpenGL','OpenGL.WGL','OpenGL.raw.WGL.*',
+                      'libsz.2.dylib',
                       # 'stringprep',
                       'functools32',
                       ],  # anything we need to forcibly exclude?

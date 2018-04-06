@@ -27,7 +27,6 @@ matrix:
       python: 3.6
       env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
 
-
 before_install:
   # System setup
   - travis_retry sudo apt-get update -qq

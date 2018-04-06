@@ -491,6 +491,8 @@ class _baseVisualTest(object):
 
     def test_simpleimage(self):
         win = self.win
+        if win.useRetina:
+            pytest.skip("Rendering pixel-for-pixel is not identical on retina")
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
         if not os.path.isfile(fileName):
             raise IOError('Could not find image file: %s' % os.path.abspath(fileName))
