@@ -243,7 +243,7 @@ class ExperimentHandler(_ComparisonMixin):
         # check for orphan final data (not committed as a complete entry)
         entries = copy.copy(self.entries)
         if self.thisEntry:  # thisEntry is not empty
-            entries.extend(self.thisEntry)
+            entries.append(self.thisEntry)
         return entries
 
     def saveAsWideText(self,
