@@ -56,7 +56,7 @@ if PY3 and ('CONDA_PREFIX' not in os.environ):
 
 # compress psychojs to a zip file for packaging
 # only takes 0.5s but could skip if you prefer
-if ('-noJS' in argv) or not exists('psychojs'):
+if ('-noJS' in argv) or not exists('psychojs') or ('clean' in argv):
     pass
 else:
     import shutil
