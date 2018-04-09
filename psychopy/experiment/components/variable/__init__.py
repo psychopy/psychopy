@@ -32,10 +32,6 @@ _localized = {'name': _translate('Name'),
 class VariableComponent(BaseComponent):
     """An class for creating variables in builder."""
 
-    numOfCalls = 0  # N number of calls to writeExperimentEndCode
-    numOfEndExpSaves = []  # N object instances with saveEndExp as True
-    validSaves = []  # N valid saves where vals and End Save exists across per object
-
     def __init__(self, exp, parentName,
                  name='var1', startExpValue = '',
                  startRoutineValue='',
@@ -106,12 +102,13 @@ class VariableComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         """Write variable initialisation code."""
-        VariableComponent.numOfEndExpSaves.append(self.params['saveEndExp'].val)
         code = ("# Set experiment start values for variable component %(name)s\n")
         if self.params['startExpValue'] == '':
             code += ("%(name)s = ''\n")
         else:
             code += ("%(name)s = %(startExpValue)s\n")
+        # Create variable container
+        code += ("%(name)sContainer = []\n")
         buff.writeIndented(code % self.params)
     #
     def writeRoutineStartCode(self, buff):
@@ -120,9 +117,6 @@ class VariableComponent(BaseComponent):
             code = ("%(name)s = %(startRoutineValue)s  # Set routine start values for %(name)s\n")
             if self.params['saveStartRoutine'] == True:
                 code += ("thisExp.addData('%(name)s.routineStartVal', %(name)s)  # Save exp start value\n")
-            # Create new container at beginning of each routine, to ensure frame data is cleared between trials
-            if not self.params['saveFrameValue'] == 'never':
-                code += ("%(name)sContainer = []\n")
             buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
@@ -198,7 +192,6 @@ class VariableComponent(BaseComponent):
         """Write the code that will be called at the end of the experiment."""
         code=''
         writeData = []
-        VariableComponent.numOfCalls += 1
         # For saveEndExp, check whether any values were initiated.
         for vals in ['startExpValue', 'startRoutineValue', 'startFrameValue']:
             if not self.params[vals] == '':
@@ -206,10 +199,4 @@ class VariableComponent(BaseComponent):
         # Write values to file if requested, and if any variables defined
         if self.params['saveEndExp'] == True and np.any(writeData):
             code = ("thisExp.addData('%(name)s.endExpVal', %(name)s)  # Save end experiment value\n")
-        # Append TRUE only if values AND save requests exist, else nextEntry() will not be written
-        VariableComponent.validSaves.append(np.any(writeData) and self.params['saveEndExp'] == True)
-        # do if N calls to writeExperimentEndCode == N objects created AND validSaves obj == True.
-        if (VariableComponent.numOfCalls == len(VariableComponent.numOfEndExpSaves)
-                and np.any(VariableComponent.validSaves)):
-            code += ("thisExp.nextEntry()\n")
         buff.writeIndentedLines(code % self.params)
