@@ -1070,6 +1070,31 @@ class RatingScale(MinimalStim):
             vals = (self.name, triggeringAction, str(self.getRating()))
             logging.data('RatingScale %s: (%s) rating=%s' % vals)
 
+    def setYPos(self, newPos = None):
+        """
+        This function can be called by the user to change the Y-positioning of the rating scale.
+        X location remains unchanged.
+        """
+        oldXPos, oldYPos = self.offsetHoriz, self.offsetVert
+        if not newPos is None:
+            if len(list(newPos)) == 2:
+                offsetHoriz, offsetVert = newPos
+        self.offsetHoriz = float(offsetHoriz)
+        self.offsetVert = float(offsetVert)
+        for positions in self.visualDisplayElements: # change location of elements based on position arg
+            if not positions.pos is None:
+                if 'ShapeStim' in str(type(positions)):
+                    offsetY = abs(oldYPos - positions.pos[1])
+                    positions.setPos([positions.pos[0], self.offsetVert + offsetY])
+                    if '.line' in positions.name:# then change Y location of marker and mouse click box
+                        self.markerYpos = self.offsetVert
+                        self.nearLine[0][1],self.nearLine[3][1] = offsetVert-.072, offsetVert-.072
+                        self.nearLine[1][1], self.nearLine[2][1] = offsetVert +.072, offsetVert + .072
+                if 'TextStim' in str(type(positions)):
+                    offsetY = abs(oldYPos-positions.pos[1])
+                    positions.setPos([positions.pos[0], self.offsetVert - offsetY])
+
+
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
 

@@ -14,15 +14,18 @@ PsychoPy:
 * Andrea Grant
 * Andy Schofield
 * ArgetlahmSource
+* Ari Kahn
 * Ariel Rokem
 * Arman Farhangi
 * Austin F. Frank
 * Axel Kohler
 * Ayse Ilkay Isik
+* Bas van Schaik
 * Benedikt Janus
 * Boaz Mohar
 * Brian Lau
 * Cameron Riddell
+* Carlos Correa
 * Cezary Biele
 * Chris Markiewicz
 * Christopher J. Bailey
@@ -35,6 +38,8 @@ PsychoPy:
 * Daniel McCloy
 * Daniel Riggs
 * Daniel Schreij
+* David Bridges
+* David Watson
 * Detlef Gausepohl
 * Eric Larson
 * Erik Kastman
@@ -49,6 +54,8 @@ PsychoPy:
 * Henrik Singmann
 * Hiroyuki Sogo
 * Horea Christian
+* Hrvoje Stojic
+* Ian Eisenberg
 * Ian Hussey
 * Jakub Kaczmarzyk
 * James McMurray
@@ -65,7 +72,7 @@ PsychoPy:
 * Jon Stutters
 * Jonas Kubilius
 * Jonas Lindeløv
-* Jonathan Kominsky
+* Jonathan F. Kominsky
 * Jonathan Peirce
 * Joseph Glavan
 * Josh Doe
@@ -85,6 +92,7 @@ PsychoPy:
 * Mikolaj Magnuski
 * Nate Vack
 * Nathan Nichols
+* Noah Silbert
 * Nwokedi C. Idika
 * Oliver Clark
 * Pablo Prietz
@@ -94,8 +102,10 @@ PsychoPy:
 * Piotr Iwaniuk
 * Ram Vibhakar Suthagar
 * Rebecca Sharman
+* Richard C. Gerkin
 * Richard Höchenberger
 * Robin Schubert
+* Saizo Aoyagi
 * Sebastiaan Mathot
 * Sol Simpson
 * Stefan Repplinger
@@ -103,6 +113,7 @@ PsychoPy:
 * Thomas Emmerling
 * Thomas Scope
 * Todd Jennings
+* Tom Wallis
 * Tristan Stenner
 * Wilbert van Ham
 * William Högman
@@ -112,4 +123,4 @@ PsychoPy:
 ---
 *This list was auto-generated via `gen_authors.py`. Do not edit manually.*
 
-*Last updated on November 05, 2017 (UTC).*
+*Last updated on April 03, 2018 (UTC).*

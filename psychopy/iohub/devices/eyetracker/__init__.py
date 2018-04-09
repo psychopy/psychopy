@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from .. import Device, ioDeviceError
 from ...constants import DeviceConstants, EyeTrackerConstants
-import hw
+from . import hw
 from ...errors import print2err
 
 
@@ -444,7 +444,7 @@ class EyeTrackerDevice(Device):
         destroyed."""
         self.__class__._INSTANCE = None
 
-from eye_events import (
+from .eye_events import (
     EyeSampleEvent,
     MonocularEyeSampleEvent,
     BinocularEyeSampleEvent,

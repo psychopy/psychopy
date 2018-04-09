@@ -10,6 +10,12 @@
 
 from __future__ import absolute_import, print_function
 
+import sys
+if sys.platform == 'win32':
+    from pyglet.libs import win32  # pyglet patch for ANACONDA install
+    from ctypes import *
+    win32.PUINT = POINTER(wintypes.UINT)
+
 from psychopy.visual import filters
 from psychopy.visual.backends import gamma
 # absolute essentials (nearly all experiments will need these)
