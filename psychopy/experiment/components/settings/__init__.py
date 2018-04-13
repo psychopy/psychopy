@@ -490,7 +490,6 @@ class SettingsComponent(object):
         code = ("// Importing standard modules...\n"
                 "import * as util from 'js/util';\n"
                 "import Scheduler from 'js/Scheduler'; \n"
-                "import visual from 'js/visual';\n"
                 "import Window from 'js/Window';\n"
                 "import TextStim from 'js/TextStim';\n"
                 "import PsychoJS from 'js/PsychoJS';\n"

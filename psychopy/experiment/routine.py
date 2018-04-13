@@ -246,7 +246,7 @@ class Routine(list):
                     and "PsychoJS" in thisCompon.targets):
                 code = ("_.%sComponents.push(_.%s);\n" % (self.name, thisCompon.params['name']))
                 buff.writeIndentedLines(code)
-        code = ("for(var i = 0; i < _.%(name)sComponents.length; ++i) {\n"
+        code = ("for (var i = 0; i < _.%(name)sComponents.length; ++i) {\n"
                 "  let thisComponent = _.%(name)sComponents[i];\n"
                 "  if ('status' in thisComponent) {\n"
                 "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
