@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import, print_function
 
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 from .base import DataHandler
 from .experiment import ExperimentHandler
@@ -22,7 +22,7 @@ from .fit import (FitFunction, FitCumNormal, FitLogistic, FitNakaRushton,
 try:
     # import openpyxl
     import openpyxl
-    if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
+    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:

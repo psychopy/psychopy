@@ -219,7 +219,7 @@ class Mouse(MouseDevice):
                     self._display_index = display_index
 
                     # TO DO: Supported reporting scroll x info for OSX.
-                    # This also suggests not having scoll up and down events and
+                    # This also suggests not having scroll up and down events and
                     # just having the one scroll event type, regardless of
                     # direction / dimension
                     scroll_dx = 0

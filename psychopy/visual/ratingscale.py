@@ -12,7 +12,6 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 from builtins import range
 from past.builtins import basestring
-import copy
 import sys
 import numpy
 
@@ -485,7 +484,7 @@ class RatingScale(MinimalStim):
             else:
                 self.markerStart = None
                 self.markerPlaced = False
-        else:  # float(markerStart) suceeded
+        else:  # float(markerStart) succeeded
             self.markerPlacedAt = self.markerStart
             self.markerPlaced = True
         # default markerStart = 0 if needed but otherwise unspecified:
@@ -813,7 +812,7 @@ class RatingScale(MinimalStim):
             if markerColor is None or not isValidColor(markerColor):
                 markerColor = 'White'
             self.marker = PatchStim(win=self.win, units='norm',
-                                    tex='sin', mask='gauss',
+                                    tex=None, mask='gauss',
                                     color=markerColor, opacity=0.85,
                                     autoLog=False,
                                     name=self.name + '.markerGlow')
@@ -858,7 +857,6 @@ class RatingScale(MinimalStim):
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
         # save initial state, restore on reset
-        self.markerOrig = copy.copy(self.marker)
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
@@ -894,7 +892,7 @@ class RatingScale(MinimalStim):
                 vertPosTmp = -2 * self.textSizeSmall * self.size + self.offsetVert
             for i, label in enumerate(self.labelTexts):
                 # need all labels for tick position, i
-                if label:  # skip '' placeholders, no need to create them
+                if label or label is not None: # 'is not None' allows creation of '0' (zero or false) labels
                     txtStim = TextStim(
                         win=self.win, text=str(label), font=textFont,
                         pos=[self.tickPositions[i // self.autoRescaleFactor],
@@ -1010,7 +1008,10 @@ class RatingScale(MinimalStim):
         _tickStretch = self.tickMarks/self.hStretchTotal
         adjValue = value - self.offsetHoriz
         markerPos = adjValue * _tickStretch + self.tickMarks/2.0
-        rounded = round(markerPos * self.scaledPrecision)
+        # We need float value in getRating(), but round() returns
+        # numpy.float64 if argument is numpy.float64 in Python3.
+        # So we have to convert return value of round() to float.
+        rounded = float(round(markerPos * self.scaledPrecision))
         return rounded/self.scaledPrecision
 
     def _getMarkerFromTick(self, tick):
@@ -1068,6 +1069,31 @@ class RatingScale(MinimalStim):
         if log and self.autoLog:
             vals = (self.name, triggeringAction, str(self.getRating()))
             logging.data('RatingScale %s: (%s) rating=%s' % vals)
+
+    def setYPos(self, newPos = None):
+        """
+        This function can be called by the user to change the Y-positioning of the rating scale.
+        X location remains unchanged.
+        """
+        oldXPos, oldYPos = self.offsetHoriz, self.offsetVert
+        if not newPos is None:
+            if len(list(newPos)) == 2:
+                offsetHoriz, offsetVert = newPos
+        self.offsetHoriz = float(offsetHoriz)
+        self.offsetVert = float(offsetVert)
+        for positions in self.visualDisplayElements: # change location of elements based on position arg
+            if not positions.pos is None:
+                if 'ShapeStim' in str(type(positions)):
+                    offsetY = abs(oldYPos - positions.pos[1])
+                    positions.setPos([positions.pos[0], self.offsetVert + offsetY])
+                    if '.line' in positions.name:# then change Y location of marker and mouse click box
+                        self.markerYpos = self.offsetVert
+                        self.nearLine[0][1],self.nearLine[3][1] = offsetVert-.072, offsetVert-.072
+                        self.nearLine[1][1], self.nearLine[2][1] = offsetVert +.072, offsetVert + .072
+                if 'TextStim' in str(type(positions)):
+                    offsetY = abs(oldYPos-positions.pos[1])
+                    positions.setPos([positions.pos[0], self.offsetVert - offsetY])
+
 
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
@@ -1299,9 +1325,14 @@ class RatingScale(MinimalStim):
         """
         # only resets things that are likely to have changed when the
         # ratingScale instance is used by a subject
+        # reset label color if using hover
+        if self.markerStyle == 'hover':
+            for labels in self.labels:
+                labels.setColor(self.textColor, log=False)
         self.noResponse = True
         # restore in case it turned gray, etc
-        self.marker = copy.copy(self.markerOrig)
+        self.resetMarker = str(self.marker)
+        self.resetMarker = self.resetMarker.replace('Window(...)', 'self.win')
         # placed by subject or markerStart: show on screen
         self.markerPlaced = False
         # placed by subject is actionable: show value, singleClick

@@ -31,7 +31,8 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.basevisual import BaseVisualStim, ColorMixin
+from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
+    ContainerMixin)
 
 import numpy
 
@@ -61,7 +62,7 @@ defaultWrapWidth = {'cm': 15.0,
                     'pixels': 500}
 
 
-class TextStim(BaseVisualStim, ColorMixin):
+class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Class of text stimuli to be displayed in a
     :class:`~psychopy.visual.Window`
     """
@@ -710,7 +711,6 @@ class TextStim(BaseVisualStim, ColorMixin):
             GL.glColor4f(desiredRGB[0], desiredRGB[1],
                          desiredRGB[2], self.opacity)
 
-            # self.win._progSignedTex)
             GL.glUseProgram(self.win._progSignedTexFont)
             # GL.glUniform3iv(GL.glGetUniformLocation(
             #       self.win._progSignedTexFont, "rgb"), 1,

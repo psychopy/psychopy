@@ -119,7 +119,7 @@ if sys.platform == 'win32':
         If you are not flipping regularly (say because you do not need
         to and do not want to block frequently, you can call this, which
         will not block waiting for messages, but only pump out what is
-        in the que already. On an i7 desktop, this call method takes
+        in the queue already. On an i7 desktop, this call method takes
         between 10 and 90 usec.
 
         """
@@ -131,7 +131,7 @@ else:
 
 ########################
 #
-# Resursive updating of values from one dict into another if the key does not key exist.
+# Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.
 import copy
@@ -165,7 +165,7 @@ def convertCamelToSnake(name, lower_snake=True):
 class NumPyRingBuffer(object):
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
-    behavour does not require any array copies to occur while the ring buffer
+    behavior does not require any array copies to occur while the ring buffer
     is maintained, while at the same time allowing sequential element access
     into the numpy array using a subset of standard slice notation.
 
@@ -202,15 +202,15 @@ class NumPyRingBuffer(object):
 
         for i in xrange(25):
             ring_buffer.append(i)
-            print '-------'
-            print 'Ring Buffer Stats:'
-            print '\tWindow size: ',len(ring_buffer)
-            print '\tMin Value: ',ring_buffer.min()
-            print '\tMax Value: ',ring_buffer.max()
-            print '\tMean Value: ',ring_buffer.mean()
-            print '\tStandard Deviation: ',ring_buffer.std()
-            print '\tFirst 3 Elements: ',ring_buffer[:3]
-            print '\tLast 3 Elements: ',ring_buffer[-3:]
+            print('-------')
+            print('Ring Buffer Stats:')
+            print('\tWindow size: ',len(ring_buffer))
+            print('\tMin Value: ',ring_buffer.min())
+            print('\tMax Value: ',ring_buffer.max())
+            print('\tMean Value: ',ring_buffer.mean())
+            print('\tStandard Deviation: ',ring_buffer.std())
+            print('\tFirst 3 Elements: ',ring_buffer[:3])
+            print('\tLast 3 Elements: ',ring_buffer[-3:])
 
     """
 

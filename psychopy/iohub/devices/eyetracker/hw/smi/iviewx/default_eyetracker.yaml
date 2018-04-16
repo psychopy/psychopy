@@ -37,7 +37,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
         # IP address of local computer
         receive_ip_address: 127.0.0.1
         # port being used by iView X SDK for receiving data from iView X
-        receive_port: 5555	            
+        receive_port: 5555
 
     runtime_settings:
 
@@ -92,7 +92,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
         # target types CIRCLE_TARGET, CROSSHAIR_TARGET, IMAGE_TARGET      
         target_type: CIRCLE_TARGET
         
-        # The asociated target attributes sub properties must be supplied
+        # The associated target attributes sub properties must be supplied
         # for the given target_type. If target type attribute sections are provided
         # for target types other than the entry associated with the specified target_type value
         # they will simple be ignored.

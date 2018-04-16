@@ -2,7 +2,7 @@ from __future__ import division
 from builtins import object
 
 import sys, os, copy
-from psychopy import visual, monitors, prefs
+from psychopy import visual, monitors, prefs, constants
 from psychopy.visual import filters
 from psychopy.tools.coordinatetools import pol2cart
 from psychopy.tests import utils
@@ -17,8 +17,14 @@ of tests on a single graphics context (e.g. pyglet with shaders)
 To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 
+# are we testing on Travis and is it Anaconda or system python?
+_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
+_anacondaTesting = bool("{}".format(os.environ.get('ANACONDA')).lower() == 'true')
+# the ffmpeg doesn't seem to work on Travis system python (using 12.04)
+# upgrading to trusty (14.04) we could get ffmpeg to work but then test_bitsShaders
+# stopped working on conda and system python setup would even build with all the
+# dependencies. It was test environment hell! (sorry, it's been a bad day)
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -79,12 +85,12 @@ class _baseVisualTest(object):
         stims.append(visual.ShapeStim(win))
         stims.append(visual.TextStim(win))
         for stim in stims:
-            assert stim.status==visual.NOT_STARTED
+            assert stim.status==constants.NOT_STARTED
             stim.autoDraw = True
-            assert stim.status==visual.STARTED
+            assert stim.status==constants.STARTED
             stim.autoDraw = False
-            assert stim.status==visual.FINISHED
-            assert stim.status==visual.STOPPED
+            assert stim.status==constants.FINISHED
+            assert stim.status==constants.STOPPED
             "{}".format(stim) #check that str(xxx) is working
 
     def test_imageAndGauss(self):
@@ -318,8 +324,6 @@ class _baseVisualTest(object):
 
     def test_text(self):
         win = self.win
-        if self.win.winType=='pygame':
-            pytest.skip("Text is different on pygame")
         #set font
         fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
@@ -327,8 +331,9 @@ class _baseVisualTest(object):
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
             fontFiles=[fontFile])
         stim.draw()
-        #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
+        if self.win.winType != 'pygame':
+            #compare with a LIBERAL criterion (fonts do differ)
+            utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
         win.flip()#AFTER compare screenshot
         #using set
         stim.text = 'y'
@@ -344,8 +349,9 @@ class _baseVisualTest(object):
         stim.opacity = 0.8
         stim.draw()
         "{}".format(stim) #check that str(xxx) is working
-        #compare with a LIBERAL criterion (fonts do differ)
-        utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
+        if self.win.winType != 'pygame':
+            #compare with a LIBERAL criterion (fonts do differ)
+            utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
@@ -363,13 +369,15 @@ class _baseVisualTest(object):
         grat1.draw()
         grat2.draw()
         utils.skip_under_travis()
-        utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
+        if self.win.winType != 'pygame':
+            utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
 
-    @pytest.mark.needs_sound
     def test_mov(self):
         win = self.win
-        if self.win.winType=='pygame':
+        if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
+        elif _travisTesting and not _anacondaTesting:
+            pytest.skip("Travis with system Python doesn't seem to have a working ffmpeg")
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
@@ -378,7 +386,7 @@ class _baseVisualTest(object):
             raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
-        mov = visual.MovieStim3(win, fileName, pos=pos)
+        mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
         mov.setFlipVert(True)
         mov.setFlipHoriz(True)
         for frameN in range(10):
@@ -454,15 +462,14 @@ class _baseVisualTest(object):
         utils.compareScreenshot('shape2_2_%s.png' %(self.contextName), win, crit=12.5)
 
     def test_radial(self):
-        if self.win.winType=='pygame':
-            pytest.skip("RadialStim dodgy on pygame")
         win = self.win
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         thresh = 10
-        utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
+        if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
+            utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
         win.flip()#AFTER compare screenshot
 
         #using .set()
@@ -477,10 +484,15 @@ class _baseVisualTest(object):
         wedge.angularPhase = 0.1
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
-        utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
+        if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
+            utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
+        else:
+            pytest.skip("Pygame fails to render RadialStim properly :-/")
 
     def test_simpleimage(self):
         win = self.win
+        if win.useRetina:
+            pytest.skip("Rendering pixel-for-pixel is not identical on retina")
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
         if not os.path.isfile(fileName):
             raise IOError('Could not find image file: %s' % os.path.abspath(fileName))
@@ -735,12 +747,12 @@ class TestPygletDegFlatPos(_baseVisualTest):
         self.scaleFactor=4#applied to size/pos values
 
 
-#class TestPygameNorm(_baseVisualTest):
-#    @classmethod
-#    def setup_class(self):
-#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
-#        self.contextName='norm'
-#        self.scaleFactor=1#applied to size/pos values
+class TestPygameNorm(_baseVisualTest):
+   @classmethod
+   def setup_class(self):
+       self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
+       self.contextName='norm'
+       self.scaleFactor=1#applied to size/pos values
 #class TestPygamePix(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):

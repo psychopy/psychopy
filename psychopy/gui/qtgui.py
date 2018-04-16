@@ -10,7 +10,7 @@
 from __future__ import absolute_import, print_function
 
 from builtins import str
-from past.builtins import basestring
+from past.builtins import unicode
 try:
     from PyQt4 import QtGui
     QtWidgets = QtGui  # in qt4 these were all in one package
@@ -26,7 +26,7 @@ import string
 import os
 import sys
 import json
-from psychopy.app.localization import _translate
+from psychopy.localization import _translate
 
 OK = QtWidgets.QDialogButtonBox.Ok
 
@@ -87,7 +87,7 @@ class Dlg(QtWidgets.QDialog):
         self.inputFieldNames = []
         self.data = []
         self.irow = 0
-
+        self.pos = pos
         # QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         # add buttons for OK and Cancel
@@ -107,8 +107,6 @@ class Dlg(QtWidgets.QDialog):
         if style:
             raise RuntimeWarning("Dlg does not currently support the "
                                  "style kwarg.")
-
-        self.pos = pos
         self.size = size
         self.screen = screen
         # self.labelButtonOK = labelButtonOK
@@ -122,6 +120,7 @@ class Dlg(QtWidgets.QDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle(title)
+
 
     def addText(self, text, color='', isFieldLabel=False):
         textLabel = QtWidgets.QLabel(text, parent=self)
@@ -183,7 +182,7 @@ class Dlg(QtWidgets.QDialog):
                 thisType = self.inputFieldTypes[ix]
 
                 try:
-                    if issubclass(thisType, basestring):
+                    if thisType in (str, unicode, bytes):
                         self.data[ix] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"
@@ -309,16 +308,18 @@ class Dlg(QtWidgets.QDialog):
 
         self.layout.addWidget(self.buttonBox, self.irow, 0, 1, 2)
 
-        # Center Dialog on appropriate screen
-        frameGm = self.frameGeometry()
-        desktop = QtWidgets.QApplication.desktop()
-        qtscreen = self.screen
-        if self.screen <= 0:
-            qtscreen = desktop.primaryScreen()
-        centerPoint = desktop.screenGeometry(qtscreen).center()
-        frameGm.moveCenter(centerPoint)
-        self.move(frameGm.topLeft())
-
+        if self.pos is None:
+            # Center Dialog on appropriate screen
+            frameGm = self.frameGeometry()
+            desktop = QtWidgets.QApplication.desktop()
+            qtscreen = self.screen
+            if self.screen <= 0:
+                qtscreen = desktop.primaryScreen()
+            centerPoint = desktop.screenGeometry(qtscreen).center()
+            frameGm.moveCenter(centerPoint)
+            self.move(frameGm.topLeft())
+        else:
+            self.move(self.pos[0],self.pos[1])
         QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()

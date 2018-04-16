@@ -30,7 +30,7 @@ class SerialDevice(object):
     on known serial ports on the computer and test whether it has found the
     device using isAwake() (which the sub-classes need to implement).
     """
-    name = 'baseSerialClass'
+    name = b'baseSerialClass'
     longName = ""
     # list of supported devices (if more than one supports same protocol)
     driverFor = []
@@ -38,7 +38,7 @@ class SerialDevice(object):
     def __init__(self, port=None, baudrate=9600,
                  byteSize=8, stopBits=1,
                  parity="N",  # 'N'one, 'E'ven, 'O'dd, 'M'ask,
-                 eol="\n",
+                 eol=b"\n",
                  maxAttempts=1, pauseDuration=0.1,
                  checkAwake=True):
 
@@ -56,11 +56,13 @@ class SerialDevice(object):
             ports = [port]
 
         self.pauseDuration = pauseDuration
-        self.isOpen = False
         self.com = None
         self.OK = False
         self.maxAttempts = maxAttempts
-        self.eol = eol
+        if type(eol) is bytes:
+            self.eol = eol
+        else:
+            self.eol = bytes(eol, 'utf-8')
         self.type = self.name  # for backwards compatibility
 
         # try to open the port
@@ -140,7 +142,7 @@ class SerialDevice(object):
         """
         # send a command to the device and check the response matches what
         # you expect; then return True or False
-        raise NotImplemented
+        raise NotImplementedError
 
     def pause(self):
         """Pause for a default period for this device
@@ -154,13 +156,15 @@ class SerialDevice(object):
             inStr = self.com.read(self.com.inWaiting())
             msg = "Sending '%s' to %s but found '%s' on the input buffer"
             logging.warning(msg % (message, self.name, inStr))
+        if type(message) is not bytes:
+            message = bytes(message, 'utf-8')
         if not message.endswith(self.eol):
             message += self.eol  # append a newline if necess
         self.com.write(message)
         self.com.flush()
         if autoLog:
-            msg = 'Sent %s message:' % (self.name)
-            logging.debug(msg + message.replace(self.eol, ''))  # complete msg
+            msg = b'Sent %s message:' % (self.name)
+            logging.debug(msg + message.replace(self.eol, b''))  # complete msg
             # we aren't in a time-critical period so flush msg
             logging.flush()
 
@@ -182,9 +186,15 @@ class SerialDevice(object):
         elif length > 1:
             retVal = self.com.readlines()
         else:  # was -1?
-            retVal = self.com.read(self.com.inWaiting)
+            retVal = self.com.read(self.com.inWaiting())
         return retVal
 
     def __del__(self):
         if self.com is not None:
             self.com.close()
+
+    @property
+    def isOpen(self):
+        if self.com is None:
+            return None
+        return self.com.isOpen()

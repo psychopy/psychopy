@@ -7,8 +7,10 @@ import wx
 import sys
 import re
 import wx.richtext
-from .localization import _translate
+import locale
+from psychopy.localization import _translate
 
+_prefEncoding = locale.getpreferredencoding()
 
 class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
@@ -45,9 +47,16 @@ class StdOutRich(wx.richtext.RichTextCtrl):
 
         # if it comes form a stdout in Py3 then convert to unicode
         if type(inStr) == bytes:
-            inStr = inStr.decode()
+            try:
+                inStr = inStr.decode('utf-8')
+            except UnicodeDecodeError:
+                inStr = inStr.decode(_prefEncoding)
 
         for thisLine in inStr.splitlines(True):
+            try:
+                thisLine = thisLine.replace("\t", "    ")
+            except Exception as e:
+                self.WriteText(str(e))
             if len(re.findall('".*", line.*', thisLine)) > 0:
                 # this line contains a file/line location so write as URL
                 # self.BeginStyle(self.urlStyle)  # this should be done with

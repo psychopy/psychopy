@@ -9,15 +9,45 @@ Changelog
 
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
-PsychoPy 1.86
+PsychoPy 1.90
 ------------------------------
 
-This is the first attempt at support for Python 3, with maintained support for Python 2.7.
+This is a very major refactor of many parts of the PsychoPy code. Treat very
+carefully for the first few bug-fix releases as there are likely to be errors
+some of which could be catastrophic to your data!!
 
-PsychoPy 1.86.0
+This is the first attempt at support for Python 3, with maintained support for
+Python 2.7. Note that both are available as Standalone packages for Win and Mac.
+The Python3.6 version is labelled as Py3 in the download file.
+
+Stick to Python 2.7 if you want your script to break less. If you upgrade to
+Python 3 then you'll need to change any print statements to include brackets
+and you may also get some new errors springing up about unicode/bytes objects.
+
+PsychoPy 1.90.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(not yet released)
+Released April 2018
+
+ADDED:
+
+  * Option to move Y position of `RatingScale` in code #1776
+  * Added option of providing extra arguments to `scipy.optimize` functions when fitting from `psychopy.data` #1772
+
+FIXED:
+
+  * Problem with icon path in GLFW backend on linux #bbf51521664
+  * PUINT didn't exist in older `win32` package but was expected by `pyglet`
+  * Better handling of conditions file with empty columns (from Excel adding them or from missing headers)
+  * Several fixes to ioHub in Python3 #1770 #1771 and #1775
+  * Mouse reporting incorrect position when using Mac Retina display #54ced9c2644e
+  * `sounddevice` was failing to find `portaudio.dylib` on Mac
+
+
+PsychoPy 1.90.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released March 2018
 
 ADDED:
 
@@ -29,7 +59,6 @@ ADDED:
   * Builder: ShapeStim now handles additional shapes, like Cross (also takes names for shapes rather than just n vertices)
   * Monitors calibration files can now be saved/loaded in JSON format
 
-
 CHANGED:
 
   * Image stimuli given an image of None (or blank in Builder) will now not display anything, whereas they previously showed a blank white (or colored) patch. To get that behaviour you can set the image to be `color` (in Builder) or "color" (in code).
@@ -37,6 +66,28 @@ CHANGED:
 
 PsychoPy 1.85
 ------------------------------
+
+PsychoPy 1.85.6
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A bug-fix release to solve a few machine-specific issues.
+
+* FIXED:
+
+  * on some computers the data weren't being saved if user pressed 'Esc' during experiment. #193ce541
+  * fix for the "Unable to share contexts" error on machines that don't support OpenGL shadow_window #a1c29d3a
+  * pyo not always closing properly #1614
+  * problem with non-ascii characters in conditions file name #32204a200
+  * loading of preferences was failing if the audio backend wasn't a valid option #c2d11477b5
+  * Builder demo images_blocks had wrong units for images #1601
+  * no longer tell people to upgrade if their version is *newer* than the "latest" #1567
+  * added support for newer PST box in ioHub (with 7 buttons not 5) #b9534a28896
+  * Monitor.linearizeLums() was raising an error due to a change in import name
+  * stimuli not switching correctly to desired window in multi-window setups #1514
+  * opencv movie backend had an error that `'float' object cannot be interpreted as an index` #1510
+  * cedrus box had error `AttributeError: 'ResponseDevice' object has no attribute 'status'` #1493
+  * retina displays had some bad scaling. Now strongly recommend using `retina=True` #08163f78a9c8ab9b
+
 
 PsychoPy 1.85.4
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

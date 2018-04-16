@@ -1,26 +1,30 @@
 <?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="1.83.02">
+<PsychoPy2experiment encoding="utf-8" version="1.90.1">
   <Settings>
-    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
-    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
     <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
-    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
     <Param name="color" updates="None" val="$[0,0,0]" valType="str"/>
-    <Param name="Window size (pixels)" updates="None" val="[1040, 800]" valType="code"/>
-    <Param name="Full-screen window" updates="None" val="False" valType="bool"/>
     <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
     <Param name="Experiment info" updates="None" val="{u'session': u'001', u'participant': u''}" valType="code"/>
-    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
-    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
-    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
+    <Param name="Units" updates="None" val="height" valType="str"/>
+    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
+    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
     <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
+    <Param name="Window size (pixels)" updates="None" val="[1040, 800]" valType="code"/>
+    <Param name="Full-screen window" updates="None" val="False" valType="bool"/>
+    <Param name="blendMode" updates="None" val="avg" valType="str"/>
+    <Param name="Use version" updates="None" val="" valType="str"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
+    <Param name="OSF Project ID" updates="None" val="" valType="str"/>
+    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="Saved data folder" updates="None" val="" valType="code"/>
+    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
+    <Param name="Data filename" updates="None" val="'data' + os.sep + '%s_%s' % (expInfo['participant'], expInfo['date'])" valType="code"/>
+    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
     <Param name="expName" updates="None" val="MentalRot" valType="str"/>
     <Param name="logging level" updates="None" val="exp" valType="code"/>
-    <Param name="blendMode" updates="None" val="avg" valType="str"/>
-    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
-    <Param name="Units" updates="None" val="height" valType="str"/>
-    <Param name="Save log file" updates="None" val="True" valType="bool"/>
-    <Param name="Saved data folder" updates="None" val="" valType="code"/>
     <Param name="Screen" updates="None" val="1" valType="num"/>
   </Settings>
   <Routines>
@@ -28,7 +32,7 @@
       <CodeComponent name="plot_data_array">
         <Param name="Begin Experiment" updates="constant" val="from matplotlib import pyplot&amp;#10;import pandas as pd" valType="extendedCode"/>
         <Param name="name" updates="None" val="plot_data_array" valType="code"/>
-        <Param name="Begin Routine" updates="constant" val="def plotYX(yaxis, xaxis, description=''):&amp;#10;    pyplot.grid(True)&amp;#10;    pyplot.title(description)&amp;#10;    pyplot.xlabel('Angle')&amp;#10;    pyplot.ylabel('Response time (s)')&amp;#10;    pyplot.xlim([0, 315])&amp;#10;    #slope,inter = np.polyfit(xaxis[:5],yaxis[:5],1)&amp;#10;    pyplot.plot(xaxis, yaxis) #, xaxis[:5], np.array(xaxis[:5]) * slope + inter)&amp;#10;    pyplot.draw()&amp;#10;    pyplot.show()&amp;#10;&amp;#10;filename = 'mental_rotation_data.csv'&amp;#10;with open(filename, 'wb') as fd:&amp;#10;    fd.write(data_string)&amp;#10;&amp;#10;data = pd.read_csv(filename)&amp;#10;data = data[data['rt'] &lt; 4]  # trim RT at 4 sec&amp;#10;mrt = data.loc[:,'rt']&amp;#10;correct = data.loc[:, 'corr']&amp;#10;angle = data.loc[:, 'angle']&amp;#10;&amp;#10;dfsum = data.groupby('angle', as_index=False).mean()&amp;#10;m = dfsum.loc[:, 'rt']&amp;#10;a = dfsum.loc[:, 'angle']&amp;#10;&amp;#10;scored_data = zip(a, m)&amp;#10;print('average time (sec) at each rotation:')&amp;#10;print &quot;  0  45  90  135 180 225 270 315&quot;&amp;#10;print &quot;--&gt; %s &lt;--&quot; % repr([round(i,3) for i in m]).strip('[]').replace(',', '  ')&amp;#10;print &quot;\n% correct        :&quot;, 100 * correct.mean()&amp;#10;print &quot;overall speed (s):&quot;, mrt.mean()&amp;#10;&amp;#10;plotYX(m, a)&amp;#10;&amp;#10;with open(filename, 'a+b') as fd:&amp;#10;    fd.write('\n\n' + repr(scored_data))" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="def plotYX(yaxis, xaxis, description=''):&amp;#10;    pyplot.grid(True)&amp;#10;    pyplot.title(description)&amp;#10;    pyplot.xlabel('Angle')&amp;#10;    pyplot.ylabel('Response time (s)')&amp;#10;    pyplot.xlim([0, 315])&amp;#10;    #slope,inter = np.polyfit(xaxis[:5],yaxis[:5],1)&amp;#10;    pyplot.plot(xaxis, yaxis) #, xaxis[:5], np.array(xaxis[:5]) * slope + inter)&amp;#10;    pyplot.draw()&amp;#10;    pyplot.show()&amp;#10;&amp;#10;filename = 'mental_rotation_data.csv'&amp;#10;with open(filename, 'wb') as fd:&amp;#10;    fd.write(data_string)&amp;#10;&amp;#10;data = pd.read_csv(filename)&amp;#10;data = data[data['rt'] &lt; 4]  # trim RT at 4 sec&amp;#10;mrt = data.loc[:,'rt']&amp;#10;correct = data.loc[:, 'corr']&amp;#10;angle = data.loc[:, 'angle']&amp;#10;&amp;#10;dfsum = data.groupby('angle', as_index=False).mean()&amp;#10;m = dfsum.loc[:, 'rt']&amp;#10;a = dfsum.loc[:, 'angle']&amp;#10;&amp;#10;scored_data = zip(a, m)&amp;#10;print('average time (sec) at each rotation:')&amp;#10;print(&quot;  0  45  90  135 180 225 270 315&quot;)&amp;#10;print(&quot;--&gt; %s &lt;--&quot; % repr([round(i,3) for i in m]).strip('[]').replace(',', '  '))&amp;#10;print(&quot;\n% correct        :&quot;, 100 * correct.mean())&amp;#10;print(&quot;overall speed (s):&quot;, mrt.mean())&amp;#10;&amp;#10;plotYX(m, a)&amp;#10;&amp;#10;with open(filename, 'a+b') as fd:&amp;#10;    fd.write('\n\n' + repr(scored_data))" valType="extendedCode"/>
         <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
         <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
         <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
@@ -65,16 +69,6 @@
       </CodeComponent>
     </Routine>
     <Routine name="Intructions_1">
-      <StaticComponent name="ISI_2">
-        <Param name="code" updates="None" val="" valType="code"/>
-        <Param name="name" updates="None" val="ISI_2" valType="code"/>
-        <Param name="stopVal" updates="constant" val="0.5" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-      </StaticComponent>
       <TextComponent name="text_4">
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
@@ -497,8 +491,8 @@
       <Param name="loopType" updates="None" val="random" valType="str"/>
       <Param name="nReps" updates="None" val="6" valType="code"/>
       <Param name="endPoints" updates="None" val="[0, 1]" valType="num"/>
-      <Param name="conditions" updates="None" val="[{'angle': 0, 'rightori': 0, 'leftori': 0, 'same': u'n'}, {'angle': 0, 'rightori': 0, 'leftori': 0, 'same': u'y'}, {'angle': 45, 'rightori': 45, 'leftori': 0, 'same': u'n'}, {'angle': 45, 'rightori': 45, 'leftori': 0, 'same': u'y'}, {'angle': 90, 'rightori': 90, 'leftori': 0, 'same': u'n'}, {'angle': 90, 'rightori': 90, 'leftori': 0, 'same': u'y'}, {'angle': 135, 'rightori': 135, 'leftori': 0, 'same': u'n'}, {'angle': 135, 'rightori': 135, 'leftori': 0, 'same': u'y'}, {'angle': 180, 'rightori': 180, 'leftori': 0, 'same': u'n'}, {'angle': 180, 'rightori': 180, 'leftori': 0, 'same': u'y'}, {'angle': 225, 'rightori': 225, 'leftori': 0, 'same': u'n'}, {'angle': 225, 'rightori': 225, 'leftori': 0, 'same': u'y'}, {'angle': 270, 'rightori': 270, 'leftori': 0, 'same': u'n'}, {'angle': 270, 'rightori': 270, 'leftori': 0, 'same': u'y'}, {'angle': 315, 'rightori': 315, 'leftori': 0, 'same': u'n'}, {'angle': 315, 'rightori': 315, 'leftori': 0, 'same': u'y'}]" valType="str"/>
-      <Param name="Selected rows" updates="None" val="" valType="code"/>
+      <Param name="conditions" updates="None" val="[{'angle': 0, 'leftori': 0, 'rightori': 0, 'same': 'n'}, {'angle': 0, 'leftori': 0, 'rightori': 0, 'same': 'y'}, {'angle': 45, 'leftori': 0, 'rightori': 45, 'same': 'n'}, {'angle': 45, 'leftori': 0, 'rightori': 45, 'same': 'y'}, {'angle': 90, 'leftori': 0, 'rightori': 90, 'same': 'n'}, {'angle': 90, 'leftori': 0, 'rightori': 90, 'same': 'y'}, {'angle': 135, 'leftori': 0, 'rightori': 135, 'same': 'n'}, {'angle': 135, 'leftori': 0, 'rightori': 135, 'same': 'y'}, {'angle': 180, 'leftori': 0, 'rightori': 180, 'same': 'n'}, {'angle': 180, 'leftori': 0, 'rightori': 180, 'same': 'y'}, {'angle': 225, 'leftori': 0, 'rightori': 225, 'same': 'n'}, {'angle': 225, 'leftori': 0, 'rightori': 225, 'same': 'y'}, {'angle': 270, 'leftori': 0, 'rightori': 270, 'same': 'n'}, {'angle': 270, 'leftori': 0, 'rightori': 270, 'same': 'y'}, {'angle': 315, 'leftori': 0, 'rightori': 315, 'same': 'n'}, {'angle': 315, 'leftori': 0, 'rightori': 315, 'same': 'y'}]" valType="str"/>
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
     </LoopInitiator>
     <Routine name="Trial"/>
     <Routine name="pause"/>

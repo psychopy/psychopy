@@ -7,13 +7,13 @@
 
 from __future__ import absolute_import, print_function
 
-from past.builtins import basestring
-
 import os
 import time
-import glob
+
 import wx
 import wx.lib.scrolledpanel as scrlpanel
+from past.builtins import basestring
+
 try:
     import wx.adv as wxhl  # in wx 4
 except ImportError:
@@ -21,7 +21,8 @@ except ImportError:
 
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
-from .localization import _translate
+from psychopy.projects import projectCatalog, projectsFolder
+from psychopy.localization import _translate
 import requests.exceptions
 
 try:
@@ -37,60 +38,6 @@ except ImportError:
 
 
 usersList = wx.FileHistory(maxFiles=10, idBase=12300)
-
-projectsFolder = os.path.join(prefs.paths['userPrefsDir'], 'projects')
-
-
-class ProjectCatalog(dict):
-    """Handles info about known project files (either in project history or in
-    the ~/.psychopy/projects folder).
-    """
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-        self.refresh()
-
-    def projFromId(self, id):
-        for key, item in list(self.items()):
-            if item.project_id == id:
-                return key, item
-        return (None, None)  # got here without finding anything
-
-    def refresh(self):
-        """Search the locations and update the catalog
-        """
-        self.clear()
-        # prev used files
-        projFileList = set(prefs.appData['projects']['fileHistory'])
-        projFileList.update(glob.glob(
-            os.path.join(projectsFolder, "*.psyproj")))
-        # check for files that have gone (from prev files list)
-        for filePath in projFileList:
-            try:
-                key = self.addFile(filePath)
-            except:
-                key = None
-            if key is None and \
-                    (filePath in prefs.appData['projects']['fileHistory']):
-                prefs.appData['projects']['fileHistory'].remove(filePath)
-
-    def addFile(self, filePath):
-        """Try to add the file and return a dict key (or None if non-existent)
-        """
-        if not os.path.isfile(filePath):
-            return None
-        try:
-            thisProj = pyosf.Project(project_file=filePath)  # load proj file
-        except pyosf.OSFDeleted:
-            return None
-        if hasattr(thisProj, 'name'):
-            key = "%s: %s" % (thisProj.project_id, thisProj.name)
-        else:
-            key = "%s: n/a" % (thisProj.project_id)
-        if key not in self:
-            self.__setitem__(key, thisProj)
-        return key
-
-projectCatalog = ProjectCatalog()
 
 # Projects FileHistory sub-menu
 idBase=12400
@@ -314,8 +261,8 @@ class LogInDlg(wx.Dialog):
             label=_translate("OSF Username (email)")),
                              pos=(1, 0), flag=wx.ALIGN_RIGHT)
         self.username = wx.TextCtrl(self)
-        self.username.SetToolTip(_translate("Your username on OSF "
-                                            "(the email address you used)"))
+        self.username.SetToolTip(wx.ToolTip(_translate("Your username on OSF "
+                                            "(the email address you used)")))
         self.fieldsSizer.Add(self.username,
                              pos=(1, 1), flag=wx.ALIGN_LEFT)
         # pass info
@@ -323,9 +270,9 @@ class LogInDlg(wx.Dialog):
                              pos=(2, 0), flag=wx.ALIGN_RIGHT)
         self.password = wx.TextCtrl(self,
                                     style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-        self.password.SetToolTip(
+        self.password.SetToolTip(wx.ToolTip(
             _translate("Your password on OSF "
-                       "(will be checked securely with https)"))
+                       "(will be checked securely with https)")))
         self.fieldsSizer.Add(self.password,
                              pos=(2, 1), flag=wx.ALIGN_LEFT)
         # remember me

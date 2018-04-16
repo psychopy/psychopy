@@ -101,11 +101,11 @@ class ioHubKeyboardDevice(Device):
         Device._close(self)
 
 if Computer.platform == 'win32':
-    from win32 import Keyboard
+    from .win32 import Keyboard
 elif Computer.platform.startswith('linux'):
-    from linux2 import Keyboard
+    from .linux2 import Keyboard
 elif Computer.platform == 'darwin':
-    from darwin import Keyboard
+    from .darwin import Keyboard
 
 ############# OS independent Keyboard Event classes ####################
 
@@ -187,7 +187,7 @@ class KeyboardInputEvent(DeviceEvent):
         self.key_id = 0
 
         #: The utf-8 coe point for the key present, if it has one and can be determined. 0 otherwise.
-        #: This value is, in most cases, calulated by taking the event.key value,
+        #: This value is, in most cases, calculated by taking the event.key value,
         #: determining if it is a unicode utf-8 encoded char, and if so, calling the
         #: Python built in function unichr(event.key).
         #: int value between 0 and 2**16.
@@ -232,6 +232,9 @@ class KeyboardInputEvent(DeviceEvent):
         char_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('char')
         event_value_list[char_value_index] = event_value_list[
             char_value_index].decode('utf-8')
+        key_value_index = cls.CLASS_ATTRIBUTE_NAMES.index('key')
+        event_value_list[key_value_index] = event_value_list[
+            key_value_index].decode('utf-8')
 
     @classmethod
     def createEventAsDict(cls, values):
@@ -269,7 +272,6 @@ class KeyboardPressEvent(KeyboardInputEvent):
 
     def __init__(self, *args, **kwargs):
         KeyboardInputEvent.__init__(self, *args, **kwargs)
-
 
 class KeyboardReleaseEvent(KeyboardInputEvent):
     """A KeyboardReleaseEvent is generated when a key the keyboard is released.

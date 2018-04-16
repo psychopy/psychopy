@@ -3,8 +3,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from past.builtins import basestring
@@ -17,14 +17,14 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 from psychopy import logging
 from psychopy.constants import PY3
 
 try:
     import openpyxl
-    if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
+    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -268,11 +268,17 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             # use pandas reader, which can handle commas in fields, etc
             trialsArr = pd.read_csv(fileUniv, encoding='utf-8')
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
+            unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+            trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+            logging.debug(u"Clearing unnamed columns from {}".format(fileName))
             trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
         trialsArr = pd.read_excel(fileName)
         logging.debug(u"Read excel file with pandas: {}".format(fileName))
+        unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+        trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+        logging.debug(u"Clearing unnamed columns from {}".format(fileName))
         trialList, fieldNames = pandasToDictList(trialsArr)
 
     elif fileName.endswith('.xlsx'):
@@ -281,7 +287,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                               'files, but neither was found.')
 
         # data_only was added in 1.8
-        if StrictVersion(openpyxl.__version__) < StrictVersion('1.8'):
+        if parse_version(openpyxl.__version__) < parse_version('1.8'):
             wb = load_workbook(filename=fileName)
         else:
             wb = load_workbook(filename=fileName, data_only=True)
@@ -320,13 +326,25 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
 
     elif fileName.endswith('.pkl'):
-        f = open(fileName, 'rU')  # is U needed?
+        f = open(fileName, 'rb')
+        # Converting newline characters.
+        if PY3:
+            # 'b' is necessary in Python3 because byte object is 
+            # returned when file is opened in binary mode.
+            buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
+        else:
+            buffer = f.read().replace('\r\n','\n').replace('\r','\n')
         try:
-            trialsArr = pickle.load(f)
+            trialsArr = pickle.loads(buffer)
         except Exception:
             raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
+        if PY3:
+            # In Python3, strings returned by pickle() is unhashable.
+            # So, we have to convert them to str.
+            trialsArr = [[str(item) if isinstance(item, str) else item
+                          for item in row] for row in trialsArr]
         fieldNames = trialsArr[0]  # header line first
         _assertValidVarNames(fieldNames, fileName)
         for row in trialsArr[1:]:

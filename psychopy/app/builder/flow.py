@@ -28,7 +28,7 @@ from psychopy import logging, data
 from psychopy.app.utils import FileDropTarget
 from .dialogs import DlgLoopProperties
 from .. import dialogs
-from ..localization import _translate
+from psychopy.localization import _translate
 
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
@@ -43,9 +43,6 @@ darkgrey = wx.Colour(65, 65, 65, 255)
 white = wx.Colour(255, 255, 255, 255)
 darkblue = wx.Colour(30, 30, 150, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
-
-# regular expression to check for unescaped '$' to indicate code:
-_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 
 class FlowPanel(wx.ScrolledWindow):

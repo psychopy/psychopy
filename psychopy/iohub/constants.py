@@ -220,7 +220,7 @@ class EventConstants(Constants):
                     break
 
             if event_id not in cls._classes:
-                print2err('\t*** ERROR ADDING EVENT CLASSS MAPPING:',
+                print2err('\t*** ERROR ADDING EVENT CLASS MAPPING:',
                           ' Could not find class: ',
                           event_constant_string, ' = ', event_id)
 
@@ -707,7 +707,7 @@ elif sys.platform == 'darwin':
         END = 0xF72B  # "End"
         PAGE_UP = 0xF72C  # "PageUp"
         PAGE_DOWN = 0xF72D  # "PageDown"
-        PRINT = 0xF72E  # "PrintScreen"
+        PRINT_SCREEN = 0xF72E  # "PrintScreen"
         SCROLL_LOCK = 0xF72F  # "ScrollLock"
         PAUSE = 0xF730  # "Pause"
         SYSREQ = 0xF731  # "SysReq"
@@ -723,8 +723,8 @@ elif sys.platform == 'darwin':
         CLEAR = 0xF73A  # "ClearDisplay"
         INSERT_LINE = 0xF73B  # "InsertLine"
         DELETE_LINE = 0xF73C  # "DeleteLine"
-        INSERT = 0xF73D  # "InsertChar"
-        DELETE = 0xF73E  # "DeleteChar"
+        INSERT_CHAR = 0xF73D  # "InsertChar"
+        DELETE_CHAR = 0xF73E  # "DeleteChar"
         PREV = 0xF73F  # "Prev"
         NEXT = 0xF740  # "Next"
         SELECT = 0xF741  # "Select"
@@ -761,9 +761,9 @@ elif sys.platform == 'darwin':
         F4 = 131  # Keycode on Apple wireless kb
         VK_ISO_SECTION = 0x0A
         VK_JIS_YEN = 0x5D
-        VK_JIS_UNDERSCORE = 0x5E,
-        VK_JIS_KEYPAD_COMMA = 0x5F,
-        VK_JIS_EISU = 0x66,
+        VK_JIS_UNDERSCORE = 0x5E
+        VK_JIS_KEYPAD_COMMA = 0x5F
+        VK_JIS_EISU = 0x66
         VK_JIS_KANA = 0x68
         VK_RETURN = 0x24
         VK_TAB = 0x30

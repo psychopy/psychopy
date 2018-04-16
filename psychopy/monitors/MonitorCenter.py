@@ -17,7 +17,7 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
-from psychopy.app.localization import _translate
+from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 
@@ -551,7 +551,7 @@ class MainFrame(wx.Frame):
     def onChangeMonSelection(self, event):
         if self.unSavedMonitor:
             if self.currentMonName == self.ctrlMonList.GetStringSelection():
-                # it didnt' really change
+                # it didn't really change
                 return 1
             # warn user that data will be lost
             msg = _translate('Save changes to monitor?')

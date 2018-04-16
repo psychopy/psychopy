@@ -14,7 +14,7 @@ from past.builtins import basestring
 from builtins import range
 import os
 import copy
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 from psychopy import logging, colors
 
@@ -32,7 +32,7 @@ _nImageResizes = 0
 
 try:
     import matplotlib
-    if StrictVersion(matplotlib.__version__) > StrictVersion('1.2'):
+    if parse_version(matplotlib.__version__) > parse_version('1.2'):
         from matplotlib.path import Path as mplPath
     else:
         from matplotlib import nxutils
@@ -62,7 +62,7 @@ def pointInPolygon(x, y, poly):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if StrictVersion(matplotlib.__version__) > StrictVersion('1.2'):
+        if parse_version(matplotlib.__version__) > parse_version('1.2'):
             return mplPath(poly).contains_point([x, y])
         else:
             try:
@@ -134,7 +134,7 @@ def polygonsOverlap(poly1, poly2):
 
     # faster if have matplotlib tools:
     if haveMatplotlib:
-        if StrictVersion(matplotlib.__version__) > StrictVersion('1.2'):
+        if parse_version(matplotlib.__version__) > parse_version('1.2'):
             if any(mplPath(poly1_vert_pix).contains_points(poly2_vert_pix)):
                 return True
             return any(mplPath(poly2_vert_pix).contains_points(poly1_vert_pix))
@@ -211,7 +211,7 @@ def setColor(obj, color, colorSpace=None, operation='',
             return
         elif color[0] == '#' or color[0:2] == '0x':
             # e.g. obj.rgb=[0,0,0]
-            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color)))
+            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color))- [1,1,1])
             obj.__dict__[colorSpaceAttrib] = 'hex'  # eg obj.colorSpace='hex'
             obj.__dict__[colorAttrib] = color  # eg Qr='#000000'
             setTexIfNoShaders(obj)

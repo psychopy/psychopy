@@ -37,7 +37,6 @@ def test_extra_imports():
     import pyglet
     assert pyglet.media.have_avbin
     import serial
-    import hid
     import pyo
     if sys.platform=='win32':
         import parallel

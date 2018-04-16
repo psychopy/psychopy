@@ -46,6 +46,7 @@
     parallelPorts = list(default=list('0x0378', '0x03BC'))
     # Shutdown keys, following the pyglet naming scheme.
     shutdownKey = string(default='')
+    # Modifier keys for shutdown keys
     shutdownKeyModifiers = list(default=list())
 
 # Application settings, applied to coder, builder, & prefs windows
@@ -171,8 +172,14 @@
     comment = string(default="Ctrl+'")
     # Coder: remove # from start of line(s)
     uncomment = string(default="Ctrl+Shift+'")
+    # Coder: add or remove # from start of line(s)
+    toggle comment = string(default="Ctrl+/")
     # Coder: fold this block of code
     fold = string(default='Ctrl+Home')
+    # Coder: increase font size this block of code
+    enlargeFont = string(default='Ctrl+=')
+    # Coder: decrease font size this block of code
+    shrinkFont = string(default='Ctrl+-')
 
     # Coder: check for basic syntax errors
     analyseCode = string(default='F4')
@@ -219,7 +226,11 @@
 
     # Projects: Log in
     projectsLogIn = string(default='Ctrl+Alt+I')
+    # Projects: Sync project
     projectsSync = string(default='Ctrl+Alt+Y')
+    # Projects: Find projects
     projectsFind = string(default='Ctrl+Alt+F')
+    # Projects: Open project
     projectsOpen = string(default='Ctrl+Alt+O')
+    # Projects: Create new project
     projectsNew = string(default='Ctrl+Alt+N')

@@ -7,8 +7,8 @@
 
 from __future__ import absolute_import, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import chr
 from builtins import str
 from builtins import range
@@ -33,12 +33,13 @@ import threading
 import bdb
 import pickle
 import py_compile
+import locale
 
-from . import psychoParser, introspect
+from . import psychoParser
 from .. import stdOutRich, dialogs
 from .. import projects
 from psychopy import logging
-from ..localization import _translate
+from psychopy.localization import _translate
 from ..utils import FileDropTarget
 from psychopy.constants import PY3
 
@@ -863,106 +864,107 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-
-        if self.coder.prefs['showSourceAsst']:
-            # check current word including .
-            if charBefore == ord('('):
-                startPos = self.WordStartPosition(caretPos - 2, True)
-                endPos = caretPos - 1
-            else:
-                startPos = self.WordStartPosition(caretPos, True)
-                endPos = self.WordEndPosition(caretPos, True)
-            # extend starPos back to beginning of class separated by .
-            while self.GetCharAt(startPos - 1) == ord('.'):
-                startPos = self.WordStartPosition(startPos - 1, True)
-            # now retrieve word
-            currWord = self.GetTextRange(startPos, endPos)
-
-            # lookfor word in dictionary
-            if currWord in self.autoCompleteDict:
-                helpText = self.autoCompleteDict[currWord]['help']
-                thisIs = self.autoCompleteDict[currWord]['is']
-                thisType = self.autoCompleteDict[currWord]['type']
-                thisAttrs = self.autoCompleteDict[currWord]['attrs']
-                if type(thisIs) == str:  # if this is a module
-                    searchFor = thisIs
-                else:
-                    searchFor = currWord
-            else:
-                helpText = None
-                thisIs = None
-                thisAttrs = None
-                thisType = None
-                searchFor = currWord
-
-            if self.prevWord != currWord:
-                # if we have a class or function then use introspect (because
-                # it retrieves args as well as __doc__)
-                if thisType is not 'instance':
-                    wd, kwArgs, helpText = introspect.getCallTip(
-                        searchFor, locals=self.locals)
-                # then pass all info to sourceAsst
-                # for an instance inclue known attrs
-                self.updateSourceAsst(
-                    currWord, thisIs, helpText, thisType, thisAttrs)
-
-                self.prevWord = currWord  # update for next time
-
-    def updateSourceAsst(self, currWord, thisIs, helpText, thisType=None,
-                         knownAttrs=None):
-            # update the source assistant window
-        sa = self.coder.sourceAsstWindow
-        assert isinstance(sa, wx.richtext.RichTextCtrl)
-        # clear the buffer
-        sa.Clear()
-
-        # add current symbol
-        sa.BeginBold()
-        sa.WriteText('Symbol: ')
-        sa.BeginTextColour('BLUE')
-        sa.WriteText(currWord + '\n')
-        sa.EndTextColour()
-        sa.EndBold()
-
-        # add expected type
-        sa.BeginBold()
-        sa.WriteText('is: ')
-        sa.EndBold()
-        if thisIs:
-            sa.WriteText(str(thisIs) + '\n')
-        else:
-            sa.WriteText('\n')
-
-        # add expected type
-        sa.BeginBold()
-        sa.WriteText('type: ')
-        sa.EndBold()
-        if thisIs:
-            sa.WriteText(str(thisType) + '\n')
-        else:
-            sa.WriteText('\n')
-
-        # add help text
-        sa.BeginBold()
-        sa.WriteText('Help:\n')
-        sa.EndBold()
-        if helpText:
-            sa.WriteText(helpText + '\n')
-        else:
-            sa.WriteText('\n')
-
-        # add attrs
-        sa.BeginBold()
-        sa.WriteText('Known methods:\n')
-        sa.EndBold()
-        if knownAttrs:
-            if len(knownAttrs) > 500:
-                sa.WriteText('\ttoo many to list (i.e. more than 500)!!\n')
-            else:
-                for thisAttr in knownAttrs:
-                    sa.WriteText('\t' + thisAttr + '\n')
-        else:
-            sa.WriteText('\n')
+    #
+    # The code to handle the Source Assistant (using introspect) was broken and removed in 1.90.0
+    #     if self.coder.prefs['showSourceAsst']:
+    #         # check current word including .
+    #         if charBefore == ord('('):
+    #             startPos = self.WordStartPosition(caretPos - 2, True)
+    #             endPos = caretPos - 1
+    #         else:
+    #             startPos = self.WordStartPosition(caretPos, True)
+    #             endPos = self.WordEndPosition(caretPos, True)
+    #         # extend starPos back to beginning of class separated by .
+    #         while self.GetCharAt(startPos - 1) == ord('.'):
+    #             startPos = self.WordStartPosition(startPos - 1, True)
+    #         # now retrieve word
+    #         currWord = self.GetTextRange(startPos, endPos)
+    #
+    #         # lookfor word in dictionary
+    #         if currWord in self.autoCompleteDict:
+    #             helpText = self.autoCompleteDict[currWord]['help']
+    #             thisIs = self.autoCompleteDict[currWord]['is']
+    #             thisType = self.autoCompleteDict[currWord]['type']
+    #             thisAttrs = self.autoCompleteDict[currWord]['attrs']
+    #             if type(thisIs) == str:  # if this is a module
+    #                 searchFor = thisIs
+    #             else:
+    #                 searchFor = currWord
+    #         else:
+    #             helpText = None
+    #             thisIs = None
+    #             thisAttrs = None
+    #             thisType = None
+    #             searchFor = currWord
+    #
+    #         if self.prevWord != currWord:
+    #             # if we have a class or function then use introspect (because
+    #             # it retrieves args as well as __doc__)
+    #             if thisType is not 'instance':
+    #                 wd, kwArgs, helpText = introspect.getCallTip(
+    #                     searchFor, locals=self.locals)
+    #             # then pass all info to sourceAsst
+    #             # for an instance inclue known attrs
+    #             self.updateSourceAsst(
+    #                 currWord, thisIs, helpText, thisType, thisAttrs)
+    #
+    #             self.prevWord = currWord  # update for next time
+    #
+    # def updateSourceAsst(self, currWord, thisIs, helpText, thisType=None,
+    #                      knownAttrs=None):
+    #         # update the source assistant window
+    #     sa = self.coder.sourceAsstWindow
+    #     assert isinstance(sa, wx.richtext.RichTextCtrl)
+    #     # clear the buffer
+    #     sa.Clear()
+    #
+    #     # add current symbol
+    #     sa.BeginBold()
+    #     sa.WriteText('Symbol: ')
+    #     sa.BeginTextColour('BLUE')
+    #     sa.WriteText(currWord + '\n')
+    #     sa.EndTextColour()
+    #     sa.EndBold()
+    #
+    #     # add expected type
+    #     sa.BeginBold()
+    #     sa.WriteText('is: ')
+    #     sa.EndBold()
+    #     if thisIs:
+    #         sa.WriteText(str(thisIs) + '\n')
+    #     else:
+    #         sa.WriteText('\n')
+    #
+    #     # add expected type
+    #     sa.BeginBold()
+    #     sa.WriteText('type: ')
+    #     sa.EndBold()
+    #     if thisIs:
+    #         sa.WriteText(str(thisType) + '\n')
+    #     else:
+    #         sa.WriteText('\n')
+    #
+    #     # add help text
+    #     sa.BeginBold()
+    #     sa.WriteText('Help:\n')
+    #     sa.EndBold()
+    #     if helpText:
+    #         sa.WriteText(helpText + '\n')
+    #     else:
+    #         sa.WriteText('\n')
+    #
+    #     # add attrs
+    #     sa.BeginBold()
+    #     sa.WriteText('Known methods:\n')
+    #     sa.EndBold()
+    #     if knownAttrs:
+    #         if len(knownAttrs) > 500:
+    #             sa.WriteText('\ttoo many to list (i.e. more than 500)!!\n')
+    #         else:
+    #             for thisAttr in knownAttrs:
+    #                 sa.WriteText('\t' + thisAttr + '\n')
+    #     else:
+    #         sa.WriteText('\n')
 
     def OnMarginClick(self, evt):
         # fold and unfold as needed
@@ -1053,7 +1055,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             oneSharp = bool(len(lineText) > 1 and lineText[0] == '#')
             # todo: is twoSharp ever True when oneSharp is not?
             twoSharp = bool(len(lineText) > 2 and lineText[:2] == '##')
-            if oneSharp or twoSharp:
+            lastLine = bool(lineNo == self.GetLineCount() - 1
+                            and self.GetLineLength(lineNo) == 0)
+            if oneSharp or twoSharp or lastLine:
                 newText = newText + lineText
             else:
                 newText = newText + "#" + lineText
@@ -1072,6 +1076,44 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             newText = newText + lineText
         self._ReplaceSelectedLines(newText)
 
+    def HashtagCounter(self, text, nTags=0):
+        # Hashtag counter - counts lines beginning with hashtags in selected text
+        for lines in text.splitlines():
+            if lines.startswith('#'):
+                nTags += 1
+        return nTags
+
+    def toggleCommentLines(self):
+        # toggle comment
+        startText, endText = self._GetPositionsBoundingSelectedLines()
+        nLines = len(self._GetSelectedLineNumbers())
+        nHashtags = self.HashtagCounter(self.GetTextRange(startText, endText))
+        passDec = False # pass decision - only pass  if line is blank
+        # Test decision criteria, and catch devision errors
+        # when caret starts at line with no text, or at beginning of line...
+        try:
+            devCrit, decVal = .6, nHashtags / nLines # Decision criteria and value
+        except ZeroDivisionError:
+            if self.LineLength(self.GetCurrentLine()) == 1:
+                self._ReplaceSelectedLines('#')
+                devCrit, decVal, passDec = 1,0, True
+            else:
+                self.CharRightExtend() # Move caret so line is counted
+                devCrit, decVal = .6, nHashtags / len(self._GetSelectedLineNumbers())
+        newText = ''
+        # Add or remove hashtags from selected text, but pass if # added tp blank line
+        if decVal < devCrit and passDec == False:
+            for lineNo in self._GetSelectedLineNumbers():
+                lineText = self.GetLine(lineNo)
+                newText = newText + '#' + lineText
+        elif decVal >= devCrit and passDec == False:
+            for lineNo in self._GetSelectedLineNumbers():
+                lineText = self.GetLine(lineNo)
+                if lineText.startswith('#'):
+                    lineText = lineText[1:]
+                newText = newText + lineText
+        self._ReplaceSelectedLines(newText)
+
     def Paste(self, event=None):
         dataObj = wx.TextDataObject()
         clip = wx.Clipboard().Get()
@@ -1080,20 +1122,33 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         clip.Close()
         if success:
             txt = dataObj.GetText()
-            if not PY3:
+            # dealing with unicode error in wx3 for Mac
+            if wx.__version__[0] == '3' and sys.platform == 'darwin':
                 try:
-                    # if we can decode/encode to utf-8 then all is good
+                    # if we can decode from utf-8 then all is good
                     txt.decode('utf-8')
                 except:
                     # if not then wx conversion broke so get raw data instead
                     txt = dataObj.GetDataHere()
             self.ReplaceSelection(txt)
 
+    def increaseFontSize(self):
+        self.SetZoom(self.GetZoom() + 1)
+
+    def decreaseFontSize(self):
+        # Minimum zoom set to - 6
+        if self.GetZoom() == -6:
+            self.SetZoom(self.GetZoom())
+        else:
+            self.SetZoom(self.GetZoom() - 1)
+
     def _GetSelectedLineNumbers(self):
         # used for the comment/uncomment machinery from ActiveGrid
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         start = self.LineFromPosition(selStart)
         end = self.LineFromPosition(selEnd)
+        if selEnd == self.GetTextLength():
+            end += 1
         return list(range(start, end))
 
     def _GetPositionsBoundingSelectedLines(self):
@@ -1101,12 +1156,10 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         startPos = self.GetCurrentPos()
         endPos = self.GetAnchor()
         if startPos > endPos:
-            temp = endPos
-            endPos = startPos
-            startPos = temp
+            startPos, endPos = endPos, startPos
         if endPos == self.PositionFromLine(self.LineFromPosition(endPos)):
-            # If it's at the very beginning of a line, use the line above it
-            # as the ending line
+        # If it's at the very beginning of a line, use the line above it
+        # as the ending line
             endPos = endPos - 1
         selStart = self.PositionFromLine(self.LineFromPosition(startPos))
         selEnd = self.PositionFromLine(self.LineFromPosition(endPos) + 1)
@@ -1114,13 +1167,19 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
     def _ReplaceSelectedLines(self, text):
         # used for the comment/uncomment machinery from ActiveGrid
+        # If multi line selection - keep lines selected
+        # For single lines, move to next line and select that line
         if len(text) == 0:
             return
         selStart, selEnd = self._GetPositionsBoundingSelectedLines()
         self.SetSelection(selStart, selEnd)
         self.ReplaceSelection(text)
-        self.SetSelection(selStart + len(text), selStart)
+        if len(text.splitlines()) > 1:
+            self.SetSelection(selStart, selStart + len(text))
+        else:
+            self.SetSelection(self.GetCurrentPos(), self.GetLineEndPosition(self.GetCurrentLine()))
 
+    # the Source Assistant and introspection functinos were broekn and removed frmo PsychoPy 1.90.0
     def analyseScript(self):
         # analyse the file
         buffer = io.StringIO()
@@ -1134,7 +1193,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             successfulParse = False
         buffer.close()
 
-        # if we parsed the tokens then process them
+    #     # if we parsed the tokens then process them
         if successfulParse:
             # import the libs used by the script
             if self.coder.modulesLoaded:
@@ -1558,46 +1617,53 @@ class CoderFrame(wx.Frame):
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("&Find\t%s") % keyCodes['find'])
+                           _translate("&Find\t%s") % keyCodes['find'])
         self.Bind(wx.EVT_MENU, self.OnFindOpen, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Find &Next\t%s") % keyCodes['findAgain'])
+                           _translate("Find &Next\t%s") % keyCodes['findAgain'])
         self.Bind(wx.EVT_MENU, self.OnFindNext, id=item.GetId())
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("Comment\t%s") % keyCodes['comment'],
-                    _translate("Comment selected lines"),
-                    wx.ITEM_NORMAL)
+                           _translate("Comment\t%s") % keyCodes['comment'],
+                           _translate("Comment selected lines"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.commentSelected, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Uncomment\t%s") % keyCodes['uncomment'],
-                    _translate("Un-comment selected lines"),
-                    wx.ITEM_NORMAL)
+                           _translate("Uncomment\t%s") % keyCodes['uncomment'],
+                           _translate("Un-comment selected lines"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.uncommentSelected, id=item.GetId())
+
         item = menu.Append(wx.ID_ANY,
-                    _translate("Toggle fold\t%s") % keyCodes['fold'],
-                    _translate("Toggle folding of top level"),
-                    wx.ITEM_NORMAL)
+                           _translate("Toggle comment\t%s") % keyCodes['toggle comment'],
+                           _translate("Toggle commenting of selected lines"),
+                           wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.toggleComments, id=item.GetId())
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Toggle fold\t%s") % keyCodes['fold'],
+                           _translate("Toggle folding of top level"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.foldAll, id=item.GetId())
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("Indent selection\t%s") % keyCodes['indent'],
-                    _translate("Increase indentation of current line"),
-                    wx.ITEM_NORMAL)
+                           _translate("Indent selection\t%s") % keyCodes['indent'],
+                           _translate("Increase indentation of current line"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.indent, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Dedent selection\t%s") % keyCodes['dedent'],
-                    _translate("Decrease indentation of current line"),
-                    wx.ITEM_NORMAL)
+                           _translate("Dedent selection\t%s") % keyCodes['dedent'],
+                           _translate("Decrease indentation of current line"),
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.dedent, id=item.GetId())
         hnt = _translate("Try to indent to the correct position w.r.t. "
                          "last line")
         item = menu.Append(wx.ID_ANY,
-                    _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
-                    hnt,
-                    wx.ITEM_NORMAL)
+                           _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
+                           hnt,
+                           wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.smartIndent, id=item.GetId())
 
         menu.AppendSeparator()
@@ -1612,6 +1678,17 @@ class CoderFrame(wx.Frame):
                     wx.ITEM_NORMAL)
         self.Bind(wx.EVT_MENU, self.redo, id=wx.ID_REDO)
 
+        menu.AppendSeparator()
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Enlarge font\t%s") % self.app.keys['enlargeFont'],
+                           _translate("Increase font size"),
+                           wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.bigFont, id=item.GetId())
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Shrink font\t%s") % self.app.keys['shrinkFont'],
+                           _translate("Decrease font size"),
+                           wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.smallFont, id=item.GetId())
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1620,8 +1697,8 @@ class CoderFrame(wx.Frame):
         menu = self.toolsMenu
         menuBar.Append(self.toolsMenu, _translate('&Tools'))
         item = menu.Append(wx.ID_ANY,
-                    _translate("Monitor Center"),
-                    _translate("To set information about your monitor"))
+                           _translate("Monitor Center"),
+                           _translate("To set information about your monitor"))
         self.Bind(wx.EVT_MENU, self.app.openMonitorCenter, id=item.GetId())
         # self.analyseAutoChk = self.toolsMenu.AppendCheckItem(self.IDs.analyzeAuto,
         #   "Analyse on file save/open",
@@ -1635,32 +1712,32 @@ class CoderFrame(wx.Frame):
         # self.Bind(wx.EVT_MENU,  self.analyseCodeNow, id=self.IDs.analyzeNow)
 
         self.IDs.cdrRun = menu.Append(wx.ID_ANY,
-                    _translate("Run\t%s") % keyCodes['runScript'],
-                    _translate("Run the current script")).GetId()
+                                      _translate("Run\t%s") % keyCodes['runScript'],
+                                      _translate("Run the current script")).GetId()
         self.Bind(wx.EVT_MENU, self.runFile, id=self.IDs.cdrRun)
         self.IDs.cdrStop = menu.Append(wx.ID_ANY,
-                    _translate("Stop\t%s") % keyCodes['stopScript'],
-                    _translate("Stop the current script")).GetId()
+                                       _translate("Stop\t%s") % keyCodes['stopScript'],
+                                       _translate("Stop the current script")).GetId()
         self.Bind(wx.EVT_MENU, self.stopFile, id=self.IDs.cdrStop)
 
         menu.AppendSeparator()
         item = menu.Append(wx.ID_ANY,
-                    _translate("PsychoPy updates..."),
-                    _translate("Update PsychoPy to the latest, or a specific, version"))
+                           _translate("PsychoPy updates..."),
+                           _translate("Update PsychoPy to the latest, or a specific, version"))
         self.Bind(wx.EVT_MENU, self.app.openUpdater, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("Benchmark wizard"),
-                    _translate("Check software & hardware, generate report"))
+                           _translate("Benchmark wizard"),
+                           _translate("Check software & hardware, generate report"))
         self.Bind(wx.EVT_MENU, self.app.benchmarkWizard, id=item.GetId())
         item = menu.Append(wx.ID_ANY,
-                    _translate("csv from psydat"),
-                    _translate("Create a .csv file from an existing .psydat file"))
+                           _translate("csv from psydat"),
+                           _translate("Create a .csv file from an existing .psydat file"))
         self.Bind(wx.EVT_MENU, self.app.csvFromPsydat, id=item.GetId())
 
         if self.appPrefs['debugMode']:
             item = menu.Append(wx.ID_ANY,
-                        _translate("Unit &testing...\tCtrl-T"),
-                        _translate("Show dialog to run unit tests"))
+                               _translate("Unit &testing...\tCtrl-T"),
+                               _translate("Show dialog to run unit tests"))
         self.Bind(wx.EVT_MENU, self.onUnitTests, id=item.GetId())
 
         # ---_view---#000000#FFFFFF-------------------------------------------
@@ -1673,25 +1750,25 @@ class CoderFrame(wx.Frame):
         hint = _translate("Shows guides in the editor for your "
                           "indentation level")
         self.indentGuideChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("&Indentation guides\t%s") % key,
-                                   hint)
+                                                   _translate("&Indentation guides\t%s") % key,
+                                                   hint)
         self.indentGuideChk.Check(self.appData['showIndentGuides'])
         self.Bind(wx.EVT_MENU, self.setShowIndentGuides, self.indentGuideChk)
         # whitespace
         key = keyCodes['toggleWhitespace']
         hint = _translate("Show whitespace characters in the code")
         self.showWhitespaceChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("&Whitespace\t%s") % key,
-                                   hint)
+                                                      _translate("&Whitespace\t%s") % key,
+                                                      hint)
         self.showWhitespaceChk.Check(self.appData['showWhitespace'])
         self.Bind(wx.EVT_MENU, self.setShowWhitespace, self.showWhitespaceChk)
         # EOL markers
         key = keyCodes['toggleEOLs']
         hint = _translate("Show End Of Line markers in the code")
         self.showEOLsChk = menu.AppendCheckItem(
-                                           wx.ID_ANY,
-                                           _translate("Show &EOLs\t%s") % key,
-                                           hint)
+            wx.ID_ANY,
+            _translate("Show &EOLs\t%s") % key,
+            hint)
         self.showEOLsChk.Check(self.appData['showEOLs'])
         self.Bind(wx.EVT_MENU, self.setShowEOLs, id=self.showEOLsChk.GetId())
 
@@ -1701,24 +1778,24 @@ class CoderFrame(wx.Frame):
         hint = _translate("Shows the output and shell panes (and starts "
                           "capturing stdout)")
         self.outputChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("Show &Output/Shell\t%s") % key,
-                                   hint)
+                                              _translate("Show &Output/Shell\t%s") % key,
+                                              hint)
         self.outputChk.Check(self.prefs['showOutput'])
         self.Bind(wx.EVT_MENU, self.setOutputWindow, id=self.outputChk.GetId())
         # source assistant
         hint = _translate("Provides help functions and attributes of classes"
                           " in your script")
         self.sourceAsstChk = menu.AppendCheckItem(wx.ID_ANY,
-                                   _translate("&Source Assistant"),
-                                   hint)
+                                                  _translate("&Source Assistant"),
+                                                  hint)
         self.sourceAsstChk.Check(self.prefs['showSourceAsst'])
         self.Bind(wx.EVT_MENU, self.setSourceAsst,
                   id=self.sourceAsstChk.GetId())
         menu.AppendSeparator()
         key = self.app.keys['switchToBuilder']
         item = menu.Append(wx.ID_ANY,
-                    _translate("Go to &Builder view\t%s") % key,
-                    _translate("Go to the Builder view"))
+                           _translate("Go to &Builder view\t%s") % key,
+                           _translate("Go to the Builder view"))
         self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
         # self.viewMenu.Append(self.IDs.openShell,
         #   "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'],
@@ -1738,10 +1815,12 @@ class CoderFrame(wx.Frame):
         folders = glob.glob(os.path.join(self.paths['demos'], 'coder', '*'))
         for folder in folders:
             # if it isn't a folder then skip it
-            if not os.path.isdir(folder):
+            if (not os.path.isdir(folder)):
                 continue
             # otherwise create a submenu
             folderDisplayName = os.path.split(folder)[-1]
+            if folderDisplayName.startswith('_'):
+                continue  # don't include private folders
             if folderDisplayName in _localized:
                 folderDisplayName = _localized[folderDisplayName]
             submenu = wx.Menu()
@@ -1760,7 +1839,7 @@ class CoderFrame(wx.Frame):
                     # file is just "run" so get shortname from directory name
                     # instead
                     shortname = thisFile.split(os.path.sep)[-2]
-                if shortname.startswith('_'):
+                elif shortname.startswith('_'):
                     continue  # remove any 'private' files
                 item = submenu.Append(wx.ID_ANY, shortname)
                 thisID = item.GetId()
@@ -2132,7 +2211,10 @@ class CoderFrame(wx.Frame):
 
         # is the file still there
         if os.path.isfile(filename):
-            doc.SetText(open(filename).read().decode('utf8'))
+            if PY3:
+                doc.SetText(open(filename).read())
+            else:
+                doc.SetText(open(filename).read().decode('utf8'))
             doc.fileModTime = os.path.getmtime(filename)
             doc.EmptyUndoBuffer()
             doc.Colourise(0, -1)
@@ -2172,12 +2254,21 @@ class CoderFrame(wx.Frame):
                                              readonly=readonly)
             # load text from document
             if os.path.isfile(filename):
-                with open(filename, 'rU') as f:
+                try:
                     if PY3:
-                        self.currentDoc.SetText(f.read())
+                        with open(filename, 'rU', encoding='utf8') as f:
+                            self.currentDoc.SetText(f.read())
+                            self.currentDoc.newlines = f.newlines
                     else:
-                        self.currentDoc.SetText(f.read().decode('utf8'))
-                    self.currentDoc.newlines = f.newlines
+                        with open(filename, 'rU') as f:
+                            self.currentDoc.SetText(f.read().decode('utf8'))
+                            self.currentDoc.newlines = f.newlines
+                except UnicodeDecodeError:
+                    dlg = dialogs.MessageDialog(self, message=_translate(
+                        'Failed to open {}. Make sure that encoding of '
+                        'the file is utf-8.').format(filename), type='Info')
+                    dlg.ShowModal()
+                    dlg.Destroy()
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
             else:
@@ -2510,15 +2601,19 @@ class CoderFrame(wx.Frame):
             command = '"%s" -u "%s"' % (sys.executable, fullPath)
             # self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC,
             #    self.scriptProcess)
-            self.scriptProcessID = wx.Execute(
-                command, wx.EXEC_ASYNC | wx.EXEC_NOHIDE, self.scriptProcess)
+            if hasattr(wx, "EXEC_NOHIDE"):
+                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
+            else:
+                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
         else:
             fullPath = fullPath.replace(' ', '\ ')
             pythonExec = sys.executable.replace(' ', '\ ')
             # the quotes would break a unix system command
             command = '%s -u %s' % (pythonExec, fullPath)
-            self.scriptProcessID = wx.Execute(
-                command, wx.EXEC_ASYNC, self.scriptProcess)
+            _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
+        # launch the command
+        self.scriptProcessID = wx.Execute(command, _opts,
+                                          self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.cdrBtnRun, False)
         self.toolbar.EnableTool(self.IDs.cdrBtnStop, True)
 
@@ -2661,6 +2756,15 @@ class CoderFrame(wx.Frame):
     def uncommentSelected(self, event):
         self.currentDoc.uncommentLines()
 
+    def toggleComments(self, event):
+        self.currentDoc.toggleCommentLines()
+
+    def bigFont(self, event):
+        self.currentDoc.increaseFontSize()
+
+    def smallFont(self, event):
+        self.currentDoc.decreaseFontSize()
+
     def foldAll(self, event):
         self.currentDoc.FoldAll()
     # def unfoldAll(self, event):
@@ -2781,7 +2885,10 @@ class CoderFrame(wx.Frame):
         # "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py"
         tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ', 1)
         filename = tmpFilename.split('File "', 1)[1]
-        lineNumber = int(tmpLineNumber.split(',')[0])
+        if PY3:
+            lineNumber = int(tmpLineNumber.split()[0])
+        else:
+            lineNumber = int(tmpLineNumber.split(',')[0])
         self.gotoLine(filename, lineNumber)
 
     def onUnitTests(self, evt=None):

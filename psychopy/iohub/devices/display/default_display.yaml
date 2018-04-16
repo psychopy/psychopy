@@ -26,7 +26,7 @@ Display:
     device_number: 0
     
     # This section of parameters defines the actual size of the Display's 
-    # 2D stimulus surface. Both width and height values are the total length of each dimention.
+    # 2D stimulus surface. Both width and height values are the total length of each dimension.
     # The unit_type field must currently be in mm, and therefore so must 
     # the specified width and height.
     #

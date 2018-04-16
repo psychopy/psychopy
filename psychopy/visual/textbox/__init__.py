@@ -135,7 +135,7 @@ class TextBox(object):
       stim and has the following functional difference:
           - TextBox attributes are never accessed directly; get* and set*
             methods are always used (this will be changed to use class
-            properies in the future).
+            properties in the future).
           - Setting an attribute of a TextBox only supports value replacement,
             ( textbox.setFontColor([1.0,1.0,1.0]) ) and does not support
             specifying operators.
@@ -507,7 +507,7 @@ class TextBox(object):
 
     def getGlyphPositionForTextIndex(self, char_index):
         """
-        For the provided char_index, which is the index of one chatacter in
+        For the provided char_index, which is the index of one character in
         the current text being displayed by the TextBox ( getDisplayedText() ),
         return the bounding box position, width, and height for the associated
         glyph drawn to the screen. This factors in the glyphs position within
@@ -760,7 +760,7 @@ class TextBox(object):
 
     def getVertJust(self):
         """
-        Return how text should layed out vertically when the
+        Return how text should laid out vertically when the
         number of text grid rows is greater than the number
         needed to display the current text
         """
@@ -964,12 +964,12 @@ class TextBox(object):
         if not self._draw_start_dlist:
             dl_index = glGenLists(1)
             glNewList(dl_index, GL_COMPILE)
-            glViewport(0, 0, self._window.winHandle.screen.width,
-                       self._window.winHandle.screen.height)
+            glViewport(0, 0, self._window.size[0],
+                       self._window.size[1])
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
-            glOrtho(0, self._window.winHandle.screen.width, 0,
-                    self._window.winHandle.screen.height, -1, 1)
+            glOrtho(0, self._window.size[0], 0,
+                    self._window.size[1], -1, 1)
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
             glDisable(GL_DEPTH_TEST)

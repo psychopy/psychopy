@@ -13,17 +13,19 @@ from sys import platform
 from psychopy import core, logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
-from ._base import _SoundBase
-
 try:
     import pyo
 except ImportError as err:
     # convert this import error to our own, pyo probably not installed
     raise exceptions.DependencyError(repr(err))
 
-import sys
+from ._base import _SoundBase
+import sounddevice
+
+import atexit
 import threading
 pyoSndServer = None
+audioDriver = None
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
@@ -31,38 +33,78 @@ def _bestDriver(devNames, devIDs):
     preferredDrivers = prefs.general['audioDriver']
     outputID = None
     audioDriver = None
-    osEncoding = sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
-        logging.info('Looking for {}'.format(prefDriver))
+        logging.info(u'Looking for {}'.format(prefDriver))
         if prefDriver.lower() == 'directsound':
             prefDriver = u'Primary Sound'
         # look for that driver in available devices
         for devN, devString in enumerate(devNames):
-            logging.info('Examining for {}'.format(devString))
+            logging.info(u'Examining for {}'.format(devString))
             try:
-                ds = devString.decode(osEncoding).encode('utf-8').lower()
-                if prefDriver.encode('utf-8').lower() in ds:
-                    audioDriver = devString.decode(osEncoding).encode('utf-8')
+                ds = devString.lower()
+                if prefDriver.lower() in ds:
+                    audioDriver = devString
                     outputID = devIDs[devN]
-                    logging.info('Success: {}'.format(devString))
+                    logging.info(u'Success: {}'.format(devString))
                     # we found a driver don't look for others
                     return audioDriver, outputID
             except (UnicodeDecodeError, UnicodeEncodeError):
-                logging.info('Failed: {}'.format(devString))
+                logging.info(u'Failed: {}'.format(devString))
                 logging.warn('find best sound driver - could not '
                              'interpret unicode in driver name')
     else:
         return None, None
+
+def get_devices_infos():
+    devices = sounddevice.query_devices()
+    in_devices = {}
+    out_devices = {}
+    for id, device in enumerate(devices):
+        if device['max_input_channels'] > 0:
+            param = {'host api index':device['hostapi'],
+                     'latency':device['default_low_input_latency'],
+                     'default sr':device['default_samplerate'],
+                     'name':device['name']}
+            in_devices[id] = param
+        if device['max_output_channels'] > 0:
+            param = {'host api index':device['hostapi'],
+                     'latency':device['default_low_output_latency'],
+                     'default sr':device['default_samplerate'],
+                     'name':device['name']}
+            out_devices[id] = param
+    return (in_devices, out_devices)
+
+
+def get_output_devices():
+    devices = sounddevice.query_devices()
+    names = []
+    ids = []
+    for id, device in enumerate(devices):
+        if device['max_output_channels'] > 0:
+            names.append(device['name'])
+            ids.append(id)
+    return (names, ids)
+
+
+def get_input_devices():
+    devices = sounddevice.query_devices()
+    names = []
+    ids = []
+    for id, device in enumerate(devices):
+        if device['max_input_channels'] > 0:
+            names.append(device['name'])
+            ids.append(id)
+    return (names, ids)
 
 def getDevices(kind=None):
     """Returns a dict of dict of audio devices of sepcified `kind`
 
     The dict keys are names and items are dicts of properties
     """
-    osEncoding = sys.getfilesystemencoding()
-    inputs, outputs = pyo.pa_get_devices_infos()
+    inputs, outputs = get_devices_infos()
     if kind is None:
-        allDevs = inputs.update(outputs)
+        allDevs = inputs.copy()
+        allDevs.update(outputs)
     elif kind=='output':
         allDevs = outputs
     else:
@@ -70,13 +112,11 @@ def getDevices(kind=None):
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        try:  # convert to unicode
-            devName = dev['name'].decode(osEncoding)
-        except UnicodeEncodeError:  # if that fails try the current encoding
-            devName = dev['name']
+        devName = dev['name']
         devs[devName] = dev
         dev['id'] = ii
     return devs
+
 
 # these will be controlled by sound.__init__.py
 defaultInput = None
@@ -132,7 +172,7 @@ def init(rate=44100, stereo=True, buffer=128):
     else:
         if platform == 'win32':
             # check for output device/driver
-            devNames, devIDs = pyo.pa_get_output_devices()
+            devNames, devIDs = get_output_devices()
             audioDriver, outputID = _bestDriver(devNames, devIDs)
             if outputID is None:
                 # using the default output because we didn't find the one(s)
@@ -140,7 +180,7 @@ def init(rate=44100, stereo=True, buffer=128):
                 audioDriver = 'Windows Default Output'
                 outputID = pyo.pa_get_default_output()
             if outputID is not None:
-                logging.info('Using sound driver: %s (ID=%i)' %
+                logging.info(u'Using sound driver: %s (ID=%i)' %
                              (audioDriver, outputID))
                 maxOutputChnls = pyo.pa_get_output_max_channels(outputID)
             else:
@@ -150,7 +190,7 @@ def init(rate=44100, stereo=True, buffer=128):
             # check for valid input (mic)
             # If no input device is available, devNames and devIDs are empty
             # lists.
-            devNames, devIDs = pyo.pa_get_input_devices()
+            devNames, devIDs = get_input_devices()
             audioInputName, inputID = _bestDriver(devNames, devIDs)
             # Input devices were found, but requested devices were not found
             if len(devIDs) > 0 and inputID is None:
@@ -165,7 +205,7 @@ def init(rate=44100, stereo=True, buffer=128):
                     # default input is not available
                     inputID = None
             if inputID is not None:
-                msg = 'Using sound-input driver: %s (ID=%i)'
+                msg = u'Using sound-input driver: %s (ID=%i)'
                 logging.info(msg % (audioInputName, inputID))
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
@@ -183,13 +223,13 @@ def init(rate=44100, stereo=True, buffer=128):
 
         maxChnls = min(maxInputChnls, maxOutputChnls)
         if maxInputChnls < 1:  # pragma: no cover
-            msg = ('%s.init could not find microphone hardware; '
-                   'recording not available')
+            msg = (u'%s.init could not find microphone hardware; '
+                   u'recording not available')
             logging.warning(msg % __name__)
             maxChnls = maxOutputChnls
         if maxOutputChnls < 1:  # pragma: no cover
-            msg = ('%s.init could not find speaker hardware; '
-                   'sound not available')
+            msg = (u'%s.init could not find speaker hardware; '
+                   u'sound not available')
             logging.error(msg % __name__)
             return -1
 
@@ -213,6 +253,10 @@ def init(rate=44100, stereo=True, buffer=128):
         pyoSndServer.boot()
     core.wait(0.5)  # wait for server to boot before starting te sound stream
     pyoSndServer.start()
+    
+    #atexit is filo, will call stop then shutdown upon closing
+    atexit.register(pyoSndServer.shutdown)
+    atexit.register(pyoSndServer.stop)
     try:
         Sound()  # test creation, no play
     except pyo.PyoServerStateException:
@@ -345,7 +389,7 @@ class SoundPyo(_SoundBase):
             self.terminator = threading.Timer(duration, self._onEOS)
             self.terminator.start()
         if log and self.autoLog:
-            logging.exp("Sound %s started" % (self.name), obj=self)
+            logging.exp(u"Sound %s started" % (self.name), obj=self)
         return self
 
     def _onEOS(self):
@@ -366,7 +410,7 @@ class SoundPyo(_SoundBase):
             pass
         self.status = STOPPED
         if log and self.autoLog:
-            logging.exp("Sound %s stopped" % (self.name), obj=self)
+            logging.exp(u"Sound %s stopped" % (self.name), obj=self)
 
     def _updateSnd(self):
         self.needsUpdate = False
@@ -386,7 +430,7 @@ class SoundPyo(_SoundBase):
             self._sndTable.setSound(self.fileName,
                                     start=self.startTime, stop=self.stopTime)
         except Exception:
-            msg = ('Could not open sound file `%s` using pyo; not found '
+            msg = (u'Could not open sound file `%s` using pyo; not found '
                    'or format not supported.')
             logging.error(msg % fileName)
             raise TypeError(msg % fileName)

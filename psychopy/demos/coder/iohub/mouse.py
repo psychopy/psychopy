@@ -5,7 +5,7 @@
 Demo of basic mouse handling from the ioHub (a separate asynchronous process for
 fetching and processing events from hardware; mice, keyboards, eyetrackers).
 
-Inital Version: May 6th, 2013, Sol Simpson
+Initial Version: May 6th, 2013, Sol Simpson
 Abbrieviated: May 2013, Jon Peirce
 Updated July, 2013, Sol, Added timeouts
 """
@@ -24,9 +24,6 @@ io = launchHubServer()
 display = io.devices.display
 keyboard = io.devices.keyboard
 mouse = io.devices.mouse
-
-# Hide the 'system mouse cursor'.
-mouse.setSystemCursorVisibility(False)
 
 # We can use display to find info for the Window creation, like the resolution
 # (which means PsychoPy won't warn you that the fullscreen does not match your requested size)

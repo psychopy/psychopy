@@ -7,7 +7,7 @@ import os
 import sys
 from sys import platform
 from distutils.core import setup
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
@@ -24,7 +24,7 @@ packageData = []
 requires = []
 
 if platform != 'darwin':
-    raise "As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle"
+    raise RuntimeError("As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle")
 
 import bdist_mpkg
 import py2app
@@ -40,7 +40,7 @@ frameworks.extend(opencvLibs)
 import macholib
 #print("~"*60 + "macholib verion: "+macholib.__version__)
 
-if StrictVersion(macholib.__version__) <= StrictVersion('1.7'):
+if parse_version(macholib.__version__) <= parse_version('1.7'):
     print("Applying macholib patch...")
     import macholib.dyld
     import macholib.MachOGraph
@@ -52,52 +52,63 @@ if StrictVersion(macholib.__version__) <= StrictVersion('1.7'):
         return dyld_find_1_7(name, **kwargs)
     macholib.MachOGraph.dyld_find = dyld_find
 
+includes = ['Tkinter', 'tkFileDialog',
+            'imp', 'subprocess', 'shlex',
+            'shelve',  # for scipy.io
+            '_elementtree', 'pyexpat',  # for openpyxl
+            'hid',
+            'pyo', 'greenlet', 'zmq', 'tornado',
+            'psutil',  # for iohub
+            'pysoundcard', 'soundfile', 'sounddevice',
+            'cv2', 'hid',
+            'xlwt',  # writes excel files for pandas
+            'vlc',  # install with pip install python-vlc
+            ]
+packages = ['wx', 'psychopy',
+            'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
+            'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
+            'moviepy', 'imageio',
+            '_sounddevice_data','_soundfile_data',
+            'cffi','pycparser',
+            'PIL',  # 'Image',
+            'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
+            'Foundation', 'CoreFoundation',
+            'pkg_resources', #needed for objc
+            'pyolib',
+            'requests', 'certifi',  # for up/downloading to servers
+            'pyosf',
+            # for unit testing
+            'coverage',
+            # handy external science libs
+            'serial',
+            'egi', 'pylink',
+            'pyxid',
+            'pandas', 'tables',  # 'cython',
+            'msgpack', 'yaml', 'gevent',  # for ioHub
+            # these aren't needed, but liked
+            'psychopy_ext', 'pyfilesec',
+            'bidi', 'arabic_reshaper',  # for right-left language conversions
+            # for Py3 compatibility
+            'future', 'past', 'lib2to3',
+            'json_tricks',  # allows saving arrays/dates in json
+            ]
+
+if sys.version_info.major >= 3:
+    packages.extend(['PyQt5'])
+else:
+    # not available or not working under Python3:
+    includes.extend(['UserString', 'ioLabs', 'FileDialog'])
+    packages.extend(['PyQt4', 'labjack', 'rusocsci'])
+    # is available but py2app can't seem to find it:
+    packages.extend(['OpenGL'])
+
 setup(
     app=['psychopy/app/psychopyApp.py'],
     options=dict(py2app=dict(
-            includes=['Tkinter', 'FileDialog', 'tkFileDialog',
-                      'imp', 'subprocess', 'shlex',
-                      'shelve',  # for scipy.io
-                      '_elementtree', 'pyexpat',  # for openpyxl
-                      'ioLabs', 'hid',
-                      'pp', 'ppauto', 'ppcommon', 'pptransport', 'ppworker',
-                      'pyo', 'greenlet', 'vlc', 'zmq', 'tornado',
-                      'psutil',  # for iohub
-                      'pysoundcard', 'soundfile', 'sounddevice',
-                      'cv2',
-                      'xlwt',  # writes excel files for pandas
-                      'UserString',
-                      ],
-            packages=['wx', 'pyglet', 'pygame', 'OpenGL', 'psychopy', 'pytz',
-                      'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
-                      'moviepy', 'imageio',
-                      'pysoundcard', 'soundfile', 'sounddevice',
-                      'cffi','pycparser',
-                      'PyQt4',
-                      'PIL',  # 'Image',
-                      'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
-                      'Foundation', 'CoreFoundation',
-                      'pkg_resources', #needed for objc
-                      'pyolib',
-                      'requests', 'certifi',  # for up/downloading to servers
-                      'pyosf',
-                      # for unit testing
-                      'coverage',
-                      # handy external science libs
-                      'serial',
-                      'egi', 'labjack', 'pylink',
-                      'pyxid',
-                      'pandas', 'tables',  # 'cython',
-                      'msgpack', 'yaml', 'gevent',  # for ioHub
-                      # these aren't needed, but liked
-                      'psychopy_ext', 'pyfilesec', 'rusocsci',
-                      'bidi',  # for right-left language conversions
-                      # for Py3 compatibility
-                      'future', 'past', 'lib2to3',
-                      'json_tricks',  # allows saving arrays/dates in json
-                      ],
+            includes=includes,
+            packages=packages,
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
-                      'OpenGL','OpenGL.WGL','OpenGL.raw.WGL.*',
+                      'libsz.2.dylib',
                       # 'stringprep',
                       'functools32',
                       ],  # anything we need to forcibly exclude?

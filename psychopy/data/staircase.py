@@ -3,8 +3,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import zip
 from builtins import next
 from past.builtins import basestring
@@ -18,7 +18,7 @@ import copy
 import warnings
 import collections
 import numpy as np
-from distutils.version import StrictVersion
+from pkg_resources import parse_version
 
 import psychopy
 from psychopy import logging
@@ -32,7 +32,7 @@ from .utils import _getExcelCellName
 try:
     # import openpyxl
     import openpyxl
-    if StrictVersion(openpyxl.__version__) >= StrictVersion('2.4.0'):
+    if parse_version(openpyxl.__version__) >= parse_version('2.4.0'):
         # openpyxl moved get_column_letter to utils.cell
         from openpyxl.utils.cell import get_column_letter
     else:
@@ -628,7 +628,7 @@ class StairHandler(_BaseTrialHandler):
                 ws.cell(column=col, row=1,
                         value=u"{}".format(key))
                 for oDatN in range(len(self.otherData[key])):
-                    ws.cell(colummn=col, row=oDatN+2,
+                    ws.cell(column=col, row=oDatN+2,
                             value=u"{}".format(self.otherData[key][oDatN]))
                 col += 1
 
@@ -857,10 +857,9 @@ class QuestHandler(StairHandler):
             method=method, stepType='lin', minVal=minVal,
             maxVal=maxVal, name=name, autoLog=autoLog)
 
+        self.startVal = startVal
+        self.startValSd = startValSd
         self.stopInterval = stopInterval
-
-        startVal = startVal
-        startValSd = startValSd
         self._questNextIntensity = startVal
 
         # Create Quest object
@@ -888,7 +887,6 @@ class QuestHandler(StairHandler):
         if intensity is None:
             intensity = self._questNextIntensity
         else:
-            intensity = intensity
             # Update the intensity.
             #
             # During the first trial, self.intensities will be of length 0,

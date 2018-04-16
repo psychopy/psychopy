@@ -4,7 +4,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 from .. import Device, ioDeviceError
 from ...constants import DeviceConstants, EyeTrackerConstants
-import hw
+from . import hw
 from ...errors import print2err
 
 
@@ -164,7 +164,7 @@ class EyeTrackerDevice(Device):
         The sendCommand method allows arbitrary *commands* or *requests* to be
         issued to the eye tracker device. Valid values for the arguments of this
         method are completely implementation-specific, so please refer to the
-        eye tracker implentation page for the eye tracker being used for a list of
+        eye tracker implementation page for the eye tracker being used for a list of
         valid key and value combinations (if any).
 
         In general, eye tracker implementations should **not** need to support
@@ -265,8 +265,8 @@ class EyeTrackerDevice(Device):
                         An eye tracker implementation is only required to support the EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE setting.
 
         Return:
-            int: EyeTrackerConstants.EYETRACKER_OK if this method and starting_state is supported and the runSetupProcedure ran successfully. If the starting state specified was anything other the EyeTrackerConstants.VALIDATION_START_STATE, the performed calibration routine must have also passed (been sucessful). Possible values:
-                 * EyeTrackerConstants.EYETRACKER_CALIBRATION_ERROR if this method and starting_state is supported but either calibration or drift correction (depending on the state argument provided) failed. In this case; the method can be called again to attempt a sucessful calibration and or drift correction.
+            int: EyeTrackerConstants.EYETRACKER_OK if this method and starting_state is supported and the runSetupProcedure ran successfully. If the starting state specified was anything other the EyeTrackerConstants.VALIDATION_START_STATE, the performed calibration routine must have also passed (been successful). Possible values:
+                 * EyeTrackerConstants.EYETRACKER_CALIBRATION_ERROR if this method and starting_state is supported but either calibration or drift correction (depending on the state argument provided) failed. In this case; the method can be called again to attempt a successful calibration and or drift correction.
                  * EyeTrackerConstants.EYETRACKER_ERROR if this method is supported and starting_state is, but an error occurred during the method (other than a failed calibration or drift correct result).
                  * EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED if the eye tracker implementation does not support this method or the specified starting_state.
         """
@@ -274,7 +274,7 @@ class EyeTrackerDevice(Device):
 
     def setRecordingState(self, recording):
         """The setRecordingState method is used to start or stop the recording
-        and transmition of eye data from the eye tracking device to the ioHub
+        and transmission of eye data from the eye tracking device to the ioHub
         Process.
 
         Args:
@@ -444,7 +444,7 @@ class EyeTrackerDevice(Device):
         destroyed."""
         self.__class__._INSTANCE = None
 
-from eye_events import (
+from .eye_events import (
     EyeSampleEvent,
     MonocularEyeSampleEvent,
     BinocularEyeSampleEvent,

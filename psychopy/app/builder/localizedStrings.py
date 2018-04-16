@@ -15,8 +15,8 @@ from __future__ import absolute_import, print_function
 import copy
 import os
 import glob
-from psychopy.app.builder.components._base import _localized as _localizedBase
-from ..localization import _translate
+from psychopy.localization import _localized as _localizedBase
+from psychopy.localization import _translate
 
 _localizedDialogs = {
     # strings for all allowedVals (from all components) go here:
@@ -77,7 +77,20 @@ _localizedDialogs = {
     'error': _translate('error'),
     # Experiment info dialog:
     'Field': _translate('Field'),
-    'Default': _translate('Default'),}
+    'Default': _translate('Default'),
+    # Mouse:
+    'any click': _translate('any click'),
+    'valid click': _translate('valid click'),
+    # Polygon:
+    'line': _translate('line'),
+    'triangle': _translate('triangle'),
+    'rectangle': _translate('rectangle'),
+    'cross': _translate('cross'),
+    'regular polygon...': _translate('regular polygon...'),
+    # Variable component
+    'first': _translate('first'),
+    'last': _translate('last'),
+    'average': _translate('average')}
 
 _localized = copy.copy(_localizedBase)
 _localized.update(_localizedDialogs)
@@ -89,7 +102,7 @@ components = [os.path.basename(m).replace('.py', '') for m in modules
 
 for comp in components:
     try:
-        exec('from psychopy.app.builder.components.' + comp + ' import _localized as _loc')
+        exec('from psychopy.experiment.components.' + comp + ' import _localized as _loc')
         _localized.update(_loc)
     except ImportError:
         pass

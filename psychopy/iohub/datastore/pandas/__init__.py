@@ -31,7 +31,7 @@ class ioHubPandasDataView(object):
 
     @property
     def hdf_store(self):
-        """A pandas.HDFStore object openned using the datastore_file file path
+        """A pandas.HDFStore object opened using the datastore_file file path
         provided on __init__. The HDFStore file is open until the
         ioHubPandasDataView is gc'ed or until self.close() is called.
 
@@ -74,7 +74,7 @@ class ioHubPandasDataView(object):
     @property
     def experiment_meta_data(self):
         """A DataFrame containing the experiment meta data stored in the
-        ioDataStore file that was openned.
+        ioDataStore file that was opened.
 
         Read-only.
 
@@ -90,7 +90,7 @@ class ioHubPandasDataView(object):
     @property
     def session_meta_data(self):
         """A DataFrame containing the session meta data for each experiment
-        session / run that is stored in the ioDataStore file that was openned.
+        session / run that is stored in the ioDataStore file that was opened.
 
         Read-only.
 
@@ -141,9 +141,12 @@ class ioHubPandasDataView(object):
                             if c != experiment_index_name:
                                 # rename found exp col to match
                                 # standard exp col label
-                                print
-                                print '** Renaming condition_variables column {0} to {1} to match existing experiment index column label'.format(c, experiment_index_name)
-                                print
+                                print()
+                                print('** Renaming condition_variables column '
+                                      '{0} to {1} to match existing experiment '
+                                      'index column label'
+                                      .format(c, experiment_index_name))
+                                print()
                                 cv_cols[i] = experiment_index_name
                                 reset_column_names = True
                             exp_id_col = experiment_index_name
@@ -152,9 +155,12 @@ class ioHubPandasDataView(object):
                             # rename found exp col to match
                             # standard session col label
                             if c != session_index_name:
-                                print
-                                print '** Renaming condition_variables column {0} to {1} to match expected session index column label'.format(c, session_index_name)
-                                print
+                                print()
+                                print('** Renaming condition_variables column '
+                                      '{0} to {1} to match expected session '
+                                      'index column label'
+                                      .format(c, session_index_name))
+                                print()
                                 cv_cols[i] = session_index_name
                                 reset_column_names = True
                             sess_id_col = session_index_name
@@ -167,24 +173,28 @@ class ioHubPandasDataView(object):
 
                     # No exp index col was found in the df, create one.
                     if exp_id_col is None:
-                        print
-                        print '** No experiment index column found. Adding %s column to df with value of %d' % (experiment_index_name, experiment_id)
-                        print
+                        print()
+                        print('** No experiment index column found. Adding %s '
+                              'column to df with value of %d'
+                              % (experiment_index_name, experiment_id))
+                        print()
                         cv_df[experiment_index_name] = experiment_id
 
                     # No sess_id_col was found in the df, create one.
                     if sess_id_col is None:
-                        print
-                        print '** No session index column found. Adding %s column to df with nan values.' % (session_index_name)
-                        print
+                        print()
+                        print('** No session index column found. Adding %s '
+                        'column to df with nan values.'
+                        % (session_index_name))
+                        print()
                         cv_df[session_index_name] = np.nan
 
                     try:
                         cv_df.set_index(
                             [experiment_index_name, session_index_name], inplace=True)
                     except Exception as e:
-                        print 'Could not set index for CV table.'
-                        print e
+                        print('Could not set index for CV table.')
+                        print(e)
 
                     if self._condition_variables is None:
                         self._condition_variables = cv_df
@@ -192,7 +202,7 @@ class ioHubPandasDataView(object):
                     else:
                         self._condition_variables.append(cv_df)
                 except Exception as e:
-                    print 'Error loading experiment CV: ', e
+                    print('Error loading experiment CV: {}'.format(e))
         return self._condition_variables
 
     @property

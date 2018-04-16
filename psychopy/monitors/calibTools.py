@@ -10,8 +10,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from past.builtins import basestring
@@ -777,7 +777,6 @@ class GammaCalculator(object):
         SSQ = np.sum((model - y)**2)
         return SSQ
 
-
 def makeDKL2RGB(nm, powerRGB):
     """Creates a 3x3 DKL->RGB conversion matrix from the spectral input powers
     """
@@ -831,6 +830,59 @@ def makeLMS2RGB(nm, powerRGB):
 
     return cones_to_rgb
 
+def makeXYZ2RGB(red_xy,
+                green_xy,
+                blue_xy,
+                whitePoint_xy=(0.3127, 0.329),
+                reverse=False):
+    """Create a linear sRGB conversion matrix.
+
+    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear sRGB
+    given CIE-xy (1931) primaries and white point. By default, the returned
+    matrix transforms CIE-XYZ to linear sRGB coordinates. Use 'reverse=True' to
+    get the inverse transformation. The chromaticity coordinates of the
+    display's phosphor 'guns' are usually measured with a spectrophotometer.
+
+    The routines here are based on methods found at:
+        http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
+
+    :param red_xy: tuple, list or ndarray
+        Chromaticity coordinate (CIE-xy) of the 'red' gun.
+    :param green_xy: tuple, list or ndarray
+        Chromaticity coordinate (CIE-xy) of the 'green' gun.
+    :param blue_xy: tuple, list or ndarray
+        Chromaticity coordinate (CIE-xy) of the 'blue' gun.
+    :param whtp_xy: tuple, list or ndarray
+        Chromaticity coordinate (CIE-xy) of the white point, default is D65.
+    :param reverse:
+        Return the inverse transform XYZ -> sRGB
+    :return: 3x3 conversion matrix
+
+    """
+    # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
+    mat_xyY_primaries = np.asmatrix((
+        (red_xy[0], red_xy[1], 1.0 - red_xy[0] - red_xy[1]),
+        (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
+        (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
+    )).T
+    # convert white point to CIE-XYZ
+    whtp_XYZ = np.asmatrix(
+        np.dot(1.0 / whitePoint_xy[1],
+            np.asarray((
+                whitePoint_xy[0],
+                whitePoint_xy[1],
+                1.0 - whitePoint_xy[0] - whitePoint_xy[1])
+            )
+        )
+    ).T
+    # compute the final matrix (sRGB -> XYZ)
+    to_return = mat_xyY_primaries * np.diag(
+        (np.linalg.inv(mat_xyY_primaries) * whtp_XYZ).A1)
+
+    if not reverse:  # for XYZ -> sRGB conversion matrix (we usually want this!)
+        return np.linalg.inv(to_return)
+
+    return to_return
 
 def getLumSeries(lumLevels=8,
                  winSize=(800, 600),

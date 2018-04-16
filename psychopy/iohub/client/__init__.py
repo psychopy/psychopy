@@ -20,6 +20,7 @@ try:
     import psychopy.logging as psycho_logging
 except ImportError:
     psycho_logging = None
+from past.builtins import basestring
 from ..lazy_import import lazy_import
 from .. import _pkgroot, IOHUB_DIRECTORY
 from ..util import yload, yLoader
@@ -29,6 +30,7 @@ from ..devices import DeviceEvent, import_device
 from ..devices.computer import Computer
 from ..devices.experiment import MessageEvent, LogEvent
 from ..constants import DeviceConstants, EventConstants
+from psychopy import constants
 
 getTime = Computer.getTime
 
@@ -266,7 +268,7 @@ class ioHubConnection(object):
         self.udp_client = None
 
         # the dynamically generated object that contains an attribute for
-        # each device registed for monitoring with the ioHub server so
+        # each device registered for monitoring with the ioHub server so
         # that devices can be accessed experiment process side by device name.
         self.devices = ioHubDevices(self)
 
@@ -848,9 +850,8 @@ class ioHubConnection(object):
         if len(rootScriptPath)<=1:
             rootScriptPath = os.path.abspath(".")
         # >>>>> Load / Create / Update iohub config file.....
-
         cfpath = os.path.join(IOHUB_DIRECTORY, 'default_config.yaml')
-        with file(cfpath, 'r') as config_file:
+        with open(cfpath, 'r') as config_file:
             hub_defaults_config = yload(config_file, Loader=yLoader)
 
         if ioHubConfigAbsPath is None and ioHubConfig is None:
@@ -871,7 +872,7 @@ class ioHubConnection(object):
                                    "contain both a 'experiment_info' and a "
                                    "'session_info' entry.")
         elif ioHubConfigAbsPath is not None and ioHubConfig is None:
-            with file(ioHubConfigAbsPath, 'r') as config_file:
+            with open(ioHubConfigAbsPath, 'r') as config_file:
                 ioHubConfig = yload(config_file, Loader=yLoader)
         else:
             raise ValueError('Both a ioHubConfig dict object AND a path to an '
@@ -893,7 +894,6 @@ class ioHubConnection(object):
                                              delete=False) as tfile:
                 tfile.write(json.dumps(ioHubConfig))
                 ioHubConfigAbsPath = os.path.abspath(tfile.name)
-
         # <<<<< Finished Load / Create / Update iohub config file.
 
         self._iohub_server_config = ioHubConfig
@@ -903,7 +903,6 @@ class ioHubConnection(object):
         server_udp_port = self._iohub_server_config.get('udp_port', 9000)
         from ..net import UDPClientConnection
         self.udp_client = UDPClientConnection(remote_port=server_udp_port)
-
         # <<<<< Done Creating open UDP port to ioHub Server
 
         # >>>> Check for orphaned ioHub Process and kill if found...
@@ -968,17 +967,15 @@ class ioHubConnection(object):
         # for affinity and process priority setting.
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
-
         # If ioHub server did not respond correctly,
         # terminate process and exit the program.
         if self._waitForServerInit() is False:
             self._server_process.terminate()
-            return "'ioHub startup failed."
+            return "ioHub startup failed."
 
         # <<<<< Done starting iohub subprocess
 
         ioHubConnection.ACTIVE_CONNECTION = proxy(self)
-
         # Send iohub server any existing open psychopy window handles.
         try:
             from psychopy.visual import window
@@ -1133,6 +1130,19 @@ class ioHubConnection(object):
             raise ioHubError(result)
 
         # Otherwise return the result
+        if constants.PY3 and not result is None:
+            if isinstance(result, list):
+                for ind, items in enumerate(result):
+                    if isinstance(items, list) and not items is None:
+                        for nextInd, nested in enumerate(items):
+                            if type(nested) not in [dict, list, int, float, bool] and not nested is None :
+                                result[ind][nextInd] = str(nested, 'utf-8')
+                    elif type(items) not in [dict, list, int, float, bool] and not items is None:
+                        result[ind] = str(items, 'utf-8')
+                    elif type(items) is dict:
+                        result[ind] = {str(keys, 'utf-8'): vals for keys, vals in items.items()}
+            else:
+                result = str(result, 'utf-8')
         return result
 
     def _sendExperimentInfo(self, experimentInfoDict):
