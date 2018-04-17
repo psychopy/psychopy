@@ -25,9 +25,6 @@ display = io.devices.display
 keyboard = io.devices.keyboard
 mouse = io.devices.mouse
 
-# Hide the 'system mouse cursor'.
-mouse.setSystemCursorVisibility(False)
-
 # We can use display to find info for the Window creation, like the resolution
 # (which means PsychoPy won't warn you that the fullscreen does not match your requested size)
 display_resolution = display.getPixelResolution()

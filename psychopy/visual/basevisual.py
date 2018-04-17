@@ -575,6 +575,14 @@ class ContainerMixin(object):
         # ourself in pixels
         if hasattr(self, 'border'):
             poly = self._borderPix  # e.g., outline vertices
+        elif hasattr(self, 'boundingBox'):
+            if abs(self.ori) > 0.1:
+                raise RuntimeError("TextStim.contains() doesn't currently "
+                                   "support rotated text.")
+            w, h = self.boundingBox  # e.g., outline vertices
+            x, y = self.posPix
+            poly = numpy.array([[x+w/2, y-h/2], [x-w/2, y-h/2],
+                                [x-w/2, y+h/2], [x+w/2, y+h/2]])
         else:
             poly = self.verticesPix  # e.g., tesselated vertices
 

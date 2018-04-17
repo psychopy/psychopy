@@ -33,7 +33,7 @@ monitor_devices:
             send_ip_address: 127.0.0.1
             send_port: 4444
             receive_ip_address: 127.0.0.1
-            receive_port: 5555	            
+            receive_port: 5555
         runtime_settings:
             sampling_rate: 60
             track_eyes: BINOCULAR_AVERAGED

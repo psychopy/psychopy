@@ -1815,10 +1815,12 @@ class CoderFrame(wx.Frame):
         folders = glob.glob(os.path.join(self.paths['demos'], 'coder', '*'))
         for folder in folders:
             # if it isn't a folder then skip it
-            if not os.path.isdir(folder):
+            if (not os.path.isdir(folder)):
                 continue
             # otherwise create a submenu
             folderDisplayName = os.path.split(folder)[-1]
+            if folderDisplayName.startswith('_'):
+                continue  # don't include private folders
             if folderDisplayName in _localized:
                 folderDisplayName = _localized[folderDisplayName]
             submenu = wx.Menu()
@@ -1837,7 +1839,7 @@ class CoderFrame(wx.Frame):
                     # file is just "run" so get shortname from directory name
                     # instead
                     shortname = thisFile.split(os.path.sep)[-2]
-                if shortname.startswith('_'):
+                elif shortname.startswith('_'):
                     continue  # remove any 'private' files
                 item = submenu.Append(wx.ID_ANY, shortname)
                 thisID = item.GetId()

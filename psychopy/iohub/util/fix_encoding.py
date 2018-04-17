@@ -394,7 +394,7 @@ def fix_encoding():
 
     ret &= fix_default_encoding()
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' and sys.version_info[0] < 3:
         encoding = sys.getdefaultencoding()
         ret &= fix_win_sys_argv(encoding)
         ret &= fix_win_console(encoding)

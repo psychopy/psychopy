@@ -761,9 +761,9 @@ elif sys.platform == 'darwin':
         F4 = 131  # Keycode on Apple wireless kb
         VK_ISO_SECTION = 0x0A
         VK_JIS_YEN = 0x5D
-        VK_JIS_UNDERSCORE = 0x5E,
-        VK_JIS_KEYPAD_COMMA = 0x5F,
-        VK_JIS_EISU = 0x66,
+        VK_JIS_UNDERSCORE = 0x5E
+        VK_JIS_KEYPAD_COMMA = 0x5F
+        VK_JIS_EISU = 0x66
         VK_JIS_KANA = 0x68
         VK_RETURN = 0x24
         VK_TAB = 0x30

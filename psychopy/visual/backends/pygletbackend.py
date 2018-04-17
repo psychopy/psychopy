@@ -329,7 +329,7 @@ class PygletBackend(BaseBackend):
         if sys.platform == 'win32':
             scrBytes = self.winHandle._dc
             if constants.PY3:
-                _screenID = int.from_bytes(scrBytes, byteorder='little')
+                _screenID = 0xFFFFFFFF & int.from_bytes(scrBytes, byteorder='little')
             else:
                 _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
