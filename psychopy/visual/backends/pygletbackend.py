@@ -202,12 +202,16 @@ class PygletBackend(BaseBackend):
             self.winHandle.set_mouse_visible(False)
         self.winHandle.on_resize = _onResize  # avoid circular reference
         if not win.pos:
-            # work out where the centre should be
-            win.pos = [(thisScreen.width - win.size[0]) / 2,
-                        (thisScreen.height - win.size[1]) / 2]
+            # work out where the centre should be 
+            if win.useRetina:
+                win.pos = [(thisScreen.width - win.size[0]/2) / 2,
+                            (thisScreen.height - win.size[1]/2) / 2]
+            else:
+                win.pos = [(thisScreen.width - win.size[0]) / 2,
+                            (thisScreen.height - win.size[1]) / 2]
         if not win._isFullScr:
-            # add the necessary amount for second screen
-            self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
+            print(win.size[0])
+            self.winHandle.set_location(int(win.pos[0] + thisScreen.x), 
                                         int(win.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
