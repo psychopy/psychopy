@@ -210,8 +210,8 @@ class PygletBackend(BaseBackend):
                 win.pos = [(thisScreen.width - win.size[0]) / 2,
                             (thisScreen.height - win.size[1]) / 2]
         if not win._isFullScr:
-            print(win.size[0])
-            self.winHandle.set_location(int(win.pos[0] + thisScreen.x), 
+            # add the necessary amount for second screen
+            self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
                                         int(win.pos[1] + thisScreen.y))
 
         try:  # to load an icon for the window
