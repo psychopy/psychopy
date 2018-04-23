@@ -118,7 +118,7 @@ For developers::
 Anaconda and Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following should allow you to get PsychoPy working using Ana/MiniConda:
+The following should allow you to get PsychoPy working using Ana/MiniConda::
 
   conda config --add channels https://conda.binstar.org/erik
   conda install -c erik psychopy
@@ -186,4 +186,3 @@ This will install all PsychoPy dependencies to your default Python distribution 
 Alternatively, you can run the psychopyApp.py from the command line::
 
   python C:\PATH_TO_CLONED_PSYCHOPY_REPO\psychopy\app\psychopyApp
-
