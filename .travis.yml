@@ -69,7 +69,7 @@ before_install:
       travis_retry sudo apt-get install -qq python-mock;
       echo "Installing PsychoPy dependencies via pip...";
       travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
-      travis_retry sudo pip install --upgrade requests[security];
+      sudo pip install requests[security];
 
       travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
     fi
