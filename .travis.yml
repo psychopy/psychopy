@@ -69,7 +69,7 @@ before_install:
       travis_retry sudo apt-get install -qq python-mock;
       echo "Installing PsychoPy dependencies via pip...";
       # upgrade pip to 9.0.x because 10.0.x says cannot uninstall distutils so --upgrade fails
-      travis_retry sudo pip install --upgrade -force-reinstall -qq pip=9.0.3; 
+      travis_retry sudo pip install --upgrade -qq pip=9.0.3;
       sudo pip install requests[security];
 
       travis_retry sudo pip install --upgrade -qq -r requirements_travis.txt;
