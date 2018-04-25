@@ -585,7 +585,7 @@ class MouseComponent(BaseComponent):
                     code = ("if (_.%s.%s) {"
                             "  psychoJS.experiment.addData('%s.%s', _.%s.%s[0]);\n"
                             "}\n" %
-                            (name, property, name, property))
+                            (name, property, name, property, name, property))
                     buff.writeIndented(code)
 
         if currLoop.params['name'].val == self.exp._expHandler.name:
