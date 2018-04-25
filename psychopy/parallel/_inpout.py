@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import, print_function
 
-# We deliberately delay importing the inpout32 module until we try
+# We deliberately delay importing the inpout32 or inpoutx64 module until we try
 # to use it - this allows us to import the class on machines
 # which don't have it and then worry about dealing with
 # using the right one later
@@ -11,9 +11,9 @@ from __future__ import absolute_import, print_function
 
 from past.builtins import basestring
 from builtins import object
-class PParallelInpOut32(object):
+class PParallelInpOut(object):
     """This class provides read/write access to the parallel port on a PC
-    using inpout32 (for instance for Windows 7 64-bit)
+    using inpout32 or inpoutx64 (for instance for Windows 7 64-bit)
     """
 
     def __init__(self, address=0x0378):
@@ -35,7 +35,12 @@ class PParallelInpOut32(object):
             self.base = int(address, 16)
         else:
             self.base = address
-        self.port = windll.inpout32
+        try:
+            hasattr(windll, 'inpout32')
+            self.port = windll.inpout32
+        except OSError:
+            hasattr(windll, 'inpoutx64')
+            self.port = windll.inpoutx64
 
         BYTEMODEMASK = uint8(1 << 5 | 1 << 6 | 1 << 7)
 

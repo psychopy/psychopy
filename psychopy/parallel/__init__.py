@@ -31,7 +31,10 @@ from builtins import object
 import sys
 from psychopy import logging
 
-# To make life easier, only try drivers which have a hope in heck of working
+# To make life easier, only try drivers which have a hope in heck of working.
+# Because hasattr() in connection to windll ends up in an OSError trying to
+# load 32bit drivers in a 64bit environment, this passage is written as an
+# inconvenient try-except-construction.
 if sys.platform.startswith('linux'):
     from ._linux import PParallelLinux
     ParallelPort = PParallelLinux
@@ -39,13 +42,13 @@ elif sys.platform == 'win32':
     from ctypes import windll
     try:
         hasattr(windll, 'inpout32')
-        from ._inpout32 import PParallelInpOut32
-        ParallelPort = PParallelInpOut32
+        from ._inpout import PParallelInpOut
+        ParallelPort = PParallelInpOut
     except OSError:
         try:
             hasattr(windll, 'inpoutx64')
-            from ._inpoutx64 import PParallelInpOutx64
-            ParallelPort = PParallelInpOutx64
+            from ._inpout import PParallelInpOut
+            ParallelPort = PParallelInpOut
         except OSError:
             try:
                 hasattr(windll, 'dlportio')
