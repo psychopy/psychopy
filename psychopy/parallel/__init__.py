@@ -12,7 +12,7 @@ driver then, instead of using :class:`~psychopy.parallel.ParallelPort`
 shown below you can use one of the following as drop-in replacements,
 forcing the use of a specific driver:
 
-    - `psychopy.parallel.PParallelInpOut32`
+    - `psychopy.parallel.PParallelInpOut`
     - `psychopy.parallel.PParallelDLPortIO`
     - `psychopy.parallel.PParallelLinux`
 
