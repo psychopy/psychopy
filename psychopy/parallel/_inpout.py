@@ -29,18 +29,18 @@ class PParallelInpOut(object):
 
         from numpy import uint8
         from ctypes import windll
+        import platform
 
         if isinstance(address, basestring) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:
             self.base = address
-        try:
-            hasattr(windll, 'inpout32')
-            self.port = windll.inpout32
-        except OSError:
-            hasattr(windll, 'inpoutx64')
-            self.port = windll.inpoutx64
+
+        if platform.architecture()[0] == '32bit':
+            self.port = getattr(windll, 'inpout32')
+        elif platform.architecture()[0] == '64bit':
+            self.port = getattr(windll, 'inpoutx64')
 
         BYTEMODEMASK = uint8(1 << 5 | 1 << 6 | 1 << 7)
 

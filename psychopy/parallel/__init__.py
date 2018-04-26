@@ -39,25 +39,24 @@ if sys.platform.startswith('linux'):
     from ._linux import PParallelLinux
     ParallelPort = PParallelLinux
 elif sys.platform == 'win32':
+    drivers = dict(inpout32=['_inpout', 'PParallelInpOut'],
+                   inpoutx64=['_inpout', 'PParallelInpOut'],
+                   dlportio=['_dlportio', 'PParallelDLPortIO'])
     from ctypes import windll
-    try:
-        hasattr(windll, 'inpout32')
-        from ._inpout import PParallelInpOut
-        ParallelPort = PParallelInpOut
-    except OSError:
+    from importlib import import_module
+    for key, val in drivers.items():
         try:
-            hasattr(windll, 'inpoutx64')
-            from ._inpout import PParallelInpOut
-            ParallelPort = PParallelInpOut
+            hasattr(windll, key)
+            import_module('.'+val[0], __name__)
+            ParallelPort = getattr(locals()[val[0]], val[1])
+            break
         except OSError:
-            try:
-                hasattr(windll, 'dlportio')
-                from ._dlportio import PParallelDLPortIO
-                ParallelPort = PParallelDLPortIO
-            except OSError:
-                logging.warning("psychopy.parallel has been imported but no "
-                                "parallel port driver found. Install either "
-                                "inpout32 or dlportio")
+            ParallelPort = None
+            continue
+    if ParallelPort == None:
+        logging.warning("psychopy.parallel has been imported but no "
+                        "parallel port driver found. Install either "
+                        "inpout32, inpoutx64 or dlportio")
 else:
     logging.warning("psychopy.parallel has been imported on a Mac "
                     "(which doesn't have a parallel port?)")
