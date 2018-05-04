@@ -33,8 +33,9 @@ from psychopy import logging
 
 # To make life easier, only try drivers which have a hope in heck of working.
 # Because hasattr() in connection to windll ends up in an OSError trying to
-# load 32bit drivers in a 64bit environment, this passage is written as an
-# inconvenient try-except-construction.
+# load 32bit drivers in a 64bit environment, different drivers defined in
+# the dictionary 'drivers' are tested.
+
 if sys.platform.startswith('linux'):
     from ._linux import PParallelLinux
     ParallelPort = PParallelLinux
@@ -48,8 +49,8 @@ elif sys.platform == 'win32':
         driver_name, class_name = val
         try:
             hasattr(windll, key)
-            import_module('.'+driver_name, __name__)
-            ParallelPort = getattr(eval(driver_name), class_name)
+            ParallelPort = getattr(import_module('.'+driver_name, __name__),
+                                   class_name)
             break
         except (OSError, KeyError, NameError):
             ParallelPort = None
