@@ -393,7 +393,7 @@ class SettingsComponent(object):
         # write info.php file
         folder = self.exp.expPath
         if '.psyexp' in folder:
-            folder = folder.split('.psyexp')[0]+'//..'
+            folder = os.getcwd() + '/html/'
         if not os.path.isdir(folder):
             os.mkdir(folder)
         # get OSF projcet info if there was a project id
@@ -434,6 +434,7 @@ class SettingsComponent(object):
         if not os.path.isdir(resFolder):
             os.mkdir(resFolder)
         resourceFiles = self.exp.getResourceFiles()
+
         for srcFile in resourceFiles:
             dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
             dstFolder = os.path.split(dstAbs)[0]
@@ -469,15 +470,12 @@ class SettingsComponent(object):
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-                   name = self.params['expName'].val, # prevent repr() conversion
-                   params = self.params)
-
-        # HTML no longer written to .js file. Create new index page.
-        if '.psyexp' in self.exp.expPath:
-            folder = os.path.dirname(self.exp.expPath)
-        else:
-            folder = self.exp.expPath
-        with open(folder + "/index.html", 'wb') as html:
+                   name=self.params['expName'].val, # prevent repr() conversion
+                   params=self.params)
+        folder = os.getcwd() + '/html/'
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        with open(folder + "index.html", 'wb') as html:
             html.write(header.encode())
         html.close()
 
