@@ -152,17 +152,19 @@ class DlgCodeComponentProperties(wx.Dialog):
         Calls onKeyEvent to show/hide duplicate window.
         """
         param = self.params['Code Type']
+        formerCodeType = param.val
         param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
         if param == "Both":
-            self.onKeyEvent(event, 'Show')
+            self.onKeyEvent(event, formerCodeType, 'Show')
             return
-        self.onKeyEvent(event, 'Hide')
+        self.onKeyEvent(event, formerCodeType, 'Hide')
 
-    def onKeyEvent(self, event, winControl = 'Hide'):
+    def onKeyEvent(self, event, formerCodeType = None, winControl = 'Hide', ):
         """Receives keyboard events and code menu choice events.
-        On key events, the code component panels are updated with text.
-        On choice events, the code is translated for each code type,
-        and duplicate panel is shown/hidden depending on code choice.
+        On choice events, the code is stored for python or JS parameters,
+        and written to panel depending on choice of code. The duplicate panel
+        is shown/hidden depending on code choice. When duplicate is shown, Python and JS
+        code are shown in codeBox(left panel) and codeBoxDup (right panel), respectively.
         """
         for fieldName in self.params:
             if fieldName.lower() not in ['name', 'code type']:
@@ -171,26 +173,32 @@ class DlgCodeComponentProperties(wx.Dialog):
                 codeBoxDup = guikey + '_codeboxDup'
                 if guikey in self.codeGuiElements and 'JS' not in guikey:
                     gkey = self.codeGuiElements.get(guikey)
-                    Text, dupText = self.jsTranslator(gkey.get(codeBox).GetText(), self.params['Code Type'])
-                    if gkey.get(codeBoxDup).HasFocus():  # If typing in duplicate panel, update main panel
-                        Text, dupText = self.jsTranslator(gkey.get(codeBoxDup).GetText(), self.params['Code Type'])
-                        gkey.get(codeBox).SetText(Text)
-                        return
-                    gkey.get(codeBoxDup).SetText(dupText)  # Update duplicate panel, even when hidden
                     if event.GetEventObject().GetClassName() == "wxChoice":
                         exec("gkey.get(codeBoxDup).{}()".format(winControl))  # Show or hide duplicate panel
-                        gkey.get(codeBox).SetText(Text)
                         self.Layout()
                         self.Refresh()
+                        if self.params['Code Type'].val == 'JS' and formerCodeType == 'Py':
+                            self.params[fieldName].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+                        elif self.params['Code Type'].val == 'JS' and formerCodeType == 'Both':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+                        elif self.params['Code Type'].val == 'Py' and formerCodeType == 'JS':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                        elif self.params['Code Type'].val == 'Py' and formerCodeType == 'Both':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                            self.params[fieldName].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                        elif self.params['Code Type'].val == 'Both' and formerCodeType == 'Py':
+                            self.params[fieldName].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                            gkey.get(codeBoxDup).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+                        elif self.params['Code Type'].val == 'Both' and formerCodeType == 'JS':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                            gkey.get(codeBoxDup).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
         event.Skip()
-
-    def jsTranslator(self, text, codeType):
-        """Translate code to JS or PY
-        # TODO: DELETE FUNCTION AND REPLACE WITH ACTUAL TRANSLATOR
-        """
-        if codeType == 'JS':
-            return text.upper(), text.upper()
-        return text.lower(), text.upper()
 
     def onEnter(self, evt=None, retval=wx.ID_OK):
         self.EndModal(retval)
@@ -271,10 +279,10 @@ class DlgCodeComponentProperties(wx.Dialog):
                         self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBox).GetText()
                     elif self.params['Code Type'] == 'Py':
                         param.val = gkey.get(codeBox).GetText()
-                    # Now check if duplicate panel is showing
-                    if gkey.get(codeBoxDup).IsShown():
-                        # If true, update JS params with Duplicate code
                         self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                    elif self.params['Code Type'] == 'Both':
+                        self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                        param.val = gkey.get(codeBox).GetText()
                         self.codeTypeMenu.SetSelection(1)  # Reset menu to JS so updated JS code is not lost
                         self.params['Code Type'].val = 'JS'
         return self.params
