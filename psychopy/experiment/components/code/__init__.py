@@ -150,33 +150,41 @@ class CodeComponent(BaseComponent):
             del self.params[p]
 
     def writeInitCode(self, buff):
-        buff.writeIndentedLines(
-            str(self.params['Begin Experiment']) + '\n')
+        if self.params['Code Type'].val in ['Py', 'both']:
+            buff.writeIndentedLines(str(self.params['Begin Experiment']) + '\n')
 
     def writeInitCodeJS(self, buff):
-        buff.writeIndentedLines(
-            str(self.params['Begin JS Experiment']) + '\n')
+        if self.params['Code Type'].val in ['JS', 'both']:
+            buff.writeIndentedLines(str(self.params['Begin JS Experiment']) + '\n')
 
     def writeRoutineStartCode(self, buff):
-        buff.writeIndentedLines(str(self.params['Begin Routine']) + '\n')
+        if self.params['Code Type'].val in ['Py', 'both']:
+            buff.writeIndentedLines(str(self.params['Begin Routine']) + '\n')
 
     def writeRoutineStartCodeJS(self, buff):
-        buff.writeIndentedLines(str(self.params['Begin JS Routine']) + '\n')
+        if self.params['Code Type'].val in ['JS', 'both']:
+            buff.writeIndentedLines(str(self.params['Begin JS Routine']) + '\n')
 
     def writeFrameCode(self, buff):
-        buff.writeIndentedLines(str(self.params['Each Frame']) + '\n')
+        if self.params['Code Type'].val in ['Py', 'both']:
+            buff.writeIndentedLines(str(self.params['Each Frame']) + '\n')
 
     def writeFrameCodeJS(self, buff):
-        buff.writeIndentedLines(str(self.params['Each JS Frame']) + '\n')
+        if self.params['Code Type'].val in ['JS', 'both']:
+            buff.writeIndentedLines(str(self.params['Each JS Frame']) + '\n')
 
     def writeRoutineEndCode(self, buff):
-        buff.writeIndentedLines(str(self.params['End Routine']) + '\n')
+        if self.params['Code Type'].val in ['Py', 'both']:
+            buff.writeIndentedLines(str(self.params['End Routine']) + '\n')
 
     def writeRoutineEndCodeJS(self, buff):
-        buff.writeIndentedLines(str(self.params['End JS Routine']) + '\n')
+        if self.params['Code Type'].val in ['JS', 'both']:
+            buff.writeIndentedLines(str(self.params['End JS Routine']) + '\n')
 
     def writeExperimentEndCode(self, buff):
-        buff.writeIndentedLines(str(self.params['End Experiment']) + '\n')
+        if self.params['Code Type'].val in ['Py', 'both']:
+            buff.writeIndentedLines(str(self.params['End Experiment']) + '\n')
 
     def writeExperimentEndCodeJS(self, buff):
-        buff.writeIndentedLines(str(self.params['End JS Experiment']) + '\n')
+        if self.params['Code Type'].val in ['JS', 'both']:
+            buff.writeIndentedLines(str(self.params['End JS Experiment']) + '\n')
