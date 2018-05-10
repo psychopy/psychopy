@@ -10,7 +10,7 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
-import sys
+import copy
 import numpy as np
 
 from psychopy import core, logging, event
@@ -19,6 +19,7 @@ from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
 from .circle import Circle
+from .text import TextStim
 from .helpers import pointInPolygon, groupFlipVert
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
@@ -86,13 +87,13 @@ class Slider(MinimalStim):
     def __init__(self,
                  win,
                  ticks = (1, 2, 3, 4, 5),
-                 labels = ["1", None, "3", None, "5"],
+                 labels = None,
                  pos = None,
                  size = None,
                  units = None,
                  flip = False,
                  style = 'rating',
-                 precision = 0,
+                 granularity = 0,
                  textSize = 1.0,
                  readOnly = False,
                  color = 'LightGray',
@@ -135,7 +136,7 @@ class Slider(MinimalStim):
             By default the labels will be below or left of the line. This
             puts them above (or right)
 
-        precision : int, float
+        granularity : int, float
             The smallest valid increments for the scale. 0 gives a continuous
             (e.g. "VAS") scale. 1 gives a traditional likert scale. Something
             like 0.1 gives a limited fine-grained scale.
@@ -145,13 +146,8 @@ class Slider(MinimalStim):
             Any PsychoPy visual object (gratings, images, shapes etc) can be
             provided here instead though (use the same units as the scale).
 
-
         color :
             Color of the line/ticks/labels according to the color space
-
-        colorSpace :
-            Specify the colorspace for the line/ticks where this can't be
-            determined in advance
 
         textFont : font name
 
@@ -187,7 +183,7 @@ class Slider(MinimalStim):
         else:
             self.size = size
         self.flip = flip
-        self.precision = precision
+        self.granularity = granularity
         self.textSize = textSize
         self.color = color
         self.textFont = textFont
@@ -198,7 +194,7 @@ class Slider(MinimalStim):
         self.readOnly = readOnly
 
         self.rating = None  # current value (from a response)
-        self.current = None  # current value (maybe not from a response)
+        self.markerPos = None  # current value (maybe not from a response)
         self.history = []
         self.marker = None
         self.line = None
@@ -206,9 +202,11 @@ class Slider(MinimalStim):
         self.tickLocs = None
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
+        self._dragging = False
         self._mouseStateClick = None  # so we can rule out long click probs
         self._mouseStateXY = None  # so we can rule out long click probs
 
+        self.validArea = None
         self._createElements()
 
         # set autoLog (now that params have been initialised)
@@ -259,6 +257,34 @@ class Slider(MinimalStim):
                                           xys=self.tickLocs,
                                           elementTex='color', elementMask=None,
                                           sizes=tickSize, sfs=0)
+        self.labelObjs = []
+        if self.labels is not None:
+            labelLocs = copy.copy(self.tickLocs)
+            if self.horiz:
+                alignHoriz = 'center'
+                if not self.flip:
+                    alignVert = 'top'
+                    labelLocs -= [0, self._tickL]
+                else:
+                    alignVert = 'bottom'
+                    labelLocs += [0, self._tickL]
+            else:  # vertical
+                alignVert = 'center'
+                if not self.flip:
+                    alignHoriz = 'right'
+                    labelLocs -= [self._tickL, 0]
+                else:
+                    alignHoriz = 'left'
+                    labelLocs += [self._tickL, 0]
+            for tickN, label in enumerate(self.labels):
+                if label is None:
+                    continue
+
+                obj = TextStim(self.win, label,
+                               alignHoriz=alignHoriz, alignVert=alignVert,
+                               units=self.units, pos=labelLocs[tickN,:])
+                self.labelObjs.append(obj)
+
         if self.units=='norm':
             #convert to make marker round
             aspect = self.win.size[0] / self.win.size[1]
@@ -272,7 +298,7 @@ class Slider(MinimalStim):
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
-                              width=self.size[0]*1.05, height=self.size[1]*1.05,
+                              width=self.size[0]*1.1, height=self.size[1]*1.1,
                               lineColor='DarkGrey')
 
     def _ratingToPos(self, rating):
@@ -311,20 +337,35 @@ class Slider(MinimalStim):
         """
         self.tickLocs = self._ratingToPos(self.ticks)
 
+    def _granularRating(self, rating):
+        """Handle granularity for the rating"""
+        if rating is not None:
+            if self.granularity>0:
+                rating = round(rating / self.granularity) * self.granularity
+                rating = round(rating, 8)  # or gives 1.9000000000000001
+            rating = max(rating, self.ticks[0])
+            rating = min(rating, self.ticks[-1])
+        return rating
+            
     @attributeSetter
     def rating(self, rating):
         """The most recent rating from the participant or None.
         Note that the position of the marker can be set using current without
         looking like a change in the marker position"""
+        rating = self._granularRating(rating)
         self.__dict__['rating'] = rating
-        self.current = rating
+        self.markerPos = rating
 
     @attributeSetter
-    def current(self, rating):
-        """The position on the scale where the marker should be"""
-        if ('current' not in self.__dict__ or not
-             np.alltrue(self.__dict__['current'] == rating)):
-            self.__dict__['current'] = rating
+    def markerPos(self, rating):
+        """The position on the scale where the marker should be. Note that
+        this does not alter the value of the reported rating, only its visible
+        display.
+        Also note that this position is in scale units, not in coordinates"""
+        rating = self._granularRating(rating)
+        if ('markerPos' not in self.__dict__ or not
+             np.alltrue(self.__dict__['markerPos'] == rating)):
+            self.__dict__['markerPos'] = rating
             self._updateMarkerPos = True
 
     def getRating(self):
@@ -335,6 +376,7 @@ class Slider(MinimalStim):
     def setRating(self, rating, log=None):
         """Sets the current rating value
         """
+        rating = self._granularRating(rating)
         setAttribute(self, attrib='rating', value=rating, operation='', log=log)
         self.history.append(rating)
         self._updateMarkerPos = True
@@ -344,11 +386,13 @@ class Slider(MinimalStim):
         # self.validArea.draw()
         self.line.draw()
         self.tickLines.draw()
-        if self.rating is not None:
+        if self.markerPos is not None:
             if self._updateMarkerPos:
-                self.marker.pos = self._ratingToPos(self.current)
+                self.marker.pos = self._ratingToPos(self.markerPos)
                 self._updateMarkerPos = False
             self.marker.draw()
+        for label in self.labelObjs:
+            label.draw()
 
 
     def getRT(self):
@@ -397,7 +441,7 @@ class Slider(MinimalStim):
         user as well at any point in time. The rating will be returned but
         will ALSO automatically be set as the current rating response.
 
-        While the mouse button is down we will alter self.current (marker pos)
+        While the mouse button is down we will alter self.markerPos
         but don't set a value for self.rating until button comes up
 
         Returns
@@ -410,17 +454,18 @@ class Slider(MinimalStim):
         if click:
             # update current but don't set Rating (mouse is still down)
             if self.validArea.contains(mouse, units=self.units):
-                self.current = self._posToRating(xy)  # updates marker
+                self.markerPos = self._posToRating(xy)  # updates marker
+                self._dragging = True
         else:  # mouse is up - check if it *just* came up
-            if self._mouseStateClick:
-                self._mouseStateClick = False
-                self.setRating(self.current)
-                return self.current
+            if self._dragging:
+                self._dragging = False
+                if self.markerPos:
+                    self.setRating(self.markerPos)
+                return self.markerPos
             else:
-                # is down and was already down - move along
+                # is up and was already up - move along
                 return None
 
-        self._mouseStateClick = click
         self._mouseStateXY = xy
 
     @attributeSetter
@@ -434,3 +479,7 @@ class Slider(MinimalStim):
                              height = self.size[1],
                              fillColor = 'DarkGray',
                              lineColor = 'LightGray')
+        elif style == 'whiteOnBlack':
+            self.line.color = 'black'
+            self.tickLines.colors = 'black'
+            self.marker.color = 'white'
