@@ -9,7 +9,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import str
 import copy
 import numpy as np
 
@@ -20,7 +19,6 @@ from .grating import GratingStim
 from .elementarray import ElementArrayStim
 from .circle import Circle
 from .text import TextStim
-from .helpers import pointInPolygon, groupFlipVert
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
@@ -86,22 +84,22 @@ class Slider(MinimalStim):
 
     def __init__(self,
                  win,
-                 ticks = (1, 2, 3, 4, 5),
-                 labels = None,
-                 pos = None,
-                 size = None,
-                 units = None,
-                 flip = False,
-                 style = 'rating',
-                 granularity = 0,
-                 textSize = 1.0,
-                 readOnly = False,
-                 color = 'LightGray',
-                 textFont = 'Helvetica Bold',
-                 depth = 0,
-                 name = None,
-                 autoDraw = False,
-                 autoLog = True):  # catch obsolete args
+                 ticks=(1, 2, 3, 4, 5),
+                 labels=None,
+                 pos=None,
+                 size=None,
+                 units=None,
+                 flip=False,
+                 style='rating',
+                 granularity=0,
+                 textSize=1.0,
+                 readOnly=False,
+                 color='LightGray',
+                 textFont='Helvetica Bold',
+                 depth=0,
+                 name=None,
+                 autoDraw=False,
+                 autoLog=True):
         """
 
         Parameters
@@ -208,11 +206,16 @@ class Slider(MinimalStim):
 
         self.validArea = None
         self._createElements()
+        #some things must wait until elements created
+        self.contrast = 1.0
 
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
         if autoLog:
             logging.exp("Created %s = %s" % (self.name, repr(self)))
+        self.status = NOT_STARTED
+        self.responseClock = core.Clock()
+
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
@@ -368,20 +371,31 @@ class Slider(MinimalStim):
             self.__dict__['markerPos'] = rating
             self._updateMarkerPos = True
 
+    def recordRating(self, rating, rt=None, log=None):
+        """Sets the current rating value
+        """
+        rating = self._granularRating(rating)
+        if rt is None:
+            self.rt = self.responseClock.getTime()
+        else:
+            self.rt = rt
+        setAttribute(self, attrib='rating', value=rating, operation='', log=log)
+        self.history.append((rating, self.rt))
+        self._updateMarkerPos = True
+
     def getRating(self):
         """Get the current value of rating (or None if no response yet)
         """
         return self.rating
 
-    def setRating(self, rating, log=None):
-        """Sets the current rating value
+    def getRT(self):
+        """Get the RT for most recent rating (or None if no response yet)
         """
-        rating = self._granularRating(rating)
-        setAttribute(self, attrib='rating', value=rating, operation='', log=log)
-        self.history.append(rating)
-        self._updateMarkerPos = True
+        return self.rt
 
     def draw(self):
+        """Draw the Slider, with all its constituent elements on this frame
+        """
         self.getMouseResponses()
         # self.validArea.draw()
         self.line.draw()
@@ -393,15 +407,10 @@ class Slider(MinimalStim):
             self.marker.draw()
         for label in self.labelObjs:
             label.draw()
-
-
-    def getRT(self):
-        """Not implemented.
-
-        (Maybe one day) returns the seconds taken to make the current rating
-        Returns None if no response has yet been made
-        """
-        pass
+        # we started drawing to reset clock on flip
+        if self.status == NOT_STARTED:
+            self.win.callOnFlip(self.responseClock.reset)
+            self.status = STARTED
 
     def getHistory(self):
         """Return a list of the subject's history as (rating, time) tuples.
@@ -426,13 +435,23 @@ class Slider(MinimalStim):
         """
         setAttribute(self, 'readOnly', value, log)
         if value == True:
-            self.marker.contrast=0.5
-            self.line.contrast = 0.5
-            self.tickLines.contrasts = 0.5
+            self.contrast = 0.5
         else:
-            self.marker.contrast=1.0
-            self.line.contrast = 1.0
-            self.tickLines.contrasts = 1.0
+            self.contrast = 1.0
+
+    @attributeSetter
+    def contrast(self, contrast):
+        """Set all elements of the Slider (labels, ticks, line) to a contrast
+
+        Parameters
+        ----------
+        contrast
+        """
+        self.marker.contrast = contrast
+        self.line.contrast = contrast
+        self.tickLines.contrasts = contrast
+        for label in self.labelObjs:
+            label.contrast = contrast
 
     def getMouseResponses(self):
         """Instructs the rating scale to check for valid mouse responses.
@@ -460,7 +479,7 @@ class Slider(MinimalStim):
             if self._dragging:
                 self._dragging = False
                 if self.markerPos:
-                    self.setRating(self.markerPos)
+                    self.recordRating(self.markerPos)
                 return self.markerPos
             else:
                 # is up and was already up - move along
@@ -470,8 +489,20 @@ class Slider(MinimalStim):
 
     @attributeSetter
     def style(self, style):
+        """Sets some predefined styles or use these to create your own.
+
+        Styles can be combined in a list e.g. ['whiteOnBlack','labels45']
+
+        Parameters
+        ----------
+        style
+
+        Returns
+        -------
+
+        """
         self.__dict__['style'] = style
-        if style == 'slider':
+        if 'slider' in style:
             # make it more like a slider using a box instead of line
             self.line = Rect(self.win, units=self.units,
                              pos = self.pos,
@@ -479,7 +510,14 @@ class Slider(MinimalStim):
                              height = self.size[1],
                              fillColor = 'DarkGray',
                              lineColor = 'LightGray')
-        elif style == 'whiteOnBlack':
+        if 'whiteOnBlack' in style:
             self.line.color = 'black'
             self.tickLines.colors = 'black'
             self.marker.color = 'white'
+        if 'labels45' in style:
+            for label in self.labelObjs:
+                label.ori = -45
+                if self.flip:
+                    label.alignHoriz = 'left'
+                else:
+                    label.alignHoriz = 'right'
