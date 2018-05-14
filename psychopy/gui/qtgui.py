@@ -22,7 +22,6 @@ except ImportError:
 
 from psychopy import logging
 import numpy as np
-import string
 import os
 import sys
 import json
@@ -78,8 +77,8 @@ class Dlg(QtWidgets.QDialog):
                  labelButtonCancel=_translate(" Cancel "),
                  screen=-1):
 
-        global app  # avoid recreating for every gui
-        app = ensureQtApp()
+        global qtapp  # avoid recreating for every gui
+        qtapp = ensureQtApp()
         QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
 
         self.inputFields = []
@@ -191,11 +190,9 @@ class Dlg(QtWidgets.QDialog):
                         jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
                     elif thisType == float:
-                        self.data[ix] = string.atof(str(new_text))
+                        self.data[ix] = float(str(new_text))
                     elif thisType == int:
-                        self.data[ix] = string.atoi(str(new_text))
-                    elif thisType == int:
-                        self.data[ix] = string.atol(str(new_text))
+                        self.data[ix] = int(str(new_text))
                     elif thisType == dict:
                         jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
