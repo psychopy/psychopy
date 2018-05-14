@@ -24,6 +24,19 @@ Stick to Python 2.7 if you want your script to break less. If you upgrade to
 Python 3 then you'll need to change any print statements to include brackets
 and you may also get some new errors springing up about unicode/bytes objects.
 
+PsychoPy 1.90.2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released May 2018
+
+FIXED:
+
+  * TextStim now working GLFW backend #a909c95f
+  * better checks for existing ffmpeg before trying to download #a909c95f
+  * CRS Bits boxes bugs with Python3 #ff5a4ab7
+  * Fixes to window position for Retina displays #e7b111cc #0d4538de
+  * Fixes to sound component with duration=None #9b46ff0c
+
 PsychoPy 1.90.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
