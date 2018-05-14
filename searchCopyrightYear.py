@@ -43,7 +43,7 @@ print("copyright %s -> %s: searching for files" % (oldYear, newYear))
 #find relevant files:
 files = []
 toSearch = ['.txt', '.py', 'md1', '.rst', '.ps1', '.nsi', ]
-excludeFolders = set(['build','dist'])
+excludeFolders = set(['build', 'dist', '.git'])
 for root, dirs, tmpfiles in os.walk('.', topdown=True):
     dirs[:] = [d for d in dirs if d not in excludeFolders]
     for f in tmpfiles:
@@ -54,15 +54,8 @@ for root, dirs, tmpfiles in os.walk('.', topdown=True):
         #            '.png','.DS_Store','.xlsx', '.icns','.svg',
         #            '.so','.mo','.h5','ttf','.dat']:
         #     continue
-        if ext not in toSearch:
-            continue
-        if ('build/pygame/Contents/Packages' not in file
-            and 'build/pyobjc' not in file
-            and '/sandbox/' not in file
-            and '/docs/build/' not in file
-            and './.git' not in file):
-                #print tail, file
-                files.append(file)
+        if ext in toSearch:
+            files.append(file)
 print(len(files), 'files found, screening each')
 
 badLines = 0 #  ['$/] will mess with perl search-replace; other characters might too
