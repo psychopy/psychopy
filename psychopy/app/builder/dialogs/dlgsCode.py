@@ -80,10 +80,16 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.nameOKlabel = wx.StaticText(self, -1, '',
                                                  style=wx.ALIGN_RIGHT)
                 self.nameOKlabel.SetForegroundColour(wx.RED)
+            if pkey == 'Code Type':
+                _codeTypes = self.params['Code Type'].allowedVals
+                self.codeTypeMenu = wx.Choice(self, choices=_codeTypes)
+                self.codeTypeMenu.SetSelection(_codeTypes.index(self.params['Code Type']))
+                self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.OnCodeChoice)
+                self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
+                                                  _translate(param.label))
             else:
                 guikey = pkey.replace(' ', '_')
                 _param = self.codeGuiElements.setdefault(guikey, dict())
-
                 _section = wx.Panel(self.codeSections, wx.ID_ANY)
                 _panel = _param.setdefault(guikey + '_panel', _section)
                 _codeBox = _param.setdefault(guikey + '_codebox',
@@ -91,8 +97,22 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                      pos=wx.DefaultPosition,
                                                      style=0,
                                                      prefs=self.app.prefs))
-                if len(param.val):
-                    _codeBox.AddText(str(param.val))
+                _codeBoxDup = _param.setdefault(guikey + '_codeboxDup',
+                                             CodeBox(_panel, wx.ID_ANY,
+                                                     pos=wx.DefaultPosition,
+                                                     style=0,
+                                                     prefs=self.app.prefs))  # Create duplicate panel
+                _codeBoxDup.Hide()
+                _codeBox.Bind(wx.EVT_KEY_UP, self.onKeyEvent)  # Event for updating duplicate panel real-time
+                _codeBoxDup.Bind(wx.EVT_KEY_UP, self.onKeyEvent)  # Event for updating main panel real-time
+
+                if self.params['Code Type'] == 'Py':
+                    if len(param.val) and 'JS' not in pkey:
+                        _codeBox.AddText(str(param.val))
+                elif self.params['Code Type'] == 'JS' and 'JS' not in pkey:
+                    param = self.params.get(pkey.replace(' ', ' JS '))
+                    if len(param.val):
+                        _codeBox.AddText(str(param.val))
                 if len(param.val.strip()) and not openToPage:
                     # index of first non-blank page
                     openToPage = idx
@@ -127,6 +147,59 @@ class DlgCodeComponentProperties(wx.Dialog):
         else:
             self.OK = False
 
+    def OnCodeChoice(self, event):
+        """Set code to JS or Python.
+        Calls onKeyEvent to show/hide duplicate window.
+        """
+        param = self.params['Code Type']
+        formerCodeType = param.val
+        param.val = param.allowedVals[self.codeTypeMenu.GetSelection()]
+        if param == "Both":
+            self.onKeyEvent(event, formerCodeType, 'Show')
+            return
+        self.onKeyEvent(event, formerCodeType, 'Hide')
+
+    def onKeyEvent(self, event, formerCodeType = None, winControl = 'Hide', ):
+        """Receives keyboard events and code menu choice events.
+        On choice events, the code is stored for python or JS parameters,
+        and written to panel depending on choice of code. The duplicate panel
+        is shown/hidden depending on code choice. When duplicate is shown, Python and JS
+        code are shown in codeBox(left panel) and codeBoxDup (right panel), respectively.
+        """
+        for fieldName in self.params:
+            if fieldName.lower() not in ['name', 'code type']:
+                guikey = fieldName.replace(' ', '_')
+                codeBox = guikey + '_codebox'
+                codeBoxDup = guikey + '_codeboxDup'
+                if guikey in self.codeGuiElements and 'JS' not in guikey:
+                    gkey = self.codeGuiElements.get(guikey)
+                    if event.GetEventObject().GetClassName() == "wxChoice":
+                        exec("gkey.get(codeBoxDup).{}()".format(winControl))  # Show or hide duplicate panel
+                        self.Layout()
+                        self.Refresh()
+                        if self.params['Code Type'].val == 'JS' and formerCodeType == 'Py':
+                            self.params[fieldName].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+                        elif self.params['Code Type'].val == 'JS' and formerCodeType == 'Both':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+                        elif self.params['Code Type'].val == 'Py' and formerCodeType == 'JS':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                        elif self.params['Code Type'].val == 'Py' and formerCodeType == 'Both':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                            self.params[fieldName].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                        elif self.params['Code Type'].val == 'Both' and formerCodeType == 'Py':
+                            self.params[fieldName].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                            gkey.get(codeBoxDup).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+                        elif self.params['Code Type'].val == 'Both' and formerCodeType == 'JS':
+                            self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBox).GetText()
+                            gkey.get(codeBox).SetText(self.params[fieldName].val)
+                            gkey.get(codeBoxDup).SetText(self.params[fieldName.replace(' ', ' JS ')].val)
+        event.Skip()
+
     def onEnter(self, evt=None, retval=wx.ID_OK):
         self.EndModal(retval)
 
@@ -141,19 +214,22 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.SetTitle(self.localizedTitle)  # use localized title
         self.SetSize((640, 480))
 
-    def __do_layout(self):
+    def __do_layout(self, show=False):
         for paramName in self.order:
-            if paramName.lower() != 'name':
+            if paramName.lower() not in ['name', 'code type'] and 'JS' not in paramName:
                 guikey = paramName.replace(' ', '_')
                 paramGuiDict = self.codeGuiElements.get(guikey)
                 asizer = paramGuiDict.setdefault(
-                    guikey + '_sizer', wx.BoxSizer(wx.VERTICAL))
+                    guikey + '_sizer', wx.BoxSizer(wx.HORIZONTAL))
                 asizer.Add(paramGuiDict.get(
                     guikey + '_codebox'), 1, wx.EXPAND, 0)
+                asizer.Add(paramGuiDict.get(
+                    guikey + '_codeboxDup'), 1, wx.EXPAND, 0)
                 paramGuiDict.get(guikey + '_panel').SetSizer(asizer)
                 tabLabel = _translate(paramName)
                 # Add a visual indicator when tab contains code
-                if self.params.get(guikey.replace('_',' ')).val:
+                if (self.params.get(guikey.replace('_',' ')).val or
+                        self.params.get(guikey.replace('_', ' JS ')).val):
                     tabLabel += ' *'
                 self.codeSections.AddPage(paramGuiDict.get(
                     guikey + '_panel'), tabLabel)
@@ -164,6 +240,9 @@ class DlgCodeComponentProperties(wx.Dialog):
                       flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                       border=10, proportion=1)
         nameSizer.Add(self.nameOKlabel, 0, wx.ALL, 10)
+        nameSizer.Add(self.codeTypeName,
+                      flag= wx.TOP | wx.RIGHT, border=13, proportion=0)
+        nameSizer.Add(self.codeTypeMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -192,9 +271,20 @@ class DlgCodeComponentProperties(wx.Dialog):
             else:
                 guikey = fieldName.replace(' ', '_')
                 codeBox = guikey + '_codebox'
-                if guikey in self.codeGuiElements:
+                codeBoxDup = guikey + '_codeboxDup'
+                if guikey in self.codeGuiElements and 'JS' not in guikey:
                     gkey = self.codeGuiElements.get(guikey)
-                    param.val = gkey.get(codeBox).GetText()
+                    # Update params with JS or Py code from window
+                    if self.params['Code Type'] == 'JS':
+                        self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBox).GetText()
+                    elif self.params['Code Type'] == 'Py':
+                        param.val = gkey.get(codeBox).GetText()
+                        self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                    elif self.params['Code Type'] == 'Both':
+                        self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
+                        param.val = gkey.get(codeBox).GetText()
+                        self.codeTypeMenu.SetSelection(1)  # Reset menu to JS so updated JS code is not lost
+                        self.params['Code Type'].val = 'JS'
         return self.params
 
     def helpButtonHandler(self, event):
