@@ -61,7 +61,8 @@ _localized = {'expName': _translate("Experiment name"),
               'Save excel file':  _translate("Save excel file"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
-              'Use version': _translate("Use PsychoPy version")}
+              'Use version': _translate("Use PsychoPy version"),
+              'Completion URL': _translate("Completion URL")}
 
 thisFolder = os.path.split(__file__)[0]
 
@@ -123,7 +124,8 @@ class SettingsComponent(object):
                       'Save log file', 'logging level',
                       'Monitor', 'Screen', 'Full-screen window',
                       'Window size (pixels)',
-                      'color', 'colorSpace', 'Units', ]
+                      'color', 'colorSpace', 'Units', 'HTML path',
+                      'OSF Project ID', 'JS libs']
         # basic params
         self.params['expName'] = Param(
             expName, valType='str', allowedTypes=[],
@@ -254,6 +256,11 @@ class SettingsComponent(object):
             hint=_translate("Should we package a copy of the JS libs or use"
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
+        self.params['Completion URL'] = Param(
+            'completionURL', valType='str',
+            hint=_translate("Where should participants be redirected after the experiment"
+                            " INSERT COMPLETION URL E.G.?"),
+            label="Completion URL", categ='Online')
 
     def getInfo(self):
         """Rather than converting the value of params['Experiment Info']
@@ -523,10 +530,10 @@ class SettingsComponent(object):
             projID = 'undefined'
         code = template.format(
                         params=self.params,
-                        name = self.params['expName'].val,
+                        name=self.params['expName'].val,
                         saveType=saveType,
                         projID=projID,
-                        loggingLevel = self.params['logging level'].val.upper(),
+                        loggingLevel=self.params['logging level'].val.upper(),
                         )
         buff.writeIndentedLines(code)
 
