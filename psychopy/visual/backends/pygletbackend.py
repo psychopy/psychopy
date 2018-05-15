@@ -355,9 +355,8 @@ class PygletBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
-
         # Check if window has device context and is thus not closed
-        if self.winHandle._dc is None:
+        if self.winHandle.context is None:
             return
 
         # restore the gamma ramp that was active when window was opened
