@@ -1235,11 +1235,11 @@ class Window(object):
                  colorAttrib='color')
 
         # These spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv', 'hex']:
+        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif self.colorSpace in ['rgb255', 'named']:
+        elif self.colorSpace in ['rgb255', 'named', 'hex']:
             desiredRGB = self.rgb / 255.0
         else:  # some array / numeric stuff
             msg = 'invalid value %r for Window.colorSpace'
