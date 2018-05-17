@@ -580,7 +580,7 @@ class RunTimeInfo(dict):
             # get keys for items matching this section label;
             #  use reverse-alpha order if easier to read:
             revSet = ('PsychoPy', 'Window', 'Python', 'OpenGL')
-            sectKeys.sort(key=str.lower, reverse=bool(sect in revSet))
+            sectKeys.sort(reverse=bool(sect in revSet))
             for k in sectKeys:
                 selfk = self[k]  # alter a copy for display purposes
                 try:
