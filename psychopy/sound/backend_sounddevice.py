@@ -427,15 +427,15 @@ class SoundDeviceSound(_SoundBase):
                                  "into sound with channels={}"
                                  .format(self.sndArr.shape, self.channels))
 
-            # is this stereo?
-            if self.stereo == -1:  # auto stereo. Try to detect
-                if self.sndArr.shape[1] == 1:
-                    self.stereo = 0
-                elif self.sndArr.shape[1] == 2:
-                    self.stereo = 1
-                else:
-                    raise IOError("Couldn't determine whether array is "
-                                  "stereo. Shape={}".format(self.sndArr.shape))
+        # is this stereo?
+        if self.stereo == -1:  # auto stereo. Try to detect
+            if self.sndArr.shape[1] == 1:
+                self.stereo = 0
+            elif self.sndArr.shape[1] == 2:
+                self.stereo = 1
+            else:
+                raise IOError("Couldn't determine whether array is "
+                              "stereo. Shape={}".format(self.sndArr.shape))
         self._nSamples = thisArray.shape[0]
         if self.stopTime == -1:
             self.stopTime = self._nSamples/float(self.sampleRate)
