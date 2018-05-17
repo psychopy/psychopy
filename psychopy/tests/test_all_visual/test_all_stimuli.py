@@ -265,6 +265,7 @@ class _baseVisualTest(object):
     def test_hexColors(self):
         win = self.win
         circle = visual.Circle(win, fillColor='#0000FF',
+                               lineColor=None,
                                size=2* self.scaleFactor)
         circle.draw()
         grat = visual.GratingStim(win, ori=20, color='#00AAFF',
