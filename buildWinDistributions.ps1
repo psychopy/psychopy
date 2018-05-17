@@ -11,15 +11,15 @@ $names = @("PsychoPy2", "PsychoPy2_PY3")
 # get PsychoPy version from file
 $v = [Io.File]::ReadAllText("C:\Users\lpzjwp\code\psychopy\git\version").Trim()
 
-for ($i=1; $i -lt 3; $i++) {
+for ($i=0; $i -lt 2; $i++) {
     # try to uninstall psychopy from site-packages
-    Invoke-Expression "{0} uninstall psychopy -y" -f $pips[$i]
+    Invoke-Expression ("{0} uninstall psychopy -y" -f $pips[$i])
     # re-install the current version as editable/developer
-    Invoke-Expression "{0} install . --no-deps" -f $pips[$i]
+    Invoke-Expression ("{0} install . --no-deps" -f $pips[$i])
 	echo Installed current PsychoPy
     xcopy /I /Y psychopy\*.txt $pyPaths[$i]
     xcopy /Y C:\Windows\System32\avbin.dll $pyPaths[$i]\avbin.dll
-    if ($i -eq '1') {
+    if ($i -eq '0') {
         xcopy /Y C:\Windows\System32\py*27.dll C:\Python27
     }
     # build the installer
@@ -33,9 +33,9 @@ for ($i=1; $i -lt 3; $i++) {
     echo 'moving files to ..\dist'
 
     # try to uninstall psychopy from site-packages
-    Invoke-Expression "{0} uninstall psychopy -y" -f $pips[$i]
+    Invoke-Expression ("{0} uninstall psychopy -y" -f $pips[$i])
     # re-install the current version as editable/developer
-    Invoke-Expression "{0} install -e . --no-deps" -f $pips[$i]
+    Invoke-Expression ("{0} install -e . --no-deps" -f $pips[$i])
 }
 
 Move-Item -Force "StandalonePsychoPy*.exe" ..\dist\
