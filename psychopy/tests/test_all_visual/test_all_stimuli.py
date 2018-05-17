@@ -262,6 +262,21 @@ class _baseVisualTest(object):
         utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
         win.flip()
 
+    def test_hexColors(self):
+        win = self.win
+        circle = visual.Circle(win, fillColor='#0000FF',
+                               lineColor=None,
+                               size=2* self.scaleFactor)
+        circle.draw()
+        grat = visual.GratingStim(win, ori=20, color='#00AAFF',
+            pos=[0.6 * self.scaleFactor, -0.6 * self.scaleFactor],
+            sf=3.0 / self.scaleFactor, size=2 * self.scaleFactor,
+            interpolate=True)
+        grat.draw()
+        utils.compareScreenshot('circleHex_%s.png' %(self.contextName), win)
+        win.flip()
+
+
     def test_gabor(self):
         win = self.win
         #using init
@@ -635,16 +650,26 @@ class _baseVisualTest(object):
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 
+class TestPygletHexColor(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 color="#FF0099",
+                                 allowStencil=True, autoLog=False)
+        self.contextName='normHexbackground'
+        self.scaleFactor=1#applied to size/pos values
 
 if not _travisTesting:
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):
-            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                     blendMode='add', useFBO=True)
             self.contextName='normAddBlend'
             self.scaleFactor=1#applied to size/pos values
 
@@ -652,7 +677,8 @@ if not _travisTesting:
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False, useFBO=True)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 
@@ -660,7 +686,8 @@ class TestPygletNormFBO(_baseVisualTest):
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False, autoLog=False)
+        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
+                                 allowStencil=False, autoLog=False)
         self.contextName='height'
         self.scaleFactor=1#applied to size/pos values
 
@@ -668,7 +695,9 @@ class TestPygletHeight(_baseVisualTest):
 class TestPygletNormNoShaders(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], monitor='testMonitor',
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.win._haveShaders=False
         self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
@@ -677,7 +706,9 @@ class TestPygletNormNoShaders(_baseVisualTest):
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], monitor='testMonitor',
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='stencil'
         self.scaleFactor=1#applied to size/pos values
 

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -211,7 +211,7 @@ def setColor(obj, color, colorSpace=None, operation='',
             return
         elif color[0] == '#' or color[0:2] == '0x':
             # e.g. obj.rgb=[0,0,0]
-            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color))- [1,1,1])
+            setattr(obj, rgbAttrib, np.array(colors.hex2rgb255(color)))
             obj.__dict__[colorSpaceAttrib] = 'hex'  # eg obj.colorSpace='hex'
             obj.__dict__[colorAttrib] = color  # eg Qr='#000000'
             setTexIfNoShaders(obj)

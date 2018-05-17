@@ -42,28 +42,29 @@ print("copyright %s -> %s: searching for files" % (oldYear, newYear))
 
 #find relevant files:
 files = []
-for root, dirs, tmpfiles in os.walk('.'):
+toSearch = ['.txt', '.py', 'md1', '.rst', '.ps1', '.nsi', ]
+excludeFolders = set(['build', 'dist', '.git'])
+for root, dirs, tmpfiles in os.walk('.', topdown=True):
+    dirs[:] = [d for d in dirs if d not in excludeFolders]
     for f in tmpfiles:
         file = root+'/'+f
-        try: tail = f.rsplit('.',2)[1]
-        except: tail = 'NONE'
-        if tail in ['html','orig','pickle','doctree','pyc','pdf','dll','pyw', 'mov',
-                'wav','mp4','mpg','ico','jpg','gif','png','DS_Store','xlsx', 'icns','svg']:
-            continue
-        if not file.find('build/pygame/Contents/Packages') > -1 \
-            and not file.find('build/pyobjc') > -1 \
-            and not file.find('/sandbox/') > -1 \
-            and not file.find('/docs/build/') > -1 \
-            and not file.startswith('./.git'):
-                #print tail, file
-                files.append(file)
+        main, ext = os.path.splitext(file)
+        # if ext in ['.html','.orig','.pickle','.doctree','.pyc','.pdf','.dll',
+        #            '.pyw', '.mov', '.wav','.mp4','.mpg','.ico','.jpg','.gif',
+        #            '.png','.DS_Store','.xlsx', '.icns','.svg',
+        #            '.so','.mo','.h5','ttf','.dat']:
+        #     continue
+        if ext in toSearch:
+            files.append(file)
 print(len(files), 'files found, screening each')
 
 badLines = 0 #  ['$/] will mess with perl search-replace; other characters might too
 targetFiles = 0 # count of files to be updated
 tmpFile = './replaceCopyright'+oldYear+'_'+newYear+'.sh'
-try: del files[files.index(tmpFile)]
-except: pass
+try:
+    del files[files.index(tmpFile)]
+except:
+    pass
 tmp = open(tmpFile, 'w')
 tmp.write('#!/bin/sh \necho Updating...\n')
 
@@ -71,7 +72,10 @@ tmp.write('#!/bin/sh \necho Updating...\n')
 for file in files:
     if os.path.isdir(file) or file.endswith(sys.argv[0]):
         continue
-    contents = open(r''+file+'', 'r').readlines()
+    try:
+        contents = open(file, 'r').readlines()
+    except UnicodeDecodeError:
+        print("Couldn't read file '{}'".format(file))
     lines = [line for line in contents if \
              line.find("Peirce") > -1 and \
              line.find(oldYear) > -1 and \
