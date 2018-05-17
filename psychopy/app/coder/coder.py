@@ -480,7 +480,11 @@ class UnitTestFrame(wx.Frame):
         # "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py"
         tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ', 1)
         filename = tmpFilename.split('File "', 1)[1]
-        lineNumber = int(tmpLineNumber.split(',')[0])
+        lineNumber = int(tmpLineNumber.split()[0])
+        try:
+            lineNumber = int(tmpLineNumber.split(',')[0])
+        except ValueError:
+            lineNumber = int(tmpLineNumber.split()[0])
         self.app.coder.gotoLine(filename, lineNumber)
 
     def onCloseTests(self, evt):
@@ -2885,10 +2889,10 @@ class CoderFrame(wx.Frame):
         # "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py"
         tmpFilename, tmpLineNumber = evt.GetString().rsplit('", line ', 1)
         filename = tmpFilename.split('File "', 1)[1]
-        if PY3:
-            lineNumber = int(tmpLineNumber.split()[0])
-        else:
+        try:
             lineNumber = int(tmpLineNumber.split(',')[0])
+        except ValueError:
+            lineNumber = int(tmpLineNumber.split()[0])
         self.gotoLine(filename, lineNumber)
 
     def onUnitTests(self, evt=None):
