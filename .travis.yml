@@ -60,6 +60,7 @@ before_install:
 
   - if [ -z $ANACONDA ]; then
       echo "Installing PsychoPy dependencies via apt...";
+      sudo apt install -qq python-six;
       travis_retry sudo apt-get install -qq python-xlib python-pygame python-opengl;
       travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
       travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj;
