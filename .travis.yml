@@ -68,8 +68,8 @@ before_install:
       travis_retry sudo apt-get install -qq python-pyo python-opencv;
       travis_retry sudo apt-get install -qq python-mock;
       echo "Installing PsychoPy dependencies via pip...";
-      travis_retry sudo pip install --upgrade -force-reinstall -qq pip;
-      travis_retry sudo pip install --upgrade -force-reinstall -qq -r requirements_travis.txt;
+      travis_retry sudo pip install --upgrade -qq pip;
+      travis_retry sudo pip install --upgrade -qq -r requirements_travis.txt;
     fi
   - if [ -n "$ANACONDA" ]; then
       echo "Installing Miniconda environment...";
