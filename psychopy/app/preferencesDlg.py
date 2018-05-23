@@ -202,12 +202,6 @@ class PreferencesDlg(wx.Dialog):
         btn.SetHelpText(_translate("Cancel any changes (to any panel)"))
         btn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnsizer.AddButton(btn)
-        # apply
-        btn = wx.Button(self, wx.ID_APPLY, _translate('Apply'))
-        btn.SetHelpText(_translate("Apply these prefs (in all sections) and "
-                                   "continue"))
-        btn.Bind(wx.EVT_BUTTON, self.onApply)
-        btnsizer.AddButton(btn)
         # help
         btn = wx.Button(self, wx.ID_HELP, _translate('Help'))
         btn.SetHelpText(_translate("Get help on prefs"))
@@ -234,16 +228,12 @@ class PreferencesDlg(wx.Dialog):
             url = self.app.urls["prefs"]
         self.app.followLink(url=url)
 
-    def onApply(self, event=None):
-        self.setPrefsFromCtrls()
-        self.app.prefs.pageCurrent = self.nb.GetSelection()
-        # don't set locale here; need to restart app anyway
-
     def onCancel(self, event=None):
         self.Destroy()
 
     def onOK(self, event=None):
-        self.onApply(event=event)
+        self.setPrefsFromCtrls()
+        self.app.prefs.pageCurrent = self.nb.GetSelection()
         self.Destroy()
 
     def makePrefPage(self, parent, sectionName, prefsSection, specSection):
