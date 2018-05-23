@@ -116,10 +116,12 @@ class ParamCtrls(object):
                 options = vc.versionOptions(local=False)
                 versions = vc.availableVersions(local=False)
                 param.allowedVals = (options + [''] + versions)
-        if fieldName in ['text', 'customize_everything']:
+        if fieldName in ['text', 'customize_everything', 'customize']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
+            elif fieldName == 'customize':
+                sx, sy = 300, 200
             else:
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control

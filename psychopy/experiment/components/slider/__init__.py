@@ -7,11 +7,10 @@
 
 from __future__ import absolute_import, print_function
 
-from builtins import str
-from builtins import map
 from os import path
-import re
-from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.experiment.components import BaseVisualComponent, Param, \
+    getInitVals, _translate
+from psychopy.visual import slider
 
 __author__ = 'Jon Peirce'
 
@@ -22,15 +21,18 @@ tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
 # only use _localized values for label values, nothing functional:
 _localized = {
-              'categoryChoices': _translate('Category choices'),
-              'labels': _translate('Labels'),
-              'marker': _translate('Marker type'),
-              'size': _translate('Size'),
-              'pos': _translate('Position [x,y]'),
-              'forceEndRoutine': _translate('Force end of Routine'),
-              'storeHistory': _translate('Store history'),
-              'storeRating': _translate('Store rating'),
-              'storeRatingTime': _translate('Store rating time')}
+    'categoryChoices': _translate('Category choices'),
+    'labels': _translate('Labels'),
+    'ticks': _translate('Ticks'),
+    'size': _translate('Size'),
+    'pos': _translate('Position [x,y]'),
+    'forceEndRoutine': _translate('Force end of Routine'),
+    'storeHistory': _translate('Store history'),
+    'storeRating': _translate('Store rating'),
+    'storeRatingTime': _translate('Store rating time')}
+
+knownStyles = slider.Slider.knownStyles
+
 
 # ticks = (1, 2, 3, 4, 5),
 # labels = None,
@@ -45,7 +47,7 @@ _localized = {
 # color = 'LightGray',
 # textFont = 'Helvetica Bold',
 
-class SliderComponent(BaseComponent):
+class SliderComponent(BaseVisualComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses', 'Custom']
@@ -54,128 +56,166 @@ class SliderComponent(BaseComponent):
                  name='slider',
                  labels='',
                  ticks="(1, 2, 3, 4, 5)",
-                 size='1.0',
-                 pos='0, -0.4',
+                 size='(1.0, 0.1)',
+                 pos='(0, -0.4)',
                  flip=False,
                  style='rating',
                  granularity=0,
-                 textSize=1.0,
                  color="LightGray",
                  font="HelveticaBold",
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
-                 marker='triangle',
-                 storeRating=True, storeRatingTime=True, storeHistory=False,
-                 style=''):
+                 storeRating=True, storeRatingTime=True, storeHistory=False):
         super(SliderComponent, self).__init__(
-            exp, parentName, name,
-            startType=startType, startVal=startVal,
-            stopType=stopType, stopVal=stopVal,
-            startEstim=startEstim, durationEstim=durationEstim)
+                exp, parentName, name,
+                startType=startType, startVal=startVal,
+                stopType=stopType, stopVal=stopVal,
+                startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'SliderComponent'
         self.url = "http://www.psychopy.org/builder/components/slidercomponent.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         # params
-        self.order = ['name', 'ticks','labels',
-                      'markerStart', 'size', 'pos', 'tickHeight']
+        self.order = ['name',
+                      'size', 'pos',
+                      'ticks', 'labels', 'granularity',
+                      'font','flip','color','style','customize'
+                      ]
 
         # normal params:
         # = the usual as inherited from BaseVisual plus:
+        self.params['ticks'] = Param(
+                ticks, valType='list', allowedTypes=[],
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate("Tick positions (numerical) on the scale, "
+                                "separated by commas"),
+                label=_localized['ticks'])
         self.params['labels'] = Param(
-            labels, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],  # categ="Advanced",
-            hint=_translate("Labels for the tick marks on the scale, "
-                            "separated by commas"),
-            label=_localized['labels'])
-        self.params['marker'] = Param(
-            marker, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],  # categ="Advanced",
-            hint=_translate("Style for the marker"),
-            label=_localized['marker'])
+                labels, valType='list', allowedTypes=[],
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate("Labels for the tick marks on the scale, "
+                                "separated by commas"),
+                label=_localized['labels'])
+        self.params['granularity'] = Param(
+                granularity, valType='code', allowedTypes=[],
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate("Specifies the minimum step size "
+                                "(0 for a continuous scale, 1 for integer "
+                                "rating scale)"),
+                label=_translate('Granularity'))
         self.params['forceEndRoutine'] = Param(
-            forceEndRoutine, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[], categ="Advanced",
-            hint=_translate("Should setting a rating (releasing the mouse) "
-                            "cause the end of the routine (e.g. trial)?"),
-            label=_localized['forceEndRoutine'])
+                forceEndRoutine, valType='bool', allowedTypes=[],
+                updates='constant', allowedUpdates=[],
+                hint=_translate("Should setting a rating (releasing the mouse) "
+                                "cause the end of the routine (e.g. trial)?"),
+                label=_localized['forceEndRoutine'])
         self.params['pos'] = Param(
-            pos, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=_translate("x,y position on the screen"),
-            label=_localized['pos'])
+                pos, valType='code', allowedTypes=[],
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat',
+                                'set every frame'],
+                hint=_translate("x,y position on the screen"),
+                label=_localized['pos'])
         self.params['size'] = Param(
-            size, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=_translate("Size on screen. e.g. (500,10) pix for horizontal,"
-                            "(10,500) pix for vertical"),
-            label=_localized['size'])
+                size, valType='code', allowedTypes=[],
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat',
+                                'set every frame'],
+                hint=_translate(
+                        "Size on screen. e.g. (500,10) pix for horizontal,"
+                        "(10,500) pix for vertical"),
+                label=_localized['size'])
 
         # advanced params:
+        self.params['flip'] = Param(
+                flip, valType='bool',
+                updates='constant', allowedUpdates=[],
+                hint=_translate(
+                        "By default the labels will be on the bottom or "
+                        "left of the scale, but this can bee flipped to the "
+                        "other side."),
+                label=_translate('Flip'),
+                categ='Appearance')
+        self.params['color'] = Param(
+                color, valType='str',
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat',
+                                'set every frame'],
+                hint=_translate(
+                        "Color of the lines and labels (might be"
+                        "overridden by the style setting)"),
+                label=_translate('Color'),
+                categ='Appearance')
+        self.params['font'] = Param(
+                font, valType='str',
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate(
+                        "Font for the labels"),
+                label=_translate('Font'),
+                categ='Appearance')
+        self.params['style'] = Param(
+                style, valType='str',
+                updates='constant', allowedVals=knownStyles,
+                hint=_translate(
+                        "Styles determine the appearance of the slider"),
+                label=_translate('Style'),
+                categ='Appearance')
+        self.params['customize'] = Param(
+                '', valType='code', allowedTypes=[],
+                updates='constant', allowedUpdates=[],
+                hint=_translate("Customize allows you to run code immediately "
+                                "after creation of the slider. You can use "
+                                "this to set multiple styles (e.g. "
+                                "mySlider.setStyle(['rating','dark']) "
+                                "or to run custom code (e.g. "
+                                "mySlider.line.color='red')"),
+                label=_translate('Customize'),
+                categ='Appearance')
+
+        # data params
         self.params['storeRating'] = Param(
-            storeRating, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[], categ="Advanced",
-            hint=_translate("store the rating"),
-            label=_localized['storeRating'])
+                storeRating, valType='bool', allowedTypes=[],
+                updates='constant', allowedUpdates=[],
+                hint=_translate("store the rating"),
+                label=_localized['storeRating'],
+                categ='Data')
         self.params['storeRatingTime'] = Param(
-            storeRatingTime, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[], categ="Advanced",
-            hint=_translate("Store the time taken to make the choice (in "
-                            "seconds)"),
-            label=_localized['storeRatingTime'])
+                storeRatingTime, valType='bool', allowedTypes=[],
+                updates='constant', allowedUpdates=[],
+                hint=_translate("Store the time taken to make the choice (in "
+                                "seconds)"),
+                label=_localized['storeRatingTime'],
+                categ='Data')
         self.params['storeHistory'] = Param(
-            storeHistory, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[], categ="Advanced",
-            hint=_translate("store the history of (selection, time)"),
-            label=_localized['storeHistory'])
+                storeHistory, valType='bool', allowedTypes=[],
+                updates='constant', allowedUpdates=[],
+                hint=_translate("store the history of (selection, time)"),
+                label=_localized['storeHistory'],
+                categ='Data')
 
     def writeInitCode(self, buff):
-        # build up an initialization string for RatingScale():
-        _in = "%(name)s = visual.Slider(win=win, name='%(name)s'"
-        init_str = _in % self.params
-        init_str += ", size=%s" % self.params['size']
-        s = str(self.params['pos'].val)
-        s = s.lstrip('([ ').strip(')] ')
-        try:
-            pos = list(map(float, s.split(','))) * 2
-            init_str += ", pos=%s" % pos[0:2]
-        except Exception:
-            pass  # pos = None
 
-            init_str += ', labels=%s' % repr(
-                self.params['labels'].val.split(','))
-        # write the RatingScale() instantiation code:
-        init_str += ")\n"
-        buff.writeIndented(init_str)
+        inits = getInitVals(self.params)
+        # build up an initialization string for Slider():
+        initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
+                   "    size={size}, pos={pos},\n"
+                   "    labels={labels}, ticks={ticks},\n"
+                   "    granularity={granularity}, style={style},\n"
+                   "    color={color}, font={font},\n"
+                   "    flip={flip})\n"
+                   .format(**inits))
+        buff.writeIndented(initStr)
+        if self.params['customize'].val:
+            buff.writeIndentedLines(self.params['customize'].val)
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
-
-    def writeFrameCode(self, buff):
-        name = self.params['name']
-        buff.writeIndented("# *%(name)s* updates\n" % (self.params))
-        # try to handle blank start condition gracefully:
-        if not self.params['startVal'].val.strip():
-            self.params['startVal'].val = 0  # time, frame
-            if self.params['startType'].val == 'condition':
-                self.params['startVal'].val = 'True'
-
-        self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.setAutoDraw(True)\n" % (self.params))
-        buff.setIndentLevel(-1, relative=True)
-
-        # handle a response:
-        # if requested, force end of trial when the subject 'accepts' the
-        # current rating:
-        if self.params['forceEndRoutine'].val:
-            code = ("continueRoutine &= %s.noResponse  "
-                    "# a response ends the trial\n")
-            buff.writeIndented(code % name)
-
-        # for completeness: could handle going beyond
-        # self.params['stopVal'].val with no response
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
@@ -189,27 +229,20 @@ class SliderComponent(BaseComponent):
         if self.params['storeRating'].val or storeTime:
             if currLoop.type in ['StairHandler', 'QuestHandler']:
                 msg = ("# NB PsychoPy doesn't handle a 'correct answer' "
-                       "for ratingscale events so doesn't know what to "
+                       "for Slider events so doesn't know what to "
                        "tell a StairHandler (or QuestHandler)\n")
                 buff.writeIndented(msg)
             elif currLoop.type in ['TrialHandler', 'ExperimentHandler']:
-                buff.writeIndented("# store data for %s (%s)\n" % (
-                    currLoop.params['name'], currLoop.type))
-                if self.params['storeRating'].val == True:
-                    code = "%s.addData('%s.response', %s.getRating())\n"
-                    buff.writeIndented(code % (currLoop.params['name'],
-                                               name, name))
-                if self.params['storeRatingTime'].val == True:
-                    code = "%s.addData('%s.rt', %s.getRT())\n"
-                    buff.writeIndented(code % (currLoop.params['name'],
-                                               name, name))
-                if self.params['storeHistory'].val == True:
-                    code = "%s.addData('%s.history', %s.getHistory())\n"
-                    buff.writeIndented(code % (currLoop.params['name'],
-                                               name, name))
-                if currLoop.params['name'].val == self.exp._expHandler.name:
-                    buff.writeIndented("%s.nextEntry()\n" %
-                                       self.exp._expHandler.name)
+                loopName = currLoop.params['name']
             else:
-                buff.writeIndented("# RatingScaleComponent: unknown loop "
-                                   "type, not saving any data.\n")
+                loopName = 'thisExp'
+
+            if self.params['storeRating'].val == True:
+                code = "%s.addData('%s.response', %s.getRating())\n"
+                buff.writeIndented(code % (loopName, name, name))
+            if self.params['storeRatingTime'].val == True:
+                code = "%s.addData('%s.rt', %s.getRT())\n"
+                buff.writeIndented(code % (loopName, name, name))
+            if self.params['storeHistory'].val == True:
+                code = "%s.addData('%s.history', %s.getHistory())\n"
+                buff.writeIndented(code % (loopName, name, name))
