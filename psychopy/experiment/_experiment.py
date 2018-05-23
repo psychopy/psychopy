@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -540,7 +540,7 @@ class Experiment(object):
                             logging.warning(msg % (thisParamName, static))
                         else:
                             self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                                routine, thisComp.params['name'], thisParamName)
+                                thisRoutine.params['name'], thisComp.params['name'], thisParamName)
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
