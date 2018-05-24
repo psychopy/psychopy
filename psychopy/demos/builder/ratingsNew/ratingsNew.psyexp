@@ -49,6 +49,7 @@
         <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
       </TextComponent>
       <SliderComponent name="sourness">
+        <Param name="styles" updates="constant" val="(u'rating', u'triangleMarker')" valType="fixedList"/>
         <Param name="color" updates="constant" val="LightGray" valType="str"/>
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
         <Param name="pos" updates="constant" val="(0, -0.1)" valType="code"/>
@@ -56,7 +57,6 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(1.0, 0.1)" valType="code"/>
-        <Param name="style" updates="constant" val="rating" valType="str"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="(1, 2, 3, 4, 5)" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool"/>
@@ -64,7 +64,6 @@
         <Param name="granularity" updates="constant" val="0.5" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="('sour','','neutral','','sweet')" valType="list"/>
-        <Param name="customize" updates="constant" val="" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -76,6 +75,7 @@
         <Param name="flip" updates="constant" val="False" valType="bool"/>
       </SliderComponent>
       <SliderComponent name="yumminess">
+        <Param name="styles" updates="constant" val="(u'rating', u'triangleMarker')" valType="fixedList"/>
         <Param name="color" updates="constant" val="LightGray" valType="str"/>
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
         <Param name="pos" updates="constant" val="(0, -0.4)" valType="code"/>
@@ -83,7 +83,6 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(1.0, 0.1)" valType="code"/>
-        <Param name="style" updates="constant" val="rating" valType="str"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="(1, 2, 3, 4, 5)" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool"/>
@@ -91,7 +90,6 @@
         <Param name="granularity" updates="constant" val="0.5" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="'yucky','yummy'" valType="list"/>
-        <Param name="customize" updates="constant" val="" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -141,6 +139,7 @@
     </Routine>
     <Routine name="dynamicStim">
       <SliderComponent name="ori">
+        <Param name="styles" updates="constant" val="(u'slider',)" valType="fixedList"/>
         <Param name="color" updates="constant" val="LightGray" valType="str"/>
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
         <Param name="pos" updates="constant" val="(-0.7, 0)" valType="code"/>
@@ -148,7 +147,6 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(0.1, 1.0)" valType="code"/>
-        <Param name="style" updates="constant" val="slider" valType="str"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="(0, 45, 90, 135, 180)" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="False" valType="bool"/>
@@ -156,7 +154,6 @@
         <Param name="granularity" updates="constant" val="0" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="0, 180" valType="list"/>
-        <Param name="customize" updates="constant" val="" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -188,6 +185,7 @@
         <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
       </TextComponent>
       <SliderComponent name="pos">
+        <Param name="styles" updates="constant" val="(u'slider',)" valType="fixedList"/>
         <Param name="color" updates="constant" val="LightGray" valType="str"/>
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
         <Param name="pos" updates="constant" val="(-0.3, 0)" valType="code"/>
@@ -195,7 +193,6 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(0.1, 1.0)" valType="code"/>
-        <Param name="style" updates="constant" val="slider" valType="str"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="0.1, 0.2, 0.3, 0.4, 0.5" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
@@ -203,7 +200,6 @@
         <Param name="granularity" updates="constant" val="0" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="0.1, 0.5" valType="list"/>
-        <Param name="customize" updates="constant" val="" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -347,7 +343,7 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(0.8, 0.05)" valType="code"/>
-        <Param name="style" updates="constant" val="rating" valType="str"/>
+        <Param name="styles" updates="constant" val="('rating')" valType="fixedList"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
@@ -355,7 +351,6 @@
         <Param name="granularity" updates="constant" val="1" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="'red', 'orange', 'green', 'salmon'" valType="list"/>
-        <Param name="customize" updates="constant" val="" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -396,7 +391,7 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(0.05, 0.6)" valType="code"/>
-        <Param name="style" updates="constant" val="rating" valType="str"/>
+        <Param name="styles" updates="constant" val="('labels45','whiteOnBlack')" valType="fixedList"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="(1, 2, 3, 4, 5, 6, 7)" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
@@ -404,7 +399,6 @@
         <Param name="granularity" updates="constant" val="0" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="('left','hand','labels')" valType="list"/>
-        <Param name="customize" updates="constant" val="# you can use multiple styles here (override settings above)&amp;#10;leftLabels.style = ['labels45','whiteOnBlack']" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -423,7 +417,7 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(0.05, 0.6)" valType="code"/>
-        <Param name="style" updates="constant" val="labels45" valType="str"/>
+        <Param name="styles" updates="constant" val="('labels45','triangleMarker')" valType="fixedList"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="(1, 2, 3, 4, 5, 6, 7)" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
@@ -431,7 +425,6 @@
         <Param name="granularity" updates="constant" val="0" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="('flip', 'for', 'right-hand')" valType="list"/>
-        <Param name="customize" updates="constant" val="# you can use multiple styles here (override settings above)&amp;#10;rightLabels.style = ['labels45','triangleMarker']" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>
@@ -458,7 +451,7 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(1.0, 0.1)" valType="code"/>
-        <Param name="style" updates="constant" val="whiteOnBlack" valType="str"/>
+        <Param name="styles" updates="constant" val="('whiteOnBlack')" valType="fixedList"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="0, 1" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
@@ -466,7 +459,6 @@
         <Param name="granularity" updates="constant" val="0" valType="code"/>
         <Param name="opacity" updates="constant" val="1" valType="code"/>
         <Param name="labels" updates="constant" val="" valType="list"/>
-        <Param name="customize" updates="constant" val="" valType="code"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="startEstim" updates="None" val="" valType="code"/>

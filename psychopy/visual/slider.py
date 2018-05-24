@@ -514,14 +514,14 @@ class Slider(MinimalStim):
             pass  # this is just the default
 
         if 'triangleMarker' in style:
-            if self.horiz and not self.flip:
-                ori = 90
-            elif self.horiz and not self.flip:
+            if self.horiz and self.flip:
                 ori = -90
-            elif not self.horiz and not self.flip:
-                ori = 0
-            else:
+            elif self.horiz:
+                ori = -90
+            elif not self.horiz and self.flip:
                 ori = 180
+            else:
+                ori = 0
             self.marker = ShapeStim(self.win, units=self.units,
                                     vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
                                     size=min(self.size)*2,

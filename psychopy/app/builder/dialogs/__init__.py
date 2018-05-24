@@ -139,8 +139,7 @@ class ParamCtrls(object):
                 parent, val, order=['Field', 'Default'])
         elif param.valType == 'extendedCode':
             # set viewer small, then it will increase with wx.aui control
-            _pos = wx.DefaultPosition
-            self.valueCtrl = CodeBox(parent, -1, pos=_pos,
+            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(100, 100), style=0,
                                      prefs=appPrefs)
             if len(param.val):
@@ -149,6 +148,11 @@ class ParamCtrls(object):
             # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(self.valueWidth*2,160))
+        elif param.valType == 'fixedList':
+            self.valueCtrl = wx.CheckListBox(parent, -1, pos=wx.DefaultPosition,
+                                             size=wx.Size(100, 200),
+                                             choices=param.allowedVals)
+            self.valueCtrl.SetCheckedStrings(param.val)
         elif param.valType == 'bool':
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(parent,
@@ -266,6 +270,8 @@ class ParamCtrls(object):
             if isinstance(self.valueCtrl, dialogs.ListWidget):
                 val = self.expInfoFromListWidget(val)
             return val
+        elif hasattr(ctrl, 'GetCheckedStrings'):
+            return ctrl.GetCheckedStrings()
         elif hasattr(ctrl, 'GetSelection'):  # for wx.Choice
             # _choices is defined during __init__ for all wx.Choice() ctrls
             # NOTE: add untranslated value to _choices if

@@ -182,6 +182,8 @@ class Param(object):
                 return "%s" % repr(self.val)
         elif self.valType == 'list':
             return "%s" %(toList(self.val))
+        elif self.valType == 'fixedList':
+            return "{}".format(self.val)
         elif self.valType == 'bool':
             return "%s" % self.val
         else:
@@ -219,12 +221,12 @@ def toList(val):
 
     Returns
     -------
-
+    A list of entries in the string value
     """
     # we really just need to check if they need parentheses
     stripped = val.strip()
     if not ((stripped.startswith('(') and stripped.endswith(')')) \
-            or ((stripped.startswith('[') and endswith(']')))):
+            or ((stripped.startswith('[') and stripped.endswith(']')))):
         return "[{}]".format(stripped)
     else:
         return stripped

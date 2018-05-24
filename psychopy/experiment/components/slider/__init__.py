@@ -81,7 +81,7 @@ class SliderComponent(BaseVisualComponent):
         self.order = ['name',
                       'size', 'pos',
                       'ticks', 'labels', 'granularity',
-                      'font','flip','color','style','customize'
+                      'font','flip','color','styles',
                       ]
 
         # normal params:
@@ -159,23 +159,12 @@ class SliderComponent(BaseVisualComponent):
                         "Font for the labels"),
                 label=_translate('Font'),
                 categ='Appearance')
-        self.params['style'] = Param(
-                style, valType='str',
+        self.params['styles'] = Param(
+                style, valType='fixedList',
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
                         "Styles determine the appearance of the slider"),
-                label=_translate('Style'),
-                categ='Appearance')
-        self.params['customize'] = Param(
-                '', valType='code', allowedTypes=[],
-                updates='constant', allowedUpdates=[],
-                hint=_translate("Customize allows you to run code immediately "
-                                "after creation of the slider. You can use "
-                                "this to set multiple styles (e.g. "
-                                "mySlider.setStyle(['rating','dark']) "
-                                "or to run custom code (e.g. "
-                                "mySlider.line.color='red')"),
-                label=_translate('Customize'),
+                label=_translate('Styles'),
                 categ='Appearance')
 
         # data params
@@ -206,13 +195,11 @@ class SliderComponent(BaseVisualComponent):
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos},\n"
                    "    labels={labels}, ticks={ticks},\n"
-                   "    granularity={granularity}, style={style},\n"
+                   "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
                    "    flip={flip})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
-        if self.params['customize'].val:
-            buff.writeIndentedLines(self.params['customize'].val)
 
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
