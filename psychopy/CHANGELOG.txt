@@ -36,6 +36,9 @@ FIXED:
   * CRS Bits boxes bugs with Python3 #ff5a4ab7
   * Fixes to window position for Retina displays #e7b111cc #0d4538de
   * Fixes to sound component with duration=None #9b46ff0c
+  * Fix to Hex-specified colors #6ffa413a
+  * print(RunTimeInfo()) not working due to unicode/str error #29de9501
+  * sounddevice stereo auto-detection wasn't working for wav files #b07f8fb1
 
 PsychoPy 1.90.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

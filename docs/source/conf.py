@@ -47,7 +47,7 @@ copyright = u'2018, Jonathan Peirce'
 # built documents.
 #
 # The short X.Y version.
-version = psychopy.__version__[:-2]
+version = os.path.splitext(psychopy.__version__)[0]
 # The full version, including alpha/beta/rc tags.
 release = psychopy.__version__
 

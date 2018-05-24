@@ -540,7 +540,7 @@ class Experiment(object):
                             logging.warning(msg % (thisParamName, static))
                         else:
                             self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                                routine, thisComp.params['name'], thisParamName)
+                                thisRoutine.params['name'], thisComp.params['name'], thisParamName)
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
