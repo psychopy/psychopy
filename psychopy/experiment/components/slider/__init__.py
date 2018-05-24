@@ -59,7 +59,7 @@ class SliderComponent(BaseVisualComponent):
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
                  flip=False,
-                 style='rating',
+                 style=['rating'],
                  granularity=0,
                  color="LightGray",
                  font="HelveticaBold",
