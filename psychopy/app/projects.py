@@ -35,7 +35,12 @@ try:
                      .format(pyosf.__version__))
 except ImportError:
     havePyosf = False
-
+try:
+    import gitlab
+    constants.PAVLOVIA_URL = "https://gitlab.pavlovia.org"
+    havePavlovia = True
+except ImportError:
+    havePavlovia = False
 
 usersList = wx.FileHistory(maxFiles=10, idBase=12300)
 
@@ -71,12 +76,24 @@ class ProjectsMenu(wx.Menu):
         parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
         if not havePyosf:
             self.Append(wx.ID_ANY,
-                        _translate("Requires pyosf (not installed)"))
+                        _translate("OSF access requires pyosf (not installed)"))
             ProjectsMenu.knownUsers = {}
         else:
             if self.app.osf_session is None:
                 # create a default (anonymous) session with osf
                 self.app.osf_session = pyosf.Session()
+
+            ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
+
+        if not havePavlovia:
+            self.Append(wx.ID_ANY,
+                        _translate("Pavlovia access requires gitlab "
+                                   "(not installed)"))
+            ProjectsMenu.knownUsers = {}
+        else:
+            if self.app.pav_session is None:
+                # create a default (anonymous) session with osf
+                self.app.pav_session = pyosf.Session()
 
             ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
 
