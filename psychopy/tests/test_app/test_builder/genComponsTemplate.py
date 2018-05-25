@@ -99,9 +99,9 @@ for compName in sorted(allComp):
                 # ignore: never want to change the name *during an experiment*
                 # the default name.updates value varies across components
             if field == 'next':  # returns a function address, which is dynamic
-                f = '%s.%s.%s: func' % (compName, parName, field)
+                f = '%s.%s.%s:func' % (compName, parName, field)
             else:
-                f = '%s.%s.%s: %s' % (compName, parName, field,
+                f = '%s.%s.%s:%s' % (compName, parName, field,
                                      eval("comp.params[parName].%s" % field))
             lineFields.append(f)
 
