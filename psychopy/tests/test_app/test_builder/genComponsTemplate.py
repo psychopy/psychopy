@@ -96,9 +96,13 @@ for compName in sorted(allComp):
         for field in fields:
             if parName == 'name' and field == 'updates':
                 continue
-                # ignore b/c never want to change the name *during a running experiment*
-                # the default name.updates value varies across existing components
-            f = '%s.%s.%s:%s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
+                # ignore: never want to change the name *during an experiment*
+                # the default name.updates value varies across components
+            if field == 'next':  # returns a function address, which is dynamic
+                f = '%s.%s.%s: func' % (compName, parName, field)
+            else:
+                f = '%s.%s.%s: %s' % (compName, parName, field,
+                                     eval("comp.params[parName].%s" % field))
             lineFields.append(f)
 
         for line in [default] + lineFields:
@@ -111,7 +115,8 @@ for compName in sorted(allComp):
                         outfile.write(line.encode('utf8')+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
-                # match checks tag + multi-line, because line is multi-line and target is whole file
+                # match checks tag + multi-line
+                # because line is multi-line and target is whole file
                 tag = line.split(':',1)[0]
                 try:
                     err = line + ' <== ' + targetTag[tag]
