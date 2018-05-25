@@ -302,6 +302,8 @@ def setColor(obj, color, colorSpace=None, operation='',
         setattr(obj, rgbAttrib, colors.lms2rgb(newColor, lms_rgb))
     elif colorSpace == 'hsv':
         setattr(obj, rgbAttrib, colors.hsv2rgb(np.asarray(newColor)))
+    elif colorSpace is None:
+        pass  # probably using named colors?
     else:
         logging.error('Unknown colorSpace: %s' % colorSpace)
     # store name of colorSpace for future ref and for drawing
