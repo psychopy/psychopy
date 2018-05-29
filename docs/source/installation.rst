@@ -118,7 +118,7 @@ For developers::
 Anaconda and Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following should allow you to get PsychoPy working using Ana/MiniConda:
+The following should allow you to get PsychoPy working using Ana/MiniConda::
 
   conda create -n psypy
   conda activate psypy
