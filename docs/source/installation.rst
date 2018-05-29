@@ -120,12 +120,12 @@ Anaconda and Miniconda
 
 The following should allow you to get PsychoPy working using Ana/MiniConda:
 
-  conda config --add channels https://conda.binstar.org/erik
-  conda install -c erik psychopy
-  conda create -n psychopyenv psychopy
-  source activate psychopyenv
-
-but the recipe may be out of date and `pygame` was not available in the past (now?)
+  conda create -n psypy
+  conda activate psypy
+  conda install python=2.7
+  conda install numpy scipy matplotlib pandas pyopengl pyglet pillow moviepy lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil tables requests[security] pyosf cffi pysoundcard pysoundfile seaborn psychopy_ext python-bidi
+  conda install wxpython
+  pip install psychopy
 
 .. _macports_install:
 
