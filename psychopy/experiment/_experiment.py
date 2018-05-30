@@ -279,7 +279,9 @@ class Experiment(object):
             val = val.replace("&#10;", "\n")
 
         # custom settings (to be used when
-        if name == 'storeResponseTime':
+        if valType == 'fixedList':  # convert the string to a list
+            params[name].val = eval('list({})'.format(val))
+        elif name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'nVertices':  # up to 1.85 there was no shape param
             # if no shape param then use "n vertices" only

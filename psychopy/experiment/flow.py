@@ -165,7 +165,7 @@ class Flow(list):
                     field = component.params[key]
                     if not hasattr(field, 'label'):
                         continue  # no problem, no warning
-                    if (field.label.lower() == 'text' or
+                    if (field.label.lower() in ['text', 'customize'] or
                             not field.valType in ('str', 'code')):
                         continue
                     if (isinstance(field.val, basestring) and
