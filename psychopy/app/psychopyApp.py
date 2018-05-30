@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         sys.exit()
     if '-v' in sys.argv or '--version' in sys.argv:
         from psychopy import __version__
-        msg = ('PsychoPy2, version %s (c)Jonathan Peirce 2015, GNU GPL license'
+        msg = ('PsychoPy2, version %s (c)Jonathan Peirce 2018, GNU GPL license'
                % __version__)
         print(msg)
         sys.exit()

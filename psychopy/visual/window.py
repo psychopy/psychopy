@@ -4,7 +4,7 @@
 """A class representing a window for displaying one or more stimuli"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -1235,11 +1235,11 @@ class Window(object):
                  colorAttrib='color')
 
         # These spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv', 'hex']:
+        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif self.colorSpace in ['rgb255', 'named']:
+        elif self.colorSpace in ['rgb255', 'named', 'hex']:
             desiredRGB = self.rgb / 255.0
         else:  # some array / numeric stuff
             msg = 'invalid value %r for Window.colorSpace'

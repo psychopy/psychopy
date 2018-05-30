@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2015 Jonathan Peirce
+Copyright (C) 2018 Jonathan Peirce
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -15,10 +15,12 @@ from psychopy.experiment.components import BaseComponent, Param, getInitVals, _t
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'sound.png')
-tooltip = _translate('Sound: play recorded files or generated sounds')
+tooltip = _translate('Sound: play recorded files or generated sounds',)
 
 # only use _localized values for label values, nothing functional:
-_localized = {'sound': _translate('Sound'), 'volume': _translate('Volume')}
+_localized = {'sound': _translate('Sound'),
+              'volume': _translate('Volume'),
+              'syncScreenRefresh': _translate('sync RT with screen')}
 
 
 class SoundComponent(BaseComponent):
@@ -28,7 +30,8 @@ class SoundComponent(BaseComponent):
     def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
-                 startEstim='', durationEstim=''):
+                 startEstim='', durationEstim='',
+                 syncScreenRefresh=True):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
@@ -37,6 +40,7 @@ class SoundComponent(BaseComponent):
         self.type = 'Sound'
         self.url = "http://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
+        self.order = ["sound", "volume"]
         # params
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
@@ -58,11 +62,21 @@ class SoundComponent(BaseComponent):
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
             label=_localized["volume"])
+        msg = _translate(
+            "A reaction time to a sound stimulus should be based on when "
+            "the screen flipped")
+        self.params['syncScreenRefresh'] = Param(
+            syncScreenRefresh, valType='bool',
+            updates='constant',
+            hint=msg,
+            label=_localized['syncScreenRefresh'])
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if float(inits['stopVal'].val) > 2:
+        if inits['stopVal'].val in ['', None, 'None']:
+            inits['stopVal'].val = -1
+        elif float(inits['stopVal'].val) > 2:
             inits['stopVal'].val = -1
         buff.writeIndented("%s = sound.Sound(%s, secs=%s)\n" %
                            (inits['name'], inits['sound'], inits['stopVal']))
@@ -76,12 +90,15 @@ class SoundComponent(BaseComponent):
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCode(buff)
-        code = "%s.play()  # start the sound (it finishes automatically)\n"
-        buff.writeIndented(code % self.params['name'])
+        if self.params['syncScreenRefresh'].val:
+            code = ("win.callOnFlip(%(name)s.play)  # screen flip\n") % self.params
+        else:
+            code = "%(name)s.play()  # start the sound (it finishes automatically)\n" % self.params
+        buff.writeIndented(code)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
-        if not float(self.params['stopVal'].val) < 2: # Reduce spectral splatter but not stopping short sounds
-            if not self.params['stopVal'].val in ['', None, -1, 'None']:
+        if not self.params['stopVal'].val in ['', None, -1, 'None']:
+            if not float(self.params['stopVal'].val) < 2: # Reduce spectral splatter but not stopping short sounds
                 self.writeStopTestCode(buff)
                 code = "%s.stop()  # stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])

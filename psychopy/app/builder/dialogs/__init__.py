@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -116,10 +116,12 @@ class ParamCtrls(object):
                 options = vc.versionOptions(local=False)
                 versions = vc.availableVersions(local=False)
                 param.allowedVals = (options + [''] + versions)
-        if fieldName in ['text', 'customize_everything']:
+        if fieldName in ['text', 'customize_everything', 'customize']:
             # for text input we need a bigger (multiline) box
             if fieldName == 'customize_everything':
                 sx, sy = 300, 400
+            elif fieldName == 'customize':
+                sx, sy = 300, 200
             else:
                 sx, sy = 100, 200
             # set viewer small, then it SHOULD increase with wx.aui control
@@ -137,8 +139,7 @@ class ParamCtrls(object):
                 parent, val, order=['Field', 'Default'])
         elif param.valType == 'extendedCode':
             # set viewer small, then it will increase with wx.aui control
-            _pos = wx.DefaultPosition
-            self.valueCtrl = CodeBox(parent, -1, pos=_pos,
+            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
                                      size=wx.Size(100, 100), style=0,
                                      prefs=appPrefs)
             if len(param.val):
@@ -147,6 +148,11 @@ class ParamCtrls(object):
             # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(self.valueWidth*2,160))
+        elif param.valType == 'fixedList':
+            self.valueCtrl = wx.CheckListBox(parent, -1, pos=wx.DefaultPosition,
+                                             size=wx.Size(100, 200),
+                                             choices=param.allowedVals)
+            self.valueCtrl.SetCheckedStrings(param.val)
         elif param.valType == 'bool':
             # only True or False - use a checkbox
             self.valueCtrl = wx.CheckBox(parent,
@@ -264,6 +270,8 @@ class ParamCtrls(object):
             if isinstance(self.valueCtrl, dialogs.ListWidget):
                 val = self.expInfoFromListWidget(val)
             return val
+        elif hasattr(ctrl, 'GetCheckedStrings'):
+            return ctrl.GetCheckedStrings()
         elif hasattr(ctrl, 'GetSelection'):  # for wx.Choice
             # _choices is defined during __init__ for all wx.Choice() ctrls
             # NOTE: add untranslated value to _choices if

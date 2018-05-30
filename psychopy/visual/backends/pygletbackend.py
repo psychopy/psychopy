@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -202,9 +202,13 @@ class PygletBackend(BaseBackend):
             self.winHandle.set_mouse_visible(False)
         self.winHandle.on_resize = _onResize  # avoid circular reference
         if not win.pos:
-            # work out where the centre should be
-            win.pos = [(thisScreen.width - win.size[0]) / 2,
-                        (thisScreen.height - win.size[1]) / 2]
+            # work out where the centre should be 
+            if win.useRetina:
+                win.pos = [(thisScreen.width - win.size[0]/2) / 2,
+                            (thisScreen.height - win.size[1]/2) / 2]
+            else:
+                win.pos = [(thisScreen.width - win.size[0]) / 2,
+                            (thisScreen.height - win.size[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
@@ -331,7 +335,11 @@ class PygletBackend(BaseBackend):
             if constants.PY3:
                 _screenID = 0xFFFFFFFF & int.from_bytes(scrBytes, byteorder='little')
             else:
-                _screenID = 0xFFFFFFFF & scrBytes
+                try:
+                    _screenID = 0xFFFFFFFF & scrBytes
+                except TypeError:
+                    _screenID = scrBytes
+
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1
@@ -351,6 +359,9 @@ class PygletBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+        # Check if window has device context and is thus not closed
+        if self.winHandle.context is None:
+            return
 
         # restore the gamma ramp that was active when window was opened
         if not self._TravisTesting:

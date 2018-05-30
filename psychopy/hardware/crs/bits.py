@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
@@ -581,18 +581,18 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         # get product ('Bits_Sharp'?)
         self.sendMessage(b'$ProductType\r')
         time.sleep(0.1)
-        info['ProductType'] = self.read().replace('#ProductType;', '')
-        info['ProductType'] = info['ProductType'].replace(';\n\r', '')
+        info['ProductType'] = self.read().replace(b'#ProductType;', b'')
+        info['ProductType'] = info['ProductType'].replace(b';\n\r', b'')
         # get serial number
         self.sendMessage(b'$SerialNumber\r')
         time.sleep(0.1)
-        info['SerialNumber'] = self.read().replace('#SerialNumber;', '')
-        info['SerialNumber'] = info['SerialNumber'].replace('\x00\n\r', '')
+        info['SerialNumber'] = self.read().replace(b'#SerialNumber;', b'')
+        info['SerialNumber'] = info['SerialNumber'].replace(b'\x00\n\r', b'')
         # get firmware date
         self.sendMessage(b'$FirmwareDate\r')
         time.sleep(0.1)
-        info['FirmwareDate'] = self.read().replace('#FirmwareDate;', '')
-        info['FirmwareDate'] = info['FirmwareDate'].replace(';\n\r', '')
+        info['FirmwareDate'] = self.read().replace(b'#FirmwareDate;', b'')
+        info['FirmwareDate'] = info['FirmwareDate'].replace(b';\n\r', b'')
         return info
 
     @property

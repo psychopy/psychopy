@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -86,7 +86,11 @@ _localizedDialogs = {
     'triangle': _translate('triangle'),
     'rectangle': _translate('rectangle'),
     'cross': _translate('cross'),
-    'regular polygon...': _translate('regular polygon...'),}
+    'regular polygon...': _translate('regular polygon...'),
+    # Variable component
+    'first': _translate('first'),
+    'last': _translate('last'),
+    'average': _translate('average')}
 
 _localized = copy.copy(_localizedBase)
 _localized.update(_localizedDialogs)

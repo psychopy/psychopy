@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -316,16 +316,20 @@ class PsychoPyApp(wx.App):
                                           args=(True,))
         versionsThread.start()
 
-        # if we have imageio then try to download ffmpeg
         try:
             import imageio
             haveImageio = True
-        except:
+        except ImportError:
             haveImageio = False
+
         if haveImageio:
-            # download() returns immediately if we have it already
-            ffmpegDownloader = threading.Thread(target=imageio.plugins.ffmpeg.download)
-            ffmpegDownloader.start()
+            # Use pre-installed ffmpeg if available.
+            # Otherwise, download ffmpeg binary.
+            try:
+                imageio.plugins.ffmpeg.get_exe()
+            except imageio.core.NeedDownloadError:
+                ffmpegDownloader = threading.Thread(target=imageio.plugins.ffmpeg.download)
+                ffmpegDownloader.start()
 
         ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
         # tell the user what has changed
@@ -705,7 +709,7 @@ class PsychoPyApp(wx.App):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2015 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2018 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')
