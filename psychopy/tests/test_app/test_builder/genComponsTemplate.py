@@ -79,14 +79,14 @@ for compName in sorted(allComp):
     order = '%s.order:%s' % (compName, eval("comp.order"))
     out = [order]
     if '--out' in sys.argv:
-        outfile.write(order.encode('utf8')+'\n')
+        outfile.write(order+'\n')
     elif not order+'\n' in target:
         tag = order.split(':',1)[0]
         try:
             err = order + ' <== ' + targetTag[tag]
         except IndexError: # missing
             err = order + ' <==> NEW (no matching param in original)'
-        print(err.encode('utf8'))
+        print(err)
         mismatches.append(err)
     for parName in comp.params:
         # default is what you get from param.__str__, which returns its value
@@ -108,11 +108,11 @@ for compName in sorted(allComp):
         for line in [default] + lineFields:
             if '--out' in sys.argv:
                 if not ignoreObjectAttribs:
-                    outfile.write(line.encode('utf8')+'\n')
+                    outfile.write(line+'\n')
                 else:
                     if (not ":<built-in method __" in line and
                             not ":<method-wrapper '__"  in line):
-                        outfile.write(line.encode('utf8')+'\n')
+                        outfile.write(line+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
                 # match checks tag + multi-line
@@ -122,7 +122,7 @@ for compName in sorted(allComp):
                     err = line + ' <== ' + targetTag[tag]
                 except KeyError: # missing
                     err = line + ' <==> NEW (no matching param in original)'
-                print(err.encode('utf8'))
+                print(err)
                 mismatches.append(err)
 
 #return mismatches
