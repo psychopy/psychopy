@@ -12,6 +12,16 @@ PsychoPy provides a unique choice of interface: use the **Builder interface** to
 News
 ====================
 
+**Buy the official book!**
+
+You can now :red:`buy the book`, `Building Experiments in PsychoPy <https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480#reviews>`_ from Sage Publishing!
+
+300 pages of great advice on how to create better experiments with a combination of Builder and some code snippets! Suitable for a wide range of audiences, with separate sections for:
+
+  - beginners (suitable for undergraduate teaching)
+  - professionals (more technical detail for the afficionado)
+  - and specialists (with particular use cases like EEG, fMRI, psychophysics).
+
 **PsychoPy is going Professional and Online!**
 
 We're delighted to announce that `The Wellcome Trust <http://www.wellcome.ac.uk>`_ has granted us a sum of money that will allow us to hire a full-time developer, meaning that we will become more professional than ever and, critically, also funding for `Ilixa Ltd. <http://www.ilixa.com>`_ to complete the job of building the online experiment system that many of you have been waiting for! See the `discourse post <https://discourse.psychopy.org/t/wellcome-trust-funding-psychopy-is-going-properly-online/>`_ for further details of what we're planning.
