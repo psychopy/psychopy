@@ -4219,7 +4219,6 @@ TextComponent.languageStyle.label:Language style
 TextComponent.languageStyle.valType:str
 TextComponent.languageStyle.val:LTR
 TextComponent.languageStyle.allowedTypes:[]
-TextComponent.languageStyle.next:func
 TextComponent.languageStyle.categ:Advanced
 TextComponent.languageStyle.allowedVals:['LTR', 'RTL', 'Arabic']
 TextComponent.languageStyle.readOnly:False
