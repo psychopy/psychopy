@@ -4591,6 +4591,19 @@ TextComponent.font.updates:constant
 TextComponent.font.staticUpdater:None
 TextComponent.font.hint:The font name (e.g. Comic Sans)
 TextComponent.font.allowedUpdates:['constant', 'set every repeat', 'set every frame']
+TextComponent.languageStyle.default:'LTR'
+TextComponent.languageStyle.label:Language style
+TextComponent.languageStyle.valType:str
+TextComponent.languageStyle.val:LTR
+TextComponent.languageStyle.allowedTypes:[]
+TextComponent.languageStyle.next:func
+TextComponent.languageStyle.categ:Advanced
+TextComponent.languageStyle.allowedVals:['LTR', 'RTL', 'Arabic']
+TextComponent.languageStyle.readOnly:False
+TextComponent.languageStyle.updates:None
+TextComponent.languageStyle.staticUpdater:None
+TextComponent.languageStyle.hint:Handle right-to-left (RTL) languages and Arabic reshaping
+TextComponent.languageStyle.allowedUpdates:None
 TextComponent.letterHeight.default:0.1
 TextComponent.letterHeight.label:Letter height
 TextComponent.letterHeight.valType:code
