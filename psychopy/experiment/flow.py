@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -165,7 +165,7 @@ class Flow(list):
                     field = component.params[key]
                     if not hasattr(field, 'label'):
                         continue  # no problem, no warning
-                    if (field.label.lower() == 'text' or
+                    if (field.label.lower() in ['text', 'customize'] or
                             not field.valType in ('str', 'code')):
                         continue
                     if (isinstance(field.val, basestring) and

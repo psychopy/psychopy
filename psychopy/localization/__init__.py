@@ -9,7 +9,7 @@ translation _translate():
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, July 2014
@@ -34,6 +34,9 @@ def setLocaleWX():
     if locale.IsAvailable(languageID):
         wxlocale = wx.Locale(languageID)
     else:
+        wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+    # Check language layout, and reset to default if RTL
+    if wxlocale.GetCanonicalName()[:2] in ['ar', 'dv', 'fa', 'ha', 'he', 'ps', 'ur', 'yi']:
         wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
     # wx.Locale on Py2.7/wx3.0 seems to delete the preferred encoding (utf-8)
     # Check if that happened and reinstate if needed.

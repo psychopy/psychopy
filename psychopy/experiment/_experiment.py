@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -279,7 +279,9 @@ class Experiment(object):
             val = val.replace("&#10;", "\n")
 
         # custom settings (to be used when
-        if name == 'storeResponseTime':
+        if valType == 'fixedList':  # convert the string to a list
+            params[name].val = eval('list({})'.format(val))
+        elif name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'nVertices':  # up to 1.85 there was no shape param
             # if no shape param then use "n vertices" only
@@ -540,7 +542,7 @@ class Experiment(object):
                             logging.warning(msg % (thisParamName, static))
                         else:
                             self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                                routine, thisComp.params['name'], thisParamName)
+                                thisRoutine.params['name'], thisComp.params['name'], thisParamName)
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}

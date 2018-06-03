@@ -6,7 +6,7 @@ please use the :class:`~psychopy.visual.GratingStim`
 or the :class:`~psychopy.visual.ImageStim` classes.'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
