@@ -1150,6 +1150,8 @@ def getAllMonitors():
     """Find the names of all monitors for which calibration files exist
     """
     monitorList = glob.glob(os.path.join(monitorFolder, '*.calib'))
+    if constants.PY3:
+        monitorList = glob.glob(os.path.join(monitorFolder, '*.json'))
     split = os.path.split
     splitext = os.path.splitext
     # skip the folder and the extension for each file

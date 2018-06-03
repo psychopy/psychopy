@@ -188,11 +188,13 @@ class PsychoPyApp(wx.App):
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
-            splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
-            splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
+            splashImage = wx.Image(name=splashFile)
+            splashImage.ConvertAlphaToMask()
+            splashImage = wx.BitmapFromImage(splashImage)
+            splash = AS.AdvancedSplash(None, bitmap=splashImage,
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
-                                       shadowcolour=wx.RED)  # transparency?
+                                       )  # transparency?
             splash.SetTextPosition((10, 240))
             splash.SetText(_translate("  Loading libraries..."))
         else:

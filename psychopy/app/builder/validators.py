@@ -163,8 +163,8 @@ class CodeSnippetValidator(BaseValidator):
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
             try:
-                names = compile(code, '', 'eval').co_names
-            except SyntaxError:
+                names = compile(code, '', 'exec').co_names
+            except SyntaxError as e:
                 # empty '' compiles to a syntax error, ignore
                 if not code.strip() == '':
                     msg = _translate('Python syntax error in field `{}`:  {}')
@@ -183,6 +183,6 @@ class CodeSnippetValidator(BaseValidator):
                             msg = _translate(
                                 'Python var `{}` in `{}` is same as Name')
                             msg = msg.format(name, self.displayName)
-                            OK = False
+                            OK = True
         parent.warningsDict[field] = msg
         return msg, OK

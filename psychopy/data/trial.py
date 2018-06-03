@@ -107,8 +107,9 @@ class TrialHandler(_BaseTrialHandler):
 
         :Attributes (after creation):
 
-            .data - a dictionary of numpy arrays, one for each data type
-                stored
+            .data - a dictionary (or more strictly, a `DataHandler` sub-
+                class of a dictionary) of numpy arrays, one for each data 
+                type stored
 
             .trialList - the original list of dicts, specifying the conditions
 

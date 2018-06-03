@@ -8,7 +8,8 @@
 from __future__ import absolute_import, print_function
 
 from os import path
-from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.experiment.components import BaseVisualComponent, Param, \
+    getInitVals, _translate
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
