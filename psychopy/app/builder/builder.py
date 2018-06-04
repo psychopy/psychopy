@@ -10,9 +10,10 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range, object, str
 import wx
+from builtins import range, object
 from wx.lib import platebtn, scrolledpanel
+
 try:
     from wx import aui
 except Exception:
@@ -2028,6 +2029,8 @@ class BuilderFrame(wx.Frame):
            the experiment run
         """
         expPath = self.filename
+        version = self.exp.psychopyVersion
+
         if expPath is None or expPath.startswith('untitled'):
             ok = self.fileSave()
             if not ok:
@@ -2036,13 +2039,16 @@ class BuilderFrame(wx.Frame):
         # make new pathname for script file
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
 
-        script = self.generateScript(self.exp.expPath)
-        if not script:
-            return
+        from subprocess import check_output
+        check_output("python -m psychopy.scripts.psyexpCompile test.psyexp -v {} -o test.py".format(version))
 
-        f = codecs.open(fullPath, 'w', 'utf-8')
-        f.write(script.getvalue())
-        f.close()
+        # script = self.generateScript(self.exp.expPath)
+        # if not script:
+        #     return
+        #
+        # f = codecs.open(fullPath, 'w', 'utf-8')
+        # f.write(script.getvalue())
+        # f.close()
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2080,8 +2086,7 @@ class BuilderFrame(wx.Frame):
             command = '%s -u %s' % (pythonExec, fullPath)
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
         # launch the command
-        self.scriptProcessID = wx.Execute(command, _opts,
-                                          self.scriptProcess)
+        self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
 
@@ -2242,22 +2247,20 @@ class BuilderFrame(wx.Frame):
         """
         self.app.prefs.app['debugMode'] = "debugMode"
         if self.app.prefs.app['debugMode']:
-            return self.exp.writeScript(
-                expPath=experimentPath,
-                target=target)
+            return self.exp.writeScript(expPath=experimentPath,
+                                        target=target)
             # getting the trace-back is very helpful when debugging the app
         try:
-            script = self.exp.writeScript(
-                expPath=experimentPath,
-                target=target)
+            script = self.exp.writeScript(expPath=experimentPath,
+                                          target=target)
         except Exception as e:
             try:
                 self.stdoutFrame.getText()
             except Exception:
-                self.stdoutFrame = stdOutRich.StdOutFrame(
-                    parent=self, app=self.app, size=(700, 300))
-            self.stdoutFrame.write(
-                "Error when generating experiment script:\n")
+                self.stdoutFrame = stdOutRich.StdOutFrame(parent=self,
+                                                          app=self.app,
+                                                          size=(700, 300))
+            self.stdoutFrame.write("Error when generating experiment script:\n")
             self.stdoutFrame.write("{}\n".format(e))
             self.stdoutFrame.Show()
             self.stdoutFrame.Raise()

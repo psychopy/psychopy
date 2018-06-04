@@ -13,6 +13,7 @@ import os
 import sys
 import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
+import re
 import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web
@@ -20,7 +21,6 @@ from psychopy.constants import PY3
 
 if PY3:
     from importlib import reload
-
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -83,6 +83,17 @@ def useVersion(requestedVersion):
     if not reqdMajorMinorPatch:
         msg = _translate('Unknown version `{}`')
         raise ValueError(msg.format(requestedVersion))
+
+    py3Compatible = [str(ver) for ver in availableVersions() if not re.search('\d.(7|8)', ver)]
+
+    if PY3:
+        # create PY3 list of compatible versions
+        py3Compatible = [str(ver) for ver in availableVersions() if not re.search('\d.(7|8)', ver)]
+        py3Compatible.reverse()
+        if reqdMajorMinorPatch not in py3Compatible:
+            msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
+                             "You can choose from the following versions: {}")
+            raise RuntimeError(msg.format(py3Compatible))
 
     if psychopy.__version__ != reqdMajorMinorPatch:
         # Switching required, so make sure `git` is available.
