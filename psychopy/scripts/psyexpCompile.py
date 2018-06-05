@@ -15,7 +15,6 @@ if __name__ != "__main__":
           "Importing will break the functionality of the "
           "useVersion() code and lead to unpredictable behaviour.")
 
-from __future__ import absolute_import, print_function
 import argparse
 import codecs
 
