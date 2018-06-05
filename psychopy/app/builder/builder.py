@@ -26,6 +26,7 @@ except ImportError:
 from pkg_resources import parse_version
 import sys
 import os
+import subprocess
 import glob
 import copy
 import traceback
@@ -2028,27 +2029,9 @@ class BuilderFrame(wx.Frame):
         """Gets absolute path of experiment so it can be stored with data at end of
            the experiment run
         """
-        expPath = self.filename
-        version = self.exp.psychopyVersion
-
-        if expPath is None or expPath.startswith('untitled'):
-            ok = self.fileSave()
-            if not ok:
-                return  # save file before compiling script
-        self.exp.expPath = os.path.abspath(expPath)
-        # make new pathname for script file
+        self.callScriptCompiler('Builder')  # Build script based on current version selected
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
 
-        from subprocess import check_output
-        check_output("python -m psychopy.scripts.psyexpCompile test.psyexp -v {} -o test.py".format(version))
-
-        # script = self.generateScript(self.exp.expPath)
-        # if not script:
-        #     return
-        #
-        # f = codecs.open(fullPath, 'w', 'utf-8')
-        # f.write(script.getvalue())
-        # f.close()
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2063,8 +2046,7 @@ class BuilderFrame(wx.Frame):
         print("\n" + (" Running: %s " % (fullPath)).center(80, "#"))
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
 
-        # self is the parent (which will receive an event when the process
-        # ends)
+        # self is the parent (which will receive an event when the process ends)
         self.scriptProcess = wx.Process(self)
         self.scriptProcess.Redirect()  # builder will receive the stdout/stdin
 
@@ -2089,6 +2071,39 @@ class BuilderFrame(wx.Frame):
         self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
+
+    def callScriptCompiler(self, runFrom='Builder'):
+        """
+        Compiles a psyexp->python file optionally with a specific version
+        selected by the user in Experiment Settings.
+
+        :param runFrom: Determines whether Builder runs experiment, or script is output to Coder.
+
+        """
+        fileEnding = {'Builder': '_lastrun.py', 'Coder': '.py'}
+        expPath = self.filename
+        version = self.exp.settings.params['Use version'].val
+        if not version:
+            version = self.exp.psychopyVersion
+        self.exp.psychopyVersion = version
+        if expPath is None or expPath.startswith('untitled'):
+            ok = self.fileSave()
+            if not ok:
+                return  # save file before compiling script
+        else:
+            self.fileSave()  # Save on runFile otherwise changes to exp not included when run
+        self.exp.expPath = os.path.abspath(expPath)
+        # make new pathname for script file
+        fullPath = self.filename.replace('.psyexp', fileEnding[runFrom])
+        # Compile script from command line using version
+        compiler = 'psychopy.scripts.psyexpCompile'
+        subprocess.check_output("python -m {} {} -v {} -o {}".format(compiler,
+                                                                     self.filename,
+                                                                     version,
+                                                                     fullPath))
+        if runFrom == 'Coder':
+            self.app.showCoder()  # make sure coder is visible
+            self.app.coder.fileNew(filepath=fullPath)
 
     def stopFile(self, event=None):
         """Kills script processes"""
@@ -2233,14 +2248,7 @@ class BuilderFrame(wx.Frame):
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
-        script = self.generateScript(None)  # leave the experiment path blank
-        if not script:
-            return
-        # remove .psyexp and add .py
-        name = os.path.splitext(self.filename)[0] + ".py"
-        self.app.showCoder()  # make sure coder is visible
-        self.app.coder.fileNew(filepath=name)
-        self.app.coder.currentDoc.SetText(script.getvalue())
+        self.callScriptCompiler('Coder')
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment

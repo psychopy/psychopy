@@ -83,16 +83,14 @@ def useVersion(requestedVersion):
     if not reqdMajorMinorPatch:
         msg = _translate('Unknown version `{}`')
         raise ValueError(msg.format(requestedVersion))
-
-    py3Compatible = [str(ver) for ver in availableVersions() if not re.search('\d.(7|8)', ver)]
-
     if PY3:
-        # create PY3 list of compatible versions
-        py3Compatible = [str(ver) for ver in availableVersions() if not re.search('\d.(7|8)', ver)]
+        # create PY3 list of compatible versions. If not compatible with Py3, raise RunTimeError
+        py3Compatible = [ver for ver in availableVersions() if not re.search('(0|1).(7|8)', ver)]
         py3Compatible.reverse()
         if reqdMajorMinorPatch not in py3Compatible:
             msg = _translate("Please request a version of PsychoPy that is compatible with Python 3.\n"
-                             "You can choose from the following versions: {}")
+                             "You can choose from the following versions: {}.\n"
+                             "Alternatively, run PsychoPy versions < v.1.9.0 with Python 2.\n\n")
             raise RuntimeError(msg.format(py3Compatible))
 
     if psychopy.__version__ != reqdMajorMinorPatch:
