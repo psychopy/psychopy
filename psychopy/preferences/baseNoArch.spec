@@ -225,7 +225,8 @@
     toggleReadme = string(default='Ctrl+I')
 
     # Projects: Log in
-    projectsLogIn = string(default='Ctrl+Alt+I')
+    pavlovia_logIn = string(default='Ctrl+Alt+I')
+    OSF_logIn = string(default='Ctrl+Alt+Shift+I')
     # Projects: Sync project
     projectsSync = string(default='Ctrl+Alt+Y')
     # Projects: Find projects

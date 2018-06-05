@@ -9,4 +9,6 @@
 """
 
 from .catalog import projectCatalog, projectsFolder
+from . import pavlovia
+
 

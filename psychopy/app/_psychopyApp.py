@@ -159,6 +159,7 @@ class PsychoPyApp(wx.App):
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
         self.osf_session = None
+        self.pavloviaSession = None
 
         self.copiedRoutine = None
         self.copiedCompon = None
@@ -190,8 +191,7 @@ class PsychoPyApp(wx.App):
                 self.prefs.paths['resources'], 'psychopySplash.png')
             splashImage = wx.Image(name=splashFile)
             splashImage.ConvertAlphaToMask()
-            splashImage = wx.BitmapFromImage(splashImage)
-            splash = AS.AdvancedSplash(None, bitmap=splashImage,
+            splash = AS.AdvancedSplash(None, bitmap=wx.Bitmap(splashImage),
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?

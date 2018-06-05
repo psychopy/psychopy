@@ -5,30 +5,44 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Helper functions in PsychoPy for interacting with projects (e.g. from pyosf)
+"""Helper functions in PsychoPy for interacting with Pavlovia.org
 """
+
+# note that in this package we are using snake case for class methods so that
+# methods have same names as OSF projects
+
 import glob
 import os
-from psychopy import logging
+from psychopy import logging, prefs
 import gitlab
-
-from psychopy import prefs
-
+# for authentication
+from oauthlib.oauth2 import MobileApplicationClient
+from requests_oauthlib import OAuth2Session
+from uuid import uuid4
 projectsFolder = os.path.join(prefs.paths['userPrefsDir'], 'projects')
 
 rootURL = "https://gitlab.pavlovia.org"
+client_id = '4bb79f0356a566cd7b49e3130c714d9140f1d3de4ff27c7583fb34fbfac604e0'
+scopes = []
+redirect_url = 'https://gitlab.pavlovia.org/'
+
+def getAuthURL():
+    state = str(uuid4())  # create a private "state" based on uuid
+    auth_url = ('https://gitlab.pavlovia.org/oauth/authorize?client_id={}'
+                '&redirect_uri={}&response_type=token&state={}'
+                .format(client_id, redirect_url, state))
+    return auth_url, state
 
 
-
-class Session(gitlab.Gitlab):
+class PavloviaSession(gitlab.Gitlab):
     """A class to track a session with the OSF server.
 
     The session will store a token, which can then be used to authenticate
     for project read/write access
     """
     def __init__(self, username=None, password=None, token=None, otp=None,
-                 remember_me=True, chunk_size=default_chunk_size):
-        """Create a session to send requests with the OSF server
+                 remember_me=True):
+        """Create a session to send requests with the pavlovia server
 
         Provide either username and password for authentication with a new
         token, or provide a token from a previous session, or nothing for an
@@ -41,15 +55,9 @@ class Session(gitlab.Gitlab):
         self.remember_me = remember_me
         self.authenticated = False
         # set token (which will update session headers as needed)
-        if token is not None:
-            self.token = token
-        elif username is not None:
-            self.authenticate(username, password, otp)
-        self.headers.update({'content-type': 'application/json'})
+        self.token = token
         # placeholders for up/downloader threads
-        self.downloader = None
-        self.uploader = None
-        self.chunk_size = default_chunk_size
+        self.syncThread = None
 
     def open_project(self, proj_id):
         """Returns a OSF_Project object or None (if that id couldn't be opened)
@@ -75,22 +83,7 @@ class Session(gitlab.Gitlab):
         A list of OSFProject objects
 
         """
-        url = "{}/nodes/".format(constants.API_BASE)
-        intro = "?"
-        if tags:
-            tagsList = tags.split(",")
-            for tag in tagsList:
-                tag = tag.strip()  # remove surrounding whitespace
-                if tag == '':
-                    continue
-                url += "{}filter[tags][icontains]={}".format(intro, tag)
-                intro = "&"
-        if search_str:
-            url += "{}filter[title][icontains]={}".format(intro, search_str)
-            intro = "&"
-        logging.info("Searching Pavlovia using: {}".format(url))
-        t0 = time.time()
-        logging.info("Download results took: {}s".format(time.time()-t0))
+
         return projs
 
     def find_users(self, search_str):
@@ -116,25 +109,9 @@ class Session(gitlab.Gitlab):
         """Set the token for this session and check that it works for auth
         """
         self.__dict__['token'] = token
-        if token is None:
-            headers = {}
-        else:
-            headers = {
-                'Authorization': 'Bearer {}'.format(token),
-            }
-        self.headers.update(headers)
+
         # then populate self.userID and self.userName
-        resp = self.get(constants.API_BASE+"/users/me/", timeout=10.0)
-        if resp.status_code != 200:
-            raise exceptions.AuthError("Invalid credentials trying to get "
-                                       "user data:\n{}".format(resp.json()))
-        else:
-            logging.info("Successful authentication with token")
-        json_resp = resp.json()
-        self.authenticated = True
-        data = json_resp['data']
-        self.user_id = data['id']
-        self.user_full_name = data['attributes']['full_name']
+
         # update stored tokens
         if save is None:
             save = self.remember_me
@@ -205,119 +182,16 @@ class Session(gitlab.Gitlab):
             self.token = json_resp['data']['attributes']['token_id']
             return 1
 
-    def download_file(self, url, local_path,
-                      size=0, threaded=False, changes=None):
-        """ Download a file with given object id
-
-        Parameters
-        ----------
-
-        asset : str or dict
-            The OSF id for the file or dict of info
-        local_path : str
-            The full path where the file will be downloaded
-
-        """
-        if threaded:
-            if self.downloader is None or \
-                    self.downloader.status != NOT_STARTED:  # can't re-use
-                self.downloader = PushPullThread(
-                    session=self, kind='pull',
-                    finished_callback=self.finished_downloads,
-                    changes=changes)
-            self.downloader.add_asset(url, local_path, size)
-        else:
-            # download immediately
-            reply = self.get(url, stream=True, timeout=30.0)
-            if reply.status_code == 200:
-                with open(local_path, 'wb') as f:
-                    for chunk in reply.iter_content(self.chunk_size):
-                        f.write(chunk)
-                if changes:
-                    changes.add_to_index(local_path)  # signals success
-
-    def upload_file(self, url, update=False, local_path=None,
-                    size=0, threaded=False, changes=None):
-        """Adds the file to the OSF project.
-        If containing folder doesn't exist then it will be created recursively
-
-        update is used if the file already exists but needs updating (version
-        will be incremented).
-        """
-        if threaded:
-            if self.uploader is None or \
-                    self.uploader.status != NOT_STARTED:  # can't re-use
-                self.uploader = PushPullThread(
-                    session=self, kind='push',
-                    finished_callback=self.finished_uploads,
-                    changes=changes)
-            self.uploader.add_asset(url, local_path, size)
-        else:
-            with open(local_path, 'rb') as f:
-                reply = self.put(url, data=f, timeout=30.0)
-            with open(local_path, 'rb') as f:
-                local_md5 = hashlib.md5(f.read()).hexdigest()
-            if reply.status_code not in [200, 201]:
-                raise exceptions.HTTPSError(
-                    "URL:{}\nreply:{}"
-                    .format(url, json.dumps(reply.json(), indent=2)))
-            node = FileNode(self, reply.json()['data'])
-            if local_md5 != node.json['attributes']['extra']['hashes']['md5']:
-                raise exceptions.OSFError(
-                    "Uploaded file did not match existing SHA. "
-                    "Maybe it didn't fully upload?")
-            logging.info("Uploaded (unthreaded): ".format(local_path))
-            if changes:
-                changes.add_to_index(local_path)  # signals success
-            return node
-
-    def finished_uploads(self):
-        self.uploader = None
-
-    def finished_downloads(self):
-        self.downloader = None
 
     def apply_changes(self):
         """If threaded up/downloading is enabled then this begins the process
         """
-        if self.uploader:
-            self.uploader.start()
-        if self.downloader:
-            self.downloader.start()
-
-    def get_progress(self):
-        """Returns either:
-                    {'up': [done, total],
-                     'down': [done, total]}
-                or:
-                    1 for finished
-        """
-        done = True  # but we'll check for alive threads and set False
-        if self.uploader is None:
-            up = [0, 0]
-        else:
-            if self.uploader.isAlive():
-                done = False
-            up = [self.uploader.finished_size,
-                  self.uploader.queue_size]
-
-        if self.downloader is None:
-            down = [0, 0]
-        else:
-            if self.downloader.isAlive():
-                done = False
-            down = [self.downloader.finished_size,
-                    self.downloader.queue_size]
-
-        if not done:  # at least one thread reported being alive
-            return {'up': up, 'down': down}
-        else:
-            return 1
+        raise NotImplemented
 
 
 
-class PavloviaProject(Node):
-    """
+class PavloviaProject:
+    """A Pavlovia project, with name, url etc
     """
     def __init__(self, session, id):
         if session is None:
