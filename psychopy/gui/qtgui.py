@@ -34,11 +34,10 @@ qtapp = None
 
 def ensureQtApp():
     global qtapp
-    # make sure there's a wxApp prior to showing a gui, e.g., for expInfo
+    # make sure there's a QApplication prior to showing a gui, e.g., for expInfo
     # dialog
     if qtapp is None:
         qtapp = QtWidgets.QApplication(sys.argv)
-    return qtapp
 
 
 wasMouseVisible = True
@@ -77,8 +76,7 @@ class Dlg(QtWidgets.QDialog):
                  labelButtonCancel=_translate(" Cancel "),
                  screen=-1):
 
-        global qtapp  # avoid recreating for every gui
-        qtapp = ensureQtApp()
+        ensureQtApp()
         QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
 
         self.inputFields = []
@@ -458,8 +456,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
                    "txt (*.txt);;"
                    "pickled files (*.pickle *.pkl);;"
                    "shelved files (*.shelf)")
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
 
     fdir = os.path.join(initFilePath, initFileName)
     r = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
@@ -496,8 +493,7 @@ def fileOpenDlg(tryFilePath="",
 
     If user cancels, then None is returned.
     """
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
 
     if allowed is None:
         allowed = ("All files (*.*);;"
@@ -521,29 +517,25 @@ def fileOpenDlg(tryFilePath="",
 
 
 def infoDlg(title=_translate("Information"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.information(None, title, prompt or _pr)
 
 
 def warnDlg(title=_translate("Warning"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.warning(None, title, prompt or _pr)
 
 
 def criticalDlg(title=_translate("Critical"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.critical(None, title, prompt or _pr)
 
 
 def aboutDlg(title=_translate("About Experiment"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.about(None, title, prompt or _pr)
 
