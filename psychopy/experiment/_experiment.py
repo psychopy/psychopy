@@ -663,10 +663,23 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: list of dicts{'rel','abs'} of valid file paths
             """
+
+            # Clean up filePath that cannot be eval'd
+            if '$' in filePath:
+                try:
+                    filePath = filePath.strip('$')
+                    filePath = eval(filePath)
+                except NameError:
+                    # List files in director and get condition files
+                    if 'xlsx' in filePath or 'csv' in filePath:
+                        # Get all xlsx and csv files
+                        fileList = ([getPaths(condFile) for condFile in os.listdir()
+                                    if len(condFile.split('.')) > 1
+                                    and condFile.split('.')[1] in ['xlsx', 'csv']])
+                        return fileList
             paths = []
             # does it look at all like an excel file?
-            if (not isinstance(filePath, basestring)
-                    or filePath[-4:] not in ['.csv', 'xlsx']):
+            if (not isinstance(filePath, basestring) or filePath.split('.')[1] not in ['csv', 'xlsx']):
                 return paths
             thisFile = getPaths(filePath)
             # does it exist?

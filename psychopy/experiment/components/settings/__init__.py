@@ -456,19 +456,11 @@ class SettingsComponent(object):
             if self.params['JS libs'].val == 'packaged':
                 copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
                 copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
-            # always copy server.php
-            try:
-                shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
-            except FileNotFoundError:
-                open(jsPath+'/server.php', 'wb').close()
-                shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
         else:
             jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
             # copy over JS libs if needed
             if self.params['JS libs'].val == 'packaged':
                 jsZip.extractall(path=folder)
-            else:
-                jsZip.extract(path=folder, member="server.php")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # write info.php and resources folder as well
