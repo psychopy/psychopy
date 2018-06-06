@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -58,6 +58,8 @@ class Param(object):
     '[3,4]'
     >>> print(Param(val=[3,4], valType='code'))
     [3, 4]
+    >>> print(Param(val='"yes", "no"', valType='list'))
+    ["yes", "no"]
 
     >>> #### auto str -> code:  at least one non-escaped '$' triggers
     >>> print(Param('[x,y]','str')) # str normally returns string
@@ -178,6 +180,10 @@ class Param(object):
                 return "%s" % self.val
             else:  # if val was a tuple it needs converting to a string first
                 return "%s" % repr(self.val)
+        elif self.valType == 'list':
+            return "%s" %(toList(self.val))
+        elif self.valType == 'fixedList':
+            return "{}".format(self.val)
         elif self.valType == 'bool':
             return "%s" % self.val
         else:
@@ -205,3 +211,22 @@ def getCodeFromParamStr(val):
     # remove all nonescaped $, squash $$$$$
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)
     return re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
+
+def toList(val):
+    """
+
+    Parameters
+    ----------
+    val
+
+    Returns
+    -------
+    A list of entries in the string value
+    """
+    # we really just need to check if they need parentheses
+    stripped = val.strip()
+    if not ((stripped.startswith('(') and stripped.endswith(')')) \
+            or ((stripped.startswith('[') and stripped.endswith(']')))):
+        return "[{}]".format(stripped)
+    else:
+        return stripped

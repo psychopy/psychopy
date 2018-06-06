@@ -5,7 +5,7 @@
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -296,7 +296,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def _setTextShaders(self, value=None):
         """Set the text to be rendered using the current font
         """
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             self._pygletTextObj = pyglet.font.Text(
                 self._font, self.text,
                 halign=self.alignHoriz, valign=self.alignVert,
