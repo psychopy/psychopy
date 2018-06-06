@@ -2029,8 +2029,8 @@ class BuilderFrame(wx.Frame):
         """Gets absolute path of experiment so it can be stored with data at end of
            the experiment run
         """
-        self.callScriptCompiler('Builder')  # Build script based on current version selected
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
+        self.generateScript(fullPath)  # Build script based on current version selected
 
         try:
             self.stdoutFrame.getText()
@@ -2071,39 +2071,6 @@ class BuilderFrame(wx.Frame):
         self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
-
-    def callScriptCompiler(self, runFrom='Builder'):
-        """
-        Compiles a psyexp->python file optionally with a specific version
-        selected by the user in Experiment Settings.
-
-        :param runFrom: Determines whether Builder runs experiment, or script is output to Coder.
-
-        """
-        fileEnding = {'Builder': '_lastrun.py', 'Coder': '.py'}
-        expPath = self.filename
-        version = self.exp.settings.params['Use version'].val
-        if not version:
-            version = self.exp.psychopyVersion
-        self.exp.psychopyVersion = version
-        if expPath is None or expPath.startswith('untitled'):
-            ok = self.fileSave()
-            if not ok:
-                return  # save file before compiling script
-        else:
-            self.fileSave()  # Save on runFile otherwise changes to exp not included when run
-        self.exp.expPath = os.path.abspath(expPath)
-        # make new pathname for script file
-        fullPath = self.filename.replace('.psyexp', fileEnding[runFrom])
-        # Compile script from command line using version
-        compiler = 'psychopy.scripts.psyexpCompile'
-        subprocess.check_output("python -m {} {} -v {} -o {}".format(compiler,
-                                                                     self.filename,
-                                                                     version,
-                                                                     fullPath))
-        if runFrom == 'Coder':
-            self.app.showCoder()  # make sure coder is visible
-            self.app.coder.fileNew(filepath=fullPath)
 
     def stopFile(self, event=None):
         """Kills script processes"""
@@ -2248,32 +2215,31 @@ class BuilderFrame(wx.Frame):
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
-        self.callScriptCompiler('Coder')
+        fullPath = self.filename.replace('.psyexp', '.py')
+        self.generateScript(fullPath)
+        self.app.showCoder()  # make sure coder is visible
+        self.app.coder.fileNew(filepath=fullPath)
 
     def generateScript(self, experimentPath, target="PsychoPy"):
-        """Generates python script from the current builder experiment
-        """
-        self.app.prefs.app['debugMode'] = "debugMode"
-        if self.app.prefs.app['debugMode']:
-            return self.exp.writeScript(expPath=experimentPath,
-                                        target=target)
-            # getting the trace-back is very helpful when debugging the app
-        try:
-            script = self.exp.writeScript(expPath=experimentPath,
-                                          target=target)
-        except Exception as e:
-            try:
-                self.stdoutFrame.getText()
-            except Exception:
-                self.stdoutFrame = stdOutRich.StdOutFrame(parent=self,
-                                                          app=self.app,
-                                                          size=(700, 300))
-            self.stdoutFrame.write("Error when generating experiment script:\n")
-            self.stdoutFrame.write("{}\n".format(e))
-            self.stdoutFrame.Show()
-            self.stdoutFrame.Raise()
-            return None
-        return script
+        """Generates python script from the current builder experiment"""
+        expPath = self.filename
+        version = self.exp.settings.params['Use version'].val
+        if not version:
+            version = self.exp.psychopyVersion
+        self.exp.psychopyVersion = version
+        if expPath is None or expPath.startswith('untitled'):
+            ok = self.fileSave()
+            if not ok:
+                return  # save file before compiling script
+        else:
+            self.fileSave()  # Save on runFile otherwise changes to exp not included when run
+        self.exp.expPath = os.path.abspath(expPath)
+        # Compile script from command line using version
+        compiler = 'psychopy.scripts.psyexpCompile'
+        subprocess.check_output("python -m {} {} -v {} -o {}".format(compiler,
+                                                                     self.filename,
+                                                                     version,
+                                                                     experimentPath))
 
 
 class ReadmeFrame(wx.Frame):
