@@ -92,6 +92,8 @@ if expInfo['Device']=='Display++':
         bits = crs.DisplayPlusPlus(win, mode='bits++',checkConfigLevel=1) 
 
 if  expInfo['Device'] != 'Bits++':
+    if bits.noComms:
+        sys.exit
     #bits = crs.BitsSharp(win, mode='bits++') 
     #gamma.setGamma(win.winHandle._dc, 1.0, 1)
     bits.sendMessage('$TemporalDithering=[ON]\r')
