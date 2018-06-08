@@ -1143,7 +1143,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.frameRate = float(msg2[1])
         
         self._setHeaders(self.frameRate)
-
+        # flag for controling analog outputs
+        self.analog = False
+        
         # replace window methods with our custom ones
         self.win = win
         self.win._prepareFBOrender = self._prepareFBOrender
@@ -1174,10 +1176,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         else:
             self.config = None  # makes no sense if we have a window?
             logging.warning("%s was not given any PsychoPy win" % (self))
-        
-        # flag for controling analog outputs
-        self.analog = False
-        
+  
         # members for controlling the RTBox functionality
         self.RTBoxMode = ['CB6','down','trigger']
         self.RTBoxEnabled = False
