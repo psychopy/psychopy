@@ -283,7 +283,7 @@ else:
     bits.pollStatus()
     print("Time taken to poll status = ",clock()-T)
     val = bits.getStatus()
-    print("Time recorded by devise should be about 1s. Actually = ", val.time)
+    print("Time recorded by device should be about 1s. Actually = ", val.time)
     sleep(5)
     bits.flush()
     bits.sendMessage('$Stop\r')
@@ -294,17 +294,17 @@ else:
         bits.RTBoxEnable(mode=['CB6','Down'])
         print("Press a button on the Box")
         button = bits.RTBoxWait()
-        print(button)
+        print(button.button, button.dir, button.time)
     elif expInfo['Button box'] == 'IO6':
         bits.RTBoxEnable(mode=['IO','Down'])
         print("Press one of first 3 buttons on the Box")
         button = bits.RTBoxWait()
-        print(button)
+        print(button.button, button.dir, button.time)
     elif expInfo['Button box'] == 'IO':
         bits.RTBoxEnable(mode=['IO','Down'])
         print("Press of first 3 buttons on the Box")
         button = bits.RTBoxWait()
-        print(button)
+        print(button.button, button.dir, button.time)
         
     print("4a: Clock and RTBox calibration test")
     bits.RTBoxCalibrate()
@@ -368,7 +368,7 @@ else:
         print("6c: Touch the screen lots")
         sleep(10)
         bits.stopTouchLog()
-        bits.getTouchLog()
+        bits.getTouchLog(caution=False)
         vals=bits.getTouchEvents()
         for i in range(len(vals)):
             print(vals[i])
@@ -376,3 +376,4 @@ else:
 del bits
 win.close()
 core.quit()
+
