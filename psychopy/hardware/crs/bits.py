@@ -1132,10 +1132,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         if not self.OK:
             return
 
-        #msg='a'
-        #while msg:
-        #    msg=self.read(timeout=0.1)
-        self.flush()
+        msg='a'
+        while msg:
+            msg=self.read(timeout=0.1)
         self.sendMessage('$VideoFrameRate\r')
         msg=self.read(timeout=0.1)
         msg2 = msg.split(b';')
@@ -2729,11 +2728,7 @@ class DisplayPlusPlus(BitsSharp):
                  noComms)
 
     def __del__(self):
-        """If the user discards this object then close the serial port
-        so it is released.
-        """
-        if hasattr(self, 'com'):
-            self.com.close()
+        super(DisplayPlusPlus,self).__del__()
 
 
 
@@ -2792,11 +2787,8 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         self.touchQ = Queue.Queue(70000) 
 
     def __del__(self):
-        """If the user discards this object then close the serial port
-        so it is released.
-        """
-        if hasattr(self, 'com'):
-            self.com.close()
+        super(DisplayPlusPlusTouch,self).__del__()
+
 
     def RTBoxEnable(self, mode=['CB6','Down','Trigger'], map=None):
         """ Overaload RTBoxEnable for Display++ with touch screen
