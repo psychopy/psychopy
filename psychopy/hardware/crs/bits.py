@@ -614,7 +614,7 @@ class BitsPlusPlus(object):
     
     def syncClocks(self,t):
         """Synchronise the Bits/RTBox Clock with the host clock 
-		Given by t.
+        Given by t.
         """
         self.clockReset=True
         self.win.flip()
@@ -1132,9 +1132,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         if not self.OK:
             return
 
-        msg='a'
-        while len(msg)>0:
-            msg=self.read(timeout=0.1)
+        #msg='a'
+        #while msg:
+        #    msg=self.read(timeout=0.1)
+        self.flush()
         self.sendMessage('$VideoFrameRate\r')
         msg=self.read(timeout=0.1)
         msg2 = msg.split(b';')
@@ -1940,8 +1941,6 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         """
         
-        op=[button() for i in range(N)]
-        EV=0
         if  self.com.inWaiting()>(N*7-1):
             msg=self.read()
             return self._RTBoxDecodeResponse(msg,N)
@@ -1976,7 +1975,6 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         or dictionary
             res['dir'], res['button'], res['time']
         """    
-        op=button()
 
         self.getRTBoxResponses(1)
         if self.nRTPresses>0:
@@ -2271,8 +2269,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         The data can be accessed as value['time'] or value.time
         """
-        op = event()
-        #res=getEvents(alues, DIN_base=1, IR_base=1, Trig_base=0)
+
         if N < self.status_nEvents:
             op = self.statusEvents[N]
             return op
@@ -2317,7 +2314,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
  
         """
-        value=status()
+
         if N < self.status_nValues:
             value=self.statusValues[N]
             return value
@@ -2406,7 +2403,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         self.statusEnabled = False
         self.flush()
 
-    def _statusLog(self,args=60):#,kwargs={'time':60}):
+    def _statusLog(self,args=60):
         """ Should not normally be called by user
         Called in its own thread via self.startStatusLog()
         Reads the status reports from the Bits# for default 60 seconds or
@@ -2520,7 +2517,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             mask = 2**i
             if mask & self.statusIRBase:
                 IR_baseAll[i] = 1
+        
+        Trig_base = self.statusTrigInBase
         N = len(self.statusValues)
+
         self.statusEvents = []
         nEvents = 0
         for i in range(N):
@@ -2570,7 +2570,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                     IR_baseAll[j] = 1
                     nEvents = nEvents + 1
             if ((Trig == 0)
-                 and (self.statusTrigInBase ==1 )
+                 and (Trig_base ==1 )
                  and ('down' in mode)):
                 self.statusEvents.append(event())
                 self.statusEvents[nEvents].source='Trigger'
@@ -2580,7 +2580,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 Trig_base = 0
                 nEvents=nEvents+1
             if ((Trig == 1)
-                 and (self.statusTrigInBase == 0)
+                 and (Trig_base == 0)
                  and ('up' in self.statusMode)):
                 self.statusEvents.append(event())
                 self.statusEvents[nEvents].source = 'Trigger'
@@ -2590,10 +2590,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 Trig_base = 1
                 nEvents = nEvents + 1
         self.status_nEvents=nEvents
-        #return events
 
 
-            
 
     #=======================#
     #   Other functions     #
@@ -2729,7 +2727,13 @@ class DisplayPlusPlus(BitsSharp):
         super(DisplayPlusPlus,self).__init__(win, portName, mode, checkConfigLevel,
                  gammaCorrect, gamma,
                  noComms)
-        
+
+    def __del__(self):
+        """If the user discards this object then close the serial port
+        so it is released.
+        """
+        if hasattr(self, 'com'):
+            self.com.close()
 
 
 
@@ -2786,7 +2790,14 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         self.touchEvents=[]
         # Set up a queue in which to store touch screen events.
         self.touchQ = Queue.Queue(70000) 
-    
+
+    def __del__(self):
+        """If the user discards this object then close the serial port
+        so it is released.
+        """
+        if hasattr(self, 'com'):
+            self.com.close()
+
     def RTBoxEnable(self, mode=['CB6','Down','Trigger'], map=None):
         """ Overaload RTBoxEnable for Display++ with touch screen
         """
@@ -2885,7 +2896,6 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         
         """
 
-        values=[touch() for  i in range(N)]
         if  self.com.inWaiting() > (N*self._touchSize - 1):  
             # Will wait 0.01 seconds per response requested
             self.startTouchLog(N*0.01) 
@@ -2950,10 +2960,6 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             res['dir'], res['x'], res['time']
         
 
-        
-        
-
-        
         Note this function does not start touch screen
             recording so should only be called
             when there appears to be data waiting.
@@ -2961,7 +2967,6 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             touchDisable after this function
         """
         
-        value=touch()
         res=self.getTouchResponses(1)
         value=res[0]
         return value
@@ -3137,7 +3142,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             return self.touchValues
         else:
             print("Que empty")
-            return 'none'
+            return None
 
 
             
@@ -3184,7 +3189,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
                 warning=("_touchLog found"
                          " unknown data on input so skipping that")
                 logging.warning(warning)
-        del values
+
 
     #============================================================#
     #    Touch event functions can be used to get a list of more #
@@ -3274,7 +3279,6 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             or dirctionary
             res['dir'], res['button'], res['time']
         """
-        value = touch()
         values = extractTouchEvents(distance, time)
         value = values[N]
         return value
