@@ -90,6 +90,7 @@ class SimpleGrid(grid.Grid):  # , wxGridAutoEditMixin):
         for nRow in range(self.nRows):
             for nCol in range(self.nCols):
                 self.SetCellEditor(nRow, nCol, self.numEditor)
+                self.numEditor.IncRef()
         self.setData(data)
         # self.SetMargins(-5,-5)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
