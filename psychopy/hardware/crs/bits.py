@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
@@ -1131,14 +1131,16 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                                                checkAwake=True)
         if not self.OK:
             return
-
-        msg='a'
-        while msg:
+        if self.noComms:
+            self.frameRate = 60
+        else:
+            msg='a'
+            while msg:
+                msg=self.read(timeout=0.1)
+            self.sendMessage('$VideoFrameRate\r')
             msg=self.read(timeout=0.1)
-        self.sendMessage('$VideoFrameRate\r')
-        msg=self.read(timeout=0.1)
-        msg2 = msg.split(b';')
-        self.frameRate=float(msg2[1])
+            msg2 = msg.split(b';')
+            self.frameRate = float(msg2[1])
         
         self._setHeaders(self.frameRate)
 
