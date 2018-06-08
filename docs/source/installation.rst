@@ -118,14 +118,21 @@ For developers::
 Anaconda and Miniconda
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following should allow you to get PsychoPy working using Ana/MiniConda::
+The following should allow you to get PsychoPy working using Ana/MiniConda with Python 2.7::
 
-  conda create -n psypy
+  conda create -n psypy python=2.7
   conda activate psypy
-  conda install python=2.7
-  conda install numpy scipy matplotlib pandas pyopengl pyglet pillow moviepy lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil tables requests[security] pyosf cffi pysoundcard pysoundfile seaborn psychopy_ext python-bidi
-  conda install wxpython
-  pip install psychopy
+  conda install numpy scipy matplotlib pandas pyopengl pillow lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil pytables requests[security] cffi seaborn wxpython cython future pyzmq pyserial
+  conda install -c conda-forge pyglet pysoundfile python-bidi moviepy pyosf
+  pip install zmq json-tricks pyparallel sounddevice pygame pysoundcard psychopy_ext psychopy
+
+and with Python 3.5 (recommended)::
+
+  conda create -n psypy3 python=3.5
+  conda activate psypy3
+  conda install numpy scipy matplotlib pandas pyopengl pillow lxml openpyxl xlrd configobj pyyaml gevent greenlet msgpack-python psutil pytables requests[security] cffi seaborn wxpython cython pyzmq pyserial
+  conda install -c conda-forge pyglet pysoundfile python-bidi moviepy pyosf
+  pip install zmq json-tricks pyparallel sounddevice pygame pysoundcard psychopy_ext psychopy
 
 .. _macports_install:
 
