@@ -200,7 +200,7 @@ class ProjectsMenu(wx.Menu):
     def onLogInOSF(self, event):
         # check knownusers list
         users = list(ProjectsMenu.knownUsers.keys())
-        dlg = LogInDlgUserPass(app=self.app)
+        dlg = LogInDlgOSF(app=self.app)
         dlg.Show()
         if self.app.osf_session.authenticated:
             username = self.app.osf_session.username
@@ -216,7 +216,8 @@ class ProjectsMenu(wx.Menu):
         url, state = pavlovia.getAuthURL()
         dlg = OAuthBrowserDlg(self.parent, url, info=info)
         dlg.ShowModal()
-        print(info)
+        if info:
+
         # if self.app.pavloviaSession.authenticated:
         #     username = self.app.osf_session.username
         #     # check whether we need to add this to users menu
@@ -302,111 +303,8 @@ class OAuthBrowserDlg(wx.Dialog):
         url = self.browser.CurrentURL
         return url.split(paramName+'=')[1].split('&')[0]
 
-class UsernamePasswdPanel(wx.Panel):
-    def __init__(self, parent, pavlovia2FAinfo=True):
-        wx.Panel.__init__(self, parent=parent)
-        self.userSizer = wx.GridBagSizer(vgap=5, hgap=5)
-        if pavlovia2FAinfo:
-            msg = wx.StaticText(self,
-                                ("With 2FA enabled you need to visit the link "
-                                 "below and create a private access code "
-                                 "with 'api' access and paste it into the box:")
-                                )
-            link = wx.adv.HyperlinkCtrl(
-                self,
-                url="https://gitlab.pavlovia.org/profile/personal_access_tokens")
-            self.userSizer.Add(msg, pos=(1, 0), span=2, flag=wx.ALIGN_RIGHT)
-            self.userSizer.Add(link, pos=(2, 0),span=2,  flag=wx.ALIGN_RIGHT)
-            startRow = 3
-        else:
-            startRow = 0
-        self.userSizer.Add(wx.StaticText(
-            self,
-            label=_translate("Username")),
-            pos=(startRow+1, 0), flag=wx.ALIGN_RIGHT)
-        self.username = wx.TextCtrl(self)
-        self.username.SetToolTip(wx.ToolTip(_translate("Your username")))
-        self.userSizer.Add(self.username,
-                           pos=(startRow+1, 1), flag=wx.ALIGN_LEFT)
-        # passwd info
-        self.userSizer.Add(
-            wx.StaticText(self, label=_translate("Access Token")),
-            pos=(startRow+2, 0), flag=wx.ALIGN_RIGHT)
-        self.password = wx.TextCtrl(self,
-                                    style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-        self.password.SetToolTip(wx.ToolTip(
-            _translate("Access token")))
-        self.userSizer.Add(self.password,
-                           pos=(startRow+2, 1), flag=wx.ALIGN_LEFT)
-        self.SetSizerAndFit(self.userSizer)
 
-
-class LogInDlgPavlovia(wx.Dialog):
-    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
-                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
-
-    def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=defaultStyle):
-        wx.Dialog.__init__(self, None,
-                           title=_translate("Log in to Pavlovia.org"))
-        self.session = app.pavloviaSession
-        self.app = app
-
-        # if they have 2FA activated then we need a username/token
-        # if not then we can use the OAuth2 dialog
-        self.selecttUserType = wx.Panel(parent=self)
-        query = wx.StaticText(self.selecttUserType,
-                              label="Do you have an account on Pavlovia.org\n"
-                                    "or shall we make a new one?")
-        buttonCreateNewUser = wx.Button(
-            self.selecttUserType,
-            label="Create new account...")
-        buttonStdUser = wx.Button(
-            self.selecttUserType, label="I have an account")
-        button2FAUser = wx.Button(
-            self.selecttUserType, label=("I have an account\n"
-                                         "and I turned on 2-factor auth"))
-        button2FAUser.Bind(wx.EVT_BUTTON, self.onLogin2FA)
-        selectTypeSizer = wx.BoxSizer(wx.VERTICAL)
-        selectTypeSizer.Add(query, flag=wx.ALIGN_CENTER)
-        selectTypeSizer.Add(buttonCreateNewUser, flag=wx.ALIGN_CENTER)
-        selectTypeSizer.Add(buttonStdUser, flag=wx.ALIGN_CENTER)
-        selectTypeSizer.Add(button2FAUser, flag=wx.ALIGN_CENTER)
-        self.selecttUserType.SetSizer(selectTypeSizer)
-
-        self.userPwdPanel = UsernamePasswdPanel(parent=self)
-        self.userPwdPanel.Hide()
-
-        self.authViewer = wx.html2.WebView.New(self)
-
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.selecttUserType)
-        self.mainSizer.Add(self.userPwdPanel)
-        self.mainSizer.Add(self.authViewer)
-        self.SetSizerAndFit(self.mainSizer)
-        self.Layout()
-
-    def onLogin2FA(self, event):
-        self.selecttUserType.Hide()
-        self.userPwdPanel.Show()
-        self.Layout()
-
-    def onNew(self, event):
-        self.selecttUserType.Hide()
-
-        auth_url = ('https://gitlab.pavlovia.org/oauth/authorize?client_id={}'
-                    '&redirect_uri={}&response_type=token&state={}'
-                    .format(client_id, redirect_url, state))
-        self.authViewer.Show()
-        self.Layout()
-
-    def onOAuth2(self, event):
-        self.selecttUserType.Hide()
-        self.authViewer.Show()
-        self.Layout()
-
-
-class LogInDlgUserPass(wx.Dialog):
+class LogInDlgOSF(wx.Dialog):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
 
@@ -416,114 +314,6 @@ class LogInDlgUserPass(wx.Dialog):
         wx.Dialog.__init__(self, None,
                            title=_translate(
                                "Log in to Pavlovia.org"))
-        self.session = app.osf_session
-        self.app = app
-
-        self.fieldsSizer = wx.GridBagSizer(vgap=5, hgap=5)
-
-        if web.haveInternetAccess():
-            self.status = wx.StaticText(self,
-                                        label=_translate("Status: Ready"))
-        else:
-            self.status = wx.StaticText(self,
-                                        label=_translate("No internet access"))
-        self.fieldsSizer.Add(self.status,
-                             pos=(0, 0), span=(1, 2),
-                             flag=wx.ALIGN_CENTER, border=10)
-
-        # user info
-        self.fieldsSizer.Add(wx.StaticText(
-            self,
-            label=_translate("OSF Username (email)")),
-            pos=(1, 0), flag=wx.ALIGN_RIGHT)
-        self.username = wx.TextCtrl(self)
-        self.username.SetToolTip(wx.ToolTip(_translate("Your username on OSF "
-                                                       "(the email address you used)")))
-        self.fieldsSizer.Add(self.username,
-                             pos=(1, 1), flag=wx.ALIGN_LEFT)
-        # pass info
-        self.fieldsSizer.Add(wx.StaticText(self, label=_translate("Password")),
-                             pos=(2, 0), flag=wx.ALIGN_RIGHT)
-        self.password = wx.TextCtrl(self,
-                                    style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
-        self.password.SetToolTip(wx.ToolTip(
-            _translate("Your password on OSF "
-                       "(will be checked securely with https)")))
-        self.fieldsSizer.Add(self.password,
-                             pos=(2, 1), flag=wx.ALIGN_LEFT)
-        # remember me
-        self.fieldsSizer.Add(wx.StaticText(
-            self, label=_translate("Remember me")),
-            pos=(3, 0), flag=wx.ALIGN_RIGHT)
-        self.rememberMe = wx.CheckBox(self, True)
-        self.rememberMe.SetToolTip(_translate("We won't store your password - "
-                                              "just an authorisation token"))
-        self.fieldsSizer.Add(self.rememberMe,
-                             pos=(3, 1), flag=wx.ALIGN_LEFT)
-
-        # buttons (Log in, Cancel)
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.cancelBtn = wx.Button(
-            self, wx.ID_CANCEL, _translate('Cancel'))
-        self.Bind(wx.EVT_BUTTON, self.onCancel, id=wx.ID_CANCEL)
-        btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
-
-        self.okBtn = wx.Button(self, wx.ID_OK, _translate("Login"))
-        self.okBtn.SetDefault()
-        self.Bind(wx.EVT_BUTTON, self.onLogin, id=wx.ID_OK)
-        btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
-
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(self.fieldsSizer, 0, wx.ALL, 5)
-        self.main_sizer.Add(btnSizer, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
-        self.SetSizerAndFit(self.main_sizer)
-
-    def onLogin(self, event):
-        """
-        Check credentials and login
-        """
-        if not havePyosf:
-            dialogs.MessageDialog(parent=self.parent, type='Warning',
-                                  title=_translate("pyosf not found"),
-                                  message=_translate("You need pyosf to "
-                                                     "log in to Open Science Framework"),
-                                  )
-            return None
-        username = self.username.GetValue()
-        pword = self.password.GetValue()
-        rememberMe = bool(self.rememberMe.GetValue())
-        try:
-            session = pyosf.Session(username=username,
-                                    password=pword, remember_me=rememberMe)
-            self.app.osf_session = session
-            self.updateStatus(_translate("Successful authentication"),
-                              color=(0, 170, 0))
-            time.sleep(0.5)
-            self.Destroy()
-        except pyosf.AuthError:
-            self.updateStatus(_translate("Failed to Authenticate. "
-                                         "Check username/password"),
-                              color=(255, 0, 0))
-
-    def onCancel(self, event):
-        self.Destroy()
-
-    def updateStatus(self, status, color=(0, 0, 0)):
-        self.status.SetLabel(status)
-        self.status.SetForegroundColour(color)  # set text color
-        self.main_sizer.Fit(self)
-        self.Update()
-
-
-class LogInDlgUserPass(wx.Dialog):
-    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
-                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
-
-    def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=defaultStyle):
-        wx.Dialog.__init__(self, None,
-                           title=_translate(
-                               "Log in to Open Science Framework"))
         self.session = app.osf_session
         self.app = app
 
@@ -665,8 +455,8 @@ class SearchFrame(BaseFrame):
 
     def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
-        title = _translate("Search OSF (Open Science Framework)")
-        self.frameType = 'OSFsearch'
+        title = _translate("Search for projects online")
+        self.frameType = 'ProjectSearch'
         BaseFrame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
         self.currentOSFProject = None

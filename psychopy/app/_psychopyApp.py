@@ -49,8 +49,8 @@ from psychopy.localization import _translate
 
 # needed by splash screen for the path to resources/psychopySplash.png
 from psychopy import preferences, logging, __version__
+from psychopy import projects
 from . import connections
-from . import projects
 from .utils import FileDropTarget
 import os
 import threading
@@ -158,7 +158,7 @@ class PsychoPyApp(wx.App):
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
-        self.osf_session = None
+        self.osfSession = None
         self.pavloviaSession = None
 
         self.copiedRoutine = None
@@ -646,7 +646,7 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
-        projects.projectCatalog = None  # garbage collect the projects before sys.exit
+        projects.catalog = None  # garbage collect the projects before sys.exit
         # see whether any files need saving
         for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere

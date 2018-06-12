@@ -37,7 +37,7 @@ import locale
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
-from .. import projects
+from .. import projectsPavlovia
 from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
@@ -1861,8 +1861,8 @@ class CoderFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
 
         # ---_projects---#000000#FFFFFF---------------------------------------
-        self.projectsMenu = projects.ProjectsMenu(parent=self)
-        menuBar.Append(self.projectsMenu, _translate("P&rojects"))
+        self.pavloviaMenu = projectsPavlovia.PavloviaMenu(parent=self)
+        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()

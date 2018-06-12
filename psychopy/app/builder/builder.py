@@ -37,7 +37,6 @@ from psychopy.localization import _translate
 
 from ... import experiment
 from .. import stdOutRich, dialogs
-from .. import projects
 from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
@@ -45,6 +44,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 from psychopy.experiment import components
+from .. import projectsPavlovia
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -1473,9 +1473,9 @@ class BuilderFrame(wx.Frame):
         self.updateDemosMenu()
         menuBar.Append(self.demosMenu, _translate('&Demos'))
 
-        # ---_projects---#000000#FFFFFF-------------------------------------------
-        self.projectsMenu = projects.ProjectsMenu(parent=self)
-        menuBar.Append(self.projectsMenu, _translate("P&rojects"))
+        # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
+        self.pavloviaMenu = projectsPavlovia.PavloviaMenu(parent=self)
+        menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
         self.helpMenu = wx.Menu()
