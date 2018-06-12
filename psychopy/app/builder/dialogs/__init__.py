@@ -1562,6 +1562,23 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
                 return  # no update or display changes
+            
+            # check for Builder variables
+            builderVariables = []
+            for condName in self.condNamesInFile:
+                if condName in self.exp.namespace.builder:
+                    builderVariables.append(condName)
+            if builderVariables:
+                msg = _translate('Builder variable(s) ({}) in file:{}'.format(
+                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1]))
+                self.currentCtrls['conditions'].setValue(msg)
+                msg = 'Rejected Builder variable(s) ({}) in file:{}'.format(
+                    ','.join(builderVariables), newFullPath.split(os.path.sep)[-1])
+                logging.error(msg)
+                self.conditionsFile = self.conditionsFileOrig
+                self.conditions = self.conditionsOrig
+                return  # no update or display changes
+            
             duplCondNames = []
             if len(self.condNamesInFile):
                 for condName in self.condNamesInFile:
