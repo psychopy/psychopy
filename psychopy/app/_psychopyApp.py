@@ -191,7 +191,7 @@ class PsychoPyApp(wx.App):
                 self.prefs.paths['resources'], 'psychopySplash.png')
             splashImage = wx.Image(name=splashFile)
             splashImage.ConvertAlphaToMask()
-            splash = AS.AdvancedSplash(None, bitmap=wx.Bitmap(splashImage),
+            splash = AS.AdvancedSplash(None, bitmap=splashImage.ConvertToBitmap(),
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?
