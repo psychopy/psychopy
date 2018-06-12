@@ -27,6 +27,13 @@ redirect_url = 'https://gitlab.pavlovia.org/'
 # currentSession = PavloviaSession()
 # tokenStorage = PavloviaTokenStorage()
 
+permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
+    10: 'Guest',
+    20: 'Reporter',
+    30: 'Developer',  # (can push to non-protected branches)
+    40: 'Maintainer',
+    50: 'Owner'}
+
 def getAuthURL():
     state = str(uuid4())  # create a private "state" based on uuid
     auth_url = ('https://gitlab.pavlovia.org/oauth/authorize?client_id={}'
@@ -120,17 +127,17 @@ class PavloviaSession:
         A list of OSFProject objects
 
         """
-        print('did fake search')
-        return
+        rawProjs = self.gitlab.projects.list(search='search_str')
+        projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
+        return projs
 
-    def findUserProjects(self, user_id=None):
+    def findUserProjects(self):
         """Finds all readable projects of a given user_id
         (None for current user)
         """
-        projs=[]
-        for proj in self.gitlab.projects.list():
-            if proj.id:
-                projs.append(PavloviaProject(proj))
+        print(dir(self.gitlab.user))
+        rawProjs = self.gitlab.user.projects.list()
+        projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
 
     def findUsers(self, search_str):
@@ -213,20 +220,30 @@ class PavloviaProject:
         if isinstance(proj, gitlab.v4.objects.Project):
             self._proj = proj
         else:
-            self._proj = self.gitlab.projects.get(id)
-        #print(self.attributes)
+            print(proj)
+            self._proj = currentSession.gitlab.projects.get(proj)
 
     def __getattr__(self, name):
-        if name in self.__dict__:
-            return self.__dict__[name]
+        if name=='owner':
+            return
+        proj = self.__dict__['_proj']
+        toSearch = [self.__dict__, proj._attrs]
+        if 'attributes' in self._proj.__dict__:
+            toSearch.append(self._proj.__dict__['attributes'])
+        for attDict in toSearch:
+            if name in attDict:
+                if name=='owner':
+                    print('got_owner: {}'.format(attDict[name]))
+                return attDict[name]
+        # error if none found
+        if name == 'id':
+            selfDescr = "PavloviaProject"
         else:
-            return getattr(self._proj, name)
-        raise AttributeError("No attribute by the name {} in {}"
-                             .format(name, self))
-
+            selfDescr = repr(self)  # this includes self.id so don't use if id fails!
+        raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
 
     def __repr__(self):
-        return "PavloviaProject(%r)" % (self.id)
+        return "PavloviaProject"
 
     def __str__(self):
         return "PavloviaProject {}: {}" % (self.id, self.attributes)
@@ -240,22 +257,15 @@ class PavloviaProject:
 
     @property
     def owner(self):
-        if 'owner' in self.attributes:
-            print("own {}".format(self.attributes['owner'].username))
-            return self.attributes['owner'].username
+        return self._proj.attributes['namespace']['name']
+        if 'owner' in self._proj.attributes:
+            return self._proj.attributes['owner']['username']
         else:
-            print("namespace {}".format(self.namespace['name']))
-            return self.namespace['name']
+            return self._proj.attributes['namespace']['name']
 
-    # @property
-    # def owner(self):
-    #     """Name of this file
-    #     """
-    #     if 'owner' in self.attributes:
-    #         owner = self.owner['username']
-    #     else:
-    #         owner = self.namespace['name']
-    #     return str(owner)
+    @property
+    def attributes(self):
+        return self._proj.attributes
 
     @property
     def title(self):
@@ -263,6 +273,11 @@ class PavloviaProject:
         """
         return self.name
 
+    @property
+    def tags(self):
+        """The title of this project (alias for name)
+        """
+        return self.tag_list
 
 # create an instance of that
 tokenStorage = PavloviaTokenStorage()

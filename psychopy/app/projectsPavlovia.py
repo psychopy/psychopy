@@ -314,7 +314,7 @@ class SearchFrame(BaseFrame):
         self.publicProjectsPanel.setContents(_translate("searching..."))
         self.publicProjectsPanel.Update()
         wx.Yield()
-        projs = session.find_projects(search_str=searchStr, tags=tagsStr)
+        projs = session.findProjects(search_str=searchStr, tags=tagsStr)
         self.publicProjectsPanel.setContents(projs)
 
 
@@ -356,6 +356,8 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             self.projView.InsertColumn(2, 'name')
             for index, thisProj in enumerate(projects):
                 #print(dir(thisProj))
+                if not hasattr(thisProj, 'id'):
+                    continue
                 self.projView.Append([thisProj.id,
                                       thisProj.owner, thisProj.name])
             # set the column sizes *after* adding the items
@@ -373,7 +375,8 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     def onChangeSelection(self, event):
         projId = event.GetText()
         self.parent.detailsPanel.setProject(projId)
-        if 'write' in proj.attributes['current_user_permissions']:
+        proj = self.parent.detailsPanel.project
+        if proj.permissions['project_access']>=30:
             self.parent.syncButton.Enable(True)
             self.parent.currentPavloviaProject = proj
         else:
@@ -388,7 +391,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
         self.app = self.parent.app
-        self.currentProj = None
+        self.project = None
         self.noTitle = noTitle
 
         if not noTitle:
@@ -434,29 +437,28 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.url.SetURL("https://gitlab.pavlovia.org/{}/{}"
                         .format(project.owner, project.name))
         self.description.SetLabel(project.attributes['description'])
-
         if project.visibility in ['public', 'internal']:
             visib = "Public"
         else:
             visib = "Private"
         self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
-        tags = copy.copy(project.tags)
-        while None in tags:
+
+        while None in project.tags:
             project.tags.remove(None)
-        self.tags.SetLabel(_translate("Tags:") + " " + ", ".join(tags))
+        self.tags.SetLabel(_translate("Tags:") + " " + ", ".join(project.tags))
 
         # store this ID to keep track of the current project
-        self.currentProj = project
+        self.project = project
         self.SendSizeEvent()
 
     def onResize(self, evt=None):
-        if self.currentProj is None:
+        if self.project is None:
             return
         w, h = self.GetSize()
-        self.description.SetLabel(self.currentProj.attributes['description'])
+        self.description.SetLabel(self.project.attributes['description'])
         self.description.Wrap(w - 20)
         if not self.noTitle:
-            self.title.SetLabel(self.currentProj.name)
+            self.title.SetLabel(self.project.name)
             self.title.Wrap(w - 20)
         self.Layout()
 
