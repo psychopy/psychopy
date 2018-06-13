@@ -187,9 +187,9 @@ class Dlg(QtWidgets.QDialog):
                         jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
                     elif thisType == float:
-                        self.data[ix] = float(str(new_text))
+                        self.data[ix] = float(new_text)
                     elif thisType == int:
-                        self.data[ix] = int(str(new_text))
+                        self.data[ix] = int(new_text)
                     elif thisType == dict:
                         jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
