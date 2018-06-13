@@ -2237,12 +2237,12 @@ class BuilderFrame(wx.Frame):
         # Compile script from command line using version
         compiler = 'psychopy.scripts.psyexpCompile'
         if not constants.PY3:
-            print(experimentPath, type(experimentPath))
-            experimentPath.decode(sys.getfilesystemencoding())
-        subprocess.check_output("python -m {} {} -v {} -o {}".format(compiler,
-                                                                     self.filename,
-                                                                     version,
-                                                                     experimentPath))
+            filename = self.filename.encode(sys.getfilesystemencoding())
+            experimentPath = experimentPath.encode(sys.getfilesystemencoding())
+        else:
+            filename = self.filename
+        subprocess.check_output(['python', '-m', compiler, filename,
+                                 '-v', version, '-o', experimentPath])
 
 
 class ReadmeFrame(wx.Frame):
