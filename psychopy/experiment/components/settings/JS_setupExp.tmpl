@@ -1,7 +1,7 @@
 function setupExperiment() {{
 
   // An ExperimentHandler isn't essential but helps with data saving
-  psychoJS.experiment = new ExperimentHandler({{
+  _.experiment = new ExperimentHandler({{
       name: {params[expName]},
       version: '',
       extraInfo: _.expInfo,
@@ -9,7 +9,9 @@ function setupExperiment() {{
       /*dataFileName=filename*/}});
 
   // setup resource manager:
-  psychoJS.resourceManager = new ResourceManager({{
+  _.resourceManager = new ResourceManager({{
+    projectName: {params[expName]},
+    projectId: 2,
     repository: ResourceManager.Repository.{saveType},
     type: ResourceManager.Status.PUBLIC
   }});

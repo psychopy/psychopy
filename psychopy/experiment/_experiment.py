@@ -671,15 +671,15 @@ class Experiment(object):
                     filePath = eval(filePath)
                 except NameError:
                     # List files in director and get condition files
-                    if 'xlsx' in filePath or 'csv' in filePath:
+                    if 'xlsx' in filePath or 'xls' in filePath or 'csv' in filePath:
                         # Get all xlsx and csv files
                         fileList = ([getPaths(condFile) for condFile in os.listdir()
                                     if len(condFile.split('.')) > 1
-                                    and condFile.split('.')[1] in ['xlsx', 'csv']])
+                                    and condFile.split('.')[1] in ['xlsx', 'xls', 'csv']])
                         return fileList
             paths = []
             # does it look at all like an excel file?
-            if (not isinstance(filePath, basestring) or filePath.split('.')[1] not in ['csv', 'xlsx']):
+            if (not isinstance(filePath, basestring) or filePath.split('.')[1] not in ['csv', 'xlsx', 'xls']):
                 return paths
             thisFile = getPaths(filePath)
             # does it exist?
@@ -698,7 +698,7 @@ class Experiment(object):
                     if subFile:
                         paths.append(subFile)
                         # if it's a possible conditions file then recursive
-                        if thisFile['abs'][-4:] in ["xlsx", ".csv"]:
+                        if thisFile['abs'][-4:] in ["xlsx", ".xls", ".csv"]:
                             contained = findPathsInFile(subFile['abs'])
                             paths.extend(contained)
             return paths
