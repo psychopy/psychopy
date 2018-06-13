@@ -328,6 +328,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
                                          style=wx.SUNKEN_BORDER)
         self.parent = parent
         self.knownProjects = {}
+        self.projList = []
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.mainSizer)  # don't do Fit
         self.mainSizer.Fit(self)
@@ -351,15 +352,16 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
 
             # Give it some columns.
             # The ID col we'll customize a bit:
-            self.projView.InsertColumn(0, 'id')
-            self.projView.InsertColumn(1, 'owner')
-            self.projView.InsertColumn(2, 'name')
+            self.projView.InsertColumn(0, 'owner')
+            self.projView.InsertColumn(1, 'name')
+            self.projView.InsertColumn(1, 'description')
+            self.projList = []
             for index, thisProj in enumerate(projects):
-                #print(dir(thisProj))
                 if not hasattr(thisProj, 'id'):
                     continue
-                self.projView.Append([thisProj.id,
-                                      thisProj.owner, thisProj.name])
+                self.projView.Append([thisProj.owner, thisProj.name,
+                                      thisProj.description])
+                self.projList.append(thisProj)
             # set the column sizes *after* adding the items
             self.projView.SetColumnWidth(0, wx.LIST_AUTOSIZE)
             self.projView.SetColumnWidth(1, wx.LIST_AUTOSIZE)
@@ -373,10 +375,13 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
         self.FitInside()
 
     def onChangeSelection(self, event):
-        projId = event.GetText()
-        self.parent.detailsPanel.setProject(projId)
+        proj = self.projList[event.GetIndex()]
+        self.parent.detailsPanel.setProject(proj)
         proj = self.parent.detailsPanel.project
-        if proj.permissions['project_access']>=30:
+        perms = proj.permissions['project_access']
+        if type(perms)==dict:
+            perms = perms['access_level']
+        if perms >= pavlovia.permissions['developer']:
             self.parent.syncButton.Enable(True)
             self.parent.currentPavloviaProject = proj
         else:
@@ -426,8 +431,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.SetupScrolling()
         self.Bind(wx.EVT_SIZE, self.onResize)
 
-    def setProject(self, projectID):
-        project = pavlovia.currentSession.projectFromID(projectID)
+    def setProject(self, project):
+        if not isinstance(project, pavlovia.PavloviaProject):
+            #e.g. '382' or 382
+            project = pavlovia.currentSession.projectFromID(project)
         if project is None:
             return  # we're done
 
@@ -540,7 +547,7 @@ class ProjectFrame(BaseFrame):
         columnSizer.Add(leftSizer, border=5,
                         flag=wx.EXPAND | wx.ALL, proportion=1)
         columnSizer.Add(rightSizer, border=5,
-                        flag=wx.EXPAND | wx.ALL, proportion=1)
+                        flag=wx.EXPAND | wx.ALL, proportion=0.75)
         self.mainSizer.Add(columnSizer, proportion=1,
                            flag=wx.EXPAND | wx.ALL, border=5)
 

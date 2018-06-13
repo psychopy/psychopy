@@ -16,6 +16,7 @@ import gitlab.v4.objects
 import json
 # for authentication
 from uuid import uuid4
+
 projectsFolder = os.path.join(prefs.paths['userPrefsDir'], 'projects')
 
 rootURL = "https://gitlab.pavlovia.org"
@@ -28,11 +29,12 @@ redirect_url = 'https://gitlab.pavlovia.org/'
 # tokenStorage = PavloviaTokenStorage()
 
 permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
-    10: 'Guest',
-    20: 'Reporter',
-    30: 'Developer',  # (can push to non-protected branches)
-    40: 'Maintainer',
-    50: 'Owner'}
+    'guest': 10,
+    'reporter': 20,
+    'developer': 30,  # (can push to non-protected branches)
+    'maintainer': 30,
+    'owner': 50}
+
 
 def getAuthURL():
     state = str(uuid4())  # create a private "state" based on uuid
@@ -66,6 +68,7 @@ class PavloviaSession:
     The session will store a token, which can then be used to authenticate
     for project read/write access
     """
+
     def __init__(self, token=None, remember_me=True):
         """Create a session to send requests with the pavlovia server
 
@@ -92,7 +95,7 @@ class PavloviaSession:
         return proj
 
     def createProject(self, title, descr="", tags=[], public=False,
-                       category='project'):
+                      category='project'):
         raise NotImplemented
 
     def projectFromID(self, id):
@@ -113,7 +116,7 @@ class PavloviaSession:
         else:
             return None
 
-    def findProjects(self, search_str, tags="psychopy"):
+    def findProjects(self, search_str='', tags="psychopy"):
         """
         Parameters
         ----------
@@ -127,7 +130,9 @@ class PavloviaSession:
         A list of OSFProject objects
 
         """
-        rawProjs = self.gitlab.projects.list(search='search_str')
+        rawProjs = self.gitlab.projects.list(
+                search=search_str,
+                as_list=False)  # iterator not list for auto-pagination
         projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
 
@@ -135,9 +140,14 @@ class PavloviaSession:
         """Finds all readable projects of a given user_id
         (None for current user)
         """
-        print(dir(self.gitlab.user))
-        rawProjs = self.gitlab.user.projects.list()
-        projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
+        own = self.gitlab.projects.list(owned=True)
+        group = self.gitlab.projects.list(owned=False, membership=True)
+        projs = []
+        projIDs = []
+        for proj in own+group:
+            if proj.id and proj.id not in projIDs:
+                projs.append(PavloviaProject(proj))
+                projIDs.append(proj.id)
         return projs
 
     def findUsers(self, search_str):
@@ -181,6 +191,7 @@ class PavloviaSession:
 class PavloviaTokenStorage(dict):
     """Dict-based class to store all the known tokens according to username
     """
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self.load()
@@ -190,7 +201,8 @@ class PavloviaTokenStorage(dict):
         (defaults to ~/.PsychoPy3/pavlovia.json)
         """
         if filename is None:
-            filename = os.path.join(prefs.paths['userPrefsDir'], 'pavlovia.json')
+            filename = os.path.join(prefs.paths['userPrefsDir'],
+                                    'pavlovia.json')
         if os.path.isfile(filename):
             with open(filename, 'r') as f:
                 try:
@@ -203,7 +215,8 @@ class PavloviaTokenStorage(dict):
         (defaults to ~/.PsychoPy3/pavlovia.json)
         """
         if filename is None:
-            filename = os.path.join(prefs.paths['userPrefsDir'], 'pavlovia.json')
+            filename = os.path.join(prefs.paths['userPrefsDir'],
+                                    'pavlovia.json')
         if not os.path.isdir(prefs.paths['userPrefsDir']):
             os.makedirs(prefs.paths['userPrefsDir'])
         with open(filename, 'wb') as f:
@@ -213,9 +226,11 @@ class PavloviaTokenStorage(dict):
             else:
                 f.write(json_str)
 
+
 class PavloviaProject:
     """A Pavlovia project, with name, url etc
     """
+
     def __init__(self, proj):
         if isinstance(proj, gitlab.v4.objects.Project):
             self._proj = proj
@@ -224,7 +239,7 @@ class PavloviaProject:
             self._proj = currentSession.gitlab.projects.get(proj)
 
     def __getattr__(self, name):
-        if name=='owner':
+        if name == 'owner':
             return
         proj = self.__dict__['_proj']
         toSearch = [self.__dict__, proj._attrs]
@@ -232,14 +247,15 @@ class PavloviaProject:
             toSearch.append(self._proj.__dict__['attributes'])
         for attDict in toSearch:
             if name in attDict:
-                if name=='owner':
+                if name == 'owner':
                     print('got_owner: {}'.format(attDict[name]))
                 return attDict[name]
         # error if none found
         if name == 'id':
             selfDescr = "PavloviaProject"
         else:
-            selfDescr = repr(self)  # this includes self.id so don't use if id fails!
+            selfDescr = repr(
+                self)  # this includes self.id so don't use if id fails!
         raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
 
     def __repr__(self):
@@ -278,6 +294,7 @@ class PavloviaProject:
         """The title of this project (alias for name)
         """
         return self.tag_list
+
 
 # create an instance of that
 tokenStorage = PavloviaTokenStorage()
