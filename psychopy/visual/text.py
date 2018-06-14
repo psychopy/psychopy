@@ -34,6 +34,12 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
     ContainerMixin)
 
+# for displaying right-to-left (possibly bidirectional) text correctly:
+from bidi import algorithm as bidi_algorithm # sufficient for Hebrew
+# extra step needed to reshape Arabic/Farsi characters depending on
+# their neighbours:
+import arabic_reshaper
+
 import numpy
 
 try:
@@ -89,6 +95,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  wrapWidth=None,
                  flipHoriz=False,
                  flipVert=False,
+                 languageStyle='LTR',
                  name=None,
                  autoLog=None):
         """
@@ -104,6 +111,29 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         In general, other attributes which merely affect the presentation of
         unchanged shapes are as fast as usual. This includes ``pos``,
         ``opacity`` etc.
+
+        The following attribute can only be set at initialization (see
+        further down for a list of attributes which can be changed after
+        initialization):
+
+        **languageStyle**
+            Apply settings to correctly display content from some languages
+            that are written right-to-left. Currently there are three (case-
+            insensitive) values for this parameter:
+            ``'LTR'`` is the default, for typical left-to-right, Latin-style
+            languages.
+            ``'RTL'`` will correctly display text in right-to-left languages
+             such as Hebrew. By applying the bidirectional algorithm, it
+             allows mixing portions of left-to-right content (such as numbers
+             or Latin script) within the string.
+            ``'Arabic'`` applies the bidirectional algorithm but additionally
+            will _reshape_ Arabic characters so they appear in the cursive,
+            linked form that depends on neighbouring characters, rather than
+            in their isolated form. May also be applied in other scripts,
+            such as Farsi or Urdu, that use Arabic-style alphabets.
+
+        :Parameters:
+
         """
 
         # what local vars are defined (these are the init params) for use by
@@ -134,6 +164,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['ori'] = ori
         self.__dict__['flipHoriz'] = flipHoriz
         self.__dict__['flipVert'] = flipVert
+        self.__dict__['languageStyle'] = languageStyle
         self._pygletTextObj = None
         self.__dict__['pos'] = numpy.array(pos, float)
 
@@ -274,13 +305,29 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """The text to be rendered. Use \\\\n to make new lines.
 
         Issues: May be slow, and pyglet has a memory leak when setting text.
-        For these reasons, check and only update the text if it has changed.
-        So scripts can safely set the text on every frame, no need to check.
+        For these reasons, this function checks so that it only updates the
+        text if it has changed. So scripts can safely set the text on every
+        frame, with no need to check if it has actually altered.
         """
-        if text == self.text:
+        if text == self.text: # only update for a change
             return
-        if text != None:  # make sure we have unicode object to render
-            self.__dict__['text'] = str(text)
+        if text is not None:
+            text = str(text)  # make sure we have unicode object to render
+
+            # deal with some international text issues.
+            style = self.languageStyle.lower()  # be flexible with case
+            if style == 'rtl' or style == 'arabic':
+                # deal with right-to-left text presentation by applying the
+                # bidirectional algorithm:
+                text = bidi_algorithm.get_display(text)
+            if style == 'arabic':
+                # reshape Arabic characters from their isolated form so that
+                # they flow and join correctly to their neighbours:
+                text = arabic_reshaper.reshape(text)
+            # no action needed for default 'ltr' (left-to-right) option
+
+            self.__dict__['text'] = text
+
         if self.useShaders:
             self._setTextShaders(text)
         else:
@@ -584,7 +631,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def bold(self, value):
-        """Make the text bold (True, False). Better to use a bold font name).
+        """Make the text bold (True, False) (better to use a bold font name).
         """
         self.__dict__['bold'] = value
         self.font = self.font  # call attributeSetter
