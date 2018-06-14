@@ -940,7 +940,7 @@ class Window(object):
         self.movieFrames.append(im)
         return im
 
-    def _getFrame(self, buffer='front', rect=None):
+    def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.
         """
         # GL.glLoadIdentity()
@@ -971,10 +971,10 @@ class Window(object):
         GL.glReadPixels(left, top, w, h,
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=(horz, vert),
+            im = Image.fromstring(mode='RGBA', size=(w, h),
                                   data=bufferDat)
         except Exception:
-            im = Image.frombytes(mode='RGBA', size=(horz, vert),
+            im = Image.frombytes(mode='RGBA', size=(w, h),
                                  data=bufferDat)
 
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
@@ -982,7 +982,6 @@ class Window(object):
 
         if self.useFBO and buffer == 'front':
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-
         return im
 
     def saveMovieFrames(self, fileName, codec='libx264',
@@ -1079,8 +1078,7 @@ class Window(object):
         and call _getRegionOfFrame as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
-        region = _getFrame(self, rect=rect, buffer=buffer)
-
+        region = self._getFrame(rect=rect, buffer=buffer)
         if power2 or squarePower2:  # use to avoid interpolation in PatchStim
             if squarePower2:
                 maxsize = max(region.size)
@@ -1094,7 +1092,6 @@ class Window(object):
             imP2.paste(region, (int(xPowerOf2 / 2. - region.size[0] / 2.),
                                 int(yPowerOf2 / 2.) - region.size[1] / 2))
             region = imP2
-
         return region
 
     def close(self):
