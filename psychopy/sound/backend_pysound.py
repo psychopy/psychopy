@@ -36,7 +36,9 @@ def getDevices(kind=None):
         if (dev['max_output_channels']==0 and kind=='output' or
                 dev['max_input_channels']==0 and kind=='input'):
             continue
-        devs[dev['name']] = dev
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n','')
+        devs[devName] = dev
         dev['id'] = ii
     return devs
 

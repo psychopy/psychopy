@@ -45,7 +45,9 @@ def getDevices(kind=None):
     if type(allDevs) == dict:
         allDevs = [allDevs]
     for ii, dev in enumerate(allDevs):
-        devs[dev['name']] = dev
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n','')
+        devs[devName] = dev
         dev['id'] = ii
     return devs
 
