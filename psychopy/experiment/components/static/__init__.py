@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce'
 
@@ -156,7 +157,11 @@ class StaticComponent(BaseComponent):
                     prms = compName.params  # it's already a compon so get params
                 else:
                     # it's a name so get compon and then get params
-                    prms = self.exp.getComponentFromName(bytes(compName)).params
+                    if PY3:
+                        prms = self.exp.getComponentFromName(str(compName)).params
+                    else:
+                        prms = self.exp.getComponentFromName(bytes(compName)).params
+
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],
