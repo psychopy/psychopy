@@ -88,9 +88,9 @@ def test_bitsShaders():
             stim.image = np.resize(intended,[256,256])*2-1 #NB psychopy uses -1:1
 
             stim.draw()
-            #fr = np.array(win._getFrame('back').transpose(Image.ROTATE_270))
+            #fr = np.array(win._getFrame(buffer='back').transpose(Image.ROTATE_270))
             win.flip()
-            fr = np.array(win._getFrame('front').transpose(Image.ROTATE_270))
+            fr = np.array(win._getFrame(buffer='front').transpose(Image.ROTATE_270))
             if not _travisTesting:
                 assert np.alltrue(thisExpected['lowR'] == fr[0:10,-1,0])
                 assert np.alltrue(thisExpected['lowG'] == fr[0:10,-1,1])
