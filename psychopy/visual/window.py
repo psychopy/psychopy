@@ -22,7 +22,7 @@ from builtins import str
 from past.builtins import basestring
 
 from psychopy.contrib.lazy_import import lazy_import
-
+from psychopy import colors
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
 haveAvbin = False
@@ -1217,8 +1217,10 @@ class Window(object):
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif self.colorSpace in ['rgb255', 'named', 'hex']:
+        elif self.colorSpace in ['rgb255', 'named']:
             desiredRGB = self.rgb / 255.0
+        elif self.colorSpace in ['hex']:
+            desiredRGB = [rgbs/255.0 for rgbs in colors.hex2rgb255(color)]
         else:  # some array / numeric stuff
             msg = 'invalid value %r for Window.colorSpace'
             raise ValueError(msg % colorSpace)
