@@ -119,7 +119,7 @@ class Routine(list):
                 't = 0\n'
                 '%s.reset()  # clock\n'
                 'frameN = -1\n'
-                'let continueRoutine = True\n')
+                'continueRoutine = True\n')
         buff.writeIndentedLines(code % (self.name, self._clockName))
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
