@@ -74,13 +74,23 @@ class SoundComponent(BaseComponent):
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
-        if inits['stopVal'].val in ['', None, 'None']:
+        if '$' in inits['stopVal'].val:
             inits['stopVal'].val = -1
-        elif float(inits['stopVal'].val) > 2:
-            inits['stopVal'].val = -1
+        else:
+            if inits['stopVal'].val in ['', None, 'None']:
+                inits['stopVal'].val = -1
+            elif float(inits['stopVal'].val) > 2:
+                inits['stopVal'].val = -1
         buff.writeIndented("%s = sound.Sound(%s, secs=%s)\n" %
                            (inits['name'], inits['sound'], inits['stopVal']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
+
+    def writeRoutineStartCode(self, buff):
+        inits = getInitVals(self.params)
+        if '$' in inits['stopVal'].val:
+            buff.writeIndented("%s.setSound(%s, secs=%s)\n" %
+                               (inits['name'], inits['sound'], inits['stopVal']))
+            buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -98,12 +108,16 @@ class SoundComponent(BaseComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
-            if not float(self.params['stopVal'].val) < 2: # Reduce spectral splatter but not stopping short sounds
+            if '$' in self.params['stopVal'].val:
+                code = 'if sound_1.status == STARTED and t >= dur:\n' \
+                       '    %s.stop()  # stop the sound (if longer than duration)\n'
+                buff.writeIndentedLines(code % self.params['name'])
+            elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
                 self.writeStopTestCode(buff)
                 code = "%s.stop()  # stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])
-                # because of the 'if' statement of the time test
-                buff.setIndentLevel(-1, relative=True)
+            # because of the 'if' statement of the time test
+            # buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"
