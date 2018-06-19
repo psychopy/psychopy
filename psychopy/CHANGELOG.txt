@@ -42,6 +42,7 @@ FIXED:
     * Implements checks for variable name clashes between builder and conditions file  #1852
     * Reduced code redundancy for _getRegionOfFrame, and can get single pixels from front buffer #1854
     * Hex color space can now be specified as a window setting in Experiment Settings #1857
+    * Sound duration can now be specified in conditions files #1858
 
 PsychoPy 1.90.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
