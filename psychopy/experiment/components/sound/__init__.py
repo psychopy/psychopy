@@ -109,7 +109,7 @@ class SoundComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             if '$' in self.params['stopVal'].val:
-                code = 'if %(name)s.status == STARTED and t >= dur:\n' \
+                code = 'if %(name)s.status == STARTED and t >= %(stopVal)s:\n' \
                        '    %(name)s.stop()  # stop the sound (if longer than duration)\n'
                 buff.writeIndentedLines(code % self.params)
             elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
