@@ -195,15 +195,15 @@ class PsychoPyApp(wx.App):
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?
-            splash.SetTextPosition((10, 240))
-            splash.SetText(_translate("  Loading libraries..."))
+            splash.SetTextPosition((100, 20))
+            splash.SetText(_translate("Loading libraries..."))
         else:
             splash = None
 
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
         if splash:
-            splash.SetText(_translate("  Loading PsychoPy2..."))
+            splash.SetText(_translate("Loading PsychoPy2..."))
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs

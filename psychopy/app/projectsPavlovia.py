@@ -7,14 +7,14 @@
 
 from __future__ import absolute_import, print_function
 
-import os
 import time
-import copy
-
 import wx
 import wx.html2
 import wx.lib.scrolledpanel as scrlpanel
 from past.builtins import basestring
+
+import git
+import gitlab
 
 try:
     import wx.adv as wxhl  # in wx 4
@@ -25,7 +25,25 @@ from psychopy import logging, web, prefs
 from psychopy.app import dialogs
 from psychopy.projects import projectCatalog, projectsFolder, pavlovia
 from psychopy.localization import _translate
-import requests.exceptions
+
+BEGIN, END, COUNTING, COMPRESSING, WRITING, RECEIVING, RESOLVING, FINDING_SOURCES, CHECKING_OUT = \
+         [1 << x for x in range(9)]
+gitlabOperations = {BEGIN: "Starting...",
+                    END: "Done",
+                    COUNTING: "Counting",
+                    COMPRESSING: "Compressing",
+                    WRITING: "Writing",
+                    RECEIVING: "Receiving",
+                    RESOLVING: "Resolving",
+                    FINDING_SOURCES: "Finding sources",
+                    CHECKING_OUT: "Checking out",
+                    }
+
+"""
+ProjectFrame could be removed? Or it could re-use the DetailsPanel? It currently
+duplicates functionality - you can view the details of a project in either the
+search or the ProjectEditor
+"""
 
 
 class PavloviaMenu(wx.Menu):
@@ -46,12 +64,13 @@ class PavloviaMenu(wx.Menu):
         item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
         parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
 
-        PavloviaMenu.knownUsers = pavlovia.tokenStorage
+        PavloviaMenu.knownUsers = pavlovia.knownUsers
 
         # sub-menu for usernames and login
         self.userMenu = wx.Menu()
         # if a user was previously logged in then set them as current
-        if PavloviaMenu.appData['pavloviaUser'] and not PavloviaMenu.currentUser:
+        if PavloviaMenu.appData[
+            'pavloviaUser'] and not PavloviaMenu.currentUser:
             self.setUser(PavloviaMenu.appData['pavloviaUser'])
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
@@ -92,25 +111,29 @@ class PavloviaMenu(wx.Menu):
             return  # nothing to do here. Move along please.
         PavloviaMenu.currentUser = user
         PavloviaMenu.appData['pavloviaUser'] = user
-        pavlovia.login(user)
+        if user in pavlovia.knownUsers:
+            token = pavlovia.knownUsers[user]
+            pavlovia.currentSession.setToken(token)
+        else:
+            self.onLogInPavlovia()
+
         if self.searchDlg:
             self.searchDlg.updateUserProjs()
 
-    # def onSync(self, event):
-    #    logging.info("")
-    #    pass  # TODO: create quick-sync from menu item
+    def onSync(self, event):
+        pass  # TODO: create quick-sync from menu item
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)
         PavloviaMenu.searchDlg.Show()
 
-    def onLogInPavlovia(self, event):
+    def onLogInPavlovia(self, event=None):
         # check known users list
         info = {}
         url, state = pavlovia.getAuthURL()
         dlg = OAuthBrowserDlg(self.parent, url, info=info)
         dlg.ShowModal()
-        if info and state==info['state']:
+        if info and state == info['state']:
             token = info['token']
             pavlovia.login(token)
 
@@ -142,8 +165,11 @@ class PavloviaMenu(wx.Menu):
 
 # LogInDlgPavlovia
 class OAuthBrowserDlg(wx.Dialog):
+    """This class is used by to open the login (browser) window for pavlovia.org
+    """
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+
     def __init__(self, parent, url, info,
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
@@ -170,7 +196,7 @@ class OAuthBrowserDlg(wx.Dialog):
 
     def getParamFromURL(self, paramName):
         url = self.browser.CurrentURL
-        return url.split(paramName+'=')[1].split('&')[0]
+        return url.split(paramName + '=')[1].split('&')[0]
 
 
 class BaseFrame(wx.Frame):
@@ -219,7 +245,7 @@ class SearchFrame(BaseFrame):
         self.frameType = 'ProjectSearch'
         BaseFrame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
-        self.currentProject = None
+        self.project = None
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
@@ -258,24 +284,10 @@ class SearchFrame(BaseFrame):
                       flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
                       border=10)
 
-        # sizers: on the right we have detail
-        rightSizer = wx.BoxSizer(wx.VERTICAL)
-        rightSizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
-                       flag=wx.ALL,
-                       border=5)
-        self.syncButton = wx.Button(self, -1, _translate("Sync..."))
-        self.syncButton.Enable(False)
-        rightSizer.Add(self.syncButton,
-                       flag=wx.ALL, border=5)
-        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
-        rightSizer.Add(self.detailsPanel,
-                       proportion=1,
-                       flag=wx.EXPAND | wx.ALL,
-                       border=10)
-
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.mainSizer.Add(leftSizer, flag=wx.EXPAND, proportion=1, border=5)
-        self.mainSizer.Add(rightSizer, flag=wx.EXPAND, proportion=1, border=5)
+        self.mainSizer.Add(self.detailsPanel, flag=wx.EXPAND, proportion=1,
+                           border=5)
         self.SetSizerAndFit(self.mainSizer)
 
         aTable = wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wx.ID_CANCEL),
@@ -283,16 +295,6 @@ class SearchFrame(BaseFrame):
         self.SetAcceleratorTable(aTable)
         self.Show()  # show the window before doing search/updates
         self.updateUserProjs()  # update the info in myProjectsPanel
-
-    def onSyncButton(self, event):
-        if self.currentProject is None:
-            raise AttributeError("User pressed the sync button with no "
-                                 "current project existing.")
-        projFrame = ProjectFrame(parent=self.app, id=-1,
-                                 title=self.currentProject.name)
-        projFrame.setProject(self.currentProject,
-                             name=self.currentProject.id)
-        self.Close()  # we're going over to the project window
 
     def updateUserProjs(self):
         if not pavlovia.currentSession.user:
@@ -377,16 +379,6 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
         self.parent.detailsPanel.setProject(proj)
-        proj = self.parent.detailsPanel.project
-        perms = proj.permissions['project_access']
-        if type(perms)==dict:
-            perms = perms['access_level']
-        if perms >= pavlovia.permissions['developer']:
-            self.parent.syncButton.Enable(True)
-            self.parent.currentPavloviaProject = proj
-        else:
-            self.parent.syncButton.Enable(False)
-            self.parent.currentPavloviaProject = None
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -396,14 +388,26 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
         self.app = self.parent.app
-        self.project = None
+        self.project = {}
         self.noTitle = noTitle
+
+        # self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
+        # self.syncPanel.Hide()
 
         if not noTitle:
             self.title = wx.StaticText(parent=self, id=-1,
                                        label="", style=wx.ALIGN_CENTER)
             font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
             self.title.SetFont(font)
+
+        # if we've synced before we should know the local location
+        self.localFolder = wx.StaticText(
+            parent=self, id=-1,
+            label="Local root: ")
+        self.browseLocalBtn = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
+
+        # remote attributes
         self.url = wxhl.HyperlinkCtrl(parent=self, id=-1,
                                       label="https://pavlovia.org",
                                       url="https://pavlovia.org",
@@ -416,33 +420,61 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                                   label="")
         self.visibility = wx.StaticText(parent=self, id=-1,
                                         label="")
+
+        self.syncButton = wx.Button(self, -1, _translate("Sync..."))
+        self.syncButton.Enable(False)
+        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
+
         # layout
+        # sizers: on the right we have detail
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
+                       flag=wx.ALL,
+                       border=5)
         if not noTitle:
             self.sizer.Add(self.title, border=5,
-                           flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTER)
-        self.sizer.Add(self.url, border=5, flag=wx.ALL | wx.EXPAND)
+                           flag=wx.ALL | wx.ALIGN_CENTER)
+        self.sizer.Add(self.url, border=5,
+                       flag=wx.ALL | wx.CENTER)
+        localFolderSizer = wx.BoxSizer(wx.HORIZONTAL)
+        localFolderSizer.Add(self.localFolder, border=5,
+                             flag=wx.ALL | wx.EXPAND),
+        localFolderSizer.Add(self.browseLocalBtn, border=5,
+                             flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(localFolderSizer, border=5, flag=wx.ALL | wx.EXPAND)
+
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
                        flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.description, border=5, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.description, border=10, flag=wx.ALL | wx.EXPAND)
+
+        self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
+                       flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.syncButton,
+                       flag=wx.ALL | wx.RIGHT, border=5)
+
         self.SetSizer(self.sizer)
         self.SetupScrolling()
+        self.Layout()
         self.Bind(wx.EVT_SIZE, self.onResize)
 
     def setProject(self, project):
         if not isinstance(project, pavlovia.PavloviaProject):
-            #e.g. '382' or 382
+            # e.g. '382' or 382
             project = pavlovia.currentSession.projectFromID(project)
         if project is None:
             return  # we're done
+        self.project = project
 
         if not self.noTitle:
-            self.title.SetLabel(project.name)
-        self.url.SetLabel("{}".format(project.name))
-        self.url.SetURL("https://gitlab.pavlovia.org/{}/{}"
-                        .format(project.owner, project.name))
+            self.title.SetLabel("{} / {}".format(project.owner, project.name))
+
+        # url
+        self.url.SetLabel(self.project.web_url)
+        self.url.SetURL(self.project.web_url)
+
+        # public / private
         self.description.SetLabel(project.attributes['description'])
         if project.visibility in ['public', 'internal']:
             visib = "Public"
@@ -450,195 +482,98 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             visib = "Private"
         self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
 
+        # do we have a local location?
+        localFolder = project['local']
+        if not localFolder:
+            localFolder = "<not yet synced>"
+        self.localFolder.SetLabel("Local root: {}".format(localFolder))
+
+        # should sync be enabled?
+        perms = project.permissions['project_access']
+        if type(perms) == dict:
+            perms = perms['access_level']
+        if (perms is not None) and perms >= pavlovia.permissions['developer']:
+            self.syncButton.SetLabel('Sync...')
+        else:
+            self.syncButton.SetLabel('Fork + sync...')
+        self.syncButton.Enable(True)  # now we have a project we should enable
+
         while None in project.tags:
             project.tags.remove(None)
         self.tags.SetLabel(_translate("Tags:") + " " + ", ".join(project.tags))
-
-        # store this ID to keep track of the current project
-        self.project = project
-        self.SendSizeEvent()
+        # call onResize to get correct wrapping of description box and title
+        self.onResize()
 
     def onResize(self, evt=None):
         if self.project is None:
             return
         w, h = self.GetSize()
-        self.description.SetLabel(self.project.attributes['description'])
-        self.description.Wrap(w - 20)
-        if not self.noTitle:
+        # if it hasn't been created yet then we won't have attributes
+        if hasattr(self.project, 'attributes'):
+            self.description.SetLabel(self.project.attributes['description'])
+            self.description.Wrap(w - 20)
+        # noTitle in some uses of the detailsPanel
+        if not self.noTitle and 'name' in self.project:
             self.title.SetLabel(self.project.name)
             self.title.Wrap(w - 20)
         self.Layout()
 
+    def onSyncButton(self, event):
+        if self.project is None:
+            raise AttributeError("User pressed the sync button with no "
+                                 "current project existing.")
 
-class ProjectFrame(BaseFrame):
+        # if project.local doesn't exist, or is empty
+        if 'local' not in self.project or not self.project.local:
+            # we first need to choose a location for the repository
+            newPath = setLocalPath(self, self.project)
+            self.localFolder.SetLabel(
+                label="Local root: {}".format(newPath))
+        #
+        # progHandler = ProgressHandler(syncPanel=self.syncPanel)
+        # self.syncPanel.Show()
+        # self.Update()
+        # self.Layout()
+        # wx.Yield()
+        # self.project.sync(progressHandler=progHandler)
+        # time.sleep(0.1)
+        # self.syncPanel.Hide()
+        #
+        #
+        syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
+        self.sizer.Add(syncPanel, border=5,
+                       flag=wx.ALL | wx.RIGHT)
+        self.sizer.Layout()
+        progHandler = ProgressHandler(syncPanel=syncPanel)
+        wx.Yield()
+        self.project.sync(progressHandler=progHandler)
+        syncPanel.Destroy()
+        self.sizer.Layout()
+        #
+        #
+        # syncFrame = SyncFrame(parent=self, id=wx.ID_ANY, project=self.project)
+        # progHandler = ProgressHandler(syncPanel=syncFrame.syncPanel)
+        # syncFrame.Show()
+        # self.project.sync(progressHandler=progHandler)
+        # syncFrame.
+        # time.sleep(0.1)
 
-    def __init__(self, parent, id, size=(400, 300), *args, **kwargs):
-        BaseFrame.__init__(self, parent=None, id=id, size=size,
-                           *args, **kwargs)
-        self.frameType = 'project'
-        self.app = wx.GetApp()
-        self.app.trackFrame(self)
-        self.pavloviaProject = None
-        self.project = None
-        self.syncStatus = None
-
-        # title
-        self.title = wx.StaticText(self, -1, _translate("No project opened"),
-                                   style=wx.BOLD | wx.ALIGN_CENTER)
-        font = wx.Font(18, family=wx.NORMAL, style=wx.NORMAL, weight=wx.BOLD)
-        self.title.SetFont(font)
-        self.title.SetMinSize((300, -1))
-        self.title.Wrap(300)
-        # name box
-        nameBox = wx.StaticBox(self, -1, _translate("Name (for PsychoPy use):"))
-        nameSizer = wx.StaticBoxSizer(nameBox, wx.VERTICAL)
-        self.nameCtrl = wx.TextCtrl(self, -1, "", style=wx.TE_LEFT)
-        nameSizer.Add(self.nameCtrl, flag=wx.EXPAND | wx.ALL, border=5)
-        # local files
-        localsBox = wx.StaticBox(self, -1, _translate("Local Info"))
-        localsSizer = wx.StaticBoxSizer(localsBox, wx.VERTICAL)
-        localBrowseBtn = wx.Button(self, -1, _translate("Browse..."))
-        localBrowseBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
-        self.localPath = wx.StaticText(self, -1, "")
-        filesSizer = wx.BoxSizer(wx.HORIZONTAL)
-        filesSizer.Add(wx.StaticText(self, -1, _translate("Local files:")))
-        filesSizer.Add(localBrowseBtn, flag=wx.ALL, border=5)
-        localsSizer.Add(filesSizer, flag=wx.ALL, border=5)
-        localsSizer.Add(self.localPath, flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
-                        proportion=1, border=5)
-
-        # sync controls
-        syncBox = wx.StaticBox(self, -1, _translate("Sync"))
-        self.syncButton = wx.Button(self, -1, _translate("Sync Now"))
-        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncBtn)
-        self.syncStatus = SyncStatusPanel(self, id=-1,
-                                          project=self.project)
-        self.status = wx.StaticText(self, -1, "put status updates here")
-        syncSizer = wx.StaticBoxSizer(syncBox, wx.VERTICAL)
-        syncSizer.Add(self.syncButton, flag=wx.EXPAND | wx.ALL,
-                      proportion=1, border=5)
-        syncSizer.Add(self.syncStatus, flag=wx.EXPAND | wx.ALL,
-                      proportion=1, border=5)
-        syncSizer.Add(self.status, flag=wx.EXPAND | wx.ALL,
-                      proportion=1, border=5)
-
-        projBox = wx.StaticBox(self, -1, _translate("Project Info"))
-        projSizer = wx.StaticBoxSizer(projBox, wx.VERTICAL)
-        self.projDetails = DetailsPanel(parent=self, noTitle=True)
-        projSizer.Add(self.projDetails, flag=wx.EXPAND | wx.ALL,
-                      proportion=1, border=5)
-        # mainSizer with title, then two columns
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.title,
-                           flag=wx.ALIGN_CENTER | wx.ALL, border=20)
-
-        # set contents for left and right sizers
-        leftSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer.Add(projSizer, flag=wx.EXPAND | wx.ALL,
-                      proportion=1, border=5)
-        rightSizer = wx.BoxSizer(wx.VERTICAL)
-        rightSizer.Add(nameSizer, flag=wx.EXPAND | wx.ALL,
-                       proportion=0, border=5)
-        rightSizer.Add(localsSizer, flag=wx.EXPAND | wx.ALL,
-                       proportion=0, border=5)
-        rightSizer.Add(syncSizer, flag=wx.ALL, border=5)
-
-        columnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        columnSizer.Add(leftSizer, border=5,
-                        flag=wx.EXPAND | wx.ALL, proportion=1)
-        columnSizer.Add(rightSizer, border=5,
-                        flag=wx.EXPAND | wx.ALL, proportion=0.75)
-        self.mainSizer.Add(columnSizer, proportion=1,
-                           flag=wx.EXPAND | wx.ALL, border=5)
-
-        self.SetSizerAndFit(self.mainSizer)
-        self.SetAutoLayout(True)
-        self.update()
-
-        self.app.trackFrame(self)
-        self.Show()
-
-    def onBrowseLocal(self, evt):
-        dlg = wx.DirDialog(self,
-                           message=_translate(
-                               "Root folder of your local files"))
-        if dlg.ShowModal() == wx.ID_OK:
-            newPath = dlg.GetPath()
-            self.localPath.SetLabel(newPath)
-            if self.project:
-                self.project.root_path = newPath
-        self.update()
-
-    def setProject(self, project, name=None):
-        """Sets the current project
-
-        :params:
-
-            - project can be a pysof.Project object or a filename to load
-
-        If this loads successfully then the project root and OSF project ID
-        will also be updated
-        """
-        # check does it still exist locally?
-        # does it still exist online?
-        self.project = project  # do this after checking that it's valid
-        self.update()
-
-    def _setCurrentProject(self, pavProject):
-        """This is run when we get a project from the search dialog (rather
-        than from a previously loaded project file)
-        """
-        self.pavProject = pavProject
-        self.title.SetLabel(pavProject.name)
-        self.projDetails.setProject(pavProject)  # update the dialog box
-        self.update()
-
-    def onSyncBtn(self, evt):
-        self.updateProjectFields()
-        # create or reset progress indicators
-        self.syncStatus.reset()
-        self.update(status=_translate("Checking for changes"))
-        time.sleep(0.01)
-        changes = self.project.get_changes()
-        self.update(status=_translate("Applying changes"))
-        time.sleep(0.01)  # give wx a moment to breath
-        # start the threads up/downloading
-        changes.apply(threaded=True)
-        # to check the status we need the
-        while True:
-            progress = changes.progress
-            self.syncStatus.setProgress(progress)
-            time.sleep(0.01)
-            if progress == 1:
-                self.update(_translate("Sync complete"))
-                changes.finish_sync()
-                self.project.save()
-                break
-
-    def update(self, status=None):
-        """Update to a particular status if given or deduce status msg if not
-        """
-        if status is None:
-            if not self.currentProject:
-                status = _translate("No remote project set")
-                self.syncButton.Enable(False)
-            elif not self.localPath or not self.localPath.GetLabel():
-                status = _translate("No local folder to sync with")
-                self.syncButton.Enable(False)
-            else:
-                status = _translate("Ready")
-                self.syncButton.Enable(True)
-        self.status.SetLabel(_translate("Status: ") + status)
-        self.Layout()
-        self.Update()
+    def onBrowseLocalFolder(self, evt):
+        newPath = setLocalPath(self, self.project)
+        if newPath:
+            self.localFolder.SetLabel(
+                label="Local root: {}".format(newPath))
+            self.Update()
 
 
 class ProjectEditor(BaseFrame):
     def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
+        pass  # to do for creating project
+        """
         BaseFrame.__init__(self, None, -1, *args, **kwargs)
         panel = wx.Panel(self, -1, style=wx.TAB_TRAVERSAL)
         # when a project is succesffully created these will be populated
-        self.currentProject = None
+        self.project = None
         self.projInfo = None
 
         if projId:
@@ -713,7 +648,123 @@ class ProjectEditor(BaseFrame):
                                                 tags=d['tags'],
                                                 public=d['public'])
         # store in self in case we're being watched
-        self.currentProject = newProject
+        self.project = newProject
         self.projInfo = d
         self.Destroy()  # kill the dialog
+        """
 
+
+class SyncFrame(wx.Frame):
+    def __init__(self, parent, id, project):
+        title = "{} / {}".format(project.owner, project.title)
+        style = wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER
+        wx.Frame.__init__(self, parent=None, id=id, style=style,
+                          title=title)
+        self.parent = parent
+        self.project = project
+
+        # create the sync panel and start sync(!)
+        self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
+        self.progHandler = ProgressHandler(syncPanel=self.syncPanel)
+        # layout the controls
+        self.mainSizer = wx.BoxSizer()
+        self.mainSizer.Add(self.syncPanel, wx.ALL, border=10)
+        self.SetSizerAndFit(self.mainSizer)
+        self.SetAutoLayout(True)
+        # self.SetMaxSize(self.Size)
+        # self.SetMinSize(self.Size)
+
+        self.Show()
+        wx.Yield()
+
+        self.project.sync(progressHandler=self.progHandler)
+
+
+class SyncStatusPanel(wx.Panel):
+    def __init__(self, parent, id, size=(300, 250), *args, **kwargs):
+        # init super classes
+        wx.Panel.__init__(self, parent, id, size=size, *args, **kwargs)
+        # set self properties
+        self.parent = parent
+        self.statusMsg = wx.StaticText(self, -1, "Synchronising...")
+        self.progBar = wx.Gauge(self, -1, range=1, size=(200, -1))
+
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(self.statusMsg, wx.ALL | wx.CENTER, border=10)
+        self.mainSizer.Add(self.progBar, wx.ALL, border=10)
+        self.SetSizerAndFit(self.mainSizer)
+
+        self.SetAutoLayout(True)
+        self.Layout()
+
+    def reset(self):
+        self.progBar.SetRange(1)
+        self.progBar.SetValue(0)
+
+
+class ProgressHandler(git.remote.RemoteProgress):
+    """We can't override the update() method so we have to create our own
+    subclass for this"""
+
+    def __init__(self, syncPanel, *args, **kwargs):
+        git.remote.RemoteProgress.__init__(self, *args, **kwargs)
+        self.syncPanel = syncPanel
+        self.frame = syncPanel.parent
+        self.t0 = None
+
+    def setStatus(self, msg):
+        self.syncPanel.statusMsg.SetLabel(msg)
+
+    def update(self, op_code=0, cur_count=1, max_count=None, message=''):
+        """Update the statusMsg and progBar for the syncPanel
+        """
+        if not self.t0:
+            self.t0 = time.time()
+        if op_code in ['10', 10]:  # indicates complete
+            label = "Successfully synced"
+        else:
+            label = self._cur_line.split(':')[1]
+            print("{:.5f}: {}".format(time.time()-self.t0, self._cur_line))
+            label = self._cur_line
+        self.setStatus(label)
+        try:
+            maxCount = int(max_count)
+        except:
+            maxCount = 1
+        try:
+            currCount = int(cur_count)
+        except:
+            currCount = 1
+
+        self.syncPanel.progBar.SetRange(maxCount)
+        self.syncPanel.progBar.SetValue(currCount)
+        self.syncPanel.Refresh()
+        self.syncPanel.Update()
+        self.syncPanel.mainSizer.Layout()
+        wx.Yield()
+        time.sleep(0.001)
+
+
+def setLocalPath(parent, project):
+    """Open a DirDialog and set the project local folder to that specified
+
+    Returns
+    ----------
+
+    None for no change and newPath if this has changed from previous
+    """
+    if project and 'local' in project:
+        origPath = project.local
+    else:
+        origPath = None
+    # create the dialog
+    dlg = wx.DirDialog(
+        parent,
+        message=_translate(
+            "Choose/create the root location for the synced project"))
+    if dlg.ShowModal() == wx.ID_OK:
+        newPath = dlg.GetPath()
+        if newPath != origPath:
+            project.local = newPath
+            return newPath
+    return None

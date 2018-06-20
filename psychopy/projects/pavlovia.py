@@ -9,24 +9,34 @@
 """
 
 import glob
-import os
+import os, sys, time
 from psychopy import logging, prefs, constants
+from psychopy.tools.filetools import DictStorage
 import gitlab
 import gitlab.v4.objects
-import json
+import git
+import subprocess
 # for authentication
 from uuid import uuid4
-
-projectsFolder = os.path.join(prefs.paths['userPrefsDir'], 'projects')
+import io
 
 rootURL = "https://gitlab.pavlovia.org"
 client_id = '4bb79f0356a566cd7b49e3130c714d9140f1d3de4ff27c7583fb34fbfac604e0'
 scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
 
+knownUsers = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
+                                    'pavloviaUsers.json'))
+
+# knownProjects is a dict stored by id ("namespace/name")
+knownProjects = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
+                                    'pavloviaProjects.json'))
+# This also stores the numeric gitlab id to check if it's the same exact project
+# We add to the knownProjects when project.local is set (ie when we have a
+# known local location for the project)
+
 # these are instantiated at bottom
 # currentSession = PavloviaSession()
-# tokenStorage = PavloviaTokenStorage()
 
 permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
     'guest': 10,
@@ -53,10 +63,12 @@ def login(tokenOrUsername, rememberMe=True):
     """
     global currentSession
     # would be nice here to test whether this is a token or username
-    if tokenOrUsername in tokenStorage:
-        token = tokenStorage[tokenOrUsername]
+    print('tokensCurrently:', knownUsers)
+    if tokenOrUsername in knownUsers:
+        token = knownUsers[tokenOrUsername]  # username so fetch token
     else:
         token = tokenOrUsername
+
     # try actually logging in with token
     currentSession.setToken(token)
     prefs.appData['projects']['pavloviaUser'] = currentSession.user.username
@@ -94,7 +106,7 @@ class PavloviaSession:
         self.currentProject = proj
         return proj
 
-    def createProject(self, title, descr="", tags=[], public=False,
+    def createProject(self, title, descr="", tags=(), public=False,
                       category='project'):
         raise NotImplemented
 
@@ -163,6 +175,12 @@ class PavloviaSession:
     def setToken(self, token):
         """Set the token for this session and check that it works for auth
         """
+
+        if token and len(token) < 64:
+            raise ValueError("Trying to login with token {} which is shorter "
+                            "than expected length ({} not 64) for gitlab token"
+                            .format(repr(token), len(token)))
+
         self.__dict__['token'] = token
         if token:
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token)
@@ -171,7 +189,7 @@ class PavloviaSession:
             self.token = token
             # update stored tokens
             if self.remember_me:
-                tokens = PavloviaTokenStorage()
+                tokens = knownUsers
                 tokens[self.username] = token
                 tokens.save()
 
@@ -188,67 +206,32 @@ class PavloviaSession:
             return None
 
 
-class PavloviaTokenStorage(dict):
-    """Dict-based class to store all the known tokens according to username
-    """
-
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-        self.load()
-
-    def load(self, filename=None):
-        """Load all tokens from a given filename
-        (defaults to ~/.PsychoPy3/pavlovia.json)
-        """
-        if filename is None:
-            filename = os.path.join(prefs.paths['userPrefsDir'],
-                                    'pavlovia.json')
-        if os.path.isfile(filename):
-            with open(filename, 'r') as f:
-                try:
-                    self.update(json.load(f))
-                except ValueError:
-                    pass  # file didn't contain valid json data
-
-    def save(self, filename=None):
-        """Save all tokens from a given filename
-        (defaults to ~/.PsychoPy3/pavlovia.json)
-        """
-        if filename is None:
-            filename = os.path.join(prefs.paths['userPrefsDir'],
-                                    'pavlovia.json')
-        if not os.path.isdir(prefs.paths['userPrefsDir']):
-            os.makedirs(prefs.paths['userPrefsDir'])
-        with open(filename, 'wb') as f:
-            json_str = json.dumps(self)
-            if constants.PY3:
-                f.write(bytes(json_str, 'UTF-8'))
-            else:
-                f.write(json_str)
-
-
-class PavloviaProject:
+class PavloviaProject(dict):
     """A Pavlovia project, with name, url etc
     """
 
     def __init__(self, proj):
+        dict.__init__(self)
+        self._storedAttribs = {}  # these will go into knownProjects file
+        self['id'] = ''
+        self['local'] = ''
+        self['remoteSSH'] = ''
+        self['remoteHTTPS'] = ''
+        self.repo = None
         if isinstance(proj, gitlab.v4.objects.Project):
             self._proj = proj
         else:
-            print(proj)
             self._proj = currentSession.gitlab.projects.get(proj)
 
     def __getattr__(self, name):
         if name == 'owner':
             return
         proj = self.__dict__['_proj']
-        toSearch = [self.__dict__, proj._attrs]
+        toSearch = [self, self.__dict__, proj._attrs]
         if 'attributes' in self._proj.__dict__:
             toSearch.append(self._proj.__dict__['attributes'])
         for attDict in toSearch:
             if name in attDict:
-                if name == 'owner':
-                    print('got_owner: {}'.format(attDict[name]))
                 return attDict[name]
         # error if none found
         if name == 'id':
@@ -258,26 +241,51 @@ class PavloviaProject:
                 self)  # this includes self.id so don't use if id fails!
         raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
 
-    def __repr__(self):
-        return "PavloviaProject"
+    @property
+    def _proj(self):
+        return self.__dict__['_proj']
+    @_proj.setter
+    def _proj(self, proj):
+        global knownProjects
+        self.__dict__['_proj'] = proj
+        thisID = proj.attributes['path_with_namespace']
+        if thisID in knownProjects:
+            rememberedProj = knownProjects[thisID]
+            if rememberedProj['idNumber'] != proj.attributes['id']:
+                logging.warning("Project {} has changed gitlab ID since last "
+                                "use (was {} now {})"
+                                .format(thisID,
+                                        rememberedProj['idNumber'],
+                                        proj.attributes['id']))
+            self.update(rememberedProj)
+        else:
+            self['local'] = ''
+            self['id'] = proj.attributes['path_with_namespace']
+            self['idNumber'] = proj.attributes['id']
+        self['remoteSSH'] = proj.ssh_url_to_repo
+        self['remoteHTTPS'] = proj.http_url_to_repo
 
-    def __str__(self):
-        return "PavloviaProject {}: {}" % (self.id, self.attributes)
+    @property
+    def local(self):
+        return self['local']
+    @local.setter
+    def local(self, local):
+        self['local'] = local
+        # this is where we add a project to knownProjects:
+        knownProjects[self.id] = self
 
     @property
     def id(self):
-        if 'id' not in self.attributes:
-            return None
-        else:
-            return self.attributes['id']
+        if 'id' in self._proj.attributes:
+            return self._proj.attributes['path_with_namespace']
+
+    @property
+    def idNumber(self):
+        return self._proj.attributes['id']
 
     @property
     def owner(self):
         return self._proj.attributes['namespace']['name']
-        if 'owner' in self._proj.attributes:
-            return self._proj.attributes['owner']['username']
-        else:
-            return self._proj.attributes['namespace']['name']
 
     @property
     def attributes(self):
@@ -295,7 +303,96 @@ class PavloviaProject:
         """
         return self.tag_list
 
+    def sync(self, progressHandler=None):
+        """Performs a pull-and-push operation on the remote
+
+        Will check for a local folder and whether that is already (in) a repo.
+        If we have a local folder and it is not a git project already then
+        this function will also clone the remote to that local folder
+
+        """
+        repo = self.getRepo(progressHandler=progressHandler)
+
+    def getRepo(self, progressHandler=None):
+        """Gets the git.Repo object for this project, creating one if needed
+
+        Will check for a local folder and whether that is already (in) a repo.
+        If we have a local folder and it is not a git project already then
+        this function will also clone the remote to that local folder
+
+        Parameters
+        ----------
+        progressHandler is subclassed from gitlab.remote.RemoteProgress
+
+        Returns
+        -------
+        git.Repo object
+
+        Raises
+        ------
+        AttributeError if the local project is inside a git repo
+
+        """
+        if not self.local:
+            raise AttributeError("Cannot fetch a PavloviaProject until we have "
+                                 "chosen a local folder.")
+
+        gitRoot = getGitRoot(self.local)
+        if gitRoot is None:
+            # there's no project at all so create one
+            progressHandler.setStatus("Cloning from remote...")
+            progressHandler.syncPanel.Refresh()
+            progressHandler.syncPanel.Layout()
+            print('startngSync')
+            sys.stdout.flush()
+            repo = None
+            repo = git.Repo.clone_from(
+                self.remoteHTTPS,
+                self.local,
+                progress=progressHandler)
+            print('endingSync')
+            sys.stdout.flush()
+        elif gitRoot != self.local:
+            # this indicates that the requested root is inside another repo
+            raise AttributeError("The requested local path for project\n\t{}\n"
+                                 "sits inside another folder, which git will "
+                                 "not permit. You might like to set the "
+                                 "project local folder to be \n\t{}"
+                                 .format(repr(self.local), repr(gitRoot)))
+        else:
+            repo = git.Repo(gitRoot)
+
+        # using wx process giving error about bad macbundle for 'git'
+        #     command = ('/usr/local/bin/git clone --progress {} {}'
+        #            .format(self.remoteHTTPS, self.local))
+        #     proc = wx.Process(progressHandler)
+        #     proc.Redirect()
+        #     _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
+        #     # launch the command
+        #     print(command)
+        #     pID = wx.Execute(command, _opts, proc)
+
+        # using plain python subprocess (capture of stdout not working)
+        #     command = ' '.join(['git', 'clone', '--progress', self.remoteHTTPS, self.local])
+        #     print(command)
+        #     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        #     time.sleep(0.5)
+        #     output, err = process.communicate()
+        #     print(output)
+
+        return repo
+
+
+def getGitRoot(p):
+    """Return None if p is not in a git repo, or the root of the repo if it is"""
+    if subprocess.call(["git", "branch"],
+                       stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
+                       cwd=p) != 0:
+        return None
+    else:
+        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=p)
+        return out.strip()
+
 
 # create an instance of that
-tokenStorage = PavloviaTokenStorage()
 currentSession = PavloviaSession()
