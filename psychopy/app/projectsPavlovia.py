@@ -26,19 +26,6 @@ from psychopy.app import dialogs
 from psychopy.projects import projectCatalog, projectsFolder, pavlovia
 from psychopy.localization import _translate
 
-BEGIN, END, COUNTING, COMPRESSING, WRITING, RECEIVING, RESOLVING, FINDING_SOURCES, CHECKING_OUT = \
-         [1 << x for x in range(9)]
-gitlabOperations = {BEGIN: "Starting...",
-                    END: "Done",
-                    COUNTING: "Counting",
-                    COMPRESSING: "Compressing",
-                    WRITING: "Writing",
-                    RECEIVING: "Receiving",
-                    RESOLVING: "Resolving",
-                    FINDING_SOURCES: "Finding sources",
-                    CHECKING_OUT: "Checking out",
-                    }
-
 """
 ProjectFrame could be removed? Or it could re-use the DetailsPanel? It currently
 duplicates functionality - you can view the details of a project in either the
@@ -69,8 +56,10 @@ class PavloviaMenu(wx.Menu):
         # sub-menu for usernames and login
         self.userMenu = wx.Menu()
         # if a user was previously logged in then set them as current
-        if PavloviaMenu.appData[
-            'pavloviaUser'] and not PavloviaMenu.currentUser:
+        lastPavUser = PavloviaMenu.appData['pavloviaUser']
+        if lastPavUser not in pavlovia.knownUsers:
+            lastPavUser = None
+        if lastPavUser and not PavloviaMenu.currentUser:
             self.setUser(PavloviaMenu.appData['pavloviaUser'])
         for name in self.knownUsers:
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
@@ -128,14 +117,7 @@ class PavloviaMenu(wx.Menu):
         PavloviaMenu.searchDlg.Show()
 
     def onLogInPavlovia(self, event=None):
-        # check known users list
-        info = {}
-        url, state = pavlovia.getAuthURL()
-        dlg = OAuthBrowserDlg(self.parent, url, info=info)
-        dlg.ShowModal()
-        if info and state == info['state']:
-            token = info['token']
-            pavlovia.login(token)
+        logInPavlovia(parent=self.parent)
 
     def onNew(self, event):
         """Create a new project
@@ -146,8 +128,8 @@ class PavloviaMenu(wx.Menu):
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message=_translate(
-                                                "You need to log in"
-                                                " to create a project"))
+                                                    "You need to log in"
+                                                    " to create a project"))
             infoDlg.Show()
 
     def onOpenFile(self, event):
@@ -157,7 +139,7 @@ class PavloviaMenu(wx.Menu):
                             message=_translate("Open local project file"),
                             style=wx.FD_OPEN,
                             wildcard=_translate(
-                                "Project files (*.psyproj)|*.psyproj"))
+                                    "Project files (*.psyproj)|*.psyproj"))
         if dlg.ShowModal() == wx.ID_OK:
             projFile = dlg.GetPath()
             self.openProj(projFile)
@@ -187,16 +169,58 @@ class OAuthBrowserDlg(wx.Dialog):
         self.SetSize((700, 700))
 
     def onNewURL(self, event):
-        url = self.browser.CurrentURL
+        url = event.GetURL()
         if 'access_token=' in url:
-            self.tokenInfo['token'] = self.getParamFromURL('access_token')
-            self.tokenInfo['tokenType'] = self.getParamFromURL('token_type')
-            self.tokenInfo['state'] = self.getParamFromURL('state')
+            self.tokenInfo['token'] = self.getParamFromURL(
+                    'access_token', url)
+            self.tokenInfo['tokenType'] = self.getParamFromURL(
+                    'token_type', url)
+            self.tokenInfo['state'] = self.getParamFromURL(
+                    'state', url)
             self.EndModal(wx.ID_OK)
+        else:
+            print("newUrlIs:", url)
 
-    def getParamFromURL(self, paramName):
-        url = self.browser.CurrentURL
+    def getParamFromURL(self, paramName, url=None):
+        """Takes a url and returns the named param"""
+        if url is None:
+            url = self.browser.GetCurrentURL()
         return url.split(paramName + '=')[1].split('&')[0]
+
+
+class PavloviaMiniBrowser(wx.Dialog):
+    """This class is used by to open an internal browser for the user stuff
+    """
+    def __init__(self, parent, user=None, *args, **kwargs):
+        # check there is a user (or log them in)
+        if not user:
+            user = pavlovia.currentSession.user
+        if not user:
+            user = logInPavlovia(parent=parent)
+        if not user:
+            return None
+        self.user = user
+        # create the dialog
+        style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
+        wx.Dialog.__init__(self, parent, style=style, *args, **kwargs)
+        # create browser window for authentication
+        self.browser = wx.html2.WebView.New(self)
+
+        # do layout
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.browser, 1, wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        self.SetSize((700, 700))
+
+    def setURL(self, url):
+        self.browser.LoadURL(url)
+
+    def gotoUserPage(self):
+        url = self.user.attributes['web_url']
+        self.browser.LoadURL(url)
+
+    def gotoProjects(self):
+        self.browser.LoadURL("https://pavlovia.org/projects.html")
 
 
 class BaseFrame(wx.Frame):
@@ -299,11 +323,11 @@ class SearchFrame(BaseFrame):
     def updateUserProjs(self):
         if not pavlovia.currentSession.user:
             self.myProjectsPanel.setContents(
-                _translate("No user logged in"))
+                    _translate("No user logged in"))
         else:
             self.myProjectsPanel.setContents(
-                _translate("Searching projects for user {} ...")
-                    .format(pavlovia.currentSession.user.username))
+                    _translate("Searching projects for user {} ...")
+                        .format(pavlovia.currentSession.user.username))
             self.Update()
             wx.Yield()
             myProjs = pavlovia.currentSession.findUserProjects()
@@ -344,8 +368,8 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
         if isinstance(projects, basestring):
             # just text for a window so display
             self.mainSizer.Add(
-                wx.StaticText(self, -1, projects),
-                flag=wx.EXPAND | wx.ALL, border=5,
+                    wx.StaticText(self, -1, projects),
+                    flag=wx.EXPAND | wx.ALL, border=5,
             )
         else:
             # a list of projects
@@ -402,8 +426,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         # if we've synced before we should know the local location
         self.localFolder = wx.StaticText(
-            parent=self, id=-1,
-            label="Local root: ")
+                parent=self, id=-1,
+                label="Local root: ")
         self.browseLocalBtn = wx.Button(self, wx.ID_ANY, "Browse...")
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
@@ -415,7 +439,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                                       )
         self.description = wx.StaticText(parent=self, id=-1,
                                          label=_translate(
-                                             "Select a project for details"))
+                                                 "Select a project for details"))
         self.tags = wx.StaticText(parent=self, id=-1,
                                   label="")
         self.visibility = wx.StaticText(parent=self, id=-1,
@@ -528,7 +552,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             # we first need to choose a location for the repository
             newPath = setLocalPath(self, self.project)
             self.localFolder.SetLabel(
-                label="Local root: {}".format(newPath))
+                    label="Local root: {}".format(newPath))
         #
         # progHandler = ProgressHandler(syncPanel=self.syncPanel)
         # self.syncPanel.Show()
@@ -562,35 +586,35 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         newPath = setLocalPath(self, self.project)
         if newPath:
             self.localFolder.SetLabel(
-                label="Local root: {}".format(newPath))
+                    label="Local root: {}".format(newPath))
             self.Update()
 
 
 class ProjectEditor(BaseFrame):
-    def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
-        pass  # to do for creating project
-        """
+    def __init__(self, parent=None, id=wx.ID_ANY, project=None, *args, **kwargs):
+
         BaseFrame.__init__(self, None, -1, *args, **kwargs)
         panel = wx.Panel(self, -1, style=wx.TAB_TRAVERSAL)
         # when a project is succesffully created these will be populated
-        self.project = None
+        self.project = project
         self.projInfo = None
 
-        if projId:
+        if project:
             # edit existing project
             self.isNew = False
         else:
             self.isNew = True
 
         # create the controls
-        titleLabel = wx.StaticText(panel, -1, _translate("Title:"))
-        self.titleBox = wx.TextCtrl(panel, -1, size=(400, -1))
-        nameLabel = wx.StaticText(panel, -1,
-                                  _translate("Name \n(for local id):"))
+        nameLabel = wx.StaticText(panel, -1, _translate("Name:"))
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
+        # Path can contain only letters, digits, '_', '-' and '.'.
+        # Cannot start with '-', end in '.git' or end in '.atom'
+
         descrLabel = wx.StaticText(panel, -1, _translate("Description:"))
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
                                     style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+
         tagsLabel = wx.StaticText(panel, -1,
                                   _translate("Tags (comma separated):"))
         self.tagsBox = wx.TextCtrl(panel, -1, size=(400, 100),
@@ -598,19 +622,18 @@ class ProjectEditor(BaseFrame):
                                    style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
         publicLabel = wx.StaticText(panel, -1, _translate("Public:"))
         self.publicBox = wx.CheckBox(panel, -1)
+
         # buttons
         if self.isNew:
-            buttonMsg = _translate("Create project on OSF")
+            buttonMsg = _translate("Create project on Pavlovia")
         else:
-            buttonMsg = _translate("Submit changes to OSF")
+            buttonMsg = _translate("Submit changes to Pavlovia")
         updateBtn = wx.Button(panel, -1, buttonMsg)
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
 
         # do layout
-        mainSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
-        mainSizer.AddMany([(titleLabel, 0, wx.ALIGN_RIGHT), self.titleBox,
-                           (nameLabel, 0, wx.ALIGN_RIGHT),
-                           (self.nameBox, 0, wx.EXPAND),
+        mainSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        mainSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
                            (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
                            (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
                            (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
@@ -621,37 +644,31 @@ class ProjectEditor(BaseFrame):
         self.Fit()
 
     def submitChanges(self, evt=None):
-        session = wx.GetApp().pavloviaSession
-        d = {}
-        d['title'] = self.titleBox.GetValue()
-        d['name'] = self.nameBox.GetValue()
-        d['descr'] = self.descrBox.GetValue()
-        d['public'] = self.publicBox.GetValue()
+        session = pavlovia.currentSession
+        #get current values
+        name = self.nameBox.GetValue()
+        descr = self.descrBox.GetValue()
+        visibility = self.publicBox.GetValue()
         # tags need splitting and then
         tagsList = self.tagsBox.GetValue().split(',')
-        d['tags'] = []
-        for thisTag in tagsList:
-            d['tags'].append(thisTag.strip())
-        if self.isNew:
-            newProject = session.create_project(title=d['title'],
-                                                descr=d['descr'],
-                                                tags=d['tags'],
-                                                public=d['public'])
+        tags = [thisTag.strip() for thisTag in tagsList]
 
-            projFrame = ProjectFrame(parent=None, id=-1, title=d['title'])
-            projFrame.setProject(newProject)
-            projFrame.nameCtrl.SetValue(d['name'])
-            projFrame.Show()
+        # then create/update
+        if self.isNew:
+            project = session.createProject(name=name,
+                                                description=descr,
+                                                tags=tags,
+                                                visibility=visibility)
+            self.project = project
         else:  # to be done
-            newProject = session.update_project(id, title=d['title'],
-                                                descr=d['descr'],
-                                                tags=d['tags'],
-                                                public=d['public'])
+            self.project._proj.name = name
+            self.project._proj.description = descr
+            self.project.tags = tags
+            self.project.visibility=visibility
+            self.project.save()
+
         # store in self in case we're being watched
-        self.project = newProject
-        self.projInfo = d
         self.Destroy()  # kill the dialog
-        """
 
 
 class SyncFrame(wx.Frame):
@@ -724,7 +741,7 @@ class ProgressHandler(git.remote.RemoteProgress):
             label = "Successfully synced"
         else:
             label = self._cur_line.split(':')[1]
-            print("{:.5f}: {}".format(time.time()-self.t0, self._cur_line))
+            print("{:.5f}: {}".format(time.time() - self.t0, self._cur_line))
             label = self._cur_line
         self.setStatus(label)
         try:
@@ -759,12 +776,75 @@ def setLocalPath(parent, project):
         origPath = None
     # create the dialog
     dlg = wx.DirDialog(
-        parent,
-        message=_translate(
-            "Choose/create the root location for the synced project"))
+            parent,
+            message=_translate(
+                    "Choose/create the root location for the synced project"))
     if dlg.ShowModal() == wx.ID_OK:
         newPath = dlg.GetPath()
         if newPath != origPath:
             project.local = newPath
             return newPath
     return None
+
+
+def logInPavlovia(parent, event=None):
+    """Opens the built-in browser dialog to login to pavlovia
+
+    Returns
+    -------
+    None (user closed window without logging on) or a gitlab.User object
+    """
+    # check known users list
+    info = {}
+    url, state = pavlovia.getAuthURL()
+    dlg = OAuthBrowserDlg(parent, url, info=info)
+    dlg.ShowModal()
+    if info and state == info['state']:
+        token = info['token']
+        pavlovia.login(token)
+        return pavlovia.currentSession.user
+
+
+def syncPavlovia(parent, project=None):
+    """A function to sync the current project (if there is one)
+    """
+    if not project:  # try getting one from the frame
+        project = parent.project
+
+    if not project:  # ask the user to create one
+        msg = ("This file doesn't belong to any existing project.")
+        dlg = wx.MessageDialog(parent=parent, message=msg)
+        dlg.SetOKLabel("Create a project")
+        if dlg.ShowModal()==wx.ID_OK:
+            project = createProject(parent=parent)
+
+    if not project: # we did our best for them. Give up!
+        return
+
+    # if project.local doesn't exist, or is empty
+    if 'local' not in project or not project.local:
+        # we first need to choose a location for the repository
+        setLocalPath(parent, project)
+
+    syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY)
+    syncFrame.Layout()
+    progHandler = ProgressHandler(syncPanel=syncFrame)
+    wx.Yield()
+    project.sync(progressHandler=progHandler)
+    syncFrame.Destroy()
+
+
+def createProject(parent):
+    """Opens a dialog to create a new project
+
+    Parameters
+    ----------
+    parent
+
+    Returns
+    -------
+
+    """
+    editor = ProjectEditor(parent=parent)
+    editor.ShowModal()
+    print(editor.project)

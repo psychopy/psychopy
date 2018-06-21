@@ -1102,6 +1102,7 @@ class BuilderFrame(wx.Frame):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
+        self.project = None  # can be a pavlovia.Project
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1318,21 +1319,27 @@ class BuilderFrame(wx.Frame):
         tb.AddSeparator()
         tb.AddSeparator()
 
-        tb.AddSimpleTool(wx.ID_ANY,
-                         combineImageEmblem(
-                             main=join(rc, 'globe%i.png' % tbSize),
-                             emblem=join(rc, 'sync_green16.png'),
-                             pos='bottom_right'))
-        tb.AddSimpleTool(wx.ID_ANY,
-                         combineImageEmblem(
-                             main=join(rc, 'globe%i.png' % tbSize),
-                             emblem=join(rc, 'run16.png'),
-                             pos='bottom_right'))
-        tb.AddSimpleTool(wx.ID_ANY,
-                         combineImageEmblem(
-                             main=join(rc, 'globe%i.png' % tbSize),
-                             emblem=join(rc, 'user22.png'),
-                             pos='bottom_right'))
+        self.bldrBtnPavloviaSync = tb.AddSimpleTool(
+                wx.ID_ANY,
+                combineImageEmblem(
+                        main=join(rc, 'globe%i.png' % tbSize),
+                        emblem=join(rc, 'sync_green16.png'),
+                        pos='bottom_right'))
+        tb.Bind(wx.EVT_TOOL, self.onPavloviaSync, self.bldrBtnPavloviaSync)
+        self.bldrBtnPavloviaRun = tb.AddSimpleTool(
+                wx.ID_ANY,
+                combineImageEmblem(
+                        main=join(rc, 'globe%i.png' % tbSize),
+                        emblem=join(rc, 'run16.png'),
+                        pos='bottom_right'))
+        tb.Bind(wx.EVT_TOOL, self.onPavloviaRun, self.bldrBtnPavloviaRun)
+        self.bldrBtnPavloviaUser = tb.AddSimpleTool(
+                wx.ID_ANY,
+                combineImageEmblem(
+                        main=join(rc, 'globe%i.png' % tbSize),
+                        emblem=join(rc, 'user22.png'),
+                        pos='bottom_right'))
+        tb.Bind(wx.EVT_TOOL, self.onPavloviaUser, self.bldrBtnPavloviaUser)
 
         # Finished setup. Make it happen
         tb.Realize()
@@ -1687,6 +1694,7 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
+        projectsPavlovia.getProject(filename)
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -2348,6 +2356,19 @@ class BuilderFrame(wx.Frame):
             self.stdoutFrame.Raise()
             return None
         return script
+
+    def onPavloviaSync(self, evt=None):
+        projectsPavlovia.syncPavlovia(parent=self, project=self.project)
+
+    def onPavloviaRun(self, evt=None):
+        dlg = projectsPavlovia.PavloviaMiniBrowser(parent=self)
+        dlg.gotoProjects()
+        dlg.ShowModal()
+
+    def onPavloviaUser(self, evt=None):
+        dlg = projectsPavlovia.PavloviaMiniBrowser(parent=self)
+        dlg.gotoUserPage()
+        dlg.ShowModal()
 
 
 class ReadmeFrame(wx.Frame):

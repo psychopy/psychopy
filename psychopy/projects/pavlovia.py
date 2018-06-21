@@ -26,11 +26,11 @@ scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
 
 knownUsers = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
-                                    'pavloviaUsers.json'))
+                                    'pavlovia','users.json'))
 
 # knownProjects is a dict stored by id ("namespace/name")
 knownProjects = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
-                                    'pavloviaProjects.json'))
+                                    'pavlovia','projects.json'))
 # This also stores the numeric gitlab id to check if it's the same exact project
 # We add to the knownProjects when project.local is set (ie when we have a
 # known local location for the project)
@@ -72,6 +72,7 @@ def login(tokenOrUsername, rememberMe=True):
     # try actually logging in with token
     currentSession.setToken(token)
     prefs.appData['projects']['pavloviaUser'] = currentSession.user.username
+    knownUsers[currentSession.user.username] = token
 
 
 class PavloviaSession:
@@ -106,9 +107,25 @@ class PavloviaSession:
         self.currentProject = proj
         return proj
 
-    def createProject(self, title, descr="", tags=(), public=False,
-                      category='project'):
-        raise NotImplemented
+    def createProject(self, name, description="", tags=(), visibility='private'):
+
+        # NB gitlab also supports "internal" (public to registered users)
+        if type(visibility)==bool and visibility:
+            visibility = 'public'
+        elif type(visibility)==bool and not visibility:
+            visibility = 'private'
+
+        projDict = {}
+        projDict['name'] = name
+        projDict['description'] = description
+        projDict['issues_enabled'] = True
+        projDict['visibility'] = visibility
+        projDict['wiki_enabled'] = True
+
+        #TODO: add avatar option?
+        #TODO: add namespace option?
+        gitlabProj = self.gitlab.projects.create(projDict)
+        return PavloviaProject(gitlabProj)
 
     def projectFromID(self, id):
         """Gets a Pavlovia project from an ID (which in gitlab is a number
@@ -382,9 +399,12 @@ class PavloviaProject(dict):
 
         return repo
 
+    def save(self):
+        self._proj.save()
+
 
 def getGitRoot(p):
-    """Return None if p is not in a git repo, or the root of the repo if it is"""
+    """Return None or the root path of the repository"""
     if subprocess.call(["git", "branch"],
                        stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
                        cwd=p) != 0:
@@ -393,6 +413,12 @@ def getGitRoot(p):
         out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=p)
         return out.strip()
 
+
+def getProject(filename):
+    """Will try to find (locally synced) pavlovia Project for the filename"""
+    gitRoot = getGitRoot(filename)
+    if gitRoot and gitRoot in knownProjects:
+        return knownProjects[gitRoot]
 
 # create an instance of that
 currentSession = PavloviaSession()
