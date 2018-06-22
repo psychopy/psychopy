@@ -2234,12 +2234,24 @@ class BuilderFrame(wx.Frame):
         else:
             self.fileSave()  # Save on runFile otherwise changes to exp not included when run
         self.exp.expPath = os.path.abspath(expPath)
+
         # Compile script from command line using version
         compiler = 'psychopy.scripts.psyexpCompile'
-        subprocess.check_output("python -m {} {} -v {} -o {}".format(compiler,
-                                                                     self.filename,
-                                                                     version,
-                                                                     experimentPath))
+
+        if sys.platform == 'win32': # get name of executable
+            pythonExec = sys.executable
+        else:
+            pythonExec = sys.executable.replace(' ', '\ ')
+
+        if not constants.PY3: # encode path in Python2
+            filename = self.filename.encode(sys.getfilesystemencoding())
+            experimentPath = experimentPath.encode(sys.getfilesystemencoding())
+        else:
+            filename = self.filename
+
+        # run compile
+        subprocess.check_output([pythonExec, '-m', compiler, filename,
+                                 '-v', version, '-o', experimentPath])
 
 
 class ReadmeFrame(wx.Frame):
