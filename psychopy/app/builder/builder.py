@@ -2239,7 +2239,7 @@ class BuilderFrame(wx.Frame):
         subprocess.check_output("python -m {} {} -v {} -o {}".format(compiler,
                                                                      self.filename,
                                                                      version,
-                                                                     experimentPath))
+                                                                     experimentPath), shell=True)
 
 
 class ReadmeFrame(wx.Frame):
