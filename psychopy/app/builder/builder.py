@@ -46,7 +46,8 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 from psychopy.experiment import components
-from .. import projectsPavlovia
+from psychopy.projects import pavlovia
+from psychopy.app import projectsPavlovia
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -1694,7 +1695,8 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
-        projectsPavlovia.getProject(filename)
+        self.project = pavlovia.getProject(filename)
+        print(self.project)
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved

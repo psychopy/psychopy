@@ -551,8 +551,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         if 'local' not in self.project or not self.project.local:
             # we first need to choose a location for the repository
             newPath = setLocalPath(self, self.project)
-            self.localFolder.SetLabel(
-                    label="Local root: {}".format(newPath))
+            if newPath:
+                self.localFolder.SetLabel(
+                        label="Local root: {}".format(newPath))
         #
         # progHandler = ProgressHandler(syncPanel=self.syncPanel)
         # self.syncPanel.Show()
@@ -587,15 +588,19 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         if newPath:
             self.localFolder.SetLabel(
                     label="Local root: {}".format(newPath))
-            self.Update()
+        self.Update()
 
 
-class ProjectEditor(BaseFrame):
+class ProjectEditor(wx.Dialog):
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, *args, **kwargs):
 
-        BaseFrame.__init__(self, None, -1, *args, **kwargs)
+        wx.Dialog.__init__(self, None, -1, *args, **kwargs)
         panel = wx.Panel(self, -1, style=wx.TAB_TRAVERSAL)
-        # when a project is succesffully created these will be populated
+        # when a project is succesfully created these will be populated
+        if hasattr(parent, 'filename'):
+            self.filename = parent.filename
+        else:
+            self.filename = None
         self.project = project
         self.projInfo = None
 
@@ -623,6 +628,13 @@ class ProjectEditor(BaseFrame):
         publicLabel = wx.StaticText(panel, -1, _translate("Public:"))
         self.publicBox = wx.CheckBox(panel, -1)
 
+        localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
+        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1))
+        self.btnLocalBrowse = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
+        localPathSizer.Add(self.localBox)
+        localPathSizer.Add(self.btnLocalBrowse)
         # buttons
         if self.isNew:
             buttonMsg = _translate("Create project on Pavlovia")
@@ -635,9 +647,10 @@ class ProjectEditor(BaseFrame):
         mainSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
         mainSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
                            (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
+                           (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
                            (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
                            (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
-                           (0, 0), (updateBtn, 0, wx.ALIGN_RIGHT)])
+                           (updateBtn, 0, wx.ALIGN_RIGHT)])
         border = wx.BoxSizer()
         border.Add(mainSizer, 0, wx.ALL, 10)
         panel.SetSizerAndFit(border)
@@ -656,20 +669,26 @@ class ProjectEditor(BaseFrame):
         # then create/update
         if self.isNew:
             project = session.createProject(name=name,
-                                                description=descr,
-                                                tags=tags,
-                                                visibility=visibility)
+                                            description=descr,
+                                            tags=tags,
+                                            visibility=visibility)
             self.project = project
+
+            self.project.sync()
+
         else:  # to be done
             self.project._proj.name = name
             self.project._proj.description = descr
             self.project.tags = tags
             self.project.visibility=visibility
             self.project.save()
+        # self.EndModal()
+        # self.Destroy()  # kill the dialog
 
-        # store in self in case we're being watched
-        self.Destroy()  # kill the dialog
-
+    def onBrowseLocal(self, evt=None):
+        newPath = setLocalPath(path=self.filename)
+        if newPath:
+            self.localBox.SetLabel(newPath)
 
 class SyncFrame(wx.Frame):
     def __init__(self, parent, id, project):
@@ -683,18 +702,8 @@ class SyncFrame(wx.Frame):
         # create the sync panel and start sync(!)
         self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
         self.progHandler = ProgressHandler(syncPanel=self.syncPanel)
-        # layout the controls
-        self.mainSizer = wx.BoxSizer()
-        self.mainSizer.Add(self.syncPanel, wx.ALL, border=10)
-        self.SetSizerAndFit(self.mainSizer)
-        self.SetAutoLayout(True)
-        # self.SetMaxSize(self.Size)
-        # self.SetMinSize(self.Size)
-
         self.Show()
         wx.Yield()
-
-        self.project.sync(progressHandler=self.progHandler)
 
 
 class SyncStatusPanel(wx.Panel):
@@ -762,7 +771,7 @@ class ProgressHandler(git.remote.RemoteProgress):
         time.sleep(0.001)
 
 
-def setLocalPath(parent, project):
+def setLocalPath(parent, project=None, path=""):
     """Open a DirDialog and set the project local folder to that specified
 
     Returns
@@ -770,21 +779,24 @@ def setLocalPath(parent, project):
 
     None for no change and newPath if this has changed from previous
     """
-    if project and 'local' in project:
+    if path:
+        origPath = path
+    elif project and 'local' in project:
         origPath = project.local
     else:
-        origPath = None
+        origPath = ""
     # create the dialog
     dlg = wx.DirDialog(
             parent,
+            defaultPath=origPath,
             message=_translate(
                     "Choose/create the root location for the synced project"))
     if dlg.ShowModal() == wx.ID_OK:
         newPath = dlg.GetPath()
         if newPath != origPath:
-            project.local = newPath
-            return newPath
-    return None
+            if project:
+                project.local = newPath
+        return newPath
 
 
 def logInPavlovia(parent, event=None):
@@ -827,10 +839,8 @@ def syncPavlovia(parent, project=None):
         setLocalPath(parent, project)
 
     syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY)
-    syncFrame.Layout()
-    progHandler = ProgressHandler(syncPanel=syncFrame)
     wx.Yield()
-    project.sync(progressHandler=progHandler)
+    project.sync(progressHandler=syncFrame.progHandler)
     syncFrame.Destroy()
 
 
@@ -847,4 +857,7 @@ def createProject(parent):
     """
     editor = ProjectEditor(parent=parent)
     editor.ShowModal()
+    # while not editor.finished:  # doesn't have ShowModal (Frame not Dialog)
+    #     time.sleep(0.01)
     print(editor.project)
+

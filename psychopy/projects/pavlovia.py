@@ -107,8 +107,23 @@ class PavloviaSession:
         self.currentProject = proj
         return proj
 
-    def createProject(self, name, description="", tags=(), visibility='private'):
+    def createProject(self, name, description="", tags=(), visibility='private',
+                      local=''):
+        """Returns a PavloviaProject object (derived from a gitlab.project)
 
+        Parameters
+        ----------
+        name
+        description
+        tags
+        visibility
+        local
+
+        Returns
+        -------
+        a PavloviaProject object
+
+        """
         # NB gitlab also supports "internal" (public to registered users)
         if type(visibility)==bool and visibility:
             visibility = 'public'
@@ -125,7 +140,9 @@ class PavloviaSession:
         #TODO: add avatar option?
         #TODO: add namespace option?
         gitlabProj = self.gitlab.projects.create(projDict)
-        return PavloviaProject(gitlabProj)
+        pavProject = PavloviaProject(gitlabProj)
+        pavProject.local = local
+        return pavProject
 
     def projectFromID(self, id):
         """Gets a Pavlovia project from an ID (which in gitlab is a number
@@ -234,11 +251,12 @@ class PavloviaProject(dict):
         self['local'] = ''
         self['remoteSSH'] = ''
         self['remoteHTTPS'] = ''
-        self.repo = None
         if isinstance(proj, gitlab.v4.objects.Project):
             self._proj = proj
         else:
             self._proj = currentSession.gitlab.projects.get(proj)
+        self.repo = None  # update with getRepo()
+        self._lastKnownSync = None
 
     def __getattr__(self, name):
         if name == 'owner':
@@ -320,17 +338,93 @@ class PavloviaProject(dict):
         """
         return self.tag_list
 
-    def sync(self, progressHandler=None):
+    def sync(self, syncPanel=None, progressHandler=None):
         """Performs a pull-and-push operation on the remote
 
         Will check for a local folder and whether that is already (in) a repo.
         If we have a local folder and it is not a git project already then
         this function will also clone the remote to that local folder
 
+        Optional params syncPanel and progressHandler are both needed if you
+        want to update a sync window/panel
         """
-        repo = self.getRepo(progressHandler=progressHandler)
+        if not self.repo:  # if we haven't been given a local copy of repo then find
+            self.getRepo(progressHandler=progressHandler)
+            # if cloned in last 2s then it was a fresh clone
+            if time.time() < self._lastKnownSync+2:
+                return 1
+        # pull first then push
+        self.pull(syncPanel, progressHandler)
+        self.push(syncPanel, progressHandler)
+        self._lastKnownSync =time.time()
 
-    def getRepo(self, progressHandler=None):
+    def pull(self, repo, syncPanel=None, progressHandler=None):
+        """Pull from remote to local copy of the repository
+
+        Parameters
+        ----------
+        syncPanel
+        progressHandler
+
+        Returns
+        -------
+
+        """
+        syncPanel.setStatus("Pulling changes from remote...")
+        syncPanel.Refresh()
+        syncPanel.Layout()
+        origin = self.remotes.origin
+        origin.pull(progress=progressHandler)
+
+    def push(self, syncPanel=None, progressHandler=None):
+        """Pull from remote to local copy of the repository
+
+        Parameters
+        ----------
+        syncPanel
+        progressHandler
+
+        Returns
+        -------
+
+        """
+        syncPanel.setStatus("Pushing changes to remote...")
+        syncPanel.Refresh()
+        syncPanel.Layout()
+        origin = self.remotes.origin
+        origin.push(progress=progressHandler)
+
+    def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False):
+        """Will always try to return a valid local git repo
+        Underneath, this is stored as _repo. If .repo is requested then """
+        if self.repo and not forceRefresh:
+            return self.repo
+        if not self.local:
+            raise AttributeError("Cannot fetch a PavloviaProject until we have "
+                                 "chosen a local folder.")
+        gitRoot = getGitRoot(self.local)
+        if gitRoot is None:
+            # there's no project at all so create one
+            progressHandler.setStatus("Cloning from remote...")
+            progressHandler.syncPanel.Refresh()
+            progressHandler.syncPanel.Layout()
+            repo = git.Repo.clone_from(
+                self.remoteHTTPS,
+                self.local,
+                progress=progressHandler)
+            freshClone = 1
+        elif gitRoot != self.local:
+            # this indicates that the requested root is inside another repo
+            raise AttributeError("The requested local path for project\n\t{}\n"
+                                 "sits inside another folder, which git will "
+                                 "not permit. You might like to set the "
+                                 "project local folder to be \n\t{}"
+                                 .format(repr(self.local), repr(gitRoot)))
+        else:
+            repo = git.Repo(gitRoot)
+        self.repo = repo
+
+    def cloneRepo(self, progressHandler):
         """Gets the git.Repo object for this project, creating one if needed
 
         Will check for a local folder and whether that is already (in) a repo.
@@ -353,32 +447,15 @@ class PavloviaProject(dict):
         if not self.local:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
-
-        gitRoot = getGitRoot(self.local)
-        if gitRoot is None:
-            # there's no project at all so create one
-            progressHandler.setStatus("Cloning from remote...")
-            progressHandler.syncPanel.Refresh()
-            progressHandler.syncPanel.Layout()
-            print('startngSync')
-            sys.stdout.flush()
-            repo = None
-            repo = git.Repo.clone_from(
-                self.remoteHTTPS,
-                self.local,
-                progress=progressHandler)
-            print('endingSync')
-            sys.stdout.flush()
-        elif gitRoot != self.local:
-            # this indicates that the requested root is inside another repo
-            raise AttributeError("The requested local path for project\n\t{}\n"
-                                 "sits inside another folder, which git will "
-                                 "not permit. You might like to set the "
-                                 "project local folder to be \n\t{}"
-                                 .format(repr(self.local), repr(gitRoot)))
-        else:
-            repo = git.Repo(gitRoot)
-
+        progressHandler.setStatus("Cloning from remote...")
+        progressHandler.syncPanel.Refresh()
+        progressHandler.syncPanel.Layout()
+        repo = git.Repo.clone_from(
+            self.remoteHTTPS,
+            self.local,
+            progress=progressHandler)
+        self._lastKnownSync = time.time()
+        self._repo = repo
         # using wx process giving error about bad macbundle for 'git'
         #     command = ('/usr/local/bin/git clone --progress {} {}'
         #            .format(self.remoteHTTPS, self.local))
@@ -397,14 +474,14 @@ class PavloviaProject(dict):
         #     output, err = process.communicate()
         #     print(output)
 
-        return repo
-
     def save(self):
         self._proj.save()
 
 
 def getGitRoot(p):
     """Return None or the root path of the repository"""
+    if not os.path.isdir(p):
+        p = os.path.split(p)[0]
     if subprocess.call(["git", "branch"],
                        stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
                        cwd=p) != 0:
