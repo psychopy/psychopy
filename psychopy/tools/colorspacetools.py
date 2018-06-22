@@ -236,7 +236,8 @@ def cielch2rgb(lch,
                clip=False,
                **kwargs):
     """Transform CIE L*C*h* to CIE L*a*b (1976) color space, then convert the
-    coordinates to RGB tristimulus values.
+    coordinates to RGB tristimulus values. The hue component (h*) is expected to
+    be in degrees.
 
     Parameters
     ----------
@@ -279,7 +280,12 @@ def cielch2rgb(lch,
     lab[:, 2] = lch[:, 1] * numpy.math.sin(numpy.math.radians(lch[:, 2]))
 
     # convert to RGB using the CIE L*a*b* function
-    rgb_out = cielab2rgb(lab, **kwargs)
+    rgb_out = cielab2rgb(lab,
+                         whiteXYZ=whiteXYZ,
+                         conversionMatrix=conversionMatrix,
+                         transferFunc=transferFunc,
+                         clip=clip,
+                         **kwargs)
 
     # make the output match the dimensions/shape of input
     if orig_dim == 1:
