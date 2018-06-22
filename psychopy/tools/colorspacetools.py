@@ -243,7 +243,7 @@ def cielch2rgb(lch,
     lch : tuple, list or ndarray
         1-, 2-, 3-D vector of CIE L*C*h* coordinates to convert. The last
         dimension should be length-3 in all cases specifying a single
-        coordinate.
+        coordinate. The hue angle *h is expected in degrees.
     whiteXYZ : tuple, list or ndarray
         1-D vector coordinate of the white point in CIE-XYZ color space. Must be
         the same white point needed by the conversion matrix. The default
@@ -287,7 +287,7 @@ def cielch2rgb(lch,
     elif orig_dim == 3:
         rgb_out = numpy.reshape(rgb_out, orig_shape)
 
-    return rgb_out * 2.0 - 1.0
+    return rgb_out  # don't do signed RGB conversion, done by cielab2rgb
 
 
 def dkl2rgb(dkl, conversionMatrix=None):
