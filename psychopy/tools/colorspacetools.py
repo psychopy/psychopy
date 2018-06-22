@@ -235,8 +235,8 @@ def cielch2rgb(lch,
                transferFunc=None,
                clip=False,
                **kwargs):
-    """Transform CIE L*C*h* (1976) color space coordinates to RGB tristimulus
-    values.
+    """Transform CIE L*C*h* to CIE L*a*b (1976) color space, then convert the
+    coordinates to RGB tristimulus values.
 
     Parameters
     ----------
@@ -275,8 +275,8 @@ def cielch2rgb(lch,
     # convert values to L*a*b*
     lab = numpy.empty(lch.shape, dtype=lch.dtype)
     lab[:, 0] = lch[:, 0]
-    lab[:, 1] = numpy.math.cos(numpy.math.radians(lch[:, 1]))
-    lab[:, 2] = numpy.math.sin(numpy.math.radians(lch[:, 2]))
+    lab[:, 1] = lch[:, 1] * numpy.math.cos(numpy.math.radians(lch[:, 2]))
+    lab[:, 2] = lch[:, 1] * numpy.math.sin(numpy.math.radians(lch[:, 2]))
 
     # convert to RGB using the CIE L*a*b* function
     rgb_out = cielab2rgb(lab, **kwargs)
