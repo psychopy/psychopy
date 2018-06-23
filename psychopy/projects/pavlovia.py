@@ -26,11 +26,11 @@ scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
 
 knownUsers = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
-                                    'pavlovia','users.json'))
+                                               'pavlovia', 'users.json'))
 
 # knownProjects is a dict stored by id ("namespace/name")
 knownProjects = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
-                                    'pavlovia','projects.json'))
+                                                  'pavlovia', 'projects.json'))
 # This also stores the numeric gitlab id to check if it's the same exact project
 # We add to the knownProjects when project.local is set (ie when we have a
 # known local location for the project)
@@ -63,7 +63,7 @@ def login(tokenOrUsername, rememberMe=True):
     """
     global currentSession
     # would be nice here to test whether this is a token or username
-    print('tokensCurrently:', knownUsers)
+    logging.debug('pavloviaTokensCurrently: {}', knownUsers)
     if tokenOrUsername in knownUsers:
         token = knownUsers[tokenOrUsername]  # username so fetch token
     else:
@@ -125,9 +125,9 @@ class PavloviaSession:
 
         """
         # NB gitlab also supports "internal" (public to registered users)
-        if type(visibility)==bool and visibility:
+        if type(visibility) == bool and visibility:
             visibility = 'public'
-        elif type(visibility)==bool and not visibility:
+        elif type(visibility) == bool and not visibility:
             visibility = 'private'
 
         projDict = {}
@@ -137,20 +137,19 @@ class PavloviaSession:
         projDict['visibility'] = visibility
         projDict['wiki_enabled'] = True
 
-        #TODO: add avatar option?
-        #TODO: add namespace option?
+        # TODO: add avatar option?
+        # TODO: add namespace option?
         gitlabProj = self.gitlab.projects.create(projDict)
         pavProject = PavloviaProject(gitlabProj)
         pavProject.local = local
         return pavProject
 
-    def projectFromID(self, id):
-        """Gets a Pavlovia project from an ID (which in gitlab is a number
-        indicating the number of the project since gitlab instantiation
+    def getProject(self, id):
+        """Gets a Pavlovia project from an ID number or namespace/name
 
         Parameters
         ----------
-        id
+        id a numerical
 
         Returns
         -------
@@ -177,8 +176,8 @@ class PavloviaSession:
 
         """
         rawProjs = self.gitlab.projects.list(
-                search=search_str,
-                as_list=False)  # iterator not list for auto-pagination
+            search=search_str,
+            as_list=False)  # iterator not list for auto-pagination
         projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
 
@@ -190,7 +189,7 @@ class PavloviaSession:
         group = self.gitlab.projects.list(owned=False, membership=True)
         projs = []
         projIDs = []
-        for proj in own+group:
+        for proj in own + group:
             if proj.id and proj.id not in projIDs:
                 projs.append(PavloviaProject(proj))
                 projIDs.append(proj.id)
@@ -212,8 +211,8 @@ class PavloviaSession:
 
         if token and len(token) < 64:
             raise ValueError("Trying to login with token {} which is shorter "
-                            "than expected length ({} not 64) for gitlab token"
-                            .format(repr(token), len(token)))
+                             "than expected length ({} not 64) for gitlab token"
+                             .format(repr(token), len(token)))
 
         self.__dict__['token'] = token
         if token:
@@ -251,12 +250,12 @@ class PavloviaProject(dict):
         self['local'] = ''
         self['remoteSSH'] = ''
         self['remoteHTTPS'] = ''
+        self._lastKnownSync = 0
         if isinstance(proj, gitlab.v4.objects.Project):
             self._proj = proj
         else:
             self._proj = currentSession.gitlab.projects.get(proj)
         self.repo = None  # update with getRepo()
-        self._lastKnownSync = None
 
     def __getattr__(self, name):
         if name == 'owner':
@@ -279,6 +278,7 @@ class PavloviaProject(dict):
     @property
     def _proj(self):
         return self.__dict__['_proj']
+
     @_proj.setter
     def _proj(self, proj):
         global knownProjects
@@ -303,6 +303,7 @@ class PavloviaProject(dict):
     @property
     def local(self):
         return self['local']
+
     @local.setter
     def local(self, local):
         self['local'] = local
@@ -351,14 +352,21 @@ class PavloviaProject(dict):
         if not self.repo:  # if we haven't been given a local copy of repo then find
             self.getRepo(progressHandler=progressHandler)
             # if cloned in last 2s then it was a fresh clone
-            if time.time() < self._lastKnownSync+2:
+            if time.time() < self._lastKnownSync + 2:
                 return 1
         # pull first then push
-        self.pull(syncPanel, progressHandler)
-        self.push(syncPanel, progressHandler)
-        self._lastKnownSync =time.time()
+        t0 = time.time()
+        self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
+        self.push(syncPanel=syncPanel, progressHandler=progressHandler)
+        self._lastKnownSync = t1 = time.time()
+        msg = ("Successful sync at: {}, took {:.3f}s"
+              .format(time.strftime("%H:%M:%S", time.gmtime(t1))), t1-t0)
+        if syncPanel:
+            syncPanel.setStatus(msg)
+        logging.info(msg)
 
-    def pull(self, repo, syncPanel=None, progressHandler=None):
+
+    def pull(self, syncPanel=None, progressHandler=None):
         """Pull from remote to local copy of the repository
 
         Parameters
@@ -371,9 +379,9 @@ class PavloviaProject(dict):
 
         """
         syncPanel.setStatus("Pulling changes from remote...")
-        syncPanel.Refresh()
+        syncPanel.Update()
         syncPanel.Layout()
-        origin = self.remotes.origin
+        origin = self.repo.remotes.origin
         origin.pull(progress=progressHandler)
 
     def push(self, syncPanel=None, progressHandler=None):
@@ -391,7 +399,7 @@ class PavloviaProject(dict):
         syncPanel.setStatus("Pushing changes to remote...")
         syncPanel.Refresh()
         syncPanel.Layout()
-        origin = self.remotes.origin
+        origin = self.repo.remotes.origin
         origin.push(progress=progressHandler)
 
     def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False):
@@ -487,15 +495,40 @@ def getGitRoot(p):
                        cwd=p) != 0:
         return None
     else:
-        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=p)
+        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"],
+                                      cwd=p)
         return out.strip()
 
 
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename"""
     gitRoot = getGitRoot(filename)
-    if gitRoot and gitRoot in knownProjects:
+    if gitRoot in knownProjects:
         return knownProjects[gitRoot]
+    elif gitRoot:
+        # Existing repo but not in our knownProjects. Investigate
+        logging.info("Investigating repo at {}".format(gitRoot))
+        localRepo = git.Repo(gitRoot)
+        for remote in localRepo.remotes:
+            for url in remote.urls:
+                if "gitlab.pavlovia.org/" in url:
+                    namespaceName = url.split('gitlab.pavlovia.org/')[1]
+                    namespaceName = namespaceName.replace('.git', '')
+                    try:
+                        proj = currentSession.getProject(namespaceName)
+                    except gitlab.exceptions.GitlabGetError as e:
+                        if "404 Project Not Found" in e.error_message:
+                            continue
+                    proj.local = gitRoot
+                    return proj
+        # if we got here then we have a local git repo but not a
+        # TODO: we have a git repo, but not on gitlab.pavlovia
+        # Could help user that we add a remote called pavlovia but for now
+        # just print a message!
+        print("We found a git repository at {} but it doesn't point to "
+              "gitlab.pavlovia.org. You could create that as a remote to "
+              "sync from PsychoPy.")
+
 
 # create an instance of that
 currentSession = PavloviaSession()

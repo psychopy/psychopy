@@ -1696,7 +1696,6 @@ class BuilderFrame(wx.Frame):
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
         self.project = pavlovia.getProject(filename)
-        print(self.project)
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -1765,7 +1764,7 @@ class BuilderFrame(wx.Frame):
                 self.filename = newPath
                 returnVal = 1
             else:
-                print("'Save-as' canceled; existing file NOT overwritten.\n")
+                print("'Save-as' cancelled; existing file NOT overwritten.\n")
         try:  # this seems correct on PC, but not on mac
             dlg.destroy()
         except Exception:

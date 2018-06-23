@@ -7,6 +7,7 @@
 
 from __future__ import absolute_import, print_function
 
+import os
 import time
 import wx
 import wx.html2
@@ -179,7 +180,7 @@ class OAuthBrowserDlg(wx.Dialog):
                     'state', url)
             self.EndModal(wx.ID_OK)
         else:
-            print("newUrlIs:", url)
+            logging.info("OAuthBrowser.onNewURL:", url)
 
     def getParamFromURL(self, paramName, url=None):
         """Takes a url and returns the named param"""
@@ -486,7 +487,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
     def setProject(self, project):
         if not isinstance(project, pavlovia.PavloviaProject):
             # e.g. '382' or 382
-            project = pavlovia.currentSession.projectFromID(project)
+            project = pavlovia.currentSession.getProject(project)
         if project is None:
             return  # we're done
         self.project = project
@@ -571,7 +572,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Layout()
         progHandler = ProgressHandler(syncPanel=syncPanel)
         wx.Yield()
-        self.project.sync(progressHandler=progHandler)
+        self.project.sync(syncPanel=syncPanel, progressHandler=progHandler)
         syncPanel.Destroy()
         self.sizer.Layout()
         #
@@ -594,8 +595,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 class ProjectEditor(wx.Dialog):
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, *args, **kwargs):
 
-        wx.Dialog.__init__(self, None, -1, *args, **kwargs)
-        panel = wx.Panel(self, -1, style=wx.TAB_TRAVERSAL)
+        wx.Dialog.__init__(self, parent, id,
+                           *args, **kwargs)
+        panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         # when a project is succesfully created these will be populated
         if hasattr(parent, 'filename'):
             self.filename = parent.filename
@@ -620,6 +622,14 @@ class ProjectEditor(wx.Dialog):
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
                                     style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
 
+        localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
+        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1))
+        self.btnLocalBrowse = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
+        localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
+        localPathSizer.Add(self.localBox)
+        localPathSizer.Add(self.btnLocalBrowse)
+
         tagsLabel = wx.StaticText(panel, -1,
                                   _translate("Tags (comma separated):"))
         self.tagsBox = wx.TextCtrl(panel, -1, size=(400, 100),
@@ -628,13 +638,6 @@ class ProjectEditor(wx.Dialog):
         publicLabel = wx.StaticText(panel, -1, _translate("Public:"))
         self.publicBox = wx.CheckBox(panel, -1)
 
-        localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
-        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1))
-        self.btnLocalBrowse = wx.Button(self, wx.ID_ANY, "Browse...")
-        self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
-        localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
-        localPathSizer.Add(self.localBox)
-        localPathSizer.Add(self.btnLocalBrowse)
         # buttons
         if self.isNew:
             buttonMsg = _translate("Create project on Pavlovia")
@@ -642,11 +645,13 @@ class ProjectEditor(wx.Dialog):
             buttonMsg = _translate("Submit changes to Pavlovia")
         updateBtn = wx.Button(panel, -1, buttonMsg)
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
+        cancelBtn = wx.Button(panel, -1, _translate("Cancel"))
+        cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
 
         # do layout
-        mainSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        mainSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
         mainSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
-                           (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
+                           (localLabel, 0, wx.ALIGN_RIGHT), localPathSizer,
                            (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
                            (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
                            (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
@@ -655,6 +660,9 @@ class ProjectEditor(wx.Dialog):
         border.Add(mainSizer, 0, wx.ALL, 10)
         panel.SetSizerAndFit(border)
         self.Fit()
+
+    def onCancel(self, evt=None):
+        self.EndModal(wx.ID_CANCEL)
 
     def submitChanges(self, evt=None):
         session = pavlovia.currentSession
@@ -672,21 +680,20 @@ class ProjectEditor(wx.Dialog):
                                             description=descr,
                                             tags=tags,
                                             visibility=visibility)
+            project.local = self.localBox.GetLabel()
             self.project = project
-
             self.project.sync()
-
         else:  # to be done
             self.project._proj.name = name
             self.project._proj.description = descr
             self.project.tags = tags
             self.project.visibility=visibility
             self.project.save()
-        # self.EndModal()
-        # self.Destroy()  # kill the dialog
+
+        self.EndModal(wx.ID_OK)
 
     def onBrowseLocal(self, evt=None):
-        newPath = setLocalPath(path=self.filename)
+        newPath = setLocalPath(self, path=self.filename)
         if newPath:
             self.localBox.SetLabel(newPath)
 
@@ -727,6 +734,9 @@ class SyncStatusPanel(wx.Panel):
         self.progBar.SetRange(1)
         self.progBar.SetValue(0)
 
+    def setStatus(self, status):
+        self.statusMsg.SetLabel(status)
+
 
 class ProgressHandler(git.remote.RemoteProgress):
     """We can't override the update() method so we have to create our own
@@ -750,7 +760,8 @@ class ProgressHandler(git.remote.RemoteProgress):
             label = "Successfully synced"
         else:
             label = self._cur_line.split(':')[1]
-            print("{:.5f}: {}".format(time.time() - self.t0, self._cur_line))
+            # logging.info("{:.5f}: {}"
+            #              .format(time.time() - self.t0, self._cur_line))
             label = self._cur_line
         self.setStatus(label)
         try:
@@ -764,7 +775,6 @@ class ProgressHandler(git.remote.RemoteProgress):
 
         self.syncPanel.progBar.SetRange(maxCount)
         self.syncPanel.progBar.SetValue(currCount)
-        self.syncPanel.Refresh()
         self.syncPanel.Update()
         self.syncPanel.mainSizer.Layout()
         wx.Yield()
@@ -793,6 +803,8 @@ def setLocalPath(parent, project=None, path=""):
                     "Choose/create the root location for the synced project"))
     if dlg.ShowModal() == wx.ID_OK:
         newPath = dlg.GetPath()
+        if os.path.isfile(newPath):
+            newPath = os.path.split(newPath)[0]
         if newPath != origPath:
             if project:
                 project.local = newPath
@@ -825,7 +837,8 @@ def syncPavlovia(parent, project=None):
 
     if not project:  # ask the user to create one
         msg = ("This file doesn't belong to any existing project.")
-        dlg = wx.MessageDialog(parent=parent, message=msg)
+        style = wx.OK | wx.CANCEL | wx.CENTER
+        dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
         dlg.SetOKLabel("Create a project")
         if dlg.ShowModal()==wx.ID_OK:
             project = createProject(parent=parent)
@@ -838,9 +851,9 @@ def syncPavlovia(parent, project=None):
         # we first need to choose a location for the repository
         setLocalPath(parent, project)
 
-    syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY)
+    syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
     wx.Yield()
-    project.sync(progressHandler=syncFrame.progHandler)
+    project.sync(syncFrame.syncPanel, syncFrame.progHandler)
     syncFrame.Destroy()
 
 
@@ -859,5 +872,4 @@ def createProject(parent):
     editor.ShowModal()
     # while not editor.finished:  # doesn't have ShowModal (Frame not Dialog)
     #     time.sleep(0.01)
-    print(editor.project)
 
