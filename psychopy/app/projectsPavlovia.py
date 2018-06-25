@@ -357,7 +357,6 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
                                          style=wx.SUNKEN_BORDER)
         self.parent = parent
-        self.knownProjects = {}
         self.projList = []
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.mainSizer)  # don't do Fit
@@ -407,6 +406,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
         self.parent.detailsPanel.setProject(proj)
+        self.project = proj
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -551,6 +551,16 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             raise AttributeError("User pressed the sync button with no "
                                  "current project existing.")
 
+
+        # fork first if needed
+        perms = self.project.permissions['project_access']
+        if type(perms) == dict:
+            perms = perms['access_level']
+        if (perms is None) or perms < pavlovia.permissions['developer']:
+            # TODO: support forking to another group/namespace?
+            fork = self.project.forkTo(username=None)  # logged-in user
+            self.setProject(fork.id)
+
         # if project.localRoot doesn't exist, or is empty
         if 'local' not in self.project or not self.project.localRoot:
             # we first need to choose a location for the repository
@@ -558,17 +568,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             if newPath:
                 self.localFolder.SetLabel(
                         label="Local root: {}".format(newPath))
-        #
-        # progHandler = ProgressHandler(syncPanel=self.syncPanel)
-        # self.syncPanel.Show()
-        # self.Update()
-        # self.Layout()
-        # wx.Yield()
-        # self.project.sync(progressHandler=progHandler)
-        # time.sleep(0.1)
-        # self.syncPanel.Hide()
-        #
-        #
+            self.project.local = newPath
+            self.Layout()
+
         syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
         self.sizer.Add(syncPanel, border=5,
                        flag=wx.ALL | wx.RIGHT)
@@ -578,14 +580,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.project.sync(syncPanel=syncPanel, progressHandler=progHandler)
         syncPanel.Destroy()
         self.sizer.Layout()
-        #
-        #
-        # syncFrame = SyncFrame(parent=self, id=wx.ID_ANY, project=self.project)
-        # progHandler = ProgressHandler(syncPanel=syncFrame.syncPanel)
-        # syncFrame.Show()
-        # self.project.sync(progressHandler=progHandler)
-        # syncFrame.
-        # time.sleep(0.1)
 
     def onBrowseLocalFolder(self, evt):
         newPath = setLocalPath(self, self.project)

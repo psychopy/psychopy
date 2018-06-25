@@ -293,7 +293,8 @@ class PavloviaProject(dict):
         global knownProjects
         self.__dict__['pavlovia'] = proj
         thisID = proj.attributes['path_with_namespace']
-        if thisID in knownProjects:
+        if thisID in knownProjects \
+                and os.path.exists(knownProjects[thisID]['localRoot']):
             rememberedProj = knownProjects[thisID]
             if rememberedProj['idNumber'] != proj.attributes['id']:
                 logging.warning("Project {} has changed gitlab ID since last "
@@ -494,6 +495,14 @@ class PavloviaProject(dict):
         #     time.sleep(0.5)
         #     output, err = process.communicate()
         #     print(output)
+
+    def forkTo(self, username=None):
+        if username:
+            # fork to a specific namespace
+            fork = self.pavlovia.forks.create({'namespace': 'myteam'})
+        else:
+            fork = self.pavlovia.forks.create({})  # uses the current logged-in user
+        return fork
 
     def getChanges(self):
         """Find all the not-yet-committed changes in the repository"""
