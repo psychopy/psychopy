@@ -182,7 +182,7 @@ class SettingsComponent(object):
             colorSpace, valType='str',
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
             label=_localized["colorSpace"], categ="Screen")
         self.params['Units'] = Param(
             units, valType='str', allowedTypes=[],

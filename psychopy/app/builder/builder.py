@@ -10,8 +10,8 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range, object, str
 import wx
+from builtins import range, object
 from wx.lib import platebtn, scrolledpanel
 
 try:
@@ -27,6 +27,7 @@ except ImportError:
 from pkg_resources import parse_version
 import sys
 import os
+import subprocess
 import glob
 import copy
 import traceback
@@ -2121,22 +2122,9 @@ class BuilderFrame(wx.Frame):
         """Gets absolute path of experiment so it can be stored with data at end of
            the experiment run
         """
-        expPath = self.filename
-        if expPath is None or expPath.startswith('untitled'):
-            ok = self.fileSave()
-            if not ok:
-                return  # save file before compiling script
-        self.exp.expPath = os.path.abspath(expPath)
-        # make new pathname for script file
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
+        self.generateScript(fullPath)  # Build script based on current version selected
 
-        script = self.generateScript(self.exp.expPath)
-        if not script:
-            return
-
-        f = codecs.open(fullPath, 'w', 'utf-8')
-        f.write(script.getvalue())
-        f.close()
         try:
             self.stdoutFrame.getText()
         except Exception:
@@ -2151,8 +2139,7 @@ class BuilderFrame(wx.Frame):
         print("\n" + (" Running: %s " % (fullPath)).center(80, "#"))
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
 
-        # self is the parent (which will receive an event when the process
-        # ends)
+        # self is the parent (which will receive an event when the process ends)
         self.scriptProcess = wx.Process(self)
         self.scriptProcess.Redirect()  # builder will receive the stdout/stdin
 
@@ -2174,8 +2161,7 @@ class BuilderFrame(wx.Frame):
             command = '%s -u %s' % (pythonExec, fullPath)
             _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
         # launch the command
-        self.scriptProcessID = wx.Execute(command, _opts,
-                                          self.scriptProcess)
+        self.scriptProcessID = wx.Execute(command, _opts, self.scriptProcess)
         self.toolbar.EnableTool(self.bldrBtnRun.Id, False)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, True)
 
@@ -2322,41 +2308,43 @@ class BuilderFrame(wx.Frame):
 
     def compileScript(self, event=None):
         """Defines compile script button behavior"""
-        script = self.generateScript(None)  # leave the experiment path blank
-        if not script:
-            return
-        # remove .psyexp and add .py
-        name = os.path.splitext(self.filename)[0] + ".py"
+        fullPath = self.filename.replace('.psyexp', '.py')
+        self.generateScript(fullPath)
         self.app.showCoder()  # make sure coder is visible
-        self.app.coder.fileNew(filepath=name)
-        self.app.coder.currentDoc.SetText(script.getvalue())
+        self.app.coder.fileNew(filepath=fullPath)
 
     def generateScript(self, experimentPath, target="PsychoPy"):
-        """Generates python script from the current builder experiment
-        """
-        self.app.prefs.app['debugMode'] = "debugMode"
-        if self.app.prefs.app['debugMode']:
-            return self.exp.writeScript(
-                expPath=experimentPath,
-                target=target)
-            # getting the trace-back is very helpful when debugging the app
-        try:
-            script = self.exp.writeScript(
-                expPath=experimentPath,
-                target=target)
-        except Exception as e:
-            try:
-                self.stdoutFrame.getText()
-            except Exception:
-                self.stdoutFrame = stdOutRich.StdOutFrame(
-                    parent=self, app=self.app, size=(700, 300))
-            self.stdoutFrame.write(
-                "Error when generating experiment script:\n")
-            self.stdoutFrame.write("{}\n".format(e))
-            self.stdoutFrame.Show()
-            self.stdoutFrame.Raise()
-            return None
-        return script
+        """Generates python script from the current builder experiment"""
+        expPath = self.filename
+        version = self.exp.settings.params['Use version'].val
+        if not version:
+            version = self.exp.psychopyVersion
+        self.exp.psychopyVersion = version
+        if expPath is None or expPath.startswith('untitled'):
+            ok = self.fileSave()
+            if not ok:
+                return  # save file before compiling script
+        else:
+            self.fileSave()  # Save on runFile otherwise changes to exp not included when run
+        self.exp.expPath = os.path.abspath(expPath)
+
+        # Compile script from command line using version
+        compiler = 'psychopy.scripts.psyexpCompile'
+
+        if sys.platform == 'win32': # get name of executable
+            pythonExec = sys.executable
+        else:
+            pythonExec = sys.executable.replace(' ', '\ ')
+
+        if not constants.PY3: # encode path in Python2
+            filename = self.filename.encode(sys.getfilesystemencoding())
+            experimentPath = experimentPath.encode(sys.getfilesystemencoding())
+        else:
+            filename = self.filename
+
+        # run compile
+        subprocess.check_output([pythonExec, '-m', compiler, filename,
+                                 '-v', version, '-o', experimentPath])
 
     def onPavloviaSync(self, evt=None):
         projectsPavlovia.syncPavlovia(parent=self, project=self.project)
