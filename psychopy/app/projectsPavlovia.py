@@ -28,7 +28,7 @@ from psychopy.projects import projectCatalog, projectsFolder, pavlovia
 from psychopy.localization import _translate
 
 # Done: add+commit before push
-# TODO:  add .gitignore file to new project or clone (without one)
+# Done:  add .gitignore file. Added when opening a repo without one
 # TODO: user dlg could/should be local not a browser
 # TODO: if more than one remote then offer options
 # TODO: after clone, remember this folder for next file-open call

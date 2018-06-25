@@ -1,3 +1,4 @@
+gitIgnoreText = """
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.pyc
@@ -31,3 +32,4 @@ Icon?
 *.orig
 old
 Thumbs.db
+"""

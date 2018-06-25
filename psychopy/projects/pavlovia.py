@@ -18,7 +18,7 @@ import git
 import subprocess
 # for authentication
 from uuid import uuid4
-import io
+from .gitignore import gitIgnoreText
 
 rootURL = "https://gitlab.pavlovia.org"
 client_id = '4bb79f0356a566cd7b49e3130c714d9140f1d3de4ff27c7583fb34fbfac604e0'
@@ -438,6 +438,12 @@ class PavloviaProject(dict):
         else:
             repo = git.Repo(gitRoot)
         self.repo = repo
+
+        # check that a .gitignore file exists and add it if not
+        gitIgnorePath = os.path.join(self.localRoot, '.gitignore')
+        if not os.path.exists(gitIgnorePath):
+            with open(gitIgnorePath, 'w') as f:
+                f.write(gitIgnoreText)
 
     def cloneRepo(self, progressHandler):
         """Gets the git.Repo object for this project, creating one if needed
