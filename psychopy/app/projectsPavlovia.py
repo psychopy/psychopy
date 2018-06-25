@@ -27,11 +27,14 @@ from psychopy.app import dialogs
 from psychopy.projects import projectCatalog, projectsFolder, pavlovia
 from psychopy.localization import _translate
 
-"""
-ProjectFrame could be removed? Or it could re-use the DetailsPanel? It currently
-duplicates functionality - you can view the details of a project in either the
-search or the ProjectEditor
-"""
+# Done: add+commit before push
+# TODO:  add .gitignore file to new project or clone (without one)
+# TODO: user dlg could/should be local not a browser
+# TODO: if more than one remote then offer options
+# TODO: after clone, remember this folder for next file-open call
+# TODO: fork+sync doesn't yet fork the project first
+#
+
 
 
 class PavloviaMenu(wx.Menu):
@@ -548,8 +551,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             raise AttributeError("User pressed the sync button with no "
                                  "current project existing.")
 
-        # if project.local doesn't exist, or is empty
-        if 'local' not in self.project or not self.project.local:
+        # if project.localRoot doesn't exist, or is empty
+        if 'local' not in self.project or not self.project.localRoot:
             # we first need to choose a location for the repository
             newPath = setLocalPath(self, self.project)
             if newPath:
@@ -680,12 +683,12 @@ class ProjectEditor(wx.Dialog):
                                             description=descr,
                                             tags=tags,
                                             visibility=visibility)
-            project.local = self.localBox.GetLabel()
+            project.localRoot = self.localBox.GetLabel()
             self.project = project
             self.project.sync()
         else:  # to be done
-            self.project._proj.name = name
-            self.project._proj.description = descr
+            self.project.pavlovia.name = name
+            self.project.pavlovia.description = descr
             self.project.tags = tags
             self.project.visibility=visibility
             self.project.save()
@@ -709,6 +712,7 @@ class SyncFrame(wx.Frame):
         # create the sync panel and start sync(!)
         self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
         self.progHandler = ProgressHandler(syncPanel=self.syncPanel)
+        self.Fit()
         self.Show()
         wx.Yield()
 
@@ -723,8 +727,8 @@ class SyncStatusPanel(wx.Panel):
         self.progBar = wx.Gauge(self, -1, range=1, size=(200, -1))
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.statusMsg, wx.ALL | wx.CENTER, border=10)
-        self.mainSizer.Add(self.progBar, wx.ALL, border=10)
+        self.mainSizer.Add(self.statusMsg, 1, wx.ALL | wx.CENTER, border=10)
+        self.mainSizer.Add(self.progBar, 1, wx.ALL | wx.CENTER, border=10)
         self.SetSizerAndFit(self.mainSizer)
 
         self.SetAutoLayout(True)
@@ -736,6 +740,9 @@ class SyncStatusPanel(wx.Panel):
 
     def setStatus(self, status):
         self.statusMsg.SetLabel(status)
+        self.Update()
+        self.Layout()
+        wx.Yield()
 
 
 class ProgressHandler(git.remote.RemoteProgress):
@@ -807,7 +814,7 @@ def setLocalPath(parent, project=None, path=""):
             newPath = os.path.split(newPath)[0]
         if newPath != origPath:
             if project:
-                project.local = newPath
+                project.localRoot = newPath
         return newPath
 
 
@@ -844,18 +851,91 @@ def syncPavlovia(parent, project=None):
             project = createProject(parent=parent)
 
     if not project: # we did our best for them. Give up!
-        return
+        return 0
 
-    # if project.local doesn't exist, or is empty
-    if 'local' not in project or not project.local:
+    # if project.localRoot doesn't exist, or is empty
+    if 'local' not in project or not project.localRoot:
         # we first need to choose a location for the repository
         setLocalPath(parent, project)
+    if not project.repo:
+        project.getRepo()
+
+    # check for anything to commit before pull/push
+    outcome = showCommitDialog(parent, project)
 
     syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
     wx.Yield()
     project.sync(syncFrame.syncPanel, syncFrame.progHandler)
     syncFrame.Destroy()
 
+    return 1
+
+def showCommitDialog(parent, project):
+    """Brings up a commit dialog (if there is anything to commit
+
+    Returns
+    -------
+    0 nothing to commit
+    1 successful commit
+    -1 user cancelled
+    """
+    changeDict, changeList = project.getChanges()
+    # if changeList is empty then nothing to do
+    if not changeList:
+        return 0
+
+    infoStr="Changes to commit:\n"
+    for categ in ['untracked', 'changed', 'deleted', 'renamed']:
+        changes = changeDict[categ]
+        if categ == 'untracked':
+            categ = 'New'
+        if changes:
+            infoStr += "\t{}: {} files\n".format(categ.title(), len(changes))
+    
+    dlg = wx.Dialog(parent, id=wx.ID_ANY, title="Committing changes")
+    
+    updatesInfo = wx.StaticText(dlg, label=infoStr)
+    
+    commitTitleLbl = wx.StaticText(dlg, label='Summary of changes')
+    commitTitleCtrl = wx.TextCtrl(dlg, size=(500, -1))
+    commitTitleCtrl.SetToolTip(wx.ToolTip(_translate(
+        "A title summarizing the changes you're making in these files"
+        )))
+    commitDescrLbl = wx.StaticText(dlg, label='Details of changes\n (optional)')
+    commitDescrCtrl = wx.TextCtrl(dlg, size=(500, 200),
+                                  style=wx.TE_MULTILINE | wx.TE_AUTO_URL)
+    commitDescrCtrl.SetToolTip(wx.ToolTip(_translate(
+        "Optional further details about the changes you're making in these files"
+        )))
+    commitSizer = wx.FlexGridSizer(cols=2, rows=2, vgap=5, hgap=5)
+    commitSizer.AddMany([(commitTitleLbl, 0, wx.ALIGN_RIGHT),
+                       commitTitleCtrl,
+                       (commitDescrLbl, 0, wx.ALIGN_RIGHT),
+                       commitDescrCtrl
+                       ])
+
+    btnOK  = wx.Button(dlg, wx.ID_OK)
+    btnCancel  = wx.Button(dlg, wx.ID_CANCEL)
+    buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+    buttonSizer.AddMany([btnCancel, btnOK])
+
+    # main sizer and layout
+    mainSizer = wx.BoxSizer(wx.VERTICAL)
+    mainSizer.Add(updatesInfo, 0, wx.ALL, border=5)
+    mainSizer.Add(commitSizer, 1, wx.ALL | wx.EXPAND, border=5)
+    mainSizer.Add(buttonSizer, 0, wx.ALL | wx.ALIGN_RIGHT, border=5)
+    dlg.SetSizerAndFit(mainSizer)
+    dlg.Layout()
+    if dlg.ShowModal() == wx.ID_CANCEL:
+        return -1
+
+    commitMsg = commitTitleCtrl.GetValue()
+    if commitDescrCtrl.GetValue():
+        commitMsg += "\n\n{}".format(commitDescrCtrl.GetValue())
+    project.stageFiles(changeList)
+
+    project.commit(commitMsg)
+    return 1
 
 def createProject(parent):
     """Opens a dialog to create a new project

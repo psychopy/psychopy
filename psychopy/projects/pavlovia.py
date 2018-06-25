@@ -241,6 +241,15 @@ class PavloviaSession:
 
 class PavloviaProject(dict):
     """A Pavlovia project, with name, url etc
+
+    .pavlovia will point to a gitlab project on gitlab.pavlovia.org
+    .repo will will be a gitpython repo
+    .id is the namespace/name (e.g. peircej/stroop)
+    .idNumber is gitlab numeric id
+    .title
+    .tags
+    .owner is technically the namespace. Get the owner from .attributes['owner']
+    .localRoot is the path to the local root
     """
 
     def __init__(self, proj):
@@ -252,18 +261,18 @@ class PavloviaProject(dict):
         self['remoteHTTPS'] = ''
         self._lastKnownSync = 0
         if isinstance(proj, gitlab.v4.objects.Project):
-            self._proj = proj
+            self.pavlovia = proj
         else:
-            self._proj = currentSession.gitlab.projects.get(proj)
+            self.pavlovia = currentSession.gitlab.projects.get(proj)
         self.repo = None  # update with getRepo()
 
     def __getattr__(self, name):
         if name == 'owner':
             return
-        proj = self.__dict__['_proj']
+        proj = self.__dict__['pavlovia']
         toSearch = [self, self.__dict__, proj._attrs]
-        if 'attributes' in self._proj.__dict__:
-            toSearch.append(self._proj.__dict__['attributes'])
+        if 'attributes' in self.pavlovia.__dict__:
+            toSearch.append(self.pavlovia.__dict__['attributes'])
         for attDict in toSearch:
             if name in attDict:
                 return attDict[name]
@@ -276,13 +285,13 @@ class PavloviaProject(dict):
         raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
 
     @property
-    def _proj(self):
-        return self.__dict__['_proj']
+    def pavlovia(self):
+        return self.__dict__['pavlovia']
 
-    @_proj.setter
-    def _proj(self, proj):
+    @pavlovia.setter
+    def pavlovia(self, proj):
         global knownProjects
-        self.__dict__['_proj'] = proj
+        self.__dict__['pavlovia'] = proj
         thisID = proj.attributes['path_with_namespace']
         if thisID in knownProjects:
             rememberedProj = knownProjects[thisID]
@@ -294,38 +303,38 @@ class PavloviaProject(dict):
                                         proj.attributes['id']))
             self.update(rememberedProj)
         else:
-            self['local'] = ''
+            self['localRoot'] = ''
             self['id'] = proj.attributes['path_with_namespace']
             self['idNumber'] = proj.attributes['id']
         self['remoteSSH'] = proj.ssh_url_to_repo
         self['remoteHTTPS'] = proj.http_url_to_repo
 
     @property
-    def local(self):
-        return self['local']
+    def localRoot(self):
+        return self['localRoot']
 
-    @local.setter
-    def local(self, local):
-        self['local'] = local
+    @localRoot.setter
+    def localRoot(self, localRoot):
+        self['localRoot'] = localRoot
         # this is where we add a project to knownProjects:
         knownProjects[self.id] = self
 
     @property
     def id(self):
-        if 'id' in self._proj.attributes:
-            return self._proj.attributes['path_with_namespace']
+        if 'id' in self.pavlovia.attributes:
+            return self.pavlovia.attributes['path_with_namespace']
 
     @property
     def idNumber(self):
-        return self._proj.attributes['id']
+        return self.pavlovia.attributes['id']
 
     @property
     def owner(self):
-        return self._proj.attributes['namespace']['name']
+        return self.pavlovia.attributes['namespace']['name']
 
     @property
     def attributes(self):
-        return self._proj.attributes
+        return self.pavlovia.attributes
 
     @property
     def title(self):
@@ -360,11 +369,11 @@ class PavloviaProject(dict):
         self.push(syncPanel=syncPanel, progressHandler=progressHandler)
         self._lastKnownSync = t1 = time.time()
         msg = ("Successful sync at: {}, took {:.3f}s"
-              .format(time.strftime("%H:%M:%S", time.gmtime(t1))), t1-t0)
+               .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
+        logging.info(msg)
         if syncPanel:
             syncPanel.setStatus(msg)
-        logging.info(msg)
-
+            time.sleep(0.5)
 
     def pull(self, syncPanel=None, progressHandler=None):
         """Pull from remote to local copy of the repository
@@ -379,8 +388,6 @@ class PavloviaProject(dict):
 
         """
         syncPanel.setStatus("Pulling changes from remote...")
-        syncPanel.Update()
-        syncPanel.Layout()
         origin = self.repo.remotes.origin
         origin.pull(progress=progressHandler)
 
@@ -407,10 +414,10 @@ class PavloviaProject(dict):
         Underneath, this is stored as _repo. If .repo is requested then """
         if self.repo and not forceRefresh:
             return self.repo
-        if not self.local:
+        if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
-        gitRoot = getGitRoot(self.local)
+        gitRoot = getGitRoot(self.localRoot)
         if gitRoot is None:
             # there's no project at all so create one
             progressHandler.setStatus("Cloning from remote...")
@@ -418,16 +425,16 @@ class PavloviaProject(dict):
             progressHandler.syncPanel.Layout()
             repo = git.Repo.clone_from(
                 self.remoteHTTPS,
-                self.local,
+                self.localRoot,
                 progress=progressHandler)
             freshClone = 1
-        elif gitRoot != self.local:
+        elif gitRoot != self.localRoot:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
                                  "sits inside another folder, which git will "
                                  "not permit. You might like to set the "
                                  "project local folder to be \n\t{}"
-                                 .format(repr(self.local), repr(gitRoot)))
+                                 .format(repr(self.localRoot), repr(gitRoot)))
         else:
             repo = git.Repo(gitRoot)
         self.repo = repo
@@ -452,7 +459,7 @@ class PavloviaProject(dict):
         AttributeError if the local project is inside a git repo
 
         """
-        if not self.local:
+        if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
         progressHandler.setStatus("Cloning from remote...")
@@ -460,13 +467,13 @@ class PavloviaProject(dict):
         progressHandler.syncPanel.Layout()
         repo = git.Repo.clone_from(
             self.remoteHTTPS,
-            self.local,
+            self.localRoot,
             progress=progressHandler)
         self._lastKnownSync = time.time()
         self._repo = repo
         # using wx process giving error about bad macbundle for 'git'
         #     command = ('/usr/local/bin/git clone --progress {} {}'
-        #            .format(self.remoteHTTPS, self.local))
+        #            .format(self.remoteHTTPS, self.localRoot))
         #     proc = wx.Process(progressHandler)
         #     proc.Redirect()
         #     _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
@@ -475,15 +482,81 @@ class PavloviaProject(dict):
         #     pID = wx.Execute(command, _opts, proc)
 
         # using plain python subprocess (capture of stdout not working)
-        #     command = ' '.join(['git', 'clone', '--progress', self.remoteHTTPS, self.local])
+        #     command = ' '.join(['git', 'clone', '--progress', self.remoteHTTPS, self.localRoot])
         #     print(command)
         #     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
         #     time.sleep(0.5)
         #     output, err = process.communicate()
         #     print(output)
 
+    def getChanges(self):
+        """Find all the not-yet-committed changes in the repository"""
+        changeDict = {}
+        changeDict['untracked'] = self.repo.untracked_files
+        changeDict['changed'] = []
+        changeDict['deleted'] = []
+        changeDict['renamed'] = []
+        for this in self.repo.index.diff(None):
+            # change type, identifying possible ways a blob can have changed
+            # A = Added
+            # D = Deleted
+            # R = Renamed
+            # M = Modified
+            # T = Changed in the type
+            if this.change_type == 'D':
+                changeDict['deleted'].append(this.b_path)
+            elif this.change_type == 'R':  # only if git rename had been called?
+                changeDict['renamed'].append((this.rename_from, this.rename_to))
+            elif this.change_type == 'M':
+                changeDict['changed'].append(this.b_path)
+            else:
+                raise (
+                    "Found an unexpected change_type '{}' in gitpython Diff"
+                    .format(this.change_type))
+        changeList = []
+        for categ in changeDict:
+            changeList.extend(changeDict[categ])
+        return changeDict, changeList
+
+    def stageFiles(self, files=None):
+        """Adds changed files to the stage (index) ready for commit.
+
+        The files is a list and can include new/changed/deleted
+
+        If files=None this is like `git add -u` (all files added/deleted)
+        """
+        if files:
+            if type(files) not in (list, tuple):
+                raise TypeError(
+                    'The `files` provided to PavloviaProject.stageFiles '
+                    'should be a list not a {}'.format(type(files)))
+            self.repo.git.add(files)
+        else:
+            diffsDict = self.getChanges()
+            if all['untracked']:
+                self.repo.git.add(all['untracked'])
+            if all['deleted']:
+                self.repo.git.add(all['deleted'])
+            if all['changed']:
+                self.repo.git.add(all['changed'])
+
+    def getStagedFiles(self):
+        """Retrieves the files that are already staged ready for commit"""
+        return self.repo.index.diff("HEAD")
+
+    def unstageFiles(self, files):
+        """Removes changed files from the stage (index) preventing their commit.
+        The files in question can be new/changed/deleted
+        """
+        self.repo.git.reset('--', files)
+
+    def commit(self, message):
+        """Commits the staged changes"""
+        self.repo.git.commit('-m', message)
+
     def save(self):
-        self._proj.save()
+        """Saves the metadata to gitlab.pavlovia.org"""
+        self.pavlovia.save()
 
 
 def getGitRoot(p):
@@ -519,7 +592,7 @@ def getProject(filename):
                     except gitlab.exceptions.GitlabGetError as e:
                         if "404 Project Not Found" in e.error_message:
                             continue
-                    proj.local = gitRoot
+                    proj.localRoot = gitRoot
                     return proj
         # if we got here then we have a local git repo but not a
         # TODO: we have a git repo, but not on gitlab.pavlovia
