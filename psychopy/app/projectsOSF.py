@@ -11,6 +11,7 @@ import os
 import time
 
 import wx
+import wx.html2
 import wx.lib.scrolledpanel as scrlpanel
 from past.builtins import basestring
 
@@ -21,13 +22,14 @@ except ImportError:
 
 from psychopy import logging, web, prefs
 from psychopy.app import dialogs
-from psychopy.projects import projectCatalog, projectsFolder
+from psychopy.projects import projectCatalog, projectsFolder, pavlovia
 from psychopy.localization import _translate
 import requests.exceptions
 
 try:
     import pyosf
     from pyosf import constants
+
     constants.PROJECT_NAME = "PsychoPy"
     havePyosf = True
     if pyosf.__version__ < "1.0.3":
@@ -36,11 +38,16 @@ try:
 except ImportError:
     havePyosf = False
 
+try:
+    pavloviaSession = pavlovia.PavloviaSession()
+    havePavlovia = True
+except ImportError:
+    havePavlovia = False
 
 usersList = wx.FileHistory(maxFiles=10, idBase=12300)
 
 # Projects FileHistory sub-menu
-idBase=12400
+idBase = 12400
 projHistory = wx.FileHistory(maxFiles=16, idBase=idBase)
 projHistory.idBase = idBase
 for key in projectCatalog:
@@ -71,7 +78,7 @@ class ProjectsMenu(wx.Menu):
         parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
         if not havePyosf:
             self.Append(wx.ID_ANY,
-                        _translate("Requires pyosf (not installed)"))
+                        _translate("OSF access requires pyosf (not installed)"))
             ProjectsMenu.knownUsers = {}
         else:
             if self.app.osf_session is None:
@@ -80,12 +87,24 @@ class ProjectsMenu(wx.Menu):
 
             ProjectsMenu.knownUsers = pyosf.TokenStorage()  # a dict name:token
 
+        if not havePavlovia:
+            self.Append(wx.ID_ANY,
+                        _translate("Pavlovia access requires gitlab "
+                                   "(not installed)"))
+            ProjectsMenu.knownUsers = {}
+        else:
+            if self.app.pavloviaSession is None:
+                # create a default (anonymous) session with osf
+                self.app.pavloviaSession = pavlovia.PavloviaSession()
+
+            # ProjectsMenu.knownUsers = pavlovia.TokenStorage()  # a dict name:token
+
         # sub-menu to open previous or new projects
         self.projsSubMenu = wx.Menu()
         item = self.projsSubMenu.Append(wx.ID_ANY,
-                                 _translate("From file...\t{}")
-                                 .format(keys['projectsOpen']))
-        parent.Bind(wx.EVT_MENU,  self.onOpenFile, id=item.GetId())
+                                        _translate("From file...\t{}")
+                                        .format(keys['projectsOpen']))
+        parent.Bind(wx.EVT_MENU, self.onOpenFile, id=item.GetId())
         self.projsSubMenu.AppendSeparator()
         self.projHistory.UseMenu(self.projsSubMenu)
         try:
@@ -94,7 +113,7 @@ class ProjectsMenu(wx.Menu):
             self.projHistory.AddFilesToThisMenu(self.projsSubMenu)
         parent.Bind(wx.EVT_MENU_RANGE, self.onProjFromHistory,
                     id=self.projHistory.idBase,
-                    id2=self.projHistory.idBase+9)
+                    id2=self.projHistory.idBase + 9)
         self.AppendSubMenu(self.projsSubMenu, _translate("Open"))
 
         # sub-menu for usernames and login
@@ -107,20 +126,24 @@ class ProjectsMenu(wx.Menu):
             self.addToSubMenu(name, self.userMenu, self.onSetUser)
         self.userMenu.AppendSeparator()
         item = self.userMenu.Append(wx.ID_ANY,
-                             _translate("Log in...\t{}")
-                             .format(keys['projectsLogIn']))
-        parent.Bind(wx.EVT_MENU, self.onLogIn, id=item.GetId())
+                                    _translate("Log in to Pavlovia...\t{}")
+                                    .format(keys['pavlovia_logIn']))
+        parent.Bind(wx.EVT_MENU, self.onLogInPavlovia, id=item.GetId())
+        item = self.userMenu.Append(wx.ID_ANY,
+                                    _translate("Log in to OSF...\t{}")
+                                    .format(keys['OSF_logIn']))
+        parent.Bind(wx.EVT_MENU, self.onLogInOSF, id=item.GetId())
         self.AppendSubMenu(self.userMenu, _translate("User"))
 
         # search
         item = self.Append(wx.ID_ANY,
-                    _translate("Search OSF\t{}")
-                    .format(keys['projectsFind']))
+                           _translate("Search OSF\t{}")
+                           .format(keys['projectsFind']))
         parent.Bind(wx.EVT_MENU, self.onSearch, id=item.GetId())
 
         # new
         item = self.Append(wx.ID_ANY,
-                    _translate("New...\t{}").format(keys['projectsNew']))
+                           _translate("New...\t{}").format(keys['projectsNew']))
         parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
 
         # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
@@ -174,10 +197,10 @@ class ProjectsMenu(wx.Menu):
         ProjectsMenu.searchDlg = SearchFrame(app=self.parent.app)
         ProjectsMenu.searchDlg.Show()
 
-    def onLogIn(self, event):
+    def onLogInOSF(self, event):
         # check knownusers list
         users = list(ProjectsMenu.knownUsers.keys())
-        dlg = LogInDlg(app=self.app)
+        dlg = LogInDlgOSF(app=self.app)
         dlg.Show()
         if self.app.osf_session.authenticated:
             username = self.app.osf_session.username
@@ -186,6 +209,22 @@ class ProjectsMenu(wx.Menu):
                     (username in ProjectsMenu.knownUsers):
                 # it wasn't there, but is now. Add to menu
                 self.addUserToSubMenu(username)
+
+    def onLogInPavlovia(self, event):
+        # check known users list
+        info = {}
+        url, state = pavlovia.getAuthURL()
+        dlg = OAuthBrowserDlg(self.parent, url, info=info)
+        dlg.ShowModal()
+        if info:
+
+        # if self.app.pavloviaSession.authenticated:
+        #     username = self.app.osf_session.username
+        #     # check whether we need to add this to users menu
+        #     if (username not in users) and \
+        #             (username in ProjectsMenu.knownUsers):
+        #         # it wasn't there, but is now. Add to menu
+        #         self.addUserToSubMenu(username)
 
     def onNew(self, event):
         """Create a new project for OSF
@@ -196,8 +235,8 @@ class ProjectsMenu(wx.Menu):
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message=_translate(
-                                            "You need to log in"
-                                            " to create a project"))
+                                                "You need to log in"
+                                                " to create a project"))
             infoDlg.Show()
 
     def onOpenFile(self, event):
@@ -207,7 +246,7 @@ class ProjectsMenu(wx.Menu):
                             message=_translate("Open local project file"),
                             style=wx.FD_OPEN,
                             wildcard=_translate(
-                            "Project files (*.psyproj)|*.psyproj"))
+                                "Project files (*.psyproj)|*.psyproj"))
         if dlg.ShowModal() == wx.ID_OK:
             projFile = dlg.GetPath()
             self.openProj(projFile)
@@ -231,15 +270,50 @@ class ProjectsMenu(wx.Menu):
                 ProjectsMenu.appData['fileHistory'] = projList[:10]
 
 
-class LogInDlg(wx.Dialog):
+# LogInDlgPavlovia
+class OAuthBrowserDlg(wx.Dialog):
+    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
+                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+    def __init__(self, parent, url, info,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=defaultStyle):
+        wx.Dialog.__init__(self, parent, pos=pos, size=size, style=style)
+        self.tokenInfo = info
+        # create browser window for authentication
+        self.browser = wx.html2.WebView.New(self)
+        print(dir(self.browser))
+        self.browser.LoadURL(url)
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.onNewURL)
+
+        # do layout
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.browser, 1, wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        self.SetSize((700, 700))
+
+    def onNewURL(self, event):
+        url = self.browser.CurrentURL
+        if 'access_token=' in url:
+            self.tokenInfo['token'] = self.getParamFromURL('access_token')
+            self.tokenInfo['tokenType'] = self.getParamFromURL('token_type')
+            self.tokenInfo['state'] = self.getParamFromURL('state')
+            self.EndModal(wx.ID_OK)
+
+    def getParamFromURL(self, paramName):
+        url = self.browser.CurrentURL
+        return url.split(paramName+'=')[1].split('&')[0]
+
+
+class LogInDlgOSF(wx.Dialog):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
 
-    def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
+    def __init__(self, app, site='pavlovia', pos=wx.DefaultPosition,
+                 size=wx.DefaultSize,
                  style=defaultStyle):
         wx.Dialog.__init__(self, None,
                            title=_translate(
-                           "Log in to Open Science Framework"))
+                               "Log in to Pavlovia.org"))
         self.session = app.osf_session
         self.app = app
 
@@ -259,10 +333,10 @@ class LogInDlg(wx.Dialog):
         self.fieldsSizer.Add(wx.StaticText(
             self,
             label=_translate("OSF Username (email)")),
-                             pos=(1, 0), flag=wx.ALIGN_RIGHT)
+            pos=(1, 0), flag=wx.ALIGN_RIGHT)
         self.username = wx.TextCtrl(self)
         self.username.SetToolTip(wx.ToolTip(_translate("Your username on OSF "
-                                            "(the email address you used)")))
+                                                       "(the email address you used)")))
         self.fieldsSizer.Add(self.username,
                              pos=(1, 1), flag=wx.ALIGN_LEFT)
         # pass info
@@ -310,7 +384,7 @@ class LogInDlg(wx.Dialog):
             dialogs.MessageDialog(parent=self.parent, type='Warning',
                                   title=_translate("pyosf not found"),
                                   message=_translate("You need pyosf to "
-                                          "log in to Open Science Framework"),
+                                                     "log in to Open Science Framework"),
                                   )
             return None
         username = self.username.GetValue()
@@ -326,7 +400,8 @@ class LogInDlg(wx.Dialog):
             self.Destroy()
         except pyosf.AuthError:
             self.updateStatus(_translate("Failed to Authenticate. "
-                              "Check username/password"), color=(255, 0, 0))
+                                         "Check username/password"),
+                              color=(255, 0, 0))
 
     def onCancel(self, event):
         self.Destroy()
@@ -380,8 +455,8 @@ class SearchFrame(BaseFrame):
 
     def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=defaultStyle):
-        title = _translate("Search OSF (Open Science Framework)")
-        self.frameType = 'OSFsearch'
+        title = _translate("Search for projects online")
+        self.frameType = 'ProjectSearch'
         BaseFrame.__init__(self, None, -1, title, pos, size, style)
         self.app = app
         self.currentOSFProject = None
@@ -443,7 +518,7 @@ class SearchFrame(BaseFrame):
         self.mainSizer.Add(rightSizer, flag=wx.EXPAND, proportion=1, border=5)
         self.SetSizerAndFit(self.mainSizer)
 
-        aTable = wx.AcceleratorTable([(0,  wx.WXK_ESCAPE, wx.ID_CANCEL),
+        aTable = wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
         self.Show()  # show the window before doing search/updates
@@ -464,11 +539,11 @@ class SearchFrame(BaseFrame):
         if self.app.osf_session.user_id is None:
             self.myProjectsPanel.setContents(
                 _translate("No user logged in. \n\n"
-                "Go to menu item Projects>Users>"))
+                           "Go to menu item Projects>Users>"))
         else:
             self.myProjectsPanel.setContents(
                 _translate("Searching projects for user {} ...")
-                .format(self.app.osf_session.username))
+                    .format(self.app.osf_session.username))
             self.Update()
             wx.Yield()
             myProjs = self.app.osf_session.find_user_projects()
@@ -489,6 +564,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
+
     def __init__(self, parent, detailsPanel):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
                                          style=wx.SUNKEN_BORDER)
@@ -509,7 +585,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             self.mainSizer.Add(
                 wx.StaticText(self, -1, projects),
                 flag=wx.EXPAND | wx.ALL, border=5,
-                )
+            )
         else:
             # a list of projects
             self.projView = wx.ListCtrl(parent=self,
@@ -527,7 +603,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             self.projView.SetColumnWidth(1, wx.LIST_AUTOSIZE)
             self.mainSizer.Add(self.projView,
                                flag=wx.EXPAND | wx.ALL,
-                               proportion=1, border=5,)
+                               proportion=1, border=5, )
             self.Bind(wx.EVT_LIST_ITEM_SELECTED,
                       self.onChangeSelection)
 
@@ -561,13 +637,13 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
             self.title.SetFont(font)
         self.url = wxhl.HyperlinkCtrl(parent=self, id=-1,
-                                    label="https://osf.io",
-                                    url="https://osf.io",
-                                    style=wxhl.HL_ALIGN_LEFT,
-                                    )
+                                      label="https://osf.io",
+                                      url="https://osf.io",
+                                      style=wxhl.HL_ALIGN_LEFT,
+                                      )
         self.description = wx.StaticText(parent=self, id=-1,
                                          label=_translate(
-                                         "Select a project for details"))
+                                             "Select a project for details"))
         self.tags = wx.StaticText(parent=self, id=-1,
                                   label="")
         self.visibility = wx.StaticText(parent=self, id=-1,
@@ -605,7 +681,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         tags = project.attributes['tags']
         while None in tags:
             tags.remove(None)
-        self.tags.SetLabel(_translate("Tags:")+" "+", ".join(tags))
+        self.tags.SetLabel(_translate("Tags:") + " " + ", ".join(tags))
 
         # store this ID to keep track of the current project
         self.currentProj = project
@@ -616,10 +692,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             return
         w, h = self.GetSize()
         self.description.SetLabel(self.currentProj.attributes['description'])
-        self.description.Wrap(w-20)
+        self.description.Wrap(w - 20)
         if not self.noTitle:
             self.title.SetLabel(self.currentProj.title)
-            self.title.Wrap(w-20)
+            self.title.Wrap(w - 20)
         self.Layout()
 
 
@@ -713,7 +789,8 @@ class ProjectFrame(BaseFrame):
 
     def onBrowseLocal(self, evt):
         dlg = wx.DirDialog(self,
-                           message=_translate("Root folder of your local files"))
+                           message=_translate(
+                               "Root folder of your local files"))
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             self.localPath.SetLabel(newPath)
@@ -817,7 +894,7 @@ class ProjectFrame(BaseFrame):
 
     def updateProjectFields(self):
         if not self.project:
-            self.project = pyosf.Project(osf = self.OSFproject)
+            self.project = pyosf.Project(osf=self.OSFproject)
         name = self.nameCtrl.GetValue()
         if name != '':
             self.project.name = name
@@ -827,10 +904,11 @@ class ProjectFrame(BaseFrame):
         self.project.project_id = self.OSFproject.id
         projPath = "%s/%s.psyproj" % (projectsFolder, self.project.name)
         self.project.project_file = projPath
-        self.project.autosave=True
+        self.project.autosave = True
         self.project.save()
         key = projectCatalog.addFile(self.project.project_file)
         projHistory.AddFileToHistory(key)
+
 
 class ProjectEditor(BaseFrame):
     def __init__(self, parent=None, id=-1, projId="", *args, **kwargs):
@@ -854,12 +932,12 @@ class ProjectEditor(BaseFrame):
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         descrLabel = wx.StaticText(panel, -1, _translate("Description:"))
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
-                                    style = wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+                                    style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
         tagsLabel = wx.StaticText(panel, -1,
                                   _translate("Tags (comma separated):"))
         self.tagsBox = wx.TextCtrl(panel, -1, size=(400, 100),
                                    value="PsychoPy, Builder, Coder",
-                                   style = wx.TE_MULTILINE | wx.SUNKEN_BORDER)
+                                   style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
         publicLabel = wx.StaticText(panel, -1, _translate("Public:"))
         self.publicBox = wx.CheckBox(panel, -1)
         # buttons
@@ -940,7 +1018,7 @@ class SyncStatusPanel(wx.Panel):
         self.downProg.SetValue(0)
 
     def setProgress(self, progress):
-        if type(progress)==dict:
+        if type(progress) == dict:
             upDone, upTot = progress['up']
             downDone, downTot = progress['down']
         if progress == 1 or upTot == 0:

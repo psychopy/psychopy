@@ -71,8 +71,8 @@ thisFolder = os.path.split(__file__)[0]
 class ProjIDParam(Param):
     @property
     def allowedVals(self):
-        from psychopy.app.projects import projectCatalog
-        allowed = list(projectCatalog.keys())
+        from psychopy.app.projects import catalog
+        allowed = list(catalog.keys())
         # always allow the current val!
         if self.val not in allowed:
             allowed.append(self.val)

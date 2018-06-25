@@ -12,7 +12,7 @@ else:
     tmpApp = wx.App(False)
 from psychopy import experiment
 from psychopy import constants
-from psychopy.app import builder, projects
+from psychopy import projects
 from psychopy.experiment.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
@@ -24,8 +24,8 @@ from psychopy.experiment.components import getAllComponents
 # ignore attributes that are there because inherit from object
 ignoreObjectAttribs = True
 
-origProjectCatalog = projects.projectCatalog
-projects.projectCatalog = {}
+origProjectCatalog = projects.catalog
+projects.catalog = {}
 
 # should not need a wx.App with fetchIcons=False
 try:

@@ -49,8 +49,8 @@ from psychopy.localization import _translate
 
 # needed by splash screen for the path to resources/psychopySplash.png
 from psychopy import preferences, logging, __version__
+from psychopy import projects
 from . import connections
-from . import projects
 from .utils import FileDropTarget
 import os
 import threading
@@ -158,7 +158,8 @@ class PsychoPyApp(wx.App):
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
-        self.osf_session = None
+        self.osfSession = None
+        self.pavloviaSession = None
 
         self.copiedRoutine = None
         self.copiedCompon = None
@@ -188,20 +189,21 @@ class PsychoPyApp(wx.App):
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
-            splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
-            splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
+            splashImage = wx.Image(name=splashFile)
+            splashImage.ConvertAlphaToMask()
+            splash = AS.AdvancedSplash(None, bitmap=splashImage.ConvertToBitmap(),
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
-                                       shadowcolour=wx.RED)  # transparency?
-            splash.SetTextPosition((10, 240))
-            splash.SetText(_translate("  Loading libraries..."))
+                                       )  # transparency?
+            splash.SetTextPosition((100, 20))
+            splash.SetText(_translate("Loading libraries..."))
         else:
             splash = None
 
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
         if splash:
-            splash.SetText(_translate("  Loading PsychoPy2..."))
+            splash.SetText(_translate("Loading PsychoPy2..."))
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs
@@ -644,7 +646,7 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
-        projects.projectCatalog = None  # garbage collect the projects before sys.exit
+        projects.catalog = None  # garbage collect the projects before sys.exit
         # see whether any files need saving
         for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere
