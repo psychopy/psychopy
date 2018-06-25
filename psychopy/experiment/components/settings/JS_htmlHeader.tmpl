@@ -4,7 +4,7 @@
   <head>
     <title>{name} [PsychoPy]</title>
     <meta charset="UTF-8">
-    <link href="js/vendors//jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
+    <link href="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
 
     <style>
         /* project and resource dialogs */
@@ -15,6 +15,22 @@
         /* don't display close button in the top right corner of the box */
         .no-close .ui-dialog-titlebar-close {{ display: none; }}
     </style>
+
+    <script type="text/javascript" src="lib/vendors/seedrandom.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/Math2.js"></script>
+    <script type="text/javascript" src="lib/vendors/jquery-2.2.0.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/jquery.blockUI.js" ></script>
+    <script type="text/javascript" src="lib/vendors/stats.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/pixi.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/preloadjs.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/log4javascript.min.js"></script
+
+    <!-- module loading with System.js -->
+    <script src="lib/vendors/jspm_packages/system.js"></script>
+    <script src="lib/vendors/config.js"></script>
+
   </head>
 
   <body>
@@ -22,30 +38,9 @@
     <!-- dialog place holder -->
     <div id="dialogDiv"/>
 
-    <script type="text/javascript" src="js/vendors/seedrandom.min.js"></script>
-    <script type="text/javascript" src="js/vendors/Math2.js"></script>
-    <script type="text/javascript" src="js/vendors/jquery-2.2.0.min.js"></script>
-    <script type="text/javascript" src="js/vendors/jquery-ui-1.11.4.base/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="js/vendors/jquery.blockUI.js" ></script>
-    <script type="text/javascript" src="js/vendors/stats.min.js"></script>
-    <script type="text/javascript" src="js/vendors/pixi.min.js"></script>
-    <script type="text/javascript" src="js/vendors/papaparse.min.js"></script>
-    <script type="text/javascript" src="js/vendors/preloadjs-0.6.2.min.js"></script>
-
-    <script type="text/javascript" src="js/psychojs/main.js"></script>
-    <script type="text/javascript" src="js/psychojs/core.js"></script>
-    <script type="text/javascript" src="js/psychojs/data.js"></script>
-    <script type="text/javascript" src="js/psychojs/events.js"></script>
-    <script type="text/javascript" src="js/psychojs/gui.js"></script>
-    <script type="text/javascript" src="js/psychojs/util.js"></script>
-    <script type="text/javascript" src="js/psychojs/scheduler.js"></script>
-    <script type="text/javascript" src="js/psychojs/visual.js"></script>
-    <script type="text/javascript" src="js/psychojs/io.js"></script>
-    <script type="text/javascript" src="js/psychojs/jamdb.js"></script>
-    <script type="text/javascript" src="js/psychojs/colors.js"></script>
-    <script type="text/javascript" src="js/psychojs/logging.js"></script>
-
     <script type='text/javascript'>
-      // wait until document is ready:
-      $(document).ready(function() {{
-        psychoJS.debug = true; //false;
+      System.import("Ilixa/public/{name}/html/{name}.js");
+    </script>
+
+  </body>
+</html>

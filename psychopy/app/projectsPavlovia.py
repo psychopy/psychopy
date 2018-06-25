@@ -551,7 +551,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             raise AttributeError("User pressed the sync button with no "
                                  "current project existing.")
 
-
         # fork first if needed
         perms = self.project.permissions['project_access']
         if type(perms) == dict:
@@ -602,6 +601,7 @@ class ProjectEditor(wx.Dialog):
             self.filename = None
         self.project = project
         self.projInfo = None
+        self.parent = parent
 
         if project:
             # edit existing project
@@ -670,6 +670,9 @@ class ProjectEditor(wx.Dialog):
         # tags need splitting and then
         tagsList = self.tagsBox.GetValue().split(',')
         tags = [thisTag.strip() for thisTag in tagsList]
+        localRoot = self.localBox.GetValue()
+        if not localRoot:
+            localRoot = setLocalPath(self.parent, project=None, path="")
 
         # then create/update
         if self.isNew:
@@ -677,7 +680,7 @@ class ProjectEditor(wx.Dialog):
                                             description=descr,
                                             tags=tags,
                                             visibility=visibility)
-            project.localRoot = self.localBox.GetLabel()
+            project.localRoot = localRoot
             self.project = project
             self.project.sync()
         else:  # to be done
@@ -686,7 +689,7 @@ class ProjectEditor(wx.Dialog):
             self.project.tags = tags
             self.project.visibility=visibility
             self.project.save()
-
+        print('SuccessCreatedProjec')
         self.EndModal(wx.ID_OK)
 
     def onBrowseLocal(self, evt=None):

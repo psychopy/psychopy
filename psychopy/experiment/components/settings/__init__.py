@@ -61,7 +61,8 @@ _localized = {'expName': _translate("Experiment name"),
               'Save excel file':  _translate("Save excel file"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
-              'Use version': _translate("Use PsychoPy version")}
+              'Use version': _translate("Use PsychoPy version"),
+              'Completion URL': _translate("Completion URL")}
 
 thisFolder = os.path.split(__file__)[0]
 
@@ -123,7 +124,8 @@ class SettingsComponent(object):
                       'Save log file', 'logging level',
                       'Monitor', 'Screen', 'Full-screen window',
                       'Window size (pixels)',
-                      'color', 'colorSpace', 'Units', ]
+                      'color', 'colorSpace', 'Units', 'HTML path',
+                      'OSF Project ID', 'JS libs']
         # basic params
         self.params['expName'] = Param(
             expName, valType='str', allowedTypes=[],
@@ -254,6 +256,11 @@ class SettingsComponent(object):
             hint=_translate("Should we package a copy of the JS libs or use"
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
+        self.params['Completion URL'] = Param(
+            'completionURL', valType='str',
+            hint=_translate("Where should participants be redirected after the experiment"
+                            " INSERT COMPLETION URL E.G.?"),
+            label="Completion URL", categ='Online')
 
     def getInfo(self):
         """Rather than converting the value of params['Experiment Info']
@@ -392,6 +399,8 @@ class SettingsComponent(object):
 
         # write info.php file
         folder = self.exp.expPath
+        if '.psyexp' in folder:
+            folder = os.getcwd() + '/html/'
         if not os.path.isdir(folder):
             os.mkdir(folder)
         # get OSF projcet info if there was a project id
@@ -405,33 +414,17 @@ class SettingsComponent(object):
             email = repr(self.params['email'].val)
         else:
             email = "''"
-        if projLabel in projectCatalog:  # this is the psychopy  descriptive label (id+title)
-            proj = projectCatalog[projLabel]
-            osfID = proj.osf.id
-            osfName = proj.osf.title
-            osfUser = proj.username
-            osfToken = remote.TokenStorage()[osfUser]
-            osfHtmlFolder = self.params['HTML path'].val
-        infoPHPfilename = os.path.join(folder, 'info.php')
-        infoText = readTextFile("JS_infoPHP.tmpl")
-        infoText = infoText.format(osfID=osfID,
-                                   osfName=osfName,
-                                   osfToken=osfToken,
-                                   osfHtmlFolder=osfHtmlFolder,
-                                   osfDataFolder=osfDataFolder,
-                                   params=self.params,
-                                   email=email,
-                                   )
-
-        infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
+        infoPHPfilename = os.path.join(folder, 'config.json')
+        infoText = readTextFile("config_json.tmpl")
+        # infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
-
         # populate resources folder
         resFolder = join(folder, 'resources')
         if not os.path.isdir(resFolder):
             os.mkdir(resFolder)
         resourceFiles = self.exp.getResourceFiles()
+
         for srcFile in resourceFiles:
             dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
             dstFolder = os.path.split(dstAbs)[0]
@@ -446,16 +439,11 @@ class SettingsComponent(object):
             if self.params['JS libs'].val == 'packaged':
                 copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
                 copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
-
-            # always copy server.php
-            shutil.copy2(os.path.join(jsPath, 'server.php'), folder)
         else:
             jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
             # copy over JS libs if needed
             if self.params['JS libs'].val == 'packaged':
                 jsZip.extractall(path=folder)
-            else:
-                jsZip.extract(path=folder, member="server.php")
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # write info.php and resources folder as well
@@ -464,12 +452,52 @@ class SettingsComponent(object):
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-                   name = self.params['expName'].val, # prevent repr() conversion
-                   params = self.params)
-        buff.write(header)
+                   name=self.params['expName'].val, # prevent repr() conversion
+                   params=self.params)
+        folder = os.getcwd() + '/html/'
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        with open(folder + "index.html", 'wb') as html:
+            html.write(header.encode())
+        html.close()
+
+        # Write header comment
+        starLen = "*"*(len(self.params['expName'].val)+9)
+        code = ("/%s \n"
+               " * %s Test *\n" 
+               " %s/\n\n")
+        buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
+        # Import modules
+        code = ("import * as util from 'lib/util';\n"
+                "import Window from 'lib/Window';\n"
+                "import TextStim from 'lib/TextStim';\n"
+                "import PsychoJS from 'lib/PsychoJS';\n"
+                "import Color from 'lib/Color';\n"
+                "import ExperimentHandler from 'lib/ExperimentHandler';\n"
+                "import TrialHandler from 'lib/TrialHandler';\n"
+                "import ResourceManager from 'lib/ResourceManager';\n"
+                "import {BuilderKeyResponse} from 'lib/EventManager';\n"
+                "import {MonotonicClock, Clock, CountdownTimer} from 'lib/Clock';\n"
+                "\n"
+                "// init psychoJS and set up the window:\n"
+                "const psychoJS = new PsychoJS({debug: true});\n"
+                "const _ = psychoJS;\n"
+                "setupWin();\n"
+                "\n"
+                "// store info about the experiment session:\n"
+                "_.expName = %(expName)s;  // from the Builder filename that created this script\n"
+                "_.expInfo = {'participant':'', 'session':'01'};\n"
+                "\n\n" % self.params)
+        for thisRoutine in list(self.exp.routines.values()):
+            # a single routine is a list of components:
+            for thisComp in thisRoutine:
+                code += "import {name} from 'lib/{name}';\n".format(name = (thisComp.type+'Stim'))
+        buff.writeIndentedLines(code)
+
+    def writeExpSetupCodeJS(self, buff):
 
         # write the code to set up experiment
-        buff.setIndentLevel(4, relative=False)
+        buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
         # check where to save data variables
         if self.params['OSF Project ID'].val:
@@ -480,9 +508,10 @@ class SettingsComponent(object):
             projID = 'undefined'
         code = template.format(
                         params=self.params,
+                        name=self.params['expName'].val,
                         saveType=saveType,
                         projID=projID,
-                        loggingLevel = self.params['logging level'].val.upper(),
+                        loggingLevel=self.params['logging level'].val.upper(),
                         )
         buff.writeIndentedLines(code)
 
@@ -666,12 +695,12 @@ class SettingsComponent(object):
         abbrevFunc = ("\nfunction abbrevNames(thisTrial) {\n"
                 "  return function () {\n"
                 "    // abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)\n"
-                "    if (thisTrial != undefined) {\n"
-                "      for (paramName in thisTrial) {\n"
-                "        window[paramName] = thisTrial[paramName];\n"
+                "    if (typeof thisTrial !== 'undefined') {\n"
+                "      for (let paramName in thisTrial) {\n"
+                "        psychoJS[paramName] = thisTrial[paramName];\n"
                 "      }\n"
-                "    }\n"
-                "    return psychoJS.NEXT;\n"
+                "    }\n\n"
+                "    return Scheduler.Event.NEXT;\n"
                 "  };\n"
                 "}\n"
                 )
@@ -679,24 +708,17 @@ class SettingsComponent(object):
         recordLoopIterationFunc = ("\nfunction recordLoopIteration(currentLoop) {\n"
                     "  return function () {\n"
                     "    currentLoop.updateAttributesAtBegin();\n"
-                    "    thisExp.nextEntry();\n"
-                    "    return psychoJS.NEXT;\n"
+                    "    psychoJS.experiment.nextEntry();\n"
+                    "    return Scheduler.Event.NEXT;\n"
                     "  }\n"
                     "}\n"
                 )
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
-                    "    thisExp.save();\n"
-                    "    win.close()\n"
-                    "    psychoJS.core.quit();\n"
-                    "    return psychoJS.QUIT;\n"
+                    "  psychoJS.experiment.save();\n"
+                    "  _.window.close()\n"
+                    "  psychoJS.quit();\n"
+                    "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)
         buff.setIndentLevel(-1)
-        footer = ("\n"
-                  "        run();\n"
-                  "      });\n"
-                  "    </script>\n\n"
-                  "  </body>\n"
-                  "</html>")
-        buff.writeIndentedLines(footer)

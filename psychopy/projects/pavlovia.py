@@ -421,9 +421,10 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
         if gitRoot is None:
             # there's no project at all so create one
-            progressHandler.setStatus("Cloning from remote...")
-            progressHandler.syncPanel.Refresh()
-            progressHandler.syncPanel.Layout()
+            if progressHandler:
+                progressHandler.setStatus("Cloning from remote...")
+                progressHandler.syncPanel.Refresh()
+                progressHandler.syncPanel.Layout()
             repo = git.Repo.clone_from(
                 self.remoteHTTPS,
                 self.localRoot,
