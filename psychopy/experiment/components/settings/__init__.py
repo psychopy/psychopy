@@ -125,7 +125,7 @@ class SettingsComponent(object):
                       'Monitor', 'Screen', 'Full-screen window',
                       'Window size (pixels)',
                       'color', 'colorSpace', 'Units', 'HTML path',
-                      'OSF Project ID', 'JS libs']
+                      'OSF Project ID']
         # basic params
         self.params['expName'] = Param(
             expName, valType='str', allowedTypes=[],
@@ -431,19 +431,6 @@ class SettingsComponent(object):
             if not os.path.isdir(dstFolder):
                 os.makedirs(dstFolder)
             shutil.copy2(srcFile['abs'], dstAbs)
-
-        # add the js libs if needed for packaging
-        ppRoot = os.path.split(os.path.abspath(psychopy.__file__))[0]
-        jsPath = join(ppRoot, '..', 'psychojs')
-        if os.path.isdir(jsPath):
-            if self.params['JS libs'].val == 'packaged':
-                copyTreeWithMD5(join(jsPath,'php'), join(folder, 'php'))
-                copyTreeWithMD5(join(jsPath,'js'), join(folder, 'js'))
-        else:
-            jsZip = zipfile.ZipFile(os.path.join(ppRoot, 'psychojs.zip'))
-            # copy over JS libs if needed
-            if self.params['JS libs'].val == 'packaged':
-                jsZip.extractall(path=folder)
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # write info.php and resources folder as well
