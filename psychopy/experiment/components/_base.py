@@ -340,7 +340,7 @@ class BaseComponent(object):
                 val = val[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
             if paramName in ["image", "mask", "sound"]:
-                val = ("psychoJS.resourceManager.getResource({})"
+                val = ("psychoJS.resourceManager.getResource(_.{})"
                        .format(val))
         else:
             endStr = ''
@@ -377,7 +377,7 @@ class BaseComponent(object):
                 buff.writeIndented("_.%s.setSound(%s, secs=%s)%s\n" %
                                    (compName, params['sound'], stopVal, endStr))
             else:
-                buff.writeIndented("_.%s.set%s(_.%s%s)%s\n" %
+                buff.writeIndented("_.%s.set%s(%s%s)%s\n" %
                                    (compName, paramCaps, val, loggingStr, endStr))
 
     def checkNeedToUpdate(self, updateType):

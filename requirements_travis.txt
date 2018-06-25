@@ -18,6 +18,7 @@ pyserial
 pyparallel
 pycrsltd
 python-bidi
+arabic_reshaper
 cffi
 future
 json_tricks

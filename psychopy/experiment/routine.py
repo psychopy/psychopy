@@ -300,7 +300,7 @@ class Routine(list):
                 "  }\n"
                 "}\n"
                 "// check for quit (the Esc key)\n"
-                "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
+                "if (psychoJS.experiment.experimentEnded || _.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
                 "  _.quit('The <Escape> key was pressed. Goodbye!');\n"
                 "}\n")
         buff.writeIndentedLines(code % self.params)

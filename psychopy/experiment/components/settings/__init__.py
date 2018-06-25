@@ -414,28 +414,11 @@ class SettingsComponent(object):
             email = repr(self.params['email'].val)
         else:
             email = "''"
-        if projLabel in projectCatalog:  # this is the psychopy  descriptive label (id+title)
-            proj = projectCatalog[projLabel]
-            osfID = proj.osf.id
-            osfName = proj.osf.title
-            osfUser = proj.username
-            osfToken = remote.TokenStorage()[osfUser]
-            osfHtmlFolder = self.params['HTML path'].val
-        infoPHPfilename = os.path.join(folder, 'info.php')
-        infoText = readTextFile("JS_infoPHP.tmpl")
-        infoText = infoText.format(osfID=osfID,
-                                   osfName=osfName,
-                                   osfToken=osfToken,
-                                   osfHtmlFolder=osfHtmlFolder,
-                                   osfDataFolder=osfDataFolder,
-                                   params=self.params,
-                                   email=email,
-                                   )
-
-        infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
+        infoPHPfilename = os.path.join(folder, 'config.json')
+        infoText = readTextFile("config_json.tmpl")
+        # infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
         with open(infoPHPfilename, 'w') as infoFile:
             infoFile.write(infoText)
-
         # populate resources folder
         resFolder = join(folder, 'resources')
         if not os.path.isdir(resFolder):
@@ -479,23 +462,22 @@ class SettingsComponent(object):
         html.close()
 
         # Write header comment
-        code = ("/******************\n"
-               "%s.js\n"
-               "*******************/\n\n")
-        buff.writeIndentedLines(code % self.params['expName'].val)
+        starLen = "*"*(len(self.params['expName'].val)+9)
+        code = ("/%s \n"
+               " * %s Test *\n" 
+               " %s/\n\n")
+        buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
         # Import modules
-        code = ("// Importing standard modules...\n"
-                "import * as util from 'js/util';\n"
-                "import Scheduler from 'js/Scheduler'; \n"
-                "import Window from 'js/Window';\n"
-                "import TextStim from 'js/TextStim';\n"
-                "import PsychoJS from 'js/PsychoJS';\n"
-                "import Color from 'js/Color';\n"
-                "import ExperimentHandler from 'js/ExperimentHandler';\n"
-                "import TrialHandler from 'js/TrialHandler';\n"
-                "import ResourceManager from 'js/ResourceManager';\n"
-                "import {BuilderKeyResponse} from 'js/EventManager';\n"
-                "import {MonotonicClock, Clock, CountdownTimer} from 'js/Clock';\n"
+        code = ("import * as util from 'lib/util';\n"
+                "import Window from 'lib/Window';\n"
+                "import TextStim from 'lib/TextStim';\n"
+                "import PsychoJS from 'lib/PsychoJS';\n"
+                "import Color from 'lib/Color';\n"
+                "import ExperimentHandler from 'lib/ExperimentHandler';\n"
+                "import TrialHandler from 'lib/TrialHandler';\n"
+                "import ResourceManager from 'lib/ResourceManager';\n"
+                "import {BuilderKeyResponse} from 'lib/EventManager';\n"
+                "import {MonotonicClock, Clock, CountdownTimer} from 'lib/Clock';\n"
                 "\n"
                 "// init psychoJS and set up the window:\n"
                 "const psychoJS = new PsychoJS({debug: true});\n"
@@ -505,7 +487,11 @@ class SettingsComponent(object):
                 "// store info about the experiment session:\n"
                 "_.expName = %(expName)s;  // from the Builder filename that created this script\n"
                 "_.expInfo = {'participant':'', 'session':'01'};\n"
-                "\n" % self.params)
+                "\n\n" % self.params)
+        for thisRoutine in list(self.exp.routines.values()):
+            # a single routine is a list of components:
+            for thisComp in thisRoutine:
+                code += "import {name} from 'lib/{name}';\n".format(name = (thisComp.type+'Stim'))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff):

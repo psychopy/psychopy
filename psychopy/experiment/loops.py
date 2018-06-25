@@ -238,7 +238,7 @@ class TrialHandler(object):
                 "  }}\n"
                 "\n"
                 "  return Scheduler.Event.NEXT;\n"
-                "}}\n"
+                "}}\n\n"
                 .format())
         buff.writeIndentedLines(code)
 

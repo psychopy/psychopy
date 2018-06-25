@@ -328,7 +328,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented(code)
 
         if self.params['discard previous'].val:
-            buff.writeIndented("psychoJS.eventManager.clearEvents({eventType:'keyboard'});\n")
+            buff.writeIndented("_.eventManager.clearEvents({eventType:'keyboard'});\n")
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n")
@@ -361,7 +361,7 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "{keyList:%s}" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("let theseKeys = psychoJS.eventManager.getKeys(%s);\n" % keyListStr)
+        buff.writeIndented("let theseKeys = _.eventManager.getKeys(%s);\n" % keyListStr)
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n// check for quit:\n'
@@ -523,6 +523,6 @@ class KeyboardComponent(BaseComponent):
 
             # only add an RT if we had a response
             code = ("if (_.{name}.keys != undefined) {{  // we had a response\n"
-                    "    psychoJS.experiment.addData('{name}.rt', _.{name}.rt);\n}}\n"
+                    "    _.experiment.addData('{name}.rt', _.{name}.rt);\n}}\n"
                     .format(loopName=currLoop.params['name'], name=name))
             buff.writeIndentedLines(code)
