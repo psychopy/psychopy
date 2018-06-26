@@ -63,7 +63,7 @@ def login(tokenOrUsername, rememberMe=True):
     """
     global currentSession
     # would be nice here to test whether this is a token or username
-    logging.debug('pavloviaTokensCurrently: {}', knownUsers)
+    logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
         token = knownUsers[tokenOrUsername]  # username so fetch token
     else:
@@ -73,6 +73,7 @@ def login(tokenOrUsername, rememberMe=True):
     currentSession.setToken(token)
     prefs.appData['projects']['pavloviaUser'] = currentSession.user.username
     knownUsers[currentSession.user.username] = token
+    print(knownUsers)
 
 
 class PavloviaSession:
@@ -108,7 +109,7 @@ class PavloviaSession:
         return proj
 
     def createProject(self, name, description="", tags=(), visibility='private',
-                      local=''):
+                      localRoot=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
 
         Parameters
@@ -140,8 +141,7 @@ class PavloviaSession:
         # TODO: add avatar option?
         # TODO: add namespace option?
         gitlabProj = self.gitlab.projects.create(projDict)
-        pavProject = PavloviaProject(gitlabProj)
-        pavProject.local = local
+        pavProject = PavloviaProject(gitlabProj, localRoot=localRoot)
         return pavProject
 
     def getProject(self, id):
@@ -252,19 +252,21 @@ class PavloviaProject(dict):
     .localRoot is the path to the local root
     """
 
-    def __init__(self, proj):
+    def __init__(self, proj, localRoot=''):
         dict.__init__(self)
         self._storedAttribs = {}  # these will go into knownProjects file
         self['id'] = ''
-        self['local'] = ''
+        self['localRoot'] = ''
         self['remoteSSH'] = ''
         self['remoteHTTPS'] = ''
         self._lastKnownSync = 0
+        self._newRemote = False  # False can also indicate 'unknown'
         if isinstance(proj, gitlab.v4.objects.Project):
             self.pavlovia = proj
         else:
             self.pavlovia = currentSession.gitlab.projects.get(proj)
         self.repo = None  # update with getRepo()
+        self.localRoot = localRoot
 
     def __getattr__(self, name):
         if name == 'owner':
@@ -318,7 +320,8 @@ class PavloviaProject(dict):
     def localRoot(self, localRoot):
         self['localRoot'] = localRoot
         # this is where we add a project to knownProjects:
-        knownProjects[self.id] = self
+        if localRoot:  # i.e. not set to None or ''
+            knownProjects[self.id] = self
 
     @property
     def id(self):
@@ -410,9 +413,11 @@ class PavloviaProject(dict):
         origin = self.repo.remotes.origin
         origin.push(progress=progressHandler)
 
-    def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False):
+    def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False,
+                newRemote=False):
         """Will always try to return a valid local git repo
-        Underneath, this is stored as _repo. If .repo is requested then """
+
+        Will try to clone if local is empty and remote is not"""
         if self.repo and not forceRefresh:
             return self.repo
         if not self.localRoot:
@@ -420,16 +425,7 @@ class PavloviaProject(dict):
                                  "chosen a local folder.")
         gitRoot = getGitRoot(self.localRoot)
         if gitRoot is None:
-            # there's no project at all so create one
-            if progressHandler:
-                progressHandler.setStatus("Cloning from remote...")
-                progressHandler.syncPanel.Refresh()
-                progressHandler.syncPanel.Layout()
-            repo = git.Repo.clone_from(
-                self.remoteHTTPS,
-                self.localRoot,
-                progress=progressHandler)
-            freshClone = 1
+            self.newRepo(progressHandler)
         elif gitRoot != self.localRoot:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -440,14 +436,42 @@ class PavloviaProject(dict):
         else:
             repo = git.Repo(gitRoot)
         self.repo = repo
+        self.writeGitIgnore()
 
-        # check that a .gitignore file exists and add it if not
+    def writeGitIgnore(self):
+        """Check that a .gitignore file exists and add it if not"""
         gitIgnorePath = os.path.join(self.localRoot, '.gitignore')
         if not os.path.exists(gitIgnorePath):
             with open(gitIgnorePath, 'w') as f:
                 f.write(gitIgnoreText)
 
-    def cloneRepo(self, progressHandler):
+    def newRepo(self, progressHandler=None):
+        """Will either git.init and git.push or git.clone depending on state
+        of local files.
+
+        Use newRemote if we know that the remote has only just been created
+        and is empty
+        """
+        localFiles = glob.glob(os.path.join(self.localRoot, "*"))
+        # there's no project at all so create one
+        if not self.localRoot:
+            raise AttributeError("Cannot fetch a PavloviaProject until we have "
+                                 "chosen a local folder.")
+        if localFiles and self._newRemote:  # existing folder
+            self.repo = git.Repo.init(self.localRoot)
+            # add origin remote and master branch (but no push)
+            self.repo.create_remote('origin', url=self['remoteHTTPS'])
+            self.repo.git.checkout(b="master")
+            self.writeGitIgnore()
+            self.stageFiles(['.gitignore'])
+            self.commit(['Create repository (including .gitignore)'])
+            self._newRemote = True
+        else:
+            # no files locally so safe to try and clone from remote
+            self.cloneRepo(progressHandler)
+            # TODO: add the further case where there are remote AND local files!
+
+    def cloneRepo(self, progressHandler=None):
         """Gets the git.Repo object for this project, creating one if needed
 
         Will check for a local folder and whether that is already (in) a repo.
@@ -470,32 +494,17 @@ class PavloviaProject(dict):
         if not self.localRoot:
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
-        progressHandler.setStatus("Cloning from remote...")
-        progressHandler.syncPanel.Refresh()
-        progressHandler.syncPanel.Layout()
+        if progressHandler:
+            progressHandler.setStatus("Cloning from remote...")
+            progressHandler.syncPanel.Refresh()
+            progressHandler.syncPanel.Layout()
         repo = git.Repo.clone_from(
             self.remoteHTTPS,
             self.localRoot,
             progress=progressHandler)
         self._lastKnownSync = time.time()
-        self._repo = repo
-        # using wx process giving error about bad macbundle for 'git'
-        #     command = ('/usr/local/bin/git clone --progress {} {}'
-        #            .format(self.remoteHTTPS, self.localRoot))
-        #     proc = wx.Process(progressHandler)
-        #     proc.Redirect()
-        #     _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
-        #     # launch the command
-        #     print(command)
-        #     pID = wx.Execute(command, _opts, proc)
-
-        # using plain python subprocess (capture of stdout not working)
-        #     command = ' '.join(['git', 'clone', '--progress', self.remoteHTTPS, self.localRoot])
-        #     print(command)
-        #     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-        #     time.sleep(0.5)
-        #     output, err = process.communicate()
-        #     print(output)
+        self.repo = repo
+        self._newRemote = False
 
     def forkTo(self, username=None):
         if username:
@@ -548,13 +557,13 @@ class PavloviaProject(dict):
                     'should be a list not a {}'.format(type(files)))
             self.repo.git.add(files)
         else:
-            diffsDict = self.getChanges()
-            if all['untracked']:
-                self.repo.git.add(all['untracked'])
-            if all['deleted']:
-                self.repo.git.add(all['deleted'])
-            if all['changed']:
-                self.repo.git.add(all['changed'])
+            diffsDict, diffsList = self.getChanges()
+            if diffsDict['untracked']:
+                self.repo.git.add(diffsDict['untracked'])
+            if diffsDict['deleted']:
+                self.repo.git.add(diffsDict['deleted'])
+            if diffsDict['changed']:
+                self.repo.git.add(diffsDict['changed'])
 
     def getStagedFiles(self):
         """Retrieves the files that are already staged ready for commit"""

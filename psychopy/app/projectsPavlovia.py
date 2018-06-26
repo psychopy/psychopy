@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import time
+import glob
 import wx
 import wx.html2
 import wx.lib.scrolledpanel as scrlpanel
@@ -27,13 +28,15 @@ from psychopy.app import dialogs
 from psychopy.projects import projectCatalog, projectsFolder, pavlovia
 from psychopy.localization import _translate
 
-# Done: add+commit before push
-# Done:  add .gitignore file. Added when opening a repo without one
-# TODO: user dlg could/should be local not a browser
-# TODO: if more than one remote then offer options
-# TODO: after clone, remember this folder for next file-open call
-# TODO: fork+sync doesn't yet fork the project first
+# DONE: add+commit before push
+# DONE:  add .gitignore file. Added when opening a repo without one
+# DONE: fork+sync doesn't yet fork the project first
+# DONE: rather than clone into a folder with files we should init/add/push
 #
+# TODO: after clone, remember this folder for next file-open call
+# TODO: user dlg could/should be local not a browser
+# TODO: syncPavlovia() doesn't handle case of a local git pushing to new gitlab
+# TODO: if more than one remote then offer options
 
 
 
@@ -182,8 +185,15 @@ class OAuthBrowserDlg(wx.Dialog):
             self.tokenInfo['state'] = self.getParamFromURL(
                     'state', url)
             self.EndModal(wx.ID_OK)
+        elif url=='https://gitlab.pavlovia.org/dashboard/projects':
+            # this is what happens if the user registered instead of logging in
+            # try now to do the log in (in the same session)
+            print('trying to get token for a new user')
+            authURL, state = pavlovia.getAuthURL()
+            self.browser.LoadURL(authURL)
         else:
-            logging.info("OAuthBrowser.onNewURL:", url)
+            print(url)
+            logging.info("OAuthBrowser.onNewURL:".format(url))
 
     def getParamFromURL(self, paramName, url=None):
         """Takes a url and returns the named param"""
@@ -418,6 +428,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.app = self.parent.app
         self.project = {}
         self.noTitle = noTitle
+        self.localFolder = ''
 
         # self.syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
         # self.syncPanel.Hide()
@@ -429,7 +440,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.title.SetFont(font)
 
         # if we've synced before we should know the local location
-        self.localFolder = wx.StaticText(
+        self.localFolderCtrl = wx.StaticText(
                 parent=self, id=-1,
                 label="Local root: ")
         self.browseLocalBtn = wx.Button(self, wx.ID_ANY, "Browse...")
@@ -465,7 +476,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Add(self.url, border=5,
                        flag=wx.ALL | wx.CENTER)
         localFolderSizer = wx.BoxSizer(wx.HORIZONTAL)
-        localFolderSizer.Add(self.localFolder, border=5,
+        localFolderSizer.Add(self.localFolderCtrl, border=5,
                              flag=wx.ALL | wx.EXPAND),
         localFolderSizer.Add(self.browseLocalBtn, border=5,
                              flag=wx.ALL | wx.EXPAND)
@@ -487,10 +498,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
         self.Bind(wx.EVT_SIZE, self.onResize)
 
-    def setProject(self, project):
+    def setProject(self, project, localRoot=''):
         if not isinstance(project, pavlovia.PavloviaProject):
-            # e.g. '382' or 382
-            project = pavlovia.currentSession.getProject(project)
+            project = pavlovia.currentSession.getProject(project,
+                                                         localRoot='')
         if project is None:
             return  # we're done
         self.project = project
@@ -511,10 +522,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
 
         # do we have a local location?
-        localFolder = project['local']
+        localFolder = project['localRoot']
         if not localFolder:
             localFolder = "<not yet synced>"
-        self.localFolder.SetLabel("Local root: {}".format(localFolder))
+        self.localFolderCtrl.SetLabel("Local root: {}".format(localFolder))
 
         # should sync be enabled?
         perms = project.permissions['project_access']
@@ -561,11 +572,11 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.setProject(fork.id)
 
         # if project.localRoot doesn't exist, or is empty
-        if 'local' not in self.project or not self.project.localRoot:
+        if 'localRoot' not in self.project or not self.project.localRoot:
             # we first need to choose a location for the repository
             newPath = setLocalPath(self, self.project)
             if newPath:
-                self.localFolder.SetLabel(
+                self.localFolderCtrl.SetLabel(
                         label="Local root: {}".format(newPath))
             self.project.local = newPath
             self.Layout()
@@ -581,10 +592,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Layout()
 
     def onBrowseLocalFolder(self, evt):
-        newPath = setLocalPath(self, self.project)
-        if newPath:
-            self.localFolder.SetLabel(
-                    label="Local root: {}".format(newPath))
+        self.localFolder = setLocalPath(self, self.project)
+        if self.localFolder:
+            self.localFolderCtrl.SetLabel(
+                    label="Local root: {}".format(newself.localFolder))
         self.Update()
 
 
@@ -644,17 +655,20 @@ class ProjectEditor(wx.Dialog):
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
         cancelBtn = wx.Button(panel, -1, _translate("Cancel"))
         cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer.AddMany([updateBtn, cancelBtn])
 
         # do layout
-        mainSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
-        mainSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
+        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        fieldsSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
                            (localLabel, 0, wx.ALIGN_RIGHT), localPathSizer,
                            (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
                            (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
-                           (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox,
-                           (updateBtn, 0, wx.ALIGN_RIGHT)])
-        border = wx.BoxSizer()
-        border.Add(mainSizer, 0, wx.ALL, 10)
+                           (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox])
+
+        border = wx.BoxSizer(wx.VERTICAL)
+        border.Add(fieldsSizer, 0, wx.ALL, 10)
+        border.Add(btnSizer, 0, wx.ALIGN_RIGHT)
         panel.SetSizerAndFit(border)
         self.Fit()
 
@@ -679,17 +693,17 @@ class ProjectEditor(wx.Dialog):
             project = session.createProject(name=name,
                                             description=descr,
                                             tags=tags,
-                                            visibility=visibility)
-            project.localRoot = localRoot
+                                            visibility=visibility,
+                                            localRoot=localRoot)
             self.project = project
-            self.project.sync()
-        else:  # to be done
+            self.project._newRemote = True
+        else:  # we're changing metadata of an existing project. Don't sync
             self.project.pavlovia.name = name
             self.project.pavlovia.description = descr
             self.project.tags = tags
             self.project.visibility=visibility
             self.project.save()
-        print('SuccessCreatedProjec')
+            self.project._newRemote = False
         self.EndModal(wx.ID_OK)
 
     def onBrowseLocal(self, evt=None):
@@ -795,8 +809,8 @@ def setLocalPath(parent, project=None, path=""):
     """
     if path:
         origPath = path
-    elif project and 'local' in project:
-        origPath = project.local
+    elif project and 'localRoot' in project:
+        origPath = project.localRoot
     else:
         origPath = ""
     # create the dialog
@@ -827,6 +841,7 @@ def logInPavlovia(parent, event=None):
     url, state = pavlovia.getAuthURL()
     dlg = OAuthBrowserDlg(parent, url, info=info)
     dlg.ShowModal()
+    print(info, state)
     if info and state == info['state']:
         token = info['token']
         pavlovia.login(token)
@@ -837,7 +852,7 @@ def syncPavlovia(parent, project=None):
     """A function to sync the current project (if there is one)
     """
     if not project:  # try getting one from the frame
-        project = parent.project
+        project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
         msg = ("This file doesn't belong to any existing project.")
@@ -851,23 +866,43 @@ def syncPavlovia(parent, project=None):
         return 0
 
     # if project.localRoot doesn't exist, or is empty
-    if 'local' not in project or not project.localRoot:
+    if 'localRoot' not in project or not project.localRoot:
         # we first need to choose a location for the repository
         setLocalPath(parent, project)
-    if not project.repo:
-        project.getRepo()
-
-    # check for anything to commit before pull/push
-    outcome = showCommitDialog(parent, project)
-
+    # a sync will be necessary so can create syncFrame
     syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
+
+    if project._newRemote:
+        # new remote, with local files, so init, add, push
+        project.newRepo(syncFrame.progHandler)
+        # add the local files and commit them
+        showCommitDialog(parent=parent, project=project,
+                         initMsg="First commit")
+        syncFrame.syncPanel.setStatus("Pushing files to Pavlovia")
+        wx.Yield()
+        time.sleep(0.001)
+        # git push -u origin master
+        project.repo.git.push('-u', 'origin', 'master')
+    elif not project.repo:
+        print("eistingRemote")
+        # existing remote which we should clone
+        project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
+
+        # we'll be needing a push or pull somewhere!
+        syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY,
+                              project=project)
+
+        # check for anything to commit before pull/push
+        outcome = showCommitDialog(parent, project)
+        project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+
     wx.Yield()
-    project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+    project._lastKnownSync = time.time()
     syncFrame.Destroy()
 
     return 1
 
-def showCommitDialog(parent, project):
+def showCommitDialog(parent, project, initMsg=""):
     """Brings up a commit dialog (if there is anything to commit
 
     Returns
@@ -894,7 +929,7 @@ def showCommitDialog(parent, project):
     updatesInfo = wx.StaticText(dlg, label=infoStr)
     
     commitTitleLbl = wx.StaticText(dlg, label='Summary of changes')
-    commitTitleCtrl = wx.TextCtrl(dlg, size=(500, -1))
+    commitTitleCtrl = wx.TextCtrl(dlg, size=(500, -1), value=initMsg)
     commitTitleCtrl.SetToolTip(wx.ToolTip(_translate(
         "A title summarizing the changes you're making in these files"
         )))
@@ -946,7 +981,5 @@ def createProject(parent):
 
     """
     editor = ProjectEditor(parent=parent)
-    editor.ShowModal()
-    # while not editor.finished:  # doesn't have ShowModal (Frame not Dialog)
-    #     time.sleep(0.01)
-
+    if editor.ShowModal() == wx.ID_OK:
+        return editor.project
