@@ -1779,19 +1779,19 @@ class BuilderFrame(wx.Frame):
         # get path if not given one
         settingsHTMLpath = self.exp.settings.params['HTML path'].val
         if htmlPath is None and self.exp.settings.params['HTML path']:
-            expPath = os.path.split(self.filename)[0]
+            expPath, expName = os.path.split(self.filename)
             htmlPath = os.path.join(expPath, settingsHTMLpath)
         # present dialog box
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
                                filePath=htmlPath)
         retVal = dlg.ShowModal()
+
+        htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         # then save the actual script
-        indexHTML = self.generateScript(experimentPath=htmlPath,
+        self.generateScript(experimentPath=htmlPath,
                                         target="PsychoJS")
-        f = codecs.open(os.path.join(htmlPath, 'index.html'), 'wb', 'utf-8')
-        f.write(indexHTML.getvalue())
-        f.close()
+        
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2316,10 +2316,6 @@ class BuilderFrame(wx.Frame):
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
         expPath = self.filename
-        version = self.exp.settings.params['Use version'].val
-        if not version:
-            version = self.exp.psychopyVersion
-        self.exp.psychopyVersion = version
         if expPath is None or expPath.startswith('untitled'):
             ok = self.fileSave()
             if not ok:
@@ -2343,9 +2339,14 @@ class BuilderFrame(wx.Frame):
             filename = self.filename
 
         # run compile
-        subprocess.check_output([pythonExec, '-m', compiler, filename,
-                                 '-v', version, '-o', experimentPath])
+        cmd = [pythonExec, '-m', compiler, filename,
+               '-o', experimentPath]
+        # if version is not specified then don't touch useVersion at all
+        version = self.exp.settings.params['Use version'].val
+        if version:
+            cmd.extend(['-v', version])
 
+        out = subprocess.check_output(cmd)
     def onPavloviaSync(self, evt=None):
         projectsPavlovia.syncPavlovia(parent=self, project=self.project)
 
@@ -2473,8 +2474,8 @@ class ExportFileDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-        msg = _translate("Warning, HTML outputs are under development.\n"
-                         "They are here purely for testing at the moment.")
+        msg = _translate("Warning, HTML outputs are very new.\n"
+                         "Treat with caution (CHECK YOUR EXPERIMENT)!")
         warning = wx.StaticText(self, wx.ID_ANY, msg)
         warning.SetForegroundColour((200, 0, 0))
         sizer.Add(warning, 0, wx.ALIGN_CENTRE | wx.ALL, 5)

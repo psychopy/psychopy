@@ -15,6 +15,7 @@ if __name__ != "__main__":
           "Importing will break the functionality of the "
           "useVersion() code and lead to unpredictable behaviour.")
 
+import os
 import argparse
 import codecs
 
@@ -28,6 +29,7 @@ if args.outfile is None:
     args.outfile = args.infile.replace(".psyexp",".py")
 
 # Set version
+print('using version:', args.version)
 if args.version:
     from psychopy import useVersion
     useVersion(args.version)
@@ -39,10 +41,11 @@ thisExp.loadFromXML(args.infile)
 # Write version to experiment init text
 thisExp.psychopyVersion = args.version
 # Set output type, either JS or Python
-if args.outfile.endswith(".html"):
+if args.outfile.endswith(".js"):
     targetOutput = "PsychoJS"
 else:
     targetOutput = "PsychoPy"
+
 # Write script
 script = thisExp.writeScript(args.outfile, target=targetOutput)
 args.outfile.replace('.py', targetOutput[-2:].lower())

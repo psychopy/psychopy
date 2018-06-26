@@ -217,14 +217,13 @@ class ProjectsMenu(wx.Menu):
         dlg = OAuthBrowserDlg(self.parent, url, info=info)
         dlg.ShowModal()
         if info:
-
-        # if self.app.pavloviaSession.authenticated:
-        #     username = self.app.osf_session.username
-        #     # check whether we need to add this to users menu
-        #     if (username not in users) and \
-        #             (username in ProjectsMenu.knownUsers):
-        #         # it wasn't there, but is now. Add to menu
-        #         self.addUserToSubMenu(username)
+            if self.app.pavloviaSession.authenticated:
+                username = self.app.osf_session.username
+                # check whether we need to add this to users menu
+                if (username not in users) and \
+                        (username in ProjectsMenu.knownUsers):
+                    # it wasn't there, but is now. Add to menu
+                    self.addUserToSubMenu(username)
 
     def onNew(self, event):
         """Create a new project for OSF

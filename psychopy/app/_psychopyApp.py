@@ -195,8 +195,10 @@ class PsychoPyApp(wx.App):
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?
-            splash.SetTextPosition((100, 20))
+            w, h = splashImage.GetSize()
+            splash.SetTextPosition((int(w/4), h-20))
             splash.SetText(_translate("Loading libraries..."))
+            wx.Yield()
         else:
             splash = None
 
@@ -204,6 +206,7 @@ class PsychoPyApp(wx.App):
         # but then that they end up being local so keep track in self
         if splash:
             splash.SetText(_translate("Loading PsychoPy2..."))
+            wx.Yield()
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs

@@ -12,11 +12,6 @@ from psychopy import logging
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.tools.versionchooser import versionOptions, availableVersions
 from psychopy.constants import PY3
-from psychopy.projects import projectCatalog
-try:
-    from pyosf import remote
-except ImportError:
-    pass
 
 # for creating html output folders:
 import shutil
@@ -124,8 +119,7 @@ class SettingsComponent(object):
                       'Save log file', 'logging level',
                       'Monitor', 'Screen', 'Full-screen window',
                       'Window size (pixels)',
-                      'color', 'colorSpace', 'Units', 'HTML path',
-                      'OSF Project ID']
+                      'color', 'colorSpace', 'Units', 'HTML path']
         # basic params
         self.params['expName'] = Param(
             expName, valType='str', allowedTypes=[],
@@ -243,10 +237,10 @@ class SettingsComponent(object):
             label=_localized["logging level"], categ='Data')
 
         # HTML output params
-        self.params['OSF Project ID'] = ProjIDParam(
-            '', valType='str', # automatically updates to allow choices
-            hint=_translate("The ID of this project (e.g. 5bqpc)"),
-            label="OSF Project ID", categ='Online')
+        # self.params['OSF Project ID'] = ProjIDParam(
+        #     '', valType='str', # automatically updates to allow choices
+        #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
+        #     label="OSF Project ID", categ='Online')
         self.params['HTML path'] = Param(
             'html', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
@@ -398,17 +392,16 @@ class SettingsComponent(object):
             shutil.copy2(src, dst)
 
         # write info.php file
-        folder = self.exp.expPath
-        if '.psyexp' in folder:
-            folder = os.getcwd() + '/html/'
+        folder = os.path.dirname(self.exp.expPath)
+        print('aasdfasdfsadfasdfasdf; {}'.format(folder))
         if not os.path.isdir(folder):
             os.mkdir(folder)
         # get OSF projcet info if there was a project id
-        projLabel = self.params['OSF Project ID'].val
+        # projLabel = self.params['OSF Project ID'].val
         # these are all blank unless we find a valid proj
-        osfID = osfName = osfToken = ''
-        osfHtmlFolder = ''
-        osfDataFolder = 'data'
+        # osfID = osfName = osfToken = ''
+        # osfHtmlFolder = ''
+        # osfDataFolder = 'data'
         # is email a defined parameter for this version
         if 'email' in self.params:
             email = repr(self.params['email'].val)
@@ -487,17 +480,15 @@ class SettingsComponent(object):
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
         # check where to save data variables
-        if self.params['OSF Project ID'].val:
-            saveType = "OSF_VIA_EXPERIMENT_SERVER"
-            projID = "'{}'".format(self.params['OSF Project ID'].val)
-        else:
-            saveType = "EXPERIMENT_SERVER"
-            projID = 'undefined'
+        # if self.params['OSF Project ID'].val:
+        #     saveType = "OSF_VIA_EXPERIMENT_SERVER"
+        #     projID = "'{}'".format(self.params['OSF Project ID'].val)
+        # else:
+        #     saveType = "EXPERIMENT_SERVER"
+        #     projID = 'undefined'
         code = template.format(
                         params=self.params,
                         name=self.params['expName'].val,
-                        saveType=saveType,
-                        projID=projID,
                         loggingLevel=self.params['logging level'].val.upper(),
                         )
         buff.writeIndentedLines(code)
