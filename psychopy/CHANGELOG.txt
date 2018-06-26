@@ -24,6 +24,26 @@ Stick to Python 2.7 if you want your script to break less. If you upgrade to
 Python 3 then you'll need to change any print statements to include brackets
 and you may also get some new errors springing up about unicode/bytes objects.
 
+PsychoPy 1.90.3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released June 2018
+
+FIXED:
+    * Fixes event code creation for Black Box ToolKit #1830
+    * Removed redundant 'apply' button in preferences #1832
+    * Fixes problem with setting gamma with pyglet v1.3+ #1834
+    * Removes 'unknown color space' warning if user is using named colors #1836
+    * Fixes refcount error raised when monitor centre was closed #1838
+    * For Py3, JSON calibration files are now loaded into monitor list #1839
+    * Fixes layout problem with RTL languages #1840
+    * Py3 now compatible with genComponsTemplate #1845
+    * Anti-buzzing fix applied to sounddevice backend #1847
+    * Implements checks for variable name clashes between builder and conditions file  #1852
+    * Reduced code redundancy for _getRegionOfFrame, and can get single pixels from front buffer #1854
+    * Hex color space can now be specified as a window setting in Experiment Settings #1857
+    * Sound duration can now be specified in conditions files #1858
+
 PsychoPy 1.90.2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
