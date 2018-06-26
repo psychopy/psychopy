@@ -434,10 +434,12 @@ class SettingsComponent(object):
         header = template.format(
                    name=self.params['expName'].val, # prevent repr() conversion
                    params=self.params)
-        folder = os.getcwd() + '/html/'
+        jsFile = self.exp.expPath
+        folder = os.path.dirname(jsFile)
+        print("folderNow {}".format(folder))
         if not os.path.isdir(folder):
             os.makedirs(folder)
-        with open(folder + "index.html", 'wb') as html:
+        with open(os.path.join(folder, "index.html"), 'wb') as html:
             html.write(header.encode())
         html.close()
 
