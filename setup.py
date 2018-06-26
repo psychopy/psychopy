@@ -92,7 +92,7 @@ packages = find_packages()
 # for the source dist this doesn't work - use the manifest.in file
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
                   '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
-datafiles = []
+dataFiles = []
 
 # post_install only needs installing on win32 but needs packaging in the zip
 scripts = ['psychopy/app/psychopyApp.py',

@@ -39,7 +39,6 @@ from psychopy.localization import _translate
 # TODO: if more than one remote then offer options
 
 
-
 class PavloviaMenu(wx.Menu):
     app = None
     appData = None
