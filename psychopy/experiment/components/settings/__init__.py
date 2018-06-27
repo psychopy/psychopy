@@ -445,6 +445,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
         # Import modules
         code = ("import * as util from 'lib/util';\n"
+                "import Scheduler from 'lib/Scheduler';\n"
                 "import Window from 'lib/Window';\n"
                 "import TextStim from 'lib/TextStim';\n"
                 "import PsychoJS from 'lib/PsychoJS';\n"
