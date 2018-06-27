@@ -339,11 +339,11 @@ class MouseComponent(BaseComponent):
         if self.params['newClicksOnly']:
             code += (
                 "prevButtonState = _.%(name)s.prototype.getPressed();"
-                "  // if button is down already this ISN'T a new click\n")
+                "  // if button is down already this ISN'T a new click\n}")
         else:
             code += (
                 "let prevButtonState = [0, 0, 0];"
-                "  // if now button is down we will treat as 'new' click\n")
+                "  // if now button is down we will treat as 'new' click\n}")
         buff.writeIndentedLines(code % self.params)
 
         # to get out of the if statement
@@ -416,6 +416,7 @@ class MouseComponent(BaseComponent):
             pass  # forceEnd == 'never'
             # 'if' statement of the time test and button check
         buff.setIndentLevel(-dedentAtEnd, relative=True)
+        buff.writeIndentedLines('}')
 
     def writeRoutineEndCode(self, buff):
         # some shortcuts
@@ -583,9 +584,8 @@ class MouseComponent(BaseComponent):
                 else:
                     # we only had one click so don't return a list
                     code = ("if (_.%s.%s) {"
-                            "  psychoJS.experiment.addData('%s.%s', _.%s.%s[0]);\n"
-                            "}\n" %
-                            (name, property, name, property, name, property))
+                            "  psychoJS.experiment.addData('%s.%s', _.%s.%s[0])};\n"
+                            % (name, property, name, property, name, property))
                     buff.writeIndented(code)
 
         if currLoop.params['name'].val == self.exp._expHandler.name:
