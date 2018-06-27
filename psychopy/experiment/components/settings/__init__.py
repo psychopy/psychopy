@@ -393,7 +393,6 @@ class SettingsComponent(object):
 
         # write info.php file
         folder = os.path.dirname(self.exp.expPath)
-        print('aasdfasdfsadfasdfasdf; {}'.format(folder))
         if not os.path.isdir(folder):
             os.mkdir(folder)
         # get OSF projcet info if there was a project id
@@ -407,11 +406,6 @@ class SettingsComponent(object):
             email = repr(self.params['email'].val)
         else:
             email = "''"
-        infoPHPfilename = os.path.join(folder, 'config.json')
-        infoText = readTextFile("config_json.tmpl")
-        # infoText = infoText.replace("=> u'", "=> '") # remove unicode symbols
-        with open(infoPHPfilename, 'w') as infoFile:
-            infoFile.write(infoText)
         # populate resources folder
         resFolder = join(folder, 'resources')
         if not os.path.isdir(resFolder):
