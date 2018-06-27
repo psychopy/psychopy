@@ -1335,6 +1335,13 @@ class BuilderFrame(wx.Frame):
                         emblem=join(rc, 'run16.png'),
                         pos='bottom_right'))
         tb.Bind(wx.EVT_TOOL, self.onPavloviaRun, self.bldrBtnPavloviaRun)
+        self.bldrBtnPavloviaSearch = tb.AddSimpleTool(
+                wx.ID_ANY,
+                combineImageEmblem(
+                        main=join(rc, 'globe%i.png' % tbSize),
+                        emblem=join(rc, 'magnifier16.png'),
+                        pos='bottom_right'))
+        tb.Bind(wx.EVT_TOOL, self.onPavloviaSearch, self.bldrBtnPavloviaSearch)
         self.bldrBtnPavloviaUser = tb.AddSimpleTool(
                 wx.ID_ANY,
                 combineImageEmblem(
@@ -1696,7 +1703,10 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
-        self.project = pavlovia.getProject(filename)
+        try:
+            self.project = pavlovia.getProject(filename)
+        except:
+            self.project = None
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -2351,15 +2361,17 @@ class BuilderFrame(wx.Frame):
         projectsPavlovia.syncPavlovia(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
-        dlg = projectsPavlovia.PavloviaMiniBrowser(parent=self)
-        dlg.gotoProjects()
-        dlg.ShowModal()
+        wx.LaunchDefaultBrowser("https://pavlovia.org/projects.html")
 
     def onPavloviaUser(self, evt=None):
         dlg = projectsPavlovia.PavloviaMiniBrowser(parent=self)
         dlg.gotoUserPage()
         dlg.ShowModal()
 
+    def onPavloviaSearch(self, evt=None):
+        self.pavloviaMenu.searchDlg = projectsPavlovia.SearchFrame(
+            app=self.app, parent=self, pos=self.GetPosition())
+        self.pavloviaMenu.searchDlg.Show()
 
 class ReadmeFrame(wx.Frame):
     """Defines construction of the Readme Frame"""

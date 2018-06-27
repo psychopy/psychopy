@@ -715,7 +715,7 @@ class Experiment(object):
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
                     for thisParam in thisComp.params:
-                        filePath = ''
+                        thisFile = ''
                         if isinstance(thisParam, basestring):
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, basestring):
@@ -723,6 +723,7 @@ class Experiment(object):
                         # then check if it's a valid path
                         if thisFile:
                             resources.append(thisFile)
+
         return resources
 
 

@@ -7,7 +7,6 @@
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
-
 import glob
 import os, sys, time
 from psychopy import logging, prefs, constants
@@ -73,7 +72,6 @@ def login(tokenOrUsername, rememberMe=True):
     currentSession.setToken(token)
     prefs.appData['projects']['pavloviaUser'] = currentSession.user.username
     knownUsers[currentSession.user.username] = token
-    print(knownUsers)
 
 
 class PavloviaSession:
@@ -313,6 +311,10 @@ class PavloviaProject(dict):
         self['remoteHTTPS'] = proj.http_url_to_repo
 
     @property
+    def emptyRemote(self):
+        return not bool(self.pavlovia.attributes['default_branch'])
+
+    @property
     def localRoot(self):
         return self['localRoot']
 
@@ -369,8 +371,11 @@ class PavloviaProject(dict):
                 return 1
         # pull first then push
         t0 = time.time()
-        self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
-        self.push(syncPanel=syncPanel, progressHandler=progressHandler)
+        if self.emptyRemote:  # we don't have a repo there yet to do a 1st push
+            self.firstPush()
+        else:
+            self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
+            self.push(syncPanel=syncPanel, progressHandler=progressHandler)
         self._lastKnownSync = t1 = time.time()
         msg = ("Successful sync at: {}, took {:.3f}s"
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
@@ -391,7 +396,8 @@ class PavloviaProject(dict):
         -------
 
         """
-        syncPanel.setStatus("Pulling changes from remote...")
+        if syncPanel:
+            syncPanel.setStatus("Pulling changes from remote...")
         origin = self.repo.remotes.origin
         origin.pull(progress=progressHandler)
 
@@ -470,6 +476,9 @@ class PavloviaProject(dict):
             # no files locally so safe to try and clone from remote
             self.cloneRepo(progressHandler)
             # TODO: add the further case where there are remote AND local files!
+
+    def firstPush(self):
+        self.repo.git.push('-u', 'origin', 'master')
 
     def cloneRepo(self, progressHandler=None):
         """Gets the git.Repo object for this project, creating one if needed
@@ -595,7 +604,7 @@ def getGitRoot(p):
     else:
         out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"],
                                       cwd=p)
-        return out.strip()
+        return out.strip().decode('utf-8')
 
 
 def getProject(filename):

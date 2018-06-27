@@ -196,7 +196,7 @@ class PsychoPyApp(wx.App):
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
                                        )  # transparency?
             w, h = splashImage.GetSize()
-            splash.SetTextPosition((int(w/4), h-20))
+            splash.SetTextPosition((int(w-100), h-20))
             splash.SetText(_translate("Loading libraries..."))
             wx.Yield()
         else:

@@ -155,13 +155,13 @@ class PavloviaMenu(wx.Menu):
 class OAuthBrowserDlg(wx.Dialog):
     """This class is used by to open the login (browser) window for pavlovia.org
     """
-    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
+    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
 
     def __init__(self, parent, url, info,
-                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 pos=wx.DefaultPosition,
                  style=defaultStyle):
-        wx.Dialog.__init__(self, parent, pos=pos, size=size, style=style)
+        wx.Dialog.__init__(self, parent, pos=pos, style=style)
         self.tokenInfo = info
         # create browser window for authentication
         self.browser = wx.html2.WebView.New(self)
@@ -172,7 +172,8 @@ class OAuthBrowserDlg(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.browser, 1, wx.EXPAND, 10)
         self.SetSizer(sizer)
-        self.SetSize((700, 700))
+        self.SetSize((400, 500))
+        self.CenterOnParent()
 
     def onNewURL(self, event):
         url = event.GetURL()
@@ -187,11 +188,9 @@ class OAuthBrowserDlg(wx.Dialog):
         elif url=='https://gitlab.pavlovia.org/dashboard/projects':
             # this is what happens if the user registered instead of logging in
             # try now to do the log in (in the same session)
-            print('trying to get token for a new user')
             authURL, state = pavlovia.getAuthURL()
             self.browser.LoadURL(authURL)
         else:
-            print(url)
             logging.info("OAuthBrowser.onNewURL:".format(url))
 
     def getParamFromURL(self, paramName, url=None):
@@ -273,16 +272,18 @@ class BaseFrame(wx.Frame):
 
 
 class SearchFrame(BaseFrame):
-    defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
-                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
 
-    def __init__(self, app, pos=wx.DefaultPosition, size=wx.DefaultSize,
-                 style=defaultStyle):
+    def __init__(self, app, parent=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=None):
+        if style is None:
+            style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
+                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
-        BaseFrame.__init__(self, None, -1, title, pos, size, style)
+        BaseFrame.__init__(self, parent, -1, title, pos, size, style)
         self.app = app
         self.project = None
+        self.parent = parent
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
@@ -332,6 +333,8 @@ class SearchFrame(BaseFrame):
         self.SetAcceleratorTable(aTable)
         self.Show()  # show the window before doing search/updates
         self.updateUserProjs()  # update the info in myProjectsPanel
+        if self.parent:
+            self.CenterOnParent()
 
     def updateUserProjs(self):
         if not pavlovia.currentSession.user:
@@ -710,6 +713,7 @@ class ProjectEditor(wx.Dialog):
         if newPath:
             self.localBox.SetLabel(newPath)
 
+
 class SyncFrame(wx.Frame):
     def __init__(self, parent, id, project):
         title = "{} / {}".format(project.owner, project.title)
@@ -840,7 +844,6 @@ def logInPavlovia(parent, event=None):
     url, state = pavlovia.getAuthURL()
     dlg = OAuthBrowserDlg(parent, url, info=info)
     dlg.ShowModal()
-    print(info, state)
     if info and state == info['state']:
         token = info['token']
         pavlovia.login(token)
@@ -881,15 +884,10 @@ def syncPavlovia(parent, project=None):
         wx.Yield()
         time.sleep(0.001)
         # git push -u origin master
-        project.repo.git.push('-u', 'origin', 'master')
+        project.firstPush()
     elif not project.repo:
-        print("eistingRemote")
         # existing remote which we should clone
         project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
-
-        # we'll be needing a push or pull somewhere!
-        syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY,
-                              project=project)
 
         # check for anything to commit before pull/push
         outcome = showCommitDialog(parent, project)
