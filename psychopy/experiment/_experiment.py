@@ -637,7 +637,6 @@ class Experiment(object):
         join = os.path.join
         abspath = os.path.abspath
         srcRoot = os.path.split(self.filename)[0]
-
         def getPaths(filePath):
             """Helper to return absolute and relative paths (or None)
 
@@ -679,7 +678,8 @@ class Experiment(object):
                         return fileList
             paths = []
             # does it look at all like an excel file?
-            if (not isinstance(filePath, basestring) or filePath.split('.')[1] not in ['csv', 'xlsx', 'xls']):
+            if ( (not isinstance(filePath, basestring)) or
+                    (filePath.split('.')[1] not in ['csv', 'xlsx', 'xls']) ):
                 return paths
             thisFile = getPaths(filePath)
             # does it exist?
@@ -714,7 +714,8 @@ class Experiment(object):
             elif thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
-                    for thisParam in thisComp.params:
+                    for paramName in thisComp.params:
+                        thisParam = thisComp.params[paramName]
                         thisFile = ''
                         if isinstance(thisParam, basestring):
                             thisFile = getPaths(thisParam)

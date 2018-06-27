@@ -2355,8 +2355,10 @@ class BuilderFrame(wx.Frame):
         version = self.exp.settings.params['Use version'].val
         if version:
             cmd.extend(['-v', version])
-
+        logging.info(' '.join(cmd))
         out = subprocess.check_output(cmd)
+        print(out)  # so that any errors/debug messages in compile are printed
+
     def onPavloviaSync(self, evt=None):
         projectsPavlovia.syncPavlovia(parent=self, project=self.project)
 
