@@ -464,10 +464,6 @@ class SettingsComponent(object):
                 "_.expName = %(expName)s;  // from the Builder filename that created this script\n"
                 "_.expInfo = {'participant':'', 'session':'01'};\n"
                 "\n\n" % self.params)
-        for thisRoutine in list(self.exp.routines.values()):
-            # a single routine is a list of components:
-            for thisComp in thisRoutine:
-                code += "import {name} from 'lib/{name}';\n".format(name = (thisComp.type+'Stim'))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff):
