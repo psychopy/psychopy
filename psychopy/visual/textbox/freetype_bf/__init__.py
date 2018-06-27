@@ -34,6 +34,9 @@ from .ft_enums import *
 from .ft_errors import *
 from .ft_structs import *
 import ctypes.util
+import os
+import glob
+from distutils.sysconfig import get_python_lib
 
 __dll__    = None
 __handle__ = None
@@ -64,6 +67,16 @@ if __dll__ is None:
             __dll__ = None
         if __dll__:
             break
+
+        # If no freetype found in system search path, try wx
+        ftPath = glob.glob(os.path.join(get_python_lib(), 'wx', lname+'*'))
+        try:
+            FT_Library_filename = ctypes.util.find_library(ftPath.pop())
+            __dll__ = ctypes.CDLL(FT_Library_filename)
+            if __dll__:
+                break
+        except Exception:
+            __dll__ = None
 
 if not __dll__:
     raise Exception('Freetype library not found')
