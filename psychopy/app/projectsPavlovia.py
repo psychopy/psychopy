@@ -206,12 +206,11 @@ class PavloviaMiniBrowser(wx.Dialog):
     def __init__(self, parent, user=None, *args, **kwargs):
         # check there is a user (or log them in)
         if not user:
-            user = pavlovia.currentSession.user
+            self.user = pavlovia.currentSession.user
         if not user:
-            user = logInPavlovia(parent=parent)
+            self.user = logInPavlovia(parent=parent)
         if not user:
             return None
-        self.user = user
         # create the dialog
         style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         wx.Dialog.__init__(self, parent, style=style, *args, **kwargs)
@@ -228,8 +227,9 @@ class PavloviaMiniBrowser(wx.Dialog):
         self.browser.LoadURL(url)
 
     def gotoUserPage(self):
-        url = self.user.attributes['web_url']
-        self.browser.LoadURL(url)
+        if self.user:
+            url = self.user.attributes['web_url']
+            self.browser.LoadURL(url)
 
     def gotoProjects(self):
         self.browser.LoadURL("https://pavlovia.org/projects.html")
