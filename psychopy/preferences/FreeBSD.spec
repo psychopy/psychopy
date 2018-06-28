@@ -102,7 +102,7 @@
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
-    componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
+    componentsFolders = list(default=list('/Users/Shared/PsychoPy3/components'))
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list('PatchComponent'))
     # where the Builder demos are located on this computer (after unpacking)
