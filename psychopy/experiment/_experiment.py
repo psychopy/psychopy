@@ -678,9 +678,10 @@ class Experiment(object):
                         return fileList
             paths = []
             # does it look at all like an excel file?
-            if not isinstance(filePath, basestring):
-                if not filePath.split('.')[1] not in ['csv', 'xlsx', 'xls']:
-                    return paths
+            if (not isinstance(filePath, basestring)
+                    or not os.path.splitext(filePath)[1] in ['csv', 'xlsx',
+                                                             'xls']):
+                return paths
             thisFile = getPaths(filePath)
             # does it exist?
             if not thisFile:
