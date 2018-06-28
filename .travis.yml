@@ -46,6 +46,7 @@ before_install:
   - travis_retry sudo apt-get install -qq libportaudio2
   - travis_retry sudo apt-get install -qq flac
   - travis_retry sudo apt-get install -qq libav-tools  # this install ffmpeg
+  - travis_retry sudo apt-get install -qq libwebkitgtk
   - flac -version
 
   # Locales
