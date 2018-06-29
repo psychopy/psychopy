@@ -51,12 +51,9 @@ class Test_PsychoJS_from_Builder(object):
         exp = experiment.Experiment()
         exp.loadFromXML(join(demosDir, 'builder','stroop','stroop.psyexp'))
         # try once packaging up the js libs
-        exp.settings.params['JS libs'].val = 'packaged'
-        outFolder = join(self.temp_dir, 'stroopJS_packaged')
-        self.writeScript(exp, outFolder)
-        # try once packaging up the js libs
         exp.settings.params['JS libs'].val = 'remote'
-        outFolder = join(self.temp_dir, 'stroopJS_remote')
+        outFolder = join(self.temp_dir, 'stroopJS_remote/html')
+        os.makedirs(outFolder)
         self.writeScript(exp, outFolder)
         print("files in {}".format(outFolder))
 
@@ -68,7 +65,8 @@ class Test_PsychoJS_from_Builder(object):
                              'blockedTrials.psyexp'))
         # try once packaging up the js libs
         exp.settings.params['JS libs'].val = 'packaged'
-        outFolder = join(self.temp_dir, 'blocked_packaged')
+        outFolder = join(self.temp_dir, 'blocked_packaged/html')
+        os.makedirs(outFolder)
         self.writeScript(exp, outFolder)
         print("files in {}".format(outFolder))
 

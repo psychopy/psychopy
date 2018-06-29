@@ -95,12 +95,12 @@ class Preferences(object):
         if sys.platform == 'win32':
             self.paths['prefsSpecFile'] = join(prefSpecDir, 'Windows.spec')
             self.paths['userPrefsDir'] = join(os.environ['APPDATA'],
-                                              'psychopy2')
+                                              'psychopy3')
         else:
             self.paths['prefsSpecFile'] = join(prefSpecDir,
                                                platform.system() + '.spec')
             self.paths['userPrefsDir'] = join(os.environ['HOME'],
-                                              '.psychopy2')
+                                              '.psychopy3')
 
         # avoid silent fail-to-launch-app if bad permissions:
         if os.path.exists(self.paths['userPrefsDir']):
@@ -114,7 +114,7 @@ class Preferences(object):
                 open(tmp).read()
                 os.remove(tmp)
             except Exception:  # OSError, WindowsError, ...?
-                msg = 'PsychoPy2 error: need read-write permissions for `%s`'
+                msg = 'PsychoPy3 error: need read-write permissions for `%s`'
                 sys.exit(msg % self.paths['userPrefsDir'])
 
     def loadAll(self):

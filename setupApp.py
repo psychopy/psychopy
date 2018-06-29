@@ -119,11 +119,11 @@ setup(
             iconfile='psychopy/app/Resources/psychopy.icns',
             plist=dict(
                   CFBundleIconFile='psychopy.icns',
-                  CFBundleName               = "PsychoPy2",
+                  CFBundleName               = "PsychoPy3",
                   CFBundleShortVersionString = __version__,  # must be in X.X.X format
-                  CFBundleGetInfoString      = "PsychoPy2 "+__version__,
-                  CFBundleExecutable         = "PsychoPy2",
-                  CFBundleIdentifier         = "org.psychopy.PsychoPy2",
+                  CFBundleGetInfoString      = "PsychoPy3 "+__version__,
+                  CFBundleExecutable         = "PsychoPy3",
+                  CFBundleIdentifier         = "org.psychopy.PsychoPy3",
                   CFBundleLicense            = "GNU GPLv3+",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],

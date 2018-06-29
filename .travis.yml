@@ -1,6 +1,6 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-dist: precise  # the default (trusty) causing problem with SSL as of Aug 2017
+dist: trusty
 sudo: true
 
 language: python
@@ -46,6 +46,7 @@ before_install:
   - travis_retry sudo apt-get install -qq libportaudio2
   - travis_retry sudo apt-get install -qq flac
   - travis_retry sudo apt-get install -qq libav-tools  # this install ffmpeg
+  - travis_retry sudo apt-get install -qq libwebkitgtk-1.0-0
   - flac -version
 
   # Locales
@@ -66,7 +67,7 @@ before_install:
       travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-pandas;
       travis_retry sudo apt-get install -qq python-yaml python-lxml python-configobj;
       travis_retry sudo apt-get install -qq python-imaging python-mock;
-      travis_retry sudo apt-get install -qq python-qt4 python-wxgtk2.8;
+      travis_retry sudo apt-get install -qq python-qt4 python-wxgtk3.0;
       travis_retry sudo apt-get install -qq python-pyo python-opencv;
       travis_retry sudo apt-get install -qq python-mock;
       echo "Installing PsychoPy dependencies via pip...";

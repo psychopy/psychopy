@@ -565,7 +565,7 @@ Released: Sept 2014
       Note: This release is not backwards compatible with earlier versions of the ioHub Keyboard device or event data file.
       Please see documentation for details.
     * Backend integration between iohub and psychopy continues to improve.
-    * ioHub can now be used in OS X 10.9 with PsychoPy2 Coder. NOTE: Must add Coder app to accessibility list.
+    * ioHub can now be used in OS X 10.9 with PsychoPy Coder. NOTE: Must add Coder app to accessibility list.
     * Several bug fixes.
 
 * FIXED: several other minor bugs (that would have given exceptions if encountered). Thanks particularly to Philip Wiesemann for finding several of these
