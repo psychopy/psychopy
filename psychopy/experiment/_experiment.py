@@ -402,17 +402,19 @@ class Experiment(object):
                     params[name] = Param(
                         val, valType=paramNode.get('valType'),
                         allowedTypes=[],
-                        hint=_translate("This parameter is not known by this version "
-                                        "of PsychoPy. It might be worth upgrading"))
+                        hint=_translate(
+                            "This parameter is not known by this version "
+                            "of PsychoPy. It might be worth upgrading"))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate("Parameter %r is not known to this version of "
-                                     "PsychoPy but has come from your experiment file "
-                                     "(saved by a future version of PsychoPy?). This "
-                                     "experiment may not run correctly in the current "
-                                     "version.")
+                    msg = _translate(
+                        "Parameter %r is not known to this version of "
+                        "PsychoPy but has come from your experiment file "
+                        "(saved by a future version of PsychoPy?). This "
+                        "experiment may not run correctly in the current "
+                        "version.")
                     logging.warn(msg % name)
                     logging.flush()
 
@@ -541,8 +543,10 @@ class Experiment(object):
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
-                            self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                                thisRoutine.params['name'], thisComp.params['name'], thisParamName)
+                            self.routines[routine].getComponentFromName(
+                                static).addComponentUpdate(
+                                thisRoutine.params['name'],
+                                thisComp.params['name'], thisParamName)
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
@@ -599,7 +603,8 @@ class Experiment(object):
                 else:
                     logging.error("A Routine called '{}' was on the Flow but "
                                   "could not be found (failed rename?). You "
-                                  "may need to re-insert it".format(elementNode.get('name')))
+                                  "may need to re-insert it".format(
+                        elementNode.get('name')))
                     logging.flush()
 
         if modifiedNames:
@@ -637,6 +642,7 @@ class Experiment(object):
         join = os.path.join
         abspath = os.path.abspath
         srcRoot = os.path.split(self.filename)[0]
+
         def getPaths(filePath):
             """Helper to return absolute and relative paths (or None)
 
@@ -672,9 +678,10 @@ class Experiment(object):
                     # List files in director and get condition files
                     if 'xlsx' in filePath or 'xls' in filePath or 'csv' in filePath:
                         # Get all xlsx and csv files
-                        fileList = ([getPaths(condFile) for condFile in os.listdir()
-                                    if len(condFile.split('.')) > 1
-                                    and condFile.split('.')[1] in ['xlsx', 'xls', 'csv']])
+                        fileList = (
+                        [getPaths(condFile) for condFile in os.listdir()
+                         if len(condFile.split('.')) > 1
+                         and condFile.split('.')[1] in ['xlsx', 'xls', 'csv']])
                         return fileList
             paths = []
             # does it look at all like an excel file?
@@ -797,4 +804,3 @@ class ExpFile(list):
         """
         pass
         # todo?: currently only Routines perform this action
-
