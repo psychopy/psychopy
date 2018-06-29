@@ -331,10 +331,10 @@ class SearchFrame(BaseFrame):
         aTable = wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wx.ID_CANCEL),
                                       ])
         self.SetAcceleratorTable(aTable)
-        self.Show()  # show the window before doing search/updates
-        self.updateUserProjs()  # update the info in myProjectsPanel
         if self.parent:
             self.CenterOnParent()
+        self.Show()  # show the window before doing search/updates
+        self.updateUserProjs()  # update the info in myProjectsPanel
 
     def updateUserProjs(self):
         if not pavlovia.currentSession.user:
