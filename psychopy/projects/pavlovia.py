@@ -288,7 +288,6 @@ class PavloviaSession:
         if token:
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token)
             self.gitlab.auth()
-            self.user = self.gitlab.user
             self.token = token
 
     def applyChanges(self):

@@ -5,6 +5,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from past.builtins import basestring
 import wx
 from wx.lib import scrolledpanel as scrlpanel
 

@@ -4,12 +4,14 @@
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+import time
 
 import wx
 from wx import adv as wxhl
 from wx.lib import scrolledpanel as scrlpanel
 
-from .functions import setLocalPath
+from .sync import SyncFrame
+from .functions import setLocalPath, showCommitDialog
 from .sync import SyncStatusPanel, ProgressHandler
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
@@ -118,14 +120,18 @@ class ProjectEditor(wx.Dialog):
             self.project.pavlovia.description = descr
             self.project.tags = tags
             self.project.visibility=visibility
-            self.project.save()
+            self.project.localRoot = localRoot
+            self.project.save()  # pushes changed metadata to gitlab
             self.project._newRemote = False
+
         self.EndModal(wx.ID_OK)
+        pavlovia.knownProjects.save()
 
     def onBrowseLocal(self, evt=None):
         newPath = setLocalPath(self, path=self.filename)
         if newPath:
             self.localBox.SetLabel(newPath)
+            self.project.localRoot = newPath
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -304,5 +310,60 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.localFolder = setLocalPath(self, self.project)
         if self.localFolder:
             self.localFolderCtrl.SetLabel(
-                    label="Local root: {}".format(newself.localFolder))
+                    label="Local root: {}".format(self.localFolder))
         self.Update()
+
+
+def syncProject(parent, project=None):
+    """A function to sync the current project (if there is one)
+    """
+    if not project:  # try getting one from the frame
+        project = parent.project  # type: pavlovia.PavloviaProject
+
+    if not project:  # ask the user to create one
+        msg = ("This file doesn't belong to any existing project.")
+        style = wx.OK | wx.CANCEL | wx.CENTER
+        dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
+        dlg.SetOKLabel("Create a project")
+        if dlg.ShowModal() == wx.ID_OK:
+            # open the project editor (with no project to create one)
+            editor = ProjectEditor(parent=parent)
+            if editor.ShowModal() == wx.ID_OK:
+                project = editor.project
+            else:
+                project = None
+
+    if not project: # we did our best for them. Give up!
+        return 0
+
+    # if project.localRoot doesn't exist, or is empty
+    if 'localRoot' not in project or not project.localRoot:
+        # we first need to choose a location for the repository
+        setLocalPath(parent, project)
+    # a sync will be necessary so can create syncFrame
+    syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
+
+    if project._newRemote:
+        # new remote, with local files, so init, add, push
+        project.newRepo(syncFrame.progHandler)
+        # add the local files and commit them
+        showCommitDialog(parent=parent, project=project,
+                         initMsg="First commit")
+        syncFrame.syncPanel.setStatus("Pushing files to Pavlovia")
+        wx.Yield()
+        time.sleep(0.001)
+        # git push -u origin master
+        project.firstPush()
+    else:
+        # existing remote which we should clone
+        project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
+
+        # check for anything to commit before pull/push
+        outcome = showCommitDialog(parent, project)
+        project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+
+    wx.Yield()
+    project._lastKnownSync = time.time()
+    syncFrame.Destroy()
+
+    return 1

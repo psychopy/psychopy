@@ -8,7 +8,8 @@
 import wx
 
 from .. import dialogs
-from .functions import logInPavlovia, syncPavlovia
+from .functions import logInPavlovia
+from psychopy.app.pavlovia_ui.project import syncProject
 from .search import SearchFrame
 from .project import ProjectEditor
 from psychopy.localization import _translate
@@ -30,8 +31,8 @@ class PavloviaMenu(wx.Menu):
         # from prefs fetch info about prev usernames and projects
         PavloviaMenu.appData = self.app.prefs.appData['projects']
 
-        item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
-        parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
+        # item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
+        # parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
 
         PavloviaMenu.knownUsers = pavlovia.knownUsers
 
@@ -63,8 +64,8 @@ class PavloviaMenu(wx.Menu):
                            _translate("New...\t{}").format(keys['projectsNew']))
         parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
 
-        self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
-        parent.Bind(wx.EVT_MENU, self.onSync, id=wxIDs.projsSync)
+        item = self.Append(wx.ID_ANY, "Sync\t{}".format(keys['projectsSync']))
+        parent.Bind(wx.EVT_MENU, self.onSync, id=item.GetId())
 
     def addToSubMenu(self, name, menu, function):
         item = menu.Append(wx.ID_ANY, name)
@@ -92,7 +93,7 @@ class PavloviaMenu(wx.Menu):
             self.searchDlg.updateUserProjs()
 
     def onSync(self, event):
-        syncPavlovia(parent=self.parent, project=self.parent.project)
+        syncProject(parent=self.parent, project=self.parent.project)
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)

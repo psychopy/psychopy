@@ -19,7 +19,7 @@ import wx.stc
 import wx.richtext
 from wx.html import HtmlEasyPrinting
 
-import psychopy.app.pavlovia.menu
+import psychopy.app.pavlovia_ui.menu
 
 try:
     from wx import aui
@@ -40,7 +40,7 @@ import locale
 
 from . import psychoParser
 from .. import stdOutRich, dialogs
-from .. import pavlovia
+from .. import pavlovia_ui
 from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
@@ -1864,7 +1864,7 @@ class CoderFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
 
         # ---_projects---#000000#FFFFFF---------------------------------------
-        self.pavloviaMenu = psychopy.app.pavlovia.menu.PavloviaMenu(parent=self)
+        self.pavloviaMenu = psychopy.app.pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------

@@ -12,8 +12,10 @@
 #
 # TODO: after clone, remember this folder for next file-open call
 # TODO: user dlg could/should be local not a browser
-# TODO: syncPavlovia() doesn't handle case of a local git pushing to new gitlab
+# TODO: syncProject() doesn't handle case of a local git pushing to new gitlab
 # TODO: if more than one remote then offer options
 
 from .functions import *
-from _base import PavloviaMiniBrowser
+from .project import ProjectEditor, syncProject
+from ._base import PavloviaMiniBrowser
+from . import menu, project, search, sync

@@ -8,10 +8,8 @@
 from __future__ import absolute_import, print_function
 
 import os
-import time
 import wx
 
-from .sync import SyncFrame
 from ._base import PavloviaMiniBrowser
 from psychopy.projects import pavlovia
 from psychopy.localization import _translate
@@ -68,60 +66,6 @@ def logInPavlovia(parent, event=None):
         return pavlovia.currentSession.user
 
 
-def syncPavlovia(parent, project=None):
-    """A function to sync the current project (if there is one)
-    """
-    if not project:  # try getting one from the frame
-        project = parent.project  # type: pavlovia.PavloviaProject
-
-    if not project:  # ask the user to create one
-        msg = ("This file doesn't belong to any existing project.")
-        style = wx.OK | wx.CANCEL | wx.CENTER
-        dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
-        dlg.SetOKLabel("Create a project")
-        if dlg.ShowModal()==wx.ID_OK:
-            # open the project editor (with no project to create one)
-            editor = ProjectEditor(parent=parent)
-            if editor.ShowModal() == wx.ID_OK:
-                project = editor.project
-            else:
-                project = None
-
-    if not project: # we did our best for them. Give up!
-        return 0
-
-    # if project.localRoot doesn't exist, or is empty
-    if 'localRoot' not in project or not project.localRoot:
-        # we first need to choose a location for the repository
-        setLocalPath(parent, project)
-    # a sync will be necessary so can create syncFrame
-    syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
-
-    if project._newRemote:
-        # new remote, with local files, so init, add, push
-        project.newRepo(syncFrame.progHandler)
-        # add the local files and commit them
-        showCommitDialog(parent=parent, project=project,
-                         initMsg="First commit")
-        syncFrame.syncPanel.setStatus("Pushing files to Pavlovia")
-        wx.Yield()
-        time.sleep(0.001)
-        # git push -u origin master
-        project.firstPush()
-    elif not project.repo:
-        # existing remote which we should clone
-        project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
-
-        # check for anything to commit before pull/push
-        outcome = showCommitDialog(parent, project)
-        project.sync(syncFrame.syncPanel, syncFrame.progHandler)
-
-    wx.Yield()
-    project._lastKnownSync = time.time()
-    syncFrame.Destroy()
-
-    return 1
-
 def showCommitDialog(parent, project, initMsg=""):
     """Brings up a commit dialog (if there is anything to commit
 
@@ -136,7 +80,7 @@ def showCommitDialog(parent, project, initMsg=""):
     if not changeList:
         return 0
 
-    infoStr="Changes to commit:\n"
+    infoStr = "Changes to commit:\n"
     for categ in ['untracked', 'changed', 'deleted', 'renamed']:
         changes = changeDict[categ]
         if categ == 'untracked':
