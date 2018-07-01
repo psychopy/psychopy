@@ -75,7 +75,7 @@ class PavloviaMiniBrowser(wx.Dialog):
         if not user:
             self.user = pavlovia.currentSession.user
         if not user:
-            self.user = self.login()
+            self.login()
         if not user:
             return None
 
@@ -84,7 +84,6 @@ class PavloviaMiniBrowser(wx.Dialog):
         authURL, state = pavlovia.getAuthURL()
         self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
         self.browser.LoadURL(authURL)
-
 
     def setURL(self, url):
         self.browser.LoadURL(url)
@@ -108,6 +107,7 @@ class PavloviaMiniBrowser(wx.Dialog):
                 'state', url)
             self._loggingIn = False  # we got a log in
             self.browser.Unbind(wx.html2.EVT_WEBVIEW_LOADED)
+            pavlovia.login(self.tokenInfo['token'])
             if self.loginOnly:
                 self.EndModal(wx.ID_OK)
         elif url == 'https://gitlab.pavlovia.org/dashboard/projects':

@@ -7,6 +7,7 @@
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
+from future.builtins import object
 import glob
 import os, sys, time
 from psychopy import logging, prefs, constants
@@ -15,27 +16,27 @@ import gitlab
 import gitlab.v4.objects
 import git
 import subprocess
+import requests
+import traceback
 # for authentication
 from uuid import uuid4
 from .gitignore import gitIgnoreText
 
+pavloviaPrefsDir = os.path.join(prefs.paths['userPrefsDir'], 'pavlovia')
 rootURL = "https://gitlab.pavlovia.org"
 client_id = '4bb79f0356a566cd7b49e3130c714d9140f1d3de4ff27c7583fb34fbfac604e0'
 scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
 
-knownUsers = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
-                                               'pavlovia', 'users.json'))
+knownUsers = DictStorage(
+    filename=os.path.join(pavloviaPrefsDir, 'users.json'))
 
 # knownProjects is a dict stored by id ("namespace/name")
-knownProjects = DictStorage(filename=os.path.join(prefs.paths['userPrefsDir'],
-                                                  'pavlovia', 'projects.json'))
-# This also stores the numeric gitlab id to check if it's the same exact project
+knownProjects = DictStorage(
+    filename=os.path.join(pavloviaPrefsDir, 'projects.json'))
+# knownProjects stores the gitlab id to check if it's the same exact project
 # We add to the knownProjects when project.local is set (ie when we have a
 # known local location for the project)
-
-# these are instantiated at bottom
-# currentSession = PavloviaSession()
 
 permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
     'guest': 10,
@@ -53,7 +54,7 @@ def getAuthURL():
     return auth_url, state
 
 
-def login(tokenOrUsername, rememberMe=True):
+def login(tokenOrUsername,  rememberMe=True):
     """Sets the current user by means of a token
 
     Parameters
@@ -70,8 +71,79 @@ def login(tokenOrUsername, rememberMe=True):
 
     # try actually logging in with token
     currentSession.setToken(token)
-    prefs.appData['projects']['pavloviaUser'] = currentSession.user.username
-    knownUsers[currentSession.user.username] = token
+    user = User(gitlabData=currentSession.user, rememberMe=rememberMe)
+    prefs.appData['projects']['pavloviaUser'] = user.username
+
+
+class User(object):
+    """Class to combine what we know about the user locally and on gitlab
+
+    (from previous logins and from the current session)"""
+    def __init__(self, localData={}, gitlabData=None, rememberMe=True):
+        self.data = localData
+        self.gitlabData = gitlabData
+        if gitlabData and not localData:
+            self.data['username'] = gitlabData.username
+            self.data['token'] = currentSession.getToken()
+            self.avatar = gitlabData.attributes['avatar_url']
+        elif 'avatar' in localData:
+            self.avatar = localData['avatar']
+        else:
+            self.avatar = gitlabData.attributes['avatar_url']
+        if rememberMe:
+            self.save()
+
+    def __str__(self):
+        return str(self.data)
+
+    @property
+    def username(self):
+        if 'username' in self.gitlabData.attributes:
+            return self.gitlabData.username
+        elif 'username' in self.data:
+            return self.data['username']
+        else:
+            return None
+
+    @property
+    def token(self):
+        return self.data['token']
+
+    @property
+    def avatar(self):
+        return self.data['avatar']
+
+    @avatar.setter
+    def avatar(self, location):
+        if os.path.isfile(location):
+            self.data['avatar'] = location
+        else:
+            self.data['avatar'] = self._fetchRemoteAvatar(location)
+
+    def _fetchRemoteAvatar(self, url=None):
+        if not url:
+            url = self.avatar_url
+        exten = url.split(".")[-1]
+        if exten not in ['jpg', 'png', 'tif']:
+            exten = 'jpg'
+        avatarLocal = os.path.join(pavloviaPrefsDir, ("avatar_{}.{}"
+                                         .format(self.username, exten)))
+
+        # try to fetch the actual image file
+        r = requests.get(url, stream=True)
+        if r.status_code == 200:
+            with open(avatarLocal, 'wb') as f:
+                for chunk in r:
+                    f.write(chunk)
+            return avatarLocal
+        return None
+
+    def save(self):
+        """Saves the data on the current user in the pavlovia/users json file"""
+        # update stored tokens
+        tokens = knownUsers
+        tokens[self.username] = self.data
+        tokens.save()
 
 
 class PavloviaSession:
@@ -216,13 +288,8 @@ class PavloviaSession:
         if token:
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token)
             self.gitlab.auth()
-            self.username = self.gitlab.user.username
+            self.user = self.gitlab.user
             self.token = token
-            # update stored tokens
-            if self.remember_me:
-                tokens = knownUsers
-                tokens[self.username] = token
-                tokens.save()
 
     def applyChanges(self):
         """If threaded up/downloading is enabled then this begins the process
@@ -520,7 +587,8 @@ class PavloviaProject(dict):
             # fork to a specific namespace
             fork = self.pavlovia.forks.create({'namespace': 'myteam'})
         else:
-            fork = self.pavlovia.forks.create({})  # uses the current logged-in user
+            fork = self.pavlovia.forks.create(
+                {})  # uses the current logged-in user
         return fork
 
     def getChanges(self):
@@ -546,7 +614,7 @@ class PavloviaProject(dict):
             else:
                 raise (
                     "Found an unexpected change_type '{}' in gitpython Diff"
-                    .format(this.change_type))
+                        .format(this.change_type))
         changeList = []
         for categ in changeDict:
             changeList.extend(changeDict[categ])

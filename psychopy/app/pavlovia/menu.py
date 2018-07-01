@@ -8,7 +8,7 @@
 import wx
 
 from .. import dialogs
-from .functions import logInPavlovia
+from .functions import logInPavlovia, syncPavlovia
 from .search import SearchFrame
 from .project import ProjectEditor
 from psychopy.localization import _translate
@@ -24,7 +24,7 @@ class PavloviaMenu(wx.Menu):
 
     def __init__(self, parent):
         wx.Menu.__init__(self)
-        self.parent = parent
+        self.parent = parent  # type: BuilderFrame
         PavloviaMenu.app = parent.app
         keys = self.app.keys
         # from prefs fetch info about prev usernames and projects
@@ -63,8 +63,8 @@ class PavloviaMenu(wx.Menu):
                            _translate("New...\t{}").format(keys['projectsNew']))
         parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
 
-        # self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
-        # parent.Bind(wx.EVT_MENU, self.onSync, id=wxIDs.projsSync)
+        self.Append(wxIDs.projsSync, "Sync\t{}".format(keys['projectsSync']))
+        parent.Bind(wx.EVT_MENU, self.onSync, id=wxIDs.projsSync)
 
     def addToSubMenu(self, name, menu, function):
         item = menu.Append(wx.ID_ANY, name)
@@ -83,7 +83,7 @@ class PavloviaMenu(wx.Menu):
         PavloviaMenu.currentUser = user
         PavloviaMenu.appData['pavloviaUser'] = user
         if user in pavlovia.knownUsers:
-            token = pavlovia.knownUsers[user]
+            token = pavlovia.knownUsers[user]['token']
             pavlovia.currentSession.setToken(token)
         else:
             self.onLogInPavlovia()
@@ -92,7 +92,7 @@ class PavloviaMenu(wx.Menu):
             self.searchDlg.updateUserProjs()
 
     def onSync(self, event):
-        pass  # TODO: create quick-sync from menu item
+        syncPavlovia(parent=self.parent, project=self.parent.project)
 
     def onSearch(self, event):
         PavloviaMenu.searchDlg = SearchFrame(app=self.parent.app)
@@ -113,15 +113,3 @@ class PavloviaMenu(wx.Menu):
                                                     "You need to log in"
                                                     " to create a project"))
             infoDlg.Show()
-
-    def onOpenFile(self, event):
-        """Open project file from dialog
-        """
-        dlg = wx.FileDialog(parent=None,
-                            message=_translate("Open local project file"),
-                            style=wx.FD_OPEN,
-                            wildcard=_translate(
-                                    "Project files (*.psyproj)|*.psyproj"))
-        if dlg.ShowModal() == wx.ID_OK:
-            projFile = dlg.GetPath()
-            self.openProj(projFile)
