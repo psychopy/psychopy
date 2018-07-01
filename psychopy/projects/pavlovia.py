@@ -330,7 +330,11 @@ class PavloviaProject(dict):
         else:
             self.pavlovia = currentSession.gitlab.projects.get(proj)
         self.repo = None  # update with getRepo()
-        self.localRoot = localRoot
+        # do we already have a local folder for this?
+        if self.id in knownProjects and not localRoot:
+            self.localRoot = knownProjects[self.id]['localRoot']
+        else:
+            self.localRoot = localRoot
 
     def __getattr__(self, name):
         if name == 'owner':
@@ -696,7 +700,7 @@ def getProject(filename):
                     proj.localRoot = gitRoot
                     return proj
         # if we got here then we have a local git repo but not a
-        # TODO: we have a git repo, but not on gitlab.pavlovia
+        # TODO: we have a git repo, but not on gitlab.pavlovia so add remote?
         # Could help user that we add a remote called pavlovia but for now
         # just print a message!
         print("We found a git repository at {} but it doesn't point to "

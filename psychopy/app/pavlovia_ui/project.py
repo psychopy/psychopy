@@ -215,14 +215,14 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
     def setProject(self, project, localRoot=''):
         if not isinstance(project, pavlovia.PavloviaProject):
-            project = pavlovia.currentSession.getProject(project,
-                                                         localRoot='')
+            project = pavlovia.currentSession.getProject(project)
         if project is None:
             return  # we're done
         self.project = project
 
         if not self.noTitle:
-            self.title.SetLabel("{} / {}".format(project.owner, project.name))
+            # use the id (namespace/name) but give space around /
+            self.title.SetLabel(project.id.replace("/", " / "))
 
         # url
         self.url.SetLabel(self.project.web_url)
@@ -237,7 +237,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
 
         # do we have a local location?
-        localFolder = project['localRoot']
+        localFolder = project.localRoot
         if not localFolder:
             localFolder = "<not yet synced>"
         self.localFolderCtrl.SetLabel("Local root: {}".format(localFolder))
