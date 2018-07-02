@@ -26,7 +26,7 @@ class ProjectEditor(wx.Dialog):
         wx.Dialog.__init__(self, parent, id,
                            *args, **kwargs)
         panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
-        # when a project is succesfully created these will be populated
+        # when a project is successfully created these will be populated
         if hasattr(parent, 'filename'):
             self.filename = parent.filename
         else:

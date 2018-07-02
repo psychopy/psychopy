@@ -1704,7 +1704,6 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None  # so we won't accidentally save to other html exp
         self.project = pavlovia.getProject(filename)
         try:
-            print('tryingFor ', filename)
             self.project = pavlovia.getProject(filename)
         except:
             self.project = None
