@@ -60,8 +60,8 @@ else:
     outfile = open(relPath,'w')
 
 param = experiment.Param('', '')  # want its namespace
-ignore = ['__doc__', '__init__', '__module__', '__str__']
-if not '--out' in sys.argv:
+ignore = ['__doc__', '__init__', '__module__', '__str__', 'next']
+if '--out' not in sys.argv:
     # these are for display only (cosmetic) but no harm in gathering initially:
     ignore += ['hint',
                'label',  # comment-out to not ignore labels when checking
@@ -81,10 +81,10 @@ for compName in sorted(allComp):
     if '--out' in sys.argv:
         outfile.write(order+'\n')
     elif not order+'\n' in target:
-        tag = order.split(':',1)[0]
+        tag = order.split(':', 1)[0]
         try:
             err = order + ' <== ' + targetTag[tag]
-        except IndexError: # missing
+        except IndexError:  # missing
             err = order + ' <==> NEW (no matching param in original)'
         print(err)
         mismatches.append(err)
@@ -96,31 +96,32 @@ for compName in sorted(allComp):
         for field in fields:
             if parName == 'name' and field == 'updates':
                 continue
-                # ignore b/c never want to change the name *during a running experiment*
-                # the default name.updates value varies across existing components
-            f = '%s.%s.%s:%s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
-            lineFields.append(f)
+                # ignore: never want to change the name *during an experiment*
+                # the default name.updates value varies across components
 
+            f = '%s.%s.%s:%s' % (compName, parName, field,
+                                 eval("comp.params[parName].%s" % field))
+            lineFields.append(f)
         for line in [default] + lineFields:
             if '--out' in sys.argv:
                 if not ignoreObjectAttribs:
                     outfile.write(line+'\n')
                 else:
                     if (not ":<built-in method __" in line and
-                            not ":<method-wrapper '__"  in line):
+                            not ":<method-wrapper '__" in line):
                         outfile.write(line+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
                 # match checks tag + multi-line, because line is multi-line and target is whole file
-                tag = line.split(':',1)[0]
+                tag = line.split(':', 1)[0]
                 try:
                     err = line + ' <== ' + targetTag[tag]
-                except KeyError: # missing
+                except KeyError:  # missing
                     err = line + ' <==> NEW (no matching param in original)'
                 print(err)
                 mismatches.append(err)
 
-#return mismatches
+# return mismatches
 
 # revert project catalog to original
 psychopy.projects.ProjectCatalog = origProjectCatalog
