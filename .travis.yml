@@ -1,6 +1,6 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-dist: trusty
+dist: precise  # trusty is giving an error on bitsShaders test (glReadpixels()?)
 sudo: true
 
 language: python
@@ -26,6 +26,9 @@ matrix:
     - os: linux
       python: 3.6
       env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+
+  allow_failures:
+    - python: "2.7_with_system_site_packages"
 
 before_install:
   # System setup

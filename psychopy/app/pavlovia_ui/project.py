@@ -6,15 +6,18 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
 
-import wx
-from wx import adv as wxhl
-from wx.lib import scrolledpanel as scrlpanel
-
 from .sync import SyncFrame
 from .functions import setLocalPath, showCommitDialog
 from .sync import SyncStatusPanel, ProgressHandler
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
+
+import wx
+try:
+    import wx.adv as wxhl  # in wx 4
+except ImportError:
+    wxhl = wx  # in wx 3.0.2
+from wx.lib import scrolledpanel as scrlpanel
 
 
 class ProjectEditor(wx.Dialog):
