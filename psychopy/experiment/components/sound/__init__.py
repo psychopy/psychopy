@@ -89,7 +89,7 @@ class SoundComponent(BaseComponent):
         inits = getInitVals(self.params)
         if '$' in inits['stopVal'].val:
             buff.writeIndented("%s.setSound(%s, secs=%s)\n" %
-                               (inits['name'], inits['sound'], inits['stopVal']))
+                               (inits['name'], self.params['sound'], inits['stopVal']))
             buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeFrameCode(self, buff):
