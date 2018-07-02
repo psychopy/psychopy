@@ -62,9 +62,8 @@ import sys
 __version__ = '{version}'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
-__author_email__ = 'jon@peirce.org.uk'
-__maintainer_email__ = 'psychopy-dev@googlegroups.com'
-__users_email__ = 'psychopy-users@googlegroups.com'
+__author_email__ = 'jon.peirce@gmail.com'
+__maintainer_email__ = __author_email__
 __url__ = 'http://www.psychopy.org'
 __downloadUrl__ = 'https://github.com/psychopy/psychopy/releases/'
 __git_sha__ = '{shaStr}'
