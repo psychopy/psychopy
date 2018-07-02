@@ -5,8 +5,8 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Helper functions in PsychoPy for interacting with projects (e.g. from pyosf)
-"""
+import wx
+import wx.html2
 
-from . import pavlovia
+from ._base import PavloviaMiniBrowser
 

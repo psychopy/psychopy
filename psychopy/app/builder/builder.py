@@ -11,7 +11,6 @@ Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import absolute_import, division, print_function
 
 import wx
-from builtins import range, object
 from wx.lib import platebtn, scrolledpanel
 
 try:
@@ -48,7 +47,8 @@ from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 from psychopy.experiment import components
 from psychopy.projects import pavlovia
-from psychopy.app import projectsPavlovia
+from psychopy.app import pavlovia_ui
+from psychopy.projects import pavlovia
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
@@ -1356,7 +1356,6 @@ class BuilderFrame(wx.Frame):
     def makeMenus(self):
         """
         Produces Menus for the Builder Frame
-        IDs are from app.wxIDs
         """
 
         # ---Menus---#000000#FFFFFF-------------------------------------------
@@ -1574,7 +1573,7 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.demosMenu, _translate('&Demos'))
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
-        self.pavloviaMenu = projectsPavlovia.PavloviaMenu(parent=self)
+        self.pavloviaMenu = pavlovia_ui.menu.PavloviaMenu(parent=self)
         menuBar.Append(self.pavloviaMenu, _translate("Pavlovia.org"))
 
         # ---_help---#000000#FFFFFF-------------------------------------------
@@ -1703,7 +1702,9 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
+        self.project = pavlovia.getProject(filename)
         try:
+            print('tryingFor ', filename)
             self.project = pavlovia.getProject(filename)
         except:
             self.project = None
@@ -2360,18 +2361,18 @@ class BuilderFrame(wx.Frame):
         print(out)  # so that any errors/debug messages in compile are printed
 
     def onPavloviaSync(self, evt=None):
-        projectsPavlovia.syncPavlovia(parent=self, project=self.project)
+        pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         wx.LaunchDefaultBrowser("https://pavlovia.org/projects.html")
 
     def onPavloviaUser(self, evt=None):
-        dlg = projectsPavlovia.PavloviaMiniBrowser(parent=self)
-        dlg.gotoUserPage()
+        dlg = pavlovia_ui.PavloviaMiniBrowser(parent=self)
         dlg.ShowModal()
+        dlg.gotoUserPage()
 
     def onPavloviaSearch(self, evt=None):
-        self.pavloviaMenu.searchDlg = projectsPavlovia.SearchFrame(
+        self.pavloviaMenu.searchDlg = pavlovia_ui.search.SearchFrame(
             app=self.app, parent=self, pos=self.GetPosition())
         self.pavloviaMenu.searchDlg.Show()
 
@@ -2403,7 +2404,6 @@ class ReadmeFrame(wx.Frame):
 
     def makeMenus(self):
         """Produces menus for the Readme Frame"""
-        """ IDs are from app.wxIDs"""
 
         # ---Menus---#000000#FFFFFF-------------------------------------------
         menuBar = wx.MenuBar()

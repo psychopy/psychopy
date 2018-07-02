@@ -649,7 +649,9 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
-        projects.catalog = None  # garbage collect the projects before sys.exit
+        # garbage collect the projects before sys.exit
+        projects.pavlovia.knownUsers = None
+        projects.pavlovia.knownProjects = None
         # see whether any files need saving
         for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere

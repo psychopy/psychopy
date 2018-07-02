@@ -24,9 +24,6 @@ from psychopy.experiment.components import getAllComponents
 # ignore attributes that are there because inherit from object
 ignoreObjectAttribs = True
 
-origProjectCatalog = projects.catalog
-projects.catalog = {}
-
 # should not need a wx.App with fetchIcons=False
 try:
     allComp = getAllComponents(fetchIcons=False)
