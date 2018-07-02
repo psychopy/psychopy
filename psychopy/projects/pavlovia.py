@@ -672,7 +672,7 @@ class PavloviaProject(dict):
         url = 'https://pavlovia.org/server?command=update_project'
         data = {'projectId': self.idNumber, 'projectStatus': 'ACTIVATED'}
         resp = requests.put(url, data)
-        if resp.status_code==200
+        if resp.status_code==200:
             self.__dict__['pavloviaStatus'] = newStatus
         else:
             print(resp)
