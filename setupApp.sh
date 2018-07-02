@@ -7,16 +7,17 @@ read version
 sudo rm -r build
 
 python setup.py sdist --format=zip
-python setup.py egg_info
-python setup.py bdist_egg
 # then handle the mac app bundle
-rm psychopy/demos/*.pyc
 rm psychopy/prefSite.cfg
 
 declare -a pythons=("python2" "python3")
 declare -a names=("PsychoPy2" "PsychoPy2_PY3")
 
 for i in 0 1; do
+    # remove old pyc files
+    find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+
+
     echo $i "BUILDING:" ${pythons[$i]} "__" ${names[$i]}
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
 

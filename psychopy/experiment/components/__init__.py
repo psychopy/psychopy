@@ -143,9 +143,12 @@ def getComponents(folder=None, fetchIcons=True):
             explicit_rel_path = pkg + '.' + cmpfile[:-3]
         else:
             explicit_rel_path = pkg + '.' + cmpfile
-        module = import_module(explicit_rel_path, package=pkg)
+        try:
+            module = import_module(explicit_rel_path, package=pkg)
+        except ImportError:
+            continue  # not a valid module (no __init__.py?)
         # check for orphaned pyc files (__file__ is not a .py file)
-        if module.__file__.endswith('.pyc'):
+        if hasattr(module, '__file__') and module.__file__.endswith('.pyc'):
             if not os.path.isfile(module.__file__[:-1]):
                 continue  # looks like an orphaned pyc file
         # give a default category
