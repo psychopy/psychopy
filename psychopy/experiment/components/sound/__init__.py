@@ -87,10 +87,12 @@ class SoundComponent(BaseComponent):
 
     def writeRoutineStartCode(self, buff):
         inits = getInitVals(self.params)
-        if '$' in inits['stopVal'].val:
+        if '$' in inits['stopVal'].val or inits['stopVal'] not in [None, 'None', '']:
             buff.writeIndented("%s.setSound(%s, secs=%s)\n" %
-                               (self.params['name'], self.params['sound'], self.params['stopVal']))
-            buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
+                               (self.params['name'], self.params['sound'].val, self.params['stopVal']))
+        elif inits['stopVal'] in [None, 'None', '']:
+            buff.writeIndented("%s.setSound(%s)\n" %
+                               (self.params['name'], self.params['sound'].val))
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
