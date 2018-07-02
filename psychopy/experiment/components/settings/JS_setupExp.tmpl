@@ -3,7 +3,7 @@ function setupExperiment() {{
     psychoJS.status = PsychoJS.Status.CONFIGURING;
 
     psychoJS.configure('config.json')
-    .then( config => {{
+    .then(config => {{
 
       // An ExperimentHandler isn't essential but helps with data saving
       psychoJS.experiment = new ExperimentHandler({{extraInfo: _.expInfo}});
@@ -17,7 +17,7 @@ function setupExperiment() {{
       _.logger.server.set({{'level':psychoJS.logging.WARNING, 'saveTo':'EXPERIMENT_SERVER', 'experimentInfo': _.expInfo}});*/
 
       psychoJS.status = PsychoJS.Status.CONFIGURED;
-  }};
+  }});
   }}
   // the loop will return until the configuration is completed
   // at which point the status changes to CONFIGURED
