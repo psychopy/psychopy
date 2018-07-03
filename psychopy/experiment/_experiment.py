@@ -163,9 +163,9 @@ class Experiment(object):
 
             # create globalClock etc
             code = ("\n// Create some handy timers\n"
-                    "_.globalClock = new Clock();"
+                    "my.globalClock = new Clock();"
                     "  // to track the time since experiment started\n"
-                    "_.routineTimer = new CountdownTimer();"
+                    "my.routineTimer = new CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
                     "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)

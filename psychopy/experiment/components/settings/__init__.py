@@ -457,12 +457,12 @@ class SettingsComponent(object):
                 "\n"
                 "// init psychoJS and set up the window:\n"
                 "const psychoJS = new PsychoJS({debug: true});\n"
-                "const _ = psychoJS;\n"
+                "const my = psychoJS;\n"
                 "setupWin();\n"
                 "\n"
                 "// store info about the experiment session:\n"
-                "_.expName = %(expName)s;  // from the Builder filename that created this script\n"
-                "_.expInfo = {'participant':'', 'session':'01'};\n"
+                "my.expName = %(expName)s;  // from the Builder filename that created this script\n"
+                "my.expInfo = {'participant':'', 'session':'01'};\n"
                 "\n\n" % self.params)
         buff.writeIndentedLines(code)
 
@@ -686,7 +686,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
                     "  psychoJS.experiment.save();\n"
-                    "  _.window.close()\n"
+                    "  my.window.close()\n"
                     "  psychoJS.quit();\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")
