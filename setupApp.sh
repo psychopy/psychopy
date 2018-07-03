@@ -1,8 +1,10 @@
 #!/bin/sh
 
+defVersion=$(<version)  # reads the version file
 echo "DID YOU UPDATE THE CHANGELOG?"
-printf "Version (e.g. 1.84.0) : " # no new line
-read version
+read -p "Version (def=$defVersion):" version
+version=${version:-$defVersion}
+echo "Building $version"
 
 sudo rm -r build
 
