@@ -32,6 +32,7 @@ resources = glob.glob('psychopy/app/Resources/*')
 resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
+              "libmp3lame.0.dylib"
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
@@ -63,6 +64,7 @@ includes = ['Tkinter', 'tkFileDialog',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
+            'msgpack_numpy',
             ]
 packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
