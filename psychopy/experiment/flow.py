@@ -283,11 +283,11 @@ class Flow(list):
                 "psychoJS.scheduleResources();\n"
                 "\n"
                 "// dialog box:\n"
-                "psychoJS.schedule(_.gui.DlgFromDict({dictionary: _.expInfo, title: _.expName}));\n"
+                "psychoJS.schedule(my.gui.DlgFromDict({dictionary: my.expInfo, title: my.expName}));\n"
                 "\n"
                 "let flowScheduler = new Scheduler(psychoJS);\n"
                 "let dialogCancelScheduler = new Scheduler(psychoJS);\n"
-                "psychoJS.scheduleCondition(() => (_.gui.dialogComponent.button === 'OK'), flowScheduler, dialogCancelScheduler);\n"
+                "psychoJS.scheduleCondition(() => (my.gui.dialogComponent.button === 'OK'), flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)
 

@@ -6,15 +6,15 @@ function setupExperiment() {{
     .then(config => {{
 
       // An ExperimentHandler isn't essential but helps with data saving
-      psychoJS.experiment = new ExperimentHandler({{extraInfo: _.expInfo}});
+      psychoJS.experiment = new ExperimentHandler({{extraInfo: my.expInfo}});
 
       // setup resource manager:
       psychoJS.resourceManager = new ResourceManager()
 
       /*
       // logging:
-      _.logger.console.setLevel(psychoJS.logging.WARNING);
-      _.logger.server.set({{'level':psychoJS.logging.WARNING, 'saveTo':'EXPERIMENT_SERVER', 'experimentInfo': _.expInfo}});*/
+      my.logger.console.setLevel(psychoJS.logging.WARNING);
+      my.logger.server.set({{'level':psychoJS.logging.WARNING, 'saveTo':'EXPERIMENT_SERVER', 'experimentInfo': my.expInfo}});*/
 
       psychoJS.status = PsychoJS.Status.CONFIGURED;
   }});
@@ -30,15 +30,15 @@ function setupExperiment() {{
 
 
 function updateInfo() {{
-  _.expInfo['date'] = MonotonicClock.getDateStr();  // add a simple timestamp
-  _.expInfo['expName'] = _.expName;
+  my.expInfo['date'] = MonotonicClock.getDateStr();  // add a simple timestamp
+  my.expInfo['expName'] = my.expName;
 
   // store frame rate of monitor if we can measure it successfully
-  _.expInfo['frameRate'] = _.window.getActualFrameRate();
-  if (typeof _.expInfo['frameRate'] !== 'undefined')
-    _.frameDur = 1.0/Math.round(_.expInfo['frameRate']);
+  my.expInfo['frameRate'] = my.window.getActualFrameRate();
+  if (typeof my.expInfo['frameRate'] !== 'undefined')
+    my.frameDur = 1.0/Math.round(my.expInfo['frameRate']);
   else
-    _.frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
+    my.frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
 
   return Scheduler.Event.NEXT;
 }}

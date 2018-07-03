@@ -144,7 +144,7 @@ class TextComponent(BaseVisualComponent):
 
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'undefined'
-        code = ("_.%(name)s = new TextStim({win : _.window, "
+        code = ("my.%(name)s = new TextStim({win : my.window, "
                 "name : '%(name)s',\n"
                 "    text : %(text)s,\n"
                 "    font : %(font)s,\n"
