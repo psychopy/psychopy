@@ -29,7 +29,6 @@ if args.outfile is None:
     args.outfile = args.infile.replace(".psyexp",".py")
 
 # Set version
-print('using version:', args.version)
 if args.version:
     from psychopy import useVersion
     useVersion(args.version)

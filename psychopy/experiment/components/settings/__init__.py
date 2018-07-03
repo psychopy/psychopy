@@ -430,7 +430,6 @@ class SettingsComponent(object):
                    params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
-        print("folderNow {}".format(folder))
         if not os.path.isdir(folder):
             os.makedirs(folder)
         with open(os.path.join(folder, "index.html"), 'wb') as html:
