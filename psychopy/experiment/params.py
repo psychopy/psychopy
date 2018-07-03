@@ -24,6 +24,9 @@ from builtins import object
 import re
 
 from . import utils
+from . import py2js
+
+target = None  # set to 'PsychoJS' or 'PsychoPy' by Experiment.writeScript
 
 # standard_library.install_aliases()
 
@@ -210,7 +213,10 @@ def getCodeFromParamStr(val):
     tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
     # remove all nonescaped $, squash $$$$$
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)
-    return re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
+    out = re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
+    if target=='PsychoJS':
+        out = py2js.expression2js(out)
+    return out
 
 def toList(val):
     """
