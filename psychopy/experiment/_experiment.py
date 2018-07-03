@@ -117,7 +117,6 @@ class Experiment(object):
         """
         # set this so that params write for approp target
         utils.scriptTarget = target
-        print('settingUtilsTarget', target)
 
         self.flow._prescreenValues()
         self.expPath = expPath
