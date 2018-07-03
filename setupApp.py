@@ -91,6 +91,8 @@ packages = ['wx', 'psychopy',
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
+            'git-python', 'gitlab',
+            'astunparse',
             ]
 
 if sys.version_info.major >= 3:
