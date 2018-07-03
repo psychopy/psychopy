@@ -190,20 +190,20 @@ class TrialHandler(object):
         code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  try {{\n"
-                "    _.{params[name]} = new TrialHandler({{nReps:{params[nReps]}, method:{params[loopType]},\n"
-                "      extraInfo:_.expInfo, originPath:undefined,\n"
+                "    my.{params[name]} = new TrialHandler({{nReps:{params[nReps]}, method:{params[loopType]},\n"
+                "      extraInfo:my.expInfo, originPath:undefined,\n"
                 "      trialList:TrialHandler.importConditions(psychoJS.resourceManager, {params[conditionsFile]}),\n"
                 "      seed:{seed}, name:'{params[name]}'}});\n"
-                "    psychoJS.experiment.addLoop(_.{params[name]}); // add the loop to the experiment\n"
-                "    let {thisName} = _.{params[name]}.getTrial(0); // so we can initialise stimuli with some values\n"
+                "    psychoJS.experiment.addLoop(my.{params[name]}); // add the loop to the experiment\n"
+                "    let {thisName} = my.{params[name]}.getTrial(0); // so we can initialise stimuli with some values\n"
                 "    // abbreviate parameter names if possible (e.g. rgb={thisName}.rgb)\n"
                 "    abbrevNames({thisName});\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("    // Schedule each of the trials in the list to occur\n"
-                "    for (var i = 0; i < _.{params[name]}.trialSequence.length; ++i) {{\n"
-                "      let {thisName} = _.{params[name]}.getTrial(i);\n\n"
+                "    for (var i = 0; i < my.{params[name]}.trialSequence.length; ++i) {{\n"
+                "      let {thisName} = my.{params[name]}.getTrial(i);\n\n"
                 "      thisScheduler.add(abbrevNames({thisName}));\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
@@ -229,7 +229,7 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'])
                     )
         if self.params['isTrials'].val == True:
-            code += ("      thisScheduler.add(recordLoopIteration(_.{name}));\n"
+            code += ("      thisScheduler.add(recordLoopIteration(my.{name}));\n"
                      .format(name=self.params['name']))
         buff.writeIndentedLines(code)
         code = ("    }}\n"
@@ -284,14 +284,14 @@ class TrialHandler(object):
         # Just within the loop advance data line if loop is whole trials
         code = ("\nfunction {params[name]}LoopEnd() {{\n"
                 "  // get names of stimulus parameters\n"
-                "  if (util.isEmpty(_.{params[name]}.trialList)) {{ // XXX equiv of : in ([], [None], None)\n"
-                "    _.params = [];\n"
+                "  if (util.isEmpty(my.{params[name]}.trialList)) {{ // XXX equiv of : in ([], [None], None)\n"
+                "    my.params = [];\n"
                 "  }}\n"
                 "  else {{\n"
-                "    _.params = Object.keys(_.{params[name]}.trialList[0]);\n"
+                "    my.params = Object.keys(my.{params[name]}.trialList[0]);\n"
                 "  }}\n\n"
                 "  // save data for this loop\n"
-                "  psychoJS.experiment.loopEnded(_.{params[name]});\n"
+                "  psychoJS.experiment.loopEnded(my.{params[name]});\n"
                 "  return Scheduler.Event.NEXT;\n"
                 "  }}\n"
                 .format(params=self.params))

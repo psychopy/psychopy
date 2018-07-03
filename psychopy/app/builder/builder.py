@@ -1704,7 +1704,6 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None  # so we won't accidentally save to other html exp
         self.project = pavlovia.getProject(filename)
         try:
-            print('tryingFor ', filename)
             self.project = pavlovia.getProject(filename)
         except:
             self.project = None
@@ -2364,7 +2363,10 @@ class BuilderFrame(wx.Frame):
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
-        wx.LaunchDefaultBrowser("https://pavlovia.org/projects.html")
+        if self.project:
+            self.project.pavloviaStatus = 'ACTIVATED'
+            url = "https://pavlovia.org/run/{}/html".format(self.project.id)
+            wx.LaunchDefaultBrowser(url)
 
     def onPavloviaUser(self, evt=None):
         dlg = pavlovia_ui.PavloviaMiniBrowser(parent=self)

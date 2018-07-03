@@ -33,7 +33,7 @@ from psychopy.experiment.loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
 from psychopy.experiment.params import _findParam, Param
 from psychopy.experiment.routine import Routine
-
+from . import utils
 from .components import getComponents, getAllComponents
 
 from psychopy.localization import _translate
@@ -115,6 +115,8 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy"):
         """Write a PsychoPy script for the experiment
         """
+        # set this so that params write for approp target
+        utils.scriptTarget = target
 
         self.flow._prescreenValues()
         self.expPath = expPath
@@ -161,9 +163,9 @@ class Experiment(object):
 
             # create globalClock etc
             code = ("\n// Create some handy timers\n"
-                    "_.globalClock = new Clock();"
+                    "my.globalClock = new Clock();"
                     "  // to track the time since experiment started\n"
-                    "_.routineTimer = new CountdownTimer();"
+                    "my.routineTimer = new CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
                     "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)
@@ -686,8 +688,8 @@ class Experiment(object):
             paths = []
             # does it look at all like an excel file?
             if (not isinstance(filePath, basestring)
-                    or not os.path.splitext(filePath)[1] in ['csv', 'xlsx',
-                                                             'xls']):
+                    or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
+                                                             '.xls']):
                 return paths
             thisFile = getPaths(filePath)
             # does it exist?

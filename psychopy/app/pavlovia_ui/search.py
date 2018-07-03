@@ -17,11 +17,12 @@ from psychopy.projects import pavlovia
 
 class SearchFrame(BaseFrame):
 
-    def __init__(self, app, parent=None, pos=wx.DefaultPosition, size=wx.DefaultSize,
+    def __init__(self, app, parent=None, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize,
                  style=None):
         if style is None:
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
-                    wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
         BaseFrame.__init__(self, parent, -1, title, pos, size, style)
@@ -32,11 +33,16 @@ class SearchFrame(BaseFrame):
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
 
+        self.searchPanel = wx.Panel(self)
         # create list of my projects (no search?)
-        self.myProjectsPanel = ProjectListPanel(self, self.detailsPanel)
+        self.myProjectsPanel = ProjectListPanel(self.searchPanel,
+                                                self.detailsPanel,
+                                                frame=self)
 
         # create list of searchable public projects
-        self.publicProjectsPanel = ProjectListPanel(self, self.detailsPanel)
+        self.publicProjectsPanel = ProjectListPanel(self.searchPanel,
+                                                    self.detailsPanel,
+                                                    frame=self)
         self.publicProjectsPanel.setContents('')
 
         # sizers: on the left we have search boxes
@@ -65,9 +71,11 @@ class SearchFrame(BaseFrame):
                       proportion=1,
                       flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
                       border=10)
+        self.searchPanel.SetSizerAndFit(leftSizer)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.mainSizer.Add(leftSizer, flag=wx.EXPAND, proportion=1, border=5)
+        self.mainSizer.Add(self.searchPanel, flag=wx.EXPAND, proportion=1,
+                           border=5)
         self.mainSizer.Add(self.detailsPanel, flag=wx.EXPAND, proportion=1,
                            border=5)
         self.SetSizerAndFit(self.mainSizer)
@@ -83,11 +91,11 @@ class SearchFrame(BaseFrame):
     def updateUserProjs(self):
         if not pavlovia.currentSession.user:
             self.myProjectsPanel.setContents(
-                    _translate("No user logged in"))
+                _translate("No user logged in"))
         else:
             self.myProjectsPanel.setContents(
-                    _translate("Searching projects for user {} ...")
-                        .format(pavlovia.currentSession.user.username))
+                _translate("Searching projects for user {} ...")
+                    .format(pavlovia.currentSession.user.username))
             self.Update()
             wx.Yield()
             myProjs = pavlovia.currentSession.findUserProjects()
@@ -109,10 +117,11 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     Project Search dialog
     """
 
-    def __init__(self, parent, detailsPanel):
+    def __init__(self, parent, detailsPanel, frame=None):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
                                          style=wx.SUNKEN_BORDER)
         self.parent = parent
+        self.frame = frame
         self.projList = []
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.mainSizer)  # don't do Fit
@@ -127,8 +136,8 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
         if isinstance(projects, basestring):
             # just text for a window so display
             self.mainSizer.Add(
-                    wx.StaticText(self, -1, projects),
-                    flag=wx.EXPAND | wx.ALL, border=5,
+                wx.StaticText(self, -1, projects),
+                flag=wx.EXPAND | wx.ALL, border=5,
             )
         else:
             # a list of projects
@@ -161,5 +170,5 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
-        self.parent.detailsPanel.setProject(proj)
+        self.frame.detailsPanel.setProject(proj)
         self.project = proj

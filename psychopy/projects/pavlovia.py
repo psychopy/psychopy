@@ -663,6 +663,20 @@ class PavloviaProject(dict):
         """Saves the metadata to gitlab.pavlovia.org"""
         self.pavlovia.save()
 
+    @property
+    def pavloviaStatus(self):
+        return self.__dict__['pavloviaStatus']
+
+    @pavloviaStatus.setter
+    def pavloviaStatus(self, newStatus):
+        url = 'https://pavlovia.org/server?command=update_project'
+        data = {'projectId': self.idNumber, 'projectStatus': 'ACTIVATED'}
+        resp = requests.put(url, data)
+        if resp.status_code==200:
+            self.__dict__['pavloviaStatus'] = newStatus
+        else:
+            print(resp)
+
 
 def getGitRoot(p):
     """Return None or the root path of the repository"""
