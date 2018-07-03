@@ -1496,7 +1496,7 @@ class CoderFrame(wx.Frame):
             self, style=_style,
             font=self.prefs['outputFont'],
             fontSize=self.prefs['outputFontSize'])
-        self.outputWindow.write(_translate('Welcome to PsychoPy2!') + '\n')
+        self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
         self.shelf.AddPage(self.outputWindow, _translate('Output'))
 

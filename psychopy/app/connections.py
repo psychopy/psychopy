@@ -202,7 +202,7 @@ class SuggestUpdateDialog(wx.Dialog):
     """
 
     def __init__(self, latest, runningVersion):
-        wx.Dialog.__init__(self, None, -1, title='PsychoPy2 Updates')
+        wx.Dialog.__init__(self, None, -1, title='PsychoPy3 Updates')
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # info about current version

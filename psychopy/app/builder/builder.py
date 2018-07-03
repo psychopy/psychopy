@@ -2091,7 +2091,7 @@ class BuilderFrame(wx.Frame):
             return -1  # user cancelled
         # ensure it's an empty dir:
         if os.listdir(unpackFolder) != []:
-            unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
+            unpackFolder = os.path.join(unpackFolder, 'PsychoPy3 Demos')
             if not os.path.isdir(unpackFolder):
                 os.mkdir(unpackFolder)
         mergeFolder(os.path.join(self.paths['demos'], 'builder'),

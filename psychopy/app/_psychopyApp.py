@@ -65,7 +65,7 @@ class MenuFrame(wx.Frame):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy2"):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
 
@@ -183,7 +183,7 @@ class PsychoPyApp(wx.App):
             If set to True then startup wizard won't appear and stdout/stderr
             won't be redirected to the Coder
         """
-        self.SetAppName('PsychoPy2')
+        self.SetAppName('PsychoPy3')
 
         if showSplash:
             # show splash screen
@@ -205,7 +205,7 @@ class PsychoPyApp(wx.App):
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
         if splash:
-            splash.SetText(_translate("Loading PsychoPy2..."))
+            splash.SetText(_translate("Loading PsychoPy3..."))
             wx.Yield()
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
@@ -486,7 +486,7 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is ony local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy2 Coder (IDE) (v%s)"
+            title = "PsychoPy3 Coder (IDE) (v%s)"
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
@@ -498,7 +498,7 @@ class PsychoPyApp(wx.App):
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
         from .builder.builder import BuilderFrame
-        title = "PsychoPy2 Experiment Builder (v%s)"
+        title = "PsychoPy3 Experiment Builder (v%s)"
         thisFrame = BuilderFrame(None, -1,
                                          title=title % self.version,
                                          fileName=fileName, app=self)
@@ -603,7 +603,7 @@ class PsychoPyApp(wx.App):
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
         self.monCenter = MonitorCenter.MainFrame(
-            None, 'PsychoPy2 Monitor Center')
+            None, 'PsychoPy3 Monitor Center')
         self.monCenter.Show(True)
 
     def terminateHubProcess(self):

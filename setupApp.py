@@ -141,7 +141,7 @@ setup(
 # 'lib' to the rpath as well. These were fine for the packaged
 # framework python but the libs in an app bundle are different.
 # So, create symlinks so they appear in the same place as in framework python
-rpath = "dist/PsychoPy2.app/Contents/Resources/"
+rpath = "dist/PsychoPy3.app/Contents/Resources/"
 for libPath in opencvLibs:
     libname = os.path.split(libPath)[-1]
     realPath = "../../Frameworks/"+libname  # relative path (w.r.t. the fake)
@@ -157,4 +157,4 @@ if writeNewInit:
     createInitFile.createInitFile(dist=None)
 
 # running testApp from within the app raises wx errors
-# shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")
+# shutil.rmtree("dist/PsychoPy3.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")

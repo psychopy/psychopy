@@ -189,7 +189,7 @@ class Experiment(object):
 
     def saveToXML(self, filename):
         # create the dom object
-        self.xmlRoot = xml.Element("PsychoPy2experiment")
+        self.xmlRoot = xml.Element("PsychoPy3experiment")
         self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
         # store settings
@@ -445,7 +445,7 @@ class Experiment(object):
         # some error checking on the version (and report that this isn't valid
         # .psyexp)?
         filenameBase = os.path.basename(filename)
-        if root.tag != "PsychoPy2experiment":
+        if root.tag != "PsychoPy3experiment":
             logging.error('%s is not a valid .psyexp file, "%s"' %
                           (filenameBase, root.tag))
             # the current exp is already vaporized at this point, oops

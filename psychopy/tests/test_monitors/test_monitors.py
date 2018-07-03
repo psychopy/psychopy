@@ -14,10 +14,10 @@ class TestMonitorCalibration(object):
         self.monitor_name = str(uuid.uuid4().hex)  # random monitor name
         if sys.platform == 'win32':
             self.monitor_folder = os.path.join(os.environ['APPDATA'],
-                                               'psychopy2', 'monitors')
+                                               'psychopy3', 'monitors')
         else:
             self.monitor_folder = os.path.join(os.environ['HOME'],
-                                               '.psychopy2', 'monitors')
+                                               '.psychopy3', 'monitors')
         self.fullname = os.path.join(self.monitor_folder, self.monitor_name)
         self.mon = Monitor(self.monitor_name,
                            width=40,
