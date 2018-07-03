@@ -22,7 +22,7 @@ from builtins import str
 from past.builtins import basestring
 
 from psychopy.contrib.lazy_import import lazy_import
-
+from psychopy import colors
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
 haveAvbin = False
@@ -940,7 +940,7 @@ class Window(object):
         self.movieFrames.append(im)
         return im
 
-    def _getFrame(self, buffer='front'):
+    def _getFrame(self, rect=None, buffer='front'):
         """Return the current Window as an image.
         """
         # GL.glLoadIdentity()
@@ -952,23 +952,36 @@ class Window(object):
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             GL.glReadBuffer(GL.GL_FRONT)
 
-        # fetch the data with glReadPixels
-        # pyglet.gl stores the data in a ctypes buffer
-        bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
-        GL.glReadPixels(0, 0, self.size[0], self.size[1],
+        if rect:
+            x, y = self.size  # of window, not image
+            imType = 'RGBA'  # not tested with anything else
+
+            # box corners in pix
+            left = int((rect[0] / 2. + 0.5) * x)
+            top = int((rect[1] / -2. + 0.5) * y)
+            w = int((rect[2] / 2. + 0.5) * x) - left
+            h = int((rect[3] / -2. + 0.5) * y) - top
+        else:
+            left = top = 0
+            w, h = self.size
+
+
+        # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
+        bufferDat = (GL.GLubyte * (4 * w * h))()
+        GL.glReadPixels(left, top, w, h,
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=tuple(self.size),
+            im = Image.fromstring(mode='RGBA', size=(w, h),
                                   data=bufferDat)
         except Exception:
-            im = Image.frombytes(mode='RGBA', size=tuple(self.size),
+            im = Image.frombytes(mode='RGBA', size=(w, h),
                                  data=bufferDat)
+
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
         im = im.convert('RGB')
 
         if self.useFBO and buffer == 'front':
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-
         return im
 
     def saveMovieFrames(self, fileName, codec='libx264',
@@ -1055,9 +1068,8 @@ class Window(object):
 
     def _getRegionOfFrame(self, rect=(-1, 1, 1, -1), buffer='front',
                           power2=False, squarePower2=False):
-        """Capture a rectangle of the window as an RBGA image.
-
-        The rectangle = (Left Top Right Bottom) in norm units.
+        """Deprecated function, here for historical reasons. You may now use
+        _getFrame() and specify a rect to get a sub-region, just as used here
 
         power2 can be useful with older OpenGL versions to avoid interpolation
         in PatchStim. If power2 or squarePower2, it will expand rect
@@ -1066,40 +1078,7 @@ class Window(object):
         and call _getRegionOfFrame as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
-
-        x, y = self.size  # of window, not image
-        imType = 'RGBA'  # not tested with anything else
-
-        # box corners in pix
-        box = [(rect[0] / 2. + 0.5) * x,  # Left
-               (rect[1] / -2. + 0.5) * y,  # Top
-               (rect[2] / 2. + 0.5) * x,  # Right
-               (rect[3] / -2. + 0.5) * y]  # Bottom
-        box = list(map(int, box))
-
-        horz = box[2] - box[0]
-        vert = box[3] - box[1]
-
-        if buffer == 'back':
-            GL.glReadBuffer(GL.GL_BACK)
-        else:
-            GL.glReadBuffer(GL.GL_FRONT)
-
-        # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
-        bufferDat = (GL.GLubyte * (4 * horz * vert))()
-        GL.glReadPixels(box[0], box[1], horz, vert,
-                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-        # not right
-        # GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
-        #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-        try:
-            im = Image.fromstring(mode='RGBA', size=(horz, vert),
-                                  data=bufferDat)
-        except Exception:
-            im = Image.frombytes(mode='RGBA', size=(horz, vert),
-                                 data=bufferDat)
-        region = im.transpose(Image.FLIP_TOP_BOTTOM)
-
+        region = self._getFrame(rect=rect, buffer=buffer)
         if power2 or squarePower2:  # use to avoid interpolation in PatchStim
             if squarePower2:
                 maxsize = max(region.size)
@@ -1108,12 +1087,11 @@ class Window(object):
             else:
                 xPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[0])))
                 yPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[1])))
-            imP2 = Image.new(imType, (xPowerOf2, yPowerOf2))
+            imP2 = Image.new('RGBA', (xPowerOf2, yPowerOf2))
             # paste centered
             imP2.paste(region, (int(xPowerOf2 / 2. - region.size[0] / 2.),
                                 int(yPowerOf2 / 2.) - region.size[1] / 2))
             region = imP2
-
         return region
 
     def close(self):
@@ -1239,8 +1217,10 @@ class Window(object):
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif self.colorSpace in ['rgb255', 'named', 'hex']:
+        elif self.colorSpace in ['rgb255', 'named']:
             desiredRGB = self.rgb / 255.0
+        elif self.colorSpace in ['hex']:
+            desiredRGB = [rgbs/255.0 for rgbs in colors.hex2rgb255(color)]
         else:  # some array / numeric stuff
             msg = 'invalid value %r for Window.colorSpace'
             raise ValueError(msg % colorSpace)

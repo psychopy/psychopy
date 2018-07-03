@@ -45,7 +45,9 @@ def getDevices(kind=None):
     if type(allDevs) == dict:
         allDevs = [allDevs]
     for ii, dev in enumerate(allDevs):
-        devs[dev['name']] = dev
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n','')
+        devs[devName] = dev
         dev['id'] = ii
     return devs
 
@@ -181,7 +183,7 @@ class _SoundStream(object):
                 (time.time() - self._tSoundRequestPlay) * 1000))
         t0 = time.time()
         self.frameN += 1
-        toSpk *= 0  # it starts with the contents of the buffer before
+        toSpk.fill(0)
         for thisSound in self.sounds:
             dat = thisSound._nextBlock()  # fetch the next block of data
             dat *= thisSound.volume  # Set the volume block by block

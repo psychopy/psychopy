@@ -5,6 +5,7 @@ import os
 import pytest
 
 from psychopy import prefs
+from psychopy import constants
 from psychopy.app import builder, projects
 from psychopy.experiment import getAllComponents
 from psychopy import experiment
@@ -116,6 +117,9 @@ class TestComponents(object):
 
             for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
+                if not constants.PY3:
+                    if isinstance(comp.params[parName].val, unicode):
+                        comp.params[parName].val = comp.params[parName].val.encode('utf8')
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:

@@ -383,7 +383,8 @@ class PrefCtrls(object):
                     devices = sounddevice.query_devices()
                     for device in devices:
                         if device['max_output_channels'] > 0:
-                            thisDevName = device['name']
+                            # newline characters must be removed
+                            thisDevName = device['name'].replace('\r\n','')
                             if thisDevName not in options:
                                 options.append(thisDevName)
                 except (ValueError, OSError, ImportError):

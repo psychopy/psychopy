@@ -112,7 +112,8 @@ def getDevices(kind=None):
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        devName = dev['name']
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n','')
         devs[devName] = dev
         dev['id'] = ii
     return devs
