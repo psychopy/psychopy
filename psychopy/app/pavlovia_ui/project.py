@@ -5,6 +5,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
+import os
 
 from .sync import SyncFrame
 from .functions import setLocalPath, showCommitDialog
@@ -21,7 +22,8 @@ from wx.lib import scrolledpanel as scrlpanel
 
 
 class ProjectEditor(wx.Dialog):
-    def __init__(self, parent=None, id=wx.ID_ANY, project=None, *args, **kwargs):
+    def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
+                 *args, **kwargs):
 
         wx.Dialog.__init__(self, parent, id,
                            *args, **kwargs)
@@ -31,13 +33,15 @@ class ProjectEditor(wx.Dialog):
             self.filename = parent.filename
         else:
             self.filename = None
-        self.project = project
+        self.project = project  # type: PavloviaProject
         self.projInfo = None
         self.parent = parent
 
         if project:
             # edit existing project
             self.isNew = False
+            if project.localRoot and not localRoot:
+                localRoot = project.localRoot
         else:
             self.isNew = True
 
@@ -52,7 +56,8 @@ class ProjectEditor(wx.Dialog):
                                     style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
 
         localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
-        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1))
+        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1),
+                                    value=localRoot)
         self.btnLocalBrowse = wx.Button(self, wx.ID_ANY, "Browse...")
         self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -329,8 +334,9 @@ def syncProject(parent, project=None):
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
         dlg.SetOKLabel("Create a project")
         if dlg.ShowModal() == wx.ID_OK:
+            localRoot = os.path.dirname(parent.filename)
             # open the project editor (with no project to create one)
-            editor = ProjectEditor(parent=parent)
+            editor = ProjectEditor(parent=parent, localRoot=localRoot)
             if editor.ShowModal() == wx.ID_OK:
                 project = editor.project
             else:

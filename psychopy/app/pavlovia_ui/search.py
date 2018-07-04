@@ -6,13 +6,22 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from past.builtins import basestring
-import wx
-from wx.lib import scrolledpanel as scrlpanel
 
 from .project import DetailsPanel
+from .functions import logInPavlovia
+
 from ._base import BaseFrame
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
+
+import wx
+from pkg_resources import parse_version
+from wx.lib import scrolledpanel as scrlpanel
+
+if parse_version(wx.__version__) < parse_version('4.0.0a1'):
+    import wx.lib.hyperlink as wxhl
+else:
+    import wx.lib.agw.hyperlink as wxhl
 
 
 class SearchFrame(BaseFrame):
@@ -36,12 +45,10 @@ class SearchFrame(BaseFrame):
         self.searchPanel = wx.Panel(self)
         # create list of my projects (no search?)
         self.myProjectsPanel = ProjectListPanel(self.searchPanel,
-                                                self.detailsPanel,
                                                 frame=self)
 
         # create list of searchable public projects
         self.publicProjectsPanel = ProjectListPanel(self.searchPanel,
-                                                    self.detailsPanel,
                                                     frame=self)
         self.publicProjectsPanel.setContents('')
 
@@ -90,12 +97,11 @@ class SearchFrame(BaseFrame):
 
     def updateUserProjs(self):
         if not pavlovia.currentSession.user:
-            self.myProjectsPanel.setContents(
-                _translate("No user logged in"))
+            self.myProjectsPanel.setContents("no user")
         else:
             self.myProjectsPanel.setContents(
-                _translate("Searching projects for user {} ...")
-                    .format(pavlovia.currentSession.user.username))
+                    _translate("Searching projects for user {} ...")
+                        .format(pavlovia.currentSession.user.username))
             self.Update()
             wx.Yield()
             myProjs = pavlovia.currentSession.findUserProjects()
@@ -117,7 +123,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     Project Search dialog
     """
 
-    def __init__(self, parent, detailsPanel, frame=None):
+    def __init__(self, parent, frame=None):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
                                          style=wx.SUNKEN_BORDER)
         self.parent = parent
@@ -133,12 +139,15 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
     def setContents(self, projects):
         self.DestroyChildren()  # start with a clean slate
 
-        if isinstance(projects, basestring):
+        if projects == 'no user':
+            msg = _translate("Log in to search your own projects")
+            loginBtn = wx.Button(self, wx.ID_ANY, label=msg)
+            loginBtn.Bind(wx.EVT_BUTTON, self.onLoginClick)
+            self.mainSizer.Add(loginBtn, flag=wx.ALL | wx.CENTER, border=5)
+        elif isinstance(projects, basestring):
             # just text for a window so display
-            self.mainSizer.Add(
-                wx.StaticText(self, -1, projects),
-                flag=wx.EXPAND | wx.ALL, border=5,
-            )
+            self.mainSizer.Add(wx.StaticText(self, -1, projects),
+                               flag=wx.EXPAND | wx.ALL, border=5)
         else:
             # a list of projects
             self.projView = wx.ListCtrl(parent=self,
@@ -148,7 +157,7 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             # The ID col we'll customize a bit:
             self.projView.InsertColumn(0, 'owner')
             self.projView.InsertColumn(1, 'name')
-            self.projView.InsertColumn(1, 'description')
+            self.projView.InsertColumn(2, 'description')
             self.projList = []
             for index, thisProj in enumerate(projects):
                 if not hasattr(thisProj, 'id'):
@@ -168,7 +177,10 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
 
         self.FitInside()
 
+    def onLoginClick(self, event):
+        print('got here')
+        logInPavlovia(parent=self.parent)
+
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
         self.frame.detailsPanel.setProject(proj)
-        self.project = proj
