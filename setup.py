@@ -25,7 +25,8 @@ required = ['requests[security]',
             'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'wxPython', 'pyglet', 'pygame', 'configobj', 'pyopengl',
             'soundfile', 'sounddevice',
-            'python-bidi', 'cffi',
+            'python-bidi', 'arabic_reshaper'
+            'cffi',
             'future', 'json_tricks',
             'pyosf',
             'xlrd', 'openpyxl',  # MS Excel
@@ -43,6 +44,8 @@ if platform == 'win32':
     required.extend(['pypiwin32'])
 if platform == 'darwin':
     required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
+if platform.startswith('linux'):
+    required.remove('wxPython')  # on linux this fails
 
 # `pyqt` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
