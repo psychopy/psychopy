@@ -2305,7 +2305,7 @@ NoiseStimComponent.noiseNewSampleWhen.readOnly:False
 NoiseStimComponent.blendmode.default:'avg'
 NoiseStimComponent.blendmode.val:avg
 NoiseStimComponent.blendmode.categ:Basic
-NoiseStimComponent.blendmode.allowedVals:[]
+NoiseStimComponent.blendmode.allowedVals:['avg', 'add']
 NoiseStimComponent.blendmode.staticUpdater:None
 NoiseStimComponent.blendmode.allowedTypes:[]
 NoiseStimComponent.blendmode.allowedUpdates:['constant', 'set every repeat', 'set every frame']
