@@ -64,6 +64,7 @@ includes = ['Tkinter', 'tkFileDialog',
             'cv2', 'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
+            'msgpack_numpy',
             ]
 packages = ['wx', 'psychopy',
             'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',

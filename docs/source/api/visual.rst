@@ -30,6 +30,8 @@ Images and patterns:
 	* :class:`.SimpleImageStim` to show images without bells and whistles
 	* :class:`.GratingStim` to show gratings
 	* :class:`.RadialStim` to show annulus, a rotating wedge, a checkerboard etc
+	* :class:`.NoiseStim` to show filtered noise patterns of various forms
+	* :class:`.EnvelopeGrating` to generate second-order stimuli (gratings that can have a carrier and envelope)
 
 Multiple stimuli:
 
