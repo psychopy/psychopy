@@ -25,7 +25,7 @@ required = ['requests[security]',
             'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'wxPython', 'pyglet', 'pygame', 'configobj', 'pyopengl',
             'soundfile', 'sounddevice',
-            'python-bidi', 'arabic_reshaper'
+            'python-bidi', 'arabic_reshaper',
             'cffi',
             'future', 'json_tricks',
             'pyosf',
