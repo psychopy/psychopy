@@ -108,7 +108,9 @@ def _getGitShaString(dist=None, sha=None):
         repo_commit, _ = proc.communicate()
         del proc  # to get rid of the background process
         if repo_commit:
-            shaStr = str(repo_commit.strip())  # remove final linefeed
+            shaStr = "{}".format(repo_commit.strip())
+            if shaStr.startswith("b'"):
+                shaStr = shaStr.replace("b'", "").replace("'", "")
         else:
             shaStr = 'n/a'
         #this looks neater but raises errors on win32
