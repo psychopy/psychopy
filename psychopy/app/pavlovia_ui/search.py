@@ -54,22 +54,22 @@ class SearchFrame(BaseFrame):
 
         # sizers: on the left we have search boxes
         leftSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer.Add(wx.StaticText(self, -1, _translate("My Projects")),
+        leftSizer.Add(wx.StaticText(self.searchPanel, wx.ID_ANY, _translate("My Projects")),
                       flag=wx.EXPAND | wx.ALL, border=5)
         leftSizer.Add(self.myProjectsPanel,
                       proportion=1,
                       flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
                       border=10)
         searchSizer = wx.BoxSizer(wx.HORIZONTAL)
-        searchSizer.Add(wx.StaticText(self, -1, _translate("Search Public:")))
-        self.searchTextCtrl = wx.TextCtrl(self, -1, "",
+        searchSizer.Add(wx.StaticText(self.searchPanel, -1, _translate("Search Public:")))
+        self.searchTextCtrl = wx.TextCtrl(self.searchPanel, -1, "",
                                           style=wx.TE_PROCESS_ENTER)
         self.searchTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
         searchSizer.Add(self.searchTextCtrl, flag=wx.EXPAND)
         leftSizer.Add(searchSizer)
         tagsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        tagsSizer.Add(wx.StaticText(self, -1, _translate("Tags:")))
-        self.tagsTextCtrl = wx.TextCtrl(self, -1, "psychopy,",
+        tagsSizer.Add(wx.StaticText(self.searchPanel, -1, _translate("Tags:")))
+        self.tagsTextCtrl = wx.TextCtrl(self.searchPanel, -1, "psychopy,",
                                         style=wx.TE_PROCESS_ENTER)
         self.tagsTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
         tagsSizer.Add(self.tagsTextCtrl, flag=wx.EXPAND)

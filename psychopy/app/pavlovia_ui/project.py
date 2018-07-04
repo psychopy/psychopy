@@ -58,7 +58,7 @@ class ProjectEditor(wx.Dialog):
         localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
         self.localBox = wx.TextCtrl(panel, -1, size=(400, -1),
                                     value=localRoot)
-        self.btnLocalBrowse = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.btnLocalBrowse = wx.Button(panel, wx.ID_ANY, "Browse...")
         self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
         localPathSizer.Add(self.localBox)
@@ -140,6 +140,7 @@ class ProjectEditor(wx.Dialog):
         if newPath:
             self.localBox.SetLabel(newPath)
             self.project.localRoot = newPath
+            self.Layout()
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -164,9 +165,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         # if we've synced before we should know the local location
         self.localFolderCtrl = wx.StaticText(
-                parent=self, id=-1,
+                parent=self, id=wx.ID_ANY,
                 label="Local root: ")
-        self.browseLocalBtn = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY, label="Browse...")
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
         # remote attributes
@@ -319,7 +320,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         if self.localFolder:
             self.localFolderCtrl.SetLabel(
                     label="Local root: {}".format(self.localFolder))
-        self.Update()
+        self.Layout()
 
 
 def syncProject(parent, project=None):
