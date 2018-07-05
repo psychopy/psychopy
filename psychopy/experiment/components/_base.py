@@ -377,7 +377,7 @@ class BaseComponent(object):
                 buff.writeIndented("my.%s.setSound(%s, secs=%s)%s\n" %
                                    (compName, params['sound'], stopVal, endStr))
             else:
-                buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
+                buff.writeIndented("my.%s.set%s(my.%s%s)%s\n" %
                                    (compName, paramCaps, val, loggingStr, endStr))
 
     def checkNeedToUpdate(self, updateType):

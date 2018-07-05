@@ -516,10 +516,10 @@ class KeyboardComponent(BaseComponent):
                 "StairHandlers not currently supported by PsychoJS")
         else:
             # always add keys
-            buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', my.%(name)s.keys);\n" % self.params)
+            buff.writeIndented("my.experiment.addData('%(name)s.keys', my.%(name)s.keys);\n" % self.params)
 
             if self.params['storeCorrect'].val == True:
-                buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', my.%(name)s.corr);\n" % self.params)
+                buff.writeIndented("my.experiment.addData('%(name)s.corr', my.%(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
             code = ("if (my.{name}.keys != undefined) {{  // we had a response\n"
