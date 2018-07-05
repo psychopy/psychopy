@@ -37,7 +37,7 @@ for i in 0 1; do
     # mount the disk image to put the app in
     echo "Opening disk image for app"
     hdiutil detach "/Volumes/PsychoPy" -quiet
-    hdiutil attach "../dist/StandalonePsychoPy--64bit.dmg"
+    hdiutil attach "../dist/StandalonePsychoPy3_tmpl.dmg"
     osascript -e "set Volume 0.5"
     say -v Karen "password"
     sudo rm -R /Volumes/PsychoPy/PsychoPy3*
@@ -47,7 +47,7 @@ for i in 0 1; do
     echo "removing prev dmg (although may not exist)"
     rm $dmgName
     echo "creating zlib-compressed dmg: $dmgName"
-    hdiutil convert "../dist/StandalonePsychoPy--64bit.dmg" -format UDZO -o $dmgName
+    hdiutil convert "../dist/StandalonePsychoPy3_tmpl.dmg" -format UDZO -o $dmgName
 
 done
 
