@@ -162,7 +162,7 @@ class Experiment(object):
                     entry.writeInitCodeJS(script)
 
             # create globalClock etc
-            code = ("\n// Create some handy timers\n"
+            code = ("// Create some handy timers\n"
                     "my.globalClock = new Clock();"
                     "  // to track the time since experiment started\n"
                     "my.routineTimer = new CountdownTimer();"
@@ -176,15 +176,21 @@ class Experiment(object):
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            for thisRoutine in list(self.routines.values()):
-                self._currentRoutine = thisRoutine
-                thisRoutine.writeRoutineBeginCodeJS(script)
-                thisRoutine.writeEachFrameCodeJS(script)
-                thisRoutine.writeRoutineEndCodeJS(script)
-            # load resources files (images, csv files etc
-            self.flow.writeLoopHandlerJS(script)
-            # self.flow.writeResourcesCodeJS(script)
-            self.settings.writeEndCodeJS(script)
+            routinesToWrite = list(self.routines)
+            for thisItem in self.flow:
+                if thisItem.getType() in ['LoopInitiator']:
+                    # load resources files (images, csv files etc
+                    self.flow.writeLoopHandlerJS(script)
+                elif thisItem.getType() in ['LoopTerminator']:
+                    pass
+                elif thisItem.name in routinesToWrite:
+                    self._currentRoutine = self.routines[thisItem.name]
+                    self._currentRoutine.writeRoutineBeginCodeJS(script)
+                    self._currentRoutine.writeEachFrameCodeJS(script)
+                    self._currentRoutine.writeRoutineEndCodeJS(script)
+                    routinesToWrite.remove(thisItem.name)
+        # self.flow.writeResourcesCodeJS(script)
+        self.settings.writeEndCodeJS(script)
         return script
 
     def saveToXML(self, filename):
