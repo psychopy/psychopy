@@ -99,7 +99,7 @@ class Routine(list):
             thisCompon.writeInitCode(buff)
 
     def writeInitCodeJS(self, buff):
-        code = '\n// Initialize components for Routine "%s"\n'
+        code = '// Initialize components for Routine "%s"\n'
         buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
         buff.writeIndented('my.%s = new Clock();\n' % self._clockName)
@@ -246,12 +246,9 @@ class Routine(list):
                     and "PsychoJS" in thisCompon.targets):
                 code = ("my.%sComponents.push(my.%s);\n" % (self.name, thisCompon.params['name']))
                 buff.writeIndentedLines(code)
-        code = ("for (var i = 0; i < my.%(name)sComponents.length; ++i) {\n"
-                "  let thisComponent = my.%(name)sComponents[i];\n"
-                "  if ('status' in thisComponent) {\n"
+        code = ("\nfor (const thisComponent of my.%(name)sComponents)\n"
+                "  if ('status' in thisComponent)\n"
                 "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                "  }\n"
-                "}\n"
                 "\nreturn Scheduler.Event.NEXT;\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
@@ -267,8 +264,8 @@ class Routine(list):
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
-                "let continueRoutine = true;\n // until we're told otherwise"
-                "\n// get current time\n"
+                "let continueRoutine = true; // until we're told otherwise\n"
+                "// get current time\n"
                 "my.t = my.%(name)sClock.getTime();\n"
                 "my.frameN = my.frameN + 1;"
                 "// number of completed frames (so 0 is the first frame)\n" % self.params)
@@ -292,13 +289,11 @@ class Routine(list):
                 "}\n"
                 "continueRoutine = false;"
                 "// reverts to True if at least one component still running\n"
-                "for (var i = 0; i < my.%(name)sComponents.length; ++i) {\n"
-                "  let thisComponent = my.%(name)sComponents[i];\n"
+                "for (const thisComponent of my.%(name)sComponents)\n"
                 "  if ('status' in thisComponent && thisComponent.status != PsychoJS.Status.FINISHED) {\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
                 "  }\n"
-                "}\n"
                 "// check for quit (the Esc key)\n"
                 "if (psychoJS.experiment.experimentEnded || my.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
                 "  my.quit('The <Escape> key was pressed. Goodbye!');\n"
@@ -330,12 +325,9 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Ending Routine '%(name)s'-------\n"
-                "for (var i = 0; i < my.%(name)sComponents.length; ++i) {\n"
-                '  let thisComponent = my.%(name)sComponents[i];\n'
-                '  if ("setAutoDraw" in thisComponent) {\n'
-                "    thisComponent.setAutoDraw(false);\n"
-                "  }\n"
-                "}\n" % self.params)
+                "for (const thisComponent of my.%(name)sComponents)\n"
+                "  if (typeof thisComponent.setAutoDraw === 'function')\n"
+                "    thisComponent.setAutoDraw(false);\n\n" % self.params)
         buff.writeIndentedLines(code)
         # add the EndRoutine code for each component
         for compon in self:

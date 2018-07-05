@@ -663,32 +663,17 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-        abbrevFunc = ("\nfunction abbrevNames(thisTrial) {\n"
-                "  return function () {\n"
-                "    // abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)\n"
-                "    if (typeof thisTrial !== 'undefined') {\n"
-                "      for (let paramName in thisTrial) {\n"
-                "        psychoJS[paramName] = thisTrial[paramName];\n"
-                "      }\n"
-                "    }\n\n"
-                "    return Scheduler.Event.NEXT;\n"
-                "  };\n"
-                "}\n"
-                )
-        buff.writeIndentedLines(abbrevFunc)
-        recordLoopIterationFunc = ("\nfunction recordLoopIteration(currentLoop) {\n"
+        recordLoopIterationFunc = ("\nfunction importTrialAttributes(thisTrial) {\n"
                     "  return function () {\n"
-                    "    currentLoop.updateAttributesAtBegin();\n"
-                    "    psychoJS.experiment.nextEntry();\n"
+                    "    psychoJS.importAttributes(thisTrial);\n\n"
                     "    return Scheduler.Event.NEXT;\n"
-                    "  }\n"
+                    "  };\n"
                     "}\n"
                 )
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
-                    "  psychoJS.experiment.save();\n"
                     "  my.window.close()\n"
-                    "  psychoJS.quit();\n"
+                    "  psychoJS.quit();\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)
