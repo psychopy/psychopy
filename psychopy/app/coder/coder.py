@@ -1963,7 +1963,7 @@ class CoderFrame(wx.Frame):
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Redo last action")).GetId()
         tb.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.cdrBtRedo)
-        tb.AddSeparator()
+
         tb.AddSeparator()
         item = tb.AddSimpleTool(wx.ID_ANY, preferencesBmp,
                          _translate("Preferences"),
@@ -1977,7 +1977,7 @@ class CoderFrame(wx.Frame):
                          _translate("Color Picker -> clipboard"),
                          _translate("Color Picker -> clipboard"))
         tb.Bind(wx.EVT_TOOL, self.app.colorPicker, id=item.GetId())
-        self.toolbar.AddSeparator()
+
         self.toolbar.AddSeparator()
         key = _translate("Run [%s]") % self.app.keys['runScript']
         self.IDs.cdrBtnRun = self.toolbar.AddSimpleTool(wx.ID_ANY, runBmp,
@@ -1990,6 +1990,10 @@ class CoderFrame(wx.Frame):
                                    _translate("Stop current script")).GetId()
         tb.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.cdrBtnStop)
         tb.EnableTool(self.IDs.cdrBtnStop, False)
+
+        self.toolbar.AddSeparator()
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
+        pavButtons.addPavloviaTools(buttons=['sync', 'search', 'user'])
         tb.Realize()
 
     def onIdle(self, event):

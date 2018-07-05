@@ -18,4 +18,4 @@
 from .functions import *
 from .project import ProjectEditor, syncProject
 from ._base import PavloviaMiniBrowser
-from . import menu, project, search, sync
+from . import menu, project, search, sync, toolbar

@@ -326,7 +326,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 def syncProject(parent, project=None):
     """A function to sync the current project (if there is one)
     """
-    if not project:  # try getting one from the frame
+    isCoder = hasattr(parent, 'currentDoc')
+    if not project and "BuilderFrame" in repr(parent):  # try getting one from the frame
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
@@ -335,7 +336,13 @@ def syncProject(parent, project=None):
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
         dlg.SetOKLabel("Create a project")
         if dlg.ShowModal() == wx.ID_OK:
-            localRoot = os.path.dirname(parent.filename)
+            if isCoder:
+                if parent.currentDoc:
+                    localRoot = os.path.dirname(parent.currentDoc.filename)
+                else:
+                    localRoot = ''
+            else:
+                localRoot = os.path.dirname(parent.filename)
             # open the project editor (with no project to create one)
             editor = ProjectEditor(parent=parent, localRoot=localRoot)
             if editor.ShowModal() == wx.ID_OK:
