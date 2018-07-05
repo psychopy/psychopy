@@ -2193,6 +2193,7 @@ class BuilderFrame(wx.Frame):
         self.generateScript(fullPath)
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
+        self.app.coder.fileReload(event=None, filename=fullPath)
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
