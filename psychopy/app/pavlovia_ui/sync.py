@@ -29,20 +29,22 @@ class SyncFrame(wx.Frame):
 
 
 class SyncStatusPanel(wx.Panel):
-    def __init__(self, parent, id, size=(300, 250), *args, **kwargs):
+    def __init__(self, parent, id, *args, **kwargs):
         # init super classes
-        wx.Panel.__init__(self, parent, id, size=size, *args, **kwargs)
+        wx.Panel.__init__(self, parent, id, *args, **kwargs)
         # set self properties
         self.parent = parent
-        self.statusMsg = wx.StaticText(self, -1, "Synchronising...")
-        self.progBar = wx.Gauge(self, -1, range=1, size=(200, -1))
+        self.statusMsg = wx.TextCtrl(self, -1, size=(250,150),
+                                     value="Synchronising...",
+                                     style=wx.TE_READONLY | wx.TE_MULTILINE)
+        # self.progBar = wx.Gauge(self, -1, range=1, size=(200, -1))
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.statusMsg, 1, wx.ALL | wx.CENTER, border=10)
-        self.mainSizer.Add(self.progBar, 1, wx.ALL | wx.CENTER, border=10)
-        self.SetSizerAndFit(self.mainSizer)
+        # self.mainSizer.Add(self.progBar, 1, wx.ALL | wx.CENTER, border=10)
 
         self.SetAutoLayout(True)
+        self.SetSizerAndFit(self.mainSizer)
         self.Layout()
 
     def reset(self):
@@ -50,10 +52,15 @@ class SyncStatusPanel(wx.Panel):
         self.progBar.SetValue(0)
 
     def setStatus(self, status):
-        self.statusMsg.SetLabel(status)
-        self.Update()
+        self.statusMsg.SetValue(status)
+        self.Refresh()
         self.Layout()
         wx.Yield()
+
+    def statusAppend(self, newText):
+        text = self.statusMsg.GetValue()
+        text += "{}".format(newText)
+        self.setStatus(text)
 
 
 class ProgressHandler(git.remote.RemoteProgress):

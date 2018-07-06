@@ -470,7 +470,7 @@ class PavloviaProject(dict):
             self.firstPush()
         else:
             self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
-            self.repo = git.Repo(self.localRoot)
+            self.repo = git.Repo(self.localRoot)  # get a new copy of repo (
             time.sleep(0.1)
             self.push(syncPanel=syncPanel, progressHandler=progressHandler)
         self._lastKnownSync = t1 = time.time()
@@ -478,7 +478,7 @@ class PavloviaProject(dict):
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
         logging.info(msg)
         if syncPanel:
-            syncPanel.setStatus(msg)
+            syncPanel.statusAppend("\n"+msg)
             time.sleep(0.5)
 
     def pull(self, syncPanel=None, progressHandler=None):
@@ -494,12 +494,14 @@ class PavloviaProject(dict):
 
         """
         if syncPanel:
-            syncPanel.setStatus("Pulling changes from remote...")
+            syncPanel.statusAppend("\nPulling changes from remote...")
         origin = self.repo.remotes.origin
         info = self.repo.git.pull()  # progress=progressHandler
-        print(info)
+        logging.debug('pull report: {}'.format(info))
         if syncPanel:
-            syncPanel.setStatus("Pulling changes from remote...done")
+            syncPanel.statusAppend("done")
+            if info:
+                syncPanel.statusAppend("\n{}".format(info))
 
 
     def push(self, syncPanel=None, progressHandler=None):
@@ -515,14 +517,14 @@ class PavloviaProject(dict):
 
         """
         if syncPanel:
-            syncPanel.setStatus("Pushing changes to remote...done")
+            syncPanel.statusAppend("\nPushing changes to remote...")
         origin = self.repo.remotes.origin
         info = self.repo.git.push()  # progress=progressHandler
-        # for fetch_info in info:
-        #     print("Updated %s to %s" % (fetch_info.ref, fetch_info.commit))
-        print('info__', dir(info))
+        logging.debug('push report: {}'.format(info))
         if syncPanel:
-            syncPanel.setStatus("Pushing changes to remote...done")
+            syncPanel.statusAppend("done")
+            if info:
+                syncPanel.statusAppend("\n{}".format(info))
 
     def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False,
                 newRemote=False):
@@ -615,7 +617,8 @@ class PavloviaProject(dict):
         repo = git.Repo.clone_from(
             self.remoteHTTPS,
             self.localRoot,
-            progress=progressHandler)
+            # progress=progressHandler,
+        )
         self._lastKnownSync = time.time()
         self.repo = repo
         self._newRemote = False
