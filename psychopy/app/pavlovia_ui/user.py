@@ -97,6 +97,7 @@ class UserEditor(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def submitChanges(self, evt=None):
+        print("updating gitlab.pavlovia.org users from within PsychoPy not yet working")
         isDirty = False
         toCheck = {'name': self.nameField.GetValue,
                    'organization': self.orgField.GetValue,
@@ -110,9 +111,8 @@ class UserEditor(wx.Dialog):
                 setattr(self.user, field, newVal)
                 isDirty = True
         if isDirty:
-            print(self.user.gitlabData.attributes)
-            self.user.bio = 'test'
-            self.user.save()
+            pass
+            # self.user.save()  # currently gives an error but should be correct?! :-/
 
         self.EndModal(wx.ID_OK)
 

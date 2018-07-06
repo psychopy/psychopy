@@ -24,7 +24,7 @@ else:
     import wx.lib.agw.hyperlink as wxhl
 
 
-class SearchFrame(BaseFrame):
+class SearchFrame(wx.Dialog):
 
     def __init__(self, app, parent=None, pos=wx.DefaultPosition,
                  size=wx.DefaultSize,
@@ -34,62 +34,63 @@ class SearchFrame(BaseFrame):
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
-        BaseFrame.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.app = app
         self.project = None
         self.parent = parent
+        self.mainPanel = wx.Panel(self, wx.ID_ANY)
 
         # to show detail of current selection
         self.detailsPanel = DetailsPanel(parent=self)
 
-        self.searchPanel = wx.Panel(self)
         # create list of my projects (no search?)
-        self.myProjectsPanel = ProjectListPanel(self.searchPanel,
+        self.myProjectsPanel = ProjectListPanel(self.mainPanel,
                                                 frame=self)
 
         # create list of searchable public projects
-        self.publicProjectsPanel = ProjectListPanel(self.searchPanel,
+        self.publicProjectsPanel = ProjectListPanel(self.mainPanel,
                                                     frame=self)
         self.publicProjectsPanel.setContents('')
 
         # sizers: on the left we have search boxes
-        leftSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer.Add(wx.StaticText(self.searchPanel, wx.ID_ANY, _translate("My Projects")),
-                      flag=wx.EXPAND | wx.ALL, border=5)
-        leftSizer.Add(self.myProjectsPanel,
-                      proportion=1,
-                      flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
-                      border=10)
-        searchSizer = wx.BoxSizer(wx.HORIZONTAL)
-        searchSizer.Add(wx.StaticText(self.searchPanel, -1, _translate("Search Public:")))
-        self.searchTextCtrl = wx.TextCtrl(self.searchPanel, -1, "",
+        searchQuerySizer = wx.BoxSizer(wx.HORIZONTAL)
+        searchQuerySizer.Add(wx.StaticText(self.mainPanel, -1, _translate("Search Public:")),
+                             flag=wx.ALIGN_CENTER_VERTICAL)
+        self.searchTextCtrl = wx.TextCtrl(self.mainPanel, -1, "",
                                           style=wx.TE_PROCESS_ENTER)
         self.searchTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
-        searchSizer.Add(self.searchTextCtrl, flag=wx.EXPAND)
-        leftSizer.Add(searchSizer)
+        searchQuerySizer.Add(self.searchTextCtrl, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+
         tagsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        tagsSizer.Add(wx.StaticText(self.searchPanel, -1, _translate("Tags:")))
-        self.tagsTextCtrl = wx.TextCtrl(self.searchPanel, -1, "psychopy,",
+        tagsSizer.Add(wx.StaticText(self.mainPanel, -1, _translate("Tags:")),
+                      flag=wx.ALIGN_CENTER_VERTICAL)
+        self.tagsTextCtrl = wx.TextCtrl(self.mainPanel, -1, "psychopy,",
                                         style=wx.TE_PROCESS_ENTER)
         self.tagsTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
-        tagsSizer.Add(self.tagsTextCtrl, flag=wx.EXPAND)
+        tagsSizer.Add(self.tagsTextCtrl, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+
+        leftSizer = wx.BoxSizer(wx.VERTICAL)
+        leftSizer.Add(wx.StaticText(self.mainPanel, wx.ID_ANY, _translate("My Projects")),
+                      # proportion=1,
+                      # flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
+                      border=5)
+        leftSizer.Add(self.myProjectsPanel,
+                      proportion=1,
+                      flag=wx.EXPAND | wx.ALL,
+                      border=5)
+        leftSizer.Add(searchQuerySizer)
         leftSizer.Add(tagsSizer)
         leftSizer.Add(self.publicProjectsPanel,
                       proportion=1,
                       flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
                       border=10)
-        self.searchPanel.SetSizerAndFit(leftSizer)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.mainSizer.Add(self.searchPanel, flag=wx.EXPAND, proportion=1,
-                           border=5)
-        self.mainSizer.Add(self.detailsPanel, flag=wx.EXPAND, proportion=1,
-                           border=5)
-        self.SetSizerAndFit(self.mainSizer)
+        self.mainSizer.Add(leftSizer, 1, flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainSizer.Add(self.detailsPanel, 1, flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainPanel.SetSizerAndFit(self.mainSizer)
+        self.Fit()
 
-        aTable = wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wx.ID_CANCEL),
-                                      ])
-        self.SetAcceleratorTable(aTable)
         if self.parent:
             self.CenterOnParent()
         self.Show()  # show the window before doing search/updates
@@ -100,8 +101,8 @@ class SearchFrame(BaseFrame):
             self.myProjectsPanel.setContents("no user")
         else:
             self.myProjectsPanel.setContents(
-                    _translate("Searching projects for user {} ...")
-                        .format(pavlovia.currentSession.user.username))
+                _translate("Searching projects for user {} ...")
+                    .format(pavlovia.currentSession.user.username))
             self.Update()
             wx.Yield()
             myProjs = pavlovia.currentSession.findUserProjects()
@@ -118,23 +119,22 @@ class SearchFrame(BaseFrame):
         self.publicProjectsPanel.setContents(projs)
 
 
-class ProjectListPanel(scrlpanel.ScrolledPanel):
+class ProjectListPanel(wx.Panel):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
 
     def __init__(self, parent, frame=None):
-        scrlpanel.ScrolledPanel.__init__(self, parent, -1, size=(450, 200),
-                                         style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, -1, size=(450, 200))
         self.parent = parent
         self.frame = frame
         self.projList = []
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.mainSizer)  # don't do Fit
-        self.mainSizer.Fit(self)
+        # self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        # self.SetSizer(self.mainSizer)  # don't do Fit
+        # self.mainSizer.Fit(self)
 
         self.SetAutoLayout(True)
-        self.SetupScrolling()
+        # self.SetupScrolling()
 
     def setContents(self, projects):
         self.DestroyChildren()  # start with a clean slate
@@ -143,11 +143,11 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             msg = _translate("Log in to search your own projects")
             loginBtn = wx.Button(self, wx.ID_ANY, label=msg)
             loginBtn.Bind(wx.EVT_BUTTON, self.onLoginClick)
-            self.mainSizer.Add(loginBtn, flag=wx.ALL | wx.CENTER, border=5)
+            # self.mainSizer.Add(loginBtn, flag=wx.ALL | wx.CENTER, border=5)
         elif isinstance(projects, basestring):
+            txt = wx.StaticText(self, -1, projects)
             # just text for a window so display
-            self.mainSizer.Add(wx.StaticText(self, -1, projects),
-                               flag=wx.EXPAND | wx.ALL, border=5)
+            # self.mainSizer.Add(txt, flag=wx.EXPAND | wx.ALL, border=5)
         else:
             # a list of projects
             self.projView = wx.ListCtrl(parent=self,
@@ -169,16 +169,15 @@ class ProjectListPanel(scrlpanel.ScrolledPanel):
             self.projView.SetColumnWidth(0, wx.LIST_AUTOSIZE)
             self.projView.SetColumnWidth(1, wx.LIST_AUTOSIZE)
             self.projView.SetColumnWidth(2, wx.LIST_AUTOSIZE)
-            self.mainSizer.Add(self.projView,
-                               flag=wx.EXPAND | wx.ALL,
-                               proportion=1, border=5, )
+            # self.mainSizer.Add(self.projView,
+            #                    flag=wx.EXPAND | wx.ALL,
+            #                    proportion=1, border=5, )
             self.Bind(wx.EVT_LIST_ITEM_SELECTED,
                       self.onChangeSelection)
 
         self.FitInside()
 
     def onLoginClick(self, event):
-        print('got here')
         logInPavlovia(parent=self.parent)
 
     def onChangeSelection(self, event):
