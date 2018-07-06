@@ -9,7 +9,7 @@ function setupExperiment() {{
       psychoJS.experiment = new ExperimentHandler({{extraInfo: my.expInfo}});
 
       // setup resource manager:
-      psychoJS.resourceManager = new ResourceManager()
+      psychoJS.resourceManager = new ResourceManager();
 
       /*
       // logging:
@@ -18,8 +18,9 @@ function setupExperiment() {{
 
       // change status to leave setupExperiment loop:
       psychoJS.status = PsychoJS.Status.CONFIGURED;
-  }});
+    }});
   }}
+
   // the loop will return until the configuration is completed
   // at which point the status changes to CONFIGURED
   if (psychoJS.status === PsychoJS.Status.CONFIGURED) {{

@@ -190,7 +190,7 @@ class TrialHandler(object):
         code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  my.{params[name]} = new TrialHandler({{\n"
-                "    nReps:{params[nReps]}, method: TrialHandler.Method.{loopType}),\n"
+                "    nReps:{params[nReps]}, method: TrialHandler.Method.{loopType},\n"
                 "    extraInfo:my.expInfo, originPath:undefined,\n"
                 "    trialList:TrialHandler.importConditions(psychoJS.resourceManager, {params[conditionsFile]}),\n"
                 "    seed:{seed}, name:'{params[name]}'}});\n"
@@ -276,7 +276,7 @@ class TrialHandler(object):
                 "  psychoJS.experiment.save(my.{params[name]}.getAttributes());\n").format(params=self.params)
         if self.params['isTrials'].val == True:
             code += ("  my.experiment.nextEntry();\n")
-        code += ("  return Scheduler.Event.NEXT;\n"
+        code += ("  \nreturn Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
 
