@@ -496,10 +496,14 @@ class PavloviaProject(dict):
         if syncPanel:
             syncPanel.setStatus("Pulling changes from remote...")
         origin = self.repo.remotes.origin
-        origin.pull(progress=progressHandler)
+        info = self.repo.git.pull()  # progress=progressHandler
+        print(info)
+        if syncPanel:
+            syncPanel.setStatus("Pulling changes from remote...done")
+
 
     def push(self, syncPanel=None, progressHandler=None):
-        """Pull from remote to local copy of the repository
+        """Push to remote from local copy of the repository
 
         Parameters
         ----------
@@ -510,11 +514,15 @@ class PavloviaProject(dict):
         -------
 
         """
-        syncPanel.setStatus("Pushing changes to remote...")
-        syncPanel.Refresh()
-        syncPanel.Layout()
+        if syncPanel:
+            syncPanel.setStatus("Pushing changes to remote...done")
         origin = self.repo.remotes.origin
-        origin.push()#progress=progressHandler)
+        info = self.repo.git.push()  # progress=progressHandler
+        # for fetch_info in info:
+        #     print("Updated %s to %s" % (fetch_info.ref, fetch_info.commit))
+        print('info__', dir(info))
+        if syncPanel:
+            syncPanel.setStatus("Pushing changes to remote...done")
 
     def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False,
                 newRemote=False):
