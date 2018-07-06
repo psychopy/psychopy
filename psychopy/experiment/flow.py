@@ -285,8 +285,8 @@ class Flow(list):
                 "// dialog box:\n"
                 "psychoJS.schedule(my.gui.DlgFromDict({dictionary: my.expInfo, title: my.expName}));\n"
                 "\n"
-                "let flowScheduler = new Scheduler(psychoJS);\n"
-                "let dialogCancelScheduler = new Scheduler(psychoJS);\n"
+                "const flowScheduler = new Scheduler(psychoJS);\n"
+                "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
                 "psychoJS.scheduleCondition(() => (my.gui.dialogComponent.button === 'OK'), flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)
@@ -299,7 +299,7 @@ class Flow(list):
         for thisEntry in self:
             if not loopStack:  # if not currently in a loop
                 if thisEntry.getType() == 'LoopInitiator':
-                    code = ("let {name}LoopScheduler = new Scheduler(psychoJS);\n"
+                    code = ("const {name}LoopScheduler = new Scheduler(psychoJS);\n"
                             "flowScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopEnd);\n"

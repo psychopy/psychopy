@@ -3,7 +3,7 @@ function setupExperiment() {{
     psychoJS.status = PsychoJS.Status.CONFIGURING;
 
     psychoJS.configure('config.json')
-    .then(config => {{
+    .then( config => {{
 
       // An ExperimentHandler isn't essential but helps with data saving
       psychoJS.experiment = new ExperimentHandler({{extraInfo: my.expInfo}});
@@ -16,6 +16,7 @@ function setupExperiment() {{
       my.logger.console.setLevel(psychoJS.logging.WARNING);
       my.logger.server.set({{'level':psychoJS.logging.WARNING, 'saveTo':'EXPERIMENT_SERVER', 'experimentInfo': my.expInfo}});*/
 
+      // change status to leave setupExperiment loop:
       psychoJS.status = PsychoJS.Status.CONFIGURED;
   }});
   }}
@@ -27,7 +28,6 @@ function setupExperiment() {{
   }} else
     return Scheduler.Event.FLIP_REPEAT;
 }}
-
 
 function updateInfo() {{
   my.expInfo['date'] = MonotonicClock.getDateStr();  // add a simple timestamp
