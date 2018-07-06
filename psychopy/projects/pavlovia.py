@@ -487,7 +487,7 @@ class PavloviaProject(dict):
         syncPanel.Refresh()
         syncPanel.Layout()
         origin = self.repo.remotes.origin
-        origin.push(progress=progressHandler)
+        origin.push()#progress=progressHandler)
 
     def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False,
                 newRemote=False):
