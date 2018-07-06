@@ -5,7 +5,7 @@ from .. import icons
 from .project import syncProject
 from .search import SearchFrame
 from ._base import PavloviaMiniBrowser
-
+from .user import UserEditor
 
 class PavloviaButtons:
 
@@ -43,9 +43,8 @@ class PavloviaButtons:
             wx.LaunchDefaultBrowser(url)
 
     def onPavloviaUser(self, evt=None):
-        dlg = PavloviaMiniBrowser(parent=self.frame)
-        dlg.ShowModal()
-        dlg.gotoUserPage()
+        userDlg = UserEditor()
+        userDlg.ShowModal()
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(

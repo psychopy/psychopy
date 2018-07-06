@@ -82,6 +82,11 @@ class User(object):
     def __init__(self, localData={}, gitlabData=None, rememberMe=True):
         self.data = localData
         self.gitlabData = gitlabData
+        # try looking for local data
+        if gitlabData and not localData:
+            if gitlabData.username in knownUsers:
+                self.data = knownUsers[gitlabData.username]
+        #then try again to populate fields
         if gitlabData and not localData:
             self.data['username'] = gitlabData.username
             self.data['token'] = currentSession.getToken()
@@ -91,10 +96,15 @@ class User(object):
         else:
             self.avatar = gitlabData.attributes['avatar_url']
         if rememberMe:
-            self.save()
+            self.saveLocal()
 
     def __str__(self):
-        return str(self.data)
+        return "pavlovia.User <{}>".format(self.username)
+
+    def __getattr__(self, name):
+        if name not in self.__dict__ and hasattr(self.gitlabData, name):
+            return getattr(self.gitlabData, name)
+        raise AttributeError("No attribute '{}' in {}".format(name))
 
     @property
     def username(self):
@@ -104,6 +114,18 @@ class User(object):
             return self.data['username']
         else:
             return None
+
+    @property
+    def url(self):
+        return self.gitlabData.web_url
+
+    @property
+    def name(self):
+        return self.gitlabData.name
+
+    @name.setter
+    def name(self, name):
+        self.gitlabData.name = name
 
     @property
     def token(self):
@@ -117,8 +139,6 @@ class User(object):
     def avatar(self, location):
         if os.path.isfile(location):
             self.data['avatar'] = location
-        else:
-            self.data['avatar'] = self._fetchRemoteAvatar(location)
 
     def _fetchRemoteAvatar(self, url=None):
         if not url:
@@ -138,12 +158,17 @@ class User(object):
             return avatarLocal
         return None
 
-    def save(self):
+    def saveLocal(self):
         """Saves the data on the current user in the pavlovia/users json file"""
         # update stored tokens
         tokens = knownUsers
         tokens[self.username] = self.data
         tokens.save()
+
+    def save(self):
+        print(type(self.gitlabData))
+        print(dir(self.gitlabData))
+        currentSession.user.save()
 
 
 class PavloviaSession:
@@ -445,6 +470,8 @@ class PavloviaProject(dict):
             self.firstPush()
         else:
             self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
+            self.repo = git.Repo(self.localRoot)
+            time.sleep(0.1)
             self.push(syncPanel=syncPanel, progressHandler=progressHandler)
         self._lastKnownSync = t1 = time.time()
         msg = ("Successful sync at: {}, took {:.3f}s"
@@ -658,6 +685,9 @@ class PavloviaProject(dict):
     def commit(self, message):
         """Commits the staged changes"""
         self.repo.git.commit('-m', message)
+        time.sleep(0.1)
+        # then get a new copy of the repo
+        self.repo = git.Repo(self.localRoot)
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""

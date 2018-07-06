@@ -14,12 +14,11 @@ from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 
 import wx
-try:
-    import wx.adv as wxhl  # in wx 4
-except ImportError:
-    wxhl = wx  # in wx 3.0.2
 from wx.lib import scrolledpanel as scrlpanel
-
+try:
+    import wx.lib.agw.hyperlink as wxhl  # 4.0+
+except ImportError:
+    import wx.lib.hyperlink as wxhl # <3.0.2
 
 class ProjectEditor(wx.Dialog):
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
@@ -171,10 +170,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
         # remote attributes
-        self.url = wxhl.HyperlinkCtrl(parent=self, id=-1,
+        self.url = wxhl.HyperLinkCtrl(parent=self, id=-1,
                                       label="https://pavlovia.org",
-                                      url="https://pavlovia.org",
-                                      style=wxhl.HL_ALIGN_LEFT,
+                                      URL="https://pavlovia.org",
                                       )
         self.description = wx.StaticText(parent=self, id=-1,
                                          label=_translate(
@@ -350,7 +348,7 @@ def syncProject(parent, project=None):
             else:
                 project = None
 
-    if not project: # we did our best for them. Give up!
+    if not project:  # we did our best for them. Give up!
         return 0
 
     # if project.localRoot doesn't exist, or is empty
@@ -374,7 +372,6 @@ def syncProject(parent, project=None):
     else:
         # existing remote which we should clone
         project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
-
         # check for anything to commit before pull/push
         outcome = showCommitDialog(parent, project)
         project.sync(syncFrame.syncPanel, syncFrame.progHandler)
