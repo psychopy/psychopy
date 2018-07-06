@@ -187,8 +187,8 @@ class Experiment(object):
                     self._currentRoutine.writeEachFrameCodeJS(script)
                     self._currentRoutine.writeRoutineEndCodeJS(script)
                     routinesToWrite.remove(thisItem.name)
-        # self.flow.writeResourcesCodeJS(script)
-        self.settings.writeEndCodeJS(script)
+            # self.flow.writeResourcesCodeJS(script)
+            self.settings.writeEndCodeJS(script)
         return script
 
     def saveToXML(self, filename):
