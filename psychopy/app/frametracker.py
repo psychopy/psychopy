@@ -5,4 +5,4 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from frametracker import openFrames
+openFrames = []

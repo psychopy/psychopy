@@ -14,6 +14,7 @@ import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
 from . import urls
+from . import frametracker
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -163,7 +164,7 @@ class PsychoPyApp(wx.App):
 
         self.copiedRoutine = None
         self.copiedCompon = None
-        self._allFrames = []  # ordered; order updated with self.onNewTopWindow
+        self._allFrames = frametracker.openFrames  # ordered; order updated with self.onNewTopWindow
 
         wx.App.__init__(self, arg)
 

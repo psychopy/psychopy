@@ -1379,6 +1379,7 @@ class CoderFrame(wx.Frame):
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
+        self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1993,7 +1994,10 @@ class CoderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
-        pavButtons.addPavloviaTools(buttons=['sync', 'search', 'user'])
+        pavButtons.addPavloviaTools(buttons=['pavloviaSync',
+                                             'pavloviaSearch', 'pavloviaUser'])
+        self.btnHandles.update(pavButtons.btnHandles)
+
         tb.Realize()
 
     def onIdle(self, event):
@@ -2909,3 +2913,7 @@ class CoderFrame(wx.Frame):
         else:
             self.unitTestFrame = UnitTestFrame(app=self.app)
         # UnitTestFrame.Show()
+
+    def setPavloviaUser(self, user):
+        # TODO: update user icon on button to user avatar
+        pass

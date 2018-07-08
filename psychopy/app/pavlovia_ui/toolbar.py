@@ -13,25 +13,26 @@ class PavloviaButtons:
         self.frame = frame
         self.toolbar = toolbar
         self.tbSize = tbSize
+        self.btnHandles = {}
 
     def addPavloviaTools(self, buttons=['sync', 'run', 'search', 'user']):
         rc = self.frame.app.prefs.paths['resources']
 
         info={}
-        info['run'] = {'emblem': 'run16.png', 'func': self.onPavloviaRun}
-        info['sync'] = {'emblem': 'sync_green16.png', 'func': self.onPavloviaSync}
-        info['search'] = {'emblem': 'magnifier16.png', 'func': self.onPavloviaSearch}
-        info['user'] = {'emblem': 'user22.png', 'func': self.onPavloviaUser}
+        info['pavloviaRun'] = {'emblem': 'run16.png', 'func': self.onPavloviaRun}
+        info['pavloviaSync'] = {'emblem': 'sync_green16.png', 'func': self.onPavloviaSync}
+        info['pavloviaSearch'] = {'emblem': 'magnifier16.png', 'func': self.onPavloviaSearch}
+        info['pavloviaUser'] = {'emblem': 'user22.png', 'func': self.onPavloviaUser}
 
         for buttonName in buttons:
             emblem = info[buttonName]['emblem']
             btnFunc = info[buttonName]['func']
-            tool = self.toolbar.AddSimpleTool(
+            self.btnHandles[buttonName] = self.toolbar.AddSimpleTool(
                 wx.ID_ANY,
                 icons.combineImageEmblem(
                     main=join(rc, 'globe%i.png' % self.tbSize),
                     emblem=join(rc, emblem), pos='bottom_right'))
-            self.toolbar.Bind(wx.EVT_TOOL, btnFunc, tool)
+            self.toolbar.Bind(wx.EVT_TOOL, btnFunc, self.btnHandles[buttonName])
 
     def onPavloviaSync(self, evt=None):
         syncProject(parent=self.frame, project=self.frame.project)

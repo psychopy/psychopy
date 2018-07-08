@@ -12,6 +12,7 @@ import glob
 import os, sys, time
 from psychopy import logging, prefs, constants
 from psychopy.tools.filetools import DictStorage
+from psychopy import app
 import gitlab
 import gitlab.v4.objects
 import git
@@ -74,6 +75,7 @@ def login(tokenOrUsername,  rememberMe=True):
     user = User(gitlabData=currentSession.user, rememberMe=rememberMe)
     prefs.appData['projects']['pavloviaUser'] = user.username
 
+
 def logout():
     """Log the current user out of pavlovia.
 
@@ -84,7 +86,16 @@ def logout():
        log out there too
      - save the appData so that the user is blank
     """
-    pass
+    # create a new currentSession with no auth token
+    global currentSession
+    currentSession = PavloviaSession()
+    # set appData to None
+    prefs.appData['projects']['pavloviaUser'] = None
+    prefs.saveAppData()
+    for frameWeakref in app.openFrames:
+        frame = frameWeakref()
+        if hasattr(frame, 'setUser'):
+            frame.setUser(None)
 
 
 class User(object):

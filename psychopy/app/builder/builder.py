@@ -1004,6 +1004,7 @@ class BuilderFrame(wx.Frame):
         self.filename = fileName
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
+        self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1219,7 +1220,9 @@ class BuilderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
-        pavButtons.addPavloviaTools(buttons=['sync', 'run', 'search', 'user'])
+        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaRun',
+                                             'pavloviaSearch', 'pavloviaUser'])
+        self.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
         tb.Realize()
@@ -2249,6 +2252,11 @@ class BuilderFrame(wx.Frame):
         self.pavloviaMenu.searchDlg = pavlovia_ui.search.SearchFrame(
             app=self.app, parent=self, pos=self.GetPosition())
         self.pavloviaMenu.searchDlg.Show()
+
+    def setPavloviaUser(self, user):
+        # TODO: update user icon on button to user avatar
+        pass
+
 
 class ReadmeFrame(wx.Frame):
     """Defines construction of the Readme Frame"""

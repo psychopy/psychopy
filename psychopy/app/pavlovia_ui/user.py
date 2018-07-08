@@ -44,7 +44,7 @@ class UserEditor(wx.Dialog):
         userField = wxhl.HyperLinkCtrl(panel, id=wx.ID_ANY,
                                        label=self.user.url, URL=self.user.url)
         logoutBtn = wx.Button(panel, label="Logout")
-        logoutBtn.Bind(wx.EVT_BUTTON, pavlovia.logout)
+        logoutBtn.Bind(wx.EVT_BUTTON, self.onLogout)
         nameLabel = wx.StaticText(panel, id=wx.ID_ANY, label=_translate("Full name:"))
         self.nameField = wx.StaticText(panel, wx.ID_ANY, self.user.name)
         if self.user.avatar:
@@ -99,6 +99,9 @@ class UserEditor(wx.Dialog):
         border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         panel.SetSizerAndFit(border)
         self.Fit()
+
+    def onLogout(self, evt=None):
+        pavlovia.logout()
 
     def onCancel(self, evt=None):
         self.EndModal(wx.ID_CANCEL)
