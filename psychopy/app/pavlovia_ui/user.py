@@ -21,13 +21,15 @@ resources = prefs.paths['resources']
 
 
 class UserEditor(wx.Dialog):
-    defStyle = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
+    defStyle = wx.DEFAULT_DIALOG_STYLE #| wx.RESIZE_BORDER
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
                  style=defStyle,
                  *args, **kwargs):
 
         wx.Dialog.__init__(self, parent, id,
                            *args, style=style, **kwargs)
+        self.SetWindowStyle(wx.STAY_ON_TOP)  # this will be a modal dialog
+
         panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         self.parent = parent
         if pavlovia.currentSession.user:
@@ -39,32 +41,36 @@ class UserEditor(wx.Dialog):
             self.user = pavlovia.User(gitlabData=self.user)
 
         # create the controls
-        print(self.user.gitlabData.attributes)
-        userField = wxhl.HyperLinkCtrl(panel, id=wx.ID_ANY, label=self.user.url, URL=self.user.url)
+        userField = wxhl.HyperLinkCtrl(panel, id=wx.ID_ANY,
+                                       label=self.user.url, URL=self.user.url)
         logoutBtn = wx.Button(panel, label="Logout")
+        logoutBtn.Bind(wx.EVT_BUTTON, pavlovia.logout)
         nameLabel = wx.StaticText(panel, id=wx.ID_ANY, label=_translate("Full name:"))
-        self.nameField = wx.TextCtrl(panel, id=wx.ID_ANY, value=self.user.name)
+        self.nameField = wx.StaticText(panel, wx.ID_ANY, self.user.name)
         if self.user.avatar:
             userBitmap = wx.Bitmap(self.user.avatar)
         else:
             userBitmap = wx.Bitmap(os.path.join(resources, "user128invisible.png"))
-        self.avatarBtn = wx.Button(panel, wx.ID_ANY, name="Avatar")
-        self.avatarBtn.SetBitmap(userBitmap)
+        # self.avatarBtn = wx.Button(panel, wx.ID_ANY, name="Avatar")
+        # self.avatarBtn.SetBitmap(userBitmap)
+        self.avatarBtn = wx.BitmapButton(panel, wx.ID_ANY,
+                                         bitmap=userBitmap, name="Avatar")
+        # self.avatarBtn.SetBitmap(userBitmap)
 
         org = self.user.organization or ""
-        orgLabel = wx.StaticText(panel, id=wx.ID_ANY, label=_translate("Organization:"))
-        self.orgField = wx.TextCtrl(panel, id=wx.ID_ANY, value=org, size=(300, -1))
+        orgLabel = wx.StaticText(panel, wx.ID_ANY, _translate("Organization:"))
+        self.orgField = wx.StaticText(panel, wx.ID_ANY, org, size=(300, -1))
 
         bio = self.user.bio or ""
-        self.bioLabel = wx.StaticText(panel, id=wx.ID_ANY, label=_translate("Bio (250 chrs left):"))
-        self.bioField = wx.TextCtrl(panel, id=wx.ID_ANY, value=bio, size=(300, 200),
+        self.bioLabel = wx.StaticText(panel, wx.ID_ANY, _translate("Bio (250 chrs):"))
+        self.bioField = wx.StaticText(panel, wx.ID_ANY, bio,
                                     style=wx.TE_MULTILINE)
         # submit/cancel
-        buttonMsg = _translate("Submit changes to Pavlovia")
+        buttonMsg = _translate("OK")
         updateBtn = wx.Button(panel, id=wx.ID_OK, label=buttonMsg)
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
-        cancelBtn = wx.Button(panel, id=wx.ID_CANCEL, label=_translate("Cancel"))
-        cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
+        # cancelBtn = wx.Button(panel, id=wx.ID_CANCEL, label=_translate("Cancel"))
+        # cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
 
         # layout
         userAndLogout = wx.BoxSizer(wx.VERTICAL)
@@ -85,10 +91,10 @@ class UserEditor(wx.Dialog):
         ])
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddMany([updateBtn, cancelBtn])
+        btnSizer.Add(updateBtn, flag=wx.ALIGN_RIGHT)
 
         border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(topRow, 0, wx.ALL)
+        border.Add(topRow, 0, wx.ALL| wx.EXPAND, 5)
         border.Add(fieldsSizer, 1, wx.ALL | wx.EXPAND, 5)
         border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         panel.SetSizerAndFit(border)
@@ -98,24 +104,27 @@ class UserEditor(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def submitChanges(self, evt=None):
-        print("updating gitlab.pavlovia.org users from within PsychoPy not yet working")
-        isDirty = False
-        toCheck = {'name': self.nameField.GetValue,
-                   'organization': self.orgField.GetValue,
-                   'bio': self.bioField.GetValue,
-                   }
-        for field in toCheck:
-            newVal = toCheck[field]()
-            prev = getattr(self.user, field)
-            if prev != newVal and not (prev is None and newVal==""):
-                print("changed {} from {} to {}".format(field, prev, newVal))
-                setattr(self.user, field, newVal)
-                isDirty = True
-        if isDirty:
-            self.user.save()  # currently gives an error but should be correct?! :-/
-
+        # print("updating gitlab.pavlovia.org users from within PsychoPy not yet working")
+        # isDirty = False
+        # toCheck = {'name': self.nameField.GetValue,
+        #            'organization': self.orgField.GetValue,
+        #            'bio': self.bioField.GetValue,
+        #            }
+        # for field in toCheck:
+        #     newVal = toCheck[field]()
+        #     prev = getattr(self.user, field)
+        #     if prev != newVal and not (prev is None and newVal==""):
+        #         setattr(self.user, field, newVal)
+        #         isDirty = True
+        # if isDirty:
+        #     # currently gives an error:
+        #     # https://github.com/python-gitlab/python-gitlab/issues/547
+        #     self.user.save()
         self.EndModal(wx.ID_OK)
 
     def onSetAvatar(self, event=None):
         print("Uploading a user image (avatar) from within PsychoPy is not yet supported. "
               "You can do that by going to the gitlab.pavlovia.org profile settings.")
+
+    def onURL(self, evt):
+        print(dir(evt))
