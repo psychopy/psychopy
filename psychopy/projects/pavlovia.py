@@ -74,6 +74,18 @@ def login(tokenOrUsername,  rememberMe=True):
     user = User(gitlabData=currentSession.user, rememberMe=rememberMe)
     prefs.appData['projects']['pavloviaUser'] = user.username
 
+def logout():
+    """Log the current user out of pavlovia.
+
+    Various steps:
+
+     - set the user for the currentSession to None
+     - in case browser was set to 'remember me' with a session cookie we should
+       log out there too
+     - save the appData so that the user is blank
+    """
+    pass
+
 
 class User(object):
     """Class to combine what we know about the user locally and on gitlab
@@ -166,9 +178,7 @@ class User(object):
         tokens.save()
 
     def save(self):
-        print(type(self.gitlabData))
-        print(dir(self.gitlabData))
-        currentSession.user.save()
+        self.gitlabData.save()
 
 
 class PavloviaSession:

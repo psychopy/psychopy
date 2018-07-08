@@ -31,6 +31,7 @@ class UserEditor(wx.Dialog):
         panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         self.parent = parent
         if pavlovia.currentSession.user:
+            pavlovia.currentSession.gitlab.auth()
             self.user = pavlovia.currentSession.user
         else:
             self.user = logInPavlovia(parent=parent)
@@ -56,13 +57,13 @@ class UserEditor(wx.Dialog):
 
         bio = self.user.bio or ""
         self.bioLabel = wx.StaticText(panel, id=wx.ID_ANY, label=_translate("Bio (250 chrs left):"))
-        self.bioField = wx.TextCtrl(panel, id=wx.ID_ANY, value=org, size=(300, 200),
+        self.bioField = wx.TextCtrl(panel, id=wx.ID_ANY, value=bio, size=(300, 200),
                                     style=wx.TE_MULTILINE)
         # submit/cancel
         buttonMsg = _translate("Submit changes to Pavlovia")
-        updateBtn = wx.Button(panel, id=wx.ID_ANY, label=buttonMsg)
+        updateBtn = wx.Button(panel, id=wx.ID_OK, label=buttonMsg)
         updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
-        cancelBtn = wx.Button(panel, id=wx.ID_ANY, label=_translate("Cancel"))
+        cancelBtn = wx.Button(panel, id=wx.ID_CANCEL, label=_translate("Cancel"))
         cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
 
         # layout
@@ -111,8 +112,7 @@ class UserEditor(wx.Dialog):
                 setattr(self.user, field, newVal)
                 isDirty = True
         if isDirty:
-            pass
-            # self.user.save()  # currently gives an error but should be correct?! :-/
+            self.user.save()  # currently gives an error but should be correct?! :-/
 
         self.EndModal(wx.ID_OK)
 
