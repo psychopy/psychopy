@@ -5,4 +5,6 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from frametracker import openFrames
+from __future__ import absolute_import, print_function
+
+from .frametracker import openFrames
