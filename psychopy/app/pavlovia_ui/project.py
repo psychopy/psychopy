@@ -148,7 +148,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                  style=wx.VSCROLL | wx.NO_BORDER):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.app = self.parent.app
         self.project = {}
         self.noTitle = noTitle
         self.localFolder = ''

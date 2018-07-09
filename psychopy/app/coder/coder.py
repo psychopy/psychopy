@@ -1907,7 +1907,7 @@ class CoderFrame(wx.Frame):
                 toolbarSize = 16
         else:
             # mac: 16 either doesn't work, or looks really bad with wx3
-            toolbarSize = 128
+            toolbarSize = 32
 
         self.toolbar.SetToolBitmapSize((toolbarSize, toolbarSize))
         rc = self.paths['resources']

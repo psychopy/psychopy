@@ -297,12 +297,13 @@ class PavloviaSession:
         projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
 
-    def findUserProjects(self):
+    def findUserProjects(self, searchStr=''):
         """Finds all readable projects of a given user_id
         (None for current user)
         """
-        own = self.gitlab.projects.list(owned=True)
-        group = self.gitlab.projects.list(owned=False, membership=True)
+        own = self.gitlab.projects.list(owned=True, search=searchStr)
+        group = self.gitlab.projects.list(owned=False, membership=True,
+                                          search = searchStr)
         projs = []
         projIDs = []
         for proj in own + group:

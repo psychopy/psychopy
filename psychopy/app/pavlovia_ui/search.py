@@ -17,6 +17,7 @@ from psychopy.projects import pavlovia
 import wx
 from pkg_resources import parse_version
 from wx.lib import scrolledpanel as scrlpanel
+import wx.lib.mixins.listctrl as listmixin
 
 if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     import wx.lib.hyperlink as wxhl
@@ -27,159 +28,165 @@ else:
 class SearchFrame(wx.Dialog):
 
     def __init__(self, app, parent=None, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize,
                  style=None):
         if style is None:
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, title=title, style=style,
+                           size=(500, 300))
         self.app = app
         self.project = None
         self.parent = parent
-        self.mainPanel = wx.Panel(self, wx.ID_ANY)
+        self.itemDataMap = None
+        # self.mainPanel = wx.Panel(self, wx.ID_ANY)
+        self.searchLabel = wx.StaticText(self, wx.ID_ANY, 'Search:')
+        self.searchCtrl = wx.TextCtrl(self, wx.ID_ANY)
+        self.searchCtrl.Bind(wx.EVT_BUTTON, self.onSearch)
+        self.searchBtn = wx.Button(self, wx.ID_ANY, "Search")
+        self.searchBtn.Bind(wx.EVT_BUTTON, self.onSearch)
+        self.searchBtn.SetDefault()
 
-        # to show detail of current selection
+        self.searchInclPublic = wx.CheckBox(self, wx.ID_ANY,
+                                          label="Public")
+        self.searchInclPublic.Bind(wx.EVT_CHECKBOX, self.onSearch)
+        self.searchInclPublic.SetValue(True)
+
+        self.searchInclGroup = wx.CheckBox(self, wx.ID_ANY,
+                                          label="My groups")
+        self.searchInclGroup.Bind(wx.EVT_CHECKBOX, self.onSearch)
+        self.searchInclGroup.SetValue(True)
+
+        self.searchBuilderOnly = wx.CheckBox(self, wx.ID_ANY,
+                                             label="Only Builder")
+        self.searchBuilderOnly.Bind(wx.EVT_CHECKBOX, self.onSearch)
+        # then the search results
+        self.searchResults = ProjectListCtrl(self)
+
+        # on the right
         self.detailsPanel = DetailsPanel(parent=self)
-
-        # create list of my projects (no search?)
-        self.myProjectsPanel = ProjectListPanel(self.mainPanel,
-                                                frame=self)
-
-        # create list of searchable public projects
-        self.publicProjectsPanel = ProjectListPanel(self.mainPanel,
-                                                    frame=self)
-        self.publicProjectsPanel.setContents('')
-
-        # sizers: on the left we have search boxes
-        searchQuerySizer = wx.BoxSizer(wx.HORIZONTAL)
-        searchQuerySizer.Add(wx.StaticText(self.mainPanel, -1, _translate("Search Public:")),
-                             flag=wx.ALIGN_CENTER_VERTICAL)
-        self.searchTextCtrl = wx.TextCtrl(self.mainPanel, -1, "",
-                                          style=wx.TE_PROCESS_ENTER)
-        self.searchTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
-        searchQuerySizer.Add(self.searchTextCtrl, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-
-        tagsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        tagsSizer.Add(wx.StaticText(self.mainPanel, -1, _translate("Tags:")),
-                      flag=wx.ALIGN_CENTER_VERTICAL)
-        self.tagsTextCtrl = wx.TextCtrl(self.mainPanel, -1, "psychopy,",
-                                        style=wx.TE_PROCESS_ENTER)
-        self.tagsTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
-        tagsSizer.Add(self.tagsTextCtrl, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-
-        leftSizer = wx.BoxSizer(wx.VERTICAL)
-        leftSizer.Add(wx.StaticText(self.mainPanel, wx.ID_ANY, _translate("My Projects")),
-                      # proportion=1,
-                      # flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
-                      border=5)
-        leftSizer.Add(self.myProjectsPanel,
-                      proportion=1,
-                      flag=wx.EXPAND | wx.ALL,
-                      border=5)
-        leftSizer.Add(searchQuerySizer)
-        leftSizer.Add(tagsSizer)
-        leftSizer.Add(self.publicProjectsPanel,
-                      proportion=1,
-                      flag=wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT,
-                      border=10)
+        self.searchBtnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.searchBtnSizer.Add(self.searchCtrl, 1, wx.EXPAND, 5)
+        self.searchBtnSizer.Add(self.searchBtn, 0, wx.EXPAND, 5)
+        self.optionsSizer = wx.WrapSizer()
+        self.optionsSizer.AddMany([self.searchInclGroup, self.searchInclPublic,
+                                   self.searchBuilderOnly])
+        self.leftSizer = wx.BoxSizer(wx.VERTICAL)
+        self.leftSizer.Add(self.searchLabel, 0, wx.EXPAND | wx.ALL, 5)
+        self.leftSizer.Add(self.optionsSizer)
+        self.leftSizer.Add(self.searchBtnSizer, 0, wx.EXPAND | wx.ALL, 5)
+        self.leftSizer.Add(self.searchResults, 1, wx.EXPAND | wx.ALL, 5)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.mainSizer.Add(leftSizer, 1, flag=wx.EXPAND | wx.ALL, border=5)
-        self.mainSizer.Add(self.detailsPanel, 1, flag=wx.EXPAND | wx.ALL, border=5)
-        self.mainPanel.SetSizerAndFit(self.mainSizer)
-        self.Fit()
+        self.mainSizer.Add(self.leftSizer, 1, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
 
+        self.SetSizer(self.mainSizer)
         if self.parent:
             self.CenterOnParent()
-        self.Show()  # show the window before doing search/updates
-        self.updateUserProjs()  # update the info in myProjectsPanel
 
-    def updateUserProjs(self):
-        if not pavlovia.currentSession.user:
-            self.myProjectsPanel.setContents("no user")
-        else:
-            self.myProjectsPanel.setContents(
-                _translate("Searching projects for user {} ...")
-                    .format(pavlovia.currentSession.user.username))
-            self.Update()
-            wx.Yield()
-            myProjs = pavlovia.currentSession.findUserProjects()
-            self.myProjectsPanel.setContents(myProjs)
+        # if projects == 'no user':
+        #     msg = _translate("Log in to search your own projects")
+        #     loginBtn = wx.Button(self, wx.ID_ANY, label=msg)
+        #     loginBtn.Bind(wx.EVT_BUTTON, self.onLoginClick)
 
-    def onSearch(self, evt):
-        searchStr = self.searchTextCtrl.GetValue()
-        tagsStr = self.tagsTextCtrl.GetValue()
+    def getSearchOptions(self):
+        opts = {}
+        opts['inclPublic'] = self.searchInclPublic.GetValue()
+        opts['builderOnly'] = self.searchBuilderOnly.GetValue()
+        opts['inclGroup'] = self.searchBuilderOnly.GetValue()
+        return opts
+
+    def onSearch(self, evt=None):
+        opts = self.getSearchOptions()
+
+        searchStr = self.searchCtrl.GetValue()
+        # tagsStr = self.tagsTextCtrl.GetValue()
         session = pavlovia.currentSession
-        self.publicProjectsPanel.setContents(_translate("searching..."))
-        self.publicProjectsPanel.Update()
+
+        projs = session.gitlab.projects.list(owned=True, search=searchStr)
+        # group projects: owned=False, membership=True
+
+        if opts['inclGroup']:
+            group = session.gitlab.projects.list(owned=False, membership=True,
+                                                 search=searchStr)
+            projs.extend(group)
+        if opts['inclPublic']:
+            public = session.gitlab.projects.list(owned=False, membership=False,
+                                                  search=searchStr)
+            projs.extend(public)
+
+        projs = [pavlovia.PavloviaProject(proj) for proj in projs if proj.id]
+        # print(projs)
+        self.itemDataMap = projs
+        self.searchResults.setContents(projs)
+        self.searchResults.Update()
+        self.Layout()
+
+    def onLoginClick(self, event):
+        user = logInPavlovia(parent=self.parent)
+
+    def Show(self):
+        # show the dialog then start search
+        wx.Dialog.Show(self)
         wx.Yield()
-        projs = session.findProjects(search_str=searchStr, tags=tagsStr)
-        self.publicProjectsPanel.setContents(projs)
+        self.onSearch()  # trigger the search update
 
 
-class ProjectListPanel(wx.Panel):
+class ProjectListCtrl(wx.ListCtrl, listmixin.ColumnSorterMixin):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
 
     def __init__(self, parent, frame=None):
-        wx.Panel.__init__(self, parent, -1, size=(450, 200))
+        wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
+                             style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.parent = parent
-        self.frame = frame
+        if frame is None:
+            self.frame = parent
+        else:
+            self.frame = frame
         self.projList = []
-        # self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        # self.SetSizer(self.mainSizer)  # don't do Fit
-        # self.mainSizer.Fit(self)
+        columnList = ['owner', 'name', 'description']
 
-        self.SetAutoLayout(True)
-        # self.SetupScrolling()
+        # Give it some columns.
+        # The ID col we'll customize a bit:
+        for n, columnName in enumerate(columnList):
+            self.InsertColumn(n, columnName)
+        # set the column sizes *after* adding the items
+        for n, columnName in enumerate(columnList):
+            self.SetColumnWidth(n, wx.LIST_AUTOSIZE)
+
+        # after creating columns we can create the sort mixin
+        listmixin.ColumnSorterMixin.__init__(self, len(columnList))
+
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onChangeSelection)
 
     def setContents(self, projects):
-        self.DestroyChildren()  # start with a clean slate
+        self.projList = []
+        self.DeleteAllItems()
 
-        if projects == 'no user':
-            msg = _translate("Log in to search your own projects")
-            loginBtn = wx.Button(self, wx.ID_ANY, label=msg)
-            loginBtn.Bind(wx.EVT_BUTTON, self.onLoginClick)
-            # self.mainSizer.Add(loginBtn, flag=wx.ALL | wx.CENTER, border=5)
-        elif isinstance(projects, basestring):
-            txt = wx.StaticText(self, -1, projects)
-            # just text for a window so display
-            # self.mainSizer.Add(txt, flag=wx.EXPAND | wx.ALL, border=5)
-        else:
-            # a list of projects
-            self.projView = wx.ListCtrl(parent=self,
-                                        style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-
-            # Give it some columns.
-            # The ID col we'll customize a bit:
-            self.projView.InsertColumn(0, 'owner')
-            self.projView.InsertColumn(1, 'name')
-            self.projView.InsertColumn(2, 'description')
-            self.projList = []
-            for index, thisProj in enumerate(projects):
-                if not hasattr(thisProj, 'id'):
-                    continue
-                self.projView.Append([thisProj.owner, thisProj.name,
-                                      thisProj.description])
-                self.projList.append(thisProj)
-            # set the column sizes *after* adding the items
-            self.projView.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-            self.projView.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-            self.projView.SetColumnWidth(2, wx.LIST_AUTOSIZE)
-            # self.mainSizer.Add(self.projView,
-            #                    flag=wx.EXPAND | wx.ALL,
-            #                    proportion=1, border=5, )
-            self.Bind(wx.EVT_LIST_ITEM_SELECTED,
-                      self.onChangeSelection)
-
-        self.FitInside()
-
-    def onLoginClick(self, event):
-        logInPavlovia(parent=self.parent)
+        for index, thisProj in enumerate(projects):
+            if not hasattr(thisProj, 'id'):
+                continue
+            try:
+                self.Append([thisProj.owner, thisProj.name,
+                         thisProj.description])
+            except:
+                print(thisProj)
+            self.projList.append(thisProj)
+        # resize the columns
+        for n in range(self.ColumnCount):
+            self.SetColumnWidth(n, wx.LIST_AUTOSIZE)
+            if self.GetColumnWidth(n) > 200:
+                self.SetColumnWidth(n, 200)
+        self.Layout()
+        self.Fit()
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
         self.frame.detailsPanel.setProject(proj)
+
+    def GetListCtrl(self):
+        return self
