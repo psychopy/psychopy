@@ -145,7 +145,6 @@ class Experiment(object):
             self.settings.writeInitCodeJS(script,
                                           self.psychopyVersion, localDateTime)
             self.flow.writeFlowSchedulerJS(script)
-            self.settings.writeWindowCodeJS(script)
             self.settings.writeExpSetupCodeJS(script)
 
             # initialise the components for all Routines in a single function

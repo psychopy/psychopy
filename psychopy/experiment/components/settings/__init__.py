@@ -444,27 +444,23 @@ class SettingsComponent(object):
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
         # Import modules
-        code = ("import * as util from 'lib/util';\n"
-                "import Scheduler from 'lib/Scheduler';\n"
-                "import Window from 'lib/Window';\n"
+        code = ("import Scheduler from 'lib/Scheduler';\n"
                 "import TextStim from 'lib/TextStim';\n"
                 "import PsychoJS from 'lib/PsychoJS';\n"
                 "import Color from 'lib/Color';\n"
                 "import ExperimentHandler from 'lib/ExperimentHandler';\n"
                 "import TrialHandler from 'lib/TrialHandler';\n"
-                "import ResourceManager from 'lib/ResourceManager';\n"
                 "import {BuilderKeyResponse} from 'lib/EventManager';\n"
                 "import {MonotonicClock, Clock, CountdownTimer} from 'lib/Clock';\n"
-                "\n"
-                "// init psychoJS and set up the window:\n"
-                "const psychoJS = new PsychoJS({debug: true});\n"
-                "const my = psychoJS;\n"
-                "setupWin();\n"
-                "\n"
-                "// store info about the experiment session:\n"
+                "import * as util from 'lib/util';\n"
+                "\n\n")
+        buff.writeIndentedLines(code)
+        # Write window code
+        self.writeWindowCodeJS(buff)
+        code = ("\n// store info about the experiment session:\n"
                 "my.expName = %(expName)s;  // from the Builder filename that created this script\n"
-                "my.expInfo = {'participant':'', 'session':'01'};\n"
-                "\n\n" % self.params)
+                "my.expInfo = { 'participant': '', 'session': '01' };\n"
+                "\n" % self.params)
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff):
@@ -639,10 +635,18 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
-        fullscr = str(self.params['Full-screen window']).lower() #lower case string
-        template = readTextFile("JS_winInit.tmpl")
-        code = template.format(params=self.params,
-                               fullscr=fullscr)
+        code = ("// init psychoJS:\n"
+        "var psychoJS = new PsychoJS({{\n"
+        "  debug: true\n"
+        "}});\n"
+        "var my = psychoJS;\n\n"
+        "// open window:\n"
+        "psychoJS.openWindow({{\n"
+        "  fullscr: {fullScr},\n"
+        "  color: new Color({params[color]}),\n"
+        "  units: {params[Units]}\n"
+        "}});\n\n").format(fullScr=str(self.params['Full-screen window']).lower(),
+            params=self.params)
         buff.writeIndentedLines(code)
 
     def writeEndCode(self, buff):
@@ -666,9 +670,12 @@ class SettingsComponent(object):
 
         endLoopInteration = ("\nfunction endLoopIteration(thisTrial) {\n"
                     "  // ------Prepare for next entry------\n"
-                    "  my.experiment.nextEntry();\n\n"
+                    "  return function () {\n"
+                    "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials)\n"
+                    "      my.experiment.nextEntry();\n\n"
                     "  return Scheduler.Event.NEXT;\n"
-                    "  }\n")
+                    "  };\n"
+                    "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
         recordLoopIterationFunc = ("\nfunction importTrialAttributes(thisTrial) {\n"

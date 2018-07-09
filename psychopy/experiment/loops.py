@@ -190,9 +190,10 @@ class TrialHandler(object):
         code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  my.{params[name]} = new TrialHandler({{\n"
+                "    psychoJS,\n"
                 "    nReps:{params[nReps]}, method: TrialHandler.Method.{loopType},\n"
                 "    extraInfo:my.expInfo, originPath:undefined,\n"
-                "    trialList:TrialHandler.importConditions(psychoJS.resourceManager, {params[conditionsFile]}),\n"
+                "    trialList:{params[conditionsFile]},\n"
                 "    seed:{seed}, name:'{params[name]}'}});\n"
                 "  psychoJS.experiment.addLoop(my.{params[name]}); // add the loop to the experiment\n\n"
                 .format(loopType=(self.params['loopType'].val).upper(),
@@ -226,7 +227,7 @@ class TrialHandler(object):
                     .format(params=self.params, name=thisChild.params['name'])
                     )
         if self.params['isTrials'].val == True:
-            code += ("    thisScheduler.add(endLoopIteration);\n")
+            code += ("    thisScheduler.add(endLoopIteration(thisTrial));\n")
 
         code += ("  }\n"
                 "\n"
@@ -276,7 +277,9 @@ class TrialHandler(object):
         # Just within the loop advance data line if loop is whole trials
         code = ("\nfunction {params[name]}LoopEnd() {{\n"
                 "  psychoJS.experiment.removeLoop(my.{params[name]});\n"
-                "  psychoJS.experiment.save(my.{params[name]}.getAttributes());\n").format(params=self.params)
+                "  psychoJS.experiment.save({{\n"
+                "    attributes: my.{params[name]}.getAttributes()\n"
+                "  }});\n").format(params=self.params)
         code += ("  \nreturn Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
