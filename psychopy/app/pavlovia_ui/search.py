@@ -14,6 +14,7 @@ from ._base import BaseFrame
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 
+import copy
 import wx
 from pkg_resources import parse_version
 from wx.lib import scrolledpanel as scrlpanel
@@ -40,6 +41,12 @@ class SearchFrame(wx.Dialog):
         self.project = None
         self.parent = parent
         self.itemDataMap = None
+        # info about last search (NB None means no search but [] or '' means empty)
+        self.lastSearchStr = None
+        self.lastSearchOwn = None
+        self.lastSearchGp = None
+        self.lastSearchPub = None
+
         # self.mainPanel = wx.Panel(self, wx.ID_ANY)
         self.searchLabel = wx.StaticText(self, wx.ID_ANY, 'Search:')
         self.searchCtrl = wx.TextCtrl(self, wx.ID_ANY)
@@ -102,23 +109,48 @@ class SearchFrame(wx.Dialog):
         opts = self.getSearchOptions()
 
         searchStr = self.searchCtrl.GetValue()
-        # tagsStr = self.tagsTextCtrl.GetValue()
+        newSearch = (searchStr!=self.lastSearchStr)
+        self.lastSearchStr = newSearch
+
         session = pavlovia.currentSession
+        # search own
+        if newSearch:
+            self.lastSearchOwn = session.gitlab.projects.list(owned=True, search=searchStr)
 
-        projs = session.gitlab.projects.list(owned=True, search=searchStr)
-        # group projects: owned=False, membership=True
+        # search my groups
+        if opts['inclGroup'] and (newSearch or self.lastSearchGp is None):
+            # group projects: owned=False, membership=True
+            self.lastSearchGp = session.gitlab.projects.list(
+                owned=False, membership=True, search=searchStr)
+        elif not opts['inclGroup']:  # set to None (to indicate non-search not simply empty result)
+            self.lastSearchGp = None
+        elif opts['inclGroup'] and not newSearch:
+            pass  # we have last search and we need it so do nothing
+        else:
+            print("ERROR: During Pavlovia search we found opts['inclGroup']={}, newSearch={}"
+                  .format(opts['inclGroup'], newSearch))
 
+        # search public
+        if opts['inclPublic'] and (newSearch or self.lastSearchPub is None):
+            self.lastSearchPub = session.gitlab.projects.list(owned=False, membership=False,
+                                                              search=searchStr)
+        elif not opts['inclPublic']:  # set to None (to indicate non-search not simply empty result)
+            self.lastSearchPub = None
+        elif opts['inclPublic'] and not newSearch:
+            pass  # we have last search and we need it so do nothing
+        else:
+            print("ERROR: During Pavlovia search we found opts['inclPublic']={}, newSearch={}"
+                  .format(opts['inclPublic'], newSearch))
+
+        projs = copy.copy(self.lastSearchOwn)
         if opts['inclGroup']:
-            group = session.gitlab.projects.list(owned=False, membership=True,
-                                                 search=searchStr)
-            projs.extend(group)
+            projs.extend(self.lastSearchGp)
         if opts['inclPublic']:
-            public = session.gitlab.projects.list(owned=False, membership=False,
-                                                  search=searchStr)
-            projs.extend(public)
+            projs.extend(self.lastSearchPub)
 
+        projs = getUniqueByID(projs)
         projs = [pavlovia.PavloviaProject(proj) for proj in projs if proj.id]
-        # print(projs)
+
         self.itemDataMap = projs
         self.searchResults.setContents(projs)
         self.searchResults.Update()
@@ -178,7 +210,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ColumnSorterMixin):
             self.projList.append(thisProj)
         # resize the columns
         for n in range(self.ColumnCount):
-            self.SetColumnWidth(n, wx.LIST_AUTOSIZE)
+            self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
             if self.GetColumnWidth(n) > 200:
                 self.SetColumnWidth(n, 200)
         self.Layout()
@@ -190,3 +222,16 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ColumnSorterMixin):
 
     def GetListCtrl(self):
         return self
+
+
+def getUniqueByID(seq):
+    """Very fast function to remove duplicates from a list while preserving order
+
+    Based on sort f8() by Dave Kirby
+    benchmarked at https://www.peterbe.com/plog/uniqifiers-benchmark
+
+    Requires Python>=2.7 (requires set())
+    """
+    # Order preserving
+    seen = set()
+    return [x for x in seq if x.id not in seen and not seen.add(x.id)]
