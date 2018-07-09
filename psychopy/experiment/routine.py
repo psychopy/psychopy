@@ -296,7 +296,7 @@ class Routine(list):
                 "  }\n"
                 "// check for quit (the Esc key)\n"
                 "if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {\n"
-                "  psychoJS.quit('The <Escape> key was pressed. Goodbye!');\n"
+                "  psychoJS.quit('The [Escape] key was pressed. Goodbye!');\n"
                 "}\n")
         buff.writeIndentedLines(code % self.params)
 
@@ -338,7 +338,7 @@ class Routine(list):
         if not useNonSlip:
             code = ('// the Routine "%s" was not non-slip safe, so reset '
                     'the non-slip timer\n'
-                    'my.routineTimer.reset();\n')
+                    'my.routineTimer.reset();\n\n')
             buff.writeIndentedLines(code % self.name)
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')

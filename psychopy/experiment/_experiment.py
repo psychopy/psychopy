@@ -147,7 +147,6 @@ class Experiment(object):
             self.settings.writeInitCodeJS(script,
                                           self.psychopyVersion, localDateTime)
             self.flow.writeFlowSchedulerJS(script)
-            self.settings.writeWindowCodeJS(script)
             self.settings.writeExpSetupCodeJS(script)
 
             # initialise the components for all Routines in a single function
@@ -685,8 +684,11 @@ class Experiment(object):
                     # List files in director and get condition files
                     if 'xlsx' in filePath or 'xls' in filePath or 'csv' in filePath:
                         # Get all xlsx and csv files
+                        expPath = self.expPath
+                        if 'html' in self.expPath:  # Get resources from parent directory i.e, original exp path
+                            expPath = self.expPath.split('html')[0]
                         fileList = (
-                        [getPaths(condFile) for condFile in os.listdir()
+                        [getPaths(condFile) for condFile in os.listdir(expPath)
                          if len(condFile.split('.')) > 1
                          and condFile.split('.')[1] in ['xlsx', 'xls', 'csv']])
                         return fileList

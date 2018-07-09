@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!doctype html>
 
 <html>
   <head>
@@ -17,15 +17,14 @@
     </style>
 
     <script type="text/javascript" src="lib/vendors/seedrandom.min.js"></script>
-    <script type="text/javascript" src="lib/vendors/Math2.js"></script>
     <script type="text/javascript" src="lib/vendors/jquery-2.2.0.min.js"></script>
     <script type="text/javascript" src="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="lib/vendors/jquery.blockUI.js" ></script>
     <script type="text/javascript" src="lib/vendors/stats.min.js"></script>
     <script type="text/javascript" src="lib/vendors/pixi.min.js"></script>
     <script type="text/javascript" src="lib/vendors/preloadjs.min.js"></script>
     <script type="text/javascript" src="lib/vendors/xlsx.full.min.js"></script>
-    <script type="text/javascript" src="lib/vendors/log4javascript.min.js"></script
+    <script type="text/javascript" src="lib/vendors/log4javascript.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/Tone.min.js"></script>
 
     <!-- module loading with System.js -->
     <script src="lib/vendors/jspm_packages/system.js"></script>
@@ -34,13 +33,9 @@
   </head>
 
   <body>
-
-    <!-- dialog place holder -->
-    <div id="dialogDiv"/>
-
+    <div id="root"/>
     <script type='text/javascript'>
       System.import("./{name}.js");
     </script>
-
   </body>
 </html>
