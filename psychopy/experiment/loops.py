@@ -225,6 +225,9 @@ class TrialHandler(object):
                     "    thisScheduler.add({name}LoopEnd);\n"
                     .format(params=self.params, name=thisChild.params['name'])
                     )
+        if self.params['isTrials'].val == True:
+            code += ("    thisScheduler.add(endLoopIteration);\n")
+
         code += ("  }\n"
                 "\n"
                 "  return Scheduler.Event.NEXT;\n"
@@ -274,8 +277,6 @@ class TrialHandler(object):
         code = ("\nfunction {params[name]}LoopEnd() {{\n"
                 "  psychoJS.experiment.removeLoop(my.{params[name]});\n"
                 "  psychoJS.experiment.save(my.{params[name]}.getAttributes());\n").format(params=self.params)
-        if self.params['isTrials'].val == True:
-            code += ("  my.experiment.nextEntry();\n")
         code += ("  \nreturn Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)

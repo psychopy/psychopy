@@ -41,5 +41,8 @@ function updateInfo() {{
   else
     my.frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
 
+  // add info from the URL:
+  util.addInfoFromUrl(my.expInfo);
+
   return Scheduler.Event.NEXT;
 }}

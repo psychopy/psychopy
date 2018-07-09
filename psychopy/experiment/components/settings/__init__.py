@@ -663,6 +663,14 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
+
+        endLoopInteration = ("\nfunction endLoopIteration(thisTrial) {\n"
+                    "  // ------Prepare for next entry------\n"
+                    "  my.experiment.nextEntry();\n\n"
+                    "  return Scheduler.Event.NEXT;\n"
+                    "  }\n")
+        buff.writeIndentedLines(endLoopInteration)
+
         recordLoopIterationFunc = ("\nfunction importTrialAttributes(thisTrial) {\n"
                     "  return function () {\n"
                     "    psychoJS.importAttributes(thisTrial);\n\n"
