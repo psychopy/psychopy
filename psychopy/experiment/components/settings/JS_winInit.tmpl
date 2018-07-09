@@ -1,11 +1,11 @@
 function setupWin() {{
-  // Start Code - component code to be run before the window creation
   // Setup the Window
-  my.window = new Window({{
+
+  const psychoJS = new PsychoJS({{ debug: true}});
+  psychoJS.createWindow({{
       psychoJS: psychoJS,
-      size:{params[Window size (pixels)]}, //[2560, 1440],
-      fullscr:{fullscr},
-      screen:{params[Screen]},
+      fullscr: {fullscr},
+      screen: {params[Screen]},
       color: new Color({params[color]}),
       units: {params[Units]}
       }});
