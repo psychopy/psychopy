@@ -167,7 +167,7 @@ class SearchFrame(wx.Dialog):
         self.onSearch()  # trigger the search update
 
 
-class ProjectListCtrl(wx.ListCtrl):
+class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
@@ -175,6 +175,7 @@ class ProjectListCtrl(wx.ListCtrl):
     def __init__(self, parent, frame=None):
         wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
                              style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        listmixin.ListCtrlAutoWidthMixin.__init__(self)
         self.parent = parent
         if frame is None:
             self.frame = parent
@@ -215,6 +216,8 @@ class ProjectListCtrl(wx.ListCtrl):
             self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
             if self.GetColumnWidth(n) > 200:
                 self.SetColumnWidth(n, 200)
+                # NB the final column (description) will resize to available space
+                # due to listmixin.ListCtrlAutoWidthMixin
         self.Update()
 
     def onChangeSelection(self, event):
