@@ -413,14 +413,15 @@ class SettingsComponent(object):
         resourceFiles = self.exp.getResourceFiles()
 
         for srcFile in resourceFiles:
-            dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
-            dstFolder = os.path.split(dstAbs)[0]
-            if not os.path.isdir(dstFolder):
-                os.makedirs(dstFolder)
-            shutil.copy2(srcFile['abs'], dstAbs)
+            if srcFile:
+                dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
+                dstFolder = os.path.split(dstAbs)[0]
+                if not os.path.isdir(dstFolder):
+                    os.makedirs(dstFolder)
+                shutil.copy2(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime):
-        # write info.php and resources folder as well
+        # create resources folder
         self.prepareResourcesJS()
 
         # html header
