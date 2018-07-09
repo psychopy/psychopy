@@ -413,12 +413,11 @@ class SettingsComponent(object):
         resourceFiles = self.exp.getResourceFiles()
 
         for srcFile in resourceFiles:
-            if srcFile:
-                dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
-                dstFolder = os.path.split(dstAbs)[0]
-                if not os.path.isdir(dstFolder):
-                    os.makedirs(dstFolder)
-                shutil.copy2(srcFile['abs'], dstAbs)
+            dstAbs = os.path.normpath(join(resFolder, srcFile['rel']))
+            dstFolder = os.path.split(dstAbs)[0]
+            if not os.path.isdir(dstFolder):
+                os.makedirs(dstFolder)
+            shutil.copy2(srcFile['abs'], dstAbs)
 
     def writeInitCodeJS(self, buff, version, localDateTime):
         # create resources folder
@@ -431,7 +430,6 @@ class SettingsComponent(object):
                    params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
-        print("folderNow {}".format(folder))
         if not os.path.isdir(folder):
             os.makedirs(folder)
         with open(os.path.join(folder, "index.html"), 'wb') as html:
@@ -447,6 +445,7 @@ class SettingsComponent(object):
         # Import modules
         code = ("import Scheduler from 'lib/Scheduler';\n"
                 "import TextStim from 'lib/TextStim';\n"
+                "import ImageStim from 'lib/ImageStim';\n"
                 "import PsychoJS from 'lib/PsychoJS';\n"
                 "import Color from 'lib/Color';\n"
                 "import ExperimentHandler from 'lib/ExperimentHandler';\n"
@@ -454,6 +453,7 @@ class SettingsComponent(object):
                 "import {BuilderKeyResponse} from 'lib/EventManager';\n"
                 "import {MonotonicClock, Clock, CountdownTimer} from 'lib/Clock';\n"
                 "import * as util from 'lib/util';\n"
+                "import Mouse from 'lib/Mouse';\n"
                 "\n\n")
         buff.writeIndentedLines(code)
         # Write window code
