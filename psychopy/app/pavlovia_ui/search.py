@@ -36,11 +36,10 @@ class SearchFrame(wx.Dialog):
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
         wx.Dialog.__init__(self, parent, -1, title=title, style=style,
-                           size=(500, 300))
+                           size=(700, 500))
         self.app = app
         self.project = None
         self.parent = parent
-        self.itemDataMap = None
         # info about last search (NB None means no search but [] or '' means empty)
         self.lastSearchStr = None
         self.lastSearchOwn = None
@@ -73,12 +72,15 @@ class SearchFrame(wx.Dialog):
 
         # on the right
         self.detailsPanel = DetailsPanel(parent=self)
+
+        # sizers layout
         self.searchBtnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.searchBtnSizer.Add(self.searchCtrl, 1, wx.EXPAND, 5)
-        self.searchBtnSizer.Add(self.searchBtn, 0, wx.EXPAND, 5)
+        self.searchBtnSizer.Add(self.searchCtrl, 1, wx.EXPAND | wx.ALL, 5)
+        self.searchBtnSizer.Add(self.searchBtn, 0, wx.EXPAND | wx.ALL, 5)
         self.optionsSizer = wx.WrapSizer()
         self.optionsSizer.AddMany([self.searchInclGroup, self.searchInclPublic,
                                    self.searchBuilderOnly])
+
         self.leftSizer = wx.BoxSizer(wx.VERTICAL)
         self.leftSizer.Add(self.searchLabel, 0, wx.EXPAND | wx.ALL, 5)
         self.leftSizer.Add(self.optionsSizer)
@@ -86,8 +88,8 @@ class SearchFrame(wx.Dialog):
         self.leftSizer.Add(self.searchResults, 1, wx.EXPAND | wx.ALL, 5)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.mainSizer.Add(self.leftSizer, 1, wx.EXPAND | wx.ALL, 5)
-        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.leftSizer, 3, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.detailsPanel, 2, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizer(self.mainSizer)
         if self.parent:
@@ -151,7 +153,6 @@ class SearchFrame(wx.Dialog):
         projs = getUniqueByID(projs)
         projs = [pavlovia.PavloviaProject(proj) for proj in projs if proj.id]
 
-        self.itemDataMap = projs
         self.searchResults.setContents(projs)
         self.searchResults.Update()
         self.Layout()
@@ -166,7 +167,7 @@ class SearchFrame(wx.Dialog):
         self.onSearch()  # trigger the search update
 
 
-class ProjectListCtrl(wx.ListCtrl, listmixin.ColumnSorterMixin):
+class ProjectListCtrl(wx.ListCtrl):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
@@ -180,49 +181,57 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ColumnSorterMixin):
         else:
             self.frame = frame
         self.projList = []
-        columnList = ['owner', 'name', 'description']
+        self.columnNames = ['owner', 'name', 'description']
+        self._currentSortCol = 0
+        self._currentSortRev = False
 
         # Give it some columns.
         # The ID col we'll customize a bit:
-        for n, columnName in enumerate(columnList):
+        for n, columnName in enumerate(self.columnNames):
             self.InsertColumn(n, columnName)
         # set the column sizes *after* adding the items
-        for n, columnName in enumerate(columnList):
+        for n, columnName in enumerate(self.columnNames):
             self.SetColumnWidth(n, wx.LIST_AUTOSIZE)
 
         # after creating columns we can create the sort mixin
-        listmixin.ColumnSorterMixin.__init__(self, len(columnList))
+        # listmixin.ColumnSorterMixin.__init__(self, len(columnList))
 
+        self.Bind(wx.EVT_LIST_COL_CLICK, self.onColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onChangeSelection)
 
     def setContents(self, projects):
+        self.itemDataMap = {}
         self.projList = []
         self.DeleteAllItems()
 
         for index, thisProj in enumerate(projects):
+            data = (thisProj.owner, thisProj.name, thisProj.description)
             if not hasattr(thisProj, 'id'):
                 continue
-            try:
-                self.Append([thisProj.owner, thisProj.name,
-                         thisProj.description])
-            except:
-                print(thisProj)
-            self.projList.append(thisProj)
+            self.Append(data)  # append to the wx table
+            self.projList.append(thisProj)  # append to our copy
         # resize the columns
         for n in range(self.ColumnCount):
             self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
             if self.GetColumnWidth(n) > 200:
                 self.SetColumnWidth(n, 200)
-        self.Layout()
-        self.Fit()
+        self.Update()
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
         self.frame.detailsPanel.setProject(proj)
 
-    def GetListCtrl(self):
-        return self
+    def onColumnClick(self, event=None):
+        col = event.Column
+        if col == self._currentSortCol:  # toggle direction
+            self._currentSortRev = not(self._currentSortRev)
+        self._currentSortCol = col
+        projs = sortProjects(self.projList, self.columnNames[col],
+                             reverse=self._currentSortRev)
+        self.setContents(projs)
 
+def sortProjects(seq, name, reverse=False):
+    return sorted(seq, key=lambda k: getattr(k, name), reverse=reverse)
 
 def getUniqueByID(seq):
     """Very fast function to remove duplicates from a list while preserving order
