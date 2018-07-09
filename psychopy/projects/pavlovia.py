@@ -156,7 +156,10 @@ class User(object):
 
     @property
     def avatar(self):
-        return self.data['avatar']
+        if 'avatar' in self.data:
+            return self.data['avatar']
+        else:
+            return None
 
     @avatar.setter
     def avatar(self, location):
