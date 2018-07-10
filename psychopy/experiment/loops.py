@@ -214,7 +214,7 @@ class TrialHandler(object):
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("  // Schedule all the trials in the trialList:\n"
-                "  for (const thisTrial of my.{params[name]}) {{\n"
+                "  for (const {thisName} of my.{params[name]}) {{\n"
                 "    thisScheduler.add(importTrialAttributes({thisName}));\n"
                 .format(params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)

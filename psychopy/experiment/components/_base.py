@@ -382,10 +382,12 @@ class BaseComponent(object):
                     buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
                                        (compName, paramCaps, val, loggingStr, endStr))
                 if not isinstance(val, str):
-                    if '$' in val.val:  # A param variable prefixed with $
+                    if '$' in val.val and '[' not in val.val:  # A param variable prefixed with $
                         buff.writeIndented("my.%s.set%s(my.%s%s)%s\n" %
                                            (compName, paramCaps, val, loggingStr, endStr))
                     else:
+                        if '$' in val.val and '[' in val.val:  # List prefixed with $ by user, so strip $
+                            val.val = val.val.strip('$')
                         try:
                             eval(val.val)
                         except SyntaxError:  # Parameter val is a literal
