@@ -142,6 +142,7 @@ class PsychoPyApp(wx.App):
         """With a wx.App some things get done here, before App.__init__
         then some further code is launched in OnInit() which occurs after
         """
+        self._appLoaded = False  # set to true when all frames are created
         self.coder = None
         self.version = psychopy.__version__
         # set default paths and prefs
@@ -377,7 +378,10 @@ class PsychoPyApp(wx.App):
                     self.showBuilder()
                 else:
                     self.showCoder()
-
+        # after all windows are created (so errors flushed) create output
+        self._appLoaded = True
+        if self.coder:
+            self.coder.setOutputWindow()  # takes control of sys.stdout
         return True
 
     def _wizard(self, selector, arg=''):
@@ -494,7 +498,6 @@ class PsychoPyApp(wx.App):
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
-        self.coder.setOutputWindow()  # takes control of sys.stdout
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far

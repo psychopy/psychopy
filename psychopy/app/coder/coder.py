@@ -1366,7 +1366,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 class CoderFrame(wx.Frame):
 
     def __init__(self, parent, ID, title, files=(), app=None):
-        self.app = app
+        self.app = app  # type: PsychoPyApp
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -1500,6 +1500,8 @@ class CoderFrame(wx.Frame):
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
         self.shelf.AddPage(self.outputWindow, _translate('Output'))
+        if self.app._appLoaded:
+            self.setOutputWindow()
 
         if haveCode:
             useDefaultShell = True
