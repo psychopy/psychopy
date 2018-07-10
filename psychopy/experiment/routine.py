@@ -325,9 +325,11 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Ending Routine '%(name)s'-------\n"
-                "for (const thisComponent of my.%(name)sComponents)\n"
-                "  if (typeof thisComponent.setAutoDraw === 'function')\n"
-                "    thisComponent.setAutoDraw(false);\n\n" % self.params)
+                "for (const thisComponent of my.%(name)sComponents) {\n"
+                "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
+                "    thisComponent.setAutoDraw(false);\n"
+                "  }\n"
+                "}\n" % self.params)
         buff.writeIndentedLines(code)
         # add the EndRoutine code for each component
         for compon in self:

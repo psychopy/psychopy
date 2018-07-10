@@ -377,8 +377,46 @@ class BaseComponent(object):
                 buff.writeIndented("my.%s.setSound(%s, secs=%s)%s\n" %
                                    (compName, params['sound'], stopVal, endStr))
             else:
-                buff.writeIndented("my.%s.set%s(my.%s%s)%s\n" %
-                                   (compName, paramCaps, val, loggingStr, endStr))
+                # Begin checks for undefined variables used as arguments - vars require 'my.' prefix
+                if isinstance(val, str):  # Not param class
+                    buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
+                                       (compName, paramCaps, val, loggingStr, endStr))
+                if not isinstance(val, str):
+                    if '$' in val.val:  # A param variable prefixed with $
+                        buff.writeIndented("my.%s.set%s(my.%s%s)%s\n" %
+                                           (compName, paramCaps, val, loggingStr, endStr))
+                    else:
+                        try:
+                            eval(val.val)
+                        except SyntaxError:  # Parameter val is a literal
+                            buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
+                                               (compName, paramCaps, val, loggingStr, endStr))
+                        except TypeError:  # Parameter val is not a string, probably int literal
+                            buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
+                                               (compName, paramCaps, val, loggingStr, endStr))
+                        except NameError:  # Parameter val contains undefined variable
+                            if '[' in val.val:  # Contains list and must be parsed
+                                newVal = val.val
+                                for brackets in ['[', ']']:
+                                    newVal = newVal.replace(brackets, '')
+                                newVal = newVal.split(',')
+                                varList = []
+                                for vars in newVal:  # Scan list for literals and variables
+                                    try:
+                                        eval(vars)
+                                        varList.append(vars.strip(' '))
+                                    except NameError:
+                                        varList.append('my.'+vars.strip(' '))
+                                # Reconstruct list
+                                varList = '[' + ', '.join(varList) + ']'
+                                buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
+                                                   (compName, paramCaps, varList, loggingStr, endStr))
+                            else:  # No list and thus a variable
+                                buff.writeIndented("my.%s.set%s(my.%s%s)%s\n" %
+                                                   (compName, paramCaps, val, loggingStr, endStr))
+                else:
+                    buff.writeIndented("my.%s.set%s(%s%s)%s\n" %
+                                       (compName, paramCaps, val, loggingStr, endStr))
 
     def checkNeedToUpdate(self, updateType):
         """Determine whether this component has any parameters set to repeat

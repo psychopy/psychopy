@@ -672,8 +672,9 @@ class SettingsComponent(object):
         endLoopInteration = ("\nfunction endLoopIteration(thisTrial) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials)\n"
-                    "      my.experiment.nextEntry();\n\n"
+                    "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
+                    "      my.experiment.nextEntry();\n"
+                    "    }\n"
                     "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
                     "}\n")
@@ -688,7 +689,7 @@ class SettingsComponent(object):
                 )
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
-                    "  my.window.close()\n"
+                    "  my.window.close();\n"
                     "  psychoJS.quit();\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")

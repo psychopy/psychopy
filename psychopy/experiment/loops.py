@@ -279,8 +279,8 @@ class TrialHandler(object):
                 "  psychoJS.experiment.removeLoop(my.{params[name]});\n"
                 "  psychoJS.experiment.save({{\n"
                 "    attributes: my.{params[name]}.getAttributes()\n"
-                "  }});\n").format(params=self.params)
-        code += ("  \nreturn Scheduler.Event.NEXT;\n"
+                "  }});\n\n").format(params=self.params)
+        code += ("  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
 

@@ -337,7 +337,8 @@ class KeyboardComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
-            buff.writeIndented("my.%(name)s.status = PsychoJS.Stats.STOPPED;\n" % self.params)
+            buff.writeIndented("my.%(name)s.status = PsychoJS.Status.STOPPED;\n"
+                               "}\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
@@ -439,9 +440,9 @@ class KeyboardComponent(BaseComponent):
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("    # was no response the correct answer?!\n"
                     "    if str(%(correctAns)s).lower() == 'none':\n"
-                    "       %(name)s.corr = 1  # correct non-response\n"
+                    "       %(name)s.corr = 1;  # correct non-response\n"
                     "    else:\n"
-                    "       %(name)s.corr = 0  # failed to respond (incorrectly)\n"
+                    "       %(name)s.corr = 0;  # failed to respond (incorrectly)\n"
                     % self.params)
 
             code += ("# store data for %s (%s)\n" %
