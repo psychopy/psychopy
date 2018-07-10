@@ -187,16 +187,29 @@ class TrialHandler(object):
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
 
+        # Check conditions file
+        conditionsFile = self.params['conditionsFile'].val
+        conditionsFile = conditionsFile.strip('$')
+        if 'expInfo' in conditionsFile:
+            conditionsFile = conditionsFile.replace('expInfo', 'my.expInfo')
+        # Check for non-string vars
+        splitConditionFile = conditionsFile.split('+')
+        for idx, elements in enumerate(splitConditionFile):
+            if "'" not in elements:  # If not a string or dict, then is variable to prefix
+                splitConditionFile[idx] = ''.join(['my.', elements.strip(' ')])
+        splitConditionFile = ''.join(splitConditionFile).replace('  ', ' ').replace(' ', ' + ')
+
         code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  my.{params[name]} = new TrialHandler({{\n"
                 "    psychoJS,\n"
-                "    nReps:{params[nReps]}, method: TrialHandler.Method.{loopType},\n"
-                "    extraInfo:my.expInfo, originPath:undefined,\n"
-                "    trialList:{params[conditionsFile]},\n"
+                "    nReps: {params[nReps]}, method: TrialHandler.Method.{loopType},\n"
+                "    extraInfo: my.expInfo, originPath:undefined,\n"
+                "    trialList: {conditionsFile},\n"
                 "    seed:{seed}, name:'{params[name]}'}});\n"
                 "  psychoJS.experiment.addLoop(my.{params[name]}); // add the loop to the experiment\n\n"
                 .format(loopType=(self.params['loopType'].val).upper(),
+                        conditionsFile=splitConditionFile,
                         params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
