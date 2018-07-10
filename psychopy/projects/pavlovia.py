@@ -228,7 +228,7 @@ class PavloviaSession:
         return proj
 
     def createProject(self, name, description="", tags=(), visibility='private',
-                      localRoot=''):
+                      localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
 
         Parameters
@@ -256,6 +256,8 @@ class PavloviaSession:
         projDict['issues_enabled'] = True
         projDict['visibility'] = visibility
         projDict['wiki_enabled'] = True
+        if namespace and namespace != self.username:
+            projDict['namespace'] = namespace
 
         # TODO: add avatar option?
         # TODO: add namespace option?
@@ -299,6 +301,12 @@ class PavloviaSession:
             as_list=False)  # iterator not list for auto-pagination
         projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
+
+    def listUserGroups(self, namesOnly=True):
+        gps = self.gitlab.groups.list(owned=True)
+        if namesOnly:
+            gps = [this.name for this in gps]
+        return gps
 
     def findUserProjects(self, searchStr=''):
         """Finds all readable projects of a given user_id

@@ -48,7 +48,13 @@ class ProjectEditor(wx.Dialog):
         nameLabel = wx.StaticText(panel, -1, _translate("Name:"))
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         # Path can contain only letters, digits, '_', '-' and '.'.
-        # Cannot start with '-', end in '.git' or end in '.atom'
+        # Cannot start with '-', end in '.git' or end in '.atom']
+        username = pavlovia.currentSession.user.username
+        gpChoices = [username]
+        gpChoices.extend(pavlovia.currentSession.listUserGroups())
+        groupLabel = wx.StaticText(panel, -1, _translate("Group/owner:"))
+        self.groupBox = wx.Choice(panel, -1, size=(400, -1),
+                                  choices=gpChoices)
 
         descrLabel = wx.StaticText(panel, -1, _translate("Description:"))
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
@@ -84,16 +90,17 @@ class ProjectEditor(wx.Dialog):
         btnSizer.AddMany([updateBtn, cancelBtn])
 
         # do layout
-        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        fieldsSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
         fieldsSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
-                           (localLabel, 0, wx.ALIGN_RIGHT), localPathSizer,
-                           (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
-                           (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
-                           (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox])
+                             (groupLabel, 0, wx.ALIGN_RIGHT), self.groupBox,
+                             (localLabel, 0, wx.ALIGN_RIGHT), localPathSizer,
+                             (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
+                             (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
+                             (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox])
 
         border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(fieldsSizer, 0, wx.ALL, 10)
-        border.Add(btnSizer, 0, wx.ALIGN_RIGHT)
+        border.Add(fieldsSizer, 0, wx.ALL, 5)
+        border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         panel.SetSizerAndFit(border)
         self.Fit()
 
@@ -104,6 +111,7 @@ class ProjectEditor(wx.Dialog):
         session = pavlovia.currentSession
         #get current values
         name = self.nameBox.GetValue()
+        namespace = self.groupBox.GetStringSelection()
         descr = self.descrBox.GetValue()
         visibility = self.publicBox.GetValue()
         # tags need splitting and then
@@ -119,7 +127,8 @@ class ProjectEditor(wx.Dialog):
                                             description=descr,
                                             tags=tags,
                                             visibility=visibility,
-                                            localRoot=localRoot)
+                                            localRoot=localRoot,
+                                            namespace=namespace)
             self.project = project
             self.project._newRemote = True
         else:  # we're changing metadata of an existing project. Don't sync
