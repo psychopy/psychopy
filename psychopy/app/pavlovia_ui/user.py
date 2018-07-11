@@ -32,9 +32,10 @@ class UserEditor(wx.Dialog):
 
         panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         self.parent = parent
-        if pavlovia.currentSession.user:
-            pavlovia.currentSession.gitlab.auth()
-            self.user = pavlovia.currentSession.user
+        pavSession = pavlovia.getCurrentSession()
+        if pavSession.user:
+            pavSession.gitlab.auth()
+            self.user = pavSession.user
         else:
             self.user = logInPavlovia(parent=parent)
         if type(self.user) != pavlovia.User:

@@ -114,7 +114,7 @@ class SearchFrame(wx.Dialog):
         newSearch = (searchStr!=self.lastSearchStr)
         self.lastSearchStr = newSearch
 
-        session = pavlovia.currentSession
+        session = pavlovia.getCurrentSession()
         # search own
         if newSearch:
             self.lastSearchOwn = session.gitlab.projects.list(owned=True, search=searchStr)

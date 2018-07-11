@@ -23,6 +23,9 @@ import traceback
 from uuid import uuid4
 from .gitignore import gitIgnoreText
 
+# TODO: test what happens if we have a network initially but lose it
+# TODO: test what happens if we have a network but pavlovia times out
+
 pavloviaPrefsDir = os.path.join(prefs.paths['userPrefsDir'], 'pavlovia')
 rootURL = "https://gitlab.pavlovia.org"
 client_id = '4bb79f0356a566cd7b49e3130c714d9140f1d3de4ff27c7583fb34fbfac604e0'
@@ -62,7 +65,9 @@ def login(tokenOrUsername,  rememberMe=True):
     ----------
     token
     """
-    global currentSession
+    currentSession = getCurrentSession()
+    if not currentSession:
+        raise ConnectionError("Failed to connect to Pavlovia.org. No network?")
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -87,8 +92,8 @@ def logout():
      - save the appData so that the user is blank
     """
     # create a new currentSession with no auth token
-    global currentSession
-    currentSession = PavloviaSession()
+    global _existingSession
+    _existingSession = PavloviaSession()
     # set appData to None
     prefs.appData['projects']['pavloviaUser'] = None
     prefs.saveAppData()
@@ -103,6 +108,7 @@ class User(object):
 
     (from previous logins and from the current session)"""
     def __init__(self, localData={}, gitlabData=None, rememberMe=True):
+        currentSession = getCurrentSession()
         self.data = localData
         self.gitlabData = gitlabData
         # try looking for local data
@@ -216,16 +222,7 @@ class PavloviaSession:
         self.remember_me = remember_me
         self.authenticated = False
         self.currentProject = None
-        self.gitlab = None
         self.setToken(token)
-
-    def openProject(self, projID):
-        """Returns a OSF_Project object or None (if that id couldn't be opened)
-        """
-
-        proj = PavloviaProject(session=self, id=projID)
-        self.currentProject = proj
-        return proj
 
     def createProject(self, name, description="", tags=(), visibility='private',
                       localRoot='', namespace=''):
@@ -244,6 +241,8 @@ class PavloviaSession:
         a PavloviaProject object
 
         """
+        if not self.username:
+            raise NoUserError("Tried to create project with no user logged in")
         # NB gitlab also supports "internal" (public to registered users)
         if type(visibility) == bool and visibility:
             visibility = 'public'
@@ -336,17 +335,22 @@ class PavloviaSession:
     def setToken(self, token):
         """Set the token for this session and check that it works for auth
         """
-
-        if token and len(token) < 64:
-            raise ValueError("Trying to login with token {} which is shorter "
-                             "than expected length ({} not 64) for gitlab token"
-                             .format(repr(token), len(token)))
-
         self.__dict__['token'] = token
+        self.startSession(token)
+
+    def startSession(self, token):
+        """Start a gitlab session as best we can
+        (if no token then start an empty session)"""
         if token:
-            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token)
+            if len(token) < 64:
+                raise ValueError(
+                    "Trying to login with token {} which is shorter "
+                    "than expected length ({} not 64) for gitlab token"
+                    .format(repr(token), len(token)))
+            self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
-            self.token = token
+        else:
+            self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
 
     def applyChanges(self):
         """If threaded up/downloading is enabled then this begins the process
@@ -382,11 +386,15 @@ class PavloviaProject(dict):
         self['remoteSSH'] = ''
         self['remoteHTTPS'] = ''
         self._lastKnownSync = 0
+        currentSession = getCurrentSession()
         self._newRemote = False  # False can also indicate 'unknown'
         if isinstance(proj, gitlab.v4.objects.Project):
             self.pavlovia = proj
+        elif currentSession.gitlab is None:
+            self.pavlovia = None
         else:
             self.pavlovia = currentSession.gitlab.projects.get(proj)
+
         self.repo = None  # update with getRepo()
         # do we already have a local folder for this?
         if self.id in knownProjects and not localRoot:
@@ -767,7 +775,8 @@ def getGitRoot(p):
 
 
 def getProject(filename):
-    """Will try to find (locally synced) pavlovia Project for the filename"""
+    """Will try to find (locally synced) pavlovia Project for the filename
+    """
     gitRoot = getGitRoot(filename)
     if gitRoot in knownProjects:
         return knownProjects[gitRoot]
@@ -780,12 +789,18 @@ def getProject(filename):
                 if "gitlab.pavlovia.org/" in url:
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
-                    try:
-                        proj = currentSession.getProject(namespaceName)
-                    except gitlab.exceptions.GitlabGetError as e:
-                        if "404 Project Not Found" in e.error_message:
-                            continue
-                    proj.localRoot = gitRoot
+                    pavSession = getCurrentSession()
+                    if pavSession.user:
+                        try:
+                            proj = pavSession.getProject(namespaceName)
+                        except gitlab.exceptions.GitlabGetError as e:
+                            if "404 Project Not Found" in e.error_message:
+                                continue
+                        proj.localRoot = gitRoot
+                    else:
+                        print("We found a git repository at {} but no user "
+                              "is logged in for us to chech that project")
+                        return None  # not logged in. Return None
                     return proj
         # if we got here then we have a local git repo but not a
         # TODO: we have a git repo, but not on gitlab.pavlovia so add remote?
@@ -796,5 +811,30 @@ def getProject(filename):
               "sync from PsychoPy.")
 
 
+global _existingSession
+_existingSession = None
+
 # create an instance of that
-currentSession = PavloviaSession()
+def getCurrentSession():
+    """Returns the current Pavlovia session, creating one if not yet present
+
+    Returns
+    -------
+
+    """
+    global _existingSession
+    if _existingSession:
+        return _existingSession
+    else:
+        session = PavloviaSession()
+        _existingSession = session
+    return _existingSession
+
+
+class NoUserError(Exception):
+    def __init__(self):
+        Exception.__init__(self)
+
+class ConnectionError(Exception):
+    def __init__(self):
+        Exception.__init__(self)

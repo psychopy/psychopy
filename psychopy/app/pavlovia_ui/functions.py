@@ -63,7 +63,7 @@ def logInPavlovia(parent, event=None):
     if dlg.tokenInfo:
         token = dlg.tokenInfo['token']
         pavlovia.login(token, rememberMe=True)  # log in to the current pavlovia session
-        return pavlovia.currentSession.user
+        return pavlovia.getCurrentSession().user
 
 
 def showCommitDialog(parent, project, initMsg=""):

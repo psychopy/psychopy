@@ -11,18 +11,18 @@ Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import absolute_import, division, print_function
 
 import wx
+import wx.stc
 from wx.lib import platebtn, scrolledpanel
-
 try:
     from wx import aui
 except Exception:
     import wx.lib.agw.aui as aui  # some versions of phoenix
-import wx.stc
-
 try:
     from wx.adv import PseudoDC
 except ImportError:
     from wx import PseudoDC
+
+import requests
 import sys
 import os
 import subprocess
@@ -1576,10 +1576,9 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
-        self.project = pavlovia.getProject(filename)
         try:
             self.project = pavlovia.getProject(filename)
-        except:
+        except requests.exceptions.ConnectionError:
             self.project = None
 
     def fileSave(self, event=None, filename=None):

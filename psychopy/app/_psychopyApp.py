@@ -187,7 +187,7 @@ class PsychoPyApp(wx.App):
         """
         self.SetAppName('PsychoPy3')
 
-        if showSplash:
+        if False:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')

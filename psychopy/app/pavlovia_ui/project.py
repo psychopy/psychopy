@@ -49,9 +49,10 @@ class ProjectEditor(wx.Dialog):
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         # Path can contain only letters, digits, '_', '-' and '.'.
         # Cannot start with '-', end in '.git' or end in '.atom']
-        username = pavlovia.currentSession.user.username
+        pavSession = getCurrentSession()
+        username = pavSession.user.username
         gpChoices = [username]
-        gpChoices.extend(pavlovia.currentSession.listUserGroups())
+        gpChoices.extend(pavSession.listUserGroups())
         groupLabel = wx.StaticText(panel, -1, _translate("Group/owner:"))
         self.groupBox = wx.Choice(panel, -1, size=(400, -1),
                                   choices=gpChoices)
@@ -108,7 +109,7 @@ class ProjectEditor(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def submitChanges(self, evt=None):
-        session = pavlovia.currentSession
+        session = pavlovia.getCurrentSession()
         #get current values
         name = self.nameBox.GetValue()
         namespace = self.groupBox.GetStringSelection()
@@ -230,7 +231,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
     def setProject(self, project, localRoot=''):
         if not isinstance(project, pavlovia.PavloviaProject):
-            project = pavlovia.currentSession.getProject(project)
+            project = pavlovia.getCurrentSession().getProject(project)
         if project is None:
             return  # we're done
         self.project = project

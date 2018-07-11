@@ -73,7 +73,7 @@ class PavloviaMiniBrowser(wx.Dialog):
 
         # check there is a user (or log them in)
         if not user:
-            self.user = pavlovia.currentSession.user
+            self.user = pavlovia.getCurrentSession().user
         if not user:
             self.login()
         if not user:

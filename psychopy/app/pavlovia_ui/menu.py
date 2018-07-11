@@ -6,7 +6,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import requests
 
+from psychopy import logging
 from .. import dialogs
 from .functions import logInPavlovia
 from psychopy.app.pavlovia_ui.project import syncProject
@@ -85,7 +87,12 @@ class PavloviaMenu(wx.Menu):
         PavloviaMenu.appData['pavloviaUser'] = user
         if user in pavlovia.knownUsers:
             token = pavlovia.knownUsers[user]['token']
-            pavlovia.currentSession.setToken(token)
+            try:
+                pavlovia.getCurrentSession().setToken(token)
+            except requests.exceptions.ConnectionError:
+                logging.warning("Tried to log in to Pavlovia but no network "
+                                "connection")
+                return
         else:
             self.onLogInPavlovia()
 
@@ -105,7 +112,7 @@ class PavloviaMenu(wx.Menu):
     def onNew(self, event):
         """Create a new project
         """
-        if pavlovia.currentSession.user.username:
+        if pavlovia.getCurrentSession().user.username:
             projEditor = ProjectEditor()
             projEditor.ShowModal()
         else:
