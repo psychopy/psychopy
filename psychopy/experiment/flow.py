@@ -305,7 +305,7 @@ class Flow(list):
                             "flowScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopEnd);\n"
-                            .format(name=thisEntry.loop.params['name']))
+                            .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == "Routine":
                     code = ("flowScheduler.add({params[name]}RoutineBegin);\n"

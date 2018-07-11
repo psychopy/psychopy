@@ -148,7 +148,6 @@ class ImageComponent(BaseVisualComponent):
                 inits[paramName] = 'false'
             elif val in [None, 'None', 'none']:
                 inits[paramName] = 'undefined'
-        print(inits['mask'])
         code = ("{inits[name]} = new ImageStim({{\n"
                 "    win : my.window, name : '{inits[name]}', {units}\n"
                 "    image : {inits[image]}, mask : {inits[mask]},\n"
