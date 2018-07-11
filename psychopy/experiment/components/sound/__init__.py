@@ -102,9 +102,9 @@ class SoundComponent(BaseComponent):
             inits['stopVal'].val = -1
         elif float(inits['stopVal'].val) > 2:
             inits['stopVal'].val = -1
-        buff.writeIndented("my.%s = new my.sound.Sound(%s, secs=%s);\n" %
+        buff.writeIndented("%s = new my.sound.Sound(%s, secs=%s);\n" %
                            (inits['name'], inits['sound'], inits['stopVal']))
-        buff.writeIndented("my.%(name)s.setVolume(%(volume)s);\n" % (inits))
+        buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -143,16 +143,16 @@ class SoundComponent(BaseComponent):
         self.writeStartTestCode(buff)
         if self.params['syncScreenRefresh'].val:
             # TODO: Check callOnFlip for sound exists with JS
-            code = ("my.win.callOnFlip(my.%(name)s.play);  // screen flip\n") % self.params
+            code = ("my.window.callOnFlip(%(name)s.play);  // screen flip\n") % self.params
         else:
-            code = "my.%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
+            code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             if not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
                 self.writeStopTestCode(buff)
-                code = "my.%s.stop();  // stop the sound (if longer than duration)\n"
+                code = "%s.stop();  // stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])
             # because of the 'if' statement of the time test
             # buff.setIndentLevel(-1, relative=True)
@@ -162,5 +162,5 @@ class SoundComponent(BaseComponent):
         buff.writeIndented(code % self.params['name'])
 
     def writeRoutineEndCodeJS(self, buff):
-        code = "my.%s.stop();  // ensure sound has stopped at end of routine\n"
+        code = "%s.stop();  // ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])
