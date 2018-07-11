@@ -107,7 +107,7 @@ class PavloviaMenu(wx.Menu):
         """
         if pavlovia.currentSession.user.username:
             projEditor = ProjectEditor()
-            projEditor.Show()
+            projEditor.ShowModal()
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message=_translate(

@@ -320,7 +320,7 @@ class SettingsComponent(object):
         buff.write(
             '#!/usr/bin/env python\n'
             '# -*- coding: utf-8 -*-\n'
-            '"""\nThis experiment was created using PsychoPy2 Experiment '
+            '"""\nThis experiment was created using PsychoPy3 Experiment '
             'Builder (v%s),\n'
             '    on %s\n' % (version, localDateTime) +
             'If you publish work using this script please cite the PsychoPy '

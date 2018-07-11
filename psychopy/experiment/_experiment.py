@@ -33,7 +33,7 @@ from psychopy.experiment.loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
 from psychopy.experiment.params import _findParam, Param
 from psychopy.experiment.routine import Routine
-
+from . import utils
 from .components import getComponents, getAllComponents
 
 from psychopy.localization import _translate
@@ -116,6 +116,8 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy"):
         """Write a PsychoPy script for the experiment
         """
+        # set this so that params write for approp target
+        utils.scriptTarget = target
 
         self.flow._prescreenValues()
         self.expPath = expPath

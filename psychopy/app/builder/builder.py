@@ -23,7 +23,6 @@ try:
     from wx.adv import PseudoDC
 except ImportError:
     from wx import PseudoDC
-from pkg_resources import parse_version
 import sys
 import os
 import subprocess
@@ -31,14 +30,13 @@ import glob
 import copy
 import traceback
 import codecs
-from os.path import join, abspath, dirname
-from PIL import Image
 import numpy
 
 from psychopy.localization import _translate
 
 from ... import experiment
 from .. import stdOutRich, dialogs
+from ..icons import getAllIcons
 from psychopy import logging, constants
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
@@ -46,7 +44,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
 from .flow import FlowPanel
 from ..utils import FileDropTarget, WindowFrozen
 from psychopy.experiment import components
-from psychopy.projects import pavlovia
+
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
@@ -83,105 +81,6 @@ _localized = {
     'move up': _translate('move up'),
     'move down': _translate('move down'),
     'move to bottom': _translate('move to bottom')}
-
-
-def pilToBitmap(pil, scaleFactor=1.0):
-    if parse_version(wx.__version__) < parse_version('4.0.0a1'):
-        image = wx.EmptyImage(pil.size[0], pil.size[1])
-    else:
-        image = wx.Image(pil.size[0], pil.size[1])
-
-    # set the RGB values
-    if hasattr(pil, 'tobytes'):
-        image.SetData(pil.convert("RGB").tobytes())
-        image.SetAlphaBuffer(pil.convert("RGBA").tobytes()[3::4])
-    else:
-        image.SetData(pil.convert("RGB").tostring())
-        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
-
-    image.Rescale(image.Width * scaleFactor, image.Height * scaleFactor)
-    return image.ConvertToBitmap()  # wx.Image and wx.Bitmap are different
-
-
-def combineImageEmblem(main, emblem, pos='top_left'):
-    """
-
-    Parameters
-    ----------
-    main: filename
-    emblem: filename
-    pos: str ('bottom_left' etc)
-    size: int (default=16)
-
-    Returns
-    -------
-    A wx.Bitmap of the combined image ready for use in wxButton
-    """
-    # load images if they aren't already loaded
-    main = Image.open(main).convert('RGBA')  # might be grey or indexed colors
-    emblem = Image.open(emblem).convert('RGBA')
-    if 'bottom' in pos:
-        y = main.size[1] - emblem.size[1]
-    elif 'top' in pos:
-        y = 0
-    if 'right' in pos:
-        x = main.size[0] - emblem.size[0]
-    elif 'left' in pos:
-        x = 0
-    elif 'center' in pos:
-        x = int(main.size[0]/2-emblem.size[1]/2)
-
-    main.paste(emblem, [x, y], mask=emblem)
-    return pilToBitmap(main)
-
-
-def getIcons(filename=None):
-    """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image.
-    The latter has a plus sign added over the top.
-
-    png files work best, but anything that wx.Image can import should be fine
-    """
-    componsDir = abspath(dirname(components.__file__))
-    icons = {}
-    if filename is None:
-        filename = join(componsDir, 'base.png')
-
-    # get the low-res version first
-    im = Image.open(filename)
-    icons['24'] = pilToBitmap(im, scaleFactor=0.5)
-    icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
-    # try to find a 128x128 version
-    filename128 = filename[:-4] + '128.png'
-    if False:  # TURN OFF FOR NOW os.path.isfile(filename128):
-        im = Image.open(filename128)
-    else:
-        im = Image.open(filename)
-    icons['48'] = pilToBitmap(im)
-    icons['48add'] = combineImageEmblem(main=filename,
-                                        emblem=join(componsDir, 'add.png'),
-                                        pos='top_left')
-
-    return icons
-
-
-_allIcons = None
-
-
-def getAllIcons(folderList=(), forceReload=False):
-    """load the icons for all the components
-    """
-    global _allIcons
-    if forceReload or _allIcons is None:
-        compons = experiment.getAllComponents(folderList)
-        _allIcons = {}
-        for thisName, thisCompon in compons.items():
-            if thisName in components.iconFiles:
-                _allIcons[thisName] = getIcons(components.iconFiles[thisName])
-            else:
-                _allIcons[thisName] = getIcons(None)
-        return _allIcons
-    else:
-        return _allIcons
 
 
 class RoutineCanvas(wx.ScrolledWindow):
@@ -922,15 +821,15 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         if index is None:
             # not currently in favs
             msg = "Add to favorites"
-            function = self.onAddToFavorites
+            clickFunc = self.onAddToFavorites
         else:
             # is currently in favs
             msg = "Remove from favorites"
-            function = self.onRemFromFavorites
+            clickFunc = self.onRemFromFavorites
         menu = wx.Menu()
         id = wx.NewId()
         menu.Append(id, _localized[msg])
-        menu.Bind(wx.EVT_MENU, function, id=id)
+        menu.Bind(wx.EVT_MENU, clickFunc, id=id)
         # where to put the context menu
         x, y = evt.GetPosition()  # this is position relative to object
         xBtn, yBtn = evt.GetEventObject().GetPosition()
@@ -1104,7 +1003,8 @@ class BuilderFrame(wx.Frame):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
-        self.project = None  # can be a pavlovia.Project
+        self.project = None  # type: pavlovia.PavloviaProject
+        self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1283,7 +1183,7 @@ class BuilderFrame(wx.Frame):
                                                 'redo'],
                                             _translate("Redo last action"))
         tb.Bind(wx.EVT_TOOL, self.redo, self.bldrBtnRedo)
-        tb.AddSeparator()
+
         tb.AddSeparator()
         self.bldrBtnPrefs = tb.AddSimpleTool(wx.ID_ANY, preferencesBmp,
                                              _translate("Preferences"),
@@ -1295,7 +1195,7 @@ class BuilderFrame(wx.Frame):
                                 _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter,
                 id=item.GetId())
-        tb.AddSeparator()
+
         tb.AddSeparator()
         item = tb.AddSimpleTool(wx.ID_ANY, settingsBmp,
                                 _translate("Experiment Settings"),
@@ -1318,37 +1218,11 @@ class BuilderFrame(wx.Frame):
         tb.Bind(wx.EVT_TOOL, self.stopFile, self.bldrBtnStop)
         self.toolbar.EnableTool(self.bldrBtnStop.Id, False)
 
-        tb.AddSeparator()
-        tb.AddSeparator()
-
-        self.bldrBtnPavloviaSync = tb.AddSimpleTool(
-                wx.ID_ANY,
-                combineImageEmblem(
-                        main=join(rc, 'globe%i.png' % tbSize),
-                        emblem=join(rc, 'sync_green16.png'),
-                        pos='bottom_right'))
-        tb.Bind(wx.EVT_TOOL, self.onPavloviaSync, self.bldrBtnPavloviaSync)
-        self.bldrBtnPavloviaRun = tb.AddSimpleTool(
-                wx.ID_ANY,
-                combineImageEmblem(
-                        main=join(rc, 'globe%i.png' % tbSize),
-                        emblem=join(rc, 'run16.png'),
-                        pos='bottom_right'))
-        tb.Bind(wx.EVT_TOOL, self.onPavloviaRun, self.bldrBtnPavloviaRun)
-        self.bldrBtnPavloviaSearch = tb.AddSimpleTool(
-                wx.ID_ANY,
-                combineImageEmblem(
-                        main=join(rc, 'globe%i.png' % tbSize),
-                        emblem=join(rc, 'magnifier16.png'),
-                        pos='bottom_right'))
-        tb.Bind(wx.EVT_TOOL, self.onPavloviaSearch, self.bldrBtnPavloviaSearch)
-        self.bldrBtnPavloviaUser = tb.AddSimpleTool(
-                wx.ID_ANY,
-                combineImageEmblem(
-                        main=join(rc, 'globe%i.png' % tbSize),
-                        emblem=join(rc, 'user22.png'),
-                        pos='bottom_right'))
-        tb.Bind(wx.EVT_TOOL, self.onPavloviaUser, self.bldrBtnPavloviaUser)
+        self.toolbar.AddSeparator()
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=tbSize)
+        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaRun',
+                                             'pavloviaSearch', 'pavloviaUser'])
+        self.btnHandles.update(pavButtons.btnHandles)
 
         # Finished setup. Make it happen
         tb.Realize()
@@ -1704,7 +1578,6 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None  # so we won't accidentally save to other html exp
         self.project = pavlovia.getProject(filename)
         try:
-            print('tryingFor ', filename)
             self.project = pavlovia.getProject(filename)
         except:
             self.project = None
@@ -2092,7 +1965,7 @@ class BuilderFrame(wx.Frame):
             return -1  # user cancelled
         # ensure it's an empty dir:
         if os.listdir(unpackFolder) != []:
-            unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
+            unpackFolder = os.path.join(unpackFolder, 'PsychoPy3 Demos')
             if not os.path.isdir(unpackFolder):
                 os.mkdir(unpackFolder)
         mergeFolder(os.path.join(self.paths['demos'], 'builder'),
@@ -2323,6 +2196,7 @@ class BuilderFrame(wx.Frame):
         self.generateScript(fullPath)
         self.app.showCoder()  # make sure coder is visible
         self.app.coder.fileNew(filepath=fullPath)
+        self.app.coder.fileReload(event=None, filename=fullPath)
 
     def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
@@ -2364,7 +2238,10 @@ class BuilderFrame(wx.Frame):
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
-        wx.LaunchDefaultBrowser("https://pavlovia.org/projects.html")
+        if self.project:
+            self.project.pavloviaStatus = 'ACTIVATED'
+            url = "https://pavlovia.org/run/{}/html".format(self.project.id)
+            wx.LaunchDefaultBrowser(url)
 
     def onPavloviaUser(self, evt=None):
         dlg = pavlovia_ui.PavloviaMiniBrowser(parent=self)
@@ -2375,6 +2252,11 @@ class BuilderFrame(wx.Frame):
         self.pavloviaMenu.searchDlg = pavlovia_ui.search.SearchFrame(
             app=self.app, parent=self, pos=self.GetPosition())
         self.pavloviaMenu.searchDlg.Show()
+
+    def setPavloviaUser(self, user):
+        # TODO: update user icon on button to user avatar
+        pass
+
 
 class ReadmeFrame(wx.Frame):
     """Defines construction of the Readme Frame"""

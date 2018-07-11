@@ -29,3 +29,4 @@ pytest-xdist
 coveralls
 python-gitlab
 gitpython
+astunparse

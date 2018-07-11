@@ -1,22 +1,25 @@
 #!/bin/sh
 
+defVersion=$(<version)  # reads the version file
 echo "DID YOU UPDATE THE CHANGELOG?"
-printf "Version (e.g. 1.84.0) : " # no new line
-read version
+read -p "Version (def=$defVersion):" version
+version=${version:-$defVersion}
+echo "Building $version"
 
 sudo rm -r build
 
 python setup.py sdist --format=zip
-python setup.py egg_info
-python setup.py bdist_egg
 # then handle the mac app bundle
-rm psychopy/demos/*.pyc
 rm psychopy/prefSite.cfg
 
 declare -a pythons=("python2" "python3")
 declare -a names=("PsychoPy3" "PsychoPy3_PY3")
 
 for i in 0 1; do
+    # remove old pyc files
+    find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+
+
     echo $i "BUILDING:" ${pythons[$i]} "__" ${names[$i]}
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
 
@@ -34,7 +37,7 @@ for i in 0 1; do
     # mount the disk image to put the app in
     echo "Opening disk image for app"
     hdiutil detach "/Volumes/PsychoPy" -quiet
-    hdiutil attach "../dist/StandalonePsychoPy--64bit.dmg"
+    hdiutil attach "../dist/StandalonePsychoPy3_tmpl.dmg"
     osascript -e "set Volume 0.5"
     say -v Karen "password"
     sudo rm -R /Volumes/PsychoPy/PsychoPy3*
@@ -44,7 +47,7 @@ for i in 0 1; do
     echo "removing prev dmg (although may not exist)"
     rm $dmgName
     echo "creating zlib-compressed dmg: $dmgName"
-    hdiutil convert "../dist/StandalonePsychoPy--64bit.dmg" -format UDZO -o $dmgName
+    hdiutil convert "../dist/StandalonePsychoPy3_tmpl.dmg" -format UDZO -o $dmgName
 
 done
 

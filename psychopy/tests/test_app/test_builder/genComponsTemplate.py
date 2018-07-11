@@ -4,15 +4,12 @@ import sys, os
 from pkg_resources import parse_version
 import wx
 
-import psychopy.projects
-
 if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
 from psychopy import experiment
 from psychopy import constants
-from psychopy import projects
 from psychopy.experiment.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
@@ -125,5 +122,3 @@ for compName in sorted(allComp):
 
 # return mismatches
 
-# revert project catalog to original
-psychopy.projects.ProjectCatalog = origProjectCatalog

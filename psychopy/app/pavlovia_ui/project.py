@@ -5,6 +5,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
+import os
 
 from .sync import SyncFrame
 from .functions import setLocalPath, showCommitDialog
@@ -13,31 +14,33 @@ from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 
 import wx
-try:
-    import wx.adv as wxhl  # in wx 4
-except ImportError:
-    wxhl = wx  # in wx 3.0.2
 from wx.lib import scrolledpanel as scrlpanel
-
+try:
+    import wx.lib.agw.hyperlink as wxhl  # 4.0+
+except ImportError:
+    import wx.lib.hyperlink as wxhl # <3.0.2
 
 class ProjectEditor(wx.Dialog):
-    def __init__(self, parent=None, id=wx.ID_ANY, project=None, *args, **kwargs):
+    def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
+                 *args, **kwargs):
 
         wx.Dialog.__init__(self, parent, id,
                            *args, **kwargs)
         panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
-        # when a project is succesfully created these will be populated
+        # when a project is successfully created these will be populated
         if hasattr(parent, 'filename'):
             self.filename = parent.filename
         else:
             self.filename = None
-        self.project = project
+        self.project = project  # type: PavloviaProject
         self.projInfo = None
         self.parent = parent
 
         if project:
             # edit existing project
             self.isNew = False
+            if project.localRoot and not localRoot:
+                localRoot = project.localRoot
         else:
             self.isNew = True
 
@@ -45,15 +48,22 @@ class ProjectEditor(wx.Dialog):
         nameLabel = wx.StaticText(panel, -1, _translate("Name:"))
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         # Path can contain only letters, digits, '_', '-' and '.'.
-        # Cannot start with '-', end in '.git' or end in '.atom'
+        # Cannot start with '-', end in '.git' or end in '.atom']
+        username = pavlovia.currentSession.user.username
+        gpChoices = [username]
+        gpChoices.extend(pavlovia.currentSession.listUserGroups())
+        groupLabel = wx.StaticText(panel, -1, _translate("Group/owner:"))
+        self.groupBox = wx.Choice(panel, -1, size=(400, -1),
+                                  choices=gpChoices)
 
         descrLabel = wx.StaticText(panel, -1, _translate("Description:"))
         self.descrBox = wx.TextCtrl(panel, -1, size=(400, 200),
                                     style=wx.TE_MULTILINE | wx.SUNKEN_BORDER)
 
         localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
-        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1))
-        self.btnLocalBrowse = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.localBox = wx.TextCtrl(panel, -1, size=(400, -1),
+                                    value=localRoot)
+        self.btnLocalBrowse = wx.Button(panel, wx.ID_ANY, "Browse...")
         self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
         localPathSizer.Add(self.localBox)
@@ -80,16 +90,17 @@ class ProjectEditor(wx.Dialog):
         btnSizer.AddMany([updateBtn, cancelBtn])
 
         # do layout
-        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        fieldsSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)
         fieldsSizer.AddMany([(nameLabel, 0, wx.ALIGN_RIGHT), self.nameBox,
-                           (localLabel, 0, wx.ALIGN_RIGHT), localPathSizer,
-                           (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
-                           (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
-                           (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox])
+                             (groupLabel, 0, wx.ALIGN_RIGHT), self.groupBox,
+                             (localLabel, 0, wx.ALIGN_RIGHT), localPathSizer,
+                             (descrLabel, 0, wx.ALIGN_RIGHT), self.descrBox,
+                             (tagsLabel, 0, wx.ALIGN_RIGHT), self.tagsBox,
+                             (publicLabel, 0, wx.ALIGN_RIGHT), self.publicBox])
 
         border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(fieldsSizer, 0, wx.ALL, 10)
-        border.Add(btnSizer, 0, wx.ALIGN_RIGHT)
+        border.Add(fieldsSizer, 0, wx.ALL, 5)
+        border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         panel.SetSizerAndFit(border)
         self.Fit()
 
@@ -100,6 +111,7 @@ class ProjectEditor(wx.Dialog):
         session = pavlovia.currentSession
         #get current values
         name = self.nameBox.GetValue()
+        namespace = self.groupBox.GetStringSelection()
         descr = self.descrBox.GetValue()
         visibility = self.publicBox.GetValue()
         # tags need splitting and then
@@ -115,7 +127,8 @@ class ProjectEditor(wx.Dialog):
                                             description=descr,
                                             tags=tags,
                                             visibility=visibility,
-                                            localRoot=localRoot)
+                                            localRoot=localRoot,
+                                            namespace=namespace)
             self.project = project
             self.project._newRemote = True
         else:  # we're changing metadata of an existing project. Don't sync
@@ -135,6 +148,7 @@ class ProjectEditor(wx.Dialog):
         if newPath:
             self.localBox.SetLabel(newPath)
             self.project.localRoot = newPath
+            self.Layout()
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -143,7 +157,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                  style=wx.VSCROLL | wx.NO_BORDER):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.app = self.parent.app
         self.project = {}
         self.noTitle = noTitle
         self.localFolder = ''
@@ -159,16 +172,15 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         # if we've synced before we should know the local location
         self.localFolderCtrl = wx.StaticText(
-                parent=self, id=-1,
+                parent=self, id=wx.ID_ANY,
                 label="Local root: ")
-        self.browseLocalBtn = wx.Button(self, wx.ID_ANY, "Browse...")
+        self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY, label="Browse...")
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
         # remote attributes
-        self.url = wxhl.HyperlinkCtrl(parent=self, id=-1,
+        self.url = wxhl.HyperLinkCtrl(parent=self, id=-1,
                                       label="https://pavlovia.org",
-                                      url="https://pavlovia.org",
-                                      style=wxhl.HL_ALIGN_LEFT,
+                                      URL="https://pavlovia.org",
                                       )
         self.description = wx.StaticText(parent=self, id=-1,
                                          label=_translate(
@@ -314,13 +326,14 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         if self.localFolder:
             self.localFolderCtrl.SetLabel(
                     label="Local root: {}".format(self.localFolder))
-        self.Update()
+        self.Layout()
 
 
 def syncProject(parent, project=None):
     """A function to sync the current project (if there is one)
     """
-    if not project:  # try getting one from the frame
+    isCoder = hasattr(parent, 'currentDoc')
+    if not project and "BuilderFrame" in repr(parent):  # try getting one from the frame
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
@@ -329,14 +342,21 @@ def syncProject(parent, project=None):
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
         dlg.SetOKLabel("Create a project")
         if dlg.ShowModal() == wx.ID_OK:
+            if isCoder:
+                if parent.currentDoc:
+                    localRoot = os.path.dirname(parent.currentDoc.filename)
+                else:
+                    localRoot = ''
+            else:
+                localRoot = os.path.dirname(parent.filename)
             # open the project editor (with no project to create one)
-            editor = ProjectEditor(parent=parent)
+            editor = ProjectEditor(parent=parent, localRoot=localRoot)
             if editor.ShowModal() == wx.ID_OK:
                 project = editor.project
             else:
                 project = None
 
-    if not project: # we did our best for them. Give up!
+    if not project:  # we did our best for them. Give up!
         return 0
 
     # if project.localRoot doesn't exist, or is empty
@@ -360,7 +380,6 @@ def syncProject(parent, project=None):
     else:
         # existing remote which we should clone
         project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
-
         # check for anything to commit before pull/push
         outcome = showCommitDialog(parent, project)
         project.sync(syncFrame.syncPanel, syncFrame.progHandler)

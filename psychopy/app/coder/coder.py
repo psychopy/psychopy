@@ -1379,6 +1379,7 @@ class CoderFrame(wx.Frame):
         self.fileStatusLastChecked = time.time()
         self.fileStatusCheckInterval = 5 * 60  # sec
         self.showingReloadDialog = False
+        self.btnHandles = {}  # stores toolbar buttons so they can be altered
 
         # we didn't have the key or the win was minimized/invalid
         if self.appData['winH'] == 0 or self.appData['winW'] == 0:
@@ -1496,7 +1497,7 @@ class CoderFrame(wx.Frame):
             self, style=_style,
             font=self.prefs['outputFont'],
             fontSize=self.prefs['outputFontSize'])
-        self.outputWindow.write(_translate('Welcome to PsychoPy2!') + '\n')
+        self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
         self.shelf.AddPage(self.outputWindow, _translate('Output'))
 
@@ -1906,7 +1907,7 @@ class CoderFrame(wx.Frame):
                 toolbarSize = 16
         else:
             # mac: 16 either doesn't work, or looks really bad with wx3
-            toolbarSize = 128
+            toolbarSize = 32
 
         self.toolbar.SetToolBitmapSize((toolbarSize, toolbarSize))
         rc = self.paths['resources']
@@ -1963,7 +1964,7 @@ class CoderFrame(wx.Frame):
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Redo last action")).GetId()
         tb.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.cdrBtRedo)
-        tb.AddSeparator()
+
         tb.AddSeparator()
         item = tb.AddSimpleTool(wx.ID_ANY, preferencesBmp,
                          _translate("Preferences"),
@@ -1977,7 +1978,7 @@ class CoderFrame(wx.Frame):
                          _translate("Color Picker -> clipboard"),
                          _translate("Color Picker -> clipboard"))
         tb.Bind(wx.EVT_TOOL, self.app.colorPicker, id=item.GetId())
-        self.toolbar.AddSeparator()
+
         self.toolbar.AddSeparator()
         key = _translate("Run [%s]") % self.app.keys['runScript']
         self.IDs.cdrBtnRun = self.toolbar.AddSimpleTool(wx.ID_ANY, runBmp,
@@ -1990,6 +1991,13 @@ class CoderFrame(wx.Frame):
                                    _translate("Stop current script")).GetId()
         tb.Bind(wx.EVT_TOOL, self.stopFile, id=self.IDs.cdrBtnStop)
         tb.EnableTool(self.IDs.cdrBtnStop, False)
+
+        self.toolbar.AddSeparator()
+        pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
+        pavButtons.addPavloviaTools(buttons=['pavloviaSync',
+                                             'pavloviaSearch', 'pavloviaUser'])
+        self.btnHandles.update(pavButtons.btnHandles)
+
         tb.Realize()
 
     def onIdle(self, event):
@@ -2905,3 +2913,7 @@ class CoderFrame(wx.Frame):
         else:
             self.unitTestFrame = UnitTestFrame(app=self.app)
         # UnitTestFrame.Show()
+
+    def setPavloviaUser(self, user):
+        # TODO: update user icon on button to user avatar
+        pass

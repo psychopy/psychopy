@@ -12,6 +12,7 @@ import glob
 import os, sys, time
 from psychopy import logging, prefs, constants
 from psychopy.tools.filetools import DictStorage
+from psychopy import app
 import gitlab
 import gitlab.v4.objects
 import git
@@ -75,6 +76,28 @@ def login(tokenOrUsername,  rememberMe=True):
     prefs.appData['projects']['pavloviaUser'] = user.username
 
 
+def logout():
+    """Log the current user out of pavlovia.
+
+    Various steps:
+
+     - set the user for the currentSession to None
+     - in case browser was set to 'remember me' with a session cookie we should
+       log out there too
+     - save the appData so that the user is blank
+    """
+    # create a new currentSession with no auth token
+    global currentSession
+    currentSession = PavloviaSession()
+    # set appData to None
+    prefs.appData['projects']['pavloviaUser'] = None
+    prefs.saveAppData()
+    for frameWeakref in app.openFrames:
+        frame = frameWeakref()
+        if hasattr(frame, 'setUser'):
+            frame.setUser(None)
+
+
 class User(object):
     """Class to combine what we know about the user locally and on gitlab
 
@@ -82,6 +105,11 @@ class User(object):
     def __init__(self, localData={}, gitlabData=None, rememberMe=True):
         self.data = localData
         self.gitlabData = gitlabData
+        # try looking for local data
+        if gitlabData and not localData:
+            if gitlabData.username in knownUsers:
+                self.data = knownUsers[gitlabData.username]
+        #then try again to populate fields
         if gitlabData and not localData:
             self.data['username'] = gitlabData.username
             self.data['token'] = currentSession.getToken()
@@ -91,10 +119,15 @@ class User(object):
         else:
             self.avatar = gitlabData.attributes['avatar_url']
         if rememberMe:
-            self.save()
+            self.saveLocal()
 
     def __str__(self):
-        return str(self.data)
+        return "pavlovia.User <{}>".format(self.username)
+
+    def __getattr__(self, name):
+        if name not in self.__dict__ and hasattr(self.gitlabData, name):
+            return getattr(self.gitlabData, name)
+        raise AttributeError("No attribute '{}' in {}".format(name))
 
     @property
     def username(self):
@@ -106,19 +139,32 @@ class User(object):
             return None
 
     @property
+    def url(self):
+        return self.gitlabData.web_url
+
+    @property
+    def name(self):
+        return self.gitlabData.name
+
+    @name.setter
+    def name(self, name):
+        self.gitlabData.name = name
+
+    @property
     def token(self):
         return self.data['token']
 
     @property
     def avatar(self):
-        return self.data['avatar']
+        if 'avatar' in self.data:
+            return self.data['avatar']
+        else:
+            return None
 
     @avatar.setter
     def avatar(self, location):
         if os.path.isfile(location):
             self.data['avatar'] = location
-        else:
-            self.data['avatar'] = self._fetchRemoteAvatar(location)
 
     def _fetchRemoteAvatar(self, url=None):
         if not url:
@@ -138,12 +184,15 @@ class User(object):
             return avatarLocal
         return None
 
-    def save(self):
+    def saveLocal(self):
         """Saves the data on the current user in the pavlovia/users json file"""
         # update stored tokens
         tokens = knownUsers
         tokens[self.username] = self.data
         tokens.save()
+
+    def save(self):
+        self.gitlabData.save()
 
 
 class PavloviaSession:
@@ -179,7 +228,7 @@ class PavloviaSession:
         return proj
 
     def createProject(self, name, description="", tags=(), visibility='private',
-                      localRoot=''):
+                      localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
 
         Parameters
@@ -207,6 +256,8 @@ class PavloviaSession:
         projDict['issues_enabled'] = True
         projDict['visibility'] = visibility
         projDict['wiki_enabled'] = True
+        if namespace and namespace != self.username:
+            projDict['namespace'] = namespace
 
         # TODO: add avatar option?
         # TODO: add namespace option?
@@ -251,12 +302,19 @@ class PavloviaSession:
         projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
 
-    def findUserProjects(self):
+    def listUserGroups(self, namesOnly=True):
+        gps = self.gitlab.groups.list(owned=True)
+        if namesOnly:
+            gps = [this.name for this in gps]
+        return gps
+
+    def findUserProjects(self, searchStr=''):
         """Finds all readable projects of a given user_id
         (None for current user)
         """
-        own = self.gitlab.projects.list(owned=True)
-        group = self.gitlab.projects.list(owned=False, membership=True)
+        own = self.gitlab.projects.list(owned=True, search=searchStr)
+        group = self.gitlab.projects.list(owned=False, membership=True,
+                                          search = searchStr)
         projs = []
         projIDs = []
         for proj in own + group:
@@ -445,13 +503,15 @@ class PavloviaProject(dict):
             self.firstPush()
         else:
             self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
+            self.repo = git.Repo(self.localRoot)  # get a new copy of repo (
+            time.sleep(0.1)
             self.push(syncPanel=syncPanel, progressHandler=progressHandler)
         self._lastKnownSync = t1 = time.time()
         msg = ("Successful sync at: {}, took {:.3f}s"
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
         logging.info(msg)
         if syncPanel:
-            syncPanel.setStatus(msg)
+            syncPanel.statusAppend("\n"+msg)
             time.sleep(0.5)
 
     def pull(self, syncPanel=None, progressHandler=None):
@@ -467,12 +527,18 @@ class PavloviaProject(dict):
 
         """
         if syncPanel:
-            syncPanel.setStatus("Pulling changes from remote...")
+            syncPanel.statusAppend("\nPulling changes from remote...")
         origin = self.repo.remotes.origin
-        origin.pull(progress=progressHandler)
+        info = self.repo.git.pull()  # progress=progressHandler
+        logging.debug('pull report: {}'.format(info))
+        if syncPanel:
+            syncPanel.statusAppend("done")
+            if info:
+                syncPanel.statusAppend("\n{}".format(info))
+
 
     def push(self, syncPanel=None, progressHandler=None):
-        """Pull from remote to local copy of the repository
+        """Push to remote from local copy of the repository
 
         Parameters
         ----------
@@ -483,11 +549,15 @@ class PavloviaProject(dict):
         -------
 
         """
-        syncPanel.setStatus("Pushing changes to remote...")
-        syncPanel.Refresh()
-        syncPanel.Layout()
+        if syncPanel:
+            syncPanel.statusAppend("\nPushing changes to remote...")
         origin = self.repo.remotes.origin
-        origin.push(progress=progressHandler)
+        info = self.repo.git.push()  # progress=progressHandler
+        logging.debug('push report: {}'.format(info))
+        if syncPanel:
+            syncPanel.statusAppend("done")
+            if info:
+                syncPanel.statusAppend("\n{}".format(info))
 
     def getRepo(self, syncPanel=None, progressHandler=None, forceRefresh=False,
                 newRemote=False):
@@ -580,7 +650,8 @@ class PavloviaProject(dict):
         repo = git.Repo.clone_from(
             self.remoteHTTPS,
             self.localRoot,
-            progress=progressHandler)
+            # progress=progressHandler,
+        )
         self._lastKnownSync = time.time()
         self.repo = repo
         self._newRemote = False
@@ -658,10 +729,27 @@ class PavloviaProject(dict):
     def commit(self, message):
         """Commits the staged changes"""
         self.repo.git.commit('-m', message)
+        time.sleep(0.1)
+        # then get a new copy of the repo
+        self.repo = git.Repo(self.localRoot)
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
         self.pavlovia.save()
+
+    @property
+    def pavloviaStatus(self):
+        return self.__dict__['pavloviaStatus']
+
+    @pavloviaStatus.setter
+    def pavloviaStatus(self, newStatus):
+        url = 'https://pavlovia.org/server?command=update_project'
+        data = {'projectId': self.idNumber, 'projectStatus': 'ACTIVATED'}
+        resp = requests.put(url, data)
+        if resp.status_code==200:
+            self.__dict__['pavloviaStatus'] = newStatus
+        else:
+            print(resp)
 
 
 def getGitRoot(p):
