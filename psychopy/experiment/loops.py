@@ -187,23 +187,23 @@ class TrialHandler(object):
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
 
-        code = ("\nfunction {params[name]}LoopBegin(thisScheduler) {{\n"
+        code = ("\nfunction {name}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
-                "  my.{params[name]} = new TrialHandler({{\n"
+                "  {name} = new TrialHandler({{\n"
                 "    psychoJS,\n"
-                "    nReps:{params[nReps]}, method: TrialHandler.Method.{loopType},\n"
-                "    extraInfo:my.expInfo, originPath:undefined,\n"
-                "    trialList:{params[conditionsFile]},\n"
-                "    seed:{seed}, name:'{params[name]}'}});\n"
-                "  psychoJS.experiment.addLoop(my.{params[name]}); // add the loop to the experiment\n\n"
-                .format(loopType=(self.params['loopType'].val).upper(),
+                "    nReps: {params[nReps]}, method: TrialHandler.Method.{loopType},\n"
+                "    extraInfo: my.expInfo, originPath: undefined,\n"
+                "    trialList: {params[conditionsFile]},\n"
+                "    seed: {seed}, name: '{name}'}});\n"
+                "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n\n"
+                .format(name=self.params['name'].val, loopType=(self.params['loopType'].val).upper(),
                         params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("  // Schedule all the trials in the trialList:\n"
-                "  for (const thisTrial of my.{params[name]}) {{\n"
+                "  for (const {thisName} of {name}) {{\n"
                 "    thisScheduler.add(importTrialAttributes({thisName}));\n"
-                .format(params=self.params, thisName=self.thisName, seed=seed))
+                .format(name=self.params['name'].val, params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
         loopDict = self.exp.flow.loopDict
@@ -220,7 +220,7 @@ class TrialHandler(object):
                     )
             else:  # for a LoopInitiator
                 code += (
-                    "    {name}LoopScheduler = new psychoJS.Scheduler();\n"
+                    "    const {name}LoopScheduler = new Scheduler(psychoJS);\n"
                     "    thisScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
                     "    thisScheduler.add({name}LoopScheduler);\n"
                     "    thisScheduler.add({name}LoopEnd);\n"
@@ -275,12 +275,12 @@ class TrialHandler(object):
 
     def writeLoopEndCodeJS(self, buff):
         # Just within the loop advance data line if loop is whole trials
-        code = ("\nfunction {params[name]}LoopEnd() {{\n"
-                "  psychoJS.experiment.removeLoop(my.{params[name]});\n"
+        code = ("\nfunction {name}LoopEnd() {{\n"
+                "  psychoJS.experiment.removeLoop({name});\n"
                 "  psychoJS.experiment.save({{\n"
-                "    attributes: my.{params[name]}.getAttributes()\n"
-                "  }});\n").format(params=self.params)
-        code += ("  \nreturn Scheduler.Event.NEXT;\n"
+                "    attributes: {name}.getAttributes()\n"
+                "  }});\n\n").format(name=self.params['name'].val)
+        code += ("  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
 

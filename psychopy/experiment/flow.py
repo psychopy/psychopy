@@ -305,7 +305,7 @@ class Flow(list):
                             "flowScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopEnd);\n"
-                            .format(name=thisEntry.loop.params['name']))
+                            .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == "Routine":
                     code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
@@ -334,8 +334,6 @@ class Flow(list):
         """
         Function for setting up handler to look after randomisation of conditions etc
         """
-        tree = []
-
         # Then on the flow we need only the Loop Init/terminate
         for entry in self:
             if entry.getType() in ['LoopInitiator', 'LoopTerminator']:

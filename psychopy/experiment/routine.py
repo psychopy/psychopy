@@ -244,7 +244,7 @@ class Routine(list):
         for thisCompon in self:
             if ('startType' in thisCompon.params
                     and "PsychoJS" in thisCompon.targets):
-                code = ("my.%sComponents.push(my.%s);\n" % (self.name, thisCompon.params['name']))
+                code = ("my.%sComponents.push(%s);\n" % (self.name, thisCompon.params['name']))
                 buff.writeIndentedLines(code)
         code = ("\nfor (const thisComponent of my.%(name)sComponents)\n"
                 "  if ('status' in thisComponent)\n"
@@ -325,9 +325,11 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Ending Routine '%(name)s'-------\n"
-                "for (const thisComponent of my.%(name)sComponents)\n"
-                "  if (typeof thisComponent.setAutoDraw === 'function')\n"
-                "    thisComponent.setAutoDraw(false);\n\n" % self.params)
+                "for (const thisComponent of my.%(name)sComponents) {\n"
+                "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
+                "    thisComponent.setAutoDraw(false);\n"
+                "  }\n"
+                "}\n" % self.params)
         buff.writeIndentedLines(code)
         # add the EndRoutine code for each component
         for compon in self:
