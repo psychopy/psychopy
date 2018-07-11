@@ -224,10 +224,10 @@ class TrialHandler(object):
                     "    thisScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
                     "    thisScheduler.add({name}LoopScheduler);\n"
                     "    thisScheduler.add({name}LoopEnd);\n"
-                    .format(params=self.params, name=thisChild.params['name'])
+                    .format(params=self.params, name=thisChild.params['name'].val)
                     )
         if self.params['isTrials'].val == True:
-            code += ("    thisScheduler.add(endLoopIteration(thisTrial));\n")
+            code += ("    thisScheduler.add(endLoopIteration({thisName}));\n").format(thisName=self.thisName)
 
         code += ("  }\n"
                 "\n"
