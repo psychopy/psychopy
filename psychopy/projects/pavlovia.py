@@ -85,16 +85,16 @@ def login(tokenOrUsername,  rememberMe=True):
 def logout():
     """Log the current user out of pavlovia.
 
-    Various steps:
+    NB This function does not delete the cookie from the wx mini-browser
+    if that has been set. Use pavlovia_ui for that.
 
      - set the user for the currentSession to None
-     - in case browser was set to 'remember me' with a session cookie we should
-       log out there too
      - save the appData so that the user is blank
     """
     # create a new currentSession with no auth token
     global _existingSession
     _existingSession = PavloviaSession()
+    _existingSession.user = None
     # set appData to None
     prefs.appData['projects']['pavloviaUser'] = None
     prefs.saveAppData()
@@ -123,7 +123,7 @@ class User(object):
             self.avatar = gitlabData.attributes['avatar_url']
         elif 'avatar' in localData:
             self.avatar = localData['avatar']
-        else:
+        elif gitlabData:
             self.avatar = gitlabData.attributes['avatar_url']
         if rememberMe:
             self.saveLocal()
@@ -134,7 +134,7 @@ class User(object):
     def __getattr__(self, name):
         if name not in self.__dict__ and hasattr(self.gitlabData, name):
             return getattr(self.gitlabData, name)
-        raise AttributeError("No attribute '{}' in {}".format(name))
+        raise AttributeError("No attribute '{}' in this PavloviaUser".format(name))
 
     @property
     def username(self):
@@ -307,7 +307,7 @@ class PavloviaSession:
         return projs
 
     def listUserGroups(self, namesOnly=True):
-        gps = self.gitlab.groups.list(owned=True)
+        gps = self.gitlab.groups.list(member=True)
         if namesOnly:
             gps = [this.name for this in gps]
         return gps
@@ -628,6 +628,9 @@ class PavloviaProject(dict):
                                  "chosen a local folder.")
         if localFiles and self._newRemote:  # existing folder
             self.repo = git.Repo.init(self.localRoot)
+            with self.repo.config_writer() as config:
+                config.set_value("user", "email", self.pavlovia.user.email)
+                config.set_value("user", "name", self.pavlovia.user.name)
             # add origin remote and master branch (but no push)
             self.repo.create_remote('origin', url=self['remoteHTTPS'])
             self.repo.git.checkout(b="master")

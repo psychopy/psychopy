@@ -53,12 +53,14 @@ class PavloviaMiniBrowser(wx.Dialog):
     """This class is used by to open an internal browser for the user stuff
     """
     style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-    def __init__(self, parent, user=None, loginOnly=False, style=style, *args, **kwargs):
+    def __init__(self, parent, user=None, loginOnly=False, logoutOnly=False,
+                 style=style, *args, **kwargs):
         # create the dialog
         wx.Dialog.__init__(self, parent, style=style, *args, **kwargs)
         # create browser window for authentication
         self.browser = wx.html2.WebView.New(self)
         self.loginOnly = loginOnly
+        self.logoutOnly = logoutOnly
         self.tokenInfo = {}
 
         # do layout
@@ -78,6 +80,11 @@ class PavloviaMiniBrowser(wx.Dialog):
             self.login()
         if not user:
             return None
+
+    def logout(self):
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLogoutURL)
+        self.browser.LoadURL('https://gitlab.pavlovia.org/users/sign_out')
 
     def login(self):
         self._loggingIn = True
@@ -116,6 +123,12 @@ class PavloviaMiniBrowser(wx.Dialog):
             self.login()
         else:
             logging.info("OAuthBrowser.onNewURL:".format(url))
+
+    def checkForLogoutURL(self, event):
+        url = event.GetURL()
+        if url == 'https://gitlab.pavlovia.org/users/sign_in':
+            if self.logoutOnly:
+                self.EndModal(wx.ID_OK)
 
     def getParamFromURL(self, paramName, url=None):
         """Takes a url and returns the named param"""

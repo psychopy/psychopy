@@ -66,6 +66,20 @@ def logInPavlovia(parent, event=None):
         return pavlovia.getCurrentSession().user
 
 
+def logOutPavlovia(parent, event=None):
+    """Opens the built-in browser dialog to login to pavlovia
+
+    Returns
+    -------
+    None (user closed window without logging on) or a gitlab.User object
+    """
+    # also log out of gitlab session in python
+    pavlovia.logout()
+    # check known users list
+    dlg = PavloviaMiniBrowser(parent=parent, logoutOnly=True)
+    dlg.logout()
+    dlg.Destroy()
+
 def showCommitDialog(parent, project, initMsg=""):
     """Brings up a commit dialog (if there is anything to commit
 

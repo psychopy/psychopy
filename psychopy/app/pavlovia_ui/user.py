@@ -5,7 +5,7 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from .functions import setLocalPath, logInPavlovia
+from .functions import logInPavlovia, logOutPavlovia
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import prefs
@@ -102,7 +102,8 @@ class UserEditor(wx.Dialog):
         self.Fit()
 
     def onLogout(self, evt=None):
-        pavlovia.logout()
+        logOutPavlovia(self.parent)
+        self.setUserFields()
 
     def onCancel(self, evt=None):
         self.EndModal(wx.ID_CANCEL)
@@ -132,3 +133,20 @@ class UserEditor(wx.Dialog):
 
     def onURL(self, evt):
         print(dir(evt))
+
+    def setUserFields(self):
+
+        self.nameField.SetLabel(self.user.name)
+        if self.user and self.user.avatar:
+            userBitmap = wx.Bitmap(self.user.avatar)
+        else:
+            userBitmap = wx.Bitmap(os.path.join(resources, "user128invisible.png"))
+        self.avatarBtn.SetBitmap(userBitmap)
+
+        org = self.user.organization or ""
+        self.orgField.SetLabel(org)
+
+        bio = self.user.bio or ""
+        self.bioField.SetLabel(bio)
+
+        self.Update()
