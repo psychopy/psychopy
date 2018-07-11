@@ -442,26 +442,12 @@ class SettingsComponent(object):
                " * %s Test *\n" 
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
-        # Import modules
-        code = ("import Scheduler from 'lib/Scheduler';\n"
-                "import TextStim from 'lib/TextStim';\n"
-                "import ImageStim from 'lib/ImageStim';\n"
-                "import PsychoJS from 'lib/PsychoJS';\n"
-                "import Color from 'lib/Color';\n"
-                "import ExperimentHandler from 'lib/ExperimentHandler';\n"
-                "import TrialHandler from 'lib/TrialHandler';\n"
-                "import {BuilderKeyResponse} from 'lib/EventManager';\n"
-                "import {MonotonicClock, Clock, CountdownTimer} from 'lib/Clock';\n"
-                "import * as util from 'lib/util';\n"
-                "import Mouse from 'lib/Mouse';\n"
-                "\n\n")
-        buff.writeIndentedLines(code)
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
                 "my.expName = %(expName)s;  // from the Builder filename that created this script\n"
                 "my.expInfo = %(Experiment info)s;\n"
-                "\n" % self.params)
+                "\n\n" % self.params)
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff):
@@ -646,7 +632,7 @@ class SettingsComponent(object):
         "  fullscr: {fullScr},\n"
         "  color: new Color({params[color]}),\n"
         "  units: {params[Units]}\n"
-        "}});\n\n").format(fullScr=str(self.params['Full-screen window']).lower(),
+        "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
             params=self.params)
         buff.writeIndentedLines(code)
 
