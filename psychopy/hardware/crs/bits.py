@@ -3275,7 +3275,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                                     log[3+sourse] = v[3+sourse] 
                             # Check analog inputs
                             for analog in range(6):
-                                sourse = analog = 17
+                                sourse = analog + 17
                                 fLog = float(log[3+sourse])
                                 fVal = float(v[3+sourse])
                                 # if input has changed enough and input is mapped
