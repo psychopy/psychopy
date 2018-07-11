@@ -89,6 +89,7 @@ class Experiment(object):
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
+        self._compileLoop = True
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -175,11 +176,12 @@ class Experiment(object):
             # Do the Routines of the experiment first
             routinesToWrite = list(self.routines)
             for thisItem in self.flow:
-                if thisItem.getType() in ['LoopInitiator']:
-                    # load resources files (images, csv files etc
-                    self.flow.writeLoopHandlerJS(script)
-                elif thisItem.getType() in ['LoopTerminator']:
-                    pass
+                if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
+                    if self._compileLoop:  # If loops not already compiled
+                        self.flow.writeLoopHandlerJS(script)
+                        self._compileLoop = False
+                    else:
+                        pass
                 elif thisItem.name in routinesToWrite:
                     self._currentRoutine = self.routines[thisItem.name]
                     self._currentRoutine.writeRoutineBeginCodeJS(script)

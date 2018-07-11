@@ -334,8 +334,6 @@ class Flow(list):
         """
         Function for setting up handler to look after randomisation of conditions etc
         """
-        tree = []
-
         # Then on the flow we need only the Loop Init/terminate
         for entry in self:
             if entry.getType() in ['LoopInitiator', 'LoopTerminator']:
