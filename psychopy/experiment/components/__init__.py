@@ -194,7 +194,7 @@ def getInitVals(params, target="PsychoPy"):
             # filenames (e.g. for image) need to be loaded from resources
             if name in ["image", "mask", "sound"]:
                 val = str(inits[name].val)
-                if val != "None":
+                if val not in [None, 'None', 'none']:
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))
                     inits[name].valType = 'code'

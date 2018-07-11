@@ -134,7 +134,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "my.%(name)s = new BuilderKeyResponse(psychoJS);\n"
+        code = "%(name)s = new BuilderKeyResponse(psychoJS);\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -285,7 +285,7 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("// *%s* updates\n" % self.params['name'])
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
-        buff.writeIndented("my.%(name)s.status = PsychoJS.Status.STARTED;\n" % self.params)
+        buff.writeIndented("%(name)s.status = PsychoJS.Status.STARTED;\n" % self.params)
 
         allowedKeysIsVar = (valid_var_re.match(str(allowedKeys)) and not
                             allowedKeys == 'None')
@@ -321,9 +321,9 @@ class KeyboardComponent(BaseComponent):
                 print("PsychoJS doesn't support win.callOnFlip() for keyboard")
                 #    code = ("win.callOnFlip(%(name)s.clock.reset)
                 #            " screen flip\n") % self.params
-                code = "my.%(name)s.clock.reset();  // now t=0\n" % self.params
+                code = "%(name)s.clock.reset();  // now t=0\n" % self.params
             else:
-                code = "my.%(name)s.clock.reset();  // now t=0\n" % self.params
+                code = "%(name)s.clock.reset();  // now t=0\n" % self.params
 
             buff.writeIndented(code)
 
@@ -337,11 +337,12 @@ class KeyboardComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
-            buff.writeIndented("my.%(name)s.status = PsychoJS.Stats.STOPPED;\n" % self.params)
+            buff.writeIndented("%(name)s.status = PsychoJS.Status.STOPPED;\n"
+                               "}\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
-        buff.writeIndented("if (my.%(name)s.status === PsychoJS.Status.STARTED) {\n" % self.params)
+        buff.writeIndented("if (%(name)s.status === PsychoJS.Status.STARTED) {\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
         # do we need a list of keys? (variable case is already handled)
@@ -380,33 +381,33 @@ class KeyboardComponent(BaseComponent):
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            code = ("if (my.%(name)s.keys == []) {"
+            code = ("if (%(name)s.keys == []) {"
                     "  // then this was the first keypress\n") % self.params
             buff.writeIndented(code)
 
             buff.setIndentLevel(1, True)
             dedentAtEnd += 1  # to undo this level of "if"
 
-            code = ("my.%(name)s.keys = theseKeys[0]"
+            code = ("%(name)s.keys = theseKeys[0]"
                     "  // just the first key pressed\n"
-                    "my.%(name)s.rt = my.%(name)s.clock.getTime();\n")
+                    "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'last key':
-            code = ("my.%(name)s.keys = theseKeys[theseKeys.length-1]"
+            code = ("%(name)s.keys = theseKeys[theseKeys.length-1]"
                     "  // just the last key pressed\n"
-                    "my.%(name)s.rt = my.%(name)s.clock.getTime();\n")
+                    "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            code = ("my.%(name)s.keys = concat(my.%(name)s.keys, theseKeys);  // storing all keys\n"
-                    "my.%(name)s.rt = concat(my.%(name)s.rt, my.%(name)s.clock.getTime());\n")
+            code = ("%(name)s.keys = concat(%(name)s.keys, theseKeys);  // storing all keys\n"
+                    "%(name)s.rt = concat(%(name)s.rt, %(name)s.clock.getTime());\n")
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
             code = ("// was this 'correct'?\n"
-                    "if (my.%(name)s.keys == my.%(correctAns)s) {\n"
-                    "    my.%(name)s.corr = 1;\n"
+                    "if (%(name)s.keys == %(correctAns)s) {\n"
+                    "    %(name)s.corr = 1;\n"
                     "} else {\n"
-                    "    my.%(name)s.corr = 0;\n"
+                    "    %(name)s.corr = 0;\n"
                     "}\n")
             buff.writeIndentedLines(code % self.params)
 
@@ -439,9 +440,9 @@ class KeyboardComponent(BaseComponent):
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("    # was no response the correct answer?!\n"
                     "    if str(%(correctAns)s).lower() == 'none':\n"
-                    "       %(name)s.corr = 1  # correct non-response\n"
+                    "       %(name)s.corr = 1;  # correct non-response\n"
                     "    else:\n"
-                    "       %(name)s.corr = 0  # failed to respond (incorrectly)\n"
+                    "       %(name)s.corr = 0;  # failed to respond (incorrectly)\n"
                     % self.params)
 
             code += ("# store data for %s (%s)\n" %
@@ -489,19 +490,19 @@ class KeyboardComponent(BaseComponent):
 
         # write the actual code
         code = ("// check responses\n"
-                "if (['', [], undefined].indexOf(my.%(name)s.keys) >= 0) {"
+                "if (['', [], undefined].indexOf(%(name)s.keys) >= 0) {"
                 "    // No response was made\n"
-                "    my.%(name)s.keys = undefined;\n"
+                "    %(name)s.keys = undefined;\n"
                 "}\n")
         buff.writeIndentedLines(code % self.params)
 
         if self.params['storeCorrect'].val:  # check for correct NON-repsonse
             code = ("// was no response the correct answer?!\n"
-                    "if (my.%(name)s.keys == undefined) {\n"
+                    "if (%(name)s.keys == undefined) {\n"
                     "  if (psychoJS.str(%(correctAns)s).toLowerCase() == 'none') {\n"
-                    "     my.%(name)s.corr = 1  // correct non-response\n"
+                    "     %(name)s.corr = 1  // correct non-response\n"
                     "  } else {\n"
-                    "     my.%(name)s.corr = 0  // failed to respond (incorrectly)\n"
+                    "     %(name)s.corr = 0  // failed to respond (incorrectly)\n"
                     "  }\n"
                     "}\n"
                     % self.params)
@@ -516,13 +517,13 @@ class KeyboardComponent(BaseComponent):
                 "StairHandlers not currently supported by PsychoJS")
         else:
             # always add keys
-            buff.writeIndented("my.experiment.addData('%(name)s.keys', my.%(name)s.keys);\n" % self.params)
+            buff.writeIndented("my.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
 
             if self.params['storeCorrect'].val == True:
-                buff.writeIndented("my.experiment.addData('%(name)s.corr', my.%(name)s.corr);\n" % self.params)
+                buff.writeIndented("my.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
-            code = ("if (my.{name}.keys != undefined) {{  // we had a response\n"
-                    "    my.experiment.addData('{name}.rt', my.{name}.rt);\n}}\n"
+            code = ("if ({name}.keys != undefined) {{  // we had a response\n"
+                    "    my.experiment.addData('{name}.rt', {name}.rt);\n}}\n"
                     .format(loopName=currLoop.params['name'], name=name))
             buff.writeIndentedLines(code)

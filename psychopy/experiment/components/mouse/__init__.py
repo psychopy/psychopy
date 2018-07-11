@@ -167,7 +167,10 @@ class MouseComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
-        code = ("my.%(name)s = new my.event.Mouse();\n")
+        code = ("%(name)s = new Mouse({{\n"
+        "  win: my.window,\n"
+        "  units: my.window.units \n"
+        "}});\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
