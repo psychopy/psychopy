@@ -8,17 +8,19 @@ import time
 import os
 
 from .sync import SyncFrame
-from .functions import setLocalPath, showCommitDialog
+from .functions import setLocalPath, showCommitDialog, logInPavlovia
 from .sync import SyncStatusPanel, ProgressHandler
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
+
 try:
     import wx.lib.agw.hyperlink as wxhl  # 4.0+
 except ImportError:
-    import wx.lib.hyperlink as wxhl # <3.0.2
+    import wx.lib.hyperlink as wxhl  # <3.0.2
+
 
 class ProjectEditor(wx.Dialog):
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
@@ -49,7 +51,7 @@ class ProjectEditor(wx.Dialog):
         self.nameBox = wx.TextCtrl(panel, -1, size=(400, -1))
         # Path can contain only letters, digits, '_', '-' and '.'.
         # Cannot start with '-', end in '.git' or end in '.atom']
-        pavSession = getCurrentSession()
+        pavSession = pavlovia.getCurrentSession()
         username = pavSession.user.username
         gpChoices = [username]
         gpChoices.extend(pavSession.listUserGroups())
@@ -110,7 +112,11 @@ class ProjectEditor(wx.Dialog):
 
     def submitChanges(self, evt=None):
         session = pavlovia.getCurrentSession()
-        #get current values
+        if not session.user:
+            user = logInPavlovia(parent=self.parent)
+        if not session.user:
+            return
+        # get current values
         name = self.nameBox.GetValue()
         namespace = self.groupBox.GetStringSelection()
         descr = self.descrBox.GetValue()
@@ -136,7 +142,7 @@ class ProjectEditor(wx.Dialog):
             self.project.pavlovia.name = name
             self.project.pavlovia.description = descr
             self.project.tags = tags
-            self.project.visibility=visibility
+            self.project.visibility = visibility
             self.project.localRoot = localRoot
             self.project.save()  # pushes changed metadata to gitlab
             self.project._newRemote = False
@@ -173,9 +179,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         # if we've synced before we should know the local location
         self.localFolderCtrl = wx.StaticText(
-                parent=self, id=wx.ID_ANY,
-                label="Local root: ")
-        self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY, label="Browse...")
+            parent=self, id=wx.ID_ANY,
+            label="Local root: ")
+        self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY,
+                                        label="Browse...")
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
         # remote attributes
@@ -185,7 +192,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                                       )
         self.description = wx.StaticText(parent=self, id=-1,
                                          label=_translate(
-                                                 "Select a project for details"))
+                                             "Select a project for details"))
         self.tags = wx.StaticText(parent=self, id=-1,
                                   label="")
         self.visibility = wx.StaticText(parent=self, id=-1,
@@ -308,7 +315,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             newPath = setLocalPath(self, self.project)
             if newPath:
                 self.localFolderCtrl.SetLabel(
-                        label="Local root: {}".format(newPath))
+                    label="Local root: {}".format(newPath))
             self.project.local = newPath
             self.Layout()
 
@@ -326,7 +333,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.localFolder = setLocalPath(self, self.project)
         if self.localFolder:
             self.localFolderCtrl.SetLabel(
-                    label="Local root: {}".format(self.localFolder))
+                label="Local root: {}".format(self.localFolder))
         self.Layout()
 
 
@@ -334,7 +341,8 @@ def syncProject(parent, project=None):
     """A function to sync the current project (if there is one)
     """
     isCoder = hasattr(parent, 'currentDoc')
-    if not project and "BuilderFrame" in repr(parent):  # try getting one from the frame
+    if not project and "BuilderFrame" in repr(
+            parent):  # try getting one from the frame
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one

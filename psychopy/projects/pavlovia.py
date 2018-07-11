@@ -13,6 +13,7 @@ import os, sys, time
 from psychopy import logging, prefs, constants
 from psychopy.tools.filetools import DictStorage
 from psychopy import app
+from psychopy.localization import _translate
 import gitlab
 import gitlab.v4.objects
 import git
@@ -241,7 +242,7 @@ class PavloviaSession:
         a PavloviaProject object
 
         """
-        if not self.username:
+        if not self.user:
             raise NoUserError("Tried to create project with no user logged in")
         # NB gitlab also supports "internal" (public to registered users)
         if type(visibility) == bool and visibility:
@@ -256,8 +257,12 @@ class PavloviaSession:
         projDict['visibility'] = visibility
         projDict['wiki_enabled'] = True
         if namespace and namespace != self.username:
-            projDict['namespace'] = namespace
-
+            namespaceRaw = self.getNamespace(namespace)
+            if namespaceRaw:
+                projDict['namespace_id'] = namespaceRaw.id
+            else:
+                raise ValueError("PavloviaSession.createProject was given a "
+                                 "namespace that couldn't be found on gitlab.")
         # TODO: add avatar option?
         # TODO: add namespace option?
         gitlabProj = self.gitlab.projects.create(projDict)
@@ -337,6 +342,16 @@ class PavloviaSession:
         """
         self.__dict__['token'] = token
         self.startSession(token)
+
+    def getNamespace(self, namespace):
+        """Returns a namespace object for the given name if an exact match is
+        found
+        """
+        spaces = self.gitlab.namespaces.list(search=namespace)
+        # might be more than one, with
+        for thisSpace in spaces:
+            if thisSpace.path == namespace:
+                return thisSpace
 
     def startSession(self, token):
         """Start a gitlab session as best we can
@@ -798,8 +813,12 @@ def getProject(filename):
                                 continue
                         proj.localRoot = gitRoot
                     else:
-                        print("We found a git repository at {} but no user "
-                              "is logged in for us to chech that project")
+                        logging.warning(
+                            _translate(
+                                "We found a git repository pointing to {} but "
+                                "no user is logged in for us to chech that "
+                                "project")
+                                .format(url))
                         return None  # not logged in. Return None
                     return proj
         # if we got here then we have a local git repo but not a
@@ -832,9 +851,7 @@ def getCurrentSession():
 
 
 class NoUserError(Exception):
-    def __init__(self):
-        Exception.__init__(self)
+    pass
 
 class ConnectionError(Exception):
-    def __init__(self):
-        Exception.__init__(self)
+    pass
