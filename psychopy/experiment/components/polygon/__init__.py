@@ -205,3 +205,17 @@ class PolygonComponent(BaseVisualComponent):
             code += "interpolate=False)\n"
 
         buff.writeIndentedLines(code)
+
+    def writeInitCodeJS(self, buff):
+        code = ("{name} = new Rect ({{\n"
+        "  win: my.window, name: '{name}',\n"
+        "  units: my.window.units,\n"
+        "  width: [.5, 1][0], height: [.5, 1][1],\n"
+        "  ori: 0, pos: [0,0],\n"
+        "  lineWidth: 1, lineColor: new Color({lineColor}),\n"
+        "  fillColor: new Color({fillColor}),\n"
+        "  opacity: 1, depth: -1.0, interpolate: true,\n"
+        "}});\n")
+        buff.writeIndentedLines(code.format(name=self.params['name'],
+                                            lineColor=self.params['lineColor'],
+                                            fillColor=self.params['fillColor']))
