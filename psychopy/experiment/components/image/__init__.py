@@ -28,7 +28,7 @@ _localized = {'image': _translate('Image'),
 class ImageComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
-    def __init__(self, exp, parentName, name='image', image='', mask='None',
+    def __init__(self, exp, parentName, name='image', image='None', mask='None',
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
                  size=(0.5, 0.5), ori=0, texRes='128', flipVert=False,
@@ -146,17 +146,20 @@ class ImageComponent(BaseVisualComponent):
                 inits[paramName] = 'true'
             elif val is False:
                 inits[paramName] = 'false'
-            elif val in [None, 'None', 'none']:
-                inits[paramName] = 'undefined'
+            elif val in [None, 'None', 'none', '']:
+                inits[paramName].val = 'undefined'
         code = ("{inits[name]} = new ImageStim({{\n"
-                "    win : my.window, name : '{inits[name]}', {units}\n"
-                "    image : {inits[image]}, mask : {inits[mask]},\n"
-                "    ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
-                "    color : new Color ({inits[color]}), opacity : {inits[opacity]},\n"
-                "    flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
+                "  win : my.window,\n"
+                "  name : '{inits[name]}', {units}\n"
+                "  image : {image}, mask : {inits[mask]},\n"
+                "  ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
+                "  color : new Color ({inits[color]}), opacity : {inits[opacity]},\n"
+                "  flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
                 # no newline - start optional parameters
-                "    texRes : {inits[texture resolution]}"
-                .format(inits=inits, units=unitsStr))
+                "  texRes : {inits[texture resolution]}"
+                .format(inits=inits,
+                        image=self.params['image'],  # Must use params, else default 'sin' value given
+                        units=unitsStr))
 
         if self.params['interpolate'].val == 'linear':
             code += ", interpolate : true"

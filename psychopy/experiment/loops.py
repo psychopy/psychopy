@@ -186,6 +186,10 @@ class TrialHandler(object):
         self.thisName = makeLoopIndex(self.params['name'].val)
         # seed might be undefined
         seed = self.params['random seed'].val or 'undefined'
+        if self.params['conditionsFile'].val == '':
+            trialList='undefined'
+        else:
+            trialList=self.params['conditionsFile']
 
         code = ("\nfunction {name}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
@@ -193,11 +197,11 @@ class TrialHandler(object):
                 "    psychoJS,\n"
                 "    nReps: {params[nReps]}, method: TrialHandler.Method.{loopType},\n"
                 "    extraInfo: my.expInfo, originPath: undefined,\n"
-                "    trialList: {params[conditionsFile]},\n"
+                "    trialList: {trialList},\n"
                 "    seed: {seed}, name: '{name}'}});\n"
                 "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n\n"
                 .format(name=self.params['name'].val, loopType=(self.params['loopType'].val).upper(),
-                        params=self.params, thisName=self.thisName, seed=seed))
+                        params=self.params, thisName=self.thisName, trialList=trialList, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("  // Schedule all the trials in the trialList:\n"
@@ -224,10 +228,10 @@ class TrialHandler(object):
                     "    thisScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
                     "    thisScheduler.add({name}LoopScheduler);\n"
                     "    thisScheduler.add({name}LoopEnd);\n"
-                    .format(params=self.params, name=thisChild.params['name'])
+                    .format(params=self.params, name=thisChild.params['name'].val)
                     )
         if self.params['isTrials'].val == True:
-            code += ("    thisScheduler.add(endLoopIteration(thisTrial));\n")
+            code += ("    thisScheduler.add(endLoopIteration({thisName}));\n").format(thisName=self.thisName)
 
         code += ("  }\n"
                 "\n"

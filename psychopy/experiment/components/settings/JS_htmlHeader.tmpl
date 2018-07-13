@@ -4,18 +4,8 @@
   <head>
     <title>{name} [PsychoPy]</title>
     <meta charset="UTF-8">
-    <link href="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
 
-    <style>
-        /* project and resource dialogs */
-        label, input {{ display:block; padding-bottom: .5em; }}
-        input.text {{ margin-bottom:1em; width:95%; padding: .5em; }}
-        fieldset {{ padding:0; border:0; margin-top:25px; }}
-
-        /* don't display close button in the top right corner of the box */
-        .no-close .ui-dialog-titlebar-close {{ display: none; }}
-    </style>
-
+    <!-- external libraries -->
     <script type="text/javascript" src="lib/vendors/seedrandom.min.js"></script>
     <script type="text/javascript" src="lib/vendors/jquery-2.2.0.min.js"></script>
     <script type="text/javascript" src="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.js"></script>
@@ -26,16 +16,16 @@
     <script type="text/javascript" src="lib/vendors/log4javascript.min.js"></script>
     <script type="text/javascript" src="lib/vendors/Tone.min.js"></script>
 
-    <!-- module loading with System.js -->
-    <script src="lib/vendors/jspm_packages/system.js"></script>
-    <script src="lib/vendors/config.js"></script>
+    <!-- styles -->
+    <link href="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
+    <link href="lib/psychojs.css" rel="stylesheet">
 
+    <!-- PsychoJS library -->
+    <script type="text/javascript" src="lib/psychojs.0.1.0.js"></script>
   </head>
 
   <body>
     <div id="root"/>
-    <script type='text/javascript'>
-      System.import("./{name}.js");
-    </script>
+    <script type="text/javascript" src="./{name}.js"></script>
   </body>
 </html>

@@ -139,7 +139,6 @@ class Param(object):
         self.readOnly = False
 
     def __str__(self):
-
         if self.valType == 'num':
             try:
                 # will work if it can be represented as a float

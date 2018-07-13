@@ -137,22 +137,22 @@ class TextComponent(BaseVisualComponent):
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
-            unitsStr = "units : %(units)s, " % self.params
+            unitsStr = "  units : %(units)s, " % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
 
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'undefined'
-        code = ("%(name)s = new TextStim({win : my.window, "
-                "name : '%(name)s',\n"
-                "    text : %(text)s,\n"
-                "    font : %(font)s,\n"
-                "    " + unitsStr +
-                "pos : %(pos)s, height : %(letterHeight)s, "
-                "wrapWidth : %(wrapWidth)s, ori:%(ori)s, \n"
-                "    color : new Color(%(color)s), "
-                "opacity : %(opacity)s,")
+        code = ("%(name)s = new TextStim({\n"
+                "  win : my.window,\n"
+                "  name : '%(name)s',\n"
+                "  text : %(text)s,\n"
+                "  font : %(font)s,\n" + unitsStr +
+                "  pos : %(pos)s, height : %(letterHeight)s,"
+                "  wrapWidth : %(wrapWidth)s, ori: %(ori)s,\n"
+                "  color : new Color(%(color)s),"
+                "  opacity : %(opacity)s,")
         buff.writeIndentedLines(code % inits)
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
@@ -166,6 +166,6 @@ class TextComponent(BaseVisualComponent):
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        code = ("    %sdepth : %.1f \n"
+        code = ("  %sdepth : %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
