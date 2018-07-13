@@ -147,7 +147,7 @@ class MouseComponent(BaseComponent):
         # code to check if clickable objects were clicked
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
-            "for (const obj of [{clickable}])\n"
+            "for (const obj of [{clickable}]) {{\n"
             "  if (obj.contains({name})) {{\n"
             "    console.log('INSIDE ' + obj.name);\n"
             "    {name}.clicked_name.push(obj.name);\n"
@@ -402,7 +402,6 @@ class MouseComponent(BaseComponent):
         if self.params['clickable'].val:
             self._writeClickableObjectsCodeJS(buff)
 
-        buff.writeIndented("}\n")
             # does the response end the trial?
         if forceEnd == 'any click':
             code = ("// abort routine on response\n"
@@ -417,8 +416,10 @@ class MouseComponent(BaseComponent):
         else:
             pass  # forceEnd == 'never'
             # 'if' statement of the time test and button check
-        buff.setIndentLevel(-dedentAtEnd, relative=True)
-        buff.writeIndentedLines('}')
+        buff.writeIndented("}\n")
+        for thisDedent in range(dedentAtEnd):
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndentedLines('}')
 
     def writeRoutineEndCode(self, buff):
         # some shortcuts
@@ -443,7 +444,7 @@ class MouseComponent(BaseComponent):
                     (currLoop.params['name'], currLoop.type))
 
         buff.writeIndentedLines(code)
-            
+
         if store == 'final':  # for the o
             # buff.writeIndented("# get info about the %(name)s\n"
             # %(self.params))
