@@ -106,16 +106,19 @@ class DlgCodeComponentProperties(wx.Dialog):
                 _codeBox.Bind(wx.EVT_KEY_UP, self.onKeyEvent)  # Event for updating duplicate panel real-time
                 _codeBoxDup.Bind(wx.EVT_KEY_UP, self.onKeyEvent)  # Event for updating main panel real-time
 
-                if self.params['Code Type'] == 'Py':
-                    if len(param.val) and 'JS' not in pkey:
-                        _codeBox.AddText(str(param.val))
-                elif self.params['Code Type'] == 'JS' and 'JS' not in pkey:
-                    param = self.params.get(pkey.replace(' ', ' JS '))
-                    if len(param.val):
-                        _codeBox.AddText(str(param.val))
-                if len(param.val.strip()) and not openToPage:
-                    # index of first non-blank page
-                    openToPage = idx
+                if 'JS' not in pkey:
+                    param = self.params.get(pkey)
+                    paramJS = self.params.get(pkey.replace(' ', ' JS '))
+                    if self.params['Code Type'] == 'Py':
+                        if len(param.val):
+                            _codeBox.AddText(str(param.val))
+                    elif self.params['Code Type'] in ['JS', 'Both']:
+                        if len(paramJS.val):
+                            _codeBox.AddText(str(paramJS.val))
+                            self.params['Code Type'].val = 'JS'  # Set to JS in case 'Both' is set
+                    if len(param.val.strip()) and not openToPage:
+                        # index of first non-blank page
+                        openToPage = idx
 
         if self.helpUrl is not None:
             self.helpButton = wx.Button(self, wx.ID_HELP,
@@ -159,7 +162,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             return
         self.onKeyEvent(event, formerCodeType, 'Hide')
 
-    def onKeyEvent(self, event, formerCodeType = None, winControl = 'Hide', ):
+    def onKeyEvent(self, event, formerCodeType=None, winControl='Hide', ):
         """Receives keyboard events and code menu choice events.
         On choice events, the code is stored for python or JS parameters,
         and written to panel depending on choice of code. The duplicate panel
@@ -283,8 +286,9 @@ class DlgCodeComponentProperties(wx.Dialog):
                     elif self.params['Code Type'] == 'Both':
                         self.params[fieldName.replace(' ', ' JS ')].val = gkey.get(codeBoxDup).GetText()
                         param.val = gkey.get(codeBox).GetText()
-                        self.codeTypeMenu.SetSelection(1)  # Reset menu to JS so updated JS code is not lost
-                        self.params['Code Type'].val = 'JS'
+        if self.params['Code Type'] == 'Both':  # Reset window to JS
+            self.params['Code Type'].val = 'JS'
+            self.codeTypeMenu.SetSelection(1)  # Reset menu to JS so updated JS code is not lost
         return self.params
 
     def helpButtonHandler(self, event):
