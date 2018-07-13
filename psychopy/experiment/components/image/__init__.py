@@ -146,18 +146,20 @@ class ImageComponent(BaseVisualComponent):
                 inits[paramName] = 'true'
             elif val is False:
                 inits[paramName] = 'false'
-            elif val in [None, 'None', 'none']:
+            elif val in [None, 'None', 'none', '']:
                 inits[paramName].val = 'undefined'
         code = ("{inits[name]} = new ImageStim({{\n"
                 "  win : my.window,\n"
                 "  name : '{inits[name]}', {units}\n"
-                "  image : {image}, mask : {mask},\n"
+                "  image : {image}, mask : {inits[mask]},\n"
                 "  ori : {inits[ori]}, pos : {inits[pos]}, size : {inits[size]},\n"
                 "  color : new Color ({inits[color]}), opacity : {inits[opacity]},\n"
                 "  flipHoriz : {inits[flipHoriz]}, flipVert : {inits[flipVert]},\n"
                 # no newline - start optional parameters
                 "  texRes : {inits[texture resolution]}"
-                .format(inits=inits, image=self.params['image'], mask=inits['mask'].val, units=unitsStr))
+                .format(inits=inits,
+                        image=self.params['image'],  # Must use params, else default 'sin' value given
+                        units=unitsStr))
 
         if self.params['interpolate'].val == 'linear':
             code += ", interpolate : true"

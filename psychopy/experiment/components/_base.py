@@ -340,9 +340,8 @@ class BaseComponent(object):
                 valStr = valStr.replace("(", "[", 1)
                 valStr = valStr[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
-            if paramName in ["image", "mask", "sound"]:
-                valStr = ("psychoJS.resourceManager.getResource(my.{})"
-                       .format(valStr))
+            if paramName in ["sound"]:
+                valStr = ("psychoJS.resourceManager.getResource(my.{})".format(valStr))
         else:
             endStr = ''
 

@@ -33,6 +33,8 @@ def expression2js(expr):
     syntaxTree = ast.parse(expr)
     for node in ast.walk(syntaxTree):
         if isinstance(node, ast.Name):
+            if node.id == 'undefined':
+                continue
             node.id = namesJS[node.id]
     return astunparse.unparse(syntaxTree).strip()
 
