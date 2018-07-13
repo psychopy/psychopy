@@ -603,8 +603,7 @@ class PavloviaProject(dict):
                                  "project local folder to be \n\t{}"
                                  .format(repr(self.localRoot), repr(gitRoot)))
         else:
-            repo = git.Repo(gitRoot)
-        self.repo = repo
+            self.repo = git.Repo(gitRoot)
         self.writeGitIgnore()
 
     def writeGitIgnore(self):
@@ -629,8 +628,9 @@ class PavloviaProject(dict):
         if localFiles and self._newRemote:  # existing folder
             self.repo = git.Repo.init(self.localRoot)
             with self.repo.config_writer() as config:
-                config.set_value("user", "email", self.pavlovia.user.email)
-                config.set_value("user", "name", self.pavlovia.user.name)
+                session = getCurrentSession()
+                config.set_value("user", "email", session.user.email)
+                config.set_value("user", "name", session.user.name)
             # add origin remote and master branch (but no push)
             self.repo.create_remote('origin', url=self['remoteHTTPS'])
             self.repo.git.checkout(b="master")
