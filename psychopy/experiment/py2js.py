@@ -41,8 +41,8 @@ def snippet2js(expr):
     """Convert several lines (e.g. a Code Component) Python to JS"""
     # for now this is just adding ';' onto each line ending so will fail on
     # most code (e.g. if... for... will certainly fail)
-    jsSnippet = expression2js(expr).replace('\n', ';\n')
-    return jsSnippet
+    # do nothing for now
+    return expr
 
 
 if __name__=='__main__':
