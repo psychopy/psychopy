@@ -102,8 +102,11 @@ class SoundComponent(BaseComponent):
             inits['stopVal'].val = -1
         elif float(inits['stopVal'].val) > 2:
             inits['stopVal'].val = -1
-        buff.writeIndented("%s = new my.sound.Sound(%s, secs=%s);\n" %
-                           (inits['name'], inits['sound'], inits['stopVal']))
+        buff.writeIndented("%s = new Sound({\n"
+                           "    win: my.window,\n"
+                           "    value: %s,\n"
+                           "    secs: %s\n"
+                           "    });\n" % (inits['name'], inits['sound'], inits['stopVal']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
 
     def writeFrameCode(self, buff):

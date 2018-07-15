@@ -192,9 +192,9 @@ def getInitVals(params, target="PsychoPy"):
                 inits[name].val = inits[name].val.replace("(", "[", 1)
                 inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
-            if name in ["image", "mask", "sound"]:
+            if name in ["sound"]:
                 val = str(inits[name].val)
-                if val not in [None, 'None', 'none']:
+                if val not in [None, 'None', 'none', '']:
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))
                     inits[name].valType = 'code'
