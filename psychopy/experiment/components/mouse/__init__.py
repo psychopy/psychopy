@@ -155,9 +155,6 @@ class MouseComponent(BaseComponent):
             "}}\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
                                             clickable=self.params['clickable']))
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
-
 
     def writeInitCode(self, buff):
         code = ("%(name)s = event.Mouse(win=win)\n"
@@ -372,6 +369,7 @@ class MouseComponent(BaseComponent):
                     "if (my.buttons != my.prevButtonState) { // button state changed?")
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
+            dedentAtEnd += 1
             code = "if (!my.buttons.every( (e,i,) => (e == my.prevButtonState[i]) )) { // button state changed?\n"
             buff.writeIndented(code)
             buff.setIndentLevel(1, relative=True)
@@ -410,13 +408,10 @@ class MouseComponent(BaseComponent):
 
         elif forceEnd == 'valid click':
             code = ("if (my.gotValidClick === true) { // abort routine on response\n"
-                    "  let continueRoutine = false;\n"
-                    "}\n")
+                    "  let continueRoutine = false;\n")
             buff.writeIndentedLines(code)
         else:
             pass  # forceEnd == 'never'
-            # 'if' statement of the time test and button check
-        buff.writeIndented("}\n")
         for thisDedent in range(dedentAtEnd):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndentedLines('}')

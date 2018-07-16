@@ -206,6 +206,7 @@ class BaseComponent(object):
         buff.writeIndented(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
+        dedent = 1
         code = ("// keep track of start time/frame for later\n"
                 "%(name)s.tStart = my.t;  // (not accounting for frame time here)\n"
                 "%(name)s.frameNStart = my.frameN;  // exact frame index\n")
@@ -250,7 +251,7 @@ class BaseComponent(object):
         """
         if self.params['stopType'].val == 'time (s)':
             code = ("my.frameRemains = %(stopVal)s "
-                    " - my.frameDur * 0.75;"
+                    " - my.window.monitorFramePeriod * 0.75;"
                     "  # most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
                     "&& my.t >= my.frameRemains) {\n")
@@ -258,7 +259,7 @@ class BaseComponent(object):
         elif (self.params['stopType'].val == 'duration (s)' and
               self.params['startType'].val == 'time (s)'):
             code = ("my.frameRemains = %(startVal)s + %(stopVal)s"
-                    " - my.frameDur * 0.75;"
+                    " - my.window.monitorFramePeriod * 0.75;"
                     "  // most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
                     "&& my.t >= my.frameRemains) {\n")
@@ -546,6 +547,7 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented("%(name)s.setAutoDraw(True)\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines('}\n')
 
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):
@@ -592,7 +594,7 @@ class BaseVisualComponent(BaseComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            code = ("if (%(name)s.status == STARTED){ "
+            code = ("if (%(name)s.status === PsychoJS.Status.STARTED){ "
                     "// only update if being drawn\n")
             buff.writeIndented(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
