@@ -9,11 +9,12 @@
 """
 from future.builtins import object
 import glob
-import os, sys, time
+import os, time, socket
 from psychopy import logging, prefs, constants
 from psychopy.tools.filetools import DictStorage
 from psychopy import app
 from psychopy.localization import _translate
+from . import sshkeys
 import gitlab
 import gitlab.v4.objects
 import git
@@ -23,6 +24,13 @@ import traceback
 # for authentication
 from uuid import uuid4
 from .gitignore import gitIgnoreText
+
+if constants.PY3:
+    from urllib import parse
+    urlencode = parse.quote
+else:
+    import urllib
+    urlencode = urllib.quote
 
 # TODO: test what happens if we have a network initially but lose it
 # TODO: test what happens if we have a network but pavlovia times out
@@ -59,7 +67,7 @@ def getAuthURL():
     return auth_url, state
 
 
-def login(tokenOrUsername,  rememberMe=True):
+def login(tokenOrUsername, rememberMe=True):
     """Sets the current user by means of a token
 
     Parameters
@@ -93,8 +101,7 @@ def logout():
     """
     # create a new currentSession with no auth token
     global _existingSession
-    _existingSession = PavloviaSession()
-    _existingSession.user = None
+    _existingSession = PavloviaSession()  # create an empty session (user is None)
     # set appData to None
     prefs.appData['projects']['pavloviaUser'] = None
     prefs.saveAppData()
@@ -108,6 +115,7 @@ class User(object):
     """Class to combine what we know about the user locally and on gitlab
 
     (from previous logins and from the current session)"""
+
     def __init__(self, localData={}, gitlabData=None, rememberMe=True):
         currentSession = getCurrentSession()
         self.data = localData
@@ -116,7 +124,16 @@ class User(object):
         if gitlabData and not localData:
             if gitlabData.username in knownUsers:
                 self.data = knownUsers[gitlabData.username]
-        #then try again to populate fields
+
+        # check and/or create SSH keys
+        sshIdPath = os.path.join(prefs.paths['userPrefsDir'],
+                                 "ssh", self.username)
+        if os.path.isfile(sshIdPath):
+            self.publicSSH = sshkeys.getPublicKey(sshIdPath + ".pub")
+        else:
+            self.publicSSH = sshkeys.saveKeyPair(sshIdPath)
+
+        # then try again to populate fields
         if gitlabData and not localData:
             self.data['username'] = gitlabData.username
             self.data['token'] = currentSession.getToken()
@@ -125,6 +142,18 @@ class User(object):
             self.avatar = localData['avatar']
         elif gitlabData:
             self.avatar = gitlabData.attributes['avatar_url']
+        if gitlabData:
+            keys = gitlabData.keys.list()
+            keyName = '{}@{}'.format(
+                self.username, socket.gethostname().strip(".local"))
+            remoteKey = None
+            for thisKey in keys:
+                if thisKey.title == keyName:
+                    remoteKey = thisKey
+                    break
+            if not remoteKey:
+                remoteKey = gitlabData.keys.create({'title': keyName,
+                                                    'key': self.publicSSH})
         if rememberMe:
             self.saveLocal()
 
@@ -134,7 +163,8 @@ class User(object):
     def __getattr__(self, name):
         if name not in self.__dict__ and hasattr(self.gitlabData, name):
             return getattr(self.gitlabData, name)
-        raise AttributeError("No attribute '{}' in this PavloviaUser".format(name))
+        raise AttributeError(
+            "No attribute '{}' in this PavloviaUser".format(name))
 
     @property
     def username(self):
@@ -180,7 +210,8 @@ class User(object):
         if exten not in ['jpg', 'png', 'tif']:
             exten = 'jpg'
         avatarLocal = os.path.join(pavloviaPrefsDir, ("avatar_{}.{}"
-                                         .format(self.username, exten)))
+                                                      .format(self.username,
+                                                              exten)))
 
         # try to fetch the actual image file
         r = requests.get(url, stream=True)
@@ -318,7 +349,7 @@ class PavloviaSession:
         """
         own = self.gitlab.projects.list(owned=True, search=searchStr)
         group = self.gitlab.projects.list(owned=False, membership=True,
-                                          search = searchStr)
+                                          search=searchStr)
         projs = []
         projIDs = []
         for proj in own + group:
@@ -361,7 +392,7 @@ class PavloviaSession:
                 raise ValueError(
                     "Trying to login with token {} which is shorter "
                     "than expected length ({} not 64) for gitlab token"
-                    .format(repr(token), len(token)))
+                        .format(repr(token), len(token)))
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
         else:
@@ -487,7 +518,8 @@ class PavloviaProject(dict):
 
     @property
     def owner(self):
-        return self.pavlovia.attributes['namespace']['name']
+        namespaceName = self.id.split('/')[0]
+        return namespaceName
 
     @property
     def attributes(self):
@@ -534,7 +566,7 @@ class PavloviaProject(dict):
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
         logging.info(msg)
         if syncPanel:
-            syncPanel.statusAppend("\n"+msg)
+            syncPanel.statusAppend("\n" + msg)
             time.sleep(0.5)
 
     def pull(self, syncPanel=None, progressHandler=None):
@@ -558,7 +590,6 @@ class PavloviaProject(dict):
             syncPanel.statusAppend("done")
             if info:
                 syncPanel.statusAppend("\n{}".format(info))
-
 
     def push(self, syncPanel=None, progressHandler=None):
         """Push to remote from local copy of the repository
@@ -689,7 +720,10 @@ class PavloviaProject(dict):
         else:
             fork = self.pavlovia.forks.create(
                 {})  # uses the current logged-in user
-        return fork
+        id = fork.id
+        pavSession = refreshSession()
+        proj = pavSession.getProject(id)
+        return proj
 
     def getChanges(self):
         """Find all the not-yet-committed changes in the repository"""
@@ -772,7 +806,7 @@ class PavloviaProject(dict):
         url = 'https://pavlovia.org/server?command=update_project'
         data = {'projectId': self.idNumber, 'projectStatus': 'ACTIVATED'}
         resp = requests.put(url, data)
-        if resp.status_code==200:
+        if resp.status_code == 200:
             self.__dict__['pavloviaStatus'] = newStatus
         else:
             print(resp)
@@ -836,6 +870,7 @@ def getProject(filename):
 global _existingSession
 _existingSession = None
 
+
 # create an instance of that
 def getCurrentSession():
     """Returns the current Pavlovia session, creating one if not yet present
@@ -848,13 +883,25 @@ def getCurrentSession():
     if _existingSession:
         return _existingSession
     else:
-        session = PavloviaSession()
-        _existingSession = session
+        _existingSession = PavloviaSession()
+    return _existingSession
+
+
+def refreshSession():
+    """Restarts the session with the same user logged in"""
+    global _existingSession
+    if _existingSession and _existingSession.getToken():
+        _existingSession = PavloviaSession(
+            token=_existingSession.getToken()
+        )
+    else:
+        _existingSession = PavloviaSession()
     return _existingSession
 
 
 class NoUserError(Exception):
     pass
+
 
 class ConnectionError(Exception):
     pass
