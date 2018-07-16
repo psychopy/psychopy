@@ -206,7 +206,6 @@ class BaseComponent(object):
         buff.writeIndented(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        dedent = 1
         code = ("// keep track of start time/frame for later\n"
                 "%(name)s.tStart = my.t;  // (not accounting for frame time here)\n"
                 "%(name)s.frameNStart = my.frameN;  // exact frame index\n")
@@ -252,7 +251,7 @@ class BaseComponent(object):
         if self.params['stopType'].val == 'time (s)':
             code = ("my.frameRemains = %(stopVal)s "
                     " - my.window.monitorFramePeriod * 0.75;"
-                    "  # most of one frame period left\n"
+                    "  // most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
                     "&& my.t >= my.frameRemains) {\n")
         # duration in time (s)

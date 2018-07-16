@@ -191,7 +191,7 @@ class TrialHandler(object):
         else:
             trialList=self.params['conditionsFile']
 
-        code = ("\nfunction {name}LoopBegin(thisScheduler) {{\n"
+        code = ("\nfunction {funName}LoopBegin(thisScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  {name} = new TrialHandler({{\n"
                 "    psychoJS,\n"
@@ -200,14 +200,14 @@ class TrialHandler(object):
                 "    trialList: {trialList},\n"
                 "    seed: {seed}, name: '{name}'}});\n"
                 "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n\n"
-                .format(name=self.params['name'].val, loopType=(self.params['loopType'].val).upper(),
+                .format(funName=self.params['name'].val,name=self.params['name'], loopType=(self.params['loopType'].val).upper(),
                         params=self.params, thisName=self.thisName, trialList=trialList, seed=seed))
         buff.writeIndentedLines(code)
         # for the scheduler
         code = ("  // Schedule all the trials in the trialList:\n"
                 "  for (const {thisName} of {name}) {{\n"
                 "    thisScheduler.add(importTrialAttributes({thisName}));\n"
-                .format(name=self.params['name'].val, params=self.params, thisName=self.thisName, seed=seed))
+                .format(name=self.params['name'], params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
         loopDict = self.exp.flow.loopDict
@@ -279,11 +279,12 @@ class TrialHandler(object):
 
     def writeLoopEndCodeJS(self, buff):
         # Just within the loop advance data line if loop is whole trials
-        code = ("\nfunction {name}LoopEnd() {{\n"
+        code = ("\nfunction {funName}LoopEnd() {{\n"
                 "  psychoJS.experiment.removeLoop({name});\n"
                 "  psychoJS.experiment.save({{\n"
                 "    attributes: {name}.getAttributes()\n"
-                "  }});\n\n").format(name=self.params['name'].val)
+                "  }});\n\n").format(funName=self.params['name'].val,
+                                     name=self.params['name'])
         code += ("  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)
