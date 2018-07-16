@@ -83,7 +83,7 @@ for compName in sorted(allComp):
             err = order + ' <==> NEW (no matching param in original)'
         print(err)
         mismatches.append(err)
-    for parName in comp.params:
+    for parName in sorted(comp.params):
         # default is what you get from param.__str__, which returns its value
         if not constants.PY3:
             if isinstance(comp.params[parName].val, unicode):
@@ -91,7 +91,7 @@ for compName in sorted(allComp):
         default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
         out.append(default)
         lineFields = []
-        for field in fields:
+        for field in sorted(fields):
             if parName == 'name' and field == 'updates':
                 continue
                 # ignore: never want to change the name *during an experiment*

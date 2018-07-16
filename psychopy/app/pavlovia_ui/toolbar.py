@@ -45,7 +45,10 @@ class PavloviaButtons:
 
     def onPavloviaUser(self, evt=None):
         userDlg = UserEditor()
-        userDlg.ShowModal()
+        if userDlg.user:
+            userDlg.ShowModal()
+        else:
+            userDlg.Destroy()
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(

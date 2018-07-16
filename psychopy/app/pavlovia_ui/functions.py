@@ -75,7 +75,7 @@ def logOutPavlovia(parent, event=None):
     """
     # also log out of gitlab session in python
     pavlovia.logout()
-    # check known users list
+    # create minibrowser so we can logout of the session
     dlg = PavloviaMiniBrowser(parent=parent, logoutOnly=True)
     dlg.logout()
     dlg.Destroy()

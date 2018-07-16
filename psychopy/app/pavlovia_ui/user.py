@@ -22,8 +22,7 @@ resources = prefs.paths['resources']
 
 class UserEditor(wx.Dialog):
     defStyle = wx.DEFAULT_DIALOG_STYLE #| wx.RESIZE_BORDER
-    def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
-                 style=defStyle,
+    def __init__(self, parent=None, id=wx.ID_ANY, style=defStyle,
                  *args, **kwargs):
 
         wx.Dialog.__init__(self, parent, id,
@@ -38,6 +37,8 @@ class UserEditor(wx.Dialog):
             self.user = pavSession.user
         else:
             self.user = logInPavlovia(parent=parent)
+            if not self.user:
+                return  # they were given a login but cancelled
         if type(self.user) != pavlovia.User:
             self.user = pavlovia.User(gitlabData=self.user)
 
@@ -81,7 +82,7 @@ class UserEditor(wx.Dialog):
         topRow.Add(userAndLogout, 1, wx.ALL | wx.CENTER, 5)
         topRow.Add(self.avatarBtn, 0, wx.ALL | wx.RIGHT, 5)
 
-        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=10, hgap=10)
         fieldsSizer.AddMany([
             (nameLabel, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
             (self.nameField,0, wx.EXPAND),
@@ -96,14 +97,15 @@ class UserEditor(wx.Dialog):
 
         border = wx.BoxSizer(wx.VERTICAL)
         border.Add(topRow, 0, wx.ALL| wx.EXPAND, 5)
-        border.Add(fieldsSizer, 1, wx.ALL | wx.EXPAND, 5)
+        border.Add(fieldsSizer, 1, wx.ALL | wx.EXPAND, 10)
         border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         panel.SetSizerAndFit(border)
         self.Fit()
 
     def onLogout(self, evt=None):
         logOutPavlovia(self.parent)
-        self.setUserFields()
+        self.user = None
+        self.Close()
 
     def onCancel(self, evt=None):
         self.EndModal(wx.ID_CANCEL)
@@ -133,20 +135,3 @@ class UserEditor(wx.Dialog):
 
     def onURL(self, evt):
         print(dir(evt))
-
-    def setUserFields(self):
-
-        self.nameField.SetLabel(self.user.name)
-        if self.user and self.user.avatar:
-            userBitmap = wx.Bitmap(self.user.avatar)
-        else:
-            userBitmap = wx.Bitmap(os.path.join(resources, "user128invisible.png"))
-        self.avatarBtn.SetBitmap(userBitmap)
-
-        org = self.user.organization or ""
-        self.orgField.SetLabel(org)
-
-        bio = self.user.bio or ""
-        self.bioField.SetLabel(bio)
-
-        self.Update()
