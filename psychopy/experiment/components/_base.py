@@ -547,7 +547,6 @@ class BaseVisualComponent(BaseComponent):
         buff.writeIndented("%(name)s.setAutoDraw(True)\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines('}\n')
 
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):
