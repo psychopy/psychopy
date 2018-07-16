@@ -68,7 +68,7 @@ class PavloviaMiniBrowser(wx.Dialog):
         sizer.Add(self.browser, 1, wx.EXPAND, 10)
         self.SetSizer(sizer)
         if loginOnly:
-            self.SetSize((400, 600))
+            self.SetSize((600, 600))
         else:
             self.SetSize((700, 600))
         self.CenterOnParent()

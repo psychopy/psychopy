@@ -164,7 +164,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                  style=wx.VSCROLL | wx.NO_BORDER):
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.project = {}
+        self.project = {}  # type: PavloviaProject
         self.noTitle = noTitle
         self.localFolder = ''
 
@@ -253,7 +253,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         # public / private
         self.description.SetLabel(project.attributes['description'])
-        if project.visibility in ['public', 'internal']:
+        if not hasattr(project, 'visibility'):
+            visib = "User not logged in!"
+        elif project.visibility in ['public', 'internal']:
             visib = "Public"
         else:
             visib = "Private"
@@ -266,7 +268,13 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.localFolderCtrl.SetLabel("Local root: {}".format(localFolder))
 
         # should sync be enabled?
-        perms = project.permissions['project_access']
+        if 'permissions' in project.attributes:
+            if 'project_access' in project.attributes['permissions']:
+                perms = project.attributes['permissions']['project_access']
+        elif hasattr(project, 'project_access'):
+            perms = project.project_access
+        else:
+            perms = None
         if type(perms) == dict:
             perms = perms['access_level']
         if (perms is not None) and perms >= pavlovia.permissions['developer']:
