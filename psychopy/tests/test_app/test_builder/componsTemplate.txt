@@ -1777,7 +1777,7 @@ MouseComponent.stopVal.valType:code
 MouseComponent.timeRelativeTo.default:'routine'
 MouseComponent.timeRelativeTo.allowedTypes:[]
 MouseComponent.timeRelativeTo.allowedUpdates:None
-MouseComponent.timeRelativeTo.allowedVals:['experiment', 'routine']
+MouseComponent.timeRelativeTo.allowedVals:['Mouse onset', 'Experiment', 'Routine']
 MouseComponent.timeRelativeTo.categ:Basic
 MouseComponent.timeRelativeTo.hint:What should the values of mouse.time should be relative to?
 MouseComponent.timeRelativeTo.label:Time relative to
