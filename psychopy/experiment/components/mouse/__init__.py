@@ -82,7 +82,7 @@ class MouseComponent(BaseComponent):
                          "relative to?")
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str',
-            allowedVals=['experiment', 'routine'],
+            allowedVals=['Mouse onset', 'Experiment', 'Routine'],
             updates='constant',
             hint=msg,
             label=_localized['timeRelativeTo'])
@@ -130,6 +130,7 @@ class MouseComponent(BaseComponent):
         # code to check if clickable objects were clicked
         code = (
             "# check if the mouse was inside our 'clickable' objects\n"
+            "gotValidClick = False;\n"
             "for obj in [%(clickable)s]:\n"
             "    if obj.contains(%(name)s):\n"
             "        gotValidClick = True\n")
@@ -147,27 +148,28 @@ class MouseComponent(BaseComponent):
         # code to check if clickable objects were clicked
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
+            "my.gotValidClick = false;\n"
             "for (const obj of [{clickable}]) {{\n"
             "  if (obj.contains({name})) {{\n"
-            "    console.log('INSIDE ' + obj.name);\n"
+            "    my.gotValidClick = true;\n"
             "    {name}.clicked_name.push(obj.name);\n"
+            "    console.log('INSIDE ' + obj.name);\n"
             "  }}\n"
             "}}\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
                                             clickable=self.params['clickable']))
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("}\n")
-
 
     def writeInitCode(self, buff):
         code = ("%(name)s = event.Mouse(win=win)\n"
-                "x, y = [None, None]\n")
+                "x, y = [None, None]\n"
+                "%(name)s.mouseClock = core.Clock();\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
         code = ("%(name)s = new Mouse({\n"
-        "  win: my.window,\n"
-        "});\n")
+                "  win: my.window,\n"
+                "});\n"
+                "%(name)s.mouseClock = new Clock();\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
@@ -190,10 +192,15 @@ class MouseComponent(BaseComponent):
                 code += "%(name)s.clicked_{} = []\n".format(clickableObjParam)
 
         code += "gotValidClick = False  # until a click is received\n"
+
+        if self.params['timeRelativeTo'].val == 'Routine':
+            code += "%(name)s.mouseClock.reset();\n"
+
         buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCodeJS(self, buff):
         """Write the code that will be called at the start of the routine"""
+
         code = ("// setup some python lists for storing info about the %(name)s\n")
         if self.params['saveMouseState'].val in ['every frame', 'on click']:
             code += ("// current position of the mouse:\n"
@@ -206,8 +213,12 @@ class MouseComponent(BaseComponent):
 
         if self.params['clickable'].val:
             for clickableObjParam in self._clickableParamsList:
-                code += "my.%s.clicked_%s = [];\n" % (self.params['name'].val, clickableObjParam)
+                code += "%s.clicked_%s = [];\n" % (self.params['name'], clickableObjParam)
         code += "my.gotValidClick = false; // until a click is received\n"
+
+        if self.params['timeRelativeTo'].val == 'Routine':
+            code += "%(name)s.mouseClock.reset();\n"
+
         buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
@@ -216,10 +227,10 @@ class MouseComponent(BaseComponent):
         routineClockName = self.exp.flow._currentRoutine._clockName
 
         # get a clock for timing
-        if self.params['timeRelativeTo'].val == 'experiment':
+        if self.params['timeRelativeTo'].val == 'Experiment':
             self.clockStr = 'globalClock'
-        elif self.params['timeRelativeTo'].val == 'routine':
-            self.clockStr = routineClockName
+        elif self.params['timeRelativeTo'].val in ['Routine', 'Mouse onset']:
+            self.clockStr = '%s.mouseClock' % self.params['name'].val
 
         # only write code for cases where we are storing data as we go (each
         # frame or each click)
@@ -233,7 +244,7 @@ class MouseComponent(BaseComponent):
 
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        code = "%(name)s.status = STARTED\n"
+        code = ("%(name)s.status = STARTED\n")
 
         if self.params['newClicksOnly']:
             code += (
@@ -262,6 +273,9 @@ class MouseComponent(BaseComponent):
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
+        if self.params['timeRelativeTo'].val == 'Mouse onset':
+            code = "%(name)s.mouseClock.reset();\n" % self.params
+            buff.writeIndented(code)
 
         # write param checking code
         if (self.params['saveMouseState'].val == 'on click'
@@ -288,10 +302,10 @@ class MouseComponent(BaseComponent):
                     "%(name)s.y.append(y)\n"
                     "%(name)s.leftButton.append(buttons[0])\n"
                     "%(name)s.midButton.append(buttons[1])\n"
-                    "%(name)s.rightButton.append(buttons[2])\n"%
+                    "%(name)s.rightButton.append(buttons[2])\n" %
                     self.params)
-            code += ("%s.time.append(%s.getTime())\n" %
-                     (self.params['name'], self.clockStr))
+            code += ("{name}.time.append({clockStr}.getTime())\n").format(name=self.params['name'],
+                                                                         clockStr=self.clockStr)
             buff.writeIndentedLines(code)
 
         # also write code about clicked objects if needed.
@@ -318,10 +332,10 @@ class MouseComponent(BaseComponent):
         forceEnd = self.params['forceEndRoutineOnPress'].val
 
         # get a clock for timing
-        if self.params['timeRelativeTo'].val == 'experiment':
+        if self.params['timeRelativeTo'].val == 'Experiment':
             self.clockStr = 'globalClock'
-        elif self.params['timeRelativeTo'].val == 'routine':
-            self.clockStr = 'routineTimer'
+        elif self.params['timeRelativeTo'].val in ['Routine', 'Mouse onset']:
+            self.clockStr = '%s.mouseClock' % self.params['name'].val
 
         # only write code for cases where we are storing data as we go (each
         # frame or each click)
@@ -335,15 +349,18 @@ class MouseComponent(BaseComponent):
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
         code = "%(name)s.status = PsychoJS.Status.STARTED;\n"
+        if self.params['timeRelativeTo'].val == 'Mouse onset':
+            code += "%(name)s.mouseClock.reset();\n" % self.params
 
         if self.params['newClicksOnly']:
             code += (
                 "my.prevButtonState = %(name)s.getPressed();"
-                "  // if button is down already this ISN'T a new click\n}")
+                "  // if button is down already this ISN'T a new click\n")
         else:
             code += (
                 "let prevButtonState = [0, 0, 0];"
-                "  // if now button is down we will treat as 'new' click\n}")
+                "  // if now button is down we will treat as 'new' click\n")
+        code+=("}\n")
         buff.writeIndentedLines(code % self.params)
 
         # to get out of the if statement
@@ -368,10 +385,10 @@ class MouseComponent(BaseComponent):
         # write param checking code
         if (self.params['saveMouseState'].val == 'on click'
                 or forceEnd in ['any click', 'valid click']):
-            code = ("my.buttons = %(name)s.getPressed();\n"
-                    "if (my.buttons != my.prevButtonState) { // button state changed?")
+            code = ("my.buttons = %(name)s.getPressed();\n")
             buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
+            # buff.setIndentLevel(1, relative=True)
+            # dedentAtEnd += 1
             code = "if (!my.buttons.every( (e,i,) => (e == my.prevButtonState[i]) )) { // button state changed?\n"
             buff.writeIndented(code)
             buff.setIndentLevel(1, relative=True)
@@ -388,7 +405,7 @@ class MouseComponent(BaseComponent):
 
         # only do this if buttons were pressed
         if self.params['saveMouseState'].val in ['on click', 'every frame']:
-            code = ("let xys = %(name)s.getPos();\n"
+            code = ("const xys = %(name)s.getPos();\n"
                     "%(name)s.x.push(xys[0]);\n"
                     "%(name)s.y.push(xys[1]);\n"
                     "%(name)s.leftButton.push(my.buttons[0]);\n"
@@ -405,18 +422,16 @@ class MouseComponent(BaseComponent):
             # does the response end the trial?
         if forceEnd == 'any click':
             code = ("// abort routine on response\n"
-                    "let continueRoutine = false;\n")
+                    "continueRoutine = false;\n")
             buff.writeIndentedLines(code)
 
         elif forceEnd == 'valid click':
             code = ("if (my.gotValidClick === true) { // abort routine on response\n"
-                    "  let continueRoutine = false;\n"
+                    "  continueRoutine = false;\n"
                     "}\n")
             buff.writeIndentedLines(code)
         else:
             pass  # forceEnd == 'never'
-            # 'if' statement of the time test and button check
-        buff.writeIndented("}\n")
         for thisDedent in range(dedentAtEnd):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndentedLines('}')
@@ -536,17 +551,17 @@ class MouseComponent(BaseComponent):
         if store == 'final':  # for the o
             # buff.writeIndented("# get info about the %(name)s\n"
             # %(self.params))
-            code = ("let xys = %(name)s.getPos();\n"
-                    "my.buttons = %(name)s.getPressed();\n" %
+            code = ("const xys = %(name)s.getPos();\n"
+                    "const buttons = %(name)s.getPressed();\n" %
                     self.params)
-            code += ("%s.time = %s.getTime();\n" %
+            code += ("%s.time = my.%s.getTime();\n" %
                      (self.params['name'], self.clockStr))
             # also write code about clicked objects if needed.
-            if self.params['clickable'].val:
-                buff.writeIndented("if (my.buttons.reduce((a, b) => a + b, 0) > 0) {\n")
-                buff.setIndentLevel(+1, relative=True)
-                self._writeClickableObjectsCode(buff)
-                buff.setIndentLevel(-1, relative=True)
+            # if self.params['clickable'].val:
+            #     buff.writeIndented("if (my.buttons.reduce((a, b) => a + b, 0) > 0) \n")
+            #     buff.setIndentLevel(+1, relative=True)
+            #     self._writeClickableObjectsCodeJS(buff)
+            #     buff.setIndentLevel(-1, relative=True)
 
             if currLoop.type != 'StairHandler':
                 code += (
@@ -555,15 +570,16 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
+                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time );\n" % self.params['name']
                 )
 
                 # then add `trials.addData('mouse.clicked_name',.....)`
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
                         code += (
-                            "if {mouseName}.clicked_{param})\n"
+                            "if ({mouseName}.clicked_{param}.length > 0)\n"
                             "  psychoJS.experiment.addData('{mouseName}.clicked_{param}', "
-                            "psychoJS.experiment.clicked_{param}[0]);\n"
+                            "{mouseName}.clicked_{param}[0]);\n"
                         )
                     buff.writeIndentedLines(
                         code.format(loopName=currLoop.params['name'],

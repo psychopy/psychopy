@@ -56,7 +56,7 @@ def saveKeyPair(filepath):
     # save private key
     with open(filepath, 'wb') as f:
         f.write(pem)
-    os.chmod(filepath, 400)  # make sure the private key is only self-readable
+    os.chmod(filepath, 0o400)  # make sure the private key is only self-readable
 
     with open(filepath+'.pub', 'wb') as f:
         f.write(public_key)

@@ -77,7 +77,7 @@ packages = ['wx', 'psychopy',
             'Foundation', 'CoreFoundation',
             'pkg_resources', #needed for objc
             'pyolib',
-            'requests', 'certifi',  # for up/downloading to servers
+            'requests', 'certifi', 'cryptography', # for up/downloading to servers
             'pyosf',
             # for unit testing
             'coverage',

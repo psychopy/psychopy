@@ -40,6 +40,7 @@ class SoundComponent(BaseComponent):
         self.type = 'Sound'
         self.url = "http://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
+        self.targets = ['PsychoPy', 'PsychoJS']
         self.order = ["sound", "volume"]
         # params
         self.params['stopType'].allowedVals = ['duration (s)']
@@ -105,7 +106,7 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("%s = new Sound({\n"
                            "    win: my.window,\n"
                            "    value: %s,\n"
-                           "    secs: %s\n"
+                           "    secs: %s,\n"
                            "    });\n" % (inits['name'], inits['sound'], inits['stopVal']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
 
@@ -143,18 +144,19 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("// start/stop my.%(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
-        self.writeStartTestCode(buff)
-        if self.params['syncScreenRefresh'].val:
-            # TODO: Check callOnFlip for sound exists with JS
-            code = ("my.window.callOnFlip(%(name)s.play);  // screen flip\n") % self.params
-        else:
-            code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
+        self.writeStartTestCodeJS(buff)
+        # if self.params['syncScreenRefresh'].val:
+        #     # TODO: Check callOnFlip for sound exists with JS
+        #     code = ("my.window.callOnFlip(%(name)s.play);  // screen flip\n") % self.params
+        # else:
+        code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
+        buff.writeIndentedLines('}\n')
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             if not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
-                self.writeStopTestCode(buff)
+                self.writeStopTestCodeJS(buff)
                 code = "%s.stop();  // stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])
             # because of the 'if' statement of the time test
