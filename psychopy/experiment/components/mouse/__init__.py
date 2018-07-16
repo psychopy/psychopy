@@ -162,7 +162,7 @@ class MouseComponent(BaseComponent):
     def writeInitCode(self, buff):
         code = ("%(name)s = event.Mouse(win=win)\n"
                 "x, y = [None, None]\n"
-                "%(name)s.mouseClock = core.Clock();\n")
+                "%(name)s.mouseClock = core.Clock()\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeInitCodeJS(self, buff):
@@ -194,7 +194,7 @@ class MouseComponent(BaseComponent):
         code += "gotValidClick = False  # until a click is received\n"
 
         if self.params['timeRelativeTo'].val == 'Routine':
-            code += "%(name)s.mouseClock.reset();\n"
+            code += "%(name)s.mouseClock.reset()\n"
 
         buff.writeIndentedLines(code % self.params)
 
@@ -274,7 +274,7 @@ class MouseComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
         if self.params['timeRelativeTo'].val == 'Mouse onset':
-            code = "%(name)s.mouseClock.reset();\n" % self.params
+            code = "%(name)s.mouseClock.reset()\n" % self.params
             buff.writeIndented(code)
 
         # write param checking code
