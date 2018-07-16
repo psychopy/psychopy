@@ -556,7 +556,7 @@ class MouseComponent(BaseComponent):
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
                         code += (
-                            "if {mouseName}.clicked_{param})\n"
+                            "if ({mouseName}.clicked_{param})\n"
                             "  psychoJS.experiment.addData('{mouseName}.clicked_{param}', "
                             "psychoJS.experiment.clicked_{param}[0]);\n"
                         )
