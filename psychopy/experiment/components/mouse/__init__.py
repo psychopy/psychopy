@@ -538,9 +538,9 @@ class MouseComponent(BaseComponent):
                      (self.params['name'], self.clockStr))
             # also write code about clicked objects if needed.
             if self.params['clickable'].val:
-                buff.writeIndented("if (my.buttons.reduce((a, b) => a + b, 0) > 0) {\n")
+                buff.writeIndented("if (my.buttons.reduce((a, b) => a + b, 0) > 0) \n")
                 buff.setIndentLevel(+1, relative=True)
-                self._writeClickableObjectsCode(buff)
+                self._writeClickableObjectsCodeJS(buff)
                 buff.setIndentLevel(-1, relative=True)
 
             if currLoop.type != 'StairHandler':
