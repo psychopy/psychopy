@@ -250,15 +250,15 @@ class BaseComponent(object):
         """
         if self.params['stopType'].val == 'time (s)':
             code = ("my.frameRemains = %(stopVal)s "
-                    " - my.frameDur * 0.75;"
-                    "  # most of one frame period left\n"
+                    " - my.window.monitorFramePeriod * 0.75;"
+                    "  // most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
                     "&& my.t >= my.frameRemains) {\n")
         # duration in time (s)
         elif (self.params['stopType'].val == 'duration (s)' and
               self.params['startType'].val == 'time (s)'):
             code = ("my.frameRemains = %(startVal)s + %(stopVal)s"
-                    " - my.frameDur * 0.75;"
+                    " - my.window.monitorFramePeriod * 0.75;"
                     "  // most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
                     "&& my.t >= my.frameRemains) {\n")
@@ -592,7 +592,7 @@ class BaseVisualComponent(BaseComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            code = ("if (%(name)s.status == STARTED){ "
+            code = ("if (%(name)s.status === PsychoJS.Status.STARTED){ "
                     "// only update if being drawn\n")
             buff.writeIndented(code % self.params)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block

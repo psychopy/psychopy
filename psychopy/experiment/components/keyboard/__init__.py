@@ -338,7 +338,7 @@ class KeyboardComponent(BaseComponent):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
             buff.writeIndented("%(name)s.status = PsychoJS.Status.STOPPED;\n"
-                               "}\n" % self.params)
+                               "  }\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
