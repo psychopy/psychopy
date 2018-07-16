@@ -82,7 +82,7 @@ class UserEditor(wx.Dialog):
         topRow.Add(userAndLogout, 1, wx.ALL | wx.CENTER, 5)
         topRow.Add(self.avatarBtn, 0, wx.ALL | wx.RIGHT, 5)
 
-        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=5, hgap=5)
+        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=10, hgap=10)
         fieldsSizer.AddMany([
             (nameLabel, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
             (self.nameField,0, wx.EXPAND),
@@ -97,7 +97,7 @@ class UserEditor(wx.Dialog):
 
         border = wx.BoxSizer(wx.VERTICAL)
         border.Add(topRow, 0, wx.ALL| wx.EXPAND, 5)
-        border.Add(fieldsSizer, 1, wx.ALL | wx.EXPAND, 5)
+        border.Add(fieldsSizer, 1, wx.ALL | wx.EXPAND, 10)
         border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         panel.SetSizerAndFit(border)
         self.Fit()
@@ -105,7 +105,7 @@ class UserEditor(wx.Dialog):
     def onLogout(self, evt=None):
         logOutPavlovia(self.parent)
         self.user = None
-        self.Destroy()
+        self.Close()
 
     def onCancel(self, evt=None):
         self.EndModal(wx.ID_CANCEL)
