@@ -1,6 +1,7 @@
 from psychopy import prefs
 
 import os
+import subprocess
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -54,8 +55,11 @@ def saveKeyPair(filepath):
     # save private key
     with open(filepath, 'wb') as f:
         f.write(pem)
+    os.chmod(filepath, 400)  # make sure the private key is only self-readable
+
     with open(filepath+'.pub', 'wb') as f:
         f.write(public_key)
+    response = subprocess.check_output(['ssh-add', filepath])
     return public_key
 
 def getPublicKey(filepath):
