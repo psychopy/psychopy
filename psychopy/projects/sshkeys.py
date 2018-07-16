@@ -1,6 +1,7 @@
 from psychopy import prefs
 
 import os
+import sys
 import subprocess
 
 from cryptography.hazmat.primitives import serialization
@@ -59,7 +60,11 @@ def saveKeyPair(filepath):
 
     with open(filepath+'.pub', 'wb') as f:
         f.write(public_key)
-    response = subprocess.check_output(['ssh-add', filepath])
+    if sys.platform == 'win32':
+        pass  # not clear that this command exists on win32!
+        # response = subprocess.check_output(['cmd', 'ssh-add', filepath])
+    else:
+        response = subprocess.check_output(['ssh-add', filepath])
     return public_key
 
 def getPublicKey(filepath):
