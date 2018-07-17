@@ -276,7 +276,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                 allPerms.append(permsDict['project_access'])
             if 'group_access' in permsDict:
                 allPerms.append(permsDict['group_access'])
-            print(allPerms)
             permInts = []
             for permType in allPerms:
                 if type(permType) == dict:
@@ -284,14 +283,12 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                 else:
                     permInts.append(permType)
             perms = max(permInts)
-            print(perms)
         elif hasattr(project, 'project_access') and project.project_access:
             perms = project.project_access
         else:
             perms = None  # probably not logged in
         if type(perms) == dict:
             perms = perms['access_level']
-        print(project.attributes)
         # we've got the permissions value so use it
         if not pavlovia.getCurrentSession().user:
             self.syncButton.SetLabel('Log in to sync...')
@@ -344,7 +341,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             # else:
             #     newGp = dlg.groupField.GetStringSelection()
             #     newName = dlg.nameField.GetValue()
-            fork = self.project.forkTo(groupName=newGp, projectName=newName)  # logged-in user
+            fork = self.project.forkTo()  # logged-in user
             self.setProject(fork.id)
 
         # if project.localRoot doesn't exist, or is empty
