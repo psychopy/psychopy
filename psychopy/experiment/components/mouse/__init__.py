@@ -227,9 +227,10 @@ class MouseComponent(BaseComponent):
         routineClockName = self.exp.flow._currentRoutine._clockName
 
         # get a clock for timing
-        if self.params['timeRelativeTo'].val == 'Experiment':
+        timeRelative = self.params['timeRelativeTo'].val.lower()
+        if timeRelative == 'experiment':
             self.clockStr = 'globalClock'
-        elif self.params['timeRelativeTo'].val in ['Routine', 'Mouse onset']:
+        elif timeRelative in ['routine', 'mouse onset']:
             self.clockStr = '%s.mouseClock' % self.params['name'].val
 
         # only write code for cases where we are storing data as we go (each
@@ -273,7 +274,7 @@ class MouseComponent(BaseComponent):
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
-        if self.params['timeRelativeTo'].val == 'Mouse onset':
+        if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
             code = "%(name)s.mouseClock.reset()\n" % self.params
             buff.writeIndented(code)
 
@@ -332,9 +333,10 @@ class MouseComponent(BaseComponent):
         forceEnd = self.params['forceEndRoutineOnPress'].val
 
         # get a clock for timing
-        if self.params['timeRelativeTo'].val == 'Experiment':
+        timeRelative = self.params['timeRelativeTo'].val.lower()
+        if timeRelative == 'experiment':
             self.clockStr = 'globalClock'
-        elif self.params['timeRelativeTo'].val in ['Routine', 'Mouse onset']:
+        elif timeRelative in ['routine', 'mouse onset']:
             self.clockStr = '%s.mouseClock' % self.params['name'].val
 
         # only write code for cases where we are storing data as we go (each
