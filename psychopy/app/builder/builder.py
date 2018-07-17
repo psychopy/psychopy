@@ -2231,7 +2231,8 @@ class BuilderFrame(wx.Frame):
             cmd.extend(['-v', version])
         logging.info(' '.join(cmd))
         out = subprocess.check_output(cmd)
-        print(out)  # so that any errors/debug messages in compile are printed
+        if len(out):
+            print(out)  # so that any errors messages in compile are printed
 
     def onPavloviaSync(self, evt=None):
         pavlovia_ui.syncProject(parent=self, project=self.project)
