@@ -268,27 +268,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.localFolderCtrl.SetLabel("Local root: {}".format(localFolder))
 
         # Check permissions: login, fork or sync
-        if 'permissions' in project.attributes:
-            # check whether group access OR project access is high enough
-            allPerms = []
-            permsDict = project.attributes['permissions']
-            if 'project_access' in permsDict:
-                allPerms.append(permsDict['project_access'])
-            if 'group_access' in permsDict:
-                allPerms.append(permsDict['group_access'])
-            permInts = []
-            for permType in allPerms:
-                if type(permType) == dict:
-                    permInts.append(permType['access_level'])
-                else:
-                    permInts.append(permType)
-            perms = max(permInts)
-        elif hasattr(project, 'project_access') and project.project_access:
-            perms = project.project_access
-        else:
-            perms = None  # probably not logged in
-        if type(perms) == dict:
-            perms = perms['access_level']
+        perms = project.permissions
+
         # we've got the permissions value so use it
         if not pavlovia.getCurrentSession().user:
             self.syncButton.SetLabel('Log in to sync...')
@@ -329,11 +310,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             return
 
         # fork first if needed
-        perms = self.project.permissions['project_access']
-        if type(perms) == dict:
-            perms = perms['access_level']
-
-        if (perms is None) or perms < pavlovia.permissions['developer']:
+        perms = self.project.permissions
+        if perms < pavlovia.permissions['developer']:
             # specifying the group to fork to has no effect so don't use it
             # dlg = ForkDlg(parent=self.parent, project=self.project)
             # if dlg.ShowModal() == wx.ID_CANCEL:

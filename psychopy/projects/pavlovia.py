@@ -814,6 +814,46 @@ class PavloviaProject(dict):
         else:
             print(resp)
 
+    @property
+    def permissions(self):
+        """This returns the user's overall permissions for the project as int.
+        Unlike the project.attribute['permissions'] which returns a dict of
+        permissions for group/project which is sometimes also a dict and
+        sometimes an int!
+
+        returns
+        ------------
+        permissions as an int:
+            -1 = probably not logged in?
+            None = logged in but no permissions
+
+        """
+        if not getCurrentSession().user:
+            return -1
+        if 'permissions' in self.attributes:
+            # collect perms for both group and individual access
+            allPerms = []
+            permsDict = self.attributes['permissions']
+            if 'project_access' in permsDict:
+                allPerms.append(permsDict['project_access'])
+            if 'group_access' in permsDict:
+                allPerms.append(permsDict['group_access'])
+            # make ints and find the max permission of the project/group
+            permInts = []
+            for permType in allPerms:
+                if type(permType) == dict:
+                    permInts.append(permType['access_level'])
+                else:
+                    permInts.append(permType)
+            perms = max(permInts)
+        elif hasattr(self, 'project_access') and self.project_access:
+            perms = self.project_access
+            if type(perms) == dict:
+                perms = perms['access_level']
+        else:
+            perms = None  # not sure if this ever occurs when logged in
+        return perms
+
 
 def getGitRoot(p):
     """Return None or the root path of the repository"""
