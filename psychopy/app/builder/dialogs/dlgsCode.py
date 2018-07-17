@@ -121,7 +121,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                       _translate(" Cancel "))
         self.__set_properties()
         self.__do_layout()
-        if openToPage == -1:
+        if openToPage is None:
             openToPage = 0
         self.codeNotebook.SetSelection(openToPage)
         self.Update()
