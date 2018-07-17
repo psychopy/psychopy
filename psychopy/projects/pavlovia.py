@@ -420,7 +420,7 @@ class PavloviaProject(dict):
     .idNumber is gitlab numeric id
     .title
     .tags
-    .owner is technically the namespace. Get the owner from .attributes['owner']
+    .group is technically the namespace. Get the owner from .attributes['owner']
     .localRoot is the path to the local root
     """
 
@@ -517,7 +517,7 @@ class PavloviaProject(dict):
         return self.pavlovia.attributes['id']
 
     @property
-    def owner(self):
+    def group(self):
         namespaceName = self.id.split('/')[0]
         return namespaceName
 
@@ -713,13 +713,16 @@ class PavloviaProject(dict):
         self.repo = repo
         self._newRemote = False
 
-    def forkTo(self, username=None):
-        if username:
-            # fork to a specific namespace
-            fork = self.pavlovia.forks.create({'namespace': 'myteam'})
-        else:
-            fork = self.pavlovia.forks.create(
-                {})  # uses the current logged-in user
+    def forkTo(self, groupName=None, projectName=None):
+        """forks this project to a new namespace and (potentially) project name"""
+        newProjInfo = {}
+        # if projectName:
+        #    newProjInfo['name'] = projectName
+        # if groupName:
+        #     newProjInfo['namespace'] = groupName
+        # make the fork
+        fork = self.pavlovia.forks.create(newProjInfo)
+
         id = fork.id
         pavSession = refreshSession()
         proj = pavSession.getProject(id)

@@ -267,20 +267,38 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             localFolder = "<not yet synced>"
         self.localFolderCtrl.SetLabel("Local root: {}".format(localFolder))
 
-        # should sync be enabled?
+        # Check permissions: login, fork or sync
         if 'permissions' in project.attributes:
-            if 'project_access' in project.attributes['permissions']:
-                perms = project.attributes['permissions']['project_access']
-        elif hasattr(project, 'project_access'):
+            # check whether group access OR project access is high enough
+            allPerms = []
+            permsDict = project.attributes['permissions']
+            if 'project_access' in permsDict:
+                allPerms.append(permsDict['project_access'])
+            if 'group_access' in permsDict:
+                allPerms.append(permsDict['group_access'])
+            print(allPerms)
+            permInts = []
+            for permType in allPerms:
+                if type(permType) == dict:
+                    permInts.append(permType['access_level'])
+                else:
+                    permInts.append(permType)
+            perms = max(permInts)
+            print(perms)
+        elif hasattr(project, 'project_access') and project.project_access:
             perms = project.project_access
         else:
-            perms = None
+            perms = None  # probably not logged in
         if type(perms) == dict:
             perms = perms['access_level']
-        if (perms is not None) and perms >= pavlovia.permissions['developer']:
-            self.syncButton.SetLabel('Sync...')
-        else:
+        print(project.attributes)
+        # we've got the permissions value so use it
+        if not pavlovia.getCurrentSession().user:
+            self.syncButton.SetLabel('Log in to sync...')
+        elif perms < pavlovia.permissions['developer']:
             self.syncButton.SetLabel('Fork + sync...')
+        else:
+            self.syncButton.SetLabel('Sync...')
         self.syncButton.Enable(True)  # now we have a project we should enable
 
         while None in project.tags:
@@ -308,13 +326,25 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             raise AttributeError("User pressed the sync button with no "
                                  "current project existing.")
 
+        # log in first if needed
+        if not pavlovia.getCurrentSession().user:
+            logInPavlovia(parent=self.parent)
+            return
+
         # fork first if needed
         perms = self.project.permissions['project_access']
         if type(perms) == dict:
             perms = perms['access_level']
+
         if (perms is None) or perms < pavlovia.permissions['developer']:
-            # TODO: support forking to another group/namespace?
-            fork = self.project.forkTo(username=None)  # logged-in user
+            # specifying the group to fork to has no effect so don't use it
+            # dlg = ForkDlg(parent=self.parent, project=self.project)
+            # if dlg.ShowModal() == wx.ID_CANCEL:
+            #     return
+            # else:
+            #     newGp = dlg.groupField.GetStringSelection()
+            #     newName = dlg.nameField.GetValue()
+            fork = self.project.forkTo(groupName=newGp, projectName=newName)  # logged-in user
             self.setProject(fork.id)
 
         # if project.localRoot doesn't exist, or is empty
@@ -406,3 +436,37 @@ def syncProject(parent, project=None):
     syncFrame.Destroy()
 
     return 1
+
+
+class ForkDlg(wx.Dialog):
+    """Simple dialog to help choose the location/name of a forked project"""
+    # this dialog is working fine, but the API call to fork to a specific
+    # namespace doesn't appear to work
+    def __init__(self, project, *args, **kwargs):
+        wx.Dialog.__init__(self, *args, **kwargs)
+
+        existingName = project.name
+        session = pavlovia.getCurrentSession()
+        groups = [session.user.username]
+        groups.extend(session.listUserGroups())
+        msg = wx.StaticText(self, label="Where shall we fork to?")
+        groupLbl = wx.StaticText(self, label="Group:")
+        self.groupField = wx.Choice(self, choices=groups)
+        nameLbl = wx.StaticText(self, label="Project name:")
+        self.nameField = wx.TextCtrl(self, value=project.name)
+
+        fieldsSizer = wx.FlexGridSizer(cols=2, rows=2, vgap=5, hgap=5)
+        fieldsSizer.AddMany([groupLbl, self.groupField,
+                             nameLbl, self.nameField])
+
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        buttonSizer.Add(wx.Button(self, id=wx.ID_OK, label="OK"))
+        buttonSizer.Add(wx.Button(self, id=wx.ID_CANCEL, label="Cancel"))
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(msg, 1, wx.ALL, 5)
+        mainSizer.Add(fieldsSizer, 1, wx.ALL, 5)
+        mainSizer.Add(buttonSizer, 1, wx.ALL | wx.ALIGN_RIGHT, 5)
+
+        self.SetSizerAndFit(mainSizer)
+        self.Layout()

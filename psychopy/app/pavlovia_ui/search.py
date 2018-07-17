@@ -182,7 +182,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         else:
             self.frame = frame
         self.projList = []
-        self.columnNames = ['owner', 'name', 'description']
+        self.columnNames = ['Group', 'Name', 'Description']
         self._currentSortCol = 0
         self._currentSortRev = False
 
@@ -206,7 +206,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         self.DeleteAllItems()
 
         for index, thisProj in enumerate(projects):
-            data = (thisProj.owner, thisProj.name, thisProj.description)
+            data = (thisProj.group, thisProj.name, thisProj.description)
             if not hasattr(thisProj, 'id'):
                 continue
             self.Append(data)  # append to the wx table
