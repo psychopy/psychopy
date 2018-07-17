@@ -38,9 +38,9 @@ class PavloviaButtons:
         syncProject(parent=self.frame, project=self.frame.project)
 
     def onPavloviaRun(self, evt=None):
-        if self.project:
-            self.project.pavloviaStatus = 'ACTIVATED'
-            url = "https://pavlovia.org/run/{}/html".format(self.project.id)
+        if self.frame.project:
+            self.frame.project.pavloviaStatus = 'ACTIVATED'
+            url = "https://pavlovia.org/run/{}/html".format(self.frame.project.id)
             wx.LaunchDefaultBrowser(url)
 
     def onPavloviaUser(self, evt=None):
