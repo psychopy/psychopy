@@ -398,8 +398,8 @@ class KeyboardComponent(BaseComponent):
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            code = ("%(name)s.keys = concat(%(name)s.keys, theseKeys);  // storing all keys\n"
-                    "%(name)s.rt = concat(%(name)s.rt, %(name)s.clock.getTime());\n")
+            code = ("%(name)s.keys = %(name)s.keys.concat(theseKeys);  // storing all keys\n"
+                    "%(name)s.rt = %(name)s.rt.concat(%(name)s.clock.getTime());\n")
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
