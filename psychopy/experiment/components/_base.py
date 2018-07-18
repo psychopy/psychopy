@@ -194,7 +194,7 @@ class BaseComponent(object):
             code = ("if (my.t >= %(startVal)s "
                     "&& %(name)s.status === PsychoJS.Status.NOT_STARTED) {\n")
         elif self.params['startType'].val == 'frame N':
-            code = ("if (frameN >= %(startVal)s "
+            code = ("if (my.frameN >= %(startVal)s "
                     "&& %(name)s.status === PsychoJS.Status.NOT_STARTED) {\n")
         elif self.params['startType'].val == 'condition':
             code = ("if ((%(startVal)s) "
