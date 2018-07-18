@@ -37,7 +37,7 @@ class MouseComponent(BaseComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  save='final', forceEndRoutineOnPress="any click",
-                 timeRelativeTo='routine'):
+                 timeRelativeTo='Mouse onset'):
         super(MouseComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
@@ -246,6 +246,8 @@ class MouseComponent(BaseComponent):
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         code = ("%(name)s.status = STARTED\n")
+        if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
+            code += "%(name)s.mouseClock.reset()\n"
 
         if self.params['newClicksOnly']:
             code += (
@@ -338,7 +340,6 @@ class MouseComponent(BaseComponent):
             self.clockStr = 'globalClock'
         elif timeRelative in ['routine', 'mouse onset']:
             self.clockStr = '%s.mouseClock' % self.params['name'].val
-
         # only write code for cases where we are storing data as we go (each
         # frame or each click)
 
@@ -351,7 +352,7 @@ class MouseComponent(BaseComponent):
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCodeJS(buff)
         code = "%(name)s.status = PsychoJS.Status.STARTED;\n"
-        if self.params['timeRelativeTo'].val == 'Mouse onset':
+        if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
             code += "%(name)s.mouseClock.reset();\n" % self.params
 
         if self.params['newClicksOnly']:
@@ -565,6 +566,7 @@ class MouseComponent(BaseComponent):
             #     self._writeClickableObjectsCodeJS(buff)
             #     buff.setIndentLevel(-1, relative=True)
 
+
             if currLoop.type != 'StairHandler':
                 code += (
                     "psychoJS.experiment.addData('{mouseName}.x', xys[0]);\n"
@@ -572,7 +574,7 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time );\n" % self.params['name']
+                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time[0] );\n" % self.params['name']
                 )
 
                 # then add `trials.addData('mouse.clicked_name',.....)`
