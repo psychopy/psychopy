@@ -245,10 +245,8 @@ class MouseComponent(BaseComponent):
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         code = ("%(name)s.status = STARTED\n")
-        buff.writeIndented(code % self.params)
         if self.params['timeRelativeTo'].val == 'Mouse onset':
-            code = "%(name)s.mouseClock.reset()\n"
-            buff.writeIndented(code % self.params)
+            code += "%(name)s.mouseClock.reset()\n"
 
         if self.params['newClicksOnly']:
             code += (
@@ -508,7 +506,7 @@ class MouseComponent(BaseComponent):
             # use that set of properties to create set of addData commands
             for property in mouseDataProps:
                 if store == 'every frame' or forceEnd == "never":
-                    code = ("%s.addData('%s.%s', %s.%s[0])\n" %
+                    code = ("%s.addData('%s.%s', %s.%s)\n" %
                             (currLoop.params['name'], name,
                              property, name, property))
                     buff.writeIndented(code)
@@ -598,7 +596,7 @@ class MouseComponent(BaseComponent):
             # use that set of properties to create set of addData commands
             for property in mouseDataProps:
                 if store == 'every frame' or forceEnd == "never":
-                    code = ("psychoJS.experiment.addData('%s.%s', %s.%s[0]);\n" %
+                    code = ("psychoJS.experiment.addData('%s.%s', %s.%s);\n" %
                             (name, property, name, property))
                     buff.writeIndented(code)
                 else:
