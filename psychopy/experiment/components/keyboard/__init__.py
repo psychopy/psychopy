@@ -481,6 +481,7 @@ class KeyboardComponent(BaseComponent):
         # some shortcuts
         name = self.params['name']
         store = self.params['store'].val
+        forceEnd = self.params['forceEndRoutine'].val
         if store == 'nothing':
             return
         if len(self.exp.flow._loopList):
@@ -524,6 +525,10 @@ class KeyboardComponent(BaseComponent):
 
             # only add an RT if we had a response
             code = ("if ({name}.keys != undefined) {{  // we had a response\n"
-                    "    my.experiment.addData('{name}.rt', {name}.rt);\n}}\n"
-                    .format(loopName=currLoop.params['name'], name=name))
-            buff.writeIndentedLines(code)
+                    "    my.experiment.addData('{name}.rt', {name}.rt);\n")
+            if forceEnd:
+                code += ("    my.routineTimer.reset();\n"
+                         "    }}\n")
+            else:
+                code += "    }}\n"
+            buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
