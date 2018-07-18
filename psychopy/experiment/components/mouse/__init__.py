@@ -37,7 +37,7 @@ class MouseComponent(BaseComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  save='final', forceEndRoutineOnPress="any click",
-                 timeRelativeTo='Mouse onset'):
+                 timeRelativeTo='mouse onset'):
         super(MouseComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
@@ -82,7 +82,7 @@ class MouseComponent(BaseComponent):
                          "relative to?")
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str',
-            allowedVals=['Mouse onset', 'Experiment', 'Routine'],
+            allowedVals=['mouse onset', 'experiment', 'routine'],
             updates='constant',
             hint=msg,
             label=_localized['timeRelativeTo'])
@@ -193,7 +193,7 @@ class MouseComponent(BaseComponent):
 
         code += "gotValidClick = False  # until a click is received\n"
 
-        if self.params['timeRelativeTo'].val == 'Routine':
+        if self.params['timeRelativeTo'].val.lower() == 'routine':
             code += "%(name)s.mouseClock.reset()\n"
 
         buff.writeIndentedLines(code % self.params)
@@ -216,7 +216,7 @@ class MouseComponent(BaseComponent):
                 code += "%s.clicked_%s = [];\n" % (self.params['name'], clickableObjParam)
         code += "my.gotValidClick = false; // until a click is received\n"
 
-        if self.params['timeRelativeTo'].val == 'Routine':
+        if self.params['timeRelativeTo'].val.lower() == 'routine':
             code += "%(name)s.mouseClock.reset();\n"
 
         buff.writeIndentedLines(code % self.params)
