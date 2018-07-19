@@ -274,7 +274,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         # we've got the permissions value so use it
         if not pavlovia.getCurrentSession().user:
             self.syncButton.SetLabel('Log in to sync...')
-        elif perms < pavlovia.permissions['developer']:
+        elif not perms or perms < pavlovia.permissions['developer']:
             self.syncButton.SetLabel('Fork + sync...')
         else:
             self.syncButton.SetLabel('Sync...')
@@ -312,7 +312,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         # fork first if needed
         perms = self.project.permissions
-        if perms < pavlovia.permissions['developer']:
+        if not perms or perms < pavlovia.permissions['developer']:
             # specifying the group to fork to has no effect so don't use it
             # dlg = ForkDlg(parent=self.parent, project=self.project)
             # if dlg.ShowModal() == wx.ID_CANCEL:

@@ -840,12 +840,17 @@ class PavloviaProject(dict):
                 allPerms.append(permsDict['group_access'])
             # make ints and find the max permission of the project/group
             permInts = []
-            for permType in allPerms:
-                if type(permType) == dict:
-                    permInts.append(permType['access_level'])
-                else:
-                    permInts.append(permType)
-            perms = max(permInts)
+            for thisPerm in allPerms:
+                # check if deeper in dict
+                if type(thisPerm) == dict:
+                    thisPerm = thisPerm['access_level']
+                # we have a single value (but might still be None)
+                if thisPerm is not None:
+                    permInts.append(thisPerm)
+            if permInts:
+                perms = max(permInts)
+            else:
+                perms = None
         elif hasattr(self, 'project_access') and self.project_access:
             perms = self.project_access
             if type(perms) == dict:
