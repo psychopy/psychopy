@@ -398,8 +398,8 @@ class KeyboardComponent(BaseComponent):
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            code = ("%(name)s.keys = concat(%(name)s.keys, theseKeys);  // storing all keys\n"
-                    "%(name)s.rt = concat(%(name)s.rt, %(name)s.clock.getTime());\n")
+            code = ("%(name)s.keys = %(name)s.keys.concat(theseKeys);  // storing all keys\n"
+                    "%(name)s.rt = %(name)s.rt.concat(%(name)s.clock.getTime());\n")
             buff.writeIndentedLines(code % self.params)
 
         if storeCorr:
@@ -481,6 +481,7 @@ class KeyboardComponent(BaseComponent):
         # some shortcuts
         name = self.params['name']
         store = self.params['store'].val
+        forceEnd = self.params['forceEndRoutine'].val
         if store == 'nothing':
             return
         if len(self.exp.flow._loopList):
@@ -524,6 +525,10 @@ class KeyboardComponent(BaseComponent):
 
             # only add an RT if we had a response
             code = ("if ({name}.keys != undefined) {{  // we had a response\n"
-                    "    my.experiment.addData('{name}.rt', {name}.rt);\n}}\n"
-                    .format(loopName=currLoop.params['name'], name=name))
-            buff.writeIndentedLines(code)
+                    "    my.experiment.addData('{name}.rt', {name}.rt);\n")
+            if forceEnd:
+                code += ("    my.routineTimer.reset();\n"
+                         "    }}\n")
+            else:
+                code += "    }}\n"
+            buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
