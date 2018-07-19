@@ -1774,17 +1774,17 @@ MouseComponent.stopVal.staticUpdater:None
 MouseComponent.stopVal.updates:constant
 MouseComponent.stopVal.val:1.0
 MouseComponent.stopVal.valType:code
-MouseComponent.timeRelativeTo.default:'routine'
+MouseComponent.timeRelativeTo.default:'mouse onset'
 MouseComponent.timeRelativeTo.allowedTypes:[]
 MouseComponent.timeRelativeTo.allowedUpdates:None
-MouseComponent.timeRelativeTo.allowedVals:['Mouse onset', 'Experiment', 'Routine']
+MouseComponent.timeRelativeTo.allowedVals:['mouse onset', 'experiment', 'routine']
 MouseComponent.timeRelativeTo.categ:Basic
 MouseComponent.timeRelativeTo.hint:What should the values of mouse.time should be relative to?
 MouseComponent.timeRelativeTo.label:Time relative to
 MouseComponent.timeRelativeTo.readOnly:False
 MouseComponent.timeRelativeTo.staticUpdater:None
 MouseComponent.timeRelativeTo.updates:constant
-MouseComponent.timeRelativeTo.val:routine
+MouseComponent.timeRelativeTo.val:mouse onset
 MouseComponent.timeRelativeTo.valType:str
 MovieComponent.order:['forceEndRoutine']
 MovieComponent.No audio.default:False
@@ -3519,7 +3519,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '', '3.0.0alpha3']
+SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '', '3.0.0b1']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
