@@ -7,7 +7,7 @@
 $pips = @("pip2", "pip3")
 $pyN = @("27", "36")
 $pyPaths = @("C:\Python27\", "C:\Python36\")
-$names = @("PsychoPy2", "PsychoPy2_PY3")
+$names = @("PsychoPy3", "PsychoPy3_PY3")
 
 # get PsychoPy version from file
 $v = [Io.File]::ReadAllText("C:\Users\lpzjwp\code\psychopy\git\version").Trim()
