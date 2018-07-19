@@ -381,14 +381,14 @@ class KeyboardComponent(BaseComponent):
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            code = ("if (%(name)s.keys == []) {"
+            code = ("if (%(name)s.keys.length == 0) {"
                     "  // then this was the first keypress\n") % self.params
             buff.writeIndented(code)
 
             buff.setIndentLevel(1, True)
             dedentAtEnd += 1  # to undo this level of "if"
 
-            code = ("%(name)s.keys = theseKeys[0]"
+            code = ("%(name)s.keys = theseKeys[0];"
                     "  // just the first key pressed\n"
                     "%(name)s.rt = %(name)s.clock.getTime();\n")
             buff.writeIndentedLines(code % self.params)
