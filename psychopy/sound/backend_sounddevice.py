@@ -22,7 +22,6 @@ import soundfile as sf
 import numpy as np
 
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
-logging.console.setLevel(logging.INFO)
 
 logging.info("Loaded SoundDevice with {}".format(sd.get_portaudio_version()[1]))
 
