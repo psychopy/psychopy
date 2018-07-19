@@ -114,7 +114,10 @@ class PavloviaMenu(wx.Menu):
         """
         if pavlovia.getCurrentSession().user.username:
             projEditor = ProjectEditor()
-            projEditor.ShowModal()
+            if projEditor.ShowModal() == wx.ID_OK:
+                self.parent.project = projEditor.project
+                # do a first sync as well
+                syncProject(parent=self.parent, project=projEditor.project)
         else:
             infoDlg = dialogs.MessageDialog(parent=None, type='Info',
                                             message=_translate(

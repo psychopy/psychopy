@@ -154,8 +154,9 @@ class ProjectEditor(wx.Dialog):
         newPath = setLocalPath(self, path=self.filename)
         if newPath:
             self.localBox.SetLabel(newPath)
-            self.project.localRoot = newPath
             self.Layout()
+            if self.project:
+                self.project.localRoot = newPath
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
