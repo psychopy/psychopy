@@ -98,7 +98,7 @@
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
-    componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
+    componentsFolders = list(default=list('/Users/Shared/PsychoPy3/components'))
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list('PatchComponent'))
     # where the Builder demos are located on this computer (after unpacking)
@@ -225,11 +225,12 @@
     toggleReadme = string(default='Ctrl+I')
 
     # Projects: Log in
-    projectsLogIn = string(default='Ctrl+Alt+I')
+    pavlovia_logIn = string(default='Ctrl+Alt+I')
+    OSF_logIn = string(default='Ctrl+Alt+Shift+I')
     # Projects: Sync project
     projectsSync = string(default='Ctrl+Alt+Y')
     # Projects: Find projects
-    projectsFind = string(default='Ctrl+Alt+F')
+    projectsFind = string(default='Ctrl+Shift+F')
     # Projects: Open project
     projectsOpen = string(default='Ctrl+Alt+O')
     # Projects: Create new project

@@ -25,13 +25,16 @@ required = ['requests[security]',
             'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
             'wxPython', 'pyglet', 'pygame', 'configobj', 'pyopengl',
             'soundfile', 'sounddevice',
-            'python-bidi', 'cffi',
+            'python-bidi', 'arabic_reshaper',
+            'cffi',
             'future', 'json_tricks',
             'pyosf',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
-            'moviepy']
+            'moviepy',
+            'python-gitlab', 'gitpython',
+            'astunparse']
 
 # `opencv` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
@@ -43,6 +46,8 @@ if platform == 'win32':
     required.extend(['pypiwin32'])
 if platform == 'darwin':
     required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
+if platform.startswith('linux'):
+    required.remove('wxPython')  # on linux this fails
 
 # `pyqt` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
@@ -91,7 +96,7 @@ packages = find_packages()
 # for the source dist this doesn't work - use the manifest.in file
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
                   '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
-dataFiles = ['psychopy/psychojs.zip']
+dataFiles = []
 
 # post_install only needs installing on win32 but needs packaging in the zip
 scripts = ['psychopy/app/psychopyApp.py',

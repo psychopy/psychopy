@@ -32,6 +32,10 @@ def ensureWxApp():
     except wx._core.PyNoAppError:
         if parse_version(wx.__version__) < parse_version('2.9'):
             return wx.PySimpleApp()
+        elif parse_version(wx.__version__) >= parse_version('4.0'):
+            raise Exception("wx>=4.0 clashes with pyglet and making it unsafe "
+                            "as a PsychoPy gui helper. Please install PyQt (4 or 5)"
+                            " or wxPython3 instead.")
         else:
             return wx.App(False)
 

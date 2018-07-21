@@ -14,6 +14,7 @@ import psychopy
 from pkg_resources import parse_version
 from psychopy.constants import PY3
 from . import urls
+from . import frametracker
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -49,8 +50,8 @@ from psychopy.localization import _translate
 
 # needed by splash screen for the path to resources/psychopySplash.png
 from psychopy import preferences, logging, __version__
+from psychopy import projects
 from . import connections
-from . import projects
 from .utils import FileDropTarget
 import os
 import threading
@@ -65,7 +66,7 @@ class MenuFrame(wx.Frame):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy2"):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
 
@@ -141,6 +142,7 @@ class PsychoPyApp(wx.App):
         """With a wx.App some things get done here, before App.__init__
         then some further code is launched in OnInit() which occurs after
         """
+        self._appLoaded = False  # set to true when all frames are created
         self.coder = None
         self.version = psychopy.__version__
         # set default paths and prefs
@@ -158,11 +160,12 @@ class PsychoPyApp(wx.App):
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
         # indicates whether we're running for testing purposes
-        self.osf_session = None
+        self.osfSession = None
+        self.pavloviaSession = None
 
         self.copiedRoutine = None
         self.copiedCompon = None
-        self._allFrames = []  # ordered; order updated with self.onNewTopWindow
+        self._allFrames = frametracker.openFrames  # ordered; order updated with self.onNewTopWindow
 
         wx.App.__init__(self, arg)
 
@@ -182,26 +185,30 @@ class PsychoPyApp(wx.App):
             If set to True then startup wizard won't appear and stdout/stderr
             won't be redirected to the Coder
         """
-        self.SetAppName('PsychoPy2')
+        self.SetAppName('PsychoPy3')
 
-        if showSplash:
+        if False:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
-            splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
-            splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
+            splashImage = wx.Image(name=splashFile)
+            splashImage.ConvertAlphaToMask()
+            splash = AS.AdvancedSplash(None, bitmap=splashImage.ConvertToBitmap(),
                                        timeout=3000,
                                        agwStyle=AS.AS_TIMEOUT | AS.AS_CENTER_ON_SCREEN,
-                                       shadowcolour=wx.RED)  # transparency?
-            splash.SetTextPosition((10, 240))
-            splash.SetText(_translate("  Loading libraries..."))
+                                       )  # transparency?
+            w, h = splashImage.GetSize()
+            splash.SetTextPosition((int(w-130), h-20))
+            splash.SetText(_translate("Loading libraries..."))
+            wx.Yield()
         else:
             splash = None
 
         # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
         if splash:
-            splash.SetText(_translate("  Loading PsychoPy2..."))
+            splash.SetText(_translate("Loading PsychoPy3..."))
+            wx.Yield()
         from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs
@@ -371,7 +378,10 @@ class PsychoPyApp(wx.App):
                     self.showBuilder()
                 else:
                     self.showCoder()
-
+        # after all windows are created (so errors flushed) create output
+        self._appLoaded = True
+        if self.coder:
+            self.coder.setOutputWindow()  # takes control of sys.stdout
         return True
 
     def _wizard(self, selector, arg=''):
@@ -481,19 +491,18 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is ony local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy2 Coder (IDE) (v%s)"
+            title = "PsychoPy3 Coder (IDE) (v%s)"
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
                                           files=fileList, app=self)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
         self.coder.Raise()
-        self.coder.setOutputWindow()  # takes control of sys.stdout
 
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
         from .builder.builder import BuilderFrame
-        title = "PsychoPy2 Experiment Builder (v%s)"
+        title = "PsychoPy3 Experiment Builder (v%s)"
         thisFrame = BuilderFrame(None, -1,
                                          title=title % self.version,
                                          fileName=fileName, app=self)
@@ -598,7 +607,7 @@ class PsychoPyApp(wx.App):
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
         self.monCenter = MonitorCenter.MainFrame(
-            None, 'PsychoPy2 Monitor Center')
+            None, 'PsychoPy3 Monitor Center')
         self.monCenter.Show(True)
 
     def terminateHubProcess(self):
@@ -644,7 +653,9 @@ class PsychoPyApp(wx.App):
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting = True
-        projects.projectCatalog = None  # garbage collect the projects before sys.exit
+        # garbage collect the projects before sys.exit
+        projects.pavlovia.knownUsers = None
+        projects.pavlovia.knownProjects = None
         # see whether any files need saving
         for frame in self.getAllFrames():
             try:  # will fail if the frame has been shut somehow elsewhere

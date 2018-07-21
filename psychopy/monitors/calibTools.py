@@ -47,12 +47,12 @@ join = os.path.join
 if sys.platform == 'win32':
     # we used this for a while (until 0.95.4) but not the proper place for
     # windows app data
-    oldMonitorFolder = join(os.path.expanduser('~'), '.psychopy2', 'monitors')
-    monitorFolder = join(os.environ['APPDATA'], 'psychopy2', 'monitors')
+    oldMonitorFolder = join(os.path.expanduser('~'), '.psychopy3', 'monitors')
+    monitorFolder = join(os.environ['APPDATA'], 'psychopy3', 'monitors')
     if os.path.isdir(oldMonitorFolder) and not os.path.isdir(monitorFolder):
         os.renames(oldMonitorFolder, monitorFolder)
 else:
-    monitorFolder = join(os.environ['HOME'], '.psychopy2', 'monitors')
+    monitorFolder = join(os.environ['HOME'], '.psychopy3', 'monitors')
 
 # HACK for Python2.7! On system where `monitorFolder` contains special characters,
 # for example because the Windows profile name does, `monitorFolder` must be
@@ -524,8 +524,8 @@ class Monitor(object):
         """Save the current calibrations to disk.
 
         This will write a `json` file to the `monitors` subfolder of your
-        PsychoPy configuration folder (typically `~/.psychopy2/monitors` on
-        Linux and macOS, and `%APPDATA%\psychopy2\monitors` on Windows).
+        PsychoPy configuration folder (typically `~/.psychopy3/monitors` on
+        Linux and macOS, and `%APPDATA%\psychopy3\monitors` on Windows).
 
         Additionally saves a pickle (`.calib`) file if you are running
         Python 2.7.

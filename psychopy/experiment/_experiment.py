@@ -33,7 +33,7 @@ from psychopy.experiment.loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
 from psychopy.experiment.params import _findParam, Param
 from psychopy.experiment.routine import Routine
-
+from . import utils
 from .components import getComponents, getAllComponents
 
 from psychopy.localization import _translate
@@ -89,6 +89,7 @@ class Experiment(object):
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
+        self._compileLoop = True
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -115,6 +116,8 @@ class Experiment(object):
     def writeScript(self, expPath=None, target="PsychoPy"):
         """Write a PsychoPy script for the experiment
         """
+        # set this so that params write for approp target
+        utils.scriptTarget = target
 
         self.flow._prescreenValues()
         self.expPath = expPath
@@ -144,7 +147,8 @@ class Experiment(object):
             script.oneIndent = "  "  # use 2 spaces rather than python 4
             self.settings.writeInitCodeJS(script,
                                           self.psychopyVersion, localDateTime)
-            self.settings.writeWindowCodeJS(script)
+            self.flow.writeFlowSchedulerJS(script)
+            self.settings.writeExpSetupCodeJS(script)
 
             # initialise the components for all Routines in a single function
             script.writeIndentedLines("\nfunction experimentInit() {")
@@ -158,31 +162,35 @@ class Experiment(object):
                     entry.writeInitCodeJS(script)
 
             # create globalClock etc
-            code = ("\n// Create some handy timers\n"
-                    "globalClock = new psychoJS.core.Clock();"
+            code = ("// Create some handy timers\n"
+                    "my.globalClock = new Clock();"
                     "  // to track the time since experiment started\n"
-                    "routineTimer = new psychoJS.core.CountdownTimer();"
+                    "my.routineTimer = new CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
-                    "\nreturn psychoJS.NEXT;")
+                    "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)
             script.setIndentLevel(-1, relative=True)
-            script.writeIndentedLines("}")
+            script.writeIndentedLines("}\n")
 
             # This differs to the Python script. We can loop through all
             # Routines once (whether or not they get used) because we're using
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
-            for thisRoutine in list(self.routines.values()):
-                self._currentRoutine = thisRoutine
-                thisRoutine.writeRoutineBeginCodeJS(script)
-                thisRoutine.writeEachFrameCodeJS(script)
-                thisRoutine.writeRoutineEndCodeJS(script)
-            # loao resources files (images, csv files etc
-            self.flow.writeResourcesCodeJS(script)
-            # create the run() function and schedulers
-            self.flow.writeBodyJS(script)  # functions for loops and for scheduler
+            routinesToWrite = list(self.routines)
+            for thisItem in self.flow:
+                if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
+                    if self._compileLoop:  # If loops not already compiled
+                        self.flow.writeLoopHandlerJS(script)
+                        self._compileLoop = False
+                    else:
+                        pass
+                elif thisItem.name in routinesToWrite:
+                    self._currentRoutine = self.routines[thisItem.name]
+                    self._currentRoutine.writeRoutineBeginCodeJS(script)
+                    self._currentRoutine.writeEachFrameCodeJS(script)
+                    self._currentRoutine.writeRoutineEndCodeJS(script)
+                    routinesToWrite.remove(thisItem.name)
             self.settings.writeEndCodeJS(script)
-
         return script
 
     def saveToXML(self, filename):
@@ -402,17 +410,19 @@ class Experiment(object):
                     params[name] = Param(
                         val, valType=paramNode.get('valType'),
                         allowedTypes=[],
-                        hint=_translate("This parameter is not known by this version "
-                                        "of PsychoPy. It might be worth upgrading"))
+                        hint=_translate(
+                            "This parameter is not known by this version "
+                            "of PsychoPy. It might be worth upgrading"))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    msg = _translate("Parameter %r is not known to this version of "
-                                     "PsychoPy but has come from your experiment file "
-                                     "(saved by a future version of PsychoPy?). This "
-                                     "experiment may not run correctly in the current "
-                                     "version.")
+                    msg = _translate(
+                        "Parameter %r is not known to this version of "
+                        "PsychoPy but has come from your experiment file "
+                        "(saved by a future version of PsychoPy?). This "
+                        "experiment may not run correctly in the current "
+                        "version.")
                     logging.warn(msg % name)
                     logging.flush()
 
@@ -541,8 +551,10 @@ class Experiment(object):
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
-                            self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                                thisRoutine.params['name'], thisComp.params['name'], thisParamName)
+                            self.routines[routine].getComponentFromName(
+                                static).addComponentUpdate(
+                                thisRoutine.params['name'],
+                                thisComp.params['name'], thisParamName)
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
@@ -599,7 +611,8 @@ class Experiment(object):
                 else:
                     logging.error("A Routine called '{}' was on the Flow but "
                                   "could not be found (failed rename?). You "
-                                  "may need to re-insert it".format(elementNode.get('name')))
+                                  "may need to re-insert it".format(
+                        elementNode.get('name')))
                     logging.flush()
 
         if modifiedNames:
@@ -663,10 +676,29 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: list of dicts{'rel','abs'} of valid file paths
             """
+
+            # Clean up filePath that cannot be eval'd
+            if '$' in filePath:
+                try:
+                    filePath = filePath.strip('$')
+                    filePath = eval(filePath)
+                except NameError:
+                    # List files in director and get condition files
+                    if 'xlsx' in filePath or 'xls' in filePath or 'csv' in filePath:
+                        # Get all xlsx and csv files
+                        expPath = self.expPath
+                        if 'html' in self.expPath:  # Get resources from parent directory i.e, original exp path
+                            expPath = self.expPath.split('html')[0]
+                        fileList = (
+                        [getPaths(condFile) for condFile in os.listdir(expPath)
+                         if len(condFile.split('.')) > 1
+                         and condFile.split('.')[1] in ['xlsx', 'xls', 'csv']])
+                        return fileList
             paths = []
             # does it look at all like an excel file?
             if (not isinstance(filePath, basestring)
-                    or filePath[-4:] not in ['.csv', 'xlsx']):
+                    or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
+                                                             '.xls']):
                 return paths
             thisFile = getPaths(filePath)
             # does it exist?
@@ -685,7 +717,7 @@ class Experiment(object):
                     if subFile:
                         paths.append(subFile)
                         # if it's a possible conditions file then recursive
-                        if thisFile['abs'][-4:] in ["xlsx", ".csv"]:
+                        if thisFile['abs'][-4:] in ["xlsx", ".xls", ".csv"]:
                             contained = findPathsInFile(subFile['abs'])
                             paths.extend(contained)
             return paths
@@ -701,8 +733,9 @@ class Experiment(object):
             elif thisEntry.getType() == 'Routine':
                 # find all params of all compons and check if valid filename
                 for thisComp in thisEntry:
-                    for thisParam in thisComp.params:
-                        filePath = ''
+                    for paramName in thisComp.params:
+                        thisParam = thisComp.params[paramName]
+                        thisFile = ''
                         if isinstance(thisParam, basestring):
                             thisFile = getPaths(thisParam)
                         elif isinstance(thisParam.val, basestring):
@@ -710,6 +743,7 @@ class Experiment(object):
                         # then check if it's a valid path
                         if thisFile:
                             resources.append(thisFile)
+
         return resources
 
 
@@ -781,4 +815,3 @@ class ExpFile(list):
         """
         pass
         # todo?: currently only Routines perform this action
-

@@ -925,7 +925,7 @@ class Speech2Text(object):
         # http://thejosephturner.com/blog/2011/03/19/https-certificate-verification-in-python-with-urllib2/
         # set up the https request:
         url = 'https://' + host + '?xjerr=1&' +\
-              'client=psychopy2&' +\
+              'client=psychopy3&' +\
               'lang=' + lang + '&'\
               'pfilter=%d' % pro_filter + '&'\
               'maxresults=%d' % results

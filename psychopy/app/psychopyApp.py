@@ -39,12 +39,12 @@ if __name__ == '__main__':
         sys.exit()
     if '-v' in sys.argv or '--version' in sys.argv:
         from psychopy import __version__
-        msg = ('PsychoPy2, version %s (c)Jonathan Peirce 2018, GNU GPL license'
+        msg = ('PsychoPy3, version %s (c)Jonathan Peirce 2018, GNU GPL license'
                % __version__)
         print(msg)
         sys.exit()
     if '-h' in sys.argv or '--help' in sys.argv:
-        print("""Starts the PsychoPy2 application.
+        print("""Starts the PsychoPy3 application.
 
 Usage:  python PsychoPy.py [options] [file]
 

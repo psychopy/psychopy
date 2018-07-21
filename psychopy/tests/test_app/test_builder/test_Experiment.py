@@ -34,10 +34,10 @@ def _filterout_legal(lines):
     """
     return [line
             for line in lines[5:]
-            if not "This experiment was created using PsychoPy2 Experiment Builder (" in line and
+            if not "This experiment was created using PsychoPy3 Experiment Builder (" in line and
             not ("trialList=data.importConditions(" in line and ".xlsx'))" in line)]
-        #-This experiment was created using PsychoPy2 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
-        #+This experiment was created using PsychoPy2 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
+        #-This experiment was created using PsychoPy3 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
+        #+This experiment was created using PsychoPy3 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
         #-    trialList=data.importConditions(u'trialTypes.xlsx'))
         #+    trialList=data.importConditions('trialTypes.xlsx'))
         #-    trialList=data.importConditions(u'mainTrials.xlsx'))

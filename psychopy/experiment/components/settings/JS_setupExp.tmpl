@@ -1,45 +1,45 @@
-
 function setupExperiment() {{
+  if (psychoJS.status === PsychoJS.Status.NOT_CONFIGURED) {{
+    psychoJS.status = PsychoJS.Status.CONFIGURING;
 
-  // An ExperimentHandler isn't essential but helps with data saving
-  thisExp = new psychoJS.data.ExperimentHandler({{
-      name: {params[expName]},
-      version: '',
-      extraInfo: expInfo,
-      runtimeInfo: undefined,  // not yet supported by psychoJS
-      originPath: undefined,  //not yet supported by psychoJS
-      savePickle: true,       // not yet supported by psychoJS
-      saveWideText: true,
-      saveTo: '{saveType}',
-      /*dataFileName=filename*/}});
+    psychoJS.configure('config.json')
+    .then( config => {{
 
-  // setup resource manager:
-  psychoJS.resourceManager.set({{
-                        win:win, downloadFrom:'EXPERIMENT_SERVER', projectId:{projID},
-                        projectStatus:'PUBLIC', clock:new psychoJS.core.Clock()
-                        }});
+      // An ExperimentHandler isn't essential but helps with data saving
+      psychoJS.experiment = new ExperimentHandler({{extraInfo: my.expInfo}});
 
-  endExpNow = false; // flag for 'escape' or other condition => quit the exp
+      /*
+      // logging:
+      my.logger.console.setLevel(psychoJS.logging.WARNING);
+      my.logger.server.set({{'level':psychoJS.logging.WARNING, 'saveTo':'EXPERIMENT_SERVER', 'experimentInfo': my.expInfo}});*/
 
-  // logging:
-  psychoJS.logging.console.setLevel(psychoJS.logging.{loggingLevel});
-  psychoJS.logging.server.set({{'level':psychoJS.logging.{loggingLevel}, 'saveTo':'{saveType}', 'experimentInfo': expInfo}});
+      // change status to leave setupExperiment loop:
+      psychoJS.status = PsychoJS.Status.CONFIGURED;
+    }});
+  }}
 
-  return psychoJS.NEXT;
+  // the loop will return until the configuration is completed
+  // at which point the status changes to CONFIGURED
+  if (psychoJS.status === PsychoJS.Status.CONFIGURED) {{
+    psychoJS.status = PsychoJS.Status.STARTED;
+    return Scheduler.Event.NEXT;
+  }} else
+    return Scheduler.Event.FLIP_REPEAT;
 }}
 
 function updateInfo() {{
-  expInfo['date'] = psychoJS.data.getDateStr();  // add a simple timestamp
-  expInfo['expName'] = expName;
+  my.expInfo['date'] = MonotonicClock.getDateStr();  // add a simple timestamp
+  my.expInfo['expName'] = my.expName;
 
   // store frame rate of monitor if we can measure it successfully
-  expInfo['frameRate'] = win.getActualFrameRate();
-  if (expInfo['frameRate'] != undefined) {{
-      frameDur = 1.0/Math.round(expInfo['frameRate']);
-  }}
-  else {{
-      frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
-  }}
+  my.expInfo['frameRate'] = my.window.getActualFrameRate();
+  if (typeof my.expInfo['frameRate'] !== 'undefined')
+    my.frameDur = 1.0/Math.round(my.expInfo['frameRate']);
+  else
+    my.frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
 
-  return psychoJS.NEXT;
+  // add info from the URL:
+  addInfoFromUrl(my.expInfo);
+
+  return Scheduler.Event.NEXT;
 }}
