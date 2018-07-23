@@ -60,24 +60,24 @@ _localized = {'expName': _translate("Experiment name"),
               'Completion URL': _translate("Completion URL")}
 
 thisFolder = os.path.split(__file__)[0]
-
-
-# customize the Proj ID Param class to
-class ProjIDParam(Param):
-    @property
-    def allowedVals(self):
-        from psychopy.app.projects import catalog
-        allowed = list(catalog.keys())
-        # always allow the current val!
-        if self.val not in allowed:
-            allowed.append(self.val)
-        # always allow blank (None)
-        if '' not in allowed:
-            allowed.append('')
-        return allowed
-    @allowedVals.setter
-    def allowedVals(self, allowed):
-        pass
+#
+#
+# # customize the Proj ID Param class to
+# class ProjIDParam(Param):
+#     @property
+#     def allowedVals(self):
+#         from psychopy.app.projects import catalog
+#         allowed = list(catalog.keys())
+#         # always allow the current val!
+#         if self.val not in allowed:
+#             allowed.append(self.val)
+#         # always allow blank (None)
+#         if '' not in allowed:
+#             allowed.append('')
+#         return allowed
+#     @allowedVals.setter
+#     def allowedVals(self, allowed):
+#         pass
 
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
