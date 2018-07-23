@@ -214,13 +214,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                            flag=wx.ALL | wx.ALIGN_CENTER)
         self.sizer.Add(self.url, border=5,
                        flag=wx.ALL | wx.CENTER)
-        localFolderSizer = wx.BoxSizer(wx.HORIZONTAL)
-        localFolderSizer.Add(self.localFolderCtrl, border=5,
+        self.sizer.Add(self.localFolderCtrl, border=5,
                              flag=wx.ALL | wx.EXPAND),
-        localFolderSizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(localFolderSizer, border=5, flag=wx.ALL | wx.EXPAND)
-
+        self.sizer.Add(self.browseLocalBtn, border=5,
+                             flag=wx.ALL | wx.LEFT)
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
@@ -348,6 +345,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         if self.localFolder:
             self.localFolderCtrl.SetLabel(
                 label="Local root: {}".format(self.localFolder))
+        self.localFolderCtrl.Wrap(self.GetSize().width)
         self.Layout()
 
 

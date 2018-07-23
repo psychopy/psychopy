@@ -88,8 +88,8 @@ class SearchFrame(wx.Dialog):
         self.leftSizer.Add(self.searchResults, 1, wx.EXPAND | wx.ALL, 5)
 
         self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.mainSizer.Add(self.leftSizer, 4, wx.EXPAND | wx.ALL, 5)
-        self.mainSizer.Add(self.detailsPanel, 3, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.leftSizer, 1, wx.EXPAND | wx.ALL, 5)
+        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizer(self.mainSizer)
         if self.parent:
