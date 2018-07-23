@@ -179,11 +179,11 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.title.SetFont(font)
 
         # if we've synced before we should know the local location
-        self.localFolderCtrl = wx.StaticText(
+        self.localFolderCtrl = AutoWrapStaticText(
             parent=self, id=wx.ID_ANY,
             label="Local root: ")
         self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY,
-                                        label="Browse...")
+                                        label="Browse...", size=(88,25))
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
         # remote attributes
@@ -215,10 +215,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Add(self.url, border=5,
                        flag=wx.ALL | wx.CENTER)
         localFolderSizer = wx.BoxSizer(wx.HORIZONTAL)
-        localFolderSizer.Add(self.localFolderCtrl, border=5,
+        localFolderSizer.Add(self.localFolderCtrl, 1, border=5,
                              flag=wx.ALL | wx.EXPAND),
         localFolderSizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.EXPAND)
+                             flag=wx.ALL | wx.ALIGN_TOP)
         self.sizer.Add(localFolderSizer, border=5, flag=wx.ALL | wx.EXPAND)
 
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
@@ -446,3 +446,37 @@ class ForkDlg(wx.Dialog):
 
         self.SetSizerAndFit(mainSizer)
         self.Layout()
+
+
+class AutoWrapStaticText(wx.PyControl):
+    """
+    Class for autowrapping static text
+
+    by Robin Dunn - http://wxpython-users.1045709.n5.nabble.com/Wrapping-StaticText-again-td2362691.html
+    """
+    def __init__(self, parent, id=-1, label="",
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=0, name="wrapStatText"):
+        wx.PyControl.__init__(self, parent, id, pos, size, wx.NO_BORDER,
+                              wx.DefaultValidator, name)
+        self.st = wx.StaticText(self, -1, label, style=style)
+        self._label = label  # save the unwrapped text
+        self._Rewrap()
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def SetLabel(self, label):
+        self._label = label
+        self._Rewrap()
+
+    def GetLabel(self):
+        return self._label
+
+    def OnSize(self, evt):
+        self.st.SetSize(self.GetSize())
+        self._Rewrap()
+
+    def _Rewrap(self):
+        self.st.Freeze()
+        self.st.SetLabel(self._label)
+        self.st.Wrap(self.GetSize().width)
+        self.st.Thaw()
