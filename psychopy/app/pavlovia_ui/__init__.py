@@ -15,7 +15,18 @@
 # TODO: syncProject() doesn't handle case of a local git pushing to new gitlab
 # TODO: if more than one remote then offer options
 
+from psychopy.projects import pavlovia
 from .functions import *
 from .project import ProjectEditor, syncProject
 from ._base import PavloviaMiniBrowser
-from . import menu, project, search, sync, toolbar
+from . import menu, project, search, toolbar
+
+try:
+    import git
+    haveGit = True
+except ImportError:
+    haveGit = False
+
+# sync need git even to import, due to a subclass from gitpython
+if haveGit:
+    from . import sync

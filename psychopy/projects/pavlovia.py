@@ -14,22 +14,28 @@ from psychopy import logging, prefs, constants
 from psychopy.tools.filetools import DictStorage
 from psychopy import app
 from psychopy.localization import _translate
-from . import sshkeys
-import gitlab
-import gitlab.v4.objects
-import git
 import subprocess
 import requests
-import traceback
+import gitlab
+import gitlab.v4.objects
+try:
+    import git
+    haveGit = True
+except:
+    haveGit = False
 # for authentication
+from . import sshkeys
 from uuid import uuid4
+
 from .gitignore import gitIgnoreText
 
 if constants.PY3:
     from urllib import parse
+
     urlencode = parse.quote
 else:
     import urllib
+
     urlencode = urllib.quote
 
 # TODO: test what happens if we have a network initially but lose it
@@ -877,6 +883,10 @@ def getGitRoot(p):
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
+    if not haveGit:
+        logging.error("You need to install git to connect with Pavlovia projects")
+        return None
+
     gitRoot = getGitRoot(filename)
     if gitRoot in knownProjects:
         return knownProjects[gitRoot]
@@ -901,7 +911,7 @@ def getProject(filename):
                         logging.warning(
                             _translate(
                                 "We found a git repository pointing to {} but "
-                                "no user is logged in for us to chech that "
+                                "no user is logged in for us to check that "
                                 "project")
                                 .format(url))
                         return None  # not logged in. Return None
@@ -912,7 +922,7 @@ def getProject(filename):
         # just print a message!
         print("We found a git repository at {} but it doesn't point to "
               "gitlab.pavlovia.org. You could create that as a remote to "
-              "sync from PsychoPy.")
+              "sync from PsychoPy.".format(gitRoot))
 
 
 global _existingSession
@@ -952,4 +962,8 @@ class NoUserError(Exception):
 
 
 class ConnectionError(Exception):
+    pass
+
+
+class NoGitError(Exception):
     pass

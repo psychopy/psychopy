@@ -6,9 +6,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import time
-
-import git
 import wx
+from psychopy.projects import pavlovia
+
+try:
+    import git
+except ImportError:
+    raise pavlovia.NoGitError("You need to install 'git' to sycnhronise project with pavlovia.org")
 
 
 class SyncFrame(wx.Frame):

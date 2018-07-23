@@ -80,6 +80,7 @@ def logOutPavlovia(parent, event=None):
     dlg.logout()
     dlg.Destroy()
 
+
 def showCommitDialog(parent, project, initMsg=""):
     """Brings up a commit dialog (if there is anything to commit
 
@@ -146,3 +147,33 @@ def showCommitDialog(parent, project, initMsg=""):
 
     project.commit(commitMsg)
     return 1
+
+
+def noGitWarning(parent):
+    """Raise a simpler warning dialog that the user needs to install git first"""
+    dlg = wx.Dialog(parent=parent, style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP)
+
+    errorBitmap = wx.ArtProvider.GetBitmap(
+        wx.ART_ERROR, wx.ART_MESSAGE_BOX
+    )
+    errorBitmapCtrl = wx.StaticBitmap(dlg, -1)
+    errorBitmapCtrl.SetBitmap(errorBitmap)
+
+    msg = wx.StaticText(dlg, label="You need to install git to use Pavlovia projects")
+    link = wxhl.HyperlinkCtrl(dlg, url="https://git-scm.com/", style=wxhl.HL_CONTEXTMENU)
+    OK = wx.Button(dlg, wx.ID_OK, label="OK")
+
+    msgsSizer = wx.BoxSizer(wx.VERTICAL)
+    msgsSizer.Add(msg, 1, flag=wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND, border=5)
+    msgsSizer.Add(link, 1, flag=wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND, border=5)
+    msgsAndIcon = wx.BoxSizer(wx.HORIZONTAL)
+    msgsAndIcon.Add(errorBitmapCtrl, 0, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+    msgsAndIcon.Add(msgsSizer, 1, flag=wx.ALIGN_RIGHT | wx.ALL | wx.EXPAND, border=5)
+
+    mainSizer = wx.BoxSizer(wx.VERTICAL)
+    mainSizer.Add(msgsAndIcon, 0, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+    mainSizer.Add(OK, 0, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+    
+    dlg.SetSizerAndFit(mainSizer)
+    dlg.Layout()
+    dlg.ShowModal()

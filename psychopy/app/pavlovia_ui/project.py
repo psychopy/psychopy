@@ -7,11 +7,18 @@
 import time
 import os
 
-from .sync import SyncFrame
-from .functions import setLocalPath, showCommitDialog, logInPavlovia
-from .sync import SyncStatusPanel, ProgressHandler
+from .functions import setLocalPath, showCommitDialog, logInPavlovia, noGitWarning
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
+
+try:
+    import git
+    haveGit = True
+except ImportError:
+    haveGit = False
+# sync need git even to import, due to a subclass from gitpython
+if haveGit:
+    from .sync import SyncFrame, SyncStatusPanel, ProgressHandler
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
@@ -301,6 +308,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
 
     def onSyncButton(self, event):
+        if not haveGit:
+            noGitWarning(parent=self.parent)
+            return
+
         if self.project is None:
             raise AttributeError("User pressed the sync button with no "
                                  "current project existing.")
@@ -354,6 +365,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 def syncProject(parent, project=None):
     """A function to sync the current project (if there is one)
     """
+    if not haveGit:
+        noGitWarning(parent)
+        return
+
     isCoder = hasattr(parent, 'currentDoc')
     if not project and "BuilderFrame" in repr(
             parent):  # try getting one from the frame
