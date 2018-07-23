@@ -50,4 +50,5 @@ prevFiles = list(default=list())  #file open on last quit
 [projects]
 fileHistory = list(default=list())  #files in history
 prevFiles = list(default=list())  #file open on last quit
-user = string(default='')
+user = string(default='')  # this is OSF user not pavlovia
+pavloviaUser = string(default='')

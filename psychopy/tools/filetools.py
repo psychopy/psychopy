@@ -14,8 +14,10 @@ from __future__ import absolute_import, print_function
 import os
 import shutil
 import sys
+import atexit
 import codecs
 import numpy as np
+import json
 import json_tricks
 
 try:
@@ -23,7 +25,7 @@ try:
 except ImportError:
     import pickle
 
-from psychopy import logging
+from psychopy import logging, constants
 from psychopy.tools.fileerrortools import handleFileCollision
 
 
@@ -188,3 +190,54 @@ def genFilenameFromDelimiter(filename, delim):
             filename += '.txt'
 
     return filename
+
+
+class DictStorage(dict):
+    """Helper class based on dictionary with storage to json
+    """
+
+    def __init__(self, filename, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.filename = filename
+        self.load()
+        self._deleted = False
+        atexit.register(self.__del__)
+
+    def load(self, filename=None):
+        """Load all tokens from a given filename
+        (defaults to ~/.PsychoPy3/pavlovia.json)
+        """
+        if filename is None:
+            filename = self.filename
+        if os.path.isfile(filename):
+            with open(filename, 'r') as f:
+                try:
+                    self.update(json.load(f))
+                except ValueError:
+                    logging.error("Tried to load %s but it wasn't valid "
+                                  "JSON format"
+                                  %filename)
+
+    def save(self, filename=None):
+        """Save all tokens from a given filename
+        (defaults to the filename given to the class but can be overridden)
+        """
+        if filename is None:
+            filename = os.path.join(self.filename)
+        # make sure the folder exists
+        folder = os.path.split(filename)[0]
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        # save the file as json
+        with open(filename, 'wb') as f:
+            json_str = json.dumps(self, indent=2, sort_keys=True)
+            if constants.PY3:
+                f.write(bytes(json_str, 'UTF-8'))
+            else:
+                f.write(json_str)
+
+    def __del__(self):
+        if not self._deleted:
+            self.save()
+        self._deleted = True
+

@@ -32,7 +32,9 @@ required = ['requests[security]',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
-            'moviepy']
+            'moviepy',
+            'python-gitlab', 'gitpython',
+            'astunparse']
 
 # `opencv` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
@@ -94,7 +96,7 @@ packages = find_packages()
 # for the source dist this doesn't work - use the manifest.in file
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
                   '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
-dataFiles = ['psychopy/psychojs.zip']
+dataFiles = []
 
 # post_install only needs installing on win32 but needs packaging in the zip
 scripts = ['psychopy/app/psychopyApp.py',

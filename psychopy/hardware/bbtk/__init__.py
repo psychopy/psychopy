@@ -38,7 +38,6 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
     longName = b"BlackBoxToolkit 2"
     # list of supported devices (if more than one supports same protocol)
     driverFor = [b"BlackBoxToolkit 2"]
-
     def __init__(self, port=None, sendBreak=False, bufferSize = 262144):
         # if we're trying to send the break signal then presumably the device
         # is sleeping
@@ -187,7 +186,10 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         foundDataStart = False
         t0 = time.time()
         while not foundDataStart and time.time() - t0 < timeout:
-            if self.com.readline().startswith(b'SDAT'):
+            startLine = self.com.readline()
+            if startLine == b'\n':
+                startLine = self.com.readline()
+            if startLine.startswith(b'SDAT'):
                 foundDataStart = True
                 logging.info("BBTK.getEvents() found data. Processing...")
                 logging.flush()  # we aren't in a time-critical period

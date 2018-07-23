@@ -6,7 +6,7 @@ import pytest
 
 from psychopy import prefs
 from psychopy import constants
-from psychopy.app import builder, projects
+from psychopy.app import builder
 from psychopy.experiment import getAllComponents
 from psychopy import experiment
 from pkg_resources import parse_version
@@ -53,13 +53,6 @@ class TestComponents(object):
             except Exception:
                 pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
-
-        cls.origProjectCatalog = projects.projectCatalog
-        projects.projectCatalog = {}
-
-    @classmethod
-    def teardown_class(cls):
-        projects.projectCatalog = cls.origProjectCatalog
 
     def setup(self):
         """This setup is done for each test individually
