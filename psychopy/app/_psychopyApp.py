@@ -182,8 +182,6 @@ class PsychoPyApp(wx.App):
         :Parameters:
 
           testMode: bool
-            If set to True then startup wizard won't appear and stdout/stderr
-            won't be redirected to the Coder
         """
         self.SetAppName('PsychoPy3')
 
@@ -224,7 +222,7 @@ class PsychoPyApp(wx.App):
             last = self.prefs.appData['lastVersion']
 
         if self.firstRun and not self.testMode:
-            self.firstrunWizard()
+            pass
 
         # setup links for URLs
         # on a mac, don't exit when the last frame is deleted, just show menu
