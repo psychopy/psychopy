@@ -25,6 +25,9 @@ if parse_version(wx.__version__) < parse_version('4.0.0a1'):
 else:
     import wx.lib.agw.hyperlink as wxhl
 
+starChar = u"\u2B50"
+forkChar = u"\u2442"
+
 
 class SearchFrame(wx.Dialog):
 
@@ -182,14 +185,17 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         else:
             self.frame = frame
         self.projList = []
-        self.columnNames = ['Group', 'Name', 'Description']
+        self.columnNames = [starChar, forkChar, 'Group', 'Name', 'Description']
         self._currentSortCol = 0
         self._currentSortRev = False
 
         # Give it some columns.
         # The ID col we'll customize a bit:
         for n, columnName in enumerate(self.columnNames):
-            self.InsertColumn(n, columnName)
+            if len(columnName) < 3:  # for short names center the text
+                self.InsertColumn(n, columnName, wx.LIST_FORMAT_CENTER)
+            else:
+                self.InsertColumn(n, columnName)
         # set the column sizes *after* adding the items
         for n, columnName in enumerate(self.columnNames):
             self.SetColumnWidth(n, wx.LIST_AUTOSIZE)
@@ -201,16 +207,31 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onChangeSelection)
 
     def setContents(self, projects):
-        self.itemDataMap = {}
-        self.projList = []
         self.DeleteAllItems()
-
-        for index, thisProj in enumerate(projects):
-            data = (thisProj.group, thisProj.name, thisProj.description)
-            if not hasattr(thisProj, 'id'):
-                continue
-            self.Append(data)  # append to the wx table
-            self.projList.append(thisProj)  # append to our copy
+        # first time around we have a list of PavloviaProjects
+        if projects and isinstance(projects[0], pavlovia.PavloviaProject):
+            self.projList = []
+            for index, thisProj in enumerate(projects):
+                if not hasattr(thisProj, 'id'):
+                    continue
+                data = (thisProj.star_count, thisProj.forks_count,
+                        thisProj.group, thisProj.name, thisProj.description)
+                proj = {}
+                proj[starChar] = thisProj.star_count
+                proj[forkChar] = thisProj.forks_count
+                proj['Name'] = thisProj.name
+                proj['Group'] = thisProj.group
+                proj['Description'] = thisProj.description
+                self.projList.append(proj)
+                self.Append(data)  # append to the wx table
+        # subsequent iterations are simple dicts
+        else:
+            self.projList = projects
+            for index, thisProj in enumerate(projects):
+                data = (thisProj[starChar], thisProj[forkChar],
+                        thisProj['Group'], thisProj['Name'],
+                        thisProj['Description'])
+                self.Append(data)  # append to the wx table
         # resize the columns
         for n in range(self.ColumnCount):
             self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
@@ -234,7 +255,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         self.setContents(projs)
 
 def sortProjects(seq, name, reverse=False):
-    return sorted(seq, key=lambda k: getattr(k, name), reverse=reverse)
+    return sorted(seq, key=lambda k: k[name], reverse=reverse)
 
 def getUniqueByID(seq):
     """Very fast function to remove duplicates from a list while preserving order
