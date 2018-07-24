@@ -454,7 +454,6 @@ class BaseWizard(object):
                 '''<button onClick="toggle('ok', '');">''' + \
                 _translate('Show all information') + '</button></p>'
             htmlDoc += _translate('''<p>Resources:
-                  Contributed <a href="http://upload.psychopy.org/benchmark/report.html">benchmarks</a>
                 | <a href="http://www.psychopy.org/documentation.html">On-line documentation</a>
                 | Download <a href="http://www.psychopy.org/PsychoPyManual.pdf">PDF manual</a>
                 | <a href="http://groups.google.com/group/psychopy-users">Search the user-group archives</a>

@@ -22,13 +22,13 @@ You can now :red:`buy the book`, `Building Experiments in PsychoPy <https://uk.s
   - professionals (more technical detail for the afficionado)
   - and specialists (with particular use cases like EEG, fMRI, psychophysics).
 
-**PsychoPy is going Professional and Online!**
+**Latest version**: 3.0.0 beta (multiple versions) released July 2018
 
-We're delighted to announce that `The Wellcome Trust <http://www.wellcome.ac.uk>`_ has granted us a sum of money that will allow us to hire a full-time developer, meaning that we will become more professional than ever and, critically, also funding for `Ilixa Ltd. <http://www.ilixa.com>`_ to complete the job of building the online experiment system that many of you have been waiting for! See the `discourse post <https://discourse.psychopy.org/t/wellcome-trust-funding-psychopy-is-going-properly-online/>`_ for further details of what we're planning.
+See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
 
-**Latest version**: 1.90.2 was released May 2018.
+Supporting online studies and announcing our own experiment server at Pavlovia.org
 
-This version supports Python3 and Python2 (although some hardware may not work on both).
+
 
 See the full :doc:`changelog`
 

@@ -9,6 +9,30 @@ Changelog
 
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+PsychoPy 3.0.0b1
+------------------------------
+
+PsychoPy3 is the new phase of development including support for online studies
+at the Pavlovia.org experiment server. Right now this is BETA SOFTWARE. It WILL
+contain bugs but we're fixing them as fast as we/you can find them!
+
+NEW:
+
+    - supports heavily revamped PsychoJS library
+
+        - new PsychoJS supports text, images, keboards, mouse and sounds
+        - you can also now include Builder Code Components that include both
+          Python and JavaScript optional code so your components will work
+          online too
+
+    - PsychoPy can search, sync and create experiments on Pavlovia.org
+
+        - search for existing studies
+        - create your own
+        - run (and collect data into csv files)
+        - sync, including (push changes to the server and fetch back data)
+
+
 PsychoPy 1.90
 ------------------------------
 
