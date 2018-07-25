@@ -222,6 +222,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
                 proj['Name'] = thisProj.name
                 proj['Group'] = thisProj.group
                 proj['Description'] = thisProj.description
+                proj['id'] = thisProj.id
                 self.projList.append(proj)
                 self.Append(data)  # append to the wx table
         # subsequent iterations are simple dicts
@@ -243,7 +244,7 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
 
     def onChangeSelection(self, event):
         proj = self.projList[event.GetIndex()]
-        self.frame.detailsPanel.setProject(proj)
+        self.frame.detailsPanel.setProject(proj['id'])
 
     def onColumnClick(self, event=None):
         col = event.Column

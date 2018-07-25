@@ -257,7 +257,11 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.url.SetURL(self.project.web_url)
 
         # public / private
-        self.description.SetLabel(project.attributes['description'])
+        if project.attributes['description']:
+            self.description.SetLabel(project.attributes['description'])
+        else:
+            self.description.SetLabel('')
+
         if not hasattr(project, 'visibility'):
             visib = "User not logged in!"
         elif project.visibility in ['public', 'internal']:
@@ -296,7 +300,8 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         w, h = self.GetSize()
         # if it hasn't been created yet then we won't have attributes
         if hasattr(self.project, 'attributes'):
-            self.description.SetLabel(self.project.attributes['description'])
+            label = self.project.attributes['description'] or ''
+            self.description.SetLabel(label)
             self.description.Wrap(w - 20)
         # noTitle in some uses of the detailsPanel
         if not self.noTitle and 'name' in self.project:
