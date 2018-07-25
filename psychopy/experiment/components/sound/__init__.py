@@ -87,14 +87,10 @@ class SoundComponent(BaseComponent):
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
-        inits = getInitVals(self.params)
-        if inits['stopVal'] in [None, 'None', '']:
-            buff.writeIndented("%s.setSound(%s)\n" %
-                               (inits['name'], inits['sound']))
+        if self.params['stopVal'].val in [None, 'None', '']:
+            buff.writeIndented("%(name)s.setSound(%(sound)s)\n" % self.params)
         else:
-            buff.writeIndented("%s.setSound(%s, secs=%s)\n" %
-                               (inits['name'], inits['sound'],
-                                inits['stopVal']))
+            buff.writeIndented("%(name)s.setSound(%(sound)s, secs=%(stopVal)s)\n" % self.params)
 
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
