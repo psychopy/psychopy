@@ -82,8 +82,8 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s)\n" %
-                           (inits['name'], inits['sound'], inits['stopVal']))
+        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s)\n" %
+                           (inits['name'], inits['sound'], inits['stopVal'], self.exp.settings.params['Force stereo']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
