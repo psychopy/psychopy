@@ -39,6 +39,7 @@ _localized = {
     'paths': _translate('paths'),
     'audioLib': _translate("audio library"),
     'audioDriver': _translate("audio driver"),
+    'audioDevice': _translate("audio device"),
     'flac': _translate('flac audio compression'),
     'parallelPorts': _translate("parallel ports"),
     'shutdownKey': _translate("shutdown key"),
@@ -269,7 +270,8 @@ class PreferencesDlg(wx.Dialog):
 
             # create the actual controls
             self.ctrls[ctrlName] = ctrls = PrefCtrls(
-                parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
+                parent=panel, name=prefName, value=thisPref,
+                spec=thisSpec, plabel=pLabel)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
             ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
@@ -355,7 +357,7 @@ class PreferencesDlg(wx.Dialog):
 
 class PrefCtrls(object):
 
-    def __init__(self, parent, name, value, spec):
+    def __init__(self, parent, name, value, spec, plabel):
         """Create a set of ctrls for a particular preference entry
         """
         super(PrefCtrls, self).__init__()
@@ -367,7 +369,7 @@ class PrefCtrls(object):
         self.nameCtrl = self.valueCtrl = None
 
         _style = wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL
-        self.nameCtrl = wx.StaticText(self.parent, -1, name,
+        self.nameCtrl = wx.StaticText(self.parent, -1, plabel,
                                       size=(labelWidth, -1), style=_style)
         if type(value) == bool:
             # only True or False - use a checkbox
