@@ -18,9 +18,10 @@ try:
 except ImportError:
     _HAS_PSYCHXR_ = False
 
+from . import window
+
 # if we have PsychXR, do the rest of the importing
 if _HAS_PSYCHXR_:
-    from . import window
     import pyglet.gl as GL
     import platform
     import ctypes
