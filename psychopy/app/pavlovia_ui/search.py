@@ -47,10 +47,10 @@ class SearchFrame(wx.Dialog):
         self.lastSearchPub = None
 
         # self.mainPanel = wx.Panel(self, wx.ID_ANY)
-        self.searchLabel = wx.StaticText(self, wx.ID_ANY, 'Search:')
+        self.searchLabel = wx.StaticText(self, wx.ID_ANY, _translate('Search:'))
         self.searchCtrl = wx.TextCtrl(self, wx.ID_ANY)
         self.searchCtrl.Bind(wx.EVT_BUTTON, self.onSearch)
-        self.searchBtn = wx.Button(self, wx.ID_ANY, "Search")
+        self.searchBtn = wx.Button(self, wx.ID_ANY, _translate("Search"))
         self.searchBtn.Bind(wx.EVT_BUTTON, self.onSearch)
         self.searchBtn.SetDefault()
 

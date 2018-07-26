@@ -57,7 +57,9 @@ _localized = {'expName': _translate("Experiment name"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version"),
-              'Completion URL': _translate("Completion URL")}
+              'Completion URL': _translate("Completion URL"),
+              'Output path': _translate("Output path"),
+              'JS libs': _translate("JS libs")}
 
 thisFolder = os.path.split(__file__)[0]
 #
