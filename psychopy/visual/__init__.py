@@ -76,6 +76,9 @@ from psychopy.visual.rect import Rect
 from psychopy.visual.circle import Circle
 
 from psychopy.visual.textbox import TextBox
+
+# rift support 
+from psychopy.visual.rift import Rift
 """
 try:
     from psychopy.contrib.lazy_import import lazy_import
