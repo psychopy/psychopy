@@ -238,7 +238,7 @@ class MouseComponent(BaseComponent):
 
         # might not be saving clicks, but want it to force end of trial
         if (self.params['saveMouseState'].val not in
-                ['every frame', 'on click'] and forceEnd=='never'):
+                ['every frame', 'on click'] and forceEnd == 'never'):
             return
 
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
@@ -276,9 +276,6 @@ class MouseComponent(BaseComponent):
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
-        if self.params['timeRelativeTo'].val.lower() == 'mouse onset':
-            code = "%(name)s.mouseClock.reset()\n" % self.params
-            buff.writeIndented(code)
 
         # write param checking code
         if (self.params['saveMouseState'].val == 'on click'
@@ -466,12 +463,12 @@ class MouseComponent(BaseComponent):
         if store == 'final':  # for the o
             # buff.writeIndented("# get info about the %(name)s\n"
             # %(self.params))
-            code = ("x, y = %(name)s.getPos()\n"
-                    "buttons = %(name)s.getPressed()\n" %
-                    self.params)
-            code += ("%s.time = %s.getTime()\n" %
-                     (self.params['name'], self.clockStr))
+            code = ("x, y = {name}.getPos()\n"
+                    "buttons = {name}.getPressed()\n" 
+                    "{name}.time = {clock}.getTime()\n").format(name=self.params['name'],
+                                                                clock=self.clockStr)
             # also write code about clicked objects if needed.
+            buff.writeIndentedLines(code)
             if self.params['clickable'].val:
                 buff.writeIndented("if sum(buttons):\n")
                 buff.setIndentLevel(+1, relative=True)
@@ -479,18 +476,21 @@ class MouseComponent(BaseComponent):
                 buff.setIndentLevel(-1, relative=True)
 
             if currLoop.type != 'StairHandler':
-                code += (
+                code = (
                     "{loopName}.addData('{mouseName}.x', x)\n" 
                     "{loopName}.addData('{mouseName}.y', y)\n" 
                     "{loopName}.addData('{mouseName}.leftButton', buttons[0])\n" 
                     "{loopName}.addData('{mouseName}.midButton', buttons[1])\n" 
                     "{loopName}.addData('{mouseName}.rightButton', buttons[2])\n"
+                    "{loopName}.addData('{mouseName}.time', {mouseName}.time)\n"
                 )
-
+                buff.writeIndentedLines(
+                    code.format(loopName=currLoop.params['name'],
+                                mouseName=name))
                 # then add `trials.addData('mouse.clicked_name',.....)`
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
-                        code += (
+                        code = (
                             "if len({mouseName}.clicked_{param}):\n"
                             "    {loopName}.addData('{mouseName}.clicked_{param}', " 
                             "{mouseName}.clicked_{param}[0])\n"
@@ -574,7 +574,7 @@ class MouseComponent(BaseComponent):
                     "psychoJS.experiment.addData('{mouseName}.leftButton', buttons[0]);\n"
                     "psychoJS.experiment.addData('{mouseName}.midButton', buttons[1]);\n"
                     "psychoJS.experiment.addData('{mouseName}.rightButton', buttons[2]);\n"
-                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time[0] );\n" % self.params['name']
+                    "psychoJS.experiment.addData('{mouseName}.RT', %s.time );\n" % self.params['name']
                 )
 
                 # then add `trials.addData('mouse.clicked_name',.....)`
