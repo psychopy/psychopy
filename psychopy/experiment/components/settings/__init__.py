@@ -57,7 +57,8 @@ _localized = {'expName': _translate("Experiment name"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version"),
-              'Completion URL': _translate("Completion URL")}
+              'Completion URL': _translate("Completion URL"),
+              'Force stereo': _translate("Force stereo")}
 
 thisFolder = os.path.split(__file__)[0]
 #
@@ -148,6 +149,10 @@ class SettingsComponent(object):
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
+        self.params['Force stereo'] = Param(
+            enableEscape, valType='bool', allowedTypes=[],
+            hint=_translate("Force audio to stereo (2-channel) output"),
+            label=_localized["Force stereo"])
 
         # screen params
         self.params['Full-screen window'] = Param(

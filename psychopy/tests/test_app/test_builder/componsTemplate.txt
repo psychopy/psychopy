@@ -2390,7 +2390,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3360,6 +3360,18 @@ SettingsComponent.Experiment info.staticUpdater:None
 SettingsComponent.Experiment info.updates:None
 SettingsComponent.Experiment info.val:{'participant':'', 'session':'001'}
 SettingsComponent.Experiment info.valType:code
+SettingsComponent.Force stereo.default:True
+SettingsComponent.Force stereo.allowedTypes:[]
+SettingsComponent.Force stereo.allowedUpdates:None
+SettingsComponent.Force stereo.allowedVals:[]
+SettingsComponent.Force stereo.categ:Basic
+SettingsComponent.Force stereo.hint:Force audio to stereo (2-channel) output
+SettingsComponent.Force stereo.label:Force stereo
+SettingsComponent.Force stereo.readOnly:False
+SettingsComponent.Force stereo.staticUpdater:None
+SettingsComponent.Force stereo.updates:None
+SettingsComponent.Force stereo.val:True
+SettingsComponent.Force stereo.valType:bool
 SettingsComponent.Full-screen window.default:True
 SettingsComponent.Full-screen window.allowedTypes:[]
 SettingsComponent.Full-screen window.allowedUpdates:None
@@ -3519,7 +3531,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '', '3.0.0b1']
+SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '', '3.0.0b2']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
