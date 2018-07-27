@@ -9,6 +9,30 @@ Changelog
 
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+
+PsychoPy 3.0.0b3
+------------------------------
+
+FIXED:
+
+    - a further issue with the app not starting on some machines (due to the
+      first-run wizard)
+    - searching pavlovia projects now support stars and forks in sorting
+    - Slider forceEndRoutine was having no effect
+    - sounddevice problem when playing a mono sound to stereo stream or vice-versa
+
+ADDED:
+
+    - support for Oculus Rift (only on Windows 64bit Python 3) all due to Matthew Cutone
+    - Japanese translations to many of the new features/controls
+
+PsychoPy 3.0.0b2
+------------------------------
+
+FIXED:
+
+    - an issue with the app not starting (if git not installed)
+
 PsychoPy 3.0.0b1
 ------------------------------
 
