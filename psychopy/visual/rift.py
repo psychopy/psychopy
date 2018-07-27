@@ -89,7 +89,7 @@ class Rift(window.Window):
             from the viewer.
         monoscopic : :obj:`bool`
             Enable monoscopic rendering mode which presents the same image to
-            both eyes. Eye poses used will be both be centred at the HMD origin.
+            both eyes. Eye poses used will be both centered at the HMD origin.
             Monoscopic mode uses a separate rendering pipeline which reduces
             VRAM usage. When in monoscopic mode, you do not need to call
             'setBuffer' prior to rendering (doing so will do have no effect).
