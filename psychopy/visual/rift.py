@@ -88,9 +88,11 @@ class Rift(window.Window):
             Location of the far clipping plane in GL units (meters by default)
             from the viewer.
         monoscopic : :obj:`bool`
-            Monoscopic rendering mode. You can achieve the same effect by
-            setting 'fovType='symmetric' and rendering the same image to both
-            eye buffers, however 'mono=True' has reduced VRAM usage.
+            Enable monoscopic rendering mode which presents the same image to
+            both eyes. Eye poses used will be both be centred at the HMD origin.
+            Monoscopic mode uses a separate rendering pipeline which reduces
+            VRAM usage. When in monoscopic mode, you do not need to call
+            'setBuffer' prior to rendering (doing so will do have no effect).
         samples : :obj:`int`
             Specify the number of samples for anti-aliasing. When >1,
             multi-sampling logic is enabled in the rendering pipeline. If 'max'
