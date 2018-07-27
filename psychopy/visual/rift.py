@@ -96,7 +96,7 @@ class Rift(window.Window):
             Specify the number of samples for anti-aliasing. When >1,
             multi-sampling logic is enabled in the rendering pipeline. If 'max'
             is specified, the largest number of samples supported by the
-            platform is used. If floating point textures are used, msaa_sampling
+            platform is used. If floating point textures are used, MSAA sampling
             is disabled. Must be power of two value.
         legacyOpenGL : :obj:`bool`
             Disable 'immediate mode' OpenGL calls in the rendering pipeline.
