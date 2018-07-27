@@ -390,7 +390,7 @@ class Rift(window.Window):
         Returns
         -------
         str
-            UTF-8 encoded string containing the manufacturer name.
+            UTF-8 encoded string containing the devices serial number.
 
         """
         return self._hmdDesc.SerialNumber
@@ -619,7 +619,7 @@ class Rift(window.Window):
                     'range. Disabling.')
         elif isinstance(self._samples, str):
             if self._samples == 'max':
-                self._samples = max_samples
+                self._samples = max_samples.value
 
         # create an MSAA render buffer if self._samples > 1
         self.frameBufferMsaa = GL.GLuint()  # is zero if not configured
