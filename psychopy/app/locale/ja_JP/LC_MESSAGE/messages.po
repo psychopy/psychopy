@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-26 20:01+0900\n"
-"PO-Revision-Date: 2018-07-26 20:01+0900\n"
+"POT-Creation-Date: 2018-07-27 19:22+0900\n"
+"PO-Revision-Date: 2018-07-27 19:24+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -188,7 +188,7 @@ msgstr "新しいRoutine"
 msgid "Create a routine (Experiment menu) before adding components"
 msgstr "コンポーネントを追加する前にRoutineを作成してください"
 
-#: psychopy/app/builder/builder.py:850 psychopy/app/preferencesDlg.py:342
+#: psychopy/app/builder/builder.py:850 psychopy/app/preferencesDlg.py:344
 msgid "Error"
 msgstr "エラー"
 
@@ -1287,7 +1287,7 @@ msgid "Run tests"
 msgstr "テストの実行"
 
 #: psychopy/app/coder/coder.py:360 psychopy/app/dialogs.py:53
-#: psychopy/app/pavlovia_ui/project.py:97 psychopy/app/preferencesDlg.py:202
+#: psychopy/app/pavlovia_ui/project.py:97 psychopy/app/preferencesDlg.py:204
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -1951,7 +1951,7 @@ msgid "No"
 msgstr "いいえ"
 
 #: psychopy/app/dialogs.py:65 psychopy/app/pavlovia_ui/user.py:71
-#: psychopy/app/preferencesDlg.py:195
+#: psychopy/app/preferencesDlg.py:197
 msgid "OK"
 msgstr "OK"
 
@@ -2046,7 +2046,7 @@ msgid "Select a project for details"
 msgstr "詳細を表示するにはプロジェクトを選択してください"
 
 #: psychopy/app/pavlovia_ui/project.py:209
-#: psychopy/app/pavlovia_ui/project.py:285
+#: psychopy/app/pavlovia_ui/project.py:287
 msgid "Sync..."
 msgstr "同期..."
 
@@ -2054,53 +2054,53 @@ msgstr "同期..."
 msgid "Project Info"
 msgstr "プロジェクトの情報"
 
-#: psychopy/app/pavlovia_ui/project.py:263
+#: psychopy/app/pavlovia_ui/project.py:265
 msgid "User not logged in!"
 msgstr "ログインしていません"
 
-#: psychopy/app/pavlovia_ui/project.py:268
+#: psychopy/app/pavlovia_ui/project.py:270
 msgid "Visibility: {}"
 msgstr "公開範囲: {}"
 
-#: psychopy/app/pavlovia_ui/project.py:273
+#: psychopy/app/pavlovia_ui/project.py:275
 msgid "<not yet synced>"
 msgstr "<まだ同期していません>"
 
-#: psychopy/app/pavlovia_ui/project.py:274
-#: psychopy/app/pavlovia_ui/project.py:341
-#: psychopy/app/pavlovia_ui/project.py:359
+#: psychopy/app/pavlovia_ui/project.py:276
+#: psychopy/app/pavlovia_ui/project.py:343
+#: psychopy/app/pavlovia_ui/project.py:361
 msgid "Local root: {}"
 msgstr "ローカル ルートフォルダ: {}"
 
-#: psychopy/app/pavlovia_ui/project.py:281
+#: psychopy/app/pavlovia_ui/project.py:283
 msgid "Log in to sync..."
 msgstr "ログインして同期..."
 
-#: psychopy/app/pavlovia_ui/project.py:283
+#: psychopy/app/pavlovia_ui/project.py:285
 msgid "Fork + sync..."
 msgstr "Forkして同期..."
 
-#: psychopy/app/pavlovia_ui/project.py:290
+#: psychopy/app/pavlovia_ui/project.py:292
 msgid "Tags:"
 msgstr "タグ:"
 
-#: psychopy/app/pavlovia_ui/project.py:377
+#: psychopy/app/pavlovia_ui/project.py:379
 msgid "This file doesn't belong to any existing project."
 msgstr "このファイルは既存のプロジェクトに属していません"
 
-#: psychopy/app/pavlovia_ui/project.py:380
+#: psychopy/app/pavlovia_ui/project.py:382
 msgid "Create a project"
 msgstr "プロジェクトを作成"
 
-#: psychopy/app/pavlovia_ui/search.py:36
+#: psychopy/app/pavlovia_ui/search.py:39
 msgid "Search for projects online"
 msgstr "オンラインでプロジェクトを検索"
 
-#: psychopy/app/pavlovia_ui/search.py:50
+#: psychopy/app/pavlovia_ui/search.py:53
 msgid "Search:"
 msgstr "検索:"
 
-#: psychopy/app/pavlovia_ui/search.py:53
+#: psychopy/app/pavlovia_ui/search.py:56
 msgid "Search"
 msgstr "検索"
 
@@ -2493,54 +2493,62 @@ msgid "login to projects"
 msgstr "プロジェクトへログイン"
 
 #: psychopy/app/preferencesDlg.py:126
+msgid "login to pavlovia"
+msgstr "Pavloviaにログイン"
+
+#: psychopy/app/preferencesDlg.py:127
+msgid "login to OSF"
+msgstr "OSFにログイン"
+
+#: psychopy/app/preferencesDlg.py:128
 msgid "sync projects"
 msgstr "プロジェクトを同期"
 
-#: psychopy/app/preferencesDlg.py:127
+#: psychopy/app/preferencesDlg.py:129
 msgid "find projects"
 msgstr "プロジェクトを検索"
 
-#: psychopy/app/preferencesDlg.py:128
+#: psychopy/app/preferencesDlg.py:130
 msgid "open projects"
 msgstr "プロジェクトを開く"
 
-#: psychopy/app/preferencesDlg.py:129
+#: psychopy/app/preferencesDlg.py:131
 msgid "new projects"
 msgstr "新規プロジェクト"
 
-#: psychopy/app/preferencesDlg.py:131
+#: psychopy/app/preferencesDlg.py:133
 msgid "same as last session"
 msgstr "前回使用時のウィンドウを開く"
 
-#: psychopy/app/preferencesDlg.py:132
+#: psychopy/app/preferencesDlg.py:134
 msgid "both Builder & Coder"
 msgstr "BuilderとCoderを開く"
 
-#: psychopy/app/preferencesDlg.py:133
+#: psychopy/app/preferencesDlg.py:135
 msgid "same as in the file"
 msgstr "改行コードを変更しない"
 
-#: psychopy/app/preferencesDlg.py:153
+#: psychopy/app/preferencesDlg.py:155
 msgid "PsychoPy Preferences"
 msgstr "PsychoPyの設定"
 
-#: psychopy/app/preferencesDlg.py:196
+#: psychopy/app/preferencesDlg.py:198
 msgid "Save prefs (in all sections) and close window"
 msgstr "全てのセクションの設定を保存してウィンドウを閉じます"
 
-#: psychopy/app/preferencesDlg.py:203
+#: psychopy/app/preferencesDlg.py:205
 msgid "Cancel any changes (to any panel)"
 msgstr "全てのセクションの変更をキャンセルします"
 
-#: psychopy/app/preferencesDlg.py:207
+#: psychopy/app/preferencesDlg.py:209
 msgid "Help"
 msgstr "ヘルプ"
 
-#: psychopy/app/preferencesDlg.py:208
+#: psychopy/app/preferencesDlg.py:210
 msgid "Get help on prefs"
 msgstr "設定のヘルプを開く"
 
-#: psychopy/app/preferencesDlg.py:340
+#: psychopy/app/preferencesDlg.py:342
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
 msgstr "「%(pref)s」の値が不正です (「%(section)s」タブ)"
@@ -4061,24 +4069,28 @@ msgstr "出力パス"
 msgid "JS libs"
 msgstr "JSライブラリ"
 
-#: psychopy/experiment/components/settings/__init__.py:128
+#: psychopy/experiment/components/settings/__init__.py:63
+msgid "Force stereo"
+msgstr "ステレオを強制"
+
+#: psychopy/experiment/components/settings/__init__.py:129
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
 msgstr "この実験の名前を指定します(初期値はこの実験を保存したファイル名です)"
 
-#: psychopy/experiment/components/settings/__init__.py:133
+#: psychopy/experiment/components/settings/__init__.py:134
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
 msgstr ""
 "実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示し"
 "ます"
 
-#: psychopy/experiment/components/settings/__init__.py:138
+#: psychopy/experiment/components/settings/__init__.py:139
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
 msgstr "Escapeキーによる実験の中断/終了を許可します"
 
-#: psychopy/experiment/components/settings/__init__.py:143
+#: psychopy/experiment/components/settings/__init__.py:144
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
@@ -4086,26 +4098,30 @@ msgstr ""
 "実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイ"
 "アログのプレビューを行います"
 
-#: psychopy/experiment/components/settings/__init__.py:150
+#: psychopy/experiment/components/settings/__init__.py:151
 msgid "The version of PsychoPy to use when running the experiment."
 msgstr "実験の実行に使用するPsychoPyのバージョン"
 
-#: psychopy/experiment/components/settings/__init__.py:157
+#: psychopy/experiment/components/settings/__init__.py:156
+msgid "Force audio to stereo (2-channel) output"
+msgstr "強制的に音声をステレオ(2ch)出力します"
+
+#: psychopy/experiment/components/settings/__init__.py:162
 msgid "Run the experiment full-screen (recommended)"
 msgstr "実験をフルスクリーンモードで実行します(推奨)"
 
-#: psychopy/experiment/components/settings/__init__.py:161
+#: psychopy/experiment/components/settings/__init__.py:166
 msgid "Size of window (if not fullscreen)"
 msgstr ""
 "フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:165
+#: psychopy/experiment/components/settings/__init__.py:170
 msgid "Which physical screen to run on (1 or 2)"
 msgstr ""
 "2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1ま"
 "たは2)"
 
-#: psychopy/experiment/components/settings/__init__.py:169
+#: psychopy/experiment/components/settings/__init__.py:174
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
@@ -4113,7 +4129,7 @@ msgstr ""
 "モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセン"
 "ターを開きます"
 
-#: psychopy/experiment/components/settings/__init__.py:175
+#: psychopy/experiment/components/settings/__init__.py:180
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
@@ -4121,29 +4137,29 @@ msgstr ""
 "スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右"
 "クリックで色選択ダイアログを表示します"
 
-#: psychopy/experiment/components/settings/__init__.py:181
+#: psychopy/experiment/components/settings/__init__.py:186
 msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
 msgstr "スクリーンの色を数値で指定する場合の色空間を選択します"
 
-#: psychopy/experiment/components/settings/__init__.py:189
+#: psychopy/experiment/components/settings/__init__.py:194
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
 msgstr ""
 "この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degな"
 "ど)を指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:195
+#: psychopy/experiment/components/settings/__init__.py:200
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
 msgstr "描画済みの刺激に新しい刺激をブレンドする時の方法を指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:200
+#: psychopy/experiment/components/settings/__init__.py:205
 msgid "Should the mouse be visible on screen?"
 msgstr "マウスカーソルを描画するか否かを指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:206
+#: psychopy/experiment/components/settings/__init__.py:211
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
@@ -4151,14 +4167,14 @@ msgstr ""
 "実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自"
 "動的に付加されるので指定しないでください"
 
-#: psychopy/experiment/components/settings/__init__.py:211
+#: psychopy/experiment/components/settings/__init__.py:216
 msgid ""
 "Save a detailed log (more detailed than the excel/csv files) of the entire "
 "experiment"
 msgstr "(CSV/Excelファイルに出力されるよりも)詳細な実験のログを出力します"
 
-#: psychopy/experiment/components/settings/__init__.py:216
 #: psychopy/experiment/components/settings/__init__.py:221
+#: psychopy/experiment/components/settings/__init__.py:226
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
@@ -4166,11 +4182,11 @@ msgstr ""
 "実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境"
 "やソフトウェアから利用できます"
 
-#: psychopy/experiment/components/settings/__init__.py:226
+#: psychopy/experiment/components/settings/__init__.py:231
 msgid "Save data from loops in Excel (.xlsx) format"
 msgstr "実験で得られたデータをExcel形式(.xlsx)で保存します"
 
-#: psychopy/experiment/components/settings/__init__.py:230
+#: psychopy/experiment/components/settings/__init__.py:235
 msgid ""
 "Save data from loops in psydat format. This is useful for python programmers "
 "to generate analysis scripts."
@@ -4178,18 +4194,18 @@ msgstr ""
 "実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書"
 "く時に便利です"
 
-#: psychopy/experiment/components/settings/__init__.py:237
+#: psychopy/experiment/components/settings/__init__.py:242
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
 "実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
 
-#: psychopy/experiment/components/settings/__init__.py:248
+#: psychopy/experiment/components/settings/__init__.py:253
 msgid "Place the HTML files will be saved locally "
 msgstr "HTMLファイルがローカルに保存される場所 "
 
-#: psychopy/experiment/components/settings/__init__.py:252
+#: psychopy/experiment/components/settings/__init__.py:257
 msgid ""
 "Should we package a copy of the JS libs or useremote copies (http:/www."
 "psychopy.org/js)?"
@@ -4197,7 +4213,7 @@ msgstr ""
 "JSライブラリのコピーをパッケージしますか、それともリモートコピー(http:/www."
 "psychopy.org/js)を使いますか？"
 
-#: psychopy/experiment/components/settings/__init__.py:257
+#: psychopy/experiment/components/settings/__init__.py:262
 msgid ""
 "Where should participants be redirected after the experiment INSERT "
 "COMPLETION URL E.G.?"
@@ -5021,66 +5037,66 @@ msgstr ""
 "メニュー等の表示に使用する言語; 変更は再起動後に有効になります\n"
 "翻訳済みではない言語もあります"
 
-#: psychopy/preferences/hints.py:73
+#: psychopy/preferences/hints.py:74
 msgid ""
 "open Coder files as read-only (allows running without accidental changes)"
 msgstr ""
 "ファイルを読み込み専用で開きます(誤って変更したまま実行することを防ぎます)"
 
-#: psychopy/preferences/hints.py:76
+#: psychopy/preferences/hints.py:77
 msgid "a list of font names; the first one found on the system will be used"
 msgstr "フォント名のリストを指定します; 最初に見つかったフォントが使用されます"
 
-#: psychopy/preferences/hints.py:79
+#: psychopy/preferences/hints.py:80
 msgid "Font size (in pts) takes an integer between 6 and 24"
 msgstr "フォントサイズを6から24の整数で指定します"
 
-#: psychopy/preferences/hints.py:82
+#: psychopy/preferences/hints.py:83
 msgid "activate the source assistant panel"
 msgstr "起動時にソースアシスタントを表示します"
 
-#: psychopy/preferences/hints.py:85
+#: psychopy/preferences/hints.py:86
 msgid "activate the output and shell panels"
 msgstr "起動時に出力とシェルパネルを開きます"
 
-#: psychopy/preferences/hints.py:88
+#: psychopy/preferences/hints.py:89
 msgid "reload previously opened files after start"
 msgstr "最後に開いたファイルを起動時に開きます"
 
-#: psychopy/preferences/hints.py:91
+#: psychopy/preferences/hints.py:92
 msgid "for coder shell window, which shell to use"
 msgstr "Coderのシェルウィンドウで使用するシェルを指定します"
 
-#: psychopy/preferences/hints.py:94
+#: psychopy/preferences/hints.py:95
 msgid "newline for python files: unix = \\n, dos = \\r\\n"
 msgstr "Pythonファイルの改行コードを指定します (unix=\\n, dos=\\r\\n)"
 
-#: psychopy/preferences/hints.py:97
+#: psychopy/preferences/hints.py:98
 msgid "whether to automatically reload a previously open experiment"
 msgstr "起動時に前回開いていた実験を自動的に開くか否かを指定します"
 
-#: psychopy/preferences/hints.py:100
+#: psychopy/preferences/hints.py:102
 msgid ""
 "if False will create scripts with an 'easier' but more cluttered namespace"
 msgstr "チェックを外すと扱いやすい代わりに雑然とした名前空間となります"
 
-#: psychopy/preferences/hints.py:103
+#: psychopy/preferences/hints.py:105
 msgid "folder names for custom components; expects a comma-separated list"
 msgstr ""
 "カスタムBuilderコンポーネントのフォルダ名を指定します(カンマ区切りのリストで"
 "指定)"
 
-#: psychopy/preferences/hints.py:106
+#: psychopy/preferences/hints.py:108
 msgid "a list of components to hide (eg, because you never use them)"
 msgstr ""
 "非表示にするコンポーネントのリストを指定します (使用しないものなどを記述して"
 "ください)"
 
-#: psychopy/preferences/hints.py:109
+#: psychopy/preferences/hints.py:111
 msgid "where the Builder demos are located on this computer (after unpacking)"
 msgstr "Builderのデモを展開した位置(デモ展開後のみ有効)"
 
-#: psychopy/preferences/hints.py:112
+#: psychopy/preferences/hints.py:115
 msgid ""
 "name of the folder where subject data should be saved (relative to the "
 "script)"
@@ -5088,34 +5104,34 @@ msgstr ""
 "実験データが保存されるフォルダ名を指定します(スクリプトからの相対パスで指定し"
 "ます)"
 
-#: psychopy/preferences/hints.py:115
+#: psychopy/preferences/hints.py:118
 msgid "Panels arrangement: topFlow = Flow on top, Components on left"
 msgstr ""
 "ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置され"
 "ます"
 
-#: psychopy/preferences/hints.py:118
+#: psychopy/preferences/hints.py:121
 msgid "Display text in a floating window that describes the experiment"
 msgstr "実験のReadmeを常に表示します"
 
-#: psychopy/preferences/hints.py:121
+#: psychopy/preferences/hints.py:124
 msgid "Upper limit on how many components can be in favorites"
 msgstr "お気に入りに表示されるコンポーネント数の上限を指定します"
 
-#: psychopy/preferences/hints.py:124
+#: psychopy/preferences/hints.py:127
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
 msgstr ""
 "利用状況の送信と自動更新に使用するHTTPプロキシを指定します; 書式はhost: port"
 "です"
 
-#: psychopy/preferences/hints.py:127
+#: psychopy/preferences/hints.py:131
 msgid ""
 "override the above proxy settings with values found in the environment (if "
 "possible)"
 msgstr ""
 "自動的にプロキシ設定を検出できる場合は上記の設定より自動設定を優先します"
 
-#: psychopy/preferences/hints.py:130
+#: psychopy/preferences/hints.py:134
 msgid ""
 "allow PsychoPy to send anonymous usage stats; please allow if possible, it "
 "helps PsychoPy's development"
@@ -5123,219 +5139,227 @@ msgstr ""
 "匿名で利用状況のデータを送信します; PsychoPy開発の参考とするため出来れば"
 "チェックしてください"
 
-#: psychopy/preferences/hints.py:133
+#: psychopy/preferences/hints.py:137
 msgid "allow PsychoPy to check for new features and bug fixes"
 msgstr "PsychoPyにバグ修正や新機能の追加といった更新の確認を許可します"
 
-#: psychopy/preferences/hints.py:136
+#: psychopy/preferences/hints.py:140
 msgid "max time to wait for a connection response"
 msgstr "ネットワーク接続のタイムアウト時間を指定します"
 
-#: psychopy/preferences/hints.py:139
+#: psychopy/preferences/hints.py:143
 msgid "open an existing file"
 msgstr "既存のファイルを開きます"
 
-#: psychopy/preferences/hints.py:142
+#: psychopy/preferences/hints.py:146
 msgid "start a new experiment or script"
 msgstr "新しいファイルを作成します"
 
-#: psychopy/preferences/hints.py:145
+#: psychopy/preferences/hints.py:149
 msgid "save a Builder or Coder file"
 msgstr "ファイルを保存します"
 
-#: psychopy/preferences/hints.py:148
+#: psychopy/preferences/hints.py:152
 msgid "save a Builder or Coder file under a new name"
 msgstr "ファイルを別名で保存します"
 
-#: psychopy/preferences/hints.py:151
+#: psychopy/preferences/hints.py:155
 msgid "Coder: print the file"
 msgstr "Coder: ファイルを印刷します"
 
-#: psychopy/preferences/hints.py:154
+#: psychopy/preferences/hints.py:158
 msgid "close the Builder or Coder window"
 msgstr "ウィンドウを閉じます"
 
-#: psychopy/preferences/hints.py:157
+#: psychopy/preferences/hints.py:161
 msgid "end the application (PsychoPy)"
 msgstr "アプリケーションを終了します"
 
-#: psychopy/preferences/hints.py:160
+#: psychopy/preferences/hints.py:164
 msgid "open the preferences dialog"
 msgstr "設定ダイアログを開きます"
 
-#: psychopy/preferences/hints.py:163
+#: psychopy/preferences/hints.py:167
 msgid "export Builder experiment to HTML"
 msgstr "Builderの実験をHTMLへエクスポートします"
 
-#: psychopy/preferences/hints.py:166
+#: psychopy/preferences/hints.py:170
 msgid "Coder: cut"
 msgstr "Coder: 切り取り"
 
-#: psychopy/preferences/hints.py:169
+#: psychopy/preferences/hints.py:173
 msgid "Coder: copy"
 msgstr "Coder: コピー"
 
-#: psychopy/preferences/hints.py:172
+#: psychopy/preferences/hints.py:176
 msgid "Coder: paste"
 msgstr "Coder: 貼り付け"
 
-#: psychopy/preferences/hints.py:175
+#: psychopy/preferences/hints.py:179
 msgid "Coder: duplicate"
 msgstr "Coder: 行の複製"
 
-#: psychopy/preferences/hints.py:178
+#: psychopy/preferences/hints.py:182
 msgid "Coder: indent code by one level (4 spaces)"
 msgstr "Coder: インデントを1段階増やします(半角スペース4個)"
 
-#: psychopy/preferences/hints.py:181
+#: psychopy/preferences/hints.py:185
 msgid "Coder: reduce indentation by one level (4 spaces)"
 msgstr "Coder: インデントを1段階減らします(半角スペース4個)"
 
-#: psychopy/preferences/hints.py:184
+#: psychopy/preferences/hints.py:188
 msgid "Coder: indent to fit python syntax"
 msgstr "Coder: インデントをPythonの文法に合わせます"
 
-#: psychopy/preferences/hints.py:187
+#: psychopy/preferences/hints.py:191
 msgid "Coder: find"
 msgstr "Coder: 文字列を検索します"
 
-#: psychopy/preferences/hints.py:190
+#: psychopy/preferences/hints.py:194
 msgid "Coder: find again"
 msgstr "Coder: 次を検索します"
 
-#: psychopy/preferences/hints.py:193
+#: psychopy/preferences/hints.py:197
 msgid "Coder: undo"
 msgstr "Coder: 直前の動作を元に戻します"
 
-#: psychopy/preferences/hints.py:196
+#: psychopy/preferences/hints.py:200
 msgid "Coder: redo"
 msgstr "Coder: 直前の動作を繰り返します"
 
-#: psychopy/preferences/hints.py:199
+#: psychopy/preferences/hints.py:203
 msgid "Coder: add a # to the start of the line(s)"
 msgstr "Coder: 行の先頭に#を挿入します"
 
-#: psychopy/preferences/hints.py:202
+#: psychopy/preferences/hints.py:206
 msgid "Coder: remove # from start of line(s)"
 msgstr "Coder: 行の先頭から#を取り除きます"
 
-#: psychopy/preferences/hints.py:205
+#: psychopy/preferences/hints.py:209
 msgid "Coder: add or remove # from start of line(s)"
 msgstr "Coder: 行の先頭から#を取り除きます"
 
-#: psychopy/preferences/hints.py:208
+#: psychopy/preferences/hints.py:212
 msgid "Coder: fold this block of code"
 msgstr "Coder: コードブロックを折りたたみます"
 
-#: psychopy/preferences/hints.py:211
+#: psychopy/preferences/hints.py:215
 msgid "Coder: increase font size this block of code"
 msgstr "Coder: フォントを大きくします"
 
-#: psychopy/preferences/hints.py:214
+#: psychopy/preferences/hints.py:218
 msgid "Coder: decrease font size this block of code"
 msgstr "Coder: フォントを小さくします"
 
-#: psychopy/preferences/hints.py:217
+#: psychopy/preferences/hints.py:221
 msgid "Coder: check for basic syntax errors"
 msgstr "Coder: 基本的な文法エラーをチェックします"
 
-#: psychopy/preferences/hints.py:220
+#: psychopy/preferences/hints.py:225
 msgid ""
 "convert a Builder .psyexp script into a python script and open it in the "
 "Coder"
 msgstr "Builderの.psyexpファイルをPythonのスクリプトに変換してCoderで開きます"
 
-#: psychopy/preferences/hints.py:223
+#: psychopy/preferences/hints.py:228
 msgid "launch a script, Builder or Coder, or run unit-tests"
 msgstr "実験やスクリプト、ユニットテストを実行します"
 
-#: psychopy/preferences/hints.py:226
+#: psychopy/preferences/hints.py:231
 msgid "attempt to interrupt and halt a running script"
 msgstr "実行中のスクリプトの停止を試みます"
 
-#: psychopy/preferences/hints.py:229
+#: psychopy/preferences/hints.py:234
 msgid "Coder: show / hide white-space dots"
 msgstr "Coder: 空白文字を示す点の表示を切り替えます"
 
-#: psychopy/preferences/hints.py:232
+#: psychopy/preferences/hints.py:237
 msgid "Coder: show / hide end of line characters"
 msgstr "Coder: 改行文字の表示を切り替えます"
 
-#: psychopy/preferences/hints.py:235
+#: psychopy/preferences/hints.py:240
 msgid "Coder: show / hide indentation level lines"
 msgstr "Coder: インデントガイドの表示を切り替えます"
 
-#: psychopy/preferences/hints.py:238
+#: psychopy/preferences/hints.py:243
 msgid "Builder: create a new routine"
 msgstr "Builder: 新しいRoutineを作成します"
 
-#: psychopy/preferences/hints.py:241
+#: psychopy/preferences/hints.py:246
 msgid "Builder: copy an existing routine"
 msgstr "Builder: Routineをコピーします"
 
-#: psychopy/preferences/hints.py:244
+#: psychopy/preferences/hints.py:249
 msgid "Builder: paste the copied routine"
 msgstr "Builder: コピーしたRoutineを貼り付けます"
 
-#: psychopy/preferences/hints.py:247
+#: psychopy/preferences/hints.py:252
 msgid "Builder: paste the copied component"
 msgstr "Builder: コピーしたComponentを貼り付けます"
 
-#: psychopy/preferences/hints.py:250
+#: psychopy/preferences/hints.py:255
 msgid "Coder: show / hide the output panel"
 msgstr "Coder: 出力パネルの表示を切り替えます"
 
-#: psychopy/preferences/hints.py:253
+#: psychopy/preferences/hints.py:258
 msgid "Builder: rename an existing routine"
 msgstr "Builder: Routineの名前を変更します"
 
-#: psychopy/preferences/hints.py:256
+#: psychopy/preferences/hints.py:261
 msgid "switch to Builder window from Coder"
 msgstr "Builderへ切り替えます"
 
-#: psychopy/preferences/hints.py:259
+#: psychopy/preferences/hints.py:264
 msgid "switch to Coder window from Builder"
 msgstr "Builderへ切り替えます"
 
-#: psychopy/preferences/hints.py:262
+#: psychopy/preferences/hints.py:267
 msgid "increase display size in Flow"
 msgstr "Flowのアイテム表示を大きくします"
 
-#: psychopy/preferences/hints.py:265
+#: psychopy/preferences/hints.py:270
 msgid "decrease display size in Flow"
 msgstr "Flowのアイテム表示を小さくします"
 
-#: psychopy/preferences/hints.py:268
+#: psychopy/preferences/hints.py:273
 msgid "increase display size of Routines"
 msgstr "Routineのアイテム表示を大きくします"
 
-#: psychopy/preferences/hints.py:271
+#: psychopy/preferences/hints.py:276
 msgid "decrease display size of Routines"
 msgstr "Routineのアイテム表示を小さくします"
 
-#: psychopy/preferences/hints.py:274
+#: psychopy/preferences/hints.py:279
 msgid "show or hide the readme (info) for this experiment if possible"
 msgstr "この実験のReadmeの表示を(可能であれば)切り替えます"
 
-#: psychopy/preferences/hints.py:277
-msgid "Projects: Log in"
-msgstr "Projects: ログインします"
+#: psychopy/preferences/hints.py:282
+msgid "Projects: Log in to pavlovia"
+msgstr "Projects: pavloviaにログインします"
 
-#: psychopy/preferences/hints.py:280
+#: psychopy/preferences/hints.py:285
+msgid "Projects: Log in to OSF"
+msgstr "Projects: OSFにログインします"
+
+#: psychopy/preferences/hints.py:288
 msgid "Projects: Sync project"
 msgstr "Projects: プロジェクトを同期します"
 
-#: psychopy/preferences/hints.py:283
+#: psychopy/preferences/hints.py:291
 msgid "Projects: Find projects"
 msgstr "Projects: プロジェクトを検索します"
 
-#: psychopy/preferences/hints.py:286
+#: psychopy/preferences/hints.py:294
 msgid "Projects: Open project"
 msgstr "Projects: プロジェクトを開きます"
 
-#: psychopy/preferences/hints.py:289
+#: psychopy/preferences/hints.py:297
 msgid "Projects: Create new project"
 msgstr "Projects: プロジェクトを新規作成します"
+
+#: psychopy/preferences/hints.py:300
+msgid "Projects: Log in"
+msgstr "Projects: ログインします"
 
 #: psychopy/projects/pavlovia.py:913
 msgid ""
