@@ -22,31 +22,16 @@ from . import window
 
 # if we have PsychXR, do the rest of the importing
 if _HAS_PSYCHXR_:
-    import ctypes
+    import sys
     import platform
+    import ctypes
+    import math
     from psychopy import platform_specific, logging
     import pyglet.gl as GL
     from psychopy.tools.attributetools import setAttribute
     import numpy as np
-    import sys
-    import math as _math  # alias the built-in math library
 
     ovr.capi.debug_mode = True  # enable debug mode, not much overhead
-    math = ovr.math  # make LibOVR math types available at the module level
-
-    # OVR math types
-    ovrSizei = ovr.math.ovrSizei
-    ovrRect = ovr.math.ovrRect
-    ovrVector3f = ovr.math.ovrVector3f
-    ovrMatrix4f = ovr.math.ovrMatrix4f
-    ovrQuat = ovr.math.ovrQuat
-    ovrPosef = ovr.math.ovrPosef
-
-    # expose constants from API
-    EYE_LEFT = ovr.capi.ovrEye_Left
-    EYE_RIGHT = ovr.capi.ovrEye_Right
-    HAND_LEFT = ovr.capi.ovrHand_Left
-    HAND_RIGHT = ovr.capi.ovrHand_Right
 
 reportNDroppedFrames = 5
 
@@ -1604,8 +1589,8 @@ class Rift(window.Window):
         offset = -originPose.inverseTransform(targetPose)
 
         # find the discriminant
-        desc = _math.pow(rayDirection.dot(offset), 2.0) - \
-               (offset.dot(offset) - _math.pow(targetRadius, 2.0))
+        desc = math.pow(rayDirection.dot(offset), 2.0) - \
+               (offset.dot(offset) - math.pow(targetRadius, 2.0))
 
         # one or more roots? if so we are touching the sphere
         return desc >= 0.0
