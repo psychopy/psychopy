@@ -73,7 +73,7 @@ class ProjectEditor(wx.Dialog):
         localLabel = wx.StaticText(panel, -1, _translate("Local folder:"))
         self.localBox = wx.TextCtrl(panel, -1, size=(400, -1),
                                     value=localRoot)
-        self.btnLocalBrowse = wx.Button(panel, wx.ID_ANY, "Browse...")
+        self.btnLocalBrowse = wx.Button(panel, wx.ID_ANY, _translate("Browse..."))
         self.btnLocalBrowse.Bind(wx.EVT_BUTTON, self.onBrowseLocal)
         localPathSizer = wx.BoxSizer(wx.HORIZONTAL)
         localPathSizer.Add(self.localBox)
@@ -188,9 +188,9 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         # if we've synced before we should know the local location
         self.localFolderCtrl = wx.StaticText(
             parent=self, id=wx.ID_ANY,
-            label="Local root: ")
+            label=_translate("Local root: "))
         self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY,
-                                        label="Browse...")
+                                        label=_translate("Browse..."))
         self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
 
         # remote attributes
@@ -262,7 +262,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         else:
             self.description.SetLabel('')
         if not hasattr(project, 'visibility'):
-            visib = "User not logged in!"
+            visib = _translate("User not logged in!")
         elif project.visibility in ['public', 'internal']:
             visib = "Public"
         else:
@@ -272,19 +272,19 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         # do we have a local location?
         localFolder = project.localRoot
         if not localFolder:
-            localFolder = "<not yet synced>"
-        self.localFolderCtrl.SetLabel("Local root: {}".format(localFolder))
+            localFolder = _translate("<not yet synced>")
+        self.localFolderCtrl.SetLabel(_translate("Local root: {}").format(localFolder))
 
         # Check permissions: login, fork or sync
         perms = project.permissions
 
         # we've got the permissions value so use it
         if not pavlovia.getCurrentSession().user:
-            self.syncButton.SetLabel('Log in to sync...')
+            self.syncButton.SetLabel(_translate('Log in to sync...'))
         elif not perms or perms < pavlovia.permissions['developer']:
-            self.syncButton.SetLabel('Fork + sync...')
+            self.syncButton.SetLabel(_translate('Fork + sync...'))
         else:
-            self.syncButton.SetLabel('Sync...')
+            self.syncButton.SetLabel(_translate('Sync...'))
         self.syncButton.Enable(True)  # now we have a project we should enable
 
         while None in project.tags:
@@ -340,7 +340,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             newPath = setLocalPath(self, self.project)
             if newPath:
                 self.localFolderCtrl.SetLabel(
-                    label="Local root: {}".format(newPath))
+                    label=_translate("Local root: {}").format(newPath))
             self.project.local = newPath
             self.Layout()
 
@@ -358,7 +358,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.localFolder = setLocalPath(self, self.project)
         if self.localFolder:
             self.localFolderCtrl.SetLabel(
-                label="Local root: {}".format(self.localFolder))
+                label=_translate("Local root: {}").format(self.localFolder))
         self.localFolderCtrl.Wrap(self.GetSize().width)
         self.Layout()
 
@@ -376,10 +376,10 @@ def syncProject(parent, project=None):
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
-        msg = ("This file doesn't belong to any existing project.")
+        msg = _translate("This file doesn't belong to any existing project.")
         style = wx.OK | wx.CANCEL | wx.CENTER
         dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
-        dlg.SetOKLabel("Create a project")
+        dlg.SetOKLabel(_translate("Create a project"))
         if dlg.ShowModal() == wx.ID_OK:
             if isCoder:
                 if parent.currentDoc:
