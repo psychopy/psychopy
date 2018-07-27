@@ -301,6 +301,7 @@ class Rift(window.Window):
         kwargs["checkTiming"] = False
         kwargs["stereo"] = False
         kwargs['useFBO'] = True
+        kwargs['multiSample'] = False
         # kwargs['waitBlanking'] = False
 
         # do not allow 'endFrame' to be called until _startOfFlip is called
