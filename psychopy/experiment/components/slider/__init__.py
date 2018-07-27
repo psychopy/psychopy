@@ -211,7 +211,7 @@ class SliderComponent(BaseVisualComponent):
             code = ("\n# Check %(name)s for response to end routine\n"
                     "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
                     "    continueRoutine = False")
-        buff.writeIndentedLines(code % (self.params))
+            buff.writeIndentedLines(code % (self.params))
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
