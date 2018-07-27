@@ -123,6 +123,8 @@ _localized = {
     'smallerRoutine': _translate('smaller routine'),
     'toggleReadme': _translate('toggle readme'),
     'projectsLogIn': _translate('login to projects'),
+    'pavlovia_logIn': _translate('login to pavlovia'),
+    'OSF_logIn': _translate('login to OSF'),
     'projectsSync': _translate('sync projects'),
     'projectsFind': _translate('find projects'),
     'projectsOpen': _translate('open projects'),
