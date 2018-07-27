@@ -48,6 +48,8 @@ from psychopy.experiment import components
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
+from psychopy.scripts import psyexpCompile
+
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
@@ -2227,12 +2229,14 @@ class BuilderFrame(wx.Frame):
                '-o', experimentPath]
         # if version is not specified then don't touch useVersion at all
         version = self.exp.settings.params['Use version'].val
-        if version:
+        if version not in [None, 'None', '']:
             cmd.extend(['-v', version])
-        logging.info(' '.join(cmd))
-        out = subprocess.check_output(cmd)
-        if len(out):
-            print(out)  # so that any errors messages in compile are printed
+            logging.info(' '.join(cmd))
+            out = subprocess.check_output(cmd)
+            if len(out):
+                print(out)  # so that any errors messages in compile are printed
+        else:
+            psyexpCompile.compileScript(infile=filename, version=None, outfile=experimentPath)
 
     def onPavloviaSync(self, evt=None):
         pavlovia_ui.syncProject(parent=self, project=self.project)
