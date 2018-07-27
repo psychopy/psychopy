@@ -55,6 +55,7 @@ class Rift(window.Window):
             samples=1,
             mirrorRes=None,
             legacyOpenGL=True,
+            warnAppFrameDropped=True,
             *args,
             **kwargs):
         """
@@ -107,6 +108,14 @@ class Rift(window.Window):
         mirrorRes: :obj:`list` of :obj:`int`
             Resolution of the mirror texture. If None, the resolution will
             match the window size.
+        warnAppFrameDropped : :obj:`bool`
+            Log a warning if the application drops a frame. This occurs when
+            the application fails to submit a frame to the compositor on-time.
+            Application frame drops can have many causes, such as running
+            routines in your application loop that take too long to complete.
+            However, frame drops can happen sporadically due to driver bugs and
+            running background processes (such as Windows Update). Use the
+            performance HUD to help diagnose the causes of frame drops.
 
         """
 
@@ -123,6 +132,9 @@ class Rift(window.Window):
 
         self._samples = samples
         self._mirrorRes = mirrorRes
+
+        # this can be changed while running
+        self.warnAppFrameDropped = warnAppFrameDropped
 
         # check if we are using Windows
         if platform.system() != 'Windows':
@@ -1609,7 +1621,7 @@ class Rift(window.Window):
         now = logging.defaultClock.getTime()
 
         # don't profile if nothing is on the HMD
-        if not self._sessionStatus.IsVisible:
+        if not self._sessionStatus.IsVisible or not self.warnAppFrameDropped:
             return
 
         # update performance data
