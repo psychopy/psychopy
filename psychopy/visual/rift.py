@@ -45,7 +45,6 @@ class Rift(window.Window):
 
     def __init__(
             self,
-            *args,
             fovType='recommended',
             trackingOriginType='eye',
             texelsPerPixel=1.0,
@@ -57,6 +56,7 @@ class Rift(window.Window):
             samples=1,
             mirrorRes=None,
             legacyOpenGL=True,
+            *args,
             **kwargs):
         """
 
