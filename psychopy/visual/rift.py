@@ -238,6 +238,8 @@ class Rift(window.Window):
             for eye in range(ovr.capi.ovrEye_Count):
                 ovr.capi.setRenderViewport(eye, self._viewports[eye])
 
+            self.scrWidthPIX = int(self._hmdBufferSize[0] / 2)
+
         else:
             # In mono mode, we use the same viewport for both eyes. Therefore,
             # the swap texture only needs to be half as wide. This save VRAM
@@ -249,9 +251,7 @@ class Rift(window.Window):
             for eye in range(ovr.capi.ovrEye_Count):
                 ovr.capi.setRenderViewport(eye, self._viewports)
 
-        # required for unit conversion
-        # NB - is this even a good idea?
-        self.scrWidthPIX = self._hmdBufferSize[1]
+            self.scrWidthPIX = int(self._hmdBufferSize[0])
 
         # frame index
         self._frameIndex = 0
