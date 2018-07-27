@@ -81,6 +81,8 @@ _localizedDialogs = {
     # Mouse:
     'any click': _translate('any click'),
     'valid click': _translate('valid click'),
+    'mouse onset':_translate('mouse onset'),
+    'Routine': _translate('Routine'),
     # Polygon:
     'line': _translate('line'),
     'triangle': _translate('triangle'),
@@ -90,6 +92,7 @@ _localizedDialogs = {
     # Variable component
     'first': _translate('first'),
     'last': _translate('last'),
+    'all': _translate('all'),
     'average': _translate('average')}
 
 _localized = copy.copy(_localizedBase)

@@ -159,7 +159,7 @@ def noGitWarning(parent):
     errorBitmapCtrl = wx.StaticBitmap(dlg, -1)
     errorBitmapCtrl.SetBitmap(errorBitmap)
 
-    msg = wx.StaticText(dlg, label="You need to install git to use Pavlovia projects")
+    msg = wx.StaticText(dlg, label=_translate("You need to install git to use Pavlovia projects"))
     link = wxhl.HyperlinkCtrl(dlg, url="https://git-scm.com/", style=wxhl.HL_CONTEXTMENU)
     OK = wx.Button(dlg, wx.ID_OK, label="OK")
 

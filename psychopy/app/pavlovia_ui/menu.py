@@ -66,7 +66,8 @@ class PavloviaMenu(wx.Menu):
                            _translate("New...\t{}").format(keys['projectsNew']))
         parent.Bind(wx.EVT_MENU, self.onNew, id=item.GetId())
 
-        item = self.Append(wx.ID_ANY, "Sync\t{}".format(keys['projectsSync']))
+        item = self.Append(wx.ID_ANY,
+                           _translate("Sync\t{}").format(keys['projectsSync']))
         parent.Bind(wx.EVT_MENU, self.onSync, id=item.GetId())
 
     def addToSubMenu(self, name, menu, function):
