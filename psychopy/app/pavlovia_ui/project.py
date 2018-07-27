@@ -257,8 +257,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.url.SetURL(self.project.web_url)
 
         # public / private
-        if hasattr(project.attributes, 'description') and project.attributes['description'] is not None:
-                self.description.SetLabel(project.attributes['description'])
+        if hasattr(project.attributes, 'description') and project.attributes['description']:
+            self.description.SetLabel(project.attributes['description'])
+        else:
+            self.description.SetLabel('')
         if not hasattr(project, 'visibility'):
             visib = _translate("User not logged in!")
         elif project.visibility in ['public', 'internal']:

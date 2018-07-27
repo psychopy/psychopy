@@ -151,11 +151,11 @@ class _SoundStream(object):
         self.frameN = 1
         # self.frameTimes = range(5)  # DEBUGGING: store the last 5 callbacks
         if not travisCI:  # travis-CI testing does not have a sound device
-            self._sdStream = sd.OutputStream(samplerate=sampleRate,
+            self._sdStream = sd.OutputStream(samplerate=self.sampleRate,
                                              blocksize=self.blockSize,
                                              latency='low',
                                              device=device,
-                                             channels=channels,
+                                             channels=self.channels,
                                              callback=self.callback)
             self._sdStream.start()
             self.device = self._sdStream.device
@@ -401,6 +401,7 @@ class SoundDeviceSound(_SoundBase):
                 frames=int(self.sampleRate * self.duration))
             self.sndFile.close()
             self._setSndFromArray(sndArr)
+        self._channelCheck(self.sndArr)  # Check for fewer channels in stream vs data array
 
     def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         self.freq = thisFreq
@@ -443,6 +444,15 @@ class SoundDeviceSound(_SoundBase):
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
+
+    def _channelCheck(self, array):
+        """Checks whether stream has fewer channels than data. If True, ValueError"""
+        if self.channels < array.shape[1]:
+            msg = ("The sound stream is set up incorrectly. You have fewer channels in the buffer "
+                   "than in data file ({} vs {}).\n**Ensure you have selected 'Force stereo' in "
+                   "experiment settings**".format(self.channels, array.shape[1]))
+            logging.error(msg)
+            raise ValueError(msg)
 
     def play(self, loops=None):
         """Start the sound playing

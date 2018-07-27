@@ -204,6 +204,15 @@ class SliderComponent(BaseVisualComponent):
     def writeRoutineStartCode(self, buff):
         buff.writeIndented("%(name)s.reset()\n" % (self.params))
 
+    def writeFrameCode(self, buff):
+        super(SliderComponent, self).writeFrameCode(buff)  # Write basevisual frame code
+        forceEnd = self.params['forceEndRoutine'].val
+        if forceEnd:
+            code = ("\n# Check %(name)s for response to end routine\n"
+                    "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
+                    "    continueRoutine = False")
+        buff.writeIndentedLines(code % (self.params))
+
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
         if len(self.exp.flow._loopList):
