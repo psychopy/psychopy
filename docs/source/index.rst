@@ -12,6 +12,13 @@ PsychoPy provides a unique choice of interface: use the **Builder interface** to
 News
 ====================
 
+**Latest version**: 3.0.0 beta (multiple versions) released July 2018
+
+See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
+
+Supporting online studies and announcing our own experiment server at Pavlovia.org
+
+
 **Buy the official book!**
 
 You can now :red:`buy the book`, `Building Experiments in PsychoPy <https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480#reviews>`_ from Sage Publishing!
@@ -22,15 +29,8 @@ You can now :red:`buy the book`, `Building Experiments in PsychoPy <https://uk.s
   - professionals (more technical detail for the afficionado)
   - and specialists (with particular use cases like EEG, fMRI, psychophysics).
 
-**Latest version**: 3.0.0 beta (multiple versions) released July 2018
-
-See the launch video at https://www.youtube.com/watch?v=bprYeBzkUc8 to get more info.
-
-Supporting online studies and announcing our own experiment server at Pavlovia.org
-
-
-
 See the full :doc:`changelog`
+
 
 .. title:: Home
 
