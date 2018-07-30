@@ -503,9 +503,18 @@ class Slider(MinimalStim):
 
         Styles can be combined in a list e.g. ['whiteOnBlack','labels45']
 
+        Known styles currently include:
+
+            'triangleMarker': the marker is a triangle
+            'slider': looks more like an application slider control
+            'whiteOnBlack': a sort of color-inverse rating scale
+            'labels45' the text is rotated by 45 degrees
+
+        If you fancy creating and including your own styles that would be great!
+
         Parameters
         ----------
-        style
+        style: list of strings
 
         """
         self.__dict__['style'] = style
