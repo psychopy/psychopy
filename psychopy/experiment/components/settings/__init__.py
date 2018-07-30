@@ -59,7 +59,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Use version': _translate("Use PsychoPy version"),
               'Completion URL': _translate("Completion URL"),
               'Force stereo': _translate("Force stereo"),
-              'exportHTML': _translate("Export HTML")}
+              'Export HTML': _translate("Export HTML")}
 
 thisFolder = os.path.split(__file__)[0]
 #
@@ -266,7 +266,7 @@ class SettingsComponent(object):
             exportHTML, valType='str',
             allowedVals=['on Save', 'on Sync', 'manually'],
             hint=_translate("When to export experiment to the HTML folder."),
-            label=_localized["exportHTML"], categ='Online')
+            label=_localized["Export HTML"], categ='Online')
 
     def getInfo(self):
         """Rather than converting the value of params['Experiment Info']

@@ -1996,8 +1996,7 @@ class CoderFrame(wx.Frame):
 
         self.toolbar.AddSeparator()
         pavButtons = pavlovia_ui.toolbar.PavloviaButtons(self, toolbar=tb, tbSize=size)
-        pavButtons.addPavloviaTools(buttons=['pavloviaSync',
-                                             'pavloviaSearch', 'pavloviaUser'])
+        pavButtons.addPavloviaTools(buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser', ])
         self.btnHandles.update(pavButtons.btnHandles)
 
         tb.Realize()
@@ -2915,6 +2914,25 @@ class CoderFrame(wx.Frame):
         else:
             self.unitTestFrame = UnitTestFrame(app=self.app)
         # UnitTestFrame.Show()
+
+    def onPavloviaSync(self, evt=None):
+        print("Please sync your project from Builder")
+        # TODO: Allow user to sync project from coder
+        pass
+
+    def onPavloviaRun(self, evt=None):
+        # TODO: Allow user to run project from coder
+        pass
+
+    def onPavloviaUser(self, evt=None):
+        dlg = pavlovia_ui.PavloviaMiniBrowser(parent=self)
+        dlg.ShowModal()
+        dlg.gotoUserPage()
+
+    def onPavloviaSearch(self, evt=None):
+        self.pavloviaMenu.searchDlg = pavlovia_ui.search.SearchFrame(
+            app=self.app, parent=self, pos=self.GetPosition())
+        self.pavloviaMenu.searchDlg.Show()
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar

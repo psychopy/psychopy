@@ -29,11 +29,14 @@ def compileScript(infile=None, version=None, outfile=None):
         msg = "You cannot set version by calling compileScript() manually. Setting 'version' to None."
         logging.warning(msg)
 
-    # Set experiment object according to version
-    thisExp = experiment.Experiment()
-    thisExp.loadFromXML(infile)
-    # Write version to experiment init text
-    thisExp.psychopyVersion = version
+    # Check infile type
+    if isinstance(infile, experiment.Experiment):
+        thisExp = infile
+    else:
+        thisExp = experiment.Experiment()
+        thisExp.loadFromXML(infile)
+        # Write version to experiment init text
+        thisExp.psychopyVersion = version
     # Set output type, either JS or Python
     if outfile.endswith(".js"):
         targetOutput = "PsychoJS"
@@ -44,8 +47,8 @@ def compileScript(infile=None, version=None, outfile=None):
     script = thisExp.writeScript(outfile, target=targetOutput)
     outfile.replace('.py', targetOutput[-2:].lower())
     # Output script to file
-    f = codecs.open(outfile, 'w', 'utf-8')
-    f.write(script.getvalue())
+    with codecs.open(outfile, 'w', 'utf-8') as f:
+        f.write(script.getvalue())
     f.close()
 
 if __name__ == "__main__":

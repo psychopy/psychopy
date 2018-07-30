@@ -1597,7 +1597,7 @@ class BuilderFrame(wx.Frame):
         self.setIsModified(False)
         # if export on save then we should have an html file to update
         if self.htmlPath or self.exp.settings.params['exportHTML'] == 'on Save':
-            self.fileExport(htmlPath=self.htmlPath, onSave=True)
+            self.fileExport(htmlPath=self.htmlPath, saved=True)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1658,7 +1658,7 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None, htmlPath=None, onSave=False):
+    def fileExport(self, event=None, htmlPath=None, saved=False):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
@@ -1676,7 +1676,7 @@ class BuilderFrame(wx.Frame):
         # then save the actual script
         self.generateScript(experimentPath=htmlPath,
                             target="PsychoJS",
-                            onSave=onSave)
+                            saved=saved)
         
 
     def getShortFilename(self):
@@ -2200,15 +2200,13 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def generateScript(self, experimentPath, target="PsychoPy", onSave=False):
+    def generateScript(self, experimentPath, target="PsychoPy", saved=False):
         """Generates python script from the current builder experiment"""
         expPath = self.filename
-        if expPath is None or expPath.startswith('untitled') and not onSave:
+        if not saved:
             ok = self.fileSave()
             if not ok:
                 return  # save file before compiling script
-        elif not onSave:
-            self.fileSave()  # Save on runFile otherwise changes to exp not included when run
         self.exp.expPath = os.path.abspath(expPath)
 
         # Compile script from command line using version
@@ -2219,7 +2217,7 @@ class BuilderFrame(wx.Frame):
         else:
             pythonExec = sys.executable.replace(' ', '\ ')
 
-        if not constants.PY3: # encode path in Python2
+        if not constants.PY3:  # encode path in Python2
             filename = self.filename.encode(sys.getfilesystemencoding())
             experimentPath = experimentPath.encode(sys.getfilesystemencoding())
         else:
@@ -2237,7 +2235,7 @@ class BuilderFrame(wx.Frame):
             if len(out):
                 print(out)  # so that any errors messages in compile are printed
         else:
-            psyexpCompile.compileScript(infile=filename, version=None, outfile=experimentPath)
+            psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
     def onPavloviaSync(self, evt=None):
         if self.exp.settings.params['exportHTML'] == 'on Sync':
