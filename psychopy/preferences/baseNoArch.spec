@@ -224,8 +224,9 @@
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')
 
-    # Projects: Log in
+    # Projects: Log in to pavlovia
     pavlovia_logIn = string(default='Ctrl+Alt+I')
+    # Projects: Log in to OSF
     OSF_logIn = string(default='Ctrl+Alt+Shift+I')
     # Projects: Sync project
     projectsSync = string(default='Ctrl+Alt+Y')

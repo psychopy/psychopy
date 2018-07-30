@@ -137,7 +137,7 @@ class SliderComponent(BaseVisualComponent):
                 updates='constant', allowedUpdates=[],
                 hint=_translate(
                         "By default the labels will be on the bottom or "
-                        "left of the scale, but this can bee flipped to the "
+                        "left of the scale, but this can be flipped to the "
                         "other side."),
                 label=_translate('Flip'),
                 categ='Appearance')
@@ -211,7 +211,7 @@ class SliderComponent(BaseVisualComponent):
             code = ("\n# Check %(name)s for response to end routine\n"
                     "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
                     "    continueRoutine = False")
-        buff.writeIndentedLines(code % (self.params))
+            buff.writeIndentedLines(code % (self.params))
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']

@@ -4,9 +4,8 @@
 #
 # This file is public domain.
 #
-from __future__ import division
-
 from psychopy import visual, event, core
+from psychopy.tools.rifttools import *  # math types are accessed from here
 import pyglet.gl as GL
 import math
 
@@ -15,9 +14,6 @@ import math
 # samples for anti-aliasing, could be 2, 4, 6, 8, 16 or 32 depending on your
 # hardware.
 hmd = visual.Rift(headLocked=False, samples=1)
-
-# expose the math libraries
-vrmath = visual.rift.math
 
 # loop until the user quits the app through the GUI menu
 stopApp = False
@@ -55,8 +51,8 @@ while not stopApp:
         # handle the translation. You can do whatever you like to the position
         # every frame.
         #
-        triangle_origin = vrmath.ovrVector3f(0.0, 0.0, -2.0)
-        M = vrmath.ovrMatrix4f.translation(triangle_origin)
+        triangle_origin = ovrVector3f(0.0, 0.0, -2.0)
+        M = ovrMatrix4f.translation(triangle_origin)
 
         GL.glPushMatrix()
         GL.glMultMatrixf(M.ctypes)  # multiply the scene by the matrix

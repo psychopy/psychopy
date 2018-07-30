@@ -485,7 +485,10 @@ class _BaseParamsDlg(wx.Dialog):
                       'Advanced': _translate('Advanced'),
                       'Custom': _translate('Custom'),
                       'Carrier': _translate('Carrier'),
-                      'Envelope': _translate('Envelope')}
+                      'Envelope': _translate('Envelope'),
+                      'Appearance': _translate('Appearance'),
+                      'Save': _translate('Save'),
+                      'Online':_translate('Online')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)

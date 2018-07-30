@@ -1197,8 +1197,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                          portName=None, 
                          mode='', 
                          checkConfigLevel=1,
-                         gammaCorrect='hardware', 
-                         gamma=None, 
+                         gammaCorrect='hardware',
+                         gamma=None,
                          noComms=False):
         """
         :Parameters:
@@ -1554,7 +1554,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def monitorEDID(self):
         """Get / set the EDID file for the monitor.
         The edid files will be located in the EDID subdirectory of the
-        flash disk. The file â€œautomatic.edidâ€ will be the file read from
+        flash disk. The file `automatic.edid` will be the file read from
         the connected monitor.
         """
         return self.__dict__['monitorEDID']
@@ -2263,7 +2263,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         Buttons/events can be mapped to multiple physical inputs and stay mapped until reset.
         
         
-        Example:
+        Example::
+
             bits.RTBoxSetKeys([('btn1','Din0),('btn2','Din1')])
             bits.RTBoxAddKeys([('btn1','IRButtonA'),(('btn2','IRButtonB')])
             
@@ -2346,10 +2347,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         'time' is the timestamp associated with the event.
         
-        Values can be read as a list of structures eg:
-            res= getRTBoxResponses(3)
+        Values can be read as a list of structures eg::
+
+            res = getRTBoxResponses(3)
             res[0].dir, res[0].button, res[0].time
-        or dictionaries
+
+        or dictionaries::
+
             res[0]['dir'], res[0]['button'], res[0]['time']
             
         Note even if only 1 key press was requested 
@@ -2434,10 +2438,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         'time' is the timestamp associated with the event.
         
-        Values can be read as a structure eg:
-            res= getAllRTBoxResponses()
+        Values can be read as a structure eg::
+
+            res = getAllRTBoxResponses()
             res[0].dir, res[0].button, res[0].time
-        or dictionary
+
+        or dictionary::
+
             res[0]['dir'], res[0]['button'], res[0]['time']
             
         Note even if only 1 key press was found 
@@ -2936,7 +2943,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         same.
         
         
-        Example:
+        Example::
+        
             bits.RTBoxSetKeys([('btn1','Din0),('btn2','Din1')])
             bits.RTBoxAddKeys([('btn1','IRButtonA'),(('btn2','IRButtonB')])
             
@@ -2996,11 +3004,14 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         'time' is the timestamp associated with the event.
         
-        Values can be read as a list of structures eg:
-            res= getRTBoxResponses(3)
-            res[0].dir, res[0].button, res[0].time
-        or dictionaries
-            res[0]['dir'], res[0]['button'], res[0]['time']
+        Values can be read as a list of structures eg::
+
+            res = getRTBoxResponses(3)
+            print(res[0].dir, res[0].button, res[0].time)
+
+        or dictionaries::
+
+            print(res[0]['dir'], res[0]['button'], res[0]['time'])
             
         Note even if only 1 key press was requested 
         a list of dict / objects is returned.
@@ -3091,10 +3102,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         'time' is the timestamp associated with the event.
         
-        Values can be read as a structure eg:
+        Values can be read as a structure eg::
+
             res= getAllStatusBoxResponses()
             res[0].dir, res[0].button, res[0].time
-        or dictionary
+
+        or dictionary::
+
             res[0]['dir'], res[0]['button'], res[0]['time']
             
         Note even if only 1 key press was found 
@@ -3150,9 +3164,12 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         Results can be accessed as follows:
             
-        structure
+        structure::
+
             res[0].dir, res[0].button, res[0].time
-        or dictionary
+
+        or dictionary::
+
             res[0]['dir'], res[0]['button'], res[0]['time']
         
         Note that the firmware in Bits# units varies over time and some 
@@ -4521,7 +4538,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         
         
     #===================================================================#
-    #    The getTouchâ€¦ touchWaitâ€¦ and touchPressed commands work        #
+    #    The getTouch, touchWait, and touchPressed commands work        #
     #    a bit like equivalent RTBox commands.                          #
     #                                                                   #
     #    They do use touch logging in a thread but only do anything if  #
@@ -4933,7 +4950,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
                     
                 #Detects that the last recorded touch in a previous call to 
                 #getTouchLog was a 'touched' rather than a 'release' event.
-                #this is likely to cause the error but wonâ€™t capture and
+                #this is likely to cause the error but won't capture and
                 #error from the last run of an experiment that uses the 
                 #touch screen
                 elif self.lastTouch == 'touched':

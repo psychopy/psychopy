@@ -20,7 +20,7 @@ Timing
 -------
 
 - 48 bit MCU usec timer, so MCU clock rolls every 8.9 years.
-- Uses Cristian’s Algorithm (http://en.wikipedia.org/wiki/Cristian’s_algorithm)
+- Uses Cristian's Algorithm (http://en.wikipedia.org/wiki/Cristian's_algorithm)
   to convert MCU times to ioHub times, correcting for offset and drift between
   the time bases.
 
