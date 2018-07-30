@@ -366,7 +366,8 @@ class _baseVisualTest(object):
         "{}".format(stim) #check that str(xxx) is working
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
-            utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
+            utils.compareScreenshot('text2_%s.png' %self.contextName,
+                                    win, crit=20)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
@@ -378,27 +379,31 @@ class _baseVisualTest(object):
                                    pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
         grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
                                    opacity=0.5,
-                                   pos=[-0.3,0.0], ori=-45, sf=2*self.scaleFactor)
+                                   pos=[-0.3, 0.0], ori=-45,
+                                   sf=2*self.scaleFactor)
 
         text.draw()
         grat1.draw()
         grat2.draw()
         utils.skip_under_travis()
         if self.win.winType != 'pygame':
-            utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
+            utils.compareScreenshot('blend_add_%s.png' %self.contextName,
+                                    win, crit=20)
 
     def test_mov(self):
         win = self.win
         if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
         elif _travisTesting and not _anacondaTesting:
-            pytest.skip("Travis with system Python doesn't seem to have a working ffmpeg")
+            pytest.skip("Travis with system Python doesn't seem to have a "
+                        "working ffmpeg")
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
         #check if present
         if not os.path.isfile(fileName):
-            raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
+            raise IOError('Could not find movie file: %s'
+                          % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
         mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
@@ -407,7 +412,8 @@ class _baseVisualTest(object):
         for frameN in range(10):
             mov.draw()
             if frameN==0:
-                utils.compareScreenshot('movFrame1_%s.png' %(self.contextName), win)
+                utils.compareScreenshot('movFrame1_%s.png' %self.contextName,
+                                        win, crit=10)
             win.flip()
         "{}".format(mov) #check that str(xxx) is working
 
