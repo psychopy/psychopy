@@ -22,17 +22,16 @@ from . import window
 
 # if we have PsychXR, do the rest of the importing
 if _HAS_PSYCHXR_:
-    import pyglet.gl as GL
+    import sys
     import platform
     import ctypes
-    from psychopy.tools.attributetools import setAttribute
+    import math
     from psychopy import platform_specific, logging
+    import pyglet.gl as GL
+    from psychopy.tools.attributetools import setAttribute
     import numpy as np
-    import sys
-    import math as _math  # alias the built-in math library
 
     ovr.capi.debug_mode = True  # enable debug mode, not much overhead
-    math = ovr.math  # make LibOVR math types available at the module level
 
 reportNDroppedFrames = 5
 
@@ -56,6 +55,7 @@ class Rift(window.Window):
             samples=1,
             mirrorRes=None,
             legacyOpenGL=True,
+            warnAppFrameDropped=True,
             *args,
             **kwargs):
         """
@@ -89,14 +89,16 @@ class Rift(window.Window):
             Location of the far clipping plane in GL units (meters by default)
             from the viewer.
         monoscopic : :obj:`bool`
-            Monoscopic rendering mode. You can achieve the same effect by
-            setting 'fovType='symmetric' and rendering the same image to both
-            eye buffers, however 'mono=True' has reduced VRAM usage.
+            Enable monoscopic rendering mode which presents the same image to
+            both eyes. Eye poses used will be both centered at the HMD origin.
+            Monoscopic mode uses a separate rendering pipeline which reduces
+            VRAM usage. When in monoscopic mode, you do not need to call
+            'setBuffer' prior to rendering (doing so will do have no effect).
         samples : :obj:`int`
             Specify the number of samples for anti-aliasing. When >1,
             multi-sampling logic is enabled in the rendering pipeline. If 'max'
             is specified, the largest number of samples supported by the
-            platform is used. If floating point textures are used, msaa_sampling
+            platform is used. If floating point textures are used, MSAA sampling
             is disabled. Must be power of two value.
         legacyOpenGL : :obj:`bool`
             Disable 'immediate mode' OpenGL calls in the rendering pipeline.
@@ -106,6 +108,14 @@ class Rift(window.Window):
         mirrorRes: :obj:`list` of :obj:`int`
             Resolution of the mirror texture. If None, the resolution will
             match the window size.
+        warnAppFrameDropped : :obj:`bool`
+            Log a warning if the application drops a frame. This occurs when
+            the application fails to submit a frame to the compositor on-time.
+            Application frame drops can have many causes, such as running
+            routines in your application loop that take too long to complete.
+            However, frame drops can happen sporadically due to driver bugs and
+            running background processes (such as Windows Update). Use the
+            performance HUD to help diagnose the causes of frame drops.
 
         """
 
@@ -122,6 +132,9 @@ class Rift(window.Window):
 
         self._samples = samples
         self._mirrorRes = mirrorRes
+
+        # this can be changed while running
+        self.warnAppFrameDropped = warnAppFrameDropped
 
         # check if we are using Windows
         if platform.system() != 'Windows':
@@ -239,6 +252,8 @@ class Rift(window.Window):
             for eye in range(ovr.capi.ovrEye_Count):
                 ovr.capi.setRenderViewport(eye, self._viewports[eye])
 
+            self.scrWidthPIX = int(self._hmdBufferSize[0] / 2)
+
         else:
             # In mono mode, we use the same viewport for both eyes. Therefore,
             # the swap texture only needs to be half as wide. This save VRAM
@@ -250,9 +265,7 @@ class Rift(window.Window):
             for eye in range(ovr.capi.ovrEye_Count):
                 ovr.capi.setRenderViewport(eye, self._viewports)
 
-        # required for unit conversion
-        # NB - is this even a good idea?
-        self.scrWidthPIX = self._hmdBufferSize[1]
+            self.scrWidthPIX = int(self._hmdBufferSize[0])
 
         # frame index
         self._frameIndex = 0
@@ -301,6 +314,7 @@ class Rift(window.Window):
         kwargs["checkTiming"] = False
         kwargs["stereo"] = False
         kwargs['useFBO'] = True
+        kwargs['multiSample'] = False
         # kwargs['waitBlanking'] = False
 
         # do not allow 'endFrame' to be called until _startOfFlip is called
@@ -390,7 +404,7 @@ class Rift(window.Window):
         Returns
         -------
         str
-            UTF-8 encoded string containing the manufacturer name.
+            UTF-8 encoded string containing the devices serial number.
 
         """
         return self._hmdDesc.SerialNumber
@@ -619,7 +633,7 @@ class Rift(window.Window):
                     'range. Disabling.')
         elif isinstance(self._samples, str):
             if self._samples == 'max':
-                self._samples = max_samples
+                self._samples = max_samples.value
 
         # create an MSAA render buffer if self._samples > 1
         self.frameBufferMsaa = GL.GLuint()  # is zero if not configured
@@ -1557,7 +1571,7 @@ class Rift(window.Window):
         Examples
         --------
         # raycast from the head pose to a target
-        headPose = hmd._headPose
+        headPose = hmd.headPose
         targetPos = rift.math.ovrVector3f(0.0, 0.0, -5.0)  # 5 meters front
         isLooking = hmd.raycast(headPose, targetPos)
 
@@ -1589,8 +1603,8 @@ class Rift(window.Window):
         offset = -originPose.inverseTransform(targetPose)
 
         # find the discriminant
-        desc = _math.pow(rayDirection.dot(offset), 2.0) - \
-               (offset.dot(offset) - _math.pow(targetRadius, 2.0))
+        desc = math.pow(rayDirection.dot(offset), 2.0) - \
+               (offset.dot(offset) - math.pow(targetRadius, 2.0))
 
         # one or more roots? if so we are touching the sphere
         return desc >= 0.0
@@ -1607,7 +1621,7 @@ class Rift(window.Window):
         now = logging.defaultClock.getTime()
 
         # don't profile if nothing is on the HMD
-        if not self._sessionStatus.IsVisible:
+        if not self._sessionStatus.IsVisible or not self.warnAppFrameDropped:
             return
 
         # update performance data
