@@ -1596,8 +1596,8 @@ class BuilderFrame(wx.Frame):
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
         # if export on save then we should have an html file to update
-        if self.htmlPath:
-            self.fileExport(htmlPath=self.htmlPath)
+        if self.htmlPath or self.exp.settings.params['exportHTML'] == 'on Save':
+            self.fileExport(htmlPath=self.htmlPath, onSave=True)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1658,7 +1658,7 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None, htmlPath=None):
+    def fileExport(self, event=None, htmlPath=None, onSave=False):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
@@ -1675,7 +1675,8 @@ class BuilderFrame(wx.Frame):
         htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         # then save the actual script
         self.generateScript(experimentPath=htmlPath,
-                                        target="PsychoJS")
+                            target="PsychoJS",
+                            onSave=onSave)
         
 
     def getShortFilename(self):
@@ -2199,14 +2200,14 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def generateScript(self, experimentPath, target="PsychoPy"):
+    def generateScript(self, experimentPath, target="PsychoPy", onSave=False):
         """Generates python script from the current builder experiment"""
         expPath = self.filename
-        if expPath is None or expPath.startswith('untitled'):
+        if expPath is None or expPath.startswith('untitled') and not onSave:
             ok = self.fileSave()
             if not ok:
                 return  # save file before compiling script
-        else:
+        elif not onSave:
             self.fileSave()  # Save on runFile otherwise changes to exp not included when run
         self.exp.expPath = os.path.abspath(expPath)
 
@@ -2239,6 +2240,8 @@ class BuilderFrame(wx.Frame):
             psyexpCompile.compileScript(infile=filename, version=None, outfile=experimentPath)
 
     def onPavloviaSync(self, evt=None):
+        if self.exp.settings.params['exportHTML'] == 'on Sync':
+            self.fileExport(htmlPath=self.htmlPath)
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):

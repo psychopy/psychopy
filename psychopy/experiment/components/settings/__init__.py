@@ -58,7 +58,8 @@ _localized = {'expName': _translate("Experiment name"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version"),
               'Completion URL': _translate("Completion URL"),
-              'Force stereo': _translate("Force stereo")}
+              'Force stereo': _translate("Force stereo"),
+              'exportHTML': _translate("Export HTML")}
 
 thisFolder = os.path.split(__file__)[0]
 #
@@ -95,7 +96,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
                  useVersion='',
-                 filename=None):
+                 filename=None, exportHTML='on Save'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -260,6 +261,12 @@ class SettingsComponent(object):
             hint=_translate("Where should participants be redirected after the experiment"
                             " INSERT COMPLETION URL E.G.?"),
             label="Completion URL", categ='Online')
+
+        self.params['exportHTML'] = Param(
+            exportHTML, valType='str',
+            allowedVals=['on Save', 'on Sync', 'manually'],
+            hint=_translate("When to export experiment to the HTML folder."),
+            label=_localized["exportHTML"], categ='Online')
 
     def getInfo(self):
         """Rather than converting the value of params['Experiment Info']
