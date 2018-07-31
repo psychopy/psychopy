@@ -19,10 +19,10 @@ class PavloviaButtons:
         rc = self.frame.app.prefs.paths['resources']
 
         info={}
-        info['pavloviaRun'] = {'emblem': 'run16.png', 'func': self.onPavloviaRun}
-        info['pavloviaSync'] = {'emblem': 'sync_green16.png', 'func': self.onPavloviaSync}
-        info['pavloviaSearch'] = {'emblem': 'magnifier16.png', 'func': self.onPavloviaSearch}
-        info['pavloviaUser'] = {'emblem': 'user22.png', 'func': self.onPavloviaUser}
+        info['pavloviaRun'] = {'emblem': 'run16.png', 'func': self.frame.onPavloviaRun}
+        info['pavloviaSync'] = {'emblem': 'sync_green16.png', 'func': self.frame.onPavloviaSync}
+        info['pavloviaSearch'] = {'emblem': 'magnifier16.png', 'func': self.frame.onPavloviaSearch}
+        info['pavloviaUser'] = {'emblem': 'user22.png', 'func': self.frame.onPavloviaUser}
 
         for buttonName in buttons:
             emblem = info[buttonName]['emblem']

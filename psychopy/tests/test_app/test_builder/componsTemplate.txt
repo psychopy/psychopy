@@ -3600,6 +3600,18 @@ SettingsComponent.expName.staticUpdater:None
 SettingsComponent.expName.updates:None
 SettingsComponent.expName.val:
 SettingsComponent.expName.valType:str
+SettingsComponent.exportHTML.default:'on Save'
+SettingsComponent.exportHTML.allowedTypes:[]
+SettingsComponent.exportHTML.allowedUpdates:None
+SettingsComponent.exportHTML.allowedVals:['on Save', 'on Sync', 'manually']
+SettingsComponent.exportHTML.categ:Online
+SettingsComponent.exportHTML.hint:When to export experiment to the HTML folder.
+SettingsComponent.exportHTML.label:Export HTML
+SettingsComponent.exportHTML.readOnly:False
+SettingsComponent.exportHTML.staticUpdater:None
+SettingsComponent.exportHTML.updates:None
+SettingsComponent.exportHTML.val:on Save
+SettingsComponent.exportHTML.valType:str
 SettingsComponent.logging level.default:exp
 SettingsComponent.logging level.allowedTypes:[]
 SettingsComponent.logging level.allowedUpdates:None

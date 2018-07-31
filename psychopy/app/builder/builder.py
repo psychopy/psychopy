@@ -48,6 +48,8 @@ from psychopy.experiment import components
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
+from psychopy.scripts import psyexpCompile
+
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)
 staticTimeColor = wx.Colour(200, 50, 50, 100)
@@ -1594,8 +1596,8 @@ class BuilderFrame(wx.Frame):
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
         # if export on save then we should have an html file to update
-        if self.htmlPath:
-            self.fileExport(htmlPath=self.htmlPath)
+        if self.htmlPath or self.exp.settings.params['exportHTML'] == 'on Save':
+            self.fileExport(htmlPath=self.htmlPath, saved=True)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1656,7 +1658,7 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None, htmlPath=None):
+    def fileExport(self, event=None, htmlPath=None, saved=False):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
@@ -1673,7 +1675,8 @@ class BuilderFrame(wx.Frame):
         htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         # then save the actual script
         self.generateScript(experimentPath=htmlPath,
-                                        target="PsychoJS")
+                            target="PsychoJS",
+                            saved=saved)
         
 
     def getShortFilename(self):
@@ -2197,15 +2200,13 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def generateScript(self, experimentPath, target="PsychoPy"):
+    def generateScript(self, experimentPath, target="PsychoPy", saved=False):
         """Generates python script from the current builder experiment"""
         expPath = self.filename
-        if expPath is None or expPath.startswith('untitled'):
+        if not saved:
             ok = self.fileSave()
             if not ok:
                 return  # save file before compiling script
-        else:
-            self.fileSave()  # Save on runFile otherwise changes to exp not included when run
         self.exp.expPath = os.path.abspath(expPath)
 
         # Compile script from command line using version
@@ -2216,7 +2217,7 @@ class BuilderFrame(wx.Frame):
         else:
             pythonExec = sys.executable.replace(' ', '\ ')
 
-        if not constants.PY3: # encode path in Python2
+        if not constants.PY3:  # encode path in Python2
             filename = self.filename.encode(sys.getfilesystemencoding())
             experimentPath = experimentPath.encode(sys.getfilesystemencoding())
         else:
@@ -2227,14 +2228,18 @@ class BuilderFrame(wx.Frame):
                '-o', experimentPath]
         # if version is not specified then don't touch useVersion at all
         version = self.exp.settings.params['Use version'].val
-        if version:
+        if version not in [None, 'None', '']:
             cmd.extend(['-v', version])
-        logging.info(' '.join(cmd))
-        out = subprocess.check_output(cmd)
-        if len(out):
-            print(out)  # so that any errors messages in compile are printed
+            logging.info(' '.join(cmd))
+            out = subprocess.check_output(cmd)
+            if len(out):
+                print(out)  # so that any errors messages in compile are printed
+        else:
+            psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
     def onPavloviaSync(self, evt=None):
+        if self.exp.settings.params['exportHTML'] == 'on Sync':
+            self.fileExport(htmlPath=self.htmlPath)
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
