@@ -2907,8 +2907,7 @@ class CoderFrame(wx.Frame):
         self.gotoLine(filename, lineNumber)
 
     def onUnitTests(self, evt=None):
-        """Show the unit tests frame
-        """
+        """Show the unit tests frame"""
         if self.unitTestFrame:
             self.unitTestFrame.Raise()
         else:
@@ -2916,9 +2915,15 @@ class CoderFrame(wx.Frame):
         # UnitTestFrame.Show()
 
     def onPavloviaSync(self, evt=None):
-        print("Please sync your project from Builder")
-        # TODO: Allow user to sync project from coder
-        pass
+        """Push changes to project repo, or create new proj if proj is None"""
+        try:
+            from psychopy.projects import pavlovia
+            self.project = pavlovia.getProject(self.currentDoc.filename)
+        except:
+            self.project = None
+
+        self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
+        pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
