@@ -45,6 +45,7 @@ from psychopy import logging
 from psychopy.localization import _translate
 from ..utils import FileDropTarget
 from psychopy.constants import PY3
+from psychopy.projects import pavlovia
 
 # advanced prefs (not set in prefs files)
 prefTestSubset = ""
@@ -2917,7 +2918,6 @@ class CoderFrame(wx.Frame):
     def onPavloviaSync(self, evt=None):
         """Push changes to project repo, or create new proj if proj is None"""
         try:
-            from psychopy.projects import pavlovia
             self.project = pavlovia.getProject(self.currentDoc.filename)
         except:
             self.project = None
