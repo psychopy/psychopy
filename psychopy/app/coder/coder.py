@@ -2917,11 +2917,7 @@ class CoderFrame(wx.Frame):
 
     def onPavloviaSync(self, evt=None):
         """Push changes to project repo, or create new proj if proj is None"""
-        try:
-            self.project = pavlovia.getProject(self.currentDoc.filename)
-        except:
-            self.project = None
-
+        self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
         pavlovia_ui.syncProject(parent=self, project=self.project)
 

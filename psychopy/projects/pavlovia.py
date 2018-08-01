@@ -869,7 +869,7 @@ class PavloviaProject(dict):
 def getGitRoot(p):
     """Return None or the root path of the repository"""
     if not os.path.isdir(p):
-        p = os.path.split(p)[0]
+        p = [dirs if len(os.path.split(p)[0]) > 0 else None].pop()
     if subprocess.call(["git", "branch"],
                        stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
                        cwd=p) != 0:
@@ -886,7 +886,6 @@ def getProject(filename):
     if not haveGit:
         logging.error("You need to install git to connect with Pavlovia projects")
         return None
-
     gitRoot = getGitRoot(filename)
     if gitRoot in knownProjects:
         return knownProjects[gitRoot]

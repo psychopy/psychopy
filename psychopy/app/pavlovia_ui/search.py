@@ -24,6 +24,7 @@ if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     import wx.lib.hyperlink as wxhl
 else:
     import wx.lib.agw.hyperlink as wxhl
+import requests
 
 starChar = u"\u2B50"
 forkChar = u"\u2442"
@@ -120,7 +121,11 @@ class SearchFrame(wx.Dialog):
         session = pavlovia.getCurrentSession()
         # search own
         if newSearch:
-            self.lastSearchOwn = session.gitlab.projects.list(owned=True, search=searchStr)
+            try:
+                self.lastSearchOwn = session.gitlab.projects.list(owned=True, search=searchStr)
+            except requests.exceptions.ConnectionError:
+                print("Failed to establish a new connection: No internet?")
+                return None
 
         # search my groups
         if opts['inclGroup'] and (newSearch or self.lastSearchGp is None):

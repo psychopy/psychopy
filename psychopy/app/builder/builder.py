@@ -22,7 +22,6 @@ try:
 except ImportError:
     from wx import PseudoDC
 
-import requests
 import sys
 import os
 import subprocess
@@ -1578,10 +1577,7 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
-        try:
-            self.project = pavlovia.getProject(filename)
-        except requests.exceptions.ConnectionError:
-            self.project = None
+        self.project = pavlovia.getProject(filename)
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -2237,12 +2233,33 @@ class BuilderFrame(wx.Frame):
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
+    def _getHtmlPath(self):
+        expPath = os.path.split(self.filename)[0]
+        htmlFolder = self.exp.settings.params['HTML path'].val
+        htmlPath = os.path.join(expPath, htmlFolder)
+        return htmlPath
+
     def onPavloviaSync(self, evt=None):
         if self.exp.settings.params['exportHTML'] == 'on Sync':
-            self.fileExport(htmlPath=self.htmlPath)
+            self.fileExport(htmlPath=self._getHtmlPath())
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
+        if self.exp.settings.params['exportHTML'] == 'on Save':
+            self.fileSave()
+            pavlovia_ui.syncProject(parent=self, project=self.project)
+        elif self.exp.settings.params['exportHTML'] == 'on Sync':
+            self.fileExport(htmlPath=self._getHtmlPath())
+            pavlovia_ui.syncProject(parent=self, project=self.project)
+        elif self.exp.settings.params['exportHTML'] == 'manually':
+            # Check htmlpath and projects exists
+            noHtmlFolder = not os.path.isdir(self._getHtmlPath())
+            noProject = not bool(pavlovia.getProject(self.filename))
+            if noHtmlFolder:
+                self.fileExport()
+            if noProject or noHtmlFolder:
+                pavlovia_ui.syncProject(parent=self, project=self.project)
+
         if self.project:
             self.project.pavloviaStatus = 'ACTIVATED'
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
