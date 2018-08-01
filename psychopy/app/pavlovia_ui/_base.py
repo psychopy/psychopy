@@ -89,7 +89,7 @@ class PavloviaMiniBrowser(wx.Dialog):
     def login(self):
         self._loggingIn = True
         authURL, state = pavlovia.getAuthURL()
-        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_ERROR, self.checkForLoginURL)
         self.browser.LoadURL(authURL)
 
     def setURL(self, url):
@@ -104,25 +104,29 @@ class PavloviaMiniBrowser(wx.Dialog):
         self.browser.LoadURL("https://pavlovia.org/projects.html")
 
     def checkForLoginURL(self, event):
-        url = event.GetURL()
-        if 'access_token=' in url:
-            self.tokenInfo['token'] = self.getParamFromURL(
-                'access_token', url)
-            self.tokenInfo['tokenType'] = self.getParamFromURL(
-                'token_type', url)
-            self.tokenInfo['state'] = self.getParamFromURL(
-                'state', url)
-            self._loggingIn = False  # we got a log in
-            self.browser.Unbind(wx.html2.EVT_WEBVIEW_LOADED)
-            pavlovia.login(self.tokenInfo['token'])
-            if self.loginOnly:
-                self.EndModal(wx.ID_OK)
-        elif url == 'https://gitlab.pavlovia.org/dashboard/projects':
-            # this is what happens if the user registered instead of logging in
-            # try now to do the log in (in the same session)
-            self.login()
+        if 'INET_E_DOWNLOAD_FAILURE' in event.GetString():
+            self.EndModal(wx.ID_EXIT)
+            raise Exception("{}: No internet connection available.".format(event.GetString()))
         else:
-            logging.info("OAuthBrowser.onNewURL:".format(url))
+            url = event.GetURL()
+            if 'access_token=' in url:
+                self.tokenInfo['token'] = self.getParamFromURL(
+                    'access_token', url)
+                self.tokenInfo['tokenType'] = self.getParamFromURL(
+                    'token_type', url)
+                self.tokenInfo['state'] = self.getParamFromURL(
+                    'state', url)
+                self._loggingIn = False  # we got a log in
+                self.browser.Unbind(wx.html2.EVT_WEBVIEW_LOADED)
+                pavlovia.login(self.tokenInfo['token'])
+                if self.loginOnly:
+                    self.EndModal(wx.ID_OK)
+            elif url == 'https://gitlab.pavlovia.org/dashboard/projects':
+                # this is what happens if the user registered instead of logging in
+                # try now to do the log in (in the same session)
+                self.login()
+            else:
+                logging.info("OAuthBrowser.onNewURL: {}".format(url))
 
     def checkForLogoutURL(self, event):
         url = event.GetURL()
