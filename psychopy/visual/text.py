@@ -314,16 +314,17 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if text is not None:
             text = str(text)  # make sure we have unicode object to render
 
-            # deal with some international text issues.
+            # deal with some international text issues. Only relevant for Python:
+            # online experiments use web technologies and handle this seamlessly.
             style = self.languageStyle.lower()  # be flexible with case
-            if style == 'rtl' or style == 'arabic':
-                # deal with right-to-left text presentation by applying the
-                # bidirectional algorithm:
-                text = bidi_algorithm.get_display(text)
             if style == 'arabic':
                 # reshape Arabic characters from their isolated form so that
                 # they flow and join correctly to their neighbours:
                 text = arabic_reshaper.reshape(text)
+            if style == 'rtl' or style == 'arabic':
+                # deal with right-to-left text presentation by applying the
+                # bidirectional algorithm:
+                text = bidi_algorithm.get_display(text)
             # no action needed for default 'ltr' (left-to-right) option
 
             self.__dict__['text'] = text
