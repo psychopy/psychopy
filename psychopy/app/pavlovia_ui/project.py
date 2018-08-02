@@ -59,7 +59,12 @@ class ProjectEditor(wx.Dialog):
         # Path can contain only letters, digits, '_', '-' and '.'.
         # Cannot start with '-', end in '.git' or end in '.atom']
         pavSession = pavlovia.getCurrentSession()
-        username = pavSession.user.username
+
+        try:
+            username = pavSession.user.username
+        except AttributeError as e:
+            raise pavlovia.NoUserError("{}: Tried to create project with no user logged in.".format(e))
+
         gpChoices = [username]
         gpChoices.extend(pavSession.listUserGroups())
         groupLabel = wx.StaticText(panel, -1, _translate("Group/owner:"))

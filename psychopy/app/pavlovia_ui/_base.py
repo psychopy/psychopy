@@ -82,13 +82,13 @@ class PavloviaMiniBrowser(wx.Dialog):
             return None
 
     def logout(self):
-        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
         self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLogoutURL)
         self.browser.LoadURL('https://gitlab.pavlovia.org/users/sign_out')
 
     def login(self):
         self._loggingIn = True
         authURL, state = pavlovia.getAuthURL()
+        self.browser.Bind(wx.html2.EVT_WEBVIEW_ERROR, self.onConnectionErr)
         self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
         self.browser.LoadURL(authURL)
 
@@ -102,6 +102,11 @@ class PavloviaMiniBrowser(wx.Dialog):
 
     def gotoProjects(self):
         self.browser.LoadURL("https://pavlovia.org/projects.html")
+
+    def onConnectionErr(self, event):
+        if 'INET_E_DOWNLOAD_FAILURE' in event.GetString():
+            self.EndModal(wx.ID_EXIT)
+            raise Exception("{}: No internet connection available.".format(event.GetString()))
 
     def checkForLoginURL(self, event):
         url = event.GetURL()
@@ -122,7 +127,7 @@ class PavloviaMiniBrowser(wx.Dialog):
             # try now to do the log in (in the same session)
             self.login()
         else:
-            logging.info("OAuthBrowser.onNewURL:".format(url))
+            logging.info("OAuthBrowser.onNewURL: {}".format(url))
 
     def checkForLogoutURL(self, event):
         url = event.GetURL()
