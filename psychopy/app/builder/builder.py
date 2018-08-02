@@ -2266,14 +2266,10 @@ class BuilderFrame(wx.Frame):
             wx.LaunchDefaultBrowser(url)
 
     def onPavloviaUser(self, evt=None):
-        dlg = pavlovia_ui.PavloviaMiniBrowser(parent=self)
-        dlg.ShowModal()
-        dlg.gotoUserPage()
+        pass
 
     def onPavloviaSearch(self, evt=None):
-        self.pavloviaMenu.searchDlg = pavlovia_ui.search.SearchFrame(
-            app=self.app, parent=self, pos=self.GetPosition())
-        self.pavloviaMenu.searchDlg.Show()
+        pass
 
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
