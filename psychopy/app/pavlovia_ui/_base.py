@@ -82,7 +82,6 @@ class PavloviaMiniBrowser(wx.Dialog):
             return None
 
     def logout(self):
-        self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLoginURL)
         self.browser.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.checkForLogoutURL)
         self.browser.LoadURL('https://gitlab.pavlovia.org/users/sign_out')
 

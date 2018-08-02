@@ -2265,12 +2265,6 @@ class BuilderFrame(wx.Frame):
             url = "https://pavlovia.org/run/{}/html".format(self.project.id)
             wx.LaunchDefaultBrowser(url)
 
-    def onPavloviaUser(self, evt=None):
-        pass
-
-    def onPavloviaSearch(self, evt=None):
-        pass
-
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass

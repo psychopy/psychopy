@@ -2925,12 +2925,6 @@ class CoderFrame(wx.Frame):
         # TODO: Allow user to run project from coder
         pass
 
-    def onPavloviaUser(self, evt=None):
-        pass
-
-    def onPavloviaSearch(self, evt=None):
-        pass
-
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
