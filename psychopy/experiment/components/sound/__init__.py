@@ -95,6 +95,8 @@ class SoundComponent(BaseComponent):
     def writeInitCodeJS(self, buff):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
+        if '$' in inits['stopVal'].val:
+            inits['stopVal'].val = -1
         if inits['stopVal'].val in ['', None, 'None']:
             inits['stopVal'].val = -1
         elif float(inits['stopVal'].val) > 2:
@@ -105,6 +107,12 @@ class SoundComponent(BaseComponent):
                            "    secs: %s,\n"
                            "    });\n" % (inits['name'], inits['sound'], inits['stopVal']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
+
+    def writeRoutineStartCodeJS(self, buff):
+        if self.params['stopVal'].val in [None, 'None', '']:
+            buff.writeIndented("%(name)s.setSound(%(sound)s)\n" % self.params)
+        else:
+            buff.writeIndented("%(name)s.setSound(%(sound)s, secs=%(stopVal)s)\n" % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -122,13 +130,14 @@ class SoundComponent(BaseComponent):
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
+
             if '$' in self.params['stopVal'].val:
                 code = 'if %(name)s.status == STARTED and t >= %(stopVal)s:\n' \
                        '    %(name)s.stop()  # stop the sound (if longer than duration)\n'
                 buff.writeIndentedLines(code % self.params)
             elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
                 self.writeStopTestCode(buff)
-                code = "%s.stop()  // stop the sound (if longer than duration)\n"
+                code = "%s.stop()  # stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])
                 # because of the 'if' statement of the time test
                 buff.setIndentLevel(-1, relative=True)
@@ -151,12 +160,18 @@ class SoundComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines('}\n')
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
-            if not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
+            if '$' in self.params['stopVal'].val:
+                code = ('if my.t >= %(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED: {\n'
+                        '  %(name)s.stop()  // stop the sound (if longer than duration)\n'
+                        '}\n')
+                buff.writeIndentedLines(code % self.params)
+            elif not float(self.params['stopVal'].val) < 2:  # Reduce spectral splatter but not stopping short sounds
                 self.writeStopTestCodeJS(buff)
                 code = "%s.stop();  // stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])
-            # because of the 'if' statement of the time test
-            # buff.setIndentLevel(-1, relative=True)
+                # because of the 'if' statement of the time test
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndented('}\n')
 
     def writeRoutineEndCode(self, buff):
         code = "%s.stop()  # ensure sound has stopped at end of routine\n"

@@ -226,7 +226,7 @@ class BaseComponent(object):
                     "- win.monitorFramePeriod * 0.75"
                     "  # most of one frame period left\n"
                     "if %(name)s.status == STARTED and t >= frameRemains:\n")
-        # start at frame and end with duratio (need to use approximate)
+        # start at frame and end with duration (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
             code = ("if %(name)s.status == STARTED and t >= (%(name)s.tStart "
                     "+ %(stopVal)s):\n")
