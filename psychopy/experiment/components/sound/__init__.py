@@ -97,7 +97,7 @@ class SoundComponent(BaseComponent):
         inits = getInitVals(self.params)
         if '$' in inits['stopVal'].val:
             inits['stopVal'].val = -1
-        if inits['stopVal'].val in ['', None, 'None']:
+        elif inits['stopVal'].val in ['', None, 'None']:
             inits['stopVal'].val = -1
         elif float(inits['stopVal'].val) > 2:
             inits['stopVal'].val = -1
