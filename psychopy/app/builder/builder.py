@@ -2241,8 +2241,10 @@ class BuilderFrame(wx.Frame):
 
     def _getExportPref(self, pref):
         """Returns True if pref matches exportHTML preference"""
+        if pref.lower() not in [prefs.lower() for prefs in self.exp.settings.params['exportHTML'].allowedVals]:
+            raise ValueError("'{}' is not an allowed value for {}".format(pref, 'exportHTML'))
         exportHtml = str(self.exp.settings.params['exportHTML'].val).lower()
-        if exportHtml == pref:
+        if exportHtml == pref.lower():
             return True
 
     def onPavloviaSync(self, evt=None):
