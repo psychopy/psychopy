@@ -1592,7 +1592,7 @@ class BuilderFrame(wx.Frame):
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
         # if export on save then we should have an html file to update
-        if self.exp.settings.params['exportHTML'] == 'on Save' and os.path.split(filename)[0]:
+        if self._getExportPref('on save') and os.path.split(filename)[0]:
             self.filename = filename
             self.fileExport(htmlPath=self.htmlPath, saved=True)
         return True
@@ -2239,19 +2239,25 @@ class BuilderFrame(wx.Frame):
         htmlPath = os.path.join(expPath, htmlFolder)
         return htmlPath
 
+    def _getExportPref(self, pref):
+        """Returns True if pref matches exportHTML preference"""
+        exportHtml = str(self.exp.settings.params['exportHTML'].val).lower()
+        if exportHtml == pref:
+            return True
+
     def onPavloviaSync(self, evt=None):
-        if self.exp.settings.params['exportHTML'] == 'on Sync':
+        if self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
-        if self.exp.settings.params['exportHTML'] == 'on Save':
+        if self._getExportPref('on save'):
             self.fileSave()
             pavlovia_ui.syncProject(parent=self, project=self.project)
-        elif self.exp.settings.params['exportHTML'] == 'on Sync':
+        elif self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
             pavlovia_ui.syncProject(parent=self, project=self.project)
-        elif self.exp.settings.params['exportHTML'] == 'manually':
+        elif self._getExportPref('manually'):
             # Check htmlpath and projects exists
             noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
             noProject = not bool(pavlovia.getProject(self.filename))
