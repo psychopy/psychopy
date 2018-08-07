@@ -1592,7 +1592,8 @@ class BuilderFrame(wx.Frame):
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
         # if export on save then we should have an html file to update
-        if self.htmlPath or self.exp.settings.params['exportHTML'] == 'on Save':
+        if self.exp.settings.params['exportHTML'] == 'on Save' and os.path.split(filename)[0]:
+            self.filename = filename
             self.fileExport(htmlPath=self.htmlPath, saved=True)
         return True
 
@@ -1673,7 +1674,6 @@ class BuilderFrame(wx.Frame):
         self.generateScript(experimentPath=htmlPath,
                             target="PsychoJS",
                             saved=saved)
-        
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2233,15 +2233,15 @@ class BuilderFrame(wx.Frame):
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
-    def _getHtmlPath(self):
-        expPath = os.path.split(self.filename)[0]
+    def _getHtmlPath(self, filename):
+        expPath = os.path.split(filename)[0]
         htmlFolder = self.exp.settings.params['HTML path'].val
         htmlPath = os.path.join(expPath, htmlFolder)
         return htmlPath
 
     def onPavloviaSync(self, evt=None):
         if self.exp.settings.params['exportHTML'] == 'on Sync':
-            self.fileExport(htmlPath=self._getHtmlPath())
+            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
@@ -2249,11 +2249,11 @@ class BuilderFrame(wx.Frame):
             self.fileSave()
             pavlovia_ui.syncProject(parent=self, project=self.project)
         elif self.exp.settings.params['exportHTML'] == 'on Sync':
-            self.fileExport(htmlPath=self._getHtmlPath())
+            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
             pavlovia_ui.syncProject(parent=self, project=self.project)
         elif self.exp.settings.params['exportHTML'] == 'manually':
             # Check htmlpath and projects exists
-            noHtmlFolder = not os.path.isdir(self._getHtmlPath())
+            noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
             noProject = not bool(pavlovia.getProject(self.filename))
             if noHtmlFolder:
                 self.fileExport()
