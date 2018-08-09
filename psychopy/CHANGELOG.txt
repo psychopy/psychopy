@@ -10,6 +10,16 @@ Changelog
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 3.0.0b5
+------------------------------
+
+FIXED:
+
+    - some packaging issues on both Windows and Mac (e.g. updates to Pillow=5.2.0, soundfile=0.10.2) also fixes libsndfile error on Mac_Py2 standalone
+    - when the localRoot has been set for a projet (before sync) we should get back the sync window
+    - clicking "runOnline" before creating/syncing your project with Pavlovia now does the right thing
+    - fix to MovieStim3 unloading of movies #1917
+
 PsychoPy 3.0.0b3
 ------------------------------
 
