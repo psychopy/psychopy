@@ -1006,6 +1006,7 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.exportOnSave = False
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1592,8 +1593,9 @@ class BuilderFrame(wx.Frame):
             self.fileHistory.AddFileToHistory(filename)
         self.setIsModified(False)
         # if export on save then we should have an html file to update
-        if self.htmlPath or self.exp.settings.params['exportHTML'] == 'on Save':
-            self.fileExport(htmlPath=self.htmlPath, saved=True)
+        if self._getExportPref('on save') and os.path.split(filename)[0]:
+            self.filename = filename
+            self.fileExport(htmlPath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1654,7 +1656,7 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None, htmlPath=None, saved=False):
+    def fileExport(self, event=None, htmlPath=None):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
@@ -1666,14 +1668,14 @@ class BuilderFrame(wx.Frame):
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
                                filePath=htmlPath)
-        retVal = dlg.ShowModal()
+        if not self.exportOnSave:
+            retVal = dlg.ShowModal()
+            self.exportOnSave = dlg.exportOnSave.GetValue()
 
         htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         # then save the actual script
         self.generateScript(experimentPath=htmlPath,
-                            target="PsychoJS",
-                            saved=saved)
-        
+                            target="PsychoJS")
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2004,6 +2006,8 @@ class BuilderFrame(wx.Frame):
         """Gets absolute path of experiment so it can be stored with data at end of
            the experiment run
         """
+        if not os.path.exists(self.filename):
+            self.fileSave(self.filename)
         fullPath = self.filename.replace('.psyexp', '_lastrun.py')
         self.generateScript(fullPath)  # Build script based on current version selected
 
@@ -2196,14 +2200,13 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def generateScript(self, experimentPath, target="PsychoPy", saved=False):
+    def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
-        expPath = self.filename
-        if not saved:
-            ok = self.fileSave()
+        if self.getIsModified():
+            ok = self.fileSave(experimentPath)
             if not ok:
                 return  # save file before compiling script
-        self.exp.expPath = os.path.abspath(expPath)
+        self.exp.expPath = os.path.abspath(experimentPath)
 
         # Compile script from command line using version
         compiler = 'psychopy.scripts.psyexpCompile'
@@ -2233,27 +2236,35 @@ class BuilderFrame(wx.Frame):
         else:
             psyexpCompile.compileScript(infile=self.exp, version=None, outfile=experimentPath)
 
-    def _getHtmlPath(self):
-        expPath = os.path.split(self.filename)[0]
+    def _getHtmlPath(self, filename):
+        expPath = os.path.split(filename)[0]
         htmlFolder = self.exp.settings.params['HTML path'].val
         htmlPath = os.path.join(expPath, htmlFolder)
         return htmlPath
 
+    def _getExportPref(self, pref):
+        """Returns True if pref matches exportHTML preference"""
+        if pref.lower() not in [prefs.lower() for prefs in self.exp.settings.params['exportHTML'].allowedVals]:
+            raise ValueError("'{}' is not an allowed value for {}".format(pref, 'exportHTML'))
+        exportHtml = str(self.exp.settings.params['exportHTML'].val).lower()
+        if exportHtml == pref.lower():
+            return True
+
     def onPavloviaSync(self, evt=None):
-        if self.exp.settings.params['exportHTML'] == 'on Sync':
-            self.fileExport(htmlPath=self._getHtmlPath())
+        if self._getExportPref('on sync'):
+            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
         pavlovia_ui.syncProject(parent=self, project=self.project)
 
     def onPavloviaRun(self, evt=None):
-        if self.exp.settings.params['exportHTML'] == 'on Save':
+        if self._getExportPref('on save'):
             self.fileSave()
             pavlovia_ui.syncProject(parent=self, project=self.project)
-        elif self.exp.settings.params['exportHTML'] == 'on Sync':
-            self.fileExport(htmlPath=self._getHtmlPath())
+        elif self._getExportPref('on sync'):
+            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
             pavlovia_ui.syncProject(parent=self, project=self.project)
-        elif self.exp.settings.params['exportHTML'] == 'manually':
+        elif self._getExportPref('manually'):
             # Check htmlpath and projects exists
-            noHtmlFolder = not os.path.isdir(self._getHtmlPath())
+            noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
             noProject = not bool(pavlovia.getProject(self.filename))
             if noHtmlFolder:
                 self.fileExport()
@@ -2404,9 +2415,7 @@ class ExportFileDialog(wx.Dialog):
         self.exportOnSave = wx.CheckBox(self, wx.ID_ANY,
                                         label=_translate(
                                             "Continuously export on save"))
-        self.exportOnSave.Disable()
-        self.exportOnSave.SetHelpText("[NOT implemented yet]"
-                                      "Tick this if you want the HTML file to export"
+        self.exportOnSave.SetHelpText("Tick this if you want the HTML file to export"
                                       " (and overwrite) on every save of the experiment."
                                       " Only works for THIS SESSION.")
         box.Add(self.exportOnSave, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
