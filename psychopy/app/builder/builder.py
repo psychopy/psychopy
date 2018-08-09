@@ -1595,7 +1595,7 @@ class BuilderFrame(wx.Frame):
         # if export on save then we should have an html file to update
         if self._getExportPref('on save') and os.path.split(filename)[0]:
             self.filename = filename
-            self.fileExport(htmlPath=self.htmlPath, saved=True)
+            self.fileExport(htmlPath=self.htmlPath)
         return True
 
     def fileSaveAs(self, event=None, filename=None):
@@ -1656,7 +1656,7 @@ class BuilderFrame(wx.Frame):
         self.updateWindowTitle()
         return returnVal
 
-    def fileExport(self, event=None, htmlPath=None, saved=False):
+    def fileExport(self, event=None, htmlPath=None):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
@@ -1675,8 +1675,7 @@ class BuilderFrame(wx.Frame):
         htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         # then save the actual script
         self.generateScript(experimentPath=htmlPath,
-                            target="PsychoJS",
-                            saved=saved)
+                            target="PsychoJS")
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2201,9 +2200,9 @@ class BuilderFrame(wx.Frame):
         self.app.coder.fileNew(filepath=fullPath)
         self.app.coder.fileReload(event=None, filename=fullPath)
 
-    def generateScript(self, experimentPath, target="PsychoPy", saved=False):
+    def generateScript(self, experimentPath, target="PsychoPy"):
         """Generates python script from the current builder experiment"""
-        if not saved:
+        if self.getIsModified():
             ok = self.fileSave(experimentPath)
             if not ok:
                 return  # save file before compiling script
