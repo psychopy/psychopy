@@ -142,7 +142,7 @@ def showCommitDialog(parent, project, initMsg=""):
 
     commitMsg = commitTitleCtrl.GetValue()
     if commitDescrCtrl.GetValue():
-        commitMsg += "\n\n{}".format(commitDescrCtrl.GetValue())
+        commitMsg += "\n\n" + commitDescrCtrl.GetValue()
     project.stageFiles(changeList)
 
     project.commit(commitMsg)

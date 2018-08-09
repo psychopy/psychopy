@@ -63,7 +63,7 @@ class SyncStatusPanel(wx.Panel):
 
     def statusAppend(self, newText):
         text = self.statusMsg.GetValue()
-        text += "{}".format(newText)
+        text += ("{}" + newText)
         self.setStatus(text)
 
 
