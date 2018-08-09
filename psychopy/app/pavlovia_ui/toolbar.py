@@ -4,7 +4,6 @@ from os.path import join
 from .. import icons
 from .project import syncProject
 from .search import SearchFrame
-from ._base import PavloviaMiniBrowser
 from .user import UserEditor
 
 class PavloviaButtons:

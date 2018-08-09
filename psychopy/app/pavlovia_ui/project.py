@@ -373,14 +373,21 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
 def syncProject(parent, project=None):
     """A function to sync the current project (if there is one)
+
+    Returns
+    -----------
+        1 for success
+        0 for fail
+        -1 for cancel at some point in the process
     """
+    closeFrameWhenDone = True
     if not haveGit:
         noGitWarning(parent)
-        return
+        return 0
 
     isCoder = hasattr(parent, 'currentDoc')
-    if not project and "BuilderFrame" in repr(
-            parent):  # try getting one from the frame
+    if not project and "BuilderFrame" in repr(parent):
+        # try getting one from the frame
         project = parent.project  # type: pavlovia.PavloviaProject
 
     if not project:  # ask the user to create one
@@ -402,6 +409,8 @@ def syncProject(parent, project=None):
                 project = editor.project
             else:
                 project = None
+        else:
+            return -1  # user pressed cancel
 
     if not project:  # we did our best for them. Give up!
         return 0
@@ -424,17 +433,35 @@ def syncProject(parent, project=None):
         wx.Yield()
         time.sleep(0.001)
         # git push -u origin master
-        project.firstPush()
+        try:
+            project.firstPush()
+        except Exception as e:
+            closeFrameWhenDone = False
+            syncFrame.syncPanel.statusAppend(e)
     else:
         # existing remote which we should clone
-        project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
+        try:
+            ok = project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
+            if not ok:
+                closeFrameWhenDone = False
+        except Exception as e:
+            closeFrameWhenDone = False
+            syncFrame.syncPanel.statusAppend(e)
         # check for anything to commit before pull/push
         outcome = showCommitDialog(parent, project)
-        project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+        # 0=nothing to do, 1=OK, -1=cancelled
+        if outcome == -1:  # user cancelled
+            return -1
+        try:
+            project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+        except Exception as e:
+            closeFrameWhenDone = False
+            syncFrame.syncPanel.statusAppend(e)
 
     wx.Yield()
     project._lastKnownSync = time.time()
-    syncFrame.Destroy()
+    if closeFrameWhenDone:
+        syncFrame.Destroy()
 
     return 1
 

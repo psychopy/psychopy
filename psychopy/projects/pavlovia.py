@@ -31,11 +31,9 @@ from .gitignore import gitIgnoreText
 
 if constants.PY3:
     from urllib import parse
-
     urlencode = parse.quote
 else:
     import urllib
-
     urlencode = urllib.quote
 
 # TODO: test what happens if we have a network initially but lose it
@@ -261,6 +259,7 @@ class PavloviaSession:
         self.authenticated = False
         self.currentProject = None
         self.setToken(token)
+        logging.debug("PavloviaLoggedIn")
 
     def createProject(self, name, description="", tags=(), visibility='private',
                       localRoot='', namespace=''):
