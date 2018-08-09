@@ -169,6 +169,7 @@ class ProjectEditor(wx.Dialog):
             self.Layout()
             if self.project:
                 self.project.localRoot = newPath
+        self.Raise()
 
 
 class DetailsPanel(scrlpanel.ScrolledPanel):
@@ -348,6 +349,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                     label=_translate("Local root: {}").format(newPath))
             self.project.local = newPath
             self.Layout()
+            self.Raise()
 
         syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
         self.sizer.Add(syncPanel, border=5,
@@ -366,6 +368,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                 label=_translate("Local root: {}").format(self.localFolder))
         self.localFolderCtrl.Wrap(self.GetSize().width)
         self.Layout()
+        self.Raise()
 
 
 def syncProject(parent, project=None):
@@ -407,6 +410,7 @@ def syncProject(parent, project=None):
     if 'localRoot' not in project or not project.localRoot:
         # we first need to choose a location for the repository
         setLocalPath(parent, project)
+        parent.Raise()  # make sure that frame is still visible
     # a sync will be necessary so can create syncFrame
     syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
 
