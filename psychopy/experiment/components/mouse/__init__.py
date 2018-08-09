@@ -495,10 +495,10 @@ class MouseComponent(BaseComponent):
                             "    {loopName}.addData('{mouseName}.clicked_{param}', " 
                             "{mouseName}.clicked_{param}[0])\n"
                         )
-                    buff.writeIndentedLines(
-                        code.format(loopName=currLoop.params['name'],
-                                    mouseName=name,
-                                    param=paramName))
+                        buff.writeIndentedLines(
+                            code.format(loopName=currLoop.params['name'],
+                                        mouseName=name,
+                                        param=paramName))
 
         elif store != 'never':
             # buff.writeIndented("# save %(name)s data\n" %(self.params))
@@ -580,15 +580,17 @@ class MouseComponent(BaseComponent):
                 # then add `trials.addData('mouse.clicked_name',.....)`
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
-                        code += (
-                            "if ({mouseName}.clicked_{param}.length > 0)\n"
+                        print(paramName)
+                        code = (
+                            "if ({mouseName}.clicked_{param}.length > 0) {{\n"
                             "  psychoJS.experiment.addData('{mouseName}.clicked_{param}', "
                             "{mouseName}.clicked_{param}[0]);\n"
+                            "}}"
                         )
-                    buff.writeIndentedLines(
-                        code.format(loopName=currLoop.params['name'],
-                                    mouseName=name,
-                                    param=paramName))
+                        buff.writeIndentedLines(
+                            code.format(loopName=currLoop.params['name'],
+                                        mouseName=name,
+                                        param=paramName))
 
         elif store != 'never':
             # buff.writeIndented("# save %(name)s data\n" %(self.params))
