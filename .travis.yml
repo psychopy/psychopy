@@ -23,6 +23,9 @@ matrix:
     - os: linux
       env: ANACONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
 
+    - os: linux
+      env: ANACONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
+
   allow_failures:
     - python: "2.7_with_system_site_packages"
 
