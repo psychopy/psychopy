@@ -1,4 +1,4 @@
-name: anaconda-py2
+name: anaconda-py2.7
 channels:
 - conda-forge
 - defaults
