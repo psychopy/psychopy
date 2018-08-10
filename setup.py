@@ -142,11 +142,14 @@ setup(name="PsychoPy",
     license=__license__,
     download_url=__downloadUrl__,
     classifiers=['Development Status :: 4 - Beta',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
-          'Programming Language :: Python'],
-    )
+                 'Operating System :: MacOS :: MacOS X',
+                 'Operating System :: Microsoft :: Windows',
+                 'Operating System :: POSIX',
+                 'Programming Language :: Python :: 2',
+                 'Programming Language :: Python :: 2.7',
+                 'Programming Language :: Python :: 3',
+                 ],
+      )
 
 #remove unwanted info about this system post-build
 if writeNewInit:
