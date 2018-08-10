@@ -32,26 +32,34 @@ required = ['requests[security]',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
-            'moviepy',
+            'moviepy', 'opencv-python',
             'python-gitlab', 'gitpython',
             'astunparse',
             'freetype-py',
             # Platform-specific dependencies.
-            'wxPython; platform_system != "Linux"'
+            'pyqt5; python_version >= "3"',
+            'wxPython; platform_system != "Linux"',
             'pypiwin32; platform_system == "Windows"',
             'pyobjc-core; platform_system == "Darwin"',
             'pyobjc-framework-Quartz; platform_system == "Darwin"'
             ]
 
-# `opencv` package should be installed via conda instead
-# cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
-if 'CONDA_PREFIX' not in os.environ:
-    required.append('opencv-python')
+#
+# Special handling for Anaconda / Miniconda
+#
 
+# OpenCV
+# Naming conflict with PyPI package.
+# `opencv` package should be installed via conda instead
+if 'CONDA_PREFIX' in os.environ:
+    required.remove('opencv-python')
+
+# PyQt
+# Naming conflict with PyPI package.
 # `pyqt` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
-if PY3 and ('CONDA_PREFIX' not in os.environ):
-    required.append('pyqt5')
+if PY3 and 'CONDA_PREFIX' in os.environ:
+    required.remove('pyqt5; python_version >= "3"')
 
 # for dev you also want:
 # 'sphinx','pytest'
