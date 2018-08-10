@@ -117,6 +117,7 @@ class Experiment(object):
         """Write a PsychoPy script for the experiment
         """
         # set this so that params write for approp target
+        # self._compileLoop = True  # Must update on every compile else False after first call to writeScript
         utils.scriptTarget = target
 
         self.flow._prescreenValues()
