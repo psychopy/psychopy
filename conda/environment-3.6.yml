@@ -4,6 +4,7 @@ channels:
 - defaults
 dependencies:
 - python=3.6
+- astunparse
 - backports
 - bzip2
 - cffi
@@ -13,6 +14,7 @@ dependencies:
 - freetype
 - future
 - gevent
+- gitpython
 - greenlet
 - hdf5
 - lxml
@@ -52,10 +54,13 @@ dependencies:
 - zlib
 - pip:
   - arabic_reshaper
+  - freetype-py
   - json-tricks
   - pygame
   - pyglet==1.3.0b1
   - pyparallel
   - python-bidi
+  - python-gitlab
   - sounddevice
   - soundfile
+  - zmq
