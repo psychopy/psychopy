@@ -27,7 +27,6 @@ dependencies:
 - pillow
 - pip
 - pyopengl
-- pyosf
 - pyqt
 - pyserial
 - pytest
@@ -55,6 +54,7 @@ dependencies:
   - json-tricks
   - pygame
   - pyglet==1.3.0b1
+  - pyosf
   - pyparallel
   - python-bidi
   - sounddevice
