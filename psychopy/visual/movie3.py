@@ -472,9 +472,12 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self.clearTextures()
         except Exception:
             pass
-        self._mov.close()
+        if self._mov is not None:
+            self._mov.close()
         self._mov = None
         self._numpyFrame = None
+        if self._audioStream is not None:
+            self._audioStream.stop()
         self._audioStream = None
         self.status = FINISHED
 
