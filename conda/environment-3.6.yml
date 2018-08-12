@@ -17,6 +17,7 @@ dependencies:
 - gitpython
 - greenlet
 - hdf5
+- json_tricks
 - lxml
 - matplotlib
 - moviepy
@@ -34,6 +35,7 @@ dependencies:
 - pyserial
 - pytest
 - pytest-cov
+- python-bidi
 - pyyaml
 - pyzmq
 - requests
@@ -56,11 +58,9 @@ dependencies:
   - arabic_reshaper
   - https://github.com/DiffSK/configobj/archive/master.zip
   - freetype-py
-  - json-tricks
   - pygame
   - pyglet==1.3.0b1
   - pyparallel
-  - python-bidi
   - python-gitlab
   - sounddevice
   - soundfile
