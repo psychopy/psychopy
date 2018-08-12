@@ -35,6 +35,7 @@ dependencies:
 - pytest
 - pytest-cov
 - pyyaml
+- pyzmq
 - requests
 - scipy
 - setuptools
@@ -63,4 +64,3 @@ dependencies:
   - python-gitlab
   - sounddevice
   - soundfile
-  - zmq
