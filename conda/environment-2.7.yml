@@ -50,7 +50,6 @@ dependencies:
 - xlrd
 - xz
 - yaml
-- configobj
 - lzo
 - pytables
 - pytest
@@ -59,6 +58,7 @@ dependencies:
 - zlib
 - pip:
   - arabic_reshaper
+  - https://github.com/DiffSK/configobj/archive/master.zip
   - et-xmlfile
   - freetype-py
   - json-tricks
