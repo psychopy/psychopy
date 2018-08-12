@@ -23,7 +23,6 @@ dependencies:
 - msgpack-python
 - numexpr
 - numpy
-- opencv
 - openpyxl
 - pandas
 - pillow
@@ -57,6 +56,7 @@ dependencies:
   - https://github.com/simonpercivall/astunparse/archive/master.zip
   - https://github.com/DiffSK/configobj/archive/master.zip
   - freetype-py
+  - opencv-python
   - pygame
   - pyglet==1.3.0b1
   - pyosf
