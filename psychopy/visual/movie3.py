@@ -38,7 +38,7 @@ import os
 from psychopy import logging, prefs #adding prefs to be able to check sound lib -JK
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
-from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
+from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, TextureMixin
 
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
@@ -50,7 +50,7 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 import pyglet.gl as GL
 
 
-class MovieStim3(BaseVisualStim, ContainerMixin):
+class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
     for OpenCV. The VLC media player also needs to be installed on the
@@ -467,11 +467,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         return self._audio_stream_clock.getTime()
 
     def _unload(self):
-        try:
-            # remove textures from graphics card to prevent crash
-            self.clearTextures()
-        except Exception:
-            pass
+        # remove textures from graphics card to prevent crash
+        self.clearTextures()
         if self._mov is not None:
             self._mov.close()
         self._mov = None
