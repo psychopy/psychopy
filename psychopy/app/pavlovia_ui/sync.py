@@ -62,8 +62,7 @@ class SyncStatusPanel(wx.Panel):
         wx.Yield()
 
     def statusAppend(self, newText):
-        text = self.statusMsg.GetValue()
-        text += ("{}" + newText)
+        text = self.statusMsg.GetValue() + newText
         self.setStatus(text)
 
 

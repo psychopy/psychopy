@@ -6,10 +6,12 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
 import os
+import traceback
 
 from .functions import setLocalPath, showCommitDialog, logInPavlovia, noGitWarning
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
+from psychopy import logging
 
 try:
     import git
@@ -161,6 +163,8 @@ class ProjectEditor(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
         pavlovia.knownProjects.save()
+        self.project.getRepo(forceRefresh=True)
+        self.parent.project = self.project
 
     def onBrowseLocal(self, evt=None):
         newPath = setLocalPath(self, path=self.filename)
@@ -420,12 +424,26 @@ def syncProject(parent, project=None):
         # we first need to choose a location for the repository
         setLocalPath(parent, project)
         parent.Raise()  # make sure that frame is still visible
+
+    #check that the project does exist remotely
+    if not project.pavlovia:
+        # project didn't exist at Pavlovia (deleted?)
+        recreatorDlg = ProjectRecreator(parent=parent, project=project)
+        ok = recreatorDlg.ShowModal()
+        if ok > 0:
+            project = recreatorDlg.project
+        else:
+            logging.error("Failed to recreate project to sync with")
+            return
+
     # a sync will be necessary so can create syncFrame
     syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
 
     if project._newRemote:
-        # new remote, with local files, so init, add, push
-        project.newRepo(syncFrame.progHandler)
+        # new remote so this will be a first push
+        if project.getRepo(forceRefresh=True) is None:
+            # no local repo yet so create one
+            project.newRepo(syncFrame.progHandler)
         # add the local files and commit them
         showCommitDialog(parent=parent, project=project,
                          initMsg="First commit")
@@ -435,9 +453,10 @@ def syncProject(parent, project=None):
         # git push -u origin master
         try:
             project.firstPush()
+            project._newRemote = False
         except Exception as e:
             closeFrameWhenDone = False
-            syncFrame.syncPanel.statusAppend(e)
+            syncFrame.syncPanel.statusAppend(traceback.format_exc())
     else:
         # existing remote which we should clone
         try:
@@ -446,17 +465,20 @@ def syncProject(parent, project=None):
                 closeFrameWhenDone = False
         except Exception as e:
             closeFrameWhenDone = False
-            syncFrame.syncPanel.statusAppend(e)
+            syncFrame.syncPanel.statusAppend(traceback.format_exc())
         # check for anything to commit before pull/push
         outcome = showCommitDialog(parent, project)
         # 0=nothing to do, 1=OK, -1=cancelled
         if outcome == -1:  # user cancelled
             return -1
         try:
-            project.sync(syncFrame.syncPanel, syncFrame.progHandler)
-        except Exception as e:
+            status = project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+            if status == -1:
+                syncFrame.syncPanel.statusAppend("Couldn't sync")
+        except Exception:  # not yet sure what errors might occur
+            # send the
             closeFrameWhenDone = False
-            syncFrame.syncPanel.statusAppend(e)
+            syncFrame.syncPanel.statusAppend(traceback.format_exc())
 
     wx.Yield()
     project._lastKnownSync = time.time()
@@ -498,3 +520,55 @@ class ForkDlg(wx.Dialog):
 
         self.SetSizerAndFit(mainSizer)
         self.Layout()
+
+
+class ProjectRecreator(wx.Dialog):
+    """Use this Dlg to handle the case of a missing (deleted?) remote project
+    """
+
+    def __init__(self, project, parent, *args, **kwargs):
+        wx.Dialog.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        self.project = project
+        existingName = project.name
+        msgText = _translate("points to a remote that doesn't exist (deleted?).")
+        msgText += (" "+_translate("What shall we do?"))
+        msg = wx.StaticText(self, label="{} {}".format(existingName, msgText))
+        choices = [_translate("(Re)create a project"),
+                   "{} ({})".format(_translate("Point to an different location"),
+                                    _translate("not yet supported")),
+                   _translate("Forget the local git repository (deletes history keeps files)"),
+                   _translate("Do nothing and abort the sync")]
+        self.radioCtrl = wx.RadioBox(self, label='RadioBox', choices=choices,
+                                     majorDimension=1)
+        self.radioCtrl.EnableItem(1, False)
+        self.radioCtrl.EnableItem(2, False)
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(msg, 1, wx.ALL, 5)
+        mainSizer.Add(self.radioCtrl, 1, wx.ALL, 5)
+        mainSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
+                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+
+        self.SetSizerAndFit(mainSizer)
+        self.Layout()
+
+    def ShowModal(self):
+        if wx.Dialog.ShowModal(self) == wx.ID_OK:
+            choice = self.radioCtrl.GetSelection()
+            if choice == 0:
+                editor = ProjectEditor(parent=self.parent,
+                                       localRoot=self.project.localRoot)
+                if editor.ShowModal() == wx.ID_OK:
+                    self.project = editor.project
+                    return 1  # success!
+                else:
+                    return -1  # user cancelled
+            elif choice == 1:
+                raise NotImplementedError("We don't yet support redirecting "
+                                          "your project to a new location.")
+            elif choice == 2:
+                raise NotImplementedError("Deleting the local git repo is not "
+                                          "yet implemented")
+        else:
+            return -1
