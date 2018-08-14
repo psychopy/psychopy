@@ -23,6 +23,7 @@ FIXED:
 
 - further fix to memory leak in MovieStim3 #9d0c127d8e6dfd6efba5f285bed93685980cd443
 - fix to PsychoJS output code: loops were not being compiled correctly #6a8e700a350b660b6f588c5b902b04a736b023d2
+- when compiling to JS we now detect tuples and convert to lists for params (JS only has one sequence, with `[ ]` )
 
 PsychoPy 3.0.0b4
 ------------------------------

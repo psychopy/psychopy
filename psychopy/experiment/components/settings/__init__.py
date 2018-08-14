@@ -98,7 +98,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='',
                  useVersion='',
-                 filename=None, exportHTML='on Save'):
+                 filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
