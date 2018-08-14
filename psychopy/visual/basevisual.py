@@ -999,7 +999,8 @@ class TextureMixin(object):
         of your stimulus, so doesn't need calling explicitly by the user.
         """
         GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)
+        if hasattr(self, '_maskID'):
+            GL.glDeleteTextures(1, self._maskID)
 
     @attributeSetter
     def mask(self, value):

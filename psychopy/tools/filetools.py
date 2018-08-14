@@ -223,7 +223,7 @@ class DictStorage(dict):
         (defaults to the filename given to the class but can be overridden)
         """
         if filename is None:
-            filename = os.path.join(self.filename)
+            filename = self.filename
         # make sure the folder exists
         folder = os.path.split(filename)[0]
         if not os.path.isdir(folder):
