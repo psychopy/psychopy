@@ -2390,7 +2390,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
+ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3531,7 +3531,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', '3', '3.0', '', '3.0.0b2']
+SettingsComponent.Use version.allowedVals:['latest', u'1', u'1.90', u'1.85', u'1.84', u'1.83', u'1.82', u'1.81', u'1.80', u'1.79', u'1.78', u'1.77', u'1.76', '', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6', u'1.85.4', u'1.85.3', u'1.85.2', u'1.85.1', u'1.85.0', u'1.84.2', u'1.84.1', u'1.84.0', u'1.83.04', u'1.83.03', u'1.83.01', u'1.83.00', u'1.82.01', u'1.82.00', u'1.81.03', u'1.81.02', u'1.81.01', u'1.81.00', u'1.80.06', u'1.80.05', u'1.80.03', u'1.80.02', u'1.80.01', u'1.80.00', u'1.79.00', u'1.78.01', u'1.78.00', u'1.77.02', u'1.77.01', u'1.77.00', u'1.76.00']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version
@@ -3600,7 +3600,7 @@ SettingsComponent.expName.staticUpdater:None
 SettingsComponent.expName.updates:None
 SettingsComponent.expName.val:
 SettingsComponent.expName.valType:str
-SettingsComponent.exportHTML.default:'on Save'
+SettingsComponent.exportHTML.default:'on Sync'
 SettingsComponent.exportHTML.allowedTypes:[]
 SettingsComponent.exportHTML.allowedUpdates:None
 SettingsComponent.exportHTML.allowedVals:['on Save', 'on Sync', 'manually']
@@ -3610,7 +3610,7 @@ SettingsComponent.exportHTML.label:Export HTML
 SettingsComponent.exportHTML.readOnly:False
 SettingsComponent.exportHTML.staticUpdater:None
 SettingsComponent.exportHTML.updates:None
-SettingsComponent.exportHTML.val:on Save
+SettingsComponent.exportHTML.val:on Sync
 SettingsComponent.exportHTML.valType:str
 SettingsComponent.logging level.default:exp
 SettingsComponent.logging level.allowedTypes:[]
@@ -3666,7 +3666,7 @@ SliderComponent.flip.allowedTypes:[]
 SliderComponent.flip.allowedUpdates:[]
 SliderComponent.flip.allowedVals:[]
 SliderComponent.flip.categ:Appearance
-SliderComponent.flip.hint:By default the labels will be on the bottom or left of the scale, but this can bee flipped to the other side.
+SliderComponent.flip.hint:By default the labels will be on the bottom or left of the scale, but this can be flipped to the other side.
 SliderComponent.flip.label:Flip
 SliderComponent.flip.readOnly:False
 SliderComponent.flip.staticUpdater:None
