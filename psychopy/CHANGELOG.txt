@@ -10,15 +10,29 @@ Changelog
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
-PsychoPy 3.0.0b5
+PsychoPy 3.0.0b6
 ------------------------------
 
 FIXED:
 
-    - some packaging issues on both Windows and Mac (e.g. updates to Pillow=5.2.0, soundfile=0.10.2) also fixes libsndfile error on Mac_Py2 standalone
-    - when the localRoot has been set for a projet (before sync) we should get back the sync window
-    - clicking "runOnline" before creating/syncing your project with Pavlovia now does the right thing
-    - fix to MovieStim3 unloading of movies #1917
+- several sync problems with pavlovia.org: #1f0d8bcab50c1528291adb3a689e95f6e3bf7fc5
+    - sync when an empty project already exists is now fine
+    - after creating the project, changing a file and repeating sync, it didn't detect the changed file
+    - sync to a project that has been deleted remotely now asks if you want to recreate the project
+    - better reporting of error if sync fails
+
+- further fix to memory leak in MovieStim3 #9d0c127d8e6dfd6efba5f285bed93685980cd443
+- fix to PsychoJS output code: loops were not being compiled correctly #6a8e700a350b660b6f588c5b902b04a736b023d2
+
+PsychoPy 3.0.0b4
+------------------------------
+
+FIXED:
+
+- some packaging issues on both Windows and Mac (e.g. updates to Pillow=5.2.0, soundfile=0.10.2) also fixes libsndfile error on Mac_Py2 standalone
+- when the localRoot has been set for a project (before sync) we should get back the sync window
+- clicking "runOnline" before creating/syncing your project with Pavlovia now does the right thing
+- fix to MovieStim3 unloading of movies #1917
 
 PsychoPy 3.0.0b3
 ------------------------------
