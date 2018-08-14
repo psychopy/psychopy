@@ -549,7 +549,7 @@ class PavloviaProject(dict):
 
     @localRoot.setter
     def localRoot(self, localRoot):
-        self['localRoot'] = localRoot
+        self['localRoot'] = localRoot.replace('\\', '/')
         # this is where we add a project to knownProjects
         # if we have both a
         if localRoot and self.id:  # i.e. not set to None or ''
@@ -707,6 +707,7 @@ class PavloviaProject(dict):
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
         gitRoot = getGitRoot(self.localRoot)
+
         if gitRoot is None:
             self.newRepo(progressHandler)
         elif gitRoot != self.localRoot:

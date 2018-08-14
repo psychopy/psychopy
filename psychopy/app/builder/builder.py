@@ -1661,8 +1661,8 @@ class BuilderFrame(wx.Frame):
         """
         # get path if not given one
         settingsHTMLpath = self.exp.settings.params['HTML path'].val
+        expPath, expName = os.path.split(self.filename)
         if htmlPath is None and self.exp.settings.params['HTML path']:
-            expPath, expName = os.path.split(self.filename)
             htmlPath = os.path.join(expPath, settingsHTMLpath)
         # present dialog box
         dlg = ExportFileDialog(self, wx.ID_ANY,
