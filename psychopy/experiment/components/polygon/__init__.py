@@ -211,7 +211,7 @@ class PolygonComponent(BaseVisualComponent):
         code = ("{name} = new Rect ({{\n"
         "  win: my.window, name: '{name}',\n"
         "  units: my.window.units,\n"
-        "  width: [.5, 1][0], height: [.5, 1][1],\n"
+        "  width: {size}[0], height: {size}[1],\n"
         "  ori: 0, pos: {pos},\n"
         "  lineWidth: 1, lineColor: new Color({lineColor}),\n"
         "  fillColor: new Color({fillColor}),\n"
@@ -219,5 +219,6 @@ class PolygonComponent(BaseVisualComponent):
         "}});\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
                                             pos=self.params['pos'],
+                                            size=self.params['size'],
                                             lineColor=self.params['lineColor'],
                                             fillColor=self.params['fillColor']))
