@@ -76,5 +76,4 @@ while not stopApp:
         hmd.recenterTrackingOrigin()
 
 # cleanly end the session
-hmd.endSession()
 core.quit()

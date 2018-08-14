@@ -1336,16 +1336,6 @@ class Rift(window.Window):
             self._projectionMatrix = ovr.capi.getEyeProjectionMatrix(
                 0, self._nearClip, self._farClip)
 
-    def endSession(self):
-        """Safely close the VR session.
-
-        Returns
-        -------
-        None
-
-        """
-        ovr.capi.endSession()
-
     def controllerConnected(self, controller='xbox'):
         """Check if a given device is connected to the Haptics engine.
 
