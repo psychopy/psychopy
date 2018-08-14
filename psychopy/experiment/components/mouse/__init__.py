@@ -149,15 +149,23 @@ class MouseComponent(BaseComponent):
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
             "my.gotValidClick = false;\n"
-            "for (const obj of [{clickable}]) {{\n"
+            "for (const obj of {clickable}) {{\n"
             "  if (obj.contains({name})) {{\n"
-            "    my.gotValidClick = true;\n"
-            "    {name}.clicked_name.push(obj.name);\n"
-            "    console.log('INSIDE ' + obj.name);\n"
-            "  }}\n"
-            "}}\n")
+            "    my.gotValidClick = true;\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
                                             clickable=self.params['clickable']))
+
+        buff.setIndentLevel(+2, relative=True)
+        dedent = 2
+        code = ''
+        for paramName in self._clickableParamsList:
+            code += "%s.clicked_%s.push(obj.%s)\n" % (self.params['name'],
+                                                        paramName, paramName)
+
+        buff.writeIndentedLines(code % self.params)
+        for dents in range(dedent):
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented('}\n')
 
     def writeInitCode(self, buff):
         code = ("%(name)s = event.Mouse(win=win)\n"
