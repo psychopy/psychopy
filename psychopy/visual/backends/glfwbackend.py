@@ -582,6 +582,12 @@ class GLFWBackend(BaseBackend):
         except Exception:
             pass
 
+    def setFullScr(self, value):
+        """Sets the window to/from full-screen mode"""
+        raise NotImplemented("Toggling fullscreen mode is not currently "
+                             "supported on GFLW windows")
+
+
 def _onResize(width, height):
     """A default resize event handler.
 
