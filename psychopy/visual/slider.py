@@ -478,8 +478,12 @@ class Slider(MinimalStim):
         xy = self.mouse.getPos()
 
         if click:
-            # update current but don't set Rating (mouse is still down)
-            if self.validArea.contains(self.mouse, units=self.units):
+            # Update current but don't set Rating (mouse is still down)
+            # Dragging has to start inside a "valid" area (i.e., on the
+            # slider), but may continue even if the mouse moves away from
+            # the slider, as long as the mouse button is not released.
+            if (self.validArea.contains(self.mouse, units=self.units) or
+                    self._dragging):
                 self.markerPos = self._posToRating(xy)  # updates marker
                 self._dragging = True
         else:  # mouse is up - check if it *just* came up
