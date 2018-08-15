@@ -125,6 +125,3 @@ def getString(parName):
     val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
     return val.decode('UTF-8')
 
-
-if __name__ == "__main__":
-    print(getDriverInfo())
