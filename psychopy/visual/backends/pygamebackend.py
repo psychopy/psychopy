@@ -150,5 +150,5 @@ class PygameBackend(BaseBackend):
 
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
-        raise NotImplemented("Toggling fullscreen mode is not currently "
+        raise NotImplementedError("Toggling fullscreen mode is not currently "
                              "supported on pygame windows")
