@@ -149,7 +149,7 @@ class Slider(MinimalStim):
         self.flip = flip
         self.granularity = granularity
         self.textSize = textSize
-        self.color = color
+        self._color = color
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -215,6 +215,11 @@ class Slider(MinimalStim):
         """(readonly) determines from self.size whether the scale is horizontal"""
         return self.size[0] > self.size[1]
 
+    @property
+    def color(self):
+        """ Color of the line/ticks/labels according to the color space.
+        """
+        return self._color
 
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted

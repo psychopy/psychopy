@@ -3,6 +3,8 @@
 
 from __future__ import division
 
+import pytest
+
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
 
@@ -28,3 +30,9 @@ class Test_Slider(object):
                 assert l.color == color
 
             del s
+
+    def test_change_color(self):
+        s = Slider(self.win)
+
+        with pytest.raises(AttributeError):
+            s.color = 'blue'
