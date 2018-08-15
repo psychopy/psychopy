@@ -46,6 +46,34 @@ def getDriverInfo():
     return gl_info
 
 
+def createFramebuffer():
+    """Generate a new Framebuffer object.
+
+    Returns
+    -------
+    int
+
+    """
+    fbo_id = GL.GLuint()
+    GL.glGenFramebuffers(1, ctypes.byref(fbo_id))
+
+    return fbo_id
+
+
+def createRenderbuffer():
+    """Generate a new Renderbuffer.
+
+    Returns
+    -------
+    int
+
+    """
+    rb_id = GL.GLuint()
+    GL.glGenRenderbuffers(1, ctypes.byref(rb_id))
+
+    return rb_id
+
+
 def blitFramebuffer(srcRect, dstRect, filter='linear'):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
@@ -54,7 +82,11 @@ def blitFramebuffer(srcRect, dstRect, filter='linear'):
     Parameters
     ----------
     srcRect : :obj:`list` of :obj:`int`
+        List specifying the top-left and bottom-right coordinates of the region
+        to copy from (<X0>, <Y0>, <X1>, <Y1>).
     dstRect : :obj:`list` of :obj:`int`
+        List specifying the top-left and bottom-right coordinates of the region
+        to copy to (<X0>, <Y0>, <X1>, <Y1>).
     filter : :obj:`str`
         Interpolation method to use if the image is stretched, can be 'linear'
         or 'nearest'.
@@ -71,7 +103,7 @@ def blitFramebuffer(srcRect, dstRect, filter='linear'):
     # bind framebuffer to draw pixels to
     GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
 
-    blitFramebuffer((0,0,800,600), (0,0,800,600))
+    gltools.blitFramebuffer((0,0,800,600), (0,0,800,600))
 
     # unbind both read and draw buffers
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -125,4 +157,3 @@ def getString(parName):
     """
     val = ctypes.cast(GL.glGetString(parName), ctypes.c_char_p).value
     return val.decode('UTF-8')
-
