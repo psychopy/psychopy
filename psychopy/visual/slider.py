@@ -149,7 +149,7 @@ class Slider(MinimalStim):
         self.flip = flip
         self.granularity = granularity
         self.textSize = textSize
-        self.color = color
+        self._color = color
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -215,6 +215,11 @@ class Slider(MinimalStim):
         """(readonly) determines from self.size whether the scale is horizontal"""
         return self.size[0] > self.size[1]
 
+    @property
+    def color(self):
+        """ Color of the line/ticks/labels according to the color space.
+        """
+        return self._color
 
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
@@ -236,12 +241,13 @@ class Slider(MinimalStim):
         else:
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
-        self.line = GratingStim(win=self.win, tex='color', pos=self.pos,
+        self.line = GratingStim(win=self.win, pos=self.pos, color=self.color,
                                 size=lineSize, sf=0, units=self.units)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
-                                          elementTex='color', elementMask=None,
+                                          elementMask=None,
+                                          colors=self.color,
                                           sizes=tickSize, sfs=0)
 
         self.labelObjs = []
@@ -271,7 +277,8 @@ class Slider(MinimalStim):
 
                 obj = TextStim(self.win, label, font=self.font,
                                alignHoriz=alignHoriz, alignVert=alignVert,
-                               units=self.units, pos=self.labelLocs[tickN, :])
+                               units=self.units, color=self.color,
+                               pos=self.labelLocs[tickN, :])
                 self.labelObjs.append(obj)
 
         if self.units == 'norm':
