@@ -48,7 +48,8 @@ def getDriverInfo():
 
 def blitFramebuffer(srcRect, dstRect, filter='linear'):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
-    framebuffers must be bound prior to calling this function.
+    framebuffers must be bound prior to calling this function. Beware, the
+    scissor box and viewport are changed when this is called to dstRect.
 
     Parameters
     ----------
