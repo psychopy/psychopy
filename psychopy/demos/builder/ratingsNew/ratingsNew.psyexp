@@ -343,7 +343,7 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(0.8, 0.05)" valType="code"/>
-        <Param name="styles" updates="constant" val="('rating')" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="('rating',)" valType="fixedList"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
@@ -451,7 +451,7 @@
         <Param name="startVal" updates="None" val="0.0" valType="code"/>
         <Param name="font" updates="constant" val="HelveticaBold" valType="str"/>
         <Param name="size" updates="constant" val="(1.0, 0.1)" valType="code"/>
-        <Param name="styles" updates="constant" val="('whiteOnBlack')" valType="fixedList"/>
+        <Param name="styles" updates="constant" val="('whiteOnBlack',)" valType="fixedList"/>
         <Param name="storeRatingTime" updates="constant" val="True" valType="bool"/>
         <Param name="ticks" updates="constant" val="0, 1" valType="list"/>
         <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
