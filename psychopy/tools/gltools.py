@@ -92,7 +92,7 @@ def blitFramebuffer(srcRect, dstRect, filter='linear'):
 
 
 def getIntegerv(parName):
-    """Get an integer parameter value, return it as a Python integer.
+    """Get a single integer parameter value, return it as a Python integer.
 
     Parameters
     ----------
@@ -107,11 +107,28 @@ def getIntegerv(parName):
     val = GL.GLint()
     GL.glGetIntegerv(parName, val)
 
-    return val.value
+    return int(val.value)
 
+def getFloatv(parName):
+    """Get a single float parameter value, return it as a Python float.
+
+    Parameters
+    ----------
+    pName : :obj:`float'
+        OpenGL property enum to query.
+
+    Returns
+    -------
+    int
+
+    """
+    val = GL.GLfloat()
+    GL.glGetFloatv(parName, val)
+
+    return float(val.value)
 
 def getString(parName):
-    """Get a string parameter value, return it as a Python UTF-8 string.
+    """Get a single string parameter value, return it as a Python UTF-8 string.
 
     Parameters
     ----------
