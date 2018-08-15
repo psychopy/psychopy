@@ -417,11 +417,6 @@ class PavloviaSession:
         else:
             self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
 
-    def applyChanges(self):
-        """If threaded up/downloading is enabled then this begins the process
-        """
-        raise NotImplemented
-
     @property
     def user(self):
         if hasattr(self.gitlab, 'user'):

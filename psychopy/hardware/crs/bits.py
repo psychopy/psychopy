@@ -4181,7 +4181,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         Not really needed as other members now do this.
         
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def stop(self):
         """[Not currently implemented] Used to stop event collection by
@@ -4190,7 +4190,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         Not really needed as other members now do this.
         
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def checkConfig(self, level=1, demoMode=False, logFile=''):
         """Checks whether there is a configuration for this device and
