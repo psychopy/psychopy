@@ -33,5 +33,4 @@ while not stopApp:
         stopApp = True
 
 # cleanly end the session
-hmd.endSession()
 core.quit()
