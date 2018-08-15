@@ -387,6 +387,9 @@ class PygletBackend(BaseBackend):
         except Exception:
             pass
 
+    def setFullScr(self, value):
+        """Sets the window to/from full-screen mode"""
+        self.winHandle.set_fullscreen(value)
 
 def _onResize(width, height):
     """A default resize event handler.

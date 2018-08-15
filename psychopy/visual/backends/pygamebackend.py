@@ -147,3 +147,8 @@ class PygameBackend(BaseBackend):
         # use pygame's own function for this
         pygame.display.set_gamma_ramp(
                 gammaRamp[:, 0], gammaRamp[:, 1], gammaRamp[:, 2])
+
+    def setFullScr(self, value):
+        """Sets the window to/from full-screen mode"""
+        raise NotImplemented("Toggling fullscreen mode is not currently "
+                             "supported on pygame windows")

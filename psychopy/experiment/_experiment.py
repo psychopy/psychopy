@@ -201,9 +201,10 @@ class Experiment(object):
         self.xmlRoot.set('encoding', 'utf-8')
         # store settings
         settingsNode = xml.SubElement(self.xmlRoot, 'Settings')
-        for name, setting in self.settings.params.items():
-            settingNode = self._setXMLparam(
-                parent=settingsNode, param=setting, name=name)
+        for settingName in sorted(self.settings.params):
+            setting = self.settings.params[settingName]
+            self._setXMLparam(
+                parent=settingsNode, param=setting, name=settingName)
         # store routines
         routinesNode = xml.SubElement(self.xmlRoot, 'Routines')
         # routines is a dict of routines
@@ -215,9 +216,10 @@ class Experiment(object):
                 componentNode = self._setXMLparam(
                     parent=routineNode, param=component,
                     name=component.params['name'].val)
-                for name, param in component.params.items():
-                    paramNode = self._setXMLparam(
-                        parent=componentNode, param=param, name=name)
+                for paramName in sorted(component.params):
+                    param = component.params[paramName]
+                    self._setXMLparam(
+                        parent=componentNode, param=param, name=paramName)
         # implement flow
         flowNode = xml.SubElement(self.xmlRoot, 'Flow')
         # a list of elements(routines and loopInit/Terms)
@@ -228,7 +230,8 @@ class Experiment(object):
                 name = loop.params['name'].val
                 elementNode.set('loopType', loop.getType())
                 elementNode.set('name', name)
-                for paramName, param in loop.params.items():
+                for paramName in sorted(loop.params):
+                    param = loop.params[paramName]
                     paramNode = self._setXMLparam(
                         parent=elementNode, param=param, name=paramName)
                     # override val with repr(val)

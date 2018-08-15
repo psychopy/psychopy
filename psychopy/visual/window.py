@@ -544,6 +544,15 @@ class Window(object):
         setAttribute(self, 'viewPos', value, log=log)
 
     @attributeSetter
+    def fullscr(self, value):
+        """Set whether fullscreen mode is True or False (not all backends can
+        toggle an open window)
+        """
+        self.backend.setFullScr(value)
+        self.__dict__['fullscr'] = value
+        self._isFullScr = value
+
+    @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.
         After a call to flip() should we wait for the blank before the

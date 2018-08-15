@@ -10,6 +10,15 @@ Changelog
 CHANGES, which are identified in blue text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 3.0.0b7
+------------------------------
+
+FIXED:
+
+- New rating scale (Slider) handles color properly #1944 and better handling of button drag #1945
+- 'newRating' Builder demo has been fixed (forceEndRoutine shouldn't have been happening)
+- timeByFrames now renders the graph into the PsychoPy window (was sometimes hanging on mac otherwise)
+
 PsychoPy 3.0.0b6
 ------------------------------
 
