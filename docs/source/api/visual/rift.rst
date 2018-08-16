@@ -1,6 +1,5 @@
-
 :class:`Rift`
-------------------------------------------------------------------------
+-------------
 
 Attributes
 =============
@@ -10,9 +9,13 @@ Attributes
 .. autosummary:: 
 
     Rift
+    Rift.productName
+    Rift.manufacturer
+    Rift.serialNumber
     Rift.firmwareVersion
     Rift.resolution
-    Rift.fovType
+    Rift.displayRefreshRate
+    Rift.trackingOriginType
     
         
 Details
