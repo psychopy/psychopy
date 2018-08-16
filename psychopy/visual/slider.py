@@ -55,6 +55,7 @@ class Slider(MinimalStim):
                  pos=None,
                  size=None,
                  units=None,
+                 markerScalingFactor=1.0,
                  flip=False,
                  style='rating',
                  granularity=0,
@@ -94,6 +95,10 @@ class Slider(MinimalStim):
             This also controls whether the scale is horizontal or vertical.
 
         units : the units to interpret the pos and size
+
+        markerScalingFactor : float
+            The factor by which to scale the marker size, relative to the
+            defaults.
 
         flip : bool
             By default the labels will be below or left of the line. This
@@ -141,6 +146,7 @@ class Slider(MinimalStim):
         else:
             self.size = size
 
+        self._markerScalingFactor = markerScalingFactor
         self.flip = flip
         self.granularity = granularity
         self._color = color
@@ -215,6 +221,13 @@ class Slider(MinimalStim):
         """
         return self._color
 
+    @property
+    def markerScalingFactor(self):
+        """The factor by which to scale the marker size, relative to the
+           defaults.
+        """
+        return self._markerScalingFactor
+
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -278,12 +291,13 @@ class Slider(MinimalStim):
         if self.units == 'norm':
             # convert to make marker round
             aspect = self.win.size[0] / self.win.size[1]
-            markerSize = (self._tickL, self._tickL * aspect)
+            marker_size = np.array([self._tickL, self._tickL * aspect])
         else:
-            markerSize = self._tickL
+            marker_size = self._tickL
 
+        marker_size *= self.markerScalingFactor
         self.marker = Circle(self.win, units=self.units,
-                             size=markerSize,
+                             size=marker_size,
                              color='red')
 
         # create a rectangle to check for clicks
@@ -538,6 +552,8 @@ class Slider(MinimalStim):
                 ori = 180
             else:
                 ori = 0
+
+            marker_size = min(self.size)*2 * self.markerScalingFactor
             self.marker = ShapeStim(self.win, units=self.units,
                                     vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
                                     size=min(self.size)*2,
@@ -559,6 +575,9 @@ class Slider(MinimalStim):
             else:
                 markerW = self.size[0]*0.8
                 markerH = self.size[1]*0.1
+
+            markerW *= self.markerScalingFactor
+            markerH *= self.markerScalingFactor
             self.marker = Rect(self.win, units=self.units,
                                width= markerW,
                                height= markerH,

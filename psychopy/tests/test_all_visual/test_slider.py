@@ -36,3 +36,15 @@ class Test_Slider(object):
 
         with pytest.raises(AttributeError):
             s.color = 'blue'
+
+    def test_change_size(self):
+        s = Slider(self.win, size=(1, 0.1))
+
+        with pytest.raises(AttributeError):
+            s.size = 1.5
+
+    def test_marker_scaling_factor(self):
+        marker_scaling_factors = [1, 1.0]
+
+        for marker_scaling_factor in marker_scaling_factors:
+            s = Slider(self.win, markerScalingFactor=marker_scaling_factor)
