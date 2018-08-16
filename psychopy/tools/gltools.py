@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Helper functions for OpenGL operations.
+"""OpenGL related helper functions.
 
 """
 
@@ -10,7 +10,7 @@
 
 import ctypes
 from psychopy import logging
-import pyglet.gl as GL
+import pyglet.gl as GL  # using Pyglet for now
 
 
 def getDriverInfo():
@@ -64,7 +64,7 @@ def checkFramebufferComplete(fboId):
         GL.GL_FRAMEBUFFER_COMPLETE
 
 
-def createMultisampleFBO(width, height, samples=1, textureFormat="rgba8"):
+def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
     """Create a multisample framebuffer for rendering. Objects drawn to the
     framebuffer will be anti-aliased if GL_MULTISAMPLE is active.
 
@@ -75,18 +75,27 @@ def createMultisampleFBO(width, height, samples=1, textureFormat="rgba8"):
     height : :obj:`int`
         Buffer height in pixels.
     samples : :obj:`int`
-        Number of samples for multi-sampling.
-    textureFormat : :obj:`str`
-        Texture format to use, valid values are 'rgba8' and 'rgba16'.
+        Number of samples for multi-sampling, should be >1 and power-of-two.
+        Work with one sample, but will raise a warning.
+    colorFormat : :obj:`int`
+        Format for color renderbuffer data (e.g. GL_RGBA8).
 
     Returns
     -------
     :obj:`list` of :obj:`int`
         List of OpenGL ids (FBO, Color RB, Depth/Stencil RB).
 
-    """
-    textureFormats = {"rgba8": GL.GL_RGBA8, "rgba16": GL.GL_RGBA16}
+    Examples
+    --------
+    # create a multisample FBO with 8 samples
+    msaaFbo, colorRb, depthRb = createMultisampleFBO(800, 600, 8)
+    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, msaaFbo)
 
+    # resolve samples into another framebuffer texture
+    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, fbo)
+    blitFramebuffer((0, 0, 800, 600))
+
+    """
     # determine if the 'samples' value is valid
     max_samples = getIntegerv(GL.GL_MAX_SAMPLES)
     if isinstance(samples, int):
@@ -95,40 +104,57 @@ def createMultisampleFBO(width, height, samples=1, textureFormat="rgba8"):
         elif 0 > samples > max_samples:
             logging.error('Invalid number of samples, must be <{}.'.format(
                 max_samples))
+        elif samples == 1:
+            # warn that you are creating a single sample texture, use a regular
+            # FBO instead.
+            logging.warning('Creating a multisample FBO with one sample!')
     elif isinstance(samples, str):
         if samples == 'max':
             samples = max_samples
 
+    # create the FBO, bind it for attachments
     fboId = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
 
-    # use a render buffer for color data instead of a texture, multisample
-    # FBO textures are never used on their own.
+    # Color render buffer only instead of a texture. I can't think of a use case
+    # to pass around a multisampled texture.
     colorRbId = GL.GLuint()
     GL.glGenRenderbuffers(1, ctypes.byref(colorRbId))
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, colorRbId)
     GL.glRenderbufferStorageMultisample(
-        GL.GL_RENDERBUFFER, samples, textureFormats[textureFormat],
-        int(width), int(height))
+        GL.GL_RENDERBUFFER,
+        samples,
+        colorFormat,
+        int(width),
+        int(height))
     GL.glFramebufferRenderbuffer(
-        GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_RENDERBUFFER,
+        GL.GL_FRAMEBUFFER,
+        GL.GL_COLOR_ATTACHMENT0,
+        GL.GL_RENDERBUFFER,
         colorRbId)
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
 
+    # setup the render buffer for depth and stencil
     depthRbId = GL.GLuint()
     GL.glGenRenderbuffers(1, ctypes.byref(depthRbId))
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, depthRbId)
     GL.glRenderbufferStorageMultisample(
-        GL.GL_RENDERBUFFER, samples, GL.GL_DEPTH24_STENCIL8,
-        int(width), int(height))
+        GL.GL_RENDERBUFFER,
+        samples,
+        GL.GL_DEPTH24_STENCIL8,
+        int(width),
+        int(height))
     GL.glFramebufferRenderbuffer(
-        GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER,
+        GL.GL_FRAMEBUFFER,
+        GL.GL_DEPTH_ATTACHMENT,
+        GL.GL_RENDERBUFFER,
         depthRbId)
     GL.glFramebufferRenderbuffer(
-        GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER,
+        GL.GL_FRAMEBUFFER,
+        GL.GL_STENCIL_ATTACHMENT,
+        GL.GL_RENDERBUFFER,
         depthRbId)
-
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
 
     # clear VRAM garbage
@@ -177,7 +203,7 @@ def createRenderbuffer():
     return rb_id
 
 
-def blitFramebuffer(srcRect, dstRect, filter='linear'):
+def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
     scissor box and viewport are changed when this is called to dstRect.
@@ -187,12 +213,13 @@ def blitFramebuffer(srcRect, dstRect, filter='linear'):
     srcRect : :obj:`list` of :obj:`int`
         List specifying the top-left and bottom-right coordinates of the region
         to copy from (<X0>, <Y0>, <X1>, <Y1>).
-    dstRect : :obj:`list` of :obj:`int`
+    dstRect : :obj:`list` of :obj:`int` or :obj:`None`
         List specifying the top-left and bottom-right coordinates of the region
-        to copy to (<X0>, <Y0>, <X1>, <Y1>).
-    filter : :obj:`str`
-        Interpolation method to use if the image is stretched, can be 'linear'
-        or 'nearest'.
+        to copy to (<X0>, <Y0>, <X1>, <Y1>). If None, srcRect is used for
+        dstRect.
+    filter : :obj:`int`
+        Interpolation method to use if the image is stretched, default is
+        GL_LINEAR, but can also be GL_NEAREST.
 
     Returns
     -------
@@ -214,6 +241,10 @@ def blitFramebuffer(srcRect, dstRect, filter='linear'):
     """
     # texture filters
     filters = {'linear': GL.GL_LINEAR, 'nearest': GL.GL_NEAREST}
+
+    # in most cases srcRect and dstRect will be the same.
+    if dstRect is None:
+        dstRect = srcRect
 
     GL.glViewport(*dstRect)
     GL.glEnable(GL.GL_SCISSOR_TEST)
