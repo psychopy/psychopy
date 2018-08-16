@@ -32,7 +32,7 @@ class Test_Slider(object):
             del s
 
     def test_change_color(self):
-        s = Slider(self.win)
+        s = Slider(self.win, color='black')
 
         with pytest.raises(AttributeError):
             s.color = 'blue'
