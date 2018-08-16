@@ -107,9 +107,9 @@ def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
     max_samples = getIntegerv(GL.GL_MAX_SAMPLES)
     if isinstance(samples, int):
         if (samples & (samples - 1)) != 0:
-            logging.error('Invalid number of samples, must be power-of-two.')
-        elif 0 > samples > max_samples:
-            logging.error('Invalid number of samples, must be <{}.'.format(
+            raise ValueError('Invalid number of samples, must be power-of-two.')
+        elif samples < 0 or samples > max_samples:
+            raise ValueError('Invalid number of samples, must be <{}.'.format(
                 max_samples))
         elif samples == 1:
             # warn that you are creating a single sample texture, use a regular
@@ -173,11 +173,12 @@ def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
 
     # check completeness
     if not checkFramebufferComplete(fboId):
-        logging.error('Failed to create a multi-sample framebuffer. Exiting.')
         # delete the framebuffer and all the resources associated with it
         GL.glDeleteRenderbuffers(1, colorRbId)
         GL.glDeleteRenderbuffers(1, depthRbId)
         GL.glDeleteFramebuffers(1, fboId)
+        raise RuntimeError(
+            'Failed to create a multisample framebuffer. Exiting.')
 
     return fboId, colorRbId, depthRbId
 
@@ -265,11 +266,11 @@ def createFBO(width, height, colorFormat=GL.GL_RGBA8):
 
     # check completeness
     if not checkFramebufferComplete(fboId):
-        logging.error('Failed to create a multi-sample framebuffer. Exiting.')
         # delete the framebuffer and all the resources associated with it
         GL.glDeleteTextures(1, colorTextureId)
         GL.glDeleteRenderbuffers(1, depthRbId)
         GL.glDeleteFramebuffers(1, fboId)
+        raise RuntimeError('Failed to create a framebuffer. Exiting.')
 
     return fboId, colorTextureId, depthRbId
 
