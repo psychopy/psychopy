@@ -142,9 +142,9 @@ class Slider(MinimalStim):
             self.units = units
 
         if size is None:
-            self.size = defaultSizes[self.units]
+            self._size = defaultSizes[self.units]
         else:
-            self.size = size
+            self._size = size
 
         self._markerScalingFactor = markerScalingFactor
         self.flip = flip
@@ -220,6 +220,13 @@ class Slider(MinimalStim):
         """ Color of the line/ticks/labels according to the color space.
         """
         return self._color
+
+    @property
+    def size(self):
+        """The size for the scale defines the area taken up by the line and
+            the ticks.
+        """
+        return self._size
 
     @property
     def markerScalingFactor(self):
@@ -556,7 +563,7 @@ class Slider(MinimalStim):
             marker_size = min(self.size)*2 * self.markerScalingFactor
             self.marker = ShapeStim(self.win, units=self.units,
                                     vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
-                                    size=min(self.size)*2,
+                                    size=marker_size,
                                     ori=ori,
                                     fillColor='DarkRed',
                                     lineColor='DarkRed')
