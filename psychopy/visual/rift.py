@@ -449,6 +449,7 @@ class Rift(window.Window):
 
     @property
     def trackingOriginType(self):
+        """Current tracking origin type."""
         return self.getTrackingOriginType()
 
     @trackingOriginType.setter
