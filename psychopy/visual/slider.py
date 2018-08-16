@@ -23,8 +23,9 @@ from .text import TextStim
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
+
 defaultSizes = {'norm': [1.0, 0.1]}
-knownStyles = []
+
 
 class Slider(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -524,6 +525,7 @@ class Slider(MinimalStim):
 
     knownStyles = ['slider', 'rating', 'labels45', 'whiteOnBlack',
                    'triangleMarker']
+
     @attributeSetter
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
