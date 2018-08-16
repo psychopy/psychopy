@@ -299,13 +299,13 @@ class Slider(MinimalStim):
         if self.units == 'norm':
             # convert to make marker round
             aspect = self.win.size[0] / self.win.size[1]
-            marker_size = np.array([self._tickL, self._tickL * aspect])
+            markerSize = np.array([self._tickL, self._tickL * aspect])
         else:
-            marker_size = self._tickL
+            markerSize = self._tickL
 
-        marker_size *= self.markerScalingFactor
+        markerSize *= self.markerScalingFactor
         self.marker = Circle(self.win, units=self.units,
-                             size=marker_size,
+                             size=markerSize,
                              color='red')
 
         # create a rectangle to check for clicks
@@ -562,10 +562,10 @@ class Slider(MinimalStim):
             else:
                 ori = 0
 
-            marker_size = min(self.size)*2 * self.markerScalingFactor
+            markerSize = min(self.size)*2 * self.markerScalingFactor
             self.marker = ShapeStim(self.win, units=self.units,
                                     vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
-                                    size=marker_size,
+                                    size=markerSize,
                                     ori=ori,
                                     fillColor='DarkRed',
                                     lineColor='DarkRed')

@@ -49,11 +49,11 @@ class Test_Slider(object):
             s.size = (1.5, 0.5)
 
     def test_marker_scaling_factor(self):
-        marker_scaling_factors = [1, 1.0]
+        markerScalingFactors = [1, 1.0]
 
-        for marker_scaling_factor in marker_scaling_factors:
-            s = Slider(self.win, markerScalingFactor=marker_scaling_factor)
-            assert s.markerScalingFactor == marker_scaling_factor
+        for thisScalingFactor in markerScalingFactors:
+            s = Slider(self.win, markerScalingFactor=thisScalingFactor)
+            assert s.markerScalingFactor == thisScalingFactor
 
     def test_change_marker_scaling_factor(self):
         s = Slider(self.win, markerScalingFactor=1.0)
