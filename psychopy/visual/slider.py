@@ -58,7 +58,6 @@ class Slider(MinimalStim):
                  flip=False,
                  style='rating',
                  granularity=0,
-                 textSize=1.0,
                  readOnly=False,
                  color='LightGray',
                  font='Helvetica Bold',
@@ -70,7 +69,7 @@ class Slider(MinimalStim):
 
         Parameters
         ----------
-        win : psychopy.window
+        win : psychopy.visual.Window
             Into which the scale will be rendered
 
         ticks : list or tuple
@@ -100,23 +99,15 @@ class Slider(MinimalStim):
             By default the labels will be below or left of the line. This
             puts them above (or right)
 
-        granularity : int, float
+        granularity : int or float
             The smallest valid increments for the scale. 0 gives a continuous
             (e.g. "VAS") scale. 1 gives a traditional likert scale. Something
             like 0.1 gives a limited fine-grained scale.
-
-        marker : string or a psychopy visual object
-            'circle' or 'triangle' will result in these being created
-            Any PsychoPy visual object (gratings, images, shapes etc) can be
-            provided here instead though (use the same units as the scale).
 
         color :
             Color of the line/ticks/labels according to the color space
 
         font : font name
-
-        textSize : int, float
-            Size of the labels in whatever units you have set
 
         autodraw :
 
@@ -134,21 +125,24 @@ class Slider(MinimalStim):
         self.win = win
         self.ticks = np.asarray(ticks)
         self.labels = labels
+
         if pos is None:
             self.pos = (0, 0)
         else:
             self.pos = pos
-        if units:
-            self.units = units
-        else:
+
+        if units is None:
             self.units = win.units
+        else:
+            self.units = units
+
         if size is None:
             self.size = defaultSizes[self.units]
         else:
             self.size = size
+
         self.flip = flip
         self.granularity = granularity
-        self.textSize = textSize
         self._color = color
         self.font = font
         self.autoDraw = autoDraw
@@ -287,10 +281,11 @@ class Slider(MinimalStim):
             markerSize = (self._tickL, self._tickL * aspect)
         else:
             markerSize = self._tickL
+
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
-                             color='red',
-                             )
+                             color='red')
+
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
@@ -512,20 +507,21 @@ class Slider(MinimalStim):
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
 
-        Styles can be combined in a list e.g. ['whiteOnBlack','labels45']
-
-        Known styles currently include:
-
-            'triangleMarker': the marker is a triangle
-            'slider': looks more like an application slider control
-            'whiteOnBlack': a sort of color-inverse rating scale
-            'labels45' the text is rotated by 45 degrees
-
         If you fancy creating and including your own styles that would be great!
 
         Parameters
         ----------
         style: list of strings
+
+            Known styles currently include:
+
+                'rating': the marker is a circle
+                'triangleMarker': the marker is a triangle
+                'slider': looks more like an application slider control
+                'whiteOnBlack': a sort of color-inverse rating scale
+                'labels45' the text is rotated by 45 degrees
+
+            Styles can be combined in a list e.g. `['whiteOnBlack','labels45']`
 
         """
         self.__dict__['style'] = style
@@ -547,7 +543,7 @@ class Slider(MinimalStim):
                                     size=min(self.size)*2,
                                     ori=ori,
                                     fillColor='DarkRed',
-                                    lineColor='darkRed')
+                                    lineColor='DarkRed')
 
         if 'slider' in style:
             # make it more like a slider using a box instead of line
@@ -564,10 +560,10 @@ class Slider(MinimalStim):
                 markerW = self.size[0]*0.8
                 markerH = self.size[1]*0.1
             self.marker = Rect(self.win, units=self.units,
-                             width= markerW,
-                             height= markerH,
-                             fillColor='DarkSlateGray',
-                             lineColor='GhostWhite')
+                               width= markerW,
+                               height= markerH,
+                               fillColor='DarkSlateGray',
+                               lineColor='GhostWhite')
 
         if 'whiteOnBlack' in style:
             self.line.color = 'black'
