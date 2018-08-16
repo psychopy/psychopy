@@ -182,18 +182,96 @@ def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
     return fboId, colorRbId, depthRbId
 
 
-def createFBO(width, height, textureFormat="rgba8"):
-    """Generate a new Framebuffer object (FBO).
+def createFBO(width, height, colorFormat=GL.GL_RGBA8):
+    """Generate a new Framebuffer object (FBO) for use as a render target.
+
+    Parameters
+    ----------
+    width : :obj:`int`
+        Buffer width in pixels.
+    height : :obj:`int`
+        Buffer height in pixels.
+    colorFormat : :obj:`int`
+        Format for color renderbuffer data (e.g. GL_RGBA8).
 
     Returns
     -------
-    int
+    :obj:`list` of :obj:`int`
+        List of OpenGL ids (FBO, Color Texture, Depth/Stencil RB).
+
+    Examples
+    --------
+    # create a FBO
+    frameBuffer, frameTexture, stencilTexture = createFBO(
+        800, 600, GL.GL_RGBA32F_ARB)
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, frameBuffer)  # bind it
 
     """
+    # Create a texture render target for color data, same _setupFramebuffer()
+    #
+    # We should avoid creating a texture here in the future since we might want
+    # to bind an existing texture from elsewhere and reuse the same FBO.
+    #
+    colorTextureId = GL.GLuint()
+    GL.glGenTextures(1, ctypes.byref(colorTextureId))
+    GL.glBindTexture(GL.GL_TEXTURE_2D, colorTextureId)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,
+                       GL.GL_TEXTURE_MAG_FILTER,
+                       GL.GL_LINEAR)
+    GL.glTexParameteri(GL.GL_TEXTURE_2D,
+                       GL.GL_TEXTURE_MIN_FILTER,
+                       GL.GL_LINEAR)
+    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, colorFormat,
+                    int(width), int(height), 0,
+                    GL.GL_RGBA, GL.GL_FLOAT, None)
+    GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
     fboId = GL.GLuint()
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
-    return fboId
+    # attach texture to the frame buffer
+    GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
+                              GL.GL_COLOR_ATTACHMENT0,
+                              GL.GL_TEXTURE_2D,
+                              colorTextureId, 0)
+
+    # create depth and stencil render buffers
+    depthRbId = GL.GLuint()
+    GL.glGenRenderbuffers(1, ctypes.byref(depthRbId))
+    GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, depthRbId)
+    GL.glRenderbufferStorage(
+        GL.GL_RENDERBUFFER,
+        GL.GL_DEPTH24_STENCIL8,
+        int(width),
+        int(height))
+    GL.glFramebufferRenderbuffer(
+        GL.GL_FRAMEBUFFER,
+        GL.GL_DEPTH_ATTACHMENT,
+        GL.GL_RENDERBUFFER,
+        depthRbId)
+    GL.glFramebufferRenderbuffer(
+        GL.GL_FRAMEBUFFER,
+        GL.GL_STENCIL_ATTACHMENT,
+        GL.GL_RENDERBUFFER,
+        depthRbId)
+    GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
+
+    # clear VRAM garbage
+    GL.glClear(GL.GL_STENCIL_BUFFER_BIT |
+               GL.GL_DEPTH_BUFFER_BIT |
+               GL.GL_STENCIL_BUFFER_BIT)
+
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+    # check completeness
+    if not checkFramebufferComplete(fboId):
+        logging.error('Failed to create a multi-sample framebuffer. Exiting.')
+        # delete the framebuffer and all the resources associated with it
+        GL.glDeleteTextures(1, colorTextureId)
+        GL.glDeleteRenderbuffers(1, depthRbId)
+        GL.glDeleteFramebuffers(1, fboId)
+
+    return fboId, colorTextureId, depthRbId
 
 
 def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
@@ -236,15 +314,15 @@ def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     if dstRect is None:
         dstRect = srcRect
 
-    #GL.glViewport(*dstRect)
-    #GL.glEnable(GL.GL_SCISSOR_TEST)
-    #GL.glScissor(*dstRect)
+    # GL.glViewport(*dstRect)
+    # GL.glEnable(GL.GL_SCISSOR_TEST)
+    # GL.glScissor(*dstRect)
     GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
                          dstRect[0], dstRect[1], dstRect[2], dstRect[3],
                          GL.GL_COLOR_BUFFER_BIT,  # colors only for now
                          filter)
 
-    #GL.glDisable(GL.GL_SCISSOR_TEST)
+    # GL.glDisable(GL.GL_SCISSOR_TEST)
 
 
 def getIntegerv(parName):
