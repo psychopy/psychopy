@@ -196,20 +196,6 @@ def createFBO(width, height, textureFormat="rgba8"):
     return fboId
 
 
-def createRenderbuffer():
-    """Generate a new Renderbuffer.
-
-    Returns
-    -------
-    int
-
-    """
-    rb_id = GL.GLuint()
-    GL.glGenRenderbuffers(1, ctypes.byref(rb_id))
-
-    return rb_id
-
-
 def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
@@ -246,22 +232,19 @@ def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
     """
-    # texture filters
-    filters = {'linear': GL.GL_LINEAR, 'nearest': GL.GL_NEAREST}
-
     # in most cases srcRect and dstRect will be the same.
     if dstRect is None:
         dstRect = srcRect
 
-    GL.glViewport(*dstRect)
-    GL.glEnable(GL.GL_SCISSOR_TEST)
-    GL.glScissor(*dstRect)
+    #GL.glViewport(*dstRect)
+    #GL.glEnable(GL.GL_SCISSOR_TEST)
+    #GL.glScissor(*dstRect)
     GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
                          dstRect[0], dstRect[1], dstRect[2], dstRect[3],
                          GL.GL_COLOR_BUFFER_BIT,  # colors only for now
-                         filters[filter])
+                         filter)
 
-    GL.glDisable(GL.GL_SCISSOR_TEST)
+    #GL.glDisable(GL.GL_SCISSOR_TEST)
 
 
 def getIntegerv(parName):
