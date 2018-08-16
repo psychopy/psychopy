@@ -61,12 +61,18 @@ def checkFramebufferComplete(fboId):
 
     """
     return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
-        GL.GL_FRAMEBUFFER_COMPLETE
+           GL.GL_FRAMEBUFFER_COMPLETE
 
 
 def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
     """Create a multisample framebuffer for rendering. Objects drawn to the
-    framebuffer will be anti-aliased if GL_MULTISAMPLE is active.
+    framebuffer will be anti-aliased if 'GL_MULTISAMPLE' is active. A combined
+    depth and stencil buffer is created with 'GL_DEPTH24_STENCIL8' format.
+
+    Multisampling is computationally intensive for your graphics hardware and
+    consumes substantial amounts of VRAM. Furthermore, samples must be
+    'resolved' prior to display by copying (using blitFramebuffer, see Examples)
+    to a non-multisample buffer.
 
     Parameters
     ----------
@@ -89,11 +95,12 @@ def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
     --------
     # create a multisample FBO with 8 samples
     msaaFbo, colorRb, depthRb = createMultisampleFBO(800, 600, 8)
-    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, msaaFbo)
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, msaaFbo)  # bind it
 
     # resolve samples into another framebuffer texture
+    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, msaaFbo)
     GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, fbo)
-    blitFramebuffer((0, 0, 800, 600))
+    gltools.blitFramebuffer((0, 0, 800, 600))
 
     """
     # determine if the 'samples' value is valid
@@ -118,7 +125,7 @@ def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
 
     # Color render buffer only instead of a texture. I can't think of a use case
-    # to pass around a multisampled texture.
+    # to pass around a multisampled texture (yet).
     colorRbId = GL.GLuint()
     GL.glGenRenderbuffers(1, ctypes.byref(colorRbId))
     GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, colorRbId)
@@ -176,7 +183,7 @@ def createMultisampleFBO(width, height, samples, colorFormat=GL.GL_RGBA8):
 
 
 def createFBO(width, height, textureFormat="rgba8"):
-    """Generate a new Framebuffer object.
+    """Generate a new Framebuffer object (FBO).
 
     Returns
     -------
