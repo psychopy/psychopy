@@ -29,13 +29,18 @@ class Test_Slider(object):
             for l in s.labelObjs:
                 assert l.color == color
 
-            del s
-
     def test_change_color(self):
         s = Slider(self.win, color='black')
 
         with pytest.raises(AttributeError):
             s.color = 'blue'
+
+    def test_size(self):
+        sizes = [(1, 0.1), (1.5, 0.5)]
+
+        for size in sizes:
+            s = Slider(self.win, size=size)
+            assert s.size == size
 
     def test_change_size(self):
         s = Slider(self.win, size=(1, 0.1))
@@ -48,3 +53,10 @@ class Test_Slider(object):
 
         for marker_scaling_factor in marker_scaling_factors:
             s = Slider(self.win, markerScalingFactor=marker_scaling_factor)
+            assert s.markerScalingFactor == marker_scaling_factor
+
+    def test_change_marker_scaling_factor(self):
+        s = Slider(self.win, markerScalingFactor=1.0)
+
+        with pytest.raises(AttributeError):
+            s.markerScalingFactor = 0.5
