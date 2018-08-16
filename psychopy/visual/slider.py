@@ -23,8 +23,9 @@ from .text import TextStim
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
+
 defaultSizes = {'norm': [1.0, 0.1]}
-knownStyles = []
+
 
 class Slider(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -55,10 +56,10 @@ class Slider(MinimalStim):
                  pos=None,
                  size=None,
                  units=None,
+                 markerScalingFactor=1.0,
                  flip=False,
                  style='rating',
                  granularity=0,
-                 textSize=1.0,
                  readOnly=False,
                  color='LightGray',
                  font='Helvetica Bold',
@@ -70,7 +71,7 @@ class Slider(MinimalStim):
 
         Parameters
         ----------
-        win : psychopy.window
+        win : psychopy.visual.Window
             Into which the scale will be rendered
 
         ticks : list or tuple
@@ -96,27 +97,23 @@ class Slider(MinimalStim):
 
         units : the units to interpret the pos and size
 
+        markerScalingFactor : float
+            The factor by which to scale the marker size, relative to the
+            defaults.
+
         flip : bool
             By default the labels will be below or left of the line. This
             puts them above (or right)
 
-        granularity : int, float
+        granularity : int or float
             The smallest valid increments for the scale. 0 gives a continuous
             (e.g. "VAS") scale. 1 gives a traditional likert scale. Something
             like 0.1 gives a limited fine-grained scale.
-
-        marker : string or a psychopy visual object
-            'circle' or 'triangle' will result in these being created
-            Any PsychoPy visual object (gratings, images, shapes etc) can be
-            provided here instead though (use the same units as the scale).
 
         color :
             Color of the line/ticks/labels according to the color space
 
         font : font name
-
-        textSize : int, float
-            Size of the labels in whatever units you have set
 
         autodraw :
 
@@ -134,21 +131,25 @@ class Slider(MinimalStim):
         self.win = win
         self.ticks = np.asarray(ticks)
         self.labels = labels
+
         if pos is None:
             self.pos = (0, 0)
         else:
             self.pos = pos
-        if units:
-            self.units = units
-        else:
+
+        if units is None:
             self.units = win.units
-        if size is None:
-            self.size = defaultSizes[self.units]
         else:
-            self.size = size
+            self.units = units
+
+        if size is None:
+            self._size = defaultSizes[self.units]
+        else:
+            self._size = size
+
+        self._markerScalingFactor = markerScalingFactor
         self.flip = flip
         self.granularity = granularity
-        self.textSize = textSize
         self._color = color
         self.font = font
         self.autoDraw = autoDraw
@@ -221,6 +222,20 @@ class Slider(MinimalStim):
         """
         return self._color
 
+    @property
+    def size(self):
+        """The size for the scale defines the area taken up by the line and
+            the ticks.
+        """
+        return self._size
+
+    @property
+    def markerScalingFactor(self):
+        """The factor by which to scale the marker size, relative to the
+           defaults.
+        """
+        return self._markerScalingFactor
+
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -284,13 +299,15 @@ class Slider(MinimalStim):
         if self.units == 'norm':
             # convert to make marker round
             aspect = self.win.size[0] / self.win.size[1]
-            markerSize = (self._tickL, self._tickL * aspect)
+            marker_size = np.array([self._tickL, self._tickL * aspect])
         else:
-            markerSize = self._tickL
+            marker_size = self._tickL
+
+        marker_size *= self.markerScalingFactor
         self.marker = Circle(self.win, units=self.units,
-                             size=markerSize,
-                             color='red',
-                             )
+                             size=marker_size,
+                             color='red')
+
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
@@ -508,24 +525,26 @@ class Slider(MinimalStim):
 
     knownStyles = ['slider', 'rating', 'labels45', 'whiteOnBlack',
                    'triangleMarker']
+
     @attributeSetter
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
-
-        Styles can be combined in a list e.g. ['whiteOnBlack','labels45']
-
-        Known styles currently include:
-
-            'triangleMarker': the marker is a triangle
-            'slider': looks more like an application slider control
-            'whiteOnBlack': a sort of color-inverse rating scale
-            'labels45' the text is rotated by 45 degrees
 
         If you fancy creating and including your own styles that would be great!
 
         Parameters
         ----------
         style: list of strings
+
+            Known styles currently include:
+
+                'rating': the marker is a circle
+                'triangleMarker': the marker is a triangle
+                'slider': looks more like an application slider control
+                'whiteOnBlack': a sort of color-inverse rating scale
+                'labels45' the text is rotated by 45 degrees
+
+            Styles can be combined in a list e.g. `['whiteOnBlack','labels45']`
 
         """
         self.__dict__['style'] = style
@@ -542,12 +561,14 @@ class Slider(MinimalStim):
                 ori = 180
             else:
                 ori = 0
+
+            marker_size = min(self.size)*2 * self.markerScalingFactor
             self.marker = ShapeStim(self.win, units=self.units,
                                     vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
-                                    size=min(self.size)*2,
+                                    size=marker_size,
                                     ori=ori,
                                     fillColor='DarkRed',
-                                    lineColor='darkRed')
+                                    lineColor='DarkRed')
 
         if 'slider' in style:
             # make it more like a slider using a box instead of line
@@ -563,11 +584,14 @@ class Slider(MinimalStim):
             else:
                 markerW = self.size[0]*0.8
                 markerH = self.size[1]*0.1
+
+            markerW *= self.markerScalingFactor
+            markerH *= self.markerScalingFactor
             self.marker = Rect(self.win, units=self.units,
-                             width= markerW,
-                             height= markerH,
-                             fillColor='DarkSlateGray',
-                             lineColor='GhostWhite')
+                               width= markerW,
+                               height= markerH,
+                               fillColor='DarkSlateGray',
+                               lineColor='GhostWhite')
 
         if 'whiteOnBlack' in style:
             self.line.color = 'black'
