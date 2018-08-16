@@ -9,6 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ctypes
+from psychopy import logging
 import pyglet.gl as GL
 
 
@@ -31,7 +32,7 @@ def getDriverInfo():
     dict
 
     """
-    gl_info = {
+    glInfo = {
         "vendor": getString(GL.GL_VENDOR),
         "renderer": getString(GL.GL_RENDERER),
         "version": getString(GL.GL_VERSION),
@@ -43,10 +44,112 @@ def getDriverInfo():
         "maxSamples": getIntegerv(GL.GL_MAX_SAMPLES),
         "extensions": [i for i in getString(GL.GL_EXTENSIONS).split(' ')]}
 
-    return gl_info
+    return glInfo
 
 
-def createFramebuffer():
+def checkFramebufferComplete(fboId):
+    """Check if a specified framebuffer is complete.
+
+    Parameters
+    ----------
+    fbo : :obj:`int`
+        OpenGL framebuffer ID.
+
+    Returns
+    -------
+    bool
+
+    """
+    return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
+        GL.GL_FRAMEBUFFER_COMPLETE
+
+
+def createMultisampleFBO(width, height, samples=1, textureFormat="rgba8"):
+    """Create a multisample framebuffer for rendering. Objects drawn to the
+    framebuffer will be anti-aliased if GL_MULTISAMPLE is active.
+
+    Parameters
+    ----------
+    width : :obj:`int`
+        Buffer width in pixels.
+    height : :obj:`int`
+        Buffer height in pixels.
+    samples : :obj:`int`
+        Number of samples for multi-sampling.
+    textureFormat : :obj:`str`
+        Texture format to use, valid values are 'rgba8' and 'rgba16'.
+
+    Returns
+    -------
+    :obj:`list` of :obj:`int`
+        List of OpenGL ids (FBO, Color RB, Depth/Stencil RB).
+
+    """
+    textureFormats = {"rgba8": GL.GL_RGBA8, "rgba16": GL.GL_RGBA16}
+
+    # determine if the 'samples' value is valid
+    max_samples = getIntegerv(GL.GL_MAX_SAMPLES)
+    if isinstance(samples, int):
+        if (samples & (samples - 1)) != 0:
+            logging.error('Invalid number of samples, must be power-of-two.')
+        elif 0 > samples > max_samples:
+            logging.error('Invalid number of samples, must be <{}.'.format(
+                max_samples))
+    elif isinstance(samples, str):
+        if samples == 'max':
+            samples = max_samples
+
+    fboId = GL.GLuint()
+    GL.glGenFramebuffers(1, ctypes.byref(fboId))
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
+
+    # use a render buffer for color data instead of a texture, multisample
+    # FBO textures are never used on their own.
+    colorRbId = GL.GLuint()
+    GL.glGenRenderbuffers(1, ctypes.byref(colorRbId))
+    GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, colorRbId)
+    GL.glRenderbufferStorageMultisample(
+        GL.GL_RENDERBUFFER, samples, textureFormats[textureFormat],
+        int(width), int(height))
+    GL.glFramebufferRenderbuffer(
+        GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_RENDERBUFFER,
+        colorRbId)
+    GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
+
+    depthRbId = GL.GLuint()
+    GL.glGenRenderbuffers(1, ctypes.byref(depthRbId))
+    GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, depthRbId)
+    GL.glRenderbufferStorageMultisample(
+        GL.GL_RENDERBUFFER, samples, GL.GL_DEPTH24_STENCIL8,
+        int(width), int(height))
+    GL.glFramebufferRenderbuffer(
+        GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER,
+        depthRbId)
+    GL.glFramebufferRenderbuffer(
+        GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER,
+        depthRbId)
+
+    GL.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0)
+
+    # clear VRAM garbage
+    GL.glClear(GL.GL_STENCIL_BUFFER_BIT |
+               GL.GL_DEPTH_BUFFER_BIT |
+               GL.GL_STENCIL_BUFFER_BIT)
+
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+    # check completeness
+    if not checkFramebufferComplete(fboId):
+        logging.error('Failed to create a multi-sample framebuffer. Exiting.')
+        # delete the framebuffer and all the resources associated with it
+        GL.glDeleteRenderbuffers(1, colorRbId)
+        GL.glDeleteRenderbuffers(1, depthRbId)
+        GL.glDeleteFramebuffers(1, fboId)
+
+    return fboId, colorRbId, depthRbId
+
+
+def createFBO(width, height, textureFormat="rgba8"):
     """Generate a new Framebuffer object.
 
     Returns
@@ -54,10 +157,10 @@ def createFramebuffer():
     int
 
     """
-    fbo_id = GL.GLuint()
-    GL.glGenFramebuffers(1, ctypes.byref(fbo_id))
+    fboId = GL.GLuint()
+    GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
-    return fbo_id
+    return fboId
 
 
 def createRenderbuffer():
@@ -141,6 +244,7 @@ def getIntegerv(parName):
 
     return int(val.value)
 
+
 def getFloatv(parName):
     """Get a single float parameter value, return it as a Python float.
 
@@ -158,6 +262,7 @@ def getFloatv(parName):
     GL.glGetFloatv(parName, val)
 
     return float(val.value)
+
 
 def getString(parName):
     """Get a single string parameter value, return it as a Python UTF-8 string.
