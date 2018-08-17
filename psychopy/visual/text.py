@@ -38,7 +38,11 @@ from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
 from bidi import algorithm as bidi_algorithm # sufficient for Hebrew
 # extra step needed to reshape Arabic/Farsi characters depending on
 # their neighbours:
-import arabic_reshaper
+try:
+    import arabic_reshaper
+    haveArabic = True
+except ImportError:
+    haveArabic = False
 
 import numpy
 
@@ -317,11 +321,11 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             # deal with some international text issues. Only relevant for Python:
             # online experiments use web technologies and handle this seamlessly.
             style = self.languageStyle.lower()  # be flexible with case
-            if style == 'arabic':
+            if style == 'arabic' and haveArabic:
                 # reshape Arabic characters from their isolated form so that
                 # they flow and join correctly to their neighbours:
                 text = arabic_reshaper.reshape(text)
-            if style == 'rtl' or style == 'arabic':
+            if style == 'rtl' or style == 'arabic' and haveArabic:
                 # deal with right-to-left text presentation by applying the
                 # bidirectional algorithm:
                 text = bidi_algorithm.get_display(text)
