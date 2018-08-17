@@ -61,6 +61,11 @@ import weakref
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
 
+if not PY3 and sys.platform == 'darwin':
+    blockTips = True
+else:
+    blockTips = False
+
 
 class MenuFrame(wx.Frame):
     """A simple empty frame with a menubar, should be last frame closed on mac
@@ -344,7 +349,8 @@ class PsychoPyApp(wx.App):
                                         title=title)
             dlg.ShowModal()
 
-        if self.prefs.app['showStartupTips'] and not self.testMode:
+        if (self.prefs.app['showStartupTips']
+                and not self.testMode and not blockTips):
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
