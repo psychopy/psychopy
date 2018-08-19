@@ -228,6 +228,10 @@ def _process_global_event_key(key, modifiers):
                          (pyglet.window.key.modifiers_string(modifiers)
                           .split('|'))]
 
+        # Ignore Num Lock.
+        if 'numlock' in modifier_keys:
+            modifier_keys.remove('numlock')
+
     index_key = globalKeys._gen_index_key((key, modifier_keys))
 
     if index_key in globalKeys:
@@ -984,7 +988,7 @@ class _GlobalEventKeys(MutableMapping):
                       + string.punctuation + ' \t')
     _valid_keys.update(['escape', 'left', 'right', 'up', 'down'])
 
-    _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock', 'numlock',
+    _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock',
                         'scrolllock', 'command', 'option', 'windows'}
 
     def __init__(self):
@@ -1069,8 +1073,10 @@ class _GlobalEventKeys(MutableMapping):
 
         modifiers : collection of strings
             Modifier keys. Valid keys are:
-            'shift', 'ctrl', 'alt' (not on macOS), 'capslock', 'numlock',
+            'shift', 'ctrl', 'alt' (not on macOS), 'capslock',
             'scrolllock', 'command' (macOS only), 'option' (macOS only)
+
+            Num Lock is not supported.
 
         name : string
             The name of the event. Will be used for logging. If None,

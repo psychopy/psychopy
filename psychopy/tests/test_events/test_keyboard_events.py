@@ -319,6 +319,16 @@ class TestGLobalEventKeys(object):
         assert index_key.key == key
         assert index_key.modifiers == modifiers
 
+    def test_numlock(self):
+        key = 'a'
+        modifiers = ('numlock',)
+        func = self._func
+
+        global_keys = event._GlobalEventKeys()
+
+        with pytest.raises(ValueError):
+            global_keys.add(key=key, modifiers=modifiers, func=func)
+
 
 if __name__ == '__main__':
     import pytest
