@@ -221,9 +221,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
 
 
 def _process_global_event_key(key, modifiers):
-    # The statement can be simplified to:
-    # `if modifiers == 0` once PR #1373 is merged.
-    if (modifiers is None) or (modifiers == 0):
+    if modifiers == 0:
         modifier_keys = ()
     else:
         modifier_keys = ['%s' % m.strip('MOD_').lower() for m in
