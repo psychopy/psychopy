@@ -1168,6 +1168,7 @@ def _onGLFWKey(*args, **kwargs):
     _keyBuffer.append((key_name, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, key_name))
 
+
 def _onGLFWText(*args, **kwargs):
     """Handle unicode character events if _onGLFWKey() cannot.
 
@@ -1188,6 +1189,7 @@ def _onGLFWText(*args, **kwargs):
     keySource = 'KeyPress'
     _keyBuffer.append((text, keyTime))
     logging.data("%s: %s" % (keySource, text))
+
 
 def _onGLFWMouseButton(*args, **kwargs):
     """Callback for mouse press events. Both press and release actions are
@@ -1222,6 +1224,7 @@ def _onGLFWMouseButton(*args, **kwargs):
         elif button == glfw.MOUSE_BUTTON_RIGHT:
             mouseButtons[2] = 0
 
+
 def _onGLFWMouseScroll(*args, **kwargs):
     """Callback for mouse scrolling events. For most computer mice with scroll
     wheels, only the vertical (Y-offset) is relevant.
@@ -1233,17 +1236,20 @@ def _onGLFWMouseScroll(*args, **kwargs):
     msg = "Mouse: wheel shift=(%i,%i)"
     logging.data(msg % (x_offset, y_offset))
 
+
 def _getGLFWJoystickButtons(*args, **kwargs):
     """
     :return:
     """
     pass
 
+
 def _getGLFWJoystickAxes(*args, **kwargs):
     """
     :return:
     """
     pass
+
 
 if havePyglet:
     globalKeys = _GlobalEventKeys()
