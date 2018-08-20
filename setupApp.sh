@@ -13,7 +13,7 @@ python setup.py sdist --format=zip
 rm psychopy/prefSite.cfg
 
 declare -a pythons=("python2" "python3")
-declare -a names=("PsychoPy3" "PsychoPy3_PY3")
+declare -a names=("PsychoPy3_PY2" "PsychoPy3")
 
 for i in 0 1; do
     # remove old pyc files

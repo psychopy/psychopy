@@ -799,8 +799,8 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         # calculate how much we need to increment/decrement the current lines
         incr = prevIndent - startLineIndent
         # check for a colon to signal an indent decrease
-        prevLogical = string.split(prevLine, '#')[0]
-        prevLogical = string.strip(prevLogical)
+        prevLogical = prevLine.split('#')[0]
+        prevLogical = prevLogical.strip()
         if len(prevLogical) > 0 and prevLogical[-1] == ':':
             incr = incr + 4
 
