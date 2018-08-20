@@ -258,7 +258,7 @@ class GLFWBackend(BaseBackend):
         win.multiSample = msaa_samples > 0
 
         # disable stencil buffer
-        if win.allowStencil:
+        if not win.allowStencil:
             win.stencilBits = 0
 
         # set buffer configuration hints
