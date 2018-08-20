@@ -23,7 +23,7 @@ PY3 = version_info >= (3, 0)
 # use pip module to parse the
 required = ['requests[security]',
             'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
-            'wxPython', 'pyglet', 'pygame', 'configobj', 'pyopengl',
+            'pyglet', 'pygame', 'configobj', 'pyopengl',
             'soundfile', 'sounddevice',
             'python-bidi', 'arabic_reshaper',
             'cffi',
@@ -32,28 +32,34 @@ required = ['requests[security]',
             'xlrd', 'openpyxl',  # MS Excel
             'pyserial', 'pyparallel',
             'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
-            'moviepy',
+            'moviepy', 'opencv-python',
             'python-gitlab', 'gitpython',
             'astunparse',
-            'freetype-py']
+            'freetype-py',
+            # Platform-specific dependencies.
+            'pyqt5; python_version >= "3"',
+            'wxPython; platform_system != "Linux"',
+            'pypiwin32; platform_system == "Windows"',
+            'pyobjc-core; platform_system == "Darwin"',
+            'pyobjc-framework-Quartz; platform_system == "Darwin"'
+            ]
 
+#
+# Special handling for Anaconda / Miniconda
+#
+
+# OpenCV
+# Naming conflict with PyPI package.
 # `opencv` package should be installed via conda instead
-# cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
-if 'CONDA_PREFIX' not in os.environ:
-    required.append('opencv-python')
+if 'CONDA_PREFIX' in os.environ:
+    required.remove('opencv-python')
 
-# some optional dependencies
-if platform == 'win32':
-    required.extend(['pypiwin32'])
-if platform == 'darwin':
-    required.extend(['pyobjc-core', 'pyobjc-framework-Quartz'])
-if platform.startswith('linux'):
-    required.remove('wxPython')  # on linux this fails
-
+# PyQt
+# Naming conflict with PyPI package.
 # `pyqt` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
-if PY3 and ('CONDA_PREFIX' not in os.environ):
-    required.append('pyqt5')
+if PY3 and 'CONDA_PREFIX' in os.environ:
+    required.remove('pyqt5; python_version >= "3"')
 
 # for dev you also want:
 # 'sphinx','pytest'
@@ -136,11 +142,14 @@ setup(name="PsychoPy",
     license=__license__,
     download_url=__downloadUrl__,
     classifiers=['Development Status :: 4 - Beta',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
-          'Programming Language :: Python'],
-    )
+                 'Operating System :: MacOS :: MacOS X',
+                 'Operating System :: Microsoft :: Windows',
+                 'Operating System :: POSIX :: Linux',
+                 'Programming Language :: Python :: 2',
+                 'Programming Language :: Python :: 2.7',
+                 'Programming Language :: Python :: 3',
+                 ],
+      )
 
 #remove unwanted info about this system post-build
 if writeNewInit:
