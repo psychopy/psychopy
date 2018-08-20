@@ -16,9 +16,6 @@ Attributes
     Rift.resolution
     Rift.displayRefreshRate
     Rift.trackingOriginType
-    Rift.getTrackingOriginType
-    Rift.setTrackinOrigin
-    Rift.recenterTrackingOrigin
     Rift.shouldQuit
     Rift.isVisible
     Rift.isHmdMounted
