@@ -86,7 +86,12 @@ add_module_names = True
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+#modindex_common_prefix =
+
+# NumPy-style doc settings.
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = True
+napoleon_include_special_with_doc = False
 
 
 # -- Options for HTML output ---------------------------------------------------
