@@ -47,16 +47,3 @@ class Test_Slider(object):
 
         with pytest.raises(AttributeError):
             s.size = (1.5, 0.5)
-
-    def test_marker_scaling_factor(self):
-        markerScalingFactors = [1, 1.0]
-
-        for thisScalingFactor in markerScalingFactors:
-            s = Slider(self.win, markerScalingFactor=thisScalingFactor)
-            assert s.markerScalingFactor == thisScalingFactor
-
-    def test_change_marker_scaling_factor(self):
-        s = Slider(self.win, markerScalingFactor=1.0)
-
-        with pytest.raises(AttributeError):
-            s.markerScalingFactor = 0.5

@@ -56,7 +56,6 @@ class Slider(MinimalStim):
                  pos=None,
                  size=None,
                  units=None,
-                 markerScalingFactor=1.0,
                  flip=False,
                  style='rating',
                  granularity=0,
@@ -96,10 +95,6 @@ class Slider(MinimalStim):
             This also controls whether the scale is horizontal or vertical.
 
         units : the units to interpret the pos and size
-
-        markerScalingFactor : float
-            The factor by which to scale the marker size, relative to the
-            defaults.
 
         flip : bool
             By default the labels will be below or left of the line. This
@@ -147,7 +142,6 @@ class Slider(MinimalStim):
         else:
             self._size = size
 
-        self._markerScalingFactor = markerScalingFactor
         self.flip = flip
         self.granularity = granularity
         self._color = color
@@ -229,13 +223,6 @@ class Slider(MinimalStim):
         """
         return self._size
 
-    @property
-    def markerScalingFactor(self):
-        """The factor by which to scale the marker size, relative to the
-           defaults.
-        """
-        return self._markerScalingFactor
-
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -303,7 +290,6 @@ class Slider(MinimalStim):
         else:
             markerSize = self._tickL
 
-        markerSize *= self.markerScalingFactor
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
                              color='red')
@@ -562,7 +548,7 @@ class Slider(MinimalStim):
             else:
                 ori = 0
 
-            markerSize = min(self.size)*2 * self.markerScalingFactor
+            markerSize = min(self.size) * 2
             self.marker = ShapeStim(self.win, units=self.units,
                                     vertices=[[0,0],[0.5,0.5],[0.5,-0.5]],
                                     size=markerSize,
@@ -585,8 +571,6 @@ class Slider(MinimalStim):
                 markerW = self.size[0]*0.8
                 markerH = self.size[1]*0.1
 
-            markerW *= self.markerScalingFactor
-            markerH *= self.markerScalingFactor
             self.marker = Rect(self.win, units=self.units,
                                width= markerW,
                                height= markerH,
