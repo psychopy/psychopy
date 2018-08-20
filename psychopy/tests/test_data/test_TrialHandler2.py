@@ -430,6 +430,24 @@ class TestTrialHandler2Output(object):
 
         assert header == expected_header
 
+    def test_conditions_from_csv(self):
+        conditions_file = pjoin(fixturesPath, 'trialTypes.csv')
+        trials = data.TrialHandler2(conditions_file, nReps=1)
+
+        assert type(trials.columns) == list
+
+        for _ in trials:
+            pass
+
+    def test_conditions_from_xlsx(self):
+        conditions_file = pjoin(fixturesPath, 'trialTypes.xlsx')
+        trials = data.TrialHandler2(conditions_file, nReps=1)
+
+        assert type(trials.columns) == list
+
+        for _ in trials:
+            pass
+
 
 if __name__ == '__main__':
     pytest.main()
