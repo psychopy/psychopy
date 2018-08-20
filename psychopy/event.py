@@ -221,14 +221,16 @@ def _onPygletKey(symbol, modifiers, emulated=False):
 
 
 def _process_global_event_key(key, modifiers):
-    # The statement can be simplified to:
-    # `if modifiers == 0` once PR #1373 is merged.
-    if (modifiers is None) or (modifiers == 0):
+    if modifiers == 0:
         modifier_keys = ()
     else:
         modifier_keys = ['%s' % m.strip('MOD_').lower() for m in
                          (pyglet.window.key.modifiers_string(modifiers)
                           .split('|'))]
+
+        # Ignore Num Lock.
+        if 'numlock' in modifier_keys:
+            modifier_keys.remove('numlock')
 
     index_key = globalKeys._gen_index_key((key, modifier_keys))
 
@@ -986,7 +988,7 @@ class _GlobalEventKeys(MutableMapping):
                       + string.punctuation + ' \t')
     _valid_keys.update(['escape', 'left', 'right', 'up', 'down'])
 
-    _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock', 'numlock',
+    _valid_modifiers = {'shift', 'ctrl', 'alt', 'capslock',
                         'scrolllock', 'command', 'option', 'windows'}
 
     def __init__(self):
@@ -1071,8 +1073,10 @@ class _GlobalEventKeys(MutableMapping):
 
         modifiers : collection of strings
             Modifier keys. Valid keys are:
-            'shift', 'ctrl', 'alt' (not on macOS), 'capslock', 'numlock',
+            'shift', 'ctrl', 'alt' (not on macOS), 'capslock',
             'scrolllock', 'command' (macOS only), 'option' (macOS only)
+
+            Num Lock is not supported.
 
         name : string
             The name of the event. Will be used for logging. If None,
@@ -1164,6 +1168,7 @@ def _onGLFWKey(*args, **kwargs):
     _keyBuffer.append((key_name, modifiers, keyTime))  # tuple
     logging.data("%s: %s" % (keySource, key_name))
 
+
 def _onGLFWText(*args, **kwargs):
     """Handle unicode character events if _onGLFWKey() cannot.
 
@@ -1184,6 +1189,7 @@ def _onGLFWText(*args, **kwargs):
     keySource = 'KeyPress'
     _keyBuffer.append((text, keyTime))
     logging.data("%s: %s" % (keySource, text))
+
 
 def _onGLFWMouseButton(*args, **kwargs):
     """Callback for mouse press events. Both press and release actions are
@@ -1218,6 +1224,7 @@ def _onGLFWMouseButton(*args, **kwargs):
         elif button == glfw.MOUSE_BUTTON_RIGHT:
             mouseButtons[2] = 0
 
+
 def _onGLFWMouseScroll(*args, **kwargs):
     """Callback for mouse scrolling events. For most computer mice with scroll
     wheels, only the vertical (Y-offset) is relevant.
@@ -1229,17 +1236,20 @@ def _onGLFWMouseScroll(*args, **kwargs):
     msg = "Mouse: wheel shift=(%i,%i)"
     logging.data(msg % (x_offset, y_offset))
 
+
 def _getGLFWJoystickButtons(*args, **kwargs):
     """
     :return:
     """
     pass
 
+
 def _getGLFWJoystickAxes(*args, **kwargs):
     """
     :return:
     """
     pass
+
 
 if havePyglet:
     globalKeys = _GlobalEventKeys()
