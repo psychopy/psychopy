@@ -237,7 +237,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if trialsArr.shape == ():
             # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[np.newaxis]
-        fieldNames = trialsArr.dtype.names
+        fieldNames = list(trialsArr.dtype.names)
         _assertValidVarNames(fieldNames, fileName)
 
         # convert the record array into a list of dicts
