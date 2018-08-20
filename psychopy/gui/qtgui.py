@@ -458,8 +458,13 @@ def fileSaveDlg(initFilePath="", initFileName="",
     ensureQtApp()
 
     fdir = os.path.join(initFilePath, initFileName)
-    r = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
+    pathOut = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
                                               directory=fdir, filter=allowed)
+    if type(pathOut) == tuple:  # some versions(?) of PyQt return (files, filter)
+        pathOut = pathOut[0]
+
+    if len(pathOut) == 0:
+        return None
     return str(r) or None
 
 
