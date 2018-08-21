@@ -93,12 +93,20 @@ def createFramebuffer(attachments=()):
     depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
 
     # attach images
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
     framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
     framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
     framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
     # or framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
-    # examples of custom userData some custom function might access
+    # above is the same as
+    with framebufferBindingContext(fbo):
+        framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
+
+    # examples of userData some custom function might access
     fbo.userData['flags'] = ['left_eye', 'clear_before_use']
 
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb.id)  # bind for drawing
@@ -108,6 +116,9 @@ def createFramebuffer(attachments=()):
                                 internalFormat=GL.GL_DEPTH_COMPONENT24,
                                 pixelFormat=GL.GL_DEPTH_COMPONENT)
     fbo = createFramebuffer([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
+
+    # discard FBO descriptor, just give me the ID
+    frameBuffer = createFramebuffer().id
 
     """
     fboId = GL.GLuint()
