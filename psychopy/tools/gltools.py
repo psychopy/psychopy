@@ -172,6 +172,18 @@ def framebufferIsComplete():
            GL.GL_FRAMEBUFFER_COMPLETE
 
 
+def deleteFramebuffer(fbo):
+    """Delete a framebuffer.
+
+    Returns
+    -------
+    :obj:`None'
+
+    """
+    GL.glDeleteFramebuffers(
+        1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
+
+
 @contextmanager
 def framebufferBindingContext(fbo):
     """Context manager for Framebuffer Object bindings. This function yields
