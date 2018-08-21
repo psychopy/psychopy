@@ -716,14 +716,17 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     return vboDesc
 
 
-def drawVertexbuffer(vbo, mode=GL.GL_TRIANGLES, flush=True):
+def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
     """Draw a vertex buffer using glDrawArrays. This method does not require
     shaders.
 
     Parameters
     ----------
-    vbo : :obj:`Vertexbuffer`
-        Vertex buffer descriptor.
+    vertexBuffer : :obj:`Vertexbuffer`
+        Vertex buffer descriptor, must have 'bufferType' as GL_VERTEX_ARRAY.
+        Optional vertex buffer descriptors can be passed as seperate arguments,
+        they must have 'bufferTypes' as GL_TEXTURE_COORD_ARRAY, GL_NORMAL_ARRAY
+        or GL_COLOR_ARRAY.
     mode : :obj:`int`
         Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
     flush : :obj:`bool`
@@ -740,17 +743,52 @@ def drawVertexbuffer(vbo, mode=GL.GL_TRIANGLES, flush=True):
               0.0, -1.0, 0.0,   # v1
              -1.0,  1.0, 0.0]   # v2
 
+    # triangle vertex colors
+    colors = [1.0, 0.0, 0.0,  # v0
+              0.0, 1.0, 0.0,  # v1
+              0.0, 0.0, 1.0]  # v2
+
     # load vertices to graphics device, return a descriptor
-    vboDesc = createVertexbuffer(verts, 3)
+    vertexBuffer = createVertexbuffer(verts, 3)
+    colorColors = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
 
     # draw the VBO
-    drawVertexbuffer(vboDesc, GL.GL_TRIANGLES)
+    drawVertexbuffer(vertexBuffer, colorColors, GL.GL_TRIANGLES)
 
     """
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.id)
-    GL.glVertexPointer(vbo.vertexSize, vbo.dtype, 0, None)
-    GL.glEnableClientState(vbo.bufferType)
-    GL.glDrawArrays(mode, 0, vbo.indices)
+    # must have a vertex pointer
+    assert vertexBuffer.bufferType == GL.GL_VERTEX_ARRAY
+
+    # bind and set the vertex pointer
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer.id)
+    GL.glVertexPointer(vertexBuffer.vertexSize, vertexBuffer.dtype, 0, None)
+    GL.glEnableClientState(vertexBuffer.bufferType)
+
+    # handle additional buffers
+    if args:
+        for buffer in args:
+            # check if the number of indicies are the same
+            if vertexBuffer.indices != buffer.indices:
+                raise RuntimeError("Vertex buffer indices do not match!")
+
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, buffer.id)
+            if buffer.bufferType == GL.GL_TEXTURE_COORD_ARRAY:
+                GL.glTexCoordPointer(buffer.dtype, 0, None)
+            elif buffer.bufferType == GL.GL_NORMAL_ARRAY:
+                GL.glNormalPointer(buffer.dtype, 0, None)
+            elif buffer.bufferType == GL.GL_COLOR_ARRAY:
+                GL.glColorPointer(buffer.vertexSize, buffer.dtype, 0, None)
+
+            GL.glEnableClientState(buffer.bufferType)
+
+    GL.glDrawArrays(mode, 0, vertexBuffer.indices)  # draw arrays
+
+    # reset
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    GL.glDisableClientState(vertexBuffer.bufferType)
+    if args:
+        for vbo in args:
+            GL.glDisableClientState(vbo.bufferType)
 
     if flush:
         GL.glFlush()
