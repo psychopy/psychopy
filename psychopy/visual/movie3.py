@@ -257,11 +257,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         """
         if self.status != STOPPED:
             self.status = STOPPED
-            self.reset()
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s stopped" % (self.name),
                                    level=logging.EXP, obj=self)
             self._unload()
+            self.reset()
 
     def setVolume(self, volume):
         pass  # to do
