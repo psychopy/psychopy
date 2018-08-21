@@ -184,6 +184,57 @@ def deleteFramebuffer(fbo):
         1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
 
 
+def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
+    """Copy a block of pixels between framebuffers via blitting. Read and draw
+    framebuffers must be bound prior to calling this function. Beware, the
+    scissor box and viewport are changed when this is called to dstRect.
+
+    Parameters
+    ----------
+    srcRect : :obj:`list` of :obj:`int`
+        List specifying the top-left and bottom-right coordinates of the region
+        to copy from (<X0>, <Y0>, <X1>, <Y1>).
+    dstRect : :obj:`list` of :obj:`int` or :obj:`None`
+        List specifying the top-left and bottom-right coordinates of the region
+        to copy to (<X0>, <Y0>, <X1>, <Y1>). If None, srcRect is used for
+        dstRect.
+    filter : :obj:`int`
+        Interpolation method to use if the image is stretched, default is
+        GL_LINEAR, but can also be GL_NEAREST.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    # bind framebuffer to read pixels from
+    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
+
+    # bind framebuffer to draw pixels to
+    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
+
+    gltools.blitFramebuffer((0,0,800,600), (0,0,800,600))
+
+    # unbind both read and draw buffers
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+    """
+    # in most cases srcRect and dstRect will be the same.
+    if dstRect is None:
+        dstRect = srcRect
+
+    # GL.glViewport(*dstRect)
+    # GL.glEnable(GL.GL_SCISSOR_TEST)
+    # GL.glScissor(*dstRect)
+    GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
+                         dstRect[0], dstRect[1], dstRect[2], dstRect[3],
+                         GL.GL_COLOR_BUFFER_BIT,  # colors only for now
+                         filter)
+
+    # GL.glDisable(GL.GL_SCISSOR_TEST)
+
+
 @contextmanager
 def framebufferBindingContext(fbo):
     """Context manager for Framebuffer Object bindings. This function yields
@@ -582,57 +633,6 @@ def deleteTexture(texture):
 
     """
     GL.glDeleteTextures(1, texture.id)
-
-
-def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
-    """Copy a block of pixels between framebuffers via blitting. Read and draw
-    framebuffers must be bound prior to calling this function. Beware, the
-    scissor box and viewport are changed when this is called to dstRect.
-
-    Parameters
-    ----------
-    srcRect : :obj:`list` of :obj:`int`
-        List specifying the top-left and bottom-right coordinates of the region
-        to copy from (<X0>, <Y0>, <X1>, <Y1>).
-    dstRect : :obj:`list` of :obj:`int` or :obj:`None`
-        List specifying the top-left and bottom-right coordinates of the region
-        to copy to (<X0>, <Y0>, <X1>, <Y1>). If None, srcRect is used for
-        dstRect.
-    filter : :obj:`int`
-        Interpolation method to use if the image is stretched, default is
-        GL_LINEAR, but can also be GL_NEAREST.
-
-    Returns
-    -------
-    None
-
-    Examples
-    --------
-    # bind framebuffer to read pixels from
-    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
-
-    # bind framebuffer to draw pixels to
-    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
-
-    gltools.blitFramebuffer((0,0,800,600), (0,0,800,600))
-
-    # unbind both read and draw buffers
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
-
-    """
-    # in most cases srcRect and dstRect will be the same.
-    if dstRect is None:
-        dstRect = srcRect
-
-    # GL.glViewport(*dstRect)
-    # GL.glEnable(GL.GL_SCISSOR_TEST)
-    # GL.glScissor(*dstRect)
-    GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
-                         dstRect[0], dstRect[1], dstRect[2], dstRect[3],
-                         GL.GL_COLOR_BUFFER_BIT,  # colors only for now
-                         filter)
-
-    # GL.glDisable(GL.GL_SCISSOR_TEST)
 
 
 def getIntegerv(parName):
