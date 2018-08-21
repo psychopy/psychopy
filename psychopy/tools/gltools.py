@@ -62,6 +62,29 @@ def bindFBO(fbo):
     fbo :obj:`int`
         OpenGL Framebuffer Object name/ID.
 
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    # FBO bound somewhere deep in our code
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, someOtherFBO)
+
+    ...
+
+    # create a new FBO, but we have no idea what the currently bound FBO is
+    fbo = createFramebuffer()
+
+    # use a context to bind attachments
+    with bindFBO(fbo):
+        attachFrambufferImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attachFrambufferImage(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attachFrambufferImage(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        isComplete = gltools.checkFramebufferComplete())
+
+    # someOtherFBO is still bound!
+
     """
     prevFBO = GL.GLint()
     GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
