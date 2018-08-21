@@ -21,28 +21,6 @@ from contextlib import contextmanager
 # Objects (FBOs). FBO are containers for image buffers (textures or
 # renderbuffers) frequently used for off-screen rendering.
 #
-# Example:
-#
-#   colorTex = createTexImage2D(1024,1024)  # empty texture
-#   depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
-#   fbo = createFramebuffer()
-#
-#   # attach images
-#   attachFramebufferImage(fbo, GL.GL_COLOR_ATTACHMENT0, colorTex)
-#   attachFramebufferImage(fbo, GL.GL_DEPTH_ATTACHMENT, depthRb)
-#   attachFramebufferImage(fbo, GL.GL_STENCIL_ATTACHMENT, depthRb)
-#
-#   # examples of custom userData some function might access
-#   fbo.userData['flags'] = ['left_eye', 'clear_before_use']
-#
-#   GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb.id)  # bind for drawing
-#   ...
-#
-#   # --- this is also valid ---
-#   fbo = createFramebuffer([(GL.GL_COLOR_ATTACHMENT0, colorTex),
-#                            (GL.GL_DEPTH_ATTACHMENT, depthRb),
-#                            (GL.GL_STENCIL_ATTACHMENT, depthRb)])
-#
 
 # FBO descriptor
 Framebuffer = namedtuple(
@@ -165,6 +143,9 @@ def framebufferAttachment(attachPoint, imageBuffer):
         framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
+    # We should also support binding GL names specified as integers. Right now
+    # you need as descriptor which contains the target and name for the buffer.
+    #
     if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
         GL.glFramebufferTexture2D(
             GL.GL_FRAMEBUFFER,
@@ -179,7 +160,7 @@ def framebufferAttachment(attachPoint, imageBuffer):
             imageBuffer.id)
 
 
-def checkFramebufferComplete():
+def framebufferIsComplete():
     """Check if the currently bound framebuffer is complete.
 
     Returns
