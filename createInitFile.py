@@ -5,6 +5,7 @@
 """
 
 from __future__ import absolute_import, print_function
+from setuptools.config import read_configuration
 import versioneer
 from past.builtins import str
 import os, copy, platform, subprocess
@@ -28,7 +29,14 @@ def createInitFile(dist=None, sha=None):
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
 
-    infoDict = {'shaStr': sha,
+    metadata = read_configuration('setup.cfg')['metadata']
+    infoDict = {'author': metadata['author'],
+                'author_email': metadata['author_email'],
+                'maintainer_email': metadata['maintainer_email'],
+                'url': metadata['url'],
+                'download_url': metadata['download_url'],
+                'license': metadata['license'],
+                'shaStr': sha,
                 'platform': platformStr}
 
     # write it
@@ -58,12 +66,12 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-__license__ = 'GNU GPLv3 (or more recent equivalent)'
-__author__ = 'Jonathan Peirce'
-__author_email__ = 'jon.peirce@gmail.com'
-__maintainer_email__ = __author_email__
-__url__ = 'http://www.psychopy.org'
-__downloadUrl__ = 'https://github.com/psychopy/psychopy/releases/'
+__license__ = '{license}'
+__author__ = '{author}'
+__author_email__ = '{author_email}'
+__maintainer_email__ = '{maintainer_email}'
+__url__ = '{url}'
+__download_url__ = '{download_url}'
 __git_sha__ = '{shaStr}'
 __build_platform__ = '{platform}'
 

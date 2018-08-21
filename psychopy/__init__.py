@@ -20,9 +20,9 @@ del get_versions
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
-__maintainer_email__ = __author_email__
-__url__ = 'http://www.psychopy.org'
-__downloadUrl__ = 'https://github.com/psychopy/psychopy/releases/'
+__maintainer_email__ = 'jon.peirce@gmail.com'
+__url__ = 'http://www.psychopy.org/'
+__download_url__ = 'https://github.com/psychopy/psychopy/releases/'
 __git_sha__ = 'n/a'
 __build_platform__ = 'n/a'
 
