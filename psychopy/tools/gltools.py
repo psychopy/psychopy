@@ -53,49 +53,6 @@ Framebuffer = namedtuple(
 )
 
 
-@contextmanager
-def bindFBO(fbo):
-    """Context manager for Framebuffer Object bindings.
-
-    Parameters
-    ----------
-    fbo :obj:`int`
-        OpenGL Framebuffer Object name/ID.
-
-    Returns
-    -------
-    None
-
-    Examples
-    --------
-    # FBO bound somewhere deep in our code
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, someOtherFBO)
-
-    ...
-
-    # create a new FBO, but we have no idea what the currently bound FBO is
-    fbo = createFramebuffer()
-
-    # use a context to bind attachments
-    with bindFBO(fbo):
-        attachFrambufferImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attachFrambufferImage(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attachFrambufferImage(GL.GL_STENCIL_ATTACHMENT, depthRb)
-        isComplete = gltools.checkFramebufferComplete())
-
-    # someOtherFBO is still bound!
-
-    """
-    prevFBO = GL.GLint()
-    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
-    toBind = fbo.id if isinstance(fbo, Framebuffer) else int(fbo)
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
-    try:
-        yield toBind
-    finally:
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
-
-
 def createFramebuffer(attachments=()):
     """Create a Framebuffer Object.
 
@@ -136,10 +93,10 @@ def createFramebuffer(attachments=()):
     depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
 
     # attach images
-    attachFramebufferImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    attachFramebufferImage(GL.GL_DEPTH_ATTACHMENT, depthRb)
-    attachFramebufferImage(GL.GL_STENCIL_ATTACHMENT, depthRb)
-    # or attachFramebufferImage(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
+    framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
+    # or framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     # examples of custom userData some custom function might access
     fbo.userData['flags'] = ['left_eye', 'clear_before_use']
@@ -161,15 +118,15 @@ def createFramebuffer(attachments=()):
 
     # initial attachments for this framebuffer
     if attachments:
-        with bindFBO(fboDesc):
+        with framebufferBindingContext(fboDesc):
             for attachPoint, imageBuffer in attachments:
-                attachFrambufferImage(attachPoint, imageBuffer)
+                framebufferAttachment(attachPoint, imageBuffer)
 
     return fboDesc
 
 
-def attachFrambufferImage(attachPoint, imageBuffer):
-    """Attach an image to a specified attachment point of the presently bound
+def framebufferAttachment(attachPoint, imageBuffer):
+    """Attach an image to a specified attachment point on the presently bound
     FBO.
 
     Parameters
@@ -182,6 +139,19 @@ def attachFrambufferImage(attachPoint, imageBuffer):
     Returns
     -------
     None
+
+    Examples
+    --------
+    # with descriptors colorTex and depthRb
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
+    framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
+
+    # same as above, but using a context manager
+    with framebufferBindingContext(fbo):
+        framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
     if isinstance(imageBuffer, (TexImage2D, TexImage2DMultisample)):
@@ -208,6 +178,55 @@ def checkFramebufferComplete():
     """
     return GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER) == \
            GL.GL_FRAMEBUFFER_COMPLETE
+
+
+@contextmanager
+def framebufferBindingContext(fbo):
+    """Context manager for Framebuffer Object bindings. This function yields
+    the framebuffer name as an integer.
+
+    Parameters
+    ----------
+    fbo :obj:`int` or :obj:`Framebuffer`
+        OpenGL Framebuffer Object name/ID or descriptor.
+
+    Yields
+    -------
+    int
+        OpenGL name of the framebuffer bound in the context.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    # FBO bound somewhere deep in our code
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, someOtherFBO)
+
+    ...
+
+    # create a new FBO, but we have no idea what the currently bound FBO is
+    fbo = createFramebuffer()
+
+    # use a context to bind attachments
+    with bindFBO(fbo):
+        attachFrambufferImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attachFrambufferImage(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attachFrambufferImage(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        isComplete = gltools.checkFramebufferComplete())
+
+    # someOtherFBO is still bound!
+
+    """
+    prevFBO = GL.GLint()
+    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
+    toBind = fbo.id if isinstance(fbo, Framebuffer) else int(fbo)
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
+    try:
+        yield toBind
+    finally:
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
 
 
 # ------------------------------
