@@ -12,7 +12,7 @@ usage::
 """
 
 from setuptools import setup, find_packages
-################
+import versioneer
 import os
 from os.path import exists, join
 from sys import platform, argv, version_info
@@ -121,23 +121,24 @@ elif platform=='posix':
 
 setup(name="PsychoPy",
     packages=packages,
-    scripts = scripts,
-    include_package_data =True,
-    package_data = {
+    scripts=scripts,
+    include_package_data=True,
+    package_data={
         # If any package contains *.txt or *.rst files, include them:
         '': dataExtensions,
     },
     data_files = dataFiles,
-    install_requires = required,
+    install_requires=required,
     # metadata
-    version = __version__,
-    description = "Psychology experiment software in Python",
-    long_description = ("PsychoPy uses OpenGL and Python to create a toolkit "
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+    description="Psychology experiment software in Python",
+      long_description=("PsychoPy uses OpenGL and Python to create a toolkit "
                         "for running psychology/neuroscience/psychophysics "
                         "experiments"),
-    author= __author__,
-    author_email= __author_email__,
-    maintainer_email= __maintainer_email__,
+    author=__author__,
+    author_email=__author_email__,
+    maintainer_email=__maintainer_email__,
     url=__url__,
     license=__license__,
     download_url=__downloadUrl__,

@@ -5,3 +5,4 @@
 *.nsi	eol=crlf
 *.py	eol=lf
 
+psychopy/_version.py export-subst

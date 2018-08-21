@@ -5,42 +5,37 @@
 """
 
 from __future__ import absolute_import, print_function
+import versioneer
 from past.builtins import str
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
 
 
-def createInitFile(dist=None, version=None, sha=None):
-    """Write the version file to psychopy/version.py
+def createInitFile(dist=None, sha=None):
+    """Create psychopy/__init__.py
 
     :param:`dist` can be:
         None:
             writes __version__
         'sdist':
-            for python setup.py sdist - writes __version__ and git id (__git_sha__)
+            for python setup.py sdist - writes git id (__git_sha__)
         'bdist':
-            for python setup.py bdist - writes __version__, git id (__git_sha__)
+            for python setup.py bdist - writes git id (__git_sha__)
             and __build_platform__
     """
     # get default values if None
-    if version is None:
-        with open(os.path.join(thisLoc,'version')) as f:
-            version = f.read()
-            version = version.replace("\n", "")
     if sha is None:
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
 
-    infoDict = {'version' : version,
-                'shaStr' : sha,
-                'platform' : platformStr,
-                }
+    infoDict = {'shaStr': sha,
+                'platform': platformStr}
 
     # write it
     with open(os.path.join(thisLoc, 'psychopy','__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
-    print('wrote init for', version, sha)
+    print('wrote init for ', versioneer.get_version(), sha)
     # and return it
     return outStr
 
@@ -59,7 +54,10 @@ import os
 import sys
 
 # version info for PsychoPy
-__version__ = '{version}'
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
+
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
