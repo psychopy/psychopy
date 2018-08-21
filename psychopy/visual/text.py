@@ -175,7 +175,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # generate the texture and list holders
         self._listID = GL.glGenLists(1)
         # pygame text needs a surface to render to:
-        if not self.win.winType == "pyglet":
+        if not self.win.winType in ["pyglet", "glfw"]:
             self._texID = GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self._texID))
 
@@ -247,7 +247,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         be a string specifying the name of the font (in system resources).
         """
         self.__dict__['font'] = None  # until we find one
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             self._font = pyglet.font.load(font, int(self._heightPix),
                                           dpi=72, italic=self.italic,
                                           bold=self.bold)
@@ -436,7 +436,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             # unbind the main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
 #            GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
@@ -449,7 +449,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
             GL.glEnable(GL.GL_TEXTURE_2D)
 
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             self._pygletTextObj.draw()
@@ -482,7 +482,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
                                          self.contrast)
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             self._pygletTextObj = pyglet.font.Text(
                 self._font, self.text,
                 halign=self.alignHoriz, valign=self.alignVert,
@@ -552,7 +552,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             top = self._fontHeightPix
         # there seems to be a rounding err in pygame font textures
         Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0, 1.0
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             # unbind the mask texture
             GL.glActiveTexture(GL.GL_TEXTURE1)
             GL.glEnable(GL.GL_TEXTURE_2D)
@@ -570,7 +570,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        if self.win.winType == "pyglet":
+        if self.win.winType in ["pyglet", "glfw"]:
             self._pygletTextObj.draw()
         else:
             # draw a 4 sided polygon

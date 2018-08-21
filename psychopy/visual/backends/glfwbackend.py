@@ -200,9 +200,9 @@ class GLFWBackend(BaseBackend):
                 vidmode_is_supported = True
                 break
 
-        _size, _bpc, _hz = glfw.get_video_mode(this_screen)
         if not vidmode_is_supported:
             # the requested video mode is not supported, use current
+            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
             logging.warning(
                 ("The specified video mode is not supported by this display, "
                  "using native mode ..."))
@@ -258,7 +258,7 @@ class GLFWBackend(BaseBackend):
         win.multiSample = msaa_samples > 0
 
         # disable stencil buffer
-        if win.allowStencil:
+        if not win.allowStencil:
             win.stencilBits = 0
 
         # set buffer configuration hints
