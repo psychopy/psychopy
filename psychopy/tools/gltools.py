@@ -643,10 +643,11 @@ def deleteTexture(texture):
 Vertexbuffer = namedtuple(
     'Vertexbuffer',
     ['id',
-     'size',
+     'vertexSize',
      'count',
      'indices',
      'usage',
+     'bufferType',
      'dtype']
 )
 
@@ -656,14 +657,35 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
 
     Parameters
     ----------
-    vertexData : :obj:`list` or :obj:`tuple`
+    vertexData : :obj:`list` or :obj:`tuple` of :obj:`float`
+        Coordinates as a 1D array of floats (e.g. [X0, Y0, Z0, X1, Y1, Z1, ...])
     vertexSize : :obj:`int`
+        Number of coordinates per-vertex, default is 3.
     bufferType : :obj:`int`
+        The type of data stored in the buffer (e.g. GL_VERTEX_ARRAY,
+        GL_TEXTURE_COORD_ARRAY, GL_NORMAL_ARRAY, etc.)
 
     Returns
     -------
     Vertexbuffer
         A descriptor with vertex buffer information.
+
+    Examples
+    --------
+    # vertices of a triangle
+    verts = [ 1.0,  1.0, 0.0,   # v0
+              0.0, -1.0, 0.0,   # v1
+             -1.0,  1.0, 0.0]   # v2
+
+    # load vertices to graphics device, return a descriptor
+    vboDesc = createVertexbuffer(verts, 3)
+
+    # draw
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.id)
+    GL.glVertexPointer(vboDesc.vertexSize, vboDesc.dtype, 0, None)
+    GL.glEnableClientState(vboDesc.bufferType)
+    GL.glDrawArrays(GL.GL_TRIANGLES, 0, vboDesc.indices)
+    GL.glFlush()
 
     """
     # convert values to ctypes float array
@@ -680,6 +702,7 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
                            count,
                            int(count / vertexSize),
                            GL.GL_STATIC_DRAW,
+                           bufferType,
                            GL.GL_FLOAT)  # always float
 
     # bind and upload
@@ -688,7 +711,7 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
                     ctypes.sizeof(c_array),
                     c_array,
                     GL.GL_STATIC_DRAW)
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    # GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
     return vboDesc
 
@@ -710,14 +733,39 @@ def drawVertexbuffer(vbo, mode=GL.GL_TRIANGLES, flush=True):
     -------
     None
 
+    Examples
+    --------
+    # vertices of a triangle
+    verts = [ 1.0,  1.0, 0.0,   # v0
+              0.0, -1.0, 0.0,   # v1
+             -1.0,  1.0, 0.0]   # v2
+
+    # load vertices to graphics device, return a descriptor
+    vboDesc = createVertexbuffer(verts, 3)
+
+    # draw the VBO
+    drawVertexbuffer(vboDesc, GL.GL_TRIANGLES)
+
     """
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.id)
-    GL.glVertexPointer(vbo.size, vbo.dtype, 0, None)
-    GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+    GL.glVertexPointer(vbo.vertexSize, vbo.dtype, 0, None)
+    GL.glEnableClientState(vbo.bufferType)
     GL.glDrawArrays(mode, 0, vbo.indices)
 
     if flush:
         GL.glFlush()
+
+
+def deleteVertexbuffer(vbo):
+    """Delete a vertex buffer.
+
+    Returns
+    -------
+    :obj:`None'
+
+    """
+    GL.glDeleteBuffers(1, vbo.id)
+
 
 # -----------------------------
 # Misc. OpenGL Helper Functions
