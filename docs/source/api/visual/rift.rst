@@ -16,7 +16,14 @@ Attributes
     Rift.resolution
     Rift.displayRefreshRate
     Rift.trackingOriginType
-    
+    Rift.shouldQuit
+    Rift.isVisible
+    Rift.isHmdMounted
+    Rift.isHmdPresent
+    Rift.shouldRecenter
+    Rift.absTime
+    Rift.viewMatrix
+    Rift.projectionMatrix
         
 Details
 =============
@@ -24,4 +31,3 @@ Details
 .. autoclass:: Rift
     :members:
     :undoc-members:
-    :inherited-members:

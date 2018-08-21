@@ -23,7 +23,7 @@ import sys, os, psychopy
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.todo', 'sphinx.ext.coverage',
-    'sphinx.ext.imgmath']
+    'sphinx.ext.imgmath', 'sphinx.ext.napoleon']
 autoclass_content='both'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -86,7 +86,12 @@ add_module_names = True
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+#modindex_common_prefix =
+
+# NumPy-style doc settings.
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = True
+napoleon_include_special_with_doc = False
 
 
 # -- Options for HTML output ---------------------------------------------------

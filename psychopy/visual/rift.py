@@ -449,6 +449,7 @@ class Rift(window.Window):
 
     @property
     def trackingOriginType(self):
+        """Current tracking origin type."""
         return self.getTrackingOriginType()
 
     @trackingOriginType.setter
@@ -807,10 +808,7 @@ class Rift(window.Window):
         GL.glEnable(GL.GL_BLEND)
 
     def setBuffer(self, buffer, clear=True):
-        """Set the active view and use the appropriate frustum settings. For
-        stereoscopic displays, this demuxes drawing commands to the appropriate
-        view buffer. Set clear=False to prevent clearing the buffer prior to
-        use.
+        """Set the active stereo draw buffer.
 
         Warning! The window.Window.size property will return the buffer's
         dimensions in pixels instead of the window's when setBuffer is set to
