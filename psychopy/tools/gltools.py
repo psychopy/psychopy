@@ -635,6 +635,94 @@ def deleteTexture(texture):
     GL.glDeleteTextures(1, texture.id)
 
 
+# ---------------------------
+# Vertex Buffer Objects (VBO)
+# ---------------------------
+
+
+Vertexbuffer = namedtuple(
+    'Vertexbuffer',
+    ['id',
+     'size',
+     'count',
+     'indices',
+     'usage',
+     'dtype']
+)
+
+
+def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
+    """Create a static, single-storage Vertex Buffer Object (VBO).
+
+    Parameters
+    ----------
+    vertexData : :obj:`list` or :obj:`tuple`
+    vertexSize : :obj:`int`
+    bufferType : :obj:`int`
+
+    Returns
+    -------
+    Vertexbuffer
+        A descriptor with vertex buffer information.
+
+    """
+    # convert values to ctypes float array
+    count = len(vertexData)
+    c_array = (GL.GLfloat * count)(*vertexData)
+
+    # create a vertex buffer ID
+    vboId = GL.GLuint()
+    GL.glGenBuffers(1, ctypes.byref(vboId))
+
+    # new vertex descriptor
+    vboDesc = Vertexbuffer(vboId,
+                           vertexSize,
+                           count,
+                           int(count / vertexSize),
+                           GL.GL_STATIC_DRAW,
+                           GL.GL_FLOAT)  # always float
+
+    # bind and upload
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
+    GL.glBufferData(GL.GL_ARRAY_BUFFER,
+                    ctypes.sizeof(c_array),
+                    c_array,
+                    GL.GL_STATIC_DRAW)
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+
+    return vboDesc
+
+
+def drawVertexbuffer(vbo, mode=GL.GL_TRIANGLES, flush=True):
+    """Draw a vertex buffer using glDrawArrays. This method does not require
+    shaders.
+
+    Parameters
+    ----------
+    vbo : :obj:`Vertexbuffer`
+        Vertex buffer descriptor.
+    mode : :obj:`int`
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
+    flush : :obj:`bool`
+        Flush queued drawing commands before returning.
+
+    Returns
+    -------
+    None
+
+    """
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo.id)
+    GL.glVertexPointer(vbo.size, vbo.dtype, 0, None)
+    GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+    GL.glDrawArrays(mode, 0, vbo.indices)
+
+    if flush:
+        GL.glFlush()
+
+# -----------------------------
+# Misc. OpenGL Helper Functions
+# -----------------------------
+
 def getIntegerv(parName):
     """Get a single integer parameter value, return it as a Python integer.
 
