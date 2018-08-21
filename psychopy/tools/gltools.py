@@ -750,10 +750,10 @@ def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
 
     # load vertices to graphics device, return a descriptor
     vertexBuffer = createVertexbuffer(verts, 3)
-    colorColors = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
+    colorBuffer = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
 
     # draw the VBO
-    drawVertexbuffer(vertexBuffer, colorColors, GL.GL_TRIANGLES)
+    drawVertexbuffer(vertexBuffer, colorBuffer, GL.GL_TRIANGLES)
 
     """
     # must have a vertex pointer
