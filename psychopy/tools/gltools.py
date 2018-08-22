@@ -764,7 +764,7 @@ def drawVertexbuffers(vertexBuffer,
     colorBuffer = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
 
     # draw the VBO
-    drawVertexbuffers(vertexBuffer, colorBuffer, GL.GL_TRIANGLES)
+    drawVertexbuffers(vertexBuffer, colorBuffer=colorBuffer, GL.GL_TRIANGLES)
 
     """
     # must have a vertex pointer
@@ -778,7 +778,8 @@ def drawVertexbuffers(vertexBuffer,
     # texture coordinates
     if textureCoordBuffer is not None:
         if vertexBuffer.indices != textureCoordBuffer.indices:
-            raise RuntimeError("Vertex buffer indices do not match!")
+            raise RuntimeError(
+                "Texture and vertex buffer indices do not match!")
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, textureCoordBuffer.id)
         GL.glTexCoordPointer(textureCoordBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
@@ -786,7 +787,8 @@ def drawVertexbuffers(vertexBuffer,
     # normals
     if normalBuffer is not None:
         if vertexBuffer.indices != normalBuffer.indices:
-            raise RuntimeError("Vertex buffer indices do not match!")
+            raise RuntimeError(
+                "Normal and vertex buffer indices do not match!")
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, normalBuffer.id)
         GL.glNormalPointer(normalBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_NORMAL_ARRAY)
@@ -794,7 +796,8 @@ def drawVertexbuffers(vertexBuffer,
     # colors
     if colorBuffer is not None:
         if vertexBuffer.indices != colorBuffer.indices:
-            raise RuntimeError("Vertex buffer indices do not match!")
+            raise RuntimeError(
+                "Color and vertex buffer indices do not match!")
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, colorBuffer.id)
         GL.glColorPointer(colorBuffer.vertexSize, colorBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
