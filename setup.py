@@ -12,6 +12,7 @@ usage::
 """
 
 from setuptools import setup, find_packages
+from setuptools.config import read_configuration
 import versioneer
 import os
 from os.path import exists, join
@@ -20,33 +21,12 @@ from sys import platform, argv, version_info
 
 PY3 = version_info >= (3, 0)
 
-# use pip module to parse the
-required = ['requests[security]',
-            'numpy', 'scipy', 'matplotlib', 'pandas', 'pillow',
-            'pyglet', 'pygame', 'configobj', 'pyopengl',
-            'soundfile', 'sounddevice',
-            'python-bidi', 'arabic_reshaper',
-            'cffi',
-            'future', 'json_tricks',
-            'pyosf',
-            'xlrd', 'openpyxl',  # MS Excel
-            'pyserial', 'pyparallel',
-            'pyyaml', 'gevent', 'msgpack-python', 'psutil', 'tables', 'zmq',
-            'moviepy', 'opencv-python',
-            'python-gitlab', 'gitpython',
-            'astunparse',
-            'freetype-py',
-            # Platform-specific dependencies.
-            'pyqt5; python_version >= "3"',
-            'wxPython; platform_system != "Linux"',
-            'pypiwin32; platform_system == "Windows"',
-            'pyobjc-core; platform_system == "Darwin"',
-            'pyobjc-framework-Quartz; platform_system == "Darwin"'
-            ]
 
 #
 # Special handling for Anaconda / Miniconda
 #
+
+required = read_configuration('setup.cfg')['options']['install_requires']
 
 # OpenCV
 # Naming conflict with PyPI package.
@@ -75,7 +55,8 @@ else:
     shutil.make_archive(join('psychopy', 'psychojs'),
                         'zip', 'psychojs')
 
-# regenerate __init__.py only if we're in the source repos (not in a source zip file)
+# regenerate __init__.py only if we're in the source repos (not in a source
+# zip file)
 try:
     import createInitFile  # won't exist in a sdist.zip
     writeNewInit = True
@@ -102,18 +83,18 @@ dataFiles = []
 # post_install only needs installing on win32 but needs packaging in the zip
 scripts = ['psychopy/app/psychopyApp.py',
            'psychopy_post_inst.py']
-if platform=='win32':
+if platform == 'win32':
     pass
-elif platform=='darwin':
+elif platform == 'darwin':
     dataExtensions.extend(['*.icns'])
-elif platform=='posix':
+elif platform == 'posix':
     dataFiles += [('share/applications',
                    ['psychopy/app/Resources/psychopy.desktop']),
                   ('share/pixmaps',
                    ['psychopy/app/Resources/psychopy.png'])]
 
 
-setup(name="PsychoPy",
+setup(name='PsychoPy',
       packages=packages,
       scripts=scripts,
       include_package_data=True,
@@ -123,11 +104,10 @@ setup(name="PsychoPy",
       },
       data_files=dataFiles,
       install_requires=required,
-      # metadata
       version=versioneer.get_version(),
       cmdclass=versioneer.get_cmdclass())
 
-#remove unwanted info about this system post-build
+# remove unwanted info about this system post-build
 if writeNewInit:
     createInitFile.createInitFile(dist=None)
 
