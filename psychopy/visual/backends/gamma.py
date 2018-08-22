@@ -126,7 +126,8 @@ def getGammaRamp(screenID, xDisplay=None):
             screenID, origramps.ctypes)  # FB 504
         if not success:
             raise AssertionError('GetDeviceGammaRamp failed')
-        origramps = origramps/65535.0  # rescale to 0:1
+        origramps.byteswap(True)  # back to 0:255
+        origramps = origramps/255.0  # rescale to 0:1
 
     if sys.platform == 'darwin':
         # init R, G, and B ramps
