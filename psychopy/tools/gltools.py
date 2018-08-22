@@ -805,6 +805,9 @@ def drawVertexbuffers(vertexBuffer,
     # draw the array
     GL.glDrawArrays(mode, 0, vertexBuffer.indices)
 
+    if flush:
+        GL.glFlush()
+
     # reset
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
     GL.glDisableClientState(vertexBuffer.bufferType)
@@ -814,9 +817,6 @@ def drawVertexbuffers(vertexBuffer,
         GL.glDisableClientState(GL.GL_NORMAL_ARRAY)
     if colorBuffer is not None:
         GL.glDisableClientState(GL.GL_COLOR_ARRAY)
-
-    if flush:
-        GL.glFlush()
 
 
 def deleteVertexbuffer(vbo):
