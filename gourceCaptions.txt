@@ -1,0 +1,10 @@
+1208008000|The project actually started in 2002, but git didn't exist back then and the history is lost
+1215008000|It was mostly just Jon for the first 7 years...
+1230497600|2008: He just started adding the Builder interface
+1246406400|2009: Yaroslav Halcenko and Jeremy Gray join in.
+1276406400|Jeremy is the biggest additional contributor to PsychoPy (by a long way)
+1309478400|In summer 2011 we held a workshop at Yale
+1315478400|Things got busier after that as more people started helping
+1362096000|Sol Simpson is about to add files for ioHub...
+1462331200|PsychoJS (for the web) gets added by Alain Pitiot (Ilixa.com)
+1482305600|Huge thanks to everyone that has made PsychoPy what it is today
