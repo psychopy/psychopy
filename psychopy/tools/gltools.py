@@ -711,12 +711,12 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
                     ctypes.sizeof(c_array),
                     c_array,
                     GL.GL_STATIC_DRAW)
-    # GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
     return vboDesc
 
 
-def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
+def drawVertexbuffers(vertexBuffer, mode=GL.GL_TRIANGLES, flush=True, *args):
     """Draw a vertex buffer using glDrawArrays. This method does not require
     shaders.
 
@@ -724,7 +724,7 @@ def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
     ----------
     vertexBuffer : :obj:`Vertexbuffer`
         Vertex buffer descriptor, must have 'bufferType' as GL_VERTEX_ARRAY.
-        Optional vertex buffer descriptors can be passed as seperate arguments,
+        Optional vertex buffer descriptors can be passed as separate arguments,
         they must have 'bufferTypes' as GL_TEXTURE_COORD_ARRAY, GL_NORMAL_ARRAY
         or GL_COLOR_ARRAY.
     mode : :obj:`int`
@@ -753,7 +753,7 @@ def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
     colorBuffer = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
 
     # draw the VBO
-    drawVertexbuffer(vertexBuffer, colorBuffer, GL.GL_TRIANGLES)
+    drawVertexbuffers(vertexBuffer, colorBuffer, GL.GL_TRIANGLES)
 
     """
     # must have a vertex pointer
