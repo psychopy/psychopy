@@ -109,5 +109,32 @@ def test_setGammaRamp():
     assert numpy.allclose(desiredRamp, setRamp, atol=1.0 / desiredRamp.shape[1])
 
 
+def test_gammaSetGetMatch():
+    """test that repeatedly getting and setting the gamma table has no
+    cumulative effect."""
+
+    startGammaTable = None
+
+    n_repeats = 2
+
+    for _ in range(n_repeats):
+
+        win = visual.Window([600, 600], autoLog=False)
+
+        for _ in range(5):
+            win.flip()
+
+        if startGammaTable is None:
+            startGammaTable = win.backend.getGammaRamp()
+        else:
+            currGammaTable = win.backend.getGammaRamp()
+
+            assert numpy.all(currGammaTable == startGammaTable)
+
+        win.close()
+
+    utils.skip_under_travis()
+
+
 if __name__=='__main__':
     test_high_gamma()
