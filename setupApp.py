@@ -24,7 +24,7 @@ packageData = []
 requires = []
 
 if platform != 'darwin':
-    raise RuntimeError("As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle")
+    raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
 import bdist_mpkg
 import py2app
@@ -36,7 +36,6 @@ frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
-
 
 import macholib
 #print("~"*60 + "macholib verion: "+macholib.__version__)

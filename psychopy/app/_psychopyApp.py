@@ -40,8 +40,6 @@ BUT in 3.0.2 that raises an error so it's too early to switch.
 """
 import warnings
 warnings.filterwarnings(message='.*AddTool.*', action='ignore')
-warnings.filterwarnings(message='.*SetToolTip.*', action='ignore')
-
 
 from psychopy.localization import _translate
 # NB keep imports to a minimum here because splash screen has not yet shown

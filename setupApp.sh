@@ -1,6 +1,6 @@
 #!/bin/sh
 
-defVersion=$(<version)  # reads the version file
+defVersion=$(python -c 'import psychopy; print(psychopy.__version__)')
 echo "DID YOU UPDATE THE CHANGELOG?"
 read -p "Version (def=$defVersion):" version
 version=${version:-$defVersion}
@@ -18,7 +18,6 @@ declare -a names=("PsychoPy3_PY2" "PsychoPy3")
 for i in 0 1; do
     # remove old pyc files
     find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
-
 
     echo $i "BUILDING:" ${pythons[$i]} "__" ${names[$i]}
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
