@@ -747,6 +747,10 @@ def drawVertexbuffers(vertexBuffer,
     -------
     None
 
+    Notes
+    -----
+    All optional buffers must have the same number of indices as 'vertexBuffer'.
+
     Examples
     --------
     # vertices of a triangle
