@@ -80,7 +80,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None):
     if newRamp.shape[0] != 3 and newRamp.shape[1] == 3:
         newRamp = numpy.ascontiguousarray(newRamp.transpose())
     if sys.platform == 'win32':
-        newRamp = (255.0 * newRamp).astype(numpy.uint16)
+        newRamp = (numpy.around(255.0 * newRamp)).astype(numpy.uint16)
         # necessary, according to pyglet post from Martin Spacek
         newRamp.byteswap(True)
         for n in range(nAttempts):
@@ -100,7 +100,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None):
         assert not error, 'CGSetDisplayTransferByTable failed'
 
     if sys.platform.startswith('linux') and not _TravisTesting:
-        newRamp = (65535 * newRamp).astype(numpy.uint16)
+        newRamp = (numpy.around(65535 * newRamp)).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
             xDisplay, screenID, LUTlength,
             newRamp[0, :].ctypes,
