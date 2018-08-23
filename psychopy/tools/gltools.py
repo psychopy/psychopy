@@ -350,7 +350,7 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
         maxSamples = getIntegerv(GL.GL_MAX_SAMPLES)
         if (samples & (samples - 1)) != 0:
             raise ValueError('Invalid number of samples, must be power-of-two.')
-        elif samples <= 0 or samples > maxSamples:
+        elif samples > maxSamples:
             raise ValueError('Invalid number of samples, must be <{}.'.format(
                 maxSamples))
 
@@ -648,7 +648,8 @@ Vertexbuffer = namedtuple(
      'indices',
      'usage',
      'bufferType',
-     'dtype']
+     'dtype',
+     'userData']
 )
 
 
@@ -669,6 +670,11 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     -------
     Vertexbuffer
         A descriptor with vertex buffer information.
+
+    Notes
+    -----
+    Creating vertex buffers is a computationally expensive operation. Be sure to
+    load all resources before entering your experiment's main loop.
 
     Examples
     --------
@@ -832,6 +838,114 @@ def deleteVertexbuffer(vbo):
 
     """
     GL.glDeleteBuffers(1, vbo.id)
+
+
+# -------------------------
+# Material Helper Functions
+# -------------------------
+#
+# Materials affect the appearance of rendered faces. These helper functions and
+# datatypes simplify the creation of materials for rendering stimuli.
+#
+
+Material = namedtuple(
+    'Material',
+    ['face', 'values', 'userData']
+)
+
+
+def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
+    """Create a new material.
+
+    Parameters
+    ----------
+    values : :obj:`list` of :obj:`tuple`
+        List of material modes and values. Each mode is assigned a value as
+        (mode, color). Modes can be GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR,
+        GL_EMISSION, GL_SHININESS or GL_AMBIENT_AND_DIFFUSE. Colors must be
+        a tuple of 4 floats which specify reflectance values for each RGBA
+        component. The value of GL_SHININESS should be a single float.
+    face : :obj:`int`
+        Faces to apply material to. Values can be GL_FRONT_AND_BACK, GL_FRONT
+        and GL_BACK. The default is GL_FRONT_AND_BACK.
+
+    Returns
+    -------
+    Material
+        A descriptor with material properties.
+
+    Examples
+    --------
+    # The values for the material below can be found at
+    # http://devernay.free.fr/cours/opengl/materials.html
+
+    # create a gold material
+    gold = createMaterial([
+        (GL.GL_AMBIENT, (0.24725, 0.19950, 0.07450, 1.0)),
+        (GL.GL_DIFFUSE, (0.75164, 0.60648, 0.22648, 1.0)),
+        (GL.GL_SPECULAR, (0.628281, 0.555802, 0.366065, 1.0))
+        (GL.GL_SHININESS, 0.4)])
+
+    # use the material when drawing
+    useMaterial(gold)
+    drawVertexbuffers( ... )  # all meshes will be gold
+    useMaterial(None)  # turn off material when done
+
+    """
+    matDesc = Material(face, dict(), dict())
+
+    # setup material mode/value slots
+    matDesc.values = {
+        mode: None for mode in (
+        GL.GL_AMBIENT,
+        GL.GL_DIFFUSE,
+        GL.GL_SPECULAR,
+        GL.GL_EMISSION,
+        GL.GL_SHININESS,
+        GL.GL_AMBIENT_AND_DIFFUSE)
+    }
+
+    if values:
+        for mode, val in values:
+            matDesc.values[mode] = \
+                (GL.GLfloat * 4)(*val) \
+                    if mode != GL.GL_SHININESS else GL.GLfloat(val)
+
+    return matDesc
+
+
+def useMaterial(material):
+    """Use a material for proceeding vertex draws.
+
+    Parameters
+    ----------
+    material : :obj:`Material` or None
+        Material descriptor to use. Materials will be disabled if None is
+        specified.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    If a material mode has a value of None, a color with all components 0.0 will
+    be assigned.
+
+    """
+    nullColor = (GL.GLfloat * 4)(0.0, 0.0, 0.0, 0.0)
+
+    if material:
+        GL.glEnable(GL.GL_COLOR_MATERIAL)
+        for mode, value in material.colors.items():
+            if value is not None:
+                GL.glMaterialfv(material.face, mode, value)
+            else:
+                GL.glMaterialfv(
+                    material.face, mode,
+                    nullColor if mode != GL.GL_SHININESS else GL.GLfloat(0))
+    else:
+        GL.glDisable(GL.GL_COLOR_MATERIAL)
 
 
 # -----------------------------
