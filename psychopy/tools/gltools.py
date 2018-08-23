@@ -709,7 +709,8 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
                            int(count / vertexSize),
                            GL.GL_STATIC_DRAW,
                            bufferType,
-                           GL.GL_FLOAT)  # always float
+                           GL.GL_FLOAT,  # always float
+                           dict())
 
     # bind and upload
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
@@ -791,7 +792,8 @@ def drawVertexbuffers(vertexBuffer,
             raise RuntimeError(
                 "Texture and vertex buffer indices do not match!")
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, textureCoordBuffer.id)
-        GL.glTexCoordPointer(textureCoordBuffer.dtype, 0, None)
+        GL.glTexCoordPointer(textureCoordBuffer.vertexSize,
+                             textureCoordBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
     # normals
@@ -904,16 +906,14 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
     useMaterial(None)
 
     """
-    matDesc = Material(face, dict(), dict())
-
     # setup material mode/value slots
-    matDesc.values = {mode: None for mode in (
+    matDesc = Material(face, {mode: None for mode in (
         GL.GL_AMBIENT,
         GL.GL_DIFFUSE,
         GL.GL_SPECULAR,
         GL.GL_EMISSION,
         GL.GL_SHININESS,
-        GL.GL_AMBIENT_AND_DIFFUSE)}
+        GL.GL_AMBIENT_AND_DIFFUSE)}, dict())
 
     if values:
         for mode, val in values:
@@ -973,17 +973,15 @@ def useMaterial(material):
 # Lighting Helper Functions
 # -------------------------
 
-Light = namedtuple('Light', ['values', 'userData'])
+Light = namedtuple('Light', ['params', 'userData'])
 
 
-def createLight(values=()):
+def createLight(params=()):
     """Create a point light source.
 
     """
-    lightDesc = Light(dict(), dict())  # light descriptor
-
     # setup light mode/value slots
-    lightDesc.values = {mode: None for mode in (
+    lightDesc = Light({mode: None for mode in (
         GL.GL_AMBIENT,
         GL.GL_DIFFUSE,
         GL.GL_SPECULAR,
@@ -993,19 +991,20 @@ def createLight(values=()):
         GL.GL_SPOT_EXPONENT,
         GL.GL_CONSTANT_ATTENUATION,
         GL.GL_LINEAR_ATTENUATION,
-        GL.GL_QUADRATIC_ATTENUATION)}
+        GL.GL_QUADRATIC_ATTENUATION)},
+        dict())
 
     # configure lights
-    if values:
-        for mode, value in values:
+    if params:
+        for mode, value in params:
             if value is not None:
                 if mode in [GL.GL_AMBIENT, GL.GL_DIFFUSE, GL.GL_SPECULAR,
                             GL.GL_POSITION]:
-                    lightDesc.values[mode] = (GL.GLfloat * 4)(*value)
+                    lightDesc.params[mode] = (GL.GLfloat * 4)(*value)
                 elif mode == GL.GL_SPOT_DIRECTION:
-                    lightDesc.values[mode] = (GL.GLfloat * 3)(*value)
+                    lightDesc.params[mode] = (GL.GLfloat * 3)(*value)
                 else:
-                    lightDesc.values[mode] = GL.GLfloat(value)
+                    lightDesc.params[mode] = GL.GLfloat(value)
 
     return lightDesc
 
@@ -1016,7 +1015,7 @@ def useLights(lights, setupOnly=False):
 
     Parameters
     ----------
-    lights : :obj:`Light` or None
+    lights : :obj:`List` of :obj:`Light` or None
         Descriptor of a light source. If None, lighting is disabled.
     setupOnly : :obj:`bool`, optional
         Do not enable lighting or lights. Specify True if lighting is being
@@ -1031,10 +1030,12 @@ def useLights(lights, setupOnly=False):
         if len(lights) > getIntegerv(GL.GL_MAX_LIGHTS):
             raise IndexError("Number of lights specified > GL_MAX_LIGHTS.")
 
+        GL.glEnable(GL.GL_NORMALIZE)
+
         for index, light in enumerate(lights):
             enumLight = GL.GL_LIGHT0 + index
             # light properties
-            for mode, value in light.values.items():
+            for mode, value in light.params.items():
                 if value is not None:
                     GL.glLightfv(enumLight, mode, value)
 
@@ -1049,6 +1050,7 @@ def useLights(lights, setupOnly=False):
             for enumLight in range(getIntegerv(GL.GL_MAX_LIGHTS)):
                 GL.glDisable(GL.GL_LIGHT0 + enumLight)
 
+            GL.glDisable(GL.GL_NORMALIZE)
             GL.glDisable(GL.GL_LIGHTING)
 
 
