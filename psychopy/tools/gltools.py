@@ -350,7 +350,7 @@ def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):
         maxSamples = getIntegerv(GL.GL_MAX_SAMPLES)
         if (samples & (samples - 1)) != 0:
             raise ValueError('Invalid number of samples, must be power-of-two.')
-        elif samples <= 0 or samples > maxSamples:
+        elif samples > maxSamples:
             raise ValueError('Invalid number of samples, must be <{}.'.format(
                 maxSamples))
 
@@ -648,7 +648,8 @@ Vertexbuffer = namedtuple(
      'indices',
      'usage',
      'bufferType',
-     'dtype']
+     'dtype',
+     'userData']
 )
 
 
@@ -669,6 +670,11 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     -------
     Vertexbuffer
         A descriptor with vertex buffer information.
+
+    Notes
+    -----
+    Creating vertex buffers is a computationally expensive operation. Be sure to
+    load all resources before entering your experiment's main loop.
 
     Examples
     --------
@@ -711,12 +717,17 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
                     ctypes.sizeof(c_array),
                     c_array,
                     GL.GL_STATIC_DRAW)
-    # GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
 
     return vboDesc
 
 
-def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
+def drawVertexbuffers(vertexBuffer,
+                      textureCoordBuffer=None,
+                      normalBuffer=None,
+                      colorBuffer=None,
+                      mode=GL.GL_TRIANGLES,
+                      flush=True):
     """Draw a vertex buffer using glDrawArrays. This method does not require
     shaders.
 
@@ -724,17 +735,27 @@ def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
     ----------
     vertexBuffer : :obj:`Vertexbuffer`
         Vertex buffer descriptor, must have 'bufferType' as GL_VERTEX_ARRAY.
-        Optional vertex buffer descriptors can be passed as seperate arguments,
-        they must have 'bufferTypes' as GL_TEXTURE_COORD_ARRAY, GL_NORMAL_ARRAY
-        or GL_COLOR_ARRAY.
-    mode : :obj:`int`
+    textureCoordBuffer : :obj:`Vertexbuffer` or None, optional
+        Vertex buffer descriptor of texture coordinates, must have 'bufferType'
+        as GL_TEXTURE_COORD_ARRAY.
+    normalBuffer : :obj:`Vertexbuffer` or None, optional
+        Vertex buffer descriptor of normals, must have 'bufferType' as
+        GL_NORMAL_ARRAY.
+    colorBuffer :obj:`Vertexbuffer` or None, optional
+        Vertex buffer descriptor of colors, must have 'bufferType' as
+        GL_COLOR_ARRAY.
+    mode : :obj:`int`, optional
         Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
-    flush : :obj:`bool`
+    flush : :obj:`bool`, optional
         Flush queued drawing commands before returning.
 
     Returns
     -------
     None
+
+    Notes
+    -----
+    All optional buffers must have the same number of indices as 'vertexBuffer'.
 
     Examples
     --------
@@ -753,45 +774,59 @@ def drawVertexbuffers(vertexBuffer, *args, mode=GL.GL_TRIANGLES, flush=True):
     colorBuffer = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
 
     # draw the VBO
-    drawVertexbuffer(vertexBuffer, colorBuffer, GL.GL_TRIANGLES)
+    drawVertexbuffers(vertexBuffer, colorBuffer=colorBuffer, GL.GL_TRIANGLES)
 
     """
     # must have a vertex pointer
     assert vertexBuffer.bufferType == GL.GL_VERTEX_ARRAY
 
-    # bind and set the vertex pointer
+    # bind and set the vertex pointer, this is must be bound
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer.id)
     GL.glVertexPointer(vertexBuffer.vertexSize, vertexBuffer.dtype, 0, None)
     GL.glEnableClientState(vertexBuffer.bufferType)
 
-    # handle additional buffers
-    if args:
-        for buffer in args:
-            # check if the number of indicies are the same
-            if vertexBuffer.indices != buffer.indices:
-                raise RuntimeError("Vertex buffer indices do not match!")
+    # texture coordinates
+    if textureCoordBuffer is not None:
+        if vertexBuffer.indices != textureCoordBuffer.indices:
+            raise RuntimeError(
+                "Texture and vertex buffer indices do not match!")
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, textureCoordBuffer.id)
+        GL.glTexCoordPointer(textureCoordBuffer.dtype, 0, None)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, buffer.id)
-            if buffer.bufferType == GL.GL_TEXTURE_COORD_ARRAY:
-                GL.glTexCoordPointer(buffer.dtype, 0, None)
-            elif buffer.bufferType == GL.GL_NORMAL_ARRAY:
-                GL.glNormalPointer(buffer.dtype, 0, None)
-            elif buffer.bufferType == GL.GL_COLOR_ARRAY:
-                GL.glColorPointer(buffer.vertexSize, buffer.dtype, 0, None)
+    # normals
+    if normalBuffer is not None:
+        if vertexBuffer.indices != normalBuffer.indices:
+            raise RuntimeError(
+                "Normal and vertex buffer indices do not match!")
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, normalBuffer.id)
+        GL.glNormalPointer(normalBuffer.dtype, 0, None)
+        GL.glEnableClientState(GL.GL_NORMAL_ARRAY)
 
-            GL.glEnableClientState(buffer.bufferType)
+    # colors
+    if colorBuffer is not None:
+        if vertexBuffer.indices != colorBuffer.indices:
+            raise RuntimeError(
+                "Color and vertex buffer indices do not match!")
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, colorBuffer.id)
+        GL.glColorPointer(colorBuffer.vertexSize, colorBuffer.dtype, 0, None)
+        GL.glEnableClientState(GL.GL_COLOR_ARRAY)
 
-    GL.glDrawArrays(mode, 0, vertexBuffer.indices)  # draw arrays
+    # draw the array
+    GL.glDrawArrays(mode, 0, vertexBuffer.indices)
+
+    if flush:
+        GL.glFlush()
 
     # reset
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
     GL.glDisableClientState(vertexBuffer.bufferType)
-    if args:
-        for vbo in args:
-            GL.glDisableClientState(vbo.bufferType)
-
-    if flush:
-        GL.glFlush()
+    if textureCoordBuffer is not None:
+        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+    if normalBuffer is not None:
+        GL.glDisableClientState(GL.GL_NORMAL_ARRAY)
+    if colorBuffer is not None:
+        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
 
 
 def deleteVertexbuffer(vbo):
@@ -803,6 +838,241 @@ def deleteVertexbuffer(vbo):
 
     """
     GL.glDeleteBuffers(1, vbo.id)
+
+
+# -------------------------
+# Material Helper Functions
+# -------------------------
+#
+# Materials affect the appearance of rendered faces. These helper functions and
+# datatypes simplify the creation of materials for rendering stimuli.
+#
+
+Material = namedtuple('Material', ['face', 'values', 'userData'])
+
+
+def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
+    """Create a new material.
+
+    Parameters
+    ----------
+    values : :obj:`list` of :obj:`tuple`, optional
+        List of material modes and values. Each mode is assigned a value as
+        (mode, color). Modes can be GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR,
+        GL_EMISSION, GL_SHININESS or GL_AMBIENT_AND_DIFFUSE. Colors must be
+        a tuple of 4 floats which specify reflectance values for each RGBA
+        component. The value of GL_SHININESS should be a single float. If no
+        values are specified, an empty material will be created.
+    face : :obj:`int`, optional
+        Faces to apply material to. Values can be GL_FRONT_AND_BACK, GL_FRONT
+        and GL_BACK. The default is GL_FRONT_AND_BACK.
+
+    Returns
+    -------
+    Material
+        A descriptor with material properties.
+
+    Examples
+    --------
+    # The values for the material below can be found at
+    # http://devernay.free.fr/cours/opengl/materials.html
+
+    # create a gold material
+    gold = createMaterial([
+        (GL.GL_AMBIENT, (0.24725, 0.19950, 0.07450, 1.0)),
+        (GL.GL_DIFFUSE, (0.75164, 0.60648, 0.22648, 1.0)),
+        (GL.GL_SPECULAR, (0.628281, 0.555802, 0.366065, 1.0))
+        (GL.GL_SHININESS, 0.4 * 128.0)])
+
+    # use the material when drawing
+    useMaterial(gold)
+    drawVertexbuffers( ... )  # all meshes will be gold
+    useMaterial(None)  # turn off material when done
+
+    # create a red plastic material, but define reflectance and shine later
+    red_plastic = createMaterial()
+
+    # you need to convert values to ctypes!
+    red_plastic.values[GL_AMBIENT] = (GLfloat * 4)(0.0, 0.0, 0.0, 1.0)
+    red_plastic.values[GL_DIFFUSE] = (GLfloat * 4)(0.5, 0.0, 0.0, 1.0)
+    red_plastic.values[GL_SPECULAR] = (GLfloat * 4)(0.7, 0.6, 0.6, 1.0)
+    red_plastic.values[GL_SHININESS] = 0.25 * 128.0
+
+    # set and draw
+    useMaterial(red_plastic)
+    drawVertexbuffers( ... )  # all meshes will be red plastic
+    useMaterial(None)
+
+    """
+    matDesc = Material(face, dict(), dict())
+
+    # setup material mode/value slots
+    matDesc.values = {mode: None for mode in (
+        GL.GL_AMBIENT,
+        GL.GL_DIFFUSE,
+        GL.GL_SPECULAR,
+        GL.GL_EMISSION,
+        GL.GL_SHININESS,
+        GL.GL_AMBIENT_AND_DIFFUSE)}
+
+    if values:
+        for mode, val in values:
+            matDesc.values[mode] = \
+                (GL.GLfloat * 4)(*val) \
+                    if mode != GL.GL_SHININESS else GL.GLfloat(val)
+
+    return matDesc
+
+
+def useMaterial(material):
+    """Use a material for proceeding vertex draws.
+
+    Parameters
+    ----------
+    material : :obj:`Material` or None
+        Material descriptor to use. Materials will be disabled if None is
+        specified.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    1.  If a material mode has a value of None, a color with all components 0.0
+        will be assigned.
+    2.  Material colors and shininess values are accessible from shader programs
+        after calling 'useMaterial'. Values can be accessed via built-in
+        'gl_FrontMaterial' and 'gl_BackMaterial' structures (e.g.
+        gl_FrontMaterial.diffuse).
+
+    Examples
+    --------
+    # use the material when drawing
+    useMaterial(matDesc)
+    drawVertexbuffers( ... )  # all meshes will be gold
+    useMaterial(None)  # turn off material when done
+
+    """
+    nullColor = (GL.GLfloat * 4)(0.0, 0.0, 0.0, 0.0)
+
+    if material:
+        GL.glEnable(GL.GL_COLOR_MATERIAL)
+        for mode, value in material.colors.items():
+            if value is not None:
+                GL.glMaterialfv(material.face, mode, value)
+            else:
+                GL.glMaterialfv(
+                    material.face, mode,
+                    nullColor if mode != GL.GL_SHININESS else GL.GLfloat(0))
+    else:
+        GL.glDisable(GL.GL_COLOR_MATERIAL)
+
+
+# -------------------------
+# Lighting Helper Functions
+# -------------------------
+
+Light = namedtuple('Light', ['values', 'userData'])
+
+
+def createLight(values=()):
+    """Create a point light source.
+
+    """
+    lightDesc = Light(dict(), dict())  # light descriptor
+
+    # setup light mode/value slots
+    lightDesc.values = {mode: None for mode in (
+        GL.GL_AMBIENT,
+        GL.GL_DIFFUSE,
+        GL.GL_SPECULAR,
+        GL.GL_POSITION,
+        GL.GL_SPOT_CUTOFF,
+        GL.GL_SPOT_DIRECTION,
+        GL.GL_SPOT_EXPONENT,
+        GL.GL_CONSTANT_ATTENUATION,
+        GL.GL_LINEAR_ATTENUATION,
+        GL.GL_QUADRATIC_ATTENUATION)}
+
+    # configure lights
+    if values:
+        for mode, value in values:
+            if value is not None:
+                if mode in [GL.GL_AMBIENT, GL.GL_DIFFUSE, GL.GL_SPECULAR,
+                            GL.GL_POSITION]:
+                    lightDesc.values[mode] = (GL.GLfloat * 4)(*value)
+                elif mode == GL.GL_SPOT_DIRECTION:
+                    lightDesc.values[mode] = (GL.GLfloat * 3)(*value)
+                else:
+                    lightDesc.values[mode] = GL.GLfloat(value)
+
+    return lightDesc
+
+
+def useLights(lights, setupOnly=False):
+    """Use specified lights in successive rendering operations. All lights will
+    be transformed using the present modelview matrix.
+
+    Parameters
+    ----------
+    lights : :obj:`Light` or None
+        Descriptor of a light source. If None, lighting is disabled.
+    setupOnly : :obj:`bool`, optional
+        Do not enable lighting or lights. Specify True if lighting is being
+        computed via fragment shaders.
+
+    Returns
+    -------
+    None
+
+    """
+    if lights is not None:
+        if len(lights) > getIntegerv(GL.GL_MAX_LIGHTS):
+            raise IndexError("Number of lights specified > GL_MAX_LIGHTS.")
+
+        for index, light in enumerate(lights):
+            enumLight = GL.GL_LIGHT0 + index
+            # light properties
+            for mode, value in light.values.items():
+                if value is not None:
+                    GL.glLightfv(enumLight, mode, value)
+
+            if not setupOnly:
+                GL.glEnable(enumLight)
+
+        if not setupOnly:
+            GL.glEnable(GL.GL_LIGHTING)
+    else:
+        # disable lights
+        if not setupOnly:
+            for enumLight in range(getIntegerv(GL.GL_MAX_LIGHTS)):
+                GL.glDisable(GL.GL_LIGHT0 + enumLight)
+
+            GL.glDisable(GL.GL_LIGHTING)
+
+
+def setSceneAmbientLight(color):
+    """Set the global ambient lighting for the scene when lighting is enabled.
+    This is equivalent to GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, color)
+    and does not contribute to the GL_MAX_LIGHTS limit.
+
+    Parameters
+    ----------
+    color : :obj:`tuple`
+        Ambient lighting RGBA intensity for the whole scene.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    If unset, the default value is (0.2, 0.2, 0.2, 1.0) when GL_LIGHTING is
+    enabled.
+
+    """
+    GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, (GL.GLfloat * 4)(*color))
 
 
 # -----------------------------
