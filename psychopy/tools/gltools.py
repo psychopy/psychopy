@@ -31,7 +31,7 @@ Framebuffer = namedtuple(
 )
 
 
-def createFramebuffer(attachments=()):
+def createFBO(attachments=()):
     """Create a Framebuffer Object.
 
     Parameters
@@ -64,7 +64,7 @@ def createFramebuffer(attachments=()):
     Examples
     --------
     # empty framebuffer with no attachments
-    fbo = createFramebuffer()  # invalid until attachments are added
+    fbo = createFBO()  # invalid until attachments are added
 
     # create a render target with multiple color texture attachments
     colorTex = createTexImage2D(1024,1024)  # empty texture
@@ -72,17 +72,17 @@ def createFramebuffer(attachments=()):
 
     # attach images
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
-    framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
-    framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
-    # or framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+    attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+    # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
     # above is the same as
-    with framebufferBindingContext(fbo):
-        framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
+    with useFBO(fbo):
+        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
 
     # examples of userData some custom function might access
     fbo.userData['flags'] = ['left_eye', 'clear_before_use']
@@ -93,10 +93,10 @@ def createFramebuffer(attachments=()):
     depthTex = createTexImage2D(800, 600,
                                 internalFormat=GL.GL_DEPTH_COMPONENT24,
                                 pixelFormat=GL.GL_DEPTH_COMPONENT)
-    fbo = createFramebuffer([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
+    fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
 
     # discard FBO descriptor, just give me the ID
-    frameBuffer = createFramebuffer().id
+    frameBuffer = createFBO().id
 
     """
     fboId = GL.GLuint()
@@ -107,14 +107,14 @@ def createFramebuffer(attachments=()):
 
     # initial attachments for this framebuffer
     if attachments:
-        with framebufferBindingContext(fboDesc):
+        with useFBO(fboDesc):
             for attachPoint, imageBuffer in attachments:
-                framebufferAttachment(attachPoint, imageBuffer)
+                attach(attachPoint, imageBuffer)
 
     return fboDesc
 
 
-def framebufferAttachment(attachPoint, imageBuffer):
+def attach(attachPoint, imageBuffer):
     """Attach an image to a specified attachment point on the presently bound
     FBO.
 
@@ -133,14 +133,14 @@ def framebufferAttachment(attachPoint, imageBuffer):
     --------
     # with descriptors colorTex and depthRb
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
-    framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
 
     # same as above, but using a context manager
-    with framebufferBindingContext(fbo):
-        framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    with useFBO(fbo):
+        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
     # We should also support binding GL names specified as integers. Right now
@@ -160,7 +160,7 @@ def framebufferAttachment(attachPoint, imageBuffer):
             imageBuffer.id)
 
 
-def framebufferIsComplete():
+def isComplete():
     """Check if the currently bound framebuffer is complete.
 
     Returns
@@ -172,7 +172,7 @@ def framebufferIsComplete():
            GL.GL_FRAMEBUFFER_COMPLETE
 
 
-def deleteFramebuffer(fbo):
+def deleteFBO(fbo):
     """Delete a framebuffer.
 
     Returns
@@ -184,7 +184,7 @@ def deleteFramebuffer(fbo):
         1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
 
 
-def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
+def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
     scissor box and viewport are changed when this is called to dstRect.
@@ -214,7 +214,7 @@ def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     # bind framebuffer to draw pixels to
     GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
 
-    gltools.blitFramebuffer((0,0,800,600), (0,0,800,600))
+    gltools.blitFBO((0,0,800,600), (0,0,800,600))
 
     # unbind both read and draw buffers
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -236,7 +236,7 @@ def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
 
 
 @contextmanager
-def framebufferBindingContext(fbo):
+def useFBO(fbo):
     """Context manager for Framebuffer Object bindings. This function yields
     the framebuffer name as an integer.
 
@@ -262,14 +262,14 @@ def framebufferBindingContext(fbo):
     ...
 
     # create a new FBO, but we have no idea what the currently bound FBO is
-    fbo = createFramebuffer()
+    fbo = createFBO()
 
     # use a context to bind attachments
     with bindFBO(fbo):
-        attachFrambufferImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attachFrambufferImage(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attachFrambufferImage(GL.GL_STENCIL_ATTACHMENT, depthRb)
-        isComplete = gltools.checkFramebufferComplete())
+        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        isComplete = gltools.isComplete()
 
     # someOtherFBO is still bound!
 
@@ -660,8 +660,9 @@ VertexArrayObject = namedtuple(
 )
 
 
-def createVertexBuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
-    """Create a static, single-storage Vertex Buffer Object (VBO).
+def createVBO(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
+    """Create a static, single-storage array buffer, often referred to as Vertex
+    Buffer Object (VBO).
 
     Parameters
     ----------
@@ -691,7 +692,7 @@ def createVertexBuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
              -1.0,  1.0, 0.0]   # v2
 
     # load vertices to graphics device, return a descriptor
-    vboDesc = createVertexbuffer(verts, 3)
+    vboDesc = createVBO(verts, 3)
 
     # draw
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.id)
@@ -730,13 +731,13 @@ def createVertexBuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     return vboDesc
 
 
-def createVertexArray(vertexBuffer,
-                      textureCoordBuffer=None,
-                      normalBuffer=None,
-                      colorBuffer=None):
+def createVAO(vertexBuffer,
+              textureCoordBuffer=None,
+              normalBuffer=None,
+              colorBuffer=None):
     """Create a Vertex Array Object (VAO) with specified Vertex Buffer Objects.
     VAOs store buffer binding states, reducing binding overhead when drawing
-    objects.
+    objects with vertext data stored in VBOs.
 
     Parameters
     ----------
@@ -760,10 +761,10 @@ def createVertexArray(vertexBuffer,
     Examples
     --------
     # create a VAO
-    vaoDesc = createVertexArray(vboVerts, vboTexCoords, vboNormals)
+    vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
 
     # draw the VAO, renders the mesh
-    drawVertexArrays(vaoDesc, GL.GL_TRIANGLES)
+    drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
     # create a vertex buffer ID
@@ -812,7 +813,7 @@ def createVertexArray(vertexBuffer,
     return VertexArrayObject(vaoId, vertexBuffer.indices, dict())
 
 
-def drawVertexArrays(vao, mode=GL.GL_TRIANGLES, flush=True):
+def drawVAO(vao, mode=GL.GL_TRIANGLES, flush=True):
     """Draw a vertex array using glDrawArrays. This method does not require
     shaders.
 
@@ -832,10 +833,10 @@ def drawVertexArrays(vao, mode=GL.GL_TRIANGLES, flush=True):
     Examples
     --------
     # create a VAO
-    vaoDesc = createVertexArray(vboVerts, vboTexCoords, vboNormals)
+    vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
 
     # draw the VAO, renders the mesh
-    drawVertexArrays(vaoDesc, GL.GL_TRIANGLES)
+    drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
     # draw the array
@@ -849,8 +850,8 @@ def drawVertexArrays(vao, mode=GL.GL_TRIANGLES, flush=True):
     GL.glBindVertexArray(0)
 
 
-def deleteVertexBuffer(vbo):
-    """Delete a vertex buffer.
+def deleteVBO(vbo):
+    """Delete a Vertex Buffer Object (VBO).
 
     Returns
     -------
@@ -860,8 +861,9 @@ def deleteVertexBuffer(vbo):
     GL.glDeleteBuffers(1, vbo.id)
 
 
-def deleteVertexArray(vao):
-    """Delete a vertex array.
+def deleteVAO(vao):
+    """Delete a Vertex Array Object (VAO). This does not delete array buffers
+    bound to the VAO.
 
     Returns
     -------
