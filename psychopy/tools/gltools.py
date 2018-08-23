@@ -848,10 +848,7 @@ def deleteVertexbuffer(vbo):
 # datatypes simplify the creation of materials for rendering stimuli.
 #
 
-Material = namedtuple(
-    'Material',
-    ['face', 'values', 'userData']
-)
+Material = namedtuple('Material', ['face', 'values', 'userData'])
 
 
 def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
@@ -916,8 +913,7 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
         GL.GL_SPECULAR,
         GL.GL_EMISSION,
         GL.GL_SHININESS,
-        GL.GL_AMBIENT_AND_DIFFUSE)
-                      }
+        GL.GL_AMBIENT_AND_DIFFUSE)}
 
     if values:
         for mode, val in values:
@@ -977,88 +973,89 @@ def useMaterial(material):
 # Lighting Helper Functions
 # -------------------------
 
-Light = namedtuple(
-    'PointLight',
-    ['position',
-     'values',
-     'attenuationType',
-     'attenuationFactor',
-     'userData']
-)
-
-SpotLight = namedtuple(
-    'SpotLight',
-    ['position',
-     'values',
-     'attenuationType',
-     'attenuationFactor',
-     'spotDirection',
-     'spotCutoff',
-     'spotExponent',
-     'userData']
-)
+Light = namedtuple('Light', ['values', 'userData'])
 
 
-def createPointLight(position,
-                     values=(),
-                     attenuationType=GL.GL_CONSTANT_ATTENUATION,
-                     attenuationFactor=1.0):
-    """Create a point light source."""
-    pass
+def createLight(values=()):
+    """Create a point light source.
+
+    """
+    lightDesc = Light(dict(), dict())  # light descriptor
+
+    # setup light mode/value slots
+    lightDesc.values = {mode: None for mode in (
+        GL.GL_AMBIENT,
+        GL.GL_DIFFUSE,
+        GL.GL_SPECULAR,
+        GL.GL_POSITION,
+        GL.GL_SPOT_CUTOFF,
+        GL.GL_SPOT_DIRECTION,
+        GL.GL_SPOT_EXPONENT,
+        GL.GL_CONSTANT_ATTENUATION,
+        GL.GL_LINEAR_ATTENUATION,
+        GL.GL_QUADRATIC_ATTENUATION)}
+
+    # configure lights
+    if values:
+        for mode, value in values:
+            if value is not None:
+                if mode in [GL.GL_AMBIENT, GL.GL_DIFFUSE, GL.GL_SPECULAR,
+                            GL.GL_POSITION]:
+                    lightDesc.values[mode] = (GL.GLfloat * 4)(*value)
+                elif mode == GL.GL_SPOT_DIRECTION:
+                    lightDesc.values[mode] = (GL.GLfloat * 3)(*value)
+                else:
+                    lightDesc.values[mode] = GL.GLfloat(value)
+
+    return lightDesc
 
 
-def useLights(lights):
-    """Use lights.
+def useLights(lights, setupOnly=False):
+    """Use specified lights in successive rendering operations. All lights will
+    be transformed using the present modelview matrix.
 
     Parameters
     ----------
-    lights
+    lights : :obj:`Light` or None
+        Descriptor of a light source. If None, lighting is disabled.
+    setupOnly : :obj:`bool`, optional
+        Do not enable lighting or lights. Specify True if lighting is being
+        computed via fragment shaders.
 
     Returns
     -------
+    None
 
     """
-    maxLights = getIntegerv(GL.GL_MAX_LIGHTS)  # max supported lights
-    nullColor = (GL.GLfloat * 4)(0.0, 0.0, 0.0, 0.0)
-
     if lights is not None:
-        if len(lights) > maxLights:
+        if len(lights) > getIntegerv(GL.GL_MAX_LIGHTS):
             raise IndexError("Number of lights specified > GL_MAX_LIGHTS.")
 
         for index, light in enumerate(lights):
             enumLight = GL.GL_LIGHT0 + index
-            GL.glLightfv(enumLight, GL.GL_POSITION, light.position)
-            GL.glLightfv(enumLight,
-                         light.attenuationType,
-                         light.attenuationFactor)
+            # light properties
+            for mode, value in light.values.items():
+                if value is not None:
+                    GL.glLightfv(enumLight, mode, value)
 
-            # light emittance colors
-            for mode, color in light.values.items():
-                GL.glLightfv(enumLight,
-                             mode,
-                             nullColor if color is None else color)
+            if not setupOnly:
+                GL.glEnable(enumLight)
 
-            # additional settings if we're using a spotlight type
-            if isinstance(light, SpotLight):
-                GL.glLightfv(enumLight,
-                             GL.GL_SPOT_DIRECTION,
-                             light.spotDirection)
-                GL.glLightfv(enumLight, GL.GL_SPOT_CUTOFF, light.spotCutoff)
-                GL.glLightfv(enumLight, GL.GL_SPOT_EXPONENT, light.spotExponent)
-
-            GL.glEnable(enumLight)
-
-        GL.glEnable(GL.GL_LIGHTING)
+        if not setupOnly:
+            GL.glEnable(GL.GL_LIGHTING)
     else:
-        for enumLight in range(maxLights):
-            GL.glDisable(GL.GL_LIGHT0 + enumLight)
-        GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, nullColor)
-        GL.glDisable(GL.GL_LIGHTING)
+        # disable lights
+        if not setupOnly:
+            for enumLight in range(getIntegerv(GL.GL_MAX_LIGHTS)):
+                GL.glDisable(GL.GL_LIGHT0 + enumLight)
+
+            GL.glDisable(GL.GL_LIGHTING)
 
 
-def setSceneAmbient(color):
+def setSceneAmbientLight(color):
     """Set the global ambient lighting for the scene when lighting is enabled.
-    This is equivalent to GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, color).
+    This is equivalent to GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, color)
+    and does not contribute to the GL_MAX_LIGHTS limit.
 
     Parameters
     ----------
