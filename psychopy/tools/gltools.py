@@ -917,7 +917,7 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
         GL.GL_EMISSION,
         GL.GL_SHININESS,
         GL.GL_AMBIENT_AND_DIFFUSE)
-    }
+                      }
 
     if values:
         for mode, val in values:
@@ -971,6 +971,111 @@ def useMaterial(material):
                     nullColor if mode != GL.GL_SHININESS else GL.GLfloat(0))
     else:
         GL.glDisable(GL.GL_COLOR_MATERIAL)
+
+
+# -------------------------
+# Lighting Helper Functions
+# -------------------------
+
+Light = namedtuple(
+    'PointLight',
+    ['position',
+     'values',
+     'attenuationType',
+     'attenuationFactor',
+     'userData']
+)
+
+SpotLight = namedtuple(
+    'SpotLight',
+    ['position',
+     'values',
+     'attenuationType',
+     'attenuationFactor',
+     'spotDirection',
+     'spotCutoff',
+     'spotExponent',
+     'userData']
+)
+
+
+def createPointLight(position,
+                     values=(),
+                     attenuationType=GL.GL_CONSTANT_ATTENUATION,
+                     attenuationFactor=1.0):
+    """Create a point light source."""
+    pass
+
+
+def useLights(lights):
+    """Use lights.
+
+    Parameters
+    ----------
+    lights
+
+    Returns
+    -------
+
+    """
+    maxLights = getIntegerv(GL.GL_MAX_LIGHTS)  # max supported lights
+    nullColor = (GL.GLfloat * 4)(0.0, 0.0, 0.0, 0.0)
+
+    if lights is not None:
+        if len(lights) > maxLights:
+            raise IndexError("Number of lights specified > GL_MAX_LIGHTS.")
+
+        for index, light in enumerate(lights):
+            enumLight = GL.GL_LIGHT0 + index
+            GL.glLightfv(enumLight, GL.GL_POSITION, light.position)
+            GL.glLightfv(enumLight,
+                         light.attenuationType,
+                         light.attenuationFactor)
+
+            # light emittance colors
+            for mode, color in light.values.items():
+                GL.glLightfv(enumLight,
+                             mode,
+                             nullColor if color is None else color)
+
+            # additional settings if we're using a spotlight type
+            if isinstance(light, SpotLight):
+                GL.glLightfv(enumLight,
+                             GL.GL_SPOT_DIRECTION,
+                             light.spotDirection)
+                GL.glLightfv(enumLight, GL.GL_SPOT_CUTOFF, light.spotCutoff)
+                GL.glLightfv(enumLight, GL.GL_SPOT_EXPONENT, light.spotExponent)
+
+            GL.glEnable(enumLight)
+
+        GL.glEnable(GL.GL_LIGHTING)
+    else:
+        for enumLight in range(maxLights):
+            GL.glDisable(GL.GL_LIGHT0 + enumLight)
+        GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, nullColor)
+        GL.glDisable(GL.GL_LIGHTING)
+
+
+def setSceneAmbient(color):
+    """Set the global ambient lighting for the scene when lighting is enabled.
+    This is equivalent to GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, color).
+
+    Parameters
+    ----------
+    color : :obj:`tuple`
+        Ambient lighting RGBA intensity for the whole scene.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    If unset, the default value is (0.2, 0.2, 0.2, 1.0) when GL_LIGHTING is
+    enabled.
+
+    """
+    GL.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, (GL.GLfloat * 4)(*color))
 
 
 # -----------------------------
