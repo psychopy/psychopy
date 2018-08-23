@@ -735,18 +735,18 @@ def drawVertexbuffers(vertexBuffer,
     ----------
     vertexBuffer : :obj:`Vertexbuffer`
         Vertex buffer descriptor, must have 'bufferType' as GL_VERTEX_ARRAY.
-    textureCoordBuffer : :obj:`Vertexbuffer` or None (optional)
+    textureCoordBuffer : :obj:`Vertexbuffer` or None, optional
         Vertex buffer descriptor of texture coordinates, must have 'bufferType'
         as GL_TEXTURE_COORD_ARRAY.
-    normalBuffer : :obj:`Vertexbuffer` or None (optional)
+    normalBuffer : :obj:`Vertexbuffer` or None, optional
         Vertex buffer descriptor of normals, must have 'bufferType' as
         GL_NORMAL_ARRAY.
-    colorBuffer :obj:`Vertexbuffer` or None (optional)
+    colorBuffer :obj:`Vertexbuffer` or None, optional
         Vertex buffer descriptor of colors, must have 'bufferType' as
         GL_COLOR_ARRAY.
-    mode : :obj:`int`
+    mode : :obj:`int`, optional
         Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
-    flush : :obj:`bool`
+    flush : :obj:`bool`, optional
         Flush queued drawing commands before returning.
 
     Returns
@@ -859,13 +859,14 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
 
     Parameters
     ----------
-    values : :obj:`list` of :obj:`tuple`
+    values : :obj:`list` of :obj:`tuple`, optional
         List of material modes and values. Each mode is assigned a value as
         (mode, color). Modes can be GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR,
         GL_EMISSION, GL_SHININESS or GL_AMBIENT_AND_DIFFUSE. Colors must be
         a tuple of 4 floats which specify reflectance values for each RGBA
-        component. The value of GL_SHININESS should be a single float.
-    face : :obj:`int`
+        component. The value of GL_SHININESS should be a single float. If no
+        values are specified, an empty material will be created.
+    face : :obj:`int`, optional
         Faces to apply material to. Values can be GL_FRONT_AND_BACK, GL_FRONT
         and GL_BACK. The default is GL_FRONT_AND_BACK.
 
@@ -884,19 +885,32 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
         (GL.GL_AMBIENT, (0.24725, 0.19950, 0.07450, 1.0)),
         (GL.GL_DIFFUSE, (0.75164, 0.60648, 0.22648, 1.0)),
         (GL.GL_SPECULAR, (0.628281, 0.555802, 0.366065, 1.0))
-        (GL.GL_SHININESS, 0.4)])
+        (GL.GL_SHININESS, 0.4 * 128.0)])
 
     # use the material when drawing
     useMaterial(gold)
     drawVertexbuffers( ... )  # all meshes will be gold
     useMaterial(None)  # turn off material when done
 
+    # create a red plastic material, but define reflectance and shine later
+    red_plastic = createMaterial()
+
+    # you need to convert values to ctypes!
+    red_plastic.values[GL_AMBIENT] = (GLfloat * 4)(0.0, 0.0, 0.0, 1.0)
+    red_plastic.values[GL_DIFFUSE] = (GLfloat * 4)(0.5, 0.0, 0.0, 1.0)
+    red_plastic.values[GL_SPECULAR] = (GLfloat * 4)(0.7, 0.6, 0.6, 1.0)
+    red_plastic.values[GL_SHININESS] = 0.25 * 128.0
+
+    # set and draw
+    useMaterial(red_plastic)
+    drawVertexbuffers( ... )  # all meshes will be red plastic
+    useMaterial(None)
+
     """
     matDesc = Material(face, dict(), dict())
 
     # setup material mode/value slots
-    matDesc.values = {
-        mode: None for mode in (
+    matDesc.values = {mode: None for mode in (
         GL.GL_AMBIENT,
         GL.GL_DIFFUSE,
         GL.GL_SPECULAR,
@@ -929,8 +943,19 @@ def useMaterial(material):
 
     Notes
     -----
-    If a material mode has a value of None, a color with all components 0.0 will
-    be assigned.
+    1.  If a material mode has a value of None, a color with all components 0.0
+        will be assigned.
+    2.  Material colors and shininess values are accessible from shader programs
+        after calling 'useMaterial'. Values can be accessed via built-in
+        'gl_FrontMaterial' and 'gl_BackMaterial' structures (e.g.
+        gl_FrontMaterial.diffuse).
+
+    Examples
+    --------
+    # use the material when drawing
+    useMaterial(matDesc)
+    drawVertexbuffers( ... )  # all meshes will be gold
+    useMaterial(None)  # turn off material when done
 
     """
     nullColor = (GL.GLfloat * 4)(0.0, 0.0, 0.0, 0.0)
