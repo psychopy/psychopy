@@ -640,7 +640,7 @@ def deleteTexture(texture):
 # ---------------------------
 
 
-Vertexbuffer = namedtuple(
+VertexBufferObject = namedtuple(
     'Vertexbuffer',
     ['id',
      'vertexSize',
@@ -652,8 +652,15 @@ Vertexbuffer = namedtuple(
      'userData']
 )
 
+VertexArrayObject = namedtuple(
+    'VertexArray',
+    ['id',
+     'indices',
+     'userData']
+)
 
-def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
+
+def createVertexBuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     """Create a static, single-storage Vertex Buffer Object (VBO).
 
     Parameters
@@ -668,7 +675,7 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
 
     Returns
     -------
-    Vertexbuffer
+    VertexBufferObject
         A descriptor with vertex buffer information.
 
     Notes
@@ -703,14 +710,14 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     GL.glGenBuffers(1, ctypes.byref(vboId))
 
     # new vertex descriptor
-    vboDesc = Vertexbuffer(vboId,
-                           vertexSize,
-                           count,
-                           int(count / vertexSize),
-                           GL.GL_STATIC_DRAW,
-                           bufferType,
-                           GL.GL_FLOAT,  # always float
-                           dict())
+    vboDesc = VertexBufferObject(vboId,
+                                 vertexSize,
+                                 count,
+                                 int(count / vertexSize),
+                                 GL.GL_STATIC_DRAW,
+                                 bufferType,
+                                 GL.GL_FLOAT,  # always float
+                                 dict())
 
     # bind and upload
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
@@ -723,61 +730,47 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     return vboDesc
 
 
-def drawVertexbuffers(vertexBuffer,
+def createVertexArray(vertexBuffer,
                       textureCoordBuffer=None,
                       normalBuffer=None,
-                      colorBuffer=None,
-                      mode=GL.GL_TRIANGLES,
-                      flush=True):
-    """Draw a vertex buffer using glDrawArrays. This method does not require
-    shaders.
+                      colorBuffer=None):
+    """Create a Vertex Array Object (VAO) with specified Vertex Buffer Objects.
+    VAOs store buffer binding states, reducing binding overhead when drawing
+    objects.
 
     Parameters
     ----------
-    vertexBuffer : :obj:`Vertexbuffer`
+    vertexBuffer : :obj:`VertexBufferObject`
         Vertex buffer descriptor, must have 'bufferType' as GL_VERTEX_ARRAY.
-    textureCoordBuffer : :obj:`Vertexbuffer` or None, optional
+    textureCoordBuffer : :obj:`VertexBufferObject` or None, optional
         Vertex buffer descriptor of texture coordinates, must have 'bufferType'
         as GL_TEXTURE_COORD_ARRAY.
-    normalBuffer : :obj:`Vertexbuffer` or None, optional
+    normalBuffer : :obj:`VertexBufferObject` or None, optional
         Vertex buffer descriptor of normals, must have 'bufferType' as
         GL_NORMAL_ARRAY.
-    colorBuffer :obj:`Vertexbuffer` or None, optional
+    colorBuffer :obj:`VertexBufferObject` or None, optional
         Vertex buffer descriptor of colors, must have 'bufferType' as
         GL_COLOR_ARRAY.
-    mode : :obj:`int`, optional
-        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
-    flush : :obj:`bool`, optional
-        Flush queued drawing commands before returning.
 
     Returns
     -------
-    None
-
-    Notes
-    -----
-    All optional buffers must have the same number of indices as 'vertexBuffer'.
+    VertexArrayObject
+        A descriptor with vertex buffer information.
 
     Examples
     --------
-    # vertices of a triangle
-    verts = [ 1.0,  1.0, 0.0,   # v0
-              0.0, -1.0, 0.0,   # v1
-             -1.0,  1.0, 0.0]   # v2
+    # create a VAO
+    vaoDesc = createVertexArray(vboVerts, vboTexCoords, vboNormals)
 
-    # triangle vertex colors
-    colors = [1.0, 0.0, 0.0,  # v0
-              0.0, 1.0, 0.0,  # v1
-              0.0, 0.0, 1.0]  # v2
-
-    # load vertices to graphics device, return a descriptor
-    vertexBuffer = createVertexbuffer(verts, 3)
-    colorBuffer = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
-
-    # draw the VBO
-    drawVertexbuffers(vertexBuffer, colorBuffer=colorBuffer, GL.GL_TRIANGLES)
+    # draw the VAO, renders the mesh
+    drawVertexArrays(vaoDesc, GL.GL_TRIANGLES)
 
     """
+    # create a vertex buffer ID
+    vaoId = GL.GLuint()
+    GL.glGenVertexArrays(1, ctypes.byref(vaoId))
+    GL.glBindVertexArray(vaoId)
+
     # must have a vertex pointer
     assert vertexBuffer.bufferType == GL.GL_VERTEX_ARRAY
 
@@ -814,24 +807,49 @@ def drawVertexbuffers(vertexBuffer,
         GL.glColorPointer(colorBuffer.vertexSize, colorBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
 
+    GL.glBindVertexArray(0)
+
+    return VertexArrayObject(vaoId, vertexBuffer.indices, dict())
+
+
+def drawVertexArrays(vao, mode=GL.GL_TRIANGLES, flush=True):
+    """Draw a vertex array using glDrawArrays. This method does not require
+    shaders.
+
+    Parameters
+    ----------
+    vao : :obj:`VertexArrayObject`
+        Vertex Array Object (VAO) to draw.
+    mode : :obj:`int`, optional
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
+    flush : :obj:`bool`, optional
+        Flush queued drawing commands before returning.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    # create a VAO
+    vaoDesc = createVertexArray(vboVerts, vboTexCoords, vboNormals)
+
+    # draw the VAO, renders the mesh
+    drawVertexArrays(vaoDesc, GL.GL_TRIANGLES)
+
+    """
     # draw the array
-    GL.glDrawArrays(mode, 0, vertexBuffer.indices)
+    GL.glBindVertexArray(vao.id)
+    GL.glDrawArrays(mode, 0, vao.indices)
 
     if flush:
         GL.glFlush()
 
     # reset
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
-    GL.glDisableClientState(vertexBuffer.bufferType)
-    if textureCoordBuffer is not None:
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-    if normalBuffer is not None:
-        GL.glDisableClientState(GL.GL_NORMAL_ARRAY)
-    if colorBuffer is not None:
-        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
+    GL.glBindVertexArray(0)
 
 
-def deleteVertexbuffer(vbo):
+def deleteVertexBuffer(vbo):
     """Delete a vertex buffer.
 
     Returns
@@ -840,6 +858,17 @@ def deleteVertexbuffer(vbo):
 
     """
     GL.glDeleteBuffers(1, vbo.id)
+
+
+def deleteVertexArray(vao):
+    """Delete a vertex array.
+
+    Returns
+    -------
+    :obj:`None'
+
+    """
+    GL.glDeleteVertexArrays(1, vao.id)
 
 
 # -------------------------
@@ -991,7 +1020,7 @@ def createLight(params=()):
         GL.GL_CONSTANT_ATTENUATION,
         GL.GL_LINEAR_ATTENUATION,
         GL.GL_QUADRATIC_ATTENUATION)},
-        dict())
+                      dict())
 
     # configure lights
     if params:
