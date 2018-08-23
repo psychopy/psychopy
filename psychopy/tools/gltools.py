@@ -850,15 +850,15 @@ def deleteVertexbuffer(vbo):
 # datatypes simplify the creation of materials for rendering stimuli.
 #
 
-Material = namedtuple('Material', ['face', 'values', 'userData'])
+Material = namedtuple('Material', ['face', 'params', 'userData'])
 
 
-def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
+def createMaterial(params=(), face=GL.GL_FRONT_AND_BACK):
     """Create a new material.
 
     Parameters
     ----------
-    values : :obj:`list` of :obj:`tuple`, optional
+    params : :obj:`list` of :obj:`tuple`, optional
         List of material modes and values. Each mode is assigned a value as
         (mode, color). Modes can be GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR,
         GL_EMISSION, GL_SHININESS or GL_AMBIENT_AND_DIFFUSE. Colors must be
@@ -914,12 +914,11 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
         GL.GL_EMISSION,
         GL.GL_SHININESS,
         GL.GL_AMBIENT_AND_DIFFUSE)}, dict())
-
-    if values:
-        for mode, val in values:
-            matDesc.values[mode] = \
-                (GL.GLfloat * 4)(*val) \
-                    if mode != GL.GL_SHININESS else GL.GLfloat(val)
+    if params:
+        for mode, param in params:
+            matDesc.params[mode] = \
+                (GL.GLfloat * 4)(*param) \
+                    if mode != GL.GL_SHININESS else GL.GLfloat(param)
 
     return matDesc
 
@@ -958,9 +957,9 @@ def useMaterial(material):
 
     if material:
         GL.glEnable(GL.GL_COLOR_MATERIAL)
-        for mode, value in material.colors.items():
-            if value is not None:
-                GL.glMaterialfv(material.face, mode, value)
+        for mode, param in material.params.items():
+            if param is not None:
+                GL.glMaterialfv(material.face, mode, param)
             else:
                 GL.glMaterialfv(
                     material.face, mode,
