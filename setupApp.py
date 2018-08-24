@@ -8,6 +8,9 @@ import sys
 from sys import platform
 from distutils.core import setup
 from pkg_resources import parse_version
+import versioneer
+
+version = versioneer.get_version()
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
@@ -17,7 +20,6 @@ except:
     writeNewInit=False
 if writeNewInit:
     vStr = createInitFile.createInitFile(dist='bdist')
-    exec(vStr)#create variables __version__, __author__ etc
 
 #define the extensions to compile if necess
 packageData = []
@@ -75,9 +77,9 @@ packages = ['wx', 'psychopy',
             'PIL',  # 'Image',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
-            'pkg_resources', #needed for objc
+            'pkg_resources',  # needed for objc
             'pyolib',
-            'requests', 'certifi', 'cryptography', # for up/downloading to servers
+            'requests', 'certifi', 'cryptography',
             'pyosf',
             # for unit testing
             'coverage',
@@ -124,8 +126,8 @@ setup(
             plist=dict(
                   CFBundleIconFile='psychopy.icns',
                   CFBundleName               = "PsychoPy3",
-                  CFBundleShortVersionString = __version__,  # must be in X.X.X format
-                  CFBundleGetInfoString      = "PsychoPy3 "+__version__,
+                  CFBundleShortVersionString = version,  # must be in X.X.X format
+                  CFBundleGetInfoString      = "PsychoPy3 "+version,
                   CFBundleExecutable         = "PsychoPy3",
                   CFBundleIdentifier         = "org.psychopy.PsychoPy3",
                   CFBundleLicense            = "GNU GPLv3+",
