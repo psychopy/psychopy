@@ -94,7 +94,7 @@ packages = ['wx', 'psychopy',
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
-            'astunparse',
+            'astunparse', 'esprima',  # for translating/adapting py/JS
             ]
 
 if sys.version_info.major >= 3:

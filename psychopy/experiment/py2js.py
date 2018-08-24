@@ -11,6 +11,7 @@ to JS (ES6/PsychoJS)
 
 import ast
 import astunparse
+import esprima
 from psychopy.constants import PY3
 if PY3:
     from io import StringIO
@@ -83,6 +84,70 @@ def snippet2js(expr):
     # most code (e.g. if... for... will certainly fail)
     # do nothing for now
     return expr
+
+
+import sys
+import esprima
+
+
+def findUndeclaredVariables(ast):
+    """Detect undeclared variables
+    """
+    undeclaredVariables = []
+
+    for expression in ast:
+        if expression.type == 'ExpressionStatement':
+            expression = expression.expression
+            if expression.type == 'AssignmentExpression' and expression.operator == '=' and expression.left.type == 'Identifier':
+                undeclaredVariables.append(expression.left.name)
+
+        elif expression.type == 'IfStatement':
+            if expression.consequent.body is None:
+                consequentVariables = findUndeclaredVariables(
+                        [expression.consequent])
+            else:
+                consequentVariables = findUndeclaredVariables(
+                    expression.consequent.body)
+            undeclaredVariables.extend(consequentVariables)
+
+    return undeclaredVariables
+
+
+def addVariableDeclarations(inputProgram):
+    """Transform the input program by adding just before each function
+    a declaration for its undeclared variables
+    """
+
+    # parse Javascript code into abstract syntax tree:
+    # note: we use esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
+    ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
+
+    # find undeclared variables in functions and declare them just before the function:
+    outputProgram = inputProgram
+    offset = 0
+    allUndeclaredVariables = []
+
+    for expression in ast.body:
+        if expression.type == 'FunctionDeclaration':
+            # find all undeclared variables:
+            undeclaredVariables = findUndeclaredVariables(expression.body.body)
+
+            # remove those we have already declared:
+            newUndeclaredVariables = [variable for variable in
+                                      undeclaredVariables if
+                                      variable not in allUndeclaredVariables]
+            allUndeclaredVariables.extend(newUndeclaredVariables)
+
+            # add declarations (var) just before the function:
+            declaration = '\n'.join(['var ' + variable + ';' for variable in
+                                     newUndeclaredVariables]) + '\n'
+            startIndex = expression.range[0] + offset
+            outputProgram = outputProgram[
+                            :startIndex] + declaration + outputProgram[
+                                                         startIndex:]
+            offset += len(declaration)
+
+    return outputProgram
 
 
 if __name__=='__main__':

@@ -48,7 +48,7 @@ def compileScript(infile=None, version=None, outfile=None):
     outfile.replace('.py', targetOutput[-2:].lower())
     # Output script to file
     with codecs.open(outfile, 'w', 'utf-8') as f:
-        f.write(script.getvalue())
+        f.write(script)
     f.close()
 
 if __name__ == "__main__":

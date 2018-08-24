@@ -129,9 +129,8 @@ class TestExpt(object):
         assert not self.exp.namespace.getCollisions() # ... without duplicates
 
         # generate a script, like 'lastrun.py':
-        buff = self.exp.writeScript() # is a StringIO object
-        script = buff.getvalue()
-        assert len(script) > 1500 # default empty script is ~2200 chars
+        script = self.exp.writeScript()
+        assert len(script) > 1500  # default empty script is ~2200 chars
 
         # save the script:
         f = codecs.open(py_file, 'w', 'utf-8')
@@ -140,7 +139,8 @@ class TestExpt(object):
         return py_file, psyexp_file
 
     def _checkCompile(self, py_file):
-        # compile the temp file to .pyc, catching error msgs (including no file at all):
+        # compile the temp file to .pyc, catching error msgs
+        # (including no file at all):
         py_compile.compile(py_file, doraise=True)
         return py_file + 'c'
 
@@ -263,11 +263,12 @@ class TestExpt(object):
         """
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'futureParams.psyexp')
         self.exp.loadFromXML(expfile) # reload the edited file
-        script = self.exp.writeScript(expPath=expfile) #we don't test this script but make sure it builds
+        # we don't test this script but make sure it builds
+        script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
         # save the script:
         f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.getvalue())
+        f.write(script)
         f.close()
         #check that files compiles too
         self._checkCompile(py_file)
@@ -288,7 +289,7 @@ class TestExpt(object):
         py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
         # save it
         f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.getvalue().replace("core.quit()", "pass"))
+        f.write(script.replace("core.quit()", "pass"))
         f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
         f.close()
         #run the file (and make sure we return to this location afterwards)
@@ -333,7 +334,7 @@ class TestExpt(object):
         script = self.exp.writeScript(expPath=file)
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
-        text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
+        text = script.replace('fullscr=False,','pos=(40,40), fullscr=False,')
         f = codecs.open(lastrun, 'w', 'utf-8')
         f.write(text)
         f.close()
