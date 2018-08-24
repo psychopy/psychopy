@@ -9,7 +9,9 @@ from setuptools.config import read_configuration
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
 # import versioneer
-
+# get version from file
+with open('version') as f:
+    version = f.read().strip()
 
 def createInitFile(dist=None, version=None, sha=None):
     """Create psychopy/__init__.py
@@ -32,7 +34,8 @@ def createInitFile(dist=None, version=None, sha=None):
     platformStr = _getPlatformString(dist)
 
     metadata = read_configuration('setup.cfg')['metadata']
-    infoDict = {'author': metadata['author'],
+    infoDict = {'version': version,
+                'author': metadata['author'],
                 'author_email': metadata['author_email'],
                 'maintainer_email': metadata['maintainer_email'],
                 'url': metadata['url'],
@@ -63,11 +66,7 @@ template = """#!/usr/bin/env python
 import os
 import sys
 
-# version info for PsychoPy
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
+__version__ = '{version}'
 __license__ = '{license}'
 __author__ = '{author}'
 __author_email__ = '{author_email}'
