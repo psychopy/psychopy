@@ -31,7 +31,7 @@ Framebuffer = namedtuple(
 )
 
 
-def createFramebuffer(attachments=()):
+def createFBO(attachments=()):
     """Create a Framebuffer Object.
 
     Parameters
@@ -64,7 +64,7 @@ def createFramebuffer(attachments=()):
     Examples
     --------
     # empty framebuffer with no attachments
-    fbo = createFramebuffer()  # invalid until attachments are added
+    fbo = createFBO()  # invalid until attachments are added
 
     # create a render target with multiple color texture attachments
     colorTex = createTexImage2D(1024,1024)  # empty texture
@@ -72,17 +72,17 @@ def createFramebuffer(attachments=()):
 
     # attach images
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
-    framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
-    framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
-    # or framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+    attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+    # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
     # above is the same as
-    with framebufferBindingContext(fbo):
-        framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        framebufferAttachment(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        framebufferAttachment(GL.GL_STENCIL_ATTACHMENT, depthRb)
+    with useFBO(fbo):
+        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
 
     # examples of userData some custom function might access
     fbo.userData['flags'] = ['left_eye', 'clear_before_use']
@@ -93,10 +93,10 @@ def createFramebuffer(attachments=()):
     depthTex = createTexImage2D(800, 600,
                                 internalFormat=GL.GL_DEPTH_COMPONENT24,
                                 pixelFormat=GL.GL_DEPTH_COMPONENT)
-    fbo = createFramebuffer([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
+    fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])  # is valid
 
     # discard FBO descriptor, just give me the ID
-    frameBuffer = createFramebuffer().id
+    frameBuffer = createFBO().id
 
     """
     fboId = GL.GLuint()
@@ -107,14 +107,14 @@ def createFramebuffer(attachments=()):
 
     # initial attachments for this framebuffer
     if attachments:
-        with framebufferBindingContext(fboDesc):
+        with useFBO(fboDesc):
             for attachPoint, imageBuffer in attachments:
-                framebufferAttachment(attachPoint, imageBuffer)
+                attach(attachPoint, imageBuffer)
 
     return fboDesc
 
 
-def framebufferAttachment(attachPoint, imageBuffer):
+def attach(attachPoint, imageBuffer):
     """Attach an image to a specified attachment point on the presently bound
     FBO.
 
@@ -133,14 +133,14 @@ def framebufferAttachment(attachPoint, imageBuffer):
     --------
     # with descriptors colorTex and depthRb
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
-    framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
 
     # same as above, but using a context manager
-    with framebufferBindingContext(fbo):
-        framebufferAttachment(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        framebufferAttachment(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    with useFBO(fbo):
+        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
     # We should also support binding GL names specified as integers. Right now
@@ -160,7 +160,7 @@ def framebufferAttachment(attachPoint, imageBuffer):
             imageBuffer.id)
 
 
-def framebufferIsComplete():
+def isComplete():
     """Check if the currently bound framebuffer is complete.
 
     Returns
@@ -172,7 +172,7 @@ def framebufferIsComplete():
            GL.GL_FRAMEBUFFER_COMPLETE
 
 
-def deleteFramebuffer(fbo):
+def deleteFBO(fbo):
     """Delete a framebuffer.
 
     Returns
@@ -184,7 +184,7 @@ def deleteFramebuffer(fbo):
         1, fbo.id if isinstance(fbo, Framebuffer) else int(fbo))
 
 
-def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
+def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     """Copy a block of pixels between framebuffers via blitting. Read and draw
     framebuffers must be bound prior to calling this function. Beware, the
     scissor box and viewport are changed when this is called to dstRect.
@@ -214,7 +214,7 @@ def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
     # bind framebuffer to draw pixels to
     GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
 
-    gltools.blitFramebuffer((0,0,800,600), (0,0,800,600))
+    gltools.blitFBO((0,0,800,600), (0,0,800,600))
 
     # unbind both read and draw buffers
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -236,7 +236,7 @@ def blitFramebuffer(srcRect, dstRect=None, filter=GL.GL_LINEAR):
 
 
 @contextmanager
-def framebufferBindingContext(fbo):
+def useFBO(fbo):
     """Context manager for Framebuffer Object bindings. This function yields
     the framebuffer name as an integer.
 
@@ -262,14 +262,14 @@ def framebufferBindingContext(fbo):
     ...
 
     # create a new FBO, but we have no idea what the currently bound FBO is
-    fbo = createFramebuffer()
+    fbo = createFBO()
 
     # use a context to bind attachments
     with bindFBO(fbo):
-        attachFrambufferImage(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attachFrambufferImage(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attachFrambufferImage(GL.GL_STENCIL_ATTACHMENT, depthRb)
-        isComplete = gltools.checkFramebufferComplete())
+        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        isComplete = gltools.isComplete()
 
     # someOtherFBO is still bound!
 
@@ -640,7 +640,7 @@ def deleteTexture(texture):
 # ---------------------------
 
 
-Vertexbuffer = namedtuple(
+VertexBufferObject = namedtuple(
     'Vertexbuffer',
     ['id',
      'vertexSize',
@@ -652,9 +652,17 @@ Vertexbuffer = namedtuple(
      'userData']
 )
 
+VertexArrayObject = namedtuple(
+    'VertexArray',
+    ['id',
+     'indices',
+     'userData']
+)
 
-def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
-    """Create a static, single-storage Vertex Buffer Object (VBO).
+
+def createVBO(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
+    """Create a static, single-storage array buffer, often referred to as Vertex
+    Buffer Object (VBO).
 
     Parameters
     ----------
@@ -668,7 +676,7 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
 
     Returns
     -------
-    Vertexbuffer
+    VertexBufferObject
         A descriptor with vertex buffer information.
 
     Notes
@@ -684,7 +692,7 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
              -1.0,  1.0, 0.0]   # v2
 
     # load vertices to graphics device, return a descriptor
-    vboDesc = createVertexbuffer(verts, 3)
+    vboDesc = createVBO(verts, 3)
 
     # draw
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboDesc.id)
@@ -703,13 +711,14 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     GL.glGenBuffers(1, ctypes.byref(vboId))
 
     # new vertex descriptor
-    vboDesc = Vertexbuffer(vboId,
-                           vertexSize,
-                           count,
-                           int(count / vertexSize),
-                           GL.GL_STATIC_DRAW,
-                           bufferType,
-                           GL.GL_FLOAT)  # always float
+    vboDesc = VertexBufferObject(vboId,
+                                 vertexSize,
+                                 count,
+                                 int(count / vertexSize),
+                                 GL.GL_STATIC_DRAW,
+                                 bufferType,
+                                 GL.GL_FLOAT,  # always float
+                                 dict())
 
     # bind and upload
     GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vboId)
@@ -722,61 +731,47 @@ def createVertexbuffer(vertexData, vertexSize=3, bufferType=GL.GL_VERTEX_ARRAY):
     return vboDesc
 
 
-def drawVertexbuffers(vertexBuffer,
-                      textureCoordBuffer=None,
-                      normalBuffer=None,
-                      colorBuffer=None,
-                      mode=GL.GL_TRIANGLES,
-                      flush=True):
-    """Draw a vertex buffer using glDrawArrays. This method does not require
-    shaders.
+def createVAO(vertexBuffer,
+              textureCoordBuffer=None,
+              normalBuffer=None,
+              colorBuffer=None):
+    """Create a Vertex Array Object (VAO) with specified Vertex Buffer Objects.
+    VAOs store buffer binding states, reducing binding overhead when drawing
+    objects with vertext data stored in VBOs.
 
     Parameters
     ----------
-    vertexBuffer : :obj:`Vertexbuffer`
+    vertexBuffer : :obj:`VertexBufferObject`
         Vertex buffer descriptor, must have 'bufferType' as GL_VERTEX_ARRAY.
-    textureCoordBuffer : :obj:`Vertexbuffer` or None, optional
+    textureCoordBuffer : :obj:`VertexBufferObject` or None, optional
         Vertex buffer descriptor of texture coordinates, must have 'bufferType'
         as GL_TEXTURE_COORD_ARRAY.
-    normalBuffer : :obj:`Vertexbuffer` or None, optional
+    normalBuffer : :obj:`VertexBufferObject` or None, optional
         Vertex buffer descriptor of normals, must have 'bufferType' as
         GL_NORMAL_ARRAY.
-    colorBuffer :obj:`Vertexbuffer` or None, optional
+    colorBuffer :obj:`VertexBufferObject` or None, optional
         Vertex buffer descriptor of colors, must have 'bufferType' as
         GL_COLOR_ARRAY.
-    mode : :obj:`int`, optional
-        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
-    flush : :obj:`bool`, optional
-        Flush queued drawing commands before returning.
 
     Returns
     -------
-    None
-
-    Notes
-    -----
-    All optional buffers must have the same number of indices as 'vertexBuffer'.
+    VertexArrayObject
+        A descriptor with vertex buffer information.
 
     Examples
     --------
-    # vertices of a triangle
-    verts = [ 1.0,  1.0, 0.0,   # v0
-              0.0, -1.0, 0.0,   # v1
-             -1.0,  1.0, 0.0]   # v2
+    # create a VAO
+    vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
 
-    # triangle vertex colors
-    colors = [1.0, 0.0, 0.0,  # v0
-              0.0, 1.0, 0.0,  # v1
-              0.0, 0.0, 1.0]  # v2
-
-    # load vertices to graphics device, return a descriptor
-    vertexBuffer = createVertexbuffer(verts, 3)
-    colorBuffer = createVertexbuffer(c, 3, GL.GL_COLOR_ARRAY)
-
-    # draw the VBO
-    drawVertexbuffers(vertexBuffer, colorBuffer=colorBuffer, GL.GL_TRIANGLES)
+    # draw the VAO, renders the mesh
+    drawVAO(vaoDesc, GL.GL_TRIANGLES)
 
     """
+    # create a vertex buffer ID
+    vaoId = GL.GLuint()
+    GL.glGenVertexArrays(1, ctypes.byref(vaoId))
+    GL.glBindVertexArray(vaoId)
+
     # must have a vertex pointer
     assert vertexBuffer.bufferType == GL.GL_VERTEX_ARRAY
 
@@ -791,7 +786,8 @@ def drawVertexbuffers(vertexBuffer,
             raise RuntimeError(
                 "Texture and vertex buffer indices do not match!")
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, textureCoordBuffer.id)
-        GL.glTexCoordPointer(textureCoordBuffer.dtype, 0, None)
+        GL.glTexCoordPointer(textureCoordBuffer.vertexSize,
+                             textureCoordBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
     # normals
@@ -812,25 +808,50 @@ def drawVertexbuffers(vertexBuffer,
         GL.glColorPointer(colorBuffer.vertexSize, colorBuffer.dtype, 0, None)
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
 
+    GL.glBindVertexArray(0)
+
+    return VertexArrayObject(vaoId, vertexBuffer.indices, dict())
+
+
+def drawVAO(vao, mode=GL.GL_TRIANGLES, flush=True):
+    """Draw a vertex array using glDrawArrays. This method does not require
+    shaders.
+
+    Parameters
+    ----------
+    vao : :obj:`VertexArrayObject`
+        Vertex Array Object (VAO) to draw.
+    mode : :obj:`int`, optional
+        Drawing mode to use (e.g. GL_TRIANGLES, GL_QUADS, GL_POINTS, etc.)
+    flush : :obj:`bool`, optional
+        Flush queued drawing commands before returning.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    # create a VAO
+    vaoDesc = createVAO(vboVerts, vboTexCoords, vboNormals)
+
+    # draw the VAO, renders the mesh
+    drawVAO(vaoDesc, GL.GL_TRIANGLES)
+
+    """
     # draw the array
-    GL.glDrawArrays(mode, 0, vertexBuffer.indices)
+    GL.glBindVertexArray(vao.id)
+    GL.glDrawArrays(mode, 0, vao.indices)
 
     if flush:
         GL.glFlush()
 
     # reset
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
-    GL.glDisableClientState(vertexBuffer.bufferType)
-    if textureCoordBuffer is not None:
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-    if normalBuffer is not None:
-        GL.glDisableClientState(GL.GL_NORMAL_ARRAY)
-    if colorBuffer is not None:
-        GL.glDisableClientState(GL.GL_COLOR_ARRAY)
+    GL.glBindVertexArray(0)
 
 
-def deleteVertexbuffer(vbo):
-    """Delete a vertex buffer.
+def deleteVBO(vbo):
+    """Delete a Vertex Buffer Object (VBO).
 
     Returns
     -------
@@ -838,6 +859,18 @@ def deleteVertexbuffer(vbo):
 
     """
     GL.glDeleteBuffers(1, vbo.id)
+
+
+def deleteVAO(vao):
+    """Delete a Vertex Array Object (VAO). This does not delete array buffers
+    bound to the VAO.
+
+    Returns
+    -------
+    :obj:`None'
+
+    """
+    GL.glDeleteVertexArrays(1, vao.id)
 
 
 # -------------------------
@@ -848,15 +881,15 @@ def deleteVertexbuffer(vbo):
 # datatypes simplify the creation of materials for rendering stimuli.
 #
 
-Material = namedtuple('Material', ['face', 'values', 'userData'])
+Material = namedtuple('Material', ['face', 'params', 'userData'])
 
 
-def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
+def createMaterial(params=(), face=GL.GL_FRONT_AND_BACK):
     """Create a new material.
 
     Parameters
     ----------
-    values : :obj:`list` of :obj:`tuple`, optional
+    params : :obj:`list` of :obj:`tuple`, optional
         List of material modes and values. Each mode is assigned a value as
         (mode, color). Modes can be GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR,
         GL_EMISSION, GL_SHININESS or GL_AMBIENT_AND_DIFFUSE. Colors must be
@@ -904,22 +937,19 @@ def createMaterial(values=(), face=GL.GL_FRONT_AND_BACK):
     useMaterial(None)
 
     """
-    matDesc = Material(face, dict(), dict())
-
     # setup material mode/value slots
-    matDesc.values = {mode: None for mode in (
+    matDesc = Material(face, {mode: None for mode in (
         GL.GL_AMBIENT,
         GL.GL_DIFFUSE,
         GL.GL_SPECULAR,
         GL.GL_EMISSION,
         GL.GL_SHININESS,
-        GL.GL_AMBIENT_AND_DIFFUSE)}
-
-    if values:
-        for mode, val in values:
-            matDesc.values[mode] = \
-                (GL.GLfloat * 4)(*val) \
-                    if mode != GL.GL_SHININESS else GL.GLfloat(val)
+        GL.GL_AMBIENT_AND_DIFFUSE)}, dict())
+    if params:
+        for mode, param in params:
+            matDesc.params[mode] = \
+                (GL.GLfloat * 4)(*param) \
+                    if mode != GL.GL_SHININESS else GL.GLfloat(param)
 
     return matDesc
 
@@ -958,9 +988,9 @@ def useMaterial(material):
 
     if material:
         GL.glEnable(GL.GL_COLOR_MATERIAL)
-        for mode, value in material.colors.items():
-            if value is not None:
-                GL.glMaterialfv(material.face, mode, value)
+        for mode, param in material.params.items():
+            if param is not None:
+                GL.glMaterialfv(material.face, mode, param)
             else:
                 GL.glMaterialfv(
                     material.face, mode,
@@ -973,17 +1003,15 @@ def useMaterial(material):
 # Lighting Helper Functions
 # -------------------------
 
-Light = namedtuple('Light', ['values', 'userData'])
+Light = namedtuple('Light', ['params', 'userData'])
 
 
-def createLight(values=()):
+def createLight(params=()):
     """Create a point light source.
 
     """
-    lightDesc = Light(dict(), dict())  # light descriptor
-
     # setup light mode/value slots
-    lightDesc.values = {mode: None for mode in (
+    lightDesc = Light({mode: None for mode in (
         GL.GL_AMBIENT,
         GL.GL_DIFFUSE,
         GL.GL_SPECULAR,
@@ -993,19 +1021,20 @@ def createLight(values=()):
         GL.GL_SPOT_EXPONENT,
         GL.GL_CONSTANT_ATTENUATION,
         GL.GL_LINEAR_ATTENUATION,
-        GL.GL_QUADRATIC_ATTENUATION)}
+        GL.GL_QUADRATIC_ATTENUATION)},
+                      dict())
 
     # configure lights
-    if values:
-        for mode, value in values:
+    if params:
+        for mode, value in params:
             if value is not None:
                 if mode in [GL.GL_AMBIENT, GL.GL_DIFFUSE, GL.GL_SPECULAR,
                             GL.GL_POSITION]:
-                    lightDesc.values[mode] = (GL.GLfloat * 4)(*value)
+                    lightDesc.params[mode] = (GL.GLfloat * 4)(*value)
                 elif mode == GL.GL_SPOT_DIRECTION:
-                    lightDesc.values[mode] = (GL.GLfloat * 3)(*value)
+                    lightDesc.params[mode] = (GL.GLfloat * 3)(*value)
                 else:
-                    lightDesc.values[mode] = GL.GLfloat(value)
+                    lightDesc.params[mode] = GL.GLfloat(value)
 
     return lightDesc
 
@@ -1016,7 +1045,7 @@ def useLights(lights, setupOnly=False):
 
     Parameters
     ----------
-    lights : :obj:`Light` or None
+    lights : :obj:`List` of :obj:`Light` or None
         Descriptor of a light source. If None, lighting is disabled.
     setupOnly : :obj:`bool`, optional
         Do not enable lighting or lights. Specify True if lighting is being
@@ -1031,10 +1060,12 @@ def useLights(lights, setupOnly=False):
         if len(lights) > getIntegerv(GL.GL_MAX_LIGHTS):
             raise IndexError("Number of lights specified > GL_MAX_LIGHTS.")
 
+        GL.glEnable(GL.GL_NORMALIZE)
+
         for index, light in enumerate(lights):
             enumLight = GL.GL_LIGHT0 + index
             # light properties
-            for mode, value in light.values.items():
+            for mode, value in light.params.items():
                 if value is not None:
                     GL.glLightfv(enumLight, mode, value)
 
@@ -1049,6 +1080,7 @@ def useLights(lights, setupOnly=False):
             for enumLight in range(getIntegerv(GL.GL_MAX_LIGHTS)):
                 GL.glDisable(GL.GL_LIGHT0 + enumLight)
 
+            GL.glDisable(GL.GL_NORMALIZE)
             GL.glDisable(GL.GL_LIGHTING)
 
 
