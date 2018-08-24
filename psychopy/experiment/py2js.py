@@ -13,10 +13,12 @@ import ast
 import astunparse
 import esprima
 from psychopy.constants import PY3
+
 if PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
+
 
 class NamesJS(dict):
     def __getitem__(self, name):
@@ -24,6 +26,7 @@ class NamesJS(dict):
             return dict.__getitem__(self, name)
         except:
             return "my.{}".format(name)
+
 
 namesJS = NamesJS()
 namesJS['sin'] = 'Math.sin'
@@ -46,6 +49,7 @@ class Unparser(astunparse.Unparser):
         self._indent = 0
         self.dispatch(tree)
         self.f.flush()
+
 
 def unparse(tree):
     v = StringIO()
@@ -86,11 +90,7 @@ def snippet2js(expr):
     return expr
 
 
-import sys
-import esprima
-
-
-def findUndeclaredVariables(ast):
+def findUndeclaredVariables(ast, allUndeclaredVariables):
     """Detect undeclared variables
     """
     undeclaredVariables = []
@@ -99,15 +99,18 @@ def findUndeclaredVariables(ast):
         if expression.type == 'ExpressionStatement':
             expression = expression.expression
             if expression.type == 'AssignmentExpression' and expression.operator == '=' and expression.left.type == 'Identifier':
-                undeclaredVariables.append(expression.left.name)
+                variableName = expression.left.name
+                if variableName not in allUndeclaredVariables:
+                    undeclaredVariables.append(variableName)
+                    allUndeclaredVariables.append(variableName)
 
         elif expression.type == 'IfStatement':
             if expression.consequent.body is None:
                 consequentVariables = findUndeclaredVariables(
-                        [expression.consequent])
+                        [expression.consequent], allUndeclaredVariables)
             else:
                 consequentVariables = findUndeclaredVariables(
-                    expression.consequent.body)
+                    expression.consequent.body, allUndeclaredVariables)
             undeclaredVariables.extend(consequentVariables)
 
     return undeclaredVariables
@@ -119,10 +122,10 @@ def addVariableDeclarations(inputProgram):
     """
 
     # parse Javascript code into abstract syntax tree:
-    # note: we use esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
+    # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
     ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
 
-    # find undeclared variables in functions and declare them just before the function:
+    # find undeclared vars in functions and declare them before the function
     outputProgram = inputProgram
     offset = 0
     allUndeclaredVariables = []
@@ -130,17 +133,12 @@ def addVariableDeclarations(inputProgram):
     for expression in ast.body:
         if expression.type == 'FunctionDeclaration':
             # find all undeclared variables:
-            undeclaredVariables = findUndeclaredVariables(expression.body.body)
-
-            # remove those we have already declared:
-            newUndeclaredVariables = [variable for variable in
-                                      undeclaredVariables if
-                                      variable not in allUndeclaredVariables]
-            allUndeclaredVariables.extend(newUndeclaredVariables)
+            undeclaredVariables = findUndeclaredVariables(expression.body.body,
+                                                          allUndeclaredVariables)
 
             # add declarations (var) just before the function:
             declaration = '\n'.join(['var ' + variable + ';' for variable in
-                                     newUndeclaredVariables]) + '\n'
+                                     undeclaredVariables]) + '\n'
             startIndex = expression.range[0] + offset
             outputProgram = outputProgram[
                             :startIndex] + declaration + outputProgram[
@@ -150,7 +148,7 @@ def addVariableDeclarations(inputProgram):
     return outputProgram
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     for expr in ['sin(t)', 't*5',
                  '(3, 4)', '(5*2)',  # tuple and not tuple
                  '(1,(2,3))', '2*(2, 3)']:  # combinations
