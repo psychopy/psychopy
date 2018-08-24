@@ -8,9 +8,9 @@ import sys
 from sys import platform
 from distutils.core import setup
 from pkg_resources import parse_version
-import versioneer
-
-version = versioneer.get_version()
+# import versioneer
+import psychopy
+version = psychopy.__version__
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:

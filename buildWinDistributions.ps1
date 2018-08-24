@@ -9,7 +9,9 @@ $names = @("PsychoPy3_PY2", "PsychoPy3", "PsychoPy3")
 $archs = @("win32", "win32", "win64")
 
 # get PsychoPy version from import
-$v = python -c 'import psychopy; print(psychopy.__version__)'
+# $v = python -c 'import psychopy; print(psychopy.__version__)'
+# read from the version file
+$v = [Io.File]::ReadAllText("C:\Users\lpzjwp\code\psychopy\git\version").Trim()
 
 for ($i=0; $i -lt $pyPaths.Length; $i++) {
     [console]::beep(440,300); [console]::beep(880,300)
