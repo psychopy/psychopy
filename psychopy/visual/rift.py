@@ -916,7 +916,10 @@ class Rift(window.Window):
                     ovr.capi.getEyeViewMatrix(self.eyePoses[eye])
         else:
             # view matrix derived from head position when in monoscopic mode
-            self._viewMatrix = ovr.capi.getEyeViewMatrix(self.headPose)
+            if self._headLocked:
+                self._viewMatrix = ovr.capi.getEyeViewMatrix(self.hmdOriginPose)
+            else:
+                self._viewMatrix = ovr.capi.getEyeViewMatrix(self.headPose)
 
         # get the poses for the touch controllers
         # NB - this does not work well when head locked, hands are not
