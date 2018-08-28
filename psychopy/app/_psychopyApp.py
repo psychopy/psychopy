@@ -588,7 +588,7 @@ class PsychoPyApp(wx.App):
                 dlg.GetColourData().SetChooseFull(True)
                 if dlg.ShowModal() == wx.ID_OK:
                     data = dlg.GetColourData()
-                    rgb = data.GetColour().Get()
+                    rgb = data.GetColour().Get(includeAlpha=False)
                     rgb = map(lambda x: "%.3f" %
                               ((x - 127.5) / 127.5), list(rgb))
                     rgb = '[' + ','.join(rgb) + ']'
