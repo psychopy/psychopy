@@ -10,16 +10,16 @@ from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
 from .... import ioDeviceError, Computer, Device
 from .....errors import print2err, printExceptionDetailsToStdErr
 
-from .....util import addDirectoryToPythonPath
-# Adds the included python 2.7 or 2.6 win32 pylabjack package to path
-addDirectoryToPythonPath('devices/daq/hw/labjack')
-import pylabjack
+try:
+    import u6
+except ImportError:
+    print("Attempting to use labjack but LabJack Python is not installed.")
 
 
 class AnalogInput(AnalogInputDevice):
     """The Labjack Implementation for the ioHub AnalogInput Device type."""
     _SUPPORTED_MODELS = dict()
-    _SUPPORTED_MODELS['U6'] = pylabjack.u6.U6
+    _SUPPORTED_MODELS['U6'] = u6.U6
 
     ANALOG_TO_DIGITAL_RANGE = 2**16
     ANALOG_RANGE = 22.0
