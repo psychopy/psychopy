@@ -950,6 +950,15 @@ class Rift(window.Window):
         else:
             return self._projectionMatrix
 
+    @property
+    def headLocked(self):
+        """Enable/disable head locking."""
+        return self._headLocked
+
+    @headLocked.setter
+    def headLocked(self, val):
+        self._headLocked = bool(val)
+
     def pollControllers(self):
         """Update all connected controller states. This should be called at
         least once per frame.
