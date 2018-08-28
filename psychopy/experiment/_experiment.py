@@ -146,8 +146,7 @@ class Experiment(object):
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-            self.settings.writeInitCodeJS(script,
-                                          self.psychopyVersion, localDateTime)
+            self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime)
             self.flow.writeFlowSchedulerJS(script)
             self.settings.writeExpSetupCodeJS(script)
 
@@ -164,9 +163,9 @@ class Experiment(object):
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
-                    "my.globalClock = new Clock();"
+                    "globalClock = new util.Clock();"
                     "  // to track the time since experiment started\n"
-                    "my.routineTimer = new CountdownTimer();"
+                    "routineTimer = new util.CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
                     "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)

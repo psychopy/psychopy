@@ -191,10 +191,10 @@ class BaseComponent(object):
             if (isinstance(self.params['startVal'].val, basestring) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
-            code = ("if (my.t >= %(startVal)s "
+            code = ("if (t >= %(startVal)s "
                     "&& %(name)s.status === PsychoJS.Status.NOT_STARTED) {\n")
         elif self.params['startType'].val == 'frame N':
-            code = ("if (my.frameN >= %(startVal)s "
+            code = ("if (frameN >= %(startVal)s "
                     "&& %(name)s.status === PsychoJS.Status.NOT_STARTED) {\n")
         elif self.params['startType'].val == 'condition':
             code = ("if ((%(startVal)s) "
@@ -207,8 +207,8 @@ class BaseComponent(object):
 
         buff.setIndentLevel(+1, relative=True)
         code = ("// keep track of start time/frame for later\n"
-                "%(name)s.tStart = my.t;  // (not accounting for frame time here)\n"
-                "%(name)s.frameNStart = my.frameN;  // exact frame index\n")
+                "%(name)s.tStart = t;  // (not accounting for frame time here)\n"
+                "%(name)s.frameNStart = frameN;  // exact frame index\n")
         buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCode(self, buff):
@@ -249,29 +249,29 @@ class BaseComponent(object):
         """Test whether we need to stop
         """
         if self.params['stopType'].val == 'time (s)':
-            code = ("my.frameRemains = %(stopVal)s "
-                    " - my.window.monitorFramePeriod * 0.75;"
+            code = ("frameRemains = %(stopVal)s "
+                    " - psychoJS.window.monitorFramePeriod * 0.75;"
                     "  // most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& my.t >= my.frameRemains) {\n")
+                    "&& t >= frameRemains) {\n")
         # duration in time (s)
         elif (self.params['stopType'].val == 'duration (s)' and
               self.params['startType'].val == 'time (s)'):
-            code = ("my.frameRemains = %(startVal)s + %(stopVal)s"
-                    " - my.window.monitorFramePeriod * 0.75;"
+            code = ("frameRemains = %(startVal)s + %(stopVal)s"
+                    " - psychoJS.window.monitorFramePeriod * 0.75;"
                     "  // most of one frame period left\n"
                     "if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& my.t >= my.frameRemains) {\n")
+                    "&& t >= frameRemains) {\n")
         # start at frame and end with duratio (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& my.t >= (%(name)s.tStart + %(stopVal)s)) {\n")
+                    "&& t >= (%(name)s.tStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'duration (frames)':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& my.frameN >= (%(name)s.frameNStart + %(stopVal)s)) {\n")
+                    "&& frameN >= (%(name)s.frameNStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'frame N':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
-                    "&& my.frameN >= %(stopVal)s) {\n")
+                    "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
             code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
                     "&& bool(%(stopVal)s)) {\n")
@@ -341,7 +341,7 @@ class BaseComponent(object):
                 valStr = valStr[::-1].replace(")", "]", 1)[::-1]  # replace from right
             # filenames (e.g. for image) need to be loaded from resources
             if paramName in ["sound"]:
-                valStr = ("psychoJS.resourceManager.getResource(my.{})".format(valStr))
+                valStr = ("psychoJS.resourceManager.getResource({})".format(valStr))
         else:
             endStr = ''
 
@@ -368,7 +368,7 @@ class BaseComponent(object):
         elif target == 'PsychoJS':
         # write the line
             if paramName == 'color':
-                buff.writeIndented("%s.setColor(new Color(%s)" % (compName, params['color']))
+                buff.writeIndented("%s.setColor(new util.Color(%s)" % (compName, params['color']))
                 buff.write("%s)%s\n" % (loggingStr, endStr))
             elif paramName == 'sound':
                 stopVal = params['stopVal']

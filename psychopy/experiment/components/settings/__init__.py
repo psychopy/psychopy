@@ -456,11 +456,23 @@ class SettingsComponent(object):
                " * %s Test *\n" 
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
+
+        # Write imports
+        code = ("import {{PsychoJS}} from './lib/core-{version}.js';\n"
+                "import * as core from './lib/core-{version}.js';\n"
+                "import {{ TrialHandler }} from './lib/data-{version}.js';\n"
+                "import {{ Scheduler }} from './lib/util-{version}.js';\n"
+                "import * as util from './lib/util-{version}.js';\n"
+                "import * as visual from './lib/visual-{version}.js';\n"
+                "\n").format(version=version)
+
+        buff.writeIndentedLines(code)
+
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
-                "my.expName = %(expName)s;  // from the Builder filename that created this script\n"
-                "my.expInfo = %(Experiment info)s;\n"
+                "expName = %(expName)s;  // from the Builder filename that created this script\n"
+                "expInfo = %(Experiment info)s;\n"
                 "\n\n" % self.params)
         buff.writeIndentedLines(code)
 
@@ -639,12 +651,11 @@ class SettingsComponent(object):
         code = ("// init psychoJS:\n"
         "var psychoJS = new PsychoJS({{\n"
         "  debug: true\n"
-        "}});\n"
-        "var my = psychoJS;\n\n"
+        "}});\n\n"
         "// open window:\n"
         "psychoJS.openWindow({{\n"
         "  fullscr: {fullScr},\n"
-        "  color: new Color({params[color]}),\n"
+        "  color: new util.Color({params[color]}),\n"
         "  units: {params[Units]}\n"
         "}});\n").format(fullScr=str(self.params['Full-screen window']).lower(),
             params=self.params)
@@ -689,7 +700,7 @@ class SettingsComponent(object):
                 )
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS() {\n"
-                    "  my.window.close();\n"
+                    "  psychoJS.window.close();\n"
                     "  psychoJS.quit();\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")

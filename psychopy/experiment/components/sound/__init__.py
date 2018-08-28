@@ -102,7 +102,7 @@ class SoundComponent(BaseComponent):
         elif float(inits['stopVal'].val) > 2:
             inits['stopVal'].val = -1
         buff.writeIndented("%s = new Sound({\n"
-                           "    win: my.window,\n"
+                           "    win: psychoJS.window,\n"
                            "    value: %s,\n"
                            "    secs: %s,\n"
                            "    });\n" % (inits['name'], inits['sound'], inits['stopVal']))
@@ -146,13 +146,13 @@ class SoundComponent(BaseComponent):
         """Write the code that will be called every frame
         """
         # the sound object is unusual, because it is
-        buff.writeIndented("// start/stop my.%(name)s\n" % (self.params))
+        buff.writeIndented("// start/stop %(name)s\n" % (self.params))
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'set every frame')
         self.writeStartTestCodeJS(buff)
         # if self.params['syncScreenRefresh'].val:
         #     # TODO: Check callOnFlip for sound exists with JS
-        #     code = ("my.window.callOnFlip(%(name)s.play);  // screen flip\n") % self.params
+        #     code = ("psychoJS.window.callOnFlip(%(name)s.play);  // screen flip\n") % self.params
         # else:
         code = "%(name)s.play();  // start the sound (it finishes automatically)\n" % self.params
         buff.writeIndented(code)
@@ -161,7 +161,7 @@ class SoundComponent(BaseComponent):
         buff.writeIndentedLines('}\n')
         if not self.params['stopVal'].val in ['', None, -1, 'None']:
             if '$' in self.params['stopVal'].val:
-                code = ('if my.t >= %(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED: {\n'
+                code = ('if t >= %(stopVal)s && %(name)s.status === PsychoJS.Status.STARTED: {\n'
                         '  %(name)s.stop()  // stop the sound (if longer than duration)\n'
                         '}\n')
                 buff.writeIndentedLines(code % self.params)
