@@ -194,6 +194,7 @@ class Experiment(object):
             self.settings.writeEndCodeJS(script)
 
             script = py2js.addVariableDeclarations(script.getvalue())
+
         return script
 
     def saveToXML(self, filename):
