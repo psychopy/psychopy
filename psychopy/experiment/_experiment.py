@@ -27,13 +27,13 @@ from xml.dom import minidom
 
 import psychopy
 from psychopy import data, __version__, logging
-from psychopy.experiment.exports import IndentingBuffer, NameSpace
-from psychopy.experiment.flow import Flow
-from psychopy.experiment.loops import TrialHandler, LoopInitiator, \
+from .exports import IndentingBuffer, NameSpace
+from .flow import Flow
+from .loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
-from psychopy.experiment.params import _findParam, Param
-from psychopy.experiment.routine import Routine
-from . import utils
+from .params import _findParam, Param
+from .routine import Routine
+from . import utils, py2js
 from .components import getComponents, getAllComponents
 
 from psychopy.localization import _translate
@@ -143,7 +143,7 @@ class Experiment(object):
             # write the rest of the code for the components
             self.flow.writeBody(script)
             self.settings.writeEndCode(script)  # close log file
-
+            script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
             self.settings.writeInitCodeJS(script,
@@ -192,6 +192,9 @@ class Experiment(object):
                     self._currentRoutine.writeRoutineEndCodeJS(script)
                     routinesToWrite.remove(thisItem.name)
             self.settings.writeEndCodeJS(script)
+
+            script = py2js.addVariableDeclarations(script.getvalue())
+
         return script
 
     def saveToXML(self, filename):

@@ -1,9 +1,10 @@
-"""ioHub Common Eye Tracker Interface for TheEyeTribe(C) System"""
 # -*- coding: utf-8 -*-
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""ioHub Common Eye Tracker Interface for TheEyeTribe(C) System"""
+from __future__ import absolute_import
 
 import numpy as np
 from .....constants import EventConstants, EyeTrackerConstants
@@ -12,7 +13,7 @@ from ... import EyeTrackerDevice
 from ...eye_events import *
 from gevent import socket
 from .....errors import print2err, printExceptionDetailsToStdErr
-from pyTribe import TheEyeTribe
+from .pyTribe import TheEyeTribe
 
 getTime = Computer.getTime
 

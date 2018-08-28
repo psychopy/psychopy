@@ -30,3 +30,4 @@ coveralls
 python-gitlab
 gitpython
 astunparse
+esprima

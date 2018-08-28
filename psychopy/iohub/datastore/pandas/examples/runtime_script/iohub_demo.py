@@ -4,6 +4,7 @@ Created on Thu Oct 17 22:46:06 2013
 
 @author: Sol
 """
+from __future__ import print_function
 from psychopy import visual, core
 from psychopy.data import TrialHandler, importConditions
 from psychopy.iohub.client import launchHubServer
@@ -92,7 +93,7 @@ for t, trial in enumerate(trials):
                 break
 
     if key_pressed is None:
-        print 'Experiment Terminated By User'
+        print('Experiment Terminated By User')
         io.quit()
         core.quit()
         import sys
@@ -110,8 +111,8 @@ for t, trial in enumerate(trials):
     trial['TRIAL_END'] = tend_flip_time
 
     for k, v in trial.items():
-        print k, v, type(v)
-    print '---'
+        print(k, v, type(v))
+    print('---')
     io.sendMessageEvent(
         category='EXP',
         text='TRIAL_END',

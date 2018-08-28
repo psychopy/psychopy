@@ -6,13 +6,14 @@
 
 from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
-import versioneer
-from past.builtins import str
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
+# import versioneer
+# get version from file
+with open('version') as f:
+    version = f.read().strip()
 
-
-def createInitFile(dist=None, sha=None):
+def createInitFile(dist=None, version=None, sha=None):
     """Create psychopy/__init__.py
 
     :param:`dist` can be:
@@ -25,12 +26,16 @@ def createInitFile(dist=None, sha=None):
             and __build_platform__
     """
     # get default values if None
+    if version is None:
+        with open(os.path.join(thisLoc,'version')) as f:
+            version = f.read().strip()
     if sha is None:
         sha = _getGitShaString(dist)
     platformStr = _getPlatformString(dist)
 
     metadata = read_configuration('setup.cfg')['metadata']
-    infoDict = {'author': metadata['author'],
+    infoDict = {'version': version,
+                'author': metadata['author'],
                 'author_email': metadata['author_email'],
                 'maintainer_email': metadata['maintainer_email'],
                 'url': metadata['url'],
@@ -43,7 +48,7 @@ def createInitFile(dist=None, sha=None):
     with open(os.path.join(thisLoc, 'psychopy','__init__.py'), 'w') as f:
         outStr = template.format(**infoDict)
         f.write(outStr)
-    print('wrote init for ', versioneer.get_version(), sha)
+    print('wrote init for ', version, sha)
     # and return it
     return outStr
 
@@ -61,11 +66,7 @@ template = """#!/usr/bin/env python
 import os
 import sys
 
-# version info for PsychoPy
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
+__version__ = '{version}'
 __license__ = '{license}'
 __author__ = '{author}'
 __author_email__ = '{author_email}'

@@ -44,7 +44,7 @@ class Test_PsychoJS_from_Builder(object):
     def writeScript(self, exp, outFolder):
         script = exp.writeScript(expPath=outFolder, target="PsychoJS")
         with codecs.open(join(outFolder,'index.html'), 'w', 'utf-8') as f:
-            f.write(script.getvalue())
+            f.write(script)
 
     def test_stroop(self):
         #load experiment

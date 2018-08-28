@@ -11,11 +11,14 @@ to JS (ES6/PsychoJS)
 
 import ast
 import astunparse
+import esprima
 from psychopy.constants import PY3
+
 if PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
+
 
 class NamesJS(dict):
     def __getitem__(self, name):
@@ -23,6 +26,7 @@ class NamesJS(dict):
             return dict.__getitem__(self, name)
         except:
             return "my.{}".format(name)
+
 
 namesJS = NamesJS()
 namesJS['sin'] = 'Math.sin'
@@ -45,6 +49,7 @@ class Unparser(astunparse.Unparser):
         self._indent = 0
         self.dispatch(tree)
         self.f.flush()
+
 
 def unparse(tree):
     v = StringIO()
@@ -85,7 +90,65 @@ def snippet2js(expr):
     return expr
 
 
-if __name__=='__main__':
+def findUndeclaredVariables(ast, allUndeclaredVariables):
+    """Detect undeclared variables
+    """
+    undeclaredVariables = []
+
+    for expression in ast:
+        if expression.type == 'ExpressionStatement':
+            expression = expression.expression
+            if expression.type == 'AssignmentExpression' and expression.operator == '=' and expression.left.type == 'Identifier':
+                variableName = expression.left.name
+                if variableName not in allUndeclaredVariables:
+                    undeclaredVariables.append(variableName)
+                    allUndeclaredVariables.append(variableName)
+
+        elif expression.type == 'IfStatement':
+            if expression.consequent.body is None:
+                consequentVariables = findUndeclaredVariables(
+                        [expression.consequent], allUndeclaredVariables)
+            else:
+                consequentVariables = findUndeclaredVariables(
+                    expression.consequent.body, allUndeclaredVariables)
+            undeclaredVariables.extend(consequentVariables)
+
+    return undeclaredVariables
+
+
+def addVariableDeclarations(inputProgram):
+    """Transform the input program by adding just before each function
+    a declaration for its undeclared variables
+    """
+
+    # parse Javascript code into abstract syntax tree:
+    # NB: esprima: https://media.readthedocs.org/pdf/esprima/4.0/esprima.pdf
+    ast = esprima.parseScript(inputProgram, {'range': True, 'tolerant': True})
+
+    # find undeclared vars in functions and declare them before the function
+    outputProgram = inputProgram
+    offset = 0
+    allUndeclaredVariables = []
+
+    for expression in ast.body:
+        if expression.type == 'FunctionDeclaration':
+            # find all undeclared variables:
+            undeclaredVariables = findUndeclaredVariables(expression.body.body,
+                                                          allUndeclaredVariables)
+
+            # add declarations (var) just before the function:
+            declaration = '\n'.join(['var ' + variable + ';' for variable in
+                                     undeclaredVariables]) + '\n'
+            startIndex = expression.range[0] + offset
+            outputProgram = outputProgram[
+                            :startIndex] + declaration + outputProgram[
+                                                         startIndex:]
+            offset += len(declaration)
+
+    return outputProgram
+
+
+if __name__ == '__main__':
     for expr in ['sin(t)', 't*5',
                  '(3, 4)', '(5*2)',  # tuple and not tuple
                  '(1,(2,3))', '2*(2, 3)']:  # combinations

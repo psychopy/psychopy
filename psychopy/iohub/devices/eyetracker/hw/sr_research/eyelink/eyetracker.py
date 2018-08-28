@@ -1,7 +1,10 @@
 """ioHub Common Eye Tracker Interface for EyeLink(C) Systems"""
- # Part of the PsychoPy.iohub library
- # Copyright (C) 2012-2016 iSolver Software Solutions
- # Distributed under the terms of the GNU General Public License (GPL).
+# Part of the PsychoPy.iohub library
+# Copyright (C) 2012-2016 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import numpy as np
@@ -355,7 +358,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
         try:
-            import eyeLinkCoreGraphicsIOHubPsychopy
+            from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
 
             calibration_properties = self.getConfiguration().get('calibration')
