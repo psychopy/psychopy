@@ -143,7 +143,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # if the fillColor and lineColor are not set but color is
         # then the user probably wants color applied to both
-        if (lineColor==(1.0, 1.0, 1.0) and fillColor is None
+        if (tuple(lineColor) == (1.0, 1.0, 1.0) and fillColor is None
                 and color is not None):
             self.color = color
 
