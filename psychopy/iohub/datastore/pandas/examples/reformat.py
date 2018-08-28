@@ -4,6 +4,7 @@ Created on Fri Nov 01 09:32:29 2013
 
 @author: Sol
 """
+from __future__ import print_function
 
 from psychopy.iohub.datastore.pandas import ioHubPandasDataView
 
@@ -23,9 +24,9 @@ sep_index = file_name.rfind(u'.')
 if sep_index >= 0:
     out_name = file_name[:sep_index] + '.' + output_format
 
-print 'Saving %s to %s....' % (file_name, out_name)
+print('Saving %s to %s....' % (file_name, out_name))
 getattr(exp_data.all_events, outputformat2pandaswrite[output_format])(out_name)
-print 'Conversion complete.'
+print('Conversion complete.')
 
 
 exp_data.close()

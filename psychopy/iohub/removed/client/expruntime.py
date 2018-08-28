@@ -3,6 +3,7 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
+from __future__ import print_function
 
 import os
 import sys
@@ -337,7 +338,7 @@ class ioHubExperimentRuntime(object):
         print(repr(traceback.extract_tb(exc_traceback)))
         print('*** format_tb:')
         print(repr(traceback.format_tb(exc_traceback)))
-        print('*** tb_lineno:', exc_traceback.tb_lineno)
+        print(('*** tb_lineno:', exc_traceback.tb_lineno))
 
     @staticmethod
     def mergeConfigurationFiles(
@@ -394,7 +395,7 @@ class ioHubExperimentRuntime(object):
             # was started.
             exitExperiment = self._displayExperimentSettingsDialog()
             if exitExperiment:
-                print 'User Cancelled Experiment Launch.'
+                print('User Cancelled Experiment Launch.')
                 self._close()
                 sys.exit(1)
 
@@ -404,7 +405,7 @@ class ioHubExperimentRuntime(object):
         ioHubInfo = self.configuration.get('ioHub', {})
 
         if ioHubInfo is None:
-            print 'ioHub section of configuration file could not be found. Exiting.....'
+            print('ioHub section of configuration file could not be found. Exiting.....')
             self._close()
             sys.exit(1)
         else:
@@ -455,7 +456,7 @@ class ioHubExperimentRuntime(object):
                     tempdict = self._displayExperimentSessionSettingsDialog(
                         allSessionDialogVariables, sessionVariableOrder)
                     if tempdict is None:
-                        print 'User Cancelled Experiment Launch.'
+                        print('User Cancelled Experiment Launch.')
                         self._close()
                         sys.exit(1)
 

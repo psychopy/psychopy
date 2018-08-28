@@ -2,6 +2,7 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
+from __future__ import print_function
 import ctypes
 import ctypes.wintypes
 from ctypes.wintypes import WORD, SHORT, DWORD, WCHAR, c_ubyte
@@ -294,14 +295,14 @@ class XINPUT_STATE(ctypes.Structure):
     ]
 
     def printState(self):
-        print 'XINPUT_GAMEPAD (packet %d):' % (self.dwPacketNumber)
-        print '\twButtons: ', self.Gamepad.wButtons
-        print '\tbLeftTrigger: ', self.Gamepad.bLeftTrigger
-        print '\tbRightTrigger: ', self.Gamepad.bRightTrigger
-        print '\tsThumbLX: ', self.Gamepad.sThumbLX
-        print '\tsThumbLY: ', self.Gamepad.sThumbLY
-        print '\tsThumbRX: ', self.Gamepad.sThumbRX
-        print '\tsThumbRY: ', self.Gamepad.sThumbRY
+        print('XINPUT_GAMEPAD (packet %d):' % (self.dwPacketNumber))
+        print('\twButtons: ', self.Gamepad.wButtons)
+        print('\tbLeftTrigger: ', self.Gamepad.bLeftTrigger)
+        print('\tbRightTrigger: ', self.Gamepad.bRightTrigger)
+        print('\tsThumbLX: ', self.Gamepad.sThumbLX)
+        print('\tsThumbLY: ', self.Gamepad.sThumbLY)
+        print('\tsThumbRX: ', self.Gamepad.sThumbRX)
+        print('\tsThumbRY: ', self.Gamepad.sThumbRY)
 
 #
 # XINPUT_VIBRATION
