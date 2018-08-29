@@ -44,6 +44,7 @@ except Exception:
 
 try:
     from pyglet import input as pyglet_input  # pyglet 1.2+
+    from pyglet import app as pyglet_app
     havePyglet = True
 except Exception:
     havePyglet = False
@@ -74,6 +75,12 @@ def getNumJoysticks():
         pygame.joystick.init()
         return pygame.joystick.get_count()
 
+if havePyglet:
+    class PygletDispatcher():
+        def dispatch_events(self):
+            pyglet_app.platform_event_loop.step(timeout=0.001)
+
+    pyglet_dispatcher = PygletDispatcher()
 
 class Joystick(object):
 
@@ -107,7 +114,7 @@ class Joystick(object):
                     "You need to open a window before creating your joystick")
             else:
                 for win in visual.openWindows:
-                    win()._eventDispatchers.append(self._device.device)
+                    win()._eventDispatchers.append(pyglet_dispatcher)
         elif backend == 'glfw':
             # We can create a joystick anytime after glfwInit() is called, but
             # there should be a window open first.
