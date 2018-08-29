@@ -1173,14 +1173,6 @@ WavefrontObj = namedtuple(
      'userData']
 )
 
-WavefrontObjVAO = namedtuple(
-    'WavefrontObjGroup',
-    ['id',
-     'indices',
-     'dtype',
-     'userData']
-)
-
 
 def loadObjFile(objFile):
     """Load a Wavefront OBJ file (*.obj).
