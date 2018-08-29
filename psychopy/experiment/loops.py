@@ -196,7 +196,7 @@ class TrialHandler(object):
                 "  {name} = new TrialHandler({{\n"
                 "    psychoJS,\n"
                 "    nReps: {params[nReps]}, method: TrialHandler.Method.{loopType},\n"
-                "    extraInfo: my.expInfo, originPath: undefined,\n"
+                "    extraInfo: expInfo, originPath: undefined,\n"
                 "    trialList: {trialList},\n"
                 "    seed: {seed}, name: '{name}'}});\n"
                 "  psychoJS.experiment.addLoop({name}); // add the loop to the experiment\n\n"

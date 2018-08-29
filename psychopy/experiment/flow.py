@@ -276,20 +276,14 @@ class Flow(list):
                     "}*/\n")
             script.writeIndentedLines(code)
 
-        code = ("// set up the experiment:\n"
-                "psychoJS.schedule(setupExperiment);\n"
-                "\n"
-                "// register all available resources and download them:\n"
-                "psychoJS.scheduleResources();\n"
-                "\n"
-                "// dialog box:\n"
+        code = ("// schedule the experiment:\n"
                 "psychoJS.schedule(psychoJS.gui.DlgFromDict({\n"
-                "  dictionary: my.expInfo,\n"
-                "  title: my.expName\n}));\n"
+                "  dictionary: expInfo,\n"
+                "  title: expName\n}));\n"
                 "\n"
                 "const flowScheduler = new Scheduler(psychoJS);\n"
                 "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
-                "psychoJS.scheduleCondition(() => (psychoJS.gui.dialogComponent.button === 'OK'), flowScheduler, dialogCancelScheduler);\n"
+                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)
 
@@ -324,10 +318,10 @@ class Flow(list):
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS);\n"
-                "\npsychoJS.start();\n")
+                "\npsychoJS.start({configURL: 'config.json', expInfo: expInfo});\n")
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
-        script.writeIndented("\n\n")
+        script.writeIndented("\n")
 
     def writeLoopHandlerJS(self, script):
 

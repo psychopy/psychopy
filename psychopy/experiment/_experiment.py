@@ -113,7 +113,7 @@ class Experiment(object):
         else:
             self.routines[routineName] = routine
 
-    def writeScript(self, expPath=None, target="PsychoPy"):
+    def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
         # set this so that params write for approp target
@@ -132,8 +132,7 @@ class Experiment(object):
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
         if target == "PsychoPy":
-            self.settings.writeInitCode(script,
-                                        self.psychopyVersion, localDateTime)
+            self.settings.writeInitCode(script, self.psychopyVersion, localDateTime)
             self.settings.writeStartCode(script)  # present info, make logfile
             # writes any components with a writeStartCode()
             self.flow.writeStartCode(script)
@@ -146,8 +145,7 @@ class Experiment(object):
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-            self.settings.writeInitCodeJS(script,
-                                          self.psychopyVersion, localDateTime)
+            self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
             self.flow.writeFlowSchedulerJS(script)
             self.settings.writeExpSetupCodeJS(script)
 
@@ -164,9 +162,9 @@ class Experiment(object):
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
-                    "my.globalClock = new Clock();"
+                    "globalClock = new util.Clock();"
                     "  // to track the time since experiment started\n"
-                    "my.routineTimer = new CountdownTimer();"
+                    "routineTimer = new util.CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
                     "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)

@@ -144,14 +144,14 @@ class TextComponent(BaseVisualComponent):
 
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'undefined'
-        code = ("%(name)s = new TextStim({\n"
-                "  win : my.window,\n"
+        code = ("%(name)s = new visual.TextStim({\n"
+                "  win : psychoJS.window,\n"
                 "  name : '%(name)s',\n"
                 "  text : %(text)s,\n"
                 "  font : %(font)s,\n" + unitsStr +
                 "  pos : %(pos)s, height : %(letterHeight)s,"
                 "  wrapWidth : %(wrapWidth)s, ori: %(ori)s,\n"
-                "  color : new Color(%(color)s),"
+                "  color : new util.Color(%(color)s),"
                 "  opacity : %(opacity)s,")
         buff.writeIndentedLines(code % inits)
         flip = self.params['flip'].val.strip()

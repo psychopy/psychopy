@@ -209,12 +209,12 @@ class PolygonComponent(BaseVisualComponent):
 
     def writeInitCodeJS(self, buff):
         code = ("{name} = new Rect ({{\n"
-        "  win: my.window, name: '{name}',\n"
-        "  units: my.window.units,\n"
+        "  win: psychoJS.window, name: '{name}',\n"
+        "  units: psychoJS.window.units,\n"
         "  width: {size}[0], height: {size}[1],\n"
         "  ori: 0, pos: {pos},\n"
-        "  lineWidth: 1, lineColor: new Color({lineColor}),\n"
-        "  fillColor: new Color({fillColor}),\n"
+        "  lineWidth: 1, lineColor: new util.Color({lineColor}),\n"
+        "  fillColor: new util.Color({fillColor}),\n"
         "  opacity: 1, depth: -1.0, interpolate: true,\n"
         "}});\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
