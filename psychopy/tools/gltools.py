@@ -92,7 +92,7 @@ def createFBO(attachments=()):
     # examples of userData some custom function might access
     fbo.userData['flags'] = ['left_eye', 'clear_before_use']
 
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb.id)  # bind for drawing
+
 
     # depth only texture (for shadow mapping?)
     depthTex = createTexImage2D(800, 600,
