@@ -28,7 +28,7 @@ matrix:
       env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
 
     - os: osx
-      python: 3.6
+      python: 3.5
       env: ANACONDA=true OPENPYXL=2.4 AUDIODEV=null
 
   allow_failures:

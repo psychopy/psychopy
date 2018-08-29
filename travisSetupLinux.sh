@@ -43,7 +43,7 @@ if [ -z $ANACONDA ]; then
   travis_retry sudo apt-get install -qq python-pyo python-opencv;
   travis_retry sudo apt-get install -qq python-mock;
   echo "Installing PsychoPy dependencies via pip...";
-  sudo pip install requests[security];
+  sudo pip install requests[security] pyglet;
 
   travis_retry sudo pip install --upgrade -qq -r requirements_travis.txt;
 fi
