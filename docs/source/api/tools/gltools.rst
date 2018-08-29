@@ -1,5 +1,3 @@
-
-
 :mod:`psychopy.tools.gltools`
 ----------------------------------------
 
@@ -8,20 +6,29 @@
     
 .. autosummary:: 
 
-    createFramebuffer
-    framebufferAttachment
-    framebufferIsComplete
-    deleteFramebuffer
-    blitFramebuffer
-    framebufferBindingContext
+    createFBO
+    attach
+    isComplete
+    deleteFBO
+    blitFBO
+    useFBO
     createRenderbuffer
     deleteRenderbuffer
     createTexImage2D
     createTexImage2DMultisample
     deleteTexture
-    createVertexbuffer
-    drawVertexbuffers
-    deleteVertexbuffer
+    createVBO
+    createVAO
+    drawVAO
+    deleteVBO
+    deleteVAO
+    createMaterial
+    useMaterial
+    createLight
+    useLights
+    setAmbientLight
+    loadObjFile
+    loadMtlFile
     getIntegerv
     getFloatv
     getString
@@ -30,22 +37,30 @@
 Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: createFramebuffer
-.. autofunction:: framebufferAttachment
-.. autofunction:: framebufferIsComplete
-.. autofunction:: deleteFramebuffer
-.. autofunction:: blitFramebuffer
-.. autofunction:: framebufferBindingContext
+.. autofunction:: createFBO
+.. autofunction:: attach
+.. autofunction:: isComplete
+.. autofunction:: deleteFBO
+.. autofunction:: blitFBO
+.. autofunction:: useFBO
 .. autofunction:: createRenderbuffer
 .. autofunction:: deleteRenderbuffer
 .. autofunction:: createTexImage2D
 .. autofunction:: createTexImage2DMultisample
 .. autofunction:: deleteTexture
-.. autofunction:: createVertexbuffer
-.. autofunction:: drawVertexbuffers
-.. autofunction:: deleteVertexbuffer
+.. autofunction:: createVBO
+.. autofunction:: createVAO
+.. autofunction:: drawVAO
+.. autofunction:: deleteVBO
+.. autofunction:: deleteVAO
+.. autofunction:: createMaterial
+.. autofunction:: useMaterial
+.. autofunction:: createLight
+.. autofunction:: useLights
+.. autofunction:: setAmbientLight
+.. autofunction:: loadObjFile
+.. autofunction:: loadMtlFile
 .. autofunction:: getIntegerv
 .. autofunction:: getFloatv
 .. autofunction:: getString
 .. autofunction:: getOpenGLInfo
-
