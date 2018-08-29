@@ -1,4 +1,4 @@
-#! /usr/bin/env sh
+#!/bin/bash
 
 # Set up the install environment for travis linux installations
 
