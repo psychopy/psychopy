@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source travis_retry.sh  # so that we can use travis_retry commands
+
 # Set up the install environment for travis linux installations
 
 travis_retry sudo apt-get update -qq
@@ -42,10 +44,7 @@ if [ -z $ANACONDA ]; then
   travis_retry sudo apt-get install -qq python-qt4;
   travis_retry sudo apt-get install -qq python-pyo python-opencv;
   travis_retry sudo apt-get install -qq python-mock;
-  echo "Installing PsychoPy dependencies via pip...";
-  sudo pip install requests[security] pyglet;
 
-  travis_retry sudo pip install --upgrade -qq -r requirements_travis.txt;
 fi
 
 
@@ -67,3 +66,6 @@ if [ -n "$ANACONDA" ]; then source activate psychopy-conda; fi
 if [ -n "$ANACONDA" ]; then if [ -n "$WXPYTHON" ]; then conda install wxpython=$WXPYTHON; fi; fi
 if [ -n "$ANACONDA" ]; then if [ -n "$OPENPYXL" ]; then conda install openpyxl=$OPENPYXL; fi; fi
 
+echo "Installing PsychoPy dependencies via pip...";
+sudo pip install requests[security];
+sudo pip install --upgrade -qq -r requirements_travis.txt;

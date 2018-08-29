@@ -33,6 +33,7 @@ matrix:
 
   allow_failures:
     - python: "2.7_with_system_site_packages"
+    - os: osx
 
 before_install:
   # System setup
