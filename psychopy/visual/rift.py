@@ -1374,7 +1374,8 @@ class Rift(window.Window):
 
     def getConectedControllers(self):
         """Get a list of connected input devices (controllers) managed by the
-        LibOVR runtime.
+        LibOVR runtime. Valid names are 'xbox', 'remote', 'left_touch',
+        'right_touch' and 'touch'.
 
         Returns
         -------
@@ -1472,10 +1473,18 @@ class Rift(window.Window):
         True is returned only when a button's state changes. If button_list is
         empty, will return True when no buttons are pressed.
 
+        Valid button values are 'A', 'B', 'RThumb', 'X', 'Y', 'LThumb', 
+        'LShoulder', 'Up', 'Down', 'Left', 'Right', 'Enter', 'Back', 'VolUp',
+        'VolDown', 'Home', 'RMask' and 'LMask'.
+
         Returns
         -------
         bool
 
+        Examples
+        --------
+        # check if the 'Enter' button on the Oculus remote was released
+        isPressed = getButtons(['Enter'], 'remote', 'falling')
 
         """
         return ovr.capi.getButtons(controller, button_names, edge_trigger)
