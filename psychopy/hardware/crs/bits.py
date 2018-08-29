@@ -5288,7 +5288,9 @@ class Config(object):
         stim.draw()
         # make sure the frame buffer was correct (before gamma was applied)
         frm = np.array(win.getMovieFrame(buffer='back'))
-        assert np.alltrue(frm[0, 0:256, 0] == list(range(256)))
+        if not np.alltrue(frm[0, 0:256, 0] == list(range(256))):
+            logging.error("Got surprising pixels in back buffer. Expected 0:255 but got {}"
+                          .format(list(frm[0, 0:256, 0])))
         win.flip()
         # use bits sharp to test
         if demoMode:
