@@ -1466,7 +1466,7 @@ class Rift(window.Window):
         return ovr.capi.getHandTriggerValues(controller, deadzone)
 
     def getButtons(
-            self, button_names, controller='xbox', edge_trigger='continuous'):
+            self, buttonNames, controller='xbox', edgeTrigger='continuous'):
         """Returns True if any of the buttons in button_list are held down. All
         buttons are ORed together and tested. Edge triggering can be enabled by
         specifying either 'rising' or 'falling' to edge_trigger. When enabled,
@@ -1487,9 +1487,9 @@ class Rift(window.Window):
         isPressed = getButtons(['Enter'], 'remote', 'falling')
 
         """
-        return ovr.capi.getButtons(controller, button_names, edge_trigger)
+        return ovr.capi.getButtons(controller, buttonNames, edgeTrigger)
 
-    def getTouches(self, touch_names, edge_trigger='continuous'):
+    def getTouches(self, touchNames, edgeTrigger='continuous'):
         """Returns True if any buttons are touched using sensors. This feature
         is used to estimate finger poses and can be used to read gestures. An
         example of a possible use case is a pointing task, where responses are
@@ -1504,7 +1504,7 @@ class Rift(window.Window):
         None
 
         """
-        return ovr.capi.getTouches('touch', touch_names, edge_trigger)
+        return ovr.capi.getTouches('touch', touchNames, edgeTrigger)
 
     def isIndexPointing(self, hand='right'):
         """Check if the user is doing a pointing gesture with the given hand, or
