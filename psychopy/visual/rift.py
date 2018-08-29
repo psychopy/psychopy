@@ -914,7 +914,10 @@ class Rift(window.Window):
                     ovr.capi.getEyeViewMatrix(self.eyePoses[eye])
         else:
             # view matrix derived from head position when in monoscopic mode
-            self._viewMatrix = ovr.capi.getEyeViewMatrix(self.headPose)
+            if self._headLocked:
+                self._viewMatrix = ovr.capi.getEyeViewMatrix(self.hmdOriginPose)
+            else:
+                self._viewMatrix = ovr.capi.getEyeViewMatrix(self.headPose)
 
         # get the poses for the touch controllers
         # NB - this does not work well when head locked, hands are not
@@ -944,6 +947,15 @@ class Rift(window.Window):
             return self._projectionMatrix[self._bufferFlags[self.buffer]]
         else:
             return self._projectionMatrix
+
+    @property
+    def headLocked(self):
+        """Enable/disable head locking."""
+        return self._headLocked
+
+    @headLocked.setter
+    def headLocked(self, val):
+        self._headLocked = bool(val)
 
     def pollControllers(self):
         """Update all connected controller states. This should be called at
