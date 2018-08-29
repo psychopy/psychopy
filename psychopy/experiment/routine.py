@@ -102,7 +102,7 @@ class Routine(list):
         code = '// Initialize components for Routine "%s"\n'
         buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
-        buff.writeIndented('%s = new utils.Clock();\n' % self._clockName)
+        buff.writeIndented('%s = new util.Clock();\n' % self._clockName)
         for thisCompon in self:
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)

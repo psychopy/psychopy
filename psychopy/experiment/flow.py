@@ -276,13 +276,7 @@ class Flow(list):
                     "}*/\n")
             script.writeIndentedLines(code)
 
-        code = ("// set up the experiment:\n"
-                "psychoJS.schedule(setupExperiment);\n"
-                "\n"
-                "// register all available resources and download them:\n"
-                "psychoJS.scheduleResources();\n"
-                "\n"
-                "// dialog box:\n"
+        code = ("// schedule the experiment:\n"
                 "psychoJS.schedule(psychoJS.gui.DlgFromDict({\n"
                 "  dictionary: expInfo,\n"
                 "  title: expName\n}));\n"

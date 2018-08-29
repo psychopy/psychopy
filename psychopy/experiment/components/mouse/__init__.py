@@ -149,7 +149,7 @@ class MouseComponent(BaseComponent):
         code = (
             "// check if the mouse was inside our 'clickable' objects\n"
             "gotValidClick = false;\n"
-            "for (const obj of {clickable}) {{\n"
+            "for (const obj of [{clickable}]) {{\n"
             "  if (obj.contains({name})) {{\n"
             "    gotValidClick = true;\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
@@ -393,7 +393,7 @@ class MouseComponent(BaseComponent):
         # write param checking code
         if (self.params['saveMouseState'].val == 'on click'
                 or forceEnd in ['any click', 'valid click']):
-            code = ("buttons = %(name)s.getPressed();\n")
+            code = ("let buttons = %(name)s.getPressed();\n")
             buff.writeIndentedLines(code % self.params)
             # buff.setIndentLevel(1, relative=True)
             # dedentAtEnd += 1
@@ -408,7 +408,7 @@ class MouseComponent(BaseComponent):
             dedentAtEnd += 1
 
         elif self.params['saveMouseState'].val == 'every frame':
-            code = "buttons = %(name)s.getPressed();\n" % self.params
+            code = "let buttons = %(name)s.getPressed();\n" % self.params
             buff.writeIndented(code)
 
         # only do this if buttons were pressed
@@ -588,7 +588,6 @@ class MouseComponent(BaseComponent):
                 # then add `trials.addData('mouse.clicked_name',.....)`
                 if self.params['clickable'].val:
                     for paramName in self._clickableParamsList:
-                        print(paramName)
                         code = (
                             "if ({mouseName}.clicked_{param}.length > 0) {{\n"
                             "  psychoJS.experiment.addData('{mouseName}.clicked_{param}', "

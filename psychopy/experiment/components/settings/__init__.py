@@ -433,14 +433,14 @@ class SettingsComponent(object):
                 os.makedirs(dstFolder)
             shutil.copy2(srcFile['abs'], dstAbs)
 
-    def writeInitCodeJS(self, buff, version, localDateTime):
+    def writeInitCodeJS(self, buff, version, localDateTime, modular=True):
         # create resources folder
         self.prepareResourcesJS()
 
         # html header
         template = readTextFile("JS_htmlHeader.tmpl")
         header = template.format(
-                   name=self.params['expName'].val, # prevent repr() conversion
+                   name=self.params['expName'].val,  # prevent repr() conversion
                    params=self.params)
         jsFile = self.exp.expPath
         folder = os.path.dirname(jsFile)
@@ -457,23 +457,23 @@ class SettingsComponent(object):
                " %s/\n\n")
         buff.writeIndentedLines(code % (starLen, self.params['expName'].val.title(), starLen))
 
-        # Write imports
-        code = ("import {{PsychoJS}} from './lib/core-{version}.js';\n"
-                "import * as core from './lib/core-{version}.js';\n"
-                "import {{ TrialHandler }} from './lib/data-{version}.js';\n"
-                "import {{ Scheduler }} from './lib/util-{version}.js';\n"
-                "import * as util from './lib/util-{version}.js';\n"
-                "import * as visual from './lib/visual-{version}.js';\n"
-                "\n").format(version=version)
-
-        buff.writeIndentedLines(code)
+        # Write imports if modular
+        if modular:
+            code = ("import {{ PsychoJS }} from './lib/core-{version}.js';\n"
+                    "import * as core from './lib/core-{version}.js';\n"
+                    "import {{ TrialHandler }} from './lib/data-{version}.js';\n"
+                    "import {{ Scheduler }} from './lib/util-{version}.js';\n"
+                    "import * as util from './lib/util-{version}.js';\n"
+                    "import * as visual from './lib/visual-{version}.js';\n"
+                    "\n").format(version='3.0.0b3')
+            buff.writeIndentedLines(code)
 
         # Write window code
         self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
-                "expName = %(expName)s;  // from the Builder filename that created this script\n"
-                "expInfo = %(Experiment info)s;\n"
-                "\n\n" % self.params)
+                "let expName = %(expName)s;  // from the Builder filename that created this script\n"
+                "let expInfo = %(Experiment info)s;\n"
+                "\n" % self.params)
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff):
@@ -684,7 +684,7 @@ class SettingsComponent(object):
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
                     "    if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "      my.experiment.nextEntry();\n"
+                    "      psychoJS.experiment.nextEntry();\n"
                     "    }\n"
                     "  return Scheduler.Event.NEXT;\n"
                     "  };\n"
