@@ -38,8 +38,8 @@ before_install:
   # System setup
 
   - if [[ $TRAVIS_OS_NAME == 'linux' ]];
-    then travisSetupLinux.sh;
-    else travisSetupOSX.sh;
+    then ./travisSetupLinux.sh;
+    else ./travisSetupOSX.sh;
     fi
 
   # check versions of what was installed
