@@ -567,10 +567,24 @@ class Rift(window.Window):
 
     @property
     def displayLost(self):
+        """Check of the display has been lost.
+
+        Returns
+        -------
+        bool
+
+        """
         return self._sessionStatus.DisplayLost
 
     @property
     def hasInputFocus(self):
+        """Check if the application currently has input focus.
+
+        Returns
+        -------
+        bool
+
+        """
         return self._sessionStatus.HasInputFocus
 
     @property
@@ -1052,13 +1066,8 @@ class Rift(window.Window):
         return True
 
     def flip(self, clearBuffer=True):
-        """Flip the front and back buffers after drawing everything for your
-        frame. (This replaces the win.update() method, better reflecting what
-        is happening underneath).
-
-        win.flip(clearBuffer=True)  # results in a clear screen after flipping
-        win.flip(clearBuffer=False)  # the screen is not cleared (so represent
-                                     # the previous screen)
+        """Submit view buffer images to the HMD's compositor for display at next
+        V-SYNC. This must be called every frame.
 
         Parameters
         ----------
