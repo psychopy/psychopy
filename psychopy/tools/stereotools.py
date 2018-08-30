@@ -8,8 +8,8 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy as np
 import math
+import numpy as np
 from collections import namedtuple
 
 Frustum = namedtuple(
@@ -49,6 +49,12 @@ def computeOffAxisFrustums(fov,
         A tuple which contains Frustum objects which stores the left and right
         frustums.
 
+    Notes
+    -----
+    The view point must be transformed by the screen distance for objects to
+    appear correctly. For instance, if the screen distance is 1.0 meter, the
+    scene must be transformed by -1.0 units.
+
     """
     hfovx = math.tan(math.radians(fov) / 2.0)
     hfovy = hfovx / float(aspect)
@@ -86,27 +92,27 @@ def computeOffAxisFrustums(fov,
     return leftFrustum, rightFrustum
 
 
-def frustumToProjectionMatrix(frustum):
+def frustumToProjectionMatrix(f):
     """Generate a projection matrix with the provided frustum.
+
+    Parameters
+    ----------
+    f : Frustum
+        The frustum to convert.
 
     Returns
     -------
+    numpy.ndarray
+        4x4 projection matrix.
 
     """
     mOut = np.zeros((4, 4), float)
-    mOut[0, 0] = (2.0 * frustum.nearVal) / (frustum.right - frustum.left)
-    mOut[1, 1] = (2.0 * frustum.nearVal) / (frustum.top - frustum.bottom)
-    mOut[2, 0] = (frustum.right + frustum.left) / (frustum.right - frustum.left)
-    mOut[2, 1] = (frustum.top + frustum.bottom) / (frustum.top - frustum.bottom)
-    mOut[2, 2] = \
-        (frustum.farVal + frustum.nearVal) / (frustum.farVal - frustum.nearVal)
+    mOut[0, 0] = (2.0 * f.nearVal) / (f.right - f.left)
+    mOut[1, 1] = (2.0 * f.nearVal) / (f.top - f.bottom)
+    mOut[2, 0] = (f.right + f.left) / (f.right - f.left)
+    mOut[2, 1] = (f.top + f.bottom) / (f.top - f.bottom)
+    mOut[2, 2] = (f.farVal + f.nearVal) / (f.farVal - f.nearVal)
     mOut[2, 3] = -1.0
-    mOut[3, 2] = (2.0 * frustum.farVal * frustum.nearVal) / \
-                 (frustum.farVal - frustum.nearVal)
+    mOut[3, 2] = (2.0 * f.farVal * f.nearVal) / (f.farVal - f.nearVal)
 
     return mOut
-
-
-if __name__ == "__main__":
-    l, r = computeOffAxisFrustums(38.0, 1.0, 0.25, 0.0)
-    print(frustumToProjectionMatrix(l))
