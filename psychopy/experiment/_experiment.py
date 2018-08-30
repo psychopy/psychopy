@@ -89,7 +89,6 @@ class Experiment(object):
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
-        self._compileLoop = True
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -117,9 +116,7 @@ class Experiment(object):
         """Write a PsychoPy script for the experiment
         """
         # set this so that params write for approp target
-        self._compileLoop = True  # Must update on every compile else False after first call to writeScript
         utils.scriptTarget = target
-
         self.flow._prescreenValues()
         self.expPath = expPath
         script = IndentingBuffer(u'')  # a string buffer object
@@ -176,13 +173,12 @@ class Experiment(object):
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
             routinesToWrite = list(self.routines)
+            loopTypes = {'LoopInitiator': False, 'LoopTerminator': False}
             for thisItem in self.flow:
-                if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
-                    if self._compileLoop:  # If loops not already compiled
+                if thisItem.getType() in loopTypes:
+                    if not loopTypes[thisItem.getType()]:  # If False, then write loop
+                        loopTypes[thisItem.getType()] = True
                         self.flow.writeLoopHandlerJS(script)
-                        self._compileLoop = False
-                    else:
-                        pass
                 elif thisItem.name in routinesToWrite:
                     self._currentRoutine = self.routines[thisItem.name]
                     self._currentRoutine.writeRoutineBeginCodeJS(script)
