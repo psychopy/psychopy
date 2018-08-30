@@ -6,7 +6,7 @@ import psychopy
 import pytest
 from psychopy.tools.versionchooser import useVersion
 from psychopy import prefs
-
+from psychopy import constants
 
 USERDIR = prefs.paths['userPrefsDir']
 VER_SUBDIR = 'versions'
@@ -42,8 +42,9 @@ class Test_Older_Version(_baseVersionChooser):
 class Test_Incompatible_Version(_baseVersionChooser):
     "Test for incompatibility with PY3"
     def test_raise_error(self):
-        with pytest.raises(RuntimeError):
-            useVersion('1.80.0')
+        if constants.PY3:
+            with pytest.raises(RuntimeError):
+                useVersion('1.80.0')
 
     def test_compatiable(self):
         assert (useVersion('1.90.0'))
