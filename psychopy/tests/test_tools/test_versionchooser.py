@@ -46,7 +46,7 @@ class Test_Incompatible_Version(_baseVersionChooser):
             with pytest.raises(RuntimeError):
                 useVersion('1.80.0')
 
-    def test_compatiable(self):
+    def test_compatible(self):
         assert (useVersion('1.90.0'))
 
 
