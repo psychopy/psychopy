@@ -29,7 +29,7 @@ def computeOffAxisFrustums(fov,
     Parameters
     ----------
     fov : float
-        Field of view of the display in degrees.
+        The display's horizontal field of view in degrees.
     aspect : float
         Aspect ratio of the display (width / height).
     scrDist : float
