@@ -291,12 +291,12 @@ class PsychoPyApp(wx.App):
 
         try:
             self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-        except Exception:  # is this a wx._core.wxAssertionError
+        except wx._core.wxAssertionError:
+            # if no SYS_ANSI_FIXED_FONT then try generic FONTFAMILY_MODERN
             self._codeFont = wx.Font(self._mainFont.GetPointSize(),
                                      wx.FONTFAMILY_MODERN,
                                      wx.FONTSTYLE_NORMAL,
                                      wx.FONTWEIGHT_NORMAL)
-                                     )
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
 
         # removed Aug 2017: on newer versions of wx (at least on mac)
