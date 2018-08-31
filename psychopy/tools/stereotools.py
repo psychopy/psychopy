@@ -33,15 +33,20 @@ def computeOffAxisFrustums(fov,
     aspect : float
         Aspect ratio of the display (width / height).
     scrDist : float
-        Distance to the screen in meters.
+        Distance to the screen in meters from the viewer.
     convergeDist : float
-        Distance to the convergence plane in meters.
+        Distance to the convergence plane in meters. Objects falling on this
+        plane will have zero disparity. For best results, the convergence plane
+        should be set to the same distance as the screen.
     eyeOffset : float
-        Half the inter-ocular separation.
+        Half the inter-ocular separation (i.e. the horizontal distance between
+        the nose and center of the pupil) in meters.
     nearClip : float
-        Distance to the near clipping plane in meters.
+        Distance to the near clipping plane in meters from the viewer. Should be
+        at least less than scrDist.
     farClip : float
-        Distance to the far clipping plane in meters.
+        Distance to the far clipping plane from the viewer in meters. Must be
+        >nearClip.
 
     Returns
     -------
@@ -51,9 +56,9 @@ def computeOffAxisFrustums(fov,
 
     Notes
     -----
-    The view point must be transformed by the screen distance for objects to
-    appear correctly. For instance, if the screen distance is 1.0 meter, the
-    scene must be transformed by -1.0 units.
+    The view point must be transformed by the screen distance and eye offset for
+    objects to appear correctly. For instance, if the screen distance is 1.0
+    meter, the scene must be transformed by -1.0 units.
 
     """
     hfovx = math.tan(math.radians(fov) / 2.0)
@@ -87,7 +92,7 @@ def computeOffAxisFrustums(fov,
     #
     # translate the viewer in the scene
     # GL.glMatrixMode(GL.GL_MODELVIEW)
-    # GL.glTranslate(iod / 2.0, 0, -scrDist)
+    # GL.glTranslate(-(iod / 2.0), 0, -scrDist)
 
     return leftFrustum, rightFrustum
 
