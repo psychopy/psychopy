@@ -1,31 +1,32 @@
 <!doctype html>
-
 <html>
-  <head>
+
+<head>
     <title>{name} [PsychoPy]</title>
     <meta charset="UTF-8">
 
     <!-- external libraries -->
-    <script type="text/javascript" src="lib/vendors/seedrandom.min.js"></script>
     <script type="text/javascript" src="lib/vendors/jquery-2.2.0.min.js"></script>
     <script type="text/javascript" src="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="lib/vendors/stats.min.js"></script>
-    <script type="text/javascript" src="lib/vendors/pixi.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/seedrandom.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/pixi-4.8.1.min.js"></script>
     <script type="text/javascript" src="lib/vendors/preloadjs.min.js"></script>
+    <script type="text/javascript" src="lib/vendors/moment-2.22.2.min.js"></script>
     <script type="text/javascript" src="lib/vendors/xlsx.full.min.js"></script>
     <script type="text/javascript" src="lib/vendors/log4javascript.min.js"></script>
     <script type="text/javascript" src="lib/vendors/Tone.min.js"></script>
 
     <!-- styles -->
-    <link href="lib/vendors/jquery-ui-1.11.4.base/jquery-ui.min.css" rel="stylesheet">
+    <link href="lib/vendors/jquery-ui.min.css" rel="stylesheet">
     <link href="lib/psychojs.css" rel="stylesheet">
+</head>
 
-    <!-- PsychoJS library -->
-    <script type="text/javascript" src="lib/psychojs.3.0.0alpha3.js"></script>
-  </head>
-
-  <body>
+<body>
     <div id="root"/>
-    <script type="text/javascript" src="./{name}.js"></script>
-  </body>
+    <script type='module' src='./{name}.js'></script>
+
+    <script nomodule type="text/javascript" src="lib/psychojs-3.0.0b9.js"></script>
+    <script nomodule type="text/javascript" src="./{name}NoModule.js"></script>
+<body>
+
 </html>

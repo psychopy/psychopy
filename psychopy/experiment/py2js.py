@@ -25,7 +25,7 @@ class NamesJS(dict):
         try:
             return dict.__getitem__(self, name)
         except:
-            return "my.{}".format(name)
+            return "{}".format(name)
 
 
 namesJS = NamesJS()

@@ -397,12 +397,14 @@ class ColorMixin(object):
                 # GratingStim, RadialStim, ImageStim etc
                 elif hasattr(self, '_needTextureUpdate'):
                     self._needTextureUpdate = True
-                elif self.__class__.__name__ in ('ShapeStim', 'DotStim'):
-                    pass  # They work fine without shaders?
+                elif (hasattr(self, 'fillColor')  # a derivative of shapestim
+                        or self.__class__.__name__ == 'DotStim'):
+                    pass  # no need for shaders or rebuilding
                 elif self.autoLog:
                     logging.warning('Tried to set contrast while useShaders '
-                                    '= False but stimulus was not rebuild. '
-                                    'Contrast might remain unchanged.')
+                                    '= False but stimulus was not rebuilt. '
+                                    'Contrast might remain unchanged. {}'
+                                    .format(self))
         elif self.autoLog:
             logging.warning('Contrast was set on class where useShaders was '
                             'undefined. Contrast might remain unchanged')

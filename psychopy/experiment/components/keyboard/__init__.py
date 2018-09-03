@@ -134,7 +134,7 @@ class KeyboardComponent(BaseComponent):
             return
 
     def writeRoutineStartCodeJS(self, buff):
-        code = "%(name)s = new BuilderKeyResponse(psychoJS);\n"
+        code = "%(name)s = new core.BuilderKeyResponse(psychoJS);\n"
         buff.writeIndentedLines(code % self.params)
 
         if (self.params['store'].val == 'nothing' and
@@ -328,7 +328,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented(code)
 
         if self.params['discard previous'].val:
-            buff.writeIndented("my.eventManager.clearEvents({eventType:'keyboard'});\n")
+            buff.writeIndented("psychoJS.eventManager.clearEvents({eventType:'keyboard'});\n")
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("}\n")
@@ -362,7 +362,7 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "{keyList:%s}" % repr(keyList)
 
         # check for keypresses
-        buff.writeIndented("let theseKeys = my.eventManager.getKeys(%s);\n" % keyListStr)
+        buff.writeIndented("let theseKeys = psychoJS.eventManager.getKeys(%s);\n" % keyListStr)
 
         if self.exp.settings.params['Enable Escape'].val:
             code = ('\n// check for quit:\n'
@@ -518,16 +518,16 @@ class KeyboardComponent(BaseComponent):
                 "StairHandlers not currently supported by PsychoJS")
         else:
             # always add keys
-            buff.writeIndented("my.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
+            buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
 
             if self.params['storeCorrect'].val == True:
-                buff.writeIndented("my.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
+                buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
 
             # only add an RT if we had a response
             code = ("if ({name}.keys != undefined) {{  // we had a response\n"
-                    "    my.experiment.addData('{name}.rt', {name}.rt);\n")
+                    "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
             if forceEnd:
-                code += ("    my.routineTimer.reset();\n"
+                code += ("    routineTimer.reset();\n"
                          "    }}\n")
             else:
                 code += "    }}\n"

@@ -18,6 +18,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 """
 from psychopy import experiment
 from os.path import split, join, expanduser
+import psychopy.scripts.psyexpCompile as psyexpCompile
 import codecs
 
 home = expanduser("~")
@@ -46,6 +47,17 @@ class Test_PsychoJS_from_Builder(object):
         with codecs.open(join(outFolder,'index.html'), 'w', 'utf-8') as f:
             f.write(script)
 
+    def compileScript(self, infile=None, version=None, outfile=None):
+        """
+        Compile script used to test whether JS modular files are written
+        :param infile: psyexp file
+        :param version: Version to use
+        :param outfile: For testing JS filename
+        :return: True
+        """
+        psyexpCompile.compileScript(infile, version, outfile)
+        return True
+
     def test_stroop(self):
         #load experiment
         exp = experiment.Experiment()
@@ -55,8 +67,6 @@ class Test_PsychoJS_from_Builder(object):
         outFolder = join(self.temp_dir, 'stroopJS_remote/html')
         os.makedirs(outFolder)
         self.writeScript(exp, outFolder)
-        print("files in {}".format(outFolder))
-
 
     def test_blocked(self):
         # load experiment
@@ -70,9 +80,25 @@ class Test_PsychoJS_from_Builder(object):
         self.writeScript(exp, outFolder)
         print("files in {}".format(outFolder))
 
+    def test_JS_script_output(self):
+        # Load experiment
+        exp = experiment.Experiment()
+        exp.loadFromXML(join(demosDir, 'builder', 'stroop', 'stroop.psyexp'))
+        outFolder = join(self.temp_dir, 'stroopJS_output/html')
+        outFile = os.path.join(outFolder, 'stroop.js')
+        os.makedirs(outFolder)
+        # Compile scripts
+        assert(self.compileScript(infile=exp, version=None, outfile=outFile))
+        # Test whether files are written
+        assert(os.path.isfile(os.path.join(outFolder, 'stroop.js')))
+        assert(os.path.isfile(os.path.join(outFolder, 'stroopNoModule.js')))
+        assert(os.path.isfile(os.path.join(outFolder, 'index.html')))
+        assert(os.path.isdir(os.path.join(outFolder, 'resources')))
+
 if __name__ == '__main__':
     cls = Test_PsychoJS_from_Builder()
     cls.setup_class()
     cls.test_stroop()
     cls.test_blocked()
+    cls.test_JS_script_output()
     cls.teardown_class()

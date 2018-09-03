@@ -102,7 +102,7 @@ class Routine(list):
         code = '// Initialize components for Routine "%s"\n'
         buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
-        buff.writeIndented('my.%s = new Clock();\n' % self._clockName)
+        buff.writeIndented('%s = new util.Clock();\n' % self._clockName)
         for thisCompon in self:
             if hasattr(thisCompon, 'writeInitCodeJS'):
                 thisCompon.writeInitCodeJS(buff)
@@ -222,14 +222,14 @@ class Routine(list):
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
-                "my.t = 0;\n"
-                "my.%(name)sClock.reset(); // clock\n"
-                "my.frameN = -1;\n" % self.params)
+                "t = 0;\n"
+                "%(name)sClock.reset(); // clock\n"
+                "frameN = -1;\n" % self.params)
         buff.writeIndentedLines(code)
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
-            buff.writeIndented('my.routineTimer.add(%f);\n' % (maxTime))
+            buff.writeIndented('routineTimer.add(%f);\n' % (maxTime))
 
         code = "// update component parameters for each repeat\n"
         buff.writeIndentedLines(code)
@@ -239,14 +239,14 @@ class Routine(list):
                 thisCompon.writeRoutineStartCodeJS(buff)
 
         code = ("// keep track of which components have finished\n"
-                "my.%(name)sComponents = [];\n" % self.params)
+                "%(name)sComponents = [];\n" % self.params)
         buff.writeIndentedLines(code)
         for thisCompon in self:
             if ('startType' in thisCompon.params
                     and "PsychoJS" in thisCompon.targets):
-                code = ("my.%sComponents.push(%s);\n" % (self.name, thisCompon.params['name']))
+                code = ("%sComponents.push(%s);\n" % (self.name, thisCompon.params['name']))
                 buff.writeIndentedLines(code)
-        code = ("\nfor (const thisComponent of my.%(name)sComponents)\n"
+        code = ("\nfor (const thisComponent of %(name)sComponents)\n"
                 "  if ('status' in thisComponent)\n"
                 "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
                 "\nreturn Scheduler.Event.NEXT;\n" % self.params)
@@ -266,8 +266,8 @@ class Routine(list):
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
                 "let continueRoutine = true; // until we're told otherwise\n"
                 "// get current time\n"
-                "my.t = my.%(name)sClock.getTime();\n"
-                "my.frameN = my.frameN + 1;"
+                "t = %(name)sClock.getTime();\n"
+                "frameN = frameN + 1;"
                 "// number of completed frames (so 0 is the first frame)\n" % self.params)
         buff.writeIndentedLines(code)
         # write the code for each component during frame
@@ -289,7 +289,7 @@ class Routine(list):
                 "}\n"
                 "continueRoutine = false;"
                 "// reverts to True if at least one component still running\n"
-                "for (const thisComponent of my.%(name)sComponents)\n"
+                "for (const thisComponent of %(name)sComponents)\n"
                 "  if ('status' in thisComponent && thisComponent.status != PsychoJS.Status.FINISHED) {\n"
                 "    continueRoutine = true;\n"
                 "    break;\n"
@@ -303,7 +303,7 @@ class Routine(list):
         buff.writeIndentedLines("\n// refresh the screen if continuing\n")
         if useNonSlip:
             buff.writeIndentedLines("if (continueRoutine "
-                                    "&& my.routineTimer.getTime() > 0) {")
+                                    "&& routineTimer.getTime() > 0) {")
         else:
             buff.writeIndentedLines("if (continueRoutine) {")
         code = ("  return Scheduler.Event.FLIP_REPEAT;\n"
@@ -325,7 +325,7 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Ending Routine '%(name)s'-------\n"
-                "for (const thisComponent of my.%(name)sComponents) {\n"
+                "for (const thisComponent of %(name)sComponents) {\n"
                 "  if (typeof thisComponent.setAutoDraw === 'function') {\n"
                 "    thisComponent.setAutoDraw(false);\n"
                 "  }\n"
@@ -340,7 +340,7 @@ class Routine(list):
         if not useNonSlip:
             code = ('// the Routine "%s" was not non-slip safe, so reset '
                     'the non-slip timer\n'
-                    'my.routineTimer.reset();\n\n')
+                    'routineTimer.reset();\n\n')
             buff.writeIndentedLines(code % self.name)
 
         buff.writeIndented('return Scheduler.Event.NEXT;\n')

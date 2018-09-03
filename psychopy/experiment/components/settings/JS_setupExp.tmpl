@@ -1,45 +1,16 @@
-function setupExperiment() {{
-  if (psychoJS.status === PsychoJS.Status.NOT_CONFIGURED) {{
-    psychoJS.status = PsychoJS.Status.CONFIGURING;
-
-    psychoJS.configure('config.json')
-    .then( config => {{
-
-      // An ExperimentHandler isn't essential but helps with data saving
-      psychoJS.experiment = new ExperimentHandler({{extraInfo: my.expInfo}});
-
-      /*
-      // logging:
-      my.logger.console.setLevel(psychoJS.logging.WARNING);
-      my.logger.server.set({{'level':psychoJS.logging.WARNING, 'saveTo':'EXPERIMENT_SERVER', 'experimentInfo': my.expInfo}});*/
-
-      // change status to leave setupExperiment loop:
-      psychoJS.status = PsychoJS.Status.CONFIGURED;
-    }});
-  }}
-
-  // the loop will return until the configuration is completed
-  // at which point the status changes to CONFIGURED
-  if (psychoJS.status === PsychoJS.Status.CONFIGURED) {{
-    psychoJS.status = PsychoJS.Status.STARTED;
-    return Scheduler.Event.NEXT;
-  }} else
-    return Scheduler.Event.FLIP_REPEAT;
-}}
-
 function updateInfo() {{
-  my.expInfo['date'] = MonotonicClock.getDateStr();  // add a simple timestamp
-  my.expInfo['expName'] = my.expName;
+  expInfo['date'] = util.MonotonicClock.getDateStr();  // add a simple timestamp
+  expInfo['expName'] = expName;
 
   // store frame rate of monitor if we can measure it successfully
-  my.expInfo['frameRate'] = my.window.getActualFrameRate();
-  if (typeof my.expInfo['frameRate'] !== 'undefined')
-    my.frameDur = 1.0/Math.round(my.expInfo['frameRate']);
+  expInfo['frameRate'] = psychoJS.window.getActualFrameRate();
+  if (typeof expInfo['frameRate'] !== 'undefined')
+    frameDur = 1.0/Math.round(expInfo['frameRate']);
   else
-    my.frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
+    frameDur = 1.0/60.0; // couldn't get a reliable measure so guess
 
   // add info from the URL:
-  addInfoFromUrl(my.expInfo);
+  util.addInfoFromUrl(expInfo);
 
   return Scheduler.Event.NEXT;
 }}
