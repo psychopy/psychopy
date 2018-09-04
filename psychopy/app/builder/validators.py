@@ -184,7 +184,7 @@ class CodeSnippetValidator(BaseValidator):
 
         # Check if variable incorrectly defined in correct answer
         AllKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
-        if self.fieldName == 'correctAns' and '$' not in val:
+        if self.fieldName == 'correctAns' and not val.startswith('$'):
             if ',' in val:  # comma separated
                 keyList = val.upper().split(',')
                 keyList = [key.replace(' ', '') for key in keyList if len(key) > 0]
@@ -195,7 +195,7 @@ class CodeSnippetValidator(BaseValidator):
             potentialVars = list(set(keyList) - set(AllKeyBoardKeys))  # Elements of keyList not in AllKeyBoardKeys
             _highlightParamVal(parent, bool(potentialVars))
             if len(potentialVars):
-                msg = "It looks like your 'Correct answer' is a variable - prepend variables with '$' e.g. ${val}"
+                msg = "It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}"
                 msg = msg.format(val=potentialVars[0].lower())
 
         if codeWanted or isCodeField:
