@@ -332,9 +332,30 @@ class DlgFromDict(Dlg):
     Parameters
     ----------
 
-    sort_keys : bool
-        Whether the dictionary keys should be ordered alphabetically
-        for displaying.
+    dictionary : dict
+        A dictionary defining the input fields (keys) and pre-filled values
+        (values) for the user dialog
+        
+    title : str
+        The title of the dialog window
+
+    labels : dict
+        A dictionary defining labels (values) to be displayed instead of
+        key strings (keys) defined in ``dictionary´´. Not all keys in
+        ``dictionary´´ need to be contained in labels.
+
+    fixed : list
+        A list of keys for which the values shall be displayed in non-editable
+        fields
+        
+    order : bool | list
+        Either a list of keys defining the display order of keys in
+        ``dictionary´´. If not all keys in ``dictionary´´ are contained in
+        ``order´´, those will appear in random order after all ordered keys.
+        Or a boolean flag indicating that keys are to be sorted alphabetically.
+
+    tip : list
+        A dictionary assigning tooltips to the keys
 
     copy_dict : bool
         If False, modify ``dictionary`` in-place. If True, a copy of
@@ -342,6 +363,10 @@ class DlgFromDict(Dlg):
         user interaction) can be retrieved from
         :attr:~`psychopy.gui.DlgFromDict.dictionary`.
 
+    preserve_types : bool
+        If False, the return type of the values in ``dictionary´´ is
+        undetermined and will depend on the value format provided by the user
+        
     show : bool
         Whether to immediately display the dialog upon instantiation.
          If False, it can be displayed at a later time by calling
@@ -351,11 +376,11 @@ class DlgFromDict(Dlg):
 
     ::
 
-        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1,
-                'Group': ['Test', 'Control']}
-        dictDlg = gui.DlgFromDict(dictionary=info,
-                title='TestExperiment', fixed=['ExpVersion'])
-        if dictDlg.OK:
+        info = {'Observer':'jwp', 'GratingOri':45,
+                'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
+        infoDlg = gui.DlgFromDict(dictionary=info,
+                    title='TestExperiment', fixed=['ExpVersion'])
+        if infoDlg.OK:
             print(info)
         else:
             print('User Cancelled')
@@ -371,11 +396,10 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', fixed=None, order=None,
-                 tip=None, screen=-1, sort_keys=True, copy_dict=False,
-                 show=True):
+    def __init__(self, dictionary, title='', labels=None, fixed=None, order=None, tip=None,
+                 copy_dict=False, preserve_types=True, show=True):
         # We don't explicitly check for None identity
-        #  for backward-compatibility reasons.
+        # for backward-compatibility reasons.
         if not fixed:
             fixed = []
         if not order:
@@ -383,7 +407,8 @@ class DlgFromDict(Dlg):
         if not tip:
             tip = dict()
 
-        Dlg.__init__(self, title, screen=screen)
+        # app = ensureWxApp() done by Dlg
+        super().__init__(title)
 
         if copy_dict:
             self.dictionary = dictionary.copy()
@@ -391,26 +416,28 @@ class DlgFromDict(Dlg):
             self.dictionary = dictionary
 
         self._keys = list(self.dictionary.keys())
+        self.preserve_types = preserve_types
+        self.labels = dict()
+        self.types = dict()
 
-        if sort_keys:
+        if type(order) == bool:
             self._keys.sort()
-        if order:
+        elif order:
             self._keys = list(order) + list(set(self._keys).difference(set(order)))
 
-        types = dict()
-
         for field in self._keys:
-            types[field] = type(self.dictionary[field])
+            self.types[field] = type(self.dictionary[field])
+            self.labels[field] = labels[field] if field in labels else field
             tooltip = ''
             if field in tip:
                 tooltip = tip[field]
             if field in fixed:
-                self.addFixedField(field, self.dictionary[field], tip=tooltip)
+                self.addFixedField(self.labels[field], self.dictionary[field], tip=tooltip)
             elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(field, choices=self.dictionary[field],
+                self.addField(self.labels[field], choices=self.dictionary[field],
                               tip=tooltip)
             else:
-                self.addField(field, self.dictionary[field], tip=tooltip)
+                self.addField(self.labels[field], self.dictionary[field], tip=tooltip)
 
         if show:
             self.show()
@@ -421,7 +448,13 @@ class DlgFromDict(Dlg):
         ok_data = self.exec_()
         if ok_data:
             for n, thisKey in enumerate(self._keys):
-                self.dictionary[thisKey] = ok_data[n]
+                if self.preserve_types:
+                    try:
+                        self.dictionary[thisKey] = self.types[thisKey](self.data[n])
+                    except ValueError:
+                        self.dictionary[thisKey] = self.data[n]
+                else:
+                    self.dictionary[thisKey] = self.data[n]
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
