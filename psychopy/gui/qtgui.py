@@ -348,7 +348,7 @@ class DlgFromDict(Dlg):
         A list of keys for which the values shall be displayed in non-editable
         fields
         
-    order : bool | list
+    sort_keys : bool | list
         Either a list of keys defining the display order of keys in
         ``dictionary´´. If not all keys in ``dictionary´´ are contained in
         ``order´´, those will appear in random order after all ordered keys.
@@ -396,14 +396,14 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', labels=None, fixed=None, order=None, tip=None,
+    def __init__(self, dictionary, title='', labels=None, fixed=None, sort_keys=None, tip=None,
                  copy_dict=False, preserve_types=True, show=True):
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
         if not fixed:
             fixed = []
-        if not order:
-            order = []
+        if not sort_keys:
+            sort_keys = []
         if not tip:
             tip = dict()
 
@@ -420,10 +420,10 @@ class DlgFromDict(Dlg):
         self.labels = dict()
         self.types = dict()
 
-        if type(order) == bool:
+        if type(sort_keys) == bool:
             self._keys.sort()
-        elif order:
-            self._keys = list(order) + list(set(self._keys).difference(set(order)))
+        elif sort_keys:
+            self._keys = list(sort_keys) + list(set(self._keys).difference(set(sort_keys)))
 
         for field in self._keys:
             self.types[field] = type(self.dictionary[field])
