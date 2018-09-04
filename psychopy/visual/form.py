@@ -9,8 +9,7 @@
 
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin, ColorMixin)
-from psychopy import visual, event
-
+from psychopy import visual
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self,
@@ -30,91 +29,128 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.labelHeight = 0.02
         self.textHeight = 0.03
         self.units = units
-
-        self.virtualHeight = 0
+        self._items = {'question': [], 'response': []}
+        self._baseYpositions = []
+        self.leftEdge = None
+        self.rightEdge = None
+        self.topEdge = None
+        self.virtualHeight = 0  # Virtual height determines pos from boundary box
         self._scrollOffset = 0
 
         self._doLayout()
 
+    def _setQuestion(self, item):
+        """Creates TextStim object containing question
+        :returns TextStim, TextStim height and width"""
+        question = visual.TextStim(self.win,
+                                   text=item['qText'],
+                                   units=self.units,
+                                   height=self.textHeight,
+                                   alignHoriz='left',
+                                   wrapWidth=item['qWidth'] * self.size[0])
+
+        qHeight = question.boundingBox[1] / float(self.win.size[1] / 2)
+        qWidth = question.boundingBox[0] / float(self.win.size[0] / 2)  # TODO: use qWidth
+
+        self._items['question'].append(question)
+        return question, qHeight, qWidth
+
+    def _setResponse(self, item, question):
+        """Creates slider object for responses
+        :returns Slider, slider height"""
+        pos = (self.rightEdge - item['aWidth'] * self.size[0], question.pos[1])
+        aHeight = len(item['aOptions']) * self.textHeight
+
+        if item['aType'].lower() in ['rating', 'slider']:
+            resp = visual.Slider(self.win,
+                                 pos=pos,
+                                 size=(item['aWidth'] * self.size[0], 0.03),
+                                 ticks=[0, 1],
+                                 labels=item['aOptions'],
+                                 units=self.units,
+                                 labelHeight=self.labelHeight,
+                                 flip=True)
+        elif item['aType'].lower() in ['choice']:
+            resp = visual.Slider(self.win,
+                                 pos=pos,
+                                 size=(0.03, aHeight),
+                                 ticks=None,
+                                 labels=item['aOptions'],
+                                 units=self.units,
+                                 labelHeight=self.textHeight,
+                                 style='radio',
+                                 flip=True)
+
+        self._items['response'].append(resp)
+        return resp, aHeight
+
+    def _setScrollBar(self):
+        """Creates Slider object for scrollbar
+        :returns Slider"""
+        return visual.Slider(self.win, size=(0.03, self.size[1]),
+                             ticks=[0, 1], style='slider',
+                             pos=(self.rightEdge, self.pos[1]))
+
+    def _setBorder(self):
+        """Creates border using Rect
+        :returns Rect"""
+        return visual.Rect(win, units=self.units, pos=self.pos,
+                           width=self.size[0], height=self.size[1])
+
+    def _setAperture(self):
+        """Blocks text beyond border using Aperture
+        :returns Aperture"""
+        return visual.Aperture(win=win, name='aperture',
+                               units=self.units, shape='square',
+                               size=self.size, pos=(0, 0))
+    def _getScrollOffet(self):
+        """Returns the offset position of items in relation to markerPos"""
+        sizeOffset = (1 - self.scrollbar.markerPos) * (self.size[1]-self.itemPadding)
+        maxItemPos = min(self._baseYpositions)
+        return (maxItemPos - (self.scrollbar.markerPos * maxItemPos) + sizeOffset)
+
     def _doLayout(self):
-        self._items = []
-        self._baseYpositions = []
-        leftEdge = self.pos[0] - self.size[0]/2.0
-        rightEdge = self.pos[0] + self.size[0]/2.0
-        topEdge = self.pos[1] + self.size[1]/2.0
+        # Define boundaries of form
+        self.leftEdge = self.pos[0] - self.size[0]/2.0
+        self.rightEdge = self.pos[0] + self.size[0]/2.0
+        self.topEdge = self.pos[1] + self.size[1]/2.0
+
+        # For each question, create textstim and rating scale
         for item in self.questionList:
             # set up the question text
-            q = visual.TextStim(self.win,
-                                text=item['qText'],
-                                units=self.units,
-                                height=self.textHeight,
-                                alignHoriz='left',
-                                wrapWidth=item['qWidth']*self.size[0])
-            qHeight = q.boundingBox[1] / float(self.win.size[1]/2)
-            w = q.boundingBox[0] / float(self.win.size[0]/2)
-            q.pos = (leftEdge,
-                     topEdge+self.virtualHeight-qHeight/2-self.itemPadding)
-
-            self._items.append(q)
-            # we'll update the position on each draw using
-            # self._baseYpositions + form.pos[1] + _scrollOffset
+            question, qHeight, qWidth = self._setQuestion(item)
+            # Position text relative to boundaries defined according to position and size
+            question.pos = (self.leftEdge,
+                            self.topEdge
+                            + self.virtualHeight
+                            - qHeight/2 - self.itemPadding)
+            response, aHeight,  = self._setResponse(item, question)
             self._baseYpositions.append(self.virtualHeight-qHeight/2)
-
-            if item['aType'].lower() in ['rating', 'slider']:
-                pos = (rightEdge-item['aWidth']*self.size[0],
-                       q.pos[1])
-                resp = visual.Slider(self.win,
-                                     pos=pos,
-                                     size=(item['aWidth']*self.size[0], 0.03),
-                                     ticks=[0, 1],
-                                     labels=item['aOptions'],
-                                     units=self.units,
-                                     labelHeight=self.labelHeight,
-                                     flip=True)
-            elif item['aType'].lower() in ['choice']:
-                pos = (rightEdge-item['aWidth']*self.size[0],
-                       q.pos[1])
-                aHeight = len(item['aOptions'])*self.textHeight
-                resp = visual.Slider(self.win,
-                                     pos=pos,
-                                     size=(0.03, aHeight),
-                                     ticks=None,
-                                     labels=item['aOptions'],
-                                     units=self.units,
-                                     labelHeight=self.textHeight,
-                                     style='radio',
-                                     flip=True)
-
-            self._items.append(resp)
-
             # update height ready for next row
             self.virtualHeight -= max(aHeight, qHeight) + self.itemPadding
 
         # position a slider on right-hand edge
-        self.scrollbar = visual.Slider(
-                self.win, size=(0.03, self.size[1]),
-                ticks=[0,1], style='slider',
-                pos=(rightEdge, self.pos[1]))
-        self.border = visual.Rect(win, units=self.units,
-                                  pos=self.pos,
-                                  width=self.size[0], height=self.size[1],
-                                  )
+        self.scrollbar = self._setScrollBar()
+        self.scrollbar.markerPos = 1  # Set scrollbar to start position
+        self.border = self._setBorder()
+        self.aperture = self._setAperture()
 
     def draw(self):
         decorations = [self.border]  #add scrollbar if it's needed
         fractionVisible = self.size[1]/(-self.virtualHeight)
+        self.aperture.enable()
         if fractionVisible < 1.0:
             decorations.append(self.scrollbar)
-            scrollPos = self.scrollbar.markerPos
-
-
         # draw the box and scrollbar
         for decoration in decorations:
             decoration.draw()
 
         # draw the questions etc
-        for item in self._items:
-            item.draw()
+        for element in self._items.keys():
+            for idx, items in enumerate(self._items[element]):
+                if element == 'question':  # Currently, slider has no pos to move
+                    items.pos = (items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())
+                items.draw()
 
 
 if __name__ == "__main__":
@@ -139,11 +175,11 @@ if __name__ == "__main__":
         questions.append(entry)
 
     # create window and display
-    win = visual.Window(units='height')
+    win = visual.Window(units='height', allowStencil=True)
     print(win.backend.shadersSupported, win._haveShaders)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
     survey = Form(win, questionList=questions,
-                  pos=(0.0, 0.0), size=(1.0, 0.6))
+                  pos=(0.0, 0.0), size=(1.0, 0.7))
 
     for n in range(600):
         survey.draw()
