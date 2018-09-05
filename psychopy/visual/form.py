@@ -51,8 +51,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         qHeight = question.boundingBox[1] / float(self.win.size[1] / 2)
         qWidth = question.boundingBox[0] / float(self.win.size[0] / 2)  # TODO: use qWidth
-
         self._items['question'].append(question)
+
         return question, qHeight, qWidth
 
     def _setResponse(self, item, question):
@@ -110,6 +110,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         return (maxItemPos - (self.scrollbar.markerPos * maxItemPos) + sizeOffset)
 
     def _doLayout(self):
+        """Define layout of form"""
         # Define boundaries of form
         self.leftEdge = self.pos[0] - self.size[0]/2.0
         self.rightEdge = self.pos[0] + self.size[0]/2.0
@@ -124,8 +125,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                             self.topEdge
                             + self.virtualHeight
                             - qHeight/2 - self.itemPadding)
-            response, aHeight,  = self._setResponse(item, question)
-            self._baseYpositions.append(self.virtualHeight-qHeight/2)
+            response, aHeight, = self._setResponse(item, question)
+            # Calculate position of question based on larger qHeight vs aHeight.
+            self._baseYpositions.append(self.virtualHeight
+                                        - max(aHeight, qHeight)  # Positionining based on larger of the two
+                                        + (aHeight/2)            # necessary to offset size-based positioning
+                                        - self.textHeight)       # Padding for unaccounted marker size in slider height
             # update height ready for next row
             self.virtualHeight -= max(aHeight, qHeight) + self.itemPadding
 
@@ -135,22 +140,34 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.border = self._setBorder()
         self.aperture = self._setAperture()
 
+    def _inRange(self, item):
+        """Returns True if item position falls within viewable border range"""
+        upperRange = self.size[1]/2
+        lowerRange = -self.size[1]/2
+        return (item.pos[1] < upperRange and item.pos[1] > lowerRange)
+
     def draw(self):
-        decorations = [self.border]  #add scrollbar if it's needed
+        """Draw items on form"""
+        decorations = [self.border]  # add scrollbar if it's needed
         fractionVisible = self.size[1]/(-self.virtualHeight)
-        self.aperture.enable()
         if fractionVisible < 1.0:
             decorations.append(self.scrollbar)
+
         # draw the box and scrollbar
         for decoration in decorations:
             decoration.draw()
+        self.aperture.enable()
 
-        # draw the questions etc
+        # draw the items
         for element in self._items.keys():
             for idx, items in enumerate(self._items[element]):
                 if element == 'question':  # Currently, slider has no pos to move
                     items.pos = (items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())
-                items.draw()
+                else:
+                    items.dynamicYPos(((items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())))
+                # Only draw if within border range for efficiency
+                if self._inRange(items):
+                    items.draw()
 
 
 if __name__ == "__main__":

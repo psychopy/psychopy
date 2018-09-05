@@ -256,7 +256,6 @@ class Slider(MinimalStim):
 
         self.labelObjs = []
         if self.labels is not None:
-
             if not self.labelLocs:
                 self._setLabelLocs()
             if self.horiz:
@@ -303,6 +302,23 @@ class Slider(MinimalStim):
                               width=self.size[0] * 1.1,
                               height=self.size[1] * 1.1,
                               lineColor='DarkGrey')
+
+    def dynamicYPos(self, pos):
+        """Change the position of slider on Y-axis dynamically"""
+        self.pos = pos
+        self.line.pos = self.pos
+        self.validArea.pos = self.pos
+        if self.markerPos is not None:
+            self.marker.pos = self._ratingToPos(self.markerPos)
+        self._setTickLocs()
+        self.tickLines.xys = self.tickLocs
+        counter = -1
+        for label in self.labelObjs:
+            if self.horiz:
+                label.pos = (label.pos[0], pos[1]+self._tickL/2)
+            else:
+                label.pos = (label.pos[0], self.tickLocs[counter][1])
+                counter -= 1
 
     def _ratingToPos(self, rating):
         try:
