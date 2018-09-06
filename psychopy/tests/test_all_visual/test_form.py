@@ -53,14 +53,15 @@ class Test_Form(object):
         assert self.survey.size[0] == (1.0, 0.7)[0]  # width
         assert self.survey.size[1] == (1.0, 0.7)[1]  # height
 
+    def test_apeture_size(self):
+        assert self.survey.aperture.size[0] == self.survey.size[0]
+        assert self.survey.aperture.size[1] == self.survey.size[1]
+
     def test_border_limits(self):
         survey = self.survey
         assert survey.leftEdge == survey.pos[0] - survey.size[0]/2.0
         assert survey.rightEdge == survey.pos[0] + survey.size[0]/2.0
         assert survey.topEdge == survey.pos[1] + survey.size[1]/2.0
-
-    def teardown_class(self):
-        self.win.close()
 
     def test_text_height(self):
         assert self.survey.textHeight == 0.03
@@ -79,7 +80,17 @@ class Test_Form(object):
         assert self.survey.virtualHeight == self.survey._baseYpositions[-1] - self.survey.itemPadding
 
     def test_scroll_offset(self):
-        print(self.survey._scrollOffset)
+        for idx, positions in enumerate([1, 0]):  # 1 is start position
+            self.survey.scrollbar.markerPos = positions
+            assert round(self.survey._getScrollOffet(), 2) == [0., -.52][idx]
+
+    def test_screen_status(self):
+        assert self.survey._inRange(self.survey._items['question'][0])
+        with pytest.raises(AssertionError):
+            assert self.survey._inRange(self.survey._items['question'][9])
+
+    def teardown_class(self):
+        self.win.close()
 
 if __name__ == "__main__":
     test = Test_Form()
