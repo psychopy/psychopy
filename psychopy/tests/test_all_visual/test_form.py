@@ -43,12 +43,6 @@ class Test_Form(object):
         for item in self.survey._items['question']:
             assert self.survey.getQuestionWidth(item) == item.boundingBox[0] / float(self.win.size[0] / 2)
 
-    def test_baseYpositions(self):
-        survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.7), pos=(0.0, 0.0))
-        positions = [-.07, -.21, -.33, -.45, -.57, -.69, -.81, -.93, -1.05, -1.17]
-        for idx, pos in enumerate(survey._baseYpositions):
-            assert positions[idx] == round(pos, 2)
-
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.7)[0]  # width
         assert self.survey.size[1] == (1.0, 0.7)[1]  # height
@@ -78,6 +72,22 @@ class Test_Form(object):
 
     def test_virtual_height(self):
         assert self.survey.virtualHeight == self.survey._baseYpositions[-1] - self.survey.itemPadding
+
+    def test_baseYpositions(self):
+        survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.7), pos=(0.0, 0.0))
+        testPositions = []
+        survey.virtualHeight = 0
+        for item in survey.surveyItems:
+            question, qHeight, qWidth = survey._setQuestion(item)
+            response, aHeight, = survey._setResponse(item, question)
+            testPositions.append(survey.virtualHeight
+                                 - max(aHeight, qHeight)
+                                 + (aHeight / 2)
+                                 - survey.textHeight)
+            survey.virtualHeight -= max(aHeight, qHeight) + survey.itemPadding
+
+        for idx, pos in enumerate(survey._baseYpositions):
+            assert testPositions[idx] == pos
 
     def test_scroll_offset(self):
         for idx, positions in enumerate([1, 0]):  # 1 is start position
