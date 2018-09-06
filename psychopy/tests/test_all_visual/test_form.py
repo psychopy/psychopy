@@ -45,9 +45,9 @@ class Test_Form(object):
 
     def test_baseYpositions(self):
         survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.7), pos=(0.0, 0.0))
-        positions = [-.075, -.210, -.330, -.450, -.570, -.690, -.810, -.930, -1.050, -1.170]
+        positions = [-.07, -.21, -.33, -.45, -.57, -.69, -.81, -.93, -1.05, -1.17]
         for idx, pos in enumerate(survey._baseYpositions):
-            assert positions[idx] == round(pos, 3)
+            assert positions[idx] == round(pos, 2)
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.7)[0]  # width
