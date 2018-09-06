@@ -82,7 +82,10 @@ class Test_Form(object):
     def test_scroll_offset(self):
         for idx, positions in enumerate([1, 0]):  # 1 is start position
             self.survey.scrollbar.markerPos = positions
-            assert round(self.survey._getScrollOffet(), 2) == [0., -.52][idx]
+            posZeroOffset = (self.survey.size[1]
+                     - self.survey.itemPadding
+                     + min(self.survey._baseYpositions))
+            assert self.survey._getScrollOffet() == [0., posZeroOffset][idx]
 
     def test_screen_status(self):
         assert self.survey._inRange(self.survey._items['question'][0])
