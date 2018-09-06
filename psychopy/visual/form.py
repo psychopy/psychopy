@@ -12,15 +12,18 @@ from psychopy.visual.basevisual import (BaseVisualStim,
 from psychopy import visual
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
+    """A class to add survey forms to a `psycopy.visual.Window`"""
+
     def __init__(self,
                  win,
-                 questionList,
-                 size,
+                 questionList=[],
+                 size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
                  units='height',
                  ):
 
+        super(Form, self).__init__(win, units)
         self.win = win
         self.questionList = questionList
         self.size = size
@@ -195,8 +198,7 @@ if __name__ == "__main__":
     win = visual.Window(units='height', allowStencil=True)
     print(win.backend.shadersSupported, win._haveShaders)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, questionList=questions,
-                  pos=(0.0, 0.0), size=(1.0, 0.7))
+    survey = Form(win, questionList=questions, size=(1.0, 0.7), pos=(0.0, 0.0))
 
     for n in range(600):
         survey.draw()
