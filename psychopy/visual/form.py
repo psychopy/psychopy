@@ -16,7 +16,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def __init__(self,
                  win,
-                 questionList=[],
+                 surveyItems,
                  size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
@@ -25,7 +25,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         super(Form, self).__init__(win, units)
         self.win = win
-        self.questionList = questionList
+        self.surveyItems = surveyItems
         self.size = size
         self.pos = pos
         self.itemPadding = itemPadding
@@ -52,17 +52,30 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                    alignHoriz='left',
                                    wrapWidth=item['qWidth'] * self.size[0])
 
-        qHeight = question.boundingBox[1] / float(self.win.size[1] / 2)
-        qWidth = question.boundingBox[0] / float(self.win.size[0] / 2)  # TODO: use qWidth
+        qHeight = self.getQuestionHeight(question)
+        qWidth = self.getQuestionWidth(question)
         self._items['question'].append(question)
 
         return question, qHeight, qWidth
+
+    def getRespHeight(self, item):
+        """Takes list and calculates height of answer"""
+        return len(item) * self.textHeight
+
+    def getQuestionHeight(self, question=None):
+        """Takes TextStim and calculates height of bounding box"""
+        # else return question Height
+        return question.boundingBox[1] / float(self.win.size[1] / 2)
+
+    def getQuestionWidth(self, question=None):
+        """Takes TextStim and calculates width of bounding box"""
+        return question.boundingBox[0] / float(self.win.size[0] / 2)
 
     def _setResponse(self, item, question):
         """Creates slider object for responses
         :returns Slider, slider height"""
         pos = (self.rightEdge - item['aWidth'] * self.size[0], question.pos[1])
-        aHeight = len(item['aOptions']) * self.textHeight
+        aHeight = self.getRespHeight(item['aOptions'])
 
         if item['aType'].lower() in ['rating', 'slider']:
             resp = visual.Slider(self.win,
@@ -90,20 +103,20 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def _setScrollBar(self):
         """Creates Slider object for scrollbar
         :returns Slider"""
-        return visual.Slider(self.win, size=(0.03, self.size[1]),
+        return visual.Slider(win=self.win, size=(0.03, self.size[1]),
                              ticks=[0, 1], style='slider',
                              pos=(self.rightEdge, self.pos[1]))
 
     def _setBorder(self):
         """Creates border using Rect
         :returns Rect"""
-        return visual.Rect(win, units=self.units, pos=self.pos,
+        return visual.Rect(win=self.win, units=self.units, pos=self.pos,
                            width=self.size[0], height=self.size[1])
 
     def _setAperture(self):
         """Blocks text beyond border using Aperture
         :returns Aperture"""
-        return visual.Aperture(win=win, name='aperture',
+        return visual.Aperture(win=self.win, name='aperture',
                                units=self.units, shape='square',
                                size=self.size, pos=(0, 0))
     def _getScrollOffet(self):
@@ -120,7 +133,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.topEdge = self.pos[1] + self.size[1]/2.0
 
         # For each question, create textstim and rating scale
-        for item in self.questionList:
+        for item in self.surveyItems:
             # set up the question text
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
@@ -198,7 +211,7 @@ if __name__ == "__main__":
     win = visual.Window(units='height', allowStencil=True)
     print(win.backend.shadersSupported, win._haveShaders)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, questionList=questions, size=(1.0, 0.7), pos=(0.0, 0.0))
+    survey = Form(win, surveyItems=questions, size=(1.0, 0.7), pos=(0.0, 0.0))
 
     for n in range(600):
         survey.draw()
