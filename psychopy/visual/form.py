@@ -17,6 +17,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self,
                  win,
                  surveyItems,
+                 textHeight=.03,
                  size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
@@ -30,7 +31,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.pos = pos
         self.itemPadding = itemPadding
         self.labelHeight = 0.02
-        self.textHeight = 0.03
+        self.textHeight = textHeight
         self.units = units
         self._items = {'question': [], 'response': []}
         self._baseYpositions = []
@@ -58,24 +59,17 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         return question, qHeight, qWidth
 
-    def getRespHeight(self, item):
-        """Takes list and calculates height of answer"""
-        return len(item) * self.textHeight
-
-    def getQuestionHeight(self, question=None):
-        """Takes TextStim and calculates height of bounding box"""
-        # else return question Height
-        return question.boundingBox[1] / float(self.win.size[1] / 2)
-
-    def getQuestionWidth(self, question=None):
-        """Takes TextStim and calculates width of bounding box"""
-        return question.boundingBox[0] / float(self.win.size[0] / 2)
-
     def _setResponse(self, item, question):
         """Creates slider object for responses
         :returns Slider, slider height"""
         pos = (self.rightEdge - item['aWidth'] * self.size[0], question.pos[1])
         aHeight = self.getRespHeight(item['aOptions'])
+
+        # Set radio button choice layout
+        if item['aLayout'] == 'horiz':
+            aSize = (item['aWidth'] * self.size[0], 0.03)
+        elif item['aLayout'] == 'vert':
+            aSize = (0.03, aHeight)
 
         if item['aType'].lower() in ['rating', 'slider']:
             resp = visual.Slider(self.win,
@@ -89,7 +83,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         elif item['aType'].lower() in ['choice']:
             resp = visual.Slider(self.win,
                                  pos=pos,
-                                 size=(0.03, aHeight),
+                                 size=aSize,
                                  ticks=None,
                                  labels=item['aOptions'],
                                  units=self.units,
@@ -99,6 +93,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self._items['response'].append(resp)
         return resp, aHeight
+
+    def getQuestionHeight(self, question=None):
+        """Takes TextStim and calculates height of bounding box"""
+        # else return question Height
+        return question.boundingBox[1] / float(self.win.size[1] / 2)
+
+    def getQuestionWidth(self, question=None):
+        """Takes TextStim and calculates width of bounding box"""
+        return question.boundingBox[0] / float(self.win.size[0] / 2)
+
+    def getRespHeight(self, item):
+        """Takes list and calculates height of answer"""
+        return len(item) * self.textHeight
 
     def _setScrollBar(self):
         """Creates Slider object for scrollbar
@@ -194,7 +201,8 @@ if __name__ == "__main__":
                  "qWidth": 0.7,
                  "aType": "choice",
                  "aWidth": 0.3,
-                 "aOptions": ["Male", "Female", "Other"]}
+                 "aOptions": ["Male", "Female", "Other"],
+                 "aLayout": 'vert'}
     questions.append(genderItem)
     # then a set of ratings
     items = ["running", "cake", "eating sticks", "programming",
@@ -204,7 +212,8 @@ if __name__ == "__main__":
                  "qWidth": 0.7,
                  "aType": "rating",
                  "aWidth": 0.3,
-                 "aOptions": ["Lots", "Not a lot"]}
+                 "aOptions": ["Lots", "Not a lot"],
+                 "aLayout": 'horiz'}
         questions.append(entry)
 
     # create window and display

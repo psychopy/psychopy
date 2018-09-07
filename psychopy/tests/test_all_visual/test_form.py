@@ -6,6 +6,8 @@ from __future__ import division
 import pytest
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
+from psychopy.visual.text import TextStim
+from psychopy.visual.slider import Slider
 
 class Test_Form(object):
     """Test suite for Form component"""
@@ -13,12 +15,13 @@ class Test_Form(object):
         self.questions = []
         self.win = Window(units='height', allowStencil=True)
         # create some questions
-        genderItem = {"qText": "What is your gender?",
+        self.genderItem = {"qText": "What is your gender?",
                       "qWidth": 0.7,
                       "aType": "choice",
                       "aWidth": 0.3,
-                      "aOptions": ["Male", "Female", "Other"]}
-        self.questions.append(genderItem)
+                      "aOptions": ["Male", "Female", "Other"],
+                      "aLayout": 'vert'}
+        self.questions.append(self.genderItem)
         # then a set of ratings
         items = ["running", "cake", "eating sticks", "programming",
                  "tickling", "being tickled", "cycling", "driving", "swimming"]
@@ -27,13 +30,26 @@ class Test_Form(object):
                      "qWidth": 0.7,
                      "aType": "rating",
                      "aWidth": 0.3,
-                     "aOptions": ["Lots", "Not a lot"]}
+                     "aOptions": ["Lots", "Not a lot"],
+                     "aLayout": 'horiz'}
             self.questions.append(entry)
         self.survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.7), pos=(0.0, 0.0))
 
-    def test_respHeight(self):
-        for item in self.survey.surveyItems:
-            assert self.survey.getRespHeight(item['aOptions']) == (len(item['aOptions']) * self.survey.textHeight)
+    def test_set_questions(self):
+        survey = Form(self.win, surveyItems=[], size=(1.0, 0.7), pos=(0.0, 0.0), itemPadding=0.1)
+        textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
+
+        assert type(textStim) == TextStim
+        assert type(qHeight) == float
+        assert type(qWidth) == float
+
+    def test_set_response(self):
+        survey = Form(self.win, surveyItems=[], size=(1.0, 0.7), pos=(0.0, 0.0), itemPadding=0.1)
+        textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
+        sliderStim, aHeight = survey._setResponse(self.genderItem, textStim)
+
+        assert type(sliderStim) == Slider
+        assert type(aHeight) == float
 
     def test_questionHeight(self):
         for item in self.survey._items['question']:
@@ -43,11 +59,15 @@ class Test_Form(object):
         for item in self.survey._items['question']:
             assert self.survey.getQuestionWidth(item) == item.boundingBox[0] / float(self.win.size[0] / 2)
 
+    def test_respHeight(self):
+        for item in self.survey.surveyItems:
+            assert self.survey.getRespHeight(item['aOptions']) == (len(item['aOptions']) * self.survey.textHeight)
+
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.7)[0]  # width
         assert self.survey.size[1] == (1.0, 0.7)[1]  # height
 
-    def test_apeture_size(self):
+    def test_aperture_size(self):
         assert self.survey.aperture.size[0] == self.survey.size[0]
         assert self.survey.aperture.size[1] == self.survey.size[1]
 
@@ -64,8 +84,7 @@ class Test_Form(object):
         assert self.survey.labelHeight == 0.02
 
     def test_item_padding(self):
-        survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.7), pos=(0.0, 0.0), itemPadding=0.1)
-        assert survey.itemPadding == 0.1
+        assert self.survey.itemPadding == 0.05
 
     def test_form_units(self):
         assert self.survey.units == 'height'
@@ -93,8 +112,8 @@ class Test_Form(object):
         for idx, positions in enumerate([1, 0]):  # 1 is start position
             self.survey.scrollbar.markerPos = positions
             posZeroOffset = (self.survey.size[1]
-                     - self.survey.itemPadding
-                     + min(self.survey._baseYpositions))
+                             - self.survey.itemPadding
+                             + min(self.survey._baseYpositions))
             assert self.survey._getScrollOffet() == [0., posZeroOffset][idx]
 
     def test_screen_status(self):
