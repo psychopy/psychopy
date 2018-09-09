@@ -3,6 +3,7 @@
 
 from __future__ import division
 
+import warnings
 import pytest
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
@@ -11,7 +12,12 @@ from psychopy.visual.slider import Slider
 
 class Test_Form(object):
     """Test suite for Form component"""
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+    
     def setup_class(self):
+
         self.questions = []
         self.win = Window(units='height', allowStencil=True)
         # create some questions
@@ -93,6 +99,8 @@ class Test_Form(object):
         assert self.survey.virtualHeight == self.survey._baseYpositions[-1] - self.survey.itemPadding
 
     def test_baseYpositions(self):
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
         survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.7), pos=(0.0, 0.0))
         testPositions = []
         survey.virtualHeight = 0
