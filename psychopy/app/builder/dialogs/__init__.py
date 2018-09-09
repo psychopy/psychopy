@@ -201,7 +201,7 @@ class ParamCtrls(object):
                 self.valueCtrl.SetFocus()
 
         try:
-            self.valueCtrl.SetToolTip(_translate(param.hint))
+            self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
         except AttributeError as e:
             self.valueCtrl.SetToolTipString(_translate(param.hint))
 
