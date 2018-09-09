@@ -4,7 +4,6 @@
 from __future__ import division
 
 import pytest
-import warnings
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.text import TextStim
@@ -92,7 +91,8 @@ class Test_Form(object):
         assert self.survey.units == 'height'
 
     def test_virtual_height(self):
-        assert self.survey.virtualHeight == round(self.survey._baseYpositions[-1] - self.survey.itemPadding, 2)
+        assert (round(self.survey.virtualHeight, 2)
+                == round(self.survey._baseYpositions[-1] - self.survey.itemPadding, 2))
 
     def test_baseYpositions(self):
         survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
