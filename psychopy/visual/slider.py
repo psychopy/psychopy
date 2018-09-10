@@ -186,8 +186,8 @@ class Slider(MinimalStim):
         #set the style when everything else is set
         self.style = style
 
-    def __str__(self, complete=False):
-        return self.__repr__(complete=complete)  # from MinimalStim
+    def __repr__(self, complete=False):
+        return self.__str__(complete=complete)  # from MinimalStim
 
     @property
     def _lineL(self):
