@@ -2240,6 +2240,10 @@ class BuilderFrame(wx.Frame):
         expPath = os.path.split(filename)[0]
         htmlFolder = self.exp.settings.params['HTML path'].val
         htmlPath = os.path.join(expPath, htmlFolder)
+        if not os.path.isdir(htmlPath):
+            self.fileSave()
+            self._getHtmlPath(self.filename)
+            return
         return htmlPath
 
     def _getExportPref(self, pref):
