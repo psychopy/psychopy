@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""A class to add survey forms to a `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
@@ -12,7 +11,40 @@ from psychopy.visual.basevisual import (BaseVisualStim,
 from psychopy import visual
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
-    """A class to add survey forms to a `psycopy.visual.Window`"""
+    """A class to add Forms to a `psycopy.visual.Window`
+
+    The Form allows Psychopy to be used as a questionnaire tool, where
+    participants can be presented with a series of questions requiring responses.
+    Form items, defined as questions and response pairs, are presented
+    simultaneously onscreen with a scrollable viewing window.
+
+    Example
+    -------
+    survey = Form(win, surveyItems=[], size=(1.0, 0.7), pos=(0.0, 0.0))
+
+    Parameters
+    ----------
+    win : psychopy.visual.Window
+        The window object to present the form.
+    surveyItems : List, dict
+        a list of dicts with the following key, value pairs:
+                 "qText": item question string,
+                 "qWidth": question width between 0:1
+                 "aType": type of rating e.g., 'choice', 'rating', 'slider'
+                 "aWidth": question width between 0:1,
+                 "aOptions": list of tick labels for options,
+                 "aLayout": Response object layout e.g., 'horiz' or 'vert'
+    textHeight : float
+        Text height.
+    size : tuple, list
+        Size of form on screen.
+    pos : tuple, list
+        Position of form on screen.
+    itemPadding : float
+        Space or padding between form items.
+    units : str
+        units for stimuli, e.g., 'height', 'norm', 'pixels' etc.
+    """
 
     def __init__(self,
                  win,
@@ -45,7 +77,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def _setQuestion(self, item):
         """Creates TextStim object containing question
-        :returns TextStim, TextStim height and width"""
+
+        Returns
+        -------
+        psychopy.visual.text.TextStim
+            The textstim object with the question string
+        qHeight
+            The height of the question bounding box as type float
+        qWidth
+            The width of the question bounding box as type float
+        """
         question = visual.TextStim(self.win,
                                    text=item['qText'],
                                    units=self.units,
@@ -61,9 +102,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def _setResponse(self, item, question):
         """Creates slider object for responses
-        :returns Slider, slider height"""
+
+        Returns
+        -------
+        psychopy.visual.slider.Slider
+            The Slider object for response
+        aHeight
+            The height of the response object as type float
+        """
         pos = (self.rightEdge - item['aWidth'] * self.size[0], question.pos[1])
-        aHeight = self.getRespHeight(item['aOptions'])
+        aHeight = self.getRespHeight(item)
 
         # Set radio button choice layout
         if item['aLayout'] == 'horiz':
@@ -95,39 +143,82 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         return resp, aHeight
 
     def getQuestionHeight(self, question=None):
-        """Takes TextStim and calculates height of bounding box"""
-        # else return question Height
+        """Takes TextStim and calculates height of bounding box
+
+        Returns
+        -------
+        float
+            The height of the question bounding box
+        """
         return question.boundingBox[1] / float(self.win.size[1] / 2)
 
     def getQuestionWidth(self, question=None):
-        """Takes TextStim and calculates width of bounding box"""
+        """Takes TextStim and calculates width of bounding box
+
+        Returns
+        -------
+        float
+            The width of the question bounding box
+        """
         return question.boundingBox[0] / float(self.win.size[0] / 2)
 
     def getRespHeight(self, item):
-        """Takes list and calculates height of answer"""
-        return len(item) * self.textHeight
+        """Takes list and calculates height of answer
+
+        Returns
+        -------
+        float
+            The height of the response object
+        """
+        if item['aLayout'] == 'vert':
+            aHeight = len(item['aOptions']) * self.textHeight
+        elif item['aLayout'] == 'horiz':
+            aHeight = self.textHeight
+
+        # TODO: Return size based on response types e.g., textbox
+        return aHeight
 
     def _setScrollBar(self):
         """Creates Slider object for scrollbar
-        :returns Slider"""
+
+        Returns
+        -------
+        psychopy.visual.slider.Slider
+            The Slider object for scroll bar
+        """
         return visual.Slider(win=self.win, size=(0.03, self.size[1]),
                              ticks=[0, 1], style='slider',
                              pos=(self.rightEdge, self.pos[1]))
 
     def _setBorder(self):
         """Creates border using Rect
-        :returns Rect"""
+        Returns
+        -------
+        psychopy.visual.Rect
+            The border for the survey
+        """
         return visual.Rect(win=self.win, units=self.units, pos=self.pos,
                            width=self.size[0], height=self.size[1])
 
     def _setAperture(self):
         """Blocks text beyond border using Aperture
-        :returns Aperture"""
+
+        Returns
+        -------
+        psychopy.visual.Aperture
+            The aperture setting viewable area for forms
+        """
         return visual.Aperture(win=self.win, name='aperture',
                                units=self.units, shape='square',
                                size=self.size, pos=(0, 0))
     def _getScrollOffet(self):
-        """Returns the offset position of items in relation to markerPos"""
+        """Calculate offset position of items in relation to markerPos
+
+        Returns
+        -------
+        float
+            Offset position of items proportionate to scroll bar
+        """
         sizeOffset = (1 - self.scrollbar.markerPos) * (self.size[1]-self.itemPadding)
         maxItemPos = min(self._baseYpositions)
         return (maxItemPos - (self.scrollbar.markerPos * maxItemPos) + sizeOffset)
@@ -164,13 +255,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.aperture = self._setAperture()
 
     def _inRange(self, item):
-        """Returns True if item position falls within viewable border range"""
+        """Check whether item position falls within border area
+
+        Parameters
+        ----------
+        item
+            TextStim or Slider item from survey
+
+        Returns
+        -------
+        bool
+            Returns True if item position falls within border area
+        """
         upperRange = self.size[1]/2
         lowerRange = -self.size[1]/2
         return (item.pos[1] < upperRange and item.pos[1] > lowerRange)
 
     def draw(self):
-        """Draw items on form"""
+        """Draw items on form within border area"""
         decorations = [self.border]  # add scrollbar if it's needed
         fractionVisible = self.size[1]/(-self.virtualHeight)
         if fractionVisible < 1.0:
@@ -187,7 +289,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 if element == 'question':  # Currently, slider has no pos to move
                     items.pos = (items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())
                 else:
-                    items.dynamicYPos(((items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())))
+                    items.setPos(((items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())))
                 # Only draw if within border range for efficiency
                 if self._inRange(items):
                     items.draw()

@@ -8,6 +8,7 @@ from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.text import TextStim
 from psychopy.visual.slider import Slider
+from numpy import isclose
 
 
 class Test_Form(object):
@@ -62,7 +63,10 @@ class Test_Form(object):
 
     def test_respHeight(self):
         for item in self.survey.surveyItems:
-            assert self.survey.getRespHeight(item['aOptions']) == (len(item['aOptions']) * self.survey.textHeight)
+            if item['aLayout'] == 'vert':
+                assert self.survey.getRespHeight(item) == (len(item['aOptions']) * self.survey.textHeight)
+            elif item['aLayout'] == 'horiz':
+                assert self.survey.getRespHeight(item) == self.survey.textHeight
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.3)[0]  # width
@@ -91,8 +95,9 @@ class Test_Form(object):
         assert self.survey.units == 'height'
 
     def test_virtual_height(self):
-        assert (round(self.survey.virtualHeight, 2)
-                == round(self.survey._baseYpositions[-1] - self.survey.itemPadding, 2))
+        assert isclose(self.survey.virtualHeight,
+                       (self.survey._baseYpositions[-1]-self.survey.itemPadding),
+                       atol=0.02)  # TODO: liberal atol, needs tightening up
 
     def test_baseYpositions(self):
         survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))

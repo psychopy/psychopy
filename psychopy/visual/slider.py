@@ -302,23 +302,21 @@ class Slider(MinimalStim):
                               width=self.size[0] * 1.1,
                               height=self.size[1] * 1.1,
                               lineColor='DarkGrey')
+    @attributeSetter
+    def pos(self, value):
+        self.__dict__['pos'] = value
 
-    def dynamicYPos(self, pos):
-        """Change the position of slider on Y-axis dynamically"""
-        self.pos = pos
-        self.line.pos = self.pos
-        self.validArea.pos = self.pos
-        if self.markerPos is not None:
-            self.marker.pos = self._ratingToPos(self.markerPos)
-        self._setTickLocs()
-        self.tickLines.xys = self.tickLocs
-        counter = -1
+    def setPos(self, newPos):
+        """Change the position of slider on x, y axes"""
+        oldPos = self.pos
+        self.pos = newPos
+        deltaPos = tuple(np.subtract(newPos, oldPos))
+        self.line.pos += deltaPos
+        self.validArea.pos += deltaPos
+        self.marker.pos += deltaPos
+        self.tickLines.xys += deltaPos
         for label in self.labelObjs:
-            if self.horiz:
-                label.pos = (label.pos[0], pos[1]+self._tickL/2)
-            else:
-                label.pos = (label.pos[0], self.tickLocs[counter][1])
-                counter -= 1
+            label.pos += deltaPos
 
     def _ratingToPos(self, rating):
         try:
