@@ -259,7 +259,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         Parameters
         ----------
-        item
+        item : TextStim, Slider object
             TextStim or Slider item from survey
 
         Returns
