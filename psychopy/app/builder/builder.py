@@ -2288,6 +2288,20 @@ class BuilderFrame(wx.Frame):
         # TODO: update user icon on button to user avatar
         pass
 
+    @property
+    def project(self):
+        """A PavloviaProject object if one is known for this experiment
+        """
+        if 'project' in self.__dict__:
+            return self.__dict__['project']
+        elif self.filename and pavlovia.getProject(self.filename):
+            return pavlovia.getProject(self.filename)
+        else:
+            return None
+
+    @project.setter
+    def project(self, project):
+        self.__dict__['project'] = project
 
 class ReadmeFrame(wx.Frame):
     """Defines construction of the Readme Frame"""
