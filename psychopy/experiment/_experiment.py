@@ -173,12 +173,9 @@ class Experiment(object):
             # functions that may or may not get called later.
             # Do the Routines of the experiment first
             routinesToWrite = list(self.routines)
-            loopTypes = {'LoopInitiator': False, 'LoopTerminator': False}
             for thisItem in self.flow:
-                if thisItem.getType() in loopTypes:
-                    if not loopTypes[thisItem.getType()]:  # If False, then write loop
-                        loopTypes[thisItem.getType()] = True
-                        self.flow.writeLoopHandlerJS(script)
+                if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
+                    self.flow.writeLoopHandlerJS(script)
                 elif thisItem.name in routinesToWrite:
                     self._currentRoutine = self.routines[thisItem.name]
                     self._currentRoutine.writeRoutineBeginCodeJS(script)
@@ -188,6 +185,7 @@ class Experiment(object):
             self.settings.writeEndCodeJS(script)
 
             script = py2js.addVariableDeclarations(script.getvalue())
+            self.flow._resetLoopController()  # Reset loop controller ready for next call to writeScript
 
         return script
 

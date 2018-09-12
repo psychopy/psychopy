@@ -283,6 +283,13 @@ def getGammaRampSize(screenID, xDisplay=None):
         rampSize = 256
 
     if rampSize == 0:
-        raise RuntimeError("Gamma ramp size is reported as 0.")
+
+        logging.warn(
+            "The size of the gamma ramp was reported as 0. This can " +
+            "mean that gamma settings have no effect. Proceeding with " +
+            "a default gamma ramp size."
+        )
+
+        rampSize = 256
 
     return rampSize
