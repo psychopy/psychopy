@@ -7,6 +7,7 @@ import pytest
 
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
+from numpy import array_equal
 
 
 class Test_Slider(object):
@@ -47,3 +48,10 @@ class Test_Slider(object):
 
         with pytest.raises(AttributeError):
             s.size = (1.5, 0.5)
+
+    def test_pos(self):
+        s = Slider(self.win, size=(1, 0.1))
+        positions = [(.05, .05),(0.2, .2)]
+        for newPos in positions:
+            s.pos = newPos
+            assert array_equal(s.pos, newPos)

@@ -35,10 +35,10 @@ class Test_Form(object):
                      "aOptions": ["Lots", "Not a lot"],
                      "aLayout": 'horiz'}
             self.questions.append(entry)
-        self.survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
 
     def test_set_questions(self):
-        survey = Form(self.win, surveyItems=[], size=(1.0, 0.3), pos=(0.0, 0.0))
+        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
         textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
 
         assert type(textStim) == TextStim
@@ -46,7 +46,7 @@ class Test_Form(object):
         assert type(qWidth) == float
 
     def test_set_response(self):
-        survey = Form(self.win, surveyItems=[], size=(1.0, 0.3), pos=(0.0, 0.0))
+        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
         textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
         sliderStim, aHeight = survey._setResponse(self.genderItem, textStim)
 
@@ -62,7 +62,7 @@ class Test_Form(object):
             assert self.survey.getQuestionWidth(item) == item.boundingBox[0] / float(self.win.size[0] / 2)
 
     def test_respHeight(self):
-        for item in self.survey.surveyItems:
+        for item in self.survey.items:
             if item['aLayout'] == 'vert':
                 assert self.survey.getRespHeight(item) == (len(item['aOptions']) * self.survey.textHeight)
             elif item['aLayout'] == 'horiz':
@@ -100,10 +100,10 @@ class Test_Form(object):
                        atol=0.02)  # TODO: liberal atol, needs tightening up
 
     def test_baseYpositions(self):
-        survey = Form(self.win, surveyItems=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
         testPositions = []
         survey.virtualHeight = 0
-        for item in survey.surveyItems:
+        for item in survey.items:
             question, qHeight, qWidth = survey._setQuestion(item)
             response, aHeight, = survey._setResponse(item, question)
             testPositions.append(survey.virtualHeight

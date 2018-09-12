@@ -129,9 +129,9 @@ class Slider(MinimalStim):
         self.labels = labels
 
         if pos is None:
-            self.pos = (0, 0)
+            self.__dict__['pos'] = (0, 0)
         else:
-            self.pos = pos
+            self.__dict__['pos'] = pos
 
         if units is None:
             self.units = win.units
@@ -303,14 +303,18 @@ class Slider(MinimalStim):
                               height=self.size[1] * 1.1,
                               lineColor='DarkGrey')
     @attributeSetter
-    def pos(self, value):
-        self.__dict__['pos'] = value
+    def pos(self, newPos):
+        """Set position of slider
 
-    def setPos(self, newPos):
-        """Change the position of slider on x, y axes"""
-        oldPos = self.pos
-        self.pos = newPos
-        deltaPos = tuple(np.subtract(newPos, oldPos))
+        Paramaters
+        ----------
+        value: tuple, list
+            The new position of slider
+        """
+        newPos = np.array(newPos)
+        oldPos = self.__dict__['pos']
+        self.__dict__['pos'] = newPos
+        deltaPos = np.subtract(newPos, oldPos)
         self.line.pos += deltaPos
         self.validArea.pos += deltaPos
         self.marker.pos += deltaPos

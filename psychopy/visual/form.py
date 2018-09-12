@@ -20,13 +20,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     Example
     -------
-    survey = Form(win, surveyItems=[], size=(1.0, 0.7), pos=(0.0, 0.0))
+    survey = Form(win, items=[], size=(1.0, 0.7), pos=(0.0, 0.0))
 
     Parameters
     ----------
     win : psychopy.visual.Window
         The window object to present the form.
-    surveyItems : List, dict
+    items : List of dicts
         a list of dicts with the following key, value pairs:
                  "qText": item question string,
                  "qWidth": question width between 0:1
@@ -48,7 +48,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def __init__(self,
                  win,
-                 surveyItems,
+                 items,
                  textHeight=.03,
                  size=(.5, .5),
                  pos=(0, 0),
@@ -58,7 +58,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         super(Form, self).__init__(win, units)
         self.win = win
-        self.surveyItems = surveyItems
+        self.items = items
         self.size = size
         self.pos = pos
         self.itemPadding = itemPadding
@@ -231,7 +231,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.topEdge = self.pos[1] + self.size[1]/2.0
 
         # For each question, create textstim and rating scale
-        for item in self.surveyItems:
+        for item in self.items:
             # set up the question text
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
@@ -286,10 +286,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # draw the items
         for element in self._items.keys():
             for idx, items in enumerate(self._items[element]):
-                if element == 'question':  # Currently, slider has no pos to move
-                    items.pos = (items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())
-                else:
-                    items.setPos(((items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())))
+                items.pos = (items.pos[0], self.size[1]/2 + self._baseYpositions[idx] - self._getScrollOffet())
                 # Only draw if within border range for efficiency
                 if self._inRange(items):
                     items.draw()
@@ -322,7 +319,7 @@ if __name__ == "__main__":
     win = visual.Window(units='height', allowStencil=True)
     print(win.backend.shadersSupported, win._haveShaders)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, surveyItems=questions, size=(1.0, 0.7), pos=(0.0, 0.0))
+    survey = Form(win, items=questions, size=(1.0, 0.7), pos=(0.0, 0.0))
 
     for n in range(600):
         survey.draw()
