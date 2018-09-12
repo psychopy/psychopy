@@ -1833,9 +1833,11 @@ class BuilderFrame(wx.Frame):
 
     def setIsModified(self, newVal=None):
         """Sets current modified status and updates save icon accordingly.
+
         This method is called by the methods fileSave, undo, redo,
         addToUndoStack and it is usually preferably to call those
         than to call this directly.
+
         Call with ``newVal=None``, to only update the save icon(s)
         """
         if newVal is None:
@@ -1851,6 +1853,7 @@ class BuilderFrame(wx.Frame):
 
     def resetUndoStack(self):
         """Reset the undo stack. do *immediately after* creating a new exp.
+
         Implicitly calls addToUndoStack() using the current exp as the state
         """
         self.currentUndoLevel = 1  # 1 is current, 2 is back one setp...
@@ -1864,6 +1867,7 @@ class BuilderFrame(wx.Frame):
         with the @state@. ``state`` should be a copy of the exp
         from *immediately after* the action was taken.
         If no ``state`` is given the current state of the experiment is used.
+
         If we are at end of stack already then simply append the action.  If
         not (user has done an undo) then remove orphan actions and append.
         """
@@ -1881,7 +1885,8 @@ class BuilderFrame(wx.Frame):
 
     def undo(self, event=None):
         """Step the exp back one level in the @currentUndoStack@ if possible,
-        and update the windows
+        and update the windows.
+
         Returns the final undo level (1=current, >1 for further in past)
         or -1 if redo failed (probably can't undo)
         """
@@ -1898,7 +1903,8 @@ class BuilderFrame(wx.Frame):
 
     def redo(self, event=None):
         """Step the exp up one level in the @currentUndoStack@ if possible,
-        and update the windows
+        and update the windows.
+        
         Returns the final undo level (0=current, >0 for further in past)
         or -1 if redo failed (probably can't redo)
         """
