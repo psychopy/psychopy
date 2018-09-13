@@ -9,6 +9,8 @@ import numpy
 import pytest
 import shutil
 from tempfile import mkdtemp
+import os
+
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
 of tests on a single graphics context (e.g. pyglet with shaders)
@@ -32,15 +34,23 @@ demosDir = join(psychoRoot, 'demos')
 class Test_PsychoJS_from_Builder(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
+
+    @pytest.mark.usefixtures('pytest_namespace')
     def setup_class(self):
         if keepFiles:
             self.temp_dir = join(home, "Desktop", "tmp")
         else:
             self.temp_dir = mkdtemp(prefix='psychopy-test_psychojs')
 
+        self.app = pytest.app
+        self.builderView = self.app.newBuilderFrame()
+
     def teardown_class(self):
         if not keepFiles:
             shutil.rmtree(self.temp_dir)
+
+        del self.builderView
+        del self.app
 
     def writeScript(self, exp, outFolder):
         script = exp.writeScript(expPath=outFolder, target="PsychoJS")
@@ -94,6 +104,28 @@ class Test_PsychoJS_from_Builder(object):
         assert(os.path.isfile(os.path.join(outFolder, 'stroopNoModule.js')))
         assert(os.path.isfile(os.path.join(outFolder, 'index.html')))
         assert(os.path.isdir(os.path.join(outFolder, 'resources')))
+
+
+    def test_getHtmlPath(self):
+        """Test retrieval of html path
+        """
+        self.temp_dir = mkdtemp(prefix='test')
+        fileName = os.path.join(self.temp_dir, 'testFile.psyexp')
+        htmlPath = os.path.join(self.temp_dir, 'html')
+        assert self.builderView._getHtmlPath(fileName) == htmlPath
+
+    def test_getExportPref(self):
+        """Test default export preferences"""
+        assert self.builderView._getExportPref('on Sync')
+        assert not self.builderView._getExportPref('on Save')
+        assert not self.builderView._getExportPref('manually')
+        with pytest.raises(ValueError):
+            self.builderView._getExportPref('DoesNotExist')
+
+
+
+
+
 
 if __name__ == '__main__':
     cls = Test_PsychoJS_from_Builder()
