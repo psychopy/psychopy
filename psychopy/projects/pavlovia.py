@@ -738,10 +738,7 @@ class PavloviaProject(dict):
                                  "chosen a local folder.")
         if localFiles and self._newRemote:  # existing folder
             self.repo = git.Repo.init(self.localRoot)
-            with self.repo.config_writer() as config:
-                session = getCurrentSession()
-                config.set_value("user", "email", session.user.email)
-                config.set_value("user", "name", session.user.name)
+            self.configRepoLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
             self.repo.create_remote('origin', url=self['remoteHTTPS'])
             self.repo.git.checkout(b="master")
@@ -792,6 +789,19 @@ class PavloviaProject(dict):
         self._lastKnownSync = time.time()
         self.repo = repo
         self._newRemote = False
+
+    def configRepoLocal(self):
+        """Set the local repo to have the correct name and email for user
+
+        Returns
+        -------
+        None
+        """
+        # set the local config
+        with self.repo.config_writer() as config:
+            session = getCurrentSession()
+            config.set_value("user", "email", session.user.email)
+            config.set_value("user", "name", session.user.name)
 
     def forkTo(self, groupName=None, projectName=None):
         """forks this project to a new namespace and (potentially) project name"""
