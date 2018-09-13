@@ -12,8 +12,8 @@ from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.circle import Circle
 from psychopy.visual.rect import Rect
 from psychopy import constants
+from numpy import array_equal
 import random
-
 
 
 class Test_Slider(object):
@@ -89,7 +89,14 @@ class Test_Slider(object):
         assert type(s.tickLines) == type(ElementArrayStim(self.win))
         assert type(s.marker) == type(Circle(self.win))
         assert type(s.validArea) == type(Rect(self.win))
-
+        
+    def test_pos(self):
+        s = Slider(self.win, size=(1, 0.1))
+        positions = [(.05, .05),(0.2, .2)]
+        for newPos in positions:
+            s.pos = newPos
+            assert array_equal(s.pos, newPos)
+        
     def test_ratingToPos(self):
         s = Slider(self.win, size=(1, 0.1), )
         assert s._ratingToPos(3)[0][0] == 0
