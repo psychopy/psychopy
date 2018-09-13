@@ -105,10 +105,8 @@ class Test_PsychoJS_from_Builder(object):
         assert(os.path.isfile(os.path.join(outFolder, 'index.html')))
         assert(os.path.isdir(os.path.join(outFolder, 'resources')))
 
-
     def test_getHtmlPath(self):
-        """Test retrieval of html path
-        """
+        """Test retrieval of html path"""
         self.temp_dir = mkdtemp(prefix='test')
         fileName = os.path.join(self.temp_dir, 'testFile.psyexp')
         htmlPath = os.path.join(self.temp_dir, 'html')
@@ -121,10 +119,6 @@ class Test_PsychoJS_from_Builder(object):
         assert not self.builderView._getExportPref('manually')
         with pytest.raises(ValueError):
             self.builderView._getExportPref('DoesNotExist')
-
-
-
-
 
 
 if __name__ == '__main__':
