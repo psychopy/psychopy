@@ -1660,7 +1660,6 @@ class BuilderFrame(wx.Frame):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
-        settingsHTMLpath = self.exp.settings.params['HTML path'].val
         expPath, expName = os.path.split(self.filename)
         if htmlPath is None and self.exp.settings.params['HTML path']:
             htmlPath = self._getHtmlPath(self.filename)
