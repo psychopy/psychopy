@@ -347,26 +347,33 @@ class DlgFromDict(Dlg):
     fixed : list
         A list of keys for which the values shall be displayed in non-editable
         fields
-        
-    sort_keys : bool | list
-        Either a list of keys defining the display order of keys in
-        ``dictionary´´. If not all keys in ``dictionary´´ are contained in
-        ``order´´, those will appear in random order after all ordered keys.
-        Or a boolean flag indicating that keys are to be sorted alphabetically.
+    
+    order : list
+        A list of keys defining the display order of keys in ``dictionary´´.
+        If not all keys in ``dictionary´´ are contained in ``order´´, those
+        will appear in random order after all ordered keys.
 
     tip : list
         A dictionary assigning tooltips to the keys
 
-    copy_dict : bool
+    screen : int
+        Screen number where the Dialog is displayed. If -1, the Dialog will
+        be displayed on the primary screen.
+
+    sortKeys : bool
+        A boolean flag indicating that keys are to be sorted alphabetically.
+
+    copyDict : bool
         If False, modify ``dictionary`` in-place. If True, a copy of
         the dictionary is created, and the altered version (after
         user interaction) can be retrieved from
         :attr:~`psychopy.gui.DlgFromDict.dictionary`.
-
-    preserve_types : bool
-        If False, the return type of the values in ``dictionary´´ is
-        undetermined and will depend on the value format provided by the user
         
+    labels : dict
+        A dictionary defining labels (dict values) to be displayed instead of
+        key strings (dict keys) defined in ``dictionary´´. Not all keys in
+        ``dictionary´´ need to be contained in labels.
+
     show : bool
         Whether to immediately display the dialog upon instantiation.
          If False, it can be displayed at a later time by calling
@@ -396,48 +403,59 @@ class DlgFromDict(Dlg):
     See GUI.py for a usage demo, including order and tip (tooltip).
     """
 
-    def __init__(self, dictionary, title='', labels=None, fixed=None, sort_keys=None, tip=None,
-                 copy_dict=False, preserve_types=True, show=True):
+    def __init__(self, dictionary, title='', fixed=None, order=None,
+                 tip=None, screen=-1, sortKeys=True, copyDict=False,
+                 labels=None, show=True, **kwargs):
+
+        # We allowed for snake_case parameters in previous releases. This needs
+        # to end soon.
+        if 'sort_keys' in kwargs:
+            sortKeys = kwargs['sort_keys']
+            logging.warning("Parameter 'sort_keys' is deprecated. Use 'sortKeys' instead.")
+
+        if 'copy_dict' in kwargs:
+            copyDict = kwargs['copy_dict']
+            logging.warning("Parameter 'copy_dict' is deprecated. Use 'copyDict' instead.")
+        
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
         if not fixed:
             fixed = []
-        if not sort_keys:
-            sort_keys = []
+        if not order:
+            order = []
+        if not labels:
+            labels = dict()
         if not tip:
             tip = dict()
 
-        # app = ensureWxApp() done by Dlg
-        super().__init__(title)
+        Dlg.__init__(self, title, screen=screen)
 
-        if copy_dict:
+        if copyDict:
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
 
         self._keys = list(self.dictionary.keys())
-        self.preserve_types = preserve_types
-        self.labels = dict()
         self.types = dict()
 
-        if type(sort_keys) == bool:
+        if order:
+            self._keys = list(order) + list(set(self._keys).difference(set(order)))
+        elif sortKeys:
             self._keys.sort()
-        elif sort_keys:
-            self._keys = list(sort_keys) + list(set(self._keys).difference(set(sort_keys)))
 
         for field in self._keys:
             self.types[field] = type(self.dictionary[field])
-            self.labels[field] = labels[field] if field in labels else field
+            label = labels[field] if field in labels else field
             tooltip = ''
             if field in tip:
                 tooltip = tip[field]
             if field in fixed:
-                self.addFixedField(self.labels[field], self.dictionary[field], tip=tooltip)
+                self.addFixedField(label, self.dictionary[field], tip=tooltip)
             elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(self.labels[field], choices=self.dictionary[field],
+                self.addField(label, choices=self.dictionary[field],
                               tip=tooltip)
             else:
-                self.addField(self.labels[field], self.dictionary[field], tip=tooltip)
+                self.addField(label, self.dictionary[field], tip=tooltip)
 
         if show:
             self.show()
@@ -448,12 +466,9 @@ class DlgFromDict(Dlg):
         ok_data = self.exec_()
         if ok_data:
             for n, thisKey in enumerate(self._keys):
-                if self.preserve_types:
-                    try:
-                        self.dictionary[thisKey] = self.types[thisKey](self.data[n])
-                    except ValueError:
-                        self.dictionary[thisKey] = self.data[n]
-                else:
+                try:
+                    self.dictionary[thisKey] = self.types[thisKey](self.data[n])
+                except ValueError:
                     self.dictionary[thisKey] = self.data[n]
 
 
