@@ -21,8 +21,7 @@ from cryptography.hazmat.backends import default_backend
 #          Repo.clone_from('git@....', '/path', branch='my-branch')
 
 
-
-def saveKeyPair(filepath):
+def saveKeyPair(filepath, comment=''):
     """Generate and save a key pair (private and public) and return the public
     key as text
 
@@ -34,32 +33,48 @@ def saveKeyPair(filepath):
         os.path.join(psychopy.prefs.paths['userprefs'], "ssh", username)
 
     """
-    # generate private/public key pair
-    key = rsa.generate_private_key(backend=default_backend(),
-                                   public_exponent=65537,
-                                   key_size=4096)
+    if type(comment) is not bytes:
+        comment = comment.encode('utf-8')
 
-    # get public key in OpenSSH format
-    public_key = key.public_key().public_bytes(
-        serialization.Encoding.OpenSSH,
-        serialization.PublicFormat.OpenSSH)
+    try:  # tyr using ssh-keygen (more standard and probably faster)
+        folder = os.path.split(filepath)[0]
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+        output = subprocess.check_output(['ssh-keygen',
+                                          '-C', comment,
+                                          '-f', filepath,
+                                          '-P', ''])
+        # then read it back in to pass back
+        publicSSH = getPublicKey(filepath + ".pub")
+    except subprocess.CalledProcessError:
+        # generate private/public key pair
+        key = rsa.generate_private_key(backend=default_backend(),
+                                       public_exponent=65537,
+                                       key_size=4096)
+        # get public key in OpenSSH format
+        public_key = key.public_key().public_bytes(
+            serialization.Encoding.OpenSSH,
+            serialization.PublicFormat.OpenSSH)
 
-    # get private key in PEM container format
-    pem = key.private_bytes(encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=serialization.NoEncryption())
+        # get private key in PEM container format
+        pem = key.private_bytes(encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption())
 
-    # check that the root folder exists
-    folder = os.path.dirname(filepath)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    # save private key
-    with open(filepath, 'wb') as f:
-        f.write(pem)
-    os.chmod(filepath, 0o400)  # make sure the private key is only self-readable
+        # check that the root folder exists
+        folder = os.path.dirname(filepath)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        # save private key
+        with open(filepath, 'wb') as f:
+            f.write(pem)
+        os.chmod(filepath, 0o400)  # make sure the private key is only self-readable
 
-    with open(filepath+'.pub', 'wb') as f:
-        f.write(public_key)
+        with open(filepath+'.pub', 'wb') as f:
+            f.write(public_key)
+
+    # whether we used ssh-keygen or home-grown we should try to ssh-add
+    # because we're using a non-standard location
     if sys.platform == 'win32':
         pass  # not clear that this command exists on win32!
         # response = subprocess.check_output(['cmd', 'ssh-add', filepath])
@@ -73,10 +88,12 @@ def getPublicKey(filepath):
         os.path.join(psychopy.prefs.paths['userprefs'], "ssh", username)
     """
     if os.path.isfile(filepath):
-        with open(filepath, 'r') as f:
+        with open(filepath, 'rb') as f:
             pubKey = f.read()
     else:
         raise IOError("No ssh public key file found at {}".format(filepath))
+    if type(pubKey) == bytes:  # in Py3 convert to UTF-8
+        pubKey = pubKey.decode('utf-8')
     return pubKey
 
 
