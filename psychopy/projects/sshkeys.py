@@ -45,7 +45,7 @@ def saveKeyPair(filepath, comment=''):
                                           '-f', filepath,
                                           '-P', ''])
         # then read it back in to pass back
-        publicSSH = getPublicKey(filepath + ".pub")
+        public_key = getPublicKey(filepath + ".pub")
     except subprocess.CalledProcessError:
         # generate private/public key pair
         key = rsa.generate_private_key(backend=default_backend(),
