@@ -20,10 +20,6 @@ from pkg_resources import parse_version
 from wx.lib import scrolledpanel as scrlpanel
 import wx.lib.mixins.listctrl as listmixin
 
-if parse_version(wx.__version__) < parse_version('4.0.0a1'):
-    import wx.lib.hyperlink as wxhl
-else:
-    import wx.lib.agw.hyperlink as wxhl
 import requests
 
 starChar = u"\u2B50"
@@ -41,6 +37,7 @@ class SearchFrame(wx.Dialog):
         self.frameType = 'ProjectSearch'
         wx.Dialog.__init__(self, parent, -1, title=title, style=style,
                            size=(700, 500), pos=pos)
+
         self.app = app
         self.project = None
         self.parent = parent
