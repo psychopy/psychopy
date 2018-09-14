@@ -586,7 +586,7 @@ class ContainerMixin(object):
             poly = numpy.array([[x+w/2, y-h/2], [x-w/2, y-h/2],
                                 [x-w/2, y+h/2], [x+w/2, y+h/2]])
         else:
-            poly = self.verticesPix  # e.g., tesselated vertices
+            poly = self.verticesPix  # e.g., tessellated vertices
 
         return pointInPolygon(xy[0], xy[1], poly=poly)
 

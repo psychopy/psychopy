@@ -335,7 +335,7 @@ class BitsPlusPlus(object):
                 rampType = None
         if not rampType == 'configFile':
             # 'this must NOT be an `else` from the above `if` because can be
-            # overidden possibly we were given a numerical rampType (as in
+            # overridden possibly we were given a numerical rampType (as in
             # the :func:`psychopy.gamma.setGamma()`)
             self.win.winHandle.setGamma(self.win.winHandle._dc, rampType=rampType)
           
@@ -583,7 +583,7 @@ class BitsPlusPlus(object):
         
         Resets continute to be issued on each video frame until
         the next win.flip so you need to have regular win.flips for
-        this fucntion to work properly.
+        this function to work properly.
         
         Example:
             bits.resetClock()
@@ -616,7 +616,7 @@ class BitsPlusPlus(object):
         
         Resets continute to be issued on each video frame until
         the next win.flip so you need to have regular win.flips for
-        this fucntion to work properly.
+        this function to work properly.
         
         Example
             bits.primeClock()
@@ -684,7 +684,7 @@ class BitsPlusPlus(object):
         self.setTriggerList(triggerList=packet, mask=mask)
 
     def setTriggerList(self, triggerList=None, mask=0xFFFF):
-        """ Sets up Tigger pulses in Bist++ using the fine grained
+        """ Sets up Trigger pulses in Bist++ using the fine grained
             method that can control every trigger line at 100uS
             intervals.
            
@@ -1273,7 +1273,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.frameRate = float(msg2[1])
         
         self._setHeaders(self.frameRate)
-        # flag for controling analog outputs
+        # flag for controlling analog outputs
         self.analog = False
         
         # replace window methods with our custom ones
@@ -1310,7 +1310,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         self.RTBoxMode = ['CB6','down','trigger']
         self.RTBoxEnabled = False
         
-        # Make sure that RTBox event loging is off
+        # Make sure that RTBox event logging is off
         self.RTBoxDisable()
         
         # members for storing RTBox button presses
@@ -1328,10 +1328,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         self.nStatusPresses = 0 # number of button presses recorded
         
         # members for controlling status logging and reporting
-        self.statusDINBase = 0b1111111111   #inital values for ditgial ins
-        self.statusIRBase = 0b111111        #inital values for CB6 IR box
-        self.statusTrigInBase = 0           #inital values for TrigIn
-        self.statusADCBase = 0              #inital value for ADCs
+        self.statusDINBase = 0b1111111111   #initial values for ditgial ins
+        self.statusIRBase = 0b111111        #initial values for CB6 IR box
+        self.statusTrigInBase = 0           #initial values for TrigIn
+        self.statusADCBase = 0              #initial value for ADCs
         self.statusThreshold = 9999.99      #threshold for ADC change
         self.statusMode = ['up','down']     #Direction of events to be reported
         self.statusEnabled = False
@@ -1509,7 +1509,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                contrast=None):
         """SetLUT is only really needed for bits++ mode of bits# to set the
         look-up table (256 values with 14bits each).
-        For the BitsPlusPlus device the deafult is to perform gamma
+        For the BitsPlusPlus device the default is to perform gamma
         correction here but on the BitsSharp it seems better to have the
         device perform that itself as the last step so gamma correction is
         off here by default.
@@ -1614,7 +1614,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """Get the current waiting characters from the serial port
         if there are any.
         
-        Mostly used interally but may be needed by user. Note the
+        Mostly used internally but may be needed by user. Note the
         return message depends on what state the device is in and will
         need to be decoded. See the Bits# manual but also the other functions
         herein that do the decoding for you.
@@ -1717,10 +1717,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
     def setTriggerList(self, triggerList=None, mask=0xFFFF):
         """Overaload of Bits# and Display++ 
-            Sets up Tigger pulses via the list method 
-            while preserving the analog outut settings.
+            Sets up Trigger pulses via the list method 
+            while preserving the analog output settings.
         
-            Sets up Tigger pulses in Bist++ using the fine grained
+            Sets up Trigger pulses in Bist++ using the fine grained
             method that can control every trigger line at 100uS
             intervals.
            
@@ -1979,7 +1979,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         detected when released.
         You can detect both types of event but note 
         that pulse, light and trigger events
-        dont have an 'Up' mode.
+        don't have an 'Up' mode.
         
         If Trigger is included in mode the trigger 
             event will be mapped to the trigIn connector.
@@ -2010,7 +2010,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             return
 
         if self.statusEnabled:
-            warning = ("Cannot use RTBox status loggin "
+            warning = ("Cannot use RTBox status logging "
                        " is on")
             raise AssertionError(warning)
         
@@ -2121,7 +2121,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def RTBoxDisable(self):
         """ Disables the detection of RTBox events.
         This is useful to stop the Bits# from reporting key presses
-        When you no longer need them. Nad must be done befor using any
+        When you no longer need them. Nad must be done before using any
         other data logging methods.
         
         It undoes any button - input mappings.
@@ -2468,7 +2468,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         Example:
             bits.RTBoxKeysPressed(5)
             
-        will return false until 5 button presses have been recored.
+        will return false until 5 button presses have been recorded.
         
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
@@ -2549,8 +2549,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """ Reads the internal clock of the Bits box via the RTBox
         fortmat but note there will be a delay in reading the value 
         back. The fortmat for the return values is the same as for
-        button box presses. The return vlaue for button will be 9 and
-        the return value for event wil be time. The return value for
+        button box presses. The return value for button will be 9 and
+        the return value for event will be time. The return value for
         time will be the time of the clock at the moment of the request.
         
         Example:
@@ -2790,7 +2790,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             return
 
         if self.statusEnabled:
-            warning = ("Cannot use statusBox when status loggin "
+            warning = ("Cannot use statusBox when status logging "
                        " is on")
             raise AssertionError(warning)
             
@@ -2802,7 +2802,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         if threshold != None:
             self.statusBoxThreshold = threshold
         else:
-            self.statusBoxThreshold = 9999.99  # set impossibly hight to block events.
+            self.statusBoxThreshold = 9999.99  # set impossibly high to block events.
 
         # If mode is not None then use the supplied Mode otherwise use the preset or default mode.
         if mode != None:
@@ -2817,7 +2817,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         if map == None:
             DinBaseButton = 1
             if 'CB6' in self.statusBoxMode:
-                # possition in status line = logical button number
+                # position in status line = logical button number
                 self.statusButtonMap[11] = 1
                 self.statusButtonMap[12] = 2
                 self.statusButtonMap[13] = 3
@@ -2869,7 +2869,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def statusBoxDisable(self):
         """ Disables the detection of statusBox events.
         This is useful to stop the Bits# from reporting key presses
-        When you no longer need them. And must be done befor using any
+        When you no longer need them. And must be done before using any
         other data logging methods.
         
         It undoes any button - input mappings
@@ -2879,7 +2879,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             return
         
         # disable code here
-        self.statusBoxEnd = True # This semaphore will tell the status logging tread to stop.
+        self.statusBoxEnd = True # This semaphore will tell the status logging thread to stop.
         self.statusThread.join() # Join the thread and wait for it to finish.
         del self.statusThread
         
@@ -2936,10 +2936,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         RTBox button to be mapped and its source eg ('btn1','Din1') maps physical input Din1 to 
         logical button btn1.
         statusBox has 23 logical buttons (btn1-23).
-        Unlike RTBox buttons/events can ony be partially mapped to multiple physical inputs.
+        Unlike RTBox buttons/events can only be partially mapped to multiple physical inputs.
         That is a logical button can be mapped to more than 1 physical input but a physical input
         can onloy be mapped to 1 logical button.
-        So, this function over write any exisiting mappings if the physical input is the
+        So, this function over write any existing mappings if the physical input is the
         same.
         
         
@@ -3134,7 +3134,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         Example:
             bits.statusBoxKeysPressed(5)
             
-        will return false until 5 button presses have been recored.
+        will return false until 5 button presses have been recorded.
         
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
@@ -3241,14 +3241,14 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         Puts its results into a Queue.
         
-        This function is normally run in its own thread so actions can be asyncronous.
+        This function is normally run in its own thread so actions can be asynchronous.
         
 
         """
 
 
         # Continue reading data until sample time is up or status.End is set
-        # Note when used in tread statusEnd can be set from outside this function.
+        # Note when used in thread statusEnd can be set from outside this function.
         firstIn = True # we do something different for the very first status entry
         while (self.statusBoxEnd == False): 
             self.com.timeout = 0.01
@@ -3394,10 +3394,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         then 'status' and 'event' commands in this class may not work.
         
         """
-        self.statusDINBase = DINBase   # Inital values for ditgial ins
-        self.statusIRBase = IRBase        # Inital values for CB6 IR box
-        self.statusTrigInBase = TrigInBase           # Inital values for TrigIn
-        self.statusADCBase = ADCBase           # Inital value for all ADCs
+        self.statusDINBase = DINBase   # Initial values for ditgial ins
+        self.statusIRBase = IRBase        # Initial values for CB6 IR box
+        self.statusTrigInBase = TrigInBase           # Initial values for TrigIn
+        self.statusADCBase = ADCBase           # Initial value for all ADCs
         self.statusThreshold = threshold   # Threshold for ADC events
         self.statusMode = mode     # Direction of events to be reported
 
@@ -3455,7 +3455,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def startStatusLog(self, t=60):
         """ Start logging data from the Bits#
         
-            Starts data logging in its own tread.
+            Starts data logging in its own thread.
             
             Will run for t seconds, defrault 60 or until 
             stopStatusLog() is called.
@@ -3524,7 +3524,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             print(bits.statusValues[0].time)
             print(bits.statusEvents[0].time)
             
-            Will display the time stamps of the first starus value recored and the first
+            Will display the time stamps of the first starus value recorded and the first
             meaningful event.
             
             
@@ -3538,7 +3538,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         then 'status' and 'event' commands in this class may not work.
         """
         
-        self.statusEnd=True # This semaphore will tell the status logging tread to stop.
+        self.statusEnd=True # This semaphore will tell the status logging thread to stop.
         self.statusThread.join() # Join the thread and wait for it to finish.
         # Get the stausts values and events form the queue.
         self._getStatusLog()
@@ -3932,7 +3932,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         
         Puts its results into a Queue.
         
-        This function is normaly run in its own thread so actions can be asyncronous.
+        This function is normally run in its own thread so actions can be asynchronous.
         """
 
         t = args   # Get the time to run for
@@ -3944,13 +3944,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         sT=clock() # start time
         msg=""
         # Continue reading data until sample time is up or status.End is set
-        # Note whe used in tread statusEnd canbe set from outside this function.
+        # Note when used in thread statusEnd canbe set from outside this function.
         while (clock() - sT < t) and (self.statusEnd == False):
             smsg=self.read(timeout=0.1)
             # Compile message strings
             if smsg:
                 msg=msg + smsg.decode("utf-8")
-            # Stop if we have 1 whole staus sring in one shot mode
+            # Stop if we have 1 whole status string in one shot mode
             if len(msg) > self._statusSize and oneshot:
                 self.statusEnd = True
         # Send stop signal to CRS device to shut it up.
@@ -4008,7 +4008,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             # emply statusValues of correct size
             self.statusValues = [
                         status() for  i in range(self.statusQ.qsize())]
-            # Take the staus values off the queue
+            # Take the status values off the queue
             for index in range(0,self.statusQ.qsize()):
                 self.statusValues[index] = self.statusQ.get()
             self.status_nValues = len(self.statusValues)
@@ -4032,9 +4032,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         time = time stamp.
         
         Events are recorded relative to the four event flags
-            statusDINBase, inital values for ditgial ins.
-            statusIRBase, inital values for CB6 IR box.
-            statusTrigInBase, inital values for TrigIn.
+            statusDINBase, initial values for ditgial ins.
+            statusIRBase, initial values for CB6 IR box.
+            statusTrigInBase, initial values for TrigIn.
             statusMode, direction(s) of events to be reported.
         
         The data can be accessed as statusEvents[i]['time'] or statusEvents[i].time
@@ -4657,7 +4657,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             # Works by calling the startTouchLog() after the event.
             # Will wait 0.01 seconds per response requested
             self.startTouchLog(N*0.01) 
-            # Join the touch log tread and wait for it to finish.
+            # Join the touch log thread and wait for it to finish.
             self.touchThread.join()
             del self.touchThread
             values = self.getTouchLog()
@@ -4686,7 +4686,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         
         Note in theory this could be used to get multiple responses
             but in practice the touch screen reports every slight
-            movement so the Loging methods are better.
+            movement so the Logging methods are better.
         
         Note this function does not start touch screen
             recording so should only be called
@@ -4824,7 +4824,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
     
 
     def startTouchLog(self,t=60):
-        """ Start loging data from the touch screen.
+        """ Start logging data from the touch screen.
         Truns on the troch screen.
         
         Example:
@@ -4849,9 +4849,9 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         self.touchThread.start()
 
     def stopTouchLog(self):
-        """ Stop loging data from the Bits#
+        """ Stop logging data from the Bits#
         Waits for _getLog to finish properly so can 
-        introduce a timeing delay.
+        introduce a timing delay.
         
         Does not automatically extract the touch log.
         
@@ -4997,7 +4997,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             
     #===============================================#
     #    Helper function for touch screen commands. #
-    #    Normally run in its own tread.             #
+    #    Normally run in its own thread.             #
     #===============================================#
             
     def _touchLog(self, args=(60,)):
@@ -5008,8 +5008,8 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         t = args # Get the time to run for
         sT = clock() # start time
         msg = ""
-        # While not timed out and until touchLogEnd is ture
-        # When run in a tread touchLogEnd can be set from outside this function.
+        # While not timed out and until touchLogEnd is true
+        # When run in a thread touchLogEnd can be set from outside this function.
         while (clock() - sT < t) and (self.touchLogEnd == False):
             # Complie the message
             smsg = self.read(timeout = 0.1)
@@ -5025,7 +5025,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             values=[touch() for  i in range(N)]
             #for all the touches
             for i in range(N):
-                v = lines[i].split(';') # Split line into compoments at ;
+                v = lines[i].split(';') # Split line into components at ;
                 # If we have read a touch event.
                 if '$touch' in v[0]:
                     #Grab the details of the event into a structure.
@@ -5070,7 +5070,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             bits.setTouchEventParams(distance=20, t=0.001, type='touched')
             events=bits.getTouchEvents()
             
-            Will extract touch events (not releases) that are 20 pixels and 1 ms appart.
+            Will extract touch events (not releases) that are 20 pixels and 1 ms apart.
         """
         if distance!=None:
             self.touchDistance = distance
@@ -5107,7 +5107,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             res=bits.getTouchEvents(distance=20, t=0.001, type='touched')
             print(res[0]['time']
             
-            Will extract touch events (not releases) that are 20 pixels and 1 ms appart.
+            Will extract touch events (not releases) that are 20 pixels and 1 ms apart.
             
         """
         self.setTouchEventParams(distance,t,type)
@@ -5124,7 +5124,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
                   +((self.touchValues[i].y - rY)**2.0))**0.5
             T = self.touchValues[i].time - rT
             
-            # Only include events that are sufficently far from
+            # Only include events that are sufficiently far from
             # last recorded event in time and distance, or if
             # the direction of touch has changed and the new
             # direction is in the looked for type descriptor.
@@ -5174,7 +5174,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             res=bits.getTouchEvent(N=10, distance=20, time=0.001, type='touched')
             print(res.time)
             
-            Will extract the 10th touch events (ingnoreing releases) that are 20 pixels and 1 ms appart.
+            Will extract the 10th touch events (ingnoreing releases) that are 20 pixels and 1 ms apart.
         """
         values = self.getTouchEvents(distance, t, type)
         value = values[N]

@@ -306,7 +306,7 @@ class Slider(MinimalStim):
     def pos(self, newPos):
         """Set position of slider
 
-        Paramaters
+        Parameters
         ----------
         value: tuple, list
             The new position of slider

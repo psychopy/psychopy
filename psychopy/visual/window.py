@@ -1321,7 +1321,7 @@ class Window(object):
     def setScale(self, units, font='dummyFont', prevScale=(1.0, 1.0)):
         """DEPRECATED: this method used to be used to switch between units for
         stimulus drawing but this is now handled by the stimuli themselves and
-        the window should aways be left in units of 'pix'
+        the window should always be left in units of 'pix'
         """
         if self.useRetina:
             retinaScale = 2.0

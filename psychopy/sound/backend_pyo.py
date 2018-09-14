@@ -98,7 +98,7 @@ def get_input_devices():
     return (names, ids)
 
 def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of sepcified `kind`
+    """Returns a dict of dict of audio devices of specified `kind`
 
     The dict keys are names and items are dicts of properties
     """
@@ -253,7 +253,7 @@ def init(rate=44100, stereo=True, buffer=128):
         # do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)
         pyoSndServer.boot()
-    core.wait(0.5)  # wait for server to boot before starting te sound stream
+    core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
     
     #atexit is filo, will call stop then shutdown upon closing

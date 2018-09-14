@@ -624,7 +624,7 @@ class PsychoPyApp(wx.App):
         """
         Send a UDP message to iohub informing it to exit.
 
-        Use this when force quiting the experiment script process so iohub
+        Use this when force quitting the experiment script process so iohub
         knows to exit as well.
 
         If message is not sent within 1 second, or the iohub server

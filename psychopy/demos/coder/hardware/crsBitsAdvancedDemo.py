@@ -8,7 +8,7 @@ It also acts as a test routine to make sure your device is working and that the
 bits.py module is intact. 
 
 The bits.py module mostly provides wrapper functions for getting control of the
-CRS hardware famility, Bits++, Bits#, Display++ and their varients. ViSaGe devices
+CRS hardware famility, Bits++, Bits#, Display++ and their variants. ViSaGe devices
 are not supported unless you have one with a Bits# emulation mode. 
 
 Most but not all of the bits.py commands are tested. Similarly
@@ -16,12 +16,12 @@ most but not all of the CRS functionality is tested often in combination. But th
 are two many combinations to test every thing.
 
 There is some support for driving stereo goggles (CRS FE1) via the D25 feature connector 
-output. Bits# has a stereo goggles port which works differently ans is not tested. Nor is 
+output. Bits# has a stereo goggles port which works differently and is not tested. Nor is 
 support for it currently provided in bits.py.
 
-Stereo via frame interleaving is not recomended on a Display++ due to LCD pixel transition speeds.
+Stereo via frame interleaving is not recommended on a Display++ due to LCD pixel transition speeds.
 CRS have a 3D version of Display++ which uses polarised galsses and line interlaving. This is not
-specifically implemente din bits.py yet but you can stil build an stereo image yourself.
+specifically implemente din bits.py yet but you can still build an stereo image yourself.
 
 Bits++ support is relatively minimal with, in particular, digital inputs not being supported.
 
@@ -259,7 +259,7 @@ print("2b: Goggles test")
 bits.startGoggles(left=0,right=1)
 bits.win.flip()
 T=clock()
-if expInfo['Device'] != 'Bits++': # Bits# and Display++ verison
+if expInfo['Device'] != 'Bits++': # Bits# and Display++ version
     # Recording Digital inputs via the status logging commands
     
     # Example of starting and stopping status log
@@ -306,7 +306,7 @@ bits.startTrigger()
 bits.startGoggles()
 bits.win.flip()
 T=clock()
-if expInfo['Device'] != 'Bits++':# Bits# and Display++ verison
+if expInfo['Device'] != 'Bits++':# Bits# and Display++ version
     # Recording Digital inputs via the status logging commands
     
     # Example of starting and stopping status log
@@ -361,7 +361,7 @@ else: # otherwise carry on
     # Status polling
     # Example of using the pollStatus command
     bits.pollStatus()
-    # Get the digitial word form of DIN states
+    # Get the digital word form of DIN states
     valD = bits.getDigitalWord()
     # Example of how to print it
     if valD:
@@ -373,13 +373,13 @@ else: # otherwise carry on
     print("2e: Single shot trigger detected by RTBox  via DIN")
     bits.RTBoxEnable(mode=['down'], map=[('btn1','Din9')])
     
-    # Example of using send trigger to issue a trigger that will pluse Dout6 which whould be connected to DIN
+    # Example of using send trigger to issue a trigger that will pulse Dout6 which whould be connected to DIN
     bits.sendTrigger(0b1111111,0,0.004)
     bits.win.flip()  # win.flip needed to finish off the trigger
 
     #Example of using RTBoxKeysPressed to detect button box events.
     if not bits.noComms: # noComms safe
-        # Wait for a key - its probaly already been recvied anyway.
+        # Wait for a key - its probably already been recvied anyway.
         while not bits.RTBoxKeysPressed(1):
             continue
     # Get the response
@@ -396,7 +396,7 @@ else: # otherwise carry on
     sleep(5)
 
     #=============================================================================#
-    # Example for makign the CRS divice beep
+    # Example for makign the CRS device beep
     print("3a: Beep test")
     bits.beep(400,0.5)
     sleep(0.5)
@@ -430,7 +430,7 @@ else: # otherwise carry on
     bits.win.flip()  # win.flip needed to finish off the trigger
 
     if not bits.noComms: # noComms safe
-        # Wait for a key - its probaly already been recvied anyway.
+        # Wait for a key - its probably already been recvied anyway.
         while not bits.statusBoxKeysPressed(1):
             continue
     # Disable the status box as soon as you don't need it.
@@ -497,7 +497,7 @@ else: # otherwise carry on
     bits.flush()
 
     #=============================================================================#
-    # Nore RTBox useage examples
+    # Nore RTBox usage examples
     print("4d: RTBox test")
     bits.flush()
     
@@ -637,7 +637,7 @@ else: # otherwise carry on
             if len(vals) > 1:
                 print("All status values")
                 for i in range(1,len(vals),700):# only read every 700'th status report as 
-                    # analog inputs update slowly reletive to everything else
+                    # analog inputs update slowly relative to everything else
                     print(vals[i])
                 print("Should see analog 1 changing")
                 
@@ -682,7 +682,7 @@ else: # otherwise carry on
             if len(vals) > 1:
                 print("Status values")
                 for i in range(1,len(vals),700):# only read every 700'th status report as 
-                    # analog inputs update slowly reletive to everything else
+                    # analog inputs update slowly relative to everything else
                     print(vals[i])
                 print("Should see analog 1 changing")
                 
@@ -717,7 +717,7 @@ else: # otherwise carry on
         bits.win.flip
         sleep(2)
         if not bits.noComms: # noComms safe
-        # Wait for a key - its probaly already been recvied anyway.
+        # Wait for a key - its probably already been recvied anyway.
             while not bits.statusBoxKeysPressed():
                 continue
         # Get the response
@@ -740,7 +740,7 @@ else: # otherwise carry on
         #Example of a touch enable, wait, disable cycle
         print("6a: Touch the screen")
         bits.touchEnable()
-        val=bits.touchWait() # pause while wating for touch
+        val=bits.touchWait() # pause while waiting for touch
         bits.touchDisable()
         if val:
             print(val)

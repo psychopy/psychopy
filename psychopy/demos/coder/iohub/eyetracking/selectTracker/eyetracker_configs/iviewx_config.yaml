@@ -23,7 +23,7 @@ monitor_devices:
         # remove them from the list below.
         monitor_event_types: [ BinocularEyeSampleEvent, ]
         # The iViewX network settings specify the pyViewX computer IIP and port and the
-        # iViewX Apllication / Server Computer IP and port. By default the configuration
+        # iViewX Application / Server Computer IP and port. By default the configuration
         # is set to the popular single PC configuration for the system.
         network_settings:
             send_ip_address: 127.0.0.1
