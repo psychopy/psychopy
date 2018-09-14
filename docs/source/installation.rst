@@ -180,7 +180,7 @@ Ensure you have Python 3.6 and the latest version of pip installed::
   python --version
   pip --version
 
-Next, follow instructions `here <http://www.psychopy.org/developers/repository.com>`_ to fork and fetch the latest version of the PsychoPy repository.
+Next, follow instructions :ref:`here <usingRepos>` to fork and fetch the latest version of the PsychoPy repository.
 
 From the directory where you cloned the latest PsychoPy repository (i.e., where setup.py resides), run::
 

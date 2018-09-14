@@ -44,7 +44,7 @@ class Flow(list):
                 currentList.append(thisEntry.loop) # this loop is child of current
                 loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
                 currentList = loopDict[thisEntry.loop]
-                loopStack.append(thisEntry.loop)  # update the list of loops (for depth)
+                loopStack.append(loopDict[thisEntry.loop])  # update the list of loops (for depth)
             elif thisEntry.getType() == 'LoopTerminator':
                 loopStack.pop()
                 currentList = loopStack[-1]
