@@ -19,7 +19,7 @@ def cart2pol(x, y, units='deg'):
 
     :usage:
 
-        theta, radius = pol2cart(x, y, units='deg')
+        theta, radius = cart2pol(x, y, units='deg')
 
     units refers to the units (rad or deg) for theta that should be returned
     """
