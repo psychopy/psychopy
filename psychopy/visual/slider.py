@@ -26,6 +26,10 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 
 defaultSizes = {'norm': [1.0, 0.1]}
 
+import surveys
+
+
+#print(surveys.content)
 
 class Slider(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -523,6 +527,24 @@ class Slider(MinimalStim):
                 self._dragging = False
                 if self.markerPos is not None:
                     self.recordRating(self.markerPos)
+
+                    #try: #add to survey if it exists
+
+
+                    #add value to form array
+                    thisSurveyItem = self.name.split("|")
+                    thisSurvey=thisSurveyItem[0]
+                    thisItem  =thisSurveyItem[1]
+
+                    response = self.rating
+                    ##now just need to calculate the total for each of the scores, and then... we done?
+                    surveys.updateScores(thisSurvey,thisItem,response)
+
+
+
+                    #print(surveys.content)
+
+
                 return self.markerPos
             else:
                 # is up and was already up - move along

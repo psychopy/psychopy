@@ -6,7 +6,6 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-<<<<<<< HEAD
 #item groups
 multichoice = ['rating','likert']
 
@@ -14,20 +13,14 @@ import surveys #seems easier to create for every experiment, even if it's empty,
 surveys.initialize()
 
 
-=======
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin, ColorMixin)
 from psychopy import visual
 
-<<<<<<< HEAD
 import pandas as pd #need this for managing data frame?
 import math
 
-class Form(VisualComponent, BaseVisualStim, ContainerMixin, ColorMixin):
-=======
-class Form(BaseVisualStim, ContainerMixin, ColorMixin):
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
+class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
     """A class to add Forms to a `psycopy.visual.Window`
 
     The Form allows Psychopy to be used as a questionnaire tool, where
@@ -37,11 +30,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     Example
     -------
-<<<<<<< HEAD
     survey = Form(win, excelFile='AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
-=======
-    survey = Form(win, items=[], size=(1.0, 0.7), pos=(0.0, 0.0))
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
 
     Parameters
     ----------
@@ -69,13 +58,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def __init__(self,
                  win,
-<<<<<<< HEAD
                  name,
                  excelFile,
                  #items,
-=======
-                 items,
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
                  textHeight=.03,
                  size=(.5, .5),
                  pos=(0, 0),
@@ -84,7 +69,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  ):
 
         super(Form, self).__init__(win, units)
-<<<<<<< HEAD
         self._baseYpositions = []
         self._items = {'question': [], 'response': []}
         self._scrollOffset = 0
@@ -215,24 +199,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 questions.append(thisItem)
         self.items = questions
         print(surveys.content)
-=======
-        self.win = win
-        self.items = items
-        self.size = size
-        self.pos = pos
-        self.itemPadding = itemPadding
-        self.labelHeight = 0.02
-        self.textHeight = textHeight
-        self.units = units
-        self._items = {'question': [], 'response': []}
-        self._baseYpositions = []
-        self.leftEdge = None
-        self.rightEdge = None
-        self.topEdge = None
-        self.virtualHeight = 0  # Virtual height determines pos from boundary box
-        self._scrollOffset = 0
-
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
         self._doLayout()
 
     def _setQuestion(self, item):
@@ -247,24 +213,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         qWidth
             The width of the question bounding box as type float
         """
-<<<<<<< HEAD
 
         if (item['aType'] == "instruct"):
             question_color = "blue"
         else:
             question_color = "black"
 
-=======
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
         question = visual.TextStim(self.win,
                                    text=item['qText'],
                                    units=self.units,
                                    height=self.textHeight,
                                    alignHoriz='left',
-<<<<<<< HEAD
                                    color = question_color,
-=======
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
                                    wrapWidth=item['qWidth'] * self.size[0])
 
         qHeight = self.getQuestionHeight(question)
@@ -292,7 +252,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         elif item['aLayout'] == 'vert':
             aSize = (0.03, aHeight)
 
-<<<<<<< HEAD
 
         if item['aType'].lower() in ['instruct']:
 
@@ -313,30 +272,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                  size=(item['aWidth'] * self.size[0], 0.03),
                                  ticks=[0, 1],
                                  color='blue',
-=======
-        if item['aType'].lower() in ['rating', 'slider']:
-            resp = visual.Slider(self.win,
-                                 pos=pos,
-                                 size=(item['aWidth'] * self.size[0], 0.03),
-                                 ticks=[0, 1],
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
                                  labels=item['aOptions'],
                                  units=self.units,
                                  labelHeight=self.labelHeight,
                                  flip=True)
-<<<<<<< HEAD
         elif item['aType'].lower() in ['radio']:
             resp = visual.Slider(self.win,
                                  pos=pos,
                                  name=item["qName"],
                                  size=aSize,
                                  color='blue',
-=======
-        elif item['aType'].lower() in ['choice']:
-            resp = visual.Slider(self.win,
-                                 pos=pos,
-                                 size=aSize,
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
                                  ticks=None,
                                  labels=item['aOptions'],
                                  units=self.units,
@@ -378,11 +323,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if item['aLayout'] == 'vert':
             aHeight = len(item['aOptions']) * self.textHeight
         elif item['aLayout'] == 'horiz':
-<<<<<<< HEAD
            aHeight = self.textHeight
-=======
-            aHeight = self.textHeight
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
 
         # TODO: Return size based on response types e.g., textbox
         return aHeight
@@ -439,7 +380,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.rightEdge = self.pos[0] + self.size[0]/2.0
         self.topEdge = self.pos[1] + self.size[1]/2.0
 
-<<<<<<< HEAD
 
         # For each question, create textstim and rating scale
         for item in self.items:
@@ -447,11 +387,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             if ('aLayout' not in item): #assume horizontal if not stated
                 item['aLayout'] = "horiz"
 
-=======
-        # For each question, create textstim and rating scale
-        for item in self.items:
-            # set up the question text
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
             question.pos = (self.leftEdge,
@@ -513,35 +448,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
 if __name__ == "__main__":
 
-<<<<<<< HEAD
-=======
-    # create some questions
-    questions = []
-    genderItem = {"qText": "What is your gender?",
-                 "qWidth": 0.7,
-                 "aType": "choice",
-                 "aWidth": 0.3,
-                 "aOptions": ["Male", "Female", "Other"],
-                 "aLayout": 'vert'}
-    questions.append(genderItem)
-    # then a set of ratings
-    items = ["running", "cake", "eating sticks", "programming",
-             "tickling", "being tickled", "cycling", "driving", "swimming"]
-    for item in items:
-        entry = {"qText": "How much do you like {}".format(item),
-                 "qWidth": 0.7,
-                 "aType": "rating",
-                 "aWidth": 0.3,
-                 "aOptions": ["Lots", "Not a lot"],
-                 "aLayout": 'horiz'}
-        questions.append(entry)
-
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
     # create window and display
     win = visual.Window(units='height', allowStencil=True)
     print(win.backend.shadersSupported, win._haveShaders)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-<<<<<<< HEAD
 
     survey = Form(win, excelFile='AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
 
@@ -550,10 +460,4 @@ if __name__ == "__main__":
     for n in range(600):
         survey.draw()
         win.color = [255, 255, 255]  # clear blue in rgb255
-=======
-    survey = Form(win, items=questions, size=(1.0, 0.7), pos=(0.0, 0.0))
-
-    for n in range(600):
-        survey.draw()
->>>>>>> 4d9a41ada9c532bd0223495b5982520fe09a821e
         win.flip()
