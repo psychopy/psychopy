@@ -523,21 +523,17 @@ class Slider(MinimalStim):
             if self._dragging:
                 self._dragging = False
                 if self.markerPos is not None:
+
+
                     self.recordRating(self.markerPos)
 
-                    #try: #add to survey if it exists
-
-
-                    #add value to form array
-                    thisSurveyItem = self.name.split("|")
-
-                    thisSurvey=thisSurveyItem[0]
-                    thisItem  =thisSurveyItem[1]
-
-                    response = self.rating
-                    ##now just need to calculate the total for each of the scores, and then... we done?
-                    surveys.updateScores(thisSurvey,thisItem,response)
-
+                    if type(self.name) is str:
+                        # update survey.scoring
+                        thisSurveyItem = self.name.split("|")
+                        thisSurvey = thisSurveyItem[0]
+                        thisItem = thisSurveyItem[1]
+                        response = self.rating
+                        surveys.updateScores(thisSurvey, thisItem, response)
 
                 return self.markerPos
             else:

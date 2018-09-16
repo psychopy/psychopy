@@ -70,4 +70,4 @@ def initialize():
 
                     scoring[currentSurvey]['scoring'][scoringCol]["total"] = thisTotal
 
-                print(scoringCol + " = " + str(scoring[currentSurvey]['scoring'][scoringCol]["total"]))
+                print(scoringCol + " = " + str(scoring[currentSurvey]['scoring'][scoringCol]["total"])) #keeping this until scoring is completely verified
