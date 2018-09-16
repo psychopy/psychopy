@@ -89,7 +89,6 @@ class Experiment(object):
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
-        self._compileLoop = True
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -113,13 +112,11 @@ class Experiment(object):
         else:
             self.routines[routineName] = routine
 
-    def writeScript(self, expPath=None, target="PsychoPy"):
+    def writeScript(self, expPath=None, target="PsychoPy", modular=True):
         """Write a PsychoPy script for the experiment
         """
         # set this so that params write for approp target
-        self._compileLoop = True  # Must update on every compile else False after first call to writeScript
         utils.scriptTarget = target
-
         self.flow._prescreenValues()
         self.expPath = expPath
         script = IndentingBuffer(u'')  # a string buffer object
@@ -132,8 +129,7 @@ class Experiment(object):
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
         if target == "PsychoPy":
-            self.settings.writeInitCode(script,
-                                        self.psychopyVersion, localDateTime)
+            self.settings.writeInitCode(script, self.psychopyVersion, localDateTime)
             self.settings.writeStartCode(script)  # present info, make logfile
             # writes any components with a writeStartCode()
             self.flow.writeStartCode(script)
@@ -146,8 +142,7 @@ class Experiment(object):
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-            self.settings.writeInitCodeJS(script,
-                                          self.psychopyVersion, localDateTime)
+            self.settings.writeInitCodeJS(script, self.psychopyVersion, localDateTime, modular)
             self.flow.writeFlowSchedulerJS(script)
             self.settings.writeExpSetupCodeJS(script)
 
@@ -164,9 +159,9 @@ class Experiment(object):
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
-                    "my.globalClock = new Clock();"
+                    "globalClock = new util.Clock();"
                     "  // to track the time since experiment started\n"
-                    "my.routineTimer = new CountdownTimer();"
+                    "routineTimer = new util.CountdownTimer();"
                     "  // to track time remaining of each (non-slip) routine\n"
                     "\nreturn Scheduler.Event.NEXT;")
             script.writeIndentedLines(code)
@@ -180,11 +175,7 @@ class Experiment(object):
             routinesToWrite = list(self.routines)
             for thisItem in self.flow:
                 if thisItem.getType() in ['LoopInitiator', 'LoopTerminator']:
-                    if self._compileLoop:  # If loops not already compiled
-                        self.flow.writeLoopHandlerJS(script)
-                        self._compileLoop = False
-                    else:
-                        pass
+                    self.flow.writeLoopHandlerJS(script)
                 elif thisItem.name in routinesToWrite:
                     self._currentRoutine = self.routines[thisItem.name]
                     self._currentRoutine.writeRoutineBeginCodeJS(script)
@@ -192,8 +183,12 @@ class Experiment(object):
                     self._currentRoutine.writeRoutineEndCodeJS(script)
                     routinesToWrite.remove(thisItem.name)
             self.settings.writeEndCodeJS(script)
-
-            script = py2js.addVariableDeclarations(script.getvalue())
+            try:
+                script = py2js.addVariableDeclarations(script.getvalue())
+            except py2js.esprima.error_handler.Error:
+                script = script.getvalue()
+                print("Failed to parse as JS by esprima")
+            self.flow._resetLoopController()  # Reset loop controller ready for next call to writeScript
 
         return script
 

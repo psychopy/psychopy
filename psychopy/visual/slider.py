@@ -64,6 +64,7 @@ class Slider(MinimalStim):
                  font='Helvetica Bold',
                  depth=0,
                  name=None,
+                 labelHeight=None,
                  autoDraw=False,
                  autoLog=True):
         """
@@ -128,9 +129,9 @@ class Slider(MinimalStim):
         self.labels = labels
 
         if pos is None:
-            self.pos = (0, 0)
+            self.__dict__['pos'] = (0, 0)
         else:
-            self.pos = pos
+            self.__dict__['pos'] = pos
 
         if units is None:
             self.units = win.units
@@ -162,6 +163,7 @@ class Slider(MinimalStim):
         self.tickLines = []
         self.tickLocs = None
         self.labelLocs = None
+        self.labelHeight = labelHeight
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False
@@ -254,7 +256,6 @@ class Slider(MinimalStim):
 
         self.labelObjs = []
         if self.labels is not None:
-
             if not self.labelLocs:
                 self._setLabelLocs()
             if self.horiz:
@@ -280,7 +281,8 @@ class Slider(MinimalStim):
                 obj = TextStim(self.win, label, font=self.font,
                                alignHoriz=alignHoriz, alignVert=alignVert,
                                units=self.units, color=self.color,
-                               pos=self.labelLocs[tickN, :])
+                               pos=self.labelLocs[tickN, :],
+                               height=self.labelHeight)
                 self.labelObjs.append(obj)
 
         if self.units == 'norm':
@@ -300,6 +302,25 @@ class Slider(MinimalStim):
                               width=self.size[0] * 1.1,
                               height=self.size[1] * 1.1,
                               lineColor='DarkGrey')
+    @attributeSetter
+    def pos(self, newPos):
+        """Set position of slider
+
+        Paramaters
+        ----------
+        value: tuple, list
+            The new position of slider
+        """
+        newPos = np.array(newPos)
+        oldPos = self.__dict__['pos']
+        self.__dict__['pos'] = newPos
+        deltaPos = np.subtract(newPos, oldPos)
+        self.line.pos += deltaPos
+        self.validArea.pos += deltaPos
+        self.marker.pos += deltaPos
+        self.tickLines.xys += deltaPos
+        for label in self.labelObjs:
+            label.pos += deltaPos
 
     def _ratingToPos(self, rating):
         try:
@@ -341,6 +362,7 @@ class Slider(MinimalStim):
             self.categorical = True
         if self.categorical:
             self.ticks = np.arange(len(self.labels))
+            self.granularity = 1.0
 
         self.tickLocs = self._ratingToPos(self.ticks)
 
@@ -589,3 +611,13 @@ class Slider(MinimalStim):
                 else:
                     label.alignHoriz = 'right'
                 label.ori = -45
+
+        if 'radio' in style:
+            # no line, ticks are circles
+            self.line.opacity = 0
+            # ticks are circles
+            self.tickLines.sizes = (self._tickL, self._tickL)
+            self.tickLines.elementMask = 'circle'
+            self.tickLines.colors = 'lightgray'
+            # marker must be smalle than a "tick" circle
+            self.marker.size = self._tickL*0.7

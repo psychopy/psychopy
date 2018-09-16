@@ -27,6 +27,8 @@ class Flow(list):
         self.exp = exp
         self._currentRoutine = None
         self._loopList = []  # will be used while we write the code
+        self._loopController = {'LoopInitiator': [],
+                                'LoopTerminator': []}  # Controls whether loop is written
 
     @property
     def loopDict(self):
@@ -42,7 +44,7 @@ class Flow(list):
                 currentList.append(thisEntry.loop) # this loop is child of current
                 loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
                 currentList = loopDict[thisEntry.loop]
-                loopStack.append(thisEntry.loop)  # update the list of loops (for depth)
+                loopStack.append(loopDict[thisEntry.loop])  # update the list of loops (for depth)
             elif thisEntry.getType() == 'LoopTerminator':
                 loopStack.pop()
                 currentList = loopStack[-1]
@@ -276,20 +278,14 @@ class Flow(list):
                     "}*/\n")
             script.writeIndentedLines(code)
 
-        code = ("// set up the experiment:\n"
-                "psychoJS.schedule(setupExperiment);\n"
-                "\n"
-                "// register all available resources and download them:\n"
-                "psychoJS.scheduleResources();\n"
-                "\n"
-                "// dialog box:\n"
+        code = ("// schedule the experiment:\n"
                 "psychoJS.schedule(psychoJS.gui.DlgFromDict({\n"
-                "  dictionary: my.expInfo,\n"
-                "  title: my.expName\n}));\n"
+                "  dictionary: expInfo,\n"
+                "  title: expName\n}));\n"
                 "\n"
                 "const flowScheduler = new Scheduler(psychoJS);\n"
                 "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
-                "psychoJS.scheduleCondition(() => (psychoJS.gui.dialogComponent.button === 'OK'), flowScheduler, dialogCancelScheduler);\n"
+                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);\n"
                 "\n")
         script.writeIndentedLines(code)
 
@@ -324,17 +320,25 @@ class Flow(list):
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
                 "dialogCancelScheduler.add(quitPsychoJS);\n"
-                "\npsychoJS.start();\n")
+                "\npsychoJS.start({configURL: 'config.json', expInfo: expInfo});\n")
         script.writeIndentedLines(code)
         script.setIndentLevel(-1, relative=True)
-        script.writeIndented("\n\n")
+        script.writeIndented("\n")
 
     def writeLoopHandlerJS(self, script):
-
         """
         Function for setting up handler to look after randomisation of conditions etc
         """
         # Then on the flow we need only the Loop Init/terminate
         for entry in self:
-            if entry.getType() in ['LoopInitiator', 'LoopTerminator']:
-                entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()
+            loopType = entry.getType()  # Get type i.e., routine or loop
+            if loopType in self._loopController:
+                loopName = entry.loop.params['name'].val  # Get loop name
+                if loopName not in self._loopController[loopType]:  # Write if not already written
+                    entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()
+                    self._loopController[loopType].append(loopName)
+
+    def _resetLoopController(self):
+        """Resets _loopController so loops are written on each call to write script"""
+        self._loopController = {'LoopInitiator': [],
+                                'LoopTerminator': []}  # Controls whether loop is written

@@ -567,10 +567,24 @@ class Rift(window.Window):
 
     @property
     def displayLost(self):
+        """Check of the display has been lost.
+
+        Returns
+        -------
+        bool
+
+        """
         return self._sessionStatus.DisplayLost
 
     @property
     def hasInputFocus(self):
+        """Check if the application currently has input focus.
+
+        Returns
+        -------
+        bool
+
+        """
         return self._sessionStatus.HasInputFocus
 
     @property
@@ -914,7 +928,10 @@ class Rift(window.Window):
                     ovr.capi.getEyeViewMatrix(self.eyePoses[eye])
         else:
             # view matrix derived from head position when in monoscopic mode
-            self._viewMatrix = ovr.capi.getEyeViewMatrix(self.headPose)
+            if self._headLocked:
+                self._viewMatrix = ovr.capi.getEyeViewMatrix(self.hmdOriginPose)
+            else:
+                self._viewMatrix = ovr.capi.getEyeViewMatrix(self.headPose)
 
         # get the poses for the touch controllers
         # NB - this does not work well when head locked, hands are not
@@ -944,6 +961,15 @@ class Rift(window.Window):
             return self._projectionMatrix[self._bufferFlags[self.buffer]]
         else:
             return self._projectionMatrix
+
+    @property
+    def headLocked(self):
+        """Enable/disable head locking."""
+        return self._headLocked
+
+    @headLocked.setter
+    def headLocked(self, val):
+        self._headLocked = bool(val)
 
     def pollControllers(self):
         """Update all connected controller states. This should be called at
@@ -1040,13 +1066,8 @@ class Rift(window.Window):
         return True
 
     def flip(self, clearBuffer=True):
-        """Flip the front and back buffers after drawing everything for your
-        frame. (This replaces the win.update() method, better reflecting what
-        is happening underneath).
-
-        win.flip(clearBuffer=True)  # results in a clear screen after flipping
-        win.flip(clearBuffer=False)  # the screen is not cleared (so represent
-                                     # the previous screen)
+        """Submit view buffer images to the HMD's compositor for display at next
+        V-SYNC. This must be called every frame.
 
         Parameters
         ----------
@@ -1353,7 +1374,8 @@ class Rift(window.Window):
 
     def getConectedControllers(self):
         """Get a list of connected input devices (controllers) managed by the
-        LibOVR runtime.
+        LibOVR runtime. Valid names are 'xbox', 'remote', 'left_touch',
+        'right_touch' and 'touch'.
 
         Returns
         -------
@@ -1444,22 +1466,30 @@ class Rift(window.Window):
         return ovr.capi.getHandTriggerValues(controller, deadzone)
 
     def getButtons(
-            self, button_names, controller='xbox', edge_trigger='continuous'):
+            self, buttonNames, controller='xbox', edgeTrigger='continuous'):
         """Returns True if any of the buttons in button_list are held down. All
         buttons are ORed together and tested. Edge triggering can be enabled by
         specifying either 'rising' or 'falling' to edge_trigger. When enabled,
         True is returned only when a button's state changes. If button_list is
         empty, will return True when no buttons are pressed.
 
+        Valid button values are 'A', 'B', 'RThumb', 'X', 'Y', 'LThumb', 
+        'LShoulder', 'Up', 'Down', 'Left', 'Right', 'Enter', 'Back', 'VolUp',
+        'VolDown', 'Home', 'RMask' and 'LMask'.
+
         Returns
         -------
         bool
 
+        Examples
+        --------
+        # check if the 'Enter' button on the Oculus remote was released
+        isPressed = getButtons(['Enter'], 'remote', 'falling')
 
         """
-        return ovr.capi.getButtons(controller, button_names, edge_trigger)
+        return ovr.capi.getButtons(controller, buttonNames, edgeTrigger)
 
-    def getTouches(self, touch_names, edge_trigger='continuous'):
+    def getTouches(self, touchNames, edgeTrigger='continuous'):
         """Returns True if any buttons are touched using sensors. This feature
         is used to estimate finger poses and can be used to read gestures. An
         example of a possible use case is a pointing task, where responses are
@@ -1474,7 +1504,7 @@ class Rift(window.Window):
         None
 
         """
-        return ovr.capi.getTouches('touch', touch_names, edge_trigger)
+        return ovr.capi.getTouches('touch', touchNames, edgeTrigger)
 
     def isIndexPointing(self, hand='right'):
         """Check if the user is doing a pointing gesture with the given hand, or

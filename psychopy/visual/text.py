@@ -778,7 +778,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # should text have a depth or just on top?
         GL.glDisable(GL.GL_DEPTH_TEST)
         # update list if necss and then call it
-        if win.winType == 'pyglet':
+        if win.winType in ["pyglet", "glfw"]:
             if self._needSetText:
                 self.setText()
             # and align based on x anchor

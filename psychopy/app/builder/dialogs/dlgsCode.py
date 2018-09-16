@@ -78,8 +78,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.componentName = wx.TextCtrl(self, wx.ID_ANY,
                                                  str(param.val),
                                                  style=_style)
-                self.componentName.SetToolTipString(
-                        _translate(param.hint))
+                self.componentName.SetToolTip(wx.ToolTip(
+                        _translate(param.hint)))
                 self.componentName.SetValidator(validators.NameValidator())
                 self.nameOKlabel = wx.StaticText(self, -1, '',
                                                  style=wx.ALIGN_RIGHT)
