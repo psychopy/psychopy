@@ -20,10 +20,10 @@ def initialize():
 
                 thisTotal = 0
                 theseItems = content[currentSurvey]['scoring'][scoringCol]['items'].keys()
-
                 for thisItem in theseItems:
                     thisTotal = thisTotal+ int(content[currentSurvey]['scoring'][scoringCol]['items'][thisItem]["value"])
 
                 content[currentSurvey]['scoring'][scoringCol]["total"] = thisTotal
 
                 print(scoringCol + " = " + str(content[currentSurvey]['scoring'][scoringCol]["total"]))
+
