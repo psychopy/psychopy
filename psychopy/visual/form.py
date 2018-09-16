@@ -18,7 +18,7 @@ from psychopy.visual.basevisual import (BaseVisualStim,
 from psychopy import visual
 
 import pandas as pd #need this for managing data frame?
-import math
+
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
     """A class to add Forms to a `psycopy.visual.Window`
@@ -89,116 +89,49 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
 
         self.loadExcel()
 
+    def importItems(self, items,surveyName):
+        """Import items from excel sheet and convert to list of dicts"""
+        newItems = pd.DataFrame(items)
+        newItems = newItems.T.to_dict().values()
 
+        #add response to all
+
+
+        ### resume here
+        for newItem in newItems:
+            newItem["item_name"] = surveyName + "|" + newItem["item_name"] ## Is this too brittle?
+            newItem["response"] = ""
+            newItem["value"] = ""
+            newItem["type"] = newItem["type"].lower()
+
+            if(newItem["type"]) == "instruct":
+                newItem["qWidth"] = 1
+                newItem["aWidth"] = 0
+            else:
+                newItem["qWidth"] = .5
+                newItem["aWidth"] = .5
+            if 'orientation' not in newItem: #assume horizontal if not stated
+                newItem['orientation'] = "vertical"
+            if 'answers' in newItem:
+                if type(newItem["answers"]) is str:
+                    if "|" in newItem["answers"]:
+                        newItem['answers'] = newItem['answers'].split("|")
+
+        return newItems
 
     def loadExcel(self):
-        questions = []
 
         ## initiate this survey
-        surveys.content[self.name] = {
+        surveys.scoring[self.name] = {
             "items": {},
             "scoring": {}
         }
 
-        my_data = pd.read_excel(self.excelFile)
-        my_data.columns = map(str.lower, my_data.columns)
+        survey_data = pd.read_excel(self.excelFile)
+        survey_data.columns = map(str.lower, survey_data.columns)
 
-        ## add each scoring column
-        scoringCols = list(filter(lambda x: "score:" in x, my_data.columns))
-
-
-        for scoringCol in scoringCols:
-            surveys.content[self.name]["scoring"][scoringCol] = {
-                "items":{},
-                "total":0
-            }
-            for i in range(len(my_data["item_name"])):
-                thisScoreCode = my_data[scoringCol][i]
-                print(thisScoreCode)
-                thisItemName = my_data["item_name"][i]
-                if isinstance(thisScoreCode,str):
-                    print("hi")
-                    surveys.content[self.name]["scoring"][scoringCol]["items"][thisItemName] = {
-                        "code": thisScoreCode,
-                        "value": 0
-                    }
-                elif math.isnan(thisScoreCode) == False:
-                    print("ho")
-                    surveys.content[self.name]["scoring"][scoringCol]["items"][thisItemName ] = {
-                        "code" :thisScoreCode,
-                        "value":0
-                    }
-
-        for i in range(len(my_data["item_name"])):
-            thisItemName = my_data["item_name"][i]
-            surveys.content[self.name]["items"][thisItemName] = {
-                "optional" : my_data["optional"][i],
-                "response":"",
-                "value":"",
-                "answers":my_data["answers"][i],
-                "answerValues": my_data["values"][i]
-            }
-
-
-            if (my_data["type"][i].lower() == "button"):
-                thisItem = {"qText": my_data["text"][i],
-                            "qName": thisItemName,
-                            "qWidth": .5,
-                            "aType": my_data["type"][i],
-                            "aWidth": 0,
-                            "aOptions": my_data["answers"][i]  # .split("|")
-                            }
-                questions.append(thisItem)
-
-            if (my_data["type"][i].lower() == "instruct"):
-                thisItem = {"qText": my_data["text"][i],
-                            "qName": self.name + "|" + thisItemName,
-                            "qWidth": 1,
-                            "aType": my_data["type"][i],
-                            "aWidth": 0,
-                            "aOptions": "tbc",  # my_data["answers"][i] #.split("|")
-                            "aLayout": 'horiz'
-                            }
-                questions.append(thisItem)
-            if (my_data["type"][i].lower() in multichoice):
-                thisItem = {"qText": my_data["text"][i],
-                            "qName": self.name + "|" + thisItemName,
-                            "qWidth": .5,
-                            "aType": my_data["type"][i],
-                            "aWidth": .5,
-                            "aOptions": my_data["answers"][i],
-                            "aLayout": 'vert'
-                            }
-                questions.append(thisItem)
-            if (my_data["type"][i].lower() == "radio"):
-                thisItem = {"qText": my_data["text"][i],
-
-
-                            "qName": self.name + "|" + thisItemName,
-                            #make use of this to be able to name the radio buttons appropriately!
-
-
-
-                            "qWidth": .7,
-                            "aType": my_data["type"][i],
-                            "aWidth": .3,
-                            "aOptions": my_data["answers"][i].split("|"),
-                            "aLayout": 'vert'
-                            }
-                questions.append(thisItem)
-
-            if (my_data["type"][i].lower() == "slider"):
-                thisItem = {"qText": my_data["text"][i],
-                            "qName": self.name + "|" + thisItemName,
-                            "qWidth": .7,
-                            "aType": my_data["type"][i],
-                            "aWidth": .3,
-                            "aOptions": my_data["answers"][i].split("|"),
-                            "aLayout": 'horiz'
-                            }
-                questions.append(thisItem)
-        self.items = questions
-        print(surveys.content)
+        self.items = self.importItems(survey_data,self.name)
+        surveys.createScoring(survey_data,self.name)
         self._doLayout()
 
     def _setQuestion(self, item):
@@ -214,13 +147,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
             The width of the question bounding box as type float
         """
 
-        if (item['aType'] == "instruct"):
+        if (item['type'] == "instruct"):
             question_color = "blue"
         else:
             question_color = "black"
 
         question = visual.TextStim(self.win,
-                                   text=item['qText'],
+                                   text=item['text'],
                                    units=self.units,
                                    height=self.textHeight,
                                    alignHoriz='left',
@@ -247,13 +180,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         aHeight = self.getRespHeight(item)
 
         # Set radio button choice layout
-        if item['aLayout'] == 'horiz':
+        if item['orientation'] == 'horizontal':
             aSize = (item['aWidth'] * self.size[0], 0.03)
-        elif item['aLayout'] == 'vert':
+        elif item['orientation'] == 'vertical':
             aSize = (0.03, aHeight)
 
 
-        if item['aType'].lower() in ['instruct']:
+        if item['type'].lower() in ['instruct']:
 
             #below does nothing except stop the code breaking
             resp = visual.Slider(self.win,
@@ -265,25 +198,25 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                                  labelHeight=self.labelHeight,
                                  flip=True)
 
-        if item['aType'].lower() in ['slider']: #'rating',
+        if item['type'].lower() in ['slider']: #'rating',
             resp = visual.Slider(self.win,
                                  pos=pos,
-                                 name=item["qName"],
+                                 name=item["item_name"],
                                  size=(item['aWidth'] * self.size[0], 0.03),
                                  ticks=[0, 1],
                                  color='blue',
-                                 labels=item['aOptions'],
+                                 labels=item['answers'],
                                  units=self.units,
                                  labelHeight=self.labelHeight,
                                  flip=True)
-        elif item['aType'].lower() in ['radio']:
+        elif item['type'].lower() in ['radio']:
             resp = visual.Slider(self.win,
                                  pos=pos,
-                                 name=item["qName"],
+                                 name=item["item_name"],
                                  size=aSize,
                                  color='blue',
                                  ticks=None,
-                                 labels=item['aOptions'],
+                                 labels=item['answers'],
                                  units=self.units,
                                  labelHeight=self.textHeight,
                                  style='radio',
@@ -320,9 +253,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         float
             The height of the response object
         """
-        if item['aLayout'] == 'vert':
-            aHeight = len(item['aOptions']) * self.textHeight
-        elif item['aLayout'] == 'horiz':
+
+        if item['orientation'] == 'vertical':
+            if isinstance(item['answers'], float):
+                aHeight = self.textHeight
+            else:
+                aHeight = len(item['answers']) * self.textHeight
+        elif item['orientation'] == 'horizontal':
            aHeight = self.textHeight
 
         # TODO: Return size based on response types e.g., textbox
@@ -384,8 +321,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         # For each question, create textstim and rating scale
         for item in self.items:
             # set up the question text
-            if ('aLayout' not in item): #assume horizontal if not stated
-                item['aLayout'] = "horiz"
 
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
@@ -450,12 +385,8 @@ if __name__ == "__main__":
 
     # create window and display
     win = visual.Window(units='height', allowStencil=True)
-    print(win.backend.shadersSupported, win._haveShaders)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-
     survey = Form(win, excelFile='AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
-
-
 
     for n in range(600):
         survey.draw()
@@ -463,19 +394,21 @@ if __name__ == "__main__":
         win.flip()
 
     # insert this code when the trial is over - this will be tidied when wrapping this into a proper component, right?
-        # It will currently break as there is no thisExp here.
+    # It will currently break as there is no thisExp here.
+
+    '''
     currentSurvey = "first"  # see initation of Form
     # calculate individual item scores
-    itemNames = survey.content[currentSurvey]["items"].keys()
+    itemNames = surveys.scoring[currentSurvey]["items"].keys()
     for itemName in itemNames:
         thisExp.addData(currentSurvey + "_" + itemName + "_response",
-                        survey.content[currentSurvey]['items'][itemName]["response"])
+                        surveys.scoring[currentSurvey]['items'][itemName]["response"])
         thisExp.addData(currentSurvey + "_" + itemName + "_value",
-                        survey.content[currentSurvey]['items'][itemName]["value"])
+                        surveys.scoring[currentSurvey]['items'][itemName]["value"])
 
     # calculate scale scores
-    scoringCols = survey.content[currentSurvey]['scoring'].keys()
+    scoringCols = surveys.scoring[currentSurvey]['scoring'].keys()
     for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
-        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", survey.content[currentSurvey]['scoring'][scoringCol]["total"])
-
+        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", surveys.scoring[currentSurvey]['scoring'][scoringCol]["total"])
+    '''
 
