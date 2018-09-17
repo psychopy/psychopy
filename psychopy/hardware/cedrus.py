@@ -144,7 +144,7 @@ class RB730(object):
 
             # we found a valid keyEvt
             keys.append(keyEvt)
-            # remove the (1st occurence of) string from the buffer
+            # remove the (1st occurrence of) string from the buffer
             inputStr = inputStr.replace(keyString, '', 1)
 
         return keys

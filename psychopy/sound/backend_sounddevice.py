@@ -31,7 +31,7 @@ def init(rate=44100, stereo=True, buffer=128):
 
 
 def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of sepcified `kind`
+    """Returns a dict of dict of audio devices of specified `kind`
 
     The dict keys are names and items are dicts of properties
     """

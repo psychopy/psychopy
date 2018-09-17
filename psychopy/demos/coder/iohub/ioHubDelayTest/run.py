@@ -29,7 +29,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         new events from the ioHub server to when a response with >=1 new
         event is received and ready for use within the experiment script.
 
-        Only getEvent requests that return with atleast one new event are used in
+        Only getEvent requests that return with at least one new event are used in
         the calculated statistics to try and ensure the reported delay is measuring
         the higher processing load case of new events being returned, vs. the
         case of no new events being available.

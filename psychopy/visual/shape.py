@@ -117,8 +117,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.interpolate = interpolate
 
         # Color stuff
-        self.useShaders = False  # don't ned to combine textures with colors
-        # set color first but then potentially overide
+        self.useShaders = False  # don't need to combine textures with colors
+        # set color first but then potentially override
         self.__dict__['colorSpace'] = colorSpace
         self.__dict__['lineColorSpace'] = lineColorSpace
         self.__dict__['fillColorSpace'] = fillColorSpace
