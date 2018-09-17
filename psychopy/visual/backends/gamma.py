@@ -221,13 +221,13 @@ def createLinearRamp(rampType=None, rampSize=256, driver=None):
                         rampType = 1
 
                 # non-nvidia
-                else:  # is ATI or unkown manufacturer, default to (1:256)/256
+                else:  # is ATI or unknown manufacturer, default to (1:256)/256
                     # this is certainly correct for radeon2600 on 10.5.8 and
                     # radeonX1600 on 10.4.9
                     rampType = 1
 
             # no driver info given
-            else:  # is ATI or unkown manufacturer, default to (1:256)/256
+            else:  # is ATI or unknown manufacturer, default to (1:256)/256
                 # this is certainly correct for radeon2600 on 10.5.8 and
                 # radeonX1600 on 10.4.9
                 rampType = 1

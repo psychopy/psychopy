@@ -59,7 +59,7 @@ def makeConnections(app):
 
 def getLatestVersionInfo():
     """
-    Fetch info about the latest availiable version.
+    Fetch info about the latest available version.
     Returns -1 if fails to make a connection
     """
     try:
@@ -389,7 +389,7 @@ class InstallUpdateDialog(wx.Dialog):
     def onRadioSelect(self, event=None):
         """Set the controls of the appropriate selection to disabled/enabled
         """
-        # if receive no event then just set everthing to previous state
+        # if receive no event then just set everything to previous state
         if event != None:
             self.currentSelection = event.GetEventObject()
         else:
