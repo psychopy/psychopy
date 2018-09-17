@@ -26,6 +26,7 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 
 defaultSizes = {'norm': [1.0, 0.1]}
 
+import surveys
 
 class Slider(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -129,9 +130,9 @@ class Slider(MinimalStim):
         self.labels = labels
 
         if pos is None:
-            self.pos = (0, 0)
+            self.__dict__['pos'] = (0, 0)
         else:
-            self.pos = pos
+            self.__dict__['pos'] = pos
 
         if units is None:
             self.units = win.units
@@ -256,7 +257,6 @@ class Slider(MinimalStim):
 
         self.labelObjs = []
         if self.labels is not None:
-
             if not self.labelLocs:
                 self._setLabelLocs()
             if self.horiz:
@@ -303,6 +303,25 @@ class Slider(MinimalStim):
                               width=self.size[0] * 1.1,
                               height=self.size[1] * 1.1,
                               lineColor='DarkGrey')
+    @attributeSetter
+    def pos(self, newPos):
+        """Set position of slider
+
+        Paramaters
+        ----------
+        value: tuple, list
+            The new position of slider
+        """
+        newPos = np.array(newPos)
+        oldPos = self.__dict__['pos']
+        self.__dict__['pos'] = newPos
+        deltaPos = np.subtract(newPos, oldPos)
+        self.line.pos += deltaPos
+        self.validArea.pos += deltaPos
+        self.marker.pos += deltaPos
+        self.tickLines.xys += deltaPos
+        for label in self.labelObjs:
+            label.pos += deltaPos
 
     def _ratingToPos(self, rating):
         try:
@@ -504,7 +523,18 @@ class Slider(MinimalStim):
             if self._dragging:
                 self._dragging = False
                 if self.markerPos is not None:
+
+
                     self.recordRating(self.markerPos)
+
+                    if type(self.name) is str:
+                        # update survey.scoring
+                        thisSurveyItem = self.name.split("|")
+                        thisSurvey = thisSurveyItem[0]
+                        thisItem = thisSurveyItem[1]
+                        response = self.rating
+                        surveys.updateScores(thisSurvey, thisItem, response)
+
                 return self.markerPos
             else:
                 # is up and was already up - move along

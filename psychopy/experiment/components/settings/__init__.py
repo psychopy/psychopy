@@ -465,7 +465,7 @@ class SettingsComponent(object):
                     "import {{ Scheduler }} from './lib/util-{version}.js';\n"
                     "import * as util from './lib/util-{version}.js';\n"
                     "import * as visual from './lib/visual-{version}.js';\n"
-                    "\n").format(version='3.0.0b3')
+                    "\n").format(version='3.0.0b9')
             buff.writeIndentedLines(code)
 
         # Write window code

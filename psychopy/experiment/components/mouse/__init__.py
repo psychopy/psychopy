@@ -130,7 +130,7 @@ class MouseComponent(BaseComponent):
         # code to check if clickable objects were clicked
         code = (
             "# check if the mouse was inside our 'clickable' objects\n"
-            "gotValidClick = False;\n"
+            "gotValidClick = False\n"
             "for obj in [%(clickable)s]:\n"
             "    if obj.contains(%(name)s):\n"
             "        gotValidClick = True\n")
@@ -153,8 +153,7 @@ class MouseComponent(BaseComponent):
             "  if (obj.contains({name})) {{\n"
             "    gotValidClick = true;\n")
         buff.writeIndentedLines(code.format(name=self.params['name'],
-                                            clickable=self.params['clickable']))
-
+                                            clickable=self.params['clickable'].val))
         buff.setIndentLevel(+2, relative=True)
         dedent = 2
         code = ''
