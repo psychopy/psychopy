@@ -10,31 +10,20 @@ as a special case of a :class:`~psychopy.visual.Polygon`
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
-
-from psychopy.visual.basevisual import (BaseVisualStim,
-                                        ContainerMixin, ColorMixin)
 from psychopy import visual, event
-
-import psychopy  # so we can get the __path__
-
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual import surveys
 
-
-from builtins import range
-
-from psychopy.tools.attributetools import attributeSetter, setAttribute
-
-import numpy
-
-#win = visual.Window(units='height')
-#print(win.backend.shadersSupported, win._haveShaders)
-
-
 class Button(BaseShapeStim):
-    
-    """
-    Creates a button.
+
+    """A class for putting any form of button into your experiment.
+
+        State where you want the button, and what TYPE of button you want.
+            As of 18/9/2018 the only type of button available is "surveySubmit"
+            See Coder Demos -> surveys -> aq_form.py for an example of a button used like this
+
+        :Authors:
+            - 2018: Anthony Haffey
     """
 
     def __init__( self,
@@ -126,12 +115,13 @@ class Button(BaseShapeStim):
 
 
                 if self.button_border.contains(self.mouse):
-                    self._dragging = False
                     if (self.button_selected == True):
                         self.button_selected = False
                     else:
                         self.button_selected = True
+                self._dragging = False
 
             else:
+
                 # is up and was already up - move along
                 return None
