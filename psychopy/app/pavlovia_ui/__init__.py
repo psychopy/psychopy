@@ -21,12 +21,6 @@ from .project import ProjectEditor, syncProject
 from ._base import PavloviaMiniBrowser
 from . import menu, project, search, toolbar
 
-try:
-    import git
-    haveGit = True
-except ImportError:
-    haveGit = False
-
-# sync need git even to import, due to a subclass from gitpython
-if haveGit:
-    from . import sync
+# lazy import git
+import lazy_import
+sync = lazy_import.lazy_module("psychopy.app.pavlovia_ui.sync")

@@ -21,12 +21,9 @@ import requests
 import gitlab
 import gitlab.v4.objects
 
-try:
-    import git
+# lazy import git
+import git  # handled by lazy_import module at psychopy.__init__
 
-    haveGit = True
-except:
-    haveGit = False
 # for authentication
 from . import sshkeys
 from uuid import uuid4
@@ -986,6 +983,11 @@ def getGitRoot(p):
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
+    try:
+        git
+        haveGit = True
+    except ImportError:
+        haveGit = False
     if not haveGit:
         logging.error(
             "You need to install git to connect with Pavlovia projects")
