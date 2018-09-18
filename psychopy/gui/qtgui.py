@@ -513,7 +513,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
 
     if len(pathOut) == 0:
         return None
-    return str(r) or None
+    return str(pathOut) or None
 
 
 def fileOpenDlg(tryFilePath="",
