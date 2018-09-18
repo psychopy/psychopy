@@ -66,7 +66,7 @@ def combineImageEmblem(main, emblem, pos='top_left'):
     elif 'center' in pos:
         x = int(main.size[0]/2-emblem.size[1]/2)
 
-    main.paste(emblem, [x, y], mask=emblem)
+    main.paste(emblem, (x, y), mask=emblem)
     return pilToBitmap(main)
 
 _allIcons = None
@@ -112,7 +112,7 @@ def getIcons(filename=None):
     icons['48'] = pilToBitmap(im)
     # add the plus sign
     add = Image.open(join(resourcesPath, 'add.png'))
-    im.paste(add, [0, 0, add.size[0], add.size[1]], mask=add)
+    im.paste(add, (0, 0, add.size[0], add.size[1]), mask=add)
     # im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],
     #               im.size[0], im.size[1]], mask=add)
     icons['48add'] = pilToBitmap(im)
