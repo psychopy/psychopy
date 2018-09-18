@@ -13,14 +13,9 @@ from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
 
-try:
-    import git
-    haveGit = True
-except ImportError:
-    haveGit = False
-# sync need git even to import, due to a subclass from gitpython
-if haveGit:
-    from .sync import SyncFrame, SyncStatusPanel, ProgressHandler
+import lazy_import
+sync = lazy_import.lazy_module("psychopy.app.pavlovia_ui.sync")
+import git  # will be lazy due to psychopy.__init__
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
@@ -318,6 +313,11 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
 
     def onSyncButton(self, event):
+        try:
+            git
+            haveGit = True
+        except ImportError:
+            haveGit = False
         if not haveGit:
             noGitWarning(parent=self.parent)
             return
@@ -355,11 +355,11 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.Layout()
             self.Raise()
 
-        syncPanel = SyncStatusPanel(parent=self, id=wx.ID_ANY)
+        syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
         self.sizer.Add(syncPanel, border=5,
                        flag=wx.ALL | wx.RIGHT)
         self.sizer.Layout()
-        progHandler = ProgressHandler(syncPanel=syncPanel)
+        progHandler = sync.ProgressHandler(syncPanel=syncPanel)
         wx.Yield()
         self.project.sync(syncPanel=syncPanel, progressHandler=progHandler)
         syncPanel.Destroy()
@@ -386,6 +386,13 @@ def syncProject(parent, project=None):
         -1 for cancel at some point in the process
     """
     closeFrameWhenDone = True
+    try:
+        a = sync.SyncFrame
+        haveGit = True
+    except Exception as e:
+        print("gotHere")
+        print(e)
+        haveGit = False
     if not haveGit:
         noGitWarning(parent)
         return 0
@@ -438,7 +445,15 @@ def syncProject(parent, project=None):
             return
 
     # a sync will be necessary so can create syncFrame
-    syncFrame = SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
+    # if not possible then lazy import of git has failed
+    try:
+        syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
+        haveGit = True
+    except ValueError:
+        haveGit = False
+    if not haveGit:
+        noGitWarning(parent=parent)
+        return
 
     if project._newRemote:
         # new remote so this will be a first push

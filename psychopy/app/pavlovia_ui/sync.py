@@ -7,12 +7,8 @@
 
 import time
 import wx
-from psychopy.projects import pavlovia
 
-try:
-    import git
-except ImportError:
-    raise pavlovia.NoGitError("You need to install 'git' to sycnhronise project with pavlovia.org")
+import git  # will be lazy due to psychopy.__init__
 
 
 class SyncFrame(wx.Frame):
