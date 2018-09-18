@@ -13,6 +13,7 @@ thisLoc = os.path.split(__file__)[0]
 with open('version') as f:
     version = f.read().strip()
 
+
 def createInitFile(dist=None, version=None, sha=None):
     """Create psychopy/__init__.py
 
@@ -100,6 +101,10 @@ if 'installing' not in locals():
         sys.path.append(pathName)
     
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+
+# lazy imports for things we only want to import when needed
+import lazy_import
+git = lazy_import.lazy_module("git")
 """
 
 
