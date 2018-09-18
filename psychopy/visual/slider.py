@@ -26,7 +26,7 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 
 defaultSizes = {'norm': [1.0, 0.1]}
 
-import surveys
+from psychopy.visual import surveys
 
 class Slider(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -295,7 +295,7 @@ class Slider(MinimalStim):
 
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
-                             color='red')
+                             color='blue') #was red, but anthonyhaffey thinks blue fits in survey color scheme better.
 
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,

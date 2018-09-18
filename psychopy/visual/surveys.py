@@ -44,6 +44,8 @@ def initialize():
                         "value": 0
                     }
 
+        print(scoring)
+
     global updateScores
     def updateScores(currentSurvey,currentItem,response):
 
@@ -53,16 +55,32 @@ def initialize():
         scoring[currentSurvey]["items"][currentItem]["response"] = response
         answers = scoring[currentSurvey]["items"][currentItem]["answers"].split("|")
         values = scoring[currentSurvey]["items"][currentItem]["values"].split("|")
-        thisValue = values[answers.index(response)]
+        valueIndex = answers.index(response)
+        thisValue = values[valueIndex]
         scoring[currentSurvey]["items"][currentItem]["value"] = thisValue
 
         scoringCols = list(filter(lambda key: "score:" in key,scoring[currentSurvey]['scoring'].keys()))
 
         for scoringCol in scoringCols:  #loop through each questionnaire related to that survey and item
             if currentItem in scoring[currentSurvey]["scoring"][scoringCol]['items']:
-                #sum up the total
+
+                ##identify scoring
+                thisCode = scoring[currentSurvey]["scoring"][scoringCol]['items'][currentItem]["code"]
+                if type(thisCode) is str:
+                    if "r" in thisCode:
+                        thisCode = thisCode.lower()
+                        thisCode = float(thisCode.replace("r",""))
+                        theseValues = values[::-1]
+                    else:
+                        print("Major Bug")
+                        exit()
+                else:
+                    theseValues = values
+                thisValue = thisCode * float(theseValues[valueIndex])
+
                 scoring[currentSurvey]["scoring"][scoringCol]['items'][ currentItem]["value"] = thisValue
 
+                # sum up the total
                 thisTotal = 0
                 theseItems = scoring[currentSurvey]['scoring'][scoringCol]['items'].keys()
                 for thisItem in theseItems:
@@ -71,3 +89,21 @@ def initialize():
                     scoring[currentSurvey]['scoring'][scoringCol]["total"] = thisTotal
 
                 print(scoringCol + " = " + str(scoring[currentSurvey]['scoring'][scoringCol]["total"])) #keeping this until scoring is completely verified
+
+    global saveScores
+    def saveScores(currentSurvey,thisExp):
+        itemNames = scoring[currentSurvey]["items"].keys()
+        for itemName in itemNames:
+            thisExp.addData(currentSurvey + "_" + itemName + "_response",
+                            scoring[currentSurvey]['items'][itemName]["response"])
+            thisExp.addData(currentSurvey + "_" + itemName + "_value",
+                            scoring[currentSurvey]['items'][itemName]["value"])
+
+        scoringCols = list(filter(lambda key: "score:" in key, scoring[currentSurvey]['scoring'].keys()))
+        for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
+            thisExp.addData(currentSurvey + "_" + scoringCol + "_total",
+                            scoring[currentSurvey]['scoring'][scoringCol]["total"])
+
+    global checkOptional
+    def checkOptional(currentSurvey):
+        return True
