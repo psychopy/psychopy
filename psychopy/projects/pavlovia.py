@@ -138,13 +138,6 @@ class User(object):
             if gitlabData.username in knownUsers:
                 self.data = knownUsers[gitlabData.username]
 
-        # check and/or create SSH keys
-        sshIdPath = os.path.join(prefs.paths['userPrefsDir'],
-                                 "ssh", self.username)
-        if os.path.isfile(sshIdPath):
-            self.publicSSH = sshkeys.getPublicKey(sshIdPath + ".pub")
-        else:
-            self.publicSSH = sshkeys.saveKeyPair(sshIdPath)
 
         # then try again to populate fields
         if gitlabData and not localData:
@@ -155,6 +148,19 @@ class User(object):
             self.avatar = localData['avatar']
         elif gitlabData:
             self.avatar = gitlabData.attributes['avatar_url']
+
+        # check and/or create SSH keys
+        sshIdPath = os.path.join(prefs.paths['userPrefsDir'],
+                                 "ssh", self.username)
+        if os.path.isfile(sshIdPath):
+            self.publicSSH = sshkeys.getPublicKey(sshIdPath + ".pub")
+        else:
+            self.publicSSH = sshkeys.saveKeyPair(sshIdPath,
+                                                 comment=gitlabData.email)
+        # convert bytes to unicode if needed
+        if type(self.publicSSH) == bytes:
+            self.publicSSH = self.publicSSH.decode('utf-8')
+        # push that key to gitlab.pavlovia if possible/needed
         if gitlabData:
             keys = gitlabData.keys.list()
             keyName = '{}@{}'.format(
