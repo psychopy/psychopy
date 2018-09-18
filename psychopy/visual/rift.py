@@ -599,7 +599,7 @@ class Rift(window.Window):
         If multisample anti-aliasing (MSAA) is enabled, a secondary render
         buffer is created. Rendering is diverted to the multi-sample buffer
         when drawing, which is then resolved into the HMD's swap chain texture
-        prior to committing it to the chain. Consequentially, you cannot pass
+        prior to committing it to the chain. Consequently, you cannot pass
         the texture attached to the FBO specified by frameBuffer until the MSAA
         buffer is resolved. Doing so will result in a blank texture.
 

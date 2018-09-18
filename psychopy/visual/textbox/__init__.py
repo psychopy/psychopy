@@ -259,7 +259,7 @@ class TextBox(object):
                  # rows*cols = maximum number of chars
                  # that can be displayed. If textgrid_shape
                  # is not None, then the TextBox size
-                 # must be atleast large enough to hold
+                 # must be at least large enough to hold
                  # the number of specified cols and rows.
                  # If the size specified is less than
                  # what is needed, the size will be increased

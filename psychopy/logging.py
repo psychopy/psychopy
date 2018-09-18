@@ -192,7 +192,7 @@ class LogFile(object):
         self.logger._calcLowestTarget()
 
     def write(self, txt):
-        """Write directy to the log file (without using logging functions).
+        """Write directly to the log file (without using logging functions).
         Useful to send messages that only this file receives
         """
         # find the current stdout if we're the console logger

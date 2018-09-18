@@ -63,7 +63,7 @@ class LS100(object):
             logging.console.setLevel(logging.DEBUG)  # log all communications
 
         If you're using a keyspan adapter (at least on macOS) be aware that
-        it needs a driver installed. Otherwise no ports wil be found.
+        it needs a driver installed. Otherwise no ports will be found.
 
         Error messages:
 
@@ -77,7 +77,7 @@ class LS100(object):
             The port was found, the connection was made and an initial
             command worked, but then the device stopped communating. If the
             first measurement taken with the device after connecting does
-            not yield a reasonble intensity the device can sulk (not a
+            not yield a reasonable intensity the device can sulk (not a
             technical term!). The "[" on the display will disappear and you
             can no longer communicate with the device. Turn it off and on
             again (with F depressed) and use a reasonably bright screen for
@@ -219,7 +219,7 @@ class LS100(object):
             return True
 
     def sendMessage(self, message, timeout=5.0):
-        """Send a command to the photometer and wait an alloted
+        """Send a command to the photometer and wait an allotted
         timeout for a response.
         """
         if message[-2:] != '\r\n':
