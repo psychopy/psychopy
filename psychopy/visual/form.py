@@ -9,13 +9,13 @@
 #item groups
 multichoice = ['rating','likert']
 
-import surveys #seems easier to create for every experiment, even if it's empty, to allow adding of surveys by name
-surveys.initialize()
-
-
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin, ColorMixin)
 from psychopy import visual
+
+from psychopy.visual import surveys
+surveys.initialize()
+
 
 import pandas as pd #need this for managing data frame?
 
@@ -99,7 +99,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
 
         ### resume here
         for newItem in newItems:
-            newItem["item_name"] = surveyName + "|" + newItem["item_name"] ## Is this too brittle?
+            #newItem["item_name"] = newItem["item_name"]
             newItem["response"] = ""
             newItem["value"] = ""
             newItem["type"] = newItem["type"].lower()
@@ -108,8 +108,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                 newItem["qWidth"] = 1
                 newItem["aWidth"] = 0
             else:
-                newItem["qWidth"] = .5
-                newItem["aWidth"] = .5
+                newItem["qWidth"] = .6
+                newItem["aWidth"] = .4
             if 'orientation' not in newItem: #assume horizontal if not stated
                 newItem['orientation'] = "vertical"
             if 'answers' in newItem:
@@ -189,14 +189,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         if item['type'].lower() in ['instruct']:
 
             #below does nothing except stop the code breaking
-            resp = visual.Slider(self.win,
-                                 pos=pos,
-                                 size=(item['aWidth'] * self.size[0], 0.03),
-                                 #ticks=[0, 1],
-                                 #labels=item['aOptions'],
-                                 units=self.units,
-                                 labelHeight=self.labelHeight,
-                                 flip=True)
+            resp = visual.TextStim( self.win,
+                                    text="", #this is meant to be blank
+                                    pos=pos,
+                                    units=self.units,
+                                    height=self.textHeight)
 
         if item['type'].lower() in ['slider']: #'rating',
             resp = visual.Slider(self.win,
@@ -381,34 +378,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                     items.draw()
 
 
+
+'''
+
+#no need for this now as there's an aq_form.py example, right?
 if __name__ == "__main__":
 
     # create window and display
     win = visual.Window(units='height', allowStencil=True)
     title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, excelFile='AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
+    survey = Form(win, excelFile='C:/Users/antho/psychopy/psychopy/demos/coder/surveys/AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
 
     for n in range(600):
         survey.draw()
-        win.color = [255, 255, 255]  # clear blue in rgb255
+        #win.color = [255, 255, 255]  # clear blue in rgb255
         win.flip()
-
-    # insert this code when the trial is over - this will be tidied when wrapping this into a proper component, right?
-    # It will currently break as there is no thisExp here.
-
-    '''
-    currentSurvey = "first"  # see initation of Form
-    # calculate individual item scores
-    itemNames = surveys.scoring[currentSurvey]["items"].keys()
-    for itemName in itemNames:
-        thisExp.addData(currentSurvey + "_" + itemName + "_response",
-                        surveys.scoring[currentSurvey]['items'][itemName]["response"])
-        thisExp.addData(currentSurvey + "_" + itemName + "_value",
-                        surveys.scoring[currentSurvey]['items'][itemName]["value"])
-
-    # calculate scale scores
-    scoringCols = surveys.scoring[currentSurvey]['scoring'].keys()
-    for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
-        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", surveys.scoring[currentSurvey]['scoring'][scoringCol]["total"])
-    '''
-
+'''
