@@ -13,16 +13,11 @@ import os
 
 from psychopy import visual, event, data, core
 from psychopy.visual import surveys,button
+surveys.initialize()
 
 # Create a visual window:
 win = visual.Window(units='height', allowStencil=True)
 title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-
-survey = visual.Form(win,
-                     excelFile='C:/Users/antho/psychopy/psychopy/demos/coder/surveys/AQ.xlsx',
-                     size=(1, 1),
-                     pos=(0.0, 0.0),
-                     name="AutismQuotient")
 
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
@@ -42,11 +37,18 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 proceedConfirmed = False
 proceedButton = visual.Button(win, buttonText="Proceed", buttonPos=(.3, -0.45),survey="AutismQuotient",thisExp =thisExp)
 
+surveys.thisSurvey = visual.Form(   win,
+                        excelFile='C:/Users/antho/psychopy/psychopy/demos/coder/surveys/AQ.xlsx',
+                        size=(1, 1),
+                        pos=(0.0, 0.0),
+                        name="AutismQuotient")
+
 currentSurvey = sum(surveys.completed) #i.e. 0
 
 while surveys.completed[currentSurvey] == False:
     win.color = [255, 255, 255]  # clear blue in rgb255
-    survey.draw()
+    #survey.draw()
+    surveys.thisSurvey.draw()
     proceedButton.draw()
     win.flip()
 

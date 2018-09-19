@@ -99,7 +99,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
 
         ### resume here
         for newItem in newItems:
-            newItem["item_name"] = surveyName + "|" + newItem["item_name"] ## Is this too brittle?
+            #newItem["item_name"] = newItem["item_name"]
             newItem["response"] = ""
             newItem["value"] = ""
             newItem["type"] = newItem["type"].lower()

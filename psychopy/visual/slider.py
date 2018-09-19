@@ -524,16 +524,8 @@ class Slider(MinimalStim):
                 self._dragging = False
                 if self.markerPos is not None:
 
-
                     self.recordRating(self.markerPos)
 
-                    if type(self.name) is str:
-                        # update survey.scoring
-                        thisSurveyItem = self.name.split("|")
-                        thisSurvey = thisSurveyItem[0]
-                        thisItem = thisSurveyItem[1]
-                        response = self.rating
-                        surveys.updateScores(thisSurvey, thisItem, response)
 
                 return self.markerPos
             else:

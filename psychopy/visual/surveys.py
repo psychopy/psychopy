@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-    Creates a module that manages surveys
+    Creates a module that manages surveys. This is not currently embedded within the Form class because
+    there might be multiple surveys in an experiment, so this scoring method can store multiple Forms' worth of scoring
+    information.
+
         :Authors:
             - 2018: Anthony Haffey
 """
@@ -17,6 +20,11 @@ from psychopy import visual
 import math
 
 def initialize():
+
+
+    global thisSurvey
+    thisSurvey = {} #this just gets replaced anyway - right?
+
     global scoring
     scoring = {}
 
@@ -81,9 +89,6 @@ def initialize():
                         "value": 0
                     }
 
-
-        print(scoring)
-
     global updateScores
     def updateScores(currentSurvey,currentItem,response):
 
@@ -132,8 +137,30 @@ def initialize():
 
     global saveScores
     def saveScores(currentSurvey,thisExp):
-        itemsFailed = checkOptional(currentSurvey)
+
+        ## confirm that the user can proceed, or highlight which questions they still need to complete
+        itemsFailed = []
+        for i in range(len(thisSurvey._items["response"])):
+            try:
+                #if completed the item
+                updateScores(thisSurvey.name,
+                             thisSurvey._items["response"][i].name,
+                             thisSurvey._items["response"][i].rating)
+                thisSurvey._items["question"][i].color = "black"
+            except:
+                #means that there's no response
+                item = thisSurvey._items["response"][i].name
+
+                if item != "unnamed TextStim":
+                    thisItem = scoring[currentSurvey]["items"][item]
+                    if thisItem["value"] == "none":
+                        itemsFailed.append(thisItem)
+                        thisSurvey._items["question"][i].color = "red"
+
+
+        #Save if completed checks
         if len(itemsFailed) == 0:
+
             itemNames = scoring[currentSurvey]["items"].keys()
             for itemName in itemNames:
                 thisExp.addData(currentSurvey + "_" + itemName + "_response",
@@ -150,20 +177,4 @@ def initialize():
         else:
             print("Cannot proceed, not all necessary questions responded to")
             print(itemsFailed)
-        return itemsFailed
-
-
-
-
-
-
-
-    global checkOptional
-    def checkOptional(currentSurvey):
-        itemsFailed = []
-        for item in scoring[currentSurvey]["items"].keys():
-            thisItem = scoring[currentSurvey]["items"][item]
-            if thisItem["value"] == "none":
-                itemsFailed.append(item)
-
         return itemsFailed
