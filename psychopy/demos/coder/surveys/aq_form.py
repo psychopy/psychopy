@@ -3,6 +3,8 @@
 
 """
 Demo: Running the Autism Quotient with scoring
+    :Authors:
+            - 2018: Anthony Haffey
 """
 
 from __future__ import absolute_import, division, print_function
@@ -40,21 +42,12 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 proceedConfirmed = False
 proceedButton = visual.Button(win, buttonText="Proceed", buttonPos=(.3, -0.45),survey="AutismQuotient",thisExp =thisExp)
 
-#thisMouse = event.mouse() # see error when this is uncommented out
+currentSurvey = sum(surveys.completed) #i.e. 0
 
-while proceedButton.button_selected  == False:
+while surveys.completed[currentSurvey] == False:
     win.color = [255, 255, 255]  # clear blue in rgb255
     survey.draw()
     proceedButton.draw()
     win.flip()
 
-''' Code below doesn't work because of error when running line 43
-    if thisMouse.isPressedIn(proceedButton):
-        currentSurvey = "AutismQuotient"  # see initation of Form
-        # calculate individual item scores
-        if surveys.checkOptional(currentSurvey) == True:
-            surveys.saveScores(currentSurvey,thisExp)
-            proceedConfirmed = True
-
 # The contents of this file are in the public domain.
-'''

@@ -378,6 +378,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                     items.draw()
 
 
+
+'''
+
+#no need for this now as there's an aq_form.py example, right?
 if __name__ == "__main__":
 
     # create window and display
@@ -389,23 +393,4 @@ if __name__ == "__main__":
         survey.draw()
         #win.color = [255, 255, 255]  # clear blue in rgb255
         win.flip()
-
-    # insert this code when the trial is over - this will be tidied when wrapping this into a proper component, right?
-    # It will currently break as there is no thisExp here.
-
-    '''
-    currentSurvey = "first"  # see initation of Form
-    # calculate individual item scores
-    itemNames = surveys.scoring[currentSurvey]["items"].keys()
-    for itemName in itemNames:
-        thisExp.addData(currentSurvey + "_" + itemName + "_response",
-                        surveys.scoring[currentSurvey]['items'][itemName]["response"])
-        thisExp.addData(currentSurvey + "_" + itemName + "_value",
-                        surveys.scoring[currentSurvey]['items'][itemName]["value"])
-
-    # calculate scale scores
-    scoringCols = surveys.scoring[currentSurvey]['scoring'].keys()
-    for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
-        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", surveys.scoring[currentSurvey]['scoring'][scoringCol]["total"])
-    '''
-
+'''

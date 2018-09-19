@@ -1,22 +1,59 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+    Creates a module that manages surveys
+        :Authors:
+            - 2018: Anthony Haffey
+"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2018 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
+
+from psychopy import visual
+
 import math
 
 def initialize():
     global scoring
     scoring = {}
 
+    global completed
+    completed = []
+
     global createScoring
     def createScoring(survey_data,surveyName):
+
+        completed.append(False)
+
         ### prepare dictionary for storing item scores
         scoring[surveyName]["scoring"] = {
             "items":{}
         }
         for i in range(len(survey_data["item_name"])):
+
+            thisOptional = survey_data["optional"][i]
+            if isinstance(thisOptional, float) | isinstance(thisOptional, int):
+                if math.isnan(survey_data["optional"][i]) == True:
+                    thisValue = 0
+                else:
+                    print("Error: number instead of 'yes' or 'no' used for 'optional' column")
+                    exit()
+
+            elif survey_data["optional"][i].lower() == "no":
+                thisValue = "none"  # i.e. trigger fail in checkOptional later
+            else:
+                thisValue = 0
+
+
             itemName = survey_data["item_name"][i]
             theseAnswers = survey_data["answers"][i]
             theseValues = survey_data["values"][i]
             scoring[surveyName]["items"][itemName] = {
                 "response":"",
-                "value":0,
+                "value":thisValue,
                 "optional":"",
                 "answers":theseAnswers,
                 "values":theseValues
@@ -43,6 +80,7 @@ def initialize():
                         "code": thisScoreCode,
                         "value": 0
                     }
+
 
         print(scoring)
 
@@ -72,7 +110,7 @@ def initialize():
                         thisCode = float(thisCode.replace("r",""))
                         theseValues = values[::-1]
                     else:
-                        print("Major Bug")
+                        print("Error: problem with attempt to use reverse scoring - check your spreadsheet")
                         exit()
                 else:
                     theseValues = values
@@ -84,26 +122,48 @@ def initialize():
                 thisTotal = 0
                 theseItems = scoring[currentSurvey]['scoring'][scoringCol]['items'].keys()
                 for thisItem in theseItems:
-                    thisTotal = thisTotal+ int(scoring[currentSurvey]['scoring'][scoringCol]['items'][thisItem]["value"])
+                    thisValue = scoring[currentSurvey]['scoring'][scoringCol]['items'][thisItem]["value"]
+                    if isinstance(thisValue, float) | isinstance(thisValue, int):
+                        thisTotal = thisTotal+ int(scoring[currentSurvey]['scoring'][scoringCol]['items'][thisItem]["value"])
+                    # else just skip
 
-                    scoring[currentSurvey]['scoring'][scoringCol]["total"] = thisTotal
-
+                scoring[currentSurvey]['scoring'][scoringCol]["total"] = thisTotal
                 print(scoringCol + " = " + str(scoring[currentSurvey]['scoring'][scoringCol]["total"])) #keeping this until scoring is completely verified
 
     global saveScores
     def saveScores(currentSurvey,thisExp):
-        itemNames = scoring[currentSurvey]["items"].keys()
-        for itemName in itemNames:
-            thisExp.addData(currentSurvey + "_" + itemName + "_response",
-                            scoring[currentSurvey]['items'][itemName]["response"])
-            thisExp.addData(currentSurvey + "_" + itemName + "_value",
-                            scoring[currentSurvey]['items'][itemName]["value"])
+        itemsFailed = checkOptional(currentSurvey)
+        if len(itemsFailed) == 0:
+            itemNames = scoring[currentSurvey]["items"].keys()
+            for itemName in itemNames:
+                thisExp.addData(currentSurvey + "_" + itemName + "_response",
+                                scoring[currentSurvey]['items'][itemName]["response"])
+                thisExp.addData(currentSurvey + "_" + itemName + "_value",
+                                scoring[currentSurvey]['items'][itemName]["value"])
 
-        scoringCols = list(filter(lambda key: "score:" in key, scoring[currentSurvey]['scoring'].keys()))
-        for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
-            thisExp.addData(currentSurvey + "_" + scoringCol + "_total",
-                            scoring[currentSurvey]['scoring'][scoringCol]["total"])
+            scoringCols = list(filter(lambda key: "score:" in key, scoring[currentSurvey]['scoring'].keys()))
+            for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
+                thisExp.addData(currentSurvey + "_" + scoringCol + "_total",
+                                scoring[currentSurvey]['scoring'][scoringCol]["total"])
+
+            completed[sum(completed)] = True #i.e. time to move on
+        else:
+            print("Cannot proceed, not all necessary questions responded to")
+            print(itemsFailed)
+        return itemsFailed
+
+
+
+
+
+
 
     global checkOptional
     def checkOptional(currentSurvey):
-        return True
+        itemsFailed = []
+        for item in scoring[currentSurvey]["items"].keys():
+            thisItem = scoring[currentSurvey]["items"][item]
+            if thisItem["value"] == "none":
+                itemsFailed.append(item)
+
+        return itemsFailed

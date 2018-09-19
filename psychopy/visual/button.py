@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Creates a Circle with a given radius
-as a special case of a :class:`~psychopy.visual.Polygon`
-"""
+"""Creates a button"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce
@@ -14,12 +12,11 @@ from psychopy import visual, event
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual import surveys
 
+
 class Button(BaseShapeStim):
+    """A class for putting a button into your experiment.
 
-    """A class for putting any form of button into your experiment.
-
-        State where you want the button, and what TYPE of button you want.
-            As of 18/9/2018 the only type of button available is "surveySubmit"
+        As of 18/9/2018 the only type of button available is "surveySubmit"
             See Coder Demos -> surveys -> aq_form.py for an example of a button used like this
 
         :Authors:
@@ -29,12 +26,12 @@ class Button(BaseShapeStim):
     def __init__( self,
                   win,
                   border_thickness = .003,
-                  button_text_sz   = 0.03,
-                  buttonPos        = (-.5,0),
+                  button_text_sz = 0.03,
+                  buttonPos = (-.5,0),
                   buttonText = "text for button",
                   survey="",
-                  type = "surveySubmit",
                   thisExp="",
+                  type="surveySubmit",
                   **kwargs):
 
         #local variables
@@ -52,6 +49,7 @@ class Button(BaseShapeStim):
         self.mouse = event.Mouse()
         self.button_selected = False
         self.buttonItems = []
+        self.buttonColor = "blue"
         self.button_border = BaseShapeStim(win, fillColor="blue",vertices=((button_x_range[0]-button_x_outer_margin, -button_y_outer_margin + buttonPos[1]),
                                                                            (button_x_range[0]-button_x_outer_margin, button_y_outer_margin + buttonPos[1]),
                                                                            (button_x_range[1]+button_x_outer_margin, button_y_outer_margin + buttonPos[1]),
@@ -81,21 +79,21 @@ class Button(BaseShapeStim):
         #if hover:
         if (self.button_selected == False):
             if self.button_border.contains(self.mouse):
-                self.button_border.color = "blue"
-                self.button_inner.color = "blue"
+                self.button_border.color = self.buttonColor
+                self.button_inner.color = self.buttonColor
                 self.button_inner_text.color = "white"
             else:
-                self.button_border.color = "blue"
+                self.button_border.color = self.buttonColor
                 self.button_inner.color = "white"
-                self.button_inner_text.color = "blue"
+                self.button_inner_text.color = self.buttonColor
         else:
             if self.button_border.contains(self.mouse):
-                self.button_border.color = "blue"
+                self.button_border.color = self.buttonColor
                 self.button_inner.color = "white"
-                self.button_inner_text.color = "blue"
+                self.button_inner_text.color = self.buttonColor
             else:
-                self.button_border.color = "blue"
-                self.button_inner.color = "blue"
+                self.button_border.color = self.buttonColor
+                self.button_inner.color = self.buttonColor
                 self.button_inner_text.color = "white"
 
         if click:
@@ -108,7 +106,11 @@ class Button(BaseShapeStim):
         else:  # mouse is up - check if it *just* came up
             if self._dragging:
                 if self.type == "surveySubmit":
-                    surveys.saveScores(self.survey,self.thisExp)
+                    if self.button_border.contains(self.mouse):
+                        itemsFailed = surveys.saveScores(self.survey,self.thisExp)
+                        if len(itemsFailed) > 0:
+
+                            self.buttonColor = "red"
 
                 elif self.type == "surveyItem":
                     print("Will code what to do with you later")
