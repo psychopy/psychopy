@@ -390,7 +390,6 @@ def syncProject(parent, project=None):
         a = sync.SyncFrame
         haveGit = True
     except Exception as e:
-        print("gotHere")
         print(e)
         haveGit = False
     if not haveGit:

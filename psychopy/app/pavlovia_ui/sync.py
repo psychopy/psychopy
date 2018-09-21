@@ -40,7 +40,8 @@ class SyncStatusPanel(wx.Panel):
         # self.progBar = wx.Gauge(self, -1, range=1, size=(200, -1))
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.statusMsg, 1, wx.ALL | wx.CENTER, border=10)
+        self.mainSizer.Add(self.statusMsg, 1, wx.ALL | wx.CENTER | wx.EXPAND,
+                           border=10)
         # self.mainSizer.Add(self.progBar, 1, wx.ALL | wx.CENTER, border=10)
 
         self.SetAutoLayout(True)
