@@ -218,7 +218,7 @@
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
         <Param name="pos" updates="constant" val="(5, 10)" valType="code"/>
         <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="text" updates="constant" val="Constrast nodulated sinewave" valType="str"/>
+        <Param name="text" updates="constant" val="Contrast modulated sinewave" valType="str"/>
         <Param name="font" updates="constant" val="Arial" valType="str"/>
         <Param name="letterHeight" updates="constant" val="0.5" valType="code"/>
         <Param name="wrapWidth" updates="constant" val="" valType="code"/>

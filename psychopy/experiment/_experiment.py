@@ -183,8 +183,11 @@ class Experiment(object):
                     self._currentRoutine.writeRoutineEndCodeJS(script)
                     routinesToWrite.remove(thisItem.name)
             self.settings.writeEndCodeJS(script)
-
-            script = py2js.addVariableDeclarations(script.getvalue())
+            try:
+                script = py2js.addVariableDeclarations(script.getvalue())
+            except py2js.esprima.error_handler.Error:
+                script = script.getvalue()
+                print("Failed to parse as JS by esprima")
             self.flow._resetLoopController()  # Reset loop controller ready for next call to writeScript
 
         return script

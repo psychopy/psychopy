@@ -826,7 +826,7 @@ class Mouse(object):
         """Returns `True` if the mouse is currently inside the shape and
         one of the mouse buttons is pressed. The default is that any of
         the 3 buttons can indicate a click; for only a left-click,
-        specifiy `buttons=[0]`::
+        specify `buttons=[0]`::
 
             if mouse.isPressedIn(shape):
             if mouse.isPressedIn(shape, buttons=[0]):  # left-clicks only

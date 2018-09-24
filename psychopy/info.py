@@ -85,7 +85,7 @@ class RunTimeInfo(dict):
                 True = assess without a visual
 
             userProcsDetailed: *False*, True
-                get details about concurrent user's processses
+                get details about concurrent user's processes
                 (command, process-ID)
 
         :Returns:

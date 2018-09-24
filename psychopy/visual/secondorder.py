@@ -3,7 +3,7 @@
 
 """Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
 second order envelope carrier and envelope can vary independently for
-orienation, frequencyand phase. Also does beat stimuli. """
+orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
 # Copyright (C) 2018 Jonathan Peirce.
@@ -65,7 +65,7 @@ class EnvelopeGrating(GratingStim):
             mask = None, sf=1, envsf=4, size=1, contrast=0.5,
             moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0)
             # If noise is some numpy array containing random values gives a
-            # patch of noise with a low freqeuncy sinewave envelope
+            # patch of noise with a low frequency sinewave envelope
     env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin',
             mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5,
             moddepth=1.0, envori=0, pos=[.5,.5], beat=True, interpolate=0)
@@ -271,7 +271,7 @@ class EnvelopeGrating(GratingStim):
         (although the carrier will still be a visible component of the overall image)
         whereas they are present in a full modulation. Beats will always appear to have a 100% modulation
         depth and if sinusoidal the modulation will appear to be twice the requested spatial frequency.
-        The modulation depth of fully modulated stimuli can be varied and they appear at their ture frequency.
+        The modulation depth of fully modulated stimuli can be varied and they appear at their true frequency.
         Both beats and full modulations appear in the literature and have specific uses.
         """
         if value in ['True','true','Yes','yes','Y','y']:

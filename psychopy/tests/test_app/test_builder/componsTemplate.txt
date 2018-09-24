@@ -783,7 +783,7 @@ EnvGratingComponent.size.allowedTypes:[]
 EnvGratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 EnvGratingComponent.size.allowedVals:[]
 EnvGratingComponent.size.categ:Basic
-EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+EnvGratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 EnvGratingComponent.size.label:Size [w,h]
 EnvGratingComponent.size.readOnly:False
 EnvGratingComponent.size.staticUpdater:None
@@ -1023,7 +1023,7 @@ GratingComponent.size.allowedTypes:[]
 GratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 GratingComponent.size.allowedVals:[]
 GratingComponent.size.categ:Basic
-GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 GratingComponent.size.label:Size [w,h]
 GratingComponent.size.readOnly:False
 GratingComponent.size.staticUpdater:None
@@ -1275,7 +1275,7 @@ ImageComponent.size.allowedTypes:[]
 ImageComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 ImageComponent.size.allowedVals:[]
 ImageComponent.size.categ:Basic
-ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 ImageComponent.size.label:Size [w,h]
 ImageComponent.size.readOnly:False
 ImageComponent.size.staticUpdater:None
@@ -1899,7 +1899,7 @@ MovieComponent.size.allowedTypes:[]
 MovieComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 MovieComponent.size.allowedVals:[]
 MovieComponent.size.categ:Basic
-MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+MovieComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 MovieComponent.size.label:Size [w,h]
 MovieComponent.size.readOnly:False
 MovieComponent.size.staticUpdater:None
@@ -2115,7 +2115,7 @@ NoiseStimComponent.noiseClip.allowedTypes:[]
 NoiseStimComponent.noiseClip.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.noiseClip.allowedVals:[]
 NoiseStimComponent.noiseClip.categ: Noise
-NoiseStimComponent.noiseClip.hint:Truncate high and low values beyound stated standard deviations from mean (not used for binary or uniform noise; scales rather than clips normal noise). The higher this is the lower the final RMS contrast. If low noise may appear binary
+NoiseStimComponent.noiseClip.hint:Truncate high and low values beyond stated standard deviations from mean (not used for binary or uniform noise; scales rather than clips normal noise). The higher this is the lower the final RMS contrast. If low noise may appear binary
 NoiseStimComponent.noiseClip.label:Number of standard deviations at which to clip noise
 NoiseStimComponent.noiseClip.readOnly:False
 NoiseStimComponent.noiseClip.staticUpdater:None
@@ -2295,7 +2295,7 @@ NoiseStimComponent.size.allowedTypes:[]
 NoiseStimComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 NoiseStimComponent.size.allowedVals:[]
 NoiseStimComponent.size.categ:Basic
-NoiseStimComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+NoiseStimComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 NoiseStimComponent.size.label:Size [w,h]
 NoiseStimComponent.size.readOnly:False
 NoiseStimComponent.size.staticUpdater:None
@@ -2667,7 +2667,7 @@ PatchComponent.size.allowedTypes:[]
 PatchComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
 PatchComponent.size.allowedVals:[]
 PatchComponent.size.categ:Basic
-PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2]
 PatchComponent.size.label:Size [w,h]
 PatchComponent.size.readOnly:False
 PatchComponent.size.staticUpdater:None
@@ -2920,7 +2920,7 @@ PolygonComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every
 PolygonComponent.size.allowedVals:[]
 PolygonComponent.size.categ:Basic
 PolygonComponent.size.hint:Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,
- but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! 
+ but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!!
 PolygonComponent.size.label:Size [w,h]
 PolygonComponent.size.readOnly:False
 PolygonComponent.size.staticUpdater:None
@@ -3389,7 +3389,7 @@ SettingsComponent.HTML path.allowedTypes:[]
 SettingsComponent.HTML path.allowedUpdates:None
 SettingsComponent.HTML path.allowedVals:[]
 SettingsComponent.HTML path.categ:Online
-SettingsComponent.HTML path.hint:Place the HTML files will be saved locally 
+SettingsComponent.HTML path.hint:Place the HTML files will be saved locally
 SettingsComponent.HTML path.label:Output path
 SettingsComponent.HTML path.readOnly:False
 SettingsComponent.HTML path.staticUpdater:None

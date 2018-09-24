@@ -41,7 +41,7 @@ def scoreIAT(csvfile, write_file=False):
     rt_SLOW = 10.
     correct = 1
     incorrect = 0
-    # GNB 2003 thesholds for why subject should be excluded:
+    # GNB 2003 thresholds for why subject should be excluded:
     warn = u''
     threshold = {'ac_prac_blk': 0.50,
                  'ac_prac_all': 0.60, 'rt_prac_all': 0.35,

@@ -446,7 +446,7 @@ Released: Oct 2015
   * new bug with pygame sounds giving fileName not defined
   * several RatingScale bugs; reduce the memory leak (due to pyglet as used in TextStim)
   *
-* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxillary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
+* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxiliary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
 * CHANGED: remove support for google's speech to text (the new google API is for chrome / chromium developers only)
 * CHANGED: deprecate psychopy.web.upload(); use the requests package instead: requests.post()
 
@@ -629,7 +629,7 @@ Released: Sept 2014
 * IMPROVED: logging
 
     * CHANGED: `log=None` and `autoLog=None` inherits from parents, with `visual.Window` at the top of the hierarchy. None is now default for all stimuli and setter methods.
-    * FIXED: removed unneccessary (e.g. duplicate) logging.
+    * FIXED: removed unnecessary (e.g. duplicate) logging.
     * IMPROVED: unnamed stimuli are now given a default name in the logs for easier identification, e.g. "unnamed ShapeStim".
 
 * IMPROVED: you can now specify the standard deviation (default=3) for gaussian mask in various stimuli by setting e.g. `maskParams={'sd':5}` during init or after init.
@@ -1002,7 +1002,7 @@ PsychoPy 1.75.01
 PsychoPy 1.75.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* CHANGED: New Builder experiments will, by default, save a single csv file, a single psydat file and a single log file. Was previously also saving an Excel file (wiht one sheet per loop) and many psydat files (one per loop). Psydat files can still be used to re-output any format of data file.
+* CHANGED: New Builder experiments will, by default, save a single csv file, a single psydat file and a single log file. Was previously also saving an Excel file (with one sheet per loop) and many psydat files (one per loop). Psydat files can still be used to re-output any format of data file.
 * IMPROVED: Experiment info dialog box easier to control now from experiment settings (user doesn't need to write a dictionary by hand any more)
 * IMPROVED: Components in the Builder are now arranged in categories, including a special 'Favorites' category
 * IMPROVED: Code Components now support full syntax highlighting and code folding (but still aren't quite big enough!)
@@ -1441,7 +1441,7 @@ Released: Jan 2011
     for a frame flip). Thanks Dave Britton
 * FIXED bug with filters.makeGrating: gratType='sqr' was not using ori and phase
 * FIXED bug with fetching version info for autoupdate (was sometimes causing a crash on startup
-    if users selected 'skip ths version')
+    if users selected 'skip this version')
 * CHANGED optimisation routine from fmin_powell to fmin_bfgs. It seems more robust to starting params.
 
 PsychoPy 1.63.00
@@ -1580,7 +1580,7 @@ PsychoPy 1.61.01
 Patch Released: May 2010
 
 * FIXED: Bug in coder spitting out lots of errors about no method BeginTextColor
-* FIXED: Buglet in rendering of pygame text withour shaders
+* FIXED: Buglet in rendering of pygame text with our shaders
 * FIXED: broken link for >Help>Api (reference) menuitem
 
 PsychoPy 1.61.00
@@ -1754,7 +1754,7 @@ PsychoPy 1.00.04
 (Released: Jul 09)
 
 * DotStim can have fieldShape of 'sqr', 'square' or 'circle' (the first two are equiv)
-* CHANGED intepreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
+* CHANGED interpreters in all .py scripts to be the same (#!/usr/bin/env python). Use PATH env variable to choose non-default python version for your Python scripts
 * CHANGED pyglet textures to use numpy->ctypes rather than numpy->string
 * FIXED systemInfo assigned on Linux systems
 
@@ -1812,7 +1812,7 @@ PsychoPy 0.97.01:
 * IMPROVED detection of the (truly) dropped frames using log.console.setLevel(log.WARNING)
 * FIXED bug that was preventing bits++ from detecting LUT on the Mac (ensure screen gamma is 1.0 first)
 * FIXED buglet with .setRGB on stimuli - that method should require an operation argument (def=None)
-* ADDED fieldDepth and depths (for elements, releative to fieldDepth) as separate arguments to the ElementArrayStim
+* ADDED fieldDepth and depths (for elements, relative to fieldDepth) as separate arguments to the ElementArrayStim
 
 PsychoP 0.97.00:
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -2050,14 +2050,14 @@ PsychoPy 0.92.1
 PsychoPy 0.92.0:
 ~~~~~~~~~~~~~~~~~~~~~~
 * 'sequential' ordering now implemented for data.TrialHandler (thx Ben Webb)
-* moved to pygame fonts (with unicode support and any TT font onthe system). The switch will break any code that was using TextStim with lineWidth or letterWidth as args. Users wanting to continue using the previous TextStim can call textStimGLUT instead (although I think the new pygame fonts are superior in every way).
+* moved to pygame fonts (with unicode support and any TT font on the system). The switch will break any code that was using TextStim with lineWidth or letterWidth as args. Users wanting to continue using the previous TextStim can call textStimGLUT instead (although I think the new pygame fonts are superior in every way).
 * improved IDE handling of previous size (to cope with being closed in the maximised or minimised state, which previously caused the window not to return)
 
 PsychoPy 0.91.5:
 ~~~~~~~~~~~~~~~~~~~~~~
 * fixed minor bug in using numpy.array as a mask (was only working if array was 128x128)
 * faster startup for IDE (added threading class for importing modules)
-* fixed very minor bug in IDE when searching for attributes that dont exist
+* fixed very minor bug in IDE when searching for attributes that don't exist
 * fixed minor bug where scripts with syntax errors didn't run but didn't complain either
 * IDE FileOpen now tries the folder that the current file is in first
 * IDE removed threading class for running scripts

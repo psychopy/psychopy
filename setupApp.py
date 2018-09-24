@@ -40,7 +40,7 @@ opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dyli
 frameworks.extend(opencvLibs)
 
 import macholib
-#print("~"*60 + "macholib verion: "+macholib.__version__)
+#print("~"*60 + "macholib version: "+macholib.__version__)
 
 if parse_version(macholib.__version__) <= parse_version('1.7'):
     print("Applying macholib patch...")

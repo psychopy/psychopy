@@ -201,7 +201,7 @@ class EnvGratingComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s, " % self.params
         #buff.writeIndented("from psychopy.visual.secondorder import EnvelopeGrating\n")
 
-        # replaces variable params with defaults and sets sample updateing flag
+        # replaces variable params with defaults and sets sample updating flag
         inits = getInitVals(self.params)
 
         code = ("%s = visual.EnvelopeGrating(\n" % inits['name'] +

@@ -92,7 +92,7 @@ Section "PsychoPy" SEC01
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
   CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" \
-      "$INSTDIR\pythonw.exe" "-m psychopy.app.psychopyApp"" "$AppDir\Resources\psychopy.ico"
+      "$INSTDIR\pythonw.exe" "$\"$AppDir\psychopyApp.py$\"" "$AppDir\Resources\psychopy.ico"
   !insertmacro MUI_STARTMENU_WRITE_END
 
 ; File Associations

@@ -24,6 +24,7 @@ import sounddevice
 
 import atexit
 import threading
+from numpy import float64
 pyoSndServer = None
 audioDriver = None
 
@@ -97,7 +98,7 @@ def get_input_devices():
     return (names, ids)
 
 def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of sepcified `kind`
+    """Returns a dict of dict of audio devices of specified `kind`
 
     The dict keys are names and items are dicts of properties
     """
@@ -252,7 +253,7 @@ def init(rate=44100, stereo=True, buffer=128):
         # do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)
         pyoSndServer.boot()
-    core.wait(0.5)  # wait for server to boot before starting te sound stream
+    core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
     
     #atexit is filo, will call stop then shutdown upon closing
@@ -416,6 +417,8 @@ class SoundPyo(_SoundBase):
     def _updateSnd(self):
         self.needsUpdate = False
         doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
+        if type(self.volume) == float64:
+            self.volume = self.volume.item()
         self._snd = pyo.TableRead(self._sndTable,
                                   freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)
