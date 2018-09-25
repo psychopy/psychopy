@@ -200,24 +200,23 @@ class GLFWBackend(BaseBackend):
                 vidmode_is_supported = True
                 break
 
+        nativeVidmode = glfw.get_video_mode(this_screen)
         if not vidmode_is_supported:
             # the requested video mode is not supported, use current
-            _size, _bpc, _hz = glfw.get_video_mode(this_screen)
+
             logging.warning(
                 ("The specified video mode is not supported by this display, "
                  "using native mode ..."))
             logging.warning(
                 ("Overriding user video settings: size {} -> {}, bpc {} -> "
                  "{}, refreshHz {} -> {}".format(tuple(win.size),
-                                                 _size,
+                                                 nativeVidmode[0],
                                                  tuple(win.bpc),
-                                                 _bpc,
+                                                 nativeVidmode[1],
                                                  win.refreshHz,
-                                                 _hz)))
+                                                 nativeVidmode[2])))
             # change the window settings
-            win.bpc = _bpc
-            win.refreshHz = _hz
-            win.size = _size
+            win.size, win.bpc, win.refreshHz = nativeVidmode
 
         if win._isFullScr:
             use_display = this_screen
@@ -331,11 +330,11 @@ class GLFWBackend(BaseBackend):
         # TODO - handle window resizing
 
         # Set the position of the window if not fullscreen.
-        if not win.pos:
+        if not (win.pos and win._isFullScr):
             # work out where the centre should be
+            _size, _bpc, _hz = nativeVidmode
             win.pos = [(_size[0] - win.size[0]) / 2.0,
                        (_size[1] - win.size[1]) / 2.0]
-        if not win._isFullScr:
             # get the virtual position of the monitor, apply offset to pos
             _px, _py = glfw.get_monitor_pos(this_screen)
             glfw.set_window_pos(self.winHandle,
