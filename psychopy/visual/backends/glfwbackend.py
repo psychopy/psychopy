@@ -182,13 +182,13 @@ class GLFWBackend(BaseBackend):
                          "using first available.")
             win.screen = 0
 
-        this_screen = allScrs[win.screen]
+        thisScreen = allScrs[win.screen]
         if win.autoLog:
             logging.info('configured GLFW screen %i' % win.screen)
 
         # find a matching video mode (can we even support this configuration?)
         isVidmodeSupported = False
-        for vidmode in glfw.get_video_modes(this_screen):
+        for vidmode in glfw.get_video_modes(thisScreen):
             _size, _bpc, _hz = vidmode
             if win._isFullScr:  # size and refresh rate are ignored if windowed
                 hasSize = _size == tuple(win.size)
@@ -200,7 +200,7 @@ class GLFWBackend(BaseBackend):
                 isVidmodeSupported = True
                 break
 
-        nativeVidmode = glfw.get_video_mode(this_screen)
+        nativeVidmode = glfw.get_video_mode(thisScreen)
         if not isVidmodeSupported:
             # the requested video mode is not supported, use current
 
@@ -219,12 +219,12 @@ class GLFWBackend(BaseBackend):
             win.size, win.bpc, win.refreshHz = nativeVidmode
 
         if win._isFullScr:
-            useDisplay = this_screen
+            useDisplay = thisScreen
         else:
             useDisplay = None
 
         # configure stereo
-        use_stereo = 0
+        useStereo = 0
         if win.stereo:
             # provide warning if stereo buffers are requested but unavailable
             if not glfw.extension_supported('GL_STEREO'):
@@ -233,7 +233,7 @@ class GLFWBackend(BaseBackend):
                     'card does not appear to support GL_STEREO')
                 win.stereo = False
             else:
-                use_stereo = 1
+                useStereo = 1
 
         # setup multisampling
         # This enables multisampling on the window backbuffer, not on other
@@ -265,7 +265,7 @@ class GLFWBackend(BaseBackend):
         glfw.window_hint(glfw.GREEN_BITS, win.bpc[1])
         glfw.window_hint(glfw.BLUE_BITS, win.bpc[2])
         glfw.window_hint(glfw.REFRESH_RATE, win.refreshHz)
-        glfw.window_hint(glfw.STEREO, use_stereo)
+        glfw.window_hint(glfw.STEREO, useStereo)
         glfw.window_hint(glfw.SAMPLES, msaaSamples)
         glfw.window_hint(glfw.STENCIL_BITS, win.stencilBits)
         glfw.window_hint(glfw.DEPTH_BITS, win.depthBits)
@@ -339,7 +339,7 @@ class GLFWBackend(BaseBackend):
 
             # get the virtual position of the monitor, apply offset to the
             # window position
-            _px, _py = glfw.get_monitor_pos(this_screen)
+            _px, _py = glfw.get_monitor_pos(thisScreen)
             glfw.set_window_pos(self.winHandle,
                                 int(win.pos[0] + _px),
                                 int(win.pos[1] + _py))
