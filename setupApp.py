@@ -133,8 +133,10 @@ setup(
                   CFBundleLicense            = "GNU GPLv3+",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
-                  ),
-              )))
+                  LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:/usr/local:/usr/bin"),
+            ),
+    ))  # end of the options dict
+)
 
 
 # ugly hack for opencv2:
