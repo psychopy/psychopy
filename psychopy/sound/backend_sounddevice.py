@@ -13,11 +13,17 @@ import re
 from psychopy import logging, exceptions
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED)
-from psychopy.exceptions import SoundFormatError
+from psychopy.exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
-import sounddevice as sd
-import soundfile as sf
+try:
+    import sounddevice as sd
+except Exception:
+    raise DependencyError("sounddevice not working")
+try:
+    import soundfile as sf
+except Exception:
+    raise DependencyError("soundfile not working")
 
 import numpy as np
 
