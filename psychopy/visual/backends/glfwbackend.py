@@ -189,13 +189,13 @@ class GLFWBackend(BaseBackend):
         # find a matching video mode (can we even support this configuration?)
         isVidmodeSupported = False
         for vidmode in glfw.get_video_modes(thisScreen):
-            _size, _bpc, _hz = vidmode
+            size, bpc, hz = vidmode
             if win._isFullScr:  # size and refresh rate are ignored if windowed
-                hasSize = _size == tuple(win.size)
-                hasHz = _hz == win.refreshHz
+                hasSize = size == tuple(win.size)
+                hasHz = hz == win.refreshHz
             else:
                 hasSize = hasHz = True
-            hasBpc = _bpc == tuple(win.bpc)
+            hasBpc = bpc == tuple(win.bpc)
             if hasSize and hasBpc and hasHz:
                 isVidmodeSupported = True
                 break
@@ -209,12 +209,14 @@ class GLFWBackend(BaseBackend):
                  "using native mode ..."))
             logging.warning(
                 ("Overriding user video settings: size {} -> {}, bpc {} -> "
-                 "{}, refreshHz {} -> {}".format(tuple(win.size),
-                                                 nativeVidmode[0],
-                                                 tuple(win.bpc),
-                                                 nativeVidmode[1],
-                                                 win.refreshHz,
-                                                 nativeVidmode[2])))
+                 "{}, refreshHz {} -> {}".format(
+                    tuple(win.size),
+                    nativeVidmode[0],
+                    tuple(win.bpc),
+                    nativeVidmode[1],
+                    win.refreshHz,
+                    nativeVidmode[2])))
+
             # change the window settings
             win.size, win.bpc, win.refreshHz = nativeVidmode
 
@@ -269,29 +271,45 @@ class GLFWBackend(BaseBackend):
         glfw.window_hint(glfw.SAMPLES, msaaSamples)
         glfw.window_hint(glfw.STENCIL_BITS, win.stencilBits)
         glfw.window_hint(glfw.DEPTH_BITS, win.depthBits)
+        glfw.window_hint(glfw.AUTO_ICONIFY, 0)
 
         # window appearance and behaviour hints
         if not win.allowGUI:
             glfw.window_hint(glfw.DECORATED, 0)
-        glfw.window_hint(glfw.AUTO_ICONIFY, 0)
-
-        # window title
-        titleText = str(kwargs.get('winTitle', "PsychoPy (GLFW)"))
 
         # create the window
-        self.winHandle = glfw.create_window(width=win.size[0],
-                                            height=win.size[1],
-                                            title=titleText,
-                                            monitor=useDisplay,
-                                            share=shareContext)
-
-        # set the window icon
-        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+        self.winHandle = glfw.create_window(
+            width=win.size[0],
+            height=win.size[1],
+            title=str(kwargs.get('winTitle', "PsychoPy (GLFW)")),
+            monitor=useDisplay,
+            share=shareContext)
 
         # The window's user pointer maps the Python Window object to its GLFW
         # representation.
         glfw.set_window_user_pointer(self.winHandle, win)
         glfw.make_context_current(self.winHandle)  # ready to use
+
+        # set the position of the window if not fullscreen
+        if not win._isFullScr:
+            # if no window position is specified, centre it on-screen
+            if win.pos is None:
+                size, bpc, hz = nativeVidmode
+                win.pos = [(size[0] - win.size[0]) / 2.0,
+                           (size[1] - win.size[1]) / 2.0]
+
+            # get the virtual position of the monitor, apply offset to the
+            # window position
+            px, py = glfw.get_monitor_pos(thisScreen)
+            glfw.set_window_pos(self.winHandle,
+                                int(win.pos[0] + px),
+                                int(win.pos[1] + py))
+
+        elif win._isFullScr and win.pos is not None:
+            logging.warn("Ignoring window 'pos' in fullscreen mode.")
+
+        # set the window icon
+        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
 
         # set the window size to the framebuffer size
         win.size = np.array(glfw.get_framebuffer_size(self.winHandle))
@@ -315,7 +333,7 @@ class GLFWBackend(BaseBackend):
         glfw.set_key_callback(self.winHandle, event._onGLFWKey)
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
-        # enable vsync, GLFW has additional setting for this that might be
+        # Enable vsync, GLFW has additional setting for this that might be
         # useful.
         glfw.swap_interval(win.swapInterval)
 
@@ -328,24 +346,6 @@ class GLFWBackend(BaseBackend):
         #self.winHandle.on_resize = _onResize  # avoid circular reference
 
         # TODO - handle window resizing
-
-        # set the position of the window if not fullscreen
-        if not win._isFullScr:
-            # if no window position is specified, centre it on-screen
-            if win.pos is None:
-                _size, _bpc, _hz = nativeVidmode
-                win.pos = [(_size[0] - win.size[0]) / 2.0,
-                           (_size[1] - win.size[1]) / 2.0]
-
-            # get the virtual position of the monitor, apply offset to the
-            # window position
-            _px, _py = glfw.get_monitor_pos(thisScreen)
-            glfw.set_window_pos(self.winHandle,
-                                int(win.pos[0] + _px),
-                                int(win.pos[1] + _py))
-
-        elif win._isFullScr and win.pos is not None:
-            logging.warn("Ignoring window 'pos' in fullscreen mode.")
 
     @property
     def shadersSupported(self):
