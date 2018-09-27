@@ -31,3 +31,4 @@ python-gitlab
 gitpython
 astunparse
 esprima
+lazy_import

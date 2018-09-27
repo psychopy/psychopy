@@ -8,6 +8,8 @@ version=${version:-$defVersion}
 echo "Building $version"
 
 sudo rm -r build
+sudo rm -r dist/PsychoPy*.app #the previous version
+sudo rm -r ../dist/PsychoPy*.app #the previous version in 'main' location
 
 python setup.py sdist --format=zip
 # then handle the mac app bundle
@@ -16,15 +18,13 @@ rm psychopy/prefSite.cfg
 declare -a pythons=("python2" "python3")
 declare -a names=("PsychoPy3_PY2" "PsychoPy3")
 
-for i in 0 1; do
+for i in 1 0; do
     # remove old pyc files
     find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 
     echo $i "BUILDING:" ${pythons[$i]} "__" ${names[$i]}
     dmgName="../dist/Standalone${names[$i]}-$version-MacOS.dmg"
 
-    sudo rm -r dist/${names[$i]}.app #the previous version
-    sudo rm -r ../dist/${names[$i]}.app #the previous version in 'main' location
     ${pythons[$i]} setupApp.py py2app || { echo 'setupApp.py failed' ; exit 1; }
 
     # remove matplotlib tests (45mb)

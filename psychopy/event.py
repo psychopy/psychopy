@@ -1185,7 +1185,6 @@ def _onGLFWText(*args, **kwargs):
     global useText
     if not useText:  # _onPygletKey has handled the input
         return
-    print("got funny char")
     keySource = 'KeyPress'
     _keyBuffer.append((text, keyTime))
     logging.data("%s: %s" % (keySource, text))

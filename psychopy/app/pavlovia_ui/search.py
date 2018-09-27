@@ -95,7 +95,7 @@ class SearchFrame(wx.Dialog):
         self.SetSizer(self.mainSizer)
         if self.parent:
             self.CenterOnParent()
-
+        self.Layout()
         # if projects == 'no user':
         #     msg = _translate("Log in to search your own projects")
         #     loginBtn = wx.Button(self, wx.ID_ANY, label=msg)

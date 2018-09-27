@@ -21,12 +21,9 @@ import requests
 import gitlab
 import gitlab.v4.objects
 
-try:
-    import git
+# lazy import git
+import git  # handled by lazy_import module at psychopy.__init__
 
-    haveGit = True
-except:
-    haveGit = False
 # for authentication
 from . import sshkeys
 from uuid import uuid4
@@ -96,6 +93,9 @@ def login(tokenOrUsername, rememberMe=True):
         token = knownUsers[tokenOrUsername]  # username so fetch token
     else:
         token = tokenOrUsername
+    # it might still be a dict that *contains* the token
+    if type(token)==dict and 'token' in token:
+        token = token['token']
 
     # try actually logging in with token
     currentSession.setToken(token)
@@ -267,7 +267,6 @@ class PavloviaSession:
         anonymous user
         """
         self.username = None
-        self.password = None
         self.userID = None  # populate when token property is set
         self.userFullName = None
         self.remember_me = remember_me
@@ -424,6 +423,10 @@ class PavloviaSession:
                             .format(repr(token), len(token)))
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
+            self.username = self.user.username
+            self.userID = self.user.id  # populate when token property is set
+            self.userFullName = self.user.name
+            self.authenticated = True
         else:
             self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
 
@@ -986,6 +989,11 @@ def getGitRoot(p):
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
+    try:
+        git
+        haveGit = True
+    except ImportError:
+        haveGit = False
     if not haveGit:
         logging.error(
             "You need to install git to connect with Pavlovia projects")

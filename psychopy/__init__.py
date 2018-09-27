@@ -46,3 +46,7 @@ if 'installing' not in locals():
         sys.path.append(pathName)
     
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+
+# lazy imports for things we only want to import when needed
+import lazy_import
+git = lazy_import.lazy_module("git")
