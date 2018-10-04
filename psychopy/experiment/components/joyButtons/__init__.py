@@ -141,10 +141,7 @@ class JoyButtonsComponent(BaseComponent):
                 "try:\n")
         buff.writeIndentedLines(code % self.params)
 
-
         buff.setIndentLevel(+1, relative=True)
-        dedentAtEnd = 1  # keep track of how far to dedent later
-
         code = ("numJoysticks = joysticklib.getNumJoysticks()\n"
                 "if numJoysticks > 0:\n")
         buff.writeIndentedLines(code % self.params)

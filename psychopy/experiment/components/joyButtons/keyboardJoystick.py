@@ -26,22 +26,3 @@ class Joystick:
         values=[ key for key, modifiers in keys if all([modifiers[modKey] for modKey in self.modifierKeys]) ]
         self.state=[ key in values for key in self.numberKeys]
         return(self.state)
-
-if __name__ == '__main__':
-    import time
-    from psychopy import visual, event, core
-    import time
-
-    win = visual.Window([400, 400])
-    msg = visual.TextStim(win, text='press a key\n < esc > to quit')
-    msg.draw()
-    win.flip()
-
-    j=Joystick(0)
-    while True:
-        print(j.getNumButtons())
-        print(j.getAllButtons())
-        time.sleep(3)
-
-    win.close()
-    core.quit()
