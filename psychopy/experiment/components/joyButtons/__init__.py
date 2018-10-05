@@ -53,7 +53,7 @@ class JoyButtonsComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'JoyButtons'
-        self.url = "http://www.psychopy.org/builder/components/joyButton.html"
+        self.url = "http://www.psychopy.org/builder/components/joyButtons.html"
         self.exp.requirePsychopyLibs(['gui'])
 
         # params
