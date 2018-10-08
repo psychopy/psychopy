@@ -472,7 +472,7 @@ class SettingsComponent(object):
                     "import {{ Scheduler }} from './lib/util-{version}.js';\n"
                     "import * as util from './lib/util-{version}.js';\n"
                     "import * as visual from './lib/visual-{version}.js';\n"
-                    "\n").format(version='3.0.0b9')
+                    "\n").format(version='3.0.0b11')
             buff.writeIndentedLines(code)
 
         # Write window code
@@ -700,13 +700,14 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importTrialAttributes(thisTrial) {\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(loop) {\n"
+                    "  const trialIndex = loop.getTrialIndex();\n"
                     "  return function () {\n"
-                    "    psychoJS.importAttributes(thisTrial);\n\n"
+                    "    loop.setTrialIndex(trialIndex);\n"
+                    "    psychoJS.importAttributes(loop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
-                    "  };\n"
-                    "}\n"
-                )
+                    "    };\n"
+                    "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
         quitFunc = ("\nfunction quitPsychoJS(isCompleted) {\n"
                     "  psychoJS.window.close();\n"

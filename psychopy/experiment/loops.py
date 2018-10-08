@@ -206,7 +206,7 @@ class TrialHandler(object):
         # for the scheduler
         code = ("  // Schedule all the trials in the trialList:\n"
                 "  for (const {thisName} of {name}) {{\n"
-                "    thisScheduler.add(importTrialAttributes({thisName}));\n"
+                "    thisScheduler.add(importConditions({name}));\n"
                 .format(name=self.params['name'], params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
