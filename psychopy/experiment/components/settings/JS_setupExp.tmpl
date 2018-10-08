@@ -11,6 +11,6 @@ function updateInfo() {{
 
   // add info from the URL:
   util.addInfoFromUrl(expInfo);
-  psychoJS.setRedirectUrls({completedURL} + expInfo['studyID'], {incompleteURL} + expInfo['studyID']);
+  psychoJS.setRedirectUrls({completedURL}, {incompleteURL});
   return Scheduler.Event.NEXT;
 }}
