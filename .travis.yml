@@ -117,8 +117,8 @@ before_script:
 
   # This might come in handy once we switch to Trusty
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-      xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
-    fi;
+		xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config ${HOME}/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
+    fi
 
 script:
   - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
