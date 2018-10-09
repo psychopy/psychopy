@@ -24,6 +24,7 @@ from .basevisual import BaseVisualStim
 from .helpers import pointInPolygon, polygonsOverlap
 from .image import ImageStim
 from .text import TextStim
+from .form import Form
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 

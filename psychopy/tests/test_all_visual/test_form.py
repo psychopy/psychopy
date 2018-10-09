@@ -37,6 +37,29 @@ class Test_Form(object):
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
 
+    def test_importItems(self):
+
+        wrongHeaders = [{"a": "What is your gender?",
+                      "b": 0.7,
+                      "c": "choice",
+                      "d": 0.3,
+                      "e": ["Male", "Female", "Other"],
+                      "f": 'vert'}]
+
+        with pytest.raises(NameError):  # Check wrong header error
+            self.survey = Form(self.win, items=wrongHeaders, size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        with pytest.raises(OSError):  # Check filename error
+            self.survey = Form(self.win, items='doesNotExist', size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # TODO: Check importItems works with csvs etc
+
+        # Check output of importItems
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        assert self.survey.importItems(self.questions) == self.questions
+
+
+
     def test_set_questions(self):
         survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
         textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
