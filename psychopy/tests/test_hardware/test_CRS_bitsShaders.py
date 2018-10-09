@@ -4,14 +4,14 @@ Created on Mon Dec 15 15:22:48 2014
 
 @author: lpzjwp
 """
-from __future__ import print_function #for compatibility with python3
+from __future__ import print_function  # for compatibility with python3
 from __future__ import division
 from builtins import str
 from builtins import range
-from psychopy import visual,core, event
+from psychopy import visual
 from psychopy.hardware import crs
 import numpy as np
-from pyglet import gl as GL
+import pytest
 
 try:
     from PIL import Image
@@ -20,6 +20,8 @@ except ImportError:
 import os
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
+if _travisTesting:
+    pytest.skip("no Bits device on a virtual machine")
 
 array=np.array
 #expectedVals = {'bits++':{}, 'mono++':{}, 'color++':{}}
