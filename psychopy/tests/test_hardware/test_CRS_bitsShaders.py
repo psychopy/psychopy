@@ -20,8 +20,6 @@ except ImportError:
 import os
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
-if _travisTesting:
-    pytest.skip("no Bits device on a virtual machine")
 
 array=np.array
 #expectedVals = {'bits++':{}, 'mono++':{}, 'color++':{}}
@@ -64,22 +62,30 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-win = visual.Window([1024,768], fullscr=0, screen=1, useFBO=True, autoLog=True)
-bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
 
-#draw a ramp across the screenexpectedVals = range(256)
-w,h = win.size
-intended = list(range(256))
-testArrLums = np.resize(intended,[256,256])/127.5-1 #NB psychopy uses -1:1
-stim = visual.ImageStim(win, image=testArrLums,
-    size=[256,h], pos=[128-w/2,0], units='pix',
-    )
-expected = np.repeat(intended,3).reshape([-1,3])
-
-#stick something in the middle for fun!
-gabor = visual.GratingStim(win, mask='gauss', sf=3, ori=45, contrast=0.5)
-gabor.autoDraw = True
 def test_bitsShaders():
+
+    if _travisTesting:
+        pytest.skip("no Bits device on a virtual machine")
+
+    win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
+                        autoLog=True)
+    bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
+
+    # draw a ramp across the screenexpectedVals = range(256)
+    w, h = win.size
+    intended = list(range(256))
+    testArrLums = np.resize(intended,
+                            [256, 256]) / 127.5 - 1  # NB psychopy uses -1:1
+    stim = visual.ImageStim(win, image=testArrLums,
+                            size=[256, h], pos=[128 - w / 2, 0], units='pix',
+                            )
+    expected = np.repeat(intended, 3).reshape([-1, 3])
+
+    # stick something in the middle for fun!
+    gabor = visual.GratingStim(win, mask='gauss', sf=3, ori=45, contrast=0.5)
+    gabor.autoDraw = True
+
     #a dict of dicts for expected vals
     for mode in ['bits++', 'mono++', 'color++']:
         bits.mode=mode
