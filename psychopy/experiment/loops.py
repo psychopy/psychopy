@@ -81,7 +81,7 @@ class TrialHandler(object):
             hint=_translate("The start and end of the loop (see flow "
                             "timeline)"))
         self.params['Selected rows'] = Param(
-            selectedRows, valType='code',
+            selectedRows, valType='str',
             updates=None, allowedUpdates=None,
             label=_localized['Selected rows'],
             hint=_translate("Select just a subset of rows from your condition"
