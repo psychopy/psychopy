@@ -1939,7 +1939,7 @@ class BuilderFrame(wx.Frame):
             fmt = {'action': action, 'key': self.app.keys['undo']}
             label = txt % fmt
             enable = True
-        self._undoLabel.SetText(label)
+        self._undoLabel.SetItemLabel(label)
         self.toolbar.EnableTool(self.bldrBtnUndo.Id, enable)
         self.editMenu.Enable(wx.ID_UNDO, enable)
 
@@ -1953,7 +1953,7 @@ class BuilderFrame(wx.Frame):
             fmt = {'action': action, 'key': self.app.keys['redo']}
             label = txt % fmt
             enable = True
-        self._redoLabel.SetText(label)
+        self._redoLabel.SetItemLabel(label)
         self.toolbar.EnableTool(self.bldrBtnRedo.Id, enable)
         self.editMenu.Enable(wx.ID_REDO, enable)
 
