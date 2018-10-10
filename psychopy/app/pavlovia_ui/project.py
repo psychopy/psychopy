@@ -364,7 +364,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.project.sync(syncPanel=syncPanel, progressHandler=progHandler)
         syncPanel.Destroy()
         self.sizer.Layout()
-        self.parent.Raise()
 
     def onBrowseLocalFolder(self, evt):
         self.localFolder = setLocalPath(self, self.project)
@@ -373,7 +372,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
                 label=_translate("Local root: {}").format(self.localFolder))
         self.localFolderCtrl.Wrap(self.GetSize().width)
         self.Layout()
-        self.parent.Raise()
+        self.Raise()
 
 
 def syncProject(parent, project=None):

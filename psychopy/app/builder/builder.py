@@ -13,7 +13,6 @@ from __future__ import absolute_import, division, print_function
 import wx
 import wx.stc
 from wx.lib import platebtn, scrolledpanel
-
 try:
     from wx import aui
 except Exception:
@@ -1007,6 +1006,7 @@ class BuilderFrame(wx.Frame):
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
+        self.exportOnSave = False
 
         if fileName in self.appData['frames']:
             self.frameData = self.appData['frames'][fileName]
@@ -1660,21 +1660,17 @@ class BuilderFrame(wx.Frame):
         """Exports the script as an HTML file (PsychoJS library)
         """
         # get path if not given one
+        settingsHTMLpath = self.exp.settings.params['HTML path'].val
         expPath, expName = os.path.split(self.filename)
         if htmlPath is None and self.exp.settings.params['HTML path']:
-            htmlPath = self._getHtmlPath(self.filename)
-
+            htmlPath = os.path.join(expPath, settingsHTMLpath)
         # present dialog box
         dlg = ExportFileDialog(self, wx.ID_ANY,
                                title=_translate("Export HTML file"),
-                               filePath=htmlPath,
-                               exp=self.exp)
-        export = dlg.exportOnSave
-        if self.exp.settings.params['exportHTML'].val == 'manually':
+                               filePath=htmlPath)
+        if not self.exportOnSave:
             retVal = dlg.ShowModal()
-            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-            if retVal != wx.ID_OK:  # User cancelled export
-                return False
+            self.exportOnSave = dlg.exportOnSave.GetValue()
 
         htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         # then save the actual script
@@ -1884,7 +1880,7 @@ class BuilderFrame(wx.Frame):
 
     def undo(self, event=None):
         """Step the exp back one level in the @currentUndoStack@ if possible,
-        and update the windows.
+        and update the windows
 
         Returns the final undo level (1=current, >1 for further in past)
         or -1 if redo failed (probably can't undo)
@@ -1902,8 +1898,8 @@ class BuilderFrame(wx.Frame):
 
     def redo(self, event=None):
         """Step the exp up one level in the @currentUndoStack@ if possible,
-        and update the windows.
-        
+        and update the windows
+
         Returns the final undo level (0=current, >0 for further in past)
         or -1 if redo failed (probably can't redo)
         """
@@ -2215,7 +2211,7 @@ class BuilderFrame(wx.Frame):
         # Compile script from command line using version
         compiler = 'psychopy.scripts.psyexpCompile'
 
-        if sys.platform == 'win32':  # get name of executable
+        if sys.platform == 'win32': # get name of executable
             pythonExec = sys.executable
         else:
             pythonExec = sys.executable.replace(' ', '\ ')
@@ -2242,9 +2238,6 @@ class BuilderFrame(wx.Frame):
 
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
-        if not os.path.isdir(expPath):
-            self.fileSave()
-            return self._getHtmlPath(self.filename)
         htmlFolder = self.exp.settings.params['HTML path'].val
         htmlPath = os.path.join(expPath, htmlFolder)
         return htmlPath
@@ -2287,20 +2280,6 @@ class BuilderFrame(wx.Frame):
         # TODO: update user icon on button to user avatar
         pass
 
-    @property
-    def project(self):
-        """A PavloviaProject object if one is known for this experiment
-        """
-        if 'project' in self.__dict__:
-            return self.__dict__['project']
-        elif self.filename and pavlovia.getProject(self.filename):
-            return pavlovia.getProject(self.filename)
-        else:
-            return None
-
-    @project.setter
-    def project(self, project):
-        self.__dict__['project'] = project
 
 class ReadmeFrame(wx.Frame):
     """Defines construction of the Readme Frame"""
@@ -2408,12 +2387,11 @@ class ReadmeFrame(wx.Frame):
 class ExportFileDialog(wx.Dialog):
     def __init__(self, parent, ID, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-                 filePath=None, exp=None):
+                 filePath=None):
         wx.Dialog.__init__(self, parent, ID, title,
                            size=size, pos=pos, style=style)
         # Now continue with the normal construction of the dialog
         # contents
-        self.exp = exp
         sizer = wx.BoxSizer(wx.VERTICAL)
         msg = _translate("Warning, HTML outputs are very new.\n"
                          "Treat with caution (CHECK YOUR EXPERIMENT)!")
@@ -2432,19 +2410,15 @@ class ExportFileDialog(wx.Dialog):
 
         sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        # Set save on export HTML choice
         box = wx.BoxSizer(wx.HORIZONTAL)
-        choices = ['on Save', 'on Sync', 'manually']
-        exportLabel = _translate("Select 'manually' to receive this alert when exporting HTML.\n"
-                                 "Click 'OK' to export HTML, or click 'Cancel' to return.")
-        self.exportOnSave = wx.Choice(self, wx.ID_ANY,
-                                      size=wx.DefaultSize,
-                                      choices=choices)
-        self.exportOnSave.SetSelection(choices.index(self.exp.settings.params['exportHTML']))
-        self.exportText = wx.StaticText(self, wx.ID_ANY, exportLabel)
-        self.exportOnSave.SetHelpText(exportLabel)
-        box.Add(self.exportOnSave, .5, wx.ALIGN_CENTRE | wx.ALL, 5)
-        box.Add(self.exportText, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
+
+        self.exportOnSave = wx.CheckBox(self, wx.ID_ANY,
+                                        label=_translate(
+                                            "Continuously export on save"))
+        self.exportOnSave.SetHelpText("Tick this if you want the HTML file to export"
+                                      " (and overwrite) on every save of the experiment."
+                                      " Only works for THIS SESSION.")
+        box.Add(self.exportOnSave, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
 
         sizer.Add(box, 0, wx.GROW | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 

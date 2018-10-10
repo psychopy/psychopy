@@ -32,15 +32,15 @@ forkChar = u"\u2442"
 
 class SearchFrame(wx.Dialog):
 
-    def __init__(self, app, parent=None, style=None,
-                 pos=wx.DefaultPosition):
+    def __init__(self, app, parent=None, pos=wx.DefaultPosition,
+                 style=None):
         if style is None:
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
         wx.Dialog.__init__(self, parent, -1, title=title, style=style,
-                           size=(700, 500), pos=pos)
+                           size=(700, 500))
         self.app = app
         self.project = None
         self.parent = parent

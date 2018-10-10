@@ -6,21 +6,19 @@
 # Copyright (C) 2018 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-#item groups
-multichoice = ['rating','likert']
-
-import surveys #seems easier to create for every experiment, even if it's empty, to allow adding of surveys by name
-surveys.initialize()
-
-
+from collections import deque
+import os
+import psychopy
 from psychopy.visual.basevisual import (BaseVisualStim,
-                                        ContainerMixin, ColorMixin)
-from psychopy import visual
+                                        ContainerMixin,
+                                        ColorMixin)
+import pandas as pd
+from numpy import all
 
-import pandas as pd #need this for managing data frame?
+__author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
 
-class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
+class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psycopy.visual.Window`
 
     The Form allows Psychopy to be used as a questionnaire tool, where
@@ -36,8 +34,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
     ----------
     win : psychopy.visual.Window
         The window object to present the form.
-    items : List of dicts
-        a list of dicts with the following key, value pairs:
+    items : List of dicts or csv file
+        a list of dicts or csv file should have the following key, value pairs / column headers:
                  "qText": item question string,
                  "qWidth": question width between 0:1
                  "aType": type of rating e.g., 'choice', 'rating', 'slider'
@@ -58,9 +56,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
 
     def __init__(self,
                  win,
-                 name,
-                 excelFile,
-                 #items,
+                 name='default',
+                 items=None,
                  textHeight=.03,
                  size=(.5, .5),
                  pos=(0, 0),
@@ -69,13 +66,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                  ):
 
         super(Form, self).__init__(win, units)
-        self._baseYpositions = []
-        self._items = {'question': [], 'response': []}
-        self._scrollOffset = 0
-        self.excelFile = excelFile
-        self.items = 'tbc'
+
+        self.win = win
+        self.name = name
+        self.items = self.importItems(items)
+        self.size = size
+        self.pos = pos
         self.itemPadding = itemPadding
+        self.units = units
+        
         self.labelHeight = 0.02
+        self.textHeight = textHeight
+        self._items = {'question': [], 'response': []}
+        self._baseYpositions = []
         self.leftEdge = None
         self.name = name
         self.pos = pos
@@ -85,54 +88,69 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         self.topEdge = None
         self.units = units
         self.virtualHeight = 0  # Virtual height determines pos from boundary box
-        self.win = win
-
-        self.loadExcel()
-
-    def importItems(self, items,surveyName):
-        """Import items from excel sheet and convert to list of dicts"""
-        newItems = pd.DataFrame(items)
-        newItems = newItems.T.to_dict().values()
-
-        #add response to all
-
-
-        ### resume here
-        for newItem in newItems:
-            newItem["item_name"] = surveyName + "|" + newItem["item_name"] ## Is this too brittle?
-            newItem["response"] = ""
-            newItem["value"] = ""
-            newItem["type"] = newItem["type"].lower()
-
-            if(newItem["type"]) == "instruct":
-                newItem["qWidth"] = 1
-                newItem["aWidth"] = 0
-            else:
-                newItem["qWidth"] = .5
-                newItem["aWidth"] = .5
-            if 'orientation' not in newItem: #assume horizontal if not stated
-                newItem['orientation'] = "vertical"
-            if 'answers' in newItem:
-                if type(newItem["answers"]) is str:
-                    if "|" in newItem["answers"]:
-                        newItem['answers'] = newItem['answers'].split("|")
-
-        return newItems
-
-    def loadExcel(self):
-
-        ## initiate this survey
-        surveys.scoring[self.name] = {
-            "items": {},
-            "scoring": {}
-        }
-
-        survey_data = pd.read_excel(self.excelFile)
-        survey_data.columns = map(str.lower, survey_data.columns)
-
-        self.items = self.importItems(survey_data,self.name)
-        surveys.createScoring(survey_data,self.name)
+        self._scrollOffset = 0
+        
+        # Create layout of form
         self._doLayout()
+
+    def importItems(self, items):
+        """Import items from csv or excel sheet and convert to list of dicts.
+        Will also accept a list of dicts.
+
+        Note, for csv and excel files, 'aOptions' must contain comma separated values,
+        e.g., one, two, three. No parenthesis, or quotation marks required.
+
+        Returns
+        -------
+        List of dicts
+            A list of dicts, where each list entry is a dict containing all fields for a single Form item
+        """
+
+        def _checkOptions(options):
+            """A nested function for testing the number of options given
+
+            Raises ValueError if n Options not > 1
+            """
+            if not len(options) > 1:
+                raise ValueError("You need to provide at least two possible options for your item responses.")
+
+        def _checkHeaders(fields):
+            """A nested function for testing the names of fields in any given set of items
+
+            Raises NameError if fields do not match required survey fields
+            """
+            surveyFields = ['aWidth', 'aLayout', 'qText', 'aType', 'qWidth', 'aOptions']
+            if not set(surveyFields) == set(fields):
+                raise NameError("You need to use the following fields/column names for your items...\n{}"
+                                .format(surveyFields))
+
+        # Check for list of dicts that may be passed through Coder
+        if isinstance(items, list):  # a list of dicts
+            for dicts in items:
+                _checkHeaders(dicts.keys())
+                _checkOptions(dicts['aOptions'])
+            return items
+        elif isinstance(items, dict):  # a single entry
+            _checkHeaders(items.keys())
+            _checkOptions(items['aOptions'])
+            return [items]
+        elif os.path.exists(items):
+            if '.csv' in items:
+                newItems = pd.read_csv(items).dropna()
+            elif '.xlsx' in items or '.xls' in items:
+                newItems = pd.read_excel(items).dropna()
+            psychopy.logging.warn("Dropped rows with NaN values from imported file")
+            # Check column headers
+            _checkHeaders(list(newItems.columns.values))
+            # Convert options to list of strings
+            newItems['aOptions'] = newItems['aOptions'].str.split(',')
+            # Check that each answer option has more than 1 option
+            [_checkOptions(options) for options in newItems['aOptions']]
+            # Transpose to list of dicts
+            newItems = newItems.T.to_dict().values()
+            return newItems
+        else:
+            raise OSError("Filename does not exist: '{}'".format(items))
 
     def _setQuestion(self, item):
         """Creates TextStim object containing question
@@ -147,13 +165,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
             The width of the question bounding box as type float
         """
 
-        if (item['type'] == "instruct"):
-            question_color = "blue"
-        else:
-            question_color = "black"
-
-        question = visual.TextStim(self.win,
-                                   text=item['text'],
+        question = psychopy.visual.TextStim(self.win,
+                                   text=item['qText'],
                                    units=self.units,
                                    height=self.textHeight,
                                    alignHoriz='left',
@@ -185,21 +198,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         elif item['orientation'] == 'vertical':
             aSize = (0.03, aHeight)
 
-
-        if item['type'].lower() in ['instruct']:
-
-            #below does nothing except stop the code breaking
-            resp = visual.Slider(self.win,
-                                 pos=pos,
-                                 size=(item['aWidth'] * self.size[0], 0.03),
-                                 #ticks=[0, 1],
-                                 #labels=item['aOptions'],
-                                 units=self.units,
-                                 labelHeight=self.labelHeight,
-                                 flip=True)
-
-        if item['type'].lower() in ['slider']: #'rating',
-            resp = visual.Slider(self.win,
+        if item['aType'].lower() in ['rating', 'slider']:
+            resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
                                  name=item["item_name"],
                                  size=(item['aWidth'] * self.size[0], 0.03),
@@ -209,8 +209,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                                  units=self.units,
                                  labelHeight=self.labelHeight,
                                  flip=True)
-        elif item['type'].lower() in ['radio']:
-            resp = visual.Slider(self.win,
+        elif item['aType'].lower() in ['choice']:
+            resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
                                  name=item["item_name"],
                                  size=aSize,
@@ -273,7 +273,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         psychopy.visual.slider.Slider
             The Slider object for scroll bar
         """
-        return visual.Slider(win=self.win, size=(0.03, self.size[1]),
+        return psychopy.visual.Slider(win=self.win, size=(0.03, self.size[1]),
                              ticks=[0, 1], style='slider',
                              pos=(self.rightEdge, self.pos[1]))
 
@@ -284,7 +284,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         psychopy.visual.Rect
             The border for the survey
         """
-        return visual.Rect(win=self.win, units=self.units, pos=self.pos,
+        return psychopy.visual.Rect(win=self.win, units=self.units, pos=self.pos,
                            width=self.size[0], height=self.size[1])
 
     def _setAperture(self):
@@ -295,7 +295,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         psychopy.visual.Aperture
             The aperture setting viewable area for forms
         """
-        return visual.Aperture(win=self.win, name='aperture',
+        return psychopy.visual.Aperture(win=self.win, name='aperture',
                                units=self.units, shape='square',
                                size=self.size, pos=(0, 0))
     def _getScrollOffet(self):
@@ -317,11 +317,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         self.rightEdge = self.pos[0] + self.size[0]/2.0
         self.topEdge = self.pos[1] + self.size[1]/2.0
 
-
         # For each question, create textstim and rating scale
         for item in self.items:
             # set up the question text
-
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
             question.pos = (self.leftEdge,
@@ -380,35 +378,60 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                 if self._inRange(items):
                     items.draw()
 
+    def getData(self):
+        """Extracts form questions, response ratings and response times from Form items
+
+        Returns
+        -------
+        dict
+            A dictionary storing lists of questions, response ratings and response times
+        """
+        formData = {'questions': deque([]), 'ratings': deque([]), 'rt': deque([])}
+        [formData['questions'].append(element.text) for element in self._items['question']]
+        [formData['ratings'].append(element.getRating()) for element in self._items['response']]
+        [formData['rt'].append(element.getRT()) for element in self._items['response']]
+        return formData
+
+    def formComplete(self):
+        """Checks all Form items for a response
+
+        Returns
+        -------
+        bool
+            True if all items contain a response, False otherwise.
+        """
+        return None not in self.getData()['ratings']
+
 
 if __name__ == "__main__":
 
+    # create some questions
+    questions = []
+    genderItem = {"qText": "What is your gender?",
+                 "qWidth": 0.7,
+                 "aType": "choice",
+                 "aWidth": 0.3,
+                 "aOptions": ["Male", "Female", "Other"],
+                 "aLayout": 'vert'}
+    questions.append(genderItem)
+    # then a set of ratings
+    items = ["running", "cake", "eating sticks", "programming",
+             "tickling", "being tickled", "cycling", "driving", "swimming"]
+    for item in items:
+        entry = {"qText": "How much do you like {}".format(item),
+                 "qWidth": 0.7,
+                 "aType": "rating",
+                 "aWidth": 0.3,
+                 "aOptions": ["Lots", "Not a lot"],
+                 "aLayout": 'horiz'}
+        questions.append(entry)
+
     # create window and display
-    win = visual.Window(units='height', allowStencil=True)
-    title = visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, excelFile='AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
+    win = psychopy.visual.Window(units='height', allowStencil=True)
+    title = psychopy.visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
+    survey = Form(win, name="survey", items=questions, size=(1, 0.7), pos=(0.0, 0.0))
 
     for n in range(600):
         survey.draw()
         win.color = [255, 255, 255]  # clear blue in rgb255
         win.flip()
-
-    # insert this code when the trial is over - this will be tidied when wrapping this into a proper component, right?
-    # It will currently break as there is no thisExp here.
-
-    '''
-    currentSurvey = "first"  # see initation of Form
-    # calculate individual item scores
-    itemNames = surveys.scoring[currentSurvey]["items"].keys()
-    for itemName in itemNames:
-        thisExp.addData(currentSurvey + "_" + itemName + "_response",
-                        surveys.scoring[currentSurvey]['items'][itemName]["response"])
-        thisExp.addData(currentSurvey + "_" + itemName + "_value",
-                        surveys.scoring[currentSurvey]['items'][itemName]["value"])
-
-    # calculate scale scores
-    scoringCols = surveys.scoring[currentSurvey]['scoring'].keys()
-    for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
-        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", surveys.scoring[currentSurvey]['scoring'][scoringCol]["total"])
-    '''
-

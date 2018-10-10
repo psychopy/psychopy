@@ -20,10 +20,8 @@ from psychopy.localization import _translate
 import requests
 import gitlab
 import gitlab.v4.objects
-
 try:
     import git
-
     haveGit = True
 except:
     haveGit = False
@@ -35,11 +33,9 @@ from .gitignore import gitIgnoreText
 
 if constants.PY3:
     from urllib import parse
-
     urlencode = parse.quote
 else:
     import urllib
-
     urlencode = urllib.quote
 
 # TODO: test what happens if we have a network initially but lose it
@@ -52,11 +48,11 @@ scopes = []
 redirect_url = 'https://gitlab.pavlovia.org/'
 
 knownUsers = DictStorage(
-        filename=os.path.join(pavloviaPrefsDir, 'users.json'))
+    filename=os.path.join(pavloviaPrefsDir, 'users.json'))
 
 # knownProjects is a dict stored by id ("namespace/name")
 knownProjects = DictStorage(
-        filename=os.path.join(pavloviaPrefsDir, 'projects.json'))
+    filename=os.path.join(pavloviaPrefsDir, 'projects.json'))
 # knownProjects stores the gitlab id to check if it's the same exact project
 # We add to the knownProjects when project.local is set (ie when we have a
 # known local location for the project)
@@ -158,7 +154,7 @@ class User(object):
         if gitlabData:
             keys = gitlabData.keys.list()
             keyName = '{}@{}'.format(
-                    self.username, socket.gethostname().strip(".local"))
+                self.username, socket.gethostname().strip(".local"))
             remoteKey = None
             for thisKey in keys:
                 if thisKey.title == keyName:
@@ -177,7 +173,7 @@ class User(object):
         if name not in self.__dict__ and hasattr(self.gitlabData, name):
             return getattr(self.gitlabData, name)
         raise AttributeError(
-                "No attribute '{}' in this PavloviaUser".format(name))
+            "No attribute '{}' in this PavloviaUser".format(name))
 
     @property
     def username(self):
@@ -355,8 +351,8 @@ class PavloviaSession:
 
         """
         rawProjs = self.gitlab.projects.list(
-                search=search_str,
-                as_list=False)  # iterator not list for auto-pagination
+            search=search_str,
+            as_list=False)  # iterator not list for auto-pagination
         projs = [PavloviaProject(proj) for proj in rawProjs if proj.id]
         return projs
 
@@ -413,9 +409,9 @@ class PavloviaSession:
         if token:
             if len(token) < 64:
                 raise ValueError(
-                        "Trying to login with token {} which is shorter "
-                        "than expected length ({} not 64) for gitlab token"
-                            .format(repr(token), len(token)))
+                    "Trying to login with token {} which is shorter "
+                    "than expected length ({} not 64) for gitlab token"
+                        .format(repr(token), len(token)))
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
         else:
@@ -482,7 +478,6 @@ class PavloviaProject(dict):
             self.localRoot = knownProjects[self.id]['localRoot']
         elif self.repo:
             self.localRoot = repo.working_dir
-            self.configGitLocal()
         else:
             self.localRoot = localRoot  # which is probably ''
 
@@ -503,7 +498,7 @@ class PavloviaProject(dict):
             selfDescr = "PavloviaProject"
         else:
             selfDescr = repr(
-                    self)  # this includes self.id so don't use if id fails!
+                self)  # this includes self.id so don't use if id fails!
         raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
 
     @property
@@ -609,14 +604,12 @@ class PavloviaProject(dict):
         if self.emptyRemote:  # we don't have a repo there yet to do a 1st push
             self.firstPush()
         else:
-            status = self.pull(syncPanel=syncPanel,
-                               progressHandler=progressHandler)
+            status = self.pull(syncPanel=syncPanel, progressHandler=progressHandler)
             if status == MISSING_REMOTE:
                 return -1
             self.repo = git.Repo(self.localRoot)  # get a new copy of repo (
             time.sleep(0.1)
-            status = self.push(syncPanel=syncPanel,
-                               progressHandler=progressHandler)
+            status = self.push(syncPanel=syncPanel, progressHandler=progressHandler)
             if status == MISSING_REMOTE:
                 return -1
 
@@ -684,7 +677,7 @@ class PavloviaProject(dict):
             info = self.repo.git.push()  # progress=progressHandler
         except git.exc.GitCommandError as e:
             if ("The project you were looking for could not be found" in
-                    traceback.format_exc()):
+                traceback.format_exc()):
                 # we are pointing to a project at pavlovia but it doesn't exist
                 # suggest we create it
                 logging.warning("Project not found on gitlab.pavlovia.org")
@@ -721,8 +714,6 @@ class PavloviaProject(dict):
                                  .format(repr(self.localRoot), repr(gitRoot)))
         else:
             self.repo = git.Repo(gitRoot)
-            self.configGitLocal()
-
         self.writeGitIgnore()
         return self.repo
 
@@ -747,7 +738,10 @@ class PavloviaProject(dict):
                                  "chosen a local folder.")
         if localFiles and self._newRemote:  # existing folder
             self.repo = git.Repo.init(self.localRoot)
-            self.configGitLocal()  # sets user.email and user.name
+            with self.repo.config_writer() as config:
+                session = getCurrentSession()
+                config.set_value("user", "email", session.user.email)
+                config.set_value("user", "name", session.user.name)
             # add origin remote and master branch (but no push)
             self.repo.create_remote('origin', url=self['remoteHTTPS'])
             self.repo.git.checkout(b="master")
@@ -791,29 +785,13 @@ class PavloviaProject(dict):
             progressHandler.syncPanel.Refresh()
             progressHandler.syncPanel.Layout()
         repo = git.Repo.clone_from(
-                self.remoteHTTPS,
-                self.localRoot,
-                # progress=progressHandler,
+            self.remoteHTTPS,
+            self.localRoot,
+            # progress=progressHandler,
         )
         self._lastKnownSync = time.time()
         self.repo = repo
         self._newRemote = False
-
-    def configGitLocal(self):
-        """Set the local repo to have the correct name and email for user
-
-        Returns
-        -------
-        None
-        """
-        session = getCurrentSession()
-        localConfig = self.repo.git.config(l=True, local=True)  # list local
-        if session.user.email in localConfig:
-                return  # we already have it set up so can return
-        # set the local config
-        with self.repo.config_writer() as config:
-            config.set_value("user", "email", session.user.email)
-            config.set_value("user", "name", session.user.name)
 
     def forkTo(self, groupName=None, projectName=None):
         """forks this project to a new namespace and (potentially) project name"""
@@ -869,8 +847,8 @@ class PavloviaProject(dict):
         if files:
             if type(files) not in (list, tuple):
                 raise TypeError(
-                        'The `files` provided to PavloviaProject.stageFiles '
-                        'should be a list not a {}'.format(type(files)))
+                    'The `files` provided to PavloviaProject.stageFiles '
+                    'should be a list not a {}'.format(type(files)))
             self.repo.git.add(files)
         else:
             diffsDict, diffsList = self.getChanges()
@@ -965,8 +943,7 @@ class PavloviaProject(dict):
 def getGitRoot(p):
     """Return None or the root path of the repository"""
     if not os.path.isdir(p):
-        p = [
-            os.path.split(p)[0] if len(os.path.split(p)[0]) > 0 else None].pop()
+        p = [os.path.split(p)[0] if len(os.path.split(p)[0]) > 0 else None].pop()
     if subprocess.call(["git", "branch"],
                        stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
                        cwd=p) != 0:
@@ -981,8 +958,7 @@ def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
     if not haveGit:
-        logging.error(
-            "You need to install git to connect with Pavlovia projects")
+        logging.error("You need to install git to connect with Pavlovia projects")
         return None
     gitRoot = getGitRoot(filename)
     if gitRoot in knownProjects:
@@ -1003,29 +979,25 @@ def getProject(filename):
                                                      repo=localRepo)
                         if proj.pavlovia == 0:
                             logging.warning(
-                                    _translate(
-                                        "We found a repository pointing to {} "
-                                        "but ") +
-                                    _translate("no project was found there ("
-                                               "deleted?)")
-                                    .format(url))
+                                _translate("We found a repository pointing to {} "
+                                           "but ") +
+                                _translate("no project was found there ("
+                                           "deleted?)")
+                                .format(url))
 
                     else:
                         logging.warning(
-                                _translate(
-                                    "We found a repository pointing to {} "
-                                    "but ") +
-                                _translate(
-                                    "no user is logged in for us to check "
-                                    "it")
-                                .format(url))
+                            _translate("We found a repository pointing to {} "
+                                       "but ") +
+                            _translate("no user is logged in for us to check "
+                                       "it")
+                            .format(url))
                     return proj
         if proj == None:
             logging.warning("We found a repository at {} but it "
-                            "doesn't point to gitlab.pavlovia.org. "
-                            "You could create that as a remote to "
-                            "sync from PsychoPy.".format(gitRoot))
-
+                  "doesn't point to gitlab.pavlovia.org. "
+                  "You could create that as a remote to "
+                  "sync from PsychoPy.".format(gitRoot))
 
 global _existingSession
 _existingSession = None
@@ -1052,7 +1024,7 @@ def refreshSession():
     global _existingSession
     if _existingSession and _existingSession.getToken():
         _existingSession = PavloviaSession(
-                token=_existingSession.getToken()
+            token=_existingSession.getToken()
         )
     else:
         _existingSession = PavloviaSession()

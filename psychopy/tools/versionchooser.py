@@ -83,11 +83,8 @@ def useVersion(requestedVersion):
     if not reqdMajorMinorPatch:
         msg = _translate('Unknown version `{}`')
         raise ValueError(msg.format(requestedVersion))
-
-    if not os.path.isdir(VERSIONSDIR):
-        _clone(requestedVersion)  # Allow the versions subdirectory to be built
-
     if PY3:
+        # create PY3 list of compatible versions. If not compatible with Py3, raise RunTimeError
         py3Compatible = [ver for ver in availableVersions() if not re.search('(0|1).(7|8)', ver)]
         py3Compatible.reverse()
         if reqdMajorMinorPatch not in py3Compatible:

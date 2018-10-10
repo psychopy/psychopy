@@ -26,7 +26,6 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 
 defaultSizes = {'norm': [1.0, 0.1]}
 
-import surveys
 
 class Slider(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
@@ -523,18 +522,7 @@ class Slider(MinimalStim):
             if self._dragging:
                 self._dragging = False
                 if self.markerPos is not None:
-
-
                     self.recordRating(self.markerPos)
-
-                    if type(self.name) is str:
-                        # update survey.scoring
-                        thisSurveyItem = self.name.split("|")
-                        thisSurvey = thisSurveyItem[0]
-                        thisItem = thisSurveyItem[1]
-                        response = self.rating
-                        surveys.updateScores(thisSurvey, thisItem, response)
-
                 return self.markerPos
             else:
                 # is up and was already up - move along

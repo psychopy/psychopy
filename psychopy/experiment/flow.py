@@ -27,8 +27,6 @@ class Flow(list):
         self.exp = exp
         self._currentRoutine = None
         self._loopList = []  # will be used while we write the code
-        self._loopController = {'LoopInitiator': [],
-                                'LoopTerminator': []}  # Controls whether loop is written
 
     @property
     def loopDict(self):
@@ -44,7 +42,7 @@ class Flow(list):
                 currentList.append(thisEntry.loop) # this loop is child of current
                 loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
                 currentList = loopDict[thisEntry.loop]
-                loopStack.append(loopDict[thisEntry.loop])  # update the list of loops (for depth)
+                loopStack.append(thisEntry.loop)  # update the list of loops (for depth)
             elif thisEntry.getType() == 'LoopTerminator':
                 loopStack.pop()
                 currentList = loopStack[-1]
@@ -326,19 +324,11 @@ class Flow(list):
         script.writeIndented("\n")
 
     def writeLoopHandlerJS(self, script):
+
         """
         Function for setting up handler to look after randomisation of conditions etc
         """
         # Then on the flow we need only the Loop Init/terminate
         for entry in self:
-            loopType = entry.getType()  # Get type i.e., routine or loop
-            if loopType in self._loopController:
-                loopName = entry.loop.params['name'].val  # Get loop name
-                if loopName not in self._loopController[loopType]:  # Write if not already written
-                    entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()
-                    self._loopController[loopType].append(loopName)
-
-    def _resetLoopController(self):
-        """Resets _loopController so loops are written on each call to write script"""
-        self._loopController = {'LoopInitiator': [],
-                                'LoopTerminator': []}  # Controls whether loop is written
+            if entry.getType() in ['LoopInitiator', 'LoopTerminator']:
+                entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()

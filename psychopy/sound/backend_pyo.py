@@ -24,7 +24,6 @@ import sounddevice
 
 import atexit
 import threading
-from numpy import float64
 pyoSndServer = None
 audioDriver = None
 
@@ -417,8 +416,6 @@ class SoundPyo(_SoundBase):
     def _updateSnd(self):
         self.needsUpdate = False
         doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
-        if type(self.volume) == float64:
-            self.volume = self.volume.item()
         self._snd = pyo.TableRead(self._sndTable,
                                   freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)
