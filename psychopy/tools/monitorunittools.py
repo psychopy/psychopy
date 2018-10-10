@@ -198,7 +198,7 @@ def deg2cm(degrees, monitor, correctFlat=False):
 
 
 def cm2pix(cm, monitor):
-    """Convert size in degrees to size in pixels for a given Monitor object
+    """Convert size in cm to size in pixels for a given Monitor object.
     """
     # check we have a monitor
     if not isinstance(monitor, monitors.Monitor):

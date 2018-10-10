@@ -3,5 +3,4 @@ pyserial
 pyparallel
 egi
 iolabs
-pylink
 pyfilesec

@@ -22,7 +22,10 @@ __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 # TODO: Get option to add NA to all answer options
 # TODO: Rename columns to something more sensible
 
-class Form(BaseVisualStim, ContainerMixin, ColorMixin):
+import pandas as pd #need this for managing data frame?
+
+
+class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
     """A class to add Forms to a `psycopy.visual.Window`
 
     The Form allows Psychopy to be used as a questionnaire tool, where
@@ -32,7 +35,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     Example
     -------
-    survey = Form(win, items=[], size=(1.0, 0.7), pos=(0.0, 0.0))
+    survey = Form(win, excelFile='AQ.xlsx', size=(1, 1), pos=(0.0, 0.0),name="first")
 
     Parameters
     ----------
@@ -70,6 +73,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  ):
 
         super(Form, self).__init__(win, units)
+
         self.win = win
         self.name = name
         self.items = self.importItems(items)
@@ -82,9 +86,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.textHeight = textHeight
         self._items = {'question': [], 'response': []}
         self._baseYpositions = []
+
         self.leftEdge = None
+        self.name = name
+        self.pos = pos
         self.rightEdge = None
+        self.size = size
+        self.textHeight = textHeight
         self.topEdge = None
+        self.units = units
         self.virtualHeight = 0  # Virtual height determines pos from boundary box
         self._scrollOffset = 0
         # Create layout of form
@@ -154,11 +164,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         qWidth
             The width of the question bounding box as type float
         """
+
         question = psychopy.visual.TextStim(self.win,
                                    text=item['qText'],
                                    units=self.units,
                                    height=self.textHeight,
                                    alignHoriz='left',
+                                   color = question_color,
                                    wrapWidth=item['qWidth'] * self.size[0])
 
         qHeight = self.getQuestionHeight(question)
@@ -181,26 +193,31 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         aHeight = self.getRespHeight(item)
 
         # Set radio button choice layout
-        if item['aLayout'] == 'horiz':
+        if item['orientation'] == 'horizontal':
             aSize = (item['aWidth'] * self.size[0], 0.03)
-        elif item['aLayout'] == 'vert':
+        elif item['orientation'] == 'vertical':
             aSize = (0.03, aHeight)
 
         if item['aType'].lower() in ['rating', 'slider']:
             resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
+                                 name=item["item_name"],
                                  size=(item['aWidth'] * self.size[0], 0.03),
                                  ticks=[0, 1],
-                                 labels=item['aOptions'],
+                                 color='blue',
+                                 labels=item['answers'],
                                  units=self.units,
                                  labelHeight=self.labelHeight,
                                  flip=True)
+
         elif item['aType'].lower() in ['choice']:
             resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
+                                 name=item["item_name"],
                                  size=aSize,
+                                 color='blue',
                                  ticks=None,
-                                 labels=item['aOptions'],
+                                 labels=item['answers'],
                                  units=self.units,
                                  labelHeight=self.textHeight,
                                  style='radio',
@@ -237,10 +254,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         float
             The height of the response object
         """
-        if item['aLayout'] == 'vert':
-            aHeight = len(item['aOptions']) * self.textHeight
-        elif item['aLayout'] == 'horiz':
-            aHeight = self.textHeight
+
+        if item['orientation'] == 'vertical':
+            if isinstance(item['answers'], float):
+                aHeight = self.textHeight
+            else:
+                aHeight = len(item['answers']) * self.textHeight
+        elif item['orientation'] == 'horizontal':
+           aHeight = self.textHeight
 
         # TODO: Return size based on response types e.g., textbox
         return aHeight
@@ -297,9 +318,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.rightEdge = self.pos[0] + self.size[0]/2.0
         self.topEdge = self.pos[1] + self.size[1]/2.0
 
+
         # For each question, create textstim and rating scale
         for item in self.items:
             # set up the question text
+
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
             question.pos = (self.leftEdge,
@@ -414,4 +437,25 @@ if __name__ == "__main__":
 
     for n in range(600):
         survey.draw()
+        win.color = [255, 255, 255]  # clear blue in rgb255
         win.flip()
+
+    # insert this code when the trial is over - this will be tidied when wrapping this into a proper component, right?
+    # It will currently break as there is no thisExp here.
+
+    '''
+    currentSurvey = "first"  # see initation of Form
+    # calculate individual item scores
+    itemNames = surveys.scoring[currentSurvey]["items"].keys()
+    for itemName in itemNames:
+        thisExp.addData(currentSurvey + "_" + itemName + "_response",
+                        surveys.scoring[currentSurvey]['items'][itemName]["response"])
+        thisExp.addData(currentSurvey + "_" + itemName + "_value",
+                        surveys.scoring[currentSurvey]['items'][itemName]["value"])
+
+    # calculate scale scores
+    scoringCols = surveys.scoring[currentSurvey]['scoring'].keys()
+    for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
+        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", surveys.scoring[currentSurvey]['scoring'][scoringCol]["total"])
+    '''
+
