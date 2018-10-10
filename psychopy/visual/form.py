@@ -81,12 +81,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         self.pos = pos
         self.itemPadding = itemPadding
         self.units = units
-
+        
         self.labelHeight = 0.02
         self.textHeight = textHeight
         self._items = {'question': [], 'response': []}
         self._baseYpositions = []
-
         self.leftEdge = None
         self.name = name
         self.pos = pos
@@ -97,6 +96,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         self.units = units
         self.virtualHeight = 0  # Virtual height determines pos from boundary box
         self._scrollOffset = 0
+        
         # Create layout of form
         self._doLayout()
 
@@ -209,7 +209,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
                                  units=self.units,
                                  labelHeight=self.labelHeight,
                                  flip=True)
-
         elif item['aType'].lower() in ['choice']:
             resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
@@ -318,11 +317,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin): #VisualComponent
         self.rightEdge = self.pos[0] + self.size[0]/2.0
         self.topEdge = self.pos[1] + self.size[1]/2.0
 
-
         # For each question, create textstim and rating scale
         for item in self.items:
             # set up the question text
-
             question, qHeight, qWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
             question.pos = (self.leftEdge,
@@ -429,7 +426,6 @@ if __name__ == "__main__":
                  "aLayout": 'horiz'}
         questions.append(entry)
 
-
     # create window and display
     win = psychopy.visual.Window(units='height', allowStencil=True)
     title = psychopy.visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
@@ -439,23 +435,3 @@ if __name__ == "__main__":
         survey.draw()
         win.color = [255, 255, 255]  # clear blue in rgb255
         win.flip()
-
-    # insert this code when the trial is over - this will be tidied when wrapping this into a proper component, right?
-    # It will currently break as there is no thisExp here.
-
-    '''
-    currentSurvey = "first"  # see initation of Form
-    # calculate individual item scores
-    itemNames = surveys.scoring[currentSurvey]["items"].keys()
-    for itemName in itemNames:
-        thisExp.addData(currentSurvey + "_" + itemName + "_response",
-                        surveys.scoring[currentSurvey]['items'][itemName]["response"])
-        thisExp.addData(currentSurvey + "_" + itemName + "_value",
-                        surveys.scoring[currentSurvey]['items'][itemName]["value"])
-
-    # calculate scale scores
-    scoringCols = surveys.scoring[currentSurvey]['scoring'].keys()
-    for scoringCol in scoringCols:  # loop through each questionnaire related to that survey and item
-        thisExp.addData(currentSurvey + "_" + scoringCol + "_total", surveys.scoring[currentSurvey]['scoring'][scoringCol]["total"])
-    '''
-
