@@ -4,6 +4,7 @@
 from __future__ import division
 
 import pytest
+import pandas as pd
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.text import TextStim
@@ -28,7 +29,7 @@ class Test_Form(object):
         # then a set of ratings
         items = ["running", "cake"]
         for item in items:
-            entry = {"qText": "How much do you like {}".format(item),
+            entry = {"qText": "How much you like {}".format(item),
                      "qWidth": 0.7,
                      "aType": "rating",
                      "aWidth": 0.3,
@@ -36,6 +37,68 @@ class Test_Form(object):
                      "aLayout": 'horiz'}
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+
+    @pytest.fixture(scope="session")
+    def create_file(self, tmpdir_factory, type, data, dirName):
+        if type == 'csv':
+            csvFile = pd.DataFrame(data)
+            formData = tmpdir_factory.mkdir(dirName).join("formData.csv")
+            csvFile.to_csv(formData, index=False)
+            return str(formData)
+        elif type == 'xlsx':
+            xlsxFile = pd.DataFrame(data)
+            formData = tmpdir_factory.mkdir(dirName).join("formData.xlsx")
+            xlsxFile.to_excel(formData, index=False)
+            return str(formData)
+
+    def test_importItems(self, tmpdir):
+        wrongFields = [{"a": "What is your gender?",
+                      "b": 0.7,
+                      "c": "choice",
+                      "d": 0.3,
+                      "e": ["Male", "Female", "Other"],
+                      "f": 'vert'}]
+
+        wrongOptions = {"qText": "What is your gender?",
+                      "qWidth": 0.7,
+                      "aType": "choice",
+                      "aWidth": 0.3,
+                      "aOptions": ["Other"],
+                      "aLayout": 'vert'}
+
+        # Check wrong field error
+        with pytest.raises(NameError):
+            self.survey = Form(self.win, items=wrongFields, size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check options for list of dicts
+        with pytest.raises(ValueError):
+            self.survey = Form(self.win, items=[wrongOptions], size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check options for single dict entry
+        with pytest.raises(ValueError):
+            self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check output of importItems
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        assert self.survey.importItems(self.questions) == self.questions
+
+        # Check csv
+        self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', self.questions, 'checkCSV'),
+                           size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check Excel
+        self.survey = Form(self.win, items=self.create_file(tmpdir, 'xlsx', self.questions, 'checkExcel'),
+                           size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check filename error
+        with pytest.raises(OSError):
+            self.survey = Form(self.win, items='doesNotExist',
+                               size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check options for csv (same as excel)
+        with pytest.raises(ValueError):
+            self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', [wrongOptions], 'checkOptions'),
+                               size=(1.0, 0.3), pos=(0.0, 0.0))
 
     def test_set_questions(self):
         survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
@@ -127,6 +190,13 @@ class Test_Form(object):
         assert self.survey._inRange(self.survey._items['question'][0])
         with pytest.raises(AssertionError):
             assert self.survey._inRange(self.survey._items['question'][2])
+
+    def test_get_data(self):
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        data = self.survey.getData()
+        assert set(data['questions']) == {'What is your gender?', 'How much you like running', 'How much you like cake'}
+        assert set(data['ratings']) == {None}
+        assert set(data['rt']) == {None}
 
     def teardown_class(self):
         self.win.close()
