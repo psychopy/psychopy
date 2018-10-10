@@ -1,6 +1,6 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-dist: precise  # trusty is giving an error on bitsShaders test (glReadpixels()?)
+dist: trusty
 sudo: true
 
 language: python
@@ -43,7 +43,7 @@ before_install:
 
   # This might come in handy once we switch to Trusty, as its Xvfb
   # doesn't properly support the RANDR extension
-  # - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
+   - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
 
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri libavbin0
   - travis_retry sudo apt-get install -qq libportaudio2
@@ -115,10 +115,10 @@ before_script:
        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
     fi
 
-# This might come in handy once we switch to Trusty
-#  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-#      xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config `pwd`/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
-#    fi;
+  # This might come in handy once we switch to Trusty
+  - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+		xpra --xvfb="Xorg +extension GLX +extension RANDR +extension RENDER -config ${HOME}/dummy_xorg.conf -logfile ${HOME}/.xpra/xorg.log"  start :99;
+    fi
 
 script:
   - pytest --cov-config .travis_coveragerc --cov=psychopy -v -s -m "not needs_sound" psychopy
