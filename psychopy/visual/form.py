@@ -8,7 +8,6 @@
 
 from collections import deque
 import os
-import errno
 import psychopy
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
@@ -18,9 +17,6 @@ from numpy import all
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
-
-# TODO: Get option to add NA to all answer options
-# TODO: Rename columns to something more sensible
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psycopy.visual.Window`
@@ -102,40 +98,47 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         List of dicts
             A list of dicts, where each list entry is a dict containing all fields for a single Form item
         """
-        surveyFields = ['aWidth', 'aLayout', 'qText', 'aType', 'qWidth', 'aOptions']
+
+        def _checkOptions(options):
+            """A nested function for testing the number of options given
+
+            Raises ValueError if n Options not > 1
+            """
+            if not len(options) > 1:
+                raise ValueError("You need to provide at least two possible options for your item responses.")
+
+        def _checkHeaders(fields):
+            """A nested function for testing the names of fields in any given set of items
+
+            Raises NameError if fields do not match required survey fields
+            """
+            surveyFields = ['aWidth', 'aLayout', 'qText', 'aType', 'qWidth', 'aOptions']
+            if not set(surveyFields) == set(fields):
+                raise NameError("You need to use the following fields/column names for your items...\n{}"
+                                .format(surveyFields))
 
         # Check for list of dicts that may be passed through Coder
         if isinstance(items, list):  # a list of dicts
             for dicts in items:
-                if not set(surveyFields) == set(dicts.keys()):
-                    raise NameError("You need to use the following headers in your list of dicts...\n{}"
-                                    .format(surveyFields))
+                _checkHeaders(dicts.keys())
+                _checkOptions(dicts['aOptions'])
             return items
         elif isinstance(items, dict):  # a single entry
-            if not set(surveyFields) == set(items.keys()):
-                raise NameError("You need to use the following headers in your list of dicts...\n{}"
-                                .format(surveyFields))
+            _checkHeaders(items.keys())
+            _checkOptions(items['aOptions'])
             return [items]
-
         elif os.path.exists(items):
-             # Use csv file
             if '.csv' in items:
                 newItems = pd.read_csv(items).dropna()
             elif '.xlsx' in items or '.xls' in items:
                 newItems = pd.read_excel(items).dropna()
-            psychopy.logging.warn("Dropped rows with NaN values from imported item dataframe")
-
+            psychopy.logging.warn("Dropped rows with NaN values from imported file")
             # Check column headers
-            if not set(surveyFields) == set(list(newItems.columns.values)):
-                raise NameError("You need to use the following headers in your csv...\n{}".format(surveyFields))
-
+            _checkHeaders(list(newItems.columns.values))
             # Convert options to list of strings
             newItems['aOptions'] = newItems['aOptions'].str.split(',')
-
             # Check that each answer option has more than 1 option
-            if not all([len(options) > 1 for options in newItems['aOptions']]):
-                raise TypeError("You need to provide at least two possible options for your item responses.")
-
+            [_checkOptions(options) for options in newItems['aOptions']]
             # Transpose to list of dicts
             newItems = newItems.T.to_dict().values()
             return newItems
@@ -406,11 +409,10 @@ if __name__ == "__main__":
                  "aLayout": 'horiz'}
         questions.append(entry)
 
-
     # create window and display
     win = psychopy.visual.Window(units='height', allowStencil=True)
     title = psychopy.visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, name="survey", items=genderItem, size=(1, 0.7), pos=(0.0, 0.0))
+    survey = Form(win, name="survey", items=questions, size=(1, 0.7), pos=(0.0, 0.0))
 
     for n in range(600):
         survey.draw()
