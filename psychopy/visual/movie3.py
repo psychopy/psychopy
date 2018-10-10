@@ -432,7 +432,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
-        GL.glPopAttrib()
         GL.glPopMatrix()
         # unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE0)
