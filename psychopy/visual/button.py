@@ -10,9 +10,9 @@
 from __future__ import absolute_import, print_function
 from psychopy import visual, event
 from psychopy.visual.shape import BaseShapeStim
-from psychopy.visual import surveys
 
-__author__ 'Anthony Haffey'
+
+__author__ = 'Anthony Haffey'
 
 class Button(BaseShapeStim):
     """A class for putting a button into your experiment.

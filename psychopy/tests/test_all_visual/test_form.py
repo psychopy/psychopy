@@ -50,6 +50,11 @@ class Test_Form(object):
             formData = tmpdir_factory.mkdir(dirName).join("formData.xlsx")
             xlsxFile.to_excel(formData, index=False)
             return str(formData)
+        elif type == 'txt':
+            txtFile = pd.DataFrame(data)
+            formData = tmpdir_factory.mkdir(dirName).join("formData.txt")
+            txtFile.to_csv(formData, index=False)
+            return str(formData)
 
     def test_importItems(self, tmpdir):
         wrongFields = [{"a": "What is your gender?",
@@ -93,6 +98,10 @@ class Test_Form(object):
         # Check filename error
         with pytest.raises(OSError):
             self.survey = Form(self.win, items='doesNotExist',
+                               size=(1.0, 0.3), pos=(0.0, 0.0))
+        # Check filetype error
+        with pytest.raises(TypeError):
+            self.survey = Form(self.win, items=self.create_file(tmpdir, 'txt', self.questions, 'fileType'),
                                size=(1.0, 0.3), pos=(0.0, 0.0))
 
         # Check options for csv (same as excel)
