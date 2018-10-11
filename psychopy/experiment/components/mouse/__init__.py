@@ -186,7 +186,6 @@ class MouseComponent(BaseComponent):
         # we need more than one
         code = ("# setup some python lists for storing info about the "
                 "%(name)s\n")
-
         if self.params['saveMouseState'].val in ['every frame', 'on click']:
             code += ("%(name)s.x = []\n"
                      "%(name)s.y = []\n"
@@ -230,8 +229,8 @@ class MouseComponent(BaseComponent):
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame"""
+
         forceEnd = self.params['forceEndRoutineOnPress'].val
-        routineClockName = self.exp.flow._currentRoutine._clockName
 
         # get a clock for timing
         timeRelative = self.params['timeRelativeTo'].val.lower()
@@ -284,55 +283,79 @@ class MouseComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)  # to get out of if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
 
-        # write param checking code
-        if (self.params['saveMouseState'].val == 'on click'
-            or forceEnd in ['any click', 'valid click']):
+        def _buttonPressCode(buff, dedent):
+            """Code compiler for mouse button events"""
             code = ("buttons = %(name)s.getPressed()\n"
                     "if buttons != prevButtonState:  # button state changed?")
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
-            dedentAtEnd += 1
+            dedent += 1
             buff.writeIndented("prevButtonState = buttons\n")
             code = ("if sum(buttons) > 0:  # state changed to a new click\n")
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
-            dedentAtEnd += 1
+            dedent += 1
+            return buff, dedent
 
-        elif self.params['saveMouseState'].val == 'every frame':
-            code = "buttons = %(name)s.getPressed()\n" % self.params
-            buff.writeIndented(code)
+        # No mouse tracking, end routine on any or valid click
+        if self.params['saveMouseState'].val == 'never' and forceEnd in ['any click', 'valid click']:
+            buff, dedentAtEnd = _buttonPressCode(buff, dedentAtEnd)
+            if forceEnd == 'valid click':
+                if self.params['clickable'].val:
+                    self._writeClickableObjectsCode(buff)
+                    # does valid response end the trial?
+                    if forceEnd == 'valid click':
+                        code = ("if gotValidClick:  # abort routine on response\n"
+                                "    continueRoutine = False\n")
+                        buff.writeIndentedLines(code)
+                        buff.setIndentLevel(-dedentAtEnd, relative=True)
+            else:
+                buff.writeIndented('continueRoutine = False')
+                buff.setIndentLevel(-dedentAtEnd, relative=True)
 
-        # only do this if buttons were pressed
-        if self.params['saveMouseState'].val in ['on click', 'every frame']:
-            code = ("x, y = %(name)s.getPos()\n"
-                    "%(name)s.x.append(x)\n"
-                    "%(name)s.y.append(y)\n"
-                    "%(name)s.leftButton.append(buttons[0])\n"
-                    "%(name)s.midButton.append(buttons[1])\n"
-                    "%(name)s.rightButton.append(buttons[2])\n" %
-                    self.params)
-            code += ("{name}.time.append({clockStr}.getTime())\n").format(name=self.params['name'],
-                                                                         clockStr=self.clockStr)
-            buff.writeIndentedLines(code)
+        elif self.params['saveMouseState'].val != 'never':
+            mouseCode = ("x, y = {name}.getPos()\n"
+                    "{name}.x.append(x)\n"
+                    "{name}.y.append(y)\n"
+                    "buttons = {name}.getPressed()\n"
+                    "{name}.leftButton.append(buttons[0])\n"
+                    "{name}.midButton.append(buttons[1])\n"
+                    "{name}.rightButton.append(buttons[2])\n"
+                    "{name}.time.append({clockStr}.getTime())\n".format(name=self.params['name'],
+                                                                        clockStr=self.clockStr))
 
-        # also write code about clicked objects if needed.
-        if self.params['clickable'].val:
-            self._writeClickableObjectsCode(buff)
+            # Continuous mouse tracking
+            if self.params['saveMouseState'].val in ['every frame']:
+                buff.writeIndentedLines(mouseCode)
 
-        # does the response end the trial?
-        if forceEnd == 'any click':
-            code = ("# abort routine on response\n"
-                    "continueRoutine = False\n")
-            buff.writeIndentedLines(code)
+            # Continuous mouse tracking for all button press
+            if forceEnd == 'never' and self.params['saveMouseState'].val in ['on click']:
+                buff, dedentAtEnd = _buttonPressCode(buff, dedentAtEnd)
+                buff.writeIndentedLines(mouseCode)
 
-        elif forceEnd == 'valid click':
-            code = ("if gotValidClick:  # abort routine on response\n"
-                    "    continueRoutine = False\n")
-            buff.writeIndentedLines(code)
-        else:
-            pass # forceEnd == 'never'
-        # 'if' statement of the time test and button check
-        buff.setIndentLevel(-dedentAtEnd, relative=True)
+            # Mouse tracking for events that end routine
+            elif forceEnd in ['any click', 'valid click']:
+                buff, dedentAtEnd = _buttonPressCode(buff, dedentAtEnd)
+                # Save all mouse events on button press
+                if self.params['saveMouseState'].val in ['on click']:
+                    buff.writeIndentedLines(mouseCode)
+                # also write code about clicked objects if needed.
+                if self.params['clickable'].val:
+                    self._writeClickableObjectsCode(buff)
+                    # does valid response end the trial?
+                    if forceEnd == 'valid click':
+                        code = ("if gotValidClick:  # abort routine on response\n"
+                                "    continueRoutine = False\n")
+                        buff.writeIndentedLines(code)
+                # does any response end the trial?
+                if forceEnd == 'any click':
+                    code = ("# abort routine on response\n"
+                            "continueRoutine = False\n")
+                    buff.writeIndentedLines(code)
+                else:
+                    pass # forceEnd == 'never'
+                # 'if' statement of the time test and button check
+            buff.setIndentLevel(-dedentAtEnd, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame"""

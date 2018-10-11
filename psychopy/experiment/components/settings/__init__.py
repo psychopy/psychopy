@@ -57,7 +57,8 @@ _localized = {'expName': _translate("Experiment name"),
               'Save psydat file':  _translate("Save psydat file"),
               'logging level': _translate("Logging level"),
               'Use version': _translate("Use PsychoPy version"),
-              'Completion URL': _translate("Completion URL"),
+              'Completed URL': _translate("Completed URL"),
+              'Incomplete URL': _translate("Incomplete URL"),
               'Output path': _translate("Output path"),
               'JS libs': _translate("JS libs"),
               'Force stereo': _translate("Force stereo"),
@@ -258,11 +259,17 @@ class SettingsComponent(object):
             hint=_translate("Should we package a copy of the JS libs or use"
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
-        self.params['Completion URL'] = Param(
-            'completionURL', valType='str',
-            hint=_translate("Where should participants be redirected after the experiment"
+        self.params['Completed URL'] = Param(
+            'completedURL', valType='str',
+            hint=_translate("Where should participants be redirected after the experiment on completion\n"
                             " INSERT COMPLETION URL E.G.?"),
-            label="Completion URL", categ='Online')
+            label="Completed URL", categ='Online')
+        self.params['Incomplete URL'] = Param(
+            'incompleteURL', valType='str',
+            hint=_translate("Where participants are redirected if they do not complete the task\n"
+                            " INSERT INCOMPLETION URL E.G.?"),
+            label="Incomplete URL", categ='Online')
+
 
         self.params['exportHTML'] = Param(
             exportHTML, valType='str',
@@ -465,7 +472,7 @@ class SettingsComponent(object):
                     "import {{ Scheduler }} from './lib/util-{version}.js';\n"
                     "import * as util from './lib/util-{version}.js';\n"
                     "import * as visual from './lib/visual-{version}.js';\n"
-                    "\n").format(version='3.0.0b9')
+                    "\n").format(version='3.0.0b11')
             buff.writeIndentedLines(code)
 
         # Write window code
@@ -492,6 +499,8 @@ class SettingsComponent(object):
                         params=self.params,
                         name=self.params['expName'].val,
                         loggingLevel=self.params['logging level'].val.upper(),
+                        completedURL=self.params['Completed URL'],
+                        incompleteURL=self.params['Incomplete URL'],
                         )
         buff.writeIndentedLines(code)
 
@@ -691,17 +700,18 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importTrialAttributes(thisTrial) {\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(loop) {\n"
+                    "  const trialIndex = loop.getTrialIndex();\n"
                     "  return function () {\n"
-                    "    psychoJS.importAttributes(thisTrial);\n\n"
+                    "    loop.setTrialIndex(trialIndex);\n"
+                    "    psychoJS.importAttributes(loop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
-                    "  };\n"
-                    "}\n"
-                )
+                    "    };\n"
+                    "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
-        quitFunc = ("\nfunction quitPsychoJS() {\n"
+        quitFunc = ("\nfunction quitPsychoJS(isCompleted) {\n"
                     "  psychoJS.window.close();\n"
-                    "  psychoJS.quit();\n\n"
+                    "  psychoJS.quit({isCompleted});\n\n"
                     "  return Scheduler.Event.QUIT;\n"
                     "}")
         buff.writeIndentedLines(quitFunc)

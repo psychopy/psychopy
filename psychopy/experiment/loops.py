@@ -81,7 +81,7 @@ class TrialHandler(object):
             hint=_translate("The start and end of the loop (see flow "
                             "timeline)"))
         self.params['Selected rows'] = Param(
-            selectedRows, valType='code',
+            selectedRows, valType='str',
             updates=None, allowedUpdates=None,
             label=_localized['Selected rows'],
             hint=_translate("Select just a subset of rows from your condition"
@@ -206,7 +206,7 @@ class TrialHandler(object):
         # for the scheduler
         code = ("  // Schedule all the trials in the trialList:\n"
                 "  for (const {thisName} of {name}) {{\n"
-                "    thisScheduler.add(importTrialAttributes({thisName}));\n"
+                "    thisScheduler.add(importConditions({name}));\n"
                 .format(name=self.params['name'], params=self.params, thisName=self.thisName, seed=seed))
         buff.writeIndentedLines(code)
         # then we need to include begin, eachFrame and end code for each entry within that loop
@@ -280,11 +280,8 @@ class TrialHandler(object):
     def writeLoopEndCodeJS(self, buff):
         # Just within the loop advance data line if loop is whole trials
         code = ("\nfunction {funName}LoopEnd() {{\n"
-                "  psychoJS.experiment.removeLoop({name});\n"
-                "  psychoJS.experiment.save({{\n"
-                "    attributes: {name}.getAttributes()\n"
-                "  }});\n\n").format(funName=self.params['name'].val,
-                                     name=self.params['name'])
+                "  psychoJS.experiment.removeLoop({name});\n\n".format(funName=self.params['name'].val,
+                                                                       name=self.params['name']))
         code += ("  return Scheduler.Event.NEXT;\n"
                 "}\n")
         buff.writeIndentedLines(code)

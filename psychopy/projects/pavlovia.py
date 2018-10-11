@@ -93,6 +93,9 @@ def login(tokenOrUsername, rememberMe=True):
         token = knownUsers[tokenOrUsername]  # username so fetch token
     else:
         token = tokenOrUsername
+    # it might still be a dict that *contains* the token
+    if type(token)==dict and 'token' in token:
+        token = token['token']
 
     # try actually logging in with token
     currentSession.setToken(token)
@@ -264,7 +267,6 @@ class PavloviaSession:
         anonymous user
         """
         self.username = None
-        self.password = None
         self.userID = None  # populate when token property is set
         self.userFullName = None
         self.remember_me = remember_me
@@ -421,6 +423,10 @@ class PavloviaSession:
                             .format(repr(token), len(token)))
             self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
             self.gitlab.auth()
+            self.username = self.user.username
+            self.userID = self.user.id  # populate when token property is set
+            self.userFullName = self.user.name
+            self.authenticated = True
         else:
             self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
 

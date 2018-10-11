@@ -24,6 +24,9 @@ if parse_version(wx.__version__) < parse_version('4.0.0a1'):
 else:
     _ValidatorBase = wx.Validator
 
+from pyglet.window import key
+
+
 class BaseValidator(_ValidatorBase):
     """
     Component name validator for _BaseParamsDlg class. It depends on access
@@ -148,6 +151,23 @@ class CodeSnippetValidator(BaseValidator):
         But its always the case that self-reference is wrong.
         """
         # first check if there's anything to validate (and return if not)
+
+        def _checkParamUpdates(parent):
+            """Checks whether param allows updates. Returns bool."""
+            if parent.params[self.fieldName].allowedUpdates is not None:
+                # Check for new set with elements common to lists compared - True if any elements are common
+                return bool(set(parent.params[self.fieldName].allowedUpdates) & set(allowedUpdates))
+
+        def _highlightParamVal(parent, error=False):
+            """Highlights text containing error - defaults to black"""
+            try:
+                if error:
+                    parent.paramCtrls[self.fieldName].valueCtrl.SetForegroundColour("Red")
+                else:
+                    parent.paramCtrls[self.fieldName].valueCtrl.SetForegroundColour("Black")
+            except KeyError:
+                pass
+
         control = self.GetWindow()
         if not hasattr(control, 'GetValue'):
             return '', True
@@ -157,8 +177,27 @@ class CodeSnippetValidator(BaseValidator):
 
         field = self.fieldName
         msg, OK = '', True  # until we find otherwise
+        _highlightParamVal(parent)
         codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
+        allowedUpdates = ['set every repeat', 'set every frame']
+
+        # Check if variable incorrectly defined in correct answer
+        allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
+        if self.fieldName == 'correctAns' and not val.startswith('$'):
+            if ',' in val:  # comma separated
+                keyList = val.upper().split(',')
+                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
+            else:  # whitespace separated
+                keyList = val.upper().split(' ')
+                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
+
+            potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
+            _highlightParamVal(parent, bool(potentialVars))
+            if len(potentialVars):
+                msg = "It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}"
+                msg = msg.format(val=potentialVars[0].lower())
+
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
@@ -167,10 +206,23 @@ class CodeSnippetValidator(BaseValidator):
             except SyntaxError as e:
                 # empty '' compiles to a syntax error, ignore
                 if not code.strip() == '':
+                    _highlightParamVal(parent, True)
                     msg = _translate('Python syntax error in field `{}`:  {}')
                     msg = msg.format(self.displayName, code)
                     OK = False
             else:
+                # Check whether variable param entered as a constant
+                if isCodeField and _checkParamUpdates(parent):
+                    if parent.paramCtrls[self.fieldName].getUpdates() not in allowedUpdates:
+                        try:
+                            eval(code)
+                        except NameError as e:
+                            _highlightParamVal(parent, True)
+                            msg = _translate("Looks like your variable '{}' in '{}' should be set to update.")
+                            msg = msg.format(code, self.displayName)
+                        except SyntaxError as e:
+                            msg = ''
+
                 # namespace = parent.frame.exp.namespace
                 # parent.params['name'].val is not in namespace for new params
                 # and is not fixed as .val until dialog closes. Use getvalue()
@@ -180,9 +232,12 @@ class CodeSnippetValidator(BaseValidator):
                     for name in names:
                         # `name` means a var name within a compiled code snippet
                         if name == parentName:
+                            _highlightParamVal(parent, True)
                             msg = _translate(
                                 'Python var `{}` in `{}` is same as Name')
                             msg = msg.format(name, self.displayName)
                             OK = True
+
+
         parent.warningsDict[field] = msg
         return msg, OK

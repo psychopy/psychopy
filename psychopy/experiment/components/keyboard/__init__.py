@@ -318,10 +318,8 @@ class KeyboardComponent(BaseComponent):
 
         if store != 'nothing':
             if self.params['syncScreenRefresh'].val:
-                print("PsychoJS doesn't support win.callOnFlip() for keyboard")
-                #    code = ("win.callOnFlip(%(name)s.clock.reset)
-                #            " screen flip\n") % self.params
-                code = "%(name)s.clock.reset();  // now t=0\n" % self.params
+                code = ("psychoJS.window.callOnFlip(%(name)s.clock.reset)"
+                        " // t = 0 on screen flip\n") % self.params
             else:
                 code = "%(name)s.clock.reset();  // now t=0\n" % self.params
 
