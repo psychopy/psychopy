@@ -7,9 +7,9 @@ language: python
 
 matrix:
   include:
-    - os: linux
-      python: "2.7_with_system_site_packages"
-      env: DISPLAY=:99.0 AUDIODEV=null
+#    - os: linux
+#      python: "2.7_with_system_site_packages"
+#      env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
       env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
@@ -26,8 +26,8 @@ matrix:
     - os: linux
       env: ANACONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
 
-  allow_failures:
-    - python: "2.7_with_system_site_packages"
+#  allow_failures:
+#    - python: "2.7_with_system_site_packages"
 
 before_install:
   # System setup
