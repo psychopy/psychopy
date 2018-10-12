@@ -4,6 +4,7 @@ channels:
 - defaults
 dependencies:
 - python=3.7
+- astunparse
 - backports
 - bzip2
 - cffi
@@ -55,7 +56,6 @@ dependencies:
 - zlib
 - pip:
   - arabic_reshaper
-  - https://github.com/simonpercivall/astunparse/archive/master.zip
   - https://github.com/DiffSK/configobj/archive/master.zip
   - freetype-py
   # - opencv-python
