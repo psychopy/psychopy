@@ -259,8 +259,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The Slider object for scroll bar
         """
         return psychopy.visual.Slider(win=self.win, size=(0.03, self.size[1]),
-                             ticks=[0, 1], style='slider',
-                             pos=(self.rightEdge, self.pos[1]))
+                                      ticks=[0, 1], style='slider',
+                                      pos=(self.rightEdge, self.pos[1]))
 
     def _setBorder(self):
         """Creates border using Rect
@@ -270,7 +270,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The border for the survey
         """
         return psychopy.visual.Rect(win=self.win, units=self.units, pos=self.pos,
-                           width=self.size[0], height=self.size[1])
+                                    width=self.size[0], height=self.size[1])
 
     def _setAperture(self):
         """Blocks text beyond border using Aperture
@@ -362,6 +362,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 # Only draw if within border range for efficiency
                 if self._inRange(items):
                     items.draw()
+        self.aperture.disable()
 
     def getData(self):
         """Extracts form questions, response ratings and response times from Form items

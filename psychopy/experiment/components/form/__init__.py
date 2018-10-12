@@ -117,7 +117,10 @@ class FormComponent(BaseComponent):
         buff.writeIndented(initStr)
 
     def writeRoutineStartCode(self, buff):
-        buff.writeIndented("%(name)s.setAutoDraw(True)\n" % (self.params))
+        pass
+
+    def writeFrameCode(self, buff):
+        buff.writeIndented("%(name)s.draw()\n" % (self.params))
 
     def writeRoutineEndCode(self, buff):
         if self.params['Data Format'] == 'rows':

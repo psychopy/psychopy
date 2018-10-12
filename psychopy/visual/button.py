@@ -8,6 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+
 from psychopy import visual, event
 from psychopy.visual.shape import BaseShapeStim
 
@@ -27,6 +28,7 @@ class ButtonStim(BaseShapeStim):
                  textColor='blue',
                  borderColor='blue',
                  buttonColor='white',
+                 buttonEnabled=False,
                  ):
 
         # local variables
@@ -46,21 +48,25 @@ class ButtonStim(BaseShapeStim):
         self.textColor = textColor
         self.borderColor = borderColor
         self.buttonColor = buttonColor
+        self.buttonEnabled = buttonEnabled
 
         self._dragging = False
         self.mouse = event.Mouse()
         self.buttonSelected = False
         self.buttonItems = []
 
-        self.buttonBorder = BaseShapeStim(self.win, fillColor=self.borderColor, vertices=((button_x_range[0] - button_x_outer_margin, -button_y_outer_margin + self.pos[1]),
-                                                                           (button_x_range[0] - button_x_outer_margin, button_y_outer_margin + self.pos[1]),
-                                                                           (button_x_range[1] + button_x_outer_margin, button_y_outer_margin + self.pos[1]),
-                                                                           (button_x_range[1] + button_x_outer_margin, -button_y_outer_margin + self.pos[1])))
-        self.buttonInner = BaseShapeStim(self.win, fillColor=self.buttonColor, vertices=((button_x_range[0] - button_x_inner_margin, -button_y_inner_margin + self.pos[1]),
-                                                                           (button_x_range[0] - button_x_inner_margin, button_y_inner_margin + self.pos[1]),
-                                                                           (button_x_range[1] + button_x_inner_margin, button_y_inner_margin + self.pos[1]),
-                                                                           (button_x_range[1] + button_x_inner_margin, -button_y_inner_margin + self.pos[1])))
-        self.buttonInnerText = visual.TextStim(self.win, text=self.textColor, color=self.textColor, pos=self.pos, height=self.labelSize)
+        self.buttonBorder = BaseShapeStim(self.win, fillColor=self.borderColor, vertices=(
+            (button_x_range[0] - button_x_outer_margin, -button_y_outer_margin + self.pos[1]),
+            (button_x_range[0] - button_x_outer_margin, button_y_outer_margin + self.pos[1]),
+            (button_x_range[1] + button_x_outer_margin, button_y_outer_margin + self.pos[1]),
+            (button_x_range[1] + button_x_outer_margin, -button_y_outer_margin + self.pos[1])))
+        self.buttonInner = BaseShapeStim(self.win, fillColor=self.buttonColor, vertices=(
+            (button_x_range[0] - button_x_inner_margin, -button_y_inner_margin + self.pos[1]),
+            (button_x_range[0] - button_x_inner_margin, button_y_inner_margin + self.pos[1]),
+            (button_x_range[1] + button_x_inner_margin, button_y_inner_margin + self.pos[1]),
+            (button_x_range[1] + button_x_inner_margin, -button_y_inner_margin + self.pos[1])))
+        self.buttonInnerText = visual.TextStim(self.win, text=self.labelText, color=self.textColor, pos=self.pos,
+                                               height=self.labelSize)
         self.buttonItems.append(self.buttonBorder)
         self.buttonItems.append(self.buttonInner)
         self.buttonItems.append(self.buttonInnerText)
@@ -89,10 +95,20 @@ class ButtonStim(BaseShapeStim):
         return self.buttonSelected
 
     def buttonGuard(self, condition):
-        if condition:
-            self.buttonColor = "red"
+        if not self.buttonEnabled:
+            self.buttonBorder.color = 'dimgrey'
+            self.buttonInner.color = 'darkgrey'
+            self.buttonInnerText.color = 'dimgrey'
+        else:
+            self.buttonBorder.color = self.buttonColor
+            self.buttonInner.color = self.borderColor
+            self.buttonInnerText.color = self.buttonColor
 
     def getMouseResponses(self):
+        self.buttonGuard(self.buttonEnabled)
+        if not self.buttonEnabled:
+            return
+
         if not self.buttonClicked(self.mouse):  # hovering
             self.buttonSwitch(self.buttonContains(self.mouse))
 
@@ -105,7 +121,7 @@ class ButtonStim(BaseShapeStim):
         else:  # mouse is up - check if it *just* came up
             if self._dragging:
                 if self.buttonContains(self.mouse):
-                    self.buttonGuard(True)
+                    self.buttonSelected = True
                 self._dragging = False
             else:
                 # is up and was already up - move along
@@ -119,4 +135,6 @@ if __name__ == "__main__":
     for n in range(600):
         button1.draw()
         button2.draw()
+        if n > 100:
+            button1.buttonEnabled = True
         win.flip()
