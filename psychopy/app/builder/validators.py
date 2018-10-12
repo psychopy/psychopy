@@ -183,16 +183,16 @@ class CodeSnippetValidator(BaseValidator):
         allowedUpdates = ['set every repeat', 'set every frame']
 
         # Check if variable incorrectly defined in correct answer
-        AllKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
+        allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
         if self.fieldName == 'correctAns' and not val.startswith('$'):
             if ',' in val:  # comma separated
                 keyList = val.upper().split(',')
-                keyList = [key.replace(' ', '') for key in keyList if len(key) > 0]
+                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
             else:  # whitespace separated
                 keyList = val.upper().split(' ')
-                keyList = [key.replace(' ', '') for key in keyList if len(key) > 0]
+                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
 
-            potentialVars = list(set(keyList) - set(AllKeyBoardKeys))  # Elements of keyList not in AllKeyBoardKeys
+            potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
             _highlightParamVal(parent, bool(potentialVars))
             if len(potentialVars):
                 msg = "It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}"
