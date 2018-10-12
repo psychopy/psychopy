@@ -954,12 +954,17 @@ class Window(object):
         """
         # GL.glLoadIdentity()
         # do the reading of the pixels
-        if buffer == 'back':
+        if buffer == 'back' and self.useFBO:
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+        elif buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
-        else:
+        elif buffer == 'front':
             if self.useFBO:
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             GL.glReadBuffer(GL.GL_FRONT)
+        else:
+            raise ValueError("Requested read from buffer '{}' but should be "
+                             "'front' or 'back'".format(buffer))
 
         if rect:
             x, y = self.size  # of window, not image
