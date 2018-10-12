@@ -59,7 +59,7 @@ dependencies:
   - https://github.com/DiffSK/configobj/archive/master.zip
   - freetype-py
   - pygame
-  - pyglet==1.3.0b1
+  - pyglet
   - pyparallel
   - python-gitlab
   - sounddevice
