@@ -58,7 +58,6 @@ dependencies:
   - arabic_reshaper
   - https://github.com/DiffSK/configobj/archive/master.zip
   - freetype-py
-  # - opencv-python
   - pygame
   - pyglet==1.3.0b1
   - pyparallel
