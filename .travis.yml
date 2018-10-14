@@ -7,28 +7,27 @@ language: python
 
 matrix:
   include:
-    - os: linux
-      python: "2.7_with_system_site_packages"
-      env: DISPLAY=:99.0 AUDIODEV=null
+#    - os: linux
+#      python: "2.7_with_system_site_packages"
+#      env: DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=4 OPENPYXL=2.4 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 2.7
-      env: ANACONDA=true WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true PYTHON_VERSION=2.7 WXPYTHON=3 OPENPYXL=2.5 DISPLAY=:99.0 AUDIODEV=null
 
     - os: linux
-      python: 3.6
-      env: ANACONDA=true DISPLAY=:99.0 AUDIODEV=null
+      env: ANACONDA=true PYTHON_VERSION=3.6 DISPLAY=:99.0 AUDIODEV=null
 
-  allow_failures:
-    - python: "2.7_with_system_site_packages"
+    - os: linux
+      env: ANACONDA=true PYTHON_VERSION=3.7 DISPLAY=:99.0 AUDIODEV=null
+
+#  allow_failures:
+#    - python: "2.7_with_system_site_packages"
 
 before_install:
   # System setup
@@ -89,8 +88,8 @@ before_install:
 
   - if [ -n "$ANACONDA" ]; then conda update -q conda; fi
   - if [ -n "$ANACONDA" ]; then conda info -a; fi
-  - if [ -n "$ANACONDA" ]; then ls -la ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
-  - if [ -n "$ANACONDA" ]; then conda env create -n psychopy-conda -f ./conda/environment-$TRAVIS_PYTHON_VERSION.yml; fi
+  - if [ -n "$ANACONDA" ]; then ls -la ./conda/environment-$PYTHON_VERSION.yml; fi
+  - if [ -n "$ANACONDA" ]; then conda env create -n psychopy-conda -f ./conda/environment-$PYTHON_VERSION.yml; fi
   - if [ -n "$ANACONDA" ]; then conda env list; fi
   - if [ -n "$ANACONDA" ]; then source activate psychopy-conda; fi
   - if [ -n "$ANACONDA" ]; then if [ -n "$WXPYTHON" ]; then conda install wxpython=$WXPYTHON; fi; fi

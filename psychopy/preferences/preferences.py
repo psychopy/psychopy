@@ -9,7 +9,11 @@ import sys
 import platform
 import configobj
 from configobj import ConfigObj
-import validate
+
+try:
+    import validate
+except ImportError:
+    from configobj import validate
 
 join = os.path.join
 
