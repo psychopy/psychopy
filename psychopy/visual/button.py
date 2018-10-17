@@ -9,8 +9,9 @@
 
 from __future__ import absolute_import, print_function
 
-from psychopy import visual, event
+from psychopy import event
 from psychopy.visual.shape import BaseShapeStim
+from psychopy.visual.text import TextStim
 
 __author__ = 'Anthony Haffey'
 
@@ -65,7 +66,7 @@ class ButtonStim(BaseShapeStim):
             (button_x_range[0] - button_x_inner_margin, button_y_inner_margin + self.pos[1]),
             (button_x_range[1] + button_x_inner_margin, button_y_inner_margin + self.pos[1]),
             (button_x_range[1] + button_x_inner_margin, -button_y_inner_margin + self.pos[1])))
-        self.buttonInnerText = visual.TextStim(self.win, text=self.labelText, color=self.textColor, pos=self.pos,
+        self.buttonInnerText = TextStim(self.win, text=self.labelText, color=self.textColor, pos=self.pos,
                                                height=self.labelSize)
         self.buttonItems.append(self.buttonBorder)
         self.buttonItems.append(self.buttonInner)
@@ -128,13 +129,14 @@ class ButtonStim(BaseShapeStim):
                 return None
 
 if __name__ == "__main__":
-    win = visual.Window(units='height', allowStencil=True)
-    button1 = ButtonStim(win, pos=(.3, -.3))
-    button2 = ButtonStim(win, pos=(-.3, -.3))
-
-    for n in range(600):
-        button1.draw()
-        button2.draw()
-        if n > 100:
-            button1.buttonEnabled = True
-        win.flip()
+    pass
+    # win = psychopy.visual.Window(units='height', allowStencil=True)
+    # button1 = ButtonStim(win, pos=(.3, -.3))
+    # button2 = ButtonStim(win, pos=(-.3, -.3))
+    #
+    # for n in range(600):
+    #     button1.draw()
+    #     button2.draw()
+    #     if n > 100:
+    #         button1.buttonEnabled = True
+    #     win.flip()
