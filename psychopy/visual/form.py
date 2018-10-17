@@ -12,7 +12,7 @@ import psychopy
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
                                         ColorMixin)
-import pandas as pd
+from pandas import read_csv, read_excel
 
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
@@ -129,9 +129,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             return [items]
         elif os.path.exists(items):
             if '.csv' in items:
-                newItems = pd.read_csv(items).dropna()
+                newItems = read_csv(items).dropna()
             elif '.xlsx' in items or '.xls' in items:
-                newItems = pd.read_excel(items).dropna()
+                newItems = read_excel(items).dropna()
             else:
                 raise TypeError("Form only accepts csv or Excel (.xlsx, .xls) files.")
             psychopy.logging.warn("Dropped rows with NaN values from imported file")

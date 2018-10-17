@@ -4,7 +4,7 @@
 from __future__ import division
 
 import pytest
-import pandas as pd
+from pandas import DataFrame
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.text import TextStim
@@ -41,17 +41,17 @@ class Test_Form(object):
     @pytest.fixture(scope="session")
     def create_file(self, tmpdir_factory, type, data, dirName):
         if type == 'csv':
-            csvFile = pd.DataFrame(data)
+            csvFile = DataFrame(data)
             formData = tmpdir_factory.mkdir(dirName).join("formData.csv")
             csvFile.to_csv(formData, index=False)
             return str(formData)
         elif type == 'xlsx':
-            xlsxFile = pd.DataFrame(data)
+            xlsxFile = DataFrame(data)
             formData = tmpdir_factory.mkdir(dirName).join("formData.xlsx")
             xlsxFile.to_excel(formData, index=False)
             return str(formData)
         elif type == 'txt':
-            txtFile = pd.DataFrame(data)
+            txtFile = DataFrame(data)
             formData = tmpdir_factory.mkdir(dirName).join("formData.txt")
             txtFile.to_csv(formData, index=False)
             return str(formData)
