@@ -143,8 +143,8 @@ class SoundComponent(BaseComponent):
                 self.writeStopTestCode(buff)
                 code = "%s.stop()  # stop the sound (if longer than duration)\n"
                 buff.writeIndented(code % self.params['name'])
-                # because of the 'if' statement of the time test
-                buff.setIndentLevel(-1, relative=True)
+            # because of the 'if' statement of the time test
+            buff.setIndentLevel(-1, relative=True)
 
     def writeFrameCodeJS(self, buff):
         """Write the code that will be called every frame
