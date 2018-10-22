@@ -19,22 +19,22 @@ class Test_Form(object):
         self.questions = []
         self.win = Window(units='height', allowStencil=True)
         # create some questions
-        self.genderItem = {"qText": "What is your gender?",
-                      "qWidth": 0.7,
-                      "aType": "choice",
-                      "aWidth": 0.3,
-                      "aOptions": ["Male", "Female", "Other"],
-                      "aLayout": 'vert'}
+        self.genderItem = {"questionText": "What is your gender?",
+                      "questionWidth": 0.7,
+                      "type": "choice",
+                      "responseWidth": 0.3,
+                      "options": ["Male", "Female", "Other"],
+                      "layout": 'vert'}
         self.questions.append(self.genderItem)
         # then a set of ratings
         items = ["running", "cake"]
         for item in items:
-            entry = {"qText": "How much you like {}".format(item),
-                     "qWidth": 0.7,
-                     "aType": "rating",
-                     "aWidth": 0.3,
-                     "aOptions": ["Lots", "Not a lot"],
-                     "aLayout": 'horiz'}
+            entry = {"questionText": "How much you like {}".format(item),
+                     "questionWidth": 0.7,
+                     "type": "rating",
+                     "responseWidth": 0.3,
+                     "options": ["Lots", "some", "Not a lot", "Longest Option"],
+                     "layout": 'horiz'}
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
 
@@ -64,12 +64,12 @@ class Test_Form(object):
                       "e": ["Male", "Female", "Other"],
                       "f": 'vert'}]
 
-        wrongOptions = {"qText": "What is your gender?",
-                      "qWidth": 0.7,
-                      "aType": "choice",
-                      "aWidth": 0.3,
-                      "aOptions": ["Other"],
-                      "aLayout": 'vert'}
+        wrongOptions = {"questionText": "What is your gender?",
+                      "questionWidth": 0.7,
+                      "type": "choice",
+                      "responseWidth": 0.3,
+                      "options": ["Other"],
+                      "layout": 'vert'}
 
         # Check wrong field error
         with pytest.raises(NameError):
@@ -111,19 +111,19 @@ class Test_Form(object):
 
     def test_set_questions(self):
         survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
-        textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
+        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
 
         assert type(textStim) == TextStim
-        assert type(qHeight) == float
-        assert type(qWidth) == float
+        assert type(questionHeight) == float
+        assert type(questionWidth) == float
 
     def test_set_response(self):
         survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
-        textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
-        sliderStim, aHeight = survey._setResponse(self.genderItem, textStim)
+        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
+        sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
 
         assert type(sliderStim) == Slider
-        assert type(aHeight) == float
+        assert type(respHeight) == float
 
     def test_questionHeight(self):
         for item in self.survey._items['question']:
@@ -135,10 +135,14 @@ class Test_Form(object):
 
     def test_respHeight(self):
         for item in self.survey.items:
-            if item['aLayout'] == 'vert':
-                assert self.survey.getRespHeight(item) == (len(item['aOptions']) * self.survey.textHeight)
-            elif item['aLayout'] == 'horiz':
+            print(item)
+            if item['layout'] == 'vert':
+                assert self.survey.getRespHeight(item) == (len(item['options']) * self.survey.textHeight)
+            elif item['layout'] == 'horiz' and len(item['options']) <= 3:
                 assert self.survey.getRespHeight(item) == self.survey.textHeight
+            elif item['layout'] == 'horiz' and len(item['options']) > 3:
+                longest = len(item['options'][-1])
+                assert self.survey.getRespHeight(item) == (self.survey.textHeight * longest) - (.015 * longest)
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.3)[0]  # width
@@ -168,7 +172,7 @@ class Test_Form(object):
 
     def test_virtual_height(self):
         assert isclose(self.survey.virtualHeight,
-                       (self.survey._baseYpositions[-1]-self.survey.itemPadding),
+                       self.survey._baseYpositions[-1],
                        atol=0.02)  # TODO: liberal atol, needs tightening up
 
     def test_baseYpositions(self):
@@ -176,13 +180,12 @@ class Test_Form(object):
         testPositions = []
         survey.virtualHeight = 0
         for item in survey.items:
-            question, qHeight, qWidth = survey._setQuestion(item)
-            response, aHeight, = survey._setResponse(item, question)
+            question, questionHeight, questionWidth = survey._setQuestion(item)
+            response, respHeight, = survey._setResponse(item, question)
             testPositions.append(survey.virtualHeight
-                                 - max(aHeight, qHeight)
-                                 + (aHeight / 2)
+                                 - max(respHeight, questionHeight)
                                  - survey.textHeight)
-            survey.virtualHeight -= max(aHeight, qHeight) + survey.itemPadding
+            survey.virtualHeight -= max(respHeight, questionHeight) + survey.itemPadding
 
         for idx, pos in enumerate(survey._baseYpositions):
             assert testPositions[idx] == pos

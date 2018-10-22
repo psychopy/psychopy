@@ -36,12 +36,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         The window object to present the form.
     items : List of dicts or csv file
         a list of dicts or csv file should have the following key, value pairs / column headers:
-                 "qText": item question string,
-                 "qWidth": question width between 0:1
-                 "aType": type of rating e.g., 'choice', 'rating', 'slider'
-                 "aWidth": question width between 0:1,
-                 "aOptions": list of tick labels for options,
-                 "aLayout": Response object layout e.g., 'horiz' or 'vert'
+                 "questionText": item question string,
+                 "questionWidth": question width between 0:1
+                 "type": type of rating e.g., 'choice', 'rating', 'slider'
+                 "responseWidth": question width between 0:1,
+                 "options": list of tick labels for options,
+                 "layout": Response object layout e.g., 'horiz' or 'vert'
     textHeight : float
         Text height.
     size : tuple, list
@@ -50,6 +50,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Position of form on screen.
     itemPadding : float
         Space or padding between form items.
+    scrollSpeed : int
+        The mouse wheel scrolling speed.
     units : str
         units for stimuli, e.g., 'height', 'norm', 'pixels' etc.
     """
@@ -62,6 +64,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
+                 scrollSpeed=75,
                  units='height',
                  ):
 
@@ -72,6 +75,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.size = size
         self.pos = pos
         self.itemPadding = itemPadding
+        self.scrollSpeed = len(self.items)
         self.units = units
 
         self.labelHeight = 0.02
@@ -90,7 +94,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """Import items from csv or excel sheet and convert to list of dicts.
         Will also accept a list of dicts.
 
-        Note, for csv and excel files, 'aOptions' must contain comma separated values,
+        Note, for csv and excel files, 'options' must contain comma separated values,
         e.g., one, two, three. No parenthesis, or quotation marks required.
 
         Returns
@@ -112,7 +116,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
             Raises NameError if fields do not match required survey fields
             """
-            surveyFields = ['aWidth', 'aLayout', 'qText', 'aType', 'qWidth', 'aOptions']
+            surveyFields = ['responseWidth', 'layout', 'questionText', 'type', 'questionWidth', 'options']
             if not set(surveyFields) == set(fields):
                 raise NameError("You need to use the following fields/column names for your items...\n{}"
                                 .format(surveyFields))
@@ -121,11 +125,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if isinstance(items, list):  # a list of dicts
             for dicts in items:
                 _checkHeaders(dicts.keys())
-                _checkOptions(dicts['aOptions'])
+                _checkOptions(dicts['options'])
             return items
         elif isinstance(items, dict):  # a single entry
             _checkHeaders(items.keys())
-            _checkOptions(items['aOptions'])
+            _checkOptions(items['options'])
             return [items]
         elif os.path.exists(items):
             if '.csv' in items:
@@ -138,9 +142,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             # Check column headers
             _checkHeaders(list(newItems.columns.values))
             # Convert options to list of strings
-            newItems['aOptions'] = newItems['aOptions'].str.split(',')
+            newItems['options'] = newItems['options'].str.split(',')
             # Check that each answer option has more than 1 option
-            [_checkOptions(options) for options in newItems['aOptions']]
+            [_checkOptions(options) for options in newItems['options']]
             # Transpose to list of dicts
             newItems = newItems.T.to_dict().values()
             return newItems
@@ -154,23 +158,23 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         -------
         psychopy.visual.text.TextStim
             The textstim object with the question string
-        qHeight
+        questionHeight
             The height of the question bounding box as type float
-        qWidth
+        questionWidth
             The width of the question bounding box as type float
         """
         question = psychopy.visual.TextStim(self.win,
-                                   text=item['qText'],
+                                   text=item['questionText'],
                                    units=self.units,
                                    height=self.textHeight,
                                    alignHoriz='left',
-                                   wrapWidth=item['qWidth'] * self.size[0])
+                                   wrapWidth=item['questionWidth'] * self.size[0])
 
-        qHeight = self.getQuestionHeight(question)
-        qWidth = self.getQuestionWidth(question)
+        questionHeight = self.getQuestionHeight(question)
+        questionWidth = self.getQuestionWidth(question)
         self._items['question'].append(question)
 
-        return question, qHeight, qWidth
+        return question, questionHeight, questionWidth
 
     def _setResponse(self, item, question):
         """Creates slider object for responses
@@ -179,40 +183,40 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         -------
         psychopy.visual.slider.Slider
             The Slider object for response
-        aHeight
+        respHeight
             The height of the response object as type float
         """
-        pos = (self.rightEdge - item['aWidth'] * self.size[0], question.pos[1])
-        aHeight = self.getRespHeight(item)
+        pos = (self.rightEdge - item['responseWidth'] * self.size[0], question.pos[1])
+        respHeight = self.getRespHeight(item)
 
         # Set radio button choice layout
-        if item['aLayout'] == 'horiz':
-            aSize = (item['aWidth'] * self.size[0], 0.03)
-        elif item['aLayout'] == 'vert':
-            aSize = (0.03, aHeight)
+        if item['layout'] == 'horiz':
+            respSize = (item['responseWidth'] * self.size[0], 0.03)
+        elif item['layout'] == 'vert':
+            respSize = (0.03, respHeight)
 
-        if item['aType'].lower() in ['rating', 'slider']:
+        if item['type'].lower() in ['rating', 'slider']:
             resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
-                                 size=(item['aWidth'] * self.size[0], 0.03),
+                                 size=(item['responseWidth'] * self.size[0], 0.03),
                                  ticks=[0, 1],
-                                 labels=item['aOptions'],
+                                 labels=item['options'],
                                  units=self.units,
                                  labelHeight=self.labelHeight,
                                  flip=True)
-        elif item['aType'].lower() in ['choice']:
+        elif item['type'].lower() in ['choice']:
             resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
-                                 size=aSize,
+                                 size=respSize,
                                  ticks=None,
-                                 labels=item['aOptions'],
+                                 labels=item['options'],
                                  units=self.units,
                                  labelHeight=self.textHeight,
                                  style='radio',
                                  flip=True)
 
         self._items['response'].append(resp)
-        return resp, aHeight
+        return resp, respHeight
 
     def getQuestionHeight(self, question=None):
         """Takes TextStim and calculates height of bounding box
@@ -242,13 +246,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         float
             The height of the response object
         """
-        if item['aLayout'] == 'vert':
-            aHeight = len(item['aOptions']) * self.textHeight
-        elif item['aLayout'] == 'horiz':
-            aHeight = self.textHeight
 
+        if item['layout'] == 'vert':
+            respHeight = len(item['options']) * self.textHeight
+        elif item['layout'] == 'horiz':
+            if len(item['options']) <= 3:
+                respHeight = self.textHeight
+            else:
+                words = sorted(item['options'], key=len, reverse=True)
+                # height = longest option * text height - size accounting for font case aspect ratio
+                respHeight = (self.textHeight * len(words[0])) - (.015 * len(words[0]))
         # TODO: Return size based on response types e.g., textbox
-        return aHeight
+        return respHeight
 
     def _setScrollBar(self):
         """Creates Slider object for scrollbar
@@ -260,7 +269,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         return psychopy.visual.Slider(win=self.win, size=(0.03, self.size[1]),
                                       ticks=[0, 1], style='slider',
-                                      pos=(self.rightEdge, self.pos[1]))
+                                      pos=(self.rightEdge-.015, self.pos[1]))
 
     def _setBorder(self):
         """Creates border using Rect
@@ -305,20 +314,21 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # For each question, create textstim and rating scale
         for item in self.items:
             # set up the question text
-            question, qHeight, qWidth = self._setQuestion(item)
+            question, questionHeight, questionWidth = self._setQuestion(item)
             # Position text relative to boundaries defined according to position and size
             question.pos = (self.leftEdge,
                             self.topEdge
                             + self.virtualHeight
-                            - qHeight/2 - self.itemPadding)
-            response, aHeight, = self._setResponse(item, question)
-            # Calculate position of question based on larger qHeight vs aHeight.
+                            - questionHeight/2 - self.itemPadding)
+            response, respHeight, = self._setResponse(item, question)
+            # Calculate position of question based on larger questionHeight vs respHeight.
             self._baseYpositions.append(self.virtualHeight
-                                        - max(aHeight, qHeight)  # Positionining based on larger of the two
-                                        + (aHeight/2)            # necessary to offset size-based positioning
+                                        - max(respHeight, questionHeight)  # Positionining based on larger of the two
+                                       # + (respHeight/2)            # aligns to center
                                         - self.textHeight)       # Padding for unaccounted marker size in slider height
             # update height ready for next row
-            self.virtualHeight -= max(aHeight, qHeight) + self.itemPadding
+            self.virtualHeight -= max(respHeight, questionHeight) + self.itemPadding
+
 
         # position a slider on right-hand edge
         self.scrollbar = self._setScrollBar()
@@ -350,10 +360,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if fractionVisible < 1.0:
             decorations.append(self.scrollbar)
 
+        # Check mouse wheel
+        self.scrollbar.markerPos += self.scrollbar.mouse.getWheelRel()[1]/self.scrollSpeed
+
         # draw the box and scrollbar
+        self.aperture.enable()
         for decoration in decorations:
             decoration.draw()
-        self.aperture.enable()
 
         # draw the items
         for element in self._items.keys():
@@ -393,27 +406,27 @@ if __name__ == "__main__":
 
     # create some questions
     questions = []
-    genderItem = {"qText": "What is your gender?",
-                 "qWidth": 0.7,
-                 "aType": "choice",
-                 "aWidth": 0.3,
-                 "aOptions": ["Male", "Female", "Other"],
-                 "aLayout": 'vert'}
+    genderItem = {"questionText": "What is your gender?",
+                 "questionWidth": 0.7,
+                 "type": "choice",
+                 "responseWidth": 0.3,
+                 "options": ["Not much", "Acceptable", "Very much","Not much", "Acceptable", "Very much", 'N/A'],
+                 "layout": 'horiz',}
     questions.append(genderItem)
     # then a set of ratings
     items = ["running", "cake", "eating sticks", "programming",
              "tickling", "being tickled", "cycling", "driving", "swimming"]
     for item in items:
-        entry = {"qText": "How much do you like {}".format(item),
-                 "qWidth": 0.7,
-                 "aType": "rating",
-                 "aWidth": 0.3,
-                 "aOptions": ["Lots", "Not a lot"],
-                 "aLayout": 'horiz'}
+        entry = {"questionText": "How much do you like {}".format(item),
+                 "questionWidth": 0.7,
+                 "type": "rating",
+                 "responseWidth": 0.3,
+                 "options": ["Lots", "Not a lot"],
+                 "layout": 'horiz'}
         questions.append(entry)
 
     # create window and display
-    win = psychopy.visual.Window(units='height', allowStencil=True)
+    win = psychopy.visual.Window(units='height', allowStencil=True, color='black')
     title = psychopy.visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
     survey = Form(win, name="survey", items=questions, size=(1, 0.7), pos=(0.0, 0.0))
 
