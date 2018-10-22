@@ -189,7 +189,7 @@ class _SoundStream(object):
         t0 = time.time()
         self.frameN += 1
         toSpk.fill(0)
-        for thisSound in self.sounds:
+        for thisSound in self.sounds.copy():
             dat = thisSound._nextBlock()  # fetch the next block of data
             dat *= thisSound.volume  # Set the volume block by block
             if self.channels == 2 and len(dat.shape) == 2:
