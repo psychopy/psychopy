@@ -17,7 +17,7 @@ class Test_Form(object):
 
     def setup_class(self):
         self.questions = []
-        self.win = Window(units='height', allowStencil=True)
+        self.win = Window(units='height', allowStencil=True, autoLog=False)
         # create some questions
         self.genderItem = {"questionText": "What is your gender?",
                       "questionWidth": 0.7,

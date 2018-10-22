@@ -50,8 +50,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Position of form on screen.
     itemPadding : float
         Space or padding between form items.
-    scrollSpeed : int
-        The mouse wheel scrolling speed.
     units : str
         units for stimuli, e.g., 'height', 'norm', 'pixels' etc.
     """
@@ -64,7 +62,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  size=(.5, .5),
                  pos=(0, 0),
                  itemPadding=0.05,
-                 scrollSpeed=75,
                  units='height',
                  ):
 
@@ -168,7 +165,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                    units=self.units,
                                    height=self.textHeight,
                                    alignHoriz='left',
-                                   wrapWidth=item['questionWidth'] * self.size[0])
+                                   wrapWidth=item['questionWidth'] * self.size[0],
+                                   autoLog=False)
 
         questionHeight = self.getQuestionHeight(question)
         questionWidth = self.getQuestionWidth(question)
@@ -203,7 +201,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                  labels=item['options'],
                                  units=self.units,
                                  labelHeight=self.labelHeight,
-                                 flip=True)
+                                 flip=True,
+                                 autoLog=False)
         elif item['type'].lower() in ['choice']:
             resp = psychopy.visual.Slider(self.win,
                                  pos=pos,
@@ -213,7 +212,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                  units=self.units,
                                  labelHeight=self.textHeight,
                                  style='radio',
-                                 flip=True)
+                                 flip=True,
+                                 autoLog=False)
 
         self._items['response'].append(resp)
         return resp, respHeight
@@ -426,7 +426,7 @@ if __name__ == "__main__":
         questions.append(entry)
 
     # create window and display
-    win = psychopy.visual.Window(units='height', allowStencil=True, color='black')
+    win = psychopy.visual.Window(units='height', allowStencil=True, autoLog=False)
     title = psychopy.visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
     survey = Form(win, name="survey", items=questions, size=(1, 0.7), pos=(0.0, 0.0))
 
