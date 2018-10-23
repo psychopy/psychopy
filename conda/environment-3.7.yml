@@ -1,9 +1,9 @@
-name: anaconda-py2.7
+name: anaconda-py3.7
 channels:
 - conda-forge
 - defaults
 dependencies:
-- python=2.7
+- python=3.7
 - astunparse
 - backports
 - bzip2
@@ -16,8 +16,8 @@ dependencies:
 - gevent
 - gitpython
 - greenlet
+- hdf5
 - json_tricks
-- libffi
 - lxml
 - matplotlib
 - moviepy
@@ -29,16 +29,12 @@ dependencies:
 - pandas
 - pillow
 - pip
-- pixman
-- prompt_toolkit
-- psutil
-- pycparser
-- pygments
 - pyopengl
-- pyopenssl
 - pyosf
 - pyqt
 - pyserial
+- pytest
+- pytest-cov
 - python-bidi
 - pyyaml
 - pyzmq
@@ -50,23 +46,20 @@ dependencies:
 - pytables
 - urllib3
 - wheel
+- x264
 - xlrd
 - xz
 - yaml
 - lzo
 - pytables
-- pytest
-- pytest-cov
 - wxpython
 - zlib
 - pip:
   - arabic_reshaper
   - https://github.com/DiffSK/configobj/archive/master.zip
-  - et-xmlfile
   - freetype-py
-  - prompt-toolkit
   - pygame
-  - pyglet==1.3.0b1
+  - pyglet
   - pyparallel
   - python-gitlab
   - sounddevice
