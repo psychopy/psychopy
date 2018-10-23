@@ -12,7 +12,8 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from past.builtins import unicode
 try:
-    from PyQt4 import QtGui as QtWidgets  # in qt4 these were all in one package
+    from PyQt4 import QtGui  
+    QtWidgets = QtGui  # in qt4 these were all in one package
     from PyQt4.QtCore import Qt
 except ImportError:
     from PyQt5 import QtWidgets
@@ -175,7 +176,8 @@ class Dlg(QtWidgets.QDialog):
 
             def handleLineEditChange(new_text):
                 ix = self.inputFields.index(inputBox)
-                thisType = self.inputFieldTypes[ix]
+                name = self.inputFieldNames[ix]
+                thisType = self.inputFieldTypes[name]
 
                 try:
                     if thisType in (str, unicode, bytes):
