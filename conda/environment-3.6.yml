@@ -1,9 +1,10 @@
-name: anaconda-py3
+name: anaconda-py3.6
 channels:
 - conda-forge
 - defaults
 dependencies:
 - python=3.6
+- astunparse
 - backports
 - bzip2
 - cffi
@@ -13,8 +14,10 @@ dependencies:
 - freetype
 - future
 - gevent
+- gitpython
 - greenlet
 - hdf5
+- json_tricks
 - lxml
 - matplotlib
 - moviepy
@@ -32,7 +35,9 @@ dependencies:
 - pyserial
 - pytest
 - pytest-cov
+- python-bidi
 - pyyaml
+- pyzmq
 - requests
 - scipy
 - setuptools
@@ -45,17 +50,17 @@ dependencies:
 - xlrd
 - xz
 - yaml
-- configobj
 - lzo
 - pytables
 - wxpython
 - zlib
 - pip:
   - arabic_reshaper
-  - json-tricks
+  - https://github.com/DiffSK/configobj/archive/master.zip
+  - freetype-py
   - pygame
   - pyglet==1.3.0b1
   - pyparallel
-  - python-bidi
+  - python-gitlab
   - sounddevice
   - soundfile

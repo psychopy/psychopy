@@ -4,6 +4,7 @@
 from __future__ import division
 
 import pytest
+from pandas import DataFrame
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.text import TextStim
@@ -16,42 +17,113 @@ class Test_Form(object):
 
     def setup_class(self):
         self.questions = []
-        self.win = Window(units='height', allowStencil=True)
+        self.win = Window(units='height', allowStencil=True, autoLog=False)
         # create some questions
-        self.genderItem = {"qText": "What is your gender?",
-                      "qWidth": 0.7,
-                      "aType": "choice",
-                      "aWidth": 0.3,
-                      "aOptions": ["Male", "Female", "Other"],
-                      "aLayout": 'vert'}
+        self.genderItem = {"questionText": "What is your gender?",
+                      "questionWidth": 0.7,
+                      "type": "choice",
+                      "responseWidth": 0.3,
+                      "options": ["Male", "Female", "Other"],
+                      "layout": 'vert'}
         self.questions.append(self.genderItem)
         # then a set of ratings
         items = ["running", "cake"]
         for item in items:
-            entry = {"qText": "How much do you like {}".format(item),
-                     "qWidth": 0.7,
-                     "aType": "rating",
-                     "aWidth": 0.3,
-                     "aOptions": ["Lots", "Not a lot"],
-                     "aLayout": 'horiz'}
+            entry = {"questionText": "How much you like {}".format(item),
+                     "questionWidth": 0.7,
+                     "type": "rating",
+                     "responseWidth": 0.3,
+                     "options": ["Lots", "some", "Not a lot", "Longest Option"],
+                     "layout": 'horiz'}
             self.questions.append(entry)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
 
+    @pytest.fixture(scope="session")
+    def create_file(self, tmpdir_factory, type, data, dirName):
+        if type == 'csv':
+            csvFile = DataFrame(data)
+            formData = tmpdir_factory.mkdir(dirName).join("formData.csv")
+            csvFile.to_csv(formData, index=False)
+            return str(formData)
+        elif type == 'xlsx':
+            xlsxFile = DataFrame(data)
+            formData = tmpdir_factory.mkdir(dirName).join("formData.xlsx")
+            xlsxFile.to_excel(formData, index=False)
+            return str(formData)
+        elif type == 'txt':
+            txtFile = DataFrame(data)
+            formData = tmpdir_factory.mkdir(dirName).join("formData.txt")
+            txtFile.to_csv(formData, index=False)
+            return str(formData)
+
+    def test_importItems(self, tmpdir):
+        wrongFields = [{"a": "What is your gender?",
+                      "b": 0.7,
+                      "c": "choice",
+                      "d": 0.3,
+                      "e": ["Male", "Female", "Other"],
+                      "f": 'vert'}]
+
+        wrongOptions = {"questionText": "What is your gender?",
+                      "questionWidth": 0.7,
+                      "type": "choice",
+                      "responseWidth": 0.3,
+                      "options": ["Other"],
+                      "layout": 'vert'}
+
+        # Check wrong field error
+        with pytest.raises(NameError):
+            self.survey = Form(self.win, items=wrongFields, size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check options for list of dicts
+        with pytest.raises(ValueError):
+            self.survey = Form(self.win, items=[wrongOptions], size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check options for single dict entry
+        with pytest.raises(ValueError):
+            self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check output of importItems
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        assert self.survey.importItems(self.questions) == self.questions
+
+        # Check csv
+        self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', self.questions, 'checkCSV'),
+                           size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check Excel
+        self.survey = Form(self.win, items=self.create_file(tmpdir, 'xlsx', self.questions, 'checkExcel'),
+                           size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check filename error
+        with pytest.raises(OSError):
+            self.survey = Form(self.win, items='doesNotExist',
+                               size=(1.0, 0.3), pos=(0.0, 0.0))
+        # Check filetype error
+        with pytest.raises(TypeError):
+            self.survey = Form(self.win, items=self.create_file(tmpdir, 'txt', self.questions, 'fileType'),
+                               size=(1.0, 0.3), pos=(0.0, 0.0))
+
+        # Check options for csv (same as excel)
+        with pytest.raises(ValueError):
+            self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', [wrongOptions], 'checkOptions'),
+                               size=(1.0, 0.3), pos=(0.0, 0.0))
+
     def test_set_questions(self):
         survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
-        textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
+        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
 
         assert type(textStim) == TextStim
-        assert type(qHeight) == float
-        assert type(qWidth) == float
+        assert type(questionHeight) == float
+        assert type(questionWidth) == float
 
     def test_set_response(self):
         survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
-        textStim, qHeight, qWidth = survey._setQuestion(self.genderItem)
-        sliderStim, aHeight = survey._setResponse(self.genderItem, textStim)
+        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
+        sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
 
         assert type(sliderStim) == Slider
-        assert type(aHeight) == float
+        assert type(respHeight) == float
 
     def test_questionHeight(self):
         for item in self.survey._items['question']:
@@ -63,10 +135,14 @@ class Test_Form(object):
 
     def test_respHeight(self):
         for item in self.survey.items:
-            if item['aLayout'] == 'vert':
-                assert self.survey.getRespHeight(item) == (len(item['aOptions']) * self.survey.textHeight)
-            elif item['aLayout'] == 'horiz':
+            print(item)
+            if item['layout'] == 'vert':
+                assert self.survey.getRespHeight(item) == (len(item['options']) * self.survey.textHeight)
+            elif item['layout'] == 'horiz' and len(item['options']) <= 3:
                 assert self.survey.getRespHeight(item) == self.survey.textHeight
+            elif item['layout'] == 'horiz' and len(item['options']) > 3:
+                longest = len(item['options'][-1])
+                assert self.survey.getRespHeight(item) == (self.survey.textHeight * longest) - (.015 * longest)
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.3)[0]  # width
@@ -96,7 +172,7 @@ class Test_Form(object):
 
     def test_virtual_height(self):
         assert isclose(self.survey.virtualHeight,
-                       (self.survey._baseYpositions[-1]-self.survey.itemPadding),
+                       self.survey._baseYpositions[-1],
                        atol=0.02)  # TODO: liberal atol, needs tightening up
 
     def test_baseYpositions(self):
@@ -104,13 +180,12 @@ class Test_Form(object):
         testPositions = []
         survey.virtualHeight = 0
         for item in survey.items:
-            question, qHeight, qWidth = survey._setQuestion(item)
-            response, aHeight, = survey._setResponse(item, question)
+            question, questionHeight, questionWidth = survey._setQuestion(item)
+            response, respHeight, = survey._setResponse(item, question)
             testPositions.append(survey.virtualHeight
-                                 - max(aHeight, qHeight)
-                                 + (aHeight / 2)
+                                 - max(respHeight, questionHeight)
                                  - survey.textHeight)
-            survey.virtualHeight -= max(aHeight, qHeight) + survey.itemPadding
+            survey.virtualHeight -= max(respHeight, questionHeight) + survey.itemPadding
 
         for idx, pos in enumerate(survey._baseYpositions):
             assert testPositions[idx] == pos
@@ -127,6 +202,13 @@ class Test_Form(object):
         assert self.survey._inRange(self.survey._items['question'][0])
         with pytest.raises(AssertionError):
             assert self.survey._inRange(self.survey._items['question'][2])
+
+    def test_get_data(self):
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        data = self.survey.getData()
+        assert set(data['questions']) == {'What is your gender?', 'How much you like running', 'How much you like cake'}
+        assert set(data['ratings']) == {None}
+        assert set(data['rt']) == {None}
 
     def teardown_class(self):
         self.win.close()
