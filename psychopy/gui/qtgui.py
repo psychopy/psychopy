@@ -79,7 +79,7 @@ class Dlg(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
 
         self.inputFields = []
-        self.inputFieldTypes = []
+        self.inputFieldTypes = {}
         self.inputFieldNames = []
         self.data = []
         self.irow = 0
@@ -147,9 +147,9 @@ class Dlg(QtWidgets.QDialog):
         """
         self.inputFieldNames.append(label)
         if choices:
-            self.inputFieldTypes.append(str)
+            self.inputFieldTypes[label] = str
         else:
-            self.inputFieldTypes.append(type(initial))
+            self.inputFieldTypes[label] = type(initial)
         if type(initial) == np.ndarray:
             initial = initial.tolist()
 
@@ -436,7 +436,6 @@ class DlgFromDict(Dlg):
             self.dictionary = dictionary
 
         self._keys = list(self.dictionary.keys())
-        self.types = dict()
 
         if order:
             self._keys = list(order) + list(set(self._keys).difference(set(order)))
@@ -444,7 +443,6 @@ class DlgFromDict(Dlg):
             self._keys.sort()
 
         for field in self._keys:
-            self.types[field] = type(self.dictionary[field])
             label = labels[field] if field in labels else field
             tooltip = ''
             if field in tip:
@@ -467,7 +465,7 @@ class DlgFromDict(Dlg):
         if ok_data:
             for n, thisKey in enumerate(self._keys):
                 try:
-                    self.dictionary[thisKey] = self.types[thisKey](self.data[n])
+                    self.dictionary[thisKey] = self.inputFieldTypes[thisKey](self.data[n])
                 except ValueError:
                     self.dictionary[thisKey] = self.data[n]
 
