@@ -147,10 +147,10 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._initParams.remove('self')
 
         """
-                October 2018:
-                    In place to remove the deprecation warning for pyglet.font.Text.
-                    Temporary fix until pyglet.text.Label use is identical to pyglet.font.Text.
-                """
+        October 2018:
+            In place to remove the deprecation warning for pyglet.font.Text.
+            Temporary fix until pyglet.text.Label use is identical to pyglet.font.Text.
+        """
         warnings.filterwarnings(message='.*text.Label*', action='ignore')
 
         super(TextStim, self).__init__(
