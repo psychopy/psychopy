@@ -36,7 +36,7 @@ class Test_Form(object):
                      "options": ["Lots", "some", "Not a lot", "Longest Option"],
                      "layout": 'horiz'}
             self.questions.append(entry)
-        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
     @pytest.fixture(scope="session")
     def create_file(self, tmpdir_factory, type, data, dirName):
@@ -73,44 +73,44 @@ class Test_Form(object):
 
         # Check wrong field error
         with pytest.raises(NameError):
-            self.survey = Form(self.win, items=wrongFields, size=(1.0, 0.3), pos=(0.0, 0.0))
+            self.survey = Form(self.win, items=wrongFields, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check options for list of dicts
         with pytest.raises(ValueError):
-            self.survey = Form(self.win, items=[wrongOptions], size=(1.0, 0.3), pos=(0.0, 0.0))
+            self.survey = Form(self.win, items=[wrongOptions], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check options for single dict entry
         with pytest.raises(ValueError):
-            self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0))
+            self.survey = Form(self.win, items=wrongOptions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check output of importItems
-        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         assert self.survey.importItems(self.questions) == self.questions
 
         # Check csv
         self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', self.questions, 'checkCSV'),
-                           size=(1.0, 0.3), pos=(0.0, 0.0))
+                           size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check Excel
         self.survey = Form(self.win, items=self.create_file(tmpdir, 'xlsx', self.questions, 'checkExcel'),
-                           size=(1.0, 0.3), pos=(0.0, 0.0))
+                           size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check filename error
         with pytest.raises(OSError):
             self.survey = Form(self.win, items='doesNotExist',
-                               size=(1.0, 0.3), pos=(0.0, 0.0))
+                               size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         # Check filetype error
         with pytest.raises(TypeError):
             self.survey = Form(self.win, items=self.create_file(tmpdir, 'txt', self.questions, 'fileType'),
-                               size=(1.0, 0.3), pos=(0.0, 0.0))
+                               size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
         # Check options for csv (same as excel)
         with pytest.raises(ValueError):
             self.survey = Form(self.win, items=self.create_file(tmpdir, 'csv', [wrongOptions], 'checkOptions'),
-                               size=(1.0, 0.3), pos=(0.0, 0.0))
+                               size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
 
     def test_set_questions(self):
-        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
+        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
 
         assert type(textStim) == TextStim
@@ -118,7 +118,7 @@ class Test_Form(object):
         assert type(questionWidth) == float
 
     def test_set_response(self):
-        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0))
+        survey = Form(self.win, items=[], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
         sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
 
@@ -176,7 +176,7 @@ class Test_Form(object):
                        atol=0.02)  # TODO: liberal atol, needs tightening up
 
     def test_baseYpositions(self):
-        survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         testPositions = []
         survey.virtualHeight = 0
         for item in survey.items:
@@ -204,7 +204,7 @@ class Test_Form(object):
             assert self.survey._inRange(self.survey._items['question'][2])
 
     def test_get_data(self):
-        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0))
+        self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         data = self.survey.getData()
         assert set(data['questions']) == {'What is your gender?', 'How much you like running', 'How much you like cake'}
         assert set(data['ratings']) == {None}
