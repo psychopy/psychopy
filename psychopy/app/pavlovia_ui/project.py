@@ -8,7 +8,7 @@ import time
 import os
 import traceback
 
-from .functions import setLocalPath, showCommitDialog, logInPavlovia, noGitWarning
+from .functions import setLocalPath, showCommitDialog, logInPavlovia
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
@@ -311,14 +311,6 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.Layout()
 
     def onSyncButton(self, event):
-        try:
-            git
-            haveGit = True
-        except ImportError:
-            haveGit = False
-        if not haveGit:
-            noGitWarning(parent=self.parent)
-            return
 
         if self.project is None:
             raise AttributeError("User pressed the sync button with no "
@@ -355,11 +347,10 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
         self.sizer.Add(syncPanel, border=5,
-                       flag=wx.ALL | wx.RIGHT)
+                       flag=wx.ALL | wx.RIGHT | wx.EXPAND)
         self.sizer.Layout()
-        progHandler = sync.ProgressHandler(syncPanel=syncPanel)
         wx.Yield()
-        self.project.sync(syncPanel=syncPanel, progressHandler=progHandler)
+        self.project.sync(infoStream=syncPanel.infoStream)
         syncPanel.Destroy()
         self.sizer.Layout()
         self.parent.Raise()
@@ -384,15 +375,7 @@ def syncProject(parent, project=None):
         -1 for cancel at some point in the process
     """
     closeFrameWhenDone = True
-    try:
-        a = sync.SyncFrame
-        haveGit = True
-    except Exception as e:
-        print(e)
-        haveGit = False
-    if not haveGit:
-        noGitWarning(parent)
-        return 0
+
 
     isCoder = hasattr(parent, 'currentDoc')
     if not project and "BuilderFrame" in repr(parent):
@@ -442,21 +425,13 @@ def syncProject(parent, project=None):
             return
 
     # a sync will be necessary so can create syncFrame
-    # if not possible then lazy import of git has failed
-    try:
-        syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
-        haveGit = True
-    except ValueError:
-        haveGit = False
-    if not haveGit:
-        noGitWarning(parent=parent)
-        return
+    syncFrame = sync.SyncFrame(parent=parent, id=wx.ID_ANY, project=project)
 
     if project._newRemote:
         # new remote so this will be a first push
         if project.getRepo(forceRefresh=True) is None:
             # no local repo yet so create one
-            project.newRepo(syncFrame.progHandler)
+            project.newRepo(syncFrame)
         # add the local files and commit them
         showCommitDialog(parent=parent, project=project,
                          initMsg="First commit")
@@ -473,7 +448,7 @@ def syncProject(parent, project=None):
     else:
         # existing remote which we should clone
         try:
-            ok = project.getRepo(syncFrame.syncPanel, syncFrame.progHandler)
+            ok = project.getRepo(syncFrame.syncPanel)
             if not ok:
                 closeFrameWhenDone = False
         except Exception as e:
@@ -485,7 +460,7 @@ def syncProject(parent, project=None):
         if outcome == -1:  # user cancelled
             return -1
         try:
-            status = project.sync(syncFrame.syncPanel, syncFrame.progHandler)
+            status = project.sync(syncFrame.syncPanel)
             if status == -1:
                 syncFrame.syncPanel.statusAppend("Couldn't sync")
         except Exception:  # not yet sure what errors might occur
