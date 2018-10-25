@@ -393,7 +393,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         upperRange = self.size[1]
         lowerRange = -self.size[1]
-        print((item.pos[1] < upperRange and item.pos[1] > lowerRange))
         return (item.pos[1] < upperRange and item.pos[1] > lowerRange)
 
     def draw(self):

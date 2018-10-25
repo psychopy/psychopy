@@ -135,7 +135,6 @@ class Test_Form(object):
 
     def test_respHeight(self):
         for item in self.survey.items:
-            print(item)
             if item['layout'] == 'vert':
                 assert self.survey.getRespHeight(item) == (len(item['options']) * self.survey.textHeight)
             elif item['layout'] == 'horiz' and len(item['options']) <= 3:
