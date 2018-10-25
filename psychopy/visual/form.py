@@ -28,7 +28,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     Example
     -------
-    survey = Form(win, items=[], size=(1.0, 0.7), pos=(0.0, 0.0))
+    survey = Form(win, items=[{}], size=(1.0, 0.7), pos=(0.0, 0.0))
 
     Parameters
     ----------
@@ -51,7 +51,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     itemPadding : float
         Space or padding between form items.
     units : str
-        units for stimuli, e.g., 'height', 'norm', 'pixels' etc.
+        units for stimuli - Currently, Form class only operates with 'height' units.
     """
 
     def __init__(self,
@@ -63,10 +63,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  pos=(0, 0),
                  itemPadding=0.05,
                  units='height',
+                 autoLog=True,
                  ):
 
-        super(Form, self).__init__(win, units)
+        super(Form, self).__init__(win, units, autoLog=False)
         self.win = win
+        self.autoLog = autoLog
         self.name = name
         self.items = self.importItems(items)
         self.size = size
@@ -87,6 +89,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Create layout of form
         self._doLayout()
 
+        if self.autoLog:
+            psychopy.logging.exp("Created {} = {}".format(self.name, repr(self)))
+
+    def __repr__(self, complete=False):
+        return self.__str__(complete=complete)  # from MinimalStim
+
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
         Will also accept a list of dicts.
@@ -106,7 +114,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             Raises ValueError if n Options not > 1
             """
             if not len(options) > 1:
-                raise ValueError("You need to provide at least two possible options for your item responses.")
+                msg = "Provide at least two possible options for your item responses."
+                if self.autoLog:
+                    psychopy.logging.error(msg)
+                raise ValueError(msg)
 
         def _checkHeaders(fields):
             """A nested function for testing the names of fields in any given set of items
@@ -115,27 +126,39 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             """
             surveyFields = ['responseWidth', 'layout', 'questionText', 'type', 'questionWidth', 'options']
             if not set(surveyFields) == set(fields):
-                raise NameError("You need to use the following fields/column names for your items...\n{}"
-                                .format(surveyFields))
+                msg = "Use the following fields/column names for Forms...\n{}".format(surveyFields)
+                if self.autoLog:
+                    psychopy.logging.error(msg)
+                raise NameError(msg)
+
 
         # Check for list of dicts that may be passed through Coder
         if isinstance(items, list):  # a list of dicts
+            if self.autoLog:
+                psychopy.logging.info("Importing items from list...")
             for dicts in items:
                 _checkHeaders(dicts.keys())
                 _checkOptions(dicts['options'])
             return items
         elif isinstance(items, dict):  # a single entry
+            if self.autoLog:
+                psychopy.logging.info("Importing items from dict...")
             _checkHeaders(items.keys())
             _checkOptions(items['options'])
             return [items]
         elif os.path.exists(items):
+            if self.autoLog:
+                psychopy.logging.info("Importing items from file...")
             if '.csv' in items:
                 newItems = read_csv(items).dropna()
             elif '.xlsx' in items or '.xls' in items:
                 newItems = read_excel(items).dropna()
             else:
-                raise TypeError("Form only accepts csv or Excel (.xlsx, .xls) files.")
-            psychopy.logging.warn("Dropped rows with NaN values from imported file")
+                msg = "Form only accepts csv or Excel (.xlsx, .xls) files."
+                psychopy.logging.error(msg)
+                raise TypeError(msg)
+            if self.autoLog:
+                psychopy.logging.warn("Dropped rows with NaN values from imported file")
             # Check column headers
             _checkHeaders(list(newItems.columns.values))
             # Convert options to list of strings
@@ -146,7 +169,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             newItems = newItems.T.to_dict().values()
             return newItems
         else:
-            raise OSError("Filename does not exist: '{}'".format(items))
+            msg = "Filename does not exist: '{}'".format(items)
+            psychopy.logging.error(msg)
+            raise OSError(msg)
 
     def _setQuestion(self, item):
         """Creates TextStim object containing question
@@ -160,6 +185,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         questionWidth
             The width of the question bounding box as type float
         """
+        if self.autoLog:
+            psychopy.logging.exp("Question text: {}".format(item['questionText']))
+
         question = psychopy.visual.TextStim(self.win,
                                    text=item['questionText'],
                                    units=self.units,
@@ -184,6 +212,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
+        if self.autoLog:
+            psychopy.logging.exp("Response type: {}".format(item['type']))
+            psychopy.logging.exp("Response layout: {}".format(item['layout']))
+            psychopy.logging.exp("Response options: {}".format(item['options']))
+
         pos = (self.rightEdge - item['responseWidth'] * self.size[0], question.pos[1])
         respHeight = self.getRespHeight(item)
 
@@ -269,7 +302,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         return psychopy.visual.Slider(win=self.win, size=(0.03, self.size[1]),
                                       ticks=[0, 1], style='slider',
-                                      pos=(self.rightEdge-.015, self.pos[1]))
+                                      pos=(self.rightEdge-.015, self.pos[1]),
+                                      autoLog=False)
 
     def _setBorder(self):
         """Creates border using Rect
@@ -279,7 +313,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The border for the survey
         """
         return psychopy.visual.Rect(win=self.win, units=self.units, pos=self.pos,
-                                    width=self.size[0], height=self.size[1])
+                                    width=self.size[0], height=self.size[1], autoLog=False)
 
     def _setAperture(self):
         """Blocks text beyond border using Aperture
@@ -291,7 +325,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         return psychopy.visual.Aperture(win=self.win, name='aperture',
                                units=self.units, shape='square',
-                               size=self.size, pos=(0, 0))
+                               size=self.size, pos=(0, 0),
+                               autoLog=False)
     def _getScrollOffet(self):
         """Calculate offset position of items in relation to markerPos
 
@@ -307,6 +342,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def _doLayout(self):
         """Define layout of form"""
         # Define boundaries of form
+        if self.autoLog:
+            psychopy.logging.info("Setting layout of Form: {}.".format(self.name))
+
         self.leftEdge = self.pos[0] - self.size[0]/2.0
         self.rightEdge = self.pos[0] + self.size[0]/2.0
         self.topEdge = self.pos[1] + self.size[1]/2.0
@@ -335,6 +373,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.scrollbar.markerPos = 1  # Set scrollbar to start position
         self.border = self._setBorder()
         self.aperture = self._setAperture()
+
+        if self.autoLog:
+            psychopy.logging.info("Layout set for Form: {}.".format(self.name))
 
     def _inRange(self, item):
         """Check whether item position falls within border area
@@ -400,36 +441,3 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             True if all items contain a response, False otherwise.
         """
         return None not in self.getData()['ratings']
-
-
-if __name__ == "__main__":
-
-    # create some questions
-    questions = []
-    genderItem = {"questionText": "What is your gender?",
-                 "questionWidth": 0.7,
-                 "type": "choice",
-                 "responseWidth": 0.3,
-                 "options": ["Not much", "Acceptable", "Very much","Not much", "Acceptable", "Very much", 'N/A'],
-                 "layout": 'horiz',}
-    questions.append(genderItem)
-    # then a set of ratings
-    items = ["running", "cake", "eating sticks", "programming",
-             "tickling", "being tickled", "cycling", "driving", "swimming"]
-    for item in items:
-        entry = {"questionText": "How much do you like {}".format(item),
-                 "questionWidth": 0.7,
-                 "type": "rating",
-                 "responseWidth": 0.3,
-                 "options": ["Lots", "Not a lot"],
-                 "layout": 'horiz'}
-        questions.append(entry)
-
-    # create window and display
-    win = psychopy.visual.Window(units='height', allowStencil=True, autoLog=False)
-    title = psychopy.visual.TextStim(win, "My test survey", units='height', pos=[0,0.45])
-    survey = Form(win, name="survey", items=questions, size=(1, 0.7), pos=(0.0, 0.0))
-
-    for n in range(600):
-        survey.draw()
-        win.flip()
