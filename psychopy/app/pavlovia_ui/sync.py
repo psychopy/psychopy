@@ -8,8 +8,6 @@
 import time
 import wx
 
-import git  # will be lazy due to psychopy.__init__
-
 
 class SyncFrame(wx.Frame):
     def __init__(self, parent, id, project):
@@ -63,12 +61,11 @@ class SyncStatusPanel(wx.Panel):
         self.setStatus(text)
 
 
-class ProgressHandler(git.remote.RemoteProgress):
+class ProgressHandler:
     """We can't override the update() method so we have to create our own
     subclass for this"""
 
     def __init__(self, syncPanel, *args, **kwargs):
-        git.remote.RemoteProgress.__init__(self, *args, **kwargs)
         self.syncPanel = syncPanel
         self.frame = syncPanel.parent
         self.t0 = None

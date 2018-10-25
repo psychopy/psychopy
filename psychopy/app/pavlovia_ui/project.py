@@ -13,9 +13,7 @@ from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
 
-import lazy_import
-sync = lazy_import.lazy_module("psychopy.app.pavlovia_ui.sync")
-import git  # will be lazy due to psychopy.__init__
+from psychopy.app.pavlovia_ui import sync
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
