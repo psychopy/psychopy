@@ -575,6 +575,20 @@ class PavloviaProject(dict):
             return self.pavlovia.attributes['id']
 
     @property
+    def remoteWithToken(self):
+        """The remote for git sync using an oauth token
+        """
+        currentSession = getCurrentSession()
+        rawHTTPS = self['remoteHTTPS']
+        if rawHTTPS:
+            remote = rawHTTPS.replace('https://gitlab.pavlovia.org/',
+                                      'https://oauth2:{}@gitlab.pavlovia.org/'
+                                      .format(currentSession.token))
+        else:
+            remote = None
+
+        return remote
+    @property
     def group(self):
         if self.pavlovia:
             namespaceName = self.id.split('/')[0]
@@ -607,7 +621,7 @@ class PavloviaProject(dict):
         Optional params infoStream is needed if you
         want to update a sync window/panel
         """
-        self.repo = self.getRepo(forceRefresh=True)
+        self.repo = self.getRepo(forceRefresh=True, infoStream=infoStream)
         if not self.repo:  # if we haven't been given a local copy of repo then find
             self.getRepo(infoStream=infoStream)
             # if cloned in last 2s then it was a fresh clone
@@ -632,7 +646,7 @@ class PavloviaProject(dict):
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
         logging.info(msg)
         if infoStream:
-            infoStream.statusAppend("\n" + msg)
+            infoStream.write("\n" + msg)
             time.sleep(0.5)
         return 1
 
@@ -652,7 +666,7 @@ class PavloviaProject(dict):
             infoStream.write("\nPulling changes from remote...")
 
         try:
-            git.pull(self.repo, self.remoteHTTPS,
+            git.pull(self.repo, self.remoteWithToken,
                      outstream=infoStream,
                      errstream=infoStream)
         except Exception as e:
@@ -667,7 +681,7 @@ class PavloviaProject(dict):
 
         logging.debug('pull complete: {}'.format(self.remoteHTTPS))
         if infoStream:
-            infoStream.statusAppend("done")
+            infoStream.write("done")
         return 1
 
     def push(self, infoStream=None):
@@ -685,8 +699,8 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPushing changes to remote...")
         try:
-            git.push(self.repo, self.remoteHTTPS, 'master',
-                     stdout=infoStream, stderr=infoStream)
+            git.push(self.repo, self.remoteWithToken, 'master',
+                     outstream=infoStream, errstream=infoStream)
         except Exception as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
@@ -765,8 +779,8 @@ class PavloviaProject(dict):
             self.cloneRepo(infoStream=infoStream)
             # TODO: add the further case where there are remote AND local files!
 
-    def firstPush(self, infoStream=None):
-        git.push(self.repo, self.remoteHTTPS, 'master',
+    def firstPush(self, infoStream):
+        git.push(self.repo, self.remoteWithToken, 'master',
                  errstream=infoStream, outstream=infoStream)
 
     def cloneRepo(self, infoStream=None):
@@ -795,11 +809,14 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.SetValue("Cloning from remote...")
         repo = git.clone(
-                source=self.remoteHTTPS,
+                source=self.remoteWithToken,
                 target=self.localRoot,
                 outstream=infoStream,
                 errstream=infoStream,
         )
+        config = repo.get_config()
+        config.set(('remote','origin'), 'url', self.remoteHTTPS)
+        config.write_to_path()
         self._lastKnownSync = time.time()
         self.repo = repo
         self._newRemote = False
@@ -910,6 +927,8 @@ class PavloviaProject(dict):
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
         self.pavlovia.save()
+        # note that saving info locally about known projects is done
+        # by the knownProjects DictStorage class
 
     @property
     def pavloviaStatus(self):

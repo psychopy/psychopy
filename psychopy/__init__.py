@@ -12,7 +12,7 @@
 import os
 import sys
 
-__version__ = '3.0.0b11'
+__version__ = '3.0.0b12'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
@@ -47,3 +47,6 @@ if 'installing' not in locals():
     
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
+# lazy imports for things we only want to import when needed
+import lazy_import
+git = lazy_import.lazy_module("git")

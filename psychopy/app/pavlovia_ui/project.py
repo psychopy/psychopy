@@ -346,7 +346,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
             self.Raise()
 
         syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
-        self.sizer.Add(syncPanel, border=5,
+        self.sizer.Add(syncPanel, border=5, proportion=1,
                        flag=wx.ALL | wx.RIGHT | wx.EXPAND)
         self.sizer.Layout()
         wx.Yield()

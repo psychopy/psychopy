@@ -65,4 +65,6 @@ class InfoStream(wx.TextCtrl):
         self.SetValue("")
 
     def write(self, text):
+        if type(text) == bytes:
+            text = text.decode('utf-8')
         self.SetValue(self.GetValue() + text)
