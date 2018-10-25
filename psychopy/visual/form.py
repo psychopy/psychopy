@@ -186,7 +186,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The width of the question bounding box as type float
         """
         if self.autoLog:
-            psychopy.logging.exp("Setting question text: {}".format(item['questionText']))
+            psychopy.logging.exp("Question text: {}".format(item['questionText']))
 
         question = psychopy.visual.TextStim(self.win,
                                    text=item['questionText'],
@@ -343,7 +343,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """Define layout of form"""
         # Define boundaries of form
         if self.autoLog:
-            psychopy.logging.exp("Setting layout of Form: {}.".format(self.name))
+            psychopy.logging.info("Setting layout of Form: {}.".format(self.name))
 
         self.leftEdge = self.pos[0] - self.size[0]/2.0
         self.rightEdge = self.pos[0] + self.size[0]/2.0
@@ -375,7 +375,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.aperture = self._setAperture()
 
         if self.autoLog:
-            psychopy.logging.exp("Layout set for Form: {}.".format(self.name))
+            psychopy.logging.info("Layout set for Form: {}.".format(self.name))
 
     def _inRange(self, item):
         """Check whether item position falls within border area
