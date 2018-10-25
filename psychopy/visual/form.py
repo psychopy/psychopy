@@ -225,6 +225,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             respSize = (item['responseWidth'] * self.size[0], 0.03)
         elif item['layout'] == 'vert':
             respSize = (0.03, respHeight)
+            item['options'].reverse()
 
         if item['type'].lower() in ['rating', 'slider']:
             resp = psychopy.visual.Slider(self.win,
@@ -283,12 +284,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if item['layout'] == 'vert':
             respHeight = len(item['options']) * self.textHeight
         elif item['layout'] == 'horiz':
-            if len(item['options']) <= 3:
+            if len(item['options']) <= 3 or item['type'] == 'rating':
                 respHeight = self.textHeight
             else:
                 words = sorted(item['options'], key=len, reverse=True)
                 # height = longest option * text height - size accounting for font case aspect ratio
-                respHeight = (self.textHeight * len(words[0])) - (.015 * len(words[0]))
+                respHeight = (self.textHeight * len(words[0])) - (.0155 * len(words[0]))
         # TODO: Return size based on response types e.g., textbox
         return respHeight
 
@@ -362,11 +363,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             # Calculate position of question based on larger questionHeight vs respHeight.
             self._baseYpositions.append(self.virtualHeight
                                         - max(respHeight, questionHeight)  # Positionining based on larger of the two
-                                       # + (respHeight/2)            # aligns to center
+                                        + (respHeight/2) * (item['layout'] == 'vert')  # aligns to center
                                         - self.textHeight)       # Padding for unaccounted marker size in slider height
             # update height ready for next row
-            self.virtualHeight -= max(respHeight, questionHeight) + self.itemPadding
-
+            self.virtualHeight -= (max(respHeight, questionHeight)
+                                  + self.itemPadding)
 
         # position a slider on right-hand edge
         self.scrollbar = self._setScrollBar()
@@ -390,8 +391,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         bool
             Returns True if item position falls within border area
         """
-        upperRange = self.size[1]/2
-        lowerRange = -self.size[1]/2
+        upperRange = self.size[1]
+        lowerRange = -self.size[1]
+        print((item.pos[1] < upperRange and item.pos[1] > lowerRange))
         return (item.pos[1] < upperRange and item.pos[1] > lowerRange)
 
     def draw(self):
