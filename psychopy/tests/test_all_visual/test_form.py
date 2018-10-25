@@ -27,7 +27,7 @@ class Test_Form(object):
                       "layout": 'vert'}
         self.questions.append(self.genderItem)
         # then a set of ratings
-        items = ["running", "cake", "running", "cake", "running", "cake", "running", "cake"]
+        items = ["running", "cake", "programming"]
         for item in items:
             entry = {"questionText": "How much you like {}".format(item),
                      "questionWidth": 0.7,
@@ -201,12 +201,15 @@ class Test_Form(object):
     def test_screen_status(self):
         assert self.survey._inRange(self.survey._items['question'][0])
         with pytest.raises(AssertionError):
-            assert self.survey._inRange(self.survey._items['question'][5])
+            assert self.survey._inRange(self.survey._items['question'][3])
 
     def test_get_data(self):
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         data = self.survey.getData()
-        assert set(data['questions']) == {'What is your gender?', 'How much you like running', 'How much you like cake'}
+        assert set(data['questions']) == {'What is your gender?',
+                                          'How much you like running',
+                                          'How much you like cake',
+                                          'How much you like programming',}
         assert set(data['ratings']) == {None}
         assert set(data['rt']) == {None}
 
