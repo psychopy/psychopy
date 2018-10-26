@@ -23,7 +23,7 @@ except ImportError:  # was here wx<4.0:
 from .... import constants
 from .. import validators
 from psychopy.localization import _translate
-
+from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
@@ -104,7 +104,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeBoxes[paramName] = CodeBox(_panel, wx.ID_ANY,
                                                     pos=wx.DefaultPosition,
                                                     style=0,
-                                                    prefs=self.app.prefs)
+                                                    prefs=self.app.prefs,
+                                                    params=params)
                 self.codeBoxes[paramName].AddText(param.val)
                 if len(param.val.strip()) and openToPage is None:
                     # index of first non-blank page
@@ -261,33 +262,19 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 
-class CodeBox(wx.stc.StyledTextCtrl):
+class CodeBox(BaseCodeEditor):
     # this comes mostly from the wxPython demo styledTextCtrl 2
 
     def __init__(self, parent, ID, prefs,
                  # set the viewer to be small, then it will increase with
                  # wx.aui control
                  pos=wx.DefaultPosition, size=wx.Size(100, 160),
-                 style=0):
-        wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
-        # JWP additions
-        self.notebook = parent
+                 style=0,
+                 params=None):
+        BaseCodeEditor.__init__(self, parent, ID, pos, size, style)
+
         self.prefs = prefs
-        self.UNSAVED = False
-        self.filename = ""
-        self.fileModTime = None  # check if file modified outside CodeEditor
-        self.AUTOCOMPLETE = True
-        self.autoCompleteDict = {}
-        # self.analyseScript()  # no - analyse after loading so that window
-        # doesn't pause strangely
-        self.locals = None  # will contain the local environment of the script
-        self.prevWord = None
-        # remove some annoying stc key commands
-        CTRL = wx.stc.STC_SCMOD_CTRL
-        self.CmdKeyClear(ord('['), CTRL)
-        self.CmdKeyClear(ord(']'), CTRL)
-        self.CmdKeyClear(ord('/'), CTRL)
-        self.CmdKeyClear(ord('/'), CTRL | wx.stc.STC_SCMOD_SHIFT)
+        self.params = params
 
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
@@ -295,56 +282,29 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.SetProperty("fold", "1")
         # 4 means 'tabs are bad'; 1 means 'flag inconsistency'
         self.SetProperty("tab.timmy.whinge.level", "4")
-        self.SetMargins(0, 0)
-        self.SetUseTabs(False)
-        self.SetTabWidth(4)
-        self.SetIndent(4)
         self.SetViewWhiteSpace(self.prefs.appData['coder']['showWhitespace'])
-        self.SetBufferedDraw(False)
         self.SetViewEOL(False)
-        self.SetEOLMode(wx.stc.STC_EOL_LF)
-        # self.SetUseHorizontalScrollBar(True)
-        # self.SetUseVerticalScrollBar(True)
 
-        # self.SetEdgeMode(wx.stc.STC_EDGE_BACKGROUND)
-        # self.SetEdgeMode(wx.stc.STC_EDGE_LINE)
-        # self.SetEdgeColumn(78)
-
-        # Setup a margin to hold fold markers
-        self.SetMarginType(2, wx.stc.STC_MARGIN_SYMBOL)
-        self.SetMarginMask(2, wx.stc.STC_MASK_FOLDERS)
-        self.SetMarginSensitive(2, True)
-        self.SetMarginWidth(2, 12)
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
-
         self.SetIndentationGuides(False)
 
-        # Like a flattened tree control using square headers
-        white = "white"
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
-                          wx.stc.STC_MARK_BOXMINUS, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,
-                          wx.stc.STC_MARK_BOXPLUS, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB,
-                          wx.stc.STC_MARK_VLINE, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL,
-                          wx.stc.STC_MARK_LCORNER, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,
-                          wx.stc.STC_MARK_BOXPLUSCONNECTED, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID,
-                          wx.stc.STC_MARK_BOXMINUSCONNECTED, white, "#808080")
-        self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
-                          wx.stc.STC_MARK_TCORNER, white, "#808080")
-
-        # self.DragAcceptFiles(True)
-        # self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
-        # self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        # # self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
-        # self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
-        # self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
-        # self.SetDropTarget(FileDropTarget(coder = self.coder))
-
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
         self.setupStyles()
+
+    def OnKeyPressed(self, event):
+        keyCode = event.GetKeyCode()
+        _mods = event.GetModifiers()
+        if keyCode == ord('/') and wx.MOD_CONTROL == _mods:
+            self.toggleCommentLines(self.params['Code Type'].val)
+
+        if keyCode == wx.WXK_RETURN and not self.AutoCompActive():
+            # prcoess end of line and then do smart indentation
+            event.Skip(False)
+            self.CmdKeyExecute(wx.stc.STC_CMD_NEWLINE)
+            self.smartIdentThisLine(self.params['Code Type'].val)
+            return  # so that we don't reach the skip line at end
+
+        event.Skip()
 
     def setupStyles(self):
 
