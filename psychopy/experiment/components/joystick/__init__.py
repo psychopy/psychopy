@@ -172,6 +172,8 @@ class JoystickComponent(BaseComponent):
                 "%(name)s.device_number = %(deviceNumber)s\n"
                 "%(name)s.joystickClock = core.Clock()\n"
                 "%(name)s.buttons = []\n"
+                "%(name)s.xFactor = 1\n"
+                "%(name)s.yFactor = 1\n"
                 "\n"
                 "try:\n")
         buff.writeIndentedLines(code % self.params)
@@ -182,8 +184,16 @@ class JoystickComponent(BaseComponent):
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(+1, relative=True)
-        code = ("%(name)s.device = joysticklib.Joystick(%(deviceNumber)s)\n")
+        code = ("%(name)s.device = joysticklib.Joystick(%(deviceNumber)s)\n"
+                "if win.units == 'height':\n")
         buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = ("%(name)s.xFactor = 0.5 * win.size[0]/win.size[1]\n"
+                "%(name)s.yFactor = 0.5\n")
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
         buff.setIndentLevel(-1, relative=True)
 
         code = ("else:\n")
@@ -222,8 +232,9 @@ class JoystickComponent(BaseComponent):
                 "%(name)s.getNumButtons = %(name)s.device.getNumButtons\n"
                 "%(name)s.oldButtonState = %(name)s.device.getAllButtons()[:]\n"
                 "%(name)s.getAllButtons = %(name)s.device.getAllButtons\n"
-                "%(name)s.getX = %(name)s.device.getX\n"
-                "%(name)s.getY = %(name)s.device.getY\n")
+                "%(name)s.getX = lambda: %(name)s.xFactor * %(name)s.device.getX()\n"
+                "%(name)s.getY = lambda: %(name)s.yFactor * %(name)s.device.getY()\n"
+        )
         buff.writeIndentedLines(code % self.params)
         buff.writeIndented("\n")
 
