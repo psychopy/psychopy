@@ -27,7 +27,7 @@ class Test_Form(object):
                       "layout": 'vert'}
         self.questions.append(self.genderItem)
         # then a set of ratings
-        items = ["running", "cake"]
+        items = ["running", "cake", "programming"]
         for item in items:
             entry = {"questionText": "How much you like {}".format(item),
                      "questionWidth": 0.7,
@@ -135,14 +135,13 @@ class Test_Form(object):
 
     def test_respHeight(self):
         for item in self.survey.items:
-            print(item)
             if item['layout'] == 'vert':
                 assert self.survey.getRespHeight(item) == (len(item['options']) * self.survey.textHeight)
             elif item['layout'] == 'horiz' and len(item['options']) <= 3:
                 assert self.survey.getRespHeight(item) == self.survey.textHeight
-            elif item['layout'] == 'horiz' and len(item['options']) > 3:
+            elif item['layout'] == 'horiz' and len(item['options']) > 3 and not item['type'] == 'rating':
                 longest = len(item['options'][-1])
-                assert self.survey.getRespHeight(item) == (self.survey.textHeight * longest) - (.015 * longest)
+                assert self.survey.getRespHeight(item) == (self.survey.textHeight * longest) - (.0155 * longest)
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.3)[0]  # width
@@ -184,7 +183,8 @@ class Test_Form(object):
             response, respHeight, = survey._setResponse(item, question)
             testPositions.append(survey.virtualHeight
                                  - max(respHeight, questionHeight)
-                                 - survey.textHeight)
+                                 - survey.textHeight
+                                 + (respHeight / 2) * (item['layout'] == 'vert'))
             survey.virtualHeight -= max(respHeight, questionHeight) + survey.itemPadding
 
         for idx, pos in enumerate(survey._baseYpositions):
@@ -201,12 +201,15 @@ class Test_Form(object):
     def test_screen_status(self):
         assert self.survey._inRange(self.survey._items['question'][0])
         with pytest.raises(AssertionError):
-            assert self.survey._inRange(self.survey._items['question'][2])
+            assert self.survey._inRange(self.survey._items['question'][3])
 
     def test_get_data(self):
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
         data = self.survey.getData()
-        assert set(data['questions']) == {'What is your gender?', 'How much you like running', 'How much you like cake'}
+        assert set(data['questions']) == {'What is your gender?',
+                                          'How much you like running',
+                                          'How much you like cake',
+                                          'How much you like programming',}
         assert set(data['ratings']) == {None}
         assert set(data['rt']) == {None}
 
