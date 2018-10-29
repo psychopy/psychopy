@@ -68,3 +68,4 @@ class InfoStream(wx.TextCtrl):
         if type(text) == bytes:
             text = text.decode('utf-8')
         self.SetValue(self.GetValue() + text)
+        wx.Yield()

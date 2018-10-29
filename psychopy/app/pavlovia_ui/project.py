@@ -460,7 +460,7 @@ def syncProject(parent, project=None):
         if outcome == -1:  # user cancelled
             return -1
         try:
-            status = project.sync(syncFrame.syncPanel)
+            status = project.sync(syncFrame.syncPanel.infoStream)
             if status == -1:
                 syncFrame.syncPanel.statusAppend("Couldn't sync")
         except Exception:  # not yet sure what errors might occur

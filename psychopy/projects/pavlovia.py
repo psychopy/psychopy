@@ -576,7 +576,7 @@ class PavloviaProject(dict):
 
     @property
     def remoteWithToken(self):
-        """The remote for git sync using an oauth token
+        """The remote for git sync using an oauth token (always as a bytes obj)
         """
         currentSession = getCurrentSession()
         rawHTTPS = self['remoteHTTPS']
@@ -586,8 +586,10 @@ class PavloviaProject(dict):
                                       .format(currentSession.token))
         else:
             remote = None
-
+        # if remote and type(remote) != bytes:
+        #     remote = remote.encode('utf-8')
         return remote
+
     @property
     def group(self):
         if self.pavlovia:
@@ -630,12 +632,12 @@ class PavloviaProject(dict):
         # pull first then push
         t0 = time.time()
         if self.emptyRemote:  # we don't have a repo there yet to do a 1st push
-            self.firstPush()
+            self.firstPush(infoStream=infoStream)
         else:
             status = self.pull(infoStream=infoStream)
             if status == MISSING_REMOTE:
                 return -1
-            self.repo = dulwich.repo.Repo(self.localRoot)  # get a new copy of repo (
+            # self.repo = dulwich.repo.Repo(self.localRoot)
             time.sleep(0.1)
             status = self.push(infoStream=infoStream)
             if status == MISSING_REMOTE:
@@ -666,7 +668,8 @@ class PavloviaProject(dict):
             infoStream.write("\nPulling changes from remote...")
 
         try:
-            git.pull(self.repo, self.remoteWithToken,
+            git.pull(self.repo,
+                     self.remoteWithToken,
                      outstream=infoStream,
                      errstream=infoStream)
         except Exception as e:
@@ -699,7 +702,9 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPushing changes to remote...")
         try:
-            git.push(self.repo, self.remoteWithToken, 'master',
+            git.push(self.repo,
+                     self.remoteWithToken,
+                     b'master',
                      outstream=infoStream, errstream=infoStream)
         except Exception as e:
             if ("The project you were looking for could not be found" in
@@ -872,6 +877,7 @@ class PavloviaProject(dict):
         status = git.status(self.repo)
         # now to work out the type of change we need to stage the changes
         self.repo.stage(status.unstaged)
+        self.repo.stage(status.untracked)
 
         # print(status.staged)
         # print(status.unstaged)
@@ -1012,8 +1018,8 @@ def getProject(filename):
         proj = None
         config = localRepo.get_config()
         for sectionType in config:
-            if sectionType[0] == 'remote':
-                url = config.get(sectionType, 'url')
+            if sectionType[0] == b'remote':
+                url = config.get(sectionType, b'url').decode('utf-8')
                 if "gitlab.pavlovia.org/" in url:
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
