@@ -150,7 +150,7 @@ def logAttrib(obj, log, attrib, value=None):
     If value=None, it will take the value of self.attrib.
     """
     # Default to autoLog if log isn't set explicitly
-    if log or log is None and obj.autoLog:
+    if log or log is None and obj.autoLog == True:
         if value is None:
             value = getattr(obj, attrib)
 

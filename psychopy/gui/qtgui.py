@@ -176,8 +176,8 @@ class Dlg(QtWidgets.QDialog):
 
             def handleLineEditChange(new_text):
                 ix = self.inputFields.index(inputBox)
-                name = self.inputFieldNames[ix]
-                thisType = self.inputFieldTypes[name]
+                fieldNames = list(self.inputFieldTypes.keys())
+                thisType = self.inputFieldTypes[fieldNames[ix]]
 
                 try:
                     if thisType in (str, unicode, bytes):
