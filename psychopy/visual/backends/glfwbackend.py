@@ -567,9 +567,15 @@ class GLFWBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+        # Test if the window has already been closed
+        if glfw.window_should_close(self.winHandle):
+            return
+
         _hw_handle = None
+
         try:
             self.setMouseVisibility(True)
+            glfw.set_window_should_close(self.winHandle, 1)
             glfw.destroy_window(self.winHandle)
         except Exception:
             pass
