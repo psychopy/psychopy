@@ -569,11 +569,8 @@ class GLFWBackend(BaseBackend):
         """
         _hw_handle = None
         try:
-            _hw_handle = self.win._hw_handle
-            # We need to call this when closing a window, however the window
-            # object is None at this point! So the GLFW window object lives on.
-            win = glfw.get_window_user_pointer(self.winHandle)
-            glfw.destroy_window(win)
+            self.setMouseVisibility(True)
+            glfw.destroy_window(self.winHandle)
         except Exception:
             pass
         # If iohub is running, inform it to stop looking for this win id
