@@ -26,7 +26,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         self.fileModTime = None  # was file modified outside of CodeEditor
         self.AUTOCOMPLETE = True
         self.autoCompleteDict = {}
-        self._commentType = {'Py': '#', 'JS': '//'}
+        self._commentType = {'Py': '#', 'JS': '//', 'Both': '//' or '#'}
 
         # doesn't pause strangely
         self.locals = None  # will contain the local environment of the script
@@ -93,7 +93,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         except ZeroDivisionError:
             if self.LineLength(self.GetCurrentLine()) == 1:
                 self._ReplaceSelectedLines(self._commentType[codeType])
-                devCrit, decVal, passDec = 1,0, True
+                devCrit, decVal, passDec = 1, 0, True
             else:
                 self.CharRightExtend() # Move caret so line is counted
                 devCrit, decVal = .6, nHashtags / len(self._GetSelectedLineNumbers())
@@ -153,7 +153,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         endLineNum = self.LineFromPosition(self.GetSelectionEnd())
         prevLine = self.GetLine(startLineNum - 1)
         prevIndent = self.GetLineIndentation(startLineNum - 1)
-        signal = {'Py': [':'], 'JS': ['{']}
+        signal = {'Py': [':'], 'JS': ['{'], 'Both': ['{', ':']}
 
         # set the indent
         self.SetLineIndentation(startLineNum, prevIndent)
@@ -168,7 +168,7 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl):
         prevLogical = prevLogical.strip()
         if len(prevLogical) > 0 and prevLogical[-1] in signal[codeType]:
             self.CmdKeyExecute(wx.stc.STC_CMD_TAB)
-        elif len(prevLogical) > 0 and prevLogical[-1] == '}' and codeType == 'JS':
+        elif len(prevLogical) > 0 and prevLogical[-1] == '}' and codeType in ['JS', 'Both']:
             self.CmdKeyExecute(wx.stc.STC_SCMOD_SHIFT + wx.stc.STC_CMD_TAB)
 
     def smartIndent(self):
