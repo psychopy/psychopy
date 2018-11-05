@@ -217,7 +217,10 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     def __del__(self):
         if GL:  # because of pytest fail otherwise
-            GL.glDeleteLists(self._listID, 1)
+            try:
+                GL.glDeleteLists(self._listID, 1)
+            except Exception:
+                pass  # probably we don't have a _listID property
 
     @attributeSetter
     def height(self, height):
