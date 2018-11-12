@@ -260,12 +260,12 @@ class SettingsComponent(object):
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
         self.params['Completed URL'] = Param(
-            'completedURL', valType='str',
+            '', valType='str',
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
                             " INSERT COMPLETION URL E.G.?"),
             label="Completed URL", categ='Online')
         self.params['Incomplete URL'] = Param(
-            'incompleteURL', valType='str',
+            '', valType='str',
             hint=_translate("Where participants are redirected if they do not complete the task\n"
                             " INSERT INCOMPLETION URL E.G.?"),
             label="Incomplete URL", categ='Online')
@@ -488,6 +488,11 @@ class SettingsComponent(object):
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
+        setRedirectURL = ''
+        if len(self.params['Completed URL'].val) or len(self.params['Incomplete URL'].val):
+            setRedirectURL = ("psychoJS.setRedirectUrls({completedURL}, {incompleteURL});\n"
+                              .format(completedURL=self.params['Completed URL'],
+                                      incompleteURL=self.params['Incomplete URL']))
         # check where to save data variables
         # if self.params['OSF Project ID'].val:
         #     saveType = "OSF_VIA_EXPERIMENT_SERVER"
@@ -499,9 +504,7 @@ class SettingsComponent(object):
                         params=self.params,
                         name=self.params['expName'].val,
                         loggingLevel=self.params['logging level'].val.upper(),
-                        completedURL=self.params['Completed URL'],
-                        incompleteURL=self.params['Incomplete URL'],
-                        version=version,
+                        setRedirectURL=setRedirectURL,
                         )
         buff.writeIndentedLines(code)
 

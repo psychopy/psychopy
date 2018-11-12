@@ -567,13 +567,16 @@ class GLFWBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+        # Test if the window has already been closed
+        if glfw.window_should_close(self.winHandle):
+            return
+
         _hw_handle = None
+
         try:
-            _hw_handle = self.win._hw_handle
-            # We need to call this when closing a window, however the window
-            # object is None at this point! So the GLFW window object lives on.
-            win = glfw.get_window_user_pointer(self.winHandle)
-            glfw.destroy_window(win)
+            self.setMouseVisibility(True)
+            glfw.set_window_should_close(self.winHandle, 1)
+            glfw.destroy_window(self.winHandle)
         except Exception:
             pass
         # If iohub is running, inform it to stop looking for this win id
