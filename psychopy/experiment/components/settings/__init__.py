@@ -505,6 +505,7 @@ class SettingsComponent(object):
                         name=self.params['expName'].val,
                         loggingLevel=self.params['logging level'].val.upper(),
                         setRedirectURL=setRedirectURL,
+                        version=version,
                         )
         buff.writeIndentedLines(code)
 
