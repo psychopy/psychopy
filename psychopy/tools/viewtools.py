@@ -78,12 +78,12 @@ def computeFrustum(scrWidth,
     return Frustum(left, right, bottom, top, nearClip, farClip)
 
 
-def generalPerspectiveProjection(posBottomLeft,
-                                 posBottomRight,
-                                 posTopLeft,
-                                 eyePos,
-                                 nearClip=0.01,
-                                 farClip=100.0):
+def generalizedPerspectiveProjection(posBottomLeft,
+                                     posBottomRight,
+                                     posTopLeft,
+                                     eyePos,
+                                     nearClip=0.01,
+                                     farClip=100.0):
     """Generalized derivation of projection and view matrices based on the
     physical configuration of the display system.
 

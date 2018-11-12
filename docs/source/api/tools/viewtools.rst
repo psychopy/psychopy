@@ -8,7 +8,7 @@
 .. autosummary:: 
 
     computeFrustum
-    generalPerspectiveProjection
+    generalizedPerspectiveProjection
     orthoProjectionMatrix
     perspectiveProjectionMatrix
     lookAt
@@ -17,7 +17,7 @@ Function details
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: computeFrustum
-.. autofunction:: generalPerspectiveProjection
+.. autofunction:: generalizedPerspectiveProjection
 .. autofunction:: orthoProjectionMatrix
 .. autofunction:: perspectiveProjectionMatrix
 .. autofunction:: lookAt
