@@ -62,7 +62,7 @@ def computeFrustum(scrWidth,
     -----
     The view point must be transformed for objects to appear correctly. Offsets
     in the X-direction must be applied +/- eyeOffset to account for inter-ocular
-    separation. A transforqmation in the Z-direction must be applied to account
+    separation. A transformation in the Z-direction must be applied to account
     for screen distance. These offsets MUST be applied to the MODELVIEW matrix,
     not the PROJECTION matrix! Doing so may break lighting calculations.
 
