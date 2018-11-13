@@ -77,6 +77,7 @@ from . import backends
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
+import psychopy.tools.viewtools as viewtools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -335,6 +336,16 @@ class Window(object):
         # load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
+
+        # Projection and view matrices, these can be lists if multiple views are
+        # being used.
+        # NB - attribute checks needed for Rift compatibility
+        if not hasattr(self, '_viewMatrix'):
+            self._viewMatrix = numpy.zeros((4,4,), numpy.float32)
+            numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity
+
+        if not hasattr(self, '_projectionMatrix'):
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
 
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
@@ -706,6 +717,8 @@ class Window(object):
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
                 GL.glColorMask(True, True, True, True)
 
+                self.setDefaultView(False)  # reset transformations
+
                 self._renderFBO()
 
                 GL.glEnable(GL.GL_BLEND)
@@ -924,6 +937,106 @@ class Window(object):
         """
         # reset returned buffer for next frame
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+    @property
+    def projectionMatrix(self):
+        """Projection matrix defined as a 4x4 numpy array."""
+        return self._projectionMatrix
+
+    @projectionMatrix.setter
+    def projectionMatrix(self, value):
+        self._projectionMatrix = numpy.asarray(value, numpy.float32)
+
+    @property
+    def viewMatrix(self):
+        """View matrix defined as a 4x4 numpy array."""
+        return self._viewMatrix
+
+    @viewMatrix.setter
+    def viewMatrix(self, value):
+        self._viewMatrix = numpy.asarray(value, numpy.float32)
+
+    def setPerspectiveView(self, clearDepth=True):
+        """Set the projection and view matrix to render with perspective.
+        Matrices are computed using values specified in the monitor
+        configuration with the scene origin on the screen plane.
+
+        Note that the values of 'projectionMatrix' and 'viewMatrix' will be
+        replaced when calling this function.
+
+        Parameters
+        ----------
+        clearDepth : bool
+            Clear the depth buffer. This may be required prior to rendering 3D
+            objects.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        For greater control of projection and view transformations, you can
+        compute the matrices yourself and pass them to 'projectionMatrix' and
+        'viewMatrix'. From there, you can apply them using 'glMultMatrixf'
+        after setting the appropriate matrix mode, or they can be passed to your
+        shader program.
+
+        """
+        # NB - we should eventually compute these matrices lazily since they may
+        # not change over the course of an experiment under most circumstances.
+        #
+        scrDistM = self.scrDistCM / 100.0
+        frustum = viewtools.computeFrustum(
+            self.scrWidthCM / 100.0,  # width of screen
+            self.size[0] / self.size[1],  # aspect ratio
+            scrDistM)  # distance to screen
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        projMat = self._projectionMatrix.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+
+        # translate away from screen
+        self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32)
+        numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
+        self._viewMatrix[3, 2] = scrDistM  # displace scene away from viewer
+        viewMat = self._viewMatrix.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+
+        # apply the projection and view transformations
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glMultMatrixf(projMat)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+        GL.glMultMatrixf(viewMat)
+
+        if clearDepth:
+            GL.glDepthMask(GL.GL_TRUE)
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+    def setDefaultView(self, clearDepth=True):
+        """Restore the default projection and view settings.
+
+        Call this prior to drawing 2D stimuli objects (i.e. GratingStim,
+        ImageStim, Rect, etc.) if any other 'set*View' function was called for
+        the stimuli to be drawn correctly.
+
+        Returns
+        -------
+        None
+
+        """
+        #GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
+        if clearDepth:
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
@@ -1491,6 +1604,10 @@ class Window(object):
         GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT,
                                     GL.GL_DEPTH24_STENCIL8_EXT,
                                     int(self.size[0]), int(self.size[1]))
+        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                        GL.GL_DEPTH_ATTACHMENT_EXT,
+                                        GL.GL_RENDERBUFFER_EXT,
+                                        self._stencilTexture)
         GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
                                         GL.GL_STENCIL_ATTACHMENT_EXT,
                                         GL.GL_RENDERBUFFER_EXT,
