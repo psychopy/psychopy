@@ -291,7 +291,17 @@ class HookManager(threading.Thread):
             print2err(
                 'pyXlib: * received swapped protocol data, cowardly ignored')
             return
-        if not len(reply.data) or ord(reply.data[0]) < 2:
+        """
+        Ian Charest: fix for python 3
+        see:  https://github.com/JeffHoogland/pyxhook/blob/master/pyxhook.py
+        """
+        try:
+            # Get int value, python2.
+            intval = ord(reply.data[0])
+        except TypeError:
+            # Already bytes/ints, python3.
+            intval = reply.data[0]
+        if (not reply.data) or (intval < 2):
             # not an event
             return
         data = reply.data
@@ -299,7 +309,7 @@ class HookManager(threading.Thread):
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(
                 data, self.record_dpy.display, None, None)
-
+            
             if self.log_events_file and event.type in self.evt_types:
                 self.log_events_file.write(event2json(event) + '\n')
 
@@ -340,6 +350,14 @@ class HookManager(threading.Thread):
         self.mouse_position_y = event.root_y
         r = self.makemousehookevent(event)
         return r
+    
+    def bytesOrStr(self,charbuf):
+        try:
+            char = u'' + charbuf
+        except TypeError:
+            # python 3 bytes to str
+            char = u'' + charbuf.decode('utf-8')
+        return char
 
     def getKeyChar(self, kb_event):
         keycode = kb_event.detail
@@ -370,7 +388,7 @@ class HookManager(threading.Thread):
         char = ''
         ucat = ''
         if count > 0:
-            char = u'' + self._charbuf[0:count]
+            char = self.bytesOrStr(self._charbuf[0:count])
             ucat = unicodedata.category(char)
             char = char.encode('utf-8')
 
@@ -391,21 +409,39 @@ class HookManager(threading.Thread):
         key = _xlib.XKeysymToString(keysym)
         if key:
             key = key.lower()
-            if key and key.startswith('kp_'):
-                key = 'num_%s' % (key[3:])
-            elif key in key_mappings:
-                key = key_mappings[key]
-            elif count > 0:
-                self._xkey_evt.state = 0
-                count = _xlib.XLookupString(
-                    ct.byref(
-                        self._xkey_evt), self._charbuf, 16, ct.byref(
-                        self._keysym), ct.byref(
-                        self._tmp_compose))
-                key = ''
-                if count > 0:
-                    key = u'' + self._charbuf[0:count]
-                    key = key.encode('utf-8')
+            try:
+                if key and key.startswith('kp_'):
+                    key = 'num_%s' % (key[3:])
+                elif key in key_mappings:
+                    key = key_mappings[key]
+                elif count > 0:
+                    self._xkey_evt.state = 0
+                    count = _xlib.XLookupString(
+                        ct.byref(
+                            self._xkey_evt), self._charbuf, 16, ct.byref(
+                            self._keysym), ct.byref(
+                            self._tmp_compose))
+                    key = ''
+                    if count > 0:
+                        key = self.bytesOrStr(self._charbuf[0:count])
+                        key = key.encode('utf-8')
+            except TypeError:
+                # python 3 : key.startwith needs bytes or tuple of bytes not str
+                if key and key.startswith(b'kp_'):
+                    key = 'num_%s' % (key[3:])
+                elif key in key_mappings:
+                    key = key_mappings[key]
+                elif count > 0:
+                    self._xkey_evt.state = 0
+                    count = _xlib.XLookupString(
+                        ct.byref(
+                            self._xkey_evt), self._charbuf, 16, ct.byref(
+                            self._keysym), ct.byref(
+                            self._tmp_compose))
+                    key = ''
+                    if count > 0:
+                        key = self.bytesOrStr(self._charbuf[0:count])
+                        key = key.encode('utf-8')             
         else:
             key = ''
 
