@@ -956,10 +956,11 @@ class Window(object):
     def viewMatrix(self, value):
         self._viewMatrix = numpy.asarray(value, numpy.float32)
 
-    def setPerspectiveView(self, clearDepth=True):
+    def setPerspectiveView(self, clearDepth=True, computeOnly=False):
         """Set the projection and view matrix to render with perspective.
         Matrices are computed using values specified in the monitor
-        configuration with the scene origin on the screen plane.
+        configuration with the scene origin on the screen plane. Calculations
+        assume units are in meters.
 
         Note that the values of 'projectionMatrix' and 'viewMatrix' will be
         replaced when calling this function.
@@ -969,18 +970,13 @@ class Window(object):
         clearDepth : bool
             Clear the depth buffer. This may be required prior to rendering 3D
             objects.
+        computeOnly : bool
+            Compute the matrices without multiplying them into their respective
+            matrix stacks.
 
         Returns
         -------
         None
-
-        Notes
-        -----
-        For greater control of projection and view transformations, you can
-        compute the matrices yourself and pass them to 'projectionMatrix' and
-        'viewMatrix'. From there, you can apply them using 'glMultMatrixf'
-        after setting the appropriate matrix mode, or they can be passed to your
-        shader program.
 
         """
         # NB - we should eventually compute these matrices lazily since they may
@@ -993,24 +989,29 @@ class Window(object):
             scrDistM)  # distance to screen
 
         self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
-        projMat = self._projectionMatrix.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_float))
 
         # translate away from screen
         self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32)
         numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
-        self._viewMatrix[3, 2] = scrDistM  # displace scene away from viewer
-        viewMat = self._viewMatrix.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_float))
+        self._viewMatrix[3, 2] = -scrDistM  # displace scene away from viewer
 
-        # apply the projection and view transformations
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glMultMatrixf(projMat)
+        if not computeOnly:
+            # needed here?
+            GL.glViewport(0, 0, self.size[0], self.size[1])
+            GL.glScissor(0, 0, self.size[0], self.size[1])
 
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
-        GL.glMultMatrixf(viewMat)
+            # apply the projection and view transformations
+            GL.glMatrixMode(GL.GL_PROJECTION)
+            GL.glLoadIdentity()
+            projMat = self._projectionMatrix.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+            GL.glMultMatrixf(projMat)
+
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glLoadIdentity()
+            viewMat = self._viewMatrix.ctypes.data_as(
+                ctypes.POINTER(ctypes.c_float))
+            GL.glMultMatrixf(viewMat)
 
         if clearDepth:
             GL.glDepthMask(GL.GL_TRUE)
@@ -1028,7 +1029,9 @@ class Window(object):
         None
 
         """
-        #GL.glViewport(0, 0, self.size[0], self.size[1])
+        # should eventually have the same effect as calling _onResize()
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GL.glOrtho(-1, 1, -1, 1, -1, 1)
