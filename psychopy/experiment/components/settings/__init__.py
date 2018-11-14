@@ -483,7 +483,7 @@ class SettingsComponent(object):
                 "\n" % self.params)
         buff.writeIndentedLines(code)
 
-    def writeExpSetupCodeJS(self, buff):
+    def writeExpSetupCodeJS(self, buff, version):
 
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
@@ -505,10 +505,11 @@ class SettingsComponent(object):
                         name=self.params['expName'].val,
                         loggingLevel=self.params['logging level'].val.upper(),
                         setRedirectURL=setRedirectURL,
+                        version=version,
                         )
         buff.writeIndentedLines(code)
 
-    def writeStartCode(self, buff):
+    def writeStartCode(self, buff, version):
 
         if not PY3:
             decodingInfo = ".decode(sys.getfilesystemencoding())"
@@ -520,7 +521,8 @@ class SettingsComponent(object):
                 "{decoding}\n"
                 "os.chdir(_thisDir)\n\n"
                 "# Store info about the experiment session\n"
-                .format(decoding=decodingInfo))
+                "psychopyVersion = '{version}'\n".format(decoding=decodingInfo,
+                                                         version=version))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:
@@ -537,7 +539,8 @@ class SettingsComponent(object):
                 "if dlg.OK == False:\n    core.quit()  # user pressed cancel\n")
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
-            "expInfo['expName'] = expName\n")
+            "expInfo['expName'] = expName\n"
+            "expInfo['psychopyVersion'] = psychopyVersion")
         level = self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
