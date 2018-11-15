@@ -9,7 +9,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import atexit
 from builtins import object
 import sys
 import threading
@@ -40,7 +39,6 @@ except ImportError:
 try:
     import glfw
     haveGLFW = True
-    atexit.register(glfw.terminate)
 except ImportError:
     haveGLFW = False
 
@@ -74,13 +72,17 @@ def quit():
     """
     # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
-
+    
     for thisThread in threading.enumerate():
         if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
             # this is one of our event threads - kill it and wait for success
             thisThread.stop()
             while thisThread.running == 0:
                 pass  # wait until it has properly finished polling
+
+    # call terminate() on GLFW if available
+    if haveGLFW:
+        glfw.terminate()
 
     sys.exit(0)  # quits the python session entirely
 
@@ -124,7 +126,7 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
     """
     if encoding is None:
         encoding = locale.getpreferredencoding()
-
+    
     if type(shellCmd) == str:
         # safely split into cmd+list-of-args, no pipes here
         shellCmdList = shlex.split(shellCmd)
