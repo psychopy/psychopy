@@ -14,6 +14,7 @@ and initialize an instance using the attributes of the Window.
 """
 
 from __future__ import absolute_import, print_function
+import atexit
 import sys, os
 import numpy as np
 from psychopy import logging, event, prefs
@@ -30,6 +31,7 @@ if not glfw.init():
                        "has been correctly installed or use a "
                        "different backend. Exiting.")
 
+atexit.register(glfw.terminate)
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
