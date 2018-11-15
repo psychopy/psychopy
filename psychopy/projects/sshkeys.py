@@ -35,15 +35,17 @@ def saveKeyPair(filepath, comment=''):
     """
     if type(comment) is not bytes:
         comment = comment.encode('utf-8')
+    if type(filepath) is not bytes:
+        filepath = filepath.encode('utf-8')
 
-    try:  # tyr using ssh-keygen (more standard and probably faster)
+    try:  # try using ssh-keygen (more standard and probably faster)
         folder = os.path.split(filepath)[0]
         if not os.path.isdir(folder):
             os.mkdir(folder)
-        output = subprocess.check_output(['ssh-keygen',
-                                          '-C', comment,
-                                          '-f', filepath,
-                                          '-P', ''])
+        output = subprocess.check_output([b'ssh-keygen',
+                                          b'-C', comment,
+                                          b'-f', filepath,
+                                          b'-P', b''])
         # then read it back in to pass back
         public_key = getPublicKey(filepath + ".pub")
     except subprocess.CalledProcessError:

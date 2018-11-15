@@ -1665,21 +1665,22 @@ class BuilderFrame(wx.Frame):
             htmlPath = self._getHtmlPath(self.filename)
 
         # present dialog box
-        dlg = ExportFileDialog(self, wx.ID_ANY,
-                               title=_translate("Export HTML file"),
-                               filePath=htmlPath,
-                               exp=self.exp)
-        export = dlg.exportOnSave
-        if self.exp.settings.params['exportHTML'].val == 'manually':
-            retVal = dlg.ShowModal()
-            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-            if retVal != wx.ID_OK:  # User cancelled export
-                return False
+        if htmlPath:
+            dlg = ExportFileDialog(self, wx.ID_ANY,
+                                   title=_translate("Export HTML file"),
+                                   filePath=htmlPath,
+                                   exp=self.exp)
+            export = dlg.exportOnSave
+            if self.exp.settings.params['exportHTML'].val == 'manually':
+                retVal = dlg.ShowModal()
+                self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
+                if retVal != wx.ID_OK:  # User cancelled export
+                    return False
 
-        htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
-        # then save the actual script
-        self.generateScript(experimentPath=htmlPath,
-                            target="PsychoJS")
+            htmlPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
+            # then save the actual script
+            self.generateScript(experimentPath=htmlPath,
+                                target="PsychoJS")
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -2243,8 +2244,11 @@ class BuilderFrame(wx.Frame):
     def _getHtmlPath(self, filename):
         expPath = os.path.split(filename)[0]
         if not os.path.isdir(expPath):
-            self.fileSave()
-            return self._getHtmlPath(self.filename)
+            retVal = self.fileSave()
+            if retVal:
+                return self._getHtmlPath(self.filename)
+            else:
+                return False
         htmlFolder = self.exp.settings.params['HTML path'].val
         htmlPath = os.path.join(expPath, htmlFolder)
         return htmlPath

@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 import os
 import glob
+import warnings
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -144,6 +145,13 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+
+        """
+        October 2018:
+            In place to remove the deprecation warning for pyglet.font.Text.
+            Temporary fix until pyglet.text.Label use is identical to pyglet.font.Text.
+        """
+        warnings.filterwarnings(message='.*text.Label*', action='ignore')
 
         super(TextStim, self).__init__(
             win, units=units, name=name, autoLog=False)
