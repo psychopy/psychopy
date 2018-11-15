@@ -256,9 +256,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         the movie.
         """
         if self.status != STOPPED:
-            self.status = STOPPED
             self._unload()
             self.reset()
+            self.status = STOPPED # set status to STOPPED after _unload
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s stopped" % (self.name),
                                    level=logging.EXP, obj=self)
