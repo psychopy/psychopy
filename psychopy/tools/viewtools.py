@@ -288,7 +288,7 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
 
     Parameters
     ----------
-    wcsPos : ndarray
+    wcsPos : tuple, list or ndarray
         3x1 position vector(s) (xyz) in world space coordinates
     viewMatrix : ndarray
         4x4 view matrix
@@ -305,6 +305,12 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     The point is not visible, falling outside of the viewing frustum, if the
     returned coordinates fall outside of -1 and 1 along any dimension.
 
+    Examples
+    --------
+    Determine if a point is visible::
+        point = (0.0, 0.0, 0.0)
+        x, y, z = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+
     """
     # TODO - this would be more useful if this function accepted 3xN input too
     coord = np.asarray(wcsPos, dtype=np.float32)  # convert to array
@@ -319,5 +325,9 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     wcsVec[3] = 1.0
 
     clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
+
+    # handle the singularity case when the point falls on the eye
+    if np.isclose(clipCoords[3], 0.0):
+        clipCoords[3] = np.finfo(np.float32).eps
 
     return clipCoords[:3] / clipCoords[3]  # xyz / w
