@@ -303,8 +303,12 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     Notes
     -----
     The point is not visible, falling outside of the viewing frustum, if the
-    returned coordinates fall outside of -1 and 1 along any dimension. If the
-    point falls exactly on the
+    returned coordinates fall outside of -1 and 1 along any dimension.
+
+    In the rare instance the point falls directly on the eye in world space
+    where the frustum converges to a point (singularity), the divisor will be
+    zero during perspective division. To avoid this, the divisor is 'bumped' to
+    machine epsilon for the 'float32' type.
 
     Examples
     --------
@@ -312,6 +316,9 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
         point = (0.0, 0.0, 10.0)  # behind the observer
         ndc = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
         isVisible = not np.any((ndc > 1.0) | (ndc < -1.0))
+
+    Convert NDC to viewport coordinates::
+
 
     """
     # TODO - this would be more useful if this function accepted 3xN input too
