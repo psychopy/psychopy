@@ -322,7 +322,8 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
         point = (0.0, 0.0, -5.0)  # forward -5.0 from eye
         x, y, z = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
         pixelX = ((x + 1.0) / 2.0) * scrRes[0])
-        pixelY = ((y + 1.0) / 2.0) * scrRes[0])
+        pixelY = ((y + 1.0) / 2.0) * scrRes[1])
+        # object at point will appear at (pixelX, pixelY)
 
     """
     # TODO - this would be more useful if this function accepted 3xN input too
