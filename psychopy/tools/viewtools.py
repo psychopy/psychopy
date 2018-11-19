@@ -289,7 +289,7 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     Parameters
     ----------
     wcsPos : ndarray
-        3x1 position vector (xyz) in world space coordinates
+        3x1 position vector(s) (xyz) in world space coordinates
     viewMatrix : ndarray
         4x4 view matrix
     projectionMatrix : ndarray
@@ -306,11 +306,12 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     returned coordinates fall outside of -1 and 1 along any dimension.
 
     """
-    # convert to array
-    coord = np.asarray(wcsPos, dtype=np.float32)
+    # TODO - this would be more useful if this function accepted 3xN input too
+    coord = np.asarray(wcsPos, dtype=np.float32)  # convert to array
+
+    # forward transform from world to clipping space
     viewProjMatrix = np.zeros((4, 4), dtype=np.float32)
-    # transposing because arrays are C-order
-    np.matmul(projectionMatrix.T, viewMatrix.T, viewProjMatrix)
+    np.matmul(projectionMatrix.T, viewMatrix.T, viewProjMatrix)  # c-order
 
     # convert to 4-vector with W=1.0
     wcsVec = np.zeros((4,), dtype=np.float32)
