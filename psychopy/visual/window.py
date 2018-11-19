@@ -1012,8 +1012,9 @@ class Window(object):
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self.projectionMatrix = \
-            viewtools.perspectiveProjectionMatrix(*frustum)
+        self._projectionMatrix = numpy.asfortranarray(
+            viewtools.perspectiveProjectionMatrix(*frustum),
+            dtype=numpy.float32)
 
         # translate away from screen
         self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32, order='F')
