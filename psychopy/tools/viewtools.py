@@ -280,3 +280,43 @@ def lookAt(eyePos, centerPos, upVec):
     transMat[3, :3] = -eyePos
 
     return np.matmul(transMat, rotMat)
+
+
+def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
+    """Map the position of a point in world space to normalized device
+    coordinates/space.
+
+    Parameters
+    ----------
+    wcsPos : ndarray
+        3x1 position vector (xyz) in world space coordinates
+    viewMatrix : ndarray
+        4x4 view matrix
+    projectionMatrix : ndarray
+        4x4 projection matrix
+
+    Returns
+    -------
+    ndarray
+        3x1 vector of normalized device coordinates with type 'float32'
+
+    Notes
+    -----
+    The point is not visible, falling outside of the viewing frustum if the
+    returned coordinates fall outside of -1 and 1 along any dimension.
+
+    """
+    # convert to array
+    coord = np.asarray(wcsPos, dtype=np.float32)
+    viewProjMatrix = np.zeros((4, 4), dtype=np.float32)
+    # transposing because arrays are C-order
+    np.matmul(projectionMatrix.T, viewMatrix.T, viewProjMatrix)
+
+    # convert to 4-vector with W=1.0
+    wcsVec = np.zeros((4,), dtype=np.float32)
+    wcsVec[:3] = coord
+    wcsVec[3] = 1.0
+
+    clipCoords = viewProjMatrix.dot(wcsVec)  # convert to clipping space
+
+    return clipCoords[:3] / clipCoords[3]  # xyz / w
