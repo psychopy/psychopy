@@ -1008,9 +1008,9 @@ class Window(object):
         frustum = viewtools.computeFrustum(
             self.scrWidthCM / 100.0,  # width of screen
             self.size[0] / self.size[1],  # aspect ratio
-            scrDistM,
+            scrDistM,  # distance to screen
             nearClip=self._nearClip,
-            farClip=self._farClip)  # distance to screen
+            farClip=self._farClip)
 
         self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
 
