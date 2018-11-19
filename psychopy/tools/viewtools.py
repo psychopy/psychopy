@@ -303,13 +303,15 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     Notes
     -----
     The point is not visible, falling outside of the viewing frustum, if the
-    returned coordinates fall outside of -1 and 1 along any dimension.
+    returned coordinates fall outside of -1 and 1 along any dimension. If the
+    point falls exactly on the
 
     Examples
     --------
     Determine if a point is visible::
-        point = (0.0, 0.0, 0.0)
-        x, y, z = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        point = (0.0, 0.0, 10.0)  # behind the observer
+        ndc = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        isVisible = not np.any((ndc > 1.0) | (ndc < -1.0))
 
     """
     # TODO - this would be more useful if this function accepted 3xN input too
