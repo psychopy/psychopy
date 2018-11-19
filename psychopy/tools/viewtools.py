@@ -255,7 +255,7 @@ def lookAt(eyePos, centerPos, upVec):
     Returns
     -------
     ndarray
-        4x4 projection matrix
+        4x4 view matrix
 
     """
     eyePos = np.asarray(eyePos, np.float32)
