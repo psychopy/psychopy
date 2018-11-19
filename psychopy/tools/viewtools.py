@@ -317,8 +317,12 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
         ndc = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
         isVisible = not np.any((ndc > 1.0) | (ndc < -1.0))
 
-    Convert NDC to viewport coordinates::
-
+    Convert NDC to viewport (or pixel) coordinates::
+        scrRes = (1920, 1200)
+        point = (0.0, 0.0, -5.0)  # forward -5.0 from eye
+        x, y, z = pointToNDC(point, win.viewMatrix, win.projectionMatrix)
+        pixelX = ((x + 1.0) / 2.0) * scrRes[0])
+        pixelY = ((y + 1.0) / 2.0) * scrRes[0])
 
     """
     # TODO - this would be more useful if this function accepted 3xN input too
