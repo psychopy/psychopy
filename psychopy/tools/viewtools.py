@@ -302,7 +302,7 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
 
     Notes
     -----
-    The point is not visible, falling outside of the viewing frustum if the
+    The point is not visible, falling outside of the viewing frustum, if the
     returned coordinates fall outside of -1 and 1 along any dimension.
 
     """
