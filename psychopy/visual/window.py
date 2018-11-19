@@ -956,7 +956,7 @@ class Window(object):
     def viewMatrix(self, value):
         self._viewMatrix = numpy.asarray(value, numpy.float32)
 
-    def setPerspectiveView(self, clearDepth=True, computeOnly=False):
+    def setPerspectiveView(self, clearDepth=True, applyTransform=True):
         """Set the projection and view matrix to render with perspective.
         Matrices are computed using values specified in the monitor
         configuration with the scene origin on the screen plane. Calculations
@@ -970,9 +970,9 @@ class Window(object):
         clearDepth : bool
             Clear the depth buffer. This may be required prior to rendering 3D
             objects.
-        computeOnly : bool
-            Compute the matrices without multiplying them into their respective
-            matrix stacks.
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling 'applyEyeTransform' afterwards.
 
         Returns
         -------
@@ -995,27 +995,16 @@ class Window(object):
         numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
         self._viewMatrix[3, 2] = -scrDistM  # displace scene away from viewer
 
-        if not computeOnly:
-            # needed here?
-            GL.glViewport(0, 0, self.size[0], self.size[1])
-            GL.glScissor(0, 0, self.size[0], self.size[1])
-
-            # apply the projection and view transformations
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            projMat = self._projectionMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultMatrixf(projMat)
-
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glLoadIdentity()
-            viewMat = self._viewMatrix.ctypes.data_as(
-                ctypes.POINTER(ctypes.c_float))
-            GL.glMultMatrixf(viewMat)
+        if applyTransform:
+            self.applyEyeTransform()
 
         if clearDepth:
             GL.glDepthMask(GL.GL_TRUE)
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+    def setOrthoView(self):
+        """"""
+        pass
 
     def setDefaultView(self, clearDepth=True):
         """Restore the default projection and view settings.
@@ -1040,6 +1029,26 @@ class Window(object):
 
         if clearDepth:
             GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+    def applyEyeTransform(self):
+        """Apply the current view and projection matrices.
+
+        """
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
+
+        # apply the projection and view transformations
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        projMat = self._projectionMatrix.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glMultMatrixf(projMat)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+        viewMat = self._viewMatrix.ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glMultMatrixf(viewMat)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
