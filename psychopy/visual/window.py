@@ -968,7 +968,7 @@ class Window(object):
 
     @projectionMatrix.setter
     def projectionMatrix(self, value):
-        self._projectionMatrix = numpy.asarray(value, numpy.float32)
+        self._projectionMatrix = numpy.asarray(value, numpy.float32, order='F')
 
     @property
     def viewMatrix(self):
@@ -977,7 +977,7 @@ class Window(object):
 
     @viewMatrix.setter
     def viewMatrix(self, value):
-        self._viewMatrix = numpy.asarray(value, numpy.float32)
+        self._viewMatrix = numpy.asarray(value, numpy.float32, order='F')
 
     def setPerspectiveView(self, applyTransform=True, **kwargs):
         """Set the projection and view matrix to render with perspective.
@@ -1012,12 +1012,13 @@ class Window(object):
             nearClip=self._nearClip,
             farClip=self._farClip)
 
-        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+        self.projectionMatrix = \
+            viewtools.perspectiveProjectionMatrix(*frustum)
 
         # translate away from screen
-        self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32)
+        self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32, order='F')
         numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
-        self._viewMatrix[3, 2] = -scrDistM  # displace scene away from viewer
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
 
         if applyTransform:
             self.applyEyeTransform(**kwargs)
