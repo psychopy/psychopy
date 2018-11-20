@@ -46,3 +46,4 @@ if 'installing' not in locals():
         sys.path.append(pathName)
     
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+

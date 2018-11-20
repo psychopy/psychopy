@@ -1578,7 +1578,11 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
         self.fileHistory.AddFileToHistory(filename)
         self.htmlPath = None  # so we won't accidentally save to other html exp
-        self.project = pavlovia.getProject(filename)
+        try:
+            self.project = pavlovia.getProject(filename)
+        except Exception as e:  # failed for
+            self.project = None
+            print(e)
 
     def fileSave(self, event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -1611,7 +1615,6 @@ class BuilderFrame(wx.Frame):
             filename = self.filename
         initPath, filename = os.path.split(filename)
 
-        os.getcwd()
         _w = "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
         if sys.platform != 'darwin':
             _w += '.*'
@@ -2269,10 +2272,12 @@ class BuilderFrame(wx.Frame):
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):
             self.fileSave()
-            pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia_ui.syncProject(parent=self, project=self.project,
+                                    closeFrameWhenDone=False)
         elif self._getExportPref('on sync'):
             self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-            pavlovia_ui.syncProject(parent=self, project=self.project)
+            pavlovia_ui.syncProject(parent=self, project=self.project,
+                                    closeFrameWhenDone=False)
         elif self._getExportPref('manually'):
             # Check htmlpath and projects exists
             noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
@@ -2280,7 +2285,8 @@ class BuilderFrame(wx.Frame):
             if noHtmlFolder:
                 self.fileExport()
             if noProject or noHtmlFolder:
-                pavlovia_ui.syncProject(parent=self, project=self.project)
+                pavlovia_ui.syncProject(parent=self, project=self.project,
+                                    closeFrameWhenDone=False)
 
         if self.project:
             self.project.pavloviaStatus = 'ACTIVATED'

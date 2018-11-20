@@ -8,8 +8,9 @@
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 from future.builtins import object
-import glob
-import os, time, socket
+import glob, copy
+import sys, os, time, socket
+from os.path import abspath, join
 import traceback
 import subprocess
 
@@ -67,6 +68,16 @@ permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
 
 MISSING_REMOTE = -1
 OK = 1
+
+# find a copy of git if possible to do push/pull as needed
+# the pure-python dulwich lib can do everything else but merged push/pull
+# isn't currently possible (e.g. pull overwrites any local commits!)
+# see https://github.com/dulwich/dulwich/issues/666
+_environ = copy.copy(os.environ)
+_osxStandalone = abspath(join(sys.executable, '..', '..', 'Resources'))
+for p in [_osxStandalone]:
+    if os.path.exists(p):
+        _environ["PATH"] = "{}:".format(p) + _environ["PATH"]
 
 
 def getAuthURL():
@@ -321,7 +332,6 @@ class PavloviaSession:
             if 'has already been taken' in str(e.error_message):
                 gitlabProj = "{}/{}".format(namespace, name)
             else:
-                print('something bad happended!')
                 raise e
         pavProject = PavloviaProject(gitlabProj, localRoot=localRoot)
         return pavProject
@@ -668,17 +678,27 @@ class PavloviaProject(dict):
             infoStream.write("\nPulling changes from remote...")
 
         try:
-            git.pull(self.repo,
-                     self.remoteWithToken,
-                     outstream=infoStream,
-                     errstream=infoStream)
-        except Exception as e:
+            out = subprocess.check_output(
+                    ['git', 'pull', self.remoteWithToken, 'master'],
+                    cwd=self.localRoot, env=_environ)
+            if out:
+                infoStream.write("\n{}".format(out))
+        except subprocess.CalledProcessError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
                 # we are pointing to a project at pavlovia but it doesn't exist
                 # suggest we create it
                 logging.warning("Project not found on gitlab.pavlovia.org")
                 return MISSING_REMOTE
+            elif 'exit status 1.' in str(e):
+                pass  # this seems to happen on MacOS anyway!
+            elif hasattr(e, 'stdout'):
+                if e.stdout:
+                    print('GitPull_stdout:', e.stdout)
+                if e.stderr:
+                    print('GitPull_stderr:', e.stderr)
+                print(e)
+                return -2
             else:
                 raise e
 
@@ -702,17 +722,25 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPushing changes to remote...")
         try:
-            git.push(self.repo,
-                     self.remoteWithToken,
-                     b'master',
-                     outstream=infoStream, errstream=infoStream)
-        except Exception as e:
+            out = subprocess.check_output(
+                    ['git', 'push', self.remoteWithToken, 'master'],
+                    cwd=self.localRoot, env=_environ)
+            if out:
+                infoStream.write("\n{}".format(out))
+        except subprocess.CalledProcessError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
                 # we are pointing to a project at pavlovia but it doesn't exist
                 # suggest we create it
                 logging.warning("Project not found on gitlab.pavlovia.org")
                 return MISSING_REMOTE
+            elif hasattr(e, 'stdout'):
+                if e.stdout:
+                    print('GitPush_stdout:', e.stdout)
+                if e.stderr:
+                    print('GitPush_stderr:', e.stderr)
+                print(e)
+                return -2
             else:
                 raise e
         logging.debug('push complete: {}'.format(self.remoteHTTPS))
