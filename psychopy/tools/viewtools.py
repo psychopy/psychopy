@@ -113,8 +113,8 @@ def generalizedPerspectiveProjection(posBottomLeft,
     Notes
     -----
     The resulting projection frustums are off-axis relative to the center of the
-    display. The returned matrices are row-major. Values floats with 32-bits of
-    precision stored as a contiguous (C-order) array.
+    display. The returned matrices are row-major. Values are floats with 32-bits
+    of precision stored as a contiguous (C-order) array.
 
     """
     # convert everything to numpy arrays
@@ -187,8 +187,8 @@ def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
 
     Notes
     -----
-    The returned matrix is row-major. Values floats with 32-bits of precision
-    stored as a contiguous (C-order) array.
+    The returned matrix is row-major. Values are floats with 32-bits of
+    precision stored as a contiguous (C-order) array.
 
     """
     projMat = np.zeros((4, 4), np.float32)
@@ -229,8 +229,8 @@ def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
 
     Notes
     -----
-    The returned matrix is row-major. Values floats with 32-bits of precision
-    stored as a contiguous (C-order) array.
+    The returned matrix is row-major. Values are floats with 32-bits of
+    precision stored as a contiguous (C-order) array.
 
     """
     projMat = np.zeros((4, 4), np.float32)
@@ -269,8 +269,8 @@ def lookAt(eyePos, centerPos, upVec):
 
     Notes
     -----
-    The returned matrix is row-major. Values floats with 32-bits of precision
-    stored as a contiguous (C-order) array.
+    The returned matrix is row-major. Values are floats with 32-bits of
+    precision stored as a contiguous (C-order) array.
 
     """
     eyePos = np.asarray(eyePos, np.float32)
@@ -324,6 +324,9 @@ def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
     where the frustum converges to a point (singularity), the divisor will be
     zero during perspective division. To avoid this, the divisor is 'bumped' to
     machine epsilon for the 'float32' type.
+
+    This function assumes the display area is rectilinear. Any distortion or
+    warping applied in normalized device or viewport space is not considered.
 
     Examples
     --------
