@@ -17,10 +17,20 @@ import os
 from os.path import exists, join
 from sys import platform, argv, version_info
 
+# We must retrieve the current version before writing a new __init__.py file
+# further down this script. Otherwise, we get a "dirty" version number.
+import versioneer
+version = versioneer.get_version()
+
+# get version from file – not needed anymore since we now use versioneer,
+# but let's keep it here for reference in case we ever need to
+# switch back to the previous behavior.
+#
+# with open('version') as f:
+#     version = f.read().strip()
 
 PY3 = version_info >= (3, 0)
-with open('version') as f:
-    version = f.read().strip()
+
 
 #
 # Special handling for Anaconda / Miniconda
@@ -104,7 +114,8 @@ setup(name='PsychoPy',
       },
       data_files=dataFiles,
       install_requires=required,
-      version=version)
+      version=version,
+      cmdclass=versioneer.get_cmdclass())
 
 # remove unwanted info about this system post-build
 if writeNewInit:

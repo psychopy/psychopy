@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# defVersion=$(python -c 'import psychopy; print(psychopy.__version__)')
-defVersion=$(<version)  # reads from the version file
+defVersion=$(python -c 'import psychopy; print(psychopy.__version__)')
+# defVersion=$(<version)  # reads from the version file
 echo "DID YOU UPDATE THE CHANGELOG?"
 read -p "Version (def=$defVersion):" version
 version=${version:-$defVersion}

@@ -8,10 +8,13 @@ from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
 import os, copy, platform, subprocess
 thisLoc = os.path.split(__file__)[0]
-# import versioneer
-# get version from file
-with open('version') as f:
-    version = f.read().strip()
+
+# get version from file – not needed anymore since we now use versioneer,
+# but let's keep it here for reference in case we ever need to
+# switch back to the previous behavior.
+#
+# with open('version') as f:
+#     version = f.read().strip()
 
 
 def createInitFile(dist=None, version=None, sha=None):
@@ -28,11 +31,21 @@ def createInitFile(dist=None, version=None, sha=None):
     """
     # get default values if None
     if version is None:
-        with open(os.path.join(thisLoc,'version')) as f:
-            version = f.read().strip()
-    if sha is None:
-        sha = _getGitShaString(dist)
-    platformStr = _getPlatformString(dist)
+        import psychopy
+        version = psychopy.__version__
+
+        # get version from file – not needed anymore since we now use versioneer,
+        # but let's keep it here for reference in case we ever need to
+        # switch back to the previous behavior.
+        #
+        # with open(os.path.join(thisLoc,'version')) as f:
+        #     version = f.read().strip()
+
+    # if sha is None:
+    #     sha = _getGitShaString(dist)
+    # platformStr = _getPlatformString(dist)
+    sha = 'n/a'
+    platformStr = 'n/a'
 
     metadata = read_configuration('setup.cfg')['metadata']
     infoDict = {'version': version,
@@ -67,7 +80,10 @@ template = """#!/usr/bin/env python
 import os
 import sys
 
-__version__ = '{version}'
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
+
 __license__ = '{license}'
 __author__ = '{author}'
 __author_email__ = '{author_email}'
@@ -82,17 +98,17 @@ __all__ = ["gui", "misc", "visual", "core",
 
 # for developers the following allows access to the current git sha from
 # their repository
-if __git_sha__ == 'n/a':
-    import subprocess
-    # see if we're in a git repo and fetch from there
-    try:
-        thisFileLoc = os.path.split(__file__)[0]
-        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
-                                         cwd=thisFileLoc, stderr=subprocess.PIPE)
-    except Exception:
-        output = False
-    if output:
-        __git_sha__ = output.strip()  # remove final linefeed
+# if __git_sha__ == 'n/a':
+#     import subprocess
+#     # see if we're in a git repo and fetch from there
+#     try:
+#         thisFileLoc = os.path.split(__file__)[0]
+#         output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
+#                                          cwd=thisFileLoc, stderr=subprocess.PIPE)
+#     except Exception:
+#         output = False
+#     if output:
+#         __git_sha__ = output.strip()  # remove final linefeed
 
 # update preferences and the user paths
 if 'installing' not in locals():
@@ -101,59 +117,58 @@ if 'installing' not in locals():
         sys.path.append(pathName)
     
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
-
 """
 
 
-def _getGitShaString(dist=None, sha=None):
-    """If generic==True then returns empty __git_sha__ string
-    """
-    shaStr = 'n/a'
-    if dist is not None:
-        proc = subprocess.Popen('git rev-parse --short HEAD',
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                cwd='.', shell=True)
-        repo_commit, _ = proc.communicate()
-        del proc  # to get rid of the background process
-        if repo_commit:
-            shaStr = "{}".format(repo_commit.strip())
-            if shaStr.startswith("b'"):
-                shaStr = shaStr.replace("b'", "").replace("'", "")
-        else:
-            shaStr = 'n/a'
-        #this looks neater but raises errors on win32
-        #        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).split()[0]
-        #        if output:
-        #            shaStr = output
-    return shaStr
+# def _getGitShaString(dist=None, sha=None):
+#     """If generic==True then returns empty __git_sha__ string
+#     """
+#     shaStr = 'n/a'
+#     if dist is not None:
+#         proc = subprocess.Popen('git rev-parse --short HEAD',
+#                                 stdout=subprocess.PIPE,
+#                                 stderr=subprocess.PIPE,
+#                                 cwd='.', shell=True)
+#         repo_commit, _ = proc.communicate()
+#         del proc  # to get rid of the background process
+#         if repo_commit:
+#             shaStr = "{}".format(repo_commit.strip())
+#             if shaStr.startswith("b'"):
+#                 shaStr = shaStr.replace("b'", "").replace("'", "")
+#         else:
+#             shaStr = 'n/a'
+#         #this looks neater but raises errors on win32
+#         #        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).split()[0]
+#         #        if output:
+#         #            shaStr = output
+#     return shaStr
 
 
-def _getPlatformString(dist=None):
-    """If generic==True then returns empty __build_platform__ string
-    """
-    if dist=='bdist':
-        # get platform-specific info
-        if os.sys.platform == 'darwin':
-            OSXver, _, architecture = platform.mac_ver()
-            systemInfo = "OSX_%s_%s" % (OSXver, architecture)
-        elif os.sys.platform == 'linux':
-            systemInfo = '%s_%s_%s' % (
-                'Linux',
-                ':'.join([x for x in platform.dist() if x != '']),
-                platform.release())
-        elif os.sys.platform == 'win32':
-            ver=os.sys.getwindowsversion()
-            if len(ver[4])>0:
-                systemInfo = "win32_v%i.%i.%i (%s)" %(ver[0], ver[1], ver[2], ver[4])
-            else:
-                systemInfo = "win32_v%i.%i.%i" % (ver[0], ver[1], ver[2])
-        else:
-            systemInfo = platform.system() + platform.release()
-    else:
-        systemInfo = "n/a"
-
-    return systemInfo
+# def _getPlatformString(dist=None):
+#     """If generic==True then returns empty __build_platform__ string
+#     """
+#     if dist=='bdist':
+#         # get platform-specific info
+#         if os.sys.platform == 'darwin':
+#             OSXver, _, architecture = platform.mac_ver()
+#             systemInfo = "OSX_%s_%s" % (OSXver, architecture)
+#         elif os.sys.platform == 'linux':
+#             systemInfo = '%s_%s_%s' % (
+#                 'Linux',
+#                 ':'.join([x for x in platform.dist() if x != '']),
+#                 platform.release())
+#         elif os.sys.platform == 'win32':
+#             ver=os.sys.getwindowsversion()
+#             if len(ver[4])>0:
+#                 systemInfo = "win32_v%i.%i.%i (%s)" %(ver[0], ver[1], ver[2], ver[4])
+#             else:
+#                 systemInfo = "win32_v%i.%i.%i" % (ver[0], ver[1], ver[2])
+#         else:
+#             systemInfo = platform.system() + platform.release()
+#     else:
+#         systemInfo = "n/a"
+#
+#     return systemInfo
 
 
 if __name__ == "__main__":

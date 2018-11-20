@@ -35,4 +35,3 @@ prune docs/source/nonSphinx
 prune windlls
 include versioneer.py
 include psychopy/_version.py
-include version
