@@ -2558,7 +2558,7 @@ ParallelOutComponent.order:['address', 'startData', 'stopData']
 ParallelOutComponent.address.default:'0x0378'
 ParallelOutComponent.address.allowedTypes:[]
 ParallelOutComponent.address.allowedUpdates:None
-ParallelOutComponent.address.allowedVals:[u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1', u'LabJack U3']
+ParallelOutComponent.address.allowedVals:['0x0378', '0x03BC', 'LabJack U3']
 ParallelOutComponent.address.categ:Basic
 ParallelOutComponent.address.hint:Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.label:Port address
@@ -3480,7 +3480,7 @@ RatingScaleComponent.visualAnalogScale.updates:constant
 RatingScaleComponent.visualAnalogScale.val:False
 RatingScaleComponent.visualAnalogScale.valType:bool
 SettingsComponent.order:['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units', 'HTML path']
-SettingsComponent.Completed URL.default:'completedURL'
+SettingsComponent.Completed URL.default:''
 SettingsComponent.Completed URL.allowedTypes:[]
 SettingsComponent.Completed URL.allowedUpdates:None
 SettingsComponent.Completed URL.allowedVals:[]
@@ -3491,7 +3491,7 @@ SettingsComponent.Completed URL.label:Completed URL
 SettingsComponent.Completed URL.readOnly:False
 SettingsComponent.Completed URL.staticUpdater:None
 SettingsComponent.Completed URL.updates:None
-SettingsComponent.Completed URL.val:completedURL
+SettingsComponent.Completed URL.val:
 SettingsComponent.Completed URL.valType:str
 SettingsComponent.Data filename.default:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
 SettingsComponent.Data filename.allowedTypes:[]
@@ -3565,7 +3565,7 @@ SettingsComponent.HTML path.staticUpdater:None
 SettingsComponent.HTML path.updates:None
 SettingsComponent.HTML path.val:html
 SettingsComponent.HTML path.valType:str
-SettingsComponent.Incomplete URL.default:'incompleteURL'
+SettingsComponent.Incomplete URL.default:''
 SettingsComponent.Incomplete URL.allowedTypes:[]
 SettingsComponent.Incomplete URL.allowedUpdates:None
 SettingsComponent.Incomplete URL.allowedVals:[]
@@ -3576,7 +3576,7 @@ SettingsComponent.Incomplete URL.label:Incomplete URL
 SettingsComponent.Incomplete URL.readOnly:False
 SettingsComponent.Incomplete URL.staticUpdater:None
 SettingsComponent.Incomplete URL.updates:None
-SettingsComponent.Incomplete URL.val:incompleteURL
+SettingsComponent.Incomplete URL.val:
 SettingsComponent.Incomplete URL.valType:str
 SettingsComponent.JS libs.default:'packaged'
 SettingsComponent.JS libs.allowedTypes:[]
@@ -3713,7 +3713,7 @@ SettingsComponent.Units.valType:str
 SettingsComponent.Use version.default:''
 SettingsComponent.Use version.allowedTypes:[]
 SettingsComponent.Use version.allowedUpdates:None
-SettingsComponent.Use version.allowedVals:['latest', u'1', u'1.90', u'1.85', u'1.84', u'1.83', u'1.82', u'1.81', u'1.80', u'1.79', u'1.78', u'1.77', u'1.76', '', u'1.90.2', u'1.90.1', u'1.90.0', u'1.85.6', u'1.85.4', u'1.85.3', u'1.85.2', u'1.85.1', u'1.85.0', u'1.84.2', u'1.84.1', u'1.84.0', u'1.83.04', u'1.83.03', u'1.83.01', u'1.83.00', u'1.82.01', u'1.82.00', u'1.81.03', u'1.81.02', u'1.81.01', u'1.81.00', u'1.80.06', u'1.80.05', u'1.80.03', u'1.80.02', u'1.80.01', u'1.80.00', u'1.79.00', u'1.78.01', u'1.78.00', u'1.77.02', u'1.77.01', u'1.77.00', u'1.76.00']
+SettingsComponent.Use version.allowedVals:['latest', '1', '1.90', '1.85', '1.84', '1.83', '1.82', '1.81', '1.80', '1.79', '1.78', '1.77', '1.76', '', '1.90.2', '1.90.1', '1.90.0', '1.85.6', '1.85.4', '1.85.3', '1.85.2', '1.85.1', '1.85.0', '1.84.2', '1.84.1', '1.84.0', '1.83.04', '1.83.03', '1.83.01', '1.83.00', '1.82.01', '1.82.00', '1.81.03', '1.81.02', '1.81.01', '1.81.00', '1.80.06', '1.80.05', '1.80.03', '1.80.02', '1.80.01', '1.80.00', '1.79.00', '1.78.01', '1.78.00', '1.77.02', '1.77.01', '1.77.00', '1.76.00']
 SettingsComponent.Use version.categ:Basic
 SettingsComponent.Use version.hint:The version of PsychoPy to use when running the experiment.
 SettingsComponent.Use version.label:Use PsychoPy version

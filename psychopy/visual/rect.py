@@ -26,7 +26,7 @@ class Rect(BaseShapeStim):
     (New in version 1.72.00)
     """
 
-    def __init__(self, win, width=.5, height=.5, **kwargs):
+    def __init__(self, win, width=.5, height=.5, autoLog=None, **kwargs):
         """Rect accepts all input parameters, that
         `~psychopy.visual.ShapeStim` accept, except vertices and closeShape.
         """
@@ -40,6 +40,7 @@ class Rect(BaseShapeStim):
 
         self.__dict__['width'] = width
         self.__dict__['height'] = height
+        self.__dict__['autoLog'] = autoLog
         self._calcVertices()
         kwargs['closeShape'] = True  # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
