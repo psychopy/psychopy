@@ -28,7 +28,6 @@ pytest-cov
 pytest-xdist
 coveralls
 python-gitlab
-gitpython
 astunparse
 esprima
-lazy_import
+dulwich

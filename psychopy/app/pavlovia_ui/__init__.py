@@ -20,7 +20,3 @@ from .functions import *
 from .project import ProjectEditor, syncProject
 from ._base import PavloviaMiniBrowser
 from . import menu, project, search, toolbar
-
-# lazy import git
-import lazy_import
-sync = lazy_import.lazy_module("psychopy.app.pavlovia_ui.sync")
