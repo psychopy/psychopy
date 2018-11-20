@@ -158,7 +158,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     np.fill_diagonal(transMat, 1.0)
     transMat[:3, 3] = -eyePos
 
-    return projMat, np.matmul(transMat, rotMat)
+    return projMat, np.matmul(rotMat, transMat)
 
 
 def orthoProjectionMatrix(left, right, bottom, top, near, far):
