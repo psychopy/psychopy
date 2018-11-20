@@ -105,7 +105,7 @@ def login(tokenOrUsername, rememberMe=True):
     else:
         token = tokenOrUsername
     # it might still be a dict that *contains* the token
-    if type(token)==dict and 'token' in token:
+    if type(token) == dict and 'token' in token:
         token = token['token']
 
     # try actually logging in with token
@@ -148,7 +148,6 @@ class User(object):
         if gitlabData and not localData:
             if gitlabData.username in knownUsers:
                 self.data = knownUsers[gitlabData.username]
-
 
         # then try again to populate fields
         if gitlabData and not localData:
@@ -677,30 +676,19 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPulling changes from remote...")
 
-        try:
-            out = subprocess.check_output(
-                    ['git', 'pull', self.remoteWithToken, 'master'],
-                    cwd=self.localRoot, env=_environ)
-            if out:
-                infoStream.write("\n{}".format(out))
-        except subprocess.CalledProcessError as e:
-            if ("The project you were looking for could not be found" in
-                    traceback.format_exc()):
-                # we are pointing to a project at pavlovia but it doesn't exist
-                # suggest we create it
-                logging.warning("Project not found on gitlab.pavlovia.org")
-                return MISSING_REMOTE
-            elif 'exit status 1.' in str(e):
-                pass  # this seems to happen on MacOS anyway!
-            elif hasattr(e, 'stdout'):
-                if e.stdout:
-                    print('GitPull_stdout:', e.stdout)
-                if e.stderr:
-                    print('GitPull_stderr:', e.stderr)
-                print(e)
-                return -2
-            else:
-                raise e
+        proc = subprocess.Popen(['git', 'pull', self.remoteWithToken, 'master'],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                cwd=self.localRoot, env=_environ)
+        stdoutData, stderrData = proc.communicate()
+        if stdoutData:
+            if type(stdoutData) is bytes:
+                stdoutData = stdoutData.decode('utf-8')
+            infoStream.write("\n{}".format(stdoutData))
+        if stderrData:
+            if type(stderrData) is bytes:
+                stderrData = stderrData.decode('utf-8')
+            infoStream.write("\n{}".format(stderrData))
 
         logging.debug('pull complete: {}'.format(self.remoteHTTPS))
         if infoStream:
@@ -848,7 +836,7 @@ class PavloviaProject(dict):
                 errstream=infoStream,
         )
         config = repo.get_config()
-        config.set(('remote','origin'), 'url', self.remoteHTTPS)
+        config.set(('remote', 'origin'), 'url', self.remoteHTTPS)
         config.write_to_path()
         self._lastKnownSync = time.time()
         self.repo = repo
@@ -870,12 +858,12 @@ class PavloviaProject(dict):
         try:
             email = config.get(('user',), 'email')
         except KeyError:
-            config.set(('user',),'email', session.user.email)
+            config.set(('user',), 'email', session.user.email)
             needSave = True
         try:
             name = config.get(('user',), 'name')
         except KeyError:
-            config.set(('user',),'name', session.user.name)
+            config.set(('user',), 'name', session.user.name)
             needSave = True
         if needSave:
             config.write_to_path()
@@ -1058,8 +1046,8 @@ def getProject(filename):
                         if proj.pavlovia == 0:
                             logging.warning(
                                     _translate(
-                                        "We found a repository pointing to {} "
-                                        "but ") +
+                                            "We found a repository pointing to {} "
+                                            "but ") +
                                     _translate("no project was found there ("
                                                "deleted?)")
                                     .format(url))
@@ -1067,11 +1055,11 @@ def getProject(filename):
                     else:
                         logging.warning(
                                 _translate(
-                                    "We found a repository pointing to {} "
-                                    "but ") +
+                                        "We found a repository pointing to {} "
+                                        "but ") +
                                 _translate(
-                                    "no user is logged in for us to check "
-                                    "it")
+                                        "no user is logged in for us to check "
+                                        "it")
                                 .format(url))
                     return proj
         if proj == None:

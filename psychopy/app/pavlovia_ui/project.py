@@ -365,7 +365,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.parent.Raise()
 
 
-def syncProject(parent, project=None, closeFrameWhenDone = True):
+def syncProject(parent, project=None, closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
 
     Returns
@@ -447,7 +447,7 @@ def syncProject(parent, project=None, closeFrameWhenDone = True):
             closeFrameWhenDone = False
             syncFrame.syncPanel.statusAppend(traceback.format_exc())
     else:
-        # existing remote which we should clone
+        # existing remote which we should sync (or clone)
         try:
             ok = project.getRepo(syncFrame.syncPanel)
             if not ok:
@@ -459,6 +459,7 @@ def syncProject(parent, project=None, closeFrameWhenDone = True):
         outcome = showCommitDialog(parent, project)
         # 0=nothing to do, 1=OK, -1=cancelled
         if outcome == -1:  # user cancelled
+            syncFrame.Destroy()
             return -1
         try:
             status = project.sync(syncFrame.syncPanel.infoStream)
