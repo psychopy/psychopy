@@ -17,6 +17,7 @@ from psychopy.constants import PY3
 import shutil
 import hashlib
 import zipfile
+import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 
 def readTextFile(relPath):
@@ -282,12 +283,27 @@ class SettingsComponent(object):
         into a dict from a string (which can lead to errors) use this function
         :return: expInfo as a dict
         """
+        
         infoStr = self.params['Experiment info'].val.strip()
         if len(infoStr) == 0:
             return {}
         try:
-            d = eval(infoStr)
-        except SyntaxError:
+            infoDict = ast.literal_eval(infoStr)
+            # check for strings of lists: "['male','female']"
+            for key in infoDict:
+                val = infoDict[key]
+                if (hasattr(val, 'startswith')
+                        and val.startswith('[') and val.endswith(']')):
+                    try:
+                        infoDict[key] = ast.literal_eval(val)
+                    except (ValueError, SyntaxError):
+                        logging.warning("Tried and failed to parse {!r}"
+                                        "as a list of values."
+                                        .format(val))
+                elif val in ['True', 'False']:
+                    infoDict[key] = ast.literal_eval(val)
+
+        except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
             ints can't have leading zeros. We will check for those and correct them
             tests = ["{'participant':'', 'session':02}",
@@ -305,13 +321,13 @@ class SettingsComponent(object):
             # 0 or more spaces, 1-5 zeros, 0 or more digits:
             pattern = re.compile(r": *0{1,5}\d*")
             try:
-                d = eval(re.sub(pattern, entryToString, infoStr))
+                infoDict = eval(re.sub(pattern, entryToString, infoStr))
             except SyntaxError:  # still a syntax error, possibly caused by user
                 msg = ('Builder Expt: syntax error in '
                               '"Experiment info" settings (expected a dict)')
                 logging.error(msg)
                 raise AttributeError(msg)
-        return d
+        return infoDict
 
     def getType(self):
         return self.__class__.__name__
