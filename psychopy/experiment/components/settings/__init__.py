@@ -17,6 +17,7 @@ from psychopy.constants import PY3
 import shutil
 import hashlib
 import zipfile
+import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 
 def readTextFile(relPath):
@@ -260,12 +261,12 @@ class SettingsComponent(object):
                             "remote copies (http:/www.psychopy.org/js)?"),
             label="JS libs", categ='Online')
         self.params['Completed URL'] = Param(
-            'completedURL', valType='str',
+            '', valType='str',
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
                             " INSERT COMPLETION URL E.G.?"),
             label="Completed URL", categ='Online')
         self.params['Incomplete URL'] = Param(
-            'incompleteURL', valType='str',
+            '', valType='str',
             hint=_translate("Where participants are redirected if they do not complete the task\n"
                             " INSERT INCOMPLETION URL E.G.?"),
             label="Incomplete URL", categ='Online')
@@ -282,12 +283,27 @@ class SettingsComponent(object):
         into a dict from a string (which can lead to errors) use this function
         :return: expInfo as a dict
         """
+        
         infoStr = self.params['Experiment info'].val.strip()
         if len(infoStr) == 0:
             return {}
         try:
-            d = eval(infoStr)
-        except SyntaxError:
+            infoDict = ast.literal_eval(infoStr)
+            # check for strings of lists: "['male','female']"
+            for key in infoDict:
+                val = infoDict[key]
+                if (hasattr(val, 'startswith')
+                        and val.startswith('[') and val.endswith(']')):
+                    try:
+                        infoDict[key] = ast.literal_eval(val)
+                    except (ValueError, SyntaxError):
+                        logging.warning("Tried and failed to parse {!r}"
+                                        "as a list of values."
+                                        .format(val))
+                elif val in ['True', 'False']:
+                    infoDict[key] = ast.literal_eval(val)
+
+        except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
             ints can't have leading zeros. We will check for those and correct them
             tests = ["{'participant':'', 'session':02}",
@@ -305,13 +321,13 @@ class SettingsComponent(object):
             # 0 or more spaces, 1-5 zeros, 0 or more digits:
             pattern = re.compile(r": *0{1,5}\d*")
             try:
-                d = eval(re.sub(pattern, entryToString, infoStr))
+                infoDict = eval(re.sub(pattern, entryToString, infoStr))
             except SyntaxError:  # still a syntax error, possibly caused by user
                 msg = ('Builder Expt: syntax error in '
                               '"Experiment info" settings (expected a dict)')
                 logging.error(msg)
                 raise AttributeError(msg)
-        return d
+        return infoDict
 
     def getType(self):
         return self.__class__.__name__
@@ -483,11 +499,16 @@ class SettingsComponent(object):
                 "\n" % self.params)
         buff.writeIndentedLines(code)
 
-    def writeExpSetupCodeJS(self, buff):
+    def writeExpSetupCodeJS(self, buff, version):
 
         # write the code to set up experiment
         buff.setIndentLevel(0, relative=False)
         template = readTextFile("JS_setupExp.tmpl")
+        setRedirectURL = ''
+        if len(self.params['Completed URL'].val) or len(self.params['Incomplete URL'].val):
+            setRedirectURL = ("psychoJS.setRedirectUrls({completedURL}, {incompleteURL});\n"
+                              .format(completedURL=self.params['Completed URL'],
+                                      incompleteURL=self.params['Incomplete URL']))
         # check where to save data variables
         # if self.params['OSF Project ID'].val:
         #     saveType = "OSF_VIA_EXPERIMENT_SERVER"
@@ -499,12 +520,12 @@ class SettingsComponent(object):
                         params=self.params,
                         name=self.params['expName'].val,
                         loggingLevel=self.params['logging level'].val.upper(),
-                        completedURL=self.params['Completed URL'],
-                        incompleteURL=self.params['Incomplete URL'],
+                        setRedirectURL=setRedirectURL,
+                        version=version,
                         )
         buff.writeIndentedLines(code)
 
-    def writeStartCode(self, buff):
+    def writeStartCode(self, buff, version):
 
         if not PY3:
             decodingInfo = ".decode(sys.getfilesystemencoding())"
@@ -516,7 +537,8 @@ class SettingsComponent(object):
                 "{decoding}\n"
                 "os.chdir(_thisDir)\n\n"
                 "# Store info about the experiment session\n"
-                .format(decoding=decodingInfo))
+                "psychopyVersion = '{version}'\n".format(decoding=decodingInfo,
+                                                         version=version))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:
@@ -533,7 +555,8 @@ class SettingsComponent(object):
                 "if dlg.OK == False:\n    core.quit()  # user pressed cancel\n")
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
-            "expInfo['expName'] = expName\n")
+            "expInfo['expName'] = expName\n"
+            "expInfo['psychopyVersion'] = psychopyVersion")
         level = self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
