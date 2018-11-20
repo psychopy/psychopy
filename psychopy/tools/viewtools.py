@@ -24,9 +24,8 @@ def computeFrustum(scrWidth,
                    eyeOffset=0.0,
                    nearClip=0.01,
                    farClip=100.0):
-    """Calculate frustum parameters for rendering stimuli with perspective. If
-    an eye offset is provided, an asymmetric frustum is returned which can be
-    used for stereoscopic rendering.
+    """Calculate frustum parameters. If an eye offset is provided, an asymmetric
+    frustum is returned which can be used for stereoscopic rendering.
 
     Parameters
     ----------
@@ -114,7 +113,8 @@ def generalizedPerspectiveProjection(posBottomLeft,
     Notes
     -----
     The resulting projection frustums are off-axis relative to the center of the
-    display.
+    display. The returned matrices are row-major. Values floats with 32-bits of
+    precision stored as a contiguous (C-order) array.
 
     """
     # convert everything to numpy arrays
@@ -185,6 +185,11 @@ def orthoProjectionMatrix(left, right, bottom, top, near, far):
     ndarray
         4x4 projection matrix
 
+    Notes
+    -----
+    The returned matrix is row-major. Values floats with 32-bits of precision
+    stored as a contiguous (C-order) array.
+
     """
     projMat = np.zeros((4, 4), np.float32)
     projMat[0, 0] = 2.0 / (right - left)
@@ -222,6 +227,11 @@ def perspectiveProjectionMatrix(left, right, bottom, top, near, far):
     ndarray
         4x4 projection matrix
 
+    Notes
+    -----
+    The returned matrix is row-major. Values floats with 32-bits of precision
+    stored as a contiguous (C-order) array.
+
     """
     projMat = np.zeros((4, 4), np.float32)
     projMat[0, 0] = (2.0 * near) / (right - left)
@@ -256,6 +266,11 @@ def lookAt(eyePos, centerPos, upVec):
     -------
     ndarray
         4x4 view matrix
+
+    Notes
+    -----
+    The returned matrix is row-major. Values floats with 32-bits of precision
+    stored as a contiguous (C-order) array.
 
     """
     eyePos = np.asarray(eyePos, np.float32)
