@@ -29,7 +29,6 @@ except Exception:
 import keyword
 import os
 import sys
-import string
 import glob
 import io
 import threading
@@ -684,8 +683,8 @@ class CodeEditor(BaseCodeEditor):
                             attrs = self.autoCompleteDict[prevWord]['attrs']
                             # does it have known attributes?
                             if type(attrs) == list and len(attrs) >= 1:
-                                subList = [s for s in attrs if string.find(
-                                    s.lower(), currWord.lower()) != -1]
+                                subList = [s for s in attrs if
+                                    currWord.lower() in s.lower()]
                     # for objects show simple completions
                     else:  # there was no preceding '.'
                         # start trying after 2 characters
@@ -1005,7 +1004,7 @@ class CodeEditor(BaseCodeEditor):
                 for thisLine in importStatements:
                     # check what file we're importing from
                     tryImport = ALLOW_MODULE_IMPORTS
-                    words = string.split(thisLine)
+                    words = thisLine.split()
                     # don't import from files in this folder (user files)
                     for word in words:
                         if os.path.isfile(word + '.py'):

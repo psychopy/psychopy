@@ -8,8 +8,8 @@ If you also have PsychoPy materials/course then please let us know so that we ca
 .. image:: ../images/BuildingExperimentsCover_sm.jpg
     :align: right
     :width: 200px
-    :alt: PsychoPy Builder book cover
-    :target: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480
+        :alt: PsychoPy Builder book cover
+        :target: https://uk.sagepub.com/en-gb/eur/building-experiments-in-psychopy/book253480
 
 Workshops
 ---------------------------------------------------------------
@@ -42,6 +42,9 @@ Materials for Builder
         `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
 
 - The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ covering PsychoPy (some Builder info and great tutorials for Python/PsychoPy coding of experiments).
+- There's a set of tools for `teaching psychophysics using PsychoPy <https://github.com/jamesferwerda/PsychoPysics>`_
+  and a `PsychoPysics poster from VSS <https://github.com/jamesferwerda/PsychoPysics/blob/master/ferwerda18_vss_poster.key.pdf>`_.
+  Thanks `James Ferwerda <https://jamesferwerda.wordpress.com>`_
 
 Materials for Coder
 -------------------
@@ -51,13 +54,17 @@ Materials for Coder
 - Marco Bertamimi's book, `Programming Illusions for Everyone`_ is a fun way to
   learn about stimulus rendering in PsychoPy by learning how to create visual illusions
 - `Gary Lupyan <http://sapir.psych.wisc.edu/>`_ runs a class on programming
-  experiments using Python/PsychoPy and makes his lecture materials available `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
+  experiments using Python/PsychoPy and makes his lecture materials available
+  `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
 - The `GestaltReVision group (University of Leuven) <http://gestaltrevision.be>`_
-  offers a `three-day crash course to Python and PsychoPy on a IPython Notebook <http://nbviewer.ipython.org/github/gestaltrevision/python_for_visres/blob/master/index.ipynb>`_, and has lots of great information taking you from basic programming to advanced techniques.
+  offers a `three-day crash course to Python and PsychoPy on a IPython Notebook
+  <http://nbviewer.ipython.org/github/gestaltrevision/python_for_visres/blob/master/index.ipynb>`_,
+  and has lots of great information taking you from basic programming to advanced techniques.
 - Radboud University, Nijmegen also has a
   `PsychoPy programming course <https://www.socsci.ru.nl/~wilberth/nocms/psychopy/print.php>`_
 - `Programming for Psychology in Python - Vision Science <http://www.djmannion.net/programming_vision>`_
-  has lessons and screencasts on PsychoPy (Damien Mannion, UNSW Australia).
+  has lessons and screencasts on PsychoPy (by `Damien Mannion <http://www.djmannion.net/>`_, UNSW Australia).
+
 
 ---------------------------------
 

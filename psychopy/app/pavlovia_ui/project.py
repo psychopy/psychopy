@@ -365,7 +365,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.parent.Raise()
 
 
-def syncProject(parent, project=None):
+def syncProject(parent, project=None, closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
 
     Returns
@@ -374,8 +374,6 @@ def syncProject(parent, project=None):
         0 for fail
         -1 for cancel at some point in the process
     """
-    closeFrameWhenDone = True
-
 
     isCoder = hasattr(parent, 'currentDoc')
     if not project and "BuilderFrame" in repr(parent):
@@ -433,8 +431,11 @@ def syncProject(parent, project=None):
             # no local repo yet so create one
             project.newRepo(syncFrame)
         # add the local files and commit them
-        showCommitDialog(parent=parent, project=project,
-                         initMsg="First commit")
+        ok = showCommitDialog(parent=parent, project=project,
+                              initMsg="First commit")
+        if ok == -1:  # cancelled
+            syncFrame.Destroy()
+            return -1
         syncFrame.syncPanel.setStatus("Pushing files to Pavlovia")
         wx.Yield()
         time.sleep(0.001)
@@ -446,7 +447,7 @@ def syncProject(parent, project=None):
             closeFrameWhenDone = False
             syncFrame.syncPanel.statusAppend(traceback.format_exc())
     else:
-        # existing remote which we should clone
+        # existing remote which we should sync (or clone)
         try:
             ok = project.getRepo(syncFrame.syncPanel)
             if not ok:
@@ -458,9 +459,10 @@ def syncProject(parent, project=None):
         outcome = showCommitDialog(parent, project)
         # 0=nothing to do, 1=OK, -1=cancelled
         if outcome == -1:  # user cancelled
+            syncFrame.Destroy()
             return -1
         try:
-            status = project.sync(syncFrame.syncPanel)
+            status = project.sync(syncFrame.syncPanel.infoStream)
             if status == -1:
                 syncFrame.syncPanel.statusAppend("Couldn't sync")
         except Exception:  # not yet sure what errors might occur

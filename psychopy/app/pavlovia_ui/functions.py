@@ -143,7 +143,7 @@ def showCommitDialog(parent, project, initMsg=""):
     commitMsg = commitTitleCtrl.GetValue()
     if commitDescrCtrl.GetValue():
         commitMsg += "\n\n" + commitDescrCtrl.GetValue()
-    project.stageFiles(changeList)
+    #    project.stageFiles(changeList)  # in dulwich the staging occurs during getChanges
 
     project.commit(commitMsg)
     return 1

@@ -8,8 +8,9 @@
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 from future.builtins import object
-import glob
-import os, time, socket
+import glob, copy
+import sys, os, time, socket
+from os.path import abspath, join
 import traceback
 import subprocess
 
@@ -68,6 +69,16 @@ permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
 MISSING_REMOTE = -1
 OK = 1
 
+# find a copy of git if possible to do push/pull as needed
+# the pure-python dulwich lib can do everything else but merged push/pull
+# isn't currently possible (e.g. pull overwrites any local commits!)
+# see https://github.com/dulwich/dulwich/issues/666
+_environ = copy.copy(os.environ)
+_osxStandalone = abspath(join(sys.executable, '..', '..', 'Resources'))
+for p in [_osxStandalone]:
+    if os.path.exists(p):
+        _environ["PATH"] = "{}:".format(p) + _environ["PATH"]
+
 
 def getAuthURL():
     state = str(uuid4())  # create a private "state" based on uuid
@@ -94,7 +105,7 @@ def login(tokenOrUsername, rememberMe=True):
     else:
         token = tokenOrUsername
     # it might still be a dict that *contains* the token
-    if type(token)==dict and 'token' in token:
+    if type(token) == dict and 'token' in token:
         token = token['token']
 
     # try actually logging in with token
@@ -137,7 +148,6 @@ class User(object):
         if gitlabData and not localData:
             if gitlabData.username in knownUsers:
                 self.data = knownUsers[gitlabData.username]
-
 
         # then try again to populate fields
         if gitlabData and not localData:
@@ -321,7 +331,6 @@ class PavloviaSession:
             if 'has already been taken' in str(e.error_message):
                 gitlabProj = "{}/{}".format(namespace, name)
             else:
-                print('something bad happended!')
                 raise e
         pavProject = PavloviaProject(gitlabProj, localRoot=localRoot)
         return pavProject
@@ -576,7 +585,7 @@ class PavloviaProject(dict):
 
     @property
     def remoteWithToken(self):
-        """The remote for git sync using an oauth token
+        """The remote for git sync using an oauth token (always as a bytes obj)
         """
         currentSession = getCurrentSession()
         rawHTTPS = self['remoteHTTPS']
@@ -586,8 +595,10 @@ class PavloviaProject(dict):
                                       .format(currentSession.token))
         else:
             remote = None
-
+        # if remote and type(remote) != bytes:
+        #     remote = remote.encode('utf-8')
         return remote
+
     @property
     def group(self):
         if self.pavlovia:
@@ -630,12 +641,12 @@ class PavloviaProject(dict):
         # pull first then push
         t0 = time.time()
         if self.emptyRemote:  # we don't have a repo there yet to do a 1st push
-            self.firstPush()
+            self.firstPush(infoStream=infoStream)
         else:
             status = self.pull(infoStream=infoStream)
             if status == MISSING_REMOTE:
                 return -1
-            self.repo = dulwich.repo.Repo(self.localRoot)  # get a new copy of repo (
+            # self.repo = dulwich.repo.Repo(self.localRoot)
             time.sleep(0.1)
             status = self.push(infoStream=infoStream)
             if status == MISSING_REMOTE:
@@ -665,19 +676,19 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPulling changes from remote...")
 
-        try:
-            git.pull(self.repo, self.remoteWithToken,
-                     outstream=infoStream,
-                     errstream=infoStream)
-        except Exception as e:
-            if ("The project you were looking for could not be found" in
-                    traceback.format_exc()):
-                # we are pointing to a project at pavlovia but it doesn't exist
-                # suggest we create it
-                logging.warning("Project not found on gitlab.pavlovia.org")
-                return MISSING_REMOTE
-            else:
-                raise e
+        proc = subprocess.Popen(['git', 'pull', self.remoteWithToken, 'master'],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                cwd=self.localRoot, env=_environ)
+        stdoutData, stderrData = proc.communicate()
+        if stdoutData:
+            if type(stdoutData) is bytes:
+                stdoutData = stdoutData.decode('utf-8')
+            infoStream.write("\n{}".format(stdoutData))
+        if stderrData:
+            if type(stderrData) is bytes:
+                stderrData = stderrData.decode('utf-8')
+            infoStream.write("\n{}".format(stderrData))
 
         logging.debug('pull complete: {}'.format(self.remoteHTTPS))
         if infoStream:
@@ -699,15 +710,25 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPushing changes to remote...")
         try:
-            git.push(self.repo, self.remoteWithToken, 'master',
-                     outstream=infoStream, errstream=infoStream)
-        except Exception as e:
+            out = subprocess.check_output(
+                    ['git', 'push', self.remoteWithToken, 'master'],
+                    cwd=self.localRoot, env=_environ)
+            if out:
+                infoStream.write("\n{}".format(out))
+        except subprocess.CalledProcessError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
                 # we are pointing to a project at pavlovia but it doesn't exist
                 # suggest we create it
                 logging.warning("Project not found on gitlab.pavlovia.org")
                 return MISSING_REMOTE
+            elif hasattr(e, 'stdout'):
+                if e.stdout:
+                    print('GitPush_stdout:', e.stdout)
+                if e.stderr:
+                    print('GitPush_stderr:', e.stderr)
+                print(e)
+                return -2
             else:
                 raise e
         logging.debug('push complete: {}'.format(self.remoteHTTPS))
@@ -815,7 +836,7 @@ class PavloviaProject(dict):
                 errstream=infoStream,
         )
         config = repo.get_config()
-        config.set(('remote','origin'), 'url', self.remoteHTTPS)
+        config.set(('remote', 'origin'), 'url', self.remoteHTTPS)
         config.write_to_path()
         self._lastKnownSync = time.time()
         self.repo = repo
@@ -837,12 +858,12 @@ class PavloviaProject(dict):
         try:
             email = config.get(('user',), 'email')
         except KeyError:
-            config.set(('user',),'email', session.user.email)
+            config.set(('user',), 'email', session.user.email)
             needSave = True
         try:
             name = config.get(('user',), 'name')
         except KeyError:
-            config.set(('user',),'name', session.user.name)
+            config.set(('user',), 'name', session.user.name)
             needSave = True
         if needSave:
             config.write_to_path()
@@ -872,6 +893,7 @@ class PavloviaProject(dict):
         status = git.status(self.repo)
         # now to work out the type of change we need to stage the changes
         self.repo.stage(status.unstaged)
+        self.repo.stage(status.untracked)
 
         # print(status.staged)
         # print(status.unstaged)
@@ -1012,8 +1034,8 @@ def getProject(filename):
         proj = None
         config = localRepo.get_config()
         for sectionType in config:
-            if sectionType[0] == 'remote':
-                url = config.get(sectionType, 'url')
+            if sectionType[0] == b'remote':
+                url = config.get(sectionType, b'url').decode('utf-8')
                 if "gitlab.pavlovia.org/" in url:
                     namespaceName = url.split('gitlab.pavlovia.org/')[1]
                     namespaceName = namespaceName.replace('.git', '')
@@ -1024,8 +1046,8 @@ def getProject(filename):
                         if proj.pavlovia == 0:
                             logging.warning(
                                     _translate(
-                                        "We found a repository pointing to {} "
-                                        "but ") +
+                                            "We found a repository pointing to {} "
+                                            "but ") +
                                     _translate("no project was found there ("
                                                "deleted?)")
                                     .format(url))
@@ -1033,11 +1055,11 @@ def getProject(filename):
                     else:
                         logging.warning(
                                 _translate(
-                                    "We found a repository pointing to {} "
-                                    "but ") +
+                                        "We found a repository pointing to {} "
+                                        "but ") +
                                 _translate(
-                                    "no user is logged in for us to check "
-                                    "it")
+                                        "no user is logged in for us to check "
+                                        "it")
                                 .format(url))
                     return proj
         if proj == None:
