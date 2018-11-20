@@ -161,7 +161,7 @@ def generalizedPerspectiveProjection(posBottomLeft,
     return projMat, np.matmul(rotMat, transMat)
 
 
-def orthoProjectionMatrix(left, right, bottom, top, near, far):
+def orthoProjectionMatrix(left, right, bottom, top, nearClip, farClip):
     """Compute an orthographic projection matrix with provided frustum
     parameters.
 
@@ -175,9 +175,9 @@ def orthoProjectionMatrix(left, right, bottom, top, near, far):
         Bottom clipping plane coordinate.
     top : float
         Top clipping plane coordinate.
-    near : float
+    nearClip : float
         Near clipping plane distance from viewer.
-    far : float
+    farClip : float
         Far clipping plane distance from viewer.
 
     Returns
@@ -194,16 +194,16 @@ def orthoProjectionMatrix(left, right, bottom, top, near, far):
     projMat = np.zeros((4, 4), np.float32)
     projMat[0, 0] = 2.0 / (right - left)
     projMat[1, 1] = 2.0 / (top - bottom)
-    projMat[2, 2] = -2.0 / (far - near)
+    projMat[2, 2] = -2.0 / (farClip - nearClip)
     projMat[0, 3] = (right + left) / (right - left)
     projMat[1, 3] = (top + bottom) / (top - bottom)
-    projMat[2, 3] = (far + near) / (far - near)
+    projMat[2, 3] = (farClip + nearClip) / (farClip - nearClip)
     projMat[3, 3] = 1.0
 
     return projMat
 
 
-def perspectiveProjectionMatrix(left, right, bottom, top, near, far):
+def perspectiveProjectionMatrix(left, right, bottom, top, nearClip, farClip):
     """Compute an perspective projection matrix with provided frustum
     parameters. The frustum can be asymmetric.
 
@@ -217,9 +217,9 @@ def perspectiveProjectionMatrix(left, right, bottom, top, near, far):
         Bottom clipping plane coordinate.
     top : float
         Top clipping plane coordinate.
-    near : float
+    nearClip : float
         Near clipping plane distance from viewer.
-    far : float
+    farClip : float
         Far clipping plane distance from viewer.
 
     Returns
@@ -234,13 +234,13 @@ def perspectiveProjectionMatrix(left, right, bottom, top, near, far):
 
     """
     projMat = np.zeros((4, 4), np.float32)
-    projMat[0, 0] = (2.0 * near) / (right - left)
-    projMat[1, 1] = (2.0 * near) / (top - bottom)
+    projMat[0, 0] = (2.0 * nearClip) / (right - left)
+    projMat[1, 1] = (2.0 * nearClip) / (top - bottom)
     projMat[0, 2] = (right + left) / (right - left)
     projMat[1, 2] = (top + bottom) / (top - bottom)
-    projMat[2, 2] = -(far + near) / (far - near)
+    projMat[2, 2] = -(farClip + nearClip) / (farClip - nearClip)
     projMat[3, 2] = -1.0
-    projMat[2, 3] = -(2.0 * far * near) / (far - near)
+    projMat[2, 3] = -(2.0 * farClip * nearClip) / (farClip - nearClip)
 
     return projMat
 
