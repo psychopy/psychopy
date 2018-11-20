@@ -149,14 +149,14 @@ def generalizedPerspectiveProjection(posBottomLeft,
 
     # view matrix to return, first compute the rotation component
     rotMat = np.zeros((4, 4), np.float32)
-    rotMat[:3, 0] = vr
-    rotMat[:3, 1] = vu
-    rotMat[:3, 2] = vn
+    rotMat[0, :3] = vr
+    rotMat[1, :3] = vu
+    rotMat[2, :3] = vn
     rotMat[3, 3] = 1.0
 
     transMat = np.zeros((4, 4), np.float32)
     np.fill_diagonal(transMat, 1.0)
-    transMat[3, :3] = -eyePos
+    transMat[:3, 3] = -eyePos
 
     return projMat, np.matmul(transMat, rotMat)
 
@@ -190,9 +190,9 @@ def orthoProjectionMatrix(left, right, bottom, top, near, far):
     projMat[0, 0] = 2.0 / (right - left)
     projMat[1, 1] = 2.0 / (top - bottom)
     projMat[2, 2] = -2.0 / (far - near)
-    projMat[0, 3] = (right + left) / (right - left)
-    projMat[1, 3] = (top + bottom) / (top - bottom)
-    projMat[2, 3] = (far + near) / (far - near)
+    projMat[3, 0] = (right + left) / (right - left)
+    projMat[3, 1] = (top + bottom) / (top - bottom)
+    projMat[3, 2] = (far + near) / (far - near)
     projMat[3, 3] = 1.0
 
     return projMat
@@ -270,16 +270,16 @@ def lookAt(eyePos, centerPos, upVec):
     u = np.cross(s / np.linalg.norm(s), f)
 
     rotMat = np.zeros((4, 4), np.float32)
-    rotMat[:3, 0] = s
-    rotMat[:3, 1] = u
-    rotMat[:3, 2] = -f
+    rotMat[0, :3] = s
+    rotMat[1, :3] = u
+    rotMat[2, :3] = -f
     rotMat[3, 3] = 1.0
 
     transMat = np.zeros((4, 4), np.float32)
     np.fill_diagonal(transMat, 1.0)
-    transMat[3, :3] = -eyePos
+    transMat[:3, 3] = -eyePos
 
-    return np.matmul(transMat, rotMat)
+    return np.matmul(rotMat, transMat)
 
 
 def pointToNDC(wcsPos, viewMatrix, projectionMatrix):
