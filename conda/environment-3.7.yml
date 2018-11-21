@@ -15,7 +15,6 @@ dependencies:
 - freetype
 - future
 - gevent
-- gitpython
 - greenlet
 - hdf5
 - json_tricks
