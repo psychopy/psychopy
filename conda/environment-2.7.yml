@@ -10,6 +10,7 @@ dependencies:
 - cffi
 - codecov
 - coveralls
+- dulwich
 - ffmpeg
 - freetype
 - future
@@ -62,6 +63,7 @@ dependencies:
 - pip:
   - arabic_reshaper
   - https://github.com/DiffSK/configobj/archive/master.zip
+  - esprima
   - et-xmlfile
   - freetype-py
   - prompt-toolkit
