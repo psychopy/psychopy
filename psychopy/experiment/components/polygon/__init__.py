@@ -208,7 +208,7 @@ class PolygonComponent(BaseVisualComponent):
         buff.writeIndentedLines(code)
 
     def writeInitCodeJS(self, buff):
-        code = ("{name} = new Rect ({{\n"
+        code = ("{name} = new visual.Rect ({{\n"
         "  win: psychoJS.window, name: '{name}',\n"
         "  units: psychoJS.window.units,\n"
         "  width: {size}[0], height: {size}[1],\n"
