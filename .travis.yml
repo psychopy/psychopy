@@ -55,7 +55,18 @@ before_install:
 
 install:
   - python setup.py build
-  - python setup.py install
+
+  # Build & install sdist.
+  - python setup.py sdist
+  - pip install --no-deps dist/PsychoPy-*.tar.gz
+  - pip uninstall --yes psychopy
+
+  # Build & install wheel.
+  - python setup.py bdist_wheel
+  - pip install --no-deps dist/PsychoPy-*.whl
+  - pip uninstall --yes psychopy
+
+  - rm -rf build/ dist/
 
 before_script:
   - if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
