@@ -107,16 +107,29 @@ class SoundComponent(BaseComponent):
                            "    win: psychoJS.window,\n"
                            "    value: %s,\n"
                            "    secs: %s,\n"
-                           "    });\n" % (inits['name'], inits['sound'], inits['stopVal']))
+                           "    });\n" % (inits['name'],
+                                          inits['sound'],
+                                          inits['stopVal']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s);\n" % (inits))
 
     def writeRoutineStartCodeJS(self, buff):
-        if self.params['stopVal'].val in [None, 'None', '']:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s)\n"
-                                    "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
+        stopVal = self.params['stopVal'].val
+        if stopVal in ['', None, 'None']:
+            stopVal = -1
+
+        if self.params['sound'].updates == 'set every repeat':
+            buff.writeIndented("%s = new Sound({\n"
+                               "    win: psychoJS.window,\n"
+                               "    value: %s,\n"
+                               "    secs: %s,\n"
+                               "    });\n" % (self.params['name'],
+                                              self.params['sound'],
+                                              stopVal))
+        if stopVal == -1:
+            buff.writeIndentedLines("%(name)s.setVolume(%(volume)s)\n" % self.params)
         else:
-            buff.writeIndentedLines("%(name)s.setSound(%(sound)s, secs=%(stopVal)s)\n"
-                                    "%(name)s.setVolume(%(volume)s, log=False)\n" % self.params)
+            buff.writeIndentedLines("%(name)s.secs=%(stopVal)s\n"
+                                    "%(name)s.setVolume(%(volume)s)\n" % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
