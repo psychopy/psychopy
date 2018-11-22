@@ -43,6 +43,7 @@ _localized = {
     'audioDevice': _translate("audio device"),
     'flac': _translate('flac audio compression'),
     'parallelPorts': _translate("parallel ports"),
+    'qmixConfiguration': _translate("Qmix configuration"),
     'shutdownKey': _translate("shutdown key"),
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'showStartupTips': _translate("show start-up tips"),

@@ -113,6 +113,8 @@
     audioDevice = list(default=list('default'))
     # a list of parallel ports
     parallelPorts = list(default=list('0x0378', '0x03BC'))
+    # The name of the Qmix pump configuration to use
+    qmixConfiguration = string(default='qmix_config')
 
 # Settings for connections
 [connections]
