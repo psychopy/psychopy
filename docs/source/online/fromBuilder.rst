@@ -32,7 +32,7 @@ In your Experiment Settings there is an "Online" tab to control the settings.
 
 Path: When you upload your study to Pavlovia it will expect to find an 'html' folder in the root of the repository, so you want to set this up with that in mind. By default the output path will be for a folder called html next to the experiment file. So if that is in the root of the folder you sync online then you'll be good to go! Usually you would have a folder structure something like this and :ref:`sync that entire folder with pavlovia.org <pavloviaSync>`:
 
-.. figure:: image/foldersStimHTML.png
+.. figure:: /images/foldersStimHTML.png
   :alt: Folder structure with the experiment (`blockedTrials.psyexp`), a `stims` folder in which the stimuli are stored, some conditions files and an `html` folder containing the code for the study to run online.
 
 
