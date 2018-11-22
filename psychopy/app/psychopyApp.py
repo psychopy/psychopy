@@ -88,7 +88,11 @@ Options:
             if '--no-splash' in sys.argv:
                 cmd.append('--no-splash')
 
-            core.shellCall(cmd, env=dict(env, PYTHONW='True'))
+            stdout, stderr = core.shellCall(cmd,
+                                            env=dict(env, PYTHONW='True'),
+                                            stderr=True)
+            print(stdout, file=sys.stdout)
+            print(stderr, file=sys.stderr)
             sys.exit()
         else:
             start_app()
