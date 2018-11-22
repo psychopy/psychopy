@@ -54,6 +54,7 @@ before_install:
   - python -c 'import tables; print(tables.__version__)'
 
 install:
+  - git fetch --tags  # So versioneer will report a version number.
   - python setup.py build
 
   # Build & install sdist.
