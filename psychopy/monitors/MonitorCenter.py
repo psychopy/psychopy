@@ -745,17 +745,19 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor = True
 
     def onChangeScrPixHoriz(self, event):
+        this = self.currentMon.currentCalib
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixHoriz.GetValue())
-        self.currentMon.currentCalib['sizePix'][0] = newVal
+        this['sizePix'] = (newVal, this['sizePix'][1])
         self.unSavedMonitor = True
 
     def onChangeScrPixVert(self, event):
+        this = self.currentMon.currentCalib
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixVert.GetValue())
-        self.currentMon.currentCalib['sizePix'][1] = newVal
+        this['sizePix'] = (this['sizePix'][0], newVal)
         self.unSavedMonitor = True
 
     # calib callbacks

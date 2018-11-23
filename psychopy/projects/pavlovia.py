@@ -8,10 +8,8 @@
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 from future.builtins import object
-import glob, copy
-import sys, os, time, socket
-from os.path import abspath, join
-import traceback
+import glob
+import os, time, socket
 import subprocess
 
 from psychopy import logging, prefs, constants
@@ -68,16 +66,6 @@ permissions = {  # for ref see https://docs.gitlab.com/ee/user/permissions.html
 
 MISSING_REMOTE = -1
 OK = 1
-
-# find a copy of git if possible to do push/pull as needed
-# the pure-python dulwich lib can do everything else but merged push/pull
-# isn't currently possible (e.g. pull overwrites any local commits!)
-# see https://github.com/dulwich/dulwich/issues/666
-_environ = copy.copy(os.environ)
-_osxStandalone = abspath(join(sys.executable, '..', '..', 'Resources'))
-for p in [_osxStandalone]:
-    if os.path.exists(p):
-        _environ["PATH"] = "{}:".format(p) + _environ["PATH"]
 
 
 def getAuthURL():
@@ -679,16 +667,16 @@ class PavloviaProject(dict):
         proc = subprocess.Popen(['git', 'pull', self.remoteWithToken, 'master'],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                cwd=self.localRoot, env=_environ)
+                                cwd=self.localRoot, env=constants.ENVIRON)
         stdoutData, stderrData = proc.communicate()
-        if stdoutData:
-            if type(stdoutData) is bytes:
-                stdoutData = stdoutData.decode('utf-8')
-            infoStream.write("\n{}".format(stdoutData))
-        if stderrData:
-            if type(stderrData) is bytes:
-                stderrData = stderrData.decode('utf-8')
-            infoStream.write("\n{}".format(stderrData))
+        for out in [stdoutData, stderrData]:
+            if out:
+                if type(out) is bytes:
+                    out = out.decode('utf-8')
+                if infoStream:
+                    infoStream.write("\n{}".format(out))
+                else:
+                    print(out)
 
         logging.debug('pull complete: {}'.format(self.remoteHTTPS))
         if infoStream:
@@ -709,28 +697,20 @@ class PavloviaProject(dict):
         """
         if infoStream:
             infoStream.write("\nPushing changes to remote...")
-        try:
-            out = subprocess.check_output(
-                    ['git', 'push', self.remoteWithToken, 'master'],
-                    cwd=self.localRoot, env=_environ)
+
+        proc = subprocess.Popen(['git', 'push', self.remoteWithToken, 'master'],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                cwd=self.localRoot, env=constants.ENVIRON)
+        stdoutData, stderrData = proc.communicate()
+        for out in [stdoutData, stderrData]:
             if out:
-                infoStream.write("\n{}".format(out))
-        except subprocess.CalledProcessError as e:
-            if ("The project you were looking for could not be found" in
-                    traceback.format_exc()):
-                # we are pointing to a project at pavlovia but it doesn't exist
-                # suggest we create it
-                logging.warning("Project not found on gitlab.pavlovia.org")
-                return MISSING_REMOTE
-            elif hasattr(e, 'stdout'):
-                if e.stdout:
-                    print('GitPush_stdout:', e.stdout)
-                if e.stderr:
-                    print('GitPush_stderr:', e.stderr)
-                print(e)
-                return -2
-            else:
-                raise e
+                if type(out) is bytes:
+                    out = out.decode('utf-8')
+                if infoStream:
+                    infoStream.write("\n{}".format(out))
+                else:
+                    print(out)
         logging.debug('push complete: {}'.format(self.remoteHTTPS))
         if infoStream:
             infoStream.write("done")
