@@ -7,6 +7,13 @@
 from __future__ import absolute_import, print_function
 
 import os
+from psychopy.core import PY3
+
+if PY3:
+    write_mode = 'w'
+else:
+    write_mode = 'wb'
+
 
 startPath = os.getcwd()
 if os.path.split(__file__)[0]:
@@ -33,9 +40,8 @@ darwinSpec = darwinSpec.replace("'0x0378', '0x03BC'",
                                 macDevPorts)
 # Note: Darwin key-binding prefs should be given as Ctrl+Key here,
 # displayed in menus and prefs as Cmd+Key to user
-f = open('Darwin.spec', 'wb')
-f.write(darwinSpec)
-f.close()
+with open('Darwin.spec', write_mode) as f:
+    f.write(darwinSpec)
 
 # Linux and FreeBSD:
 linuxSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS',
@@ -48,17 +54,15 @@ linuxSpec = linuxSpec.replace("allowModuleImports = boolean(default='True')",
                               '')
 linuxSpec = linuxSpec.replace("'0x0378', '0x03BC'",  # parallel ports
                               "'/dev/parport0', '/dev/parport1'")
-f = open('Linux.spec', 'wb')
-f.write(linuxSpec)
-f.close()
+with open('Linux.spec', write_mode) as f:
+    f.write(linuxSpec)
 
 freeBSDSpec = linuxSpec.replace('psychopy prefs for Linux.',
                                 'psychopy prefs for FreeBSD.')
 freeBSDSpec = freeBSDSpec.replace("default='Ubuntu Mono, DejaVu Sans Mono'",
                                   "default='Palatino Linotype'")
-f = open('FreeBSD.spec', 'wb')
-f.write(freeBSDSpec)
-f.close()
+with open('FreeBSD.spec', write_mode) as f:
+    f.write(freeBSDSpec)
 
 # Windows:
 winSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS',
@@ -71,8 +75,7 @@ winSpec = winSpec.replace('integer(6,24, default=14)',
                           'integer(6,24, default=10)')
 winSpec = winSpec.replace('Ctrl+Q',
                           'Alt+F4')
-f = open('Windows.spec', 'wb')
-f.write(winSpec)
-f.close()
+with open('Windows.spec', write_mode) as f:
+    f.write(winSpec)
 
 os.chdir(startPath)
