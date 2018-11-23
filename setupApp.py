@@ -101,6 +101,7 @@ packages = ['wx', 'psychopy',
             'json_tricks',  # allows saving arrays/dates in json
             'dulwich', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
+            'pylsl', 'pygaze',
             ]
 
 if sys.version_info.major >= 3:
