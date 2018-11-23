@@ -77,6 +77,7 @@ from . import backends
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
+import psychopy.tools.viewtools as viewtools
 from .text import TextStim
 from .grating import GratingStim
 from .helpers import setColor
@@ -336,6 +337,16 @@ class Window(object):
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
 
+        # Projection and view matrices, these can be lists if multiple views are
+        # being used.
+        # NB - attribute checks needed for Rift compatibility
+        if not hasattr(self, '_viewMatrix'):
+            self._viewMatrix = numpy.zeros((4,4,), numpy.float32)
+            numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity
+
+        if not hasattr(self, '_projectionMatrix'):
+            self._projectionMatrix = viewtools.orthoProjectionMatrix(-1, 1, -1, 1, -1, 1)
+
         # set screen color
         self.__dict__['colorSpace'] = colorSpace
         if rgb is not None:
@@ -394,6 +405,10 @@ class Window(object):
                     winhwnds.append(self._hw_handle)
                 conn = ioHubConnection.ACTIVE_CONNECTION
                 conn.registerWindowHandles(*winhwnds)
+
+        # near and far clipping planes
+        self._nearClip = 0.1
+        self._farClip = 100.0
 
         # check whether shaders are supported
         # also will need to check for ARB_float extension,
@@ -684,6 +699,7 @@ class Window(object):
             thisStim.draw()
 
         flipThisFrame = self._startOfFlip()
+        self.resetEyeTransform(False)  # reset transformations
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
@@ -924,6 +940,151 @@ class Window(object):
         """
         # reset returned buffer for next frame
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+    @property
+    def nearClip(self):
+        """Distance to the near clipping plane in meters."""
+        # internally stored as meters, but PsychoPy uses centimeters elsewhere
+        # so let's keep that consistent.
+        return self._nearClip
+
+    @nearClip.setter
+    def nearClip(self, value):
+        self._nearClip = value
+
+    @property
+    def farClip(self):
+        """Distance to the far clipping plane in meters."""
+        return self._farClip
+
+    @farClip.setter
+    def farClip(self, value):
+        self._farClip = value
+
+    @property
+    def projectionMatrix(self):
+        """Projection matrix defined as a 4x4 numpy array."""
+        return self._projectionMatrix
+
+    @projectionMatrix.setter
+    def projectionMatrix(self, value):
+        self._projectionMatrix = numpy.asarray(value, numpy.float32)
+
+    @property
+    def viewMatrix(self):
+        """View matrix defined as a 4x4 numpy array."""
+        return self._viewMatrix
+
+    @viewMatrix.setter
+    def viewMatrix(self, value):
+        self._viewMatrix = numpy.asarray(value, numpy.float32)
+
+    def setPerspectiveView(self, applyTransform=True, **kwargs):
+        """Set the projection and view matrix to render with perspective.
+        Matrices are computed using values specified in the monitor
+        configuration with the scene origin on the screen plane. Calculations
+        assume units are in meters.
+
+        Note that the values of 'projectionMatrix' and 'viewMatrix' will be
+        replaced when calling this function.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling 'applyEyeTransform' afterwards.
+        **kwargs
+            Additional arguments to pass to 'applyEyeTransform()'
+
+        Returns
+        -------
+        None
+
+        """
+        # NB - we should eventually compute these matrices lazily since they may
+        # not change over the course of an experiment under most circumstances.
+        #
+        scrDistM = self.scrDistCM / 100.0
+        frustum = viewtools.computeFrustum(
+            self.scrWidthCM / 100.0,  # width of screen
+            self.size[0] / self.size[1],  # aspect ratio
+            scrDistM,  # distance to screen
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = viewtools.perspectiveProjectionMatrix(*frustum)
+
+        # translate away from screen
+        self._viewMatrix = numpy.zeros((4, 4), dtype=numpy.float32)
+        numpy.fill_diagonal(self._viewMatrix, 1.0)  # identity matrix
+        self._viewMatrix[2, 3] = -scrDistM  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(**kwargs)
+
+    def applyEyeTransform(self, clearDepth=True):
+        """Apply the current view and projection matrices specified by
+        'viewMatrix' and 'projectionMatrix' using 'immediate mode' OpenGL.
+        Subsequent drawing operations will be affected until 'flip()' is called.
+
+        All transformations in GL_PROJECTION and GL_MODELVIEW matrix stacks will
+        be cleared (set to identity) prior to applying.
+
+        Parameters
+        ----------
+        clearDepth : bool
+            Clear the depth buffer. This may be required prior to rendering 3D
+            objects.
+
+        """
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
+
+        # apply the projection and view transformations
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        projMat = numpy.asfortranarray(self._projectionMatrix).ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glMultMatrixf(projMat)
+
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+        viewMat = numpy.asfortranarray(self._viewMatrix).ctypes.data_as(
+            ctypes.POINTER(ctypes.c_float))
+        GL.glMultMatrixf(viewMat)
+
+        if clearDepth:
+            #GL.glDepthMask(GL.GL_TRUE)
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
+
+    def resetEyeTransform(self, clearDepth=True):
+        """Restore the default projection and view settings to PsychoPy
+        defaults. Call this prior to drawing 2D stimuli objects (i.e.
+        GratingStim, ImageStim, Rect, etc.) if any eye transformations were
+        applied for the stimuli to be drawn correctly.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        Calling 'flip()' automatically resets the view and projection to
+        defaults. So you don't need to call this unless you are mixing views.
+
+        """
+        # should eventually have the same effect as calling _onResize(), so we
+        # need to add the retina mode stuff eventually
+        GL.glViewport(0, 0, self.size[0], self.size[1])
+        GL.glScissor(0, 0, self.size[0], self.size[1])
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
+        if clearDepth:
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
 
     def getMovieFrame(self, buffer='front'):
         """Capture the current Window as an image.
